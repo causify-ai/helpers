@@ -607,7 +607,7 @@ def dassert_eq_all(
 
 
 def _get_first_type(obj: Iterable, tag: str) -> Type:
-    obj_types = set(type(v) for v in obj)
+    obj_types = {type(v) for v in obj}
     dassert_eq(
         len(obj_types),
         1,
@@ -850,16 +850,18 @@ def dassert_file_extension(
     )
 
 
-def dassert_is_path_abs(
-    path: str, only_warning: bool = False
-) -> None:
+def dassert_is_path_abs(path: str, only_warning: bool = False) -> None:
     """
     Assert that `path` is an absolute path.
     """
     dassert_isinstance(path, str)
     dassert_ne(path, "")
-    dassert(os.path.isabs(path), "Path '%s' is not absolute", path,
-        only_warning=only_warning)
+    dassert(
+        os.path.isabs(path),
+        "Path '%s' is not absolute",
+        path,
+        only_warning=only_warning,
+    )
 
 
 def dassert_related_params(
@@ -887,10 +889,7 @@ def dassert_related_params(
         one_is_non_null = functools.reduce(lambda x, y: x or y, is_non_null)
         for k, v in params.items():
             if bool(v) != one_is_non_null:
-                txt = (
-                    "All or none parameter should be non-null:\n%s=%s\nparams=%s\n"
-                    % (k, v, pprint.pformat(params))
-                )
+                txt = f"All or none parameter should be non-null:\n{k}={v}\nparams={pprint.pformat(params)}\n"
                 _dfatal(txt, msg, *args, only_warning=only_warning)
     elif mode == "all_or_none_non_None":
         # Find out if at least one value is not None.
@@ -898,10 +897,7 @@ def dassert_related_params(
         one_is_non_None = functools.reduce(lambda x, y: x or y, is_non_None)
         for k, v in params.items():
             if (v is not None) != one_is_non_None:
-                txt = (
-                    "All or none parameter should be non-None:\n%s=%s\nparams=%s\n"
-                    % (k, v, pprint.pformat(params))
-                )
+                txt = f"All or none parameter should be non-None:\n{k}={v}\nparams={pprint.pformat(params)}\n"
                 _dfatal(txt, msg, *args, only_warning=only_warning)
     else:
         raise ValueError(f"Invalid mode='{mode}'")

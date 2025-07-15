@@ -625,7 +625,7 @@ def read_google_file(
                     "Tab with name '%s' not found in the spreadsheet.", tab_name
                 )
                 raise RuntimeError(
-                    "Tab with name '%s' not found in the spreadsheet." % tab_name
+                    f"Tab with name '{tab_name}' not found in the spreadsheet."
                 )
         data = worksheet.get_all_records()
         if not data:

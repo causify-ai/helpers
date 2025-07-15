@@ -92,7 +92,6 @@ def pytest_clean(dir_name: str, preview: bool = False) -> None:
 
 
 class JUnitReporter:
-
     def __init__(self, xml_file: str):
         self.xml_file = xml_file
         self.xml_data = None
@@ -154,7 +153,8 @@ class JUnitReporter:
             print(hprint.color_highlight(f"Test: {suite.name}", "bold"))
             print(
                 hprint.color_highlight(
-                    f"Timestamp: {getattr(suite, 'timestamp', 'Unknown')}", "bold"
+                    f"Timestamp: {getattr(suite, 'timestamp', 'Unknown')}",
+                    "bold",
                 )
             )
             print(hprint.color_highlight("-" * 70, "blue"))
@@ -243,7 +243,9 @@ class JUnitReporter:
         # Print summary.
         print(f"\n{hprint.color_highlight('=' * 70, 'bold')}")
         print(
-            hprint.color_highlight(f"Summary: {summary_text} {time_text}", "INFO")
+            hprint.color_highlight(
+                f"Summary: {summary_text} {time_text}", "INFO"
+            )
         )
         print(hprint.color_highlight(f"Result: {status_indicator}", "INFO"))
 

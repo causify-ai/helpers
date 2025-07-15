@@ -150,7 +150,9 @@ def _build_run_command_line(
     timeout_in_sec = _TEST_TIMEOUTS_IN_SECS[test_list_name]
     # Detect if we are running on a CK dev server / inside CI
     # or a laptop outside the CK infra.
-    is_outside_ck_infra = not hserver.is_dev_csfy() and not hserver.is_inside_ci()
+    is_outside_ck_infra = (
+        not hserver.is_dev_csfy() and not hserver.is_inside_ci()
+    )
     if is_outside_ck_infra:
         timeout_multiplier = 10
         _LOG.warning(
@@ -413,7 +415,9 @@ def _get_custom_marker(
     """
     # If we are running outside the CK server / CI, tests requiring CK infra
     # should be automatically skipped.
-    is_outside_ck_infra = not hserver.is_dev_csfy() and not hserver.is_inside_ci()
+    is_outside_ck_infra = (
+        not hserver.is_dev_csfy() and not hserver.is_inside_ci()
+    )
     # Skip tests that requires CK infra.
     if is_outside_ck_infra:
         _LOG.warning(
@@ -1440,7 +1444,7 @@ def _get_invoke_cmd_line(target: str, opts: str, pytest_opts: str) -> str:
     if opts:
         cmd.append(opts)
     if pytest_opts:
-        cmd.append("--pytest-opts %s" % pytest_opts)
+        cmd.append("--pytest-opts " + pytest_opts)
     cmd.append("2>&1")
     return " ".join(cmd)
 
@@ -1468,7 +1472,7 @@ def pytest_buildmeister_check(ctx, print_output=False):  # type: ignore
         cmd = f"rm -rf {log_file}"
         _run(cmd)
     log_file = "bm.log.txt"
-    cmd = 'cat $(find . -name "bm.log*.txt" | sort) >%s' % log_file
+    cmd = 'cat $(find . -name "bm.log*.txt" | sort) >' + log_file
     _run(cmd)
     #
     if print_output:

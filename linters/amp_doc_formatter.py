@@ -205,7 +205,7 @@ class _DocFormatter(liaction.Action):
         updated_lines: List[str] = []
         restored_ids = []
         for line in lines:
-            match = re.findall(r"IDSKIP(\d)", line)
+            match = re.findall(r"IDSKIP(\d+)", line)
             if match:
                 # Get the id of the removed code block.
                 skipped_id = match[0]
@@ -255,13 +255,10 @@ class _DocFormatter(liaction.Action):
             for start_idx in idxs_docstrings_with_unbalanced_backticks:
                 output.append(
                     f"{file_name}:{start_idx}: Found unbalanced triple backticks; "
-                    f"make sure both opening and closing backticks are the leftmost"
-                    f" element of their line"
+                    "make sure both opening and closing backticks are the leftmost"
+                    " element of their line"
                 )
         return output
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -396,9 +393,6 @@ class _Pydocstyle(liaction.Action):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # _Pyment
 # #############################################################################
 
@@ -434,9 +428,6 @@ class _Pyment(liaction.Action):
         output: List[str]
         _, output = liutils.tee(cmd, self._executable, abort_on_error=False)
         return output
-
-
-# #############################################################################
 
 
 # #############################################################################

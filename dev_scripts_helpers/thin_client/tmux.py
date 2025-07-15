@@ -5,6 +5,14 @@ Check whether a tmux session exists and, if not, creates it.
 
 import logging
 import os
+import sys
+
+real_path = os.path.realpath(__file__)
+dir_name = os.path.dirname(real_path)
+assert os.path.exists(
+    os.path.join(dir_name, "thin_client_utils.py")
+), "Can't find thin_client_utils.py"
+sys.path.append(dir_name)
 
 # This can be imported because this module is in the same dir as the script
 # being executed.

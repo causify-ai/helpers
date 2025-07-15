@@ -8,7 +8,12 @@ This is the `helpers` repository - a foundational Python library providing utili
 
 ### Core Structure
 
-- **`helpers/`** - Core utility modules (hdbg, hio, hpandas, etc.) following `h<name>` naming convention. Each module provides focused functionality (debugging, I/O, pandas extensions, etc.)
+- **`helpers/`** - Core utility modules (65+ modules) following `h<name>` naming convention organized into categories:
+  - **Core Infrastructure**: `hdbg`, `hio`, `hsystem`, `hserver`, `henv` - debugging, I/O, system operations
+  - **Data Processing**: `hpandas`, `hdataframe`, `hnumpy`, `hparquet`, `hcsv` - data manipulation and analysis
+  - **Testing Framework**: `hunit_test`, `hpytest`, `hcoverage`, `hplayback` - comprehensive testing utilities
+  - **External Services**: `haws`, `hs3`, `hgit`, `hdocker`, `hchatgpt`, `hllm` - cloud and tool integrations
+  - **Caching & Performance**: `hcache`, `hcache_simple`, `hjoblib`, `htimer` - performance optimization
 - **`config_root/`** - Configuration system with `Config` class and builders for hierarchical configuration management
 - **`linters/`** - Pluggable linting framework with custom linters for code quality (amp_black, amp_isort, etc.)
 - **`dev_scripts_helpers/`** - Development automation scripts organized by functionality (git, docker, documentation, etc.)
@@ -86,10 +91,11 @@ invoke git_merge_master
 
 ## Key Configuration
 
-- **`repo_config.yaml`** - Repository metadata including Docker image names, S3 buckets, GitHub settings
-- **`pytest.ini`** - Test configuration with custom markers and options
+- **`repo_config.yaml`** - Repository metadata including Docker image names, S3 buckets, GitHub settings, ECR configuration
+- **`pytest.ini`** - Test configuration with custom markers (`slow`, `superslow`, `requires_docker_in_docker`, `requires_ck_infra`) and options
+- **`pyproject.toml`** - Ruff linting configuration (line length 81, Python 3.11 target) and Fixit settings
 - **`mypy.ini`** - Type checking configuration with library-specific ignore rules
-- **`invoke.yaml`** - Invoke task configuration
+- **`invoke.yaml`** - Invoke task configuration (auto_dash_names: false, echo: true)
 
 ## Development Patterns
 
@@ -108,8 +114,11 @@ import config_root.config.config_ as crococon
 ### Testing Patterns
 - Inherit from `hunitest.TestCase` for enhanced test utilities
 - Use golden file pattern via `check_string()` method
-- Mark tests with appropriate speed markers
-- Use `pytest.mark.requires_docker_in_docker` for Docker-dependent tests
+- Mark tests with appropriate speed markers: `@pytest.mark.slow`, `@pytest.mark.superslow`
+- Use `pytest.mark.requires_docker_in_docker` for tests requiring Docker children/sibling containers
+- Use `pytest.mark.requires_ck_infra` for tests requiring CK infrastructure
+- Use `pytest.mark.no_container` for invoke target tests that run outside containers
+- Test outcomes stored in `test/outcomes/` directories following module structure
 
 ### Configuration Management
 - Use `Config` class from `config_root.config.config_` for hierarchical configs
@@ -125,3 +134,40 @@ The custom linting system in `linters/` provides:
 - Support for parallel execution via joblib
 
 When running `invoke lint`, it executes appropriate linters based on file types and applies fixes automatically where possible.
+
+## Helper Module Categories
+
+The 65+ helper modules are organized into functional categories:
+
+### Core Infrastructure & System
+- `hdbg` - Debugging with assertions, `dassert()`, and conditional logging
+- `hio` - File system operations, path utilities, directory management
+- `hsystem` - System command execution, subprocess management
+- `hserver` - Server/environment detection (local vs container vs cloud)
+- `henv` - Environment variable management and configuration
+
+### Data Processing & Analytics  
+- `hpandas` - DataFrame extensions, validation, comparison utilities
+- `hdataframe` - Additional DataFrame processing and manipulation
+- `hnumpy` - NumPy extensions and mathematical utilities
+- `hparquet` - Parquet file read/write operations
+- `hcsv` - CSV file handling with robust parsing
+
+### Development & Testing
+- `hunit_test` - Base TestCase class with golden file testing via `check_string()`
+- `hpytest` - pytest-specific helpers and test discovery
+- `hcoverage` - Code coverage collection and reporting
+- `hplayback` - Playback testing for deterministic test execution
+
+### External Services & APIs
+- `haws` - AWS service interactions and authentication
+- `hs3` - S3 bucket operations, file upload/download
+- `hgit` - Git repository operations and branch management
+- `hdocker` - Docker container management and image operations
+- `hchatgpt`, `hllm` - LLM API integrations for AI-assisted development
+
+### Caching & Performance
+- `hcache` - Advanced caching framework with persistence
+- `hcache_simple` - Simple in-memory caching utilities  
+- `hjoblib` - Parallel processing with joblib integration
+- `htimer` - Performance timing and measurement utilities

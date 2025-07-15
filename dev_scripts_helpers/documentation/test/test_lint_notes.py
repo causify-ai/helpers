@@ -6,6 +6,7 @@ import pytest
 
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -242,7 +243,7 @@ class Test_lint_notes2(hunitest.TestCase):
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self._get_text_problematic_for_prettier1()
-        act = dshdlino.prettier_on_str(txt, file_type="txt")
+        act = hdocker.prettier_on_str(txt, file_type="txt")
         exp = r"""
         - Python formatting
 
@@ -461,3 +462,41 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         output_txt = self.run_lint_notes(in_file, type_, cmd_opts)
         # Check.
         self.check_string(output_txt)
+
+
+# #############################################################################
+# Test_improve_header_and_slide_titles1
+# #############################################################################
+
+
+class Test_improve_header_and_slide_titles1(hunitest.TestCase):
+    """
+    Test the function `_improve_header_and_slide_titles`.
+    """
+
+    def helper(self, txt: str, exp: str) -> None:
+        txt = hprint.dedent(txt)
+        exp = hprint.dedent(exp)
+        act = dshdlino._improve_header_and_slide_titles(txt)
+        self.assert_equal(act, exp)
+
+    def test1(self) -> None:
+        txt = r"""
+        * ML theory
+        """
+        exp = r"""
+        * ML Theory
+        """
+        self.helper(txt, exp)
+
+    def test2(self) -> None:
+        """
+        Test the function `_improve_header_and_slide_titles`.
+        """
+        txt = r"""
+        * A map of machine learning
+        """
+        exp = r"""
+        * A Map of Machine Learning
+        """
+        self.helper(txt, exp)

@@ -183,7 +183,7 @@ def convert_info_to_string(info: Mapping) -> str:
 
 # TODO(gp): This seems the python3.9 version of `to_str`. Remove if possible.
 def to_string(var: str) -> str:
-    return """f"%s={%s}""" % (var, var)
+    return f"""f"{var}={{{var}}}"""
 
 
 # TODO(gp): @all move to hpandas
@@ -794,7 +794,7 @@ def assert_equal(
     if debug:
         for idx, key in enumerate(values.keys()):
             actual_tmp, expected_tmp = values[key]
-            tag = "%s.%s" % (idx, key)
+            tag = f"{idx}.{key}"
             _save_diff(actual_tmp, expected_tmp, tag, test_dir)
     else:
         key = "final"
@@ -1314,7 +1314,9 @@ class TestCase(unittest.TestCase):
                     # Create golden file and add it to the repo.
                     _LOG.warning("Creating the golden outcome")
                     outcome_updated = True
-                    self._check_string_update_outcome(file_name, actual, use_gzip)
+                    self._check_string_update_outcome(
+                        file_name, actual, use_gzip
+                    )
                     is_equal = None
                 else:
                     hdbg.dfatal(

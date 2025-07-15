@@ -67,7 +67,7 @@ _NO_VALUE_SPECIFIED = "__NO_VALUE_SPECIFIED__"
 
 
 def typed_get(
-    dict_: Union[Dict, "Config"],
+    dict_: Union[Dict, "Config"],  # noqa: F821
     key: Any,
     default_value: Optional[Any] = _NO_VALUE_SPECIFIED,
     *,

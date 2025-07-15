@@ -28,7 +28,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_purify_text1(hunitest.TestCase):
-
     def check_helper(self, txt: str, exp: str) -> None:
         text_purifier = huntepur.TextPurifier()
         act = text_purifier.purify_txt_from_client(txt)
@@ -59,9 +58,10 @@ class Test_purify_text1(hunitest.TestCase):
         Test that longer paths are processed before shorter ones.
         """
         txt = "/home/user/project/src/file.py"
-        with umock.patch(
-            "helpers.hgit.get_client_root"
-        ) as mock_git_root, umock.patch("os.getcwd") as mock_pwd:
+        with (
+            umock.patch("helpers.hgit.get_client_root") as mock_git_root,
+            umock.patch("os.getcwd") as mock_pwd,
+        ):
             mock_git_root.return_value = "/home/user/project"
             mock_pwd.return_value = "/home/user"
             exp = "$GIT_ROOT/src/file.py"
@@ -73,9 +73,10 @@ class Test_purify_text1(hunitest.TestCase):
         processed correctly.
         """
         txt = "/home/user/project/src/project/file.py"
-        with umock.patch(
-            "helpers.hgit.get_client_root"
-        ) as mock_git_root, umock.patch("os.getcwd") as mock_pwd:
+        with (
+            umock.patch("helpers.hgit.get_client_root") as mock_git_root,
+            umock.patch("os.getcwd") as mock_pwd,
+        ):
             mock_git_root.return_value = "/home/user/project"
             mock_pwd.return_value = "/home/user"
             exp = "$GIT_ROOT/src/project/file.py"
@@ -87,9 +88,10 @@ class Test_purify_text1(hunitest.TestCase):
         order.
         """
         txt = "/home/user/project/src/project/file.py"
-        with umock.patch(
-            "helpers.hgit.get_client_root"
-        ) as mock_git_root, umock.patch("os.getcwd") as mock_pwd:
+        with (
+            umock.patch("helpers.hgit.get_client_root") as mock_git_root,
+            umock.patch("os.getcwd") as mock_pwd,
+        ):
             mock_git_root.return_value = "/home/user/project"
             mock_pwd.return_value = "/home/user/project/src"
             exp = "$GIT_ROOT/src/project/file.py"
@@ -100,9 +102,10 @@ class Test_purify_text1(hunitest.TestCase):
         Test that paths with no matching patterns are left unchanged.
         """
         txt = "/home/user/other/file.py"
-        with umock.patch(
-            "helpers.hgit.get_client_root"
-        ) as mock_git_root, umock.patch("os.getcwd") as mock_pwd:
+        with (
+            umock.patch("helpers.hgit.get_client_root") as mock_git_root,
+            umock.patch("os.getcwd") as mock_pwd,
+        ):
             mock_git_root.return_value = "/home/user/project"
             mock_pwd.return_value = "/home/user/project/src"
             exp = "/home/user/other/file.py"
@@ -147,6 +150,41 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
         exp = txt
         self.check_helper(txt, exp)
 
+    def test11(self) -> None:
+        """
+        Test the correct order of `app` -> `amp` purification with multiple
+        import statements.
+        """
+        txt = """
+        import app.amp.helpers_root.helpers.test.test_file
+        from app.amp.helpers_root.helpers.hprint import dedent
+        import app.amp.helpers.config
+        from amp.app.helpers.config import get_config
+        import amp.app.helpers_root.config
+        """
+        exp = """
+        import helpers.test.test_file
+        from helpers.hprint import dedent
+        import helpers.config
+        from helpers.config import get_config
+        import helpers.config
+        """
+        self.check_helper(txt, exp)
+
+    def test12(self) -> None:
+        """
+        Test amp and app purification in file path strings.
+        """
+        txt = """
+        app/amp/helpers_root/helpers/test/test_file.py
+        amp/app/helpers_root/helpers/test/test_file.py
+        """
+        exp = """
+        helpers/test/test_file.py
+        helpers/test/test_file.py
+        """
+        self.check_helper(txt, exp)
+
 
 # #############################################################################
 # Test_purify_directory_paths1
@@ -154,7 +192,6 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
 
 
 class Test_purify_directory_paths1(hunitest.TestCase):
-
     def check_helper(self, input_: str, exp: str) -> None:
         text_purifier = huntepur.TextPurifier()
         act = text_purifier.purify_directory_paths(input_)
@@ -164,14 +201,16 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         """
         Test the replacement of `GIT_ROOT`.
         """
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-        ), umock.patch.dict(
-            "os.environ",
-            {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
-            clear=True,
-        ), umock.patch(
-            "os.getcwd", return_value="/home/user"
+        with (
+            umock.patch(
+                "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
+            ),
+            umock.patch.dict(
+                "os.environ",
+                {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
+                clear=True,
+            ),
+            umock.patch("os.getcwd", return_value="/home/user"),
         ):
             input_ = "/home/user/gitroot/src/subdir/file.py"
             exp = "$GIT_ROOT/src/subdir/file.py"
@@ -181,14 +220,16 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         """
         Test the replacement of `CSFY_HOST_GIT_ROOT_PATH`.
         """
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-        ), umock.patch.dict(
-            "os.environ",
-            {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
-            clear=True,
-        ), umock.patch(
-            "os.getcwd", return_value="/home/user"
+        with (
+            umock.patch(
+                "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
+            ),
+            umock.patch.dict(
+                "os.environ",
+                {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
+                clear=True,
+            ),
+            umock.patch("os.getcwd", return_value="/home/user"),
         ):
             input_ = "/home/user/csfy_host_git_root/other/file.py"
             exp = "$CSFY_HOST_GIT_ROOT_PATH/other/file.py"
@@ -198,14 +239,16 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         """
         Test the replacement of `PWD`.
         """
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
-        ), umock.patch.dict(
-            "os.environ",
-            {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
-            clear=True,
-        ), umock.patch(
-            "os.getcwd", return_value="/home/user"
+        with (
+            umock.patch(
+                "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
+            ),
+            umock.patch.dict(
+                "os.environ",
+                {"CSFY_HOST_GIT_ROOT_PATH": "/home/user/csfy_host_git_root"},
+                clear=True,
+            ),
+            umock.patch("os.getcwd", return_value="/home/user"),
         ):
             input_ = "/home/user/documents/file.py"
             exp = "$PWD/documents/file.py"
@@ -216,12 +259,16 @@ class Test_purify_directory_paths1(hunitest.TestCase):
         Test the replacement when `GIT_ROOT`, `CSFY_HOST_GIT_ROOT_PATH` and
         current working directory are the same.
         """
-        with umock.patch(
-            "helpers.hgit.get_client_root", return_value="/home/user"
-        ), umock.patch.dict(
-            "os.environ", {"CSFY_HOST_GIT_ROOT_PATH": "/home/user"}, clear=True
-        ), umock.patch(
-            "os.getcwd", return_value="/home/user"
+        with (
+            umock.patch(
+                "helpers.hgit.get_client_root", return_value="/home/user"
+            ),
+            umock.patch.dict(
+                "os.environ",
+                {"CSFY_HOST_GIT_ROOT_PATH": "/home/user"},
+                clear=True,
+            ),
+            umock.patch("os.getcwd", return_value="/home/user"),
         ):
             input_ = "/home/user/file.py"
             exp = "$GIT_ROOT/file.py"
@@ -234,7 +281,6 @@ class Test_purify_directory_paths1(hunitest.TestCase):
 
 
 class Test_purify_from_environment1(hunitest.TestCase):
-
     def check_helper(self, input_: str, exp: str) -> None:
         try:
             # Manually set a user name to test the behaviour.
@@ -279,7 +325,6 @@ class Test_purify_from_environment1(hunitest.TestCase):
 
 
 class Test_purify_amp_reference1(hunitest.TestCase):
-
     def check_helper(self, txt: str, exp: str) -> None:
         txt = hprint.dedent(txt)
         text_purifier = huntepur.TextPurifier()
@@ -414,7 +459,6 @@ class Test_purify_amp_reference1(hunitest.TestCase):
 
 
 class Test_purify_app_references1(hunitest.TestCase):
-
     def check_helper(self, txt: str, exp: str) -> None:
         text_purifier = huntepur.TextPurifier()
         act = text_purifier.purify_app_references(txt)
@@ -562,7 +606,6 @@ class Test_purify_from_env_vars(hunitest.TestCase):
 
 
 class Test_purify_object_representation1(hunitest.TestCase):
-
     def check_helper(self, txt: str, exp: str) -> None:
         txt = hprint.dedent(txt)
         text_purifier = huntepur.TextPurifier()
@@ -668,7 +711,6 @@ class Test_purify_object_representation1(hunitest.TestCase):
 
 
 class Test_purify_today_date1(hunitest.TestCase):
-
     def check_helper(self, txt: str, exp: str) -> None:
         text_purifier = huntepur.TextPurifier()
         act = text_purifier.purify_today_date(txt)
@@ -729,7 +771,6 @@ class Test_purify_today_date1(hunitest.TestCase):
 
 
 class Test_purify_white_spaces1(hunitest.TestCase):
-
     def check_helper(self, txt: str, exp: str) -> None:
         text_purifier = huntepur.TextPurifier()
         act = text_purifier.purify_white_spaces(txt)
@@ -774,7 +815,6 @@ class Test_purify_white_spaces1(hunitest.TestCase):
 
 
 class Test_purify_parquet_file_names1(hunitest.TestCase):
-
     def check_helper(self, txt: str, exp: str) -> None:
         text_purifier = huntepur.TextPurifier()
         act = text_purifier.purify_parquet_file_names(txt)
@@ -816,7 +856,6 @@ class Test_purify_parquet_file_names1(hunitest.TestCase):
 
 
 class Test_purify_helpers1(hunitest.TestCase):
-
     def check_helper(self, txt: str, exp: str) -> None:
         text_purifier = huntepur.TextPurifier()
         act = text_purifier.purify_helpers(txt)
@@ -897,7 +936,6 @@ class Test_purify_helpers1(hunitest.TestCase):
 
 
 class Test_purify_docker_image_name1(hunitest.TestCase):
-
     def test1(self) -> None:
         txt = r"""
         docker run --rm --user $(id -u):$(id -g) --workdir $GIT_ROOT --mount type=bind,source=/Users/saggese/src/helpers1,target=$GIT_ROOT tmp.latex.edb567be pdflatex -output-directory
@@ -916,7 +954,6 @@ class Test_purify_docker_image_name1(hunitest.TestCase):
 
 
 class Test_purify_line_number1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that the text is purified from line numbers correctly.
@@ -942,7 +979,6 @@ class Test_purify_line_number1(hunitest.TestCase):
 
 
 class Test_purify_file_names1(hunitest.TestCase):
-
     def check_helper(self, file_names: List[str], exp: List[str]) -> None:
         text_purifier = huntepur.TextPurifier()
         act = text_purifier.purify_file_names(file_names)

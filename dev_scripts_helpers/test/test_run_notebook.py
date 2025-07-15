@@ -60,9 +60,9 @@ def _build_multiple_configs(
     # list(params_values) = [('CL', '5T'), ('CL', '10T'), ('QM', '5T'), ('QM', '10T')]
     # ```
     params_values = itertools.product(*params_variants.values())
-    param_vars = list(
+    param_vars = [
         dict(zip(params_variants.keys(), values)) for values in params_values
-    )
+    ]
     # In the example above:
     # ```
     # param_vars = [
@@ -182,7 +182,9 @@ def run_cmd_line(
         "expected_pass=%s abort_on_error=%s", expected_pass, abort_on_error
     )
     _LOG.debug("cmd=%s", cmd)
-    rc = hsystem.system(cmd, abort_on_error=abort_on_error, suppress_output=False)
+    rc = hsystem.system(
+        cmd, abort_on_error=abort_on_error, suppress_output=False
+    )
     if expected_pass:
         self.assertEqual(rc, 0)
     else:
@@ -385,7 +387,6 @@ class TestRunNotebook2(hunitest.TestCase):
 @pytest.mark.superslow("~35 sec.")
 @pytest.mark.skip(reason="TODO(Juraj): HelpersTask21.")
 class TestRunNotebook3(hunitest.TestCase):
-
     def helper(
         self,
         fail: bool,

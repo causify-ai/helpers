@@ -1,72 +1,155 @@
 <!-- toc -->
 
-- [Notes Documentation Toolchain](#notes-documentation-toolchain)
-  * [notes_to_pdf.py](#notes_to_pdfpy)
-    + [What it does](#what-it-does)
+- [Documentation Toolchain](#documentation-toolchain)
+  * [List of Tools](#list-of-tools)
+  * [`Notes_To_Pdf.Py`](#notes_to_pdfpy)
+    + [What It Does](#what-it-does)
     + [Examples](#examples)
-  * [render_images.py](#render_imagespy)
-    + [What it does](#what-it-does-1)
+  * [`Render_Images.Py`](#render_imagespy)
+    + [What It Does](#what-it-does-1)
     + [Examples](#examples-1)
     + [Interface](#interface)
-  * [`lint_notes.py`](#lint_notespy)
-    + [What it does](#what-it-does-2)
+  * [`Lint_Notes.Py`](#lint_notespy)
+    + [What It Does](#what-it-does-2)
     + [Examples](#examples-2)
     + [Interface](#interface-1)
-  * [`extract_notebook_images.py`](#extract_notebook_imagespy)
-    + [What it does](#what-it-does-3)
+  * [`Extract_Notebook_Images.Py`](#extract_notebook_imagespy)
+    + [What It Does](#what-it-does-3)
     + [Example](#example)
     + [Interface](#interface-2)
-  * [`llm_transform.py`](#llm_transformpy)
-    + [What it does](#what-it-does-4)
+  * [`Llm_Transform.Py`](#llm_transformpy)
+    + [What It Does](#what-it-does-4)
     + [Examples](#examples-3)
     + [Interface](#interface-3)
-  * [`run_pandoc.py`](#run_pandocpy)
-    + [What it does](#what-it-does-5)
+  * [`Run_Pandoc.Py`](#run_pandocpy)
+    + [What It Does](#what-it-does-5)
     + [Example](#example-1)
     + [Interface](#interface-4)
-  * [`transform_notes.py`](#transform_notespy)
-    + [What it does](#what-it-does-6)
+  * [`Transform_Notes.Py`](#transform_notespy)
+    + [What It Does](#what-it-does-6)
     + [Examples](#examples-4)
     + [Interface](#interface-5)
-  * [`extract_headers_from_markdown.py`](#extract_headers_from_markdownpy)
-    + [What it does](#what-it-does-7)
+  * [`Extract_Headers_From_Markdown.Py`](#extract_headers_from_markdownpy)
+    + [What It Does](#what-it-does-7)
     + [Examples](#examples-5)
-  * [`dockerized_tikz_to_bitmap.py`](#dockerized_tikz_to_bitmappy)
+  * [`Dockerized_Tikz_To_Bitmap.Py`](#dockerized_tikz_to_bitmappy)
     + [Examples](#examples-6)
-  * [`dockerized_graphviz.py`](#dockerized_graphvizpy)
-    + [What it does](#what-it-does-8)
+  * [`Dockerized_Graphviz.Py`](#dockerized_graphvizpy)
+    + [What It Does](#what-it-does-8)
     + [Interface](#interface-6)
     + [Examples](#examples-7)
-  * [dockerized_latex.py](#dockerized_latexpy)
-    + [What it does](#what-it-does-9)
+  * [`Dockerized_Latex.Py`](#dockerized_latexpy)
+    + [What It Does](#what-it-does-9)
     + [Examples](#examples-8)
-  * [dockerized_mermaid.py](#dockerized_mermaidpy)
-    + [What it does](#what-it-does-10)
+  * [`Dockerized_Mermaid.Py`](#dockerized_mermaidpy)
+    + [What It Does](#what-it-does-10)
     + [Examples](#examples-9)
-  * [dockerized_pandoc.py](#dockerized_pandocpy)
-    + [What it does](#what-it-does-11)
+  * [`Dockerized_Pandoc.Py`](#dockerized_pandocpy)
+    + [What It Does](#what-it-does-11)
     + [Example](#example-2)
-  * [`dockerized_prettier.py`](#dockerized_prettierpy)
-    + [What it does](#what-it-does-12)
+  * [`Dockerized_Prettier.Py`](#dockerized_prettierpy)
+    + [What It Does](#what-it-does-12)
     + [Examples](#examples-10)
     + [Interface](#interface-7)
-  * [`save_screenshot.py`](#save_screenshotpy)
-    + [What it does](#what-it-does-13)
+  * [`Save_Screenshot.Py`](#save_screenshotpy)
+    + [What It Does](#what-it-does-13)
+  * [Useful Tools](#useful-tools)
+    + [Mermaid](#mermaid)
+    + [Graphviz](#graphviz)
+    + [Markdown](#markdown)
+    + [Pandoc](#pandoc)
+    + [Tikz](#tikz)
 
 <!-- tocstop -->
 
-# Notes Documentation Toolchain
+# Documentation Toolchain
 
-- This is a high‑level guide to the helper scripts that turn raw `.txt` notes
-  into polished PDFs, slide decks, and more.
+- This is a high‑level guide to the helper scripts that turn raw notes, slides,
+  Latex into polished PDFs, slide decks, etc.
 
+- There are several documentation workflows available:
+  - **latex**
+    - Are standard Latex code that can be converted into PDF files
+    - E.g., `//cmamp/papers`
+    - E.g.,
+      [https://github.com/causify-ai/cmamp/tree/master/papers/KaizenFlow](https://github.com/causify-ai/cmamp/tree/master/papers/KaizenFlow)
+  - **markdown**
+    - Are documentation about a repo that can be rendered through `mkdocs` and
+      published on GitHub
+    - E.g., `//helpers/docs`, `//cmamp/docs`, `//tutorials/docs`
+    - E.g.,
+      [https://github.com/causify-ai/helpers/tree/master/docs](https://github.com/causify-ai/helpers/tree/master/docs)
+    - E.g., rendered on
+      [https://causify-ai.github.io/helpers](https://causify-ai.github.io/helpers)
+  - **notes** (aka **.txt**)
+    - Are `Pandoc` markdown with some extra syntax to simplify some common
+      operations (e.g., color, comments)
+    - Are processed by `preprocess_notes.py` to be converted in `Pandoc`
+      markdown
+    - Then can be converted into PDFs and in Anki Q/A
+    - E.g., `//notes/notes/...`
+      ```
+      > vi /Users/saggese/src/notes1/notes/math.machine_learning.txt
+      ```
+  - **slides**
+    - Are the same as `notes` but we use a different extension to clarify that
+      they are rendered as slides
+    - E.g.,
+      ```
+      > ls /Users/saggese/src/notes1/MSML610
+      > vi /Users/saggese/src/notes1/lectures_source/Lesson00-Class.txt
+      ```
+    - E.g., `//notes/DATA605`
+  - **books**
+    - Are extended `Pandoc` markdown that can be rendered with `Pandoc`
+    - E.g., `//notes/books/programming_with_ai`
+      ```
+      > vi books/programming_with_ai/docs/coding-benchmark.md
+      ```
+  - **jupyter books**
 
-## notes_to_pdf.py
+## List of Tools
 
-### What it does
+- TODO(gp): Use the invoke to describe the list
+```
+> ls -1 dev_scripts_helpers/documentation/
+convert_docx_to_markdown.py
+dockerized_graphviz.py
+dockerized_latex.py
+dockerized_mermaid.py
+dockerized_pandoc.py
+dockerized_prettier.py
+dockerized_tikz_to_bitmap.py
+extract_headers_from_markdown.py
+generate_latex_sty.py
+generate_readme_index.py
+generate_script_catalog.py
+latex_abbrevs.sty
+latexdockercmd.sh
+lint_notes.py
+mkdocs
+notes_to_pdf.py
+OLD
+open_md_in_browser.sh
+open_md_on_github.sh
+pandoc.latex
+preprocess_notes.py
+publish_notes.py
+render_images.py
+replace_latex.py
+replace_latex.sh
+run_latex.sh
+run_pandoc.py
+test
+transform_notes.py
+```
 
-- Convert plain‑text notes into polished **PDF, HTML, or Beamer slides** with a
-  single command:
+## `Notes_To_Pdf.Py`
+
+### What It Does
+
+- Convert plain‑text notes into polished **PDF**, **HTML**, or **Beamer slides**
+  with a single command:
 
   ```bash
   > notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
@@ -162,7 +245,7 @@
 
   ```bash
   > notes_to_pdf.py \
-      --input MSML610/Lesson5-Theory_Statistical_learning.txt \
+      --input lectures_source/Lesson5-Theory_Statistical_learning.txt \
       --output Lesson5.pdf \
       --type slides \
       --toc_type navigation \
@@ -187,11 +270,11 @@
   > notes_to_pdf.py -i book_notes.txt -o book_notes.pdf --type pdf
   ```
 
-## render_images.py
+## `Render_Images.Py`
 
-### What it does
+### What It Does
 
-- This script auto renders figures by
+- This script auto renders figures by:
   - Detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, ...)
   - Rendering them into images calling the appropriate tool
   - Commenting them out the block
@@ -199,7 +282,7 @@
 
 - Render the images in a text file
   ```bash
-  > render_images.py -i notes/MSML610/Lesson9-Causal_inference.txt \
+  > render_images.py -i lectures_source/Lesson9-Causal_inference.txt \
       -o lesson9.images.txt --run_dockerized
   ```
 
@@ -294,87 +377,111 @@ The supported File types and code blocks are:
                           Set the logging level
   ```
 
-## `lint_notes.py`
+## `Lint_Notes.Py`
 
-### What it does
+### What It Does
 
-- Tidy up Markdown/LaTeX/txt notes by:
-  - Normalising G‑Doc artifacts
+- Tidy up notes in different formats (selected with the file extension or
+  `--type`):
+  - Markdown
+  - LaTeX
+  - Txt notes
+
+- Various preprocessing and postprocessing steps:
+  - Refreshing the Table of Contents
+  - Normalising Google Docs artifacts
   - Running Prettier
   - Fixing bullet/heading quirks
-  - Refreshing the Table of Contents
+
+###
+
+    "preprocess",
+    "prettier",
+    "postprocess",
+    "frame_chapters",
+    "refresh_toc",
 
 ### Examples
 
-- Prettify with Dockerised Prettier and TOC rebuild
+- Basic usage
+
+  ```bash
+  > lint_notes.py -i input.md -o output.md
+  ```
+
+- Process specific actions only
+  ```
+  > lint_notes.py -i input.md -o output.md --action preprocess,prettier
+  ```
+
+- Prettify with Dockerized Prettier and TOC rebuild
 
   ```bash
   > lint_notes.py -i Lesson10.md \
-       --use_dockerized_prettier \
-       --use_dockerized_markdown_toc
+      --use_dockerized_prettier \
+      --use_dockerized_markdown_toc
   ```
 
 - Custom print width and selective actions
+
   ```bash
   > lint_notes.py -i draft.txt -o tidy.txt -w 100 \
-                --action preprocess,prettier,postprocess
+      --action preprocess,prettier,postprocess
+  ```
+
+- Use in vim for inline formatting
+  ```verbatim
+  :%!lint_notes.py
   ```
 
 ### Interface
+
+```text
+> lint_notes.py -h
+usage: lint_notes.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME] [--type TYPE] [-w PRINT_WIDTH] [--use_dockerized_prettier] [--use_dockerized_markdown_toc]
+                     [--action {preprocess,prettier,postprocess,frame_chapters,refresh_toc} | --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}] [--all]
+                     [--dockerized_force_rebuild] [--dockerized_use_sudo] [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+See instructions at docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md
+
+Lint "notes" files.
+
+> lint_notes.py -i foo.md -o bar.md     --use_dockerized_prettier     --use_dockerized_markdown_toc
+
+- It can be used in vim to prettify a part of the text using stdin / stdout.
 ```
-  > notes_to_pdf.py -h
-  usage: lint_notes.py [-h] -i INPUT -o OUTPUT --type {md,tex,txt}
-                         [-w Line wrapping width for prettier]
-                         [--print-width Line wrapping width for prettier]
-                         [--use_dockerized_prettier To run Prettier in docker container]
-                         [--use_dockerized_markdown_toc To run markdown-toc in docker container]
-                         [--dockerized_force_rebuild]
-                         [-action Runs specific actions]
-                         [--dockerized_use_sudo]
-                         [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
-Usage:
+:%!lint_notes.py
+```
 
-  # Clean Markdown file using Dockerized Prettier and Markdown-TOC:
-  > lint_notes.py -i ABC.md -o XYZ.md --use_dockerized_prettier --use_dockerized_markdown_toc
+options:
+  -h, --help            show this help message and exit
+  -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                        Input file or `-` for stdin
+  -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                        Output file or `-` for stdout
+  --type TYPE
+  -w PRINT_WIDTH, --print-width PRINT_WIDTH
+  --use_dockerized_prettier
+  --use_dockerized_markdown_toc
+  --action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
+                        Actions to execute
+  --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
+                        Actions to skip
+  --all                 Run all the actions (preprocess prettier postprocess frame_chapters refresh_toc)
+  --dockerized_force_rebuild
+                        Force to rebuild the Docker container
+  --dockerized_use_sudo
+                        Use sudo inside the container
+  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                        Set the logging level
+```
 
-  # Only run Prettier and Postprocess steps (clean empty lines, restore bullet styles, adjusts code blocks):
-  > lint_notes.py -i ABC.md -o XYZ.md --action prettier postprocess
+// TODO
 
-  # Set custom line width for wrapping for a TEX file:
-  > lint_notes.py -i ABC.tex -o XYZ.tex --print-width 100
+## `Extract_Notebook_Images.Py`
 
-  # Clean LaTeX file using only Prettier:
-  > lint_notes.py -i ABC.md -o XYZ.md --type tex --use_dockerized_prettier --action prettier
-
-  # Only run Preprocess steps (remove gdoc artifacts, formats LaTeX math and fixes quotes):
-  > lint_notes.py -i ABC.md -o XYZ.md --action preprocess
-
-  # Add heading frames for aesthetics around Markdown header
-  > lint_notes.py -i ABC.md -o XYZ.md --action frame_chapters
-
-  # Generate or update the TOC Content for a file 
-  > lint_notes.py -i ABC.md -o XYZ.md --action refresh_toc --use_dockerized_markdown_toc
-
-Options:
-    -h, --help            show this help message and exit
-    -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
-                          Path to the input file
-    -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
-                          Path to the output file
-    --action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
-                          Actions to execute
-    --dockerized_force_rebuild
-                          Force to rebuild the Docker container
-    --dockerized_use_sudo
-                          Use sudo inside the container
-    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
-                          Set the logging level
-  ```
-
-## `extract_notebook_images.py`
-
-### What it does
+### What It Does
 
 - Spins up a docker container and dumps every `png/svg` output cell into a
   folder.
@@ -394,9 +501,9 @@ Options:
 
 // TODO
 
-## `llm_transform.py`
+## `Llm_Transform.Py`
 
-### What it does
+### What It Does
 
 - Apply a GPT‑style transformation (rewrite, summarise, critique code, convert
   to slides, etc.) to any text file _without_ leaving the terminal / editor.
@@ -440,9 +547,9 @@ Options:
 
 // TODO
 
-## `run_pandoc.py`
+## `Run_Pandoc.Py`
 
-### What it does
+### What It Does
 
 - Reads **Markdown** from _stdin_ or `--input` file.
 - Dispatches to a named **action** (currently only `convert_md_to_latex`).
@@ -481,9 +588,9 @@ Options:
   - Default: `INFO`
   - Meaning: Standard helper-library verbosity
 
-## `transform_notes.py`
+## `Transform_Notes.Py`
 
-### What it does
+### What It Does
 
 - Accepts a **text/Markdown** stream (file or `-`).
 - Applies a named **action** (`-a/--action`).
@@ -527,9 +634,9 @@ Options:
 
 ### Interface
 
-## `extract_headers_from_markdown.py`
+## `Extract_Headers_From_Markdown.Py`
 
-### What it does
+### What It Does
 
 - Turn a Markdown document into either:
   - A **plain list** of headers
@@ -551,7 +658,7 @@ Options:
   > vim -c "cfile headers.cfile"
   ```
 
-## `dockerized_tikz_to_bitmap.py`
+## `Dockerized_Tikz_To_Bitmap.Py`
 
 - Convert a `.tex` file containing TikZ code into a `.png` image using a Dockerized toolchain consisting of pdflatex and ImageMagick.
 
@@ -569,9 +676,9 @@ Options:
   ```
   - Any extra tokens after `--` are passed verbatim to `convert`
 
-## `dockerized_graphviz.py`
+## `Dockerized_Graphviz.Py`
 
-### What it does
+### What It Does
 
 - Converts a Graphviz `.dot` file into a `.png` image using a Dockerized
   container.
@@ -600,9 +707,9 @@ Options:
   > graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_use_sudo
   ```
 
-## dockerized_latex.py
+## `Dockerized_Latex.Py`
 
-### What it does
+### What It Does
 
 - Compiles a LaTeX `.tex` file into a PDF using `pdflatex` inside a Docker
   container.
@@ -632,9 +739,9 @@ Options:
   > latex_wrapper.py -i paper.tex -o paper.pdf --run_latex_again
   ```
 
-## dockerized_mermaid.py
+## `Dockerized_Mermaid.Py`
 
-### What it does
+### What It Does
 
 - Renders Mermaid `.mmd` or `.md` diagrams into image files using a Dockerized
   container.
@@ -666,9 +773,9 @@ Options:
   > mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_use_sudo
   ```
 
-## dockerized_pandoc.py
+## `Dockerized_Pandoc.Py`
 
-### What it does
+### What It Does
 
 - Converts documents using `pandoc` inside a Docker container
 - Supports output to Beamer slides, PDFs, and more with custom CLI flags.
@@ -699,9 +806,9 @@ Options:
   > pandoc_wrapper.py --input notes.md --output notes.pdf --dockerized_use_sudo
   ```
 
-## `dockerized_prettier.py`
+## `Dockerized_Prettier.Py`
 
-### What it does
+### What It Does
 
 - Formats text files (`.md`, `.txt`, `.tex`, etc.) using Prettier within a
   Docker container
@@ -778,10 +885,48 @@ Options:
                           Set the logging level
   ```
 
-## `save_screenshot.py`
+## `Save_Screenshot.Py`
 
-### What it does
+### What It Does
 
 1. Prompts you to select a screen region (`⌘ + Ctrl + 4`).
 2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
 3. Prints and copies the Markdown embed `<img src="path/to/file.png">`.
+
+## Useful Tools
+
+### Mermaid
+
+- To render on-line: [https://mermaid.live](https://mermaid.live)
+
+- Resources:
+  - [https://mermaid.js.org/syntax/examples.html](https://mermaid.js.org/syntax/examples.html)
+
+### Graphviz
+
+- To render on-line:
+  [https://dreampuf.github.io/GraphvizOnline](https://dreampuf.github.io/GraphvizOnline)
+
+- Resources:
+  - [https://graphviz.org/gallery/](https://graphviz.org/gallery/)
+
+### Markdown
+
+- To render on-line:
+  [https://markdownlivepreview.com/](https://markdownlivepreview.com/)
+
+### Pandoc
+
+- To render on-line: [https://pandoc.org/try/](https://pandoc.org/try/)
+
+### Tikz
+
+- To render on-line use Overleaf
+
+- Resources
+  - [https://www.overleaf.com/learn/latex/TikZ_package](https://www.overleaf.com/learn/latex/TikZ_package)
+  - [https://texample.net/](https://texample.net/)
+  - [https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php](https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php)
+  - [https://tikz.pablopie.xyz/](https://tikz.pablopie.xyz/)
+  - [https://tikzit.github.io/](https://tikzit.github.io/)
+  - [https://latexdraw.com/](https://latexdraw.com/)

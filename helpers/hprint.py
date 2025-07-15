@@ -290,7 +290,9 @@ def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
     # Find the minimum number of leading spaces.
     min_num_spaces = None
     for curr_line in txt.split("\n"):
-        _LOG.debug("min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line)
+        _LOG.debug(
+            "min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line
+        )
         # Skip empty lines.
         if curr_line.lstrip().rstrip() == "":
             _LOG.debug("  -> Skipping empty line")
@@ -370,18 +372,16 @@ def vars_to_debug_string(vars_as_str: List[str], locals_: Dict[str, Any]) -> str
 
 
 def to_object_str(obj: Any) -> str:
-    return "%s at %s" % (
-        obj.__class__.__name__,
-        hex(id(obj)),
-    )
+    class_name = str(obj.__class__.__name__)
+    hex_str = str(hex(id(obj)))
+    return f"{class_name} at {hex_str}"
 
 
 def to_object_repr(obj: Any) -> str:
-    return "<%s.%s at %s>" % (
-        obj.__class__.__module__,
-        obj.__class__.__name__,
-        hex(id(obj)),
-    )
+    class_module = str(obj.__class__.__module__)
+    class_name = str(obj.__class__.__name__)
+    hex_str = str(hex(id(obj)))
+    return f"<{class_module}.{class_name} at {hex_str}>"
 
 
 def thousand_separator(v: float) -> str:
@@ -444,7 +444,7 @@ def perc(
             ret += "%"
     elif only_fraction:
         # 4225 / 7377
-        ret = "%s / %s" % (a_str, b_str)
+        ret = f"{a_str} / {b_str}"
     else:
         # 4225 / 7377 = 57.27%
         fmt = "%s / %s = %." + str(num_digits) + "f%%"

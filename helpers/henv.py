@@ -494,7 +494,7 @@ def _get_package_info() -> Tuple[List[str], int]:
         if version.startswith("ERROR"):
             failed_imports += 1
         packages.append((lib, version))
-    txt_tmp.extend([f"{l}: {v}" for (l, v) in packages])
+    txt_tmp.extend([f"{lib}: {version}" for (lib, version) in packages])
     #
     txt = hprint.to_info("Packages", txt_tmp)
     return txt, failed_imports

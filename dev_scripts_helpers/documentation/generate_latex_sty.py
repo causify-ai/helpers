@@ -166,10 +166,10 @@ def _get_new_map() -> Dict[str, str]:
                 new_map_[r"\vvv"] = r"\vv{v}"
             elif line.startswith("\\"):
                 # \newcommand{\valpha}{\vv{\alpha}}
-                new_map_[rf"\v{line[1:]}"] = r"\vv{%s}" % line
+                new_map_[rf"\v{line[1:]}"] = rf"\vv{{{line}}}"
             else:
                 # \newcommand{\va}{\vv{a}}
-                new_map_[rf"\v{line}"] = r"\vv{%s}" % line
+                new_map_[rf"\v{line}"] = rf"\vv{{{line}}}"
 
     # Matrix.
     if True:
@@ -192,10 +192,10 @@ def _get_new_map() -> Dict[str, str]:
         for l_ in all_letters:
             if l_.startswith("\\"):
                 # \newcommand{\valpha}{\vv{\alpha}}
-                new_map_[rf"\m{l_[1:]}"] = r"\mat{%s}" % l_
+                new_map_[rf"\m{l_[1:]}"] = rf"\mat{{{l_}}}"
             else:
                 # \newcommand{\va}{\vv{a}}
-                new_map_[rf"\m{l_}"] = r"\mat{%s}" % l_
+                new_map_[rf"\m{l_}"] = rf"\mat{{{l_}}}"
     return new_map_
 
 
@@ -205,7 +205,7 @@ def generate_latex() -> None:
     map_ = _get_new_map()
     for k in sorted(map_.keys()):
         v = map_[k]
-        cmd = r"\newcommand{%s}{%s}" % (k, v)
+        cmd = rf"\newcommand{{{k}}}{{{v}}}"
         txt.append(cmd)
     #
     txt = "\n".join(txt)
@@ -241,7 +241,7 @@ def generate_mathcal() -> None:
     #
     for k in string.ascii_letters:
         # \def\calA{\mathcal{D}}
-        cmd = r"\newcommand{\cal%s}{\mathcal{%s}}" % (k, k)
+        cmd = rf"\newcommand{{\cal{k}}}{{\mathcal{{{k}}}}}"
         txt1.append(cmd)
         txt2.append(f"cal{k}")
     #

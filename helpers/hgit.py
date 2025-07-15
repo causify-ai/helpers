@@ -14,7 +14,6 @@ import string
 from typing import List, Match, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -187,6 +186,8 @@ def find_git_root(path: str = ".") -> str:
     :param path: starting file system path. Defaults to the current directory (".")
     :return: absolute path to the top-level Git repository directory
     """
+    import helpers.hio as hio
+
     path = os.path.abspath(path)
     git_root_dir = None
     while True:

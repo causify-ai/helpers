@@ -4,20 +4,18 @@ Import as:
 import helpers.hllm as hllm
 """
 
-import datetime
 import functools
-import hashlib
-import json
 import logging
 import os
 import re
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional
 
 import openai
 import pandas as pd
 import requests
 import tqdm
 
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.htimer as htimer
@@ -30,6 +28,7 @@ _LOG = logging.getLogger(__name__)
 
 # gpt-4o-mini is Openai Model, its great for most tasks.
 _MODEL = "openai/gpt-4o-mini"
+
 
 # #############################################################################
 # Update LLM cache
@@ -232,7 +231,9 @@ def _save_models_info_to_csv(
 # #############################################################################
 
 
-def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
+def _build_messages(
+    system_prompt: str, user_prompt: str
+) -> List[Dict[str, str]]:
     """
     Construct the standard messages payload for the chat API.
     """
@@ -245,19 +246,137 @@ def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]
     return ret
 
 
+# #############################################################################
+# LLMCostTracker
+# #############################################################################
+
+
+class LLMCostTracker:
+    """
+    Track the costs of LLM API calls through one of the providers.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize the class.
+        """
+        self.current_cost: float = 0.0
+
+    def end_logging_costs(self) -> None:
+        """
+        End logging costs by resetting the current cost to 0.
+        """
+        self.current_cost = 0.0
+
+    def accumulate_cost(self, cost: float) -> None:
+        """
+        Accumulate the cost.
+
+        :param cost: The cost to accumulate
+        """
+        self.current_cost += cost
+
+    def get_current_cost(self) -> float:
+        """
+        Get the current accumulated cost.
+
+        :return: The current cost
+        """
+        return self.current_cost
+
+    def calculate_cost(
+        self,
+        completion: openai.types.chat.chat_completion.ChatCompletion,
+        model: str,
+        *,
+        models_info_file: str = "",
+        provider_name: str = _PROVIDER_NAME,
+    ) -> float:
+        """
+        Calculate the cost of an API call, based on the provider.
+
+        :param completion: The completion response from API from both
+        :param model: The model used for the completion
+        :return: The calculated cost in dollars
+        """
+        prompt_tokens = completion.usage.prompt_tokens
+        completion_tokens = completion.usage.completion_tokens
+        if provider_name == "openai":
+            # Get the pricing for the selected model.
+            # TODO(gp): Use pricing from OpenAI or Openrouter API.
+            # https://openai.com/api/pricing/
+            # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
+            # Cost per 1M tokens.
+            pricing = {
+                "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
+                "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
+                "gpt-4o": {"prompt": 5, "completion": 15},
+            }
+            hdbg.dassert_in(model, pricing)
+            model_pricing = pricing[model]
+            # Calculate the cost.
+            cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
+                completion_tokens / 1e6
+            ) * model_pricing["completion"]
+        elif provider_name == "openrouter":
+            # If the model info file doesn't exist, download one.
+            if models_info_file == "":
+                models_info_file = _get_models_info_file()
+            _LOG.debug(hprint.to_str("models_info_file"))
+            if not os.path.isfile(models_info_file):
+                model_info_df = _retrieve_openrouter_model_info()
+                _save_models_info_to_csv(model_info_df, models_info_file)
+            else:
+                model_info_df = pd.read_csv(models_info_file)
+            # Extract pricing for this model.
+            hdbg.dassert_in(model, model_info_df["id"].values)
+            row = model_info_df.loc[model_info_df["id"] == model].iloc[0]
+            prompt_price = row["prompt_pricing"]
+            completion_price = row["completion_pricing"]
+            # Compute cost.
+            cost = (
+                prompt_tokens * prompt_price
+                + completion_tokens * completion_price
+            )
+        else:
+            raise ValueError(f"Unknown provider: {provider_name}")
+        _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
+        return cost
+
+
+# #############################################################################
+
+
+_LLM_COST_Tracker = LLMCostTracker()
+
+
+@hcacsimp.simple_cache(
+    write_through=True, exclude_keys=["client", "cache_mode", "cost_tracker"]
+)
 def _call_api_sync(
+    cache_mode: str,
     client: openai.OpenAI,
     messages: List[Dict[str, str]],
     temperature: float,
-    model: str,
+    model: str = _MODEL,
+    cost_tracker: Optional[LLMCostTracker] = None,
     **create_kwargs,
-) -> Tuple[str, Any]:
+) -> dict[Any, Any]:
     """
-    Make a non-streaming API call and return (response, raw_completion).
+    Make a non-streaming API call.
 
-    return: a tuple with
-        - model response in OpenAI's completion object
-        - raw completion
+    :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
+        "HIT_CACHE_OR_ABORT", "NORMAL"
+    :param client: OpenAI client
+    :param messages: list of messages to send to the API
+    :param model: model to use for the completion
+    :param temperature: adjust an LLM's sampling diversity: lower values
+        make it more deterministic, while higher values foster creative
+        variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
+        models.
+    :param cost_tracker: LLMCostTracker instance to track costs
+    :param create_kwargs: additional parameters for the API call
+    :return: OpenAI chat completion object as a dictionary
     """
     completion = client.chat.completions.create(
         model=model,
@@ -265,100 +384,21 @@ def _call_api_sync(
         temperature=temperature,
         **create_kwargs,
     )
-    model_response = completion.choices[0].message.content
-    return model_response, completion
-
-
-# #############################################################################
-# Cost tracking
-# #############################################################################
-
-# TODO(*): Convert this into a class to track costs?
-
-
-_CURRENT_OPENAI_COST = None
-
-
-def start_logging_costs() -> None:
-    global _CURRENT_OPENAI_COST
-    _CURRENT_OPENAI_COST = 0.0
-
-
-def end_logging_costs() -> None:
-    global _CURRENT_OPENAI_COST
-    _CURRENT_OPENAI_COST = None
-
-
-def _accumulate_cost_if_needed(cost: float) -> None:
-    # Accumulate the cost.
-    global _CURRENT_OPENAI_COST
-    if _CURRENT_OPENAI_COST is not None:
-        _CURRENT_OPENAI_COST += cost
-
-
-def get_current_cost() -> float:
-    return _CURRENT_OPENAI_COST
-
-
-def _calculate_cost(
-    completion: openai.types.chat.chat_completion.ChatCompletion,
-    model: str,
-    models_info_file: str,
-    provider_name: str = _PROVIDER_NAME,
-) -> float:
-    """
-    Calculate the cost of an OpenAI API call.
-
-    :param completion: The completion response from OpenAI
-    :param model: The model used for the completion
-    :return: The calculated cost in dollars
-    """
-    prompt_tokens = completion.usage.prompt_tokens
-    completion_tokens = completion.usage.completion_tokens
-    # TODO(gp): This should be shared in the class.
-    if provider_name == "openai":
-        # Get the pricing for the selected model.
-        # https://openai.com/api/pricing/
-        # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
-        # Cost per 1M tokens.
-        pricing = {
-            "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
-            "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
-            "gpt-4o": {"prompt": 5, "completion": 15},
-        }
-        hdbg.dassert_in(model, pricing)
-        model_pricing = pricing[model]
-        # Calculate the cost.
-        cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
-            completion_tokens / 1e6
-        ) * model_pricing["completion"]
-    elif provider_name == "openrouter":
-        # If the model info file doesn't exist, download one.
-        if models_info_file == "":
-            models_info_file = _get_models_info_file()
-        _LOG.debug(hprint.to_str("models_info_file"))
-        if not os.path.isfile(models_info_file):
-            model_info_df = _retrieve_openrouter_model_info()
-            _save_models_info_to_csv(model_info_df, models_info_file)
-        else:
-            model_info_df = pd.read_csv(models_info_file)
-        # Extract pricing for this model.
-        hdbg.dassert_in(model, model_info_df["id"].values)
-        row = model_info_df.loc[model_info_df["id"] == model].iloc[0]
-        prompt_price = row["prompt_pricing"]
-        completion_price = row["completion_pricing"]
-        # Compute cost.
-        cost = prompt_tokens * prompt_price + completion_tokens * completion_price
-    else:
-        raise ValueError(f"Unknown provider: {provider_name}")
-    _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
-    return cost
+    completion_obj = completion.to_dict()
+    if cost_tracker is None:
+        cost_tracker = _LLM_COST_Tracker
+    # Calculate the cost of the completion.
+    hdbg.dassert_isinstance(cost_tracker, LLMCostTracker)
+    cost = cost_tracker.calculate_cost(completion, model)
+    cost_tracker.accumulate_cost(cost)
+    # Store the cost in the completion object.
+    completion_obj["cost"] = cost
+    return completion_obj
 
 
 # #############################################################################
 
 
-# TODO(gp): CAPTURE seems redundant.
 @functools.lru_cache(maxsize=1024)
 def get_completion(
     user_prompt: str,
@@ -368,7 +408,6 @@ def get_completion(
     report_progress: bool = False,
     print_cost: bool = False,
     cache_mode: str = "DISABLE_CACHE",
-    cache_file: str = "cache.get_completion.json",
     temperature: float = 0.1,
     **create_kwargs,
 ) -> str:
@@ -403,36 +442,13 @@ def get_completion(
         model = _get_default_model()
     # Construct messages in OpenAI API request format.
     messages = _build_messages(system_prompt, user_prompt)
-    # Initialize cache.
-    cache = _CompletionCache(cache_file)
-    request_params = {
-        "model": model,
-        "messages": messages,
-        "temperature": temperature,
-        **create_kwargs,
-    }
-    hash_key = cache.hash_key_generator(**request_params)
-    if cache_mode in ("HIT_CACHE_OR_ABORT", "NORMAL"):
-        # Checks for response in cache.
-        if cache.has_cache(hash_key):
-            memento = htimer.dtimer_start(
-                logging.DEBUG, "Loading from the cache!"
-            )
-            cache.increment_cache_stat("hits")
-            msg, _ = htimer.dtimer_stop(memento)
-            print(msg)
-            return cache.load_response_from_cache(hash_key)
-        else:
-            cache.increment_cache_stat("misses")
-            if cache_mode == "HIT_CACHE_OR_ABORT":
-                raise RuntimeError(
-                    "No cached response for this request parameters!"
-                )
+
     client = get_openai_client()
     # print("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
-        response, completion = _call_api_sync(
+        completion = _call_api_sync(
+            cache_mode=cache_mode,
             client=client,
             messages=messages,
             model=model,
@@ -462,22 +478,9 @@ def get_completion(
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     print(msg)
-    # Calculate the cost.
-    # TODO(gp): This should be shared in the class.
-    models_info_file = ""
-    cost = _calculate_cost(completion, model, models_info_file)
-    # Accumulate the cost.
-    _accumulate_cost_if_needed(cost)
-    # Convert OpenAI completion object to DICT.
-    completion_obj = completion.to_dict()
-    # Store cost in the cache.
-    completion_obj["cost"] = cost
-    if cache_mode != "DISABLE_CACHE":
-        cache.save_response_to_cache(
-            hash_key, request=request_params, response=completion_obj
-        )
     if print_cost:
-        print(f"cost=${cost:.2f}")
+        print(f"cost=${completion['cost']:.6f}")
+    response = completion["choices"][0]["message"]["content"]
     return response
 
 
@@ -510,7 +513,7 @@ def get_completion(
 #     txt: List[str] = []
 #     txt.append("Found %s files" % len(files))
 #     for file in files:
-#         txt.append("Deleting file %s" % file_to_info(file))
+#         txt.append("Deleting file " + file_to_info(file))
 #     txt = "\n".join(txt)
 #     return txt
 
@@ -566,7 +569,7 @@ def get_completion(
 #     txt = []
 #     txt.append("Found %s assistants" % len(assistants))
 #     for assistant in assistants:
-#         txt.append("Deleting assistant %s" % assistant_to_info(assistant))
+#         txt.append("Deleting assistant " + assistant_to_info(assistant))
 #     txt = "\n".join(txt)
 #     return txt
 
@@ -745,7 +748,7 @@ def apply_prompt_to_dataframe(
         chunk = df.iloc[start:end]
         _LOG.debug("chunk.size=%s", chunk.shape[0])
         data = chunk[input_col].astype(str).tolist()
-        data = ["%s: %s" % (i + 1, val) for i, val in enumerate(data)]
+        data = [f"{i + 1}: {val}" for i, val in enumerate(data)]
         user = "\n".join(data)
         _LOG.debug("user=\n%s", user)
         try:
@@ -767,139 +770,3 @@ def apply_prompt_to_dataframe(
         response_data.extend(processed_response)
     df[response_col] = response_data
     return df
-
-
-# #############################################################################
-# _CompletionCache
-# #############################################################################
-
-
-# TODO(gp): we can't use hcache_simple.simple_cache() because it uses a different cache
-# format and does not support conditions required by get_completion().
-class _CompletionCache:
-    """
-    Cache for get_completion().
-    """
-
-    def __init__(self, cache_file: str):
-        self.cache_file = cache_file
-        # Load the existing file(may not exist or may be invalid JSON)
-        try:
-            with open(self.cache_file, "r", encoding="utf-8") as f:
-                self.cache = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            self.cache = None
-        # Validates structure.
-        if (
-            not isinstance(self.cache, dict)
-            or "version" not in self.cache
-            or "metadata" not in self.cache
-            or "entries" not in self.cache
-            or not isinstance(self.cache["entries"], dict)
-        ):
-            # Responses will be stored in entries.
-            self.cache = {
-                "version": "1.0",
-                "metadata": {
-                    "created_at": datetime.datetime.now().isoformat(),
-                    "last_updated": datetime.datetime.now().isoformat(),
-                    "hits": 0,
-                    "misses": 0,
-                },
-                "entries": {},
-            }
-            with open(self.cache_file, "w", encoding="utf-8") as f:
-                json.dump(self.cache, f)
-
-    def hash_key_generator(
-        self,
-        model: str,
-        messages: List[Dict[str, str]],
-        **extra_kwargs: Any,
-    ) -> str:
-        """
-        Generate a hash key for the OpenAI request.
-        """
-        norm_msgs = []
-        for m in messages:
-            norm_msgs.append(
-                {
-                    "role": m["role"].strip().lower(),
-                    "content": " ".join(m["content"].split()).lower(),
-                }
-            )
-        key_obj: Dict[str, Any] = {
-            "model": model.strip().lower(),
-            "messages": norm_msgs,
-        }
-        for name in sorted(extra_kwargs):
-            key_obj[name] = extra_kwargs[name]
-        serialized = json.dumps(
-            key_obj,
-            # no spaces
-            separators=(",", ":"),
-            # keys in alphabetical order
-            sort_keys=True,
-            ensure_ascii=False,
-        )
-        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-
-    def has_cache(self, hash_key: str) -> bool:
-        """
-        Check if the hash key is in the cache.
-        """
-        return hash_key in self.cache["entries"]
-
-    def save_response_to_cache(
-        self, hash_key: str, request: dict, response: dict
-    ) -> None:
-        """
-        Save the cache to the cache directory.
-        """
-        entry = {"request": request, "response": response}
-        self.cache["entries"][hash_key] = entry
-        self.cache["metadata"][
-            "last_updated"
-        ] = datetime.datetime.now().isoformat()
-        self._write_cache_to_disk()
-
-    def load_response_from_cache(self, hash_key: str) -> Any:
-        """
-        Load the response from the cache directory.
-        """
-        if hash_key in self.cache["entries"]:
-            openai_response = self.cache["entries"][hash_key]["response"]
-            return openai_response["choices"][0]["message"]["content"]
-        raise ValueError("No cache found!")
-
-    def get_stats(self) -> dict:
-        """
-        Return basic stats: hits, misses, total entries.
-        """
-        stats = {
-            "hits": self.cache["metadata"]["hits"],
-            "misses": self.cache["metadata"]["misses"],
-            "entries_count": len(self.cache["entries"]),
-        }
-        return stats
-
-    def increment_cache_stat(self, key: str) -> None:
-        """
-        Update the hits, misses counter.
-        """
-        self.cache["metadata"][key] += 1
-        self._write_cache_to_disk()
-
-    def _write_cache_to_disk(self) -> None:
-        with open(self.cache_file, "w", encoding="utf-8") as f:
-            json.dump(self.cache, f, indent=2)
-
-    def _clear_cache(self) -> None:
-        """
-        Clear the cache from the file.
-        """
-        self.cache["entries"] = {}
-        self.cache["metadata"][
-            "last_updated"
-        ] = datetime.datetime.now().isoformat()
-        self._write_cache_to_disk()

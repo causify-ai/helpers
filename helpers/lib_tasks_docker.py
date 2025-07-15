@@ -370,7 +370,7 @@ def _docker_login_ecr() -> None:
         # TODO(Nikola): Remove `_get_aws_cli_version()` and use only `aws ecr get-login-password`
         #  as it is present in both versions of `awscli`.
         cmd = (
-            f"docker login -u AWS -p "
+            "docker login -u AWS -p "
             f"$(aws ecr get-login-password --profile {profile}) "
             f"https://{ecr_base_path}"
         )
@@ -723,9 +723,7 @@ def _generate_docker_compose_file(
             """
             Override the method to modify YAML indentation behavior.
             """
-            return super(_Dumper, self_).increase_indent(
-                flow=False, indentless=False
-            )
+            return super().increase_indent(flow=False, indentless=False)
 
     # Convert the dictionary to YAML format.
     yaml_str = yaml.dump(

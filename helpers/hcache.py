@@ -162,7 +162,7 @@ def _get_global_cache_path(cache_type: str, tag: Optional[str] = None) -> str:
     elif cache_type == "disk":
         root_path = hgit.get_client_root(super_module=True)
     else:
-        raise ValueError("Invalid cache type '%s'" % cache_type)
+        raise ValueError(f"Invalid cache type '{cache_type}'")
     # Compute path.
     file_name = os.path.join(root_path, cache_name)
     file_name = os.path.abspath(file_name)

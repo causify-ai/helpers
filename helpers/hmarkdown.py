@@ -9,8 +9,8 @@ import logging
 import re
 from typing import Dict, Generator, List, Optional, Tuple, cast
 
-import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -284,23 +284,22 @@ def remove_formatting(txt: str) -> str:
 
 
 def md_clean_up(txt: str) -> str:
-    # Replace \( ... \) math syntax with $ ... $.
-    txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
-    # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
-    txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
-    # Replace `P(.)`` with `\Pr(.)`.
-    txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
-    # Replace \left[, \right].
-    txt = re.sub(r"\\left\[", r"[", txt)
-    txt = re.sub(r"\\right\]", r"]", txt)
-    # Replace \mid with `|`.
-    txt = re.sub(r"\\mid", r"|", txt)
+    """
+    Clean up a Markdown file copy-pasted from Google Docs, ChatGPT.
+
+    :param txt: The input text to process
+    :return: The text with the cleaning up applied
+    """
+    # 0) General formatting.
+    # Remove dot at the end of each line.
+    txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
+    # 1) ChatGPT formatting.
     # E.g.,``  • Description Logics (DLs) are a family``
     # Replace `•` with `-`
     txt = re.sub(r"•\s+", r"- ", txt)
     # Replace `\t` with 2 spaces
     txt = re.sub(r"\t", r"  ", txt)
-    # Remove `⸻`.
+    # Remove `⋅`.
     txt = re.sub(r"⸻", r"", txt)
     # “
     txt = re.sub(r"“", r'"', txt)
@@ -308,19 +307,27 @@ def md_clean_up(txt: str) -> str:
     txt = re.sub(r"”", r'"', txt)
     # ’
     txt = re.sub(r"’", r"'", txt)
-    # →
+    # 2) Latex formatting.
+    # Replace \( ... \) math syntax with $ ... $.
+    txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)
+    # Replace \[ ... \] math syntax with $$ ... $$, handling multiline equations.
+    txt = re.sub(r"\\\[(.*?)\\\]", r"$$\1$$", txt, flags=re.DOTALL)
+    # Replace `P(.)`` with `\Pr(.)`.
+    txt = re.sub(r"P\((.*?)\)", r"\\Pr(\1)", txt)
+    #
+    txt = re.sub(r"\\left\[", r"[", txt)
+    txt = re.sub(r"\\right\]", r"]", txt)
+    #
+    txt = re.sub(r"\\mid", r"|", txt)
+    #
     txt = re.sub(r"→", r"$\\rightarrow$", txt)
     # Remove empty spaces at beginning / end of Latex equations $...$.
     # E.g., $ \text{Student} $ becomes $\text{Student}$
     # txt = re.sub(r"\$\s+(.*?)\s\$", r"$\1$", txt)
-    # Remove dot at the end of each line.
-    txt = re.sub(r"\.\s*$", "", txt, flags=re.MULTILINE)
     # Transform `Example: Training a deep` into `E.g., training a deep`,
     # converting the word after `Example:` to lower case.
     txt = re.sub(r"\bExample:", "E.g.,", txt)
     txt = re.sub(r"\bE.g.,\s+(\w)", lambda m: "E.g., " + m.group(1).lower(), txt)
-    # Replace \mid with `|`.
-    txt = re.sub(r"\\mid", r"|", txt)
     return txt
 
 
@@ -414,7 +421,14 @@ class HeaderInfo:
         self.level = level
         #
         hdbg.dassert_isinstance(description, str)
-        hdbg.dassert_ne(description, "", "Invalid HeaderInfo: %s, %s, %s", level, description, line_number)
+        hdbg.dassert_ne(
+            description,
+            "",
+            "Invalid HeaderInfo: %s, %s, %s",
+            level,
+            description,
+            line_number,
+        )
         self.description = description
         #
         hdbg.dassert_isinstance(line_number, int)
@@ -536,24 +550,27 @@ def extract_headers_from_markdown(
 
 
 def extract_slides_from_markdown(
-    txt: str, 
-) -> HeaderList:
+    txt: str,
+) -> Tuple[HeaderList, int]:
     """
     Extract slides (i.e., sections prepended by `*`) from Markdown file and
     return an `HeaderList`.
 
     :param txt: content of the input Markdown file.
-    :return: the generated `HeaderList`, e.g.,
-        ```
-        [
-            (1, "Slide 1", 5),
-            (1, "Slide 2", 10), ...]
-        ```
+    :return:
+        - the generated `HeaderList`
+            ```
+            [
+                (1, "Slide 1", 5),
+                (1, "Slide 2", 10), ...]
+            ```
+        - the last line number of the file, e.g., 100.
     """
     hdbg.dassert_isinstance(txt, str)
     header_list: HeaderList = []
     # Process the input file to extract headers.
     for line_number, line in enumerate(txt.splitlines(), start=1):
+        _LOG.debug("%d: %s", line_number, line)
         # TODO(gp): Use the iterator.
         # Skip the visual separators.
         if is_markdown_line_separator(line):
@@ -565,7 +582,8 @@ def extract_slides_from_markdown(
             title = m.group(1)
             header_info = HeaderInfo(1, title, line_number)
             header_list.append(header_info)
-    return header_list
+    last_line_number = len(txt.splitlines())
+    return header_list, last_line_number
 
 
 def header_list_to_vim_cfile(markdown_file: str, header_list: HeaderList) -> str:
@@ -999,42 +1017,31 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
-def modify_header_level(
-    in_file_name: str, out_file_name: str, mode: str
-) -> None:
+def modify_header_level(input_text: str, level: int) -> str:
     """
-    Increase or decrease the level of headings by one for text in stdin.
+    Increase or decrease the level of headings by the specified amount.
 
-    :param in_file_name: the name of the input file to read
-    :param out_file_name: the name of the output file to write the
-        modified text to
-    :param mode: indicates the increase or decrease of the header level
+    :param input_text: the input text to modify
+    :param level: the amount to adjust header levels (positive
+        increases, negative decreases)
+    :return: the modified text with header levels adjusted
     """
-    txt = hparser.read_file(in_file_name)
+    lines = input_text.split("\n")
     #
     txt_tmp = []
-    if mode == "increase":
-        mode_level = 1
-    elif mode == "decrease":
-        mode_level = -1
-    else:
-        raise ValueError(f"Unsupported mode='{mode}'")
-    for line in txt:
+    for line in lines:
         # TODO(gp): Use the iterator.
         line = line.rstrip(r"\n")
-        is_header_, level, title = is_header(line)
+        is_header_, current_level, title = is_header(line)
         if is_header_:
-            modified_level = level + mode_level
-            if (mode_level == 1 and level > 4) or (
-                mode_level == -1 and level == 1
-            ):
-                # Handle edge cases for reducing (1 hash) and increasing (5 hashes)
-                # heading levels.
-                modified_level = level
+            modified_level = current_level + level
+            # Ensure modified level is within valid range (1-6 for markdown headers).
+            hdbg.dassert_lte(1, modified_level)
+            hdbg.dassert_lte(modified_level, 6)
             line = "#" * modified_level + " " + title
         txt_tmp.append(line)
     #
-    hparser.write_file(txt_tmp, out_file_name)
+    return "\n".join(txt_tmp)
 
 
 # #############################################################################
@@ -1351,7 +1358,7 @@ def prettier_markdown(txt: str) -> str:
     Format markdown text using `prettier`.
     """
     file_type = "md"
-    txt = dshdlino.prettier_on_str(txt, file_type)
+    txt = hdocker.prettier_on_str(txt, file_type)
     txt_ = cast(str, txt)
     return txt_
 
@@ -1361,7 +1368,7 @@ def format_markdown(txt: str) -> str:
     Format markdown text.
     """
     file_type = "md"
-    txt = dshdlino.prettier_on_str(txt, file_type)
+    txt = hdocker.prettier_on_str(txt, file_type)
     txt = remove_empty_lines_from_markdown(txt)
     return txt
 
@@ -1373,7 +1380,7 @@ def format_markdown_slide(txt: str) -> str:
     # Split the text into title and body.
     txt = bold_first_level_bullets(txt)
     file_type = "md"
-    txt = dshdlino.prettier_on_str(txt, file_type)
+    txt = hdocker.prettier_on_str(txt, file_type)
     txt = format_first_level_bullets(txt)
     # txt = capitalize_slide_titles(txt)
     return txt
@@ -1381,6 +1388,130 @@ def format_markdown_slide(txt: str) -> str:
 
 def format_latex(txt: str) -> str:
     file_type = "tex"
-    txt = dshdlino.prettier_on_str(txt, file_type)
+    txt = hdocker.prettier_on_str(txt, file_type)
     txt_ = cast(str, txt)
     return txt_
+
+
+# #############################################################################
+# Filtering functions
+# #############################################################################
+
+
+def filter_by_header(file_name: str, header: str, prefix: str) -> str:
+    """
+    Extract a specific header from a file.
+
+    :param file_name: The input file to be processed
+    :param header: The header to filter by (e.g., `# Introduction`)
+    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
+    :return: The path to the processed file
+    """
+    import helpers.hio as hio
+
+    # Read the file.
+    txt = hio.from_file(file_name)
+    # Filter by header.
+    txt = extract_section_from_markdown(txt, header)
+    # Save the file.
+    file_out = f"{prefix}.filter_by_header.txt"
+    hio.to_file(file_out, txt)
+    return file_out
+
+
+def _parse_range(range_as_str: str, max_value: int) -> tuple[int, int]:
+    """
+    Parse a line range string like '1:10' into start and end line numbers.
+
+    :param range_as_str: String in format 'start:end' where start/end can be numbers or 'None'
+    :param max_value: Maximum value to use when 'None' is specified for end
+    :return: Tuple of (start_line, end_line) as integers
+    """
+    m = re.match(r"^(\S+):(\S+)$", range_as_str)
+    hdbg.dassert(m, "Invalid range_as_str='%s'", range_as_str)
+    start_value, end_value = m.groups()
+    if start_value.lower() == "none":
+        start_value = 1
+    else:
+        start_value = int(start_value)
+    if end_value.lower() == "none":
+        end_value = max_value + 1
+    else:
+        end_value = int(end_value)
+    return start_value, end_value
+
+
+def filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
+    """
+    Filter the lines of a file in [start_line, end_line[.
+
+    :param file_name: The input file to be processed
+    :param filter_by_lines: a string like `1:10` or `1:None` or `None:10`
+    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
+    :return: The path to the processed file
+    """
+    import helpers.hio as hio
+
+    # Read the file.
+    txt = hio.from_file(file_name)
+    txt = txt.split("\n")
+    # E.g., filter_by_lines='1:10'.
+    start_line, end_line = _parse_range(filter_by_lines, len(txt))
+    # Filter by header.
+    hdbg.dassert_lte(start_line, end_line)
+    txt = txt[start_line - 1 : end_line - 1]
+    txt = "\n".join(txt)
+    _LOG.warning(
+        "filter_by_lines='%s' -> lines=[%s:%s]",
+        filter_by_lines,
+        start_line,
+        end_line,
+    )
+    #
+    file_out = f"{prefix}.filter_by_lines.txt"
+    hio.to_file(file_out, txt)
+    return file_out
+
+
+def filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
+    """
+    Filter the lines of a file in [start_slide, end_slide[.
+
+    :param file_name: The input file to be processed
+    :param filter_by_slides: a string like `1:10` or `1:None` or `None:10`
+    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
+    :return: The path to the processed file
+    """
+    import helpers.hio as hio
+
+    # Read the file.
+    txt = hio.from_file(file_name)
+    # Filter by header.
+    slides_info, last_line_number = extract_slides_from_markdown(txt)
+    _LOG.debug("slides_info=%s\n%s", len(slides_info), slides_info)
+    # assert 0
+    # E.g., filter_by_lines='1:10'.
+    start_slide, end_slide = _parse_range(filter_by_slides, len(slides_info))
+    _LOG.debug("start_slide=%s, end_slide=%s", start_slide, end_slide)
+    hdbg.dassert_lte(start_slide, end_slide)
+    # A number after the last slide is the end of the file.
+    hdbg.dassert_lte(end_slide, len(slides_info) + 1)
+    start_line = slides_info[start_slide].line_number
+    if end_slide == len(slides_info) + 1:
+        end_line = last_line_number
+    else:
+        end_line = slides_info[end_slide].line_number
+    _LOG.warning(
+        "filter_by_slides='%s' -> lines=[%s:%s]",
+        filter_by_slides,
+        start_line,
+        end_line,
+    )
+    # Filter by slides.
+    txt = txt.split("\n")
+    txt = txt[start_line - 1 : end_line - 1]
+    txt = "\n".join(txt)
+    # Save the file.
+    file_out = f"{prefix}.filter_by_slides.txt"
+    hio.to_file(file_out, txt)
+    return file_out

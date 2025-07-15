@@ -58,8 +58,11 @@ def git_fetch_master(ctx):  # type: ignore
 
 @task
 def git_merge_master(
-    ctx, abort_if_not_ff=False, abort_if_not_clean=True, skip_fetch=False  # type: ignore
-):  
+    ctx,
+    abort_if_not_ff=False,
+    abort_if_not_clean=True,
+    skip_fetch=False,  # type: ignore
+):
     """
     Merge `origin/master` into the current branch.
 
@@ -666,7 +669,9 @@ def _git_diff_with_branch(
         cmd.append(f"--diff-filter={diff_type}")
     cmd.append(f"--name-only HEAD {hash_}")
     cmd = " ".join(cmd)
-    files = hsystem.system_to_files(cmd, dir_name, remove_files_non_present=False)
+    files = hsystem.system_to_files(
+        cmd, dir_name, remove_files_non_present=False
+    )
     files = sorted(files)
     _LOG.debug("%s", "\n".join(files))
     # Filter by `file_name`, if needed.
@@ -733,7 +738,7 @@ def _git_diff_with_branch(
         _LOG.info("After filtering by subdir: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Done filtering.
-    _LOG.info("\n" + hprint.frame("# files=%s" % len(files)))
+    _LOG.info("\n" + hprint.frame(f"# files={len(files)}"))
     _LOG.info("\n" + "\n".join(files))
     if len(files) == 0:
         _LOG.warning("Nothing to diff: exiting")

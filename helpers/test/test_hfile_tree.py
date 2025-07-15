@@ -13,7 +13,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_generate_tree(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test generating default tree.

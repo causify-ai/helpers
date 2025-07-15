@@ -253,7 +253,7 @@ def listdir(
         # Basically the goal is to remove `s3://` from the full S3 path.
         root_path = f"{bucket}{absolute_path}"
         # Remove redundant separators.
-        paths = set([os.path.normpath(path) for path in paths])
+        paths = {os.path.normpath(path) for path in paths}
         # Remove special entries such as `.` (`root_path` in this case) and
         # bucket name to keep the same return format as in `hio.listdir()`.
         paths_to_exclude = [bucket, root_path]
@@ -667,7 +667,9 @@ def generate_aws_files(
     config_file_name = os.path.join(home_dir, ".aws", "config")
     credentials_file_name = os.path.join(home_dir, ".aws", "credentials")
     # Check if the files already exist.
-    if os.path.exists(credentials_file_name) and os.path.exists(config_file_name):
+    if os.path.exists(credentials_file_name) and os.path.exists(
+        config_file_name
+    ):
         _LOG.info(
             "Both files exist: %s and %s; exiting",
             credentials_file_name,

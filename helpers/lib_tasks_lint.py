@@ -388,7 +388,7 @@ def lint_sync_code(ctx, git_client_name="helpers1", revert_to_original=False):  
             src_file_path = hgit.find_file(file_name, dir_path=src_git_dir)
             git_root_dir = hgit.find_git_root(src_git_dir)
             src_file_path = os.path.relpath(src_file_path, git_root_dir)
-            cmd = "git checkout -- %s" % src_file_path
+            cmd = "git checkout -- " + src_file_path
             hsystem.system(cmd)
         _LOG.info("Done")
         return
