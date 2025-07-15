@@ -125,10 +125,7 @@ def _extract(
     return obj_tmp
 
 
-#
 
-# TODO(gp): There are a lot of functions that share state (e.g., provider_name).
-# We should refactor them to use a class `LlmResponse`.
 
 
 # #############################################################################
