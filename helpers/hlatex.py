@@ -28,7 +28,9 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
     # Read tmp file.
     res = hio.from_file(out_file_name)
     # Remove lines that contain \tightlist.
-    res = "\n".join([line for line in res.splitlines() if "\\tightlist" not in line])
+    res = "\n".join(
+        [line for line in res.splitlines() if "\\tightlist" not in line]
+    )
     return res
 
 
@@ -59,7 +61,7 @@ def markdown_list_to_latex(markdown: str) -> str:
     txt = "\n".join(lines)
     # Add the title frame.
     if title:
-        txt = "\\begin{frame}{%s}" % title + "\n" + txt + "\n" + "\\end{frame}"
+        txt = f"\\begin{{frame}}{{{title}}}" + "\n" + txt + "\n" + "\\end{frame}"
     return txt
 
 

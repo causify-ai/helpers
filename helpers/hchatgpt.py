@@ -15,7 +15,7 @@ import helpers.henv as henv
 import helpers.hio as hio
 
 henv.install_module_if_not_present("openai")
-import openai
+import openai  # noqa: E402
 
 _LOG = logging.getLogger(__name__)
 

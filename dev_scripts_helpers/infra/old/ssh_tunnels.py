@@ -66,7 +66,9 @@ def _main() -> None:
     repo_name = hgit.get_repo_full_name_from_client(super_module=True)
     exp_repo_name = ".../..."
     if repo_name != exp_repo_name:
-        msg = f"Need to run from repo '{exp_repo_name}' and not from '{repo_name}'"
+        msg = (
+            f"Need to run from repo '{exp_repo_name}' and not from '{repo_name}'"
+        )
         _LOG.error(msg)
         raise RuntimeError(msg)
     #

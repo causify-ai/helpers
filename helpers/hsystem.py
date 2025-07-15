@@ -10,6 +10,7 @@ import helpers.hsystem as hsystem
 import contextlib
 import datetime
 import getpass
+import glob
 import logging
 import os
 import re
@@ -196,7 +197,7 @@ def _system(
         stdout = subprocess.PIPE
         stderr = subprocess.STDOUT
         # We want to print the command line even if this module logging is disabled.
-        # print("  ==> cmd=%s" % cmd)
+        # print("  ==> cmd=" + cmd)
         # TODO(gp): This seems not working properly and getting the logging
         # verbosity stuck.
         # with hloggin.set_level(_LOG, logging.DEBUG):
@@ -338,7 +339,7 @@ def system(
 #     elif py_ver == 3:
 #         txt = subprocess.getoutput(cmd)
 #     else:
-#         raise RuntimeError("Invalid py_ver=%s" % py_ver)
+#         raise RuntimeError("Invalid py_ver=" + py_ver)
 #     txt = [f for f in txt.split("\n") if f]
 #     hdbg.dassert_eq(len(txt), 1)
 #     return txt[0]
@@ -485,8 +486,7 @@ def select_result_file_from_list(
             hdbg.dfatal(f"mode={mode}: didn't find file {file_name}")
         elif len(files) > 1:
             hdbg.dfatal(
-                "mode=%s: found multiple files:\n%s\n"
-                % (mode, "\n".join(files), file_name)
+                f"mode={mode}: found multiple files:\n" + "\n".join(files)
             )
         res = [files[0]]
     elif mode == "return_all_results":
@@ -819,15 +819,17 @@ def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
     if len(files) == 1:
         return files[0]
     elif len(files) > 1:
-        msg = "Found multiple files with basename '%s' in directory '%s':\n%s" % (
-            filename, search_path, "\n".join(files))
+        msg = f"Found multiple files with basename '{filename}' in directory '{search_path}':\n"
+        msg += "\n".join(files)
         raise RuntimeError(msg)
     else:
         return None
 
-    
+
 # TODO(gp): -> find_path_greedily
-def find_path(path: str, *, dir_name: str = ".", abort_on_error: bool = False) -> str:
+def find_path(
+    path: str, *, dir_name: str = ".", abort_on_error: bool = False
+) -> str:
     """
     Find a path in a directory and report its absolute path.
 
