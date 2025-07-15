@@ -1,5 +1,3 @@
-# Writing Docs
-
 <!-- toc -->
 
 - [Conventions](#conventions)
@@ -32,7 +30,50 @@
 
 <!-- tocstop -->
 
+# Writing Docs
+
+## Summary
+- This document describes how to write markdown for:
+  - Internal documentation
+  - Blog entries
+  - Tutorials
+
+- Each of the suggestion below should be a level 3 heading so that it's easy to
+  point to it with a link
+
+- This document is geared towards humans, while the style guide 
+  [//helpers/docs/code_guidelines/all.coding_style_guidelines.reference.md]
+  is 
+
 ## Conventions
+
+### Layout Rules
+
+- Visual Structure
+  - Use clear headings
+  - Use nested bullets for hierarchy
+    - 1 idea per bullet
+  - Separate sections logically
+
+- Clarity
+  - Use simple language
+  - Define terms immediately
+  - Avoid ambiguous phrasing
+
+- Headings
+  - Use `#` for main topics
+  - Use `##` for subtopics
+  - Keep headings short and descriptive
+
+- Bullets
+  - `-` for main bullets
+  - Indent for sub-bullets
+  - Each bullet = 1 idea
+
+- Diagrams
+  - Use diagrams instead of wordy explanations
+  - Use `mermaid`, `graphviz`, or `tikz` fenced code blocks
+  - Prefer flowcharts, sequence diagrams, or graphs
 
 ### Make no assumptions on the user's knowledge
 
@@ -47,37 +88,35 @@
 
 ### Always use Linter
 
-- Most cosmetic things described further can be taken care of automatically by
-  our Linter, so make sure to run it after implementing the changes
-- Run with `i lint --files="your_file_name"`
-- Do not mix manual edits and Linter runs. Best practice is to run Linter and
-  commit the changes it made as a separate commit
-- If Linter messes up the text, file an issue with examples of what it does
-  incorrectly
+- Most cosmetic suggestions are handled by our Linter
+  - Run it after changes
+  - Use `i lint --files="your_file_name"`
 
-### Add a table of contents
+- Avoid mixing manual edits and Linter runs
+  - Run Linter and commit changes separately
 
-- Unfortunately both markdown and GitHub don't support automatically generating
-  a TOC for a document
-- To generate a table of contents, run Linter on the Markdown file, which will
-  build the TOC automatically and place it at the top of the file
+- Add a table of contents
+  - Markdown doesn't auto-generate TOC
+  - Run Linter to build TOC and place it at the top
 
-## Add one level 1 heading
+- If Linter errors occur, file an issue with examples
+
+### Use only one level 1 heading
 
 - Make sure the headings structure contains exactly one level 1 heading
   (`# This one`)
   - This is important for displaying MkDocs documentation correctly via browser
 
-## Use 80 columns formatting for md files
+### Use 80 columns formatting for markdown files
 
-- Our Linter takes care of reflowing the text
-- Vim has a `:gq` command to reflow the comments
+- The `linter` takes care of reflowing the text
+- `vim` has a `:gq` command to reflow the comments
 - There are plugins for PyCharm and VisualStudio
 
 ### Use good vs bad
 
 - Make examples of "good" ways of doing something and contrast them with "bad"
-  ways
+  ways using the following format
 
   **_Good_**
 

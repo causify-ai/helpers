@@ -65,6 +65,12 @@
 
 <!-- tocstop -->
 
+# All style guide
+
+## Summary
+- This document contains all the rules we enforce for code and documentation
+  through the `linter` and `ai_review.py`
+
 # General
 
 ## Spelling
