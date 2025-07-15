@@ -97,9 +97,7 @@ def _extract(
     return obj_tmp
 
 
-# #############################################################################
-# OpenAI API Helpers
-# #############################################################################
+#
 
 # TODO(gp): There are a lot of functions that share state (e.g., provider_name).
 # We should refactor them to use a class `LlmResponse`.
@@ -156,6 +154,10 @@ class LLMClient:
     ) -> List[Dict[str, str]]:
         """
         Construct the standard messages payload for the chat API.
+
+        :param system_prompt: system prompt
+        :param user_prompt: user prompt
+        :return: messages in the format expected by the API
         """
         hdbg.dassert_isinstance(system_prompt, str)
         hdbg.dassert_isinstance(user_prompt, str)
@@ -206,6 +208,8 @@ class LLMClient:
     def _get_default_model(self) -> str:
         """
         Get the default model for a provider.
+
+        :return: default model for the provider
         """
         if self.provider_name == "openai":
             model = "gpt-4o"
@@ -216,8 +220,9 @@ class LLMClient:
         return model
 
 
-# TODO(*): Select the provider from command line together with the model.
-_PROVIDER_NAME = "openai"
+# ############################################################################
+# OpenRouter API Helpers
+# #############################################################################
 
 
 def _get_models_info_file() -> str:
@@ -311,21 +316,6 @@ def _save_models_info_to_csv(
 # #############################################################################
 
 
-def _build_messages(
-    system_prompt: str, user_prompt: str
-) -> List[Dict[str, str]]:
-    """
-    Construct the standard messages payload for the chat API.
-    """
-    hdbg.dassert_isinstance(system_prompt, str)
-    hdbg.dassert_isinstance(user_prompt, str)
-    ret = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
-    ]
-    return ret
-
-
 @hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
 def _call_api_sync(
     cache_mode: str,
@@ -371,9 +361,9 @@ def _call_api_sync(
 # #############################################################################
 
 # TODO(*): Convert this into a class to track costs?
-
-
 _CURRENT_OPENAI_COST = None
+# TODO(*): Select the provider from command line together with the model.
+_PROVIDER_NAME = "openai"
 
 
 def start_logging_costs() -> None:
@@ -445,9 +435,7 @@ def _calculate_cost(
         prompt_price = row["prompt_pricing"]
         completion_price = row["completion_pricing"]
         # Compute cost.
-        cost = (
-            prompt_tokens * prompt_price + completion_tokens * completion_price
-        )
+        cost = prompt_tokens * prompt_price + completion_tokens * completion_price
     else:
         raise ValueError(f"Unknown provider: {provider_name}")
     _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
