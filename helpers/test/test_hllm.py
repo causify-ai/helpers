@@ -11,9 +11,6 @@ import helpers.hdbg as hdbg  # noqa: E402
 import helpers.hllm as hllm  # noqa: E402
 import helpers.hunit_test as hunitest  # noqa: E402
 
-# cache file used for storing llm responses.
-_TEST_CACHE_FILE = "cache.get_completion.json"
-
 
 _USER_PROMPT1 = "what is machine learning?"
 _USER_PROMPT2 = _USER_PROMPT1.upper()
