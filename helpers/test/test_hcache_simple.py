@@ -117,34 +117,9 @@ class BaseCacheTest(hunitest.TestCase):
     def set_up_test(self) -> None:
         """
         Setup operations to run before each test:
-         - Reset persistent user and system cache properties.
-         - Reset in-memory caches for all cached functions.
+
          - Set specific cache properties needed for the tests.
         """
-        # Reset persistent user cache properties.
-        hcacsimp.reset_cache_property("user")
-        try:
-            hcacsimp.reset_cache_property("system")
-        except OSError:
-            # If there is an OSError, remove the system cache property file manually.
-            system_file = hcacsimp.get_cache_property_file("system")
-            if os.path.exists(system_file):
-                os.remove(system_file)
-        # Reset caches for all cached functions.
-        for func_name in [
-            "_cached_function",
-            "_cached_pickle_function",
-            "_multi_arg_func",
-            "_refreshable_function",
-            "_kwarg_func",
-            "_dummy_cached_function",
-        ]:
-            try:
-                # Reset both disk and in-memory cache.
-                hcacsimp.reset_cache(func_name)
-            except AssertionError:
-                # If resetting the full cache fails, reset only the in-memory cache.
-                hcacsimp.reset_mem_cache(func_name)
         # Set the cache properties for each function.
         hcacsimp.set_cache_property("system", "_cached_function", "type", "json")
         hcacsimp.set_cache_property(
@@ -162,32 +137,28 @@ class BaseCacheTest(hunitest.TestCase):
     def tear_down_test(self) -> None:
         """
         Teardown operations to run after each test:
-
-            - Remove cache files created on disk.
-            - Remove the system cache property file.
+            - Reset cache(in-memory, disk).
+            - Reset system cache properties.
         """
-        # List of expected cache file names.
-        for fname in [
-            # Disk cache file for _cached_function (JSON format).
-            "cache._cached_function.json",
-            # Disk cache file for _cached_pickle_function (pickle format).
-            "cache._cached_pickle_function.pkl",
-            # Disk cache file for _multi_arg_func.
-            "cache._multi_arg_func.json",
-            # Disk cache file for _refreshable_function.
-            "cache._refreshable_function.json",
-            # Disk cache file for _kwarg_func.
-            "cache._kwarg_func.json",
-            # Disk cache file for _dummy_cached_function.
-            "cache._dummy_cached_function.json",
+        # Reset caches for all cached functions.
+        for func_name in [
+            "_cached_function",
+            "_cached_pickle_function",
+            "_multi_arg_func",
+            "_refreshable_function",
+            "_kwarg_func",
+            "_dummy_cached_function",
         ]:
-            # Check if the cache file exists on disk.
-            if os.path.exists(fname):
-                os.remove(fname)
-        # Remove the system cache property file if it exists.
-        system_file = hcacsimp.get_cache_property_file("system")
-        if os.path.exists(system_file):
-            os.remove(system_file)
+            # Reset both disk and in-memory cache.
+            hcacsimp.reset_cache(func_name=func_name, interactive=False)
+        # Reset system cache properties.
+        try:
+            hcacsimp.reset_cache_property("system")
+        except OSError:
+            # If there is an OSError, remove the system cache property file manually.
+            system_file = hcacsimp.get_cache_property_file("system")
+            if os.path.exists(system_file):
+                os.remove(system_file)
 
 
 # #############################################################################
@@ -196,7 +167,6 @@ class BaseCacheTest(hunitest.TestCase):
 
 
 class Test_get_cache(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Verify that get_cache returns a cache with the expected key and value.
@@ -216,7 +186,6 @@ class Test_get_cache(BaseCacheTest):
 
 
 class Test_flush_cache_to_disk(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Verify that flushing creates a cache file on disk.
@@ -258,7 +227,6 @@ class Test_flush_cache_to_disk(BaseCacheTest):
 
 
 class Test_reset_mem_cache(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Verify that the cache is empty after `reset_mem_cache` is called.
@@ -279,7 +247,6 @@ class Test_reset_mem_cache(BaseCacheTest):
 
 
 class Test_force_cache_from_disk(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Verify that the memory cache is empty after a reset.
@@ -324,7 +291,6 @@ class Test_force_cache_from_disk(BaseCacheTest):
 
 
 class Test_get_cache_perf(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Verify that performance tracking records hits and misses correctly.
@@ -358,7 +324,6 @@ class Test_get_cache_perf(BaseCacheTest):
 
 
 class Test_set_cache_property(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Verify that setting a valid cache property works and can be retrieved.
@@ -414,7 +379,9 @@ class Test_set_cache_property(BaseCacheTest):
         hcacsimp.set_cache_property(
             "user", "_cached_function", "force_refresh", True
         )
-        prop_str: str = hcacsimp.cache_property_to_str("user", "_cached_function")
+        prop_str: str = hcacsimp.cache_property_to_str(
+            "user", "_cached_function"
+        )
         # Check output.
         self.assertIn("force_refresh: True", prop_str)
 
@@ -425,7 +392,6 @@ class Test_set_cache_property(BaseCacheTest):
 
 
 class Test_get_cache_func_names(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Verify that memory cache function names include `_cached_function`.
@@ -477,7 +443,6 @@ class Test_get_cache_func_names(BaseCacheTest):
 
 
 class Test_cache_stats_to_str(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Verify that cache_stats_to_str returns a DataFrame with 'memory' and
@@ -501,7 +466,6 @@ class Test_cache_stats_to_str(BaseCacheTest):
 
 
 class Test__kwarg_func(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Test that verifies keyword arguments are handled correctly by the
@@ -520,7 +484,6 @@ class Test__kwarg_func(BaseCacheTest):
 
 
 class Test__multi_arg_func(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Verify that the cache for _multi_arg_func contains the correct key.
@@ -539,7 +502,6 @@ class Test__multi_arg_func(BaseCacheTest):
 
 
 class Test__cached_pickle_function(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Ensure that _cached_pickle_function returns the correct value and disk
@@ -565,7 +527,6 @@ class Test__cached_pickle_function(BaseCacheTest):
 
 
 class Test__refreshable_function(BaseCacheTest):
-
     def test1(self) -> None:
         """
         Verify that `_refreshable_function` is called only once initially.

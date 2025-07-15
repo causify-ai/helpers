@@ -28,14 +28,19 @@
 # #!jupyter labextension enable
 
 # %%
-# %load_ext autoreload
-# %autoreload 2
-
 import logging
+import pandas as pd
+import pprint
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
+import helpers.hllm as hllm
+import helpers.hpandas as hpandas
 import helpers.hprint as hprint
+
+# %%
+# %load_ext autoreload
+# %autoreload 2
 
 # %%
 print(henv.get_system_signature()[0])
@@ -52,19 +57,12 @@ _LOG = logging.getLogger(__name__)
 # !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet openai requests)"
 
 # %%
-import helpers.hllm as hllm
-import helpers.hpandas as hpandas
 
 # %%
 val = hllm.get_model_stats()
 
 # %%
-import pprint
-
 pprint.pprint(val[0])
-
-# %%
-import pandas as pd
 
 # %%
 # Normalize the nested JSON

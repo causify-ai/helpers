@@ -12,7 +12,6 @@ import linters.amp_doc_formatter as lamdofor
 
 
 class Test_docformatter(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that the docstring should be dedented.
@@ -151,8 +150,8 @@ foo
         actual_warnings = "\n".join(actual_warning_list)
         expected_warnings = (
             f"{temp_file}:2: Found unbalanced triple backticks; "
-            f"make sure both opening and closing backticks are "
-            f"the leftmost element of their line"
+            "make sure both opening and closing backticks are "
+            "the leftmost element of their line"
         )
         # Check.
         self.assertEqual(actual_warnings, expected_warnings)
@@ -241,7 +240,6 @@ doc11
 
 
 class TestFindUnbalancedBackticks(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that the starting indices of docstrings with unbalanced backticks

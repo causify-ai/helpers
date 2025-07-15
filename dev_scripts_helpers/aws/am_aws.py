@@ -43,9 +43,9 @@ def _gest_inst_status():
         # SYSTEMSTATUS    ok
         # DETAILS reachability    passed
         res = None
-        for l in txt.split("\n"):
-            if l.startswith("INSTANCESTATE"):
-                res = l.split()[2]
+        for line in txt.split("\n"):
+            if line.startswith("INSTANCESTATE"):
+                res = line.split()[2]
                 break
         hdbg.dassert_is_not(res, None)
     else:

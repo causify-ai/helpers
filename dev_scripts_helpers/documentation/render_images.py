@@ -9,16 +9,16 @@ See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
 Usage:
 
 # Create a new Markdown file with rendered images:
-> render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
+> render_images.py -i ABC.md -o XYZ.md --action render
 
 # Render images in place in the original Markdown file:
-> render_images.py -i ABC.md --action render --run_dockerized
+> render_images.py -i ABC.md --action render
 
 # Render images in place in the original LaTeX file:
-> render_images.py -i ABC.tex --action render --run_dockerized
+> render_images.py -i ABC.tex --action render
 
 # Open rendered images from a Markdown file in HTML to preview:
-> render_images.py -i ABC.md --action open --run_dockerized
+> render_images.py -i ABC.md --action open
 """
 
 import argparse
@@ -31,6 +31,7 @@ from typing import List, Tuple
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -43,7 +44,10 @@ _LOG = logging.getLogger(__name__)
 
 
 def _get_rendered_file_paths(
-    template_out_file: str, image_code_idx: int, dst_ext: str
+    template_out_file: str,
+    image_code_idx: int,
+    dst_ext: str,
+    use_github_hosting: bool,
 ) -> Tuple[str, str, str]:
     """
     Generate paths to files for image rendering.
@@ -60,6 +64,9 @@ def _get_rendered_file_paths(
     :param image_code_idx: order number of the image code block in the input
         file
     :param dst_ext: extension of the target image file
+    :param use_github_hosting: if True, insert rendered image links
+        using absolute GitHub-hosted URLs instead of relative paths
+        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/readme.1.png)
     :return:
         - path to the temporary file with the image code (e.g., `readme.1.txt`)
         - absolute path to the dir with rendered images (e.g., `/usr/docs/figs`)
@@ -78,6 +85,13 @@ def _get_rendered_file_paths(
     abs_img_dir_path = os.path.join(out_file_dir, sub_dir)
     # Get the relative path to the image, e.g., "figs/readme.1.png".
     rel_img_path = os.path.join(sub_dir, img_name)
+    # Use GitHub absolute reference when specified.
+    if use_github_hosting:
+        repo_name = hgit.get_repo_full_name_from_client(super_module=True)
+        github_abs_path = (
+            f"https://raw.githubusercontent.com/{repo_name}/master/"
+        )
+        rel_img_path = os.path.join(github_abs_path, rel_img_path)
     # Get the path to a temporary file with the image code, e.g., "readme.1.txt".
     dir_name = "tmp.render_images"
     code_file_path = f"{dir_name}/{out_file_name_body}.{image_code_idx}.txt"
@@ -99,6 +113,7 @@ def _render_image_code(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
+    use_github_hosting: bool = False,
 ) -> str:
     """
     Render the image code into an image file.
@@ -111,7 +126,11 @@ def _render_image_code(
     :param out_file: path to the output file where the image will be
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
+    :param force_rebuild: rebuild the Docker image before rendering
+    :param use_sudo: run Docker with sudo
     :param dry_run: if True, the rendering command is not executed
+    :param use_github_hosting: if True, insert rendered image links
+        using absolute GitHub-hosted URLs instead of relative paths
     :return: path to the rendered image
     """
     _LOG.debug(hprint.func_signature_to_str("image_code_txt"))
@@ -167,7 +186,9 @@ def _render_image_code(
     # TODO(gp): The fact that we compute the image file path here makes it
     # not possible to use a decorator to implement the caching.
     in_code_file_path, abs_img_dir_path, out_img_file_path = (
-        _get_rendered_file_paths(out_file, image_code_idx, dst_ext)
+        _get_rendered_file_paths(
+            out_file, image_code_idx, dst_ext, use_github_hosting
+        )
     )
     hio.create_dir(abs_img_dir_path, incremental=True)
     # Save the image code to a temporary file.
@@ -282,6 +303,7 @@ def _render_images(
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
+    use_github_hosting: bool = False,
 ) -> List[str]:
     """
     Insert rendered images instead of image code blocks.
@@ -299,6 +321,9 @@ def _render_images(
     :param dst_ext: extension for rendered images
     :param dry_run: if True, the text of the file is updated but the images are
         not actually created
+    :param use_github_hosting: if True, insert rendered image links
+        using absolute GitHub-hosted URLs instead of relative paths
+        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/readme.1.png)
     :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
@@ -389,6 +414,7 @@ def _render_images(
                     force_rebuild=force_rebuild,
                     use_sudo=use_sudo,
                     dry_run=dry_run,
+                    use_github_hosting=use_github_hosting,
                 )
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
@@ -484,6 +510,11 @@ def _parse() -> argparse.ArgumentParser:
     )
     # Add actions arguments.
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    parser.add_argument(
+        "--use_github_hosting",
+        action="store_true",
+        help="Use GitHub-hosted absolute URLs instead of relative image paths",
+    )
     # Add an argument for debugging.
     parser.add_argument(
         "--dry_run",
@@ -528,6 +559,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
         dry_run=args.dry_run,
+        use_github_hosting=args.use_github_hosting,
     )
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))

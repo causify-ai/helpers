@@ -76,7 +76,6 @@ RESTRICTION_KEYS = {
 
 
 class _RepoAndBranchSettings:
-
     def __init__(self, repo_and_branch_settings: Dict[str, Any]):
         """
         Initialize a nested dictionary of branch protection and repository
@@ -159,6 +158,7 @@ class _RepoAndBranchSettings:
             ```
         """
         branch_protection = {}
+        skipped_branches = []
         _LOG.debug(
             "Getting current branch protection settings for %s", repo.full_name
         )
@@ -170,10 +170,7 @@ class _RepoAndBranchSettings:
             try:
                 # Skip branches that don't have protection enabled.
                 if not branch.protected:
-                    _LOG.warning(
-                        "Branch '%s' is not protected: skipping.",
-                        branch.name,
-                    )
+                    skipped_branches.append(branch.name)
                     continue
                 # Get the protection information of the branch.
                 protection = branch.get_protection()
@@ -215,7 +212,8 @@ class _RepoAndBranchSettings:
                     dismissal_restrictions = {}
                     if dismissal:
                         dismissal_restrictions["users"] = [
-                            user.login for user in getattr(dismissal, "users", [])
+                            user.login
+                            for user in getattr(dismissal, "users", [])
                         ]
                         dismissal_restrictions["teams"] = [
                             team.name for team in getattr(dismissal, "teams", [])
@@ -236,7 +234,9 @@ class _RepoAndBranchSettings:
                 # Package all the information in a dictionary for the current
                 # branch.
                 branch_protection[branch.name] = {
-                    "enforce_admins": getattr(protection, "enforce_admins", None),
+                    "enforce_admins": getattr(
+                        protection, "enforce_admins", None
+                    ),
                     "allow_force_pushes": getattr(
                         protection, "allow_force_pushes", None
                     ),
@@ -266,12 +266,21 @@ class _RepoAndBranchSettings:
                     str(e),
                 )
             except (AttributeError, TypeError, ValueError) as e:
+                skipped_branches.append(branch.name)
                 hdbg.dassert(
                     False,
                     "Error processing branch %s: %s",
                     branch.name,
                     str(e),
+                    only_warning=True,
                 )
+        if skipped_branches:
+            _LOG.warning(
+                "Skipped %d branches (unprotected or errored). Example: %s%s",
+                len(skipped_branches),
+                ", ".join(skipped_branches[:10]),
+                "..." if len(skipped_branches) > 10 else "",
+            )
         return branch_protection
 
     @staticmethod

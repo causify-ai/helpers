@@ -136,7 +136,9 @@ class Test_llm_transform1(hunitest.TestCase):
             hsystem.system(cmd)
             hdbg.dassert(not os.path.exists(out_file_name))
             # Run the test.
-            cmd = f"{script} -i {in_file_name} -o {out_file_name} -p {prompt_tag}"
+            cmd = (
+                f"{script} -i {in_file_name} -o {out_file_name} -p {prompt_tag}"
+            )
             hsystem.system(cmd)
             # Check.
             hdbg.dassert_file_exists(out_file_name)

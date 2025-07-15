@@ -6,12 +6,10 @@ from typing import Any, Dict
 import pandas as pd
 import pytest
 
-pytest.importorskip(
-    "openai"
-)  # noqa: E402 # pylint: disable=wrong-import-position
-import helpers.hdbg as hdbg
-import helpers.hllm as hllm
-import helpers.hunit_test as hunitest
+pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
+import helpers.hdbg as hdbg  # noqa: E402
+import helpers.hllm as hllm  # noqa: E402
+import helpers.hunit_test as hunitest  # noqa: E402
 
 # cache file used for storing llm responses.
 _TEST_CACHE_FILE = "cache.get_completion.json"
@@ -46,31 +44,10 @@ def _get_completion_parameters1() -> Dict[str, Any]:
     return data
 
 
-def _get_openai_request_parameters1() -> Dict[str, Any]:
-    messages = hllm._build_messages(
-        user_prompt=_USER_PROMPT1, system_prompt=_SYSTEM_PROMPT1
-    )
-    data = {"messages": messages, "temperature": _TEMPERATURE1, "model": _MODEL1}
-    return data
-
-
 def _get_completion_parameters2() -> Dict[str, Any]:
     data = {
         "user_prompt": _USER_PROMPT2,
         "system_prompt": _SYSTEM_PROMPT2,
-        "temperature": _TEMPERATURE2,
-        "model": _MODEL2,
-        "top_p": _TOP_P1,
-    }
-    return data
-
-
-def _get_openai_request_parameters2() -> Dict[str, Any]:
-    messages = hllm._build_messages(
-        user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT2
-    )
-    data = {
-        "messages": messages,
         "temperature": _TEMPERATURE2,
         "model": _MODEL2,
         "top_p": _TOP_P1,
@@ -89,33 +66,12 @@ def _get_completion_parameters3() -> Dict[str, Any]:
     return data
 
 
-def _get_openai_request_parameters3() -> Dict[str, Any]:
-    messages = hllm._build_messages(
-        user_prompt=_USER_PROMPT2, system_prompt=_SYSTEM_PROMPT2
-    )
-    data = {
-        "messages": messages,
-        "temperature": _TEMPERATURE2,
-        "model": _MODEL3,
-        "top_p": _TOP_P1,
-    }
-    return data
-
-
 # #############################################################################
 # Test_get_completion
 # #############################################################################
 
 
 class Test_get_completion(hunitest.TestCase):
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """
-        Initialize the cache instance.
-        """
-        super().__init__(*args, **kwargs)
-        self.llm_cache = hllm._CompletionCache(cache_file=_TEST_CACHE_FILE)
-
     def test1(self) -> None:
         """
         Verify that get_completion() returns response from cache with the
@@ -125,13 +81,8 @@ class Test_get_completion(hunitest.TestCase):
         actual_response = hllm.get_completion(
             **parameters1, cache_mode="HIT_CACHE_OR_ABORT"
         )
-        openai_request_parameters1 = _get_openai_request_parameters1()
-        hash_key1 = self.llm_cache.hash_key_generator(
-            **openai_request_parameters1
-        )
-        expected_response = self.llm_cache.load_response_from_cache(hash_key1)
-        self.assert_equal(actual_response, expected_response)
         self.assertIsInstance(actual_response, str)
+        self.check_string(actual_response)
 
     def test2(self) -> None:
         """
@@ -141,15 +92,8 @@ class Test_get_completion(hunitest.TestCase):
         actual_response = hllm.get_completion(
             **parameters2, cache_mode="HIT_CACHE_OR_ABORT"
         )
-        openai_request_parameters2 = _get_openai_request_parameters2()
-        hash_key2 = self.llm_cache.hash_key_generator(
-            **openai_request_parameters2
-        )
-        expected_response = self.llm_cache.load_response_from_cache(
-            hash_key=hash_key2
-        )
-        self.assert_equal(actual_response, expected_response)
         self.assertIsInstance(actual_response, str)
+        self.check_string(actual_response)
 
     def test3(self) -> None:
         """
@@ -159,15 +103,8 @@ class Test_get_completion(hunitest.TestCase):
         actual_response = hllm.get_completion(
             **parameters3, cache_mode="HIT_CACHE_OR_ABORT"
         )
-        openai_request_parameters3 = _get_openai_request_parameters3()
-        hash_key3 = self.llm_cache.hash_key_generator(
-            **openai_request_parameters3
-        )
-        expected_response = self.llm_cache.load_response_from_cache(
-            hash_key=hash_key3
-        )
-        self.assert_equal(actual_response, expected_response)
         self.assertIsInstance(actual_response, str)
+        self.check_string(actual_response)
 
 
 # #############################################################################
@@ -176,18 +113,15 @@ class Test_get_completion(hunitest.TestCase):
 
 
 class Test_response_to_txt(hunitest.TestCase):
-
     # Dummy classes to satisfy `isinstance` checks.
 
     class DummyChatCompletion:
-
         def __init__(self, text: str = "") -> None:
             msg = types.SimpleNamespace(content=text)
             choice = types.SimpleNamespace(message=msg)
             self.choices = [choice]
 
     class DummyThreadMessage:
-
         def __init__(self, text: str = "") -> None:
             # mimic .content[0].text.value
             value_obj = types.SimpleNamespace(value=text)
@@ -231,7 +165,6 @@ class Test_response_to_txt(hunitest.TestCase):
 
 
 class Test_get_openai_client(hunitest.TestCase):
-
     @umock.patch.dict(os.environ, {"OPENAI_API_KEY": "openai-key"})
     @umock.patch("openai.OpenAI")
     def test_openai_provider(self, mock_openai_cls) -> None:
@@ -273,7 +206,6 @@ class Test_get_openai_client(hunitest.TestCase):
 
 
 class Test_retrieve_openrouter_model_info(hunitest.TestCase):
-
     @umock.patch("requests.get")
     def test_retrieve_success(self, mock_get) -> None:
         # Prepare dummy JSON data.
@@ -312,7 +244,6 @@ class Test_retrieve_openrouter_model_info(hunitest.TestCase):
 
 
 class Test_save_models_info_to_csv(hunitest.TestCase):
-
     def get_temp_path(self) -> str:
         """
         Helper function for creating temporary directory.
@@ -386,7 +317,6 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
 
 
 class Test_calculate_cost(hunitest.TestCase):
-
     def get_tmp_path(self) -> str:
         """
         Return temporary file path.
@@ -405,7 +335,8 @@ class Test_calculate_cost(hunitest.TestCase):
                 prompt_tokens=1000000, completion_tokens=2000000
             )
         )
-        cost = hllm._calculate_cost(
+        llm_cost_tracker = hllm.LLMCostTracker()
+        cost = llm_cost_tracker.calculate_cost(
             comp, model="gpt-3.5-turbo", models_info_file=""
         )
         # 1000000*(0.5/1000000) + 20000000*(1.5/1000000) = 3.5
@@ -419,8 +350,9 @@ class Test_calculate_cost(hunitest.TestCase):
         comp = types.SimpleNamespace(
             usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
         )
+        llm_cost_tracker = hllm.LLMCostTracker()
         with pytest.raises(AssertionError):
-            hllm._calculate_cost(
+            llm_cost_tracker.calculate_cost(
                 comp, model="nonexistent-model", models_info_file=""
             )
 
@@ -442,7 +374,8 @@ class Test_calculate_cost(hunitest.TestCase):
         comp = types.SimpleNamespace(
             usage=types.SimpleNamespace(prompt_tokens=1, completion_tokens=1)
         )
-        cost = hllm._calculate_cost(
+        llm_cost_tracker = hllm.LLMCostTracker()
+        cost = llm_cost_tracker.calculate_cost(
             comp,
             model="m1",
             models_info_file=temp_csv_file,
