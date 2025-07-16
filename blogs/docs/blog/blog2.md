@@ -1,5 +1,5 @@
 ---
-title: Cracking the Long Tail: How Causify Solves the Hardest Problems in AI
+title: Cracking the Long Tail
 description: 
 tags:
   - Causal_AI

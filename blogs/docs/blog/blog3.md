@@ -1,5 +1,5 @@
 ---
-title: AI for Optimal Decision-Making: Why the Future is Causal and Probabilistic (and not LLMs)
+title: AI for Optimal Decision-Making
 description: 
 tags:
   - Causal_AI
