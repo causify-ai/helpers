@@ -222,6 +222,7 @@ def _process_question_to_slides(
     return do_continue, line
 
 
+# TODO(gp): Use hmarkdown.process_lines().
 def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     """
     Process the notes to convert them into a format suitable for pandoc.
@@ -231,7 +232,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     :param is_qa: True if the input is a QA file.
     :return: List of lines of the notes.
     """
-    _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
+    _LOG.debug("\n%s", hprint.frame("_transform_lines"))
     hdbg.dassert_isinstance(txt, str)
     lines = [line.rstrip("\n") for line in txt.split("\n")]
     out: List[str] = []
@@ -264,7 +265,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         #   do_continue, in_skip_block)
         if do_continue:
             continue
-        # 2) Remove code block.
+        # 2) Process code block.
         if _TRACE:
             _LOG.debug("# Process code block.")
         # TODO(gp): Not sure why this is needed. For sure the extra spacing
@@ -290,6 +291,10 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         if _TRACE:
             _LOG.debug("# Process enumerated list.")
         line = _process_enumerated_list(line)
+        # # 6) Process color commands.
+        # if _TRACE:
+        #     _LOG.debug("# Process color commands.")
+        # line = _process_color_commands(line)
         # 6) Process color commands.
         if _TRACE:
             _LOG.debug("# Process color commands.")

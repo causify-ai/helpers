@@ -1429,13 +1429,13 @@ def slide_check() -> _PROMPT_OUT:
     """
     system = _SLIDE_CONTEXT
     system += r"""
-    - Do not print the content of the slide, but only the comment.
+    - Do not print or summarize the content of the slide, but only your comments:
 
     - Is the content of the slide clear?
-      - Answer with "The slide is clear" or "The slide is not clear"
+      - Answer with "Yes" or "NO"
 
     - Is the content of the slide correct?
-      - Answer with "The slide is correct" or "The slide is not correct"
+      - Answer with "Yes" or "NO"
 
     - What can be clarified or improved?
       - Respond with at most 3 short bullet points about what can be clarified
