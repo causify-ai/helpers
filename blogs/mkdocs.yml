@@ -1,7 +1,22 @@
-site_name: Causify Blog
-#site_url: https://myblog.com
+# This is a template for setting up a blog page using mkdocs-bloggin-plugin
+# (https://github.com/liang2kl/mkdocs-blogging-plugin). Please follow the
+# guide (https://liang2kl.github.io/mkdocs-blogging-plugin) for further
+# customization. You can also follow an example project
+# (https://liang2kl.github.io/mkdocs-blogging-plugin-example) to customize
+# the appearance using templates.
+
+# [NOTE] change this to your site name
+site_name: Blog Template
+# [NOTE] change this to your site url
+site_url: https://liang2kl.github.io
+# [NOTE] change these three repo settings, delete them if not desired
+#repo_url: https://github.com/liang2kl/mkdocs-blogging-plugin-bootstrap/
+#repo_name: liang2kl/mkdocs-blogging-plugin-example
+edit_uri: ""
+
+# [NOTE] edit mkdocs configs as normal
 theme:
-  name: material
+  name: 'material'
   palette:
     primary: black
     accent: cyan
@@ -11,35 +26,37 @@ theme:
     #- navigation.tabs
     #- navigation.top
     - content.action.edit  # This shows the "Edit this page" link
-docs_dir: docs
-# Helps render images and other assets correctly.
-use_directory_urls: false
-# The search plugin is enabled by default
-# but if we specify plugins, we need to include it
-# explicitly.
+
 plugins:
-  - search
   - blogging:
-      # The directories to be included.
+      # ============================================================================
+      # [SECTION] global category
+      # [NOTE]    referenced by {{ blog_content }}
+      # [REF]     https://liang2kl.github.io/mkdocs-blogging-plugin/#category-specific-settings
+
       dirs:
-        - content
+        - blog
+
+      # ============================================================================
+      # [SECTION] additional categories (optional)
+      # [NOTE]    referenced by {{ blog_content <category_name> }}
+      # [NOTE]    if you are not using them, please delete the `review` directory
+      # [REF]     https://liang2kl.github.io/mkdocs-blogging-plugin/#categories
+      #           https://liang2kl.github.io/mkdocs-blogging-plugin/#category-specific-settings
+
+      categories:
+        - name: reviews
+          dirs:
+            - reviews
+      
+      # ============================================================================
+      # [SECTION] global configurations (optional)
+      # [NOTE]    configs that apply to all categories
+      # [REF]     https://liang2kl.github.io/mkdocs-blogging-plugin/#global-settings
+
       features:
-        tags: {business, tech}
-      size: 5            # Number of articles in one page, default: 10
-      sort:
-        from: new        # Sort from new to old, default
-        # or old         # Sort from old to new
-        by: creation     # Sort by the first commit time, default
-        # or revision    # Sort by the latest commit time
-      paging: false      # Disable paging
-      show_total: false  # Remove 'total pages' label
-      full_content: true # Use the full content for blog description
-      theme:             # Use a predefined theme
-        name: card
-markdown_extensions:
-  - toc:
-      permalink: "#"
-      baselevel: 2
-      separator: "_"
+        tags:
+          index_page: tags.md
+          insert: top
 extra_css:
   - styles/styles.css
