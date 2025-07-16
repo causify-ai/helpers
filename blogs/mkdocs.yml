@@ -1,0 +1,45 @@
+site_name: Causify Blog
+#site_url: https://myblog.com
+theme:
+  name: material
+  palette:
+    primary: black
+    accent: cyan
+  logo: assets/logo.png
+  favicon: assets/favicon.ico
+  features:
+    #- navigation.tabs
+    #- navigation.top
+    - content.action.edit  # This shows the "Edit this page" link
+docs_dir: docs
+# Helps render images and other assets correctly.
+use_directory_urls: false
+# The search plugin is enabled by default
+# but if we specify plugins, we need to include it
+# explicitly.
+plugins:
+  - search
+  - blogging:
+      # The directories to be included.
+      dirs:
+        - content
+      features:
+        tags: {business, tech}
+      size: 5            # Number of articles in one page, default: 10
+      sort:
+        from: new        # Sort from new to old, default
+        # or old         # Sort from old to new
+        by: creation     # Sort by the first commit time, default
+        # or revision    # Sort by the latest commit time
+      paging: false      # Disable paging
+      show_total: false  # Remove 'total pages' label
+      full_content: true # Use the full content for blog description
+      theme:             # Use a predefined theme
+        name: card
+markdown_extensions:
+  - toc:
+      permalink: "#"
+      baselevel: 2
+      separator: "_"
+extra_css:
+  - styles/styles.css

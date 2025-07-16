@@ -921,7 +921,7 @@
 - Boldface and italics should be used sparingly throughout the text
 
 - Structure the text so that bullet points of higher level correspond to
-  "nesting" int he concept
+  "nesting" in the concept
 
 - Examples should go in a sub-bullet
   - Good
