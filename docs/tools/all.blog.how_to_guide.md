@@ -16,18 +16,17 @@
   - Research Google Docs are internal ways of on-going storing information for
     our projects
 
-
 #
 
 - Checklist to file on a GH Issue to prepare for writing a blog on a project
 
   - Learn how we write and organize documentation
-    - [ ] Read more docs in //helpers/docs/documentation_meta, especially:
-      - [ ] //helpers/docs/documentation_meta/all.diataxis.explanation.md
-      - [ ] //helpers/docs/documentation_meta/all.google_technical_writing.how_to_guide.md
-      - [ ] //helpers/docs/documentation_meta/all.writing_docs.how_to_guide.md
+    - [ ] Read more docs in [`//helpers/docs/documentation_meta`], especially:
+      - [ ] [`//helpers/docs/documentation_meta/all.diataxis.explanation.md`]
+      - [ ] [`//helpers/docs/documentation_meta/all.google_technical_writing.how_to_guide.md`]
+      - [ ] [`//helpers/docs/documentation_meta/all.writing_docs.how_to_guide.md]
 
-  - These are the rules we enforce with `linter` and `ai_review.py`
+  - Read rules enforced by `linter` and `ai_review.py`
     - [ ] Read ./docs/code_guidelines/all.coding_style_guidelines.reference.md
 
   - Learn how we organize projects and tutorials
@@ -35,7 +34,3 @@
     - [ ] Read //tutorials/docs/all.learn_X_in_60_minutes.how_to_guide.md
 
   - [ ] Read examples of blogs in //tutorials/blogs
-
-
-book.programming_with_ai/docs/writing-style.md
-
