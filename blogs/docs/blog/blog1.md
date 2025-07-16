@@ -7,9 +7,14 @@ tags:
 
 # Why Causal AI is the Future of Automated Decision-Making
 
-GP Saggese, Joel Sherlock, Paul Smith, Causify AI (in alphabetical order)
+GP Saggese, Joel Sherlock, Paul Smith
 
-Over the past decade, organizations have poured immense effort into building systems that harness the power of big data and traditional analytics. These systems, spanning from dashboards to predictive models, have helped analyze historical data, detect patterns, and forecast future events. However, there’s a fundamental problem with this approach: it stops at correlation. It can tell you *what* is likely to happen, but not *why*.
+Over the past decade, organizations have poured immense effort into building
+systems that harness the power of big data and traditional analytics. These
+systems, spanning from dashboards to predictive models, have helped analyze
+historical data, detect patterns, and forecast future events. However, there’s a
+fundamental problem with this approach: it stops at correlation. It can tell you
+*what* is likely to happen, but not *why*.
 
 That’s where **Causal AI** comes in.
 
