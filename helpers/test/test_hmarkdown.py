@@ -193,12 +193,12 @@ class _SlideProcessorMock(hmarkdo.SlideProcessor):
 class Test_SlideProcessor1(hunitest.TestCase):
     def helper(self, text: str, expected: str) -> None:
         # Prepare inputs.
-        text = hprint.dedent(text)
+        text = hprint.dedent(text, remove_lead_trail_empty_lines_=False)
         # Process.
         processor = _SlideProcessorMock()
         actual = processor.process(text)
         # Check output.
-        expected = hprint.dedent(expected)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -280,7 +280,6 @@ class Test_SlideProcessor1(hunitest.TestCase):
         * Slide 1
         * Slide 2
         """
-        text = hprint.dedent(text)
         expected = """
         @* Slide 1
         @* Slide 2

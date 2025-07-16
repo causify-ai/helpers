@@ -222,7 +222,7 @@ def _process_question_to_slides(
     return do_continue, line
 
 
-# TODO(gp): Use hmarkdown.process_lines().
+# TODO(gp): Use hmarkdown.process_lines() and / or create a MarkdownProcessor.
 def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     """
     Process the notes to convert them into a format suitable for pandoc.

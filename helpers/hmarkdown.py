@@ -677,7 +677,6 @@ class SlideProcessor(abc.ABC):
         hdbg.dassert_isinstance(slide_text_out, list)
         return slide_text_out
 
-
     def process(self, txt: str) -> str:
         hdbg.dassert_isinstance(txt, str)
         # Text of the current slide.
@@ -733,7 +732,6 @@ class SlideProcessor(abc.ABC):
             hdbg.dassert_isinstance(transformed_slide, list)
             transformed_txt.extend(transformed_slide)
             slide_txt = []
-            slide_txt.append(line)
         #
         hdbg.dassert(not in_skip_block,
                         "Found end of file while still parsing a comment block")
