@@ -18,7 +18,9 @@ _LOG = logging.getLogger(__name__)
 #  of strings.
 
 
-def replace_fenced_blocks_with_tags(lines: List[str]) -> Tuple[List[str], Dict[str, str]]:
+def replace_fenced_blocks_with_tags(
+    lines: List[str],
+) -> Tuple[List[str], Dict[str, str]]:
     """
     Replace fenced blocks with a tag and return the mapping from tags to the
     fenced block text.
@@ -58,9 +60,12 @@ def replace_fenced_blocks_with_tags(lines: List[str]) -> Tuple[List[str], Dict[s
     fence_text = []
     for i, line in enumerate(lines):
         _LOG.debug("%d:line='%s'", i, line)
-        _LOG.debug("  " + hprint.to_str("fenced_block_count in_fenced_block fence_depth"))
+        _LOG.debug(
+            "  "
+            + hprint.to_str("fenced_block_count in_fenced_block fence_depth")
+        )
         # Look for the start of a fenced block.
-        fence_match = re.match(r'^\s*(`{3,})', line)
+        fence_match = re.match(r"^\s*(`{3,})", line)
         if fence_match:
             _LOG.debug("  -> fence_match")
             curr_fence_depth = len(fence_match.group(0))
@@ -79,7 +84,7 @@ def replace_fenced_blocks_with_tags(lines: List[str]) -> Tuple[List[str], Dict[s
                     _LOG.debug("  -> end of fenced block")
                     in_fenced_block = False
                     # Replace nested code block markers with tag.
-                    result.append(f'<fenced_block{fenced_block_count}>')
+                    result.append(f"<fenced_block{fenced_block_count}>")
                     fence_map[str(fenced_block_count)] = "\n".join(fence_text)
                     _LOG.debug("  -> added to fence_map")
                     # Reset state.
@@ -94,7 +99,9 @@ def replace_fenced_blocks_with_tags(lines: List[str]) -> Tuple[List[str], Dict[s
     return result, fence_map
 
 
-def replace_tags_with_fenced_blocks(lines: List[str], fence_map: Dict[str, str]) -> List[str]:
+def replace_tags_with_fenced_blocks(
+    lines: List[str], fence_map: Dict[str, str]
+) -> List[str]:
     """
     Replace tags with fenced blocks.
     """
@@ -110,5 +117,11 @@ def replace_tags_with_fenced_blocks(lines: List[str], fence_map: Dict[str, str])
             del fence_map[tag]
         else:
             result.append(line)
-    hdbg.dassert_eq(len(fence_map), 0, "Found %s unmatched tags:\n%s", len(fence_map), pprint.pformat(fence_map))
+    hdbg.dassert_eq(
+        len(fence_map),
+        0,
+        "Found %s unmatched tags:\n%s",
+        len(fence_map),
+        pprint.pformat(fence_map),
+    )
     return result

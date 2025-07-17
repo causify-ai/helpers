@@ -179,7 +179,9 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
 
 
 class Test_replace_fenced_blocks_with_tags1(hunitest.TestCase):
-    def helper(self, text: str, expected_lines: List[str], expected_map: Dict[str, str]) -> None:
+    def helper(
+        self, text: str, expected_lines: List[str], expected_map: Dict[str, str]
+    ) -> None:
         """
         Test replacing fenced code blocks with tags.
         """
@@ -193,7 +195,9 @@ class Test_replace_fenced_blocks_with_tags1(hunitest.TestCase):
         self.assert_equal(fence_map_as_str, expected_map_as_str)
         #
         actual_lines = "\n".join(actual_lines)
-        expected_lines = hprint.dedent(expected_lines, remove_lead_trail_empty_lines_=True)
+        expected_lines = hprint.dedent(
+            expected_lines, remove_lead_trail_empty_lines_=True
+        )
         self.assert_equal(actual_lines, expected_lines)
 
     def helper_round_trip(self, text: str) -> None:
@@ -203,7 +207,9 @@ class Test_replace_fenced_blocks_with_tags1(hunitest.TestCase):
         # Do the round trip.
         lines = text.split("\n")
         actual_lines, fence_map = hmarkdo.replace_fenced_blocks_with_tags(lines)
-        act_text = hmarkdo.replace_tags_with_fenced_blocks(actual_lines, fence_map)
+        act_text = hmarkdo.replace_tags_with_fenced_blocks(
+            actual_lines, fence_map
+        )
         # Check output.
         act_text = "\n".join(act_text)
         self.assert_equal(act_text, text)
@@ -235,8 +241,8 @@ class Test_replace_fenced_blocks_with_tags1(hunitest.TestCase):
         """
         # Check fence map.
         expected_map = {
-            '1': "```python\ndef foo():\n    return 42\n```",
-            '2': "````\nPlain code block\n````"
+            "1": "```python\ndef foo():\n    return 42\n```",
+            "2": "````\nPlain code block\n````",
         }
         self.helper(text, expected_lines, expected_map)
 
@@ -258,7 +264,7 @@ class Test_replace_fenced_blocks_with_tags1(hunitest.TestCase):
         <fenced_block1>
         """
         expected_map = {
-            '1': "````\nOuter block\n```python\ndef nested():\n    pass\n```\nStill outer\n````"
+            "1": "````\nOuter block\n```python\ndef nested():\n    pass\n```\nStill outer\n````"
         }
         self.helper(text, expected_lines, expected_map)
         #
@@ -284,10 +290,7 @@ class Test_replace_fenced_blocks_with_tags1(hunitest.TestCase):
         <fenced_block2>
         End
         """
-        expected_map = {
-            '1': "```\n```",
-            '2': "```python\n```"
-        }
+        expected_map = {"1": "```\n```", "2": "```python\n```"}
         self.helper(text, expected_lines, expected_map)
         #
         self.helper_round_trip(text)
@@ -314,10 +317,7 @@ class Test_replace_fenced_blocks_with_tags1(hunitest.TestCase):
         <fenced_block2>
         End
         """
-        expected_map = {
-            '1': "```\nThree\n```",
-            '2': "`````\nFive\n`````"
-        }
+        expected_map = {"1": "```\nThree\n```", "2": "`````\nFive\n`````"}
         self.helper(text, expected_lines, expected_map)
         #
         self.helper_round_trip(text)
@@ -343,9 +343,9 @@ class Test_replace_fenced_blocks_with_tags1(hunitest.TestCase):
         <fenced_block3>
         """
         expected_map = {
-            '1': "```python\ndef foo(): pass\n```",
-            '2': "```bash\necho hello\n```",
-            '3': "```javascript\nconsole.log('hi');\n```"
+            "1": "```python\ndef foo(): pass\n```",
+            "2": "```bash\necho hello\n```",
+            "3": "```javascript\nconsole.log('hi');\n```",
         }
         self.helper(text, expected_lines, expected_map)
         #
@@ -374,8 +374,8 @@ class Test_replace_fenced_blocks_with_tags1(hunitest.TestCase):
         End
         """
         expected_map = {
-            '1': " ```\n Indented block\n  More indent\n ```",
-            '2': "   ```python\n   def foo():\n       pass\n   ```"
+            "1": " ```\n Indented block\n  More indent\n ```",
+            "2": "   ```python\n   def foo():\n       pass\n   ```",
         }
         self.helper(text, expected_lines, expected_map)
         #
@@ -458,11 +458,10 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         self.assert_equal(act, expected)
 
 
-
-
 # #############################################################################
 # Test_SlideProcessor1
 # #############################################################################
+
 
 class _SlideProcessorMock(hmarkdo.SlideProcessor):
     def transform(self, slide_text: List[str]) -> str:
@@ -614,6 +613,7 @@ class Test_SlideProcessor1(hunitest.TestCase):
         @
         """
         self.helper(text, expected)
+
 
 # #############################################################################
 # Test_is_markdown_line_separator1
