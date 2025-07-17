@@ -268,9 +268,7 @@ def create_dir(
             dir_timestamp = os.path.getmtime(dir_name)
             dir_datetime = datetime.datetime.fromtimestamp(dir_timestamp)
             # Build new dir name with timestamp.
-            dir_name_new = (
-                dir_name + "." + dir_datetime.strftime("%Y%m%d_%H%M%S")
-            )
+            dir_name_new = dir_name + "." + dir_datetime.strftime("%Y%m%d_%H%M%S")
             # Rename dir.
             if not os.path.exists(dir_name_new):
                 _LOG.warning("Renaming dir '%s' -> '%s'", dir_name, dir_name_new)

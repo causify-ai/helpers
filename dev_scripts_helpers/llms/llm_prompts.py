@@ -1004,7 +1004,6 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     #   <line_number>: <rule_name>: <short description of the proposed improvement>
     # - Do not print any other comment, besides the violation of the rules
     # """
-
     system += rf"""
     You will **analyze the code** and report only violations of the coding rules described below.
 
@@ -1187,8 +1186,8 @@ def slide_reduce() -> _PROMPT_OUT:
     - Make the text clean and readable
     - Remove all the words that are not needed and that are not important
     - Use "you" instead of "we"
-	- Be concise: Drop filler words ("the", "that", etc.)
-	- Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
+    - Be concise: Drop filler words ("the", "that", etc.)
+    - Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
 
     - If a line starts with an asterisk *, it's the slide title and leave it
       unchanged
@@ -1256,7 +1255,7 @@ def slide_definition() -> _PROMPT_OUT:
 
 def slide_reduce_bullets() -> _PROMPT_OUT:
     """
-    Remove the bullet points that are
+    Remove the bullet points that are.
     """
     system = _SLIDE_CONTEXT
     system += r"""
@@ -1286,15 +1285,15 @@ def slide_reduce2() -> _PROMPT_OUT:
     system += r"""
     You will make sure that the text has the following characteristics:
     - 1 idea per bullet: Keep each point focused on a single concept
-	- Max 5-6 bullets per slide: Avoid cognitive overload
-	- Max 6-8 words per bullet: Short phrases, not full sentences
-	- Parallel structure: Start each bullet with the same part of speech (e.g., verbs)
-	- No full stops (unless it's a complete sentence needing emphasis)
+    - Max 5-6 bullets per slide: Avoid cognitive overload
+    - Max 6-8 words per bullet: Short phrases, not full sentences
+    - Parallel structure: Start each bullet with the same part of speech (e.g., verbs)
+    - No full stops (unless it's a complete sentence needing emphasis)
 
-	- Be concise: Drop filler words ("the", "that", etc.)
-	- Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
-	- Use verbs for actions: e.g., "Collect feedback", "Analyze results"
-	- Highlight outcomes: Emphasize value, not process:
+    - Be concise: Drop filler words ("the", "that", etc.)
+    - Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
+    - Use verbs for actions: e.g., "Collect feedback", "Analyze results"
+    - Highlight outcomes: Emphasize value, not process:
         "Boost retention" > "Use spaced repetition."
 
     Print only the markdown without any explanation.
@@ -1573,9 +1572,7 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
     return txt_out
 
 
-def _convert_to_vim_cfile(
-    txt: str, in_file_name: str, out_file_name: str
-) -> str:
+def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> str:
     """
     Convert the text passed to a vim cfile.
 

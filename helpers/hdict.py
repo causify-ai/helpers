@@ -6,16 +6,7 @@ import helpers.hdict as hdict
 
 import collections
 import logging
-from typing import (
-    Any,
-    Dict,
-    Generator,
-    Iterable,
-    Mapping,
-    Optional,
-    Tuple,
-    Union,
-)
+from typing import Any, Dict, Generator, Iterable, Mapping, Optional, Tuple, Union
 
 import helpers.hdbg as hdbg
 

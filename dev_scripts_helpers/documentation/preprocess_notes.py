@@ -54,10 +54,6 @@ def _process_abbreviations(in_line: str) -> str:
     return line
 
 
-
-
-
-
 def _process_enumerated_list(in_line: str) -> str:
     """
     Transform enumerated list with parenthesis to `.`.
@@ -90,9 +86,7 @@ def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
     return do_continue, line
 
 
-def _process_question_to_slides(
-    line: str, *, level: int = 4
-) -> Tuple[bool, str]:
+def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str]:
     """
     Transform `* foo bar` into `#### foo bar`.
     """
@@ -182,7 +176,6 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         if _TRACE:
             _LOG.debug("# Process color commands.")
         line = hmarkdo.process_color_commands(line)
-
         # 7) Process question.
         if _TRACE:
             _LOG.debug("# Process question.")
@@ -210,9 +203,9 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     out.append(" " * _NUM_SPACES + line)
             else:
                 # Empty line.
-                prev_line_is_verbatim = ((i - 1) > 0) and lines[
-                    i - 1
-                ].startswith("```")
+                prev_line_is_verbatim = ((i - 1) > 0) and lines[i - 1].startswith(
+                    "```"
+                )
                 next_line_is_verbatim = ((i + 1) < len(lines)) and (
                     lines[i + 1].startswith("```")
                 )
@@ -234,22 +227,25 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     out.append(" " * _NUM_SPACES + line)
     #
     if type_ == "slides":
+
         def _transform(slide_text: List[str]) -> str:
             slide_text = "\n".join(slide_text)
             if not hmarkdo.has_color_command(slide_text):
-                text_out = hmarkdo.colorize_bullet_points_in_slide(slide_text, use_abbreviations=False)
+                text_out = hmarkdo.colorize_bullet_points_in_slide(
+                    slide_text, use_abbreviations=False
+                )
             else:
                 text_out = slide_text
             text_out = text_out.split("\n")
             return text_out
+
         processor = hmarkdo.SlideProcessor()
-        #processor.transform(["hello"])
+        # processor.transform(["hello"])
         out = "\n".join(out)
         out = processor.process(out, _transform)
         out = out.split("\n")
-        
 
-    #out = out.split("\n")
+    # out = out.split("\n")
     out_tmp = []
     for line in out:
         if type_ == "slides":
@@ -261,7 +257,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
             continue
         out_tmp.append(line)
     out = out_tmp
-    #out = "\n".join(out_tmp)
+    # out = "\n".join(out_tmp)
 
     # c) Clean up.
     _LOG.debug("Clean up")

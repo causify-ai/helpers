@@ -4,17 +4,10 @@ Import as:
 import helpers.hmarkdown as hmarkdo
 """
 
-import abc
-import dataclasses
 import logging
 import re
-import pprint
-from typing import Dict, Generator, List, Optional, Tuple, cast, Callable
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
-import helpers.hparser as hparser
-import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -29,7 +22,7 @@ _LOG = logging.getLogger(__name__)
 _COLORS = {
     "red": "red",
     "orange": "orange",
-    #"yellow": "yellow",
+    # "yellow": "yellow",
     "lime": "lime",
     #
     "green": "darkgreen",
@@ -46,7 +39,7 @@ _COLORS = {
     "darkgray": "darkgray",
     "lightgray": "lightgray",
     "black": "black",
-    #"white": "white",
+    # "white": "white",
 }
 
 
@@ -88,7 +81,7 @@ def process_color_commands(in_line: str) -> str:
 
 def has_color_command(line: str) -> bool:
     hdbg.dassert_isinstance(line, str)
-    #hdbg.dassert_not_in("\n", line)
+    # hdbg.dassert_not_in("\n", line)
     for color in _COLORS.keys():
         # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
         pattern = re.compile(
@@ -104,15 +97,18 @@ def has_color_command(line: str) -> bool:
             return True
     return False
 
+
 # TODO(gp): -> List[str]
 # TODO(gp): Use hmarkdown.process_lines() and test it.
-def colorize_bullet_points_in_slide(txt: str, *, use_abbreviations: bool = True) -> str:
+def colorize_bullet_points_in_slide(
+    txt: str, *, use_abbreviations: bool = True
+) -> str:
     """
     Given a string with bold text (but no color), colorize the bold text.
 
     :param txt: The text to colorize.
-    :param use_abbreviations: If True, use abbreviations for the colors like
-        `\red{foo}` instead of `\textcolor{red}{foo}`.
+    :param use_abbreviations: If True, use abbreviations for the colors
+        like `\red{foo}` instead of `\textcolor{red}{foo}`.
     :return: The colored text.
     """
     hdbg.dassert_isinstance(txt, str)

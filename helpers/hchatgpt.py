@@ -527,9 +527,7 @@ def e2e_assistant_runner(
         thread_id, user_input, input_file_names
     )
     if model:
-        run_id = run_thread_on_assistant_by_name(
-            assistant_name, thread_id, model
-        )
+        run_id = run_thread_on_assistant_by_name(assistant_name, thread_id, model)
     else:
         run_id = run_thread_on_assistant_by_name(assistant_name, thread_id)
     messages = wait_for_run_result(thread_id, run_id)

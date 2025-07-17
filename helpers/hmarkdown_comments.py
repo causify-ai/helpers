@@ -4,19 +4,10 @@ Import as:
 import helpers.hmarkdown as hmarkdo
 """
 
-import abc
-import dataclasses
 import logging
-import re
-import pprint
-from typing import Dict, Generator, List, Optional, Tuple, cast, Callable
-
-import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
-import helpers.hparser as hparser
-import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
+
 
 def process_single_line_comment(line: str) -> bool:
     """

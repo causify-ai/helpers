@@ -4,17 +4,11 @@ Import as:
 import helpers.hmarkdown as hmarkdo
 """
 
-import abc
-import dataclasses
 import logging
 import re
-import pprint
-from typing import Dict, Generator, List, Optional, Tuple, cast, Callable
+from typing import Generator, List, Tuple
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
-import helpers.hparser as hparser
-import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 # #############################################################################
@@ -98,6 +92,7 @@ def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str
 
 
 # TODO(gp): -> hmarkdown_color.py
+
 
 # TODO(gp): This seems the same as `_colorize_bullet_points()`.
 def colorize_bold_text(
@@ -215,5 +210,3 @@ def process_lines(lines: List[str]) -> Generator[Tuple[int, str], None, None]:
         out.append(line)
     #
     yield from enumerate(out)
-
-

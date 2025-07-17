@@ -130,10 +130,12 @@ SelectionRule = str
 # hierarchy of the rules as a description, e.g.,
 # `(1, "Spelling:All:LLM", xyz)`
 # TODO(gp): Make Guidelines descend from HeaderList.
-Guidelines = HeaderList
+import helpers.hmarkdown_headers as hmarkdoh
+
+Guidelines = hmarkdoh.HeaderList
 
 
-def convert_header_list_into_guidelines(header_list: HeaderList) -> Guidelines:
+def convert_header_list_into_guidelines(header_list: hmarkdoh.HeaderList) -> Guidelines:
     """
     Convert the header list into a `Guidelines` object with only level 1
     headers and full hierarchy of the rules as description.

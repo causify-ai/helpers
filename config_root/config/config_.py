@@ -147,8 +147,9 @@ _VALID_REPORT_MODES = ("verbose_log_error", "verbose_exception", "none")
 #   - `assert_on_error`: raise an error for unused variables
 _VALID_UNUSED_VARIABLES_MODES = ("warning_on_error", "assert_on_error")
 
+
 # #############################################################################
-# _ConfigWriterInfo
+# OverwriteError
 # #############################################################################
 
 
@@ -156,6 +157,11 @@ class OverwriteError(RuntimeError):
     """
     Trying to overwrite a value.
     """
+
+
+# #############################################################################
+# ClobberError
+# #############################################################################
 
 
 class ClobberError(RuntimeError):
@@ -168,6 +174,11 @@ class ClobberError(RuntimeError):
 # _OrderedDictType = collections.OrderedDict[ScalarKey, Any]
 # TODO(gp): Consider using a dict since after Python3.6 it is ordered.
 _OrderedDictType = collections.OrderedDict
+
+
+# #############################################################################
+# _ConfigWriterInfo
+# #############################################################################
 
 
 class _ConfigWriterInfo:
@@ -531,7 +542,7 @@ class _OrderedConfig(_OrderedDictType):
 
 
 # #############################################################################
-# Config
+# ReadOnlyConfigError
 # #############################################################################
 
 
@@ -539,6 +550,11 @@ class ReadOnlyConfigError(RuntimeError):
     """
     Trying to write on a Config marked read-only.
     """
+
+
+# #############################################################################
+# Config
+# #############################################################################
 
 
 class Config:
@@ -690,9 +706,7 @@ class Config:
             write-after-read (see above)
             - `None` to use the value set in the constructor
         """
-        _LOG.debug(
-            "-> " + hprint.to_str("key val update_mode clobber_mode self")
-        )
+        _LOG.debug("-> " + hprint.to_str("key val update_mode clobber_mode self"))
         clobber_mode = self._resolve_clobber_mode(clobber_mode)
         report_mode = self._resolve_report_mode(report_mode)
         try:
@@ -1178,7 +1192,9 @@ class Config:
         if missing_keys:
             missing_keys_str = ",".join(missing_keys)
             keys_str = ",".join(keys)
-            msg = f"Missing {missing_keys_str} vars (from {keys_str}) in config=\n"
+            msg = (
+                f"Missing {missing_keys_str} vars (from {keys_str}) in config=\n"
+            )
             msg += str(self)
             _LOG.error(msg)
             raise KeyError(msg)

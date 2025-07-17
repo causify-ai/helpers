@@ -230,9 +230,7 @@ def _save_models_info_to_csv(
 # #############################################################################
 
 
-def _build_messages(
-    system_prompt: str, user_prompt: str
-) -> List[Dict[str, str]]:
+def _build_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
     """
     Construct the standard messages payload for the chat API.
     """
@@ -364,9 +362,7 @@ def _calculate_cost(
         prompt_price = row["prompt_pricing"]
         completion_price = row["completion_pricing"]
         # Compute cost.
-        cost = (
-            prompt_tokens * prompt_price + completion_tokens * completion_price
-        )
+        cost = prompt_tokens * prompt_price + completion_tokens * completion_price
     else:
         raise ValueError(f"Unknown provider: {provider_name}")
     _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
