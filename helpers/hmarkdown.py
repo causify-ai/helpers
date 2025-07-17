@@ -26,7 +26,8 @@ _TRACE = False
 # TODO(gp): Split in files:
 # - hmarkdown_formatting.py
 # - hmarkdown_headers.py
-# - hmarkdown_processing.py
+# - hmarkdown_comments.py
+# - hmarkdown_slides.py
 # - hmarkdown_rules.py ?
 
 
@@ -35,6 +36,7 @@ _TRACE = False
 # #############################################################################
 
 
+# # TODO(gp): -> hmarkdown_headers.py
 def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     """
     Check if the given line is a Markdown separator.
@@ -61,6 +63,7 @@ def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     return res
 
 
+# TODO(gp): -> hmarkdown_headers.py
 def is_header(line: str) -> Tuple[bool, int, str]:
     """
     Check if the given line is a Markdown header.
@@ -111,6 +114,8 @@ def process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
     return do_continue, in_skip_block
 
 
+# TODO: -> process_fenced_block
+# TODO: -> process_fenced_blocks.py
 def process_code_block(
     line: str, in_code_block: bool, i: int, lines: List[str]
 ) -> Tuple[bool, bool, List[str]]:
@@ -185,6 +190,9 @@ def process_single_line_comment(line: str) -> bool:
     return do_continue
 
 
+# TODO(gp): -> hmarkdown_processing.py
+# TODO(gp): -> iterator
+# TODO(gp): where is this used?
 def process_lines(lines: List[str]) -> Generator[Tuple[int, str], None, None]:
     """
     Process lines of text to handle comment blocks, code blocks, and single
@@ -343,6 +351,7 @@ def md_clean_up(txt: str) -> str:
 # Header processing
 # #############################################################################
 
+# TODO(gp): -> hmarkdown_headers.py
 
 # TODO(gp): This could be done by processing `HeaderList`.
 def extract_section_from_markdown(content: str, header_name: str) -> str:
@@ -654,6 +663,8 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 # SlideProcessor
 # #############################################################################
 
+# TODO(gp): -> hmarkdown_slides.py
+
 _TRACE = True
 
 class SlideProcessor(abc.ABC):
@@ -754,6 +765,7 @@ class SlideProcessor(abc.ABC):
 # Process fenced blocks.
 # #############################################################################
 
+# TODO(gp): -> hmarkdown_fenced_blocks.py
 
 def replace_fenced_blocks_with_tags(lines: List[str]) -> Tuple[List[str], Dict[str, str]]:
     """
@@ -853,6 +865,8 @@ def replace_tags_with_fenced_blocks(lines: List[str], fence_map: Dict[str, str])
 # #############################################################################
 # Colorize
 # #############################################################################
+
+# TODO(gp): -> hmarkdown_color.py
 
 # Define colors and their LaTeX equivalents.
 _COLORS = {
@@ -972,7 +986,7 @@ def colorize_bullet_points_in_slide(txt: str, *, use_abbreviations: bool = True)
     # Colorize the bold items.
     color_idx = 0
     txt_out = []
-    for line in txt.split("\n"):
+    for line in lines:
         # Replace the strings like "**foo**" with a string like "**\red{foo}**".
         # Find all bold text patterns and wrap them with color commands
         # Keep track of which color to use for each match
@@ -1000,6 +1014,8 @@ def colorize_bullet_points_in_slide(txt: str, *, use_abbreviations: bool = True)
 # #############################################################################
 # Rules processing.
 # #############################################################################
+
+# TODO(gp): -> hmarkdown_rules.py
 
 # Rules are organized in 4 levels of a markdown file:
 #
@@ -1325,6 +1341,7 @@ def extract_rules_from_section(txt: str, line_number: int) -> List[str]:
 # Process headers.
 # #############################################################################
 
+# TODO(gp): -> hmarkdown_headers.py
 
 def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     """
@@ -1620,6 +1637,8 @@ def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str
     return "\n".join(result)
 
 
+# TODO(gp): -> hmarkdown_color.py
+
 # TODO(gp): This seems the same as `_colorize_bullet_points()`.
 def colorize_bold_text(
     markdown_text: str, *, use_abbreviations: bool = True
@@ -1753,6 +1772,7 @@ def format_latex(txt: str) -> str:
 # Filtering functions
 # #############################################################################
 
+# TODO(gp): -> hmarkdown_filtering.py
 
 def filter_by_header(file_name: str, header: str, prefix: str) -> str:
     """
