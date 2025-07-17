@@ -1,13 +1,27 @@
-## ruff
+<!-- toc -->
 
-- Website: https://docs.astral.sh/ruff/
+- [Ruff](#ruff)
+  * [Config](#config)
+  * [Ruff Check](#ruff-check)
+  * [Ruff Format](#ruff-format)
+  * [Ruff Linter](#ruff-linter)
+  * [Ruff Analyze](#ruff-analyze)
+- [Fixit](#fixit)
+- [Pyrefly](#pyrefly)
+- [Ty](#ty)
+- [Pre-Commit](#pre-commit)
 
-- `Ruff`:
-  - is a fast Python linter and code formatter
-  - supports over 700 linting rules from popular tools
-  - is meant to be a single replacement for multiple tools (e.g., flake8, pylint,
-    isort, pyupgrade)
+<!-- tocstop -->
 
+# `ruff`
+
+- Website: [https://docs.astral.sh/ruff/](https://docs.astral.sh/ruff/)
+
+- `ruff`:
+  - Is a fast Python linter and code formatter
+  - Supports over 700 linting rules from popular tools
+  - Is meant to be a single replacement for multiple tools (e.g., flake8,
+    pylint, isort, pyupgrade)
 ```
 > ruff -h
 ...
@@ -25,15 +39,17 @@ Commands:
 ...
 ```
 
-### Config
+## Config
 
 - Often we want to exclude certain files in the repos, e.g., files under
   `outcomes`:
+
   ```bash
   > ruff ... --exclude  '**/outcomes/**' --exclude '**/import_check/example/**'
   ```
 
 - By default we use the following options in `pyproject.toml`
+
   ```text
   [tool.ruff]
   line-length = 81
@@ -50,9 +66,10 @@ Commands:
   ignore = ["E731"]
   ```
 
-### ruff check
+### `ruff check`
 
 - Lint, auto-fix, and format code:
+
   ```bash
   > ruff check $DIR
   helpers/notebooks/cache.ipynb:cell 11:1:7: F821 Undefined name `dict_`
@@ -63,6 +80,7 @@ Commands:
   ```
 
 - Interesting options are:
+
   ```text
       --fix                              Apply fixes to resolve lint violations
       --unsafe-fixes                     Include fixes that may not retain the original intent of the code
@@ -75,6 +93,7 @@ Commands:
   ```
 
 - Remove colors (useful for cfile)
+
   ```bash
   > ruff check . | less -R | cat | tee cfile
   > vic
@@ -91,14 +110,14 @@ Commands:
   - W: warnings
   - I: isort, etc.
 
-### ruff format
+### `ruff format`
 
 - Format only:
   ```
   > ruff format --line-length 80
   ```
 
-### ruff linter
+### `ruff linter`
 
 - List all supported upstream linters
   ```bash
@@ -115,6 +134,7 @@ Commands:
 ### ruff analyze
 
 - Can analyze the code base
+
   ```text
   > ruff analyze graph -h
   Generate a map of Python file dependencies or dependents
@@ -135,18 +155,20 @@ Commands:
     -h, --help                             Print help (see more with '--help')
   ```
 
-## fixit
+## `fixit`
 
-- Website: https://fixit.readthedocs.io/en/latest/index.html
+- Website:
+  [https://fixit.readthedocs.io/en/latest/index.html](https://fixit.readthedocs.io/en/latest/index.html)
 
 - `fixit`
-  - configurable linting framework with support for auto-fixes
-  - custom "local" lint rules, and hierarchical configuration
-  - built on LibCST.
+  - Configurable linting framework with support for auto-fixes
+  - Custom "local" lint rules, and hierarchical configuration
+  - Built on LibCST.
 
 - Fixit doesn't seem to support toml
 
 - Run on `helpers` dir
+
   ```bash
   > fixit lint .
   ```
@@ -156,9 +178,9 @@ Commands:
   > fixit fix --automatic
   ```
 
-## pyrefly
+## `pyrefly`
 
-- Website: https://pyrefly.org/
+- Website: [https://pyrefly.org/](https://pyrefly.org/)
 
 - Pyrefly is a high-performance static type checker for Python
   - Type Checking: Analyzes Python code for type consistency before runtime
@@ -190,15 +212,16 @@ Commands:
 
 - It's best to run `pyrefly` inside the dev container to get the type hints of
   the installed packages
+
   ```bash
   docker> sudo bash -c "(source /venv/bin/activate; pip install --quiet pyrefly)"
   ```
 
   ```bash
-  docker> pyrefly check --color=never --output-format=min-text --project-excludes '**/outcomes/**' --project-excludes '**/import_check/example/**' --project-excludes '**/mkdocs.venv/**' 
+  docker> pyrefly check --color=never --output-format=min-text --project-excludes '**/outcomes/**' --project-excludes '**/import_check/example/**' --project-excludes '**/mkdocs.venv/**'
   ```
 
-## ty
+## `ty`
 
 - It's best to run `ty` inside the dev container to get the type hints of the
   installed packages
@@ -207,18 +230,18 @@ Commands:
   docker> ty check . --output-format concise --color never | cut -d' ' -f2- | tee cfile
   ```
 
-## pre-commit
+## `pre-commit`
 
-- The documentation is https://pre-commit.com/
+- The documentation is [https://pre-commit.com/](https://pre-commit.com/)
 
 - The `.pre-commit-config.yaml` contains the configuration for `pre-commit`
+
   ```yaml
   repos:
     - repo: https://github.com/astral-sh/ruff-pre-commit
       rev: v0.4.4
       hooks:
         - id: ruff
-
     - repo: local
       hooks:
         - id: fixit-lint
@@ -226,7 +249,6 @@ Commands:
           entry: fixit lint
           language: system
           types: [python]
-
         - id: pyrefly
           name: pyrefly lint
           entry: pyrefly lint
@@ -242,6 +264,7 @@ Commands:
   - TODO(gp): Maybe we should install in the thin env?
 
 - Run against all the files
+
   ```bash
   > pre-commit run --all-files
   ```
