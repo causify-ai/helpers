@@ -58,7 +58,7 @@ def _process_abbreviations(in_line: str) -> str:
 _COLORS = {
     "red": "red",
     "orange": "orange",
-    "yellow": "yellow",
+    #"yellow": "yellow",
     "lime": "lime",
     #
     "green": "darkgreen",
@@ -75,7 +75,7 @@ _COLORS = {
     "darkgray": "darkgray",
     "lightgray": "lightgray",
     "black": "black",
-    "white": "white",
+    #"white": "white",
 }
 
 
@@ -117,7 +117,7 @@ def _process_color_commands(in_line: str) -> str:
 
 def _has_color_command(line: str) -> bool:
     hdbg.dassert_isinstance(line, str)
-    hdbg.dassert_not_in("\n", line)
+    #hdbg.dassert_not_in("\n", line)
     for color in _COLORS.keys():
         # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
         pattern = re.compile(
@@ -134,10 +134,18 @@ def _has_color_command(line: str) -> bool:
     return False
 
 
-def _colorize_bullet_points(txt: str) -> str:
+# TODO(gp): -> List[str]
+# TODO(gp): Use hmarkdown.process_lines() and test it.
+def _colorize_bullet_points(txt: str, *, use_abbreviations: bool = True) -> str:
     """
     Given a string with bold text (but no color), colorize the bold text.
+
+    :param txt: The text to colorize.
+    :param use_abbreviations: If True, use abbreviations for the colors like
+        `\red{foo}` instead of `\textcolor{red}{foo}`.
+    :return: The colored text.
     """
+    hdbg.dassert_isinstance(txt, str)
     tot_bold = 0
     # Scan the text line by line and count how many bold items there are.
     for line in txt.split("\n"):
@@ -147,29 +155,38 @@ def _colorize_bullet_points(txt: str) -> str:
     _LOG.debug("tot_bold=%s", tot_bold)
     if tot_bold == 0:
         return txt
+    # Divide by 2 since we count the number of occurrences of `**`, while we
+    # want to count `**bold**` as 1.
     hdbg.dassert_eq(tot_bold % 2, 0, "tot_bold=%s needs to be even", tot_bold)
-    # Use the colors in the order of the list of colors.
     num_bolds = tot_bold // 2
+    # Use the colors in the order of the list of colors.
     hdbg.dassert_lte(num_bolds, len(_COLORS))
-    colors = list(_COLORS.keys())[:num_bolds]
+    # Sample num_bolds colors evenly spaced from the available colors
+    step = len(_COLORS) // num_bolds
+    colors = list(_COLORS.keys())[::step][:num_bolds]
     _LOG.debug("colors=%s", colors)
     # Colorize the bold items.
     color_idx = 0
+    txt_out = ""
     for line in txt.split("\n"):
         # Replace the strings like "**foo**" with a string like "**\red{foo}**".
         # Find all bold text patterns and wrap them with color commands
         # Keep track of which color to use for each match
-        def color_replacer(match):
+        def color_replacer(match: str) -> str:
             nonlocal color_idx
             text = match.group(1)
             hdbg.dassert_lte(color_idx, len(colors))
             color_to_use = colors[color_idx]
             color_idx += 1
-            return f"**\\{color_to_use}{{{text}}}**"
+            if use_abbreviations:
+                ret = f"**\\{color_to_use}{{{text}}}**"
+            else:
+                ret = f"**\\textcolor{{{color_to_use}}}{{{text}}}**"
+            return ret
 
         line = re.sub(r"\*\*([^*]+)\*\*", color_replacer, line)
-        txt += line + "\n"
-    return txt
+        txt_out += line + "\n"
+    return txt_out
 
 
 def _process_enumerated_list(in_line: str) -> str:
@@ -222,7 +239,8 @@ def _process_question_to_slides(
     return do_continue, line
 
 
-# TODO(gp): Use hmarkdown.process_lines() and / or create a MarkdownProcessor.
+# TODO(gp): Use hmarkdown.process_lines().
+# TODO(gp): Pass List[str].
 def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     """
     Process the notes to convert them into a format suitable for pandoc.
@@ -232,7 +250,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     :param is_qa: True if the input is a QA file.
     :return: List of lines of the notes.
     """
-    _LOG.debug("\n%s", hprint.frame("_transform_lines"))
+    _LOG.debug("\n%s", hprint.frame("transform_lines"))
     hdbg.dassert_isinstance(txt, str)
     lines = [line.rstrip("\n") for line in txt.split("\n")]
     out: List[str] = []
@@ -291,24 +309,21 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         if _TRACE:
             _LOG.debug("# Process enumerated list.")
         line = _process_enumerated_list(line)
-        # # 6) Process color commands.
-        # if _TRACE:
-        #     _LOG.debug("# Process color commands.")
-        # line = _process_color_commands(line)
         # 6) Process color commands.
         if _TRACE:
             _LOG.debug("# Process color commands.")
         line = _process_color_commands(line)
+
         # 7) Process question.
         if _TRACE:
             _LOG.debug("# Process question.")
-        if type_ == "slides":
-            do_continue, line = _process_question_to_slides(line)
-        else:
-            do_continue, line = _process_question_to_markdown(line)
-        if do_continue:
-            out.append(line)
-            continue
+        # if type_ == "slides":
+        #     do_continue, line = _process_question_to_slides(line)
+        # else:
+        #     do_continue, line = _process_question_to_markdown(line)
+        # if do_continue:
+        #     out.append(line)
+        #     continue
         # 8) Process empty lines in the questions and answers.
         if _TRACE:
             _LOG.debug("# Process empty lines in the questions and answers.")
@@ -348,6 +363,37 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     or next_line_is_verbatim
                 ):
                     out.append(" " * _NUM_SPACES + line)
+    #
+    if type_ == "slides":
+        def _transform(slide_text: List[str]) -> str:
+            slide_text = "\n".join(slide_text)
+            if not _has_color_command(slide_text):
+                text_out = _colorize_bullet_points(slide_text, use_abbreviations=False)
+            else:
+                text_out = slide_text
+            text_out = text_out.split("\n")
+            return text_out
+        processor = hmarkdo.SlideProcessor()
+        #processor.transform(["hello"])
+        out = "\n".join(out)
+        out = processor.process(out, _transform)
+        out = out.split("\n")
+        
+
+    #out = out.split("\n")
+    out_tmp = []
+    for line in out:
+        if type_ == "slides":
+            do_continue, line = _process_question_to_slides(line)
+        else:
+            do_continue, line = _process_question_to_markdown(line)
+        if do_continue:
+            out_tmp.append(line)
+            continue
+        out_tmp.append(line)
+    out = out_tmp
+    #out = "\n".join(out_tmp)
+
     # c) Clean up.
     _LOG.debug("Clean up")
     # Remove all the lines with only spaces.

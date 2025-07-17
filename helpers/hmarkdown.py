@@ -8,7 +8,7 @@ import abc
 import dataclasses
 import logging
 import re
-from typing import Dict, Generator, List, Optional, Tuple, cast
+from typing import Dict, Generator, List, Optional, Tuple, cast, Callable
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -667,17 +667,17 @@ class SlideProcessor(abc.ABC):
     def __init__(self):
         pass
 
-    @abc.abstractmethod
-    def transform(self, slide_text: List[str]) -> List[str]:
-        """
-        Process a slide.
-        """
-        hdbg.dassert_isinstance(slide_text, list)
-        slide_text_out = super().transform(slide_text)
-        hdbg.dassert_isinstance(slide_text_out, list)
-        return slide_text_out
+    # @abc.abstractmethod
+    # def transform(self, slide_text: List[str]) -> List[str]:
+    #     """
+    #     Process a slide.
+    #     """
+    #     hdbg.dassert_isinstance(slide_text, list)
+    #     slide_text_out = super().transform(slide_text)
+    #     hdbg.dassert_isinstance(slide_text_out, list)
+    #     return slide_text_out
 
-    def process(self, txt: str) -> str:
+    def process(self, txt: str, transform: Callable[[List[str]], List[str]]) -> str:
         hdbg.dassert_isinstance(txt, str)
         # Text of the current slide.
         slide_txt: List[str] = []
@@ -708,7 +708,7 @@ class SlideProcessor(abc.ABC):
                 if slide_txt:
                     _LOG.debug("# Transform slide")
                     # Transform the slide.
-                    transformed_slide = self.transform(slide_txt)
+                    transformed_slide = transform(slide_txt)
                     hdbg.dassert_isinstance(transformed_slide, list)
                     transformed_txt.extend(transformed_slide)
                 else:
@@ -728,10 +728,11 @@ class SlideProcessor(abc.ABC):
             hdbg.dassert(in_slide)
             in_slide = False
             # Transform the slide.
-            transformed_slide = self.transform(slide_txt)
+            transformed_slide = transform(slide_txt)
             hdbg.dassert_isinstance(transformed_slide, list)
             transformed_txt.extend(transformed_slide)
             slide_txt = []
+            slide_txt.append(line)
         #
         hdbg.dassert(not in_skip_block,
                         "Found end of file while still parsing a comment block")
