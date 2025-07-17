@@ -1,102 +1,152 @@
-# Reference Guide: <script.py>
-
-Template to document scripts and detail technical aspects of the file/script.
-
 <!-- toc -->
 
-  * [What it does](#what-it-does)
-    + [Sample reference:](#sample-reference)
-  * [Input and Output Types](#input-and-output-types)
-  * [Supported File types and Code Blocks](#supported-file-types-and-code-blocks)
+- [What It Does](#what-it-does)
+  * [Input And Output](#input-and-output)
+  * [Supported File Types](#supported-file-types)
   * [Flag Options](#flag-options)
   * [Examples](#examples)
-  * [Common Error Codes and Exceptions](#common-error-codes-and-exceptions)
-- [Dependencies](#dependencies)
+  * [Errors And Fixes](#errors-and-fixes)
+  * [Dependencies](#dependencies)
 
 <!-- tocstop -->
 
-## What it does
+<!--
+LLM Instruction:
+- Use this XML template to generate structured documentation.
+- Wherever CLI examples are required, insert them inside <code_block language="bash"> ... </code_block>.
+- Do not use <command> or inline code for full command-line blocks.
+- Replace TODO: with actual content based on the script's usage.
+- Remove all LLM instruction tags in the final output.
+- The final output should be a Markdown file.
+- Do not modify any of the heading names or structure or the template.
+- In the <examples> section, provide real or illustrative examples that match the script’s use case.
+- Information entered should be crisp and concise and accurate based on the script.
+- Add appropriate examples based on the script wherever necessary.
+-->
 
-- Explain in a few lines the objective of the document/script and what it aims
-  to achieve.
+<reference_guide>
 
-- Examples
-  - This script auto renders figures by:
-    - Detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, ...)
-    - Rendering them into images calling the appropriate tool
-    - Commenting them out the block
-    - Inlining a `![](img)` markup
+  <title>Reference Guide: &lt;FileName&gt;</title>
 
-### Input and Output Types
+  <description>
+    TODO: Write a short paragraph describing what the script does and its key use cases.
+  </description>
 
-- Detail what input formats are accepted and the output format of any files
-  generated, if any and contents of the output.
+  <section name="WhatItDoes">
 
-### Supported File types and Code Blocks
+# What It Does
 
-- List the file extensions or formats your tool/script can handle. Mention how
-  each is processed.
+    <objective>
+      <bullet>TODO: Explain core objective #1</bullet>
+      <bullet>TODO: Explain core objective #2</bullet>
+      <bullet>TODO: Explain core objective #3</bullet>
+    </objective>
 
-### Reference Examples:
+    <sample_behavior>
+      This script performs the following:
+      <bullet>Detects fenced code blocks (e.g., PlantUML, Mermaid, TikZ)</bullet>
+      <bullet>Renders them using the appropriate tool</bullet>
+      <bullet>Comments out the original code block</bullet>
+      <bullet>Inserts an image reference like <code>![](image.png)</code></bullet>
+    </sample_behavior>
 
-- Create a new Markdown file with rendered images:
-  ```bash
-  > render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
-  ```
+  </section>
 
-- Render images in place in the original Markdown file:
-  ```bash
-  > render_images.py -i ABC.md --action render --run_dockerized
-  ```
+  <section name="InputAndOutput">
 
-- Render images in place in the original LaTeX file:
-  ```bash
-  > render_images.py -i ABC.tex --action render --run_dockerized
-  ```
+## Input And Output
 
-- Open rendered images from a Markdown file in HTML to preview:
-  ```bash
-  > render_images.py -i ABC.md --action open --run_dockerized
-  ```
+    <inputs>
+      TODO: List accepted input formats (e.g., .md, .tex)
+    </inputs>
+    <outputs>
+      TODO: Describe the output file format and its expected content
+    </outputs>
 
-### Flag Options
+  </section>
 
-- Describe each available flag, its purpose, and demonstrate how to use it 
-  with examples
+  <section name="SupportedFileTypes">
 
-- Report the output of running the script with `--help`
+## Supported File Types
 
-### Examples
+    <sample_behavior>
+    <filetype name=".md">TODO: Markdown processing logic</filetype>
+    <filetype name=".tex">TODO: LaTeX file processing logic</filetype>
 
-- Render to a new file
+    <use_cases>
+      <case description="Render Markdown to a new file">
+        <code_block language="bash">
 
-  ```bash
-  > render_images.py -i lesson.md -o lesson.rendered.md --action render --run_dockerized
-  ```
+render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
+</code_block> </case> <case description="Render in-place Markdown"> <code_block
+language="bash"> render_images.py -i ABC.md --action render --run_dockerized
+</code_block> </case> <case description="Preview rendered images in browser">
+<code_block language="bash"> render_images.py -i ABC.md --action open
+--run_dockerized </code_block> </case> </use_cases> </sample_behavior>
 
-- Render in‑place (Markdown or LaTeX)
+  </section>
 
-  ```bash
-  > render_images.py -i lesson.md --action render --run_dockerized
-  ```
+  <section name="FlagOptions">
 
-- HTML preview of already‑rendered images
+## Flag Options
 
-  ```bash
-  > render_images.py -i lesson.md --action open --run_dockerized
-  ```
+    <sample_behavior>
+    <code_block language="bash">
+    <flag name="-h, --help">Show help message and exit</flag>
+    <flag name="-i, --in_file_name">Input file path</flag>
+    <flag name="-o, --out_file_name">Output file path</flag>
+    <flag name="--action {open,render}">Action to execute</flag>
+    <flag name="--skip_action {open,render}">Action to skip</flag>
+    <flag name="--all">Run all available actions</flag>
+    <flag name="--dry_run">Simulate run (update files but don't render images)</flag>
+    <flag name="--dockerized_force_rebuild">Force Docker container rebuild</flag>
+    <flag name="--dockerized_use_sudo">Use sudo inside Docker container</flag>
+    <flag name="-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}">Set logging level</flag>
+    </code_block>
+    </sample_behavior>
 
-- Dry‑run (test parsing / comments only)
-  ```bash
-  > render_images.py -i lesson.md -o /tmp/out.md --dry_run
-  ```
+  </section>
 
-### Common Error Codes and Exceptions
+  <section name="Examples">
 
-- Error/Issue:
-  - Likely Cause:
-  - Possible Fix:
+## Examples
+
+    <example title="Render to a new Markdown file">
+      <code_block language="bash">
+
+render_images.py -i lesson.md -o lesson.rendered.md --action render
+--run_dockerized </code_block> </example> <example title="Render in-place">
+<code_block language="bash"> render_images.py -i lesson.md --action render
+--run_dockerized </code_block> </example>
+<example title="HTML preview of rendered images"> <code_block language="bash">
+render_images.py -i lesson.md --action open --run_dockerized </code_block>
+</example> <example title="Dry-run for testing only"> <code_block
+language="bash"> render_images.py -i lesson.md -o /tmp/out.md --dry_run
+</code_block> </example>
+
+  </section>
+
+  <section name="ErrorsAndFixes">
+
+## Errors And Fixes
+
+    <error>
+      <issue>TODO: Describe a common error</issue>
+      <cause>TODO: Likely cause</cause>
+      <solution>TODO: Suggested fix or workaround</solution>
+    </error>
+
+  </section>
+
+  <section name="Dependencies">
 
 ## Dependencies
 
-- Mention any and all dependencies needed to run your code.
+  <dependency>
+    <bullet>TODO: Docker (for --run_dockerized support)</bullet>
+    <bullet>TODO: Graphviz, PlantUML, or other rendering tools depending on code block types</bullet>
+    <bullet>TODO: Any other external CLI utilities used in subprocess calls</bullet>
+  </dependency>
+</section>
+
+</reference_guide>
