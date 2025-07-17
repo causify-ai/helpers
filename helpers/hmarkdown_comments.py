@@ -6,6 +6,8 @@ import helpers.hmarkdown as hmarkdo
 
 import logging
 
+from helpers.hmarkdown_headers import is_markdown_line_separator
+
 _LOG = logging.getLogger(__name__)
 
 

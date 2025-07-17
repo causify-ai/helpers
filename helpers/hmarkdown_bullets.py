@@ -9,8 +9,12 @@ import re
 from typing import Generator, List, Tuple
 
 import helpers.hdbg as hdbg
+from helpers.hmarkdown_comments import process_single_line_comment
 
 _LOG = logging.getLogger(__name__)
+
+_TRACE = False
+
 # #############################################################################
 # Formatting markdown
 # #############################################################################
