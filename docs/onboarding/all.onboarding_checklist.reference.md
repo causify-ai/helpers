@@ -2,35 +2,35 @@
 
 <!-- toc -->
 
-- [Onboarding process for a new team member](#onboarding-process-for-a-new-team-member)
+- [Onboarding Process for a New Team Member](#onboarding-process-for-a-new-team-member)
   * [Meta](#meta)
-    + [Make on-boarding automatic](#make-on-boarding-automatic)
-    + [Be patient](#be-patient)
-    + [Ask for confirmation](#ask-for-confirmation)
-    + [Make on-boarding similar to our work routine](#make-on-boarding-similar-to-our-work-routine)
-    + [Improve on-boarding process](#improve-on-boarding-process)
-  * [People involved in the on-boarding](#people-involved-in-the-on-boarding)
+    + [Make On-Boarding Automatic](#make-on-boarding-automatic)
+    + [Be Patient](#be-patient)
+    + [Ask for Confirmation](#ask-for-confirmation)
+    + [Make On-Boarding Similar to Our Work Routine](#make-on-boarding-similar-to-our-work-routine)
+    + [Improve On-Boarding Process](#improve-on-boarding-process)
+  * [People Involved in the On-Boarding](#people-involved-in-the-on-boarding)
 - [Checklist](#checklist)
-  * [Before the start date](#before-the-start-date)
-  * [The first day!](#the-first-day)
-    + [Team member info](#team-member-info)
+  * [Before the Start Date](#before-the-start-date)
+  * [The First Day!](#the-first-day)
+    + [Team Member Info](#team-member-info)
     + [NDA](#nda)
     + [Hubstaff](#hubstaff)
-    + [IT setup](#it-setup)
-- [Quick checklists to verify that everything works](#quick-checklists-to-verify-that-everything-works)
-  * [The second day](#the-second-day)
+    + [IT Setup](#it-setup)
+- [Quick Checklists to Verify That Everything Works](#quick-checklists-to-verify-that-everything-works)
+  * [The Second Day](#the-second-day)
 
 <!-- tocstop -->
 
-## Onboarding process for a new team member
+## Onboarding Process for a New Team Member
 
 ### Meta
 
-#### Make on-boarding automatic
+#### Make On-Boarding Automatic
 
 - We want to make the onboarding process as automatic as possible
 
-#### Be patient
+#### Be Patient
 
 - Let's use all the communication tools we have (screen sharing, Google Meet,
   phone, Slack, email) to keep the process smooth and personal
@@ -38,7 +38,7 @@
   inevitably go wrong
   - Let's all be patient with each other
 
-#### Ask for confirmation
+#### Ask for Confirmation
 
 - Use checklists any time to make sure things get done
 - Ask for confirmation of all the actions, e.g.,
@@ -48,7 +48,7 @@
 - Make the new team member follow the instructions so that they can get familiar
   with the systems
 
-#### Make on-boarding similar to our work routine
+#### Make On-Boarding Similar to Our Work Routine
 
 - Provide tools for interacting with the team
   - During the process the new teammate will ask questions and he / she should
@@ -65,7 +65,7 @@
   - He / she should put his / her notes in the GH issue while proceeding during
     the onboarding process
 
-#### Improve on-boarding process
+#### Improve On-Boarding Process
 
 - Review, improve, clarify process
   - We want to point the new team member to a document rather than explaining
@@ -80,7 +80,7 @@
   - Open the first GitHub bug on the first day
   - Open the first PR by the second day
 
-### People involved in the on-boarding
+### People Involved in the On-Boarding
 
 - Each task is performed by one of the persons involved in the on-boarding
   - Team leader (e.g., GP, Paul, Grisha, Samarth)
@@ -91,9 +91,9 @@
 ## Checklist
 
 - Source:
-  [`all.onboarding_checklist.reference.md`](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.onboarding_checklist.reference.md)
+  [`all.onboarding_checklist.reference.md`](/docs/onboarding/all.onboarding_checklist.reference.md)
 
-### Before the start date
+### Before the Start Date
 
 - [ ] **Team leader**: talk to the teams about the new team member joining
 
@@ -109,9 +109,9 @@
   - What is going to work on initially
   - LinkedIn link
 
-### The first day!
+### The First Day!
 
-#### Team member info
+#### Team Member Info
 
 - [ ] **Team member**: send the following information to your team leader
   - Full name:
@@ -121,6 +121,10 @@
   - Laptop OS: Windows, Linux, or Mac
   - Physical location and timezone
   - User's SSH public key
+
+- [ ] **Team member**: Set a profile picture where your face is clearly visible,
+      and use your @mention name as your display name on GitHub and other
+      communication channels.
 
 - [ ] **Team leader**: update the
       [Team member info gdoc](https://docs.google.com/document/d/1gmcmLzaopYWEycx1AbBMupG9hJhcxPCxN85l23_fZGk)
@@ -145,9 +149,9 @@
 - [ ] **Team member**:
   - Confirm access to Hubstaff
   - Read
-    [Instructions for Hubstaff](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.track_time_with_hubstaff.how_to_guide.md)
+    [Instructions for Hubstaff](/docs/onboarding/all.track_time_with_hubstaff.how_to_guide.md)
 
-#### IT setup
+#### IT Setup
 
 - [ ] **Team leader**: File an issue with this checklist
   - The title is "Onboarding {{Name}}"
@@ -186,10 +190,10 @@
   - [Process](https://drive.google.com/drive/u/1/folders/1aLNVB_Oiljf2ajkmpZuoX_TArpQdb6pG)
 
 - [ ] **Team member**: Set up the laptop to connect to the server following
-      [VPN and dev server access setup instructions](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md)
+      [VPN and dev server access setup instructions](/docs/onboarding/ck.setup_vpn_and_dev_server_access.how_to_guide.md)
 
 - [ ] **Team member**: Configure your server environment following
-      [Development setup instructions](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/ck.development_setup.how_to_guide.md)
+      [Development setup instructions](/docs/onboarding/ck.development_setup.how_to_guide.md)
 
 - [ ] **Team member** (On per-need basis): We have implemented a
       self-registration process for our Airflow on Kubernetes deployment. Please
@@ -255,7 +259,7 @@
   - Track what is not clear in the onboarding process / documentation and what
     should / could be improved
 
-## Quick checklists to verify that everything works
+## Quick Checklists to Verify That Everything Works
 
 - **Team member**
   - [ ] VPN to dev server
@@ -266,7 +270,7 @@
     - There is an extension for VSCode, which allows to develop remotely
       [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh)
     - Follow
-      [this instruction](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/all.visual_studio_code.how_to_guide.md)
+      [this instruction](/docs/work_tools/all.visual_studio_code.how_to_guide.md)
       on how to set it up in your Visual Studio Code
   - [ ] Run the unit tests and make sure they all pass
   - [ ] Run a docker container
@@ -275,27 +279,27 @@
     ```
   - [ ] Run a jupyter notebook
     - Follow
-      [this instruction](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/all.visual_studio_code.how_to_guide.md#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
+      [this instruction](/docs/work_tools/all.visual_studio_code.how_to_guide.md#how-to-access-the-jupyter-server-running-on-the-remote-server-through-your-local-machine)
       on how to access the Jupyter server running on the remote server through
       your local machine
     ```bash
     > i docker_jupyter
     ```
 
-### The second day
+### The Second Day
 
 - [ ] **Team member**: carefully study all the documents in
-      [the must-read list](https://github.com/causify-ai/helpers/blob/master/docs/onboarding/all.dev_must_read_checklist.reference.md)
-  - [ ] [General rules of collaboration](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.team_collaboration.how_to_guide.md)
-  - [ ] [Coding style guide](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.coding_style.how_to_guide.md)
-  - [ ] [How to write unit tests](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.write_unit_tests.how_to_guide.md)
-  - [ ] [How to run unit tests](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.run_unit_tests.how_to_guide.md)
-  - [ ] [Creating a Jupyter Notebook](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.jupyter_notebook.how_to_guide.md)
-  - [ ] [What to do before opening a PR](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.submit_code_for_review.how_to_guide.md)
-  - [ ] [Code review process](https://github.com/causify-ai/helpers/blob/master/docs/coding/all.code_review.how_to_guide.md)
-  - [ ] [Git workflows and best practices](https://github.com/causify-ai/helpers/blob/master/docs/work_tools/git/all.git.how_to_guide.md)
-  - [ ] [GitHub organization](https://github.com/causify-ai/helpers/blob/master/docs/work_organization/all.use_github.how_to_guide.md)
-  - [ ] [Tips for writing documentation](https://github.com/causify-ai/helpers/blob/master/docs/documentation_meta/all.writing_docs.how_to_guide.md)
+      [the must-read list](/docs/onboarding/all.dev_must_read_checklist.reference.md)
+  - [ ] [General rules of collaboration](/docs/work_organization/all.team_collaboration.how_to_guide.md)
+  - [ ] [Coding style guide](/docs/coding/all.coding_style.how_to_guide.md)
+  - [ ] [How to write unit tests](/docs/coding/all.write_unit_tests.how_to_guide.md)
+  - [ ] [How to run unit tests](/docs/coding/all.run_unit_tests.how_to_guide.md)
+  - [ ] [Creating a Jupyter Notebook](/docs/coding/all.jupyter_notebook.how_to_guide.md)
+  - [ ] [What to do before opening a PR](/docs/coding/all.submit_code_for_review.how_to_guide.md)
+  - [ ] [Code review process](/docs/coding/all.code_review.how_to_guide.md)
+  - [ ] [Git workflows and best practices](/docs/work_tools/git/all.git.how_to_guide.md)
+  - [ ] [GitHub organization](/docs/work_organization/all.use_github.how_to_guide.md)
+  - [ ] [Tips for writing documentation](/docs/documentation_meta/all.writing_docs.how_to_guide.md)
   - They will help you get up to speed with our practices and development style
   - Read them carefully one by one
   - Ask questions
