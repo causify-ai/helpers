@@ -134,6 +134,8 @@ def _has_color_command(line: str) -> bool:
     return False
 
 
+
+
 # TODO(gp): -> List[str]
 # TODO(gp): Use hmarkdown.process_lines() and test it.
 def _colorize_bullet_points(txt: str, *, use_abbreviations: bool = True) -> str:
