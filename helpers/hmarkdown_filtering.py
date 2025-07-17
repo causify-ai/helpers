@@ -4,17 +4,10 @@ Import as:
 import helpers.hmarkdown as hmarkdo
 """
 
-import abc
-import dataclasses
 import logging
 import re
-import pprint
-from typing import Dict, Generator, List, Optional, Tuple, cast, Callable
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
-import helpers.hparser as hparser
-import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
@@ -47,8 +40,10 @@ def _parse_range(range_as_str: str, max_value: int) -> tuple[int, int]:
     """
     Parse a line range string like '1:10' into start and end line numbers.
 
-    :param range_as_str: String in format 'start:end' where start/end can be numbers or 'None'
-    :param max_value: Maximum value to use when 'None' is specified for end
+    :param range_as_str: String in format 'start:end' where start/end
+        can be numbers or 'None'
+    :param max_value: Maximum value to use when 'None' is specified for
+        end
     :return: Tuple of (start_line, end_line) as integers
     """
     m = re.match(r"^(\S+):(\S+)$", range_as_str)

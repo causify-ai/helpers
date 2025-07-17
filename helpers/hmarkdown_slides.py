@@ -5,15 +5,10 @@ import helpers.hmarkdown as hmarkdo
 """
 
 import abc
-import dataclasses
 import logging
-import re
-import pprint
-from typing import Dict, Generator, List, Optional, Tuple, cast, Callable
+from typing import Callable, List
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
-import helpers.hparser as hparser
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -29,6 +24,11 @@ _LOG = logging.getLogger(__name__)
 # TODO(gp): -> hmarkdown_slides.py
 
 _TRACE = True
+
+# #############################################################################
+# SlideProcessor
+# #############################################################################
+
 
 class SlideProcessor(abc.ABC):
     """
@@ -58,7 +58,9 @@ class SlideProcessor(abc.ABC):
     #     hdbg.dassert_isinstance(slide_text_out, list)
     #     return slide_text_out
 
-    def process(self, txt: str, transform: Callable[[List[str]], List[str]]) -> str:
+    def process(
+        self, txt: str, transform: Callable[[List[str]], List[str]]
+    ) -> str:
         hdbg.dassert_isinstance(txt, str)
         # Text of the current slide.
         slide_txt: List[str] = []
@@ -115,12 +117,13 @@ class SlideProcessor(abc.ABC):
             slide_txt = []
             slide_txt.append(line)
         #
-        hdbg.dassert(not in_skip_block,
-                        "Found end of file while still parsing a comment block")
-        hdbg.dassert(not in_slide,
-                        "Found end of file while still parsing a slide")
+        hdbg.dassert(
+            not in_skip_block,
+            "Found end of file while still parsing a comment block",
+        )
+        hdbg.dassert(
+            not in_slide, "Found end of file while still parsing a slide"
+        )
         # Join the transformed slides back together.
         transformed_txt = "\n".join(transformed_txt)
         return transformed_txt
-
-

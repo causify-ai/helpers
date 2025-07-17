@@ -4,21 +4,19 @@ Import as:
 import helpers.hmarkdown as hmarkdo
 """
 
-import abc
 import dataclasses
 import logging
 import re
-import pprint
-from typing import Dict, Generator, List, Optional, Tuple, cast, Callable
+from typing import List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
 _TRACE = False
+
 
 # TODO(gp): Add a decorator like in hprint to process both strings and lists
 #  of strings.
@@ -74,6 +72,7 @@ def is_header(line: str) -> Tuple[bool, int, str]:
 # #############################################################################
 # Header processing
 # #############################################################################
+
 
 # TODO(gp): This could be done by processing `HeaderList`.
 def extract_section_from_markdown(content: str, header_name: str) -> str:
@@ -239,9 +238,7 @@ def sanity_check_header_list(header_list: HeaderList) -> None:
             hdbg.dassert_isinstance(header_list[i], HeaderInfo)
             if header_list[i].level - header_list[i - 1].level > 1:
                 msg = []
-                msg.append(
-                    "Consecutive headers increase by more than one level:"
-                )
+                msg.append("Consecutive headers increase by more than one level:")
                 msg.append(f"  {header_list[i - 1]}")
                 msg.append(f"  {header_list[i]}")
                 msg = "\n".join(msg)
@@ -387,6 +384,7 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 # #############################################################################
 
 # TODO(gp): -> hmarkdown_headers.py
+
 
 def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     """
@@ -600,5 +598,3 @@ def selected_navigation_to_str(
         close_modifier=close_modifier,
     )
     return txt
-
-

@@ -4,16 +4,11 @@ Import as:
 import helpers.hmarkdown as hmarkdo
 """
 
-import abc
-import dataclasses
 import logging
 import re
-import pprint
-from typing import Dict, Generator, List, Optional, Tuple, cast, Callable
+from typing import Dict, List
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
-import helpers.hparser as hparser
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -130,12 +125,14 @@ SelectionRule = str
 # hierarchy of the rules as a description, e.g.,
 # `(1, "Spelling:All:LLM", xyz)`
 # TODO(gp): Make Guidelines descend from HeaderList.
-import helpers.hmarkdown_headers as hmarkdoh
+import helpers.hmarkdown_headers as hmarhead
 
-Guidelines = hmarkdoh.HeaderList
+Guidelines = hmarhead.HeaderList
 
 
-def convert_header_list_into_guidelines(header_list: hmarkdoh.HeaderList) -> Guidelines:
+def convert_header_list_into_guidelines(
+    header_list: hmarhead.HeaderList,
+) -> Guidelines:
     """
     Convert the header list into a `Guidelines` object with only level 1
     headers and full hierarchy of the rules as description.
@@ -347,6 +344,3 @@ def extract_rules_from_section(txt: str, line_number: int) -> List[str]:
     for bullet_point in bullet_points:
         rules.append(bullet_point)
     return rules
-
-
-

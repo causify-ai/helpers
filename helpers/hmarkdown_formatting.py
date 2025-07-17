@@ -4,19 +4,16 @@ Import as:
 import helpers.hmarkdown as hmarkdo
 """
 
-import abc
-import dataclasses
 import logging
 import re
-import pprint
-from typing import Dict, Generator, List, Optional, Tuple, cast, Callable
+from typing import cast
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
-import helpers.hparser as hparser
-import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
+
+
 def remove_end_of_line_periods(txt: str) -> str:
     """
     Remove periods at the end of each line in the given text.
@@ -182,5 +179,3 @@ def format_latex(txt: str) -> str:
     txt = hdocker.prettier_on_str(txt, file_type)
     txt_ = cast(str, txt)
     return txt_
-
-
