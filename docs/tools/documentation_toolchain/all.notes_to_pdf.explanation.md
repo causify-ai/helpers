@@ -13,15 +13,15 @@
 
 # Flow Explanation
 
-- This document walks through the architecture of the `notes_to_pdf.py` script
+- This document walks through the architecture of the `notes_to_pdf.py` script.
 
 ## Goal
 
 - Convert a lightweight, annotated plain-text notes file (usually `*.txt`) into
-  a share-ready document
+  a share-ready document.
   - Formats include PDF, HTML, or Beamer slide deck
 - Ensure the following:
-  - Honor rich Markdown features and custom shorthand
+  - Honor rich Markdown features and custom shorthand.
   - Inline auto-generated diagrams:
     - PlantUML
     - Mermaid
@@ -94,18 +94,18 @@ Rel(notes2pdf, style, "Injects LaTeX Style (.sty)")
 
 ### `preprocess_notes.py`
 
-- **Input: ** raw notes.
-- **Output: ** Pandoc‑ready Markdown.
+- **Input:** Raw notes.
+- **Output:** Pandoc‑ready Markdown.
 - Handles
-  - Formatting banner frames
-  - Question formatting
-  - Colour commands (`\red{}` -> `\textcolor{red}{...}`)
-  - TOC injection
+  - Formatting banner frames.
+  - Question formatting.
+  - Colour commands (`\red{}` -> `\textcolor{red}{...}`).
+  - TOC injection.
 
 ### `render_images.py`
 
 - Docker‑wrapper around PlantUML, Mermaid CLI, TikZ, Graphviz to convert image
-  description in a file, replacing the text with the picture
+  description in a file, replacing the text with the picture.
   `figs/<basename>.<index>.png`
 
 ### `latex_abbrevs.sty`

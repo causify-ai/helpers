@@ -660,7 +660,7 @@ options:
 
 ## `Dockerized_Tikz_To_Bitmap.Py`
 
-- Converts
+- Convert a `.tex` file containing TikZ code into a `.png` image using a Dockerized toolchain consisting of pdflatex and ImageMagick.
 
 ### Examples
 
