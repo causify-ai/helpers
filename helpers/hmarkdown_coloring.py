@@ -25,8 +25,6 @@ _LOG = logging.getLogger(__name__)
 # Colorize
 # #############################################################################
 
-# TODO(gp): -> hmarkdown_color.py
-
 # Define colors and their LaTeX equivalents.
 _COLORS = {
     "red": "red",
@@ -167,7 +165,3 @@ def colorize_bullet_points_in_slide(txt: str, *, use_abbreviations: bool = True)
     txt_out = replace_tags_with_fenced_blocks(txt_out, fence_map)
     txt_out = "\n".join(txt_out)
     return txt_out
-
-
-
-

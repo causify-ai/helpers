@@ -21,11 +21,6 @@ _LOG = logging.getLogger(__name__)
 # TODO(gp): Add a decorator like in hprint to process both strings and lists
 #  of strings.
 
-# #############################################################################
-# Process fenced blocks.
-# #############################################################################
-
-# TODO(gp): -> hmarkdown_fenced_blocks.py
 
 def replace_fenced_blocks_with_tags(lines: List[str]) -> Tuple[List[str], Dict[str, str]]:
     """
@@ -121,5 +116,3 @@ def replace_tags_with_fenced_blocks(lines: List[str], fence_map: Dict[str, str])
             result.append(line)
     hdbg.dassert_eq(len(fence_map), 0, "Found %s unmatched tags:\n%s", len(fence_map), pprint.pformat(fence_map))
     return result
-
-

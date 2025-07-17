@@ -21,11 +21,6 @@ _LOG = logging.getLogger(__name__)
 # TODO(gp): Add a decorator like in hprint to process both strings and lists
 #  of strings.
 
-# #############################################################################
-# Filtering functions
-# #############################################################################
-
-# TODO(gp): -> hmarkdown_filtering.py
 
 def filter_by_header(file_name: str, header: str, prefix: str) -> str:
     """
@@ -144,4 +139,3 @@ def filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
     file_out = f"{prefix}.filter_by_slides.txt"
     hio.to_file(file_out, txt)
     return file_out
-
