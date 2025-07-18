@@ -27,7 +27,7 @@ _TOP_P1 = 0.5
 
 _MODEL1 = "gpt-4o-mini"
 _MODEL2 = "gpt-3.5-turbo"
-_MODEL3 = "deepseek/deepseek-r1-0528-qwen3-8b:free/"
+_MODEL3 = "deepseek/deepseek-r1-0528-qwen3-8b:free"
 
 
 # Test functions for the unit tests.
@@ -154,47 +154,6 @@ class Test_response_to_txt(hunitest.TestCase):
         with self.assertRaises(ValueError) as cm:
             hllm.response_to_txt(12345)
         self.assertIn("Unknown response type", str(cm.exception))
-
-
-# #############################################################################
-# Test_get_openai_client
-# #############################################################################
-
-
-class Test_get_openai_client(hunitest.TestCase):
-    @umock.patch.dict(os.environ, {"OPENAI_API_KEY": "openai-key"})
-    @umock.patch("openai.OpenAI")
-    def test_openai_provider(self, mock_openai_cls) -> None:
-        """
-        Verify that `get_openai_client()` returns OpenAI's URL and API key.
-        """
-        client = hllm.get_openai_client("openai")
-        mock_openai_cls.assert_called_once_with(
-            base_url="https://api.openai.com/v1",
-            api_key="openai-key",
-        )
-        self.assertIs(client, mock_openai_cls.return_value)
-
-    @umock.patch.dict(os.environ, {"OPENROUTER_API_KEY": "router-key"})
-    @umock.patch("openai.OpenAI")
-    def test_openrouter_provider(self, mock_openai_cls) -> None:
-        """
-        Verify that `get_openai_client()` returns OpenRouter's URL and API key.
-        """
-        client = hllm.get_openai_client("openrouter")
-        mock_openai_cls.assert_called_once_with(
-            base_url="https://openrouter.ai/api/v1",
-            api_key="router-key",
-        )
-        self.assertIs(client, mock_openai_cls.return_value)
-
-    def test_unknown_provider_raises(self) -> None:
-        """
-        Verify exception if unknown provider given.
-        """
-        with self.assertRaises(ValueError) as cm:
-            hllm.get_openai_client("not_a_provider")
-        self.assertIn("Unknown provider: not_a_provider", str(cm.exception))
 
 
 # #############################################################################
@@ -363,7 +322,7 @@ class Test_calculate_cost(hunitest.TestCase):
         temp_csv_file = self.get_tmp_path()
         pd.DataFrame(
             {
-                "id": ["m1"],
+                "id": ["deepseek/m1"],
                 "prompt_pricing": [0.1],
                 "completion_pricing": [0.2],
             }
@@ -374,9 +333,8 @@ class Test_calculate_cost(hunitest.TestCase):
         llm_cost_tracker = hllm.LLMCostTracker()
         cost = llm_cost_tracker.calculate_cost(
             comp,
-            model="m1",
+            model="deepseek/m1",
             models_info_file=temp_csv_file,
-            provider_name="openrouter",
         )
         # 1*0.1 + 1*0.2 = 0.1 + 0.2 = 0.3
         self.assertAlmostEqual(cost, 0.3)
