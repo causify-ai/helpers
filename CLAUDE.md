@@ -34,23 +34,35 @@ The repository uses `pyinvoke` for task automation with a modular task system:
 
 ## Common Development Commands
 
+### Thin environment
+
+```bash
+# Activate thin environment
+source dev_scripts_helpers/thin_client/setenv.sh
+```
+
 ### Testing
 ```bash
 # Run fast tests only
 invoke run_fast_tests
-
-# Run all tests
-invoke run_tests
-
-# Run specific test categories
+# Run slow tests only
 invoke run_slow_tests
+# Run superslow tests only
 invoke run_superslow_tests
 
-# Run tests with coverage
-invoke run_coverage
-
 # Run single test file
-pytest path/to/test_file.py::TestClass::test_method
+invoke docker_cmd --cmd "pytest path/to/test_file.py -v"
+# Run single test class
+invoke docker_cmd --cmd "pytest path/to/test_file.py::TestClass -v"
+# Run single test method
+invoke docker_cmd --cmd "pytest path/to/test_file.py::TestClass::test_method -v" 
+
+## Run coverage for fast tests only 
+invoke run_coverage --suite fast --generate-html-report
+## Run coverage for fast tests only
+invoke run_coverage --suite slow --generate-html-report
+## Run test coverage superslow tests only  
+invoke run_coverage --suite superslow --generate-html-report
 ```
 
 ### Linting and Code Quality
