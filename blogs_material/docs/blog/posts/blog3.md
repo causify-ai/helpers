@@ -1,9 +1,7 @@
 ---
 title: AI for Optimal Decision-Making
-authors:
-  - gpsaggese
-  - Joel Sherlock
-  - Paul Smith
+authors: [gpsaggese]
+date: 2025-07-16
 description: 
 categories:
   - Causal_AI

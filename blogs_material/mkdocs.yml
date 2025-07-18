@@ -11,10 +11,10 @@ theme:
     navigation.indexes
 # Helps render images and other assets correctly.
 use_directory_urls: false
-nav:
-    -  ...
-    - Blog
-      - blog/index.md
+#nav:
+#    -  ...
+#    - Blog
+#      - blog/index.md
 # The search plugin is enabled by default
 # but if we specify plugins, we need to include it
 # explicitly.

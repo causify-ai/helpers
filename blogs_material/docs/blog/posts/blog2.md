@@ -1,9 +1,7 @@
 ---
 title: Cracking the Long Tail
-authors:
-  - gpsaggese
-  - Joel Sherlock
-  - Paul Smith
+authors: [gpsaggese]
+date: 2025-08-15
 description: 
 categories:
   - Causal_AI
