@@ -484,6 +484,7 @@ def check_python_compile(
 def check_branch_name(abort_on_error: bool = True) -> None:
     """
     Check if the current branch name follows the expected naming convention.
+
     - Expected format: {Prefix}Task{Number}_{Description}
     - Example: HelpersTask123_Add_new_feature
     """
@@ -491,7 +492,7 @@ def check_branch_name(abort_on_error: bool = True) -> None:
     # Get current branch name.
     verbose = True
     cmd = "git rev-parse --abbrev-ref HEAD"
-    _ , branch_name = _system_to_string(cmd, verbose=verbose)
+    _, branch_name = _system_to_string(cmd, verbose=verbose)
     branch_name = branch_name.strip()
     print(f"Branch is '{branch_name}'")
     # Skip validation for master/main branches.
