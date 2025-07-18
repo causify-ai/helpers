@@ -39,8 +39,10 @@ plugins:
       post_url_date_format: yyyy/MM/dd
       post_readtime: false
       categories_allowed:
-      pagination: true
-      pagination_per_page: 5
+      post_excerpt_separator: <!-- more -->
+      pagination: false
+      pagination_per_page: 1
+      pagination_keep_content: true
 #  - rss:
 #    match_path: blog/posts/.*
 #    date_from_meta:
