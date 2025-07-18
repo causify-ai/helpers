@@ -1,23 +1,34 @@
 site_name: Causify Blog
+
 #site_url: https://mydomain.org/mysite
+
 theme:
   name: material
   palette:
     primary: black
     accent: cyan
+    toggle:
+      icon: material/toggle-switch-off-outline
+      name: Switch to dark mode
   logo: assets/logo.png
   favicon: assets/favicon.ico
   features:
     navigation.indexes
+
+#extra:
+#  analytics:
+#    provider: google
+#    property: G-SZB618VNBZ
+
 # Helps render images and other assets correctly.
 use_directory_urls: false
-#nav:
-#    -  ...
-#    - Blog
-#      - blog/index.md
+
+nav:
+  
 # The search plugin is enabled by default
 # but if we specify plugins, we need to include it
 # explicitly.
+
 plugins:
   - search
   - blog:
@@ -27,12 +38,22 @@ plugins:
       post_date_format: full
       post_url_date_format: yyyy/MM/dd
       post_readtime: false
-      categories_allowed: 
+      categories_allowed:
       pagination: true
+      pagination_per_page: 5
+#  - rss:
+#    match_path: blog/posts/.*
+#    date_from_meta:
+#      as_creation: date
+#    categories:
+#      - categories
+#      - tags
+
 markdown_extensions:
   - toc:
       permalink: "#"
       baselevel: 2
       separator: "_"
+
 extra_css:
   - styles/styles.css
