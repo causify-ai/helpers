@@ -477,6 +477,47 @@ def check_python_compile(
 
 
 # #############################################################################
+# check_branch_name
+# #############################################################################
+
+
+def check_branch_name(abort_on_error: bool = True) -> None:
+    """
+    Check if the current branch name follows the expected naming convention.
+    - Expected format: {Prefix}Task{Number}_{Description}
+    - Example: HelpersTask123_Add_new_feature
+    """
+    func_name = _report()
+    # Get current branch name.
+    verbose = True
+    cmd = "git rev-parse --abbrev-ref HEAD"
+    _ , branch_name = _system_to_string(cmd, verbose=verbose)
+    branch_name = branch_name.strip()
+    print(f"Branch is '{branch_name}'")
+    # Skip validation for master/main branches.
+    if branch_name in ["master", "main"]:
+        print("Skipping branch name validation for master/main branch")
+        error = False
+    else:
+        # Check if branch name follows the expected pattern.
+        # Pattern: {Prefix}Task{Number}_{Description}
+        # Examples: HelpersTask123_Add_feature, AmpTask456_Fix_bug
+        pattern = r"^\S+Task\d+_\S+$"
+        if not re.match(pattern, branch_name):
+            msg = (
+                f"Branch name '{branch_name}' does not follow the expected naming convention.\n"
+                f"Expected format: {{Prefix}}Task{{Number}}_{{Description}}\n"
+                f"Examples: HelpersTask123_Add_feature, AmpTask456_Fix_bug"
+            )
+            _LOG.error(msg)
+            error = True
+        else:
+            error = False
+    # Handle error.
+    _handle_error(func_name, error, abort_on_error)
+
+
+# #############################################################################
 # check_gitleaks
 # #############################################################################
 
