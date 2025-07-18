@@ -50,7 +50,7 @@
 a {
   color: #007acc;          /* link color */
   font-weight: 600;
-  text-decoration: underline; /* underline all links */
+  /* text-decoration: underline; */ /* underline all links */
 }
 
 a:hover {

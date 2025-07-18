@@ -7,8 +7,6 @@ categories:
   - Causal_AI
 ---
 
-# Why Causal AI is the Future of Automated Decision-Making
-
 Over the past decade, organizations have poured immense effort into building
 systems that harness the power of big data and traditional analytics. These
 systems, spanning from dashboards to predictive models, have helped analyze

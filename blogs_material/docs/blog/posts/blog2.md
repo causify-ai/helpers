@@ -7,8 +7,6 @@ categories:
   - Causal_AI
 ---
 
-# Cracking the Long Tail: How Causify Solves the Hardest Problems in AI
-
 For the past decade, the AI and data science industry has been shaped by the dominant narrative of **big data**. From ad-tech to recommendation systems, the idea has been simple: more data leads to better models, so companies should focus on big data, scaling their infrastructure, deep learning, and tooling. 
 
 But here’s the truth: big data problems are extremely rare. Furthermore, big data problems are "easy" problems, in the sense when data is abundant and clean, most machine learning models perform well. The problem with big data is on the tools and compute.
