@@ -20,7 +20,8 @@ _TRACE = False
 
 # TODO(gp): Add a decorator like in hprint to process both strings and lists
 #  of strings.
-# # TODO(gp): -> hmarkdown_headers.py
+
+
 def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     """
     Check if the given line is a Markdown separator.
@@ -36,12 +37,10 @@ def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     :return: true if the line is a separator
     """
     separator_pattern = rf"""
-    # Allow optional leading `#` and whitespace.
-    \#*\s*
-    # Capture a character, then repeat it (`min_repeats` - 1) times.
-    ([#/=\-])\1{{{min_repeats - 1},}}
-    # Match only whitespace characters until the end of the line.
-    \s*$
+    \#*\s*                                  # Allow optional leading `#` and whitespace.
+    ([#/=\-])\1{{{min_repeats - 1},}}       # Capture a character, then repeat it
+                                            # (`min_repeats` - 1) times.
+    \s*$                                    # Match only whitespace characters until the end of the line.
     """
     res = bool(re.match(separator_pattern, line, re.VERBOSE))
     return res

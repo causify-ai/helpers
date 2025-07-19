@@ -8,6 +8,7 @@ import logging
 import re
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 
 _LOG = logging.getLogger(__name__)
 
@@ -24,7 +25,6 @@ def filter_by_header(file_name: str, header: str, prefix: str) -> str:
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
-    import helpers.hio as hio
 
     # Read the file.
     txt = hio.from_file(file_name)
@@ -69,7 +69,6 @@ def filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
-    import helpers.hio as hio
 
     # Read the file.
     txt = hio.from_file(file_name)
@@ -101,7 +100,6 @@ def filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
-    import helpers.hio as hio
 
     # Read the file.
     txt = hio.from_file(file_name)

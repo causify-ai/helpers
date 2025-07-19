@@ -172,7 +172,6 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
         self.assert_equal(act, exp, dedent=True)
 
 
-#
 # #############################################################################
 # Test_replace_fenced_blocks_with_tags1
 # #############################################################################

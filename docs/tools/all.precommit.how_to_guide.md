@@ -13,11 +13,11 @@
 
 <!-- tocstop -->
 
-# Ruff
+# `ruff`
 
 - Website: [https://docs.astral.sh/ruff/](https://docs.astral.sh/ruff/)
 
-- `Ruff`:
+- `ruff`:
   - Is a fast Python linter and code formatter
   - Supports over 700 linting rules from popular tools
   - Is meant to be a single replacement for multiple tools (e.g., flake8,
@@ -66,7 +66,7 @@ Commands:
   ignore = ["E731"]
   ```
 
-### Ruff Check
+### `ruff check`
 
 - Lint, auto-fix, and format code:
 
@@ -110,14 +110,14 @@ Commands:
   - W: warnings
   - I: isort, etc.
 
-### Ruff Format
+### `ruff format`
 
 - Format only:
   ```
   > ruff format --line-length 80
   ```
 
-### Ruff Linter
+### `ruff linter`
 
 - List all supported upstream linters
   ```bash
@@ -131,7 +131,7 @@ Commands:
   ...
   ```
 
-### Ruff Analyze
+### ruff analyze
 
 - Can analyze the code base
 
@@ -155,7 +155,7 @@ Commands:
     -h, --help                             Print help (see more with '--help')
   ```
 
-## Fixit
+## `fixit`
 
 - Website:
   [https://fixit.readthedocs.io/en/latest/index.html](https://fixit.readthedocs.io/en/latest/index.html)
@@ -178,7 +178,7 @@ Commands:
   > fixit fix --automatic
   ```
 
-## Pyrefly
+## `pyrefly`
 
 - Website: [https://pyrefly.org/](https://pyrefly.org/)
 
@@ -221,7 +221,7 @@ Commands:
   docker> pyrefly check --color=never --output-format=min-text --project-excludes '**/outcomes/**' --project-excludes '**/import_check/example/**' --project-excludes '**/mkdocs.venv/**'
   ```
 
-## Ty
+## `ty`
 
 - It's best to run `ty` inside the dev container to get the type hints of the
   installed packages
@@ -230,7 +230,7 @@ Commands:
   docker> ty check . --output-format concise --color never | cut -d' ' -f2- | tee cfile
   ```
 
-## Pre-Commit
+## `pre-commit`
 
 - The documentation is [https://pre-commit.com/](https://pre-commit.com/)
 

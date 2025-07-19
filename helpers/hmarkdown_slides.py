@@ -25,6 +25,7 @@ _LOG = logging.getLogger(__name__)
 
 _TRACE = True
 
+
 # #############################################################################
 # SlideProcessor
 # #############################################################################
@@ -45,7 +46,7 @@ class SlideProcessor(abc.ABC):
     :return: The transformed text
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     # @abc.abstractmethod
@@ -78,13 +79,13 @@ class SlideProcessor(abc.ABC):
                 line, in_skip_block
             )
             if _TRACE:
-                _LOG.debug(" -> " + hprint.to_str("do_continue in_skip_block"))
+                _LOG.debug(" -> %s", hprint.to_str("do_continue in_skip_block"))
             if do_continue:
                 transformed_txt.append(line)
                 continue
             # 2) Process slide.
             if _TRACE:
-                _LOG.debug(" -> " + hprint.to_str("in_slide"))
+                _LOG.debug(" -> %s", hprint.to_str("in_slide"))
             if line.startswith("* "):
                 _LOG.debug("### Found slide")
                 # Found a slide or the end of the file.
