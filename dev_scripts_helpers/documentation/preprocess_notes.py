@@ -241,10 +241,8 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
             text_out = text_out.split("\n")
             return text_out
 
-        processor = hmarkdo.SlideProcessor()
-        # processor.transform(["hello"])
         out = "\n".join(out)
-        out = processor.process(out, _transform)
+        out = hmarkdo.process_slides(out, _transform)
         out = out.split("\n")
 
     # out = out.split("\n")

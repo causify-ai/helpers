@@ -462,8 +462,10 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
 # #############################################################################
 
 
-class _SlideProcessorMock(hmarkdo.SlideProcessor):
-    def transform(self, slide_text: List[str]) -> str:
+class Test_process_slides(hunitest.TestCase):
+
+    @staticmethod
+    def _transform(slide_text: List[str]) -> str:
         """
         Add a @ to the beginning of each line of the slide.
         """
@@ -475,14 +477,11 @@ class _SlideProcessorMock(hmarkdo.SlideProcessor):
         _LOG.debug("output=\n%s", "\n".join(text_out))
         return text_out
 
-
-class Test_SlideProcessor1(hunitest.TestCase):
     def helper(self, text: str, expected: str) -> None:
         # Prepare inputs.
         text = hprint.dedent(text, remove_lead_trail_empty_lines_=False)
         # Process.
-        processor = _SlideProcessorMock()
-        actual = processor.process(text)
+        actual = hmarkdo.process_slides(text, self._transform)
         # Check output.
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
         self.assert_equal(actual, expected)

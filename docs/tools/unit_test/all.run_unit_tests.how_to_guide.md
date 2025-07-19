@@ -99,71 +99,64 @@
     -v STRING, --version=STRING
   ```
 
-#### Docker image stage and version
+- **Docker image stage and version**
+  - To select a specific stage for Docker image use the `--stage` option. E.g.,
+    this might be useful when a user wants to run regressions on the local Docker
+    image to verify that nothing is broken before promoting it to `dev` image.
 
-- To select a specific stage for Docker image use the `--stage` option. E.g.,
-  this might be useful when a user wants to run regressions on the local Docker
-  image to verify that nothing is broken before promoting it to `dev` image.
-
-  ```bash
-  > i run_fast_tests --stage local
-  ```
-
-- To run the tests on the specific version of a Docker image, use the
-  `--version` option.
-  - E.g., this might be useful when releasing a new version of an image.
     ```bash
-    > i run_fast_tests --stage local --version 1.0.4
+    > i run_fast_tests --stage local
     ```
 
-#### Specifying `pytest` options
+  - To run the tests on the specific version of a Docker image, use the
+    `--version` option.
+    - E.g., this might be useful when releasing a new version of an image.
+      ```bash
+      > i run_fast_tests --stage local --version 1.0.4
+      ```
 
-- With the option `--pytest-opts` it is possible to pass any `pytest` option to
-  `invoke`.
+- Specifying `pytest` options
+  - With the option `--pytest-opts` it is possible to pass any `pytest` option to
+    `invoke`.
 
-#### Running in debug mode
-
-- If a user wants to run the tests in debug mode to show the output
-  ```bash
-  > i run_fast_tests -s --dbg
-  ```
-- This is equivalent to specifying `-v DEBUG` through the command line of one of
-  the executables
-
-#### Save test output to a file
-
-- To save the output of `pytest` to `tmp.pytest.log` use the `--tee-to-file`
-  option.
-  ```bash
-  > i run_fast_tests --tee-to-file
-  ```
-
-#### Show the tests but do not run
-
-- To list, but not run, the tests that will be executed, use `--collect-only`.
-  ```bash
-  > i run_fast_tests --collect-only
-  ```
-
-#### Skip submodules
-
-- To skip running tests in submodules, use the `--skip-submodules` option.
-- This option is useful in repos with Git submodules so that you can run only
-  the tests specific to the repo, skipping the tests in the submodule
-  - E.g., to run only the tests in `cmamp` but not in `helpers` (which is a
-    submodule)
+- **Running in debug mode**
+  - If a user wants to run the tests in debug mode to show the output
     ```bash
-    > cd cmamp1
-    > i run_fast_tests --skip-submodules
+    > i run_fast_tests -s --dbg
+    ```
+  - This is equivalent to specifying `-v DEBUG` through the command line of one of
+    the executables
+
+- **Save test output to a file**
+  - To save the output of `pytest` to `tmp.pytest.log` use the `--tee-to-file`
+    option.
+    ```bash
+    > i run_fast_tests --tee-to-file
     ```
 
-#### Compute test coverage
+- **Show the tests but do not run**
+  - To list, but not run, the tests that will be executed, use `--collect-only`.
+    ```bash
+    > i run_fast_tests --collect-only
+    ```
 
-- To compute test coverage use the `--coverage` option
+- **Skip submodules**
+  - To skip running tests in submodules, use the `--skip-submodules` option.
+  - This option is useful in repos with Git submodules so that you can run only
+    the tests specific to the repo, skipping the tests in the submodule
+    - E.g., to run only the tests in `cmamp` but not in `helpers` (which is a
+      submodule)
+      ```bash
+      > cd cmamp1
+      > i run_fast_tests --skip-submodules
+      ```
 
-  ```bash
-  > i run_fast_tests --coverage
-  ```
+- **Compute test coverage**
+  - Use the `--coverage` option
+
+    ```bash
+    > i run_fast_tests --coverage
+    ```
 
 ### Timeout
 
@@ -194,7 +187,7 @@
 
 ### Compute test coverage
 
-- The documentation for `coverage` is
+- The documentation for the Python package `coverage` is
   [here](https://coverage.readthedocs.io/en/latest/cmd.html#reporting).
 
 - Run a set of unit tests enabling coverage:
@@ -210,17 +203,16 @@
 - This generates and runs a pytest command inside Docker like:
 
   ```bash
-  docker> /venv/bin/pytest -m "not slow and not superslow" oms/test/test_broker.py::TestSimulatedBroker1 --cov=. --cov-branch --cov-report term-missing --cov-report html
+  docker> pytest -m "not slow and not superslow" oms/test/test_broker.py::TestSimulatedBroker1 --cov=. --cov-branch --cov-report term-missing --cov-report html
   ```
-
-- Which generates:
-  - A default coverage report
+  which generates:
   - A binary `.coverage` file that contains the coverage information
+  - A default coverage report
   - An `htmlcov` directory with a browsable HTML coverage report
 
-- One can post-process the coverage report in different ways using the command
+- You can post-process the coverage report in different ways using the command
   `coverage` inside a docker container, since the code was run (as always)
-  inside the Docker container that contains all the dependencies.
+  inside the Docker container that contains all the dependencies
 
   ```bash
   > coverage -h
@@ -284,12 +276,11 @@
                           tried. [env: COVERAGE_RCFILE]
   ```
 
+- Report the coverage for all the files under `oms` using the workload above
+  (i.e., the fast tests under `oms/test/test_broker.py::TestSimulatedBroker1`)
   ```bash
   > i docker_bash
-
-  # Report the coverage for all the files under `oms` using the workload above (i.e., the fast tests under `oms/test/test_broker.py::TestSimulatedBroker1`)
   docker> coverage report --include="oms/*"
-
   Name                                    Stmts   Miss Branch BrPart  Cover
   -------------------------------------------------------------------------
   oms/__init__.py                             0      0      0      0   100%
@@ -326,7 +317,6 @@
   ```
 
 - To exclude the test files, which could inflate the coverage
-
   ```bash
   > coverage report --include="oms/*" --omit="*/test_*.py"
 
@@ -357,15 +347,16 @@
   ```
 
 - To open the line coverage from outside Docker, go with your browser to
-  `htmlcov/index.html`. The `htmlcov` is re-written with every coverage run with
-  the `--cov-report html` option. If you move out `index.html` from `htmlcov`
-  dir some html features (e.g., filtering) will not work.
+  `htmlcov/index.html`
+- The `htmlcov` is re-written with every coverage run with the
+  `--cov-report html` option
+  - If you move out `index.html` from `htmlcov` dir some html features (e.g.,
+    filtering) will not work.
 
   ```bash
   # On macOS:
   > open htmlcov/index.html
   ```
-
   <img src="../../code_guidelines/figs/unit_tests/image_1.png">
 
 - By clicking on a file you can see which lines are not covered
@@ -374,18 +365,19 @@
 
 #### An example coverage session
 
-- We want to measure the unit test coverage of `oms` component from both fast
-  and slow tests
+- You want to measure the unit test coverage of `oms` component from both `fast`
+  and `slow` test suites
 
-- We start by running the fast tests:
+- Start by running the fast tests for the `oms` dir
 
   ```bash
-  # Run fast unit tests
   > i run_fast_tests --coverage -p oms
   collected 66 items / 7 deselected / 59 selected
   ...
+  ```
 
-  # Compute the coverage for the module sorting by coverage
+- Compute the coverage for the module sorting by coverage
+  ```bash
   docker> coverage report --include="oms/*" --omit="*/test_*.py" --sort=cover
 
   Name                                    Stmts   Miss Branch BrPart  Cover
@@ -414,10 +406,10 @@
   TOTAL                                    1562    274    252     30    80%
   ```
 
-- We see that specific files have low coverage, so we want to see what is not
-  covered.
+- You see that some files have low coverage, so you want to see what exactly is
+  not covered
 
-- Generate the same report in a browsable format
+- Generate the same report in a browsable format:
 
   ```bash
   docker> rm -rf htmlcov; coverage html --include="oms/*" --omit="*/test_*.py"
@@ -425,9 +417,8 @@
 
   > open htmlcov/index.html
   ```
-
-- The low coverage for `tasks.py` and `oms_lib_tasks.py` is due to the fact that
-  we are running code through invoke that doesn't allow `coverage` to track it.
+  - The low coverage for `tasks.py` and `oms_lib_tasks.py` is due to the fact that
+    we are running code through invoke that doesn't allow `coverage` to track it
 
 - Now, we run the coverage for the slow tests
 
@@ -478,21 +469,19 @@
 
 #### An example with customized `pytest-cov` html run
 
-- We want to measure unit test coverage specifically for one test in
+- You want to measure unit test coverage specifically for one test in
   `datapull/common/data/transform/` and to save generated `htmlcov` in the same
   directory.
 
-- Run the command below after `i docker_bash`:
+- Run the command in the container:
 
   ```bash
+  > i docket_bash
   docker> pytest --cov-report term-missing
     --cov=datapull/common/data/transform/ datapull/common/data/transform/test/test_transform_utils.py
-    --cov-report html:datapull/common/data/transform/htmlcov \
-  ```
+    --cov-report html:datapull/common/data/transform/htmlcov
 
-- Output sample:
-
-  ```bash
+  ...
   ---------- coverage: platform linux, python 3.8.10-final-0 -----------
   Name                                                              Stmts Miss Cover Missing
   -----------------------------------------------------------------------------------------------
@@ -508,7 +497,7 @@
 
 #### Generate coverage report with `invoke`
 
-- One can compute test coverage for a specified directory and generate text and
+- You can compute test coverage for a specified directory and generate text and
   HTML reports automatically using `invoke task run_coverage_report`
 
   ```bash
@@ -533,8 +522,6 @@
     -t STRING, --target-dir=STRING
   ```
 
-##### Common usage
-
 - Compute coverage for `market_data` dir, generate text and HTML reports and
   publish HTML report on S3
 
@@ -558,11 +545,11 @@
 
 #### Publishing HTML report on S3
 
-- To make a dir with the report unique, we decorate the dir with a linux user
+- To make a dir with the report unique, you decorate the dir with a linux user
   and a Git branch name, e.g.,
   `html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project`
   - `html_coverage` is the common dir on S3 for coverage reports
-- After publishing the report, one can easily open it via a local web browser
+- After publishing the report, you can open the report via a local web browser
   - See the details in
     [htmlcov server](https://github.com/causify-ai/cmamp/blob/master/docs/infra/ck.use_htmlcov_server.how_to_guide.md)
   - E.g.
@@ -574,12 +561,11 @@
 
 - Always run `pytest` from the Docker container to ensure consistency in our
   environments
-
-```bash
-> i docker_bash
-# Then from Docker, run pytest.
-docker > pytest <test_file_name>
-```
+  ```bash
+  > i docker_bash
+  # Then from Docker, run pytest.
+  docker > pytest <test_file_name>
+  ```
 
 ## Usage and Invocations reference
 
@@ -618,35 +604,32 @@ docker > pytest <test_file_name>
 
 ### Custom `pytest` options behaviors
 
-#### Enable logging
+- **Enable logging**
+  - To enable logging of `_LOG.debug` for a single test run:
 
-- To enable logging of `_LOG.debug` for a single test run:
+    ```bash
+    # Enable debug info
+    > pytest oms/test/test_broker.py::TestSimulatedBroker1 -s --dbg
+    ```
 
-  ```bash
-  # Enable debug info
-  > pytest oms/test/test_broker.py::TestSimulatedBroker1 -s --dbg
-  ```
+- **Update golden outcomes**
+  - This switch allows to overwrite the golden outcomes that are used as reference
+    in the unit tests to detect failures
 
-#### Update golden outcomes
+    ```bash
+    > pytest --update_outcomes
+    ```
 
-- This switch allows to overwrite the golden outcomes that are used as reference
-  in the unit tests to detect failures
+- **Incremental test mode**
+  - This switch allows to reuse artifacts in the test directory and to skip the
+    clean up phase
 
-  ```bash
-  > pytest --update_outcomes
-  ```
+  - It is used to rerun tests from the middle when they are very long and one
+    wants to debug them
 
-#### Incremental test mode
-
-- This switch allows to reuse artifacts in the test directory and to skip the
-  clean up phase
-
-- It is used to rerun tests from the middle when they are very long and one
-  wants to debug them
-
-  ```bash
-  > pytest --incremental
-  ```
+    ```bash
+    > pytest --incremental
+    ```
 
 ### Debugging Notebooks
 
@@ -681,20 +664,20 @@ docker > pytest <test_file_name>
 - E.g., to run a single test in the fast test target, instead of the entire
   regression suite
 
-1. You can modify `.github/workflows/fast_tests.yml`, by replacing
+  - You can modify `.github/workflows/fast_tests.yml`, by replacing
 
-   ```bash
-   # run: invoke run_fast_tests
-   run: invoke run_fast_tests --pytest-opts="helpers/test/test_git.py::Test_git_modified_files1::test_get_modified_files_in_branch1 -s --dbg"
-   ```
-   - Note that the indentation matters since it's a YAML file
+    ```bash
+    # run: invoke run_fast_tests
+    run: invoke run_fast_tests --pytest-opts="helpers/test/test_git.py::Test_git_modified_files1::test_get_modified_files_in_branch1 -s --dbg"
+    ```
+    - Note that the indentation matters since it's a YAML file
 
-     <img src="../../code_guidelines/figs/unit_tests/image_3.png">
-   - The `-s --dbg` is to show `_LOG.debug` in case you care about that to get
-     more information
+      <img src="../../code_guidelines/figs/unit_tests/image_3.png">
+    - The `-s --dbg` is to show `_LOG.debug` in case you care about that to get
+      more information
 
-2. Commit the code to your branch (not in master, please) since GH runs tests
-   independently per branch
-3. Kick-off manually the fast test through the GH interface
-4. After debugging, you can revert the change from your branch to `master` and
-   move along with the usual PR flow
+  - Commit the code to your branch (not in master, please) since GH runs tests
+    independently per branch
+  - Kick-off manually the fast test through the GH interface
+  - After debugging, you can revert the change from your branch to `master` and
+    move along with the usual PR flow
