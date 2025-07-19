@@ -267,7 +267,10 @@ class TestSetenvOutput(_SetenvTestCase):
                 "# set_csfy_env_vars()",
                 "Script should set CSFY environment variables",
             ),
-            ("# configure_specific_project()", "Script should configure project"),
+            (
+                "# configure_specific_project()",
+                "Script should configure project",
+            ),
             ("# PATH=", "Script should print environment signature"),
             ("# PYTHONPATH=", "Script should print PYTHONPATH in signature"),
             ("successful", "Script should show success message"),
@@ -302,7 +305,9 @@ class TestSetenvOutput(_SetenvTestCase):
         )
         # Extract environment variables section.
         env_start = output.find("=== ENVIRONMENT VARIABLES AFTER setenv.sh ===")
-        env_end = output.find("=== END ENVIRONMENT VARIABLES AFTER setenv.sh ===")
+        env_end = output.find(
+            "=== END ENVIRONMENT VARIABLES AFTER setenv.sh ==="
+        )
         self.assertNotEqual(
             env_start, -1, "Environment variables section should be present"
         )

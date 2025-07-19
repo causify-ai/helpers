@@ -28,10 +28,9 @@ import json
 import logging
 import pprint
 
-
+import dev_scripts_helpers.testing.survey_tests_lib as dshtsteli
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
-import dev_scripts_helpers.testing.survey_tests_lib as suteli
 
 _LOG = logging.getLogger(__name__)
 
@@ -44,7 +43,8 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "-d", "--dir",
+        "-d",
+        "--dir",
         nargs="?",
         default=".",
         help="Root directory to search for tests (default: current directory)",
@@ -62,7 +62,7 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-def _format_results(test_map: suteli.TestFileMap, format_type: str) -> str:
+def _format_results(test_map: dshtsteli.TestFileMap, format_type: str) -> str:
     """
     Format the test survey results for output.
 
@@ -87,7 +87,7 @@ def _format_results(test_map: suteli.TestFileMap, format_type: str) -> str:
         return pprint.pformat(test_map, width=100)
 
 
-def _print_summary(test_map: suteli.TestFileMap) -> None:
+def _print_summary(test_map: dshtsteli.TestFileMap) -> None:
     """
     Print a summary of the survey results.
 
@@ -113,8 +113,12 @@ def _print_summary(test_map: suteli.TestFileMap) -> None:
     )
     _LOG.info("=== Test Survey Summary ===")
     _LOG.info(f"Total test files: {total_files}")
-    _LOG.info(f"Total test classes: {total_classes} (skipped: {skipped_classes})")
-    _LOG.info(f"Total test methods: {total_methods} (skipped: {skipped_methods})")
+    _LOG.info(
+        f"Total test classes: {total_classes} (skipped: {skipped_classes})"
+    )
+    _LOG.info(
+        f"Total test methods: {total_methods} (skipped: {skipped_methods})"
+    )
     _LOG.info("=" * 27)
 
 
@@ -123,7 +127,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info(f"Starting test survey in directory: {args.root_dir}")
     # Survey the tests
-    test_map = suteli.survey_tests(args.root_dir)
+    test_map = dshtsteli.survey_tests(args.root_dir)
     # Print summary
     _print_summary(test_map)
     # Format and output results
