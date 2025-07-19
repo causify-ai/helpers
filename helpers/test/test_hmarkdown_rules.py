@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Tuple, cast
+from typing import List, Tuple, cast
 
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint

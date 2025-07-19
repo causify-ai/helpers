@@ -9,9 +9,12 @@ import re
 from typing import Dict, List
 
 import helpers.hdbg as hdbg
-import helpers.hmarkdown_headers as hmarkhea
-from helpers.hmarkdown_headers import extract_headers_from_markdown, sanity_check_header_list
+import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
+from helpers.hmarkdown_headers import (
+    extract_headers_from_markdown,
+    sanity_check_header_list,
+)
 
 _LOG = logging.getLogger(__name__)
 
@@ -130,8 +133,8 @@ SelectionRule = str
 # `(1, "Spelling:All:LLM", xyz)`
 # TODO(gp): Make Guidelines descend from HeaderList.
 
-HeaderInfo = hmarkhea.HeaderInfo
-HeaderList = hmarkhea.HeaderList
+HeaderInfo = hmarhead.HeaderInfo
+HeaderList = hmarhead.HeaderList
 Guidelines = HeaderList
 
 
@@ -246,8 +249,7 @@ def extract_rules(
     Extract the set of rules from the `guidelines` that match the rule regex.
 
     :param guidelines: guidelines to extract the rules from
-    :param selection_rules: selection rules to use to extract the
-        rules
+    :param selection_rules: selection rules to use to extract the rules
     :return: extracted rules
     """
     hdbg.dassert_isinstance(guidelines, list)
@@ -336,8 +338,8 @@ def extract_rules_from_section(txt: str, line_number: int) -> List[str]:
     Extract rules from a section of a markdown file.
 
     :param txt: markdown text to extract the rules from
-    :param line_number: line number of the section to start
-        extracting the rules from
+    :param line_number: line number of the section to start extracting
+        the rules from
     :return: extracted rules
     """
     # Find the line number of the next header.

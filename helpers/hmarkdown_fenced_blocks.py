@@ -5,8 +5,8 @@ import helpers.hmarkdown as hmarkdo
 """
 
 import logging
-import re
 import pprint
+import re
 from typing import Dict, List, Tuple
 
 import helpers.hdbg as hdbg

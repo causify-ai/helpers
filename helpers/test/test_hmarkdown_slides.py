@@ -9,14 +9,14 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_SlideProcessor1
+# Test_process_slides
 # #############################################################################
 
 
 class Test_process_slides(hunitest.TestCase):
 
     @staticmethod
-    def _transform(slide_text: List[str]) -> str:
+    def transform(slide_text: List[str]) -> str:
         """
         Add a @ to the beginning of each line of the slide.
         """
@@ -32,7 +32,7 @@ class Test_process_slides(hunitest.TestCase):
         # Prepare inputs.
         text = hprint.dedent(text, remove_lead_trail_empty_lines_=False)
         # Process.
-        actual = hmarkdo.process_slides(text, self._transform)
+        actual = hmarkdo.process_slides(text, self.transform)
         # Check output.
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
         self.assert_equal(actual, expected)
@@ -47,7 +47,7 @@ class Test_process_slides(hunitest.TestCase):
             - Point 2
 
         * Slide 2
-            - Point A 
+            - Point A
             - Point B
         """
         expected = """

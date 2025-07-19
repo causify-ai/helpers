@@ -26,14 +26,14 @@ def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     """
     Check if the given line is a Markdown separator.
 
-    This function determines if a line consists of repeated characters (`#`,
-    `/`, `-`, `=`) that would indicate a markdown separator.
+    This function determines if a line consists of repeated characters
+    (`#`, `/`, `-`, `=`) that would indicate a markdown separator.
 
     :param line: current line of text being processed
-    :param min_repeats: minimum number of times the characters have to be
-        repeated to be considered a separator, e.g., if `min_repeats = 2`, then
-        `##`, `###`, `//` are considered to be line separators, but `#`, `/` are
-        not
+    :param min_repeats: minimum number of times the characters have to
+        be repeated to be considered a separator, e.g., if `min_repeats
+        = 2`, then `##`, `###`, `//` are considered to be line
+        separators, but `#`, `/` are not
     :return: whether the line is a separator
     """
     separator_pattern = rf"""
@@ -88,9 +88,9 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
     :param content: markdown content as a single string
     :param header_name: exact header name to extract (excluding `#`
         symbols)
-    :return: extracted section as a string, including the header
-        line itself and all lines until the next header of the same or
-        higher level
+    :return: extracted section as a string, including the header line
+        itself and all lines until the next header of the same or higher
+        level
     """
     lines = content.splitlines()
     _LOG.debug(hprint.to_str("lines"))
@@ -394,8 +394,8 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     output file.
 
     :param in_file_name: name of the input file to read
-    :param out_file_name: name of the output file to write the
-        formatted text to
+    :param out_file_name: name of the output file to write the formatted
+        text to
     :param max_lev: maximum level of headings to include in the
         formatted text
     """
@@ -439,8 +439,8 @@ def modify_header_level(input_text: str, level: int) -> str:
     Increase or decrease the level of headings by the specified amount.
 
     :param input_text: input text to modify
-    :param level: amount to adjust header levels (positive
-        increases, negative decreases)
+    :param level: amount to adjust header levels (positive increases,
+        negative decreases)
     :return: modified text with header levels adjusted
     """
     lines = input_text.split("\n")
@@ -513,7 +513,8 @@ def _find_header_tree_ancestry(
     :param tree: header tree to search
     :param level: header level to match
     :param description: header description to match
-    :return: ancestry list from root to matching node, or None if not found
+    :return: ancestry list from root to matching node, or None if not
+        found
     """
     for node in tree:
         if node.level == level and node.description == description:

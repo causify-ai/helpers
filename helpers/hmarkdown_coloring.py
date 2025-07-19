@@ -33,10 +33,10 @@ _COLORS = {
     "teal": "teal",
     "cyan": "cyan",
     "blue": "blue",
-    #"purple": "purple",
+    # "purple": "purple",
     "violet": "violet",
     "magenta": "magenta",
-    #"pink": "pink",
+    # "pink": "pink",
     "brown": "brown",
     "olive": "olive",
     "gray": "gray",
@@ -121,8 +121,8 @@ def colorize_bullet_points_in_slide(
     Colorize bold text in a given string.
 
     :param txt: text to colorize
-    :param use_abbreviations: use abbreviations for the colors like `\red{foo}`
-        instead of `\textcolor{red}{foo}`
+    :param use_abbreviations: use abbreviations for the colors like
+        `\red{foo}` instead of `\textcolor{red}{foo}`
     :return: colored text
     """
     hdbg.dassert_isinstance(txt, str)

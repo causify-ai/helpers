@@ -2,44 +2,33 @@
 
 <!-- toc -->
 
-- [Run unit tests](#run-unit-tests)
-  * [Test lists](#test-lists)
-  * [Using `invoke`](#using-invoke)
-    + [Docker image stage and version](#docker-image-stage-and-version)
-    + [Specifying `pytest` options](#specifying-pytest-options)
-    + [Running in debug mode](#running-in-debug-mode)
-    + [Save test output to a file](#save-test-output-to-a-file)
-    + [Show the tests but do not run](#show-the-tests-but-do-not-run)
-    + [Skip submodules](#skip-submodules)
-    + [Compute test coverage](#compute-test-coverage)
+- [Run Unit Tests](#run-unit-tests)
+  * [Test Lists](#test-lists)
+  * [Using `Invoke`](#using-invoke)
   * [Timeout](#timeout)
-  * [Rerunning timed out tests](#rerunning-timed-out-tests)
-  * [Compute test coverage](#compute-test-coverage-1)
-    + [An example coverage session](#an-example-coverage-session)
-    + [An example with customized `pytest-cov` html run](#an-example-with-customized-pytest-cov-html-run)
-    + [Generate coverage report with `invoke`](#generate-coverage-report-with-invoke)
-      - [Common usage](#common-usage)
-    + [Publishing HTML report on S3](#publishing-html-report-on-s3)
-- [Running `pytest` directly](#running-pytest-directly)
-  * [Basic rules](#basic-rules)
-- [Usage and Invocations reference](#usage-and-invocations-reference)
-  * [Custom `pytest` options behaviors](#custom-pytest-options-behaviors)
-    + [Enable logging](#enable-logging)
-    + [Update golden outcomes](#update-golden-outcomes)
-    + [Incremental test mode](#incremental-test-mode)
+  * [Rerunning Timed Out Tests](#rerunning-timed-out-tests)
+  * [Compute Test Coverage](#compute-test-coverage)
+    + [An Example Coverage Session](#an-example-coverage-session)
+    + [An Example with Customized `Pytest-Cov` Html Run](#an-example-with-customized-pytest-cov-html-run)
+    + [Generate Coverage Report with `Invoke`](#generate-coverage-report-with-invoke)
+    + [Publishing HTML Report on S3](#publishing-html-report-on-s3)
+- [Running `Pytest` Directly](#running-pytest-directly)
+  * [Basic Rules](#basic-rules)
+- [Usage and Invocations Reference](#usage-and-invocations-reference)
+  * [Custom `Pytest` Options Behaviors](#custom-pytest-options-behaviors)
   * [Debugging Notebooks](#debugging-notebooks)
-- [Running tests on GH Actions](#running-tests-on-gh-actions)
-  * [How to run a single test on GH Action](#how-to-run-a-single-test-on-gh-action)
+- [Running Tests on GH Actions](#running-tests-on-gh-actions)
+  * [How to Run a Single Test on GH Action](#how-to-run-a-single-test-on-gh-action)
 
 <!-- tocstop -->
 
-## Run unit tests
+## Run Unit Tests
 
 - We use `pytest` and `unittest` as testing framework
 - Before any PR (and ideally after a few commits), we want to run all the unit
   tests to make sure we didn't introduce any new bugs
 
-### Test lists
+### Test Lists
 
 - We have different test set lists:
   - `fast`
@@ -58,7 +47,7 @@
     - No time limit but we need to be judicious with length
       - Anything above 5-15 mins is problematic
 
-### Using `invoke`
+### Using `Invoke`
 
 - [`invoke`](https://www.pyinvoke.org/) is a task execution framework which
   allows to execute some typical workflows in a simple way
@@ -101,13 +90,13 @@
 
 - **Docker image stage and version**
   - To select a specific stage for Docker image use the `--stage` option. E.g.,
-    this might be useful when a user wants to run regressions on the local Docker
-    image to verify that nothing is broken before promoting it to `dev` image.
+    this might be useful when a user wants to run regressions on the local
+    Docker image to verify that nothing is broken before promoting it to `dev`
+    image.
 
     ```bash
     > i run_fast_tests --stage local
     ```
-
   - To run the tests on the specific version of a Docker image, use the
     `--version` option.
     - E.g., this might be useful when releasing a new version of an image.
@@ -116,16 +105,16 @@
       ```
 
 - Specifying `pytest` options
-  - With the option `--pytest-opts` it is possible to pass any `pytest` option to
-    `invoke`.
+  - With the option `--pytest-opts` it is possible to pass any `pytest` option
+    to `invoke`.
 
 - **Running in debug mode**
   - If a user wants to run the tests in debug mode to show the output
     ```bash
     > i run_fast_tests -s --dbg
     ```
-  - This is equivalent to specifying `-v DEBUG` through the command line of one of
-    the executables
+  - This is equivalent to specifying `-v DEBUG` through the command line of one
+    of the executables
 
 - **Save test output to a file**
   - To save the output of `pytest` to `tmp.pytest.log` use the `--tee-to-file`
@@ -166,7 +155,7 @@
   `set_up_test()` and `tear_down_test()` time, if they are run at the
   beginning/end of the methods
 
-### Rerunning timed out tests
+### Rerunning Timed Out Tests
 
 - Running tests can take different amounts of time depending on workload and
   machine
@@ -185,7 +174,7 @@
   now due to
   [#693 (comment)](https://github.com/cryptokaizen/cmamp/issues/693#issuecomment-989456031)
 
-### Compute test coverage
+### Compute Test Coverage
 
 - The documentation for the Python package `coverage` is
   [here](https://coverage.readthedocs.io/en/latest/cmd.html#reporting).
@@ -205,6 +194,7 @@
   ```bash
   docker> pytest -m "not slow and not superslow" oms/test/test_broker.py::TestSimulatedBroker1 --cov=. --cov-branch --cov-report term-missing --cov-report html
   ```
+
   which generates:
   - A binary `.coverage` file that contains the coverage information
   - A default coverage report
@@ -278,6 +268,7 @@
 
 - Report the coverage for all the files under `oms` using the workload above
   (i.e., the fast tests under `oms/test/test_broker.py::TestSimulatedBroker1`)
+
   ```bash
   > i docker_bash
   docker> coverage report --include="oms/*"
@@ -317,6 +308,7 @@
   ```
 
 - To exclude the test files, which could inflate the coverage
+
   ```bash
   > coverage report --include="oms/*" --omit="*/test_*.py"
 
@@ -347,7 +339,7 @@
   ```
 
 - To open the line coverage from outside Docker, go with your browser to
-  `htmlcov/index.html`
+  [`/htmlcov/index.html`](/htmlcov/index.html)
 - The `htmlcov` is re-written with every coverage run with the
   `--cov-report html` option
   - If you move out `index.html` from `htmlcov` dir some html features (e.g.,
@@ -357,13 +349,14 @@
   # On macOS:
   > open htmlcov/index.html
   ```
+
   <img src="../../code_guidelines/figs/unit_tests/image_1.png">
 
 - By clicking on a file you can see which lines are not covered
 
   <img src="../../code_guidelines/figs/unit_tests/image_2.png">
 
-#### An example coverage session
+#### An Example Coverage Session
 
 - You want to measure the unit test coverage of `oms` component from both `fast`
   and `slow` test suites
@@ -377,6 +370,7 @@
   ```
 
 - Compute the coverage for the module sorting by coverage
+
   ```bash
   docker> coverage report --include="oms/*" --omit="*/test_*.py" --sort=cover
 
@@ -417,8 +411,9 @@
 
   > open htmlcov/index.html
   ```
-  - The low coverage for `tasks.py` and `oms_lib_tasks.py` is due to the fact that
-    we are running code through invoke that doesn't allow `coverage` to track it
+  - The low coverage for `tasks.py` and `oms_lib_tasks.py` is due to the fact
+    that we are running code through invoke that doesn't allow `coverage` to
+    track it
 
 - Now, we run the coverage for the slow tests
 
@@ -467,7 +462,7 @@
   Combined data file .coverage_slow_tests
   ```
 
-#### An example with customized `pytest-cov` html run
+#### An Example with Customized `Pytest-Cov` Html Run
 
 - You want to measure unit test coverage specifically for one test in
   `datapull/common/data/transform/` and to save generated `htmlcov` in the same
@@ -495,7 +490,7 @@
   Coverage HTML written to dir datapull/common/data/transform/htmlcov
   ```
 
-#### Generate coverage report with `invoke`
+#### Generate Coverage Report with `Invoke`
 
 - You can compute test coverage for a specified directory and generate text and
   HTML reports automatically using `invoke task run_coverage_report`
@@ -543,7 +538,7 @@
   20:08:53 - INFO  lib_tasks.py _publish_html_coverage_report_on_s3:3679  HTML coverage report is published on S3: path=`s3://cryptokaizen-html/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project`
   ```
 
-#### Publishing HTML report on S3
+#### Publishing HTML Report on S3
 
 - To make a dir with the report unique, you decorate the dir with a linux user
   and a Git branch name, e.g.,
@@ -555,9 +550,9 @@
   - E.g.
     [http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/](http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/)
 
-## Running `pytest` directly
+## Running `Pytest` Directly
 
-### Basic rules
+### Basic Rules
 
 - Always run `pytest` from the Docker container to ensure consistency in our
   environments
@@ -567,7 +562,7 @@
   docker > pytest <test_file_name>
   ```
 
-## Usage and Invocations reference
+## Usage and Invocations Reference
 
 - See [`pytest` documentation](http://doc.pytest.org/en/latest/usage.html)
 - Some examples of useful command lines:
@@ -602,7 +597,7 @@
   > pytest --last-failed
   ```
 
-### Custom `pytest` options behaviors
+### Custom `Pytest` Options Behaviors
 
 - **Enable logging**
   - To enable logging of `_LOG.debug` for a single test run:
@@ -613,8 +608,8 @@
     ```
 
 - **Update golden outcomes**
-  - This switch allows to overwrite the golden outcomes that are used as reference
-    in the unit tests to detect failures
+  - This switch allows to overwrite the golden outcomes that are used as
+    reference in the unit tests to detect failures
 
     ```bash
     > pytest --update_outcomes
@@ -623,7 +618,6 @@
 - **Incremental test mode**
   - This switch allows to reuse artifacts in the test directory and to skip the
     clean up phase
-
   - It is used to rerun tests from the middle when they are very long and one
     wants to debug them
 
@@ -648,12 +642,12 @@
    - E.g.,
      <img width="756" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/43a2854e-ae4e-450d-95fd-f16df0a53c79">
 
-## Running tests on GH Actions
+## Running Tests on GH Actions
 
 - The official documentation is
   [https://docs.github.com/en/actions](https://docs.github.com/en/actions)
 
-### How to run a single test on GH Action
+### How to Run a Single Test on GH Action
 
 - Unfortunately, there is no way to log in and run interactively on GH machines.
   This is a feature requested but not implemented by GH yet.
@@ -663,7 +657,6 @@
 
 - E.g., to run a single test in the fast test target, instead of the entire
   regression suite
-
   - You can modify `.github/workflows/fast_tests.yml`, by replacing
 
     ```bash
@@ -675,7 +668,6 @@
       <img src="../../code_guidelines/figs/unit_tests/image_3.png">
     - The `-s --dbg` is to show `_LOG.debug` in case you care about that to get
       more information
-
   - Commit the code to your branch (not in master, please) since GH runs tests
     independently per branch
   - Kick-off manually the fast test through the GH interface

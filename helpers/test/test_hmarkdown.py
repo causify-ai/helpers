@@ -463,7 +463,6 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
 
 
 class Test_process_slides(hunitest.TestCase):
-
     @staticmethod
     def _transform(slide_text: List[str]) -> str:
         """

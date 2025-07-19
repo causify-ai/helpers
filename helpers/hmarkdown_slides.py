@@ -48,9 +48,7 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
     for i, line in enumerate(lines):
         _LOG.debug("%s:line='%s'", i, line)
         # 1) Remove comment block.
-        do_continue, in_skip_block = process_comment_block(
-            line, in_skip_block
-        )
+        do_continue, in_skip_block = process_comment_block(line, in_skip_block)
         if _TRACE:
             _LOG.debug(" -> %s", hprint.to_str("do_continue in_skip_block"))
         if do_continue:
@@ -95,9 +93,7 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
         not in_skip_block,
         "Found end of file while still parsing a comment block",
     )
-    hdbg.dassert(
-        not in_slide, "Found end of file while still parsing a slide"
-    )
+    hdbg.dassert(not in_slide, "Found end of file while still parsing a slide")
     # Join the transformed slides back together.
     transformed_txt = "\n".join(transformed_txt)
     return transformed_txt

@@ -6,11 +6,14 @@ import helpers.hmarkdown as hmarkdo
 
 import logging
 import re
+from typing import Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-from helpers.hmarkdown_headers import extract_slides_from_markdown, extract_section_from_markdown
-from typing import Tuple
+from helpers.hmarkdown_headers import (
+    extract_section_from_markdown,
+    extract_slides_from_markdown,
+)
 
 _LOG = logging.getLogger(__name__)
 

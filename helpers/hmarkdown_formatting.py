@@ -181,8 +181,8 @@ def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str
     Make first-level bullets bold in markdown text.
 
     :param markdown_text: input markdown text
-    :param max_length: max length of the bullet text to be bolded.
-        The value '-1' means no limit
+    :param max_length: max length of the bullet text to be bolded. The
+        value '-1' means no limit
     :return: formatted markdown text with first-level bullets in bold
     """
     lines = markdown_text.split("\n")

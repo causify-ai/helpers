@@ -9,22 +9,21 @@
   * [Issue](#issue)
   * [GH Actions](#gh-actions)
   * [Label](#label)
-    + [List of labels](#list-of-labels)
+    + [List of Labels](#list-of-labels)
   * [Status](#status)
   * [PR](#pr)
-- [Issue workflows](#issue-workflows)
+- [Issue Workflows](#issue-workflows)
   * [Naming an Issue](#naming-an-issue)
-  * [Filing a new issue](#filing-a-new-issue)
-  * [Updating an issue](#updating-an-issue)
-  * [Closing an issue](#closing-an-issue)
-- [PR workflows](#pr-workflows)
-  * [PR labels](#pr-labels)
-  * [Filing a new PR](#filing-a-new-pr)
-    + [General tips](#general-tips)
-    + [Filing process](#filing-process)
+  * [Filing a New Issue](#filing-a-new-issue)
+  * [Updating an Issue](#updating-an-issue)
+  * [Closing an Issue](#closing-an-issue)
+- [PR Workflows](#pr-workflows)
+  * [PR Labels](#pr-labels)
+  * [Filing a New PR](#filing-a-new-pr)
+    + [General Tips](#general-tips)
+    + [Filing Process](#filing-process)
   * [Review](#review)
-  * [Addressing a comment](#addressing-a-comment)
-  * [Coverage reports in PRs - discussion](#coverage-reports-in-prs---discussion)
+  * [Addressing a Comment](#addressing-a-comment)
 
 <!-- tocstop -->
 
@@ -125,7 +124,7 @@ out the code:
   [Git Issue Labels](/dev_scripts_helpers/github/labels/gh_issues_labels.yml)
   - The repos should always have labels in sync
 
-#### List of labels
+#### List of Labels
 
 - `Blocking`: This issue needs to be worked on immediately
 - `Bug`: Something isn't working
@@ -186,7 +185,7 @@ stateDiagram
 - A pull request (PR) is an event where a contributor asks to review code they
   want to merge into a project
 
-## Issue workflows
+## Issue Workflows
 
 ### Naming an Issue
 
@@ -213,7 +212,7 @@ stateDiagram
 
 - They are equivalent, but the first one is more readable
 
-### Filing a new issue
+### Filing a New Issue
 
 - If it is a "serious" problem (bug) put as much information about the Issue as
   possible, e.g.,:
@@ -262,7 +261,7 @@ stateDiagram
   - If you are unsure then you can leave it empty, but `@tag` Integrator / team
     leaders to make sure we can re-route and improve the Projects/Labels
 
-### Updating an issue
+### Updating an Issue
 
 - For large or complex Issues, there should be a design phase (in the form of GH
   Issue, Google Doc, or design PR) before starting to write a code
@@ -281,7 +280,7 @@ stateDiagram
   that Integrator / team leaders can review it
 - If we decide to stop the work, add a `Paused` label
 
-### Closing an issue
+### Closing an Issue
 
 - A task is closed when PR has been reviewed and merged into `master`
 - When, in your opinion, there is no more work to be done on your side on an
@@ -298,9 +297,9 @@ stateDiagram
   - E.g. - closing as PR is merged
   - E.g. - closing since obsolete
 
-## PR workflows
+## PR Workflows
 
-### PR labels
+### PR Labels
 
 - `PR_for_authors`
   - There are changes to be addressed by an author of a PR
@@ -310,9 +309,9 @@ stateDiagram
   - PR is ready for the final round of review by Integrators, i.e. close to
     merge
 
-### Filing a new PR
+### Filing a New PR
 
-#### General tips
+#### General Tips
 
 - Implement a feature in a branch (not `master`), once it is ready for review
   push it and file a PR via GH interface
@@ -330,7 +329,7 @@ stateDiagram
 
     <img src="figs/use_github/Draft_PR.png"  width=80% height=80%>
 
-#### Filing process
+#### Filing Process
 
 - The title of the PR should match the name of the branch
   - Look at the existing PRs in the repo for examples
@@ -372,7 +371,7 @@ stateDiagram
     - Pass it to integrators and mark it as `PR_for_integrators`
       - Usually is placed by team leaders after they approve PR
 
-### Addressing a comment
+### Addressing a Comment
 
 - If the reviewer's comment is clear to the author and agreed upon:
   - The author addresses the comment with a code change and after changing the
