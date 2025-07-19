@@ -2,10 +2,10 @@ import logging
 import os
 
 import helpers.hio as hio
-import helpers.hprint as hprint
 import helpers.hmarkdown as hmarkdo
+import helpers.hmarkdown_filtering as hmarfilt
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import helpers.hmarkdown_filtering as hmarfit
 
 _LOG = logging.getLogger(__name__)
 
@@ -80,7 +80,7 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test parsing numeric range.
         """
-        start, end = hmarfit._parse_range("1:10", 20)
+        start, end = hmarfilt._parse_range("1:10", 20)
         self.assertEqual(start, 1)
         self.assertEqual(end, 10)
 
@@ -88,7 +88,7 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test range with None start.
         """
-        start, end = hmarfit._parse_range("None:10", 20)
+        start, end = hmarfilt._parse_range("None:10", 20)
         self.assertEqual(start, 1)
         self.assertEqual(end, 10)
 
@@ -96,7 +96,7 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test range with None end.
         """
-        start, end = hmarfit._parse_range("1:None", 20)
+        start, end = hmarfilt._parse_range("1:None", 20)
         self.assertEqual(start, 1)
         self.assertEqual(end, 21)
 
@@ -104,7 +104,7 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test range with both None.
         """
-        start, end = hmarfit._parse_range("None:None", 20)
+        start, end = hmarfilt._parse_range("None:None", 20)
         self.assertEqual(start, 1)
         self.assertEqual(end, 21)
 
@@ -113,13 +113,13 @@ class Test_parse_range1(hunitest.TestCase):
         Test invalid range format.
         """
         with self.assertRaises(AssertionError):
-            hmarfit._parse_range("invalid", 20)
+            hmarfilt._parse_range("invalid", 20)
 
     def test_case_insensitive_none(self) -> None:
         """
         Test case insensitive None parsing.
         """
-        start, end = hmarfit._parse_range("NONE:none", 20)
+        start, end = hmarfilt._parse_range("NONE:none", 20)
         self.assertEqual(start, 1)
         self.assertEqual(end, 21)
 
@@ -208,6 +208,8 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Test basic slide filtering functionality.
         """
         test_content = """# Header 1
+
+
 
 
 * Slide 1
@@ -370,11 +372,11 @@ Final thoughts.
         Test edge cases for range parsing.
         """
         # Test with single line file
-        start, end = hmarfit._parse_range("1:1", 1)
+        start, end = hmarfilt._parse_range("1:1", 1)
         self.assertEqual(start, 1)
         self.assertEqual(end, 1)
         # Test with large max value
-        start, end = hmarfit._parse_range("None:None", 1000)
+        start, end = hmarfilt._parse_range("None:None", 1000)
         self.assertEqual(start, 1)
         self.assertEqual(end, 1001)
 
@@ -414,10 +416,10 @@ Line 3"""
         """
         # Test missing colon
         with self.assertRaises(AssertionError):
-            hmarfit._parse_range("5", 10)
+            hmarfilt._parse_range("5", 10)
         # Test empty string
         with self.assertRaises(AssertionError):
-            hmarfit._parse_range("", 10)
+            hmarfilt._parse_range("", 10)
         # Test too many colons - this actually causes a ValueError when trying to parse "1:2" as int
         with self.assertRaises(ValueError):
-            hmarfit._parse_range("1:2:3", 10)
+            hmarfilt._parse_range("1:2:3", 10)

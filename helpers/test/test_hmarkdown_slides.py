@@ -14,7 +14,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_process_slides(hunitest.TestCase):
-
     @staticmethod
     def transform(slide_text: List[str]) -> str:
         """
