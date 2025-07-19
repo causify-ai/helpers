@@ -17,6 +17,7 @@ _LOG = logging.getLogger(__name__)
 #  of strings.
 
 
+# TODO(ai): Pass the text: str and not the file and have the caller read and write the file.
 def filter_by_header(file_name: str, header: str, prefix: str) -> str:
     """
     Extract a specific header from a file.
@@ -61,6 +62,7 @@ def _parse_range(range_as_str: str, max_value: int) -> tuple[int, int]:
     return start_value, end_value
 
 
+# TODO(ai): Pass the text and not the file.
 def filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     """
     Filter the lines of a file in `[start_line, end_line[`.
@@ -85,12 +87,13 @@ def filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
         start_line,
         end_line,
     )
-    #
+    # Write the file.
     file_out = f"{prefix}.filter_by_lines.txt"
     hio.to_file(file_out, txt)
     return file_out
 
 
+# TODO(gp): Pass the text and not the file.
 def filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
     """
     Filter the lines of a file in `[start_slide, end_slide[`.
