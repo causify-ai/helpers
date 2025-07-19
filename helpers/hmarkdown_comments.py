@@ -60,5 +60,3 @@ def process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
         _LOG.debug("  -> skip")
         do_continue = True
     return do_continue, in_skip_block
-
-
