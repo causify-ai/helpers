@@ -70,6 +70,7 @@ def _filter_files(
 
 def get_files_to_check(
     files: Optional[List[str]],
+    from_file: Optional[str],
     skip_files: Optional[List[str]],
     dir_name: Optional[str],
     modified: bool,
@@ -94,6 +95,13 @@ def get_files_to_check(
     if files:
         # Get the files that were explicitly specified.
         file_paths = files
+    elif from_file:
+        # Get the files from a file.
+        file_paths = hio.from_file(from_file)
+        file_paths = file_paths.replace("\n", " ")
+        file_paths = file_paths.split(" ")
+        _LOG.info("Read %d files from '%s'", len(file_paths), from_file)
+        hdbg.dassert_list_of_strings(file_paths)
     elif modified:
         # Get all the modified files in the git client.
         file_paths = hgit.get_modified_files()

@@ -70,9 +70,10 @@ def process_color_commands(in_line: str) -> str:
             # Check if content appears to be math expression.
             is_math = any(c in content for c in "+-*/=<>{}[]()^_")
             if is_math:
-                return rf"\textcolor{{{value}}}{{{content}}}"
+                ret = rf"\textcolor{{{value}}}{{{content}}}"
             else:
-                return rf"\textcolor{{{value}}}{{\text{{{content}}}}}"
+                ret = rf"\textcolor{{{value}}}{{\text{{{content}}}}}"
+            return ret
 
         # Replace the color command with the LaTeX color command.
         in_line = re.sub(pattern, lambda m: _replacement(m, value), in_line)
@@ -82,7 +83,7 @@ def process_color_commands(in_line: str) -> str:
 def has_color_command(line: str) -> bool:
     hdbg.dassert_isinstance(line, str)
     # hdbg.dassert_not_in("\n", line)
-    for color in _COLORS.keys():
+    for color in _COLORS:
         # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
         pattern = re.compile(
             rf"""

@@ -9,6 +9,7 @@ import re
 from typing import Dict, List
 
 import helpers.hdbg as hdbg
+import helpers.hmarkdown_headers as hmarkhea
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -44,7 +45,9 @@ _LOG = logging.getLogger(__name__)
 
 # Extract the rules from the markdown file:
 # ```
-# > extract_headers_from_markdown.py -i docs/code_guidelines/all.coding_style_guidelines.reference.md --max_level 2
+# > extract_headers_from_markdown.py \
+#       -i docs/code_guidelines/all.coding_style_guidelines.reference.md \
+#       --max_level 2
 # - General
 #   - Spelling
 #     - LLM
@@ -125,11 +128,9 @@ SelectionRule = str
 # hierarchy of the rules as a description, e.g.,
 # `(1, "Spelling:All:LLM", xyz)`
 # TODO(gp): Make Guidelines descend from HeaderList.
-# Use `from ... import` to avoid potential import cycles.
-# TODO(gp): Can we do `import helpers.hmarkdown_headers as ...` without
-# creating problems?
-from helpers.hmarkdown_headers import HeaderList, HeaderInfo
 
+HeaderInfo = hmarkhea.HeaderInfo
+HeaderList = hmarkhea.HeaderList
 Guidelines = HeaderList
 
 

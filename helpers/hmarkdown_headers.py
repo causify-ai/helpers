@@ -38,7 +38,8 @@ def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     """
     separator_pattern = rf"""
     \#*\s*                                  # Allow optional leading `#` and whitespace.
-    ([#/=\-])\1{{{min_repeats - 1},}}       # Capture a character, then repeat it (`min_repeats` - 1) times.
+    ([#/=\-])\1{{{min_repeats - 1},}}       # Capture a character, then repeat it
+                                            # (`min_repeats` - 1) times.
     \s*$                                    # Match only whitespace characters until the end of the line.
     """
     res = bool(re.match(separator_pattern, line, re.VERBOSE))

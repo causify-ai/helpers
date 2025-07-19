@@ -9,37 +9,11 @@ import re
 from typing import Generator, List, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hmarkdown_headers as hmarkhea
 
 _LOG = logging.getLogger(__name__)
 
 _TRACE = False
-
-
-## TODO(gp): Copied from hamrkdown_headers.py to avoid problems importing.
-# def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
-#    """
-#    Check if the given line is a Markdown separator.
-#
-#    This function determines if a line consists of repeated characters (`#`,
-#    `/`, `-`, `=`) that would indicate a markdown separator.
-#
-#    :param line: the current line of text being processed
-#    :param min_repeats: the minimum number of times the characters have to be
-#        repeated to be considered a separator, e.g., if `min_repeats` = 2, then
-#        `##`, `###`, `//` are considered to be line separators, but `#`, `/` are
-#        not
-#    :return: true if the line is a separator
-#    """
-#    separator_pattern = rf"""
-#    \#*\s*                                  # Allow optional leading `#` and whitespace.
-#    ([#/=\-])\1{{{min_repeats - 1},}}       # Capture a character, then repeat it (`min_repeats` - 1) times.
-#    \s*$                                    # Match only whitespace characters until the end of the line.
-#    """
-#    res = bool(re.match(separator_pattern, line, re.VERBOSE))
-#    return res
-
-
-from helpers.hmarkdown_headers import is_markdown_line_separator
 
 
 # #############################################################################
@@ -297,7 +271,7 @@ def process_single_line_comment(line: str) -> bool:
         _LOG.debug("  -> do_continue=True")
         return do_continue
     # Skip frame.
-    if is_markdown_line_separator(line):
+    if hmarkhea.is_markdown_line_separator(line):
         do_continue = True
         _LOG.debug("  -> do_continue=True")
         return do_continue
