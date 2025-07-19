@@ -1572,7 +1572,9 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
     return txt_out
 
 
-def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> str:
+def _convert_to_vim_cfile(
+    txt: str, in_file_name: str, out_file_name: str
+) -> str:
     """
     Convert the text passed to a vim cfile.
 

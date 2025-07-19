@@ -16,7 +16,7 @@ _TRACE = False
 
 
 ## TODO(gp): Copied from hamrkdown_headers.py to avoid problems importing.
-#def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
+# def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
 #    """
 #    Check if the given line is a Markdown separator.
 #
