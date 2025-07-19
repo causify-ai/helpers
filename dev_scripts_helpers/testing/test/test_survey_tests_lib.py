@@ -25,7 +25,6 @@ import helpers.hprint as hprint
 # TestTestMethodAnalyzer
 # #############################################################################
 
-# TODO(ai): Instead of using self.assertEqual(actual, expected) use self.assert_equal(str(actual), str(expected))
 
 
 def get_ast(code: str) -> ast.AST:
@@ -40,12 +39,6 @@ class TestTestMethodAnalyzer(hunitest.TestCase):
     """
     Test cases for TestMethodAnalyzer class.
     """
-
-    def setUp(self) -> None:
-        """
-        Set up test fixtures.
-        """
-        pass
 
     def test_analyze_method_not_skipped(self) -> None:
         """
@@ -145,12 +138,6 @@ class TestTestClassAnalyzer(hunitest.TestCase):
     Test cases for TestClassAnalyzer class.
     """
 
-    def setUp(self) -> None:
-        """
-        Set up test fixtures.
-        """
-        pass
-
     def test_analyze_class_not_skipped(self) -> None:
         """
         Test analyzing a non-skipped test class.
@@ -164,13 +151,15 @@ class TestTestClassAnalyzer(hunitest.TestCase):
                 pass
         """
         ast = get_ast(code)
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
         # Run test.
-        class_info, methods_info = self.class_analyzer.analyze_class(ast)
+        class_info, methods_info = class_analyzer.analyze_class(ast)
         # Check outputs.
         expected_class_info = (False, "TestExample")
-        self.assertEqual(class_info, expected_class_info)
+        self.assert_equal(str(class_info), str(expected_class_info))
         expected_methods_info = [(False, "test_method1"), (False, "test_method2")]
-        self.assertEqual(methods_info, expected_methods_info)
+        self.assert_equal(str(methods_info), str(expected_methods_info))
 
     def test_analyze_class_skipped(self) -> None:
         """
@@ -183,13 +172,15 @@ class TestTestClassAnalyzer(hunitest.TestCase):
             def test_method1(self): pass
         """
         ast = get_ast(code)
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
         # Run test.
-        class_info, methods_info = self.class_analyzer.analyze_class(ast)
+        class_info, methods_info = class_analyzer.analyze_class(ast)
         # Check outputs.
         expected_class_info = (True, "TestExample")
-        self.assertEqual(class_info, expected_class_info)
+        self.assert_equal(str(class_info), str(expected_class_info))
         expected_methods_info = [(False, "test_method1")]
-        self.assertEqual(methods_info, expected_methods_info)
+        self.assert_equal(str(methods_info), str(expected_methods_info))
 
     def test_get_test_methods_filters_correctly(self) -> None:
         """
@@ -198,18 +189,27 @@ class TestTestClassAnalyzer(hunitest.TestCase):
         # Prepare inputs.
         code = """
         class TestExample:
-            def test_method1(self): pass
-            def helper_method(self): pass
-            def test_method2(self): pass
-            def setUp(self): pass
+            def test_method1(self):
+                pass
+
+            def helper_method(self):
+                pass
+
+            def test_method2(self):
+                pass
+
+            def setUp(self):
+                pass
         """
         ast = get_ast(code)
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
         # Run test.
-        test_methods = self.class_analyzer.get_test_methods(ast)
+        test_methods = class_analyzer.get_test_methods(ast)
         method_names = [method.name for method in test_methods]
         # Check outputs.
         expected_names = ["test_method1", "test_method2"]
-        self.assertEqual(method_names, expected_names)
+        self.assert_equal(str(method_names), str(expected_names))
 
     def test_is_class_skipped_false(self) -> None:
         """
@@ -221,8 +221,10 @@ class TestTestClassAnalyzer(hunitest.TestCase):
             pass
         """
         ast = get_ast(code)
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
         # Run test.
-        actual = self.class_analyzer.is_class_skipped(ast)
+        actual = class_analyzer.is_class_skipped(ast)
         # Check outputs.
         self.assertFalse(actual)
 
@@ -236,8 +238,10 @@ class TestTestClassAnalyzer(hunitest.TestCase):
         class TestExample: pass
         """
         ast = get_ast(code)
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
         # Run test.
-        actual = self.class_analyzer.is_class_skipped(ast)
+        actual = class_analyzer.is_class_skipped(ast)
         # Check outputs.
         self.assertTrue(actual)
 
@@ -252,14 +256,6 @@ class TestTestFileAnalyzer(hunitest.TestCase):
     Test cases for TestFileAnalyzer class.
     """
 
-    def setUp(self) -> None:
-        """
-        Set up test fixtures.
-        """
-        # TODO(ai): Move this in the test function.
-        self.method_analyzer = suteli.TestMethodAnalyzer()
-        self.class_analyzer = suteli.TestClassAnalyzer(self.method_analyzer)
-        self.file_analyzer = suteli.TestFileAnalyzer(self.class_analyzer)
 
     def test_analyze_file_single_class(self) -> None:
         """
@@ -282,11 +278,14 @@ class TestTestFileAnalyzer(hunitest.TestCase):
                 pass
         """
         # Run test.
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
+        file_analyzer = suteli.TestFileAnalyzer(class_analyzer)
         file_name = os.path.join(
             self.get_scratch_space(),
             "temp.py")
         hio.to_file(file_name, file_content)
-        result = self.file_analyzer.analyze_file(file_name)
+        result = file_analyzer.analyze_file(file_name)
         # Check outputs.
         expected = {
             (False, "TestExample"): [
@@ -294,7 +293,7 @@ class TestTestFileAnalyzer(hunitest.TestCase):
                 (True, "test_method2"),
             ]
         }
-        self.assertEqual(result, expected)
+        self.assert_equal(str(result), str(expected))
 
     def test_analyze_file_multiple_classes(self) -> None:
         """
@@ -315,17 +314,20 @@ class TestTestFileAnalyzer(hunitest.TestCase):
                 pass
         """
         # Run test.
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
+        file_analyzer = suteli.TestFileAnalyzer(class_analyzer)
         file_name = os.path.join(
             self.get_scratch_space(),
             "temp.py")
         hio.to_file(file_name, file_content)
-        result = self.file_analyzer.analyze_file(file_name)
+        result = file_analyzer.analyze_file(file_name)
         # Check outputs.
         expected = {
             (False, "TestFirst"): [(False, "test_method1")],
             (True, "TestSecond"): [(False, "test_method2")],
         }
-        self.assertEqual(result, expected)
+        self.assert_equal(str(result), str(expected))
 
     def test_get_test_classes_filters_correctly(self) -> None:
         """
@@ -346,12 +348,15 @@ class TestTestFileAnalyzer(hunitest.TestCase):
             pass
         """
         ast_node = ast.parse(file_content)
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
+        file_analyzer = suteli.TestFileAnalyzer(class_analyzer)
         # Run test.
-        test_classes = self.file_analyzer.get_test_classes(ast_node)
+        test_classes = file_analyzer.get_test_classes(ast_node)
         class_names = [cls.name for cls in test_classes]
         # Check outputs.
         expected_names = ["TestFirst", "TestSecond"]
-        self.assertEqual(class_names, expected_names)
+        self.assert_equal(str(class_names), str(expected_names))
 
     def test_parse_file_to_ast_valid_file(self) -> None:
         """
@@ -363,14 +368,17 @@ class TestTestFileAnalyzer(hunitest.TestCase):
             pass
         """
         # Run test.
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
+        file_analyzer = suteli.TestFileAnalyzer(class_analyzer)
         file_name = os.path.join(
             self.get_scratch_space(),
             "temp.py")
         hio.to_file(file_name, file_content)
-        ast_node = self.file_analyzer.parse_file_to_ast(file_name)
+        ast_node = file_analyzer.parse_file_to_ast(file_name)
         # Check outputs.
         self.assertIsInstance(ast_node, ast.Module)
-        self.assertEqual(len(ast_node.body), 1)
+        self.assert_equal(str(len(ast_node.body)), str(1))
         self.assertIsInstance(ast_node.body[0], ast.ClassDef)
 
 
@@ -384,15 +392,6 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
     Test cases for TestDirectorySurveyor class.
     """
 
-    def setUp(self) -> None:
-        """
-        Set up test fixtures.
-        """
-        # TODO(ai): Move this in the test function, instead of using self.
-        self.method_analyzer = suteli.TestMethodAnalyzer()
-        self.class_analyzer = suteli.TestClassAnalyzer(self.method_analyzer)
-        self.file_analyzer = suteli.TestFileAnalyzer(self.class_analyzer)
-        self.surveyor = suteli.TestDirectorySurveyor(self.file_analyzer)
 
     def test_is_test_file_true_cases(self) -> None:
         """
@@ -405,10 +404,14 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
             "/path/to/test_file.py",
         ]
         # Run test.
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
+        file_analyzer = suteli.TestFileAnalyzer(class_analyzer)
+        surveyor = suteli.TestDirectorySurveyor(file_analyzer)
         for file_path in test_cases:
             with self.subTest(file_path=file_path):
                 # Check outputs.
-                self.assertTrue(self.surveyor.is_test_file(file_path))
+                self.assertTrue(surveyor.is_test_file(file_path))
 
     def test_is_test_file_false_cases(self) -> None:
         """
@@ -423,10 +426,14 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
             "conftest.py",
         ]
         # Run test.
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
+        file_analyzer = suteli.TestFileAnalyzer(class_analyzer)
+        surveyor = suteli.TestDirectorySurveyor(file_analyzer)
         for file_path in test_cases:
             with self.subTest(file_path=file_path):
                 # Check outputs.
-                self.assertFalse(self.surveyor.is_test_file(file_path))
+                self.assertFalse(surveyor.is_test_file(file_path))
 
     @patch("survey_tests_lib.hio")
     def test_find_test_directories(self, mock_hio) -> None:
@@ -442,10 +449,14 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
             "/root/src/main",
         ]
         # Run test.
-        result = self.surveyor.find_test_directories("/root")
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
+        file_analyzer = suteli.TestFileAnalyzer(class_analyzer)
+        surveyor = suteli.TestDirectorySurveyor(file_analyzer)
+        result = surveyor.find_test_directories("/root")
         # Check outputs.
         expected = ["/root/test", "/root/src/test", "/root/lib/helpers/test"]
-        self.assertEqual(result, expected)
+        self.assert_equal(str(result), str(expected))
 
     @patch("survey_tests_lib.hio")
     def test_find_test_files(self, mock_hio) -> None:
@@ -461,13 +472,17 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
             "conftest.py",
         ]
         # Run test.
-        result = self.surveyor.find_test_files("/path/to/test")
+        method_analyzer = suteli.TestMethodAnalyzer()
+        class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
+        file_analyzer = suteli.TestFileAnalyzer(class_analyzer)
+        surveyor = suteli.TestDirectorySurveyor(file_analyzer)
+        result = surveyor.find_test_files("/path/to/test")
         # Check outputs.
         expected = [
             "/path/to/test/test_example.py",
             "/path/to/test/test_another.py",
         ]
-        self.assertEqual(result, expected)
+        self.assert_equal(str(result), str(expected))
 
 
 # #############################################################################
@@ -513,8 +528,4 @@ class TestFactoryFunctions(hunitest.TestCase):
         # Check outputs.
         mock_create_surveyor.assert_called_once()
         mock_surveyor.survey_directory.assert_called_once_with("/some/path")
-        self.assertEqual(result, {"test_result": "data"})
-
-
-if __name__ == "__main__":
-    unittest.main()
+        self.assert_equal(str(result), str({"test_result": "data"}))
