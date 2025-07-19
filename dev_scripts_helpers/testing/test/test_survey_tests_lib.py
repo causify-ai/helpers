@@ -9,18 +9,31 @@ import test_survey_tests_lib as tsuteli
 """
 
 import ast
+import os
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
 
 
 import helpers.hunit_test as hunitest
+import helpers.hio as hio
 import dev_scripts_helpers.testing.survey_tests_lib as suteli
+import helpers.hprint as hprint
 
 
 # #############################################################################
 # TestTestMethodAnalyzer
 # #############################################################################
+
+# TODO(ai): Instead of using self.assertEqual(actual, expected) use self.assert_equal(str(actual), str(expected))
+
+
+def get_ast(code: str) -> ast.AST:
+    """
+    Get the AST for a method.
+    """
+    code = hprint.dedent(code)
+    return ast.parse(code).body[0]
 
 
 class TestTestMethodAnalyzer(hunitest.TestCase):
@@ -32,73 +45,93 @@ class TestTestMethodAnalyzer(hunitest.TestCase):
         """
         Set up test fixtures.
         """
-        self.analyzer = suteli.TestMethodAnalyzer()
+        pass
 
     def test_analyze_method_not_skipped(self) -> None:
         """
         Test analyzing a non-skipped test method.
         """
-        # Create AST node for: def test_something(self): pass
-        method_code = "def test_something(self): pass"
-        method_ast = ast.parse(method_code).body[0]
+        # Prepare inputs.
+        code = """
+        def test_something(self):
+            pass
+        """
+        ast = get_ast(code)
+        analyzer = suteli.TestMethodAnalyzer()
+        # Run test.
+        actual = analyzer.analyze_method(ast)
+        # Check outputs.
         expected = (False, "test_something")
-        actual = self.analyzer.analyze_method(method_ast)
-        self.assertEqual(actual, expected)
+        self.assert_equal(str(actual), str(expected))
 
     def test_analyze_method_skipped_simple(self) -> None:
         """
         Test analyzing a test method with @pytest.mark.skip decorator.
         """
-        # Create AST node for: @pytest.mark.skip\ndef test_something(self): pass
-        method_code = """
-@pytest.mark.skip
-def test_something(self): pass
-"""
-        method_ast = ast.parse(method_code.strip()).body[0]
-
+        # Prepare inputs.
+        code = """
+        @pytest.mark.skip
+        def test_something(self):
+            pass
+        """
+        ast = get_ast(code)
+        analyzer = suteli.TestMethodAnalyzer()
+        # Run test.
+        actual = analyzer.analyze_method(ast)
+        # Check outputs.
         expected = (True, "test_something")
-        actual = self.analyzer.analyze_method(method_ast)
-
-        self.assertEqual(actual, expected)
+        self.assert_equal(str(actual), str(expected))
 
     def test_analyze_method_skipped_with_reason(self) -> None:
         """
         Test analyzing a test method with @pytest.mark.skip("reason")
         decorator.
         """
-        # Create AST node for: @pytest.mark.skip("reason")\ndef test_something(self): pass
-        method_code = """
-@pytest.mark.skip("reason")
-def test_something(self): pass
-"""
-        method_ast = ast.parse(method_code.strip()).body[0]
-
+        # Prepare inputs.
+        code = """
+        @pytest.mark.skip("reason")
+        def test_something(self):
+            pass
+        """
+        ast = get_ast(code)
+        analyzer = suteli.TestMethodAnalyzer()
+        # Run test.
+        actual = analyzer.analyze_method(ast)
+        # Check outputs.
         expected = (True, "test_something")
-        actual = self.analyzer.analyze_method(method_ast)
-
-        self.assertEqual(actual, expected)
+        self.assert_equal(str(actual), str(expected))
 
     def test_is_method_skipped_false(self) -> None:
         """
         Test is_method_skipped returns False for non-skipped method.
         """
-        method_code = "def test_something(self): pass"
-        method_ast = ast.parse(method_code).body[0]
-        actual = self.analyzer.is_method_skipped(method_ast)
+        # Prepare inputs.
+        code = """
+        def test_something(self):
+            pass
+        """
+        ast = get_ast(code)
+        analyzer = suteli.TestMethodAnalyzer()
+        # Run test.
+        actual = analyzer.is_method_skipped(ast)
+        # Check outputs.
         self.assertFalse(actual)
 
     def test_is_method_skipped_true(self) -> None:
         """
         Test is_method_skipped returns True for skipped method.
         """
-        method_code = """
-@pytest.mark.skip
-def test_something(self): pass
-"""
-        method_ast = ast.parse(method_code.strip()).body[0]
-
-        actual = self.analyzer.is_method_skipped(method_ast)
-
+        # Prepare inputs.
+        code = """
+        @pytest.mark.skip
+        def test_something(self):
+            pass
+        """
+        ast = get_ast(code)
+        analyzer = suteli.TestMethodAnalyzer()
+        # Run test.
+        actual = analyzer.is_method_skipped(ast)
+        # Check outputs.
         self.assertTrue(actual)
 
 
@@ -116,75 +149,65 @@ class TestTestClassAnalyzer(hunitest.TestCase):
         """
         Set up test fixtures.
         """
-        self.method_analyzer = suteli.TestMethodAnalyzer()
-        self.class_analyzer = suteli.TestClassAnalyzer(self.method_analyzer)
-
-    # #############################################################################
-    # TestExample
-    # #############################################################################
+        pass
 
     def test_analyze_class_not_skipped(self) -> None:
         """
         Test analyzing a non-skipped test class.
         """
-        class_code = """
-class TestExample:
-    def test_method1(self): pass
-    def test_method2(self): pass
-"""
-        class_ast = ast.parse(class_code.strip()).body[0]
-
-        class_info, methods_info = self.class_analyzer.analyze_class(class_ast)
-
+        # Prepare inputs.
+        code = """
+        class TestExample:
+            def test_method1(self):
+                pass
+            def test_method2(self):
+                pass
+        """
+        ast = get_ast(code)
+        # Run test.
+        class_info, methods_info = self.class_analyzer.analyze_class(ast)
+        # Check outputs.
         expected_class_info = (False, "TestExample")
-        expected_methods_info = [(False, "test_method1"), (False, "test_method2")]
-
         self.assertEqual(class_info, expected_class_info)
+        expected_methods_info = [(False, "test_method1"), (False, "test_method2")]
         self.assertEqual(methods_info, expected_methods_info)
-
-    # #############################################################################
-    # TestExample
-    # #############################################################################
 
     def test_analyze_class_skipped(self) -> None:
         """
         Test analyzing a skipped test class.
         """
-        class_code = """
-@pytest.mark.skip
-class TestExample:
-    def test_method1(self): pass
-"""
-        class_ast = ast.parse(class_code.strip()).body[0]
-
-        class_info, methods_info = self.class_analyzer.analyze_class(class_ast)
-
+        # Prepare inputs.
+        code = """
+        @pytest.mark.skip
+        class TestExample:
+            def test_method1(self): pass
+        """
+        ast = get_ast(code)
+        # Run test.
+        class_info, methods_info = self.class_analyzer.analyze_class(ast)
+        # Check outputs.
         expected_class_info = (True, "TestExample")
-        expected_methods_info = [(False, "test_method1")]
-
         self.assertEqual(class_info, expected_class_info)
+        expected_methods_info = [(False, "test_method1")]
         self.assertEqual(methods_info, expected_methods_info)
-
-    # #############################################################################
-    # TestExample
-    # #############################################################################
 
     def test_get_test_methods_filters_correctly(self) -> None:
         """
         Test get_test_methods only returns methods starting with 'test_'.
         """
-        class_code = """
-class TestExample:
-    def test_method1(self): pass
-    def helper_method(self): pass
-    def test_method2(self): pass
-    def setUp(self): pass
-"""
-        class_ast = ast.parse(class_code.strip()).body[0]
-
-        test_methods = self.class_analyzer.get_test_methods(class_ast)
+        # Prepare inputs.
+        code = """
+        class TestExample:
+            def test_method1(self): pass
+            def helper_method(self): pass
+            def test_method2(self): pass
+            def setUp(self): pass
+        """
+        ast = get_ast(code)
+        # Run test.
+        test_methods = self.class_analyzer.get_test_methods(ast)
         method_names = [method.name for method in test_methods]
-
+        # Check outputs.
         expected_names = ["test_method1", "test_method2"]
         self.assertEqual(method_names, expected_names)
 
@@ -192,27 +215,30 @@ class TestExample:
         """
         Test is_class_skipped returns False for non-skipped class.
         """
-        class_code = "class TestExample: pass"
-        class_ast = ast.parse(class_code).body[0]
-        actual = self.class_analyzer.is_class_skipped(class_ast)
+        # Prepare inputs.
+        code = """
+        class TestExample:
+            pass
+        """
+        ast = get_ast(code)
+        # Run test.
+        actual = self.class_analyzer.is_class_skipped(ast)
+        # Check outputs.
         self.assertFalse(actual)
-
-    # #############################################################################
-    # TestExample
-    # #############################################################################
 
     def test_is_class_skipped_true(self) -> None:
         """
         Test is_class_skipped returns True for skipped class.
         """
-        class_code = """
-@pytest.mark.skip
-class TestExample: pass
-"""
-        class_ast = ast.parse(class_code.strip()).body[0]
-
-        actual = self.class_analyzer.is_class_skipped(class_ast)
-
+        # Prepare inputs.
+        code = """
+        @pytest.mark.skip
+        class TestExample: pass
+        """
+        ast = get_ast(code)
+        # Run test.
+        actual = self.class_analyzer.is_class_skipped(ast)
+        # Check outputs.
         self.assertTrue(actual)
 
 
@@ -230,6 +256,7 @@ class TestTestFileAnalyzer(hunitest.TestCase):
         """
         Set up test fixtures.
         """
+        # TODO(ai): Move this in the test function.
         self.method_analyzer = suteli.TestMethodAnalyzer()
         self.class_analyzer = suteli.TestClassAnalyzer(self.method_analyzer)
         self.file_analyzer = suteli.TestFileAnalyzer(self.class_analyzer)
@@ -238,108 +265,91 @@ class TestTestFileAnalyzer(hunitest.TestCase):
         """
         Test analyzing a file with a single test class.
         """
+        # Prepare inputs.
         file_content = """
-import pytest
+        import pytest
 
-# #############################################################################
-# TestExample
-# #############################################################################
+        # #############################################################################
+        # TestExample
+        # #############################################################################
 
-class TestExample:
-    def test_method1(self): pass
+        class TestExample:
+            def test_method1(self):
+                pass
 
-
-    @pytest.mark.skip
-    def test_method2(self): pass
-"""
-
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".py", delete=False
-        ) as f:
-            f.write(file_content)
-            f.flush()
-
-            result = self.file_analyzer.analyze_file(f.name)
-
+            @pytest.mark.skip
+            def test_method2(self):
+                pass
+        """
+        # Run test.
+        file_name = os.path.join(
+            self.get_scratch_space(),
+            "temp.py")
+        hio.to_file(file_name, file_content)
+        result = self.file_analyzer.analyze_file(file_name)
+        # Check outputs.
         expected = {
             (False, "TestExample"): [
                 (False, "test_method1"),
                 (True, "test_method2"),
             ]
         }
-
         self.assertEqual(result, expected)
 
     def test_analyze_file_multiple_classes(self) -> None:
         """
         Test analyzing a file with multiple test classes.
         """
+        # Prepare inputs.
         file_content = """
-import pytest
+        import pytest
 
-# #############################################################################
-# TestFirst
-# #############################################################################
-
-class TestFirst:
-    def test_method1(self): pass
+        class TestFirst:
+            def test_method1(self):
+                pass
 
 
-# #############################################################################
-# TestSecond
-# #############################################################################
-
-@pytest.mark.skip
-class TestSecond:
-    def test_method2(self): pass
-"""
-
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".py", delete=False
-        ) as f:
-            f.write(file_content)
-            f.flush()
-
-            result = self.file_analyzer.analyze_file(f.name)
-
+        @pytest.mark.skip
+        class TestSecond:
+            def test_method2(self):
+                pass
+        """
+        # Run test.
+        file_name = os.path.join(
+            self.get_scratch_space(),
+            "temp.py")
+        hio.to_file(file_name, file_content)
+        result = self.file_analyzer.analyze_file(file_name)
+        # Check outputs.
         expected = {
             (False, "TestFirst"): [(False, "test_method1")],
             (True, "TestSecond"): [(False, "test_method2")],
         }
-
         self.assertEqual(result, expected)
-
-    # #############################################################################
-    # TestFirst
-    # #############################################################################
-
-    # #############################################################################
-    # Helper
-    # #############################################################################
-
-    # #############################################################################
-    # TestSecond
-    # #############################################################################
-
-    # #############################################################################
-    # AnotherHelper
-    # #############################################################################
 
     def test_get_test_classes_filters_correctly(self) -> None:
         """
         Test get_test_classes only returns classes starting with 'Test'.
         """
+        # Prepare inputs.
         file_content = """
-class TestFirst: pass
-class Helper: pass
-class TestSecond: pass
-class AnotherHelper: pass
-"""
-        ast_node = ast.parse(file_content)
+        class TestFirst:
+            pass
 
+        class Helper:
+            pass
+
+        class TestSecond:
+            pass
+
+        class AnotherHelper:
+            pass
+        """
+        ast_node = ast.parse(file_content)
+        # Run test.
         test_classes = self.file_analyzer.get_test_classes(ast_node)
         class_names = [cls.name for cls in test_classes]
-
+        # Check outputs.
         expected_names = ["TestFirst", "TestSecond"]
         self.assertEqual(class_names, expected_names)
 
@@ -347,13 +357,18 @@ class AnotherHelper: pass
         """
         Test parse_file_to_ast with valid Python file.
         """
-        file_content = "class TestExample: pass"
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".py", delete=False
-        ) as f:
-            f.write(file_content)
-            f.flush()
-            ast_node = self.file_analyzer.parse_file_to_ast(f.name)
+        # Prepare inputs.
+        file_content = """
+        class TestExample:
+            pass
+        """
+        # Run test.
+        file_name = os.path.join(
+            self.get_scratch_space(),
+            "temp.py")
+        hio.to_file(file_name, file_content)
+        ast_node = self.file_analyzer.parse_file_to_ast(file_name)
+        # Check outputs.
         self.assertIsInstance(ast_node, ast.Module)
         self.assertEqual(len(ast_node.body), 1)
         self.assertIsInstance(ast_node.body[0], ast.ClassDef)
@@ -373,6 +388,7 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
         """
         Set up test fixtures.
         """
+        # TODO(ai): Move this in the test function, instead of using self.
         self.method_analyzer = suteli.TestMethodAnalyzer()
         self.class_analyzer = suteli.TestClassAnalyzer(self.method_analyzer)
         self.file_analyzer = suteli.TestFileAnalyzer(self.class_analyzer)
@@ -382,19 +398,23 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
         """
         Test is_test_file returns True for test files.
         """
+        # Prepare inputs.
         test_cases = [
             "test_example.py",
             "test_something_else.py",
             "/path/to/test_file.py",
         ]
+        # Run test.
         for file_path in test_cases:
             with self.subTest(file_path=file_path):
+                # Check outputs.
                 self.assertTrue(self.surveyor.is_test_file(file_path))
 
     def test_is_test_file_false_cases(self) -> None:
         """
         Test is_test_file returns False for non-test files.
         """
+        # Prepare inputs.
         test_cases = [
             "example.py",
             "something_test.py",  # Should start with test_
@@ -402,8 +422,10 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
             "__init__.py",
             "conftest.py",
         ]
+        # Run test.
         for file_path in test_cases:
             with self.subTest(file_path=file_path):
+                # Check outputs.
                 self.assertFalse(self.surveyor.is_test_file(file_path))
 
     @patch("survey_tests_lib.hio")
@@ -411,7 +433,7 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
         """
         Test find_test_directories finds directories named 'test'.
         """
-        # Mock the directory structure
+        # Prepare inputs.
         mock_hio.listdir_recursive.return_value = [
             "/root/test",
             "/root/src/test",
@@ -419,7 +441,9 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
             "/root/docs",
             "/root/src/main",
         ]
+        # Run test.
         result = self.surveyor.find_test_directories("/root")
+        # Check outputs.
         expected = ["/root/test", "/root/src/test", "/root/lib/helpers/test"]
         self.assertEqual(result, expected)
 
@@ -428,7 +452,7 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
         """
         Test find_test_files finds Python test files.
         """
-        # Mock files in test directory
+        # Prepare inputs.
         mock_hio.listdir.return_value = [
             "test_example.py",
             "test_another.py",
@@ -436,7 +460,9 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
             "__init__.py",
             "conftest.py",
         ]
+        # Run test.
         result = self.surveyor.find_test_files("/path/to/test")
+        # Check outputs.
         expected = [
             "/path/to/test/test_example.py",
             "/path/to/test/test_another.py",
@@ -458,7 +484,9 @@ class TestFactoryFunctions(hunitest.TestCase):
         """
         Test create_test_surveyor creates proper instance.
         """
+        # Run test.
         surveyor = suteli.create_test_surveyor()
+        # Check outputs.
         self.assertIsInstance(surveyor, suteli.TestDirectorySurveyor)
         self.assertIsInstance(surveyor._file_analyzer, suteli.TestFileAnalyzer)
         self.assertIsInstance(
@@ -476,10 +504,13 @@ class TestFactoryFunctions(hunitest.TestCase):
         """
         Test survey_tests convenience function.
         """
+        # Prepare inputs.
         mock_surveyor = Mock()
         mock_surveyor.survey_directory.return_value = {"test_result": "data"}
         mock_create_surveyor.return_value = mock_surveyor
+        # Run test.
         result = suteli.survey_tests("/some/path")
+        # Check outputs.
         mock_create_surveyor.assert_called_once()
         mock_surveyor.survey_directory.assert_called_once_with("/some/path")
         self.assertEqual(result, {"test_result": "data"})

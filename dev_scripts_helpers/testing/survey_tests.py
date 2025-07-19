@@ -4,18 +4,19 @@
 Survey test files in a codebase to map test classes and methods with skip
 status.
 
-This script recursively searches for test directories and analyzes Python test files
-to create a comprehensive mapping of test classes, methods, and their skip status.
+This script recursively searches for test directories and analyzes Python test
+files to create a comprehensive mapping of test classes, methods, and their skip
+status.
 
 Examples:
-  # Survey current directory
-  > survey_tests.py
+# Survey current directory
+> survey_tests.py -dir .
 
-  # Survey specific directory
-  > survey_tests.py /path/to/project
+# Survey specific directory
+> survey_tests.py -dir /path/to/project
 
-  # Survey with verbose output
-  > survey_tests.py --log_level DEBUG /path/to/project
+# Survey with verbose output
+> survey_tests.py --dir /path/to/project --log_level DEBUG
 
 Import as:
 
@@ -43,7 +44,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "root_dir",
+        "-d", "--dir",
         nargs="?",
         default=".",
         help="Root directory to search for tests (default: current directory)",
@@ -65,12 +66,9 @@ def _format_results(test_map: suteli.TestFileMap, format_type: str) -> str:
     """
     Format the test survey results for output.
 
-    Args:
-        test_map: The test file mapping results
-        format_type: Format type ("pretty" or "json")
-
-    Returns:
-        Formatted string representation
+    :param test_map: the test file mapping results
+    :param format_type: format type ("pretty" or "json")
+    :return: formatted string representation
     """
     if format_type == "json":
         # Convert tuples to lists for JSON serialization
@@ -93,8 +91,7 @@ def _print_summary(test_map: suteli.TestFileMap) -> None:
     """
     Print a summary of the survey results.
 
-    Args:
-        test_map: The test file mapping results
+    :param test_map: the test file mapping results
     """
     total_files = len(test_map)
     total_classes = sum(len(classes) for classes in test_map.values())
