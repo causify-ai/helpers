@@ -17,5 +17,29 @@
       "Bash(git commit:*)"
     ],
     "deny": []
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "notify.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "notify.sh"
+          }
+        ]
+      }
+    ]
   }
 }
