@@ -18,7 +18,6 @@ import helpers.hunit_test as hunitest
     reason="Disabled because of CmampTask10710",
 )
 class Test_run_dockerized_prettier(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that Dockerized Prettier reads an input file, formats it, and

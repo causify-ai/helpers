@@ -9,8 +9,12 @@ import re
 from typing import Dict, List
 
 import helpers.hdbg as hdbg
-import helpers.hmarkdown_headers as hmarkhea
+import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
+from helpers.hmarkdown_headers import (
+    extract_headers_from_markdown,
+    sanity_check_header_list,
+)
 
 _LOG = logging.getLogger(__name__)
 
@@ -20,8 +24,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 # Rules processing.
 # #############################################################################
-
-# TODO(gp): -> hmarkdown_rules.py
 
 # Rules are organized in 4 levels of a markdown file:
 #
@@ -95,6 +97,8 @@ _LOG = logging.getLogger(__name__)
 def sanity_check_rules(txt: List[str]) -> None:
     """
     Sanity check the rules.
+
+    :param txt: list of text lines to check
     """
     txt_tmp = "\n".join(txt)
     header_list = extract_headers_from_markdown(txt_tmp, max_level=5)
@@ -129,8 +133,8 @@ SelectionRule = str
 # `(1, "Spelling:All:LLM", xyz)`
 # TODO(gp): Make Guidelines descend from HeaderList.
 
-HeaderInfo = hmarkhea.HeaderInfo
-HeaderList = hmarkhea.HeaderList
+HeaderInfo = hmarhead.HeaderInfo
+HeaderList = hmarhead.HeaderList
 Guidelines = HeaderList
 
 
@@ -172,6 +176,9 @@ def convert_header_list_into_guidelines(
         (1, "Python:Naming:Linter", xyz),
     ]
     ```
+
+    :param header_list: input header list to convert
+    :return: guidelines with flattened hierarchy
     """
     hdbg.dassert_isinstance(header_list, list)
     # Store the last level headers.
@@ -208,6 +215,9 @@ def _convert_rule_into_regex(selection_rule: SelectionRule) -> str:
     - `*:*:Linter|LLM` -> `(\S*):(\S*):(Linter|LLM)`
     - `Spelling|Python:*:LLM` -> `Spelling|Python:(\S*):LLM`
     - `Python:*:Linter` -> `Python:(\S*):Linter`
+
+    :param selection_rule: rule to convert to regex
+    :return: regex pattern string
     """
     hdbg.dassert_isinstance(selection_rule, SelectionRule)
     # Parse the rule into tokens.
@@ -238,10 +248,9 @@ def extract_rules(
     """
     Extract the set of rules from the `guidelines` that match the rule regex.
 
-    :param guidelines: The guidelines to extract the rules from.
-    :param selection_rules: The selection rules to use to extract the
-        rules.
-    :return: The extracted rules.
+    :param guidelines: guidelines to extract the rules from
+    :param selection_rules: selection rules to use to extract the rules
+    :return: extracted rules
     """
     hdbg.dassert_isinstance(guidelines, list)
     hdbg.dassert_isinstance(selection_rules, list)
@@ -292,7 +301,7 @@ def parse_rules_from_txt(txt: str) -> List[str]:
            - Item 3
         - Item 4
         ```
-    :return: extracted bullet points, e.g.,
+    :return: extracted bullet points
     """
     lines = txt.split("\n")
     # Store the first-level bullet points.
@@ -328,10 +337,10 @@ def extract_rules_from_section(txt: str, line_number: int) -> List[str]:
     """
     Extract rules from a section of a markdown file.
 
-    :param txt: The markdown text to extract the rules from.
-    :param line_number: The line number of the section to start
-        extracting the rules from.
-    :return: The extracted rules.
+    :param txt: markdown text to extract the rules from
+    :param line_number: line number of the section to start extracting
+        the rules from
+    :return: extracted rules
     """
     # Find the line number of the next header.
     i = line_number

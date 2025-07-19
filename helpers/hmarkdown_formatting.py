@@ -18,8 +18,8 @@ def remove_end_of_line_periods(txt: str) -> str:
     """
     Remove periods at the end of each line in the given text.
 
-    :param txt: The input text to process
-    :return: The text with end-of-line periods removed
+    :param txt: input text to process
+    :return: text with end-of-line periods removed
     """
     hdbg.dassert_isinstance(txt, str)
     txt_out = [line.rstrip(".") for line in txt.split("\n")]
@@ -31,8 +31,8 @@ def remove_empty_lines(txt: str) -> str:
     """
     Remove empty lines from the given text.
 
-    :param txt: The input text to process
-    :return: The text with empty lines removed
+    :param txt: input text to process
+    :return: text with empty lines removed
     """
     hdbg.dassert_isinstance(txt, str)
     txt_out = [line for line in txt.split("\n") if line != ""]
@@ -45,8 +45,8 @@ def remove_code_delimiters(txt: str) -> str:
     """
     Remove ```python and ``` delimiters from a given text.
 
-    :param text: The input text containing code delimiters.
-    :return: The text with the code delimiters removed.
+    :param txt: input text containing code delimiters
+    :return: text with the code delimiters removed
     """
     # Replace the ```python and ``` delimiters with empty strings.
     txt_out = txt.replace("```python", "").replace("```", "")
@@ -60,6 +60,9 @@ def remove_code_delimiters(txt: str) -> str:
 def add_line_numbers(txt: str) -> str:
     """
     Add line numbers to each line of text.
+
+    :param txt: input text to process
+    :return: text with line numbers added
     """
     lines = txt.split("\n")
     numbered_lines = []
@@ -70,6 +73,12 @@ def add_line_numbers(txt: str) -> str:
 
 
 def remove_formatting(txt: str) -> str:
+    """
+    Remove markdown and LaTeX formatting from text.
+
+    :param txt: input text to process
+    :return: text with formatting removed
+    """
     # Replace bold markdown syntax with plain text.
     txt = re.sub(r"\*\*(.*?)\*\*", r"\1", txt)
     # Replace italic markdown syntax with plain text.
@@ -85,8 +94,8 @@ def md_clean_up(txt: str) -> str:
     """
     Clean up a Markdown file copy-pasted from Google Docs, ChatGPT.
 
-    :param txt: The input text to process
-    :return: The text with the cleaning up applied
+    :param txt: input text to process
+    :return: text with the cleaning up applied
     """
     # 0) General formatting.
     # Remove dot at the end of each line.
@@ -133,8 +142,8 @@ def remove_empty_lines_from_markdown(markdown_text: str) -> str:
     """
     Remove all empty lines from markdown text.
 
-    :param markdown_text: Input markdown text
-    :return: Formatted markdown text
+    :param markdown_text: input markdown text
+    :return: formatted markdown text
     """
     # Split into lines and remove empty ones.
     result = [line for line in markdown_text.split("\n") if line.strip()]
@@ -144,6 +153,9 @@ def remove_empty_lines_from_markdown(markdown_text: str) -> str:
 def prettier_markdown(txt: str) -> str:
     """
     Format markdown text using `prettier`.
+
+    :param txt: input text to format
+    :return: formatted text
     """
     file_type = "md"
     txt = hdocker.prettier_on_str(txt, file_type)
@@ -154,6 +166,9 @@ def prettier_markdown(txt: str) -> str:
 def format_markdown(txt: str) -> str:
     """
     Format markdown text.
+
+    :param txt: input text to format
+    :return: formatted text
     """
     file_type = "md"
     txt = hdocker.prettier_on_str(txt, file_type)
@@ -161,9 +176,64 @@ def format_markdown(txt: str) -> str:
     return txt
 
 
+def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str:
+    """
+    Make first-level bullets bold in markdown text.
+
+    :param markdown_text: input markdown text
+    :param max_length: max length of the bullet text to be bolded. The
+        value '-1' means no limit
+    :return: formatted markdown text with first-level bullets in bold
+    """
+    lines = markdown_text.split("\n")
+    result = []
+    for line in lines:
+        # Check if this is a first-level bullet point.
+        if re.match(r"^\s*- ", line):
+            # Check if the line has already bold text it in it.
+            if not re.search(r"\*\*", line):
+                # Bold first-level bullets.
+                indentation = len(line) - len(line.lstrip())
+                if indentation == 0:
+                    # First-level bullet, add bold markers.
+                    m = re.match(r"^(\s*-\s+)(.*)", line)
+                    hdbg.dassert(m, "Can't parse line='%s'", line)
+                    bullet_text = m.group(2)  # type: ignore[union-attr]
+                    if max_length > -1 and len(bullet_text) <= max_length:
+                        spaces = m.group(1)  # type: ignore[union-attr]
+                        line = spaces + "**" + bullet_text + "**"
+        result.append(line)
+    return "\n".join(result)
+
+
+def format_first_level_bullets(markdown_text: str) -> str:
+    """
+    Add empty lines only before first level bullets and remove all empty lines
+    from markdown text.
+
+    :param markdown_text: input markdown text
+    :return: formatted markdown text
+    """
+    # Split into lines and remove empty ones.
+    lines = [line for line in markdown_text.split("\n") if line.strip()]
+    # Add empty lines only before first level bullets.
+    result = []
+    for i, line in enumerate(lines):
+        # Check if current line is a first level bullet (no indentation).
+        if re.match(r"^- ", line):
+            # Add empty line before first level bullet if not at start.
+            if i > 0:
+                result.append("")
+        result.append(line)
+    return "\n".join(result)
+
+
 def format_markdown_slide(txt: str) -> str:
     """
     Format markdown text for a slide.
+
+    :param txt: input text to format
+    :return: formatted slide text
     """
     # Split the text into title and body.
     txt = bold_first_level_bullets(txt)
@@ -175,6 +245,12 @@ def format_markdown_slide(txt: str) -> str:
 
 
 def format_latex(txt: str) -> str:
+    """
+    Format LaTeX text using `prettier`.
+
+    :param txt: input LaTeX text to format
+    :return: formatted LaTeX text
+    """
     file_type = "tex"
     txt = hdocker.prettier_on_str(txt, file_type)
     txt_ = cast(str, txt)
