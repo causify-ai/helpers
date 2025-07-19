@@ -2,8 +2,10 @@ import logging
 import os
 
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hmarkdown as hmarkdo
 import helpers.hunit_test as hunitest
+import helpers.hmarkdown_filtering as hmarfit
 
 _LOG = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ class Test_filter_by_header1(hunitest.TestCase):
         # Conclusion
         Final thoughts here.
         """
-        test_content = hmarkdo.dedent(
+        test_content = hprint.dedent(
             test_content, remove_lead_trail_empty_lines_=False
         )
         # Create temporary file.
@@ -44,14 +46,15 @@ class Test_filter_by_header1(hunitest.TestCase):
         # Verify result.
         self.assertTrue(os.path.exists(result_file))
         result_content = hio.from_file(result_file)
-        expected = """# Introduction
+        expected = """
+        # Introduction
         This is the introduction section.
         Some content here.
 
         ## Section 1
         Content for section 1.
         """
-        self.assert_equal(result_content, expected)
+        self.assert_equal(result_content, expected, dedent=True)
 
     def test_header_not_found(self) -> None:
         """
@@ -77,7 +80,7 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test parsing numeric range.
         """
-        start, end = hmarkdo._parse_range("1:10", 20)
+        start, end = hmarfit._parse_range("1:10", 20)
         self.assertEqual(start, 1)
         self.assertEqual(end, 10)
 
@@ -85,7 +88,7 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test range with None start.
         """
-        start, end = hmarkdo._parse_range("None:10", 20)
+        start, end = hmarfit._parse_range("None:10", 20)
         self.assertEqual(start, 1)
         self.assertEqual(end, 10)
 
@@ -93,7 +96,7 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test range with None end.
         """
-        start, end = hmarkdo._parse_range("1:None", 20)
+        start, end = hmarfit._parse_range("1:None", 20)
         self.assertEqual(start, 1)
         self.assertEqual(end, 21)
 
@@ -101,7 +104,7 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test range with both None.
         """
-        start, end = hmarkdo._parse_range("None:None", 20)
+        start, end = hmarfit._parse_range("None:None", 20)
         self.assertEqual(start, 1)
         self.assertEqual(end, 21)
 
@@ -110,13 +113,13 @@ class Test_parse_range1(hunitest.TestCase):
         Test invalid range format.
         """
         with self.assertRaises(AssertionError):
-            hmarkdo._parse_range("invalid", 20)
+            hmarfit._parse_range("invalid", 20)
 
     def test_case_insensitive_none(self) -> None:
         """
         Test case insensitive None parsing.
         """
-        start, end = hmarkdo._parse_range("NONE:none", 20)
+        start, end = hmarfit._parse_range("NONE:none", 20)
         self.assertEqual(start, 1)
         self.assertEqual(end, 21)
 
@@ -367,11 +370,11 @@ Final thoughts.
         Test edge cases for range parsing.
         """
         # Test with single line file
-        start, end = hmarkdo._parse_range("1:1", 1)
+        start, end = hmarfit._parse_range("1:1", 1)
         self.assertEqual(start, 1)
         self.assertEqual(end, 1)
         # Test with large max value
-        start, end = hmarkdo._parse_range("None:None", 1000)
+        start, end = hmarfit._parse_range("None:None", 1000)
         self.assertEqual(start, 1)
         self.assertEqual(end, 1001)
 
@@ -411,10 +414,10 @@ Line 3"""
         """
         # Test missing colon
         with self.assertRaises(AssertionError):
-            hmarkdo._parse_range("5", 10)
+            hmarfit._parse_range("5", 10)
         # Test empty string
         with self.assertRaises(AssertionError):
-            hmarkdo._parse_range("", 10)
+            hmarfit._parse_range("", 10)
         # Test too many colons - this actually causes a ValueError when trying to parse "1:2" as int
         with self.assertRaises(ValueError):
-            hmarkdo._parse_range("1:2:3", 10)
+            hmarfit._parse_range("1:2:3", 10)
