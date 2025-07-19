@@ -1,0 +1,60 @@
+.md-logo img {
+    height: auto;
+    width: 7.2rem;
+}
+
+.md-header__button.md-logo {
+  margin: .4rem;
+  padding: .6rem;
+}
+
+/* Top-level headers (H1) */
+.md-typeset h1 {
+  color: #0057b7;            /* Deep blue */
+  font-size: 2.2em;          /* Bigger than default */
+  font-weight: 700;          /* Bold */
+  border-bottom: 3px solid #0057b7;  /* Add underline */
+  padding-bottom: 0.3em;     /* Spacing below underline */
+  margin-top: 1.2em;         /* Spacing above */
+}
+
+/* Second-level headers (H2) */
+.md-typeset h2 {
+  color: #0073e6;            /* Lighter blue */
+  font-size: 1.8em;
+  font-weight: 600;
+  // border-left: 4px solid #0073e6;  /* Fancy left border */
+  padding-left: 0.5em;       /* Space for the border */
+  margin-top: 1.2em;
+}
+
+/* Third-level headers (H3) */
+.md-typeset h3 {
+  color: #0096ff;            /* Even lighter blue */
+  font-size: 1.5em;
+  font-weight: 600;
+  //text-transform: uppercase; /* Make it uppercase */
+  margin-top: 1em;
+}
+
+/* Fourth-level headers (H4) */
+.md-typeset h4 {
+  color: #333;               /* Neutral gray */
+  font-size: 1.3em;
+  font-weight: 600;
+  //font-style: italic;        /* Just to show it's different */
+  margin-top: 0.8em;
+}
+
+/* Make all links blue with underline, and red on hover */
+a {
+  color: #007acc;          /* link color */
+  font-weight: 600;
+  // text-decoration: underline; /* underline all links */
+}
+
+a:hover {
+  color: #e63946;         /* link color on hover */
+  font-weight: 600;
+  text-decoration: underline; /* underline all links */
+}
