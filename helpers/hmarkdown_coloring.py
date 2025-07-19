@@ -8,6 +8,7 @@ import logging
 import re
 
 import helpers.hdbg as hdbg
+from helpers.hmarkdown_fenced_blocks import replace_fenced_blocks_with_tags, replace_tags_with_fenced_blocks
 
 _LOG = logging.getLogger(__name__)
 

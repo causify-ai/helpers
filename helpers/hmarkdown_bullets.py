@@ -9,7 +9,7 @@ import re
 from typing import Generator, List, Tuple
 
 import helpers.hdbg as hdbg
-from helpers.hmarkdown_comments import process_single_line_comment
+from helpers.hmarkdown_comments import process_single_line_comment, process_comment_block
 
 _LOG = logging.getLogger(__name__)
 
@@ -173,6 +173,80 @@ def format_first_level_bullets(markdown_text: str) -> str:
                 result.append("")
         result.append(line)
     return "\n".join(result)
+
+
+def process_code_block(
+    line: str, in_code_block: bool, i: int, lines: List[str]
+) -> Tuple[bool, bool, List[str]]:
+    """
+    Process lines of text to handle code blocks that start and end with '```'.
+
+    The transformation is to:
+    - add an empty line before the start/end of the code
+    - indent the code block with four spaces
+    - replace '//' with '# ' to comment out lines in Python code
+
+    :param line: The current line of text being processed.
+    :param in_code_block: A flag indicating if the function is currently
+        inside a code block.
+    :param i: The index of the current line in the list of lines.
+    :param lines: the lines of text to process
+    :return: A tuple
+        - do_continue: whether to continue processing the current line or skip
+          it
+        - in_code_block: a boolean indicating whether the function is currently
+          inside a code block
+        - a list of processed lines of text
+    """
+    out: List[str] = []
+    do_continue = False
+    # Look for a code block.
+    if re.match(r"^(\s*)```", line):
+        _LOG.debug("  -> code block")
+        in_code_block = not in_code_block
+        # Add empty line before the start of the code block.
+        if (
+            in_code_block
+            and (i + 1 < len(lines))
+            and re.match(r"\s*", lines[i + 1])
+        ):
+            out.append("\n")
+        out.append("    " + line)
+        if (
+            not in_code_block
+            and (i + 1 < len(lines))
+            and re.match(r"\s*", lines[i + 1])
+        ):
+            out.append("\n")
+        do_continue = True
+        return do_continue, in_code_block, out
+    if in_code_block:
+        line = line.replace("// ", "# ")
+        out.append("    " + line)
+        # We don't do any of the other post-processing.
+        do_continue = True
+        return do_continue, in_code_block, out
+    return do_continue, in_code_block, out
+
+
+#def process_single_line_comment(line: str) -> bool:
+#    """
+#    Handle single line comment.
+#
+#    We need to do it after the // in code blocks have been handled.
+#    """
+#    do_continue = False
+#    if line.startswith(r"%%") or line.startswith(r"//"):
+#        do_continue = True
+#        _LOG.debug("  -> do_continue=True")
+#        return do_continue
+#    # Skip frame.
+#    if hmarkhea.is_markdown_line_separator(line):
+#        do_continue = True
+#        _LOG.debug("  -> do_continue=True")
+#        return do_continue
+#    # Nothing to do.
+#    return do_continue
 
 
 # TODO(gp): -> iterator

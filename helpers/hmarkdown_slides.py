@@ -10,18 +10,13 @@ from typing import Callable, List
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
+from helpers.hmarkdown_comments import process_comment_block
 
 _LOG = logging.getLogger(__name__)
 
 # TODO(gp): Add a decorator like in hprint to process both strings and lists
 #  of strings.
 
-
-# #############################################################################
-# SlideProcessor
-# #############################################################################
-
-# TODO(gp): -> hmarkdown_slides.py
 
 _TRACE = True
 
