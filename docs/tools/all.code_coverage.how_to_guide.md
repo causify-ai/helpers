@@ -1,4 +1,4 @@
-# Python Code Coverage with `pytest` and the `coverage` Module
+# Python Code Coverage
 
 ## Overview
 - Code coverage is a metric used to measure how much of your source code is
@@ -155,4 +155,23 @@
 	TOTAL                                  776    159    252     26    78%
 	```
 
-- 
+- Generate the coverage sorted by % covered
+	```bash
+	> coverage report --include=helpers/hmarkdown*.py --sort=cover
+	Name                                 Stmts   Miss Branch BrPart  Cover
+	----------------------------------------------------------------------
+	helpers/hmarkdown_filtering.py          53     43      6      0    17%
+	helpers/hmarkdown_comments.py           28     12     10      4    53%
+	helpers/hmarkdown_coloring.py           60     19     16      2    62%
+	...
+	helpers/hmarkdown.py                     9      0      0      0   100%
+	helpers/hmarkdown_fenced_blocks.py      55      0     14      0   100%
+	----------------------------------------------------------------------
+	TOTAL                                  776    159    252     26    78%
+	```
+
+- Analyze the coverage through browser:
+	```
+	> coverage html --include=helpers/hmarkdown*.py
+	> open htmlcov/index.html
+	```
