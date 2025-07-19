@@ -29,12 +29,12 @@ def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     This function determines if a line consists of repeated characters (`#`,
     `/`, `-`, `=`) that would indicate a markdown separator.
 
-    :param line: the current line of text being processed
-    :param min_repeats: the minimum number of times the characters have to be
-        repeated to be considered a separator, e.g., if `min_repeats` = 2, then
+    :param line: current line of text being processed
+    :param min_repeats: minimum number of times the characters have to be
+        repeated to be considered a separator, e.g., if `min_repeats = 2`, then
         `##`, `###`, `//` are considered to be line separators, but `#`, `/` are
         not
-    :return: true if the line is a separator
+    :return: whether the line is a separator
     """
     separator_pattern = rf"""
     \#*\s*                            # Optional leading `#` and whitespace.
@@ -51,10 +51,11 @@ def is_header(line: str) -> Tuple[bool, int, str]:
     """
     Check if the given line is a Markdown header.
 
-    :return: A tuple containing:
-        - A boolean indicating if the line is a header
-        - The level of the header (0 if not a header)
-        - The title of the header (empty string if not a header)
+    :param line: line to check
+    :return: tuple containing:
+        - boolean indicating if the line is a header
+        - level of the header (`0` if not a header)
+        - title of the header (empty string if not a header)
     """
     # hdbg.dassert(not is_markdown_line_separator(line), "line='%s'", line)
     m = re.match(r"(#+)\s+(.*)", line)
@@ -84,12 +85,12 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
     or higher level. Headers are identified by the '#' prefix, and their
     level is determined by the number of '#' characters.
 
-    :param content: The markdown content as a single string.
-    :param header_name: The exact header name to extract (excluding '#'
-        symbols).
-    :return: The extracted section as a string, including the header
+    :param content: markdown content as a single string
+    :param header_name: exact header name to extract (excluding `#`
+        symbols)
+    :return: extracted section as a string, including the header
         line itself and all lines until the next header of the same or
-        higher level.
+        higher level
     """
     lines = content.splitlines()
     _LOG.debug(hprint.to_str("lines"))
@@ -215,6 +216,8 @@ def sanity_check_header_list(header_list: HeaderList) -> None:
          ### Header 1.0.1
          # Header 2
          ```
+
+    :param header_list: list of headers to validate
     """
     # 1) The first header should be level 1.
     if header_list and header_list[0].level > 1:
@@ -253,11 +256,11 @@ def extract_headers_from_markdown(
     """
     Extract headers from Markdown file and return an `HeaderList`.
 
-    :param txt: content of the input Markdown file.
-    :param max_level: Maximum header levels to parse (e.g., 3 parses all levels
+    :param txt: content of the input Markdown file
+    :param max_level: maximum header levels to parse (e.g., '3' parses all levels
         included `###`, but not `####`)
-    :param sanity_check: If True, check that the header list is valid.
-    :return: the generated `HeaderList`, e.g.,
+    :param sanity_check: whether to check that the header list is valid
+    :return: generated `HeaderList`, e.g.,
         ```
         [
             (1, "Chapter 1", 5),
@@ -294,15 +297,15 @@ def extract_slides_from_markdown(
     Extract slides (i.e., sections prepended by `*`) from Markdown file and
     return an `HeaderList`.
 
-    :param txt: content of the input Markdown file.
-    :return:
-        - the generated `HeaderList`
+    :param txt: content of the input Markdown file
+    :return: tuple containing:
+        - generated `HeaderList`
             ```
             [
                 (1, "Slide 1", 5),
                 (1, "Slide 2", 10), ...]
             ```
-        - the last line number of the file, e.g., 100.
+        - last line number of the file, e.g., '100'
     """
     hdbg.dassert_isinstance(txt, str)
     header_list: HeaderList = []
@@ -332,10 +335,10 @@ def header_list_to_vim_cfile(markdown_file: str, header_list: HeaderList) -> str
         `:cfile <output_file>`
         Use `:cnext` and `:cprev` to navigate between headers.
 
-    :param markdown_file: Path to the input Markdown file.
-    :param header_list: List of headers, where each header is a tuple containing
-        the line number, level, and title.
-    :return: The generated cfile content as a string in the format:
+    :param markdown_file: path to the input Markdown file
+    :param header_list: list of headers, where each header is a tuple containing
+        the line number, level, and title
+    :return: generated cfile content as a string in the format:
         ```
         ...
         <file path>:<line number>:<header title>
@@ -356,12 +359,12 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
     """
     Convert a list of headers into a Markdown format.
 
-    :param header_list: List of headers, where each header is a tuple
-        containing the level, title, and line number.
-    :param mode: Specifies the format of the output.
-        - "list": Indents headers to create a nested list.
-        - "headers": Uses Markdown header syntax (e.g., #, ##, ###).
-    :return: The generated Markdown content as a string.
+    :param header_list: list of headers, where each header is a tuple
+        containing the level, title, and line number
+    :param mode: format of the output:
+        - `list`: indents headers to create a nested list
+        - `headers`: uses Markdown header syntax (e.g., '#', '##', '###')
+    :return: generated Markdown content as a string
     """
     hdbg.dassert_isinstance(header_list, list)
     _LOG.debug(hprint.to_str("header_list mode"))
@@ -390,10 +393,10 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     Format the headers in the input file and write the formatted text to the
     output file.
 
-    :param in_file_name: The name of the input file to read
-    :param out_file_name: The name of the output file to write the
+    :param in_file_name: name of the input file to read
+    :param out_file_name: name of the output file to write the
         formatted text to
-    :param max_lev: The maximum level of headings to include in the
+    :param max_lev: maximum level of headings to include in the
         formatted text
     """
     txt = hparser.read_file(in_file_name)
@@ -435,10 +438,10 @@ def modify_header_level(input_text: str, level: int) -> str:
     """
     Increase or decrease the level of headings by the specified amount.
 
-    :param input_text: the input text to modify
-    :param level: the amount to adjust header levels (positive
+    :param input_text: input text to modify
+    :param level: amount to adjust header levels (positive
         increases, negative decreases)
-    :return: the modified text with header levels adjusted
+    :return: modified text with header levels adjusted
     """
     lines = input_text.split("\n")
     #
@@ -473,6 +476,9 @@ def build_header_tree(header_list: HeaderList) -> _HeaderTree:
     Build a tree (list of Node objects) from the flat list.
 
     We assume that the level changes never jump by more than 1.
+
+    :param header_list: flat list of headers
+    :return: tree structure of headers
     """
     tree: _HeaderTree = []
     stack: _HeaderTree = []
@@ -503,6 +509,11 @@ def _find_header_tree_ancestry(
 
     If found, return the ancestry as a list from the root down to that
     node. Otherwise return None.
+
+    :param tree: header tree to search
+    :param level: header level to match
+    :param description: header description to match
+    :return: ancestry list from root to matching node, or None if not found
     """
     for node in tree:
         if node.level == level and node.description == description:
@@ -527,11 +538,12 @@ def header_tree_to_str(
     Only expand (i.e. recursively include children) for a node if it is part of
     the ancestry of the selected node.
 
-    :param tree: The tree to convert to a string.
-    :param ancestry: The ancestry of the selected node.
-    :param open_modifier: The modifier to use for the open of the selected node.
-    :param close_modifier: The modifier to use for the close of the selected node.
-    :param indent: The indent of the tree.
+    :param tree: tree to convert to a string
+    :param ancestry: ancestry of the selected node
+    :param open_modifier: modifier to use for the open of the selected node
+    :param close_modifier: modifier to use for the close of the selected node
+    :param indent: indent of the tree
+    :return: string representation of the tree
 
     - Nodes not in the ancestry are included on one line (even if they have
       children).
@@ -580,6 +592,13 @@ def selected_navigation_to_str(
 ) -> str:
     """
     Given a level and description for the selected node, print the navigation.
+
+    :param tree: header tree
+    :param level: level of the selected node
+    :param description: description of the selected node
+    :param open_modifier: modifier for opening the selected node
+    :param close_modifier: modifier for closing the selected node
+    :return: navigation string with selected node highlighted
     """
     ancestry = _find_header_tree_ancestry(tree, level, description)
     hdbg.dassert_ne(

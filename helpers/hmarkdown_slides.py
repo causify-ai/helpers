@@ -28,17 +28,14 @@ _TRACE = True
 
 class SlideProcessor(abc.ABC):
     """
-    Given a markdown text, process the slides one by one, and return the text.
+    Process markdown slides one by one and return the transformed text.
 
     - Slides are sections prepended by `*`
     - The text is processed by:
         - Extracting the slides one by one
-        - Calling a `transforrm()` function on each slide (defined by the user)
+        - Calling a `transform()` function on each slide (defined by the user)
         - Joining the transformed slides back together
     - Comments are left untouched.
-
-    :param text: The markdown text to process.
-    :return: The transformed text
     """
 
     def __init__(self) -> None:
@@ -57,6 +54,13 @@ class SlideProcessor(abc.ABC):
     def process(
         self, txt: str, transform: Callable[[List[str]], List[str]]
     ) -> str:
+        """
+        Process markdown text by applying transform function to each slide.
+
+        :param txt: markdown text to process
+        :param transform: function to transform each slide
+        :return: transformed text
+        """
         hdbg.dassert_isinstance(txt, str)
         # Text of the current slide.
         slide_txt: List[str] = []

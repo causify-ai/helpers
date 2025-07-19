@@ -165,7 +165,7 @@
     def add(a, b):
       return a + b
     ```
-- The docstring must describe the goal of the function, the interface and what
+- The docstring must describe the goal of the function, the interface, and what
   the user needs to know to use the function
   - Good: "Calculate the sum of two numbers and return the result."
   - Good
@@ -180,7 +180,12 @@
         :return: dictionary containing repository settings
         """
     ```
-
+  - When the output is a tuple indent like:
+    ```
+    :param mode: format of the output:
+        - `list`: indents headers to create a nested list
+        - `headers`: uses Markdown header syntax (e.g., '#', '##', '###'`)
+    ```
 - The docstring must use imperative form, whenever possible
   - Good: "Calculate the sum of two numbers and return the result."
   - Bad: "Calculates the sum of two numbers and returns the result."
@@ -209,6 +214,8 @@
   wrapped in backticks
   - Good: "The `add_numbers()` function takes two arguments `a` and `b`."
   - Bad: "The add_numbers() function takes two arguments a and b."
+- References to values should be wrapped in single ticks
+  - Good '//' with '# '
 - Multi-line representations of data structures (e.g., an output example) should
   be wrapped in triple backticks
   - Good
@@ -222,22 +229,13 @@
   a longer description (possibly on multiple lines) with a more detailed
   explanation of what the function does
 - The more detailed description is followed by a blank line and then the param
-  and return description section in REST style
-- The more detailed description is followed by a blank line and then the param
-  and return description section in REST style
+  and return description section in reST style
   - Use lowercase after `:param XYZ: ...` / `:return:` unless the description
     starts with a proper noun
 - Do not mention default values of parameters in parameter descriptions
 - Docstrings should be wrapped in triple quotation marks (`"""`)
   - The opening and closing triple quotation marks should be located on their
     own separate lines
-- Every docstring should start with a capital letter
-- Every docstring should start with a verb in the imperative form
-- Every docstring should begin with a one-line description of what the function
-  does, fit into a single line and end with a period
-- Adding examples (e.g., of input and output) to the docstring is encouraged
-- References to variables, file paths, functions, classes, etc. should be
-  wrapped in backticks
 
 ## Comments
 

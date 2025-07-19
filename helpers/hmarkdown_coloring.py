@@ -54,8 +54,11 @@ def process_color_commands(in_line: str) -> str:
     If the content is text (not math), wraps it in `\text{}`.
 
     E.g.:
-    - \red{abc} -> \textcolor{red}{\text{abc}}
-    - \blue{x + y} -> \textcolor{blue}{x + y}
+    - `\red{abc}` -> `\textcolor{red}{\text{abc}}`
+    - `\blue{x + y}` -> `\textcolor{blue}{x + y}`
+
+    :param in_line: input line to process
+    :return: line with color commands transformed
     """
     for color, value in _COLORS.items():
         # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
@@ -85,6 +88,12 @@ def process_color_commands(in_line: str) -> str:
 
 
 def has_color_command(line: str) -> bool:
+    """
+    Check if line contains any color commands.
+
+    :param line: line to check
+    :return: whether the line contains color commands
+    """
     hdbg.dassert_isinstance(line, str)
     # hdbg.dassert_not_in("\n", line)
     for color in _COLORS.keys():
@@ -109,12 +118,12 @@ def colorize_bullet_points_in_slide(
     txt: str, *, use_abbreviations: bool = True
 ) -> str:
     """
-    Given a string with bold text (but no color), colorize the bold text.
+    Colorize bold text in a given string.
 
-    :param txt: The text to colorize.
-    :param use_abbreviations: If True, use abbreviations for the colors
-        like `\red{foo}` instead of `\textcolor{red}{foo}`.
-    :return: The colored text.
+    :param txt: text to colorize
+    :param use_abbreviations: use abbreviations for the colors like `\red{foo}`
+        instead of `\textcolor{red}{foo}`
+    :return: colored text
     """
     hdbg.dassert_isinstance(txt, str)
     # Replace fenced code blocks with tags.

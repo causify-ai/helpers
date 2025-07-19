@@ -26,26 +26,30 @@ def replace_fenced_blocks_with_tags(
     fenced block text.
 
     E.g.,
-        ````
-        hello
-        world
-        ```python
-        foo
-        ```
-        bye
-        ````
+    ```
+    ````
+    hello
+    world
+    ```python
+    foo
+    ```
+    bye
+    ````
+    ```
     is replaced with:
-        ```
-        hello
-        world
-        <fenced_block1>
-        bye
-        ```
+    ```
+    ```
+    hello
+    world
+    <fenced_block1>
+    bye
+    ```
+    ```
 
-    :param lines: The list of lines to process.
-    :return: A tuple containing:
-        - The list of lines with the fenced blocks replaced by tags.
-        - The mapping from tags to the fenced block text.
+    :param lines: list of lines to process
+    :return: tuple containing:
+        - list of lines with the fenced blocks replaced by tags
+        - mapping from tags to the fenced block text
     """
     hdbg.dassert_isinstance(lines, list)
     result = []
@@ -104,6 +108,10 @@ def replace_tags_with_fenced_blocks(
 ) -> List[str]:
     """
     Replace tags with fenced blocks.
+
+    :param lines: list of lines to process
+    :param fence_map: mapping from tags to fenced block text
+    :return: list of lines with tags replaced by fenced blocks
     """
     hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_isinstance(fence_map, dict)

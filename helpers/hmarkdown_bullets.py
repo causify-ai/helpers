@@ -162,12 +162,12 @@ def process_code_block(
         inside a code block.
     :param i: The index of the current line in the list of lines.
     :param lines: the lines of text to process
-    :return: A tuple
-        - do_continue: whether to continue processing the current line or skip
+    :return: tuple containing:
+        - `do_continue`: whether to continue processing the current line or skip
           it
-        - in_code_block: a boolean indicating whether the function is currently
+        - `in_code_block`: boolean indicating whether the function is currently
           inside a code block
-        - a list of processed lines of text
+        - list of processed lines of text
     """
     out: List[str] = []
     do_continue = False
@@ -207,8 +207,8 @@ def process_lines(lines: List[str]) -> Generator[Tuple[int, str], None, None]:
     Process lines of text to handle comment blocks, code blocks, and single
     line comments.
 
-    :param lines: The list of all the lines of text being processed.
-    :return: A list of processed lines of text.
+    :param lines: list of all the lines of text being processed
+    :return: generator of processed lines of text
     """
     out: List[str] = []
     in_skip_block = False
