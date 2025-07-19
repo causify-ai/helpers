@@ -1090,7 +1090,7 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
 
 
 class Test_process_code_block1(hunitest.TestCase):
-    def process_code_block(self, txt: str) -> str:
+    def helper_process_code_block(self, txt: str) -> str:
         out: List[str] = []
         in_code_block = False
         lines = txt.split("\n")
@@ -1112,7 +1112,7 @@ class Test_process_code_block1(hunitest.TestCase):
         input_file_path = os.path.join(in_dir_name, "test.txt")
         txt_in = hio.from_file(input_file_path)
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
-        act = self.process_code_block(txt_in)
+        act = self.helper_process_code_block(txt_in)
         self.check_string(act, dedent=True, remove_lead_trail_empty_lines=True)
 
 
