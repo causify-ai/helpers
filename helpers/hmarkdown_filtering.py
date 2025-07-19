@@ -10,6 +10,7 @@ import re
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 from helpers.hmarkdown_headers import extract_slides_from_markdown, extract_section_from_markdown
+from typing import Tuple
 
 _LOG = logging.getLogger(__name__)
 
@@ -27,7 +28,6 @@ def filter_by_header(file_name: str, header: str, prefix: str) -> str:
     :param prefix: prefix used for the output file (e.g., `tmp.pandoc`)
     :return: path to the processed file
     """
-
     # Read the file.
     txt = hio.from_file(file_name)
     # Filter by header.
@@ -38,7 +38,7 @@ def filter_by_header(file_name: str, header: str, prefix: str) -> str:
     return file_out
 
 
-def _parse_range(range_as_str: str, max_value: int) -> tuple[int, int]:
+def _parse_range(range_as_str: str, max_value: int) -> Tuple[int, int]:
     """
     Parse a line range string like '1:10' into start and end line numbers.
 
@@ -93,7 +93,7 @@ def filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     return file_out
 
 
-# TODO(gp): Pass the text and not the file.
+# TODO(ai): Pass the text and not the file.
 def filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
     """
     Filter the lines of a file in `[start_slide, end_slide[`.

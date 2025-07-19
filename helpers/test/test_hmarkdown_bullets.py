@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import List
 
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -533,4 +534,36 @@ class Test_process_lines1(hunitest.TestCase):
             _LOG.debug(hprint.to_str("line"))
             out.append(f"{i}:{line}")
         act = "\n".join(out)
+        self.check_string(act, dedent=True, remove_lead_trail_empty_lines=True)
+
+
+# #############################################################################
+# Test_process_code_block1
+# #############################################################################
+
+
+class Test_process_code_block1(hunitest.TestCase):
+    def helper_process_code_block(self, txt: str) -> str:
+        out: List[str] = []
+        in_code_block = False
+        lines = txt.split("\n")
+        for i, line in enumerate(lines):
+            _LOG.debug("%s:line=%s", i, line)
+            # Process the code block.
+            do_continue, in_code_block, out_tmp = hmarkdo.process_code_block(
+                line, in_code_block, i, lines
+            )
+            out.extend(out_tmp)
+            if do_continue:
+                continue
+            #
+            out.append(line)
+        return "\n".join(out)
+
+    def test1(self) -> None:
+        in_dir_name = self.get_input_dir()
+        input_file_path = os.path.join(in_dir_name, "test.txt")
+        txt_in = hio.from_file(input_file_path)
+        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        act = self.helper_process_code_block(txt_in)
         self.check_string(act, dedent=True, remove_lead_trail_empty_lines=True)
