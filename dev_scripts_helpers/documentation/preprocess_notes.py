@@ -86,7 +86,9 @@ def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
     return do_continue, line
 
 
-def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str]:
+def _process_question_to_slides(
+    line: str, *, level: int = 4
+) -> Tuple[bool, str]:
     """
     Transform `* foo bar` into `#### foo bar`.
     """
@@ -203,9 +205,9 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     out.append(" " * _NUM_SPACES + line)
             else:
                 # Empty line.
-                prev_line_is_verbatim = ((i - 1) > 0) and lines[i - 1].startswith(
-                    "```"
-                )
+                prev_line_is_verbatim = ((i - 1) > 0) and lines[
+                    i - 1
+                ].startswith("```")
                 next_line_is_verbatim = ((i + 1) < len(lines)) and (
                     lines[i + 1].startswith("```")
                 )

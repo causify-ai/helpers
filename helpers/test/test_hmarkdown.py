@@ -1116,7 +1116,6 @@ class Test_process_code_block1(hunitest.TestCase):
         self.check_string(act, dedent=True, remove_lead_trail_empty_lines=True)
 
 
-
 # #############################################################################
 # Test_selected_navigation_to_str1
 # #############################################################################
@@ -1263,8 +1262,6 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
     def test2(self) -> None:
         txt = _get_markdown_example5()
         _test_full_navigation_flow(self, txt)
-
-
 
 
 # #############################################################################
@@ -2219,7 +2216,3 @@ class Test_end_to_end_rules1(hunitest.TestCase):
         HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
         """
         self.helper_extract_rules(selection_rules, exp)
-
-
-
-

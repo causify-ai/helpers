@@ -710,7 +710,9 @@ class Config:
             write-after-read (see above)
             - `None` to use the value set in the constructor
         """
-        _LOG.debug("-> " + hprint.to_str("key val update_mode clobber_mode self"))
+        _LOG.debug(
+            "-> " + hprint.to_str("key val update_mode clobber_mode self")
+        )
         clobber_mode = self._resolve_clobber_mode(clobber_mode)
         report_mode = self._resolve_report_mode(report_mode)
         try:

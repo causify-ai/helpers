@@ -86,7 +86,6 @@ def _get_llm_provider_and_model(model: str) -> Tuple[str, str]:
     return provider_name, model
 
 
-
 def response_to_txt(response: Any) -> str:
     """
     Convert an OpenAI API response to a text string.
@@ -123,9 +122,6 @@ def _extract(
         if hasattr(file, attr):
             obj_tmp[attr] = getattr(file, attr)
     return obj_tmp
-
-
-
 
 
 # #############################################################################
