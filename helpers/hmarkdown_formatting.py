@@ -161,6 +161,58 @@ def format_markdown(txt: str) -> str:
     return txt
 
 
+def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str:
+    """
+    Make first-level bullets bold in markdown text.
+
+    :param markdown_text: Input markdown text
+    :param max_length: Max length of the bullet text to be bolded. -1
+        means no limit.
+    :return: Formatted markdown text with first-level bullets in bold
+    """
+    lines = markdown_text.split("\n")
+    result = []
+    for line in lines:
+        # Check if this is a first-level bullet point.
+        if re.match(r"^\s*- ", line):
+            # Check if the line has already bold text it in it.
+            if not re.search(r"\*\*", line):
+                # Bold first-level bullets.
+                indentation = len(line) - len(line.lstrip())
+                if indentation == 0:
+                    # First-level bullet, add bold markers.
+                    m = re.match(r"^(\s*-\s+)(.*)", line)
+                    hdbg.dassert(m, "Can't parse line='%s'", line)
+                    bullet_text = m.group(2)  # type: ignore[union-attr]
+                    if max_length > -1 and len(bullet_text) <= max_length:
+                        spaces = m.group(1)  # type: ignore[union-attr]
+                        line = spaces + "**" + bullet_text + "**"
+        result.append(line)
+    return "\n".join(result)
+
+
+def format_first_level_bullets(markdown_text: str) -> str:
+    """
+    Add empty lines only before first level bullets and remove all empty lines
+    from markdown text.
+
+    :param markdown_text: Input markdown text
+    :return: Formatted markdown text
+    """
+    # Split into lines and remove empty ones.
+    lines = [line for line in markdown_text.split("\n") if line.strip()]
+    # Add empty lines only before first level bullets.
+    result = []
+    for i, line in enumerate(lines):
+        # Check if current line is a first level bullet (no indentation).
+        if re.match(r"^- ", line):
+            # Add empty line before first level bullet if not at start.
+            if i > 0:
+                result.append("")
+        result.append(line)
+    return "\n".join(result)
+
+
 def format_markdown_slide(txt: str) -> str:
     """
     Format markdown text for a slide.

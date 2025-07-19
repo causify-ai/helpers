@@ -21,8 +21,6 @@ _LOG = logging.getLogger(__name__)
 # Rules processing.
 # #############################################################################
 
-# TODO(gp): -> hmarkdown_rules.py
-
 # Rules are organized in 4 levels of a markdown file:
 #
 # 1) Rule sets (level 1)

@@ -68,39 +68,7 @@ _ALL_COLORS = [
 ]
 
 
-def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str:
-    """
-    Make first-level bullets bold in markdown text.
-
-    :param markdown_text: Input markdown text
-    :param max_length: Max length of the bullet text to be bolded. -1
-        means no limit.
-    :return: Formatted markdown text with first-level bullets in bold
-    """
-    lines = markdown_text.split("\n")
-    result = []
-    for line in lines:
-        # Check if this is a first-level bullet point.
-        if re.match(r"^\s*- ", line):
-            # Check if the line has already bold text it in it.
-            if not re.search(r"\*\*", line):
-                # Bold first-level bullets.
-                indentation = len(line) - len(line.lstrip())
-                if indentation == 0:
-                    # First-level bullet, add bold markers.
-                    m = re.match(r"^(\s*-\s+)(.*)", line)
-                    hdbg.dassert(m, "Can't parse line='%s'", line)
-                    bullet_text = m.group(2)  # type: ignore[union-attr]
-                    if max_length > -1 and len(bullet_text) <= max_length:
-                        spaces = m.group(1)  # type: ignore[union-attr]
-                        line = spaces + "**" + bullet_text + "**"
-        result.append(line)
-    return "\n".join(result)
-
-
-# TODO(gp): -> hmarkdown_color.py
-
-
+# TODO(gp): -> hmarkdown_color.py?
 # TODO(gp): This seems the same as `_colorize_bullet_points()`.
 def colorize_bold_text(
     markdown_text: str, *, use_abbreviations: bool = True

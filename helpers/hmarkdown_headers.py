@@ -37,16 +37,16 @@ def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     :return: true if the line is a separator
     """
     separator_pattern = rf"""
-    \#*\s*                                  # Allow optional leading `#` and whitespace.
-    ([#/=\-])\1{{{min_repeats - 1},}}       # Capture a character, then repeat it
-                                            # (`min_repeats` - 1) times.
-    \s*$                                    # Match only whitespace characters until the end of the line.
+    \#*\s*                            # Optional leading `#` and whitespace.
+    ([#/=\-])\1{{{min_repeats - 1},}} # Capture a character, then repeat it
+                                      #   (`min_repeats` - 1) times.
+    \s*$                              # Match only whitespace characters
+                                      #   until the end of the line.
     """
     res = bool(re.match(separator_pattern, line, re.VERBOSE))
     return res
 
 
-# TODO(gp): -> hmarkdown_headers.py
 def is_header(line: str) -> Tuple[bool, int, str]:
     """
     Check if the given line is a Markdown header.
@@ -383,8 +383,6 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 # #############################################################################
 # Process headers.
 # #############################################################################
-
-# TODO(gp): -> hmarkdown_headers.py
 
 
 def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:

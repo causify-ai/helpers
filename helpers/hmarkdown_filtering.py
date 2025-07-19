@@ -9,6 +9,7 @@ import re
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+from helpers.hmarkdown_headers import extract_slides_from_markdown
 
 _LOG = logging.getLogger(__name__)
 
@@ -69,7 +70,6 @@ def filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
-
     # Read the file.
     txt = hio.from_file(file_name)
     txt = txt.split("\n")
@@ -100,13 +100,11 @@ def filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
     :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
     :return: The path to the processed file
     """
-
     # Read the file.
     txt = hio.from_file(file_name)
     # Filter by header.
     slides_info, last_line_number = extract_slides_from_markdown(txt)
     _LOG.debug("slides_info=%s\n%s", len(slides_info), slides_info)
-    # assert 0
     # E.g., filter_by_lines='1:10'.
     start_slide, end_slide = _parse_range(filter_by_slides, len(slides_info))
     _LOG.debug("start_slide=%s, end_slide=%s", start_slide, end_slide)
