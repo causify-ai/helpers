@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 """
-Survey test files in a codebase to map test classes and methods with skip status.
+Survey test files in a codebase to map test classes and methods with skip
+status.
 
 This script recursively searches for test directories and analyzes Python test files
 to create a comprehensive mapping of test classes, methods, and their skip status.
@@ -10,7 +11,7 @@ Examples:
   # Survey current directory
   > survey_tests.py
 
-  # Survey specific directory 
+  # Survey specific directory
   > survey_tests.py /path/to/project
 
   # Survey with verbose output
@@ -25,11 +26,11 @@ import argparse
 import json
 import logging
 import pprint
-from typing import Dict, Any
+
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
-import survey_tests_lib as suteli
+import dev_scripts_helpers.testing.survey_tests_lib as suteli
 
 _LOG = logging.getLogger(__name__)
 
@@ -42,20 +43,19 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "root_dir", 
-        nargs="?", 
-        default=".", 
-        help="Root directory to search for tests (default: current directory)"
+        "root_dir",
+        nargs="?",
+        default=".",
+        help="Root directory to search for tests (default: current directory)",
     )
     parser.add_argument(
-        "--output_format", 
-        choices=["pretty", "json"], 
+        "--output_format",
+        choices=["pretty", "json"],
         default="pretty",
-        help="Output format for results (default: pretty)"
+        help="Output format for results (default: pretty)",
     )
     parser.add_argument(
-        "--output_file", 
-        help="Output file to write results (default: stdout)"
+        "--output_file", help="Output file to write results (default: stdout)"
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -64,11 +64,11 @@ def _parse() -> argparse.ArgumentParser:
 def _format_results(test_map: suteli.TestFileMap, format_type: str) -> str:
     """
     Format the test survey results for output.
-    
+
     Args:
         test_map: The test file mapping results
         format_type: Format type ("pretty" or "json")
-        
+
     Returns:
         Formatted string representation
     """
@@ -92,30 +92,28 @@ def _format_results(test_map: suteli.TestFileMap, format_type: str) -> str:
 def _print_summary(test_map: suteli.TestFileMap) -> None:
     """
     Print a summary of the survey results.
-    
+
     Args:
         test_map: The test file mapping results
     """
     total_files = len(test_map)
     total_classes = sum(len(classes) for classes in test_map.values())
     total_methods = sum(
-        len(methods) 
-        for classes in test_map.values() 
+        len(methods)
+        for classes in test_map.values()
         for methods in classes.values()
     )
-    
     skipped_classes = sum(
-        1 for classes in test_map.values() 
-        for (class_skipped, _), _ in classes.items() 
+        1
+        for classes in test_map.values()
+        for (class_skipped, _), _ in classes.items()
         if class_skipped
     )
-    
     skipped_methods = sum(
         sum(1 for method_skipped, _ in methods if method_skipped)
-        for classes in test_map.values() 
+        for classes in test_map.values()
         for methods in classes.values()
     )
-    
     _LOG.info("=== Test Survey Summary ===")
     _LOG.info(f"Total test files: {total_files}")
     _LOG.info(f"Total test classes: {total_classes} (skipped: {skipped_classes})")
@@ -126,25 +124,19 @@ def _print_summary(test_map: suteli.TestFileMap) -> None:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    
     _LOG.info(f"Starting test survey in directory: {args.root_dir}")
-    
     # Survey the tests
     test_map = suteli.survey_tests(args.root_dir)
-    
     # Print summary
     _print_summary(test_map)
-    
     # Format and output results
     formatted_results = _format_results(test_map, args.output_format)
-    
     if args.output_file:
         _LOG.info(f"Writing results to: {args.output_file}")
-        with open(args.output_file, 'w') as f:
+        with open(args.output_file, "w") as f:
             f.write(formatted_results)
     else:
         print(formatted_results)
-    
     _LOG.info("Test survey completed successfully")
 
 
