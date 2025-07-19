@@ -347,6 +347,7 @@ class TestTestFileAnalyzer(hunitest.TestCase):
         class AnotherHelper:
             pass
         """
+        file_content = hprint.dedent(file_content)
         ast_node = ast.parse(file_content)
         method_analyzer = suteli.TestMethodAnalyzer()
         class_analyzer = suteli.TestClassAnalyzer(method_analyzer)
@@ -435,7 +436,7 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
                 # Check outputs.
                 self.assertFalse(surveyor.is_test_file(file_path))
 
-    @patch("survey_tests_lib.hio")
+    @patch("dev_scripts_helpers.testing.survey_tests_lib.hio")
     def test_find_test_directories(self, mock_hio) -> None:
         """
         Test find_test_directories finds directories named 'test'.
@@ -458,7 +459,7 @@ class TestTestDirectorySurveyor(hunitest.TestCase):
         expected = ["/root/test", "/root/src/test", "/root/lib/helpers/test"]
         self.assert_equal(str(result), str(expected))
 
-    @patch("survey_tests_lib.hio")
+    @patch("dev_scripts_helpers.testing.survey_tests_lib.hio")
     def test_find_test_files(self, mock_hio) -> None:
         """
         Test find_test_files finds Python test files.
@@ -512,7 +513,7 @@ class TestFactoryFunctions(hunitest.TestCase):
             suteli.TestMethodAnalyzer,
         )
 
-    @patch("survey_tests_lib.create_test_surveyor")
+    @patch("dev_scripts_helpers.testing.survey_tests_lib.create_test_surveyor")
     def test_survey_tests_convenience_function(
         self, mock_create_surveyor
     ) -> None:
