@@ -110,15 +110,18 @@ def capitalize_header(txt: str) -> str:
     """
     Improve the header and slide titles.
 
-    - Headers start with one or more `#`s.
+    - Headers start with one or more `#`s
     - Slide titles start with one `*`
+
     - The title is transformed to title case as below:
         - ML theory -> ML Theory
         - A map of machine learning -> A Map of Machine Learning
         - Business strategists -> 
             Business Strategists
         - Establish a phased, collaborative approach ->
-            Establish a Phased, Collaborative Approach 
+            Establish a Phased, Collaborative Approach
+
+    - Strings inside backticks, single quotes, and double quotes are preserved.
     """
     txt_new: List[str] = []
     for i, line in enumerate(txt.split("\n")):
@@ -128,7 +131,7 @@ def capitalize_header(txt: str) -> str:
             # Parse the title.
             title = m.group(2)
             # Transform to title case, leaving words that are all capitalized
-            # and conjunctions as is.
+            # and conjunctions as is, while preserving quoted strings.
             non_cap_words = {
                 "a",
                 "an",
@@ -147,11 +150,26 @@ def capitalize_header(txt: str) -> str:
                 "vs",
                 "with",
             }
+            # Find and temporarily replace quoted strings to preserve them
+            quoted_strings = []
+            placeholders = []
+            # Pattern to match strings inside backticks, single quotes, or double quotes
+            quote_pattern = r'(`[^`]*`|\'[^\']*\'|"[^"]*")'
+            def replace_quoted(match: re.Match) -> str:
+                quoted_strings.append(match.group(0))
+                placeholder = f"__QUOTED_{len(quoted_strings)-1}__"
+                placeholders.append(placeholder)
+                return placeholder
+            # Replace quoted strings with placeholders.
+            title_with_placeholders = re.sub(quote_pattern, replace_quoted, title)
             # Split into words.
-            words = title.split()
+            words = title_with_placeholders.split()
             # Process each word.
             for i, word in enumerate(words):
-                if i == 0 and not word.isupper():
+                if word.startswith("__QUOTED_") and word.endswith("__"):
+                    # Skip placeholder words, they will be restored later.
+                    continue
+                elif i == 0 and not word.isupper():
                     # Capitalize the first word.
                     words[i] = word.title()
                 elif word.isupper():
@@ -164,6 +182,9 @@ def capitalize_header(txt: str) -> str:
                     # Capitalize other words.
                     words[i] = word.title()
             title = " ".join(words)
+            # Restore quoted strings.
+            for i, placeholder in enumerate(placeholders):
+                title = title.replace(placeholder, quoted_strings[i])
             # Reconstruct the line.
             line = m.group(1) + " " + title
             txt_new.append(line)

@@ -1137,3 +1137,63 @@ class Test_capitalize_header1(hunitest.TestCase):
         * A Map of Machine Learning
         """
         self.helper(txt, exp)
+
+    def test_backticks_preserved(self) -> None:
+        """
+        Test that strings inside backticks are preserved.
+        """
+        txt = r"""
+        # Using `python` for Machine Learning
+        """
+        exp = r"""
+        # Using `python` for Machine Learning
+        """
+        self.helper(txt, exp)
+
+    def test_single_quotes_preserved(self) -> None:
+        """
+        Test that strings inside single quotes are preserved.
+        """
+        txt = r"""
+        * Working with 'machine learning' algorithms
+        """
+        exp = r"""
+        * Working with 'machine learning' Algorithms
+        """
+        self.helper(txt, exp)
+
+    def test_double_quotes_preserved(self) -> None:
+        """
+        Test that strings inside double quotes are preserved.
+        """
+        txt = r"""
+        # Understanding "deep learning" concepts
+        """
+        exp = r"""
+        # Understanding "deep learning" Concepts
+        """
+        self.helper(txt, exp)
+
+    def test_mixed_quotes_and_backticks(self) -> None:
+        """
+        Test mixed usage of quotes and backticks.
+        """
+        txt = r"""
+        * Using `python` and "machine learning" for 'data science'
+        """
+        exp = r"""
+        * Using `python` and "machine learning" for 'data science'
+        """
+        self.helper(txt, exp)
+
+    def test_complex_title_with_quotes(self) -> None:
+        """
+        Test complex title with various quote types.
+        """
+        txt = r"""
+        # Introduction to `sklearn` and "data preprocessing" in 'python'
+        """
+        exp = r"""
+        # Introduction to `sklearn` and "data preprocessing" in 'python'
+        """
+        self.helper(txt, exp)
