@@ -7,8 +7,7 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
-import helpers.hdockerized_executables as hdockexec
+import helpers.hdockerized_executables as hdocexec
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -36,7 +35,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if not args.output:
         args.output = args.input
-    hdockexec.run_dockerized_mermaid(
+    hdocexec.run_dockerized_mermaid(
         args.input,
         args.output,
         force_rebuild=args.dockerized_force_rebuild,

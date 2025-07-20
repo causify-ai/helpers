@@ -26,8 +26,7 @@ import sys
 from typing import Any, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
-import helpers.hdockerized_executables as hdockexec
+import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -226,7 +225,7 @@ def _run_pandoc_to_pdf(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = hdockexec.run_dockerized_pandoc(
+        cmd = hdocexec.run_dockerized_pandoc(
             cmd,
             container_type,
             mode="return_cmd",
@@ -264,7 +263,7 @@ def _run_pandoc_to_pdf(
     )
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
-        cmd = hdockexec.run_dockerized_latex(
+        cmd = hdocexec.run_dockerized_latex(
             cmd, mode="return_cmd", use_sudo=False
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
@@ -349,7 +348,7 @@ def _build_pandoc_cmd(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = hdockexec.run_dockerized_pandoc(
+        cmd = hdocexec.run_dockerized_pandoc(
             cmd,
             container_type,
             mode="return_cmd",

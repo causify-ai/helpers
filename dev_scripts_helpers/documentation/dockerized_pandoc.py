@@ -15,8 +15,7 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
-import helpers.hdockerized_executables as hdockexec
+import helpers.hdockerized_executables as hdocexec
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -53,7 +52,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if not args.output:
         args.output = args.input
     cmd = "pandoc {args.input} -o {args.output} {cmd_opts}"
-    hdockexec.run_dockerized_pandoc(
+    hdocexec.run_dockerized_pandoc(
         cmd,
         args.container_type,
         force_rebuild=args.dockerized_force_rebuild,

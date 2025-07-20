@@ -168,7 +168,9 @@ def run_dockerized_prettier(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
     return ret
 
 
@@ -504,7 +506,9 @@ def run_dockerized_pandoc(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
     return ret
 
 
@@ -676,7 +680,9 @@ def run_dockerized_markdown_toc(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
     return ret
 
 
@@ -921,7 +927,9 @@ def run_dockerized_latex(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
     return ret
 
 
@@ -1057,7 +1065,9 @@ def run_dockerized_imagemagick(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
     return ret
 
 
@@ -1179,7 +1189,9 @@ def run_dockerized_plantuml(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
     return ret
 
 
@@ -1242,7 +1254,9 @@ def run_dockerized_mermaid(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
     return ret
 
 
@@ -1424,5 +1438,7 @@ def run_dockerized_graphviz(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
     return ret

@@ -10,8 +10,7 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
-import helpers.hdockerized_executables as hdockexec
+import helpers.hdockerized_executables as hdocexec
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -49,7 +48,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
     # Run latex.
-    hdockexec.run_basic_latex(
+    hdocexec.run_basic_latex(
         args.input,
         cmd_opts,
         args.run_latex_again,
@@ -58,8 +57,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         use_sudo=args.dockerized_use_sudo,
     )
     _LOG.info("Output written to '%s'", args.output)
-
-
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
@@ -71,8 +68,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #    container_type="pandoc_only",
     #    force_rebuild=args.dockerized_force_rebuild,
     #    use_sudo=args.dockerized_use_sudo,
-    #)
-    #_LOG.info("Finished converting '%s' to '%s'.", args.docx_file, args.md_file)
+    # )
+    # _LOG.info("Finished converting '%s' to '%s'.", args.docx_file, args.md_file)
 
 
 if __name__ == "__main__":

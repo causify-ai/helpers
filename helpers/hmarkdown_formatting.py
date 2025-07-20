@@ -8,8 +8,7 @@ import logging
 import re
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
-import helpers.hdockerized_executables as hdockexec
+import helpers.hdockerized_executables as hdocexec
 
 _LOG = logging.getLogger(__name__)
 
@@ -158,7 +157,7 @@ def prettier_markdown(txt: str) -> str:
     :return: formatted text
     """
     file_type = "md"
-    txt = hdockexec.prettier_on_str(txt, file_type)
+    txt = hdocexec.prettier_on_str(txt, file_type)
     return txt
 
 
@@ -170,7 +169,7 @@ def format_markdown(txt: str) -> str:
     :return: formatted text
     """
     file_type = "md"
-    txt = hdockexec.prettier_on_str(txt, file_type)
+    txt = hdocexec.prettier_on_str(txt, file_type)
     txt = remove_empty_lines_from_markdown(txt)
     return txt
 
@@ -237,7 +236,7 @@ def format_markdown_slide(txt: str) -> str:
     # Split the text into title and body.
     txt = bold_first_level_bullets(txt)
     file_type = "md"
-    txt = hdockexec.prettier_on_str(txt, file_type)
+    txt = hdocexec.prettier_on_str(txt, file_type)
     txt = format_first_level_bullets(txt)
     # txt = capitalize_slide_titles(txt)
     return txt
@@ -251,5 +250,5 @@ def format_latex(txt: str) -> str:
     :return: formatted LaTeX text
     """
     file_type = "tex"
-    txt = hdockexec.prettier_on_str(txt, file_type)
+    txt = hdocexec.prettier_on_str(txt, file_type)
     return txt

@@ -10,7 +10,6 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -50,8 +49,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #    container_type="pandoc_only",
     #    force_rebuild=args.dockerized_force_rebuild,
     #    use_sudo=args.dockerized_use_sudo,
-    #)
-    #_LOG.info("Finished converting '%s' to '%s'.", args.docx_file, args.md_file)
+    # )
+    # _LOG.info("Finished converting '%s' to '%s'.", args.docx_file, args.md_file)
 
 
 if __name__ == "__main__":

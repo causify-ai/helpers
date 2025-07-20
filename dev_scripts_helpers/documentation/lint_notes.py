@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 """
-See instructions at docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md
+See instructions at
+docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md.
 """
 
 import argparse
@@ -13,7 +14,7 @@ from typing import Any, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
-import helpers.hdockerized_executables as hdockexec
+import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -210,7 +211,7 @@ def _refresh_toc(
         # Run `markdown-toc` in a Docker container.
         use_sudo = hdocker.get_use_sudo()
         force_rebuild = False
-        hdockexec.run_dockerized_markdown_toc(
+        hdocexec.run_dockerized_markdown_toc(
             tmp_file_name,
             cmd_opts,
             use_sudo=use_sudo,
@@ -287,7 +288,6 @@ def _improve_header_and_slide_titles(txt: str) -> str:
                 else:
                     # Capitalize other words.
                     words[i] = word.title()
-
             title = " ".join(words)
             # Reconstruct the line.
             line = m.group(1) + " " + title
@@ -342,7 +342,7 @@ def _process(
     # Prettify.
     action = "prettier"
     if _to_execute_action(action, actions):
-        txt = hdockexec.prettier_on_str(txt, file_type=extension, **kwargs)
+        txt = hdocexec.prettier_on_str(txt, file_type=extension, **kwargs)
     # Post-process text.
     action = "postprocess"
     if _to_execute_action(action, actions):
