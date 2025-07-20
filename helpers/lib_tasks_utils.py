@@ -196,11 +196,11 @@ def to_multi_line_cmd(docker_cmd_: List[str]) -> str:
     # Remove empty lines.
     docker_cmd_ = [cmd for cmd in docker_cmd_ if cmd.rstrip().lstrip() != ""]
     # Package the command.
-    docker_cmd_ = "\n".join(docker_cmd_)
+    result = "\n".join(docker_cmd_)
     # Remove a `\` at the end, since it is not needed.
-    docker_cmd_ = docker_cmd_.rstrip("\\")
-    _LOG.debug("docker_cmd=%s", docker_cmd_)
-    return docker_cmd_
+    result = result.rstrip("\\")
+    _LOG.debug("docker_cmd=%s", result)
+    return result
 
 
 # TODO(gp): Pass through command line using a global switch or an env var.

@@ -367,8 +367,8 @@ def _workload_function(*args: Any, **kwargs: Any) -> str:
     num_attempts = kwargs.pop("num_attempts")
     _ = incremental, num_attempts
     func_output: List[str] = []
-    func_output = "\n".join(func_output)
-    return func_output
+    result = "\n".join(func_output)
+    return result
 
 
 def _get_workload(

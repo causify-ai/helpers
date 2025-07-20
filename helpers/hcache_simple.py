@@ -228,8 +228,8 @@ def cache_property_to_str(type_: str, func_name: str = "") -> str:
         func_names = get_cache_func_names("all")
         for func_name_tmp in func_names:
             txt.append(cache_property_to_str(type_, func_name_tmp))
-        txt = "\n".join(txt)
-        return txt
+        result = "\n".join(txt)
+        return result
     #
     txt.append(f"# func_name={func_name}")
     cache_property = _get_cache_property(type_)
@@ -237,8 +237,8 @@ def cache_property_to_str(type_: str, func_name: str = "") -> str:
     if func_name in cache_property:
         for k, v in cache_property[func_name].items():
             txt.append(f"{k}: {v}")
-    txt = "\n".join(txt)
-    return txt
+    result = "\n".join(txt)
+    return result
 
 
 # #############################################################################

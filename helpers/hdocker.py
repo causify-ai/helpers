@@ -1994,10 +1994,10 @@ def run_dockerized_graphviz(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     #
-    cmd_opts = " ".join(cmd_opts)
+    cmd_opts_str = " ".join(cmd_opts)
     graphviz_cmd = [
         "dot",
-        f"{cmd_opts}",
+        f"{cmd_opts_str}",
         "-T png",
         "-Gdpi=300",
         f"-o {out_file_path}",

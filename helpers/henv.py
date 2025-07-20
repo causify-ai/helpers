@@ -280,8 +280,8 @@ def env_vars_to_string() -> str:
             else:
                 # Not a secret var: print the value.
                 txt.append(f"{env_name}='{os.environ[env_name]}'")
-    txt = "\n".join(txt)
-    return txt
+    result = "\n".join(txt)
+    return result
 
 
 # #############################################################################
@@ -348,9 +348,9 @@ def _get_git_signature(git_commit_type: str = "all") -> str:
     else:
         raise ValueError(f"Invalid value='{git_commit_type}'")
     #
-    txt = "\n".join(txt) + "\n"
-    hdbg.dassert(txt.endswith("\n"), "txt_tmp='%s'", txt)
-    return txt
+    result = "\n".join(txt) + "\n"
+    hdbg.dassert(result.endswith("\n"), "result='%s'", result)
+    return result
 
 
 # def _get_submodule_signature(

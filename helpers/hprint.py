@@ -893,8 +893,8 @@ def set_diff_to_str(
     if add_space:
         res.append("")
     #
-    res = "\n".join(res)
-    return res
+    result = "\n".join(res)
+    return result
 
 
 # #############################################################################
