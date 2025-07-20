@@ -1026,19 +1026,20 @@ def merge_dfs(
     )
     hdbg.dassert_lte(threshold, threshold_common_values_share1)
     hdbg.dassert_lte(threshold, threshold_common_values_share2)
-    if intersecting_columns is None:
-        # Use an empty set instead of None to perform set difference further.
-        intersecting_columns = set()
+    # Use an empty set instead of None to perform set difference further.
+    intersecting_columns_set = (
+        set() if intersecting_columns is None else set(intersecting_columns)
+    )
     # Check that there are no common columns except for the ones in `intersecting_columns`.
     df1_cols = (
         set(df1.columns.to_list())
         - set(pd_merge_kwargs["on"])
-        - set(intersecting_columns)
+        - intersecting_columns_set
     )
     df2_cols = (
         set(df2.columns.to_list())
         - set(pd_merge_kwargs["on"])
-        - set(intersecting_columns)
+        - intersecting_columns_set
     )
     hdbg.dassert_not_intersection(df1_cols, df2_cols)
     #

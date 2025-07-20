@@ -44,7 +44,7 @@ def _parse_range(range_as_str: str, max_value: int) -> Tuple[int, int]:
     hdbg.dassert(m, "Invalid range_as_str='%s'", range_as_str)
     # Type narrowing after dassert since linter doesn't under that `dassert` is
     # equivalent to an `assert`.
-    assert m is not None  
+    assert m is not None
     start_value, end_value = m.groups()
     if start_value.lower() == "none":
         start_value = 1

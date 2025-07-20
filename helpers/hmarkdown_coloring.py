@@ -154,6 +154,7 @@ def colorize_bullet_points_in_slide(
     color_idx = 0
     txt_out = []
     for line in lines:
+
         def color_replacer(match: re.Match[str]) -> str:
             r"""
             Replace strings like "**foo**" with strings like "**\red{foo}**".
