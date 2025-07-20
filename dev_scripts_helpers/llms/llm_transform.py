@@ -83,6 +83,7 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
+# TODO(gp): Make it public and move it to `hdockerized_executables.py`.
 def _run_dockerized_llm_transform(
     in_file_path: str,
     cmd_opts: List[str],

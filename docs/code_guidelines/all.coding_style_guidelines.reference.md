@@ -414,9 +414,6 @@
 - Use `isinstance()` instead of `type()` to check the type of an object
   - Good: `if isinstance(obj, str):`
   - Bad: `if type(obj) == str:`
-- Do not use `import *`
-  - Good: `from math import sqrt, pi`
-  - Bad: `from math import *`
 - Do not use `from ... import ...`, unless it is the `typing` package, e.g.,
   `from typing import Iterable, List`
   - Good: `from typing import Dict, Tuple`

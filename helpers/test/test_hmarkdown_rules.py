@@ -206,13 +206,14 @@ class Test_extract_rules1(hunitest.TestCase):
 
 
 class Test_parse_rules_from_txt1(hunitest.TestCase):
-    def helper(self, text: str, expected: str) -> None:
+    def helper(self, text: str, expected: List[str]) -> None:
         # Prepare inputs.
         text = hprint.dedent(text)
         # Call function.
         actual = hmarkdo.parse_rules_from_txt(text)
         # Check output.
-        act = "\n".join(actual)
+        act = str(actual)
+        expected = str(expected)
         self.assert_equal(act, expected, dedent=True)
 
     def test_basic_list1(self) -> None:
@@ -224,11 +225,7 @@ class Test_parse_rules_from_txt1(hunitest.TestCase):
         - Item 2
         - Item 3
         """
-        expected = """
-        - Item 1
-        - Item 2
-        - Item 3
-        """
+        expected = ['- Item 1', '- Item 2', '- Item 3']
         self.helper(text, expected)
 
     def test_nested_list1(self) -> None:
@@ -242,13 +239,7 @@ class Test_parse_rules_from_txt1(hunitest.TestCase):
           - Sub-item 2.2
         - Item 3
         """
-        expected = """
-        - Item 1
-        - Item 2
-          - Sub-item 2.1
-          - Sub-item 2.2
-        - Item 3
-        """
+        expected = ['- Item 1', '- Item 2\n  - Sub-item 2.1\n  - Sub-item 2.2', '- Item 3']
         self.helper(text, expected)
 
     def test_empty_list1(self) -> None:
@@ -256,7 +247,7 @@ class Test_parse_rules_from_txt1(hunitest.TestCase):
         Test handling empty input.
         """
         text = ""
-        expected = ""
+        expected = []
         self.helper(text, expected)
 
 
