@@ -667,7 +667,8 @@ def parallel_execute(
         # Execute the tasks serially.
         res = []
         for task_idx, task in tqdm_iter:
-            _LOG.debug("\n%s", hprint.frame(f"Task {task_idx + 1} / {task_len}"))
+            message = "Task %s / %s" % (task_idx + 1, task_len)
+            _LOG.debug("\n%s", hprint.frame(message))
             # Execute.
             res_tmp = _parallel_execute_decorator(
                 task_idx,

@@ -112,12 +112,12 @@ def _print_summary(test_map: dshtsteli.TestFileMap) -> None:
         for methods in classes.values()
     )
     _LOG.info("=== Test Survey Summary ===")
-    _LOG.info(f"Total test files: {total_files}")
+    _LOG.info("Total test files: %s", total_files)
     _LOG.info(
-        f"Total test classes: {total_classes} (skipped: {skipped_classes})"
+        "Total test classes: %s (skipped: %s)", total_classes, skipped_classes
     )
     _LOG.info(
-        f"Total test methods: {total_methods} (skipped: {skipped_methods})"
+        "Total test methods: %s (skipped: %s)", total_methods, skipped_methods
     )
     _LOG.info("=" * 27)
 
@@ -125,15 +125,15 @@ def _print_summary(test_map: dshtsteli.TestFileMap) -> None:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    _LOG.info(f"Starting test survey in directory: {args.root_dir}")
+    _LOG.info("Starting test survey in directory: %s", args.dir)
     # Survey the tests
-    test_map = dshtsteli.survey_tests(args.root_dir)
+    test_map = dshtsteli.survey_tests(args.dir)
     # Print summary
     _print_summary(test_map)
     # Format and output results
     formatted_results = _format_results(test_map, args.output_format)
     if args.output_file:
-        _LOG.info(f"Writing results to: {args.output_file}")
+        _LOG.info("Writing results to: %s", args.output_file)
         with open(args.output_file, "w") as f:
             f.write(formatted_results)
     else:

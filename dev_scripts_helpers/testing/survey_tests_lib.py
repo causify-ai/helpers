@@ -279,7 +279,7 @@ class TestDirectorySurveyor:
                     classes_info = self._file_analyzer.analyze_file(test_file)
                     file_map[test_file] = classes_info
                 except Exception as e:
-                    _LOG.warning(f"Failed to analyze file {test_file}: {e}")
+                    _LOG.warning("Failed to analyze file %s: %s", test_file, e)
                     continue
         return file_map
 
