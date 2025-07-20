@@ -17,7 +17,7 @@ class Test_filter_by_header1(hunitest.TestCase):
         """
         Test basic header extraction functionality.
         """
-        # Prepare test markdown content.
+        # Prepare inputs.
         test_content = """
         # Introduction
         This is the introduction section.
@@ -32,8 +32,9 @@ class Test_filter_by_header1(hunitest.TestCase):
         test_content = hprint.dedent(
             test_content, remove_lead_trail_empty_lines_=False
         )
-        # Test function directly.
+        # Run test.
         result_content = hmarfilt.filter_by_header(test_content, "Introduction")
+        # Check outputs.
         expected = """
         # Introduction
         This is the introduction section.
@@ -48,11 +49,14 @@ class Test_filter_by_header1(hunitest.TestCase):
         """
         Test behavior when header is not found.
         """
+        # Prepare inputs.
         test_content = """
-# Introduction
-This is the introduction section.
-"""
+        # Introduction
+        This is the introduction section.
+        """
         test_content = hprint.dedent(test_content)
+        # Run test.
+        # Check outputs.
         with self.assertRaises(ValueError):
             hmarfilt.filter_by_header(test_content, "NonExistent")
 
@@ -67,7 +71,10 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test parsing numeric range.
         """
+        # Prepare inputs.
+        # Run test.
         start, end = hmarfilt._parse_range("1:10", 20)
+        # Check outputs.
         self.assertEqual(start, 1)
         self.assertEqual(end, 10)
 
@@ -75,7 +82,9 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test range with None start.
         """
+        # Run test.
         start, end = hmarfilt._parse_range("None:10", 20)
+        # Check outputs.
         self.assertEqual(start, 1)
         self.assertEqual(end, 10)
 
@@ -83,7 +92,9 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test range with None end.
         """
+        # Run test.
         start, end = hmarfilt._parse_range("1:None", 20)
+        # Check outputs.
         self.assertEqual(start, 1)
         self.assertEqual(end, 21)
 
@@ -91,7 +102,9 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test range with both None.
         """
+        # Run test.
         start, end = hmarfilt._parse_range("None:None", 20)
+        # Check outputs.
         self.assertEqual(start, 1)
         self.assertEqual(end, 21)
 
@@ -99,6 +112,7 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test invalid range format.
         """
+        # Run test.
         with self.assertRaises(AssertionError):
             hmarfilt._parse_range("invalid", 20)
 
@@ -106,7 +120,9 @@ class Test_parse_range1(hunitest.TestCase):
         """
         Test case insensitive None parsing.
         """
+        # Run test.
         start, end = hmarfilt._parse_range("NONE:none", 20)
+        # Check outputs.
         self.assertEqual(start, 1)
         self.assertEqual(end, 21)
 
@@ -121,15 +137,18 @@ class Test_filter_by_lines1(hunitest.TestCase):
         """
         Test basic line filtering functionality.
         """
+        # Prepare inputs.
         test_content = """
-Line 1
-Line 2
-Line 3
-Line 4
-Line 5
-"""
+        Line 1
+        Line 2
+        Line 3
+        Line 4
+        Line 5
+        """
         test_content = hprint.dedent(test_content)
+        # Run test.
         result_content = hmarfilt.filter_by_lines(test_content, "2:4")
+        # Check outputs.
         expected = "Line 2\nLine 3"
         self.assertEqual(result_content, expected)
 
@@ -137,15 +156,18 @@ Line 5
         """
         Test line filtering with None boundaries.
         """
+        # Prepare inputs.
         test_content = """
-Line 1
-Line 2
-Line 3
-Line 4
-Line 5
-"""
+        Line 1
+        Line 2
+        Line 3
+        Line 4
+        Line 5
+        """
         test_content = hprint.dedent(test_content)
+        # Run test.
         result_content = hmarfilt.filter_by_lines(test_content, "None:3")
+        # Check outputs.
         expected = "Line 1\nLine 2"
         self.assertEqual(result_content, expected)
 
@@ -153,13 +175,16 @@ Line 5
         """
         Test line filtering from start to end.
         """
+        # Prepare inputs.
         test_content = """
-Line 1
-Line 2
-Line 3
-"""
+        Line 1
+        Line 2
+        Line 3
+        """
         test_content = hprint.dedent(test_content)
+        # Run test.
         result_content = hmarfilt.filter_by_lines(test_content, "2:None")
+        # Check outputs.
         expected = "Line 2\nLine 3"
         self.assertEqual(result_content, expected)
 
@@ -167,7 +192,10 @@ Line 3
         """
         Test that start line <= end line is enforced.
         """
+        # Prepare inputs.
         test_content = "Line 1\nLine 2\nLine 3"
+        # Run test.
+        # Check outputs.
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_lines(test_content, "3:1")
 
@@ -182,25 +210,26 @@ class Test_filter_by_slides1(hunitest.TestCase):
         """
         Test basic slide filtering functionality.
         """
+        # Prepare inputs.
         test_content = """
-# Header 1
+        # Header 1
 
 
 
 
-* Slide 1
-Content for slide 1.
+        * Slide 1
+        Content for slide 1.
 
-* Slide 2
-Content for slide 2.
+        * Slide 2
+        Content for slide 2.
 
-* Slide 3
-Content for slide 3.
-"""
+        * Slide 3
+        Content for slide 3.
+        """
         test_content = hprint.dedent(test_content)
-
+        # Run test.
         result_content = hmarfilt.filter_by_slides(test_content, "0:1")
-        # The result should contain the first slide only (0-based indexing)
+        # Check outputs.
         self.assertIn("Slide 1", result_content)
         self.assertNotIn("Slide 2", result_content)
 
@@ -208,16 +237,18 @@ Content for slide 3.
         """
         Test slide filtering to the end.
         """
+        # Prepare inputs.
         test_content = """
-* Slide 1
-Content 1.
+        * Slide 1
+        Content 1.
 
-* Slide 2
-Content 2.
-"""
+        * Slide 2
+        Content 2.
+        """
         test_content = hprint.dedent(test_content)
-
+        # Run test.
         result_content = hmarfilt.filter_by_slides(test_content, "0:None")
+        # Check outputs.
         self.assertIn("Slide 1", result_content)
         self.assertIn("Slide 2", result_content)
 
@@ -225,12 +256,14 @@ Content 2.
         """
         Test that invalid slide ranges raise errors.
         """
+        # Prepare inputs.
         test_content = """
-* Slide 1
-Content 1.
-"""
+        * Slide 1
+        Content 1.
+        """
         test_content = hprint.dedent(test_content)
-
+        # Run test.
+        # Check outputs.
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_slides(test_content, "1:0")
 
@@ -238,12 +271,14 @@ Content 1.
         """
         Test filtering with end beyond available slides.
         """
+        # Prepare inputs.
         test_content = """
-* Slide 1
-Content 1.
-"""
+        * Slide 1
+        Content 1.
+        """
         test_content = hprint.dedent(test_content)
-
+        # Run test.
+        # Check outputs.
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_slides(test_content, "0:5")
 
@@ -251,52 +286,50 @@ Content 1.
         """
         Test behavior with content that has no slides.
         """
+        # Prepare inputs.
         test_content = """
-# Header 1
-Just regular content without slides.
-"""
+        # Header 1
+        Just regular content without slides.
+        """
         test_content = hprint.dedent(test_content)
-
-        # This should handle the case where there are no slides
-        # The function raises IndexError when trying to access slides that don't exist
+        # Run test.
+        # Check outputs.
         with self.assertRaises(IndexError):
-            # This should fail since there are no slides but we're trying to access slide 0
             hmarfilt.filter_by_slides(test_content, "0:1")
 
     def test_slide_filtering_single_slide(self) -> None:
         """
         Test filtering a single slide when there's only one slide.
         """
+        # Prepare inputs.
         test_content = """
-* Only Slide
-This is the only content.
-Additional content after the slide.
-"""
+        * Only Slide
+        This is the only content.
+        Additional content after the slide.
+        """
         test_content = hprint.dedent(test_content)
-
-        # For 1 slide at index 0, end_slide of 2 means "to end of file"
+        # Run test.
         result_content = hmarfilt.filter_by_slides(test_content, "0:2")
-
+        # Check outputs.
         self.assertIn("Only Slide", result_content)
         self.assertIn("This is the only content.", result_content)
-        # Due to the current implementation, this should include content up to (but not including) the last line
 
     def test_slide_end_boundary(self) -> None:
         """
         Test filtering to the end of slides.
         """
+        # Prepare inputs.
         test_content = """
-* Slide 1
-Content 1.
+        * Slide 1
+        Content 1.
 
-* Slide 2
-Content 2.
-"""
+        * Slide 2
+        Content 2.
+        """
         test_content = hprint.dedent(test_content)
-
-        # Test filtering with end equal to number of slides + 1 (should include all slides to end)
-        # For 2 slides (indices 0, 1), end_slide of 3 means "to end of file"
+        # Run test.
         result_content = hmarfilt.filter_by_slides(test_content, "0:3")
+        # Check outputs.
         self.assertIn("Slide 1", result_content)
         self.assertIn("Slide 2", result_content)
 
@@ -311,21 +344,24 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         """
         Test extracting a subsection header.
         """
+        # Prepare inputs.
         test_content = """
-# Introduction
-This is the introduction.
+        # Introduction
+        This is the introduction.
 
-## Subsection 1
-Content for subsection 1.
+        ## Subsection 1
+        Content for subsection 1.
 
-## Subsection 2
-Content for subsection 2.
+        ## Subsection 2
+        Content for subsection 2.
 
-# Conclusion
-Final thoughts.
-"""
+        # Conclusion
+        Final thoughts.
+        """
         test_content = hprint.dedent(test_content)
+        # Run test.
         result_content = hmarfilt.filter_by_header(test_content, "Subsection 1")
+        # Check outputs.
         self.assertIn("## Subsection 1", result_content)
         self.assertIn("Content for subsection 1.", result_content)
 
@@ -333,12 +369,16 @@ Final thoughts.
         """
         Test edge cases for range parsing.
         """
-        # Test with single line file
+        # Prepare inputs.
+        # Run test.
         start, end = hmarfilt._parse_range("1:1", 1)
+        # Check outputs.
         self.assertEqual(start, 1)
         self.assertEqual(end, 1)
-        # Test with large max value
+        # Prepare inputs.
+        # Run test.
         start, end = hmarfilt._parse_range("None:None", 1000)
+        # Check outputs.
         self.assertEqual(start, 1)
         self.assertEqual(end, 1001)
 
@@ -346,23 +386,29 @@ Final thoughts.
         """
         Test filtering a single line from text.
         """
+        # Prepare inputs.
         test_content = "Single line content"
+        # Run test.
         result_content = hmarfilt.filter_by_lines(test_content, "1:1")
+        # Check outputs.
         self.assertEqual(
             result_content, ""
-        )  # Should be empty since range is [1:1) exclusive end
+        )
 
     def test_filter_lines_exact_range(self) -> None:
         """
         Test filtering with exact boundaries.
         """
+        # Prepare inputs.
         test_content = """
-Line 1
-Line 2
-Line 3
-"""
+        Line 1
+        Line 2
+        Line 3
+        """
         test_content = hprint.dedent(test_content)
+        # Run test.
         result_content = hmarfilt.filter_by_lines(test_content, "1:3")
+        # Check outputs.
         expected = "Line 1\nLine 2"
         self.assertEqual(result_content, expected)
 
@@ -370,12 +416,12 @@ Line 3
         """
         Test various invalid range formats.
         """
-        # Test missing colon
+        # Run test.
         with self.assertRaises(AssertionError):
             hmarfilt._parse_range("5", 10)
-        # Test empty string
+        # Run test.
         with self.assertRaises(AssertionError):
             hmarfilt._parse_range("", 10)
-        # Test too many colons - this actually causes a ValueError when trying to parse "1:2" as int
+        # Run test.
         with self.assertRaises(ValueError):
             hmarfilt._parse_range("1:2:3", 10)
