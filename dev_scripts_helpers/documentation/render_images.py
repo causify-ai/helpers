@@ -30,7 +30,7 @@ from typing import List, Tuple
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
@@ -203,7 +203,7 @@ def _render_image_code(
         _LOG.warning("Skipping image generation because dry_run is set")
     else:
         if image_code_type == "plantuml":
-            hdocker.run_dockerized_plantuml(
+            hdocexec.run_dockerized_plantuml(
                 in_code_file_path,
                 abs_img_dir_path,
                 dst_ext,
@@ -211,7 +211,7 @@ def _render_image_code(
                 use_sudo=use_sudo,
             )
         elif image_code_type == "mermaid":
-            hdocker.run_dockerized_mermaid(
+            hdocexec.run_dockerized_mermaid(
                 in_code_file_path,
                 out_img_file_path,
                 force_rebuild=force_rebuild,
@@ -219,7 +219,7 @@ def _render_image_code(
             )
         elif image_code_type in ("tikz", "latex"):
             cmd_opts: List[str] = ["-density 300", "-quality 20"]
-            hdocker.run_dockerized_tikz_to_bitmap(
+            hdocexec.run_dockerized_tikz_to_bitmap(
                 in_code_file_path,
                 cmd_opts,
                 out_img_file_path,
@@ -228,7 +228,7 @@ def _render_image_code(
             )
         elif image_code_type == "graphviz":
             cmd_opts: List[str] = []
-            hdocker.run_dockerized_graphviz(
+            hdocexec.run_dockerized_graphviz(
                 in_code_file_path,
                 cmd_opts,
                 out_img_file_path,

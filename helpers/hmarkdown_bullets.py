@@ -22,34 +22,6 @@ _TRACE = False
 # #############################################################################
 
 
-def capitalize_first_level_bullets(markdown_text: str) -> str:
-    """
-    Make first-level bullets bold in markdown text.
-
-    :param markdown_text: Input markdown text
-    :return: Formatted markdown text with first-level bullets in bold
-    """
-    # **Subject-Matter Experts (SMEs)** -> **Subject-Matter Experts (SMEs)**
-    # Business Strategists -> Business strategists
-    # Establish a Phased, Collaborative Approach -> Establish a phased, collaborative approach
-    lines = markdown_text.split("\n")
-    result = []
-    for line in lines:
-        # Check if this is a first-level bullet point.
-        if re.match(r"^\s*- ", line):
-            # Check if the line has bold text it in it.
-            if not re.search(r"\*\*", line):
-                # Bold first-level bullets.
-                indentation = len(line) - len(line.lstrip())
-                if indentation == 0:
-                    # First-level bullet, add bold markers.
-                    line = re.sub(r"^(\s*-\s+)(.*)", r"\1**\2**", line)
-            result.append(line)
-        else:
-            result.append(line)
-    return "\n".join(result)
-
-
 # These are the colors that are supported by Latex / markdown, are readable on
 # white, and form an equidistant color palette.
 _ALL_COLORS = [

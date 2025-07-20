@@ -2,8 +2,9 @@ import os
 
 import pytest
 
-import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
@@ -38,7 +39,7 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
             "2",
         ]
         # Call function to test.
-        hdocker.run_dockerized_prettier(
+        hdocexec.run_dockerized_prettier(
             input_file_path,
             cmd_opts,
             output_file_path,
@@ -58,12 +59,13 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
         Test that Dockerized Prettier reads an input file, formats it, and
         writes the output file in the output directory.
         """
-        input_dir = self.get_input_dir()
-        output_dir = self.get_output_dir()
-        hio.create_dir(output_dir, incremental=True)
-        input_file_path = os.path.join(input_dir, "input.md")
-        output_file_path = os.path.join(output_dir, "output.md")
-        # Prepare input command options.
+        text = """
+        # Title
+        hello!
+
+        ## Content
+        """
+        text = hprint.dedent(text)
         cmd_opts = [
             "--parser",
             "markdown",
@@ -73,16 +75,20 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
             "2",
         ]
         # Call function to test.
-        hdocker.prettier_on_str(
-            input_file_path,
-            cmd_opts,
-            output_file_path,
+        act = hdocexec.prettier_on_str(
+            text,
             file_type="md",
+            cmd_opts=cmd_opts,
             mode="system",
             force_rebuild=False,
             use_sudo=False,
         )
-        self.assertTrue(
-            os.path.exists(output_file_path),
-            "Output file was not created by Dockerized Prettier.",
-        )
+        # Check output.
+        expected = """
+        # Title
+
+        hello!
+
+        ## Content
+        """
+        self.assert_equal(act, expected, dedent=True)

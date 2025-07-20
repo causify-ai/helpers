@@ -1103,3 +1103,97 @@ class Test_sanity_check_header_list1(hunitest.TestCase):
         header_list = get_header_list5()
         # Call function.
         hmarkdo.sanity_check_header_list(header_list)
+
+
+# #############################################################################
+# Test_capitalize_header1
+# #############################################################################
+
+
+class Test_capitalize_header1(hunitest.TestCase):
+    def helper(self, txt: str, exp: str) -> None:
+        # Prepare inputs.
+        txt = hprint.dedent(txt)
+        # Run function.
+        act = hmarkdo.capitalize_header(txt)
+        # Check outputs.
+        exp = hprint.dedent(exp)
+        self.assert_equal(act, exp)
+
+    def test1(self) -> None:
+        txt = r"""
+        * ML theory
+        """
+        exp = r"""
+        * ML Theory
+        """
+        self.helper(txt, exp)
+
+    def test2(self) -> None:
+        txt = r"""
+        * A map of machine learning
+        """
+        exp = r"""
+        * A Map of Machine Learning
+        """
+        self.helper(txt, exp)
+
+    def test_backticks_preserved(self) -> None:
+        """
+        Test that strings inside backticks are preserved.
+        """
+        txt = r"""
+        # Using `python` for Machine Learning
+        """
+        exp = r"""
+        # Using `python` for Machine Learning
+        """
+        self.helper(txt, exp)
+
+    def test_single_quotes_preserved(self) -> None:
+        """
+        Test that strings inside single quotes are preserved.
+        """
+        txt = r"""
+        * Working with 'machine learning' algorithms
+        """
+        exp = r"""
+        * Working with 'machine learning' Algorithms
+        """
+        self.helper(txt, exp)
+
+    def test_double_quotes_preserved(self) -> None:
+        """
+        Test that strings inside double quotes are preserved.
+        """
+        txt = r"""
+        # Understanding "deep learning" concepts
+        """
+        exp = r"""
+        # Understanding "deep learning" Concepts
+        """
+        self.helper(txt, exp)
+
+    def test_mixed_quotes_and_backticks(self) -> None:
+        """
+        Test mixed usage of quotes and backticks.
+        """
+        txt = r"""
+        * Using `python` and "machine learning" for 'data science'
+        """
+        exp = r"""
+        * Using `python` and "machine learning" for 'data science'
+        """
+        self.helper(txt, exp)
+
+    def test_complex_title_with_quotes(self) -> None:
+        """
+        Test complex title with various quote types.
+        """
+        txt = r"""
+        # Introduction to `sklearn` and "data preprocessing" in 'python'
+        """
+        exp = r"""
+        # Introduction to `sklearn` and "data preprocessing" in 'python'
+        """
+        self.helper(txt, exp)
