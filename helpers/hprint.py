@@ -767,7 +767,6 @@ def format_list(
     # sep = ", "
     if max_n is None:
         max_n = 10
-    max_n = cast(int, max_n)
     hdbg.dassert_lte(1, max_n)
     n = len(list_)
     txt = ""

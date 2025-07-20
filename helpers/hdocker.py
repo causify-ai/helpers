@@ -188,7 +188,7 @@ def get_current_arch() -> str:
     cmd = "uname -m"
     _, current_arch = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("current_arch"))
-    return cast(str, current_arch)
+    return current_arch
 
 
 def _is_compatible_arch(val1: str, val2: str) -> bool:

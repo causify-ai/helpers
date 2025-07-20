@@ -402,7 +402,6 @@ def get_current_timestamp_as_string(tz: str) -> str:
     """
     timestamp = get_current_time(tz)
     ret = timestamp.strftime("%Y%m%d-%H%M%S")
-    ret = cast(str, ret)
     return ret
 
 
@@ -412,7 +411,6 @@ def get_current_date_as_string(tz: str) -> str:
     """
     timestamp = get_current_time(tz)
     ret = timestamp.strftime("%Y%m%d")
-    ret = cast(str, ret)
     return ret
 
 

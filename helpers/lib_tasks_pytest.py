@@ -1424,8 +1424,6 @@ def _run(
         output_file=output_file,
         tee=tee,
     )
-    # TODO(gp): Understand why linter is unhappy.
-    rc = cast(int, rc)
     return rc
 
 

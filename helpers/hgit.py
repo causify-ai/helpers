@@ -130,7 +130,6 @@ def get_branch_hash(dir_name: str = ".") -> str:
     cmd = f"cd {dir_name} && git merge-base master {curr_branch_name}"
     _, hash_ = hsystem.system_to_string(cmd)
     hash_ = hash_.rstrip("\n").lstrip("\n")
-    hash_ = cast(str, hash_)
     hdbg.dassert_eq(len(hash_.split("\n")), 1)
     return hash_
 
@@ -271,7 +270,6 @@ def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     _LOG.debug(hprint.to_str("cmd"))
     _, res = hsystem.system_to_one_line(cmd)
     hdbg.dassert_ne(res, "Can't find file '%s' in '%s'", file_name, dir_path)
-    res = cast(str, res)
     return res
 
 
@@ -300,9 +298,7 @@ def find_helpers_root(dir_path: str = ".") -> str:
         # Make sure the dir and that `helpers` subdir exists.
         hdbg.dassert_dir_exists(helpers_root)
         hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
-    # TODO(gp): Unclear why this happens.
-    helpers_root_ = cast(str, helpers_root)
-    return helpers_root_
+    return helpers_root
 
 
 # #############################################################################
@@ -1293,7 +1289,6 @@ def git_describe(
         cmd = f"{cmd} --match '{match}'"
     num, tag = hsystem.system_to_one_line(cmd, log_level=log_level)
     _ = num
-    tag = cast(str, tag)
     return tag
 
 
@@ -1374,7 +1369,6 @@ def _get_gh_pr_list() -> str:
     cmd = "gh pr list -s all --limit 1000"
     rc, txt = hsystem.system_to_string(cmd)
     _ = rc
-    txt = cast(str, txt)
     return txt
 
 
