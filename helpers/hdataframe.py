@@ -235,7 +235,7 @@ def infer_sampling_points_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
     :param df: series or dataframe with non-null `df.index.freq`
     :return: number of time points per year (approximate)
     """
-    hdbg.dassert(df.index.freq)
+    hdbg.dassert(hasattr(df.index, "freq") and df.index.freq is not None)
     freq = df.index.freq
     # TODO(*): Make start, end dates parameters that can be passed in.
     return compute_points_per_year_for_given_freq(freq)
@@ -267,8 +267,11 @@ def compute_count_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
     """
     Return df.count() divided by the length of `df` in years.
     """
+    hdbg.dassert(
+        hasattr(df.index, "freq") and df.index.freq is not None,
+        msg="`df` must have a `DatetimeIndex` with a `freq`",
+    )
     freq = df.index.freq
-    hdbg.dassert(freq, msg="`df` must have a `DatetimeIndex` with a `freq`")
     # Calculate the time span of `df` in years.
     points_per_year = compute_points_per_year_for_given_freq(freq)
     span_in_years = df.size / points_per_year

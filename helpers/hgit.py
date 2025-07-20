@@ -705,7 +705,9 @@ def _parse_github_repo_name(repo_name: str) -> Tuple[str, str]:
         # Try tp parse the HTTPS format, e.g., `https://github.com/alphamatic/amp`
         m = re.match(r"^https://(\S+.com)/(\S+)$", repo_name)
     hdbg.dassert(m, "Can't parse '%s'", repo_name)
-    m: Match[str]
+    # The linter doesn't understand that `dassert` is equivalent to an
+    # `assert`.
+    assert m is not None
     host_name = m.group(1)
     repo_name = m.group(2)
     _LOG.debug("host_name=%s repo_name=%s", host_name, repo_name)

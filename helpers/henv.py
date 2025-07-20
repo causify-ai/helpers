@@ -421,7 +421,10 @@ def _get_psutil_info() -> str:
     txt_tmp = []
     if has_psutil:
         txt_tmp.append(f"cpu count={psutil.cpu_count()}")
-        txt_tmp.append(f"cpu freq={str(psutil.cpu_freq())}")
+        if hasattr(psutil, "cpu_freq") and psutil.cpu_freq is not None:
+            txt_tmp.append(f"cpu freq={str(psutil.cpu_freq())}")
+        else:
+            txt_tmp.append("cpu freq=unavailable")
         # TODO(gp): Report in MB or GB.
         txt_tmp.append(f"memory={str(psutil.virtual_memory())}")
         txt_tmp.append(f"disk usage={str(psutil.disk_usage('/'))}")

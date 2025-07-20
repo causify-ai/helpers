@@ -299,7 +299,9 @@ def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
             continue
         m = re.search(r"^(\s*)", curr_line)
         hdbg.dassert(m)
-        m: Match[Any]
+        # The linter doesn't understand that `dassert` is equivalent to an
+        # `assert`.
+        assert m is not None
         curr_num_spaces = len(m.group(1))
         _LOG.debug("  -> curr_num_spaces=%s", curr_num_spaces)
         if min_num_spaces is None or curr_num_spaces < min_num_spaces:
@@ -974,7 +976,10 @@ def filter_text(regex: str, txt: str) -> str:
 
 
 def dassert_one_trailing_newline(txt: str) -> None:
-    num_newlines = len(re.search(r"\n*$", txt).group())
+    match = re.search(r"\n*$", txt)
+    hdbg.dassert(match)
+    assert match is not None
+    num_newlines = len(match.group())
     hdbg.dassert_eq(
         num_newlines, 0, "num_newlines='%s' txt='%s'", num_newlines, txt
     )

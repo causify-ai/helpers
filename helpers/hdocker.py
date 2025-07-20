@@ -320,18 +320,19 @@ def replace_shared_root_path(
     # running inside Docker on the dev server.
     if hserver.is_inside_docker() and not hserver.is_inside_ecs_container():
         shared_data_dirs = hserver.get_shared_data_dirs()
-        if replace_ecs_tokyo:
-            # Make a copy to avoid modifying the original one.
-            shared_data_dirs = copy.deepcopy(shared_data_dirs)
-            shared_data_dirs["ecs_tokyo"] = "ecs"
-        for shared_dir, docker_shared_dir in shared_data_dirs.items():
-            path = path.replace(shared_dir, docker_shared_dir)
-            _LOG.debug(
-                "Running inside Docker on the dev server, thus replacing %s "
-                "with %s",
-                shared_dir,
-                docker_shared_dir,
-            )
+        if shared_data_dirs is not None:
+            if replace_ecs_tokyo:
+                # Make a copy to avoid modifying the original one.
+                shared_data_dirs = copy.deepcopy(shared_data_dirs)
+                shared_data_dirs["ecs_tokyo"] = "ecs"
+            for shared_dir, docker_shared_dir in shared_data_dirs.items():
+                path = path.replace(shared_dir, docker_shared_dir)
+                _LOG.debug(
+                    "Running inside Docker on the dev server, thus replacing %s "
+                    "with %s",
+                    shared_dir,
+                    docker_shared_dir,
+                )
     else:
         _LOG.debug("No replacement found, returning path as-is: %s", path)
     return path
