@@ -228,7 +228,6 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Content 1.
         """
         test_content = hprint.dedent(test_content)
-
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_slides(test_content, "1:0")
 
@@ -241,7 +240,6 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Content 1.
         """
         test_content = hprint.dedent(test_content)
-
         with self.assertRaises(AssertionError):
             hmarfilt.filter_by_slides(test_content, "0:5")
 
@@ -254,7 +252,6 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Just regular content without slides.
         """
         test_content = hprint.dedent(test_content)
-
         # This should handle the case where there are no slides
         # The function raises IndexError when trying to access slides that don't exist
         with self.assertRaises(IndexError):
@@ -271,10 +268,8 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Additional content after the slide.
         """
         test_content = hprint.dedent(test_content)
-
         # For 1 slide at index 0, end_slide of 2 means "to end of file"
         result_content = hmarfilt.filter_by_slides(test_content, "0:2")
-
         self.assertIn("Only Slide", result_content)
         self.assertIn("This is the only content.", result_content)
         # Due to the current implementation, this should include content up to (but not including) the last line
@@ -291,7 +286,6 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Content 2.
         """
         test_content = hprint.dedent(test_content)
-
         # Test filtering with end equal to number of slides + 1 (should include all slides to end)
         # For 2 slides (indices 0, 1), end_slide of 3 means "to end of file"
         result_content = hmarfilt.filter_by_slides(test_content, "0:3")
