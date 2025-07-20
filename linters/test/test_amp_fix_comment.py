@@ -44,8 +44,7 @@ class Test_fix_comment_style(hunitest.TestCase):
         self.assertEqual(expected, actual)
 
     @pytest.mark.skip(
-        reason="""Inline comments are not allowed, as they are hard to maintain
-        """
+        reason="Inline comments are not allowed, as they are hard to maintain"
     )
     def test4(self) -> None:
         """

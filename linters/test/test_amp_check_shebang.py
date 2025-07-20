@@ -1,6 +1,7 @@
 import pytest
 
 import helpers.hunit_test as hunitest
+import helpers.hprint as hprint
 import linters.amp_check_shebang as lamchshe
 
 
@@ -11,10 +12,12 @@ class Test_check_shebang(hunitest.TestCase):
         Executable with wrong shebang: error.
         """
         file_name = "exec.py"
-        txt = """#!/bin/bash
-hello
-world
-"""
+        txt = """
+        #!/bin/bash
+        hello
+        world
+        """
+        txt = hprint.dedent(txt)
         is_executable = True
         exp = "exec.py:1: any executable needs to start with a shebang '#!/usr/bin/env python'"
         self._helper_check_shebang(file_name, txt, is_executable, exp)
@@ -24,10 +27,12 @@ world
         Executable with the correct shebang: correct.
         """
         file_name = "exec.py"
-        txt = """#!/usr/bin/env python
-hello
-world
-"""
+        txt = """
+        #!/usr/bin/env python
+        hello
+        world
+        """
+        txt = hprint.dedent(txt)
         is_executable = True
         exp = ""
         self._helper_check_shebang(file_name, txt, is_executable, exp)
@@ -37,10 +42,12 @@ world
         Non executable with a shebang: error.
         """
         file_name = "exec.py"
-        txt = """#!/usr/bin/env python
-hello
-world
-"""
+        txt = """
+        #!/usr/bin/env python
+        hello
+        world
+        """
+        txt = hprint.dedent(txt)
         is_executable = False
         exp = "exec.py:1: a non-executable can't start with a shebang."
         self._helper_check_shebang(file_name, txt, is_executable, exp)
@@ -50,11 +57,13 @@ world
         Library without a shebang: correct.
         """
         file_name = "lib.py"
-        txt = '''"""
-Import as:
+        txt = '''
+        """
+        Import as:
 
-import _setenv_lib as selib
-'''
+        import _setenv_lib as selib
+        '''
+        txt = hprint.dedent(txt)
         is_executable = False
         exp = ""
         self._helper_check_shebang(file_name, txt, is_executable, exp)
