@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-"""
-Run `latex` inside a Docker container.
 
-This script builds the container dynamically if necessary and formats the
-specified file using the provided `prettier` options.
+"""
+Dockerized template.
+
+This script is a template for creating a Dockerized script.
 """
 
 import argparse
@@ -16,23 +16,29 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
-# #############################################################################
-
-
 def _parse() -> argparse.ArgumentParser:
+    # Create an ArgumentParser instance with the provided docstring.
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("-i", "--input", action="store", required=True)
-    parser.add_argument("-o", "--output", action="store", required=True)
-    parser.add_argument("--run_latex_again", action="store_true", default=False)
+    # TODO(*): Add more options.
+    # parser.add_argument(
+    #     "--docx_file",
+    #     required=True,
+    #     type=str,
+    #     help="Path to the DOCX file to convert.",
+    # )
+    # Add Docker-specific arguments (e.g., --dockerized_force_rebuild,
+    # --dockerized_use_sudo).
     hparser.add_dockerized_script_arg(parser)
+    # Add logging verbosity parsing.
     hparser.add_verbosity_arg(parser)
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
     # Parse everything that can be parsed and returns the rest.
     args, cmd_opts = parser.parse_known_args()
     if not cmd_opts:
@@ -51,6 +57,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
         use_sudo=args.dockerized_use_sudo,
     )
     _LOG.info("Output written to '%s'", args.output)
+
+
+    hdbg.init_logger(
+        verbosity=args.log_level, use_exec_path=True, force_white=False
+    )
+    # TODO(*): Implement this.
+    # pandoc_cmd = ()
+    # _LOG.debug("Command: %s", pandoc_cmd)
+    # hdocker.run_dockerized_pandoc(
+    #    pandoc_cmd,
+    #    container_type="pandoc_only",
+    #    force_rebuild=args.dockerized_force_rebuild,
+    #    use_sudo=args.dockerized_use_sudo,
+    #)
+    #_LOG.info("Finished converting '%s' to '%s'.", args.docx_file, args.md_file)
 
 
 if __name__ == "__main__":
