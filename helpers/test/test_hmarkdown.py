@@ -1,7 +1,7 @@
 import logging
 import os
 import pprint
-from typing import Any, List, Tuple, cast
+from typing import Any, Dict, List, Tuple, cast
 
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -170,6 +170,446 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
         ## Section 2.2
         """
         self.assert_equal(act, exp, dedent=True)
+
+
+# #############################################################################
+# Test_replace_fenced_blocks_with_tags1
+# #############################################################################
+
+
+class Test_replace_fenced_blocks_with_tags1(hunitest.TestCase):
+    def helper(
+        self, text: str, expected_lines: List[str], expected_map: Dict[str, str]
+    ) -> None:
+        """
+        Test replacing fenced code blocks with tags.
+        """
+        lines = hprint.dedent(text, remove_lead_trail_empty_lines_=True)
+        lines = lines.split("\n")
+        # Call function.
+        actual_lines, fence_map = hmarkdo.replace_fenced_blocks_with_tags(lines)
+        # Check output.
+        fence_map_as_str = pprint.pformat(fence_map)
+        expected_map_as_str = pprint.pformat(expected_map)
+        self.assert_equal(fence_map_as_str, expected_map_as_str)
+        #
+        actual_lines = "\n".join(actual_lines)
+        expected_lines = hprint.dedent(
+            expected_lines, remove_lead_trail_empty_lines_=True
+        )
+        self.assert_equal(actual_lines, expected_lines)
+
+    def helper_round_trip(self, text: str) -> None:
+        """
+        Test the round trip.
+        """
+        # Do the round trip.
+        lines = text.split("\n")
+        actual_lines, fence_map = hmarkdo.replace_fenced_blocks_with_tags(lines)
+        act_text = hmarkdo.replace_tags_with_fenced_blocks(
+            actual_lines, fence_map
+        )
+        # Check output.
+        act_text = "\n".join(act_text)
+        self.assert_equal(act_text, text)
+
+    def test1(self) -> None:
+        """
+        Test replacing fenced code blocks with tags.
+        """
+        # Prepare inputs.
+        text = """
+        Some text before
+        ```python
+        def foo():
+            return 42
+        ```
+        Text between blocks
+        ````
+        Plain code block
+        ````
+        Some text after
+        """
+        # Prepare outputs.
+        expected_lines = """
+        Some text before
+        <fenced_block1>
+        Text between blocks
+        <fenced_block2>
+        Some text after
+        """
+        # Check fence map.
+        expected_map = {
+            "1": "```python\ndef foo():\n    return 42\n```",
+            "2": "````\nPlain code block\n````",
+        }
+        self.helper(text, expected_lines, expected_map)
+
+    def test2(self) -> None:
+        """
+        Test nested fenced blocks.
+        """
+        text = """
+        ````
+        Outer block
+        ```python
+        def nested():
+            pass
+        ```
+        Still outer
+        ````
+        """
+        expected_lines = """
+        <fenced_block1>
+        """
+        expected_map = {
+            "1": "````\nOuter block\n```python\ndef nested():\n    pass\n```\nStill outer\n````"
+        }
+        self.helper(text, expected_lines, expected_map)
+        #
+        self.helper_round_trip(text)
+
+    def test3(self) -> None:
+        """
+        Test empty fenced blocks.
+        """
+        text = """
+        Before
+        ```
+        ```
+        After
+        ```python
+        ```
+        End
+        """
+        expected_lines = """
+        Before
+        <fenced_block1>
+        After
+        <fenced_block2>
+        End
+        """
+        expected_map = {"1": "```\n```", "2": "```python\n```"}
+        self.helper(text, expected_lines, expected_map)
+        #
+        self.helper_round_trip(text)
+
+    def test4(self) -> None:
+        """
+        Test blocks with different fence lengths.
+        """
+        text = """
+        Start
+        ```
+        Three
+        ```
+        Middle
+        `````
+        Five
+        `````
+        End
+        """
+        expected_lines = """
+        Start
+        <fenced_block1>
+        Middle
+        <fenced_block2>
+        End
+        """
+        expected_map = {"1": "```\nThree\n```", "2": "`````\nFive\n`````"}
+        self.helper(text, expected_lines, expected_map)
+        #
+        self.helper_round_trip(text)
+
+    def test5(self) -> None:
+        """
+        Test blocks with language specifiers.
+        """
+        text = """
+        ```python
+        def foo(): pass
+        ```
+        ```bash
+        echo hello
+        ```
+        ```javascript
+        console.log('hi');
+        ```
+        """
+        expected_lines = """
+        <fenced_block1>
+        <fenced_block2>
+        <fenced_block3>
+        """
+        expected_map = {
+            "1": "```python\ndef foo(): pass\n```",
+            "2": "```bash\necho hello\n```",
+            "3": "```javascript\nconsole.log('hi');\n```",
+        }
+        self.helper(text, expected_lines, expected_map)
+        #
+        self.helper_round_trip(text)
+
+    def test6(self) -> None:
+        """
+        Test blocks with indentation.
+        """
+        text = """
+        Outside
+         ```
+         Indented block
+          More indent
+         ```
+           ```python
+           def foo():
+               pass
+           ```
+        End
+        """
+        expected_lines = """
+        Outside
+        <fenced_block1>
+        <fenced_block2>
+        End
+        """
+        expected_map = {
+            "1": " ```\n Indented block\n  More indent\n ```",
+            "2": "   ```python\n   def foo():\n       pass\n   ```",
+        }
+        self.helper(text, expected_lines, expected_map)
+        #
+        self.helper_round_trip(text)
+
+
+# #############################################################################
+# Test_colorize_bullet_points1
+# #############################################################################
+
+
+class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
+    def test1(self) -> None:
+        text = """
+        * Machine Learning Flow
+
+        ::: columns
+        :::: {.column width=90%}
+        - Question
+        - E.g., "How can we predict house prices?"
+        - Input data
+        - E.g., historical data of house sales
+
+        - _"If I were given one hour to save the planet, I would spend 59 minutes
+        defining the problem and one minute resolving it"_ (Albert Einstein)
+
+        - **Not all phases are equally important!**
+        - Question $>$ Data $>$ Features $>$ Algorithm
+        - Clarity of the question impacts project success
+        - Quality and relevance of data are crucial for performance
+        - Proper feature selection simplifies the model and improves accuracy
+        - Algorithm is often less important (contrary to popular belief!)
+        ::::
+        :::: {.column width=5%}
+
+        ```graphviz[height=90%]
+        digraph BayesianFlow {
+            rankdir=TD;
+            splines=true;
+            ...
+        }
+        ```
+        ::::
+        :::
+        """
+        expected = """
+        * Machine Learning Flow
+
+        ::: columns
+        :::: {.column width=90%}
+        - Question
+        - E.g., "How can we predict house prices?"
+        - Input data
+        - E.g., historical data of house sales
+
+        - _"If I were given one hour to save the planet, I would spend 59 minutes
+        defining the problem and one minute resolving it"_ (Albert Einstein)
+
+        - **\\red{Not all phases are equally important!}**
+        - Question $>$ Data $>$ Features $>$ Algorithm
+        - Clarity of the question impacts project success
+        - Quality and relevance of data are crucial for performance
+        - Proper feature selection simplifies the model and improves accuracy
+        - Algorithm is often less important (contrary to popular belief!)
+        ::::
+        :::: {.column width=5%}
+
+        ```graphviz[height=90%]
+        digraph BayesianFlow {
+            rankdir=TD;
+            splines=true;
+            ...
+        }
+        ```
+        ::::
+        :::
+        """
+        act = hmarkdo.colorize_bullet_points_in_slide(text)
+        # Check output.
+        self.assert_equal(act, expected)
+
+
+# #############################################################################
+# Test_SlideProcessor1
+# #############################################################################
+
+
+class Test_process_slides(hunitest.TestCase):
+    @staticmethod
+    def _transform(slide_text: List[str]) -> str:
+        """
+        Add a @ to the beginning of each line of the slide.
+        """
+        # Print input.
+        _LOG.debug("input=\n%s", "\n".join(slide_text))
+        # Transform.
+        text_out = [f"@{line}" for line in slide_text]
+        # Print output.
+        _LOG.debug("output=\n%s", "\n".join(text_out))
+        return text_out
+
+    def helper(self, text: str, expected: str) -> None:
+        # Prepare inputs.
+        text = hprint.dedent(text, remove_lead_trail_empty_lines_=False)
+        # Process.
+        actual = hmarkdo.process_slides(text, self._transform)
+        # Check output.
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test multiple slides.
+        """
+        text = """
+        * Slide 1
+            - Point 1
+            - Point 2
+
+        * Slide 2
+            - Point A 
+            - Point B
+        """
+        expected = """
+        @* Slide 1
+        @    - Point 1
+        @    - Point 2
+        @
+        @* Slide 2
+        @    - Point A
+        @    - Point B
+        """
+        self.helper(text, expected)
+
+    def test2(self) -> None:
+        """
+        Test single line slide.
+        """
+        text = """
+        * Single line slide
+        """
+        expected = """
+        @* Single line slide
+        """
+        self.helper(text, expected)
+
+    def test3(self) -> None:
+        """
+        Test slide with inline comment.
+        """
+        text = """
+        * Slide with comment
+            # This is a comment
+            - Point 1
+        """
+        expected = """
+        @* Slide with comment
+        @    # This is a comment
+        @    - Point 1
+        """
+        self.helper(text, expected)
+
+    def test4(self) -> None:
+        """
+        Test slide with comment block.
+        """
+        text = """
+        * Slide with block
+            <!--
+            This is a comment block
+            spanning multiple lines
+            -->
+            - Point 1
+        """
+        expected = """
+        @* Slide with block
+        @    <!--
+        @    This is a comment block
+        @    spanning multiple lines
+        @    -->
+        @    - Point 1
+        """
+        self.helper(text, expected)
+
+    def test5(self) -> None:
+        text = """
+        * Slide 1
+        * Slide 2
+        """
+        expected = """
+        @* Slide 1
+        @* Slide 2
+        """
+        self.helper(text, expected)
+
+    def test6(self) -> None:
+        text = """
+
+        * Slide 1
+        * Slide 2
+        """
+        expected = """
+
+        @* Slide 1
+        @* Slide 2
+        """
+        self.helper(text, expected)
+
+    def test7(self) -> None:
+        text = """
+
+        * Slide 1
+        * Slide 2
+
+        """
+        expected = """
+
+        @* Slide 1
+        @* Slide 2
+        @
+        """
+        self.helper(text, expected)
+
+    def test8(self) -> None:
+        text = """
+        //* Slide 1
+        * Slide 2
+
+        """
+        expected = """
+        //* Slide 1
+        @* Slide 2
+        @
+        """
+        self.helper(text, expected)
 
 
 # #############################################################################
@@ -674,27 +1114,6 @@ class Test_process_code_block1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_process_lines1
-# #############################################################################
-
-
-class Test_process_lines1(hunitest.TestCase):
-    # TODO(gp): This doesn't seem correct.
-    def test1(self) -> None:
-        in_dir_name = self.get_input_dir()
-        input_file_path = os.path.join(in_dir_name, "test.txt")
-        txt_in = hio.from_file(input_file_path)
-        txt_in = hprint.dedent(txt_in)
-        lines = txt_in.split("\n")
-        out = []
-        for i, line in hmarkdo.process_lines(lines):
-            _LOG.debug(hprint.to_str("line"))
-            out.append(f"{i}:{line}")
-        act = "\n".join(out)
-        self.check_string(act, dedent=True, remove_lead_trail_empty_lines=True)
-
-
-# #############################################################################
 # Test_selected_navigation_to_str1
 # #############################################################################
 
@@ -840,117 +1259,6 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
     def test2(self) -> None:
         txt = _get_markdown_example5()
         _test_full_navigation_flow(self, txt)
-
-
-# #############################################################################
-# Test_bold_first_level_bullets1
-# #############################################################################
-
-
-class Test_bold_first_level_bullets1(hunitest.TestCase):
-    def test1(self) -> None:
-        """
-        Test basic first-level bullet bolding.
-        """
-        text = r"""
-        - First item
-          - Sub item
-        - Second item
-        """
-        expected = r"""
-        - **First item**
-          - Sub item
-        - **Second item**
-        """
-        self._test_bold_first_level_bullets(text, expected)
-
-    def test2(self) -> None:
-        """
-        Test with mixed content including non-bullet text.
-        """
-        text = r"""
-        Some text here
-        - First bullet
-        More text
-        - Second bullet
-          - Nested bullet
-        Final text
-        """
-        expected = r"""
-        Some text here
-        - **First bullet**
-        More text
-        - **Second bullet**
-          - Nested bullet
-        Final text
-        """
-        self._test_bold_first_level_bullets(text, expected)
-
-    def test3(self) -> None:
-        """
-        Test with multiple levels of nesting.
-        """
-        text = r"""
-        - Top level
-          - Second level
-            - Third level
-          - Back to second
-        - Another top
-        """
-        expected = r"""
-        - **Top level**
-          - Second level
-            - Third level
-          - Back to second
-        - **Another top**
-        """
-        self._test_bold_first_level_bullets(text, expected)
-
-    def test4(self) -> None:
-        """
-        Test with empty lines between bullets.
-        """
-        text = r"""
-        - First item
-
-        - Second item
-          - Sub item
-
-        - Third item
-        """
-        expected = r"""
-        - **First item**
-
-        - **Second item**
-          - Sub item
-
-        - **Third item**
-        """
-        self._test_bold_first_level_bullets(text, expected)
-
-    def test5(self) -> None:
-        """
-        Test with text that already contains some bold markers.
-        """
-        text = r"""
-        - First **important** point
-          - Sub point
-        - Second point with emphasis
-        """
-        expected = r"""
-        - First **important** point
-          - Sub point
-        - **Second point with emphasis**
-        """
-        self._test_bold_first_level_bullets(text, expected)
-
-    def _test_bold_first_level_bullets(self, text: str, expected: str) -> None:
-        """
-        Helper to test bold_first_level_bullets function.
-        """
-        text = hprint.dedent(text)
-        actual = hmarkdo.bold_first_level_bullets(text)
-        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -1905,398 +2213,3 @@ class Test_end_to_end_rules1(hunitest.TestCase):
         HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
         """
         self.helper_extract_rules(selection_rules, exp)
-
-
-# #############################################################################
-# Test_colorize_bold_text1
-# #############################################################################
-
-
-class Test_colorize_bold_text1(hunitest.TestCase):
-    def test1(self) -> None:
-        """
-        Test basic case with single bold text.
-        """
-        text = "This is **bold** text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = r"This is **\red{bold}** text"
-        self.assert_equal(actual, expected)
-
-    def test2(self) -> None:
-        """
-        Test multiple bold sections get different colors.
-        """
-        text = "**First** normal **Second** text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = r"**\red{First}** normal **\teal{Second}** text"
-        self.assert_equal(actual, expected)
-
-    def test3(self) -> None:
-        """
-        Test underscore style bold text.
-        """
-        text = "This is __bold__ text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = r"This is **\red{bold}** text"
-        self.assert_equal(actual, expected)
-
-    def test4(self) -> None:
-        """
-        Test text with no bold sections returns unchanged.
-        """
-        text = "This is plain text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = "This is plain text"
-        self.assert_equal(actual, expected)
-
-    def test5(self) -> None:
-        """
-        Test mixed bold styles in same text.
-        """
-        text = "**First** and __Second__ bold"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = r"**\red{First}** and **\teal{Second}** bold"
-        self.assert_equal(actual, expected)
-
-    def test6(self) -> None:
-        """
-        Test with abbreviations=False uses full \textcolor syntax.
-        """
-        text = "This is **bold** text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=False)
-        expected = r"This is **\textcolor{red}{bold}** text"
-        self.assert_equal(actual, expected)
-
-    def test7(self) -> None:
-        """
-        Test with multiple bullet lists and different colors.
-        """
-        text = """
-        **List 1:**
-        - First item
-        - Second item
-
-        **List 2:**
-        - Another item
-        - Final item
-        """
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = r"""
-        **\red{List 1:}**
-        - First item
-        - Second item
-
-        **\teal{List 2:}**
-        - Another item
-        - Final item
-        """
-        self.assert_equal(actual, expected)
-
-    def test8(self) -> None:
-        text = hprint.dedent(
-            r"""
-        - **\red{Objective}**
-        - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
-            model of the environment
-
-        - **\orange{Key Components}**
-        - Model learning: Estimate transition probabilities $\Pr(s'|s,a)$ and
-            reward function $R(s,a)$ from experience
-        - Utility update: Solve the Bellman equations for the fixed policy:
-            - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
-
-        - **\blue{Learning Process}**
-        - Collect transitions $(s, \pi(s), r, s')$ during execution
-        - Update model estimates:
-            - $\Pr(s'|s,a) \approx$ empirical frequency
-            - $R(s,a) \approx$ average observed reward
-        - Use dynamic programming to compute $U^\pi(s)$
-
-        - **\violet{Advantages}**
-        - More sample-efficient than direct utility estimation
-        - Leverages structure of the MDP to generalize better
-
-        - **\pink{Challenges}**
-        - Requires accurate model estimation
-        - Computational cost of solving Bellman equations repeatedly
-
-        - **\olive{Example}**
-        - A thermostat estimates room temperature dynamics and uses them to predict
-            comfort level under a fixed heating schedule
-
-        - **\darkgray{Use Case}**
-        - Suitable when environment dynamics are stationary and can be learned from
-            interaction
-        """
-        )
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
-        expected = hprint.dedent(
-            r"""
-        - **\red{Objective}**
-        - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
-            model of the environment
-
-        - **\orange{Key Components}**
-        - Model learning: Estimate transition probabilities $\Pr(s'|s,a)$ and
-            reward function $R(s,a)$ from experience
-        - Utility update: Solve the Bellman equations for the fixed policy:
-            - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
-
-        - **\olive{Learning Process}**
-        - Collect transitions $(s, \pi(s), r, s')$ during execution
-        - Update model estimates:
-            - $\Pr(s'|s,a) \approx$ empirical frequency
-            - $R(s,a) \approx$ average observed reward
-        - Use dynamic programming to compute $U^\pi(s)$
-
-        - **\green{Advantages}**
-        - More sample-efficient than direct utility estimation
-        - Leverages structure of the MDP to generalize better
-
-        - **\cyan{Challenges}**
-        - Requires accurate model estimation
-        - Computational cost of solving Bellman equations repeatedly
-
-        - **\blue{Example}**
-        - A thermostat estimates room temperature dynamics and uses them to predict
-            comfort level under a fixed heating schedule
-
-        - **\darkgray{Use Case}**
-        - Suitable when environment dynamics are stationary and can be learned from
-            interaction
-        """
-        )
-        self.assert_equal(actual, expected)
-
-
-# #############################################################################
-# Test_format_first_level_bullets1
-# #############################################################################
-
-
-class Test_format_first_level_bullets1(hunitest.TestCase):
-    def test1(self) -> None:
-        """
-        Test basic case with single first level bullet.
-        """
-        text = """
-        Some text
-        - First bullet
-        More text"""
-        expected = """
-        Some text
-
-        - First bullet
-        More text"""
-        self._format_and_compare_markdown(text, expected)
-
-    def test2(self) -> None:
-        """
-        Test multiple first level bullets.
-        """
-        text = """
-        - First bullet
-        - Second bullet
-        - Third bullet"""
-        expected = """
-        - First bullet
-
-        - Second bullet
-
-        - Third bullet"""
-        self._format_and_compare_markdown(text, expected)
-
-    def test3(self) -> None:
-        """
-        Test mixed first level and indented bullets.
-        """
-        text = """
-        - First level
-
-          - Second level
-          - Another second
-        - Back to first"""
-        expected = """
-        - First level
-          - Second level
-          - Another second
-
-        - Back to first"""
-        self._format_and_compare_markdown(text, expected)
-
-    def test4(self) -> None:
-        """
-        Test mixed content with text and bullets.
-        """
-        text = """
-        Some initial text
-        - First bullet
-        Some text in between
-        - Second bullet
-        Final text"""
-        expected = """
-        Some initial text
-
-        - First bullet
-        Some text in between
-
-        - Second bullet
-        Final text"""
-        self._format_and_compare_markdown(text, expected)
-
-    def test5(self) -> None:
-        """
-        Test nested bullets with multiple levels.
-        """
-        text = """
-        - Level 1
-            - Level 2
-                - Level 3
-        - Another level 1
-            - Level 2 again"""
-        expected = """
-        - Level 1
-            - Level 2
-                - Level 3
-
-        - Another level 1
-            - Level 2 again"""
-        self._format_and_compare_markdown(text, expected)
-
-    def test6(self) -> None:
-        """
-        Test empty lines handling.
-        """
-        text = """
-        - First bullet
-
-        - Second bullet
-
-        - Third bullet"""
-        expected = """
-        - First bullet
-
-        - Second bullet
-
-        - Third bullet"""
-        self._format_and_compare_markdown(text, expected)
-
-    def test7(self) -> None:
-        """
-        Test mixed content with bullets and text.
-        """
-        text = """
-        Some text here
-        - First bullet
-        More text
-        - Second bullet
-            - Nested bullet
-        Final paragraph
-        - Last bullet"""
-        expected = """
-        Some text here
-
-        - First bullet
-        More text
-
-        - Second bullet
-            - Nested bullet
-        Final paragraph
-
-        - Last bullet"""
-        self._format_and_compare_markdown(text, expected)
-
-    def test8(self) -> None:
-        """
-        Test bullets with inline formatting.
-        """
-        text = """
-        - **Bold bullet** point
-            - *Italic nested* bullet
-        - `Code bullet` here
-            - **_Mixed_** formatting"""
-        expected = """
-        - **Bold bullet** point
-            - *Italic nested* bullet
-
-        - `Code bullet` here
-            - **_Mixed_** formatting"""
-        self._format_and_compare_markdown(text, expected)
-
-    def test9(self) -> None:
-        """
-        Test bullets with special characters.
-        """
-        text = """
-        - Bullet with (parentheses)
-            - Bullet with [brackets]
-        - Bullet with {braces}
-            - Bullet with $math$"""
-        expected = """
-        - Bullet with (parentheses)
-            - Bullet with [brackets]
-
-        - Bullet with {braces}
-            - Bullet with $math$"""
-        self._format_and_compare_markdown(text, expected)
-
-    def test10(self) -> None:
-        text = hprint.dedent(
-            r"""
-        - **Objective**
-
-          - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
-            model of the environment
-
-        - **Key Components**
-
-          - **Model learning**: Estimate transition probabilities $\Pr(s'|s,a)$ and
-            reward function $R(s,a)$ from experience
-          - **Utility update**: Solve the Bellman equations for the fixed policy:
-            - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
-
-        - **Learning Process**
-
-          - Collect transitions $(s, \pi(s), r, s')$ during execution
-          - Update model estimates:
-            - $\Pr(s'|s,a) \approx$ empirical frequency
-            - $R(s,a) \approx$ average observed reward
-          - Use dynamic programming to compute $U^\pi(s)$
-
-        - **Use Case**
-          - Suitable when environment dynamics are stationary and can be learned from
-            interaction
-        """
-        )
-        expected = hprint.dedent(
-            r"""
-        - **Objective**
-          - Learn utility estimates $U^\pi(s)$for a fixed policy$\pi$ using an estimated
-            model of the environment
-
-        - **Key Components**
-          - **Model learning**: Estimate transition probabilities $\Pr(s'|s,a)$ and
-            reward function $R(s,a)$ from experience
-          - **Utility update**: Solve the Bellman equations for the fixed policy:
-            - $U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')$
-
-        - **Learning Process**
-          - Collect transitions $(s, \pi(s), r, s')$ during execution
-          - Update model estimates:
-            - $\Pr(s'|s,a) \approx$ empirical frequency
-            - $R(s,a) \approx$ average observed reward
-          - Use dynamic programming to compute $U^\pi(s)$
-
-        - **Use Case**
-          - Suitable when environment dynamics are stationary and can be learned from
-            interaction
-        """
-        )
-        self._format_and_compare_markdown(text, expected)
-
-    def _format_and_compare_markdown(self, text: str, expected: str) -> None:
-        text = hprint.dedent(text)
-        expected = hprint.dedent(expected)
-        #
-        actual = hmarkdo.format_first_level_bullets(text)
-        self.assert_equal(actual, expected)

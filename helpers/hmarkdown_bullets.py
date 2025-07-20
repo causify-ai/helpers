@@ -8,13 +8,14 @@ import logging
 import re
 from typing import Generator, List, Tuple
 
-import helpers.hdbg as hdbg
-import helpers.hmarkdown_headers as hmarkhea
+from helpers.hmarkdown_comments import (
+    process_comment_block,
+    process_single_line_comment,
+)
 
 _LOG = logging.getLogger(__name__)
 
 _TRACE = False
-
 
 # #############################################################################
 # Formatting markdown
@@ -66,39 +67,7 @@ _ALL_COLORS = [
 ]
 
 
-def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str:
-    """
-    Make first-level bullets bold in markdown text.
-
-    :param markdown_text: Input markdown text
-    :param max_length: Max length of the bullet text to be bolded. -1
-        means no limit.
-    :return: Formatted markdown text with first-level bullets in bold
-    """
-    lines = markdown_text.split("\n")
-    result = []
-    for line in lines:
-        # Check if this is a first-level bullet point.
-        if re.match(r"^\s*- ", line):
-            # Check if the line has already bold text it in it.
-            if not re.search(r"\*\*", line):
-                # Bold first-level bullets.
-                indentation = len(line) - len(line.lstrip())
-                if indentation == 0:
-                    # First-level bullet, add bold markers.
-                    m = re.match(r"^(\s*-\s+)(.*)", line)
-                    hdbg.dassert(m, "Can't parse line='%s'", line)
-                    bullet_text = m.group(2)  # type: ignore[union-attr]
-                    if max_length > -1 and len(bullet_text) <= max_length:
-                        spaces = m.group(1)  # type: ignore[union-attr]
-                        line = spaces + "**" + bullet_text + "**"
-        result.append(line)
-    return "\n".join(result)
-
-
-# TODO(gp): -> hmarkdown_color.py
-
-
+# TODO(gp): -> hmarkdown_color.py?
 # TODO(gp): This seems the same as `_colorize_bullet_points()`.
 def colorize_bold_text(
     markdown_text: str, *, use_abbreviations: bool = True
@@ -192,12 +161,12 @@ def process_code_block(
         inside a code block.
     :param i: The index of the current line in the list of lines.
     :param lines: the lines of text to process
-    :return: A tuple
-        - do_continue: whether to continue processing the current line or skip
+    :return: tuple containing:
+        - `do_continue`: whether to continue processing the current line or skip
           it
-        - in_code_block: a boolean indicating whether the function is currently
+        - `in_code_block`: boolean indicating whether the function is currently
           inside a code block
-        - a list of processed lines of text
+        - list of processed lines of text
     """
     out: List[str] = []
     do_continue = False
@@ -230,55 +199,6 @@ def process_code_block(
     return do_continue, in_code_block, out
 
 
-def process_comment_block(line: str, in_skip_block: bool) -> Tuple[bool, bool]:
-    """
-    Process lines of text to identify blocks that start with '<!--' or '/*' and
-    end with '-->' or '*/'.
-
-    :param line: The current line of text being processed.
-    :param in_skip_block: A flag indicating if the function is currently
-        inside a comment block.
-    :return: A tuple
-        - do_continue: whether to continue processing the current line or skip
-          it
-        - in_skip_block: a boolean indicating whether the function is currently
-          inside a comment block
-    """
-    do_continue = False
-    if line.startswith(r"<!--") or re.search(r"^\s*\/\*", line):
-        hdbg.dassert(not in_skip_block)
-        # Start skipping comments.
-        in_skip_block = True
-    if in_skip_block:
-        if line.endswith(r"-->") or re.search(r"^\s*\*\/", line):
-            # End skipping comments.
-            in_skip_block = False
-        # Skip comment.
-        _LOG.debug("  -> skip")
-        do_continue = True
-    return do_continue, in_skip_block
-
-
-def process_single_line_comment(line: str) -> bool:
-    """
-    Handle single line comment.
-
-    We need to do it after the // in code blocks have been handled.
-    """
-    do_continue = False
-    if line.startswith(r"%%") or line.startswith(r"//"):
-        do_continue = True
-        _LOG.debug("  -> do_continue=True")
-        return do_continue
-    # Skip frame.
-    if hmarkhea.is_markdown_line_separator(line):
-        do_continue = True
-        _LOG.debug("  -> do_continue=True")
-        return do_continue
-    # Nothing to do.
-    return do_continue
-
-
 # TODO(gp): -> iterator
 # TODO(gp): where is this used?
 def process_lines(lines: List[str]) -> Generator[Tuple[int, str], None, None]:
@@ -286,8 +206,8 @@ def process_lines(lines: List[str]) -> Generator[Tuple[int, str], None, None]:
     Process lines of text to handle comment blocks, code blocks, and single
     line comments.
 
-    :param lines: The list of all the lines of text being processed.
-    :return: A list of processed lines of text.
+    :param lines: list of all the lines of text being processed
+    :return: generator of processed lines of text
     """
     out: List[str] = []
     in_skip_block = False
