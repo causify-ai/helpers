@@ -79,7 +79,7 @@ use_playback = True
 
 def F(a, b):
     if use_playback:
-        playback = hplayba.Playback("assert_equal", "F", a, b)
+        playback = Playback("assert_equal", "F", a, b)
         playback.start()
     c = a + b
     if use_playback:

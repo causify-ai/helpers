@@ -228,8 +228,8 @@ def cache_property_to_str(type_: str, func_name: str = "") -> str:
         func_names = get_cache_func_names("all")
         for func_name_tmp in func_names:
             txt.append(cache_property_to_str(type_, func_name_tmp))
-        txt = "\n".join(txt)
-        return txt
+        result = "\n".join(txt)
+        return result
     #
     txt.append(f"# func_name={func_name}")
     cache_property = _get_cache_property(type_)
@@ -237,8 +237,8 @@ def cache_property_to_str(type_: str, func_name: str = "") -> str:
     if func_name in cache_property:
         for k, v in cache_property[func_name].items():
             txt.append(f"{k}: {v}")
-    txt = "\n".join(txt)
-    return txt
+    result = "\n".join(txt)
+    return result
 
 
 # #############################################################################
@@ -516,7 +516,7 @@ def simple_cache(
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         hdbg.dassert_in(cache_type, ("json", "pickle"))
-        func_name = func.__name__
+        func_name = getattr(func, "__name__", "unknown_function")
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
         set_cache_property("system", func_name, "type", cache_type)
@@ -545,7 +545,7 @@ def simple_cache(
             :return: The cached value or the result of the function.
             """
             # Get the function name.
-            func_name = func.__name__
+            func_name = getattr(func, "__name__", "unknown_function")
             if func_name.endswith("_intrinsic"):
                 func_name = func_name[: -len("_intrinsic")]
             # Get the cache.

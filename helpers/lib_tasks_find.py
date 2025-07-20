@@ -539,7 +539,7 @@ def find_dependency(  # type: ignore
         # Parse import code.
         m = re.match(r"^import\s+(\S+)(\s+as)?", import_code)
         hdbg.dassert(m, "Can't parse line='%s'", import_code)
-        #
+        assert m is not None
         import_name = m.group(1)
         _LOG.debug("import_name='%s'", import_name)
         lev1_import = import_name.split(".")[0]

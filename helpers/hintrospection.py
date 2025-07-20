@@ -71,6 +71,10 @@ def get_name_from_function(func: callable) -> str:
     func_name = func.__name__
     #
     module = inspect.getmodule(func)
+    hdbg.dassert_is_not(
+        module, None, f"Could not get module for function {func}"
+    )
+    assert module is not None
     module_name = module.__name__
     # Remove `app.` if needed from the module name, e.g.,
     # `app.amp.helpers.test.test_hintrospection`.

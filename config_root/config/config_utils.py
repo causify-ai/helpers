@@ -12,6 +12,19 @@ import os
 import re
 from typing import Any, Iterable, List, Optional
 
+try:
+    from collections.abc import (
+        Hashable as AbcHashable,
+        Mapping as AbcMapping,
+        Iterable as AbcIterable,
+    )
+except ImportError:
+    from collections import (
+        Hashable as AbcHashable,
+        Mapping as AbcMapping,
+        Iterable as AbcIterable,
+    )
+
 import pandas as pd
 
 import config_root.config.config_ as crococon
@@ -362,24 +375,24 @@ def check_no_dummy_values(config: crococon.Config) -> bool:
 # #############################################################################
 
 
-def make_hashable(obj: Any) -> collections.abc.Hashable:
+def make_hashable(obj: Any) -> AbcHashable:
     """
     Coerce `obj` to a hashable type if not already hashable.
     """
     ret = None
-    if isinstance(obj, collections.abc.Mapping):
+    if isinstance(obj, AbcMapping):
         # Handle dict-like objects.
         new_object = copy.deepcopy(obj)
         for k, v in new_object.items():
             new_object[k] = make_hashable(v)
         ret = tuple(new_object.items())
-    elif isinstance(obj, collections.abc.Iterable) and not isinstance(obj, str):
+    elif isinstance(obj, AbcIterable) and not isinstance(obj, str):
         # The problem is that `str` is both `Hashable` and `Iterable`, but here
         # we want to treat it like `Hashable`, i.e. return string as it is.
         # Same with `Tuple`, but for `Tuple` we want to apply the function
         # recursively, i.e. make every element `Hashable`.
         ret = tuple([make_hashable(element) for element in obj])
-    elif isinstance(obj, collections.abc.Hashable):
+    elif isinstance(obj, AbcHashable):
         # Return the object as is, since it's already hashable.
         ret = obj
     else:

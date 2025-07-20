@@ -6,7 +6,6 @@ import helpers.hmarkdown as hmarkdo
 
 import logging
 import re
-from typing import cast
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -159,8 +158,7 @@ def prettier_markdown(txt: str) -> str:
     """
     file_type = "md"
     txt = hdocker.prettier_on_str(txt, file_type)
-    txt_ = cast(str, txt)
-    return txt_
+    return txt
 
 
 def format_markdown(txt: str) -> str:
@@ -253,5 +251,4 @@ def format_latex(txt: str) -> str:
     """
     file_type = "tex"
     txt = hdocker.prettier_on_str(txt, file_type)
-    txt_ = cast(str, txt)
-    return txt_
+    return txt
