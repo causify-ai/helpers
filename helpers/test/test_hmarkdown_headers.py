@@ -748,6 +748,24 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
 
 
 class Test_modify_header_level1(hunitest.TestCase):
+    def helper(
+        self, input_lines: List[str], level: int, expected_lines: List[str]
+    ) -> None:
+        """
+        Helper method to test `modify_header_level` function.
+
+        :param input_lines: list of input text lines
+        :param level: level adjustment to apply
+        :param expected_lines: list of expected output lines
+        """
+        # Prepare inputs.
+        input_text = "\n".join(input_lines)
+        # Call tested function.
+        actual = hmarkdo.modify_header_level(input_text, level)
+        # Check output.
+        expected = "\n".join(expected_lines)
+        self.assertEqual(actual, expected)
+
     def test1(self) -> None:
         """
         Test the inputs to increase headings.
@@ -767,7 +785,7 @@ class Test_modify_header_level1(hunitest.TestCase):
             "##### Sub-subsection 1.1.1.1",
         ]
         # Call the helper.
-        self._helper(input_lines, level, expected_lines)
+        self.helper(input_lines, level, expected_lines)
 
     def test2(self) -> None:
         """
@@ -778,7 +796,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         level = 1
         expected_lines = ["## Chapter 1", "###### Sub-sub-subsection 1.1.1.1.1"]
         # Call the helper.
-        self._helper(input_lines, level, expected_lines)
+        self.helper(input_lines, level, expected_lines)
 
     def test3(self) -> None:
         """
@@ -790,7 +808,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         level = 1
         expected_lines = ["## Chapter 1", "Paragraph 1"]
         # Call the helper.
-        self._helper(input_lines, level, expected_lines)
+        self.helper(input_lines, level, expected_lines)
 
     def test4(self) -> None:
         """
@@ -801,7 +819,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         level = 1
         expected_lines = ["Paragraph 1", "Paragraph 2"]
         # Call the helper.
-        self._helper(input_lines, level, expected_lines)
+        self.helper(input_lines, level, expected_lines)
 
     def test5(self) -> None:
         """
@@ -824,7 +842,7 @@ class Test_modify_header_level1(hunitest.TestCase):
             "## Chapter 3",
         ]
         # Call the helper.
-        self._helper(input_lines, level, expected_lines)
+        self.helper(input_lines, level, expected_lines)
 
     def test6(self) -> None:
         """
@@ -845,7 +863,7 @@ class Test_modify_header_level1(hunitest.TestCase):
             "#### Sub-sub-subsection 1.1.1.1.1",
         ]
         # Call the helper.
-        self._helper(input_lines, level, expected_lines)
+        self.helper(input_lines, level, expected_lines)
 
     def test7(self) -> None:
         """
@@ -862,7 +880,7 @@ class Test_modify_header_level1(hunitest.TestCase):
             "#### Sub-subsection 1.1.1.1",
         ]
         # Call the helper.
-        self._helper(input_lines, level, expected_lines)
+        self.helper(input_lines, level, expected_lines)
 
     def test8(self) -> None:
         """
@@ -873,7 +891,7 @@ class Test_modify_header_level1(hunitest.TestCase):
         level = -1
         expected_lines = ["Paragraph 1", "Paragraph 2", "Paragraph 3"]
         # Call the helper.
-        self._helper(input_lines, level, expected_lines)
+        self.helper(input_lines, level, expected_lines)
 
     def test9(self) -> None:
         """
@@ -892,7 +910,7 @@ class Test_modify_header_level1(hunitest.TestCase):
             "##### Subsection 1.1.1",
         ]
         # Call the helper.
-        self._helper(input_lines, level, expected_lines)
+        self.helper(input_lines, level, expected_lines)
 
     def test10(self) -> None:
         """
@@ -911,7 +929,7 @@ class Test_modify_header_level1(hunitest.TestCase):
             "### Subsection 1.1.1",  # 5-2=3
         ]
         # Call the helper.
-        self._helper(input_lines, level, expected_lines)
+        self.helper(input_lines, level, expected_lines)
 
     def test11(self) -> None:
         """
@@ -928,25 +946,7 @@ class Test_modify_header_level1(hunitest.TestCase):
             "###### Level 4",  # 4+2=6
         ]
         # Call the helper.
-        self._helper(input_lines, level, expected_lines)
-
-    def _helper(
-        self, input_lines: List[str], level: int, expected_lines: List[str]
-    ) -> None:
-        """
-        Helper method to test `modify_header_level` function.
-
-        :param input_lines: list of input text lines
-        :param level: level adjustment to apply
-        :param expected_lines: list of expected output lines
-        """
-        # Prepare inputs.
-        input_text = "\n".join(input_lines)
-        # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, level)
-        # Check output.
-        expected = "\n".join(expected_lines)
-        self.assertEqual(actual, expected)
+        self.helper(input_lines, level, expected_lines)
 
 
 # #############################################################################
@@ -955,94 +955,7 @@ class Test_modify_header_level1(hunitest.TestCase):
 
 
 class Test_format_headers1(hunitest.TestCase):
-    def test1(self) -> None:
-        """
-        Test the inputs to check the basic formatting of headings.
-        """
-        input_text = [
-            "# Chapter 1",
-            "section text",
-        ]
-        expected = [
-            "# #############################################################################",
-            "# Chapter 1",
-            "# #############################################################################",
-            "section text",
-        ]
-        self._helper_process(input_text, expected, max_lev=1)
-
-    def test2(self) -> None:
-        """
-        Test inputs with headings beyond the maximum level to ensure they are
-        ignored during formatting.
-        """
-        input_text = [
-            "# Chapter 1",
-            "## Section 1.1",
-            "### Section 1.1.1",
-        ]
-        expected = [
-            "# #############################################################################",
-            "# Chapter 1",
-            "# #############################################################################",
-            "## ############################################################################",
-            "## Section 1.1",
-            "## ############################################################################",
-            "### Section 1.1.1",
-        ]
-        self._helper_process(input_text, expected, max_lev=2)
-
-    def test3(self) -> None:
-        """
-        Test the inputs to check that markdown line separators are removed.
-        """
-        input_text = [
-            "# Chapter 1",
-            "-----------------",
-            "Text",
-            "############",
-        ]
-        expected = [
-            "# #############################################################################",
-            "# Chapter 1",
-            "# #############################################################################",
-            "Text",
-        ]
-        self._helper_process(input_text, expected, max_lev=1)
-
-    def test4(self) -> None:
-        """
-        Test inputs where max_level is inferred from the file content.
-        """
-        input_text = [
-            "# Chapter 1",
-            "max_level=1",
-            "## Section 1.1",
-        ]
-        expected = [
-            "# #############################################################################",
-            "# Chapter 1",
-            "# #############################################################################",
-            "max_level=1",
-            "## Section 1.1",
-        ]
-        self._helper_process(input_text, expected, max_lev=2)
-
-    def test5(self) -> None:
-        """
-        Test inputs with no headers to ensure they remain unchanged.
-        """
-        input_text = [
-            "Only text",
-            "No headings",
-        ]
-        expected = [
-            "Only text",
-            "No headings",
-        ]
-        self._helper_process(input_text, expected, max_lev=3)
-
-    def _helper_process(
+    def helper_process(
         self, input_text: List[str], expected: List[str], max_lev: int
     ) -> None:
         """
@@ -1063,6 +976,93 @@ class Test_format_headers1(hunitest.TestCase):
         # Check output.
         actual = hio.from_file(write_file)
         self.assertEqual(actual, "\n".join(expected))
+
+    def test1(self) -> None:
+        """
+        Test the inputs to check the basic formatting of headings.
+        """
+        input_text = [
+            "# Chapter 1",
+            "section text",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "section text",
+        ]
+        self.helper_process(input_text, expected, max_lev=1)
+
+    def test2(self) -> None:
+        """
+        Test inputs with headings beyond the maximum level to ensure they are
+        ignored during formatting.
+        """
+        input_text = [
+            "# Chapter 1",
+            "## Section 1.1",
+            "### Section 1.1.1",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "## ############################################################################",
+            "## Section 1.1",
+            "## ############################################################################",
+            "### Section 1.1.1",
+        ]
+        self.helper_process(input_text, expected, max_lev=2)
+
+    def test3(self) -> None:
+        """
+        Test the inputs to check that markdown line separators are removed.
+        """
+        input_text = [
+            "# Chapter 1",
+            "-----------------",
+            "Text",
+            "############",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "Text",
+        ]
+        self.helper_process(input_text, expected, max_lev=1)
+
+    def test4(self) -> None:
+        """
+        Test inputs where max_level is inferred from the file content.
+        """
+        input_text = [
+            "# Chapter 1",
+            "max_level=1",
+            "## Section 1.1",
+        ]
+        expected = [
+            "# #############################################################################",
+            "# Chapter 1",
+            "# #############################################################################",
+            "max_level=1",
+            "## Section 1.1",
+        ]
+        self.helper_process(input_text, expected, max_lev=2)
+
+    def test5(self) -> None:
+        """
+        Test inputs with no headers to ensure they remain unchanged.
+        """
+        input_text = [
+            "Only text",
+            "No headings",
+        ]
+        expected = [
+            "Only text",
+            "No headings",
+        ]
+        self.helper_process(input_text, expected, max_lev=3)
 
 
 # #############################################################################
