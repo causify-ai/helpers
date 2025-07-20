@@ -175,13 +175,13 @@ class HeaderInfo:
         #
         self.children: List[HeaderInfo] = []
 
+    def as_tuple(self) -> Tuple[int, str, int]:
+        return (self.level, self.description, self.line_number)
+
     def __repr__(self) -> str:
         return (
             f"HeaderInfo({self.level}, '{self.description}', {self.line_number})"
         )
-
-    def as_tuple(self) -> Tuple[int, str, int]:
-        return (self.level, self.description, self.line_number)
 
 
 HeaderList = List[HeaderInfo]
