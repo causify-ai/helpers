@@ -6,7 +6,7 @@ import helpers.hpandas as hpandas
 
 import csv
 import dataclasses
-import logging
+import helpers.hlogging as hlogging
 import random
 import re
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
@@ -27,7 +27,7 @@ import helpers.hsystem as hsystem
 # import helpers.hunit_test as hunitest
 
 
-_LOG = logging.getLogger(__name__)
+_LOG = hlogging.getLogger(__name__)
 
 # Enable extra verbose debugging. Do not commit.
 _TRACE = False

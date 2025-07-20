@@ -9,7 +9,6 @@ import helpers.hcache as hcache
 import atexit
 import copy
 import functools
-import logging
 import os
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
@@ -22,13 +21,14 @@ import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hintrospection as hintros
+import helpers.hlogging as hlogging
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hs3 as hs3
 import helpers.hsystem as hsystem
 import helpers.htimer as htimer
 
-_LOG = logging.getLogger(__name__)
+_LOG = hlogging.getLogger(__name__)
 # Enable extra verbose debugging. Do not commit.
 _TRACE = False
 

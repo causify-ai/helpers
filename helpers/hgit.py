@@ -712,6 +712,9 @@ def _parse_github_repo_name(repo_name: str) -> Tuple[str, str]:
     # We expect something like "alphamatic/amp".
     m = re.match(r"^\S+/\S+$", repo_name)
     hdbg.dassert(m, "repo_name='%s'", repo_name)
+    # The linter doesn't understand that `dassert` is equivalent to an
+    # `assert`.
+    assert m is not None
     # origin  git@github.com:.../ORG_....git (fetch)
     suffix_to_remove = ".git"
     if repo_name.endswith(suffix_to_remove):
