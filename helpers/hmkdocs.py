@@ -72,8 +72,10 @@ def replace_indentation(txt: str, input_spaces: int, output_spaces: int) -> str:
     Replace indentation from input_spaces to output_spaces.
 
     :param txt: Input markdown text
-    :param input_spaces: Number of spaces to detect as one indentation level
-    :param output_spaces: Number of spaces to replace each indentation level with
+    :param input_spaces: Number of spaces to detect as one indentation
+        level
+    :param output_spaces: Number of spaces to replace each indentation
+        level with
     :return: Text with indentation replaced
     """
     hdbg.dassert_lte(1, input_spaces)

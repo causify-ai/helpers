@@ -1111,7 +1111,6 @@ class Test_sanity_check_header_list1(hunitest.TestCase):
 
 
 class Test_capitalize_header1(hunitest.TestCase):
-
     def helper(self, txt: str, exp: str) -> None:
         # Prepare inputs.
         txt = hprint.dedent(txt)

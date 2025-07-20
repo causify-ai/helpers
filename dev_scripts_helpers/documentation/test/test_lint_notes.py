@@ -461,4 +461,3 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         output_txt = self.run_lint_notes(in_file, type_, cmd_opts)
         # Check.
         self.check_string(output_txt)
-

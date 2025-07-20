@@ -1,6 +1,5 @@
 import logging
 import os
-import unittest.mock as umock
 from typing import Any, List, Tuple
 
 import pytest
