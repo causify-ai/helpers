@@ -9,7 +9,7 @@ import logging
 import os
 import re
 import sys
-from typing import Any, List, Optional, Tuple, cast
+from typing import Any, List, Optional, Tuple
 
 from invoke import task
 

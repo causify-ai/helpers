@@ -6,7 +6,6 @@ import helpers.hmarkdown as hmarkdo
 
 import logging
 import re
-from typing import cast
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker

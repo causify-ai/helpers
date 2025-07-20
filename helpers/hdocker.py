@@ -12,7 +12,7 @@ import os
 import re
 import shlex
 import time
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hcoverage as hcovera
 import helpers.hdbg as hdbg

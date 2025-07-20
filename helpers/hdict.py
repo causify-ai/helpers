@@ -4,7 +4,6 @@ Import as:
 import helpers.hdict as hdict
 """
 
-import collections
 import logging
 from typing import (
     Any,

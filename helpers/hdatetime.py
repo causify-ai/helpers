@@ -9,7 +9,7 @@ import calendar
 import datetime
 import logging
 import re
-from typing import Callable, Iterable, Optional, Tuple, Union, cast
+from typing import Callable, Iterable, Optional, Tuple, Union
 
 # TODO(gp): Use hdbg.WARNING
 _WARNING = "\033[33mWARNING\033[0m"
@@ -371,7 +371,7 @@ def get_current_time(
         # We accept only `hasyncio.EventLoop` here. If we are using standard asyncio
         # EventLoop we rely on wall-clock time instead of `loop.time()`.
         hdbg.dassert_isinstance(event_loop, asyncio.AbstractEventLoop)
-        hdbg.dassert(hasattr(eventloop, "get_current_time"))
+        hdbg.dassert(hasattr(event_loop, "get_current_time"))
         timestamp = event_loop.get_current_time()
     else:
         # Use true real-time.

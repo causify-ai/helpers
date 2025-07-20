@@ -8,7 +8,7 @@ import logging
 import os
 import re
 import tempfile
-from typing import List, Optional, Tuple, cast
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio

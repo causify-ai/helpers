@@ -9,7 +9,7 @@ import getpass
 import logging
 import os
 import re
-from typing import Any, Dict, List, Match, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 # TODO(gp): We should use `pip install types-PyYAML` to get the mypy stubs.
 import yaml

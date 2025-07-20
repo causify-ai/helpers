@@ -1484,10 +1484,6 @@ def docker_update_prod_task_definition(
             if hasattr(s3, "Bucket"):
                 bucket = s3.Bucket(bucket_name)
             else:
-                # Fallback using boto3 client if Bucket is not available on the resource.
-                import boto3
-
-                s3_client = boto3.client("s3")
                 # We'll need to handle this differently since client doesn't
                 # have object_versions.
                 raise NotImplementedError(
