@@ -41,8 +41,8 @@ _COLORS = {
     "olive": "olive",
     "gray": "gray",
     "darkgray": "darkgray",
-    ##"lightgray": "lightgray",
-    ##"black": "black",
+    # "lightgray": "lightgray",
+    # "black": "black",
     # "white": "white",
 }
 
