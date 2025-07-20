@@ -516,7 +516,7 @@ def simple_cache(
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         hdbg.dassert_in(cache_type, ("json", "pickle"))
-        func_name = func.__name__
+        func_name = getattr(func, "__name__", "unknown_function")
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
         set_cache_property("system", func_name, "type", cache_type)
@@ -545,7 +545,7 @@ def simple_cache(
             :return: The cached value or the result of the function.
             """
             # Get the function name.
-            func_name = func.__name__
+            func_name = getattr(func, "__name__", "unknown_function")
             if func_name.endswith("_intrinsic"):
                 func_name = func_name[: -len("_intrinsic")]
             # Get the cache.

@@ -14,7 +14,33 @@ from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-import s3fs
+
+# Handle different versions of s3fs where core module may be at different
+# locations.
+try:
+    import s3fs
+
+    # Try to access s3fs.core to check if it exists
+    if hasattr(s3fs, "core"):
+        from s3fs.core import S3File, S3FileSystem
+    else:
+        # In newer versions, classes might be directly in s3fs module.
+        try:
+            from s3fs import S3File, S3FileSystem
+        except ImportError:
+            # Fallback to dynamic import
+            S3File = getattr(s3fs, "S3File", None)
+            S3FileSystem = getattr(s3fs, "S3FileSystem", None)
+except ImportError:
+    # If s3fs is not available, define dummy classes for type hints.
+    s3fs = None
+
+    class S3File:
+        pass
+
+    class S3FileSystem:
+        pass
+
 
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
@@ -1735,7 +1761,7 @@ def convert_df(
 
 
 def read_csv_to_df(
-    stream: Union[str, s3fs.core.S3File, s3fs.core.S3FileSystem],
+    stream: Union[str, S3File, S3FileSystem],
     *args: Any,
     **kwargs: Any,
 ) -> pd.DataFrame:
@@ -1759,7 +1785,7 @@ def read_csv_to_df(
 
 
 def read_parquet_to_df(
-    stream: Union[str, s3fs.core.S3File, s3fs.core.S3FileSystem],
+    stream: Union[str, S3File, S3FileSystem],
     *args: Any,
     **kwargs: Any,
 ) -> pd.DataFrame:

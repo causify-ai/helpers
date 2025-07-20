@@ -371,6 +371,7 @@ def get_current_time(
         # We accept only `hasyncio.EventLoop` here. If we are using standard asyncio
         # EventLoop we rely on wall-clock time instead of `loop.time()`.
         hdbg.dassert_isinstance(event_loop, asyncio.AbstractEventLoop)
+        hdbg.dassert(hasattr(eventloop, "get_current_time"))
         timestamp = event_loop.get_current_time()
     else:
         # Use true real-time.
@@ -612,16 +613,33 @@ def to_generalized_datetime(
         format_ = None
     datetime_dates = pd.to_datetime(dates, format=format_, errors="coerce")
     # Shift to end of period if conversion has been successful.
-    if not pd.isna(datetime_dates).all():
-        datetime_example = datetime_dates.tolist()[format_example_index]
+    # Handle both scalar and array cases for `pd.isna()`.
+    if hasattr(datetime_dates, "all"):
+        # datetime_dates is a Series or array-like
+        all_na = pd.isna(datetime_dates).all()
+        datetime_example = (
+            datetime_dates.tolist()[format_example_index]
+            if hasattr(datetime_dates, "tolist")
+            else datetime_dates
+        )
+    else:
+        # datetime_dates is a scalar
+        all_na = pd.isna(datetime_dates)
+        datetime_example = datetime_dates
+    if not all_na:
         if (
             not pd.isna(datetime_example)
+            and hasattr(datetime_example, "strftime")
             and datetime_example.strftime("%Y-%m-%d") == date_example
         ):
             return datetime_dates
         shift_func = _shift_to_period_end(date_example)
         if shift_func is not None:
-            datetime_dates = datetime_dates.map(shift_func)
+            if hasattr(datetime_dates, "map"):
+                datetime_dates = datetime_dates.map(shift_func)
+            else:
+                # For scalar case, apply the shift function directly
+                datetime_dates = shift_func(datetime_dates)
         return datetime_dates
     # If standard conversion fails, attempt our own conversion.
     date_standard = date_standard or "standard"

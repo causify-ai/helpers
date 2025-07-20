@@ -4,6 +4,11 @@ import os
 import unittest.mock as umock
 from typing import Any, Dict
 
+try:
+    from collections.abc import Hashable as AbcHashable
+except ImportError:
+    from collections import Hashable as AbcHashable
+
 import pandas as pd
 
 import config_root.config as cconfig
@@ -468,11 +473,11 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
 
 class Test_make_hashable(hunitest.TestCase):
     def helper(self, obj: Any, is_hashable: bool, expected: str) -> None:
-        is_hashable_before = isinstance(obj, collections.abc.Hashable)
+        is_hashable_before = isinstance(obj, AbcHashable)
         self.assertEqual(is_hashable_before, is_hashable)
         #
         hashable_obj = cconfig.make_hashable(obj)
-        is_hashable_after = isinstance(hashable_obj, collections.abc.Hashable)
+        is_hashable_after = isinstance(hashable_obj, AbcHashable)
         self.assertTrue(is_hashable_after)
         #
         actual = str(hashable_obj)

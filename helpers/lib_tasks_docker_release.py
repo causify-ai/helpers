@@ -1481,7 +1481,18 @@ def docker_update_prod_task_definition(
             # Prepare bucket resource.
             s3 = haws.get_service_resource(aws_profile="ck", service_name="s3")
             bucket_name, _ = hs3.split_path(airflow_dags_s3_path)
-            bucket = s3.Bucket(bucket_name)
+            if hasattr(s3, "Bucket"):
+                bucket = s3.Bucket(bucket_name)
+            else:
+                # Fallback using boto3 client if Bucket is not available on the resource.
+                import boto3
+
+                s3_client = boto3.client("s3")
+                # We'll need to handle this differently since client doesn't
+                # have object_versions.
+                raise NotImplementedError(
+                    "S3 resource Bucket attribute not available, fallback implementation needed"
+                )
             for successful_upload in successful_uploads:
                 # TODO(Nikola): Maybe even Telegram notification?
                 # Rollback successful upload.

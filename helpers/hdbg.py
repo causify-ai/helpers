@@ -952,6 +952,8 @@ def init_logger(
         sys.stdout.write("\033[0m")
     if isinstance(verbosity, str):
         # pylint: disable=protected-access
+        hdbg.dassert(hasattr(logging, "_checkLevel"))
+        assert hasattr(logging, "_checkLevel")
         verbosity = logging._checkLevel(verbosity)
     # From https://stackoverflow.com/questions/14058453
     root_logger = logging.getLogger()
@@ -981,6 +983,8 @@ def init_logger(
     ch.setLevel(verbosity)
     # Set the formatter.
     # formatter = hloggin.set_v1_formatter(
+    hdbg.dassert(hasattr(hloggin, "set_v2_formatter"))
+    assert hasattr(hloggin, "set_v2_formatter")
     formatter = hloggin.set_v2_formatter(
         ch,
         root_logger,
@@ -1027,6 +1031,8 @@ def init_logger(
     #
     _LOG.debug("Effective logging level=%s", _LOG.getEffectiveLevel())
     # Shut up chatty modules.
+    hdbg.dassert(hasattr(hloggin, "shutup_chatty_modules"))
+    assert hasattr(hloggin, "shutup_chatty_modules")
     hloggin.shutup_chatty_modules(verbose=False)
     _LOG.info("> cmd='%s'", get_command_line())
     #

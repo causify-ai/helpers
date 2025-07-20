@@ -111,7 +111,8 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             if config.getoption("--dbg_verbosity", None):
                 level = config.getoption("--dbg_verbosity")
             elif config.getoption("--dbg", None):
-                level = logging.TRACE
+                # Use 5 as fallback TRACE level.
+                level = getattr(logging, "TRACE", 5)
             else:
                 raise ValueError("Can't get here")
             print(f"\n{_WARNING}: Setting verbosity level to {level}")
