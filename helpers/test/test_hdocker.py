@@ -198,11 +198,3 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
             exp_docker_file_path,
             exp_mount,
         )
-
-
-def _create_test_file(self_: Any, txt: str, extension: str) -> str:
-    file_path = os.path.join(self_.get_scratch_space(), f"input.{extension}")
-    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-    _LOG.debug("txt=\n%s", txt)
-    hio.to_file(file_path, txt)
-    return file_path

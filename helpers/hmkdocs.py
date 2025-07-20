@@ -9,6 +9,7 @@ import re
 import helpers.hdbg as hdbg
 
 
+# TODO(gp): -> hamrkdown_toc.py
 def remove_table_of_contents(txt: str) -> str:
     """
     Remove the table of contents from the text of a markdown file.
@@ -27,6 +28,7 @@ def remove_table_of_contents(txt: str) -> str:
     return txt
 
 
+# TODO(gp): -> hmarkdown_?.py
 def dedent_python_code_blocks(txt: str) -> str:
     """
     Dedent Python code blocks so they are aligned to column 0.

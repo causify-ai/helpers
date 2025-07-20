@@ -17,6 +17,14 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+def _create_test_file(self_: Any, txt: str, extension: str) -> str:
+    file_path = os.path.join(self_.get_scratch_space(), f"input.{extension}")
+    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+    _LOG.debug("txt=\n%s", txt)
+    hio.to_file(file_path, txt)
+    return file_path
+
+
 # #############################################################################
 # Test_run_dockerized_prettier1
 # #############################################################################

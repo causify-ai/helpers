@@ -16,6 +16,7 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
+import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -143,39 +144,7 @@ def _postprocess(txt: str, in_file_name: str) -> str:
     return txt_new_as_str
 
 
-def _frame_chapters(txt: str, *, max_lev: int = 4) -> str:
-    """
-    Add the frame around each chapter.
-    """
-    txt_new: List[str] = []
-    # _LOG.debug("txt=%s", txt)
-    for i, line in enumerate(txt.split("\n")):
-        _LOG.debug("line=%d:%s", i, line)
-        m = re.match(r"^(\#+) ", line)
-        txt_processed = False
-        if m:
-            comment = m.group(1)
-            lev = len(comment)
-            _LOG.debug("  -> lev=%s", lev)
-            if lev < max_lev:
-                sep = comment + " " + "#" * (80 - 1 - len(comment))
-                txt_new.append(sep)
-                txt_new.append(line)
-                txt_new.append(sep)
-                txt_processed = True
-            else:
-                _LOG.debug(
-                    "  -> Skip formatting the chapter frame: lev=%d, max_lev=%d",
-                    lev,
-                    max_lev,
-                )
-        if not txt_processed:
-            txt_new.append(line)
-    txt_new_as_str = "\n".join(txt_new).rstrip("\n")
-    return txt_new_as_str
-
-
-# TODO(gp): Should go in `hmarkdown.py`.
+# TODO(gp): Should go in `hmarkdown_toc.py`.
 def _refresh_toc(
     txt: str,
     *,
@@ -235,69 +204,6 @@ def _refresh_toc(
     return txt  # type: ignore
 
 
-def _improve_header_and_slide_titles(txt: str) -> str:
-    """
-    Improve the header and slide titles.
-
-    - Headers start with one or more `#`s.
-    - Slide titles start with one `*`
-    - The title is transformed to title case as below:
-        - ML theory -> ML Theory
-        - A map of machine learning -> A Map of Machine Learning
-    """
-    txt_new: List[str] = []
-    for i, line in enumerate(txt.split("\n")):
-        # Parse header (starting with `#`) and slide title (starting with `*`).
-        m = re.match(r"^(\#+|\*) (.*)$", line)
-        if m:
-            # Parse the title.
-            title = m.group(2)
-            # Transform to title case, leaving words that are all capitalized
-            # and conjunctions as is.
-            non_cap_words = {
-                "a",
-                "an",
-                "and",
-                "as",
-                "at",
-                "but",
-                "by",
-                "for",
-                "in",
-                "of",
-                "on",
-                "or",
-                "the",
-                "to",
-                "vs",
-                "with",
-            }
-            # Split into words
-            words = title.split()
-            # Process each word.
-            for i, word in enumerate(words):
-                if i == 0 and not word.isupper():
-                    # Capitalize the first word.
-                    words[i] = word.title()
-                elif word.isupper():
-                    # Skip words that are all caps (e.g. ML, API).
-                    continue
-                elif word.lower() in non_cap_words:
-                    # Don't capitalize conjunctions and other minor words.
-                    words[i] = word.lower()
-                else:
-                    # Capitalize other words.
-                    words[i] = word.title()
-            title = " ".join(words)
-            # Reconstruct the line.
-            line = m.group(1) + " " + title
-            txt_new.append(line)
-        else:
-            txt_new.append(line)
-    txt_new_as_str = "\n".join(txt_new)
-    return txt_new_as_str
-
-
 # #############################################################################
 # Perform all actions.
 # #############################################################################
@@ -353,11 +259,11 @@ def _process(
         # For markdown files, we don't use the frame since it's not rendered
         # correctly.
         if not is_md_file:
-            txt = _frame_chapters(txt)
+            txt = hmarkdo.frame_chapters(txt)
     # Improve header and slide titles.
-    action = "improve_header_and_slide_titles"
+    action = "capitalize_header"
     if _to_execute_action(action, actions):
-        txt = _improve_header_and_slide_titles(txt)
+        txt = hmarkdo.capitalize_header(txt)
     # Refresh table of content.
     action = "refresh_toc"
     if _to_execute_action(action, actions):
@@ -376,9 +282,9 @@ _VALID_ACTIONS = [
     "prettier",
     # _postprocess(): post-process the given text.
     "postprocess",
-    # _frame_chapters(): frame the chapters.
+    #
     "frame_chapters",
-    "improve_header_and_slide_titles",
+    "capitalize_header",
     # _refresh_toc(): refresh the table of contents.
     "refresh_toc",
 ]
