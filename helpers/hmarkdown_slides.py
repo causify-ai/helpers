@@ -95,5 +95,5 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
     )
     hdbg.dassert(not in_slide, "Found end of file while still parsing a slide")
     # Join the transformed slides back together.
-    transformed_txt = "\n".join(transformed_txt)
-    return transformed_txt
+    result = "\n".join(transformed_txt)
+    return result
