@@ -131,7 +131,7 @@ Commands:
   ...
   ```
 
-### ruff analyze
+### `ruff analyze`
 
 - Can analyze the code base
 
@@ -227,7 +227,15 @@ Commands:
   installed packages
   ```bash
   docker> sudo bash -c "(source /venv/bin/activate; pip install --quiet ty)"
-  docker> ty check . --output-format concise --color never | cut -d' ' -f2- | tee cfile
+  docker> ty check --output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' .
+	...
+	error[unresolved-attribute] linters/utils.py:101:22: Type `list[str]` has no attribute `replace`
+	error[unresolved-import] main_pytest.py:15:8: Cannot resolve imported module `junitparser`
+	error[unresolved-import] tasks.py:122:10: Cannot resolve imported module `oms.lib_tasks_binance`
+	...
+
+	# To format the output for a cfile:
+  docker> ty check ... | cut -d' ' -f2- | tee cfile
   ```
 
 ## `pre-commit`

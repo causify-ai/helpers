@@ -159,7 +159,6 @@ def prettier_markdown(txt: str) -> str:
     """
     file_type = "md"
     txt = hdocker.prettier_on_str(txt, file_type)
-    txt_ = cast(str, txt)
     return txt_
 
 
@@ -253,5 +252,4 @@ def format_latex(txt: str) -> str:
     """
     file_type = "tex"
     txt = hdocker.prettier_on_str(txt, file_type)
-    txt_ = cast(str, txt)
     return txt_

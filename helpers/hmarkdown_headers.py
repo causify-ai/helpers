@@ -318,8 +318,7 @@ def extract_slides_from_markdown(
             continue
         # Get the header level and title.
         m = re.match(r"^\* (.*)$", line)
-        is_slide = m is not None
-        if is_slide:
+        if m:
             title = m.group(1)
             header_info = HeaderInfo(1, title, line_number)
             header_list.append(header_info)
