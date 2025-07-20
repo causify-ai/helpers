@@ -6,9 +6,14 @@ import helpers.hmarkdown as hmarkdo
 
 import logging
 import re
+from typing import Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+from helpers.hmarkdown_headers import (
+    extract_section_from_markdown,
+    extract_slides_from_markdown,
+)
 
 _LOG = logging.getLogger(__name__)
 
@@ -20,12 +25,11 @@ def filter_by_header(file_name: str, header: str, prefix: str) -> str:
     """
     Extract a specific header from a file.
 
-    :param file_name: The input file to be processed
-    :param header: The header to filter by (e.g., `# Introduction`)
-    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
-    :return: The path to the processed file
+    :param file_name: input file to be processed
+    :param header: header to filter by (e.g., `# Introduction`)
+    :param prefix: prefix used for the output file (e.g., `tmp.pandoc`)
+    :return: path to the processed file
     """
-
     # Read the file.
     txt = hio.from_file(file_name)
     # Filter by header.
@@ -36,15 +40,15 @@ def filter_by_header(file_name: str, header: str, prefix: str) -> str:
     return file_out
 
 
-def _parse_range(range_as_str: str, max_value: int) -> tuple[int, int]:
+def _parse_range(range_as_str: str, max_value: int) -> Tuple[int, int]:
     """
     Parse a line range string like '1:10' into start and end line numbers.
 
-    :param range_as_str: String in format 'start:end' where start/end
+    :param range_as_str: string in format 'start:end' where start/end
         can be numbers or 'None'
-    :param max_value: Maximum value to use when 'None' is specified for
+    :param max_value: maximum value to use when 'None' is specified for
         end
-    :return: Tuple of (start_line, end_line) as integers
+    :return: tuple of '(start_line, end_line)' as integers
     """
     m = re.match(r"^(\S+):(\S+)$", range_as_str)
     hdbg.dassert(m, "Invalid range_as_str='%s'", range_as_str)
@@ -62,14 +66,13 @@ def _parse_range(range_as_str: str, max_value: int) -> tuple[int, int]:
 
 def filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
     """
-    Filter the lines of a file in [start_line, end_line[.
+    Filter the lines of a file in `[start_line, end_line[`.
 
-    :param file_name: The input file to be processed
-    :param filter_by_lines: a string like `1:10` or `1:None` or `None:10`
-    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
-    :return: The path to the processed file
+    :param file_name: input file to be processed
+    :param filter_by_lines: string like `1:10` or `1:None` or `None:10`
+    :param prefix: prefix used for the output file (e.g., `tmp.pandoc`)
+    :return: path to the processed file
     """
-
     # Read the file.
     txt = hio.from_file(file_name)
     txt = txt.split("\n")
@@ -85,7 +88,7 @@ def filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
         start_line,
         end_line,
     )
-    #
+    # Write the file.
     file_out = f"{prefix}.filter_by_lines.txt"
     hio.to_file(file_out, txt)
     return file_out
@@ -93,20 +96,18 @@ def filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
 
 def filter_by_slides(file_name: str, filter_by_slides: str, prefix: str) -> str:
     """
-    Filter the lines of a file in [start_slide, end_slide[.
+    Filter the lines of a file in `[start_slide, end_slide[`.
 
-    :param file_name: The input file to be processed
-    :param filter_by_slides: a string like `1:10` or `1:None` or `None:10`
-    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
-    :return: The path to the processed file
+    :param file_name: input file to be processed
+    :param filter_by_slides: string like `1:10` or `1:None` or `None:10`
+    :param prefix: prefix used for the output file (e.g., `tmp.pandoc`)
+    :return: path to the processed file
     """
-
     # Read the file.
     txt = hio.from_file(file_name)
     # Filter by header.
     slides_info, last_line_number = extract_slides_from_markdown(txt)
     _LOG.debug("slides_info=%s\n%s", len(slides_info), slides_info)
-    # assert 0
     # E.g., filter_by_lines='1:10'.
     start_slide, end_slide = _parse_range(filter_by_slides, len(slides_info))
     _LOG.debug("start_slide=%s, end_slide=%s", start_slide, end_slide)

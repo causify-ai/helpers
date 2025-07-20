@@ -215,7 +215,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             txt = hmarkdo.format_latex(txt)
         elif args.prompt == "md_clean_up":
             txt = hmarkdo.md_clean_up(txt)
-            #txt = hmarkdo.format_markdown(txt)
+            txt = hmarkdo.format_markdown(txt)
         elif args.prompt == "md_bold_bullets":
             txt = hmarkdo.bold_first_level_bullets(txt)
             txt = hmarkdo.format_markdown(txt)
