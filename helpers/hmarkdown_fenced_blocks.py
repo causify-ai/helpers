@@ -26,25 +26,21 @@ def replace_fenced_blocks_with_tags(
     fenced block text.
 
     E.g.,
-    ```
-    ````
-    hello
-    world
-    ```python
-    foo
-    ```
-    bye
-    ````
-    ```
+        ````
+        hello
+        world
+        ```python
+        foo
+        ```
+        bye
+        ````
     is replaced with:
-    ```
-    ```
-    hello
-    world
-    <fenced_block1>
-    bye
-    ```
-    ```
+        ```
+        hello
+        world
+        <fenced_block1>
+        bye
+        ```
 
     :param lines: list of lines to process
     :return: tuple containing:
