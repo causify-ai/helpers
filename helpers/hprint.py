@@ -597,7 +597,9 @@ def _func_signature_to_str(
     # Get the caller's frame (i.e., the function that called this function).
     caller_frame = inspect.currentframe()
     for _ in range(frame_level):
+        hdbg.dassert_is_not(caller_frame, None, "caller_frame should not be None")
         caller_frame = caller_frame.f_back
+    hdbg.dassert_is_not(caller_frame, None, "caller_frame should not be None after traversing frames")
     caller_function_name = caller_frame.f_code.co_name
     # _LOG.debug("caller_function_name=%s", caller_function_name)
     # Retrieve the function object from the caller's frame.

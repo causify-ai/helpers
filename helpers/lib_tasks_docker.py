@@ -280,8 +280,8 @@ def _get_aws_cli_version() -> int:
     res = hsystem.system_to_one_line(cmd)[1]
     # Parse the output.
     m = re.match(r"aws-cli/((\d+)\.\d+\.\d+)\s", res)
-    hdbg.dassert(m, "Can't parse '%s'", res)
-    m: Match[Any]
+    hdbg.dassert_is_not(m, None, "Can't parse '%s'", res)
+    assert m is not None
     version = m.group(1)
     _LOG.debug("version=%s", version)
     major_version = int(m.group(2))

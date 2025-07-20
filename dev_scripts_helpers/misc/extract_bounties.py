@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""
+r"""
 Given the list of potential bounties.
 
 > curl -L -o bounties.md "https://docs.google.com/document/d/1xPgQ2tWXQuVWKkGVONjOGd5j14mXSmGeY_4d1_sGzAE/export?format=markdown"
@@ -64,7 +64,7 @@ def _parse() -> argparse.ArgumentParser:
 
 def _clean_up(line: str) -> str:
     # Remove the ** and TO\_FILE
-    line = line.replace("**", "").replace("TO\_FILE:", "")
+    line = line.replace("**", "").replace(r"TO\_FILE:", "")
     # Remove \` and \_.
     line = line.replace(r"\`", "'").replace(r"\_", "_")
     #

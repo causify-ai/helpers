@@ -2224,6 +2224,7 @@ def add_multiindex_col(
     :return: a multiindex DataFrame with a new column
     """
     hdbg.dassert_isinstance(df, pd.DataFrame)
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_eq(2, len(df.columns.levels))
     hdbg.dassert_isinstance(multiindex_col, pd.DataFrame)
     hdbg.dassert_isinstance(col_name, str)
@@ -2280,6 +2281,7 @@ def multiindex_df_info(
     """
     Report information about a multi-index df.
     """
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_eq(2, len(df.columns.levels))
     columns_level0 = df.columns.levels[0]
     columns_level1 = df.columns.levels[1]
@@ -2333,6 +2335,7 @@ def subset_multiindex_df(
     :param keep_order: see `_resolve_column_names()`
     :return: filtered DataFrame
     """
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_eq(2, len(df.columns.levels))
     # Filter by timestamp.
     allow_empty = False
@@ -2347,17 +2350,21 @@ def subset_multiindex_df(
         right_close=True,
     )
     # Filter level 0.
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     all_columns_level0 = df.columns.levels[0]
     columns_level0 = _resolve_column_names(
         columns_level0, all_columns_level0, keep_order=keep_order
     )
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_is_subset(columns_level0, df.columns.levels[0])
     df = df[columns_level0]
     # Filter level 1.
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     all_columns_level1 = df.columns.levels[1]
     columns_level1 = _resolve_column_names(
         columns_level1, all_columns_level1, keep_order=keep_order
     )
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_is_subset(columns_level1, df.columns.levels[1])
     df = df.swaplevel(axis=1)[columns_level1].swaplevel(axis=1)
     return df

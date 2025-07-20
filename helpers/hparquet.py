@@ -972,6 +972,7 @@ def get_parquet_filters_from_timestamp_interval(
             # the years (i.e., `year > 2020`).
             operator = ">" if start_timestamp else "<"
             timestamp = start_timestamp if start_timestamp else end_timestamp
+            hdbg.dassert_is_not(timestamp, None, "timestamp should not be None")
             extra_filter = [("year", operator, timestamp.year)]
             or_and_filter.append(extra_filter)
         else:
@@ -988,6 +989,11 @@ def get_parquet_filters_from_timestamp_interval(
         # Include last week in the interval.
         end_timestamp += pd.DateOffset(weeks=1)
         # Get all weeks in the interval.
+        hdbg.dassert_is_not(
+            start_timestamp,
+            None,
+            "start_timestamp should not be None for by_year_week partition mode",
+        )
         dates = pd.date_range(
             start_timestamp.date(), end_timestamp.date(), freq="W"
         )

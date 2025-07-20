@@ -788,7 +788,8 @@ def test_logger() -> None:
     print("# Testing logger ...")
     print("effective level=", _LOG.getEffectiveLevel())
     #
-    _LOG.trace("TRACE=%s", logging.TRACE)
+    if hasattr(_LOG, 'trace'):
+        _LOG.trace("TRACE=%s", logging.TRACE)
     #
     _LOG.debug("DEBUG=%s", logging.DEBUG)
     #

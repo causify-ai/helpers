@@ -271,6 +271,7 @@ def compute_count_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
         hasattr(df.index, "freq") and df.index.freq is not None,
         msg="`df` must have a `DatetimeIndex` with a `freq`",
     )
+    assert hasattr(df.index, 'freq') and df.index.freq is not None
     freq = df.index.freq
     # Calculate the time span of `df` in years.
     points_per_year = compute_points_per_year_for_given_freq(freq)
