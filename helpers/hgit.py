@@ -105,7 +105,7 @@ def get_branch_next_name(
     max_num_ids = 100
     for i in range(1, max_num_ids):
         new_branch_name = f"{curr_branch_name}_{i}"
-        _LOG.log(log_verb, "Trying branch name '%s'", new_branch_name)
+        _LOG.info("Trying branch name '%s' ...", new_branch_name)
         mode = "all"
         exists = does_branch_exist(new_branch_name, mode, dir_name=dir_name)
         _LOG.log(log_verb, "-> exists=%s", exists)

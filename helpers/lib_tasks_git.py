@@ -573,7 +573,6 @@ def git_branch_next_name(ctx, branch_name=None):  # type: ignore
     print(f"branch_next_name='{branch_next_name}'")
 
 
-# TODO(gp): @all Improve docstring
 @task
 def git_branch_copy(  # type: ignore
     ctx,
