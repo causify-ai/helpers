@@ -35,17 +35,8 @@ class Test_filter_by_header1(hunitest.TestCase):
         test_content = hprint.dedent(
             test_content, remove_lead_trail_empty_lines_=False
         )
-        # Create temporary file.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.md")
-        hio.to_file(input_file, test_content)
-        # Test function.
-        result_file = hmarkdo.filter_by_header(
-            input_file, "Introduction", "test_prefix"
-        )
-        # Verify result.
-        self.assertTrue(os.path.exists(result_file))
-        result_content = hio.from_file(result_file)
+        # Test function directly.
+        result_content = hmarfilt.filter_by_header(test_content, "Introduction")
         expected = """
         # Introduction
         This is the introduction section.
@@ -60,14 +51,13 @@ class Test_filter_by_header1(hunitest.TestCase):
         """
         Test behavior when header is not found.
         """
-        test_content = """# Introduction
+        test_content = """
+# Introduction
 This is the introduction section.
 """
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.md")
-        hio.to_file(input_file, test_content)
+        test_content = hprint.dedent(test_content)
         with self.assertRaises(ValueError):
-            hmarkdo.filter_by_header(input_file, "NonExistent", "test_prefix")
+            hmarfilt.filter_by_header(test_content, "NonExistent")
 
 
 # #############################################################################
@@ -134,17 +124,15 @@ class Test_filter_by_lines1(hunitest.TestCase):
         """
         Test basic line filtering functionality.
         """
-        test_content = """Line 1
+        test_content = """
+Line 1
 Line 2
 Line 3
 Line 4
-Line 5"""
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.txt")
-        hio.to_file(input_file, test_content)
-        result_file = hmarkdo.filter_by_lines(input_file, "2:4", "test_prefix")
-        self.assertTrue(os.path.exists(result_file))
-        result_content = hio.from_file(result_file)
+Line 5
+"""
+        test_content = hprint.dedent(test_content)
+        result_content = hmarfilt.filter_by_lines(test_content, "2:4")
         expected = "Line 2\nLine 3"
         self.assertEqual(result_content, expected)
 
@@ -152,19 +140,15 @@ Line 5"""
         """
         Test line filtering with None boundaries.
         """
-        test_content = """Line 1
+        test_content = """
+Line 1
 Line 2
 Line 3
 Line 4
-Line 5"""
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.txt")
-        hio.to_file(input_file, test_content)
-        result_file = hmarkdo.filter_by_lines(
-            input_file, "None:3", "test_prefix"
-        )
-
-        result_content = hio.from_file(result_file)
+Line 5
+"""
+        test_content = hprint.dedent(test_content)
+        result_content = hmarfilt.filter_by_lines(test_content, "None:3")
         expected = "Line 1\nLine 2"
         self.assertEqual(result_content, expected)
 
@@ -172,16 +156,13 @@ Line 5"""
         """
         Test line filtering from start to end.
         """
-        test_content = """Line 1
+        test_content = """
+Line 1
 Line 2
-Line 3"""
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.txt")
-        hio.to_file(input_file, test_content)
-        result_file = hmarkdo.filter_by_lines(
-            input_file, "2:None", "test_prefix"
-        )
-        result_content = hio.from_file(result_file)
+Line 3
+"""
+        test_content = hprint.dedent(test_content)
+        result_content = hmarfilt.filter_by_lines(test_content, "2:None")
         expected = "Line 2\nLine 3"
         self.assertEqual(result_content, expected)
 
@@ -190,11 +171,8 @@ Line 3"""
         Test that start line <= end line is enforced.
         """
         test_content = "Line 1\nLine 2\nLine 3"
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.txt")
-        hio.to_file(input_file, test_content)
         with self.assertRaises(AssertionError):
-            hmarkdo.filter_by_lines(input_file, "3:1", "test_prefix")
+            hmarfilt.filter_by_lines(test_content, "3:1")
 
 
 # #############################################################################
@@ -207,7 +185,8 @@ class Test_filter_by_slides1(hunitest.TestCase):
         """
         Test basic slide filtering functionality.
         """
-        test_content = """# Header 1
+        test_content = """
+# Header 1
 
 
 
@@ -219,15 +198,11 @@ Content for slide 1.
 Content for slide 2.
 
 * Slide 3
-Content for slide 3."""
+Content for slide 3.
+"""
+        test_content = hprint.dedent(test_content)
 
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.md")
-        hio.to_file(input_file, test_content)
-        result_file = hmarkdo.filter_by_slides(input_file, "0:1", "test_prefix")
-
-        self.assertTrue(os.path.exists(result_file))
-        result_content = hio.from_file(result_file)
+        result_content = hmarfilt.filter_by_slides(test_content, "0:1")
         # The result should contain the first slide only (0-based indexing)
         self.assertIn("Slide 1", result_content)
         self.assertNotIn("Slide 2", result_content)
@@ -236,19 +211,16 @@ Content for slide 3."""
         """
         Test slide filtering to the end.
         """
-        test_content = """* Slide 1
+        test_content = """
+* Slide 1
 Content 1.
 
 * Slide 2
-Content 2."""
+Content 2.
+"""
+        test_content = hprint.dedent(test_content)
 
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.md")
-        hio.to_file(input_file, test_content)
-        result_file = hmarkdo.filter_by_slides(
-            input_file, "0:None", "test_prefix"
-        )
-        result_content = hio.from_file(result_file)
+        result_content = hmarfilt.filter_by_slides(test_content, "0:None")
         self.assertIn("Slide 1", result_content)
         self.assertIn("Slide 2", result_content)
 
@@ -256,59 +228,58 @@ Content 2."""
         """
         Test that invalid slide ranges raise errors.
         """
-        test_content = """* Slide 1
-Content 1."""
+        test_content = """
+* Slide 1
+Content 1.
+"""
+        test_content = hprint.dedent(test_content)
 
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.md")
-        hio.to_file(input_file, test_content)
         with self.assertRaises(AssertionError):
-            hmarkdo.filter_by_slides(input_file, "1:0", "test_prefix")
+            hmarfilt.filter_by_slides(test_content, "1:0")
 
     def test_slide_filtering_beyond_slides(self) -> None:
         """
         Test filtering with end beyond available slides.
         """
-        test_content = """* Slide 1
-Content 1."""
+        test_content = """
+* Slide 1
+Content 1.
+"""
+        test_content = hprint.dedent(test_content)
 
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.md")
-        hio.to_file(input_file, test_content)
         with self.assertRaises(AssertionError):
-            hmarkdo.filter_by_slides(input_file, "0:5", "test_prefix")
+            hmarfilt.filter_by_slides(test_content, "0:5")
 
     def test_no_slides_content(self) -> None:
         """
         Test behavior with content that has no slides.
         """
-        test_content = """# Header 1
-Just regular content without slides."""
+        test_content = """
+# Header 1
+Just regular content without slides.
+"""
+        test_content = hprint.dedent(test_content)
 
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.md")
-        hio.to_file(input_file, test_content)
         # This should handle the case where there are no slides
         # The function raises IndexError when trying to access slides that don't exist
         with self.assertRaises(IndexError):
             # This should fail since there are no slides but we're trying to access slide 0
-            hmarkdo.filter_by_slides(input_file, "0:1", "test_prefix")
+            hmarfilt.filter_by_slides(test_content, "0:1")
 
     def test_slide_filtering_single_slide(self) -> None:
         """
         Test filtering a single slide when there's only one slide.
         """
-        test_content = """* Only Slide
+        test_content = """
+* Only Slide
 This is the only content.
-Additional content after the slide."""
+Additional content after the slide.
+"""
+        test_content = hprint.dedent(test_content)
 
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.md")
-        hio.to_file(input_file, test_content)
         # For 1 slide at index 0, end_slide of 2 means "to end of file"
-        result_file = hmarkdo.filter_by_slides(input_file, "0:2", "test_prefix")
+        result_content = hmarfilt.filter_by_slides(test_content, "0:2")
 
-        result_content = hio.from_file(result_file)
         self.assertIn("Only Slide", result_content)
         self.assertIn("This is the only content.", result_content)
         # Due to the current implementation, this should include content up to (but not including) the last line
@@ -317,19 +288,18 @@ Additional content after the slide."""
         """
         Test filtering to the end of slides.
         """
-        test_content = """* Slide 1
+        test_content = """
+* Slide 1
 Content 1.
 
 * Slide 2
-Content 2."""
+Content 2.
+"""
+        test_content = hprint.dedent(test_content)
 
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.md")
-        hio.to_file(input_file, test_content)
         # Test filtering with end equal to number of slides + 1 (should include all slides to end)
         # For 2 slides (indices 0, 1), end_slide of 3 means "to end of file"
-        result_file = hmarkdo.filter_by_slides(input_file, "0:3", "test_prefix")
-        result_content = hio.from_file(result_file)
+        result_content = hmarfilt.filter_by_slides(test_content, "0:3")
         self.assertIn("Slide 1", result_content)
         self.assertIn("Slide 2", result_content)
 
@@ -344,7 +314,8 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         """
         Test extracting a subsection header.
         """
-        test_content = """# Introduction
+        test_content = """
+# Introduction
 This is the introduction.
 
 ## Subsection 1
@@ -356,14 +327,8 @@ Content for subsection 2.
 # Conclusion
 Final thoughts.
 """
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.md")
-        hio.to_file(input_file, test_content)
-        result_file = hmarkdo.filter_by_header(
-            input_file, "Subsection 1", "test_prefix"
-        )
-
-        result_content = hio.from_file(result_file)
+        test_content = hprint.dedent(test_content)
+        result_content = hmarfilt.filter_by_header(test_content, "Subsection 1")
         self.assertIn("## Subsection 1", result_content)
         self.assertIn("Content for subsection 1.", result_content)
 
@@ -382,14 +347,10 @@ Final thoughts.
 
     def test_filter_lines_single_line(self) -> None:
         """
-        Test filtering a single line from file.
+        Test filtering a single line from text.
         """
         test_content = "Single line content"
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.txt")
-        hio.to_file(input_file, test_content)
-        result_file = hmarkdo.filter_by_lines(input_file, "1:1", "test_prefix")
-        result_content = hio.from_file(result_file)
+        result_content = hmarfilt.filter_by_lines(test_content, "1:1")
         self.assertEqual(
             result_content, ""
         )  # Should be empty since range is [1:1) exclusive end
@@ -398,15 +359,13 @@ Final thoughts.
         """
         Test filtering with exact boundaries.
         """
-        test_content = """Line 1
+        test_content = """
+Line 1
 Line 2
-Line 3"""
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "test_input.txt")
-        hio.to_file(input_file, test_content)
-        result_file = hmarkdo.filter_by_lines(input_file, "1:3", "test_prefix")
-
-        result_content = hio.from_file(result_file)
+Line 3
+"""
+        test_content = hprint.dedent(test_content)
+        result_content = hmarfilt.filter_by_lines(test_content, "1:3")
         expected = "Line 1\nLine 2"
         self.assertEqual(result_content, expected)
 
