@@ -9,7 +9,6 @@ import re
 from typing import Tuple
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 from helpers.hmarkdown_headers import (
     extract_section_from_markdown,
     extract_slides_from_markdown,

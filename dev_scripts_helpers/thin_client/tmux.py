@@ -16,12 +16,12 @@ sys.path.append(dir_name)
 
 # This can be imported because this module is in the same dir as the script
 # being executed.
-import thin_client_utils as tcu  # noqa: E402
+import thin_client_utils as tcu  # noqa: E402 Module level import not at top of file
 
 # The `tcu` module adds root of helpers (or `helpers_root` when used in as
 # module) to the path, thus allowing imports from helpers.
-import helpers.hgit as hgit
-import helpers.repo_config_utils as hrecouti
+import helpers.hgit as hgit  # noqa: E402 Module level import not at top of file
+import helpers.repo_config_utils as hrecouti  # noqa: E402 Module level import not at top of file
 
 _LOG = logging.getLogger(__name__)
 

@@ -1,8 +1,5 @@
 import logging
-import os
 
-import helpers.hio as hio
-import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_filtering as hmarfilt
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
