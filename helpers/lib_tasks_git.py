@@ -127,6 +127,8 @@ def git_clean(ctx, fix_perms_=False, dry_run=False):  # type: ignore
         r"cfile",
         r"tmp.*",
         r"*.tmp",
+        r".*_cache",
+        "htmlcov",
     ]
     opts = [f"-name '{opt}'" for opt in to_delete]
     opts = " -o ".join(opts)
