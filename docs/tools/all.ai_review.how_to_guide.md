@@ -27,14 +27,14 @@
   - Apply modifications from a `cfile` to a set of files
     - E.g., from linter and AI review
   - Add TODOs from a `cfile` to Python or markdown files
-  - Apply a set of transformations to an entire file
+  - Apply a set of transformations to an entire Python file
     - E.g., styling / formatting code
   - Rewrite an entire markdown to fix English mistakes without changing its
     structure
-  - Reformat an entire markdown or Python using LLMs or code
+    - E.g., styling / formatting a markdown
 
-- You should always commit your code before applying automatic transforms (e.g.,
-  linting)
+- You should always commit your code before applying automatic transforms, in the
+  same way that we run the `linter` on a clean tree
   - In this way, modifying a file is a separate commit and it's easy to review
 
 # Use templates

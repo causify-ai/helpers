@@ -8,7 +8,7 @@ import datetime
 import logging
 import os
 import unittest.mock as umock
-from typing import List
+from typing import Any, List
 
 import pytest
 
@@ -28,10 +28,10 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_purify_text1(hunitest.TestCase):
-    def check_helper(self, txt: str, exp: str) -> None:
+    def check_helper(self, txt: str, exp: str, **kwargs: Any) -> None:
         text_purifier = huntepur.TextPurifier()
         act = text_purifier.purify_txt_from_client(txt)
-        self.assert_equal(act, exp)
+        self.assert_equal(act, exp, **kwargs)
 
     def test1(self) -> None:
         txt = "amp/helpers/test/test_system_interaction.py"
@@ -138,7 +138,7 @@ class Test_purify_text1(hunitest.TestCase):
         dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Name 're' is not defined [mypy]
         """
         # pylint: enable=line-too-long
-        self.check_helper(txt, exp, dedent_string=True)
+        self.check_helper(txt, exp, dedent=True)
 
     def test10(self) -> None:
         """

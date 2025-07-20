@@ -101,8 +101,9 @@ def _get_rendered_file_paths(
 # #############################################################################
 
 
-# Save cache to disk for persistence.
-@hcacsimp.simple_cache(write_through=True)
+@hcacsimp.simple_cache(
+    # Save cache to disk for persistence.
+    write_through=True)
 def _render_image_code(
     image_code_txt: str,
     image_code_idx: int,
