@@ -13,7 +13,53 @@
 
 <!-- tocstop -->
 
-# `ruff`
+# Tools for code quality 
+
+## `pre-commit`
+
+- The documentation is [https://pre-commit.com/](https://pre-commit.com/)
+
+- The `.pre-commit-config.yaml` contains the configuration for `pre-commit`
+
+  ```yaml
+  repos:
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.4.4
+      hooks:
+        - id: ruff
+    - repo: local
+      hooks:
+        - id: fixit-lint
+          name: fixit lint
+          entry: fixit lint
+          language: system
+          types: [python]
+        - id: pyrefly
+          name: pyrefly lint
+          entry: pyrefly lint
+          language: system
+          types: [python]
+  ```
+
+- To install:
+  ```
+  > pre-commit install
+  > pip install pre-commit ruff fixit pyrefly
+  ```
+  - TODO(gp): Maybe we should install in the thin env?
+
+- Run against all the files
+
+  ```bash
+  > pre-commit run --all-files
+  ```
+
+- Run against a subset of files
+  ```bash
+  > pre-commit run --files $(find helpers_root -type f)
+  ```
+
+## `ruff`
 
 - Website: [https://docs.astral.sh/ruff/](https://docs.astral.sh/ruff/)
 
@@ -39,7 +85,7 @@ Commands:
 ...
 ```
 
-## Config
+### Config
 
 - Often we want to exclude certain files in the repos, e.g., files under
   `outcomes`:
@@ -65,50 +111,6 @@ Commands:
   # E731 Do not assign a `lambda` expression, use a `def`
   ignore = ["E731"]
   ```
-
-### `ruff check`
-
-- Lint, auto-fix, and format code:
-
-  ```bash
-  > ruff check $DIR
-  helpers/notebooks/cache.ipynb:cell 11:1:7: F821 Undefined name `dict_`
-  helpers/notebooks/cache.ipynb:cell 12:3:7: F821 Undefined name `dict_`
-  ...
-  Found 62 errors.
-  No fixes available (2 hidden fixes can be enabled with the `--unsafe-fixes` option).
-  ```
-
-- Interesting options are:
-
-  ```text
-      --fix                              Apply fixes to resolve lint violations
-      --unsafe-fixes                     Include fixes that may not retain the original intent of the code
-      --ignore-noqa                      Ignore any `# noqa` comments
-      --output-format <OUTPUT_FORMAT>    Output serialization format for violations
-  -o, --output-file <OUTPUT_FILE>        Specify file to write the linter output to (default: stdout)
-      --statistics                       Show counts for every rule with at least one violation
-      --add-noqa                         Enable automatic additions of `noqa` directives to failing lines
-      --show-settings                    See the settings Ruff will use to lint a given Python file
-  ```
-
-- Remove colors (useful for cfile)
-
-  ```bash
-  > ruff check . | less -R | cat | tee cfile
-  > vic
-  ```
-
-- To select only a subset of errors
-  ```
-  # Skip the warnings
-  > ruff check . --select E,F
-  ```
-  where:
-  - E: pycodestyle errors
-  - F: pyflakes errors
-  - W: warnings
-  - I: isort, etc.
 
 ### `ruff format`
 
@@ -155,7 +157,70 @@ Commands:
     -h, --help                             Print help (see more with '--help')
   ```
 
-## `fixit`
+## Linting
+
+### `ruff check`
+
+- Lint, auto-fix, and format code:
+
+  ```bash
+  > ruff check $DIR
+  helpers/notebooks/cache.ipynb:cell 11:1:7: F821 Undefined name `dict_`
+  helpers/notebooks/cache.ipynb:cell 12:3:7: F821 Undefined name `dict_`
+  ...
+  Found 62 errors.
+  No fixes available (2 hidden fixes can be enabled with the `--unsafe-fixes` option).
+  ```
+
+- Interesting options are:
+
+  ```text
+      --fix                              Apply fixes to resolve lint violations
+      --unsafe-fixes                     Include fixes that may not retain the original intent of the code
+      --ignore-noqa                      Ignore any `# noqa` comments
+      --output-format <OUTPUT_FORMAT>    Output serialization format for violations
+  -o, --output-file <OUTPUT_FILE>        Specify file to write the linter output to (default: stdout)
+      --statistics                       Show counts for every rule with at least one violation
+      --add-noqa                         Enable automatic additions of `noqa` directives to failing lines
+      --show-settings                    See the settings Ruff will use to lint a given Python file
+  ```
+
+- Remove colors (useful for cfile)
+
+  ```bash
+  > ruff check . | less -R | cat | tee cfile
+  > vic
+  ```
+
+- To select only a subset of errors
+  ```
+  # Skip the warnings
+  > ruff check . --select E,F
+  ```
+  where:
+  - E: pycodestyle errors
+  - F: pyflakes errors
+  - W: warnings
+  - I: isort, etc.
+
+### `ty`
+
+- It's best to run `ty` inside the dev container to get the type hints of the
+  installed packages
+  ```bash
+  docker> sudo bash -c "(source /venv/bin/activate; pip install --quiet ty)"
+  docker> ty check --output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' .
+	...
+	error[unresolved-attribute] linters/utils.py:101:22: Type `list[str]` has no attribute `replace`
+	error[unresolved-import] main_pytest.py:15:8: Cannot resolve imported module `junitparser`
+	error[unresolved-import] tasks.py:122:10: Cannot resolve imported module `oms.lib_tasks_binance`
+	...
+
+	# To format the output for a cfile:
+  docker> ty check ... | cut -d' ' -f2- | tee cfile
+  ```
+
+### `fixit`
 
 - Website:
   [https://fixit.readthedocs.io/en/latest/index.html](https://fixit.readthedocs.io/en/latest/index.html)
@@ -178,7 +243,7 @@ Commands:
   > fixit fix --automatic
   ```
 
-## `pyrefly`
+### `pyrefly`
 
 - Website: [https://pyrefly.org/](https://pyrefly.org/)
 
@@ -221,63 +286,153 @@ Commands:
   docker> pyrefly check --color=never --output-format=min-text --project-excludes '**/outcomes/**' --project-excludes '**/import_check/example/**' --project-excludes '**/mkdocs.venv/**'
   ```
 
-## `ty`
+## Call graph and dependencies
 
-- It's best to run `ty` inside the dev container to get the type hints of the
-  installed packages
-  ```bash
-  docker> sudo bash -c "(source /venv/bin/activate; pip install --quiet ty)"
-  docker> ty check --output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' .
-	...
-	error[unresolved-attribute] linters/utils.py:101:22: Type `list[str]` has no attribute `replace`
-	error[unresolved-import] main_pytest.py:15:8: Cannot resolve imported module `junitparser`
-	error[unresolved-import] tasks.py:122:10: Cannot resolve imported module `oms.lib_tasks_binance`
-	...
+### PyCG (Practical Call Graph Generator)
 
-	# To format the output for a cfile:
-  docker> ty check ... | cut -d' ' -f2- | tee cfile
-  ```
+- GitHub: [https://github.com/vitsalis/PyCG](https://github.com/vitsalis/PyCG)  
+	- Read only (349 stars)
 
-## `pre-commit`
+### code2flow
 
-- The documentation is [https://pre-commit.com/](https://pre-commit.com/)
+- GitHub: [https://github.com/scottrogowski/code2flow](https://github.com/scottrogowski/code2flow)
 
-- The `.pre-commit-config.yaml` contains the configuration for `pre-commit`
+- Install with:
+	```bash
+	> sudo /bin/bash \-c "(source /venv/bin/activate; pip install code2flow)"
+	```
 
-  ```yaml
-  repos:
-    - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.4.4
-      hooks:
-        - id: ruff
-    - repo: local
-      hooks:
-        - id: fixit-lint
-          name: fixit lint
-          entry: fixit lint
-          language: system
-          types: [python]
-        - id: pyrefly
-          name: pyrefly lint
-          entry: pyrefly lint
-          language: system
-          types: [python]
-  ```
+- Run with:
+	```bash
+	> code2flow helpers/hmarkdown*.py
+	> open out.png
+	```
 
-- To install:
-  ```
-  > pre-commit install
-  > pip install pre-commit ruff fixit pyrefly
-  ```
-  - TODO(gp): Maybe we should install in the thin env?
+### pycallgraph2
 
-- Run against all the files
+- GitHub: [https://github.com/daneads/pycallgraph2](https://github.com/daneads/pycallgraph2)
+	- 236 stars
 
-  ```bash
-  > pre-commit run --all-files
-  ```
+- Install with:
+	```bash
+	docker> sudo /bin/bash \-c "(source /venv/bin/activate; pip install pycallgraph2)"
+	```
 
-- Run against a subset of files
-  ```bash
-  > pre-commit run --files $(find helpers_root -type f)
-  ```
+- Run with:
+	```
+	> pycallgraph graphviz \-- helpers/hmarkdown*.py
+	```
+
+### py-call-graph
+
+- GitHub: [https://github.com/lewiscowles1986/py-call-graph](https://github.com/lewiscowles1986/py-call-graph)
+- Doc:
+	- [https://pycallgraph.readthedocs.io/en/master/](https://pycallgraph.readthedocs.io/en/master/)  
+	- [https://pypi.org/project/python-call-graph/](https://pypi.org/project/python-call-graph/)
+
+### pyan
+
+- [https://github.com/davidfraser/pyan](https://github.com/davidfraser/pyan)  
+- 692 stars
+
+- Install with:
+	```bash
+	> sudo /bin/bash -c "(source /venv/bin/activate; pip install pyan3==1.1.1)"
+	# Top of the tree is broken (https://github.com/Technologicat/pyan/issues/72)
+	> sudo /bin/bash -c "(source /venv/bin/activate; pip install pyan3)"
+	```
+
+- Run with:
+	```bash
+	> pyan ./helpers/hmarkdown_filtering.py --dot --uses --no-defines > callgraph.dot
+	> ./dev_scripts_helpers/documentation/dockerized_graphviz.py -i callgraph.dot -o c.png  
+	> open c.png
+	```
+
+### `SnakeViz`
+
+- Works on runtime profiling (not static), gives function timing & hierarchy
+
+## Dependencies
+
+### `pylint pyreverse`
+
+- GitHub: [https://github.com/pylint-dev/pylint](https://github.com/pylint-dev/pylint)  
+- Doc:
+	- https://pylint.readthedocs.io/en/latest/
+	- https://pylint.readthedocs.io/en/latest/additional_tools/pyreverse/index.html
+
+### `Pydeps`
+
+- GitHub: [https://github.com/thebjorn/pydeps](https://github.com/thebjorn/pydeps)  
+- Doc: [https://pydeps.readthedocs.io/en/latest/](https://pydeps.readthedocs.io/en/latest/)
+
+- Run with
+	```
+	> pydeps helpers --noshow --show-dot -o import_graph.dot
+	```
+
+### `snakefood`
+
+- GitHub: https://github.com/blais/snakefood
+
+## Measuring complexity
+
+### `radon`
+- Static analysis for complexity, can complement class structure graphs
+
+### `xenon`
+- Enforces complexity thresholds based on Radon
+- Built on Radon
+
+### `lizard`
+- Measures cyclomatic complexity for many languages
+
+## Finding dead code
+
+### Vulture
+- Finds dead (unused) code
+- GitHub: https://github.com/jendrikseipp/vulture
+
+## Detecting copy-paste
+
+### `pylint symilar`
+
+- Docs: https://pylint.readthedocs.io/en/latest/additional_tools/symilar/index.html
+
+### `lizard`
+
+- Install with:
+	```bash
+	> pip install lizard
+	```
+
+- Run with:
+	```bash
+	> lizard \-Eduplicate helpers/test/test\_hmarkdown\_coloring.py helpers/test/test\_hmarkdown.py
+
+	Duplicate block:  
+	\--------------------------  
+	./dev\_scripts\_helpers/llms/llm\_prompts.py:1129 \~ 1151  
+	./dev\_scripts\_helpers/llms/llm\_prompts.py:1151 \~ 1177  
+	./dev\_scripts\_helpers/llms/llm\_prompts.py:1177 \~ 1219  
+	./dev\_scripts\_helpers/llms/llm\_prompts.py:1219 \~ 1256  
+	./dev\_scripts\_helpers/llms/llm\_prompts.py:1256 \~ 1280  
+	./dev\_scripts\_helpers/llms/llm\_prompts.py:1280 \~ 1312  
+	./dev\_scripts\_helpers/llms/llm\_prompts.py:1377 \~ 1425
+	```
+
+### `jscpd`
+
+- Install with:
+	```
+	docker> sudo npm install -g jscpd
+	```
+
+- Run with:
+	```
+	> jscpd --languages python --reporters console,path/to/your/code
+	> jscpd --format=python --reporters console helpers
+	```
+
+- It doesn't seem to work
