@@ -116,7 +116,7 @@ def capitalize_header(txt: str) -> str:
     - The title is transformed to title case as below:
         - ML theory -> ML Theory
         - A map of machine learning -> A Map of Machine Learning
-        - Business strategists -> 
+        - Business strategists ->
             Business Strategists
         - Establish a phased, collaborative approach ->
             Establish a Phased, Collaborative Approach
@@ -155,13 +155,17 @@ def capitalize_header(txt: str) -> str:
             placeholders = []
             # Pattern to match strings inside backticks, single quotes, or double quotes
             quote_pattern = r'(`[^`]*`|\'[^\']*\'|"[^"]*")'
+
             def replace_quoted(match: re.Match) -> str:
                 quoted_strings.append(match.group(0))
-                placeholder = f"__QUOTED_{len(quoted_strings)-1}__"
+                placeholder = f"__QUOTED_{len(quoted_strings) - 1}__"
                 placeholders.append(placeholder)
                 return placeholder
+
             # Replace quoted strings with placeholders.
-            title_with_placeholders = re.sub(quote_pattern, replace_quoted, title)
+            title_with_placeholders = re.sub(
+                quote_pattern, replace_quoted, title
+            )
             # Split into words.
             words = title_with_placeholders.split()
             # Process each word.
