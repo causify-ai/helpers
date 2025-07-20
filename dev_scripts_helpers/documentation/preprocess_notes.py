@@ -181,13 +181,13 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         # 7) Process question.
         if _TRACE:
             _LOG.debug("# Process question.")
-        # if type_ == "slides":
-        #     do_continue, line = _process_question_to_slides(line)
-        # else:
-        #     do_continue, line = _process_question_to_markdown(line)
-        # if do_continue:
-        #     out.append(line)
-        #     continue
+        if type_ == "slides":
+            do_continue, line = _process_question_to_slides(line)
+        else:
+            do_continue, line = _process_question_to_markdown(line)
+        if do_continue:
+            out.append(line)
+            continue
         # 8) Process empty lines in the questions and answers.
         if _TRACE:
             _LOG.debug("# Process empty lines in the questions and answers.")
@@ -257,7 +257,6 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         out_tmp.append(line)
     out = out_tmp
     # out = "\n".join(out_tmp)
-
     # c) Clean up.
     _LOG.debug("Clean up")
     # Remove all the lines with only spaces.

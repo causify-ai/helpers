@@ -190,7 +190,7 @@ class Test_lint_notes2(hunitest.TestCase):
 
         # Good
 
-        - Good time management
+        - Good Time Management
           1. Choose the right tasks
           - Avoid non-essential tasks
 
@@ -245,13 +245,13 @@ class Test_lint_notes2(hunitest.TestCase):
         txt = self._get_text_problematic_for_prettier1()
         act = hdocexec.prettier_on_str(txt, file_type="txt")
         exp = r"""
-        - Python formatting
+        - Python Formatting
 
         * Python has several built-in ways of formatting strings
           1. `%` format operator
           2. `format` and `str.format`
 
-        - `%` format operator
+        - `%` Format Operator
 
         * Text template as a format string
           - Values to insert are provided as a value or a `tuple`
