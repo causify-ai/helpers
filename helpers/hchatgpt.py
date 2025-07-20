@@ -11,6 +11,7 @@ import sys
 import time
 from typing import Dict, List, Optional
 
+import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hio as hio
 
