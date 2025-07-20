@@ -331,8 +331,8 @@ def get_dir_signature(
     else:
         hdbg.dassert_is(num_lines, None)
     # Concat everything in a single string.
-    txt = "\n".join(txt)
-    return txt
+    result = "\n".join(txt)
+    return result
 
 
 # TODO(gp): GSI. Use the copy in helpers/hprint.py

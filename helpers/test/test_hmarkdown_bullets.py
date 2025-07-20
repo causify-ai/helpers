@@ -16,6 +16,14 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_bold_first_level_bullets1(hunitest.TestCase):
+    def _test_bold_first_level_bullets(self, text: str, expected: str) -> None:
+        """
+        Helper to test bold_first_level_bullets function.
+        """
+        text = hprint.dedent(text)
+        actual = hmarkdo.bold_first_level_bullets(text)
+        self.assert_equal(actual, expected, dedent=True)
+
     def test1(self) -> None:
         """
         Test basic first-level bullet bolding.
@@ -111,14 +119,6 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
         - **Second point with emphasis**
         """
         self._test_bold_first_level_bullets(text, expected)
-
-    def _test_bold_first_level_bullets(self, text: str, expected: str) -> None:
-        """
-        Helper to test bold_first_level_bullets function.
-        """
-        text = hprint.dedent(text)
-        actual = hmarkdo.bold_first_level_bullets(text)
-        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -289,6 +289,13 @@ class Test_colorize_bold_text1(hunitest.TestCase):
 
 
 class Test_format_first_level_bullets1(hunitest.TestCase):
+    def format_and_compare_markdown(self, text: str, expected: str) -> None:
+        text = hprint.dedent(text)
+        expected = hprint.dedent(expected)
+        #
+        actual = hmarkdo.format_first_level_bullets(text)
+        self.assert_equal(actual, expected)
+
     def test1(self) -> None:
         """
         Test basic case with single first level bullet.
@@ -302,7 +309,7 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
 
         - First bullet
         More text"""
-        self._format_and_compare_markdown(text, expected)
+        self.format_and_compare_markdown(text, expected)
 
     def test2(self) -> None:
         """
@@ -318,7 +325,7 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
         - Second bullet
 
         - Third bullet"""
-        self._format_and_compare_markdown(text, expected)
+        self.format_and_compare_markdown(text, expected)
 
     def test3(self) -> None:
         """
@@ -336,7 +343,7 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
           - Another second
 
         - Back to first"""
-        self._format_and_compare_markdown(text, expected)
+        self.format_and_compare_markdown(text, expected)
 
     def test4(self) -> None:
         """
@@ -356,7 +363,7 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
 
         - Second bullet
         Final text"""
-        self._format_and_compare_markdown(text, expected)
+        self.format_and_compare_markdown(text, expected)
 
     def test5(self) -> None:
         """
@@ -375,7 +382,7 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
 
         - Another level 1
             - Level 2 again"""
-        self._format_and_compare_markdown(text, expected)
+        self.format_and_compare_markdown(text, expected)
 
     def test6(self) -> None:
         """
@@ -393,7 +400,7 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
         - Second bullet
 
         - Third bullet"""
-        self._format_and_compare_markdown(text, expected)
+        self.format_and_compare_markdown(text, expected)
 
     def test7(self) -> None:
         """
@@ -418,7 +425,7 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
         Final paragraph
 
         - Last bullet"""
-        self._format_and_compare_markdown(text, expected)
+        self.format_and_compare_markdown(text, expected)
 
     def test8(self) -> None:
         """
@@ -435,7 +442,7 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
 
         - `Code bullet` here
             - **_Mixed_** formatting"""
-        self._format_and_compare_markdown(text, expected)
+        self.format_and_compare_markdown(text, expected)
 
     def test9(self) -> None:
         """
@@ -452,7 +459,7 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
 
         - Bullet with {braces}
             - Bullet with $math$"""
-        self._format_and_compare_markdown(text, expected)
+        self.format_and_compare_markdown(text, expected)
 
     def test10(self) -> None:
         text = hprint.dedent(
@@ -506,14 +513,7 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
             interaction
         """
         )
-        self._format_and_compare_markdown(text, expected)
-
-    def _format_and_compare_markdown(self, text: str, expected: str) -> None:
-        text = hprint.dedent(text)
-        expected = hprint.dedent(expected)
-        #
-        actual = hmarkdo.format_first_level_bullets(text)
-        self.assert_equal(actual, expected)
+        self.format_and_compare_markdown(text, expected)
 
 
 # #############################################################################

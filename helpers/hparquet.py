@@ -17,6 +17,22 @@ import pyarrow as pa
 import pyarrow.dataset as ds
 import pyarrow.fs as pafs
 import pyarrow.parquet as pq
+
+# Check if S3FileSystem is available in `pyarrow.fs`.
+if hasattr(pafs, "S3FileSystem"):
+    S3FileSystemAvailable = True
+    PyArrowS3FileSystem = pafs.S3FileSystem
+else:
+    S3FileSystemAvailable = False
+
+    # Define a dummy class for type hints when S3FileSystem is not available.
+    class PyArrowS3FileSystem:
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                "S3FileSystem is not available in this version of pyarrow.fs"
+            )
+
+
 from tqdm.autonotebook import tqdm
 
 import helpers.hdataframe as hdatafr
@@ -281,22 +297,27 @@ def generate_parquet_files(
     to_partitioned_parquet(df, partition_cols, dst_dir)
 
 
-def get_pyarrow_s3fs(*args: Any, **kwargs: Any) -> pafs.S3FileSystem:
+def get_pyarrow_s3fs(*args: Any, **kwargs: Any) -> PyArrowS3FileSystem:
     """
     Return an Pyarrow S3Fs object from a given AWS profile.
 
     Same as `hs3.get_s3fs`, used specifically for accessing Parquet
     datasets.
     """
+    # Check if S3FileSystem is available
+    hdbg.dassert(
+        S3FileSystemAvailable,
+        "S3FileSystem is not available in this version of pyarrow.fs",
+    )
     # When deploying jobs via ECS the container obtains credentials based on passed
     #  task role specified in the ECS task-definition, refer to:
     #  https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
     if hserver.is_inside_ecs_container():
         _LOG.info("Fetching credentials from task IAM role")
-        s3fs_ = pafs.S3FileSystem()
+        s3fs_ = PyArrowS3FileSystem()
     else:
         aws_credentials = hs3.get_aws_credentials(*args, **kwargs)
-        s3fs_ = pafs.S3FileSystem(
+        s3fs_ = PyArrowS3FileSystem(
             access_key=aws_credentials["aws_access_key_id"],
             secret_key=aws_credentials["aws_secret_access_key"],
             session_token=aws_credentials["aws_session_token"],
@@ -972,6 +993,7 @@ def get_parquet_filters_from_timestamp_interval(
             # the years (i.e., `year > 2020`).
             operator = ">" if start_timestamp else "<"
             timestamp = start_timestamp if start_timestamp else end_timestamp
+            hdbg.dassert_is_not(timestamp, None, "timestamp should not be None")
             extra_filter = [("year", operator, timestamp.year)]
             or_and_filter.append(extra_filter)
         else:
@@ -988,6 +1010,11 @@ def get_parquet_filters_from_timestamp_interval(
         # Include last week in the interval.
         end_timestamp += pd.DateOffset(weeks=1)
         # Get all weeks in the interval.
+        hdbg.dassert_is_not(
+            start_timestamp,
+            None,
+            "start_timestamp should not be None for by_year_week partition mode",
+        )
         dates = pd.date_range(
             start_timestamp.date(), end_timestamp.date(), freq="W"
         )

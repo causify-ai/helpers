@@ -832,6 +832,9 @@ def apply_prompt_to_dataframe(
         for i in range(len(processed_response)):
             m = re.match(r"\d+: (.*)\s*", processed_response[i])
             hdbg.dassert(m, f"Invalid response: {processed_response[i]}")
+            # The linter doesn't understand that `dassert` is equivalent to an
+            # `assert`.
+            assert m is not None
             processed_response[i] = m.group(1).rstrip().lstrip()
         _LOG.debug(hprint.to_str("processed_response"))
         response_data.extend(processed_response)

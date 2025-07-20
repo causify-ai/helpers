@@ -391,9 +391,7 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         # Run test.
         result_content = hmarfilt.filter_by_lines(test_content, "1:1")
         # Check outputs.
-        self.assertEqual(
-            result_content, ""
-        )
+        self.assertEqual(result_content, "")
 
     def test_filter_lines_exact_range(self) -> None:
         """

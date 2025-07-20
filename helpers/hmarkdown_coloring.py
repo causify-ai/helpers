@@ -154,10 +154,11 @@ def colorize_bullet_points_in_slide(
     color_idx = 0
     txt_out = []
     for line in lines:
-        # Replace the strings like "**foo**" with a string like "**\red{foo}**".
-        # Find all bold text patterns and wrap them with color commands
-        # Keep track of which color to use for each match
-        def color_replacer(match: str) -> str:
+
+        def color_replacer(match: re.Match[str]) -> str:
+            r"""
+            Replace strings like "**foo**" with strings like "**\red{foo}**".
+            """
             nonlocal color_idx
             text = match.group(1)
             hdbg.dassert_lte(color_idx, len(colors))

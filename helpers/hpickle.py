@@ -212,6 +212,8 @@ def pickle_function(func: Callable) -> str:
     - return: string
     """
     hdbg.dassert_callable(func)
+    hdbg.dassert(hasattr(func, "__code__"))
+    assert hasattr(func, "__code__")
     code_as_bytes = marshal.dumps(func.__code__)
     return code_as_bytes.decode()
 

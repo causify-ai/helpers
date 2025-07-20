@@ -12,7 +12,7 @@ import os
 import re
 import shlex
 import time
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Dict, List, Optional, Tuple
 
 import helpers.hcoverage as hcovera
 import helpers.hdbg as hdbg
@@ -188,7 +188,7 @@ def get_current_arch() -> str:
     cmd = "uname -m"
     _, current_arch = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("current_arch"))
-    return cast(str, current_arch)
+    return current_arch
 
 
 def _is_compatible_arch(val1: str, val2: str) -> bool:
@@ -320,18 +320,19 @@ def replace_shared_root_path(
     # running inside Docker on the dev server.
     if hserver.is_inside_docker() and not hserver.is_inside_ecs_container():
         shared_data_dirs = hserver.get_shared_data_dirs()
-        if replace_ecs_tokyo:
-            # Make a copy to avoid modifying the original one.
-            shared_data_dirs = copy.deepcopy(shared_data_dirs)
-            shared_data_dirs["ecs_tokyo"] = "ecs"
-        for shared_dir, docker_shared_dir in shared_data_dirs.items():
-            path = path.replace(shared_dir, docker_shared_dir)
-            _LOG.debug(
-                "Running inside Docker on the dev server, thus replacing %s "
-                "with %s",
-                shared_dir,
-                docker_shared_dir,
-            )
+        if shared_data_dirs is not None:
+            if replace_ecs_tokyo:
+                # Make a copy to avoid modifying the original one.
+                shared_data_dirs = copy.deepcopy(shared_data_dirs)
+                shared_data_dirs["ecs_tokyo"] = "ecs"
+            for shared_dir, docker_shared_dir in shared_data_dirs.items():
+                path = path.replace(shared_dir, docker_shared_dir)
+                _LOG.debug(
+                    "Running inside Docker on the dev server, thus replacing %s "
+                    "with %s",
+                    shared_dir,
+                    docker_shared_dir,
+                )
     else:
         _LOG.debug("No replacement found, returning path as-is: %s", path)
     return path
@@ -1931,8 +1932,7 @@ def run_dockerized_mermaid2(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
-    return ret
+    process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
 
 
 # #############################################################################
@@ -1994,10 +1994,10 @@ def run_dockerized_graphviz(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     #
-    cmd_opts = " ".join(cmd_opts)
+    cmd_opts_str = " ".join(cmd_opts)
     graphviz_cmd = [
         "dot",
-        f"{cmd_opts}",
+        f"{cmd_opts_str}",
         "-T png",
         "-Gdpi=300",
         f"-o {out_file_path}",

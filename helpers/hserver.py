@@ -1105,5 +1105,5 @@ def config_func_to_str() -> str:
         msg = f"{func_name}='{func_value}'"
         ret.append(msg)
     # Package.
-    ret = "\n".join(ret)
-    return ret
+    result = "\n".join(ret)
+    return result

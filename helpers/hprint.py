@@ -16,11 +16,9 @@ from typing import (
     Dict,
     Iterable,
     List,
-    Match,
     Optional,
     Tuple,
     Union,
-    cast,
 )
 
 import helpers.hdbg as hdbg
@@ -299,7 +297,9 @@ def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
             continue
         m = re.search(r"^(\s*)", curr_line)
         hdbg.dassert(m)
-        m: Match[Any]
+        # The linter doesn't understand that `dassert` is equivalent to an
+        # `assert`.
+        assert m is not None
         curr_num_spaces = len(m.group(1))
         _LOG.debug("  -> curr_num_spaces=%s", curr_num_spaces)
         if min_num_spaces is None or curr_num_spaces < min_num_spaces:
@@ -595,7 +595,15 @@ def _func_signature_to_str(
     # Get the caller's frame (i.e., the function that called this function).
     caller_frame = inspect.currentframe()
     for _ in range(frame_level):
+        hdbg.dassert_is_not(
+            caller_frame, None, "caller_frame should not be None"
+        )
         caller_frame = caller_frame.f_back
+    hdbg.dassert_is_not(
+        caller_frame,
+        None,
+        "caller_frame should not be None after traversing frames",
+    )
     caller_function_name = caller_frame.f_code.co_name
     # _LOG.debug("caller_function_name=%s", caller_function_name)
     # Retrieve the function object from the caller's frame.
@@ -767,7 +775,6 @@ def format_list(
     # sep = ", "
     if max_n is None:
         max_n = 10
-    max_n = cast(int, max_n)
     hdbg.dassert_lte(1, max_n)
     n = len(list_)
     txt = ""
@@ -893,8 +900,8 @@ def set_diff_to_str(
     if add_space:
         res.append("")
     #
-    res = "\n".join(res)
-    return res
+    result = "\n".join(res)
+    return result
 
 
 # #############################################################################
@@ -975,7 +982,10 @@ def filter_text(regex: str, txt: str) -> str:
 
 
 def dassert_one_trailing_newline(txt: str) -> None:
-    num_newlines = len(re.search(r"\n*$", txt).group())
+    match = re.search(r"\n*$", txt)
+    hdbg.dassert(match)
+    assert match is not None
+    num_newlines = len(match.group())
     hdbg.dassert_eq(
         num_newlines, 0, "num_newlines='%s' txt='%s'", num_newlines, txt
     )

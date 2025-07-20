@@ -11,6 +11,7 @@ import sys
 import time
 from typing import Dict, List, Optional
 
+import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hio as hio
 
@@ -153,6 +154,11 @@ def get_assistant_id_by_name(assistant_name) -> str:
     for cur_assistant in assistants:
         if cur_assistant.name == assistant_name:
             assistant = cur_assistant
+            break
+    hdbg.dassert_is_not(
+        assistant, None, f"Assistant '{assistant_name}' not found"
+    )
+    assert assistant is not None
     return assistant.id
 
 

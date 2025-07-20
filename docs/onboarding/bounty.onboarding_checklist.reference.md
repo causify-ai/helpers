@@ -101,7 +101,7 @@
   - If you find an implementation of the bounty in the wild, congrats, you made
     money with very little work
 - All code needs to be written using our coding style
-  - See [`template_code.py`](/template_code.py),
+  - See [`code_template.py`](/code_template.py),
     [coding style doc](/docs/code_guidelines/all.coding_style.how_to_guide.md),
     [examples of good code](/docs/code_guidelines/all.submit_code_for_review.how_to_guide.md#compare-your-code-to-example-code)
   - We provide our Linter and our AI code-styler / reviewer (once available) to

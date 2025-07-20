@@ -99,7 +99,7 @@ def get_env_var(
     as_bool: bool = False,
     default_value: Any = None,
     abort_on_missing: bool = True,
-) -> Union[str, bool]:
+) -> Union[str, bool, Any]:
     """
     Get an environment variable by name.
 
@@ -280,8 +280,8 @@ def env_vars_to_string() -> str:
             else:
                 # Not a secret var: print the value.
                 txt.append(f"{env_name}='{os.environ[env_name]}'")
-    txt = "\n".join(txt)
-    return txt
+    result = "\n".join(txt)
+    return result
 
 
 # #############################################################################
@@ -348,9 +348,9 @@ def _get_git_signature(git_commit_type: str = "all") -> str:
     else:
         raise ValueError(f"Invalid value='{git_commit_type}'")
     #
-    txt = "\n".join(txt) + "\n"
-    hdbg.dassert(txt.endswith("\n"), "txt_tmp='%s'", txt)
-    return txt
+    result = "\n".join(txt) + "\n"
+    hdbg.dassert(result.endswith("\n"), "result='%s'", result)
+    return result
 
 
 # def _get_submodule_signature(
@@ -421,7 +421,10 @@ def _get_psutil_info() -> str:
     txt_tmp = []
     if has_psutil:
         txt_tmp.append(f"cpu count={psutil.cpu_count()}")
-        txt_tmp.append(f"cpu freq={str(psutil.cpu_freq())}")
+        if hasattr(psutil, "cpu_freq") and psutil.cpu_freq is not None:
+            txt_tmp.append(f"cpu freq={str(psutil.cpu_freq())}")
+        else:
+            txt_tmp.append("cpu freq=unavailable")
         # TODO(gp): Report in MB or GB.
         txt_tmp.append(f"memory={str(psutil.virtual_memory())}")
         txt_tmp.append(f"disk usage={str(psutil.disk_usage('/'))}")

@@ -4,7 +4,6 @@ Import as:
 import helpers.hdict as hdict
 """
 
-import collections
 import logging
 from typing import (
     Any,
@@ -16,6 +15,11 @@ from typing import (
     Tuple,
     Union,
 )
+
+try:
+    from collections.abc import Mapping as AbcMapping
+except ImportError:
+    from collections import Mapping as AbcMapping
 
 import helpers.hdbg as hdbg
 
@@ -42,7 +46,7 @@ def get_nested_dict_iterator(
         yield path, nested
     for key, value in nested.items():
         local_path = path + (key,)
-        if isinstance(value, collections.abc.Mapping):
+        if isinstance(value, AbcMapping):
             yield from get_nested_dict_iterator(value, local_path)
         else:
             yield local_path, value
