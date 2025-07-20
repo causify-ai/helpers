@@ -70,6 +70,135 @@ def is_header(line: str) -> Tuple[bool, int, str]:
 
 
 # #############################################################################
+# Frame chapters
+# #############################################################################
+
+
+def frame_chapters(txt: str, *, max_lev: int = 4) -> str:
+    """
+    Add the frame around each chapter.
+    """
+    txt_new: List[str] = []
+    # _LOG.debug("txt=%s", txt)
+    for i, line in enumerate(txt.split("\n")):
+        _LOG.debug("line=%d:%s", i, line)
+        m = re.match(r"^(\#+) ", line)
+        txt_processed = False
+        if m:
+            comment = m.group(1)
+            lev = len(comment)
+            _LOG.debug("  -> lev=%s", lev)
+            if lev < max_lev:
+                sep = comment + " " + "#" * (80 - 1 - len(comment))
+                txt_new.append(sep)
+                txt_new.append(line)
+                txt_new.append(sep)
+                txt_processed = True
+            else:
+                _LOG.debug(
+                    "  -> Skip formatting the chapter frame: lev=%d, max_lev=%d",
+                    lev,
+                    max_lev,
+                )
+        if not txt_processed:
+            txt_new.append(line)
+    txt_new_as_str = "\n".join(txt_new).rstrip("\n")
+    return txt_new_as_str
+
+
+def capitalize_header(txt: str) -> str:
+    """
+    Improve the header and slide titles.
+
+    - Headers start with one or more `#`s
+    - Slide titles start with one `*`
+
+    - The title is transformed to title case as below:
+        - ML theory -> ML Theory
+        - A map of machine learning -> A Map of Machine Learning
+        - Business strategists ->
+            Business Strategists
+        - Establish a phased, collaborative approach ->
+            Establish a Phased, Collaborative Approach
+
+    - Strings inside backticks, single quotes, and double quotes are preserved.
+    """
+    txt_new: List[str] = []
+    for i, line in enumerate(txt.split("\n")):
+        # Parse header (starting with `#`) and slide title (starting with `*`).
+        m = re.match(r"^(\#+|\*) (.*)$", line)
+        if m:
+            # Parse the title.
+            title = m.group(2)
+            # Transform to title case, leaving words that are all capitalized
+            # and conjunctions as is, while preserving quoted strings.
+            non_cap_words = {
+                "a",
+                "an",
+                "and",
+                "as",
+                "at",
+                "but",
+                "by",
+                "for",
+                "in",
+                "of",
+                "on",
+                "or",
+                "the",
+                "to",
+                "vs",
+                "with",
+            }
+            # Find and temporarily replace quoted strings to preserve them
+            quoted_strings = []
+            placeholders = []
+            # Pattern to match strings inside backticks, single quotes, or double quotes
+            quote_pattern = r'(`[^`]*`|\'[^\']*\'|"[^"]*")'
+
+            def replace_quoted(match: re.Match) -> str:
+                quoted_strings.append(match.group(0))
+                placeholder = f"__QUOTED_{len(quoted_strings) - 1}__"
+                placeholders.append(placeholder)
+                return placeholder
+
+            # Replace quoted strings with placeholders.
+            title_with_placeholders = re.sub(
+                quote_pattern, replace_quoted, title
+            )
+            # Split into words.
+            words = title_with_placeholders.split()
+            # Process each word.
+            for i, word in enumerate(words):
+                if word.startswith("__QUOTED_") and word.endswith("__"):
+                    # Skip placeholder words, they will be restored later.
+                    continue
+                elif i == 0 and not word.isupper():
+                    # Capitalize the first word.
+                    words[i] = word.title()
+                elif word.isupper():
+                    # Skip words that are all caps (e.g. ML, API).
+                    continue
+                elif word.lower() in non_cap_words:
+                    # Don't capitalize conjunctions and other minor words.
+                    words[i] = word.lower()
+                else:
+                    # Capitalize other words.
+                    words[i] = word.title()
+            title = " ".join(words)
+            # Restore quoted strings.
+            for i, placeholder in enumerate(placeholders):
+                title = title.replace(placeholder, quoted_strings[i])
+            # Reconstruct the line.
+            line = m.group(1) + " " + title
+            txt_new.append(line)
+        else:
+            txt_new.append(line)
+    txt_new_as_str = "\n".join(txt_new)
+    return txt_new_as_str
+
+
+# #############################################################################
 # Header processing
 # #############################################################################
 
@@ -175,13 +304,13 @@ class HeaderInfo:
         #
         self.children: List[HeaderInfo] = []
 
-    def as_tuple(self) -> Tuple[int, str, int]:
-        return (self.level, self.description, self.line_number)
-
     def __repr__(self) -> str:
         return (
             f"HeaderInfo({self.level}, '{self.description}', {self.line_number})"
         )
+
+    def as_tuple(self) -> Tuple[int, str, int]:
+        return (self.level, self.description, self.line_number)
 
 
 HeaderList = List[HeaderInfo]
@@ -387,6 +516,7 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 # #############################################################################
 
 
+# TODO(gp): Pass the text and not the file.
 def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     """
     Format the headers in the input file and write the formatted text to the
@@ -433,7 +563,7 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
-def modify_header_level(input_text: str, level: int) -> str:
+def modify_header_level(text: str, level: int) -> str:
     """
     Increase or decrease the level of headings by the specified amount.
 
@@ -442,7 +572,7 @@ def modify_header_level(input_text: str, level: int) -> str:
         negative decreases)
     :return: modified text with header levels adjusted
     """
-    lines = input_text.split("\n")
+    lines = text.split("\n")
     #
     txt_tmp = []
     for line in lines:
