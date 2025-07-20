@@ -511,17 +511,20 @@ def _run_all(args: argparse.Namespace) -> None:
         _cleanup_before(prefix)
     # - Filter
     if args.filter_by_header:
-        file_name = hmarkdo.filter_by_header(
-            file_name, args.filter_by_header, prefix
-        )
+        text = hio.from_file(file_name)
+        filtered_text = hmarkdo.filter_by_header(text, args.filter_by_header)
+        file_name = f"{prefix}.filter_by_header.txt"
+        hio.to_file(file_name, filtered_text)
     if args.filter_by_lines:
-        file_name = hmarkdo.filter_by_lines(
-            file_name, args.filter_by_lines, prefix
-        )
+        text = hio.from_file(file_name)
+        filtered_text = hmarkdo.filter_by_lines(text, args.filter_by_lines)
+        file_name = f"{prefix}.filter_by_lines.txt"
+        hio.to_file(file_name, filtered_text)
     if args.filter_by_slides:
-        file_name = hmarkdo.filter_by_slides(
-            file_name, args.filter_by_slides, prefix
-        )
+        text = hio.from_file(file_name)
+        filtered_text = hmarkdo.filter_by_slides(text, args.filter_by_slides)
+        file_name = f"{prefix}.filter_by_slides.txt"
+        hio.to_file(file_name, filtered_text)
     # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
