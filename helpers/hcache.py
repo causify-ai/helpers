@@ -244,6 +244,8 @@ def get_global_cache(
             if _DISK_CACHE is None:
                 _DISK_CACHE = _create_global_cache_backend(cache_type)
             global_cache = _DISK_CACHE
+        else:
+            raise ValueError(f"Invalid cache type '{cache_type}'")
     else:
         # Build a one-off cache using tag.
         global_cache = _create_global_cache_backend(cache_type, tag)

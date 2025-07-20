@@ -99,7 +99,7 @@ def get_env_var(
     as_bool: bool = False,
     default_value: Any = None,
     abort_on_missing: bool = True,
-) -> Union[str, bool]:
+) -> Union[str, bool, Any]:
     """
     Get an environment variable by name.
 

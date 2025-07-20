@@ -1931,8 +1931,7 @@ def run_dockerized_mermaid2(
         ]
     )
     docker_cmd = " ".join(docker_cmd)
-    ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
-    return ret
+    process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
 
 
 # #############################################################################
