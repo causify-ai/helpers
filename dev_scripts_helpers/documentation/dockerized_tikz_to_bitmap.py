@@ -9,6 +9,7 @@ import logging
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdockexec
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    hdocker.run_dockerized_tikz_to_bitmap(
+    hdockexec.run_dockerized_tikz_to_bitmap(
         args.input,
         cmd_opts,
         args.output,

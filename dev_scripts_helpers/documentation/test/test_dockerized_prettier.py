@@ -3,6 +3,7 @@ import os
 import pytest
 
 import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdockexec
 import helpers.hio as hio
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
@@ -38,7 +39,7 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
             "2",
         ]
         # Call function to test.
-        hdocker.run_dockerized_prettier(
+        hdockexec.run_dockerized_prettier(
             input_file_path,
             cmd_opts,
             output_file_path,
@@ -73,7 +74,7 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
             "2",
         ]
         # Call function to test.
-        hdocker.prettier_on_str(
+        hdockexec.prettier_on_str(
             input_file_path,
             cmd_opts,
             output_file_path,

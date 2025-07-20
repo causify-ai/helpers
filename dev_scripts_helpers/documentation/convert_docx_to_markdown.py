@@ -22,6 +22,7 @@ import shutil
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdockexec
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
@@ -142,7 +143,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         f"-f docx -t markdown_strict --output {md_file}"
     )
     container_type = "pandoc_only"
-    hdocker.run_dockerized_pandoc(cmd, container_type)
+    hdockexec.run_dockerized_pandoc(cmd, container_type)
     _move_media(md_file_figs)
     _clean_up_artifacts(md_file, md_file_figs)
     _LOG.info("Finished converting '%s' to '%s'.", docx_file, md_file)

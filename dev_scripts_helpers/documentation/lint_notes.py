@@ -13,6 +13,7 @@ from typing import Any, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdockexec
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -209,7 +210,7 @@ def _refresh_toc(
         # Run `markdown-toc` in a Docker container.
         use_sudo = hdocker.get_use_sudo()
         force_rebuild = False
-        hdocker.run_dockerized_markdown_toc(
+        hdockexec.run_dockerized_markdown_toc(
             tmp_file_name,
             cmd_opts,
             use_sudo=use_sudo,
@@ -341,7 +342,7 @@ def _process(
     # Prettify.
     action = "prettier"
     if _to_execute_action(action, actions):
-        txt = hdocker.prettier_on_str(txt, file_type=extension, **kwargs)
+        txt = hdockexec.prettier_on_str(txt, file_type=extension, **kwargs)
     # Post-process text.
     action = "postprocess"
     if _to_execute_action(action, actions):

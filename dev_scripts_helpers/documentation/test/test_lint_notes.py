@@ -7,6 +7,7 @@ import pytest
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdockexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -243,7 +244,7 @@ class Test_lint_notes2(hunitest.TestCase):
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self._get_text_problematic_for_prettier1()
-        act = hdocker.prettier_on_str(txt, file_type="txt")
+        act = hdockexec.prettier_on_str(txt, file_type="txt")
         exp = r"""
         - Python formatting
 

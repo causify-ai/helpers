@@ -6,6 +6,7 @@ from typing import Any, List, Tuple
 import pytest
 
 import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdockexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -241,7 +242,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.txt")
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_prettier(
+        hdockexec.run_dockerized_prettier(
             in_file_path,
             cmd_opts,
             out_file_path,
@@ -297,7 +298,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
+        act = hdockexec.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
         exp = {
             "input": "input.md",
@@ -318,7 +319,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
+        act = hdockexec.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
         exp = {
             "input": "input.md",
@@ -344,7 +345,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
+        act = hdockexec.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
         exp = {
             "input": "test/outcomes/tmp.pandoc.preprocess_notes.txt",
@@ -378,9 +379,9 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Parse the command.
-        parsed_args = hdocker.convert_pandoc_cmd_to_arguments(cmd)
+        parsed_args = hdockexec.convert_pandoc_cmd_to_arguments(cmd)
         # Convert back to command.
-        converted_cmd = hdocker.convert_pandoc_arguments_to_cmd(parsed_args)
+        converted_cmd = hdockexec.convert_pandoc_arguments_to_cmd(parsed_args)
         # Check that the converted command matches the original command.
         act = "pandoc " + converted_cmd
         exp = cmd
@@ -420,7 +421,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         cmd = " ".join(cmd_opts)
         container_type = "pandoc_only"
         use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_pandoc(cmd, container_type, use_sudo=use_sudo)
+        hdockexec.run_dockerized_pandoc(cmd, container_type, use_sudo=use_sudo)
         # Check.
         act = hio.from_file(out_file_path)
         self.assert_equal(
@@ -477,7 +478,7 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         in_file_path = _create_test_file(self, txt, extension="md")
         use_sudo = hdocker.get_use_sudo()
         force_rebuild = False
-        hdocker.run_dockerized_markdown_toc(
+        hdockexec.run_dockerized_markdown_toc(
             in_file_path,
             cmd_opts,
             use_sudo=use_sudo,
@@ -560,7 +561,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        hdocker.run_basic_latex(
+        hdockexec.run_basic_latex(
             in_file_path,
             cmd_opts,
             run_latex_again,
@@ -669,7 +670,7 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        hdocker.run_dockerized_tikz_to_bitmap(
+        hdockexec.run_dockerized_tikz_to_bitmap(
             in_file_path,
             cmd_opts,
             out_file_path,
@@ -735,7 +736,7 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        hdocker.run_dockerized_graphviz(
+        hdockexec.run_dockerized_graphviz(
             in_file_path,
             cmd_opts,
             out_file_path,

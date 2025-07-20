@@ -2,6 +2,7 @@ import re
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdockexec
 import helpers.hio as hio
 import helpers.hprint as hprint
 
@@ -24,7 +25,7 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
         f"pandoc {in_file_name} -o {out_file_name} --read=markdown --write=latex"
     )
     container_type = "pandoc_only"
-    hdocker.run_dockerized_pandoc(cmd, container_type)
+    hdockexec.run_dockerized_pandoc(cmd, container_type)
     # Read tmp file.
     res = hio.from_file(out_file_name)
     # Remove lines that contain \tightlist.
