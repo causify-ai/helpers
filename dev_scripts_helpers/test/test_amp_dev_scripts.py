@@ -22,18 +22,18 @@ class Test_url_py1(hunitest.TestCase):
             "http://localhost:10001/notebooks/oil/ST/"
             + "Task229_Exploratory_analysis_of_ST_data_part1.ipynb"
         )
-        act = hnetwor.get_file_name(url_tmp)
-        exp = "oil/ST/Task229_Exploratory_analysis_of_ST_data_part1.ipynb"
-        self.assertEqual(act, exp)
+        actual = hnetwor.get_file_name(url_tmp)
+        expected = "oil/ST/Task229_Exploratory_analysis_of_ST_data_part1.ipynb"
+        self.assertEqual(actual, expected)
 
     def test_get_file_name2(self) -> None:
         url_tmp = (
             "https://github.com/.../.../blob/"
             + "master/oil/ST/Task229_Exploratory_analysis_of_ST_data_part1.ipynb"
         )
-        act = hnetwor.get_file_name(url_tmp)
-        exp = "oil/ST/Task229_Exploratory_analysis_of_ST_data_part1.ipynb"
-        self.assertEqual(act, exp)
+        actual = hnetwor.get_file_name(url_tmp)
+        expected = "oil/ST/Task229_Exploratory_analysis_of_ST_data_part1.ipynb"
+        self.assertEqual(actual, expected)
 
     def test_run1(self) -> None:
         exec_name = hgit.find_file_in_git_tree("url.py")

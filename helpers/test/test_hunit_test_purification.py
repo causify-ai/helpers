@@ -28,30 +28,30 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_purify_text1(hunitest.TestCase):
-    def check_helper(self, txt: str, exp: str) -> None:
+    def check_helper(self, txt: str, expected: str) -> None:
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_txt_from_client(txt)
-        self.assert_equal(act, exp)
+        actual = text_purifier.purify_txt_from_client(txt)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         txt = "amp/helpers/test/test_system_interaction.py"
-        exp = "helpers/test/test_system_interaction.py"
-        self.check_helper(txt, exp)
+        expected = "helpers/test/test_system_interaction.py"
+        self.check_helper(txt, expected)
 
     def test2(self) -> None:
         txt = "amp/helpers/test/test_system_interaction.py"
-        exp = "helpers/test/test_system_interaction.py"
-        self.check_helper(txt, exp)
+        expected = "helpers/test/test_system_interaction.py"
+        self.check_helper(txt, expected)
 
     def test3(self) -> None:
         txt = "['amp/helpers/test/test_system_interaction.py']"
-        exp = "['helpers/test/test_system_interaction.py']"
-        self.check_helper(txt, exp)
+        expected = "['helpers/test/test_system_interaction.py']"
+        self.check_helper(txt, expected)
 
     def test4(self) -> None:
         txt = "app.helpers.test.test_system_interaction.py"
-        exp = "helpers.test.test_system_interaction.py"
-        self.check_helper(txt, exp)
+        expected = "helpers.test.test_system_interaction.py"
+        self.check_helper(txt, expected)
 
     def test5(self) -> None:
         """
@@ -64,8 +64,8 @@ class Test_purify_text1(hunitest.TestCase):
         ):
             mock_git_root.return_value = "/home/user/project"
             mock_pwd.return_value = "/home/user"
-            exp = "$GIT_ROOT/src/file.py"
-            self.check_helper(txt, exp)
+            expected = "$GIT_ROOT/src/file.py"
+            self.check_helper(txt, expected)
 
     def test6(self) -> None:
         """
@@ -79,8 +79,8 @@ class Test_purify_text1(hunitest.TestCase):
         ):
             mock_git_root.return_value = "/home/user/project"
             mock_pwd.return_value = "/home/user"
-            exp = "$GIT_ROOT/src/project/file.py"
-            self.check_helper(txt, exp)
+            expected = "$GIT_ROOT/src/project/file.py"
+            self.check_helper(txt, expected)
 
     def test7(self) -> None:
         """
@@ -94,8 +94,8 @@ class Test_purify_text1(hunitest.TestCase):
         ):
             mock_git_root.return_value = "/home/user/project"
             mock_pwd.return_value = "/home/user/project/src"
-            exp = "$GIT_ROOT/src/project/file.py"
-            self.check_helper(txt, exp)
+            expected = "$GIT_ROOT/src/project/file.py"
+            self.check_helper(txt, expected)
 
     def test8(self) -> None:
         """
@@ -108,8 +108,8 @@ class Test_purify_text1(hunitest.TestCase):
         ):
             mock_git_root.return_value = "/home/user/project"
             mock_pwd.return_value = "/home/user/project/src"
-            exp = "/home/user/other/file.py"
-            self.check_helper(txt, exp)
+            expected = "/home/user/other/file.py"
+            self.check_helper(txt, expected)
 
     def test9(self) -> None:
         super_module_path = hgit.get_client_root(super_module=True)
@@ -126,7 +126,7 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: [W1401(ano
 dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Name 're' is not defined [mypy]
 """
         txt = txt.replace("$SUPER_MODULE", super_module_path)
-        exp = r"""
+        expected = r"""
 ************* Module input [pylint]
 $GIT_ROOT/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py: Your code has been rated at -10.00/10 (previous run: -10.00/10, +0.00) [pylint]
 $GIT_ROOT/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3:20: W605 invalid escape sequence '\s' [flake8]
@@ -137,7 +137,7 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: [W1401(ano
 dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Name 're' is not defined [mypy]
 """
         # pylint: enable=line-too-long
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test10(self) -> None:
         """
@@ -147,8 +147,8 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
         hgit = umock.Mock()
         hgit.get_client_root.return_value = "/"
         txt = "/tmp/subdir1"
-        exp = txt
-        self.check_helper(txt, exp)
+        expected = txt
+        self.check_helper(txt, expected)
 
     def test11(self) -> None:
         """
@@ -162,14 +162,14 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
         from amp.app.helpers.config import get_config
         import amp.app.helpers_root.config
         """
-        exp = """
+        expected = """
         import helpers.test.test_file
         from helpers.hprint import dedent
         import helpers.config
         from helpers.config import get_config
         import helpers.config
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test12(self) -> None:
         """
@@ -179,11 +179,11 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
         app/amp/helpers_root/helpers/test/test_file.py
         amp/app/helpers_root/helpers/test/test_file.py
         """
-        exp = """
+        expected = """
         helpers/test/test_file.py
         helpers/test/test_file.py
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
 
 # #############################################################################
@@ -192,10 +192,10 @@ dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Nam
 
 
 class Test_purify_directory_paths1(hunitest.TestCase):
-    def check_helper(self, input_: str, exp: str) -> None:
+    def check_helper(self, input_: str, expected: str) -> None:
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_directory_paths(input_)
-        self.assert_equal(act, exp, fuzzy_match=True)
+        actual = text_purifier.purify_directory_paths(input_)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test1(self) -> None:
         """
@@ -213,8 +213,8 @@ class Test_purify_directory_paths1(hunitest.TestCase):
             umock.patch("os.getcwd", return_value="/home/user"),
         ):
             input_ = "/home/user/gitroot/src/subdir/file.py"
-            exp = "$GIT_ROOT/src/subdir/file.py"
-            self.check_helper(input_, exp)
+            expected = "$GIT_ROOT/src/subdir/file.py"
+            self.check_helper(input_, expected)
 
     def test2(self) -> None:
         """
@@ -232,8 +232,8 @@ class Test_purify_directory_paths1(hunitest.TestCase):
             umock.patch("os.getcwd", return_value="/home/user"),
         ):
             input_ = "/home/user/csfy_host_git_root/other/file.py"
-            exp = "$CSFY_HOST_GIT_ROOT_PATH/other/file.py"
-            self.check_helper(input_, exp)
+            expected = "$CSFY_HOST_GIT_ROOT_PATH/other/file.py"
+            self.check_helper(input_, expected)
 
     def test3(self) -> None:
         """
@@ -251,8 +251,8 @@ class Test_purify_directory_paths1(hunitest.TestCase):
             umock.patch("os.getcwd", return_value="/home/user"),
         ):
             input_ = "/home/user/documents/file.py"
-            exp = "$PWD/documents/file.py"
-            self.check_helper(input_, exp)
+            expected = "$PWD/documents/file.py"
+            self.check_helper(input_, expected)
 
     def test4(self) -> None:
         """
@@ -271,8 +271,8 @@ class Test_purify_directory_paths1(hunitest.TestCase):
             umock.patch("os.getcwd", return_value="/home/user"),
         ):
             input_ = "/home/user/file.py"
-            exp = "$GIT_ROOT/file.py"
-            self.check_helper(input_, exp)
+            expected = "$GIT_ROOT/file.py"
+            self.check_helper(input_, expected)
 
 
 # #############################################################################
@@ -281,42 +281,42 @@ class Test_purify_directory_paths1(hunitest.TestCase):
 
 
 class Test_purify_from_environment1(hunitest.TestCase):
-    def check_helper(self, input_: str, exp: str) -> None:
+    def check_helper(self, input_: str, expected: str) -> None:
         try:
             # Manually set a user name to test the behaviour.
             hsystem.set_user_name("root")
             # Run.
             text_purifier = huntepur.TextPurifier()
-            act = text_purifier.purify_from_environment(input_)
-            self.assert_equal(act, exp, fuzzy_match=True)
+            actual = text_purifier.purify_from_environment(input_)
+            self.assert_equal(actual, expected, fuzzy_match=True)
         finally:
             # Reset the global user name variable regardless of a test results.
             hsystem.set_user_name(None)
 
     def test1(self) -> None:
         input_ = "IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-root-1.0.0"
-        exp = "IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0"
-        self.check_helper(input_, exp)
+        expected = "IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0"
+        self.check_helper(input_, expected)
 
     def test2(self) -> None:
         input_ = "--name root.amp_test.app.app"
-        exp = "--name $USER_NAME.amp_test.app.app"
-        self.check_helper(input_, exp)
+        expected = "--name $USER_NAME.amp_test.app.app"
+        self.check_helper(input_, expected)
 
     def test3(self) -> None:
         input_ = "run --rm -l user=root"
-        exp = "run --rm -l user=$USER_NAME"
-        self.check_helper(input_, exp)
+        expected = "run --rm -l user=$USER_NAME"
+        self.check_helper(input_, expected)
 
     def test4(self) -> None:
         input_ = "run_docker_as_root='True'"
-        exp = "run_docker_as_root='True'"
-        self.check_helper(input_, exp)
+        expected = "run_docker_as_root='True'"
+        self.check_helper(input_, expected)
 
     def test5(self) -> None:
         input_ = "out_col_groups: [('root_q_mv',), ('root_q_mv_adj',), ('root_q_mv_os',)]"
-        exp = "out_col_groups: [('root_q_mv',), ('root_q_mv_adj',), ('root_q_mv_os',)]"
-        self.check_helper(input_, exp)
+        expected = "out_col_groups: [('root_q_mv',), ('root_q_mv_adj',), ('root_q_mv_os',)]"
+        self.check_helper(input_, expected)
 
 
 # #############################################################################
@@ -325,12 +325,12 @@ class Test_purify_from_environment1(hunitest.TestCase):
 
 
 class Test_purify_amp_reference1(hunitest.TestCase):
-    def check_helper(self, txt: str, exp: str) -> None:
+    def check_helper(self, txt: str, expected: str) -> None:
         txt = hprint.dedent(txt)
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_amp_references(txt)
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp)
+        actual = text_purifier.purify_amp_references(txt)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -341,12 +341,12 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         Instance '<amp.helpers.test.test_dbg._Man object at 0x123456>'
             of class '_Man' is not a subclass of '<class 'int'>'
         """
-        exp = r"""
+        expected = r"""
         * Failed assertion *
         Instance '<helpers.test.test_dbg._Man object at 0x123456>'
             of class '_Man' is not a subclass of '<class 'int'>'
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test2(self) -> None:
         """
@@ -355,10 +355,10 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         txt = """
         ImportError: No module named 'amp.helpers.test.test_file'
         """
-        exp = r"""
+        expected = r"""
         ImportError: No module named 'helpers.test.test_file'
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test3(self) -> None:
         """
@@ -368,11 +368,11 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         File "/home/user/amp/helpers/test/test_dbg.py", line 10
         File "/home/user/amp/helpers/test/test_file.py", line 20
         """
-        exp = r"""
+        expected = r"""
         File "/home/user/helpers/test/test_dbg.py", line 10
         File "/home/user/helpers/test/test_file.py", line 20
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test4(self) -> None:
         """
@@ -383,12 +383,12 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         import amp.helpers.test.test_file
         from amp.helpers.test.test_dbg import _Man
         """
-        exp = r"""
+        expected = r"""
         from helpers.test import test_dbg
         import helpers.test.test_file
         from helpers.test.test_dbg import _Man
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test5(self) -> None:
         """
@@ -397,10 +397,10 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         txt = """
         # This is a test for amp.helpers.test.test_dbg
         """
-        exp = r"""
+        expected = r"""
         # This is a test for helpers.test.test_dbg
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test6(self) -> None:
         """
@@ -412,28 +412,28 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         Error in amp.helpers.test.test_file: File not found
         Error in amp.helpers.test.test_dbg: Permission denied
         """
-        exp = r"""
+        expected = r"""
         Error in helpers.test.test_dbg: Invalid input
         Error in helpers.test.test_file: File not found
         Error in helpers.test.test_dbg: Permission denied
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test7(self) -> None:
         """
         Test that longer amp paths are processed before shorter ones.
         """
         txt = "amp/helpers/amp/test/test_file.py"
-        exp = "helpers/test/test_file.py"
-        self.check_helper(txt, exp)
+        expected = "helpers/test/test_file.py"
+        self.check_helper(txt, expected)
 
     def test8(self) -> None:
         """
         Test that nested amp references are processed correctly.
         """
         txt = "amp.helpers.test.amp.TestClass"
-        exp = "helpers.test.amp.TestClass"
-        self.check_helper(txt, exp)
+        expected = "helpers.test.amp.TestClass"
+        self.check_helper(txt, expected)
 
     def test9(self) -> None:
         """
@@ -445,12 +445,12 @@ class Test_purify_amp_reference1(hunitest.TestCase):
         # Test created for amp.core.dataflow.model
         # Test created for amp.helpers.test.test_dbg._Man
         """
-        exp = r"""
+        expected = r"""
         # Test created for helpers.test.test_file
         # Test created for core.dataflow.model
         # Test created for helpers.test.test_dbg._Man
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
 
 # #############################################################################
@@ -459,34 +459,34 @@ class Test_purify_amp_reference1(hunitest.TestCase):
 
 
 class Test_purify_app_references1(hunitest.TestCase):
-    def check_helper(self, txt: str, exp: str) -> None:
+    def check_helper(self, txt: str, expected: str) -> None:
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_app_references(txt)
-        self.assert_equal(act, exp)
+        actual = text_purifier.purify_app_references(txt)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
         Test app.helpers reference removal.
         """
         txt = "app.helpers.test.test_file"
-        exp = "helpers.test.test_file"
-        self.check_helper(txt, exp)
+        expected = "helpers.test.test_file"
+        self.check_helper(txt, expected)
 
     def test2(self) -> None:
         """
         Test app.amp.helpers reference removal.
         """
         txt = "app.amp.helpers.test.test_file"
-        exp = "amp.helpers.test.test_file"
-        self.check_helper(txt, exp)
+        expected = "amp.helpers.test.test_file"
+        self.check_helper(txt, expected)
 
     def test3(self) -> None:
         """
         Test app.amp.helpers_root.helpers reference removal.
         """
         txt = "app.amp.helpers_root.helpers.test.test_file"
-        exp = "amp.helpers.test.test_file"
-        self.check_helper(txt, exp)
+        expected = "amp.helpers.test.test_file"
+        self.check_helper(txt, expected)
 
     def test4(self) -> None:
         """
@@ -497,36 +497,36 @@ class Test_purify_app_references1(hunitest.TestCase):
         app.amp.helpers.test.test_file
         app.amp.helpers_root.helpers.test.test_file
         """
-        exp = """
+        expected = """
         helpers.test.test_file
         amp.helpers.test.test_file
         amp.helpers.test.test_file
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test5(self) -> None:
         """
         Test that longer app paths are processed before shorter ones.
         """
         txt = "app/helpers/app/test/test_file.py"
-        exp = "helpers/test/test_file.py"
-        self.check_helper(txt, exp)
+        expected = "helpers/test/test_file.py"
+        self.check_helper(txt, expected)
 
     def test6(self) -> None:
         """
         Test that app.amp.helpers_root references are processed before app.amp.
         """
         txt = "app.amp.helpers_root.helpers.test.TestClass"
-        exp = "amp.helpers.test.TestClass"
-        self.check_helper(txt, exp)
+        expected = "amp.helpers.test.TestClass"
+        self.check_helper(txt, expected)
 
     def test7(self) -> None:
         """
         Test string with no app references.
         """
         txt = "path/to/file.txt"
-        exp = "path/to/file.txt"
-        self.check_helper(txt, exp)
+        expected = "path/to/file.txt"
+        self.check_helper(txt, expected)
 
     def test8(self) -> None:
         """
@@ -538,12 +538,12 @@ class Test_purify_app_references1(hunitest.TestCase):
         # Test created for app.core.dataflow.model
         # Test created for app.helpers.test.test_dbg._Man
         """
-        exp = r"""
+        expected = r"""
         # Test created for helpers.test.test_file
         # Test created for core.dataflow.model
         # Test created for helpers.test.test_dbg._Man
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
 
 # #############################################################################
@@ -562,9 +562,9 @@ class Test_purify_from_env_vars(hunitest.TestCase):
         env_var_value = os.environ[env_var]
         input_ = f"s3://{env_var_value}/"
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_from_env_vars(input_)
-        exp = f"s3://${env_var}/"
-        self.assert_equal(act, exp, fuzzy_match=True)
+        actual = text_purifier.purify_from_env_vars(input_)
+        expected = f"s3://${env_var}/"
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     @pytest.mark.skipif(
         not hrecouti.get_repo_config().get_name() == "//cmamp",
@@ -606,32 +606,32 @@ class Test_purify_from_env_vars(hunitest.TestCase):
 
 
 class Test_purify_object_representation1(hunitest.TestCase):
-    def check_helper(self, txt: str, exp: str) -> None:
+    def check_helper(self, txt: str, expected: str) -> None:
         txt = hprint.dedent(txt)
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_object_representation(txt)
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp)
+        actual = text_purifier.purify_object_representation(txt)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         txt = """
         load_prices: {'source_node_name': 'RealTimeDataSource object
         at 0x7f571c329b50
         """
-        exp = r"""
+        expected = r"""
         load_prices: {'source_node_name': 'RealTimeDataSource object
         at 0x"""
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test2(self) -> None:
         txt = """
         load_prices: {'source_node_name at 0x7f571c329b51':
         'RealTimeDataSource object at 0x7f571c329b50
         """
-        exp = r"""
+        expected = r"""
         load_prices: {'source_node_name at 0x':
         'RealTimeDataSource object at 0x"""
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test3(self) -> None:
         txt = """
@@ -649,7 +649,7 @@ class Test_purify_object_representation1(hunitest.TestCase):
         'ath_end_time': datetime.time(16, 40), 'trading_end_time':
         datetime.time(16, 4  0)}}
         """
-        exp = r"""
+        expected = r"""
         load_prices: {'source_node_name': 'RealTimeDataSource',
         'source_node_kwargs': {'market_data':
         <market_data.market_data.ReplayedMarketData
@@ -663,7 +663,7 @@ class Test_purify_object_representation1(hunitest.TestCase):
         datetime.time(9, 30), 'trading_start_time': datetime.time(9, 30),
         'ath_end_time': datetime.time(16, 40), 'trading_end_time':
         datetime.time(16, 4  0)}}"""
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test4(self) -> None:
         """
@@ -685,7 +685,7 @@ class Test_purify_object_representation1(hunitest.TestCase):
         tz='America/New_York'), wall_clock_time=Timestamp('2022-08-04
         09:29:14.131619-0400', tz='America/New_York'))] <list>)
         """
-        exp = """
+        expected = """
         _knowledge_datetime_col_name='timestamp_db' <str> _delay_in_secs='0'
         <int>>, 'bar_duration_in_secs': 300, 'rt_timeout_in_secs_or_time': 900} <dict>,
         _dst_dir=None <NoneType>, _fit_at_beginning=False <bool>,
@@ -701,8 +701,8 @@ class Test_purify_object_representation1(hunitest.TestCase):
         tz='America/New_York'))] <list>)
         """
         txt = " ".join(hprint.dedent(txt).split("\n"))
-        exp = " ".join(hprint.dedent(exp).split("\n"))
-        self.check_helper(txt, exp)
+        expected = " ".join(hprint.dedent(expected).split("\n"))
+        self.check_helper(txt, expected)
 
 
 # #############################################################################
@@ -711,10 +711,10 @@ class Test_purify_object_representation1(hunitest.TestCase):
 
 
 class Test_purify_today_date1(hunitest.TestCase):
-    def check_helper(self, txt: str, exp: str) -> None:
+    def check_helper(self, txt: str, expected: str) -> None:
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_today_date(txt)
-        self.assert_equal(act, exp)
+        actual = text_purifier.purify_today_date(txt)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -726,11 +726,11 @@ class Test_purify_today_date1(hunitest.TestCase):
         Report generated on {today_str}_103045.
         Next run scheduled at {today_str}_235959.
         """
-        exp = """
+        expected = """
         Report generated on YYYYMMDD_HHMMSS.
         Next run scheduled at YYYYMMDD_HHMMSS.
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test2(self) -> None:
         """
@@ -742,11 +742,11 @@ class Test_purify_today_date1(hunitest.TestCase):
         Backup completed: {today_str}.
         Last modified: {today_str}.
             """
-        exp = """
+        expected = """
         Backup completed: YYYYMMDD.
         Last modified: YYYYMMDD.
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test3(self) -> None:
         """
@@ -757,12 +757,12 @@ class Test_purify_today_date1(hunitest.TestCase):
         Code: 20000321
         Reference: 20000320_999999
         """
-        exp = """
+        expected = """
         ID: 20000319_123456
         Code: 20000321
         Reference: 20000320_999999
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
 
 # #############################################################################
@@ -771,42 +771,42 @@ class Test_purify_today_date1(hunitest.TestCase):
 
 
 class Test_purify_white_spaces1(hunitest.TestCase):
-    def check_helper(self, txt: str, exp: str) -> None:
+    def check_helper(self, txt: str, expected: str) -> None:
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_white_spaces(txt)
-        self.assert_equal(act, exp)
+        actual = text_purifier.purify_white_spaces(txt)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
         Test removing trailing spaces and tabs.
         """
         txt = "Line 1    \nLine 2\t\nLine 3  \t  \n"
-        exp = "Line 1\nLine 2\nLine 3\n"
-        self.check_helper(txt, exp)
+        expected = "Line 1\nLine 2\nLine 3\n"
+        self.check_helper(txt, expected)
 
     def test2(self) -> None:
         """
         Test removing trailing spaces and preserving empty lines.
         """
         txt = "Line 1\n\n\nLine 2\n\n\n\nLine 3  "
-        exp = "Line 1\n\n\nLine 2\n\n\n\nLine 3"
-        self.check_helper(txt, exp)
+        expected = "Line 1\n\n\nLine 2\n\n\n\nLine 3"
+        self.check_helper(txt, expected)
 
     def test3(self) -> None:
         """
         Test removing trailing whitespace and preserving leading whitespace.
         """
         txt = "   \n  Line 1\nLine 2\n  Line 3  \n  "
-        exp = "   \n  Line 1\nLine 2\n  Line 3\n"
-        self.check_helper(txt, exp)
+        expected = "   \n  Line 1\nLine 2\n  Line 3\n"
+        self.check_helper(txt, expected)
 
     def test4(self) -> None:
         """
         Test preserving intentional whitespace within lines.
         """
         txt = "Line 1    with    spaces\nLine 2\twith\ttabs"
-        exp = "Line 1    with    spaces\nLine 2\twith\ttabs\n"
-        self.check_helper(txt, exp)
+        expected = "Line 1    with    spaces\nLine 2\twith\ttabs\n"
+        self.check_helper(txt, expected)
 
 
 # #############################################################################
@@ -815,10 +815,10 @@ class Test_purify_white_spaces1(hunitest.TestCase):
 
 
 class Test_purify_parquet_file_names1(hunitest.TestCase):
-    def check_helper(self, txt: str, exp: str) -> None:
+    def check_helper(self, txt: str, expected: str) -> None:
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_parquet_file_names(txt)
-        self.assert_equal(act, exp)
+        actual = text_purifier.purify_parquet_file_names(txt)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -831,11 +831,11 @@ class Test_purify_parquet_file_names1(hunitest.TestCase):
         s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=1/ea5e3faed73941a2901a2128abeac4ca-0.parquet
         s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=2/f7a39fefb69b40e0987cec39569df8ed-0.parquet
         """
-        exp = """
+        expected = """
         s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=1/data.parquet
         s3://some_bucket/root/currency_pair=BTC_USDT/year=2024/month=2/data.parquet
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test2(self) -> None:
         """
@@ -844,10 +844,10 @@ class Test_purify_parquet_file_names1(hunitest.TestCase):
         txt = """
         ffa39fffb69b40e0987cec39569df8ed-0.parquet
         """
-        exp = """
+        expected = """
         data.parquet
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
 
 # #############################################################################
@@ -856,10 +856,10 @@ class Test_purify_parquet_file_names1(hunitest.TestCase):
 
 
 class Test_purify_helpers1(hunitest.TestCase):
-    def check_helper(self, txt: str, exp: str) -> None:
+    def check_helper(self, txt: str, expected: str) -> None:
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_helpers(txt)
-        self.assert_equal(act, exp)
+        actual = text_purifier.purify_helpers(txt)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -870,12 +870,12 @@ class Test_purify_helpers1(hunitest.TestCase):
         from helpers_root.helpers.hprint import dedent
         import helpers_root.config_root.config as config
         """
-        exp = """
+        expected = """
         import helpers.hdbg as hdbg
         from helpers.hprint import dedent
         import config_root.config as config
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test2(self) -> None:
         """
@@ -886,12 +886,12 @@ class Test_purify_helpers1(hunitest.TestCase):
         /path/to/helpers/hprint.py
         /path/to/config_root/config.py
         """
-        exp = """
+        expected = """
         /path/to/helpers/hdbg.py
         /path/to/helpers/hprint.py
         /path/to/config_root/config.py
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test3(self) -> None:
         """
@@ -903,13 +903,13 @@ class Test_purify_helpers1(hunitest.TestCase):
         import helpers_root.config_root.config
         from /path/to/helpers_root/config_root/config import settings
         """
-        exp = """
+        expected = """
         import helpers.hdbg
         from /path/to/helpers/hprint import dedent
         import config_root.config
         from /path/to/config_root/config import settings
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
     def test4(self) -> None:
         """
@@ -921,13 +921,13 @@ class Test_purify_helpers1(hunitest.TestCase):
         import helpers_utils
         path/to/other/helpers/file.py
         """
-        exp = """
+        expected = """
         import other_module
         from other_package import helpers
         import helpers_utils
         path/to/other/helpers/file.py
         """
-        self.check_helper(txt, exp)
+        self.check_helper(txt, expected)
 
 
 # #############################################################################
@@ -979,12 +979,12 @@ class Test_purify_line_number1(hunitest.TestCase):
 
 
 class Test_purify_file_names1(hunitest.TestCase):
-    def check_helper(self, file_names: List[str], exp: List[str]) -> None:
+    def check_helper(self, file_names: List[str], expected: List[str]) -> None:
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_file_names(file_names)
-        act = "\n".join(str(path) for path in act)
-        exp = "\n".join(str(path) for path in exp)
-        self.assert_equal(act, exp)
+        actual = text_purifier.purify_file_names(file_names)
+        actual = "\n".join(str(path) for path in actual)
+        expected = "\n".join(str(path) for path in expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
@@ -997,11 +997,11 @@ class Test_purify_file_names1(hunitest.TestCase):
                 "/home/user/gitroot/helpers/test/test_file.py",
                 "/home/user/gitroot/amp/helpers/test/test_dbg.py",
             ]
-            exp = [
+            expected = [
                 "helpers/test/test_file.py",
                 "helpers/test/test_dbg.py",
             ]
-            self.check_helper(txt, exp)
+            self.check_helper(txt, expected)
 
     def test2(self) -> None:
         """
@@ -1014,11 +1014,11 @@ class Test_purify_file_names1(hunitest.TestCase):
                 "/home/user/gitroot/amp/helpers/amp/test/test_file.py",
                 "/home/user/gitroot/amp/helpers/test/amp/test_dbg.py",
             ]
-            exp = [
+            expected = [
                 "helpers/test/test_file.py",
                 "helpers/test/test_dbg.py",
             ]
-            self.check_helper(txt, exp)
+            self.check_helper(txt, expected)
 
     def test3(self) -> None:
         """
@@ -1032,11 +1032,11 @@ class Test_purify_file_names1(hunitest.TestCase):
                 "/home/user/gitroot/app/helpers/test/test_file.py",
                 "/home/user/gitroot/app/amp/helpers/test/test_dbg.py",
             ]
-            exp = [
+            expected = [
                 "app/helpers/test/test_file.py",
                 "app/helpers/test/test_dbg.py",
             ]
-            self.check_helper(txt, exp)
+            self.check_helper(txt, expected)
 
     def test4(self) -> None:
         """
@@ -1046,5 +1046,5 @@ class Test_purify_file_names1(hunitest.TestCase):
             "helpers.hgit.get_client_root", return_value="/home/user/gitroot"
         ):
             txt = []
-            exp = []
-            self.check_helper(txt, exp)
+            expected = []
+            self.check_helper(txt, expected)

@@ -207,7 +207,7 @@ def _get_files() -> Tuple[str, str]:
 
 
 def _run_notebook_helper(
-    self: Any, cmd_opts: List[str], exp_pass: bool, exp: str
+    self: Any, cmd_opts: List[str], exp_pass: bool, expected: str
 ) -> None:
     # Build command line.
     dst_dir = self.get_scratch_space()
@@ -217,7 +217,7 @@ def _run_notebook_helper(
         f"--dst_dir {dst_dir}",
         f"--notebook {notebook_file}",
     ]
-    run_cmd_line(self, cmd, cmd_opts, dst_dir, exp, exp_pass)
+    run_cmd_line(self, cmd, cmd_opts, dst_dir, expected, exp_pass)
 
 
 # #############################################################################

@@ -18,7 +18,7 @@ class Test_Traceback1(hunitest.TestCase):
             TEST
         Traceback (most recent call last):
           File "/app/amp/helpers/test/test_lib_tasks.py", line 27, in test_get_gh_issue_title2
-            act = ltasks._get_gh_issue_title(issue_id, repo)
+            actual = ltasks._get_gh_issue_title(issue_id, repo)
           File "/app/amp/helpers/lib_tasks.py", line 1265, in _get_gh_issue_title
             task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
           File "/app/amp/helpers/git.py", line 397, in get_task_prefix_from_repo_short_name
@@ -36,7 +36,7 @@ class Test_Traceback1(hunitest.TestCase):
         # Check.
         exp_traceback = """Traceback (most recent call last):
   File "/app/amp/helpers/test/test_lib_tasks.py", line 27, in test_get_gh_issue_title2
-    act = ltasks._get_gh_issue_title(issue_id, repo)
+    actual = ltasks._get_gh_issue_title(issue_id, repo)
   File "/app/amp/helpers/lib_tasks.py", line 1265, in _get_gh_issue_title
     task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
   File "/app/amp/helpers/git.py", line 397, in get_task_prefix_from_repo_short_name
@@ -57,7 +57,7 @@ NameError: name 'repo_short_name' is not defined
             TEST
         Traceback (most recent call last):
           File "/app/amp/helpers/test/test_lib_tasks.py", line 27, in test_get_gh_issue_title2
-            act = ltasks._get_gh_issue_title(issue_id, repo)
+            actual = ltasks._get_gh_issue_title(issue_id, repo)
           File "/app/amp/helpers/lib_tasks.py", line 1265, in _get_gh_issue_title
             task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
           File "/app/amp/helpers/git.py", line 397, in get_task_prefix_from_repo_short_name
@@ -71,7 +71,7 @@ NameError: name 'repo_short_name' is not defined
             (
                 "$GIT_ROOT/helpers/test/test_lib_tasks.py",
                 27,
-                "test_get_gh_issue_title2:act = ltasks._get_gh_issue_title(issue_id, repo)",
+                "test_get_gh_issue_title2:actual = ltasks._get_gh_issue_title(issue_id, repo)",
             ),
             (
                 "$GIT_ROOT/helpers/lib_tasks.py",
@@ -89,7 +89,7 @@ NameError: name 'repo_short_name' is not defined
         exp_traceback = """
         Traceback (most recent call last):
           File "$GIT_ROOT/helpers/test/test_lib_tasks.py", line 27, in test_get_gh_issue_title2
-            act = ltasks._get_gh_issue_title(issue_id, repo)
+            actual = ltasks._get_gh_issue_title(issue_id, repo)
           File "$GIT_ROOT/helpers/lib_tasks.py", line 1265, in _get_gh_issue_title
             task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
           File "$GIT_ROOT/helpers/git.py", line 397, in get_task_prefix_from_repo_short_name
@@ -171,9 +171,9 @@ NameError: name 'repo_short_name' is not defined
         ______________________ Test_pytest_failed1.test_classes1 _______________________
         Traceback (most recent call last):
           File "/app/amp/helpers/test/test_lib_tasks.py", line 1460, in test_classes1
-            self._helper(file_name, target_type, exp)
+            self._helper(file_name, target_type, expected)
           File "/app/amp/helpers/test/test_lib_tasks.py", line 1440, in _helper
-            act = ltasks.pytest_failed(ctx, use_frozen_list=use_frozen_list,
+            actual = ltasks.pytest_failed(ctx, use_frozen_list=use_frozen_list,
           File "/venv/lib/python3.8/site-packages/invoke/tasks.py", line 127, in __call__
             result = self.body(*args, **kwargs)
           File "/app/amp/helpers/lib_tasks.py", line 2140, in pytest_failed
@@ -192,8 +192,8 @@ NameError: name 'repo_short_name' is not defined
         # pylint: enable=line-too-long
         purify_from_client = False
         exp_cfile = """
-        $GIT_ROOT/helpers/test/test_lib_tasks.py:1460:test_classes1:self._helper(file_name, target_type, exp)
-        $GIT_ROOT/helpers/test/test_lib_tasks.py:1440:_helper:act = ltasks.pytest_failed(ctx, use_frozen_list=use_frozen_list,
+        $GIT_ROOT/helpers/test/test_lib_tasks.py:1460:test_classes1:self._helper(file_name, target_type, expected)
+        $GIT_ROOT/helpers/test/test_lib_tasks.py:1440:_helper:actual = ltasks.pytest_failed(ctx, use_frozen_list=use_frozen_list,
         /venv/lib/python3.8/site-packages/invoke/tasks.py:127:__call__:result = self.body(*args, **kwargs)
         $GIT_ROOT/helpers/lib_tasks.py:2140:pytest_failed:hdbg.dassert(m, "Invalid test='%s'", test)
         $GIT_ROOT/helpers/dbg.py:129:dassert:_dfatal(txt, msg, *args)
@@ -202,9 +202,9 @@ NameError: name 'repo_short_name' is not defined
         exp_traceback = r"""
         Traceback (most recent call last):
           File "$GIT_ROOT/helpers/test/test_lib_tasks.py", line 1460, in test_classes1
-            self._helper(file_name, target_type, exp)
+            self._helper(file_name, target_type, expected)
           File "$GIT_ROOT/helpers/test/test_lib_tasks.py", line 1440, in _helper
-            act = ltasks.pytest_failed(ctx, use_frozen_list=use_frozen_list,
+            actual = ltasks.pytest_failed(ctx, use_frozen_list=use_frozen_list,
           File "/venv/lib/python3.8/site-packages/invoke/tasks.py", line 127, in __call__
             result = self.body(*args, **kwargs)
           File "$GIT_ROOT/helpers/lib_tasks.py", line 2140, in pytest_failed
