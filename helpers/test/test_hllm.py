@@ -74,6 +74,16 @@ def _get_completion_parameters3() -> Dict[str, Any]:
     return data
 
 
+def _get_completion_parameters4() -> Dict[str, Any]:
+    data = {
+        "user_prompt": _USER_PROMPT1,
+        "system_prompt": _SYSTEM_PROMPT1,
+        "temperature": _TEMPERATURE1,
+        "model": _MODEL4,
+    }
+    return data
+
+
 # #############################################################################
 # Test_get_completion
 # #############################################################################
@@ -119,7 +129,18 @@ class Test_get_completion(hunitest.TestCase):
         """
         Verify if no model is given.
         """
-        parameters4 = _get_completion_parameters0()
+        parameters0 = _get_completion_parameters0()
+        actual_response = hllm.get_completion(
+            **parameters0, cache_mode="HIT_CACHE_OR_ABORT"
+        )
+        self.assertIsInstance(actual_response, str)
+        self.check_string(actual_response)
+
+    def test5(self) -> None:
+        """
+        Verify if openai models always use openai client.
+        """
+        parameters4 = _get_completion_parameters4()
         actual_response = hllm.get_completion(
             **parameters4, cache_mode="HIT_CACHE_OR_ABORT"
         )
