@@ -86,7 +86,6 @@ def _get_llm_provider_and_model(model: str) -> Tuple[str, str]:
     return provider_name, model
 
 
-
 def response_to_txt(response: Any) -> str:
     """
     Convert an OpenAI API response to a text string.
@@ -123,9 +122,6 @@ def _extract(
         if hasattr(file, attr):
             obj_tmp[attr] = getattr(file, attr)
     return obj_tmp
-
-
-
 
 
 # #############################################################################
@@ -836,6 +832,9 @@ def apply_prompt_to_dataframe(
         for i in range(len(processed_response)):
             m = re.match(r"\d+: (.*)\s*", processed_response[i])
             hdbg.dassert(m, f"Invalid response: {processed_response[i]}")
+            # The linter doesn't understand that `dassert` is equivalent to an
+            # `assert`.
+            assert m is not None
             processed_response[i] = m.group(1).rstrip().lstrip()
         _LOG.debug(hprint.to_str("processed_response"))
         response_data.extend(processed_response)

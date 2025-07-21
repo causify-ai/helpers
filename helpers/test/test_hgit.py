@@ -24,39 +24,39 @@ _LOG = logging.getLogger(__name__)
 
 class Test_git_submodule1(hunitest.TestCase):
     def test_get_client_root1(self) -> None:
-        act = hgit.get_client_root(super_module=True)
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_client_root(super_module=True)
+        _LOG.debug("actual=%s", actual)
 
     def test_get_client_root2(self) -> None:
-        act = hgit.get_client_root(super_module=False)
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_client_root(super_module=False)
+        _LOG.debug("actual=%s", actual)
 
     def test_get_project_dirname1(self) -> None:
-        act = hgit.get_project_dirname()
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_project_dirname()
+        _LOG.debug("actual=%s", actual)
 
     def test_get_branch_name1(self) -> None:
-        act = hgit.get_branch_name()
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_branch_name()
+        _LOG.debug("actual=%s", actual)
 
     def test_is_inside_submodule1(self) -> None:
-        act = hgit.is_inside_submodule()
-        _LOG.debug("act=%s", act)
+        actual = hgit.is_inside_submodule()
+        _LOG.debug("actual=%s", actual)
 
     # Outside CK infra, the following call hangs, so we skip it.
     # TODO(gp): I don't see why it requires our infra.
     @pytest.mark.requires_ck_infra
     def test_is_amp(self) -> None:
-        act = hgit.is_amp()
-        _LOG.debug("act=%s", act)
+        actual = hgit.is_amp()
+        _LOG.debug("actual=%s", actual)
 
     def test_get_path_from_supermodule1(self) -> None:
-        act = hgit.get_path_from_supermodule()
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_path_from_supermodule()
+        _LOG.debug("actual=%s", actual)
 
     def test_get_submodule_paths1(self) -> None:
-        act = hgit.get_submodule_paths()
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_submodule_paths()
+        _LOG.debug("actual=%s", actual)
 
 
 # #############################################################################
@@ -71,8 +71,8 @@ class Test_git_submodule2(hunitest.TestCase):
 
     def test_get_remote_head_hash1(self) -> None:
         dir_name = "."
-        act = hgit.get_head_hash(dir_name)
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_head_hash(dir_name)
+        _LOG.debug("actual=%s", actual)
 
     # def test_report_submodule_status1(self) -> None:
     #     dir_names = ["."]
@@ -81,41 +81,41 @@ class Test_git_submodule2(hunitest.TestCase):
 
     def test_get_head_hash1(self) -> None:
         dir_name = "."
-        act = hgit.get_head_hash(dir_name)
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_head_hash(dir_name)
+        _LOG.debug("actual=%s", actual)
 
     def test_group_hashes1(self) -> None:
         head_hash = "a2bfc704"
         remh_hash = "a2bfc704"
         subm_hash = None
-        exp = "head_hash = remh_hash = a2bfc704"
+        expected = "head_hash = remh_hash = a2bfc704"
         #
-        self._helper_group_hashes(head_hash, remh_hash, subm_hash, exp)
+        self._helper_group_hashes(head_hash, remh_hash, subm_hash, expected)
 
     def test_group_hashes2(self) -> None:
         head_hash = "22996772"
         remh_hash = "92167662"
         subm_hash = "92167662"
-        exp = """
+        expected = """
         head_hash = 22996772
         remh_hash = subm_hash = 92167662
         """
         #
-        self._helper_group_hashes(head_hash, remh_hash, subm_hash, exp)
+        self._helper_group_hashes(head_hash, remh_hash, subm_hash, expected)
 
     def test_group_hashes3(self) -> None:
         head_hash = "7ea03eb6"
         remh_hash = "7ea03eb6"
         subm_hash = "7ea03eb6"
-        exp = "head_hash = remh_hash = subm_hash = 7ea03eb6"
+        expected = "head_hash = remh_hash = subm_hash = 7ea03eb6"
         #
-        self._helper_group_hashes(head_hash, remh_hash, subm_hash, exp)
+        self._helper_group_hashes(head_hash, remh_hash, subm_hash, expected)
 
     def _helper_group_hashes(
-        self, head_hash: str, remh_hash: str, subm_hash: Optional[str], exp: str
+        self, head_hash: str, remh_hash: str, subm_hash: Optional[str], expected: str
     ) -> None:
-        act = hgit._group_hashes(head_hash, remh_hash, subm_hash)
-        self.assert_equal(act, exp, fuzzy_match=True)
+        actual = hgit._group_hashes(head_hash, remh_hash, subm_hash)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -150,24 +150,24 @@ class Test_git_repo_name1(hunitest.TestCase):
         self.assert_equal(repo_name, "alphamatic/amp")
 
     def test_get_repo_full_name_from_dirname1(self) -> None:
-        act = hgit.get_repo_full_name_from_dirname(
+        actual = hgit.get_repo_full_name_from_dirname(
             dir_name=".", include_host_name=False
         )
-        _LOG.debug("act=%s", act)
+        _LOG.debug("actual=%s", actual)
 
     def test_get_repo_full_name_from_dirname2(self) -> None:
-        act = hgit.get_repo_full_name_from_dirname(
+        actual = hgit.get_repo_full_name_from_dirname(
             dir_name=".", include_host_name=True
         )
-        _LOG.debug("act=%s", act)
+        _LOG.debug("actual=%s", actual)
 
     def test_get_repo_full_name_from_client1(self) -> None:
-        act = hgit.get_repo_full_name_from_client(super_module=True)
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_repo_full_name_from_client(super_module=True)
+        _LOG.debug("actual=%s", actual)
 
     def test_get_repo_full_name_from_client2(self) -> None:
-        act = hgit.get_repo_full_name_from_client(super_module=False)
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_repo_full_name_from_client(super_module=False)
+        _LOG.debug("actual=%s", actual)
 
 
 # #############################################################################
@@ -184,11 +184,11 @@ class Test_git_path1(hunitest.TestCase):
     )
     def test_get_path_from_git_root1(self) -> None:
         file_name = "/app/helpers/test/test_hgit.py"
-        act = hgit.get_path_from_git_root(file_name, super_module=True)
-        _LOG.debug("get_path_from_git_root()=%s", act)
+        actual = hgit.get_path_from_git_root(file_name, super_module=True)
+        _LOG.debug("get_path_from_git_root()=%s", actual)
         # Check.
-        exp = "helpers/test/test_hgit.py"
-        self.assert_equal(act, exp)
+        expected = "helpers/test/test_hgit.py"
+        self.assert_equal(actual, expected)
 
     @pytest.mark.skipif(
         not hgit.is_in_amp_as_submodule(),
@@ -196,31 +196,31 @@ class Test_git_path1(hunitest.TestCase):
     )
     def test_get_path_from_git_root2(self) -> None:
         file_name = "/app/amp/helpers/test/test_hgit.py"
-        act = hgit.get_path_from_git_root(file_name, super_module=True)
-        _LOG.debug("get_path_from_git_root()=%s", act)
+        actual = hgit.get_path_from_git_root(file_name, super_module=True)
+        _LOG.debug("get_path_from_git_root()=%s", actual)
         # Check.
-        exp = "amp/helpers/test/test_hgit.py"
-        self.assert_equal(act, exp)
+        expected = "amp/helpers/test/test_hgit.py"
+        self.assert_equal(actual, expected)
 
     def test_get_path_from_git_root3(self) -> None:
         file_name = "/app/amp/helpers/test/test_hgit.py"
         git_root = "/app"
-        act = hgit.get_path_from_git_root(
+        actual = hgit.get_path_from_git_root(
             file_name, super_module=False, git_root=git_root
         )
         # Check.
-        exp = "amp/helpers/test/test_hgit.py"
-        self.assert_equal(act, exp)
+        expected = "amp/helpers/test/test_hgit.py"
+        self.assert_equal(actual, expected)
 
     def test_get_path_from_git_root4(self) -> None:
         file_name = "/app/amp/helpers/test/test_hgit.py"
         git_root = "/app/amp"
-        act = hgit.get_path_from_git_root(
+        actual = hgit.get_path_from_git_root(
             file_name, super_module=False, git_root=git_root
         )
         # Check.
-        exp = "helpers/test/test_hgit.py"
-        self.assert_equal(act, exp)
+        expected = "helpers/test/test_hgit.py"
+        self.assert_equal(actual, expected)
 
     def test_get_path_from_git_root5(self) -> None:
         file_name = "helpers/test/test_hgit.py"
@@ -258,24 +258,24 @@ class Test_git_modified_files1(hunitest.TestCase):
         hgit.fetch_origin_master_if_needed()
 
     def test_get_modified_files1(self) -> None:
-        act = hgit.get_modified_files()
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_modified_files()
+        _LOG.debug("actual=%s", actual)
 
     def test_get_previous_committed_files1(self) -> None:
-        act = hgit.get_previous_committed_files()
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_previous_committed_files()
+        _LOG.debug("actual=%s", actual)
 
     def test_get_modified_files_in_branch1(self) -> None:
-        act = hgit.get_modified_files_in_branch("master")
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_modified_files_in_branch("master")
+        _LOG.debug("actual=%s", actual)
 
     def test_get_summary_files_in_branch1(self) -> None:
-        act = hgit.get_summary_files_in_branch("master")
-        _LOG.debug("act=%s", act)
+        actual = hgit.get_summary_files_in_branch("master")
+        _LOG.debug("actual=%s", actual)
 
     def test_git_log1(self) -> None:
-        act = hgit.git_log()
-        _LOG.debug("act=%s", act)
+        actual = hgit.git_log()
+        _LOG.debug("actual=%s", actual)
 
 
 # #############################################################################
@@ -391,36 +391,36 @@ class Test_extract_gh_issue_number_from_branch(hunitest.TestCase):
         Tests extraction from a branch name with a specific format.
         """
         branch_name = "CmampTask10725_Add_more_tabs_to_orange_tmux"
-        act = hgit.extract_gh_issue_number_from_branch(branch_name)
-        exp = "10725"
-        self.assert_equal(str(act), exp)
+        actual = hgit.extract_gh_issue_number_from_branch(branch_name)
+        expected = "10725"
+        self.assert_equal(str(actual), expected)
 
     def test_extract_gh_issue_number_from_branch2(self) -> None:
         """
         Tests extraction from another branch name format.
         """
         branch_name = "HelpersTask23_Add_more_tabs_to_orange_tmux"
-        act = hgit.extract_gh_issue_number_from_branch(branch_name)
-        exp = "23"
-        self.assert_equal(str(act), exp)
+        actual = hgit.extract_gh_issue_number_from_branch(branch_name)
+        expected = "23"
+        self.assert_equal(str(actual), expected)
 
     def test_extract_gh_issue_number_from_branch3(self) -> None:
         """
         Tests extraction from a short branch name format.
         """
         branch_name = "CmTask3434"
-        act = hgit.extract_gh_issue_number_from_branch(branch_name)
-        exp = "3434"
-        self.assert_equal(str(act), exp)
+        actual = hgit.extract_gh_issue_number_from_branch(branch_name)
+        expected = "3434"
+        self.assert_equal(str(actual), expected)
 
     def test_extract_gh_issue_number_from_branch4(self) -> None:
         """
         Tests behavior when no issue number is present in the branch name.
         """
         branch_name = "NoTaskNumberHere"
-        act = hgit.extract_gh_issue_number_from_branch(branch_name)
-        exp = "None"
-        self.assert_equal(str(act), exp)
+        actual = hgit.extract_gh_issue_number_from_branch(branch_name)
+        expected = "None"
+        self.assert_equal(str(actual), expected)
 
 
 # #############################################################################
@@ -738,15 +738,15 @@ class Test_find_git_root5(hunitest.TestCase):
             self.assertRaises(AssertionError) as cm,
         ):
             _ = hgit.find_git_root(".")
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         '/'
         !=
         '/'
         No .git directory or file found in any parent directory.
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -755,12 +755,12 @@ class Test_find_git_root5(hunitest.TestCase):
         """
         with hsystem.cd(self.repo_dir), self.assertRaises(AssertionError) as cm:
             _ = hgit.find_git_root(".")
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         '/'
         !=
         '/'
         Top-level .git directory not found.
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)

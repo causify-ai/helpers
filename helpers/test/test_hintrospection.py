@@ -319,17 +319,17 @@ def test_function() -> None:
 
 class Test_get_function_name1(hunitest.TestCase):
     def test1(self) -> None:
-        act = hintros.get_function_name()
-        exp = "test1"
-        self.assert_equal(act, exp, purify_text=True)
+        actual = hintros.get_function_name()
+        expected = "test1"
+        self.assert_equal(actual, expected, purify_text=True)
 
 
 class Test_get_name_from_function1(hunitest.TestCase):
     def test1(self) -> None:
-        act = hintros.get_name_from_function(test_function)
-        act = hstring.remove_prefix(act, "amp.", assert_on_error=False)
-        exp = "helpers.test.test_hintrospection.test_function"
-        self.assert_equal(act, exp, purify_text=True)
+        actual = hintros.get_name_from_function(test_function)
+        actual = hstring.remove_prefix(actual, "amp.", assert_on_error=False)
+        expected = "helpers.test.test_hintrospection.test_function"
+        self.assert_equal(actual, expected, purify_text=True)
 
 
 # #############################################################################
@@ -349,12 +349,12 @@ class Test_get_function_from_string1(hunitest.TestCase):
         func_str = "helpers.test.test_hintrospection.dummy_function"
         # Compute the actual value.
         act_func = hintros.get_function_from_string(func_str)
-        act = hintros.get_name_from_function(act_func)
-        act = hstring.remove_prefix(act, "amp.", assert_on_error=False)
+        actual = hintros.get_name_from_function(act_func)
+        actual = hstring.remove_prefix(actual, "amp.", assert_on_error=False)
         # Compute the expected value.
         exp_func = dummy_function
-        exp = hintros.get_name_from_function(exp_func)
-        exp = hstring.remove_prefix(exp, "amp.", assert_on_error=False)
+        expected = hintros.get_name_from_function(exp_func)
+        expected = hstring.remove_prefix(expected, "amp.", assert_on_error=False)
         # Run.
         hdbg.dassert_isinstance(act_func, Callable)
         # The function can have different names depending on whether `helpers`
@@ -362,10 +362,10 @@ class Test_get_function_from_string1(hunitest.TestCase):
         # helpers.test.test_hintrospection.dummy_function
         # helpers_root.helpers.test.test_hintrospection.dummy_function
         #
-        act = re.sub(
-            r"helpers_root\.helpers\.", "helpers.", act, flags=re.MULTILINE
+        actual = re.sub(
+            r"helpers_root\.helpers\.", "helpers.", actual, flags=re.MULTILINE
         )
-        exp = re.sub(
-            r"helpers_root\.helpers\.", "helpers.", exp, flags=re.MULTILINE
+        expected = re.sub(
+            r"helpers_root\.helpers\.", "helpers.", expected, flags=re.MULTILINE
         )
-        self.assert_equal(act, exp, purify_text=True)
+        self.assert_equal(actual, expected, purify_text=True)

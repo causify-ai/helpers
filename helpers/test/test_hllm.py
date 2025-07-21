@@ -156,9 +156,9 @@ class Test_response_to_txt(hunitest.TestCase):
     )
     def test_chat_completion_branch(self) -> None:
         resp = Test_response_to_txt.DummyChatCompletion("hello chat")
-        act = hllm.response_to_txt(resp)
-        exp = "hello chat"
-        self.assert_equal(act, exp)
+        actual = hllm.response_to_txt(resp)
+        expected = "hello chat"
+        self.assert_equal(actual, expected)
 
     @umock.patch(
         "openai.types.beta.threads.message.Message",
@@ -166,14 +166,14 @@ class Test_response_to_txt(hunitest.TestCase):
     )
     def test_thread_message_branch(self) -> None:
         resp = Test_response_to_txt.DummyThreadMessage("thread reply")
-        act = hllm.response_to_txt(resp)
-        exp = "thread reply"
-        self.assert_equal(act, exp)
+        actual = hllm.response_to_txt(resp)
+        expected = "thread reply"
+        self.assert_equal(actual, expected)
 
     def test_str_pass_through(self) -> None:
-        act = hllm.response_to_txt("just a string")
-        exp = "just a string"
-        self.assert_equal(act, exp)
+        actual = hllm.response_to_txt("just a string")
+        expected = "just a string"
+        self.assert_equal(actual, expected)
 
     def test_unknown_type_raises(self) -> None:
         with self.assertRaises(ValueError) as cm:

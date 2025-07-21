@@ -64,35 +64,32 @@
 
 # Documentation Toolchain
 
-- This is a high‑level guide to the helper scripts that turn raw notes, slides,
-  Latex into polished PDFs, slide decks, etc.
+- This is a high‑level guide to the workflows that turn raw notes, slides, Latex
+  into polished PDFs, slide decks, etc.
 
 - There are several documentation workflows available:
   - **latex**
-    - Are standard Latex code that can be converted into PDF files
-    - E.g., `//cmamp/papers`
-    - E.g.,
-      [https://github.com/causify-ai/cmamp/tree/master/papers/KaizenFlow](https://github.com/causify-ai/cmamp/tree/master/papers/KaizenFlow)
+    - Standard Latex code to convert into PDF files
+    - E.g., [`//cmamp/papers`]
+    - E.g., [`//cmamp/papers/KaizenFlow`]
   - **markdown**
-    - Are documentation about a repo that can be rendered through `mkdocs` and
-      published on GitHub
-    - E.g., `//helpers/docs`, `//cmamp/docs`, `//tutorials/docs`
-    - E.g.,
+    - Documentation using Causify markdown extensions
+      - E.g., `//helpers/docs`, `//cmamp/docs`, `//tutorials/docs`
+      - E.g.,
       [https://github.com/causify-ai/helpers/tree/master/docs](https://github.com/causify-ai/helpers/tree/master/docs)
-    - E.g., rendered on
-      [https://causify-ai.github.io/helpers](https://causify-ai.github.io/helpers)
+    - It is automatically rendered with `mkdocs` and published on GitHub
+      - E.g., [https://causify-ai.github.io/helpers](https://causify-ai.github.io/helpers)
   - **notes** (aka **.txt**)
-    - Are `Pandoc` markdown with some extra syntax to simplify some common
-      operations (e.g., color, comments)
-    - Are processed by `preprocess_notes.py` to be converted in `Pandoc`
+    - `Pandoc` markdown with Causify extensions
+    - Processed by `preprocess_notes.py` to be converted in standard `Pandoc`
       markdown
-    - Then can be converted into PDFs and in Anki Q/A
+    - Can be converted into PDFs and in Anki Q/A
     - E.g., `//notes/notes/...`
       ```
       > vi /Users/saggese/src/notes1/notes/math.machine_learning.txt
       ```
   - **slides**
-    - Are the same as `notes` but we use a different extension to clarify that
+    - Same as `notes` but we use a different extension `.slides` to clarify that
       they are rendered as slides
     - E.g.,
       ```
@@ -101,12 +98,50 @@
       ```
     - E.g., `//notes/DATA605`
   - **books**
-    - Are extended `Pandoc` markdown that can be rendered with `Pandoc`
-    - E.g., `//notes/books/programming_with_ai`
+    - Extended `Pandoc` markdown that can be rendered with `Pandoc`
+    - E.g., `//notes/books/book.programming_with_ai`
       ```
       > vi books/programming_with_ai/docs/coding-benchmark.md
       ```
   - **jupyter books**
+
+### Causify Extended Markdown
+
+- We refer to it to "Causify markdown" as some extension we use on top of
+  `Pandoc` markdown
+- The goal is invariants in formatting that we enforce so that the code looks
+  nicely formatted for a human
+  - The `linter` formats and enforces some these rules
+
+- E.g.,
+  - Cross-repo links
+    - E.g., [`//helpers/docs/code_guidelines/all.coding_style_guidelines.reference.md`]
+  - Color  
+    - E.g., `\red{...}`
+  - Primitives we use in the slides  
+  - Indented triple fences
+  - Triple fences Plugins for tools  
+  - Comments  
+    - E.g., C-like comments
+      `// Comment`
+      ```text
+      \*
+      ...
+      */
+      ````
+  - Framing of titles  
+    ```text
+    # ##############
+    # Hello
+    # ##############
+    ```
+  - Automatically update `> notes_to_pdf.py -h`
+
+- Causify extended markdown is rendered for different backends (e.g., slides,
+  mkdocs, ...) by converting the source markdown into something that can be
+  rendered by the target tool (e.g., `mkdocs`, `Pandoc`), e.g.,
+  - [`//helpers/dev_scripts_helpers/documentation/mkdocs/preprocess_mkdocs.py`]
+  - [`//helpers/dev_scripts_helpers/documentation/preprocess_notes.py`]
 
 ## List of Tools
 

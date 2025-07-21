@@ -27,7 +27,7 @@ The repository uses `pyinvoke` for task automation with a modular task system:
 
 ### Testing Architecture
 
-- Uses pytest with custom markers: `slow`, `superslow`, `requires_docker_in_docker`
+- Uses pytest with custom markers: `fast`, `slow`, `superslow`, `requires_docker_in_docker`
 - **`helpers/hunit_test.py`** - Base test class with helpers for golden file testing and test utilities
 - Tests are categorized by speed and infrastructure requirements
 - Timeout-based test classification with different timeouts per category
@@ -35,59 +35,46 @@ The repository uses `pyinvoke` for task automation with a modular task system:
 ## Common Development Commands
 
 ### Testing
-```bash
-# Run fast tests only
-invoke run_fast_tests
+- To run tests
+  ```bash
+  # Run fast tests only
+  invoke run_fast_tests
 
-# Run all tests
-invoke run_tests
+  # Run all tests
+  invoke run_tests
 
-# Run specific test categories
-invoke run_slow_tests
-invoke run_superslow_tests
+  # Run specific test categories
+  invoke run_slow_tests
+  invoke run_superslow_tests
 
-# Run tests with coverage
-invoke run_coverage
-
-# Run single test file
-pytest path/to/test_file.py::TestClass::test_method
-```
+  # Run single test file
+  invoke docker_cmd --pytest-opts "path/to/test_file.py::TestClass::test_method"
+  ```
 
 ### Linting and Code Quality
-```bash
-# Lint all modified files
-invoke lint --modified
 
-# Lint specific files
-invoke lint --files "file1.py file2.py"
+- To lint code
+  ```bash
+  # Lint all modified files
+  invoke lint --modified
 
-# Check Python files compilation
-invoke lint_check_python_files --modified
-```
+  # Lint specific files
+  invoke lint --files "file1.py file2.py"
 
-### Docker Development
-```bash
-# Start bash shell in development container
-invoke docker_bash
-
-# Build local development image
-invoke docker_build_local_image
-
-# Run Jupyter in container
-invoke docker_jupyter
-```
+  # Check Python files compilation
+  invoke lint_check_python_files --modified
+  ```
 
 ### Git and Branch Management
-```bash
-# Create new branch following naming convention
-invoke git_branch_create --name "HelpersTask123_Description"
 
-# Show files in current branch vs master
-invoke git_branch_files
+- To use branch
+  ```bash
+  # Create new branch following naming convention
+  invoke git_branch_create --name "HelpersTask123_Description"
 
-# Merge master into current branch
-invoke git_merge_master
-```
+  # Merge master into current branch
+  invoke git_merge_master
+  ```
 
 ## Key Configuration
 
@@ -106,11 +93,6 @@ import helpers.hio as hio
 import config_root.config.config_ as crococon
 ```
 
-### Task Implementation
-- Tasks in `lib_tasks_*.py` files use `@task` decorator
-- Minimize dependencies in task functions (they run outside Docker)
-- Call `hlitauti.report_task()` at start of each task
-
 ### Testing Patterns
 - Inherit from `hunitest.TestCase` for enhanced test utilities
 - Use golden file pattern via `check_string()` method
@@ -120,54 +102,5 @@ import config_root.config.config_ as crococon
 - Use `pytest.mark.no_container` for invoke target tests that run outside containers
 - Test outcomes stored in `test/outcomes/` directories following module structure
 
-### Configuration Management
-- Use `Config` class from `config_root.config.config_` for hierarchical configs
-- Support config versioning (currently v3)
-- Use `DUMMY` placeholder for multi-phase config building
-
-## Linting Framework
-
-The custom linting system in `linters/` provides:
-- Modular linter plugins (`amp_*.py` files)
-- Base framework in `linters/base.py`
-- Integration with invoke tasks for automated linting
-- Support for parallel execution via joblib
-
-When running `invoke lint`, it executes appropriate linters based on file types and applies fixes automatically where possible.
-
-## Helper Module Categories
-
-The 65+ helper modules are organized into functional categories:
-
-### Core Infrastructure & System
-- `hdbg` - Debugging with assertions, `dassert()`, and conditional logging
-- `hio` - File system operations, path utilities, directory management
-- `hsystem` - System command execution, subprocess management
-- `hserver` - Server/environment detection (local vs container vs cloud)
-- `henv` - Environment variable management and configuration
-
-### Data Processing & Analytics  
-- `hpandas` - DataFrame extensions, validation, comparison utilities
-- `hdataframe` - Additional DataFrame processing and manipulation
-- `hnumpy` - NumPy extensions and mathematical utilities
-- `hparquet` - Parquet file read/write operations
-- `hcsv` - CSV file handling with robust parsing
-
-### Development & Testing
-- `hunit_test` - Base TestCase class with golden file testing via `check_string()`
-- `hpytest` - pytest-specific helpers and test discovery
-- `hcoverage` - Code coverage collection and reporting
-- `hplayback` - Playback testing for deterministic test execution
-
-### External Services & APIs
-- `haws` - AWS service interactions and authentication
-- `hs3` - S3 bucket operations, file upload/download
-- `hgit` - Git repository operations and branch management
-- `hdocker` - Docker container management and image operations
-- `hchatgpt`, `hllm` - LLM API integrations for AI-assisted development
-
-### Caching & Performance
-- `hcache` - Advanced caching framework with persistence
-- `hcache_simple` - Simple in-memory caching utilities  
-- `hjoblib` - Parallel processing with joblib integration
-- `htimer` - Performance timing and measurement utilities
+### Code Conventions
+- Coding guidelines are in `docs/code_guidelines/all.coding_style_guidelines.reference.md`

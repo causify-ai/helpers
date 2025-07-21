@@ -26,12 +26,12 @@ class TestLibTasks1(hunitest.TestCase):
     def test_get_gh_issue_title1(self) -> None:
         issue_id = 1
         repo = "amp"
-        act = hlitagh._get_gh_issue_title(issue_id, repo)
-        exp = (
+        actual = hlitagh._get_gh_issue_title(issue_id, repo)
+        expected = (
             "AmpTask1_Bridge_Python_and_R",
             "https://github.com/alphamatic/amp/issues/1",
         )
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(actual), str(expected))
 
     @pytest.mark.skipif(
         not hgit.is_in_helpers_as_supermodule(),

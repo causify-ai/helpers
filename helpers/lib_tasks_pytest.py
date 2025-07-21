@@ -9,7 +9,7 @@ import logging
 import os
 import re
 import sys
-from typing import Any, List, Optional, Tuple, cast
+from typing import Any, List, Optional, Tuple
 
 from invoke import task
 
@@ -259,19 +259,23 @@ def _run_test_cmd(
     # Print message about coverage.
     if coverage:
         msg = """
-- The coverage results in textual form are above
+        - The coverage results in textual form are above
 
-- To browse the files annotate with coverage, start a server (not from the
-  container):
-  > (cd ./htmlcov; python -m http.server 33333)
-- Then go with your browser to `localhost:33333` to see which code is
-  covered
-"""
+        - To browse the files annotate with coverage, start a server (not from the
+          container):
+          > (cd ./htmlcov; python -m http.server 33333)
+        - Then go with your browser to `localhost:33333` to see which code is
+          covered
+        """
+        msg = hprint.dedent(msg)
         print(msg)
         if start_coverage_script:
             # Create and run a script to show the coverage in the browser.
-            script_txt = """(sleep 2; open http://localhost:33333) &
-(cd ./htmlcov; python -m http.server 33333)"""
+            script_txt = """
+            (sleep 2; open http://localhost:33333) &
+            (cd ./htmlcov; python -m http.server 33333)
+            """
+            script_txt = hprint.dedent(script_txt)
             script_name = "./tmp.coverage.sh"
             hio.create_executable_script(script_name, script_txt)
             coverage_rc = hsystem.system(script_name)
@@ -753,8 +757,7 @@ def _publish_html_coverage_report_on_s3(aws_profile: str) -> None:
     # Copy HTML coverage data from the local dir to S3.
     local_coverage_path = "./htmlcov"
     # TODO(Nikola): Revert to `s3fs_.put` after `s3fs` is updated to latest
-    # version.
-    #   See CmTask #2400.
+    # version. See CmTask #2400.
     use_aws_copy = True
     if use_aws_copy:
         sudo_prefix = ""
@@ -820,14 +823,14 @@ def run_coverage_report(  # type: ignore
     Compute test coverage stats.
 
     The flow is:
-       - Run tests and compute coverage stats for each test type
-       - Combine coverage stats in a single file
-       - Generate a text report
-       - Generate a HTML report (optional)
-          - Post it on S3 (optional)
+    - Run tests and compute coverage stats for each test type
+    - Combine coverage stats in a single file
+    - Generate a text report
+    - Generate a HTML report (optional)
+       - Post it on S3 (optional)
 
-    :param target_dir: directory to compute coverage stats for
-        - "." for all the dirs in the current working directory
+    :param target_dir: directory to compute coverage stats for. The value '.'
+        uses all the dirs in the current working directory
     :param generate_html_report: whether to generate HTML coverage report or not
     :param publish_html_on_s3: whether to publish HTML coverage report or not
     :param aws_profile: the AWS profile to use for publishing HTML report
@@ -905,33 +908,26 @@ def _get_inclusion_settings(target_dir: str) -> Tuple[str, Optional[str]]:
     :return: glob pattern to include and a comma-separated glob pattern to omit
 
     Examples:
-        1. Cover everything (no submodules to omit):
-        ```
-        _get_inclusion_settings(".")
-        ```
-        ("*", "")
+    1. Cover everything (no submodules to omit):
+       `_get_inclusion_settings(".")` -> `("*", "")`
 
-        2. Only cover code under a specific directory:
-        ```
-        _get_inclusion_settings("helpers")
-        ```
-        ("*/helpers/*", None)
+    2. Only cover code under a specific directory:
+       `_get_inclusion_settings("helpers")` -> `("*/helpers/*", None)`
 
-    Usage in `_run_coverage`:
+    In `_run_coverage`:
+    - To cover the entire repo coverage (e.g. `helpers` project root):
+      `_get_inclusion_settings(".")` corresponds to
+      ```
+      > coverage report --include=* --sort=Cover
+      > coverage html --include=* [--omit=submodule1/*,submodule2/*]
+      ```
 
-         # Entire repo coverage (e.g. your 'helpers' project root):
-         ```
-        include, omit = _get_inclusion_settings(".")
-        ```
-        #   coverage report --include=* --sort=Cover
-        #   coverage html   --include=* [--omit=submodule1/*,submodule2/*]
-
-        # Single-directory coverage:
-        ```
-        include, omit = _get_inclusion_settings("helpers")
-        ```
-        #   coverage report --include=*/helpers/* --sort=Cover
-        #   coverage html   --include=*/helpers/* [--omit=...]
+    - To cover a single-directory:
+      ` _get_inclusion_settings("helpers")` corresponds to:
+      ```
+      > coverage report --include=*/helpers/* --sort=Cover
+      > coverage html --include=*/helpers/* [--omit=...]
+      ```
     """
     if target_dir == ".":
         include_in_report = "*"
@@ -948,9 +944,9 @@ def _get_inclusion_settings(target_dir: str) -> Tuple[str, Optional[str]]:
 
 
 @task
-def run_coverage(ctx, suite, target_dir=".", generate_html_report=False):
+def run_coverage(ctx, suite, target_dir=".", generate_html_report=False):  # type: ignore
     """
-    Unified task to run coverage for any test suite.
+    Task to run coverage for any test suite.
 
     :param ctx: invoke context
     :param suite: suite to run ("fast", "slow", "superslow")
@@ -979,7 +975,7 @@ def run_coverage(ctx, suite, target_dir=".", generate_html_report=False):
         "coverage erase"
     ]
     # Generate a text report, including only our target paths.
-    report_stats_cmd: str = (
+    report_stats_cmd = (
         f"coverage report --include={include_in_report} --sort=Cover"
     )
     if exclude_from_report:
@@ -987,15 +983,14 @@ def run_coverage(ctx, suite, target_dir=".", generate_html_report=False):
     report_cmd.append(report_stats_cmd)
     # Produce HTML output for interactive browsing.
     if generate_html_report:
-        report_html_cmd: str = f"coverage html --include={include_in_report}"
+        report_html_cmd = f"coverage html --include={include_in_report}"
         if exclude_from_report:
             report_html_cmd += f" --omit={exclude_from_report}"
         report_cmd.append(report_html_cmd)
     # Export XML coverage report to integrate with Codecov.
     report_cmd.append("coverage xml -o coverage.xml")
-    full_report_cmd: str = " && ".join(report_cmd)
+    full_report_cmd = " && ".join(report_cmd)
     docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
-    # Execute the full coverage/Docker pipeline.
     hlitauti.run(ctx, docker_cmd_)
 
 
@@ -1237,9 +1232,10 @@ def pytest_repro(  # type: ignore
                 _, traceback_ = htraceb.parse_traceback(
                     traceback_block, purify_from_client=False
                 )
-                tracebacks.append(
-                    "\n".join(["# " + name, traceback_.strip(), ""])
+                traceback_text = (
+                    traceback_.strip() if traceback_ is not None else ""
                 )
+                tracebacks.append("\n".join(["# " + name, traceback_text, ""]))
             # Combine the stacktraces for all the failures.
             full_traceback = "\n\n" + "\n".join(tracebacks)
             failed_test_output_str += full_traceback
@@ -1429,8 +1425,6 @@ def _run(
         output_file=output_file,
         tee=tee,
     )
-    # TODO(gp): Understand why linter is unhappy.
-    rc = cast(int, rc)
     return rc
 
 

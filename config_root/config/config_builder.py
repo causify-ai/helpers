@@ -14,7 +14,6 @@ from typing import Dict, Optional, cast
 import config_root.config.config_ as crococon
 import config_root.config.config_list as crcocoli
 import config_root.config.config_utils as crcocout
-
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hpickle as hpickle

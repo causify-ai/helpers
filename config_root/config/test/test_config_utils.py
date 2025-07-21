@@ -1,8 +1,12 @@
 import argparse
-import collections
 import os
 import unittest.mock as umock
 from typing import Any, Dict
+
+try:
+    from collections.abc import Hashable as AbcHashable
+except ImportError:
+    from collections import Hashable as AbcHashable
 
 import pandas as pd
 
@@ -93,8 +97,8 @@ class Test_validate_configs1(hunitest.TestCase):
         # Make sure function raises an error.
         with self.assertRaises(AssertionError) as cm:
             config_list.configs = configs
-        act = str(cm.exception)
-        self.check_string(act, fuzzy_match=True)
+        actual = str(cm.exception)
+        self.check_string(actual, fuzzy_match=True)
 
     def test1(self) -> None:
         """
@@ -182,8 +186,8 @@ class Test_intersect_configs1(hunitest.TestCase):
         config1 = _get_test_config1()
         config2 = _get_test_config2()
         intersection = cconfig.intersect_configs([config1, config2])
-        act = str(intersection)
-        exp = r"""
+        actual = str(intersection)
+        expected = r"""
         build_model:
           activation: sigmoid
         build_targets:
@@ -191,8 +195,8 @@ class Test_intersect_configs1(hunitest.TestCase):
             preprocessor: tokenizer
         meta:
           experiment_result_dir: results.pkl"""
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp, fuzzy_match=False)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=False)
 
 
 # #############################################################################
@@ -217,12 +221,12 @@ class Test_subtract_configs1(hunitest.TestCase):
         """
         config1 = _get_test_config1()
         config2 = _get_test_config2()
-        act = cconfig.subtract_config(config1, config2)
-        exp = """
+        actual = cconfig.subtract_config(config1, config2)
+        expected = """
         build_targets:
           target_asset: Crude Oil"""
-        exp = hprint.dedent(exp)
-        self.assert_equal(str(act), str(exp))
+        expected = hprint.dedent(expected)
+        self.assert_equal(str(actual), str(expected))
 
     def test2(self) -> None:
         """
@@ -295,13 +299,13 @@ class Test_diff_configs1(hunitest.TestCase):
         Verify that the difference of two configs is empty.
         """
         config = _get_test_config1()
-        act = cconfig.diff_configs([config, config])
-        exp = [cconfig.Config(), cconfig.Config()]
-        self.assert_equal(str(act), str(exp))
+        actual = cconfig.diff_configs([config, config])
+        expected = [cconfig.Config(), cconfig.Config()]
+        self.assert_equal(str(actual), str(expected))
 
     def test1(self) -> None:
         config1 = _get_test_config1()
-        exp = """
+        expected = """
         build_model:
           activation: sigmoid
         build_targets:
@@ -310,11 +314,11 @@ class Test_diff_configs1(hunitest.TestCase):
             preprocessor: tokenizer
         meta:
           experiment_result_dir: results.pkl"""
-        exp = hprint.dedent(exp)
-        self.assert_equal(str(config1), exp)
+        expected = hprint.dedent(expected)
+        self.assert_equal(str(config1), expected)
         #
         config2 = _get_test_config2()
-        exp = """
+        expected = """
         build_model:
           activation: sigmoid
         build_targets:
@@ -323,11 +327,11 @@ class Test_diff_configs1(hunitest.TestCase):
             preprocessor: tokenizer
         meta:
           experiment_result_dir: results.pkl"""
-        exp = hprint.dedent(exp)
-        self.assert_equal(str(config2), exp)
+        expected = hprint.dedent(expected)
+        self.assert_equal(str(config2), expected)
         #
-        act = cconfig.diff_configs([config1, config2])
-        exp = [
+        actual = cconfig.diff_configs([config1, config2])
+        expected = [
             #
             cconfig.Config.from_dict(
                 {"build_targets": {"target_asset": "Crude Oil"}}
@@ -337,17 +341,17 @@ class Test_diff_configs1(hunitest.TestCase):
                 {"build_targets": {"target_asset": "Gold"}}
             ),
         ]
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(actual), str(expected))
 
     def test2(self) -> None:
         config1 = _get_test_config1()
         config2 = _get_test_config2()
         config3 = _get_test_config3()
         #
-        act = cconfig.diff_configs([config1, config2, config3])
-        act = "\n".join(map(str, act))
+        actual = cconfig.diff_configs([config1, config2, config3])
+        actual = "\n".join(map(str, actual))
         #
-        exp = [
+        expected = [
             #
             cconfig.Config.from_dict(
                 {"build_targets": {"target_asset": "Crude Oil"}}
@@ -364,8 +368,8 @@ class Test_diff_configs1(hunitest.TestCase):
                 }
             ),
         ]
-        exp = "\n".join(map(str, exp))
-        self.assert_equal(str(act), str(exp))
+        expected = "\n".join(map(str, expected))
+        self.assert_equal(str(actual), str(expected))
 
 
 # #############################################################################
@@ -381,10 +385,10 @@ class Test_convert_to_dataframe1(hunitest.TestCase):
         config1 = _get_test_config1()
         config2 = _get_test_config2()
         # Convert configs to dataframe.
-        act = cconfig.convert_to_dataframe([config1, config2])
-        act = hpandas.df_to_str(act, num_rows=None)
+        actual = cconfig.convert_to_dataframe([config1, config2])
+        actual = hpandas.df_to_str(actual, num_rows=None)
         #
-        exp = pd.DataFrame(
+        expected = pd.DataFrame(
             {
                 "build_model.activation": ["sigmoid", "sigmoid"],
                 "build_targets.target_asset": ["Crude Oil", "Gold"],
@@ -395,8 +399,8 @@ class Test_convert_to_dataframe1(hunitest.TestCase):
                 "meta.experiment_result_dir": ["results.pkl", "results.pkl"],
             }
         )
-        exp = hpandas.df_to_str(exp, num_rows=None)
-        self.assert_equal(str(act), str(exp))
+        expected = hpandas.df_to_str(expected, num_rows=None)
+        self.assert_equal(str(actual), str(expected))
 
 
 # #############################################################################
@@ -412,16 +416,16 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
         config1 = _get_test_config1()
         config2 = _get_test_config2()
         #
-        act = cconfig.build_config_diff_dataframe({"1": config1, "2": config2})
-        act = hpandas.df_to_str(act, num_rows=None)
+        actual = cconfig.build_config_diff_dataframe({"1": config1, "2": config2})
+        actual = hpandas.df_to_str(actual, num_rows=None)
         #
-        exp = pd.DataFrame(
+        expected = pd.DataFrame(
             {
                 "build_targets.target_asset": ["Crude Oil", "Gold"],
             }
         )
-        exp = hpandas.df_to_str(exp, num_rows=None)
-        self.assert_equal(str(act), str(exp))
+        expected = hpandas.df_to_str(expected, num_rows=None)
+        self.assert_equal(str(actual), str(expected))
 
     def test2(self) -> None:
         """
@@ -429,15 +433,15 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
         """
         config1 = _get_test_config1()
         #
-        act = cconfig.build_config_diff_dataframe({"1": config1, "2": config1})
-        act = hpandas.df_to_str(act, num_rows=None)
+        actual = cconfig.build_config_diff_dataframe({"1": config1, "2": config1})
+        actual = hpandas.df_to_str(actual, num_rows=None)
         #
-        exp = """
+        expected = """
         Empty DataFrame
         Columns: []
         Index: [0, 1]
         """
-        self.assert_equal(str(act), exp, fuzzy_match=True)
+        self.assert_equal(str(actual), expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -447,18 +451,18 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
         config2 = _get_test_config2()
         config3 = _get_test_config3()
         #
-        act = cconfig.build_config_diff_dataframe(
+        actual = cconfig.build_config_diff_dataframe(
             {"1": config1, "2": config2, "3": config3}
         )
-        act = hpandas.df_to_str(act, num_rows=None)
+        actual = hpandas.df_to_str(actual, num_rows=None)
         #
-        exp = """
+        expected = """
           build_targets.target_asset  hello
         0                  Crude Oil    NaN
         1                       Gold    NaN
         2                  Crude Oil  world
         """
-        self.assert_equal(str(act), exp, fuzzy_match=True)
+        self.assert_equal(str(actual), expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -468,11 +472,11 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
 
 class Test_make_hashable(hunitest.TestCase):
     def helper(self, obj: Any, is_hashable: bool, expected: str) -> None:
-        is_hashable_before = isinstance(obj, collections.abc.Hashable)
+        is_hashable_before = isinstance(obj, AbcHashable)
         self.assertEqual(is_hashable_before, is_hashable)
         #
         hashable_obj = cconfig.make_hashable(obj)
-        is_hashable_after = isinstance(hashable_obj, collections.abc.Hashable)
+        is_hashable_after = isinstance(hashable_obj, AbcHashable)
         self.assertTrue(is_hashable_after)
         #
         actual = str(hashable_obj)
@@ -599,8 +603,8 @@ class Test_replace_shared_root_path(hunitest.TestCase):
             )
             actual_config = cconfig.replace_shared_dir_paths(initial_config)
             # Check that shared root paths have been replaced.
-            act = str(actual_config)
-            exp = """
+            actual = str(actual_config)
+            expected = """
                 key1: /shared_folder1/asset1
                 key2: /shared_folder2/asset1/item
                 key3: 1
@@ -610,7 +614,7 @@ class Test_replace_shared_root_path(hunitest.TestCase):
                 key5.2: /shared_folder2/asset2
                 key6: /shared_folder1/ecs/some_path
             """
-            self.assert_equal(act, exp, fuzzy_match=True)
+            self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################

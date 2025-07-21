@@ -112,7 +112,7 @@ class Timer:
             self.stop()
         return self._total_elapsed
 
-    def accumulate(self, *, timer: str = "Timer") -> None:
+    def accumulate(self, *, timer: "Timer") -> None:
         """
         Accumulate the value of a timer to the current object.
         """
@@ -214,7 +214,7 @@ def timed(f: Callable) -> Callable:
     """
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        func_name = f.__name__
+        func_name = getattr(f, "__name__", "unknown_function")
         #
         timer = dtimer_start(0, func_name)
         v = f(*args, **kwargs)

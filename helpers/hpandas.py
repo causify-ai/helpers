@@ -7,13 +7,40 @@ import helpers.hpandas as hpandas
 import csv
 import dataclasses
 import logging
+import helpers.hlogging as hlogging
 import random
 import re
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-import s3fs
+
+# Handle different versions of s3fs where core module may be at different
+# locations.
+try:
+    import s3fs
+
+    # Try to access s3fs.core to check if it exists
+    if hasattr(s3fs, "core"):
+        from s3fs.core import S3File, S3FileSystem
+    else:
+        # In newer versions, classes might be directly in s3fs module.
+        try:
+            from s3fs import S3File, S3FileSystem
+        except ImportError:
+            # Fallback to dynamic import
+            S3File = getattr(s3fs, "S3File", None)
+            S3FileSystem = getattr(s3fs, "S3FileSystem", None)
+except ImportError:
+    # If s3fs is not available, define dummy classes for type hints.
+    s3fs = None
+
+    class S3File:
+        pass
+
+    class S3FileSystem:
+        pass
+
 
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
@@ -27,7 +54,7 @@ import helpers.hsystem as hsystem
 # import helpers.hunit_test as hunitest
 
 
-_LOG = logging.getLogger(__name__)
+_LOG = hlogging.getLogger(__name__)
 
 # Enable extra verbose debugging. Do not commit.
 _TRACE = False
@@ -1026,19 +1053,20 @@ def merge_dfs(
     )
     hdbg.dassert_lte(threshold, threshold_common_values_share1)
     hdbg.dassert_lte(threshold, threshold_common_values_share2)
-    if intersecting_columns is None:
-        # Use an empty set instead of None to perform set difference further.
-        intersecting_columns = set()
+    # Use an empty set instead of None to perform set difference further.
+    intersecting_columns_set = (
+        set() if intersecting_columns is None else set(intersecting_columns)
+    )
     # Check that there are no common columns except for the ones in `intersecting_columns`.
     df1_cols = (
         set(df1.columns.to_list())
         - set(pd_merge_kwargs["on"])
-        - set(intersecting_columns)
+        - intersecting_columns_set
     )
     df2_cols = (
         set(df2.columns.to_list())
         - set(pd_merge_kwargs["on"])
-        - set(intersecting_columns)
+        - intersecting_columns_set
     )
     hdbg.dassert_not_intersection(df1_cols, df2_cols)
     #
@@ -1733,7 +1761,7 @@ def convert_df(
 
 
 def read_csv_to_df(
-    stream: Union[str, s3fs.core.S3File, s3fs.core.S3FileSystem],
+    stream: Union[str, S3File, S3FileSystem],
     *args: Any,
     **kwargs: Any,
 ) -> pd.DataFrame:
@@ -1757,7 +1785,7 @@ def read_csv_to_df(
 
 
 def read_parquet_to_df(
-    stream: Union[str, s3fs.core.S3File, s3fs.core.S3FileSystem],
+    stream: Union[str, S3File, S3FileSystem],
     *args: Any,
     **kwargs: Any,
 ) -> pd.DataFrame:
@@ -2222,6 +2250,7 @@ def add_multiindex_col(
     :return: a multiindex DataFrame with a new column
     """
     hdbg.dassert_isinstance(df, pd.DataFrame)
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_eq(2, len(df.columns.levels))
     hdbg.dassert_isinstance(multiindex_col, pd.DataFrame)
     hdbg.dassert_isinstance(col_name, str)
@@ -2278,6 +2307,7 @@ def multiindex_df_info(
     """
     Report information about a multi-index df.
     """
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_eq(2, len(df.columns.levels))
     columns_level0 = df.columns.levels[0]
     columns_level1 = df.columns.levels[1]
@@ -2331,6 +2361,7 @@ def subset_multiindex_df(
     :param keep_order: see `_resolve_column_names()`
     :return: filtered DataFrame
     """
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_eq(2, len(df.columns.levels))
     # Filter by timestamp.
     allow_empty = False
@@ -2345,17 +2376,21 @@ def subset_multiindex_df(
         right_close=True,
     )
     # Filter level 0.
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     all_columns_level0 = df.columns.levels[0]
     columns_level0 = _resolve_column_names(
         columns_level0, all_columns_level0, keep_order=keep_order
     )
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_is_subset(columns_level0, df.columns.levels[0])
     df = df[columns_level0]
     # Filter level 1.
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     all_columns_level1 = df.columns.levels[1]
     columns_level1 = _resolve_column_names(
         columns_level1, all_columns_level1, keep_order=keep_order
     )
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_is_subset(columns_level1, df.columns.levels[1])
     df = df.swaplevel(axis=1)[columns_level1].swaplevel(axis=1)
     return df
