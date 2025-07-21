@@ -6,10 +6,16 @@ import pytest
 import helpers.hgit as hgit
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 import helpers.lib_tasks_find as hlitafin
 import helpers.test.test_lib_tasks as httestlib
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_find_short_import1
+# #############################################################################
 
 
 class Test_find_short_import1(hunitest.TestCase):
@@ -23,6 +29,11 @@ class Test_find_short_import1(hunitest.TestCase):
         # pylint: disable=line-too-long
         exp = r"""('file1.py', 10, 'import dataflow.core.dag_runner as dtfcodarun', 'dtfcodarun', 'import dataflow.core.dag_runner as dtfcodarun')"""
         self.assert_equal(act, exp, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_find_func_class_uses1
+# #############################################################################
 
 
 class Test_find_func_class_uses1(hunitest.TestCase):
@@ -47,6 +58,11 @@ class Test_find_func_class_uses1(hunitest.TestCase):
         ('file1.py', 10, 'dag_runner = dtfamsys.RealTimeDagRunner(**dag_runner_kwargs)', 'dtfamsys', 'RealTimeDagRunner')
         ('file1.py', 12, 'dag_builder: dtfcodabui.DagRunner,', 'dtfcodabui', 'DagRunner')"""
         self.assert_equal(act, exp, fuzzy_match=True)
+
+
+# #############################################################################
+# TestLibTasksRunTests1
+# #############################################################################
 
 
 class TestLibTasksRunTests1(hunitest.TestCase):
@@ -81,7 +97,8 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         file_names = hlitafin._find_test_class(
             "TestLibTasksRunTests1", file_names
         )
-        act = hunitest.purify_file_names(file_names)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_file_names(file_names)
         exp = ["helpers/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
         self.assert_equal(str(act), str(exp), purify_text=True)
 
@@ -94,7 +111,8 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         file_names = hlitafin._find_test_class(
             "TestLibTasksRunTests1", file_names
         )
-        act = hunitest.purify_file_names(file_names)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_file_names(file_names)
         exp = ["helpers/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
         self.assert_equal(str(act), str(exp), purify_text=True)
 
@@ -132,7 +150,8 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         self.assert_equal(str(act_file_names), str(exp_file_names))
         #
         act = hlitafin._find_test_class("TestHelloWorld", file_names)
-        act = hunitest.purify_file_names(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_file_names(act)
         exp = [
             "helpers/test/outcomes/TestLibTasksRunTests1.test_find_test_class3/tmp.scratch/"
             "test/test_this.py::TestHelloWorld"
@@ -170,7 +189,8 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         #
         file_names = hlitafin._find_test_files(dir_name)
         act = hlitafin._find_test_decorator("no_container", file_names)
-        act = hunitest.purify_file_names(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_file_names(act)
         exp = [
             "helpers/test/outcomes/TestLibTasksRunTests1.test_find_test_decorator1/"
             "tmp.scratch/test/test_that.py"
@@ -188,6 +208,11 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         act = hlitafin._find_test_decorator("qa", file_names)
         exp = ["$GIT_ROOT/helpers/hunit_test.py"]
         self.assert_equal(str(act), str(exp), purify_text=True)
+
+
+# #############################################################################
+# Test_find_check_string_output1
+# #############################################################################
 
 
 class Test_find_check_string_output1(hunitest.TestCase):

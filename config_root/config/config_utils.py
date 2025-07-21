@@ -12,9 +12,22 @@ import os
 import re
 from typing import Any, Iterable, List, Optional
 
-import config_root.config.config_ as crococon
+try:
+    from collections.abc import (
+        Hashable as AbcHashable,
+        Mapping as AbcMapping,
+        Iterable as AbcIterable,
+    )
+except ImportError:
+    from collections import (
+        Hashable as AbcHashable,
+        Mapping as AbcMapping,
+        Iterable as AbcIterable,
+    )
+
 import pandas as pd
 
+import config_root.config.config_ as crococon
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
 import helpers.hdocker as hdocker
@@ -46,7 +59,7 @@ def configs_to_str(configs: List[crococon.Config]) -> str:
     """
     txt = []
     for i, config in enumerate(configs):
-        txt.append("# %s/%s" % (i + 1, len(configs)))
+        txt.append(f"# {i + 1}/{len(configs)}")
         txt.append(hprint.indent(str(config)))
     res = "\n".join(txt)
     return res
@@ -101,8 +114,7 @@ def sort_config_string(txt: str) -> str:
     start_idx = end_idx = None
     for i, line in enumerate(lines):
         _LOG.debug(
-            "i=%s state=%s start_idx=%s end_idx=%s line=%s"
-            % (i, state, start_idx, end_idx, line)
+            f"i={i} state={state} start_idx={start_idx} end_idx={end_idx} line={line}"
         )
         if (
             state == "look_for_start"
@@ -349,7 +361,7 @@ def check_no_dummy_values(config: crococon.Config) -> bool:
         # Only check for equality if the types agree.
         # Example: if we compare a pd.Series to a built-in type, the comparison
         # is carried out element-wise, which is not what we want in this case.
-        if type(val) == dummy_type:
+        if isinstance(val, dummy_type):
             hdbg.dassert_ne(
                 val,
                 crococon.DUMMY,
@@ -363,24 +375,24 @@ def check_no_dummy_values(config: crococon.Config) -> bool:
 # #############################################################################
 
 
-def make_hashable(obj: Any) -> collections.abc.Hashable:
+def make_hashable(obj: Any) -> AbcHashable:
     """
     Coerce `obj` to a hashable type if not already hashable.
     """
     ret = None
-    if isinstance(obj, collections.abc.Mapping):
+    if isinstance(obj, AbcMapping):
         # Handle dict-like objects.
         new_object = copy.deepcopy(obj)
         for k, v in new_object.items():
             new_object[k] = make_hashable(v)
         ret = tuple(new_object.items())
-    elif isinstance(obj, collections.abc.Iterable) and not isinstance(obj, str):
+    elif isinstance(obj, AbcIterable) and not isinstance(obj, str):
         # The problem is that `str` is both `Hashable` and `Iterable`, but here
         # we want to treat it like `Hashable`, i.e. return string as it is.
         # Same with `Tuple`, but for `Tuple` we want to apply the function
         # recursively, i.e. make every element `Hashable`.
         ret = tuple([make_hashable(element) for element in obj])
-    elif isinstance(obj, collections.abc.Hashable):
+    elif isinstance(obj, AbcHashable):
         # Return the object as is, since it's already hashable.
         ret = obj
     else:
@@ -493,7 +505,7 @@ def convert_to_series(config: crococon.Config) -> pd.Series:
         key = ".".join(k)
         keys.append(key)
         if isinstance(v, crococon.Config):
-            vals.append(tuple())
+            vals.append(())
         else:
             vals.append(v)
     hdbg.dassert_no_duplicates(keys)

@@ -9,7 +9,7 @@ import getpass
 import logging
 import os
 import re
-from typing import Any, Dict, List, Match, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 # TODO(gp): We should use `pip install types-PyYAML` to get the mypy stubs.
 import yaml
@@ -280,8 +280,8 @@ def _get_aws_cli_version() -> int:
     res = hsystem.system_to_one_line(cmd)[1]
     # Parse the output.
     m = re.match(r"aws-cli/((\d+)\.\d+\.\d+)\s", res)
-    hdbg.dassert(m, "Can't parse '%s'", res)
-    m: Match[Any]
+    hdbg.dassert_is_not(m, None, "Can't parse '%s'", res)
+    assert m is not None
     version = m.group(1)
     _LOG.debug("version=%s", version)
     major_version = int(m.group(2))
@@ -370,7 +370,7 @@ def _docker_login_ecr() -> None:
         # TODO(Nikola): Remove `_get_aws_cli_version()` and use only `aws ecr get-login-password`
         #  as it is present in both versions of `awscli`.
         cmd = (
-            f"docker login -u AWS -p "
+            "docker login -u AWS -p "
             f"$(aws ecr get-login-password --profile {profile}) "
             f"https://{ecr_base_path}"
         )
@@ -723,9 +723,7 @@ def _generate_docker_compose_file(
             """
             Override the method to modify YAML indentation behavior.
             """
-            return super(_Dumper, self_).increase_indent(
-                flow=False, indentless=False
-            )
+            return super().increase_indent(flow=False, indentless=False)
 
     # Convert the dictionary to YAML format.
     yaml_str = yaml.dump(

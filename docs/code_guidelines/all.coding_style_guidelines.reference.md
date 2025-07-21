@@ -1,5 +1,7 @@
 <!-- toc -->
 
+- [All Style Guide](#all-style-guide)
+  * [Summary](#summary)
 - [General](#general)
   * [Spelling](#spelling)
     + [LLM](#llm)
@@ -14,16 +16,16 @@
   * [Comments](#comments)
     + [LLM](#llm-3)
     + [Linter](#linter-3)
-  * [Code implementation](#code-implementation)
+  * [Code Implementation](#code-implementation)
     + [LLM](#llm-4)
     + [Linter](#linter-4)
-  * [Code design](#code-design)
+  * [Code Design](#code-design)
     + [LLM](#llm-5)
     + [Linter](#linter-5)
   * [Imports](#imports)
     + [LLM](#llm-6)
     + [Linter](#linter-6)
-  * [Type annotations](#type-annotations)
+  * [Type Annotations](#type-annotations)
     + [LLM](#llm-7)
     + [Linter](#linter-7)
   * [Functions](#functions)
@@ -38,7 +40,7 @@
   * [Misc](#misc)
     + [LLM](#llm-11)
     + [Linter](#linter-11)
-- [Unit tests](#unit-tests)
+- [Unit Tests](#unit-tests)
   * [Rules](#rules)
     + [LLM](#llm-12)
     + [Linter](#linter-12)
@@ -53,14 +55,24 @@
     + [LLM](#llm-15)
     + [Linter](#linter-15)
 - [Markdown](#markdown)
-  * [Naming](#naming-1)
+  * [General](#general-2)
     + [LLM](#llm-16)
     + [Linter](#linter-16)
-  * [General](#general-2)
+  * [Headers](#headers)
     + [LLM](#llm-17)
     + [Linter](#linter-17)
+  * [Text](#text)
+    + [LLM](#llm-18)
+    + [Linter](#linter-18)
 
 <!-- tocstop -->
+
+# All Style Guide
+
+## Summary
+
+- This document contains all the rules we enforce for code and documentation
+  through the `linter` and `ai_review.py`
 
 # General
 
@@ -156,7 +168,7 @@
     def add(a, b):
       return a + b
     ```
-- The docstring must describe the goal of the function, the interface and what
+- The docstring must describe the goal of the function, the interface, and what
   the user needs to know to use the function
   - Good: "Calculate the sum of two numbers and return the result."
   - Good
@@ -171,7 +183,12 @@
         :return: dictionary containing repository settings
         """
     ```
-
+  - When the output is a tuple indent like:
+    ```
+    :param mode: format of the output:
+        - `list`: indents headers to create a nested list
+        - `headers`: uses Markdown header syntax (e.g., '#', '##', '###'`)
+    ```
 - The docstring must use imperative form, whenever possible
   - Good: "Calculate the sum of two numbers and return the result."
   - Bad: "Calculates the sum of two numbers and returns the result."
@@ -200,6 +217,8 @@
   wrapped in backticks
   - Good: "The `add_numbers()` function takes two arguments `a` and `b`."
   - Bad: "The add_numbers() function takes two arguments a and b."
+- References to values should be wrapped in single ticks
+  - Good '//' with '# '
 - Multi-line representations of data structures (e.g., an output example) should
   be wrapped in triple backticks
   - Good
@@ -213,22 +232,13 @@
   a longer description (possibly on multiple lines) with a more detailed
   explanation of what the function does
 - The more detailed description is followed by a blank line and then the param
-  and return description section in REST style
-- The more detailed description is followed by a blank line and then the param
-  and return description section in REST style
+  and return description section in reST style
   - Use lowercase after `:param XYZ: ...` / `:return:` unless the description
     starts with a proper noun
 - Do not mention default values of parameters in parameter descriptions
 - Docstrings should be wrapped in triple quotation marks (`"""`)
   - The opening and closing triple quotation marks should be located on their
     own separate lines
-- Every docstring should start with a capital letter
-- Every docstring should start with a verb in the imperative form
-- Every docstring should begin with a one-line description of what the function
-  does, fit into a single line and end with a period
-- Adding examples (e.g., of input and output) to the docstring is encouraged
-- References to variables, file paths, functions, classes, etc. should be
-  wrapped in backticks
 
 ## Comments
 
@@ -293,7 +303,7 @@
 - Every comment should end with a period
 - Comments with TODOs should have the format of `# TODO(username): ...`
 
-## Code implementation
+## Code Implementation
 
 ### LLM
 
@@ -417,7 +427,7 @@
 
 ### Linter
 
-## Code design
+## Code Design
 
 ### LLM
 
@@ -468,7 +478,7 @@
   - Linter adds it automatically
 - No import cycles should be introduced by the changes in the PR
 
-## Type annotations
+## Type Annotations
 
 ### LLM
 
@@ -640,7 +650,7 @@
   then all the instances and references to it throughout the codebase should be
   updated
 
-# Unit tests
+# Unit Tests
 
 ## Rules
 
@@ -694,14 +704,15 @@
 - Do not use pickle files for test inputs
   - Use JSON, YAML, CSV files for test inputs as they are more secure and
     human-readable
-- In every test method, separate logically distinct code chunks with comments
+- In every test method separate logically distinct code chunks to prepare the
+  inputs, run the tests, and check the outputs using comments like below:
   - E.g.,
     ```
-    # Prepare inputs
+    # Prepare inputs.
     input_data = [1, 2, 3]
-    # Run test
+    # Run test.
     result = my_function(input_data)
-    # Check outputs
+    # Check outputs.
     self.assert_equal(result, expected_output)
     ```
 - Do not use `hdbg.dassert` in testing but use `self.assert*()` methods
@@ -839,30 +850,6 @@
 
 # Markdown
 
-## Naming
-
-### LLM
-
-- Boldface and italics should be used sparingly
-- The use of bullet point lists is encouraged
-  - For the items, `-` should be used instead of `*` or circles
-- Use active voice most of the time and use passive voice sparingly
-  - Good: "The user updates the file."
-  - Bad: "The file is updated by the user."
-- Be efficient
-  - Do not explain things in a repetitive way
-  - Rewrite long-winded AI-generated texts in a concise way
-  - E.g., instead of "The process of updating the software can be done by
-    following these steps," use "Update the software by following these steps"
-
-- When describing a tool the format should be the following
-  - A description of what the tool does
-  - A list of examples of invocations of a tool, with a comment on the command
-    line, the command line, and its output if possible
-  - A copy-paste version of the tool interface running `-h`
-
-### Linter
-
 ## General
 
 ### LLM
@@ -871,37 +858,31 @@
 
 - Names of documentation files should follow the format
   `docs/{component}/{audience}.{topic}.{diataxis_tag}.md` to help in organizing
-  and categorizing documentation files effectively
-  - E.g., `docs/documentation_meta/all.diataxis.explanation.md`
+  and categorizing documentation files effectively where:
   - The `{component}` part specifies the part of the project the documentation
     is related to
   - The `{audience}` part indicates who the documentation is intended for
   - The `{topic}` part describes the subject matter of the documentation
   - The `{diataxis_tag}` part categorizes the documentation according to the
     Diátaxis framework (e.g., explanation, tutorial)
+  - E.g., `docs/documentation_meta/all.diataxis.explanation.md`
+
 - All Markdown files should have a table of contents
-  - Linter automatically adds and updates the table of contents
-- Items in bullet point lists should not end with a period
+  - The linter automatically adds and updates the table of contents
+
 - There should be one and only one level 1 heading (with one `#`) in a Markdown
-  - The level 1 heading serves as the main title of the document
-  - It should clearly convey the primary topic or purpose of the document
-  - The level 1 heading should be located above the table of contents
+  - The level 1 heading:
+    - Should clearly convey the primary topic or purpose of the document
+    - Serves as the main title of the document
+    - Should be the first line and located above the table of contents
+
 - Wrap file paths, names of variables, functions, and classes in backticks
   - E.g., `file_path`, `variable_name`, `function_name()`, `ClassName`
-- Use `>` to indicate a command line
-  - E.g., `> git push` or `docker> pytest`
-- Headings should not be boldfaced
-- Headings should not be overcapitalized
-  - E.g., `Data schema` instead of `Data Schema`
-- Text should be reflowed to the maximum of 80 columns per line
-- Fenced code blocks should always be accompanied by language markers
-  - E.g., `bash`, `python`
-  - Fenced code blocks should be indented at the same level as the previous line
 - Commands should be prepended by `>`
   - Example
     ```
     > notes_to_pdf.py \
-      --input MSML610/Lesson5-Theory_Statistical_learning.txt \
+      --input lectures_source/Lesson5-Theory_Statistical_learning.txt \
       --output Lesson5.pdf \
       --type slides \
       --toc_type navigation \
@@ -913,3 +894,82 @@
   the right highlighting
   - E.g., instead of a screenshot of a terminal command, provide the command
     text: `> ls -la`
+
+## Headers
+
+### LLM
+
+- Do not use bold or italics in headings
+- Use headers so that it's easy to refer to something by link
+- Do not make the chunk of text in a header too small since we don't want to
+  have too many headers
+  - E.g., there should be at least 5-10 lines in each header
+
+### Linter
+
+- Headings are capitalized as a title
+  - E.g., `Data schema` instead of `Data Schema`
+  - The linter automatically formats them
+
+## Text
+
+### LLM
+
+- We use bullet point lists
+  - For the items, `-` should be used instead of `*` or circles
+  - Items in bullet point lists should not end with a period
+
+- Boldface and italics should be used sparingly throughout the text
+
+- Structure the text so that bullet points of higher level correspond to
+  "nesting" in the concept
+
+- Examples should go in a sub-bullet
+  - Good
+    ```
+    - We typically increment the revision, likely a minor one
+      - E.g., from `v0.3` to `v0.3.1`
+    ```
+
+- Use "you" and not "we" or "one"
+  - Let's just be direct: no need to be passive-aggressive
+
+- Text should be reflowed to the maximum of 80 columns per line
+  - The linter performs this operation automatically
+
+- Use active voice most of the time and use passive voice sparingly
+  - Good: "The user updates the file"
+  - Bad: "The file is updated by the user"
+
+- Be efficient
+  - Do not explain things in a repetitive way
+  - Rewrite long-winded AI-generated texts in a concise way
+  - E.g.,
+    - Good: "Update the software by following these steps"
+    - Bad: "The process of updating the software can be done by following these
+      steps"
+
+- When describing a tool the format should be the following:
+  - A description of what the tool does
+  - A list of examples of invocations of a tool with:
+    - A comment on the command line
+    - The command line
+    - Its output if possible
+  - A copy-paste version of the tool interface running `-h`
+
+- When nesting code blocks under list items in Markdown, we align the code block
+  to the previous block without empty lines
+  ````text
+  - Clone the super-repo locally
+    ```bash
+    > git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}
+    ```
+  - Line2
+  ````
+  - The rendering stage makes sure that the output is correctly indented and
+    spaced
+
+### Linter
+
+- Code blocks should always be accompanied by language markers
+  - E.g., `bash`, `python`, `text`, `markdown`

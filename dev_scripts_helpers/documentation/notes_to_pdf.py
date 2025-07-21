@@ -26,7 +26,7 @@ import sys
 from typing import Any, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -96,62 +96,6 @@ def _cleanup_before(prefix: str) -> None:
     """
     cmd = f"rm -rf {prefix}*"
     _ = _system(cmd)
-
-
-# #############################################################################
-
-
-def _filter_by_header(file_name: str, header: str, prefix: str) -> str:
-    """
-    Extract a specific header from a file.
-
-    :param file_name: The input file to be processed
-    :param header: The header to filter by (e.g., `# Introduction`)
-    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
-    :return: The path to the processed file
-    """
-    # Read the file.
-    txt = hio.from_file(file_name)
-    # Filter by header.
-    txt = hmarkdo.extract_section_from_markdown(txt, header)
-    # Save the file.
-    file_out = f"{prefix}.filter_by_header.txt"
-    hio.to_file(file_out, txt)
-    return file_out
-
-
-def _filter_by_lines(file_name: str, filter_by_lines: str, prefix: str) -> str:
-    """
-    Filter the lines of a file in [start_line, end_line[.
-
-    :param file_name: The input file to be processed
-    :param filter_by_lines: a string like `1:10` or `1:None` or `None:10`
-    :param prefix: The prefix used for the output file (e.g., `tmp.pandoc`)
-    :return: The path to the processed file
-    """
-    # Read the file.
-    txt = hio.from_file(file_name)
-    txt = txt.split("\n")
-    # E.g., filter_by_lines='1:10'.
-    m = re.match(r"^(\S+):(\S+)$", filter_by_lines)
-    hdbg.dassert(m, "Invalid filter_by_lines='%s'", filter_by_lines)
-    start_line, end_line = m.groups()
-    if start_line.lower() == "none":
-        start_line = 1
-    else:
-        start_line = int(start_line)
-    if end_line.lower() == "none":
-        end_line = len(txt) + 1
-    else:
-        end_line = int(end_line)
-    # Filter by header.
-    hdbg.dassert_lte(start_line, end_line)
-    txt = txt[start_line - 1 : end_line - 1]
-    txt = "\n".join(txt)
-    #
-    file_out = f"{prefix}.filter_by_lines.txt"
-    hio.to_file(file_out, txt)
-    return file_out
 
 
 # #############################################################################
@@ -281,7 +225,7 @@ def _run_pandoc_to_pdf(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = hdocker.run_dockerized_pandoc(
+        cmd = hdocexec.run_dockerized_pandoc(
             cmd,
             container_type,
             mode="return_cmd",
@@ -319,7 +263,7 @@ def _run_pandoc_to_pdf(
     )
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
-        cmd = hdocker.run_dockerized_latex(
+        cmd = hdocexec.run_dockerized_latex(
             cmd, mode="return_cmd", use_sudo=False
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
@@ -404,7 +348,7 @@ def _build_pandoc_cmd(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = hdocker.run_dockerized_pandoc(
+        cmd = hdocexec.run_dockerized_pandoc(
             cmd,
             container_type,
             mode="return_cmd",
@@ -567,10 +511,20 @@ def _run_all(args: argparse.Namespace) -> None:
         _cleanup_before(prefix)
     # - Filter
     if args.filter_by_header:
-        file_name = _filter_by_header(file_name, args.filter_by_header, prefix)
+        text = hio.from_file(file_name)
+        filtered_text = hmarkdo.filter_by_header(text, args.filter_by_header)
+        file_name = f"{prefix}.filter_by_header.txt"
+        hio.to_file(file_name, filtered_text)
     if args.filter_by_lines:
-        file_name = _filter_by_lines(file_name, args.filter_by_lines, prefix)
-    # E.g., file_='/app/helpers_root/tmp.notes_to_pdf.render_image2.txt'
+        text = hio.from_file(file_name)
+        filtered_text = hmarkdo.filter_by_lines(text, args.filter_by_lines)
+        file_name = f"{prefix}.filter_by_lines.txt"
+        hio.to_file(file_name, filtered_text)
+    if args.filter_by_slides:
+        text = hio.from_file(file_name)
+        filtered_text = hmarkdo.filter_by_slides(text, args.filter_by_slides)
+        file_name = f"{prefix}.filter_by_slides.txt"
+        hio.to_file(file_name, filtered_text)
     # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
@@ -697,6 +651,11 @@ def _parse() -> argparse.ArgumentParser:
         "--filter_by_lines",
         action="store",
         help="Filter by lines (e.g., `0:10`, `1:None`, `None:10`)",
+    )
+    parser.add_argument(
+        "--filter_by_slides",
+        action="store",
+        help="Filter by slides (e.g., `0:10`, `1:None`, `None:10`)",
     )
     # TODO(gp): -> out_action_script
     parser.add_argument(

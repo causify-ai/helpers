@@ -48,7 +48,7 @@ from typing import Dict, List
 
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hopenai as hopenai
+import helpers.hllm as hllm
 
 _LOG = logging.getLogger(__name__)
 
@@ -113,7 +113,7 @@ def _generate_summary_for_file(file_path: str, model: str) -> str:
         "Just return the summary itself, nothing else.\n\n"
         f"{content}"
     )
-    summary = hopenai.get_completion(user_prompt=prompt, model=model)
+    summary = hllm.get_completion(user_prompt=prompt, model=model)
     summary = str(summary.strip())
     return summary
 

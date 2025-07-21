@@ -7,13 +7,40 @@ import helpers.hpandas as hpandas
 import csv
 import dataclasses
 import logging
+import helpers.hlogging as hlogging
 import random
 import re
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-import s3fs
+
+# Handle different versions of s3fs where core module may be at different
+# locations.
+try:
+    import s3fs
+
+    # Try to access s3fs.core to check if it exists
+    if hasattr(s3fs, "core"):
+        from s3fs.core import S3File, S3FileSystem
+    else:
+        # In newer versions, classes might be directly in s3fs module.
+        try:
+            from s3fs import S3File, S3FileSystem
+        except ImportError:
+            # Fallback to dynamic import
+            S3File = getattr(s3fs, "S3File", None)
+            S3FileSystem = getattr(s3fs, "S3FileSystem", None)
+except ImportError:
+    # If s3fs is not available, define dummy classes for type hints.
+    s3fs = None
+
+    class S3File:
+        pass
+
+    class S3FileSystem:
+        pass
+
 
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
@@ -27,7 +54,7 @@ import helpers.hsystem as hsystem
 # import helpers.hunit_test as hunitest
 
 
-_LOG = logging.getLogger(__name__)
+_LOG = hlogging.getLogger(__name__)
 
 # Enable extra verbose debugging. Do not commit.
 _TRACE = False
@@ -1026,19 +1053,20 @@ def merge_dfs(
     )
     hdbg.dassert_lte(threshold, threshold_common_values_share1)
     hdbg.dassert_lte(threshold, threshold_common_values_share2)
-    if intersecting_columns is None:
-        # Use an empty set instead of None to perform set difference further.
-        intersecting_columns = set()
+    # Use an empty set instead of None to perform set difference further.
+    intersecting_columns_set = (
+        set() if intersecting_columns is None else set(intersecting_columns)
+    )
     # Check that there are no common columns except for the ones in `intersecting_columns`.
     df1_cols = (
         set(df1.columns.to_list())
         - set(pd_merge_kwargs["on"])
-        - set(intersecting_columns)
+        - intersecting_columns_set
     )
     df2_cols = (
         set(df2.columns.to_list())
         - set(pd_merge_kwargs["on"])
-        - set(intersecting_columns)
+        - intersecting_columns_set
     )
     hdbg.dassert_not_intersection(df1_cols, df2_cols)
     #
@@ -1086,6 +1114,83 @@ def drop_duplicated(
 # #############################################################################
 
 
+def infer_column_types(col: pd.Series):
+    """
+    Determine which data type is most prevalent in a column.
+
+    Examine the values in the given pandas Series and decides whether the
+    majority of entries are strings, numeric values, or booleans.
+
+    :param col: The column to inspect.
+    :return: One of `"is_string"`, `"is_numeric"`, or `"is_bool"`, representing
+        the predominant type.
+    """
+    vals = {
+        "is_numeric": pd.to_numeric(col, errors="coerce").notna(),
+        #'is_datetime': pd.to_datetime(col, errors='coerce').notna(),
+        "is_bool": col.map(lambda x: isinstance(x, bool)),
+        "is_string": col.map(lambda x: isinstance(x, str)),
+    }
+    vals = {k: float(v.mean()) for k, v in vals.items()}
+    # type_ = np.where(vals["is_bool"] >= vals["is_numeric"], "is_bool",
+    #                  (vals["is_numeric"] >= vals["is_string"], "is_numeric",
+    #                  "is_string"))
+    if vals["is_bool"] >= vals["is_numeric"] and (vals["is_bool"] != 0):
+        type_ = "is_bool"
+    elif vals["is_numeric"] >= vals["is_string"] and (vals["is_numeric"] != 0):
+        type_ = "is_numeric"
+    else:
+        type_ = "is_string"
+    vals["type"] = type_
+    return vals
+
+
+def infer_column_types_df(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Identify the predominant data type for each column in a DataFrame.
+
+    :param df: The DataFrame whose columns will be analyzed.
+    :return: A DataFrame with two columns:
+        - `column`: the name of each original column.
+        - `predominant_type`: the most frequent type in that column,
+          one of `"string"`, `"numeric"`, or `"bool"`.
+    """
+    return df.apply(lambda x: pd.Series(infer_column_types(x))).T
+
+
+def convert_to_type(col: pd.Series, type_: str) -> pd.Series:
+    """
+    Convert a pandas Series to a specified data type.
+
+    :param col: The input column to be converted.
+    :param type_: The target data type. Expected values include:
+        - `"is_bool"`: convert values to booleans.
+        - `"is_int"`: convert values to integers.
+        - `"is_numeric"`: convert values to float.
+        - `"is_string"`: convert values to strings.
+    :return: A new Series with the same index as `col`, cast to the requested
+        type.
+    """
+    if type_ == "is_bool":
+        return col.map(
+            lambda x: (
+                True
+                if x in ["True", 1, "1", "true", True]
+                else False
+                if x in [0, "0", "False", False, "false"]
+                else None
+            )
+        )
+    elif type_ == "is_int":
+        return pd.to_numeric(col, errors="coerce", downcast="integer")
+    elif type_ == "is_numeric":
+        return pd.to_numeric(col, errors="coerce")
+    elif type_ == "is_string":
+        return col.astype(str)
+    else:
+        raise ValueError(f"Unknown column type: {type_}")
+
+
 def convert_col_to_int(
     df: pd.DataFrame,
     col: str,
@@ -1126,7 +1231,7 @@ def cast_series_to_type(
         series = pd.to_datetime(series)
     elif series_type is dict:
         # Convert to dict.
-        series = series.apply(lambda x: eval(x))
+        series = series.apply(eval)
     else:
         # Convert to the specified type.
         series = series.astype(series_type)
@@ -1413,7 +1518,7 @@ def df_to_str(
             out.append(txt)
             # TODO(gp): np can't do isinf on objects like strings.
             # num_infinite = np.isinf(df).sum().sum()
-            # txt = "num_infinite=%s" % hprint.perc(num_infinite, num_elems)
+            # txt = "num_infinite=" + hprint.perc(num_infinite, num_elems)
             # out.append(txt)
             #
             num_nan_rows = df.dropna().shape[0]
@@ -1619,11 +1724,44 @@ def convert_df_to_json_string(
     return output_str
 
 
+def convert_df(
+    df: pd.DataFrame, *, print_invalid_values: bool = False
+) -> pd.DataFrame:
+    """
+    Convert each DataFrame column to its predominant type.
+
+    This function inspects every column in `df`, determines whether the
+    majority of its values are boolean, numeric, or string, and then
+    casts the column to that type using `convert_to_type`.
+
+    :param df: The input DataFrame whose columns will be converted.
+    :param print_invalid_values: If True, print any original values that could
+        not be converted (they become NaN after conversion)
+    :return: a new DataFrame with each column cast to its detected predominant
+        type.
+    """
+    df_out = pd.DataFrame(index=df.index)
+    for col in df.columns:
+        series = df[col]
+        # Determine the dominant datatype.
+        col_type = infer_column_types(series)["type"]
+        hdbg.dassert_in(col_type, ("is_bool", "is_numeric", "is_string"))
+        # Convert the column to dominant datatype.
+        converted = convert_to_type(series, col_type)
+        if print_invalid_values:
+            invalid_mask = series.notna() & converted.isna()
+            if invalid_mask.any():
+                invalid = series[invalid_mask].tolist()
+                print(f"Column {col} dropped invalid values: {invalid}")
+        df_out[col] = converted
+    return df_out
+
+
 # #############################################################################
 
 
 def read_csv_to_df(
-    stream: Union[str, s3fs.core.S3File, s3fs.core.S3FileSystem],
+    stream: Union[str, S3File, S3FileSystem],
     *args: Any,
     **kwargs: Any,
 ) -> pd.DataFrame:
@@ -1647,7 +1785,7 @@ def read_csv_to_df(
 
 
 def read_parquet_to_df(
-    stream: Union[str, s3fs.core.S3File, s3fs.core.S3FileSystem],
+    stream: Union[str, S3File, S3FileSystem],
     *args: Any,
     **kwargs: Any,
 ) -> pd.DataFrame:
@@ -2112,6 +2250,7 @@ def add_multiindex_col(
     :return: a multiindex DataFrame with a new column
     """
     hdbg.dassert_isinstance(df, pd.DataFrame)
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_eq(2, len(df.columns.levels))
     hdbg.dassert_isinstance(multiindex_col, pd.DataFrame)
     hdbg.dassert_isinstance(col_name, str)
@@ -2147,7 +2286,7 @@ def list_to_str(
             enclose_str_char + v + enclose_str_char for v in vals_as_str
         ]
     #
-    ret = "%s [" % len(vals)
+    ret = f"{len(vals)} ["
     if max_num is not None and len(vals) > max_num:
         hdbg.dassert_lt(1, max_num)
         ret += sep_char.join(vals_as_str[: int(max_num / 2)])
@@ -2168,22 +2307,22 @@ def multiindex_df_info(
     """
     Report information about a multi-index df.
     """
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_eq(2, len(df.columns.levels))
     columns_level0 = df.columns.levels[0]
     columns_level1 = df.columns.levels[1]
     rows = df.index
     ret = []
     ret.append(
-        "shape=%s x %s x %s"
-        % (len(columns_level0), len(columns_level1), len(rows))
+        f"shape={len(columns_level0)} x {len(columns_level1)} x {len(rows)}"
     )
     ret.append(
-        "columns_level0=%s" % list_to_str(columns_level0, **list_to_str_kwargs)
+        "columns_level0=" + list_to_str(columns_level0, **list_to_str_kwargs)
     )
     ret.append(
-        "columns_level1=%s" % list_to_str(columns_level1, **list_to_str_kwargs)
+        "columns_level1=" + list_to_str(columns_level1, **list_to_str_kwargs)
     )
-    ret.append("rows=%s" % list_to_str(rows, **list_to_str_kwargs))
+    ret.append("rows=" + list_to_str(rows, **list_to_str_kwargs))
     if isinstance(df.index, pd.DatetimeIndex):
         # Display timestamp info.
         start_timestamp = df.index.min()
@@ -2222,6 +2361,7 @@ def subset_multiindex_df(
     :param keep_order: see `_resolve_column_names()`
     :return: filtered DataFrame
     """
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_eq(2, len(df.columns.levels))
     # Filter by timestamp.
     allow_empty = False
@@ -2236,17 +2376,21 @@ def subset_multiindex_df(
         right_close=True,
     )
     # Filter level 0.
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     all_columns_level0 = df.columns.levels[0]
     columns_level0 = _resolve_column_names(
         columns_level0, all_columns_level0, keep_order=keep_order
     )
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_is_subset(columns_level0, df.columns.levels[0])
     df = df[columns_level0]
     # Filter level 1.
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     all_columns_level1 = df.columns.levels[1]
     columns_level1 = _resolve_column_names(
         columns_level1, all_columns_level1, keep_order=keep_order
     )
+    hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     hdbg.dassert_is_subset(columns_level1, df.columns.levels[1])
     df = df.swaplevel(axis=1)[columns_level1].swaplevel(axis=1)
     return df

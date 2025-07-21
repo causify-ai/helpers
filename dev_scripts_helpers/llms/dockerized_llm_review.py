@@ -62,7 +62,7 @@ def _load_review_guidelines(
         # Extract the section under the header.
         section = hmarkdo.extract_section_from_markdown(guidelines_doc, category)
         # Extract individual guidelines from bullet points.
-        individual_guidelines = _extract_bullet_points(section)
+        individual_guidelines = hmarkdo.parse_rules_from_txt(section)
         guidelines[category] = individual_guidelines
     return guidelines
 
@@ -115,7 +115,7 @@ def _review(
     # running inside a Dockerized executable. We don't want an import to
     # this file assert since openai is not available in the local dev
     # environment.
-    import helpers.hopenai as hopenai
+    import helpers.hllm as hllm
 
     for guideline in guidelines_for_file:
         # Check if the file follows the specific guideline.
@@ -146,10 +146,10 @@ def _review(
               line number = 0 and put <UNABLE TO QUOTE> as the quote
             """
         )
-        response = hopenai.get_completion(
+        response = hllm.get_completion(
             guideline_prompt, system_prompt=system_prompt, print_cost=True
         )
-        txt_out = hopenai.response_to_txt(response)
+        txt_out = hllm.response_to_txt(response)
         hdbg.dassert_isinstance(txt_out, str)
         # Extract review comments from the response.
         cur_comments = re.findall(r"<VIOLATION>(.*?)</VIOLATION>", txt_out)

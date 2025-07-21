@@ -8,8 +8,14 @@ import helpers.hdbg as hdbg
 import helpers.hobject as hobject
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# _Obj_to_str_TestCase
+# #############################################################################
 
 
 # Note that we can't derive this class from `hunitest.TestCase` otherwise the
@@ -84,7 +90,7 @@ class _Obj_to_str_TestCase(abc.ABC):
 
 
 # #############################################################################
-# Test_obj_to_str1
+# _Object1
 # #############################################################################
 
 
@@ -100,6 +106,11 @@ class _Object1:
         self._hello = "under"
         self.__hello = "double_dunder"
         self.hello = lambda x: x + 1
+
+
+# #############################################################################
+# Test_obj_to_str1
+# #############################################################################
 
 
 class Test_obj_to_str1(hunitest.TestCase, _Obj_to_str_TestCase):
@@ -157,7 +168,7 @@ class Test_obj_to_str1(hunitest.TestCase, _Obj_to_str_TestCase):
 
 
 # #############################################################################
-# Test_obj_to_str2
+# _Object2
 # #############################################################################
 
 
@@ -178,6 +189,11 @@ class _Object2:
         return hobject.obj_to_str(self)
 
 
+# #############################################################################
+# _Object3
+# #############################################################################
+
+
 class _Object3:
     """
     Object storing another object.
@@ -187,6 +203,11 @@ class _Object3:
         self.p = "p"
         self.q = "q"
         self.object2 = _Object2()
+
+
+# #############################################################################
+# Test_obj_to_str2
+# #############################################################################
 
 
 class Test_obj_to_str2(hunitest.TestCase, _Obj_to_str_TestCase):
@@ -246,7 +267,7 @@ class Test_obj_to_str2(hunitest.TestCase, _Obj_to_str_TestCase):
 
 
 # #############################################################################
-# Test_PrintableMixin_to_config_str
+# _Abstract_ClassA
 # #############################################################################
 
 
@@ -263,6 +284,11 @@ class _Abstract_ClassA(abc.ABC, hobject.PrintableMixin):
     @staticmethod
     def get_config_attributes() -> List[str]:
         return ["_arg1", "_arg2"]
+
+
+# #############################################################################
+# _ClassB
+# #############################################################################
 
 
 class _ClassB(hobject.PrintableMixin):
@@ -290,6 +316,11 @@ class _ClassB(hobject.PrintableMixin):
         return wall_clock_time
 
 
+# #############################################################################
+# _ClassA
+# #############################################################################
+
+
 class _ClassA(_Abstract_ClassA):
     """
     Class descending from `_AbstractClassA` and embedding `_ClassB`.
@@ -315,10 +346,16 @@ class _ClassA(_Abstract_ClassA):
         return config_attributes
 
 
+# #############################################################################
+# Test_PrintableMixin_to_config_str
+# #############################################################################
+
+
 class Test_PrintableMixin_to_config_str(hunitest.TestCase):
     def check_test_class_str(self, test_class: Any, exp: str) -> None:
         act = test_class.to_config_str()
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         self.assert_equal(act, exp, fuzzy_match=True)
 
     def test1(self) -> None:

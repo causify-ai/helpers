@@ -7,23 +7,23 @@
   * [Sprints](#sprints)
   * [Projects](#projects)
   * [Issue](#issue)
+  * [GH Actions](#gh-actions)
   * [Label](#label)
-    + [List of labels](#list-of-labels)
+    + [List of Labels](#list-of-labels)
   * [Status](#status)
   * [PR](#pr)
-- [Issue workflows](#issue-workflows)
+- [Issue Workflows](#issue-workflows)
   * [Naming an Issue](#naming-an-issue)
-  * [Filing a new issue](#filing-a-new-issue)
-  * [Updating an issue](#updating-an-issue)
-  * [Closing an issue](#closing-an-issue)
-- [PR workflows](#pr-workflows)
-  * [PR labels](#pr-labels)
-  * [Filing a new PR](#filing-a-new-pr)
-    + [General tips](#general-tips)
-    + [Filing process](#filing-process)
+  * [Filing a New Issue](#filing-a-new-issue)
+  * [Updating an Issue](#updating-an-issue)
+  * [Closing an Issue](#closing-an-issue)
+- [PR Workflows](#pr-workflows)
+  * [PR Labels](#pr-labels)
+  * [Filing a New PR](#filing-a-new-pr)
+    + [General Tips](#general-tips)
+    + [Filing Process](#filing-process)
   * [Review](#review)
-  * [Addressing a comment](#addressing-a-comment)
-  * [Coverage reports in PRs - discussion](#coverage-reports-in-prs---discussion)
+  * [Addressing a Comment](#addressing-a-comment)
 
 <!-- tocstop -->
 
@@ -70,7 +70,7 @@
   - Most Projects are created around software components or user workflows
     (which may cross software components)
 - For more information on GH Projects, see
-  [ck.github_projects_process.reference.md](/docs/work_organization/ck.github_projects_process.reference.md)
+  [all.github_projects_process.reference.md](/docs/work_organization/all.github_projects_process.reference.md)
 
 ### Issue
 
@@ -84,19 +84,47 @@
 - An issue may be labeled as "Epic" if it has associated sub-issues.
   - However, this is not a standard in our workflow.
 - See also
-  [ck.issue_workflow.explanation.md](/docs/work_organization/ck.issue_workflow.explanation.md)
+  [all.issue_workflow.explanation.md](/docs/work_organization/all.issue_workflow.explanation.md)
   for the description of the concept of Issues as opposed to Ideas/Projects.
+
+### GH Actions
+
+- GitHub Actions are used to automate tasks like running tests, checking
+  coverage, and deploying artifacts across our repositories
+- Each workflow is defined in `.yml` files located under `.github/workflows/` in
+  each repo
+- These actions run automatically based on defined triggers such as pushes, pull
+  requests, or scheduled events
+
+Disabling a GitHub Actions Workflow
+
+To disable a particular GitHub Actions workflow without deleting or commenting
+out the code:
+
+- Rename the file so that GitHub no longer recognizes it as a valid workflow:
+  ```bash
+  mv .github/workflows/ci.yml .github/workflows/ci.yml.DISABLED
+  ```
+- This prevents GitHub from executing the workflow, while preserving the file
+  for future use or reference
+- We follow this convention consistently across repos to make it visually
+  obvious when a workflow is intentionally deactivated
+- Note: Only files ending in `.yml` or `.yaml` are treated as valid workflows by
+  GitHub
+
+  For example, read about of our repos with workflows:
+  - Helpers:
+    [all.gitleaks_workflow.explanation.md](/docs/build_system/all.gitleaks_workflow.explanation.md)
 
 ### Label
 
 - Labels are attributes of an issue (or PR), e.g., `good first issue`,
   `PR_for_reviewers`, `duplicate`, etc.
-- See the current list of labels and their descriptions are
-  [Kaizenflow](https://github.com/causify-ai/kaizenflow/labels) and
-  [cmamp](https://github.com/causify-ai/cmamp/labels)
+- See the current list of labels and their descriptions at
+  [Git Issue Labels](/dev_scripts_helpers/github/labels/gh_issues_labels.yml)
   - The repos should always have labels in sync
 
-#### List of labels
+#### List of Labels
 
 - `Blocking`: This issue needs to be worked on immediately
 - `Bug`: Something isn't working
@@ -157,7 +185,7 @@ stateDiagram
 - A pull request (PR) is an event where a contributor asks to review code they
   want to merge into a project
 
-## Issue workflows
+## Issue Workflows
 
 ### Naming an Issue
 
@@ -171,29 +199,31 @@ stateDiagram
   read and for consistency with the rest of the bugs
 
   **Good**
-  ```
+
+  ```text
   Optimize Prometheus configuration for enhanced Kubernetes monitoring
   ```
 
   **Bad**
-  ```
+
+  ```text
   Optimize Prometheus Configuration for Enhanced Kubernetes Monitoring
   ```
 
 - They are equivalent, but the first one is more readable
 
-### Filing a new issue
+### Filing a New Issue
 
 - If it is a "serious" problem (bug) put as much information about the Issue as
   possible, e.g.,:
   - What you are trying to achieve
   - Command line you ran, e.g.,
-    ```
+    ```bash
     > i lint -f defi/tulip/test/test_dao_cross_sol.py
     ```
   - **Copy-paste** the error and the stack trace from the command line, no
     screenshots, e.g.,
-    ```
+    ```bash
     Traceback (most recent call last):
       File "/venv/bin/invoke", line 8, in <module>
         sys.exit(program.run())
@@ -231,7 +261,7 @@ stateDiagram
   - If you are unsure then you can leave it empty, but `@tag` Integrator / team
     leaders to make sure we can re-route and improve the Projects/Labels
 
-### Updating an issue
+### Updating an Issue
 
 - For large or complex Issues, there should be a design phase (in the form of GH
   Issue, Google Doc, or design PR) before starting to write a code
@@ -250,7 +280,7 @@ stateDiagram
   that Integrator / team leaders can review it
 - If we decide to stop the work, add a `Paused` label
 
-### Closing an issue
+### Closing an Issue
 
 - A task is closed when PR has been reviewed and merged into `master`
 - When, in your opinion, there is no more work to be done on your side on an
@@ -267,9 +297,9 @@ stateDiagram
   - E.g. - closing as PR is merged
   - E.g. - closing since obsolete
 
-## PR workflows
+## PR Workflows
 
-### PR labels
+### PR Labels
 
 - `PR_for_authors`
   - There are changes to be addressed by an author of a PR
@@ -279,14 +309,14 @@ stateDiagram
   - PR is ready for the final round of review by Integrators, i.e. close to
     merge
 
-### Filing a new PR
+### Filing a New PR
 
-#### General tips
+#### General Tips
 
 - Implement a feature in a branch (not `master`), once it is ready for review
   push it and file a PR via GH interface
 - We have `invoke` tasks to automate some of these tasks:
-  ```
+  ```bash
   > i git_branch_create -i 828
   > i git_branch_create -b Cmamp723_hello_world
   > i gh_create_pr
@@ -299,7 +329,7 @@ stateDiagram
 
     <img src="figs/use_github/Draft_PR.png"  width=80% height=80%>
 
-#### Filing process
+#### Filing Process
 
 - The title of the PR should match the name of the branch
   - Look at the existing PRs in the repo for examples
@@ -323,11 +353,6 @@ stateDiagram
   - If it is urgent/blocking, use the `Blocking` label
 - Make sure that the corresponding tests pass
 - Always lint (and commit files modified by Linter) before asking for a review
-- If the output is a notebook:
-  - Publish a notebook, see
-    [here](/docs/work_tools/all.development.how_to_guide.md#publish-notebooks)
-  - Attach a command line to open a published notebook, see
-    [here](/docs/work_tools/all.development.how_to_guide.md#open-a-published-notebook)
 
 ### Review
 
@@ -346,7 +371,7 @@ stateDiagram
     - Pass it to integrators and mark it as `PR_for_integrators`
       - Usually is placed by team leaders after they approve PR
 
-### Addressing a comment
+### Addressing a Comment
 
 - If the reviewer's comment is clear to the author and agreed upon:
   - The author addresses the comment with a code change and after changing the
@@ -358,44 +383,3 @@ stateDiagram
 - Once all comments are addressed:
   - Re-request the review
   - Mark it as `PR_for_reviewers`
-
-### Coverage reports in PRs - discussion
-
-- We should start posting coverage reports in PRs.
-
-- The suggested process is:
-  - PR's author posts coverage stats before (from master) and after the changes
-    in the format below. The report should contain only the files that were
-    touched in a PR.
-    - We have `run_coverage_report` invoke
-      - `TODO(*): Enable for Sorrentum and add usage examples.`
-    - Maybe we can automate it somehow, e.g., with GH actions. But we need to
-      start from something.
-      ```
-      Name                                    Stmts   Miss Branch BrPart  Cover
-      -------------------------------------------------------------------------
-      oms/locates.py                              7      7      2      0     0%
-      oms/oms_utils.py                           34     34      6      0     0%
-      oms/tasks.py                                3      3      0      0     0%
-      oms/oms_lib_tasks.py                       64     39      2      0    38%
-      oms/order.py                              101     30     22      0    64%
-      oms/test/oms_db_helper.py                  29     11      2      0    65%
-      oms/api.py                                154     47     36      2    70%
-      oms/broker.py                             200     31     50      9    81%
-      oms/pnl_simulator.py                      326     42     68      8    83%
-      oms/place_orders.py                       121      8     18      6    90%
-      oms/portfolio.py                          309     21     22      0    92%
-      oms/oms_db.py                              47      0     10      3    95%
-      oms/broker_example.py                      23      0      4      1    96%
-      oms/mr_market.py                           55      1     10      1    97%
-      oms/__init__.py                             0      0      0      0   100%
-      oms/call_optimizer.py                      31      0      0      0   100%
-      oms/devops/__init__.py                      0      0      0      0   100%
-      oms/devops/docker_scripts/__init__.py       0      0      0      0   100%
-      oms/order_example.py                       26      0      0      0   100%
-      oms/portfolio_example.py                   32      0      0      0   100%
-      -------------------------------------------------------------------------
-      TOTAL                                    1562    274    252     30    80%
-      ```
-- PR's author also sends a link to S3 with the full html report so that a
-  reviewer can check that the new lines added are covered by the tests

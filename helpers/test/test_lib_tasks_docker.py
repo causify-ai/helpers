@@ -9,6 +9,7 @@ import pytest
 import helpers.hgit as hgit
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.test.test_lib_tasks as httestlib
 
@@ -234,7 +235,8 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         # so that the tests pass.
         timestamp_regex = r"\.\d{8}_\d{6}"
         act = re.sub(timestamp_regex, "", act)
-        act = hunitest.purify_txt_from_client(act)
+        text_purifier = huntepur.TextPurifier()
+        act = text_purifier.purify_txt_from_client(act)
         # This is required when different repos run Docker with user vs root / remap.
         act = hunitest.filter_text("--user", act)
         self.assert_equal(act, exp, fuzzy_match=True)

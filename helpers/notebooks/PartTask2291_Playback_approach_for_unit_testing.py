@@ -24,20 +24,19 @@
 # %matplotlib inline
 
 import json
+import logging
 
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pandas
 
 jsonpickle_pandas.register_handlers()
 
-import logging
+import pandas as pd  # noqa: E402
 
-import pandas as pd
-
-import helpers.hdbg as hdbg
-import helpers.henv as henv
-import helpers.hplayback as hplayba
-import helpers.hprint as hprint
+import helpers.hdbg as hdbg  # noqa: E402
+import helpers.henv as henv  # noqa: E402
+import helpers.hplayback as hplayba  # noqa: E402
+import helpers.hprint as hprint  # noqa: E402
 
 # %%
 hdbg.init_logger(verbosity=logging.INFO)
@@ -80,7 +79,7 @@ use_playback = True
 
 def F(a, b):
     if use_playback:
-        playback = hplayba.Playback("assert_equal", "F", a, b)
+        playback = Playback("assert_equal", "F", a, b)
         playback.start()
     c = a + b
     if use_playback:
@@ -123,6 +122,11 @@ exp = r"5"
 exp = jsonpickle.decode(exp)
 # Check.
 assert act == exp
+
+
+# #############################################################################
+# Playback
+# #############################################################################
 
 
 # %%
@@ -172,8 +176,13 @@ res = F(3, 4)
 print(res)
 
 
+# #############################################################################
+# Playback
+# #############################################################################
+
+
 # %%
-class Playback:
+class Playback:  # noqa: F811
     # def __init__(self, file_name, mode, *args, **kwargs):
     # self.args = args
     # self.kwargs = kwargs
@@ -191,14 +200,14 @@ class Playback:
         output.append("# Initialize values for unit test.")
         # output.append("a = %s" % jsonpickle.decode(self.a_json))
         # output.append("b = %s" % jsonpickle.decode(self.b_json))
-        output.append("a = r'%s'" % self.a_json)
+        output.append(f"a = r'{self.a_json}'")
         output.append("a = jsonpickle.decode(a)")
-        output.append("b = r'%s'" % self.b_json)
+        output.append(f"b = r'{self.b_json}'")
         output.append("b = jsonpickle.decode(b)")
         output.append("# Apply values.")
         # output.append("act = F(a, b)[1]")
         output.append("act = F(a, b)")
-        output.append("exp = r'%s'" % self.ret_json)
+        output.append(f"exp = r'{self.ret_json}'")
         output.append("exp = jsonpickle.decode(exp)")
         # output.append("self.assertEqual(act, exp)")
         output.append("assert act.equals(exp)")
@@ -249,12 +258,12 @@ a = pd.DataFrame({"Price": [700, 250, 800, 1200]})
 # round_trip(a)
 frozen = jsonpickle.encode(a)
 print(frozen)
-print("frozen2 = '%s'" % frozen)
+print(f"frozen2 = '{frozen}'")
 # print("frozen = '%s'" % frozen)
 assert 0
 #
 print("frozen=")
-print(json_pretty_print(frozen))
+print(json_pretty_print(frozen))  # noqa: F821
 #
 obj2 = jsonpickle.decode(frozen)
 
@@ -296,7 +305,12 @@ exp = {"pavel": 7}
 assert act == exp
 
 # %%
-df2 = round_trip(df)
+df2 = round_trip(df)  # noqa: F821
+
+
+# #############################################################################
+# Thing
+# #############################################################################
 
 
 # %%
@@ -307,12 +321,12 @@ class Thing:
 
 obj = Thing("Awesome")
 
-round_trip(obj)
+round_trip(obj)  # noqa: F821
 
 
 # %%
 def test(a: int, b: int):
-    print(round_trip(a))
+    print(round_trip(a))  # noqa: F821
 
 
 test("strunz", 6)
@@ -347,15 +361,15 @@ df_as_str = df.to_json(orient=orient)
 
 python_code = []
 target_var = "df_as_str"
-python_code.append("%s = %s" % (target_var, df_as_str))
-python_code.append("%s.index.name = '%s'" % (target_var, df.index.name))
+python_code.append(f"{target_var} = {df_as_str}")
+python_code.append(f"{target_var}.index.name = '{df.index.name}'")
 python_code = "\n".join(python_code)
 print(python_code)
 
 exec(python_code)
 
 # %%
-airr = eval(df_as_str)
+arr = eval(df_as_str)
 df2 = pd.DataFrame.from_dict(arr, orient="columns")
 df2.index.name
 

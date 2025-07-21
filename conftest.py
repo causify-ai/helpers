@@ -4,6 +4,8 @@ import pathlib
 from typing import Any, Generator, Optional
 
 import helpers.hdbg as dbg
+
+# import helpers.hllm as hllm
 import helpers.hunit_test as hut
 
 # Hack to workaround pytest not happy with multiple redundant conftest.py
@@ -46,6 +48,12 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             help="Update golden outcomes of test",
         )
         parser.addoption(
+            "--update_llm_cache",
+            action="store_true",
+            default=False,
+            help="Update LLM shared cache",
+        )
+        parser.addoption(
             "--incremental",
             action="store_true",
             default=False,
@@ -80,11 +88,18 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         _WARNING = "\033[33mWARNING\033[0m"
         try:
             print(henv.get_system_signature()[0])
-        except:
+        except Exception:
             print(f"\n{_WARNING}: Can't print system_signature")
         if config.getoption("--update_outcomes"):
             print(f"\n{_WARNING}: Updating test outcomes")
             hut.set_update_tests(True)
+        if config.getoption("--update_llm_cache"):
+            print(f"\n{_WARNING}: Updating LLM Cache")
+            import helpers.hllm as hllm
+
+            # TODO(gp): We can't enable this until we have openai package in
+            # the dev container.
+            hllm.set_update_llm_cache(True)
         if config.getoption("--incremental"):
             print(f"\n{_WARNING}: Using incremental test mode")
             hut.set_incremental_tests(True)
@@ -96,10 +111,11 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             if config.getoption("--dbg_verbosity", None):
                 level = config.getoption("--dbg_verbosity")
             elif config.getoption("--dbg", None):
-                level = logging.TRACE
+                # Use 5 as fallback TRACE level.
+                level = getattr(logging, "TRACE", 5)
             else:
                 raise ValueError("Can't get here")
-            print(f"\n{_WARNING}: Setting verbosity level to %s" % level)
+            print(f"\n{_WARNING}: Setting verbosity level to {level}")
             # When we specify the debug verbosity we monkey patch the command
             # line to add the '-s' option to pytest to not suppress the output.
             # NOTE: monkey patching sys.argv is often fragile.

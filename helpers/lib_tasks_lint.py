@@ -5,6 +5,7 @@ import helpers.lib_tasks_lint as hlitalin
 """
 
 import datetime
+import filecmp
 import logging
 import os
 
@@ -192,6 +193,7 @@ def lint(  # type: ignore
     stage="prod",
     version="",
     files="",
+    from_file="",
     skip_files="",
     dir_name="",
     modified=False,
@@ -225,6 +227,7 @@ def lint(  # type: ignore
     :param stage: the image stage to use (e.g., "prod", "dev", "local")
     :param version: the version of the container to use
     :param files: specific files to lint (e.g. "dir1/file1.py dir2/file2.md")
+    :param from_file: specific file storing files to lint
     :param skip_files: specific files to skip during linting (e.g. "dir1/file1.py dir2/file2.md")
     :param dir_name: name of the dir where all files should be linted
     :param modified: lint the files modified in the current git client
@@ -245,15 +248,18 @@ def lint(  # type: ignore
     # Add the file selection argument.
     hdbg.dassert_eq(
         int(len(files) > 0)
+        + int(len(from_file) > 0)
         + int(len(dir_name) > 0)
         + int(modified)
         + int(last_commit)
         + int(branch),
         1,
-        msg="Specify exactly one among --files, --dir-name, --modified, --last-commit, --branch",
+        msg="Specify exactly one among --files, --from_file, --dir-name, --modified, --last-commit, --branch",
     )
     if len(files) > 0:
         lint_cmd_opts.append(f"--files {files}")
+    elif len(from_file) > 0:
+        lint_cmd_opts.append(f"--from_file {from_file}")
     elif len(dir_name) > 0:
         lint_cmd_opts.append(f"--dir_name {dir_name}")
     elif modified:
@@ -359,17 +365,16 @@ def _get_lint_docker_cmd(
 @task
 def lint_sync_code(ctx, git_client_name="helpers1", revert_to_original=False):  # type: ignore
     """
-    Sync the code needed to run linter and ai_review.py from a client to the
-    current one.
+    Sync code needed to run linter / ai_review from a Git client to the current one.
 
-    :param git_client_name: the name of the git client to sync from. It can be
+    :param git_client_name: the name of the Git client to sync from. It can be
         something like "helpers1" and it will be used from "$HOME/src" or can
         be a full path.
     :param revert_to_original: if `True`, revert the changes to the original
     """
     _ = ctx
     hlitauti.report_task()
-    # Copy the code from the src git client to the current one.
+    # Copy the code from the src Git client to the current one.
     src_git_dir = hgit.resolve_git_client_dir(git_client_name)
     #
     files_to_copy = [
@@ -378,8 +383,7 @@ def lint_sync_code(ctx, git_client_name="helpers1", revert_to_original=False):  
         "llm_prompts.py",
         "llm_transform.py",
         "inject_todos.py",
-        "all.linter_style_review_guidelines.reference.md",
-        "all.llm_style_review_guidelines.reference.md",
+        "all.coding_style_guidelines.reference.md",
     ]
     # Revert the files in the current git client to the original code.
     if revert_to_original:
@@ -387,7 +391,9 @@ def lint_sync_code(ctx, git_client_name="helpers1", revert_to_original=False):  
         for file_name in files_to_copy:
             _LOG.debug("Reverting %s to original code", file_name)
             src_file_path = hgit.find_file(file_name, dir_path=src_git_dir)
-            cmd = "git checkout -- %s" % src_file_path
+            git_root_dir = hgit.find_git_root(src_git_dir)
+            src_file_path = os.path.relpath(src_file_path, git_root_dir)
+            cmd = "git checkout -- " + src_file_path
             hsystem.system(cmd)
         _LOG.info("Done")
         return
@@ -419,6 +425,16 @@ def lint_sync_code(ctx, git_client_name="helpers1", revert_to_original=False):  
         # Copy the file.
         _LOG.debug(hprint.to_str("src_file_path dst_file_path"))
         dir_name = os.path.dirname(dst_file_path)
+        # Check that the files are different.
+        if os.path.exists(src_file_path) and os.path.isdir(dst_file_path):
+            if filecmp.cmp(src_file_path, dst_file_path, shallow=False):
+                _LOG.info(
+                    "File '%s' is identical to '%s', skipping",
+                    src_file_path,
+                    dst_file_path,
+                )
+                continue
+        # Copy the file.
         hio.create_dir(dir_name, incremental=True)
         cmd = f"cp -f {src_file_path} {dst_file_path}"
         _LOG.debug(hprint.to_str("cmd"))

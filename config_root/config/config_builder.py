@@ -14,7 +14,6 @@ from typing import Dict, Optional, cast
 import config_root.config.config_ as crococon
 import config_root.config.config_list as crcocoli
 import config_root.config.config_utils as crcocout
-
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hpickle as hpickle
@@ -54,7 +53,7 @@ def get_config_list_from_builder(config_builder: str) -> crcocoli.ConfigList:
     # Force the linter not to remove this import which is needed in the following
     # eval.
     _ = imp
-    python_code = "imp.%s(%s)" % (function, args)
+    python_code = f"imp.{function}({args})"
     _LOG.debug("executing '%s'", python_code)
     config_list = eval(python_code)
     _LOG.debug("type(config_list)=%s", str(type(config_list)))
@@ -198,8 +197,8 @@ def get_config_from_env() -> Optional[crococon.Config]:
     _LOG.warning("Found config vars in environment")
     hdbg.dassert(
         all(var in os.environ for var in config_vars),
-        "Some config vars '%s' were defined, but not all"
-        % (", ".join(config_vars)),
+        "Some config vars '%s' were defined, but not all",
+        ", ".join(config_vars),
     )
     _LOG.info(
         "__NOTEBOOK_CONFIG_PATH__: %s", os.environ["__NOTEBOOK_CONFIG_PATH__"]

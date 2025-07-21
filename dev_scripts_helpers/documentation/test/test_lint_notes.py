@@ -6,6 +6,7 @@ import pytest
 
 import dev_scripts_helpers.documentation.lint_notes as dshdlino
 import helpers.hdbg as hdbg
+import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -157,7 +158,7 @@ class Test_lint_notes2(hunitest.TestCase):
             -   avoid non-essential tasks
         """
         exp = r"""
-        * Good time management
+        * Good Time Management
 
         1. Choose the right tasks
            - Avoid non-essential tasks
@@ -189,7 +190,7 @@ class Test_lint_notes2(hunitest.TestCase):
 
         # Good
 
-        - Good time management
+        - Good Time Management
           1. Choose the right tasks
           - Avoid non-essential tasks
 
@@ -242,15 +243,15 @@ class Test_lint_notes2(hunitest.TestCase):
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self._get_text_problematic_for_prettier1()
-        act = dshdlino.prettier_on_str(txt, file_type="txt")
+        act = hdocexec.prettier_on_str(txt, file_type="txt")
         exp = r"""
-        - Python formatting
+        - Python Formatting
 
         * Python has several built-in ways of formatting strings
           1. `%` format operator
           2. `format` and `str.format`
 
-        - `%` format operator
+        - `%` Format Operator
 
         * Text template as a format string
           - Values to insert are provided as a value or a `tuple`
@@ -264,13 +265,12 @@ class Test_lint_notes2(hunitest.TestCase):
         """
         txt = self._get_text_problematic_for_prettier1()
         exp = r"""
-        * Python formatting
+        * Python Formatting
         - Python has several built-in ways of formatting strings
-
           1. `%` format operator
           2. `format` and `str.format`
 
-        * `%` format operator
+        * `%` Format Operator
         - Text template as a format string
           - Values to insert are provided as a value or a `tuple`
         """
@@ -408,7 +408,7 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         :param type_: The output format, either 'md' or 'tex'.
         :param cmd_opts: Additional command-line options to pass to the
             script.
-        :returns: A tuple containing the script content and the output
+        :return: A tuple containing the script content and the output
             content.
         """
         # lint_notes.py \

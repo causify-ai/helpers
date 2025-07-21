@@ -18,6 +18,11 @@ from typing import Dict, List
 
 import yaml
 
+import helpers.hdbg as hdbg
+import helpers.hgit as hgit
+import helpers.hparser as hparser
+import helpers.hsystem as hsystem
+
 # TODO(gp): Use hdbg.WARNING
 _WARNING = "\033[33mWARNING\033[0m"
 
@@ -27,12 +32,6 @@ try:
 except ModuleNotFoundError:
     _module = "pygithub"
     print(_WARNING + f": Can't find {_module}: continuing")
-
-
-import helpers.hdbg as hdbg
-import helpers.hgit as hgit
-import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -182,7 +181,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Load labels from label inventory manifest file.
     labels = Label.load_labels(args.input_file)
-    labels_map = {label.name: label for label in labels}
+    labels_map = {label.name.strip().lower(): label for label in labels}
     token = os.environ[args.token_env_var]
     hdbg.dassert(token)
     # Initialize GH client.
@@ -190,7 +189,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     repo = client.get_repo(f"{args.owner}/{args.repo}")
     # Get current labels from the repo.
     current_labels = repo.get_labels()
-    current_labels_map = {label.name: label for label in current_labels}
+    current_labels_map = {
+        label.name.strip().lower(): label for label in current_labels
+    }
     # Execute code if not in dry run mode.
     execute = not args.dry_run
     # Save the labels if backup is enabled.
@@ -224,7 +225,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Sync labels.
     # Create or update labels.
     for label in labels:
-        current_label = current_labels_map.get(label.name)
+        current_label = current_labels_map.get(label.name.strip().lower())
         if current_label is None:
             # Label doesn't exist, create it.
             if execute:

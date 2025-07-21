@@ -11,14 +11,13 @@ import sys
 from io import BytesIO
 from typing import List
 
+import helpers.haws as haws
 import helpers.henv as henv
+import helpers.hsecrets as hsecret
 
 henv.install_module_if_not_present("pysftp")
 
-import pysftp
-
-import helpers.haws as haws
-import helpers.hsecrets as hsecret
+import pysftp  # noqa: E402
 
 # Create a logger instance.
 _LOG = logging.getLogger(__name__)
@@ -103,7 +102,7 @@ def download_file_using_lftp(
     )
     try:
         _LOG.info("Executing lftp command: %s", lftp_cmd)
-        result = subprocess.run(
+        subprocess.run(
             lftp_cmd,
             shell=True,
             check=True,

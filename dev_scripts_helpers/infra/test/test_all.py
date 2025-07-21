@@ -35,5 +35,5 @@ class Test_ssh_tunnel(hunitest.TestCase):
         ]
         for action in actions:
             _LOG.debug("action=%s", action)
-            cmd = "%s %s -v INFO" % (exec_name, action)
+            cmd = f"{exec_name} {action} -v INFO"
             hsystem.system(cmd, suppress_output="ON_DEBUG_LEVEL")

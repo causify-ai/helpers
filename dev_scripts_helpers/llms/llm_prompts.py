@@ -21,15 +21,15 @@ _LOG = logging.getLogger(__name__)
 
 
 @functools.lru_cache(maxsize=1)
-def get_prompt_tags() -> List[str]:
+def get_prompt_tags() -> List[Tuple[str, str]]:
     """
-    Return the list of functions in this file that can be called as a prompt.
+    Return the list of prompt functions in this file and their docstrings.
     """
     # Read current file.
     curr_path = os.path.abspath(__file__)
     file_content = hio.from_file(curr_path)
     #
-    matched_functions = []
+    functions = []
     # Parse the file content into an AST.
     tree = ast.parse(file_content)
     for node in ast.walk(tree):
@@ -46,10 +46,29 @@ def get_prompt_tags() -> List[str]:
                 return_type_str = ast.unparse(node.returns)
             _LOG.debug(hprint.to_str("node.name args return_type_str"))
             if has_no_args and return_type_str == "_PROMPT_OUT":
+                # Add function name to list if it matches the expected signature.
                 _LOG.debug("  -> matched")
-                matched_functions.append(node.name)
-    matched_functions = sorted(matched_functions)
-    return matched_functions
+                # Extract docstring if it exists.
+                docstring = ast.get_docstring(node)
+                _LOG.debug("docstring='%s'", docstring)
+                docstring = "" if docstring is None else docstring
+                functions.append((node.name, docstring))
+    functions = sorted(functions)
+    return functions
+
+
+def prompt_tags_to_str(prompt_tags: List[Tuple[str, str]]) -> str:
+    """
+    Return a string representation of the prompt tags.
+    """
+    # Find the longest tag length.
+    max_tag_len = max(len(tag) for tag, _ in prompt_tags)
+    # Format each line with aligned docstrings.
+    lines = []
+    for tag, docstring in prompt_tags:
+        padding = " " * (max_tag_len - len(tag))
+        lines.append(f"{tag}{padding}   {docstring}")
+    return "\n".join(lines)
 
 
 # #############################################################################
@@ -69,7 +88,7 @@ def get_post_container_transforms(
     global _POST_CONTAINER_TRANSFORMS
     # Initialize the dictionary, on the first call.
     if not _POST_CONTAINER_TRANSFORMS:
-        valid_prompts = get_prompt_tags()
+        valid_prompts = list(zip(*get_prompt_tags()))[0]
         # Call all the functions and register their `post_container_transforms`.
         for prompt in valid_prompts:
             _, _, _, post_container_transforms = eval(f"{prompt}()")
@@ -175,6 +194,9 @@ def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
 
 
 def code_fix_function_type_hints() -> _PROMPT_OUT:
+    """
+    Add type hints to the function definitions, if they are missing.
+    """
     system = _CODING_CONTEXT
     system += r"""
     Add type hints only to the function definitions, if they are missing.
@@ -207,13 +229,6 @@ def code_fix_function_type_hints() -> _PROMPT_OUT:
 def code_fix_docstrings() -> _PROMPT_OUT:
     """
     Add or complete a REST docstring to Python code.
-
-    Each function should have a docstring that describes the function,
-    its parameters, and its return value.
-
-    Create examples of the values in input and output of each function,
-    only when you are sure of the types and values of variables. If you
-    are not sure, do not add any information.
     """
     system = _CODING_CONTEXT
     system += r'''
@@ -244,6 +259,9 @@ def code_fix_docstrings() -> _PROMPT_OUT:
 
 
 def code_fix_complex_assignments() -> _PROMPT_OUT:
+    """
+    Convert complex assignments into if-then-else statements.
+    """
     system = _CODING_CONTEXT
     system += r"""
     Convert complex assignments into if-then-else statements.
@@ -305,9 +323,23 @@ def code_fix_comments() -> _PROMPT_OUT:
 
     Comments should go before the code that they refer to
     E.g.,
+    ```
+    dir_name = self.directory.name  # For example, "helpers".
+    ```
     becomes
+    ```
+    # E.g., "helpers".
+    dir_name = self.directory.name
+    ```
     E.g.,
+    ```
+    if re.search(r'\w', token):  # Check if the token is a word.
+    ```
     becomes:
+    ```
+    # Check if the token is a word.
+    if re.search(r'\w', token):
+    ```
 
     - Add comments for the parts of the code that are not properly commented
         - E.g., every chunk of 4 or 5 lines of code add comment explaining the
@@ -357,17 +389,29 @@ def code_fix_logging_statements() -> _PROMPT_OUT:
     Add logging statements to Python code.
     """
     system = _CODING_CONTEXT
-    system += r"""
+    system += r'''
     When a variable `foobar` is important for debugging the code in case of
     failure, add statements like:
+    ```
+    _LOG.debug(hprint.to_str("foobar"))
+    ```
 
     At the beginning of an important function, after the docstring, add code
     like
+    ```
+       def get_text_report(self) -> str:
+       """
+       Generate a text report listing each module's dependencies.
+
+       :return: Text report of dependencies, one per line.
+       """
+       _LOG.debug(hprint.func_signature_to_str())
+    ```
 
     Do not change the code.
     Do not remove any already existing comment.
     Do not add any empty line.
-    """
+    '''
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
     post_container_transforms: List[str] = []
@@ -386,10 +430,22 @@ def code_fix_log_string() -> _PROMPT_OUT:
     Do not print any comment, but just the converted code.
 
     For instance, convert:
+    ```
+    _LOG.info(f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}'")
+    ```
     to
+    ```
+    _LOG.info("env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
+    ```
 
     For instance, convert:
+    ```
+    hdbg.dassert_in(env_var, os.environ, f"env_var='{str(env_var)}' is not in env_vars='{str(os.environ.keys())}''")
+    ```
     to
+    ```
+    hdbg.dassert_in(env_var, os.environ, "env_var='%s' is not in env_vars='%s'", env_var, str(os.environ.keys()))
+    ```
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -399,19 +455,23 @@ def code_fix_log_string() -> _PROMPT_OUT:
 
 def code_fix_by_using_f_strings() -> _PROMPT_OUT:
     """
-    Fix code to use f-strings, like `f"Hello, {name}.
-
-    You are {age} years old."`.
+    Fix code to use f-strings instead of % formatting.
     """
     system = _CODING_CONTEXT
     system += r"""
     Fix statements like:
+    ```
+    raise ValueError(f"Unsupported data_source='{data_source}'")
+    ```
     by using f-strings (formatted string literals) instead of % formatting and
     format strings.
 
     Do not print any comment, but just the converted code.
 
     For instance, convert:
+    ```
+    "Hello, %s. You are %d years old." % (name, age)
+    ```
     to
     """
     pre_transforms: Set[str] = set()
@@ -422,9 +482,7 @@ def code_fix_by_using_f_strings() -> _PROMPT_OUT:
 
 def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
     """
-    Use % formatting, like `"Hello, %s.
-
-    You are %d years old." % (name, age)`.
+    Use % formatting instead of f-strings (formatted string literals).
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -455,8 +513,7 @@ def code_fix_unit_test() -> _PROMPT_OUT:
 
 def code_fix_code() -> _PROMPT_OUT:
     """
-    Apply all the transformations required to write code according to the
-    Causify conventions.
+    Apply all the transformations required for the Causify code conventions.
     """
     # > grep "def code_fix" ./dev_scripts_helpers/llms/llm_prompts.py | awk '{print $2 }'
     function_names = [
@@ -494,6 +551,9 @@ def code_fix_code() -> _PROMPT_OUT:
 
 
 def code_transform_remove_redundancy() -> _PROMPT_OUT:
+    """
+    Remove redundancy in the code.
+    """
     system = _CODING_CONTEXT
     system += r"""
     You will review the code and look for opportunities to refactor the code,
@@ -509,16 +569,18 @@ def code_transform_remove_redundancy() -> _PROMPT_OUT:
 
 def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     """
-    Apply the style to the code using template code in `template_code.py`.
+    Apply the style to the code using template code in `code_template.py`.
     """
     system = _CODING_CONTEXT
-    file_name = "template_code.py"
+    file_name = "code_template.py"
     file_name = os.path.join(hgit.find_helpers_root(), file_name)
-    template_code = hio.from_file(file_name)
+    file_content = hio.from_file(file_name)
     system += rf"""
     Apply the style described below to the Python code
 
-    {template_code}
+    ```
+    {file_content}
+    ```
 
     Do not remove any code, just format the existing code using the style.
     Do not change the behavior of the code.
@@ -597,15 +659,36 @@ _LATEX_CONTEXT = r"""
 
 
 def latex_rewrite() -> _PROMPT_OUT:
+    """
+    Rewrite the Latex code to increase clarity and readability.
+    """
     system = _LATEX_CONTEXT
     system += r"""
     - Rewrite the text passed to increase clarity and readability.
-    - Maintain the structure of the text as much as possible, in terms of bullet
-      points and their indentation
+    - Maintain the structure of the text as much as possible, in terms of items
+      and their indentation
+    - The output should be a valid Latex code (e.g., using itemize)
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
-    post_container_transforms: List[str] = []
+    # post_container_transforms = ["format_latex"]
+    post_container_transforms = []
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def latex_check() -> _PROMPT_OUT:
+    """
+    Check the Latex code is correct and doesn't have errors.
+    """
+    system = _LATEX_CONTEXT
+    system += r"""
+    Check the Latex code is correct and doesn't have errors.
+
+    Print the errors in one line.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = set()
+    post_container_transforms = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
@@ -621,6 +704,9 @@ _MD_CONTEXT = r"""
 
 
 def md_add_good_bad_examples() -> _PROMPT_OUT:
+    """
+    Add good and bad examples to a markdown text.
+    """
     system = _MD_CONTEXT
     system += r"""
     You will:
@@ -632,7 +718,15 @@ def md_add_good_bad_examples() -> _PROMPT_OUT:
       `Bad:`
 
     - For instance for the input:
+      ```
+      - The docstring must use imperative form, whenever possible
+      ```
       the output is:
+      ```
+      - The docstring must use imperative form, whenever possible
+        - Good: "Calculate the sum of two numbers and return the result."
+        - Bad: "Calculates the sum of two numbers and returns the result."
+      ```
 
     Print only the markdown without any explanation.
     """
@@ -645,11 +739,15 @@ def md_add_good_bad_examples() -> _PROMPT_OUT:
 
 
 def md_rewrite() -> _PROMPT_OUT:
+    """
+    Rewrite the markdown text to increase clarity and readability.
+    """
     system = _MD_CONTEXT
     system += r"""
     - Rewrite the text passed to increase clarity and readability.
     - Maintain the structure of the text as much as possible, in terms of bullet
       points and their indentation.
+    - Whenever possible use "you" instead of "I" or "we"
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -658,6 +756,9 @@ def md_rewrite() -> _PROMPT_OUT:
 
 
 def md_summarize_short() -> _PROMPT_OUT:
+    """
+    Summarize the markdown text in less than 30 words.
+    """
     system = _MD_CONTEXT
     system += r"""
     Summarize the text in less than 30 words.
@@ -669,6 +770,9 @@ def md_summarize_short() -> _PROMPT_OUT:
 
 
 def md_expand() -> _PROMPT_OUT:
+    """
+    Expand the markdown text by adding bullet points and examples.
+    """
     system = _MD_CONTEXT
     system += r"""
     You will:
@@ -693,6 +797,9 @@ def md_expand() -> _PROMPT_OUT:
 
 # TODO(gp): Move to template.
 def md_clean_up_how_to_guide() -> _PROMPT_OUT:
+    """
+    Format the text passed as a how-to guide.
+    """
     system = _MD_CONTEXT
     system += r"""
     Format the text passed as a how-to guide.
@@ -717,6 +824,9 @@ def md_clean_up_how_to_guide() -> _PROMPT_OUT:
 
 
 def md_convert_text_to_bullet_points() -> _PROMPT_OUT:
+    """
+    Convert the text passed to bullet points.
+    """
     system = _MD_CONTEXT
     system += r"""
     - Convert the text passed to bullet points using multiple levels of bullets.
@@ -731,6 +841,9 @@ def md_convert_text_to_bullet_points() -> _PROMPT_OUT:
 
 
 def md_convert_table_to_bullet_points() -> _PROMPT_OUT:
+    """
+    Convert the table passed to bullet points.
+    """
     system = _MD_CONTEXT
     system += r"""
     - Convert the table passed to bullet points using multiple levels of bullets.
@@ -745,6 +858,9 @@ def md_convert_table_to_bullet_points() -> _PROMPT_OUT:
 
 
 def md_format() -> _PROMPT_OUT:
+    """
+    Format the markdown text.
+    """
     system = _MD_CONTEXT
     system += r"""
     - Replace `*` with `-` for bullet points
@@ -757,6 +873,9 @@ def md_format() -> _PROMPT_OUT:
 
 
 def md_remove_formatting() -> _PROMPT_OUT:
+    """
+    Remove the formatting (bold, italic, etc.) from the markdown text.
+    """
     system = _MD_CONTEXT
     system += r"""
     You will:
@@ -773,6 +892,9 @@ def md_remove_formatting() -> _PROMPT_OUT:
 
 
 def md_create_bullets() -> _PROMPT_OUT:
+    """
+    Create bullet points from the markdown text.
+    """
     system = _MD_CONTEXT
     system += r"""
     You will:
@@ -896,7 +1018,15 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     Example:
     - All functions must have a docstring
     - Good:
+        ```python
+        def foo():
+            pass
+        ```
     - Bad:
+        ```python
+        def foo():
+            pass
+        ```
 
     #### List of rules
 
@@ -938,16 +1068,7 @@ def review_llm() -> _PROMPT_OUT:
     Review the code using LLMs.
     """
     # Load the reference file.
-    file_name = hgit.find_file("all.llm_style_review_guidelines.reference.md")
-    return _review_from_file(file_name)
-
-
-def review_linter() -> _PROMPT_OUT:
-    """
-    Review the code for linter style (still using LLMs).
-    """
-    # Load the reference file.
-    file_name = hgit.find_file("all.linter_style_review_guidelines.reference.md")
+    file_name = hgit.find_file("all.coding_style_guidelines.reference.md")
     return _review_from_file(file_name)
 
 
@@ -998,11 +1119,18 @@ def review_refactoring() -> _PROMPT_OUT:
 # #############################################################################
 
 
+_SLIDE_CONTEXT = r"""
+    You are a proficient technical writer who writes slides in markdown.
+
+    I will pass you a chunk of markdown code.
+    """
+
+
 def slide_to_bullet_points() -> _PROMPT_OUT:
     """
     Convert the markdown text into bullet points.
     """
-    system = _MD_CONTEXT
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
     - Convert the following markdown text into bullet points
@@ -1021,7 +1149,10 @@ def slide_to_bullet_points() -> _PROMPT_OUT:
 
 
 def slide_expand() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    """
+    Expand the slide text by adding bullet points and examples.
+    """
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
     - Maintain the structure of the text and keep the content of the existing
@@ -1044,18 +1175,74 @@ def slide_expand() -> _PROMPT_OUT:
 
 
 def slide_reduce() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    """
+    Reduce the text in a slide.
+    """
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
-    - Maintain the structure of the text
+    - Maintain the structure of the text in terms of bullet and sub-bullet points
     - Keep all the figures
-    - Make sure that the text is clean and readable
-    - Remove all the words that are not needed
-    - Minimize the changes to the text
-    - Use `E.g.,` instead of `Example`
+    - Make the text clean and readable
+    - Remove all the words that are not needed and that are not important
+    - Use "you" instead of "we"
+    - Be concise: Drop filler words ("the", "that", etc.)
+    - Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
+
+    - If a line starts with an asterisk *, it's the slide title and leave it
+      unchanged
+        Examples:
+        <input>
+        * Slide title
+        - This is a very long bullet point that is not clear and should be removed
+        - This is a clear bullet point that should be kept
+        </input>
+
+        <output>
+        * Slide title
+        - This is a clear bullet point that should be kept
+        </output>
 
     Print only the markdown without any explanation.
     """
+    # - Minimize the changes to the text
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_slide"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def slide_definition() -> _PROMPT_OUT:
+    """
+    Highlight the definitions in the text.
+    """
+    system = _SLIDE_CONTEXT
+    system += r"""
+    - If there is a definition in the text, add bold to the term being defined
+      - Do not bold the term if it is already bold
+    - Use the latex `\defeq` in the definition instead of `=`
+    - Move the symbol of the definition to the left of the term being defined
+
+    Example1:
+    Input:
+    - Entropy of a discrete random variable $X$ is defined as
+      $$H(X) = -\sum_x p(x) \log p(x)$$
+    - Entropy quantifies the average level of information / surprise / uncertainty
+      inherent in the variable's possible outcomes
+
+    Output:
+    - The **entropy** $H(X)$ of a discrete random variable $X$ is defined as:
+      $$H(X) \defeq -\sum_x p(x) \log p(x)$$
+    - Entropy quantifies the average level of information / surprise / uncertainty
+      inherent in the variable's possible outcomes
+
+    Print only the markdown without any explanation.
+    """
+    # - Minimize the changes to the text
     pre_transforms: Set[str] = set()
     post_transforms = {
         "remove_code_delimiters",
@@ -1067,7 +1254,10 @@ def slide_reduce() -> _PROMPT_OUT:
 
 
 def slide_reduce_bullets() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    """
+    Remove the bullet points that are.
+    """
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
     - Maintain the structure of the text
@@ -1087,8 +1277,43 @@ def slide_reduce_bullets() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def slide_reduce2() -> _PROMPT_OUT:
+    """
+    Reduce the slide text to a maximum of 5-6 bullets per slide.
+    """
+    system = _SLIDE_CONTEXT
+    system += r"""
+    You will make sure that the text has the following characteristics:
+    - 1 idea per bullet: Keep each point focused on a single concept
+    - Max 5-6 bullets per slide: Avoid cognitive overload
+    - Max 6-8 words per bullet: Short phrases, not full sentences
+    - Parallel structure: Start each bullet with the same part of speech (e.g., verbs)
+    - No full stops (unless it's a complete sentence needing emphasis)
+
+    - Be concise: Drop filler words ("the", "that", etc.)
+    - Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
+    - Use verbs for actions: e.g., "Collect feedback", "Analyze results"
+    - Highlight outcomes: Emphasize value, not process:
+        "Boost retention" > "Use spaced repetition."
+
+    Print only the markdown without any explanation.
+    """
+    # - Minimize the changes to the text
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_slide"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 def slide_bold() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    """
+    Highlight the most important phrases in the text.
+    """
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
     - Not change the text or the structure of the text
@@ -1107,7 +1332,10 @@ def slide_bold() -> _PROMPT_OUT:
 
 
 def slide_smart_colorize() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    """
+    Colorize the most important phrases in the text.
+    """
+    system = _SLIDE_CONTEXT
     system += r"""
     You will:
     - Not change the text or the structure of the text
@@ -1147,7 +1375,10 @@ def slide_smart_colorize() -> _PROMPT_OUT:
 
 
 def slide_add_figure() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    """
+    Add a figure to the slide.
+    """
+    system = _SLIDE_CONTEXT
     system += r"""
     You will create a figure that illustrates the text using Graphviz dot.
 
@@ -1163,6 +1394,21 @@ def slide_add_figure() -> _PROMPT_OUT:
         - Cyan: `#A6E7F4`, Blue: `#A6C8F4`, Violet: `#C6A6F4`, Brown: `#D2B48C`
 
     - Use a template like:
+        ```graphviz
+        digraph BayesianFlow {
+            // rankdir=LR;
+            splines=true;
+            nodesep=1.0;
+            ranksep=0.75;
+            node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.7];
+
+            // Node styles.
+
+            // Force ranks.
+
+            // Edges.
+        }
+        ```
 
     Do not print anything else than the graphviz code in a markdown format
     """
@@ -1177,16 +1423,23 @@ def slide_add_figure() -> _PROMPT_OUT:
 
 
 def slide_check() -> _PROMPT_OUT:
-    system = _MD_CONTEXT
+    """
+    Check the slide is clear and correct.
+    """
+    system = _SLIDE_CONTEXT
     system += r"""
-    - Do not print the content of the slide, but only the comment.
+    - Do not print or summarize the content of the slide, but only your comments:
 
-    - Is the content of the slide clear and correct?
-      - Answer with "The slide is clear" or "The slide is not clear"
+    - Is the content of the slide clear?
+      - Answer with "Yes" or "NO"
 
-    - Is there anything that can be clarified?
-      - Respond with at most 5 short bullet points about what can be clarified.
-      - Do not report things that you are not sure about.
+    - Is the content of the slide correct?
+      - Answer with "Yes" or "NO"
+
+    - What can be clarified or improved?
+      - Respond with at most 3 short bullet points about what can be clarified
+        or improved.
+      - You MUST report only things that you are sure about.
     """
     pre_transforms: Set[str] = set()
     post_transforms: Set[str] = set()
@@ -1211,7 +1464,9 @@ def slide_check() -> _PROMPT_OUT:
 
 
 def text_idea() -> _PROMPT_OUT:
-    """ """
+    """
+    Come up with suggestions and variations to make it interesting.
+    """
     file = "text_idea.txt"
     if os.path.exists(file):
         system = hio.from_file(file)
@@ -1224,7 +1479,9 @@ def text_idea() -> _PROMPT_OUT:
 
 
 def text_rephrase() -> _PROMPT_OUT:
-    """ """
+    """
+    Rephrase the text using text_rephrase.txt.
+    """
     file = "text_rephrase.txt"
     if os.path.exists(file):
         system = hio.from_file(file)
@@ -1237,6 +1494,9 @@ def text_rephrase() -> _PROMPT_OUT:
 
 
 def text_rewrite() -> _PROMPT_OUT:
+    """
+    Rewrite the text to increase clarity and readability.
+    """
     system = ""
     system += r"""
     - Rewrite the text passed to increase clarity and readability.
@@ -1373,7 +1633,7 @@ def run_prompt(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Get the info corresponding to the prompt tag.
-    prompt_tags = get_prompt_tags()
+    prompt_tags = list(zip(*get_prompt_tags()))[0]
     hdbg.dassert_in(prompt_tag, prompt_tags)
     python_cmd = f"{prompt_tag}()"
     (
@@ -1417,14 +1677,14 @@ def run_prompt(
         # running inside a Dockerized executable. We don't want an import to
         # this file assert since openai is not available in the local dev
         # environment.
-        import helpers.hopenai as hopenai
+        import helpers.hllm as hllm
 
         _LOG.debug(hprint.to_str("system_prompt"))
-        response = hopenai.get_completion(
+        response = hllm.get_completion(
             txt, system_prompt=system_prompt, model=model, print_cost=True
         )
         # _LOG.debug(hprint.to_str("response"))
-        txt_out = hopenai.response_to_txt(response)
+        txt_out = hllm.response_to_txt(response)
     hdbg.dassert_isinstance(txt_out, str)
     # 3) Run post-transforms.
     if to_run("remove_code_delimiters", post_transforms):

@@ -60,8 +60,7 @@ def _find_config_file(file_name: str) -> str:
         if parent == curr_dir:
             # We cannot use helpers since it creates circular import.
             raise FileNotFoundError(
-                "Could not find '%s' in current directory or any parent directories"
-                % file_name
+                f"Could not find '{file_name}' in current directory or any parent directories"
             )
         curr_dir = parent
     return path
@@ -337,6 +336,15 @@ class RepoConfig:
 
     # TODO(gp): Add functions for container_registry_info.
 
+    def get_container_registry_url(self, registry: str = "ecr") -> str:
+        """
+        Return the URL of the container registry.
+
+        :param registry: the name of the container registry (e.g., `ecr`, `ghcr`)
+        :return: the URL of the container registry
+        """
+        return self._data["container_registry_info"][registry]
+
     # Utils.
 
     @staticmethod
@@ -364,7 +372,7 @@ class RepoConfig:
         # Check if path exists.
         # We can't use helpers since it creates circular import.
         if not os.path.exists(file_path):
-            raise FileNotFoundError("File '%s' doesn't exist" % file_path)
+            raise FileNotFoundError(f"File '{file_path}' doesn't exist")
         return file_path
 
 

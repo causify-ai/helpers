@@ -6,9 +6,15 @@ import pytest
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 import import_check.show_imports as ichshimp
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_show_imports
+# #############################################################################
 
 
 @pytest.mark.slow()
@@ -83,7 +89,8 @@ class Test_show_imports(hunitest.TestCase):
             script_output = hio.from_file(script_output_filename)
             # Transform the output from the script by removing the dependencies
             # from the client.
-            purified_script_output = hunitest.purify_txt_from_client(
+            text_purifier = huntepur.TextPurifier()
+            purified_script_output = text_purifier.purify_txt_from_client(
                 script_output
             )
             purified_script_output = purified_script_output.replace(

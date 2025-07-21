@@ -10,6 +10,7 @@ import helpers.hsystem as hsystem
 import contextlib
 import datetime
 import getpass
+import glob
 import logging
 import os
 import re
@@ -196,7 +197,7 @@ def _system(
         stdout = subprocess.PIPE
         stderr = subprocess.STDOUT
         # We want to print the command line even if this module logging is disabled.
-        # print("  ==> cmd=%s" % cmd)
+        # print("  ==> cmd=" + cmd)
         # TODO(gp): This seems not working properly and getting the logging
         # verbosity stuck.
         # with hloggin.set_level(_LOG, logging.DEBUG):
@@ -216,8 +217,8 @@ def _system(
                     if not line:
                         break
                     if not suppress_output:
-                        # print("  ==> %s" % line.rstrip("\n"))
-                        print("  ... %s" % line.rstrip("\n"))
+                        # print("  ==> " + line.rstrip("\n"))
+                        print("  ... " + line.rstrip("\n"))
                     output += line
                 p.stdout.close()  # type: ignore
                 rc = p.wait()
@@ -338,7 +339,7 @@ def system(
 #     elif py_ver == 3:
 #         txt = subprocess.getoutput(cmd)
 #     else:
-#         raise RuntimeError("Invalid py_ver=%s" % py_ver)
+#         raise RuntimeError("Invalid py_ver=" + py_ver)
 #     txt = [f for f in txt.split("\n") if f]
 #     hdbg.dassert_eq(len(txt), 1)
 #     return txt[0]
@@ -485,8 +486,7 @@ def select_result_file_from_list(
             hdbg.dfatal(f"mode={mode}: didn't find file {file_name}")
         elif len(files) > 1:
             hdbg.dfatal(
-                "mode=%s: found multiple files:\n%s\n"
-                % (mode, "\n".join(files), file_name)
+                f"mode={mode}: found multiple files:\n" + "\n".join(files)
             )
         res = [files[0]]
     elif mode == "return_all_results":
@@ -802,6 +802,60 @@ def find_file_in_repo(file_name: str, *, root_dir: Optional[str] = None) -> str:
     )
     hdbg.dassert_ne(file_name_out, "", "File not found in repo: '%s'", file_name)
     return file_name_out
+
+
+# TODO(gp): Use find_file
+def _find_file(filename: str, *, search_path: str = ".") -> Optional[str]:
+    """
+    Find a file in a directory and report its absolute path.
+
+    :param filename: the name of the file to find (e.g., "helpers_root")
+    :param search_path: the directory to search in (e.g., "/Users/saggese/src/helpers1")
+    :return: the absolute path of the file
+    """
+    # Recursive glob.
+    search_path = os.path.join(search_path, "**", filename)
+    files = glob.glob(search_path, recursive=True)
+    if len(files) == 1:
+        return files[0]
+    elif len(files) > 1:
+        msg = f"Found multiple files with basename '{filename}' in directory '{search_path}':\n"
+        msg += "\n".join(files)
+        raise RuntimeError(msg)
+    else:
+        return None
+
+
+# TODO(gp): -> find_path_greedily
+def find_path(
+    path: str, *, dir_name: str = ".", abort_on_error: bool = False
+) -> str:
+    """
+    Find a path in a directory and report its absolute path.
+
+    :param path: the path to find (e.g., "system_tools/path.py")
+    :param dir_name: the directory to search in (e.g., "/Users/saggese/src/helpers1")
+    :param abort_on_error: if True, raise an error if the path doesn't exist
+    :return: the absolute path of the path
+    """
+    # Make the path absolute.
+    path_out = os.path.abspath(path)
+    # If the path exists, return it.
+    if os.path.exists(path_out):
+        return path_out
+    # If the path doesn't exist, abort.
+    if abort_on_error:
+        msg = f"path '{path}' doesn't exist in '{dir_name}'"
+        raise RuntimeError(msg)
+    # Look for a file with the same basename in ``dir_name``.
+    dir_name = os.path.abspath(dir_name)
+    basename = os.path.basename(path)
+    path_out = _find_file(basename, search_path=dir_name)
+    # If the file doesn't exist, abort.
+    if path_out is None:
+        msg = f"path '{path}' doesn't exist in '{dir_name}'"
+        raise RuntimeError(msg)
+    return path_out
 
 
 # TODO(Nikola): Use filesystem's `du` and move to `hio` instead?

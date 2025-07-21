@@ -3,7 +3,7 @@ import pprint
 
 import pytest
 
-import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
@@ -26,7 +26,7 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
             "--template default --extract-media media -- --verbose --extra"
         )
         # Call function to test.
-        act = pprint.pformat(hdocker.convert_pandoc_cmd_to_arguments(cmd))
+        act = pprint.pformat(hdocexec.convert_pandoc_cmd_to_arguments(cmd))
         exp = """
         {'cmd_opts': ['--verbose', '--extra'],
         'in_dir_params': {'data-dir': 'data',
@@ -55,7 +55,7 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
             "cmd_opts": ["--verbose", "--extra"],
         }
         # Call function to test.
-        act = pprint.pformat(hdocker.convert_pandoc_arguments_to_cmd(params))
+        act = pprint.pformat(hdocexec.convert_pandoc_arguments_to_cmd(params))
         exp = """
         ('sample.md --output output.md --data-dir data --template default '
         '--extract-media media --verbose --extra')"""
@@ -87,7 +87,7 @@ class Test_run_dockerized_pandoc(hunitest.TestCase):
         # Build the pandoc command string.
         cmd = f"pandoc {input_file} -o {output_file} --to=html --toc"
         # Call the function.
-        hdocker.run_dockerized_pandoc(
+        hdocexec.run_dockerized_pandoc(
             cmd,
             container_type="pandoc_texlive",
             force_rebuild=False,

@@ -1,37 +1,10 @@
 #!/usr/bin/env python3
 
-"""
-Read input from either stdin or a file, apply a specified transformation using
-an LLM, and then write the output to either stdout or a file. It is
-particularly useful for integrating with editors like Vim.
-
-The script `dockerized_llm_transform.py` is executed within a Docker container to ensure
-all dependencies are met. The Docker container is built dynamically if
-necessary. The script requires an OpenAI API key to be set in the environment.
-
-Examples
-# Basic Usage
-> llm_transform.py -i input.txt -o output.txt -p uppercase
-
-# List of transforms
-> llm_transform.py -i input.txt -o output.txt -p list
-
-# Code review
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_review
-
-# Propose refactoring
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
-"""
-
-# TODO(gp): There are different modes to run the script
-# - run the script to process input and write transformed output
-# - run the script to process input and extract a cfile
-
 import argparse
 import logging
 import os
 
-import dev_scripts_helpers.llms.llm_prompts as dshlllpr
+import dev_scripts_helpers.llms.llm_utils as dshlllut
 import dev_scripts_helpers.llms.llm_transform as dshllltr
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -42,9 +15,6 @@ _LOG = logging.getLogger(__name__)
 
 # TODO(gp): -> _parser() or _get_parser() everywhere.
 def _parse() -> argparse.ArgumentParser:
-    """
-    Use the same argparse parser for `dockerized_llm_transform.py`.
-    """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -67,11 +37,13 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
+# TODO(gp): Factor out the common code with `dockerized_llm_transform.py`.
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hparser.init_logger_for_input_output_transform(args)
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
+    # Check that the prompt is valid.
     hdbg.dassert_in(
         args.prompt,
         [
@@ -81,9 +53,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
             "review_refactoring",
         ],
     )
+    # Make sure the output file name is `cfile` so that the output is printed
+    # to stdout.
     if out_file_name != "cfile":
         _LOG.warning(
-            "The output file name is %s, so it will be converted to `cfile`",
+            "The output file name is '%s': using `cfile`",
             out_file_name,
         )
         out_file_name = "cfile"
@@ -93,15 +67,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
-    # cmd_line_opts = []
-    # for arg in vars(args):
-    #     if arg not in ["input", "output"]:
-    #         value = getattr(args, arg)
-    #         if isinstance(value, bool):
-    #             if value:
-    #                 cmd_line_opts.append(f"--{arg.replace('_', '-')}")
-    #         else:
-    #             cmd_line_opts.append(f"--{arg.replace('_', '-')} {value}")
     # For stdin/stdout, suppress the output of the container.
     suppress_output = in_file_name == "-" or out_file_name == "-"
     dshllltr._run_dockerized_llm_transform(
@@ -115,23 +80,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Run post-transforms outside the container.
     if not args.skip_post_transforms:
-        post_container_transforms = dshlllpr.get_post_container_transforms(
-            args.prompt
-        )
-        #
-        if dshlllpr.to_run("convert_file_names", post_container_transforms):
-            dshllltr._convert_file_names(in_file_name, tmp_out_file_name)
-        #
-        # Check that all post-transforms were run.
-        hdbg.dassert_eq(
-            len(post_container_transforms),
-            0,
-            "Not all post_transforms were run: %s",
-            post_container_transforms,
+        out_txt = dshlllut.run_post_transforms(
+            args.prompt,
+            args.compare,
+            in_file_name,
+            tmp_in_file_name,
+            tmp_out_file_name,
         )
     else:
         _LOG.info("Skipping post-transforms")
-    out_txt = hio.from_file(tmp_out_file_name)
+        out_txt = hio.from_file(tmp_out_file_name)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
     hparser.write_file(out_txt, out_file_name)

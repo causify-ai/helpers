@@ -58,8 +58,11 @@ def git_fetch_master(ctx):  # type: ignore
 
 @task
 def git_merge_master(
-    ctx, abort_if_not_ff=False, abort_if_not_clean=True, skip_fetch=False
-):  # type: ignore
+    ctx,
+    abort_if_not_ff=False,
+    abort_if_not_clean=True,
+    skip_fetch=False,  # type: ignore
+):
     """
     Merge `origin/master` into the current branch.
 
@@ -124,6 +127,8 @@ def git_clean(ctx, fix_perms_=False, dry_run=False):  # type: ignore
         r"cfile",
         r"tmp.*",
         r"*.tmp",
+        r".*_cache",
+        "htmlcov",
     ]
     opts = [f"-name '{opt}'" for opt in to_delete]
     opts = " -o ".join(opts)
@@ -568,7 +573,6 @@ def git_branch_next_name(ctx, branch_name=None):  # type: ignore
     print(f"branch_next_name='{branch_next_name}'")
 
 
-# TODO(gp): @all Improve docstring
 @task
 def git_branch_copy(  # type: ignore
     ctx,
@@ -580,19 +584,21 @@ def git_branch_copy(  # type: ignore
     """
     Create a new branch with the same content of the current branch.
 
-    :param skip_git_merge_master
-    :param check_branch_name: make sure the name of the branch is valid like
+    :param new_branch_name: name for the new branch
+    :param skip_git_merge_master: skip merging master into current branch
+    :param use_patch: apply patching instead of merging
+    :param check_branch_name: enforce branch naming convention like
         `{Amp,...}TaskXYZ_...`
     """
     hdbg.dassert(not use_patch, "Patch flow not implemented yet")
-    #
+    # Clean current repository.
     cmd = "git clean -fd"
     hlitauti.run(ctx, cmd)
     #
     curr_branch_name = hgit.get_branch_name()
     hdbg.dassert_ne(curr_branch_name, "master")
     if not skip_git_merge_master:
-        # Make sure `old_branch_name` doesn't need to have `master` merged.
+        # Ensure current branch is up-to-date with `master`.
         cmd = "invoke git_merge_master --abort-if-not-ff"
         hlitauti.run(ctx, cmd)
     else:
@@ -600,16 +606,18 @@ def git_branch_copy(  # type: ignore
     if use_patch:
         # TODO(gp): Create a patch or do a `git merge`.
         pass
-    # If new_branch_name was not specified, find a new branch with the next index.
     if new_branch_name == "":
+        # Automatically generate branch name.
         new_branch_name = hgit.get_branch_next_name()
     _LOG.info("new_branch_name='%s'", new_branch_name)
     # Create or go to the new branch.
     mode = "all"
     new_branch_exists = hgit.does_branch_exist(new_branch_name, mode)
     if new_branch_exists:
+        # Switch to existing branch.
         cmd = f"git checkout {new_branch_name}"
     else:
+        # Create and switch to a new branch.
         cmd = f"git checkout master && invoke git_branch_create -b '{new_branch_name}'"
         if not check_branch_name:
             cmd += " --no-check-branch-name"
@@ -617,7 +625,7 @@ def git_branch_copy(  # type: ignore
     if use_patch:
         # TODO(gp): Apply the patch.
         pass
-    #
+    # Squash merge the current branch into the new one without commiting.
     cmd = f"git merge --squash --ff {curr_branch_name} && git reset HEAD"
     hlitauti.run(ctx, cmd)
 
@@ -731,7 +739,7 @@ def _git_diff_with_branch(
         _LOG.info("After filtering by subdir: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Done filtering.
-    _LOG.info("\n" + hprint.frame("# files=%s" % len(files)))
+    _LOG.info("\n" + hprint.frame(f"# files={len(files)}"))
     _LOG.info("\n" + "\n".join(files))
     if len(files) == 0:
         _LOG.warning("Nothing to diff: exiting")
@@ -780,7 +788,7 @@ def _git_diff_with_branch(
         script_txt.append(cmd)
     script_txt = "\n".join(script_txt)
     # Files to diff.
-    _LOG.info("\n" + hprint.frame("Diffing script"))
+    _LOG.info("\n%s" % hprint.frame("Diffing script"))
     _LOG.info(script_txt)
     # Save the script to compare.
     script_file_name = f"./tmp.vimdiff_branch_with_{tag}.sh"
@@ -823,8 +831,8 @@ def _git_diff_with_branch_wrapper(
         hash_,
         tag,
         dir_name,
-        diff_type,
         subdir,
+        diff_type,
         keep_extensions,
         skip_extensions,
         file_name,
@@ -840,8 +848,8 @@ def _git_diff_with_branch_wrapper(
                     hash_,
                     tag,
                     dir_name,
-                    diff_type,
                     subdir,
+                    diff_type,
                     keep_extensions,
                     skip_extensions,
                     file_name,

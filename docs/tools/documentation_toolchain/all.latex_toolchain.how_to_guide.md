@@ -1,14 +1,15 @@
 <!-- toc -->
 
 - [Definitions](#definitions)
+- [Typical Use](#typical-use)
 - [Files](#files)
-- [Editing `txt` files](#editing-txt-files)
-  * [Generate the summary of the headers](#generate-the-summary-of-the-headers)
-  * [Format a chunk of `txt` file](#format-a-chunk-of-txt-file)
-  * [List possible LLM transforms](#list-possible-llm-transforms)
-  * [Convert notes to slides](#convert-notes-to-slides)
+- [Editing `Txt` Files](#editing-txt-files)
+  * [Generate the Summary of the Headers](#generate-the-summary-of-the-headers)
+  * [Format a Chunk of `Txt` File](#format-a-chunk-of-txt-file)
+  * [List Possible LLM Transforms](#list-possible-llm-transforms)
+  * [Convert Notes to Slides](#convert-notes-to-slides)
 - [Latex Toolchain](#latex-toolchain)
-  * [Running and linting Latex files](#running-and-linting-latex-files)
+  * [Running and Linting Latex Files](#running-and-linting-latex-files)
 
 <!-- tocstop -->
 
@@ -25,7 +26,7 @@
   - HTML
   - Questions / answers (through Anki)
 
-# Typical use
+# Typical Use
 
 # Files
 ```
@@ -39,21 +40,22 @@
   - `dockerized_pandoc.py`
     - Run `pandoc` inside a Docker container, building a container if needed
     - Not tested directly but through `run_dockerized_pandoc()` in
-      `helpers/test/test_hdocker.py`
+      [`/helpers/test/test_hdocker.py`](/helpers/test/test_hdocker.py)
   - `dockerized_prettier.py`
     - Run `prettier` inside a Docker container to ensure consistent formatting
       across different environments, building a container if needed
     - Not tested directly but through `run_dockerized_prettier()` in
-      `helpers/test/test_hdocker.py`
+      [`/helpers/test/test_hdocker.py`](/helpers/test/test_hdocker.py)
   - `generate_latex_sty.py`
     - One-off script to generate the latex file with abbreviations
   - `generate_script_catalog.py`
     - Generate a markdown file with the docstring for any script in the repo
-    - TODO(gp): Unclear what to do with this. This can be a way to create
-      an index of all the scripts, if we use some consistent docstring
+    - TODO(gp): Unclear what to do with this. This can be a way to create an
+      index of all the scripts, if we use some consistent docstring
   - `lint_notes.py`
     - Lint "notes" files.
-    - Tested by `dev_scripts_helpers/documentation/test/test_lint_notes.py`
+    - Tested by
+      [`/dev_scripts_helpers/documentation/test/test_lint_notes.py`](/dev_scripts_helpers/documentation/test/test_lint_notes.py)
   - `latex_abbrevs.sty`
     - Latex macros
   - `latexdockercmd.sh`
@@ -105,9 +107,9 @@
       2. `format`: format the current file with 3 levels
       3. `increase`: increase level
 
-# Editing `txt` files
+# Editing `Txt` Files
 
-## Generate the summary of the headers
+## Generate the Summary of the Headers
 
 - In `vim`
   ```bash
@@ -127,14 +129,14 @@
   :!helpers_root/dev_scripts_helpers/documentation/process_md_headers.py -i % -m 2
   ```
 
-## Format a chunk of `txt` file
+## Format a Chunk of `Txt` File
 
 - In vim
   ```bash
   :'<,'>!helpers_root/dev_scripts_helpers/llms/llm_transform.py -i - -o - -t md_format
   ```
 
-## List possible LLM transforms
+## List Possible LLM Transforms
 
 - Use `llm_transform.py -t list`
   ```bash
@@ -149,16 +151,16 @@
   slide_colorize
   ```
 
-## Convert notes to slides
+## Convert Notes to Slides
 
 - Convert notes to slides:
   ```bash
-  > notes_to_pdf.py --input notes/MSML610/Lesson1-Intro.txt --output tmp.pdf -t slides
+  > notes_to_pdf.py --input lectures_source/Lesson1-Intro.txt --output tmp.pdf -t slides
   ```
 
 # Latex Toolchain
 
-## Running and linting Latex files
+## Running and Linting Latex Files
 
 - We organize each project is in a directory (e.g., under `//papers`)
 - Under each dir there are several scripts that assign some variables and then

@@ -12,6 +12,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 
 _LOG = logging.getLogger(__name__)
 
@@ -59,9 +60,9 @@ def _build_multiple_configs(
     # list(params_values) = [('CL', '5T'), ('CL', '10T'), ('QM', '5T'), ('QM', '10T')]
     # ```
     params_values = itertools.product(*params_variants.values())
-    param_vars = list(
+    param_vars = [
         dict(zip(params_variants.keys(), values)) for values in params_values
-    )
+    ]
     # In the example above:
     # ```
     # param_vars = [
@@ -151,7 +152,8 @@ def _compare_dir_signature(self: Any, dir_name: str, expected: str) -> None:
     # Remove references like:
     # $GIT_ROOT/core/dataflow/backtest/test/TestRunExperiment1.test3/tmp.scratch
     actual = actual.replace(dir_name, "$SCRATCH_SPACE")
-    actual = hunitest.purify_txt_from_client(actual)
+    text_purifier = huntepur.TextPurifier()
+    actual = text_purifier.purify_txt_from_client(actual)
     # Remove lines like:
     # $GIT_ROOT/core/dataflow_model/.../log.20210705_100612.txt
     actual = hunitest.filter_text(r"^.*/log\.\S+\.txt$", actual)

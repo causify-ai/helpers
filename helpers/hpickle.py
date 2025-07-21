@@ -13,11 +13,14 @@ import marshal
 import os
 import pickle
 import types
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
 import helpers.hio as hio
+
+# TODO(Grisha): Can this module depend on hs3?
+import helpers.hs3 as hs3
 import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
@@ -75,8 +78,10 @@ def to_pickleable(obj: Any, force_values_to_string: bool) -> Any:
 def to_pickle(
     obj: Any,
     file_name: str,
+    *,
     backend: str = "pickle",
     log_level: int = logging.DEBUG,
+    aws_profile: Optional[hs3.AwsProfile] = None,
 ) -> None:
     """
     Pickle object `obj` into file `file_name`.
@@ -94,10 +99,21 @@ def to_pickle(
         if backend in ("pickle", "dill"):
             hdbg.dassert_file_extension(file_name, "pkl")
             if backend == "pickle":
-                with open(file_name, "wb") as fd:
-                    pickler = pickle.Pickler(fd, pickle.HIGHEST_PROTOCOL)
-                    pickler.fast = True
-                    pickler.dump(obj)
+                # Use S3 file system.
+                if hs3.is_s3_path(file_name):
+                    s3fs_ = hs3.get_s3fs(aws_profile)
+                    with s3fs_.open(file_name, "wb") as s3_file:
+                        pickler = pickle.Pickler(
+                            s3_file, pickle.HIGHEST_PROTOCOL
+                        )
+                        pickler.fast = True
+                        pickler.dump(obj)
+                # Use local file system.
+                else:
+                    with open(file_name, "wb") as fd:
+                        pickler = pickle.Pickler(fd, pickle.HIGHEST_PROTOCOL)
+                        pickler.fast = True
+                        pickler.dump(obj)
             elif backend == "dill":
                 import dill
 
@@ -114,7 +130,10 @@ def to_pickle(
         else:
             raise ValueError(f"Invalid backend='{backend}'")
     # Report time and size.
-    file_size = hintros.format_size(os.path.getsize(file_name))
+    if hs3.is_s3_path(file_name):
+        file_size = hs3.du(file_name, aws_profile=aws_profile, human_format=True)
+    else:
+        file_size = hintros.format_size(os.path.getsize(file_name))
     _LOG.log(
         log_level,
         "Saved '%s' (size=%s, time=%.1fs)",
@@ -127,7 +146,9 @@ def to_pickle(
 def from_pickle(
     file_name: str,
     backend: str = "pickle",
+    *,
     log_level: int = logging.DEBUG,
+    aws_profile: Optional[hs3.AwsProfile] = None,
 ) -> Any:
     """
     Unpickle and return object stored in `file_name`.
@@ -141,9 +162,16 @@ def from_pickle(
         if backend in ("pickle", "dill"):
             hdbg.dassert_file_extension(file_name, "pkl")
             if backend == "pickle":
-                with open(file_name, "rb") as fd:
-                    unpickler = pickle.Unpickler(fd)
-                    obj = unpickler.load()
+                # Use S3 file system.
+                if hs3.is_s3_path(file_name):
+                    s3fs_ = hs3.get_s3fs(aws_profile)
+                    with s3fs_.open(file_name) as s3_file:
+                        unpickler = pickle.Unpickler(s3_file)
+                        obj = unpickler.load()
+                else:
+                    with open(file_name, "rb") as fd:
+                        unpickler = pickle.Unpickler(fd)
+                        obj = unpickler.load()
             elif backend == "dill":
                 import dill
 
@@ -159,7 +187,10 @@ def from_pickle(
         else:
             raise ValueError(f"Invalid backend='{backend}'")
     # Report time and size.
-    file_size = hintros.format_size(os.path.getsize(file_name))
+    if hs3.is_s3_path(file_name):
+        file_size = hs3.du(file_name, aws_profile=aws_profile, human_format=True)
+    else:
+        file_size = hintros.format_size(os.path.getsize(file_name))
     _LOG.log(
         log_level,
         "Read '%s' (size=%s, time=%.1fs)",
@@ -181,6 +212,8 @@ def pickle_function(func: Callable) -> str:
     - return: string
     """
     hdbg.dassert_callable(func)
+    hdbg.dassert(hasattr(func, "__code__"))
+    assert hasattr(func, "__code__")
     code_as_bytes = marshal.dumps(func.__code__)
     return code_as_bytes.decode()
 

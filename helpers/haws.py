@@ -8,6 +8,7 @@ import logging
 from typing import Dict, List, Optional
 
 import boto3
+import boto3.session
 from boto3.resources.base import ServiceResource
 from botocore.client import BaseClient
 
