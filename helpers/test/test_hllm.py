@@ -6,11 +6,12 @@ from typing import Any, Dict
 import pandas as pd
 import pytest
 
-pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
+pytest.importorskip(
+    "openai"
+)  # noqa: E402 # pylint: disable=wrong-import-position
 import helpers.hdbg as hdbg  # noqa: E402
 import helpers.hllm as hllm  # noqa: E402
 import helpers.hunit_test as hunitest  # noqa: E402
-
 
 _USER_PROMPT1 = "what is machine learning?"
 _USER_PROMPT2 = _USER_PROMPT1.upper()
@@ -28,9 +29,19 @@ _TOP_P1 = 0.5
 _MODEL1 = "gpt-4o-mini"
 _MODEL2 = "gpt-3.5-turbo"
 _MODEL3 = "deepseek/deepseek-r1-0528-qwen3-8b:free"
+_MODEL4 = "openai/gpt-4o-mini"
 
 
 # Test functions for the unit tests.
+def _get_completion_parameters0() -> Dict[str, Any]:
+    data = {
+        "user_prompt": _USER_PROMPT1,
+        "system_prompt": _SYSTEM_PROMPT1,
+        "temperature": _TEMPERATURE1,
+    }
+    return data
+
+
 def _get_completion_parameters1() -> Dict[str, Any]:
     data = {
         "user_prompt": _USER_PROMPT1,
@@ -69,6 +80,7 @@ def _get_completion_parameters3() -> Dict[str, Any]:
 
 
 class Test_get_completion(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Verify that get_completion() returns response from cache with the
@@ -103,6 +115,17 @@ class Test_get_completion(hunitest.TestCase):
         self.assertIsInstance(actual_response, str)
         self.check_string(actual_response)
 
+    def test4(self) -> None:
+        """
+        Verify if no model is given.
+        """
+        parameters4 = _get_completion_parameters0()
+        actual_response = hllm.get_completion(
+            **parameters4, cache_mode="HIT_CACHE_OR_ABORT"
+        )
+        self.assertIsInstance(actual_response, str)
+        self.check_string(actual_response)
+
 
 # #############################################################################
 # Test_response_to_txt
@@ -113,12 +136,14 @@ class Test_response_to_txt(hunitest.TestCase):
     # Dummy classes to satisfy `isinstance` checks.
 
     class DummyChatCompletion:
+
         def __init__(self, text: str = "") -> None:
             msg = types.SimpleNamespace(content=text)
             choice = types.SimpleNamespace(message=msg)
             self.choices = [choice]
 
     class DummyThreadMessage:
+
         def __init__(self, text: str = "") -> None:
             # mimic .content[0].text.value
             value_obj = types.SimpleNamespace(value=text)
@@ -162,6 +187,7 @@ class Test_response_to_txt(hunitest.TestCase):
 
 
 class Test_retrieve_openrouter_model_info(hunitest.TestCase):
+
     @umock.patch("requests.get")
     def test_retrieve_success(self, mock_get) -> None:
         # Prepare dummy JSON data.
@@ -200,6 +226,7 @@ class Test_retrieve_openrouter_model_info(hunitest.TestCase):
 
 
 class Test_save_models_info_to_csv(hunitest.TestCase):
+
     def get_temp_path(self) -> str:
         """
         Helper function for creating temporary directory.
@@ -273,6 +300,7 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
 
 
 class Test_calculate_cost(hunitest.TestCase):
+
     def get_tmp_path(self) -> str:
         """
         Return temporary file path.
