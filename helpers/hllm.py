@@ -93,11 +93,11 @@ def response_to_txt(response: Any) -> str:
     :param response: API response object
     :return: extracted text contents as a string
     """
-    if isinstance(response, openai.types.chat.chat_completion.ChatCompletion): # type: ignore[attr-defined]
+    if isinstance(response, openai.types.chat.chat_completion.ChatCompletion):
         ret = response.choices[0].message.content
     # elif isinstance(response, openai.pagination.SyncCursorPage):
     #     ret = response.data[0].content[0].text.value
-    elif isinstance(response, openai.types.beta.threads.message.Message): # type: ignore[attr-defined]
+    elif isinstance(response, openai.types.beta.threads.message.Message):
         ret = response.content[0].text.value
     elif isinstance(response, str):
         ret = response
@@ -311,7 +311,7 @@ def _save_models_info_to_csv(
         "description",
         "prompt_pricing",
         "completion_pricing",
-        "supported_parameters"
+        "supported_parameters",
     ]
     # Take only relevant columns.
     model_info_df = model_info_df.loc[:, required_columns]
@@ -360,7 +360,7 @@ class LLMCostTracker:
 
     def calculate_cost(
         self,
-        completion: openai.types.chat.chat_completion.ChatCompletion, # type: ignore[attr-defined]
+        completion: openai.types.chat.chat_completion.ChatCompletion,
         model: str,
         *,
         models_info_file: str = "",
@@ -447,9 +447,9 @@ def _call_api_sync(
         `get_completion()` params for other param details.
     :return: OpenAI chat completion object as a dictionary
     """
-    completion = client.chat.completions.create( # type: ignore[call-arg]
+    completion = client.chat.completions.create(
         model=model,
-        messages=messages, # type: ignore[call-arg]
+        messages=messages,
         temperature=temperature,
         **create_kwargs,
     )
@@ -525,9 +525,9 @@ def get_completion(
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.
         # Create a stream to show progress.
-        completion = llm_client.client.chat.completions.create( # type: ignore[call-arg,arg-type]
+        completion = llm_client.client.chat.completions.create(
             model=model,
-            messages=messages, # type: ignore[arg-type]
+            messages=messages,
             stream=True,  # Enable streaming
             **create_kwargs,
         )
@@ -809,7 +809,9 @@ def apply_prompt_to_dataframe(
     if not allow_overwrite:
         hdbg.dassert_not_in(response_col, df.columns)
     response_data = []
-    for start in tqdm.tqdm(range(0, len(df), chunk_size), desc="Processing chunks"):
+    for start in tqdm.tqdm(
+        range(0, len(df), chunk_size), desc="Processing chunks"
+    ):
         end = start + chunk_size
         chunk = df.iloc[start:end]
         _LOG.debug("chunk.size=%s", chunk.shape[0])
