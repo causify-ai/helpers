@@ -32,10 +32,10 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
             input_file, mode, max_level, output_file
         )
         # Check output.
-        act = hio.from_file(output_file)
-        exp = r"""
+        actual = hio.from_file(output_file)
+        expected = r"""
         # Header1
         ## Header2
         # Header3
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)

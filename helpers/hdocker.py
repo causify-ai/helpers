@@ -4,15 +4,12 @@ Import as:
 import helpers.hdocker as hdocker
 """
 
-import argparse
 import copy
 import hashlib
 import logging
 import os
-import re
-import shlex
 import time
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import List, Optional, Tuple
 
 import helpers.hcoverage as hcovera
 import helpers.hdbg as hdbg
@@ -188,7 +185,7 @@ def get_current_arch() -> str:
     cmd = "uname -m"
     _, current_arch = hsystem.system_to_one_line(cmd)
     _LOG.debug(hprint.to_str("current_arch"))
-    return cast(str, current_arch)
+    return current_arch
 
 
 def _is_compatible_arch(val1: str, val2: str) -> bool:
@@ -295,7 +292,7 @@ def wait_for_file_in_docker(
         hsystem.system(cmd)
         if time.time() - start_time > timeout_in_secs:
             raise ValueError(
-                f"Timeout reached. File not found: "
+                "Timeout reached. File not found: "
                 f"{container_id}:{docker_file_path}"
             )
         time.sleep(check_interval_in_secs)
@@ -320,18 +317,19 @@ def replace_shared_root_path(
     # running inside Docker on the dev server.
     if hserver.is_inside_docker() and not hserver.is_inside_ecs_container():
         shared_data_dirs = hserver.get_shared_data_dirs()
-        if replace_ecs_tokyo:
-            # Make a copy to avoid modifying the original one.
-            shared_data_dirs = copy.deepcopy(shared_data_dirs)
-            shared_data_dirs["ecs_tokyo"] = "ecs"
-        for shared_dir, docker_shared_dir in shared_data_dirs.items():
-            path = path.replace(shared_dir, docker_shared_dir)
-            _LOG.debug(
-                "Running inside Docker on the dev server, thus replacing %s "
-                "with %s",
-                shared_dir,
-                docker_shared_dir,
-            )
+        if shared_data_dirs is not None:
+            if replace_ecs_tokyo:
+                # Make a copy to avoid modifying the original one.
+                shared_data_dirs = copy.deepcopy(shared_data_dirs)
+                shared_data_dirs["ecs_tokyo"] = "ecs"
+            for shared_dir, docker_shared_dir in shared_data_dirs.items():
+                path = path.replace(shared_dir, docker_shared_dir)
+                _LOG.debug(
+                    "Running inside Docker on the dev server, thus replacing %s "
+                    "with %s",
+                    shared_dir,
+                    docker_shared_dir,
+                )
     else:
         _LOG.debug("No replacement found, returning path as-is: %s", path)
     return path
@@ -615,6 +613,7 @@ def convert_caller_to_callee_docker_path(
         "  Converted %s -> %s -> %s", caller_file_path, rel_path, docker_path
     )
     return docker_path
+<<<<<<< HEAD
 
 
 # #############################################################################
@@ -1915,3 +1914,5 @@ def run_dockerized_graphviz(
     docker_cmd = " ".join(docker_cmd)
     ret = process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
     return ret
+=======
+>>>>>>> master

@@ -31,7 +31,7 @@ def _main():
             "##### commit-msg hook failed ######", "red"
         )
         print(msg)
-        print("Your commit message doesn't match regex '%s'" % regex)
+        print(f"Your commit message doesn't match regex '{regex}'")
         print("E.g., 'Awesomely fix this and that' or 'Merge branch ...'")
         print()
         print(
@@ -40,7 +40,7 @@ def _main():
         )
         sys.exit(1)
     # Read pre-commit output.
-    precommit_output_path = f"tmp.precommit_output.txt"
+    precommit_output_path = "tmp.precommit_output.txt"
     try:
         # We want to avoid using helpers here because we want to keep the
         # script decoupled from helpers.

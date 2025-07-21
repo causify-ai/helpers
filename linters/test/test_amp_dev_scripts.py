@@ -76,7 +76,7 @@ class Test_linter_py1(hunitest.TestCase):
 
     # #########################################################################
 
-    @pytest.mark.slow("About 24 sec")
+    @pytest.mark.superslow("About 24 sec")
     def test_linter1(self) -> None:
         """
         Run Linter as executable on Python code.
@@ -90,7 +90,7 @@ class Test_linter_py1(hunitest.TestCase):
         # Check.
         self.check_string(output, purify_text=True)
 
-    @pytest.mark.slow("About 18 sec")
+    @pytest.mark.superslow("About 18 sec")
     def test_linter2(self) -> None:
         """
         Run Linter as library on Python code.
@@ -190,7 +190,7 @@ class Test_linter_py1(hunitest.TestCase):
         # Check.
         self.check_string(output, purify_text=True)
 
-    @pytest.mark.slow("About 14 sec")
+    @pytest.mark.superslow("About 14 sec")
     def test_DevToolsTask408(self) -> None:
         """
         Test pylint's string formatting warnings.

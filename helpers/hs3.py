@@ -20,9 +20,29 @@ _WARNING = "\033[33mWARNING\033[0m"
 
 try:
     import s3fs
+
+    # Handle different versions of s3fs where core module may be at different locations
+    if hasattr(s3fs, "core"):
+        from s3fs.core import S3File, S3FileSystem
+    else:
+        # In newer versions, classes might be directly in s3fs module
+        try:
+            from s3fs import S3File, S3FileSystem
+        except ImportError:
+            # Fallback to dynamic import
+            S3File = getattr(s3fs, "S3File", None)
+            S3FileSystem = getattr(s3fs, "S3FileSystem", None)
 except ModuleNotFoundError:
     _module = "s3fs"
     print(_WARNING + f": Can't find {_module}: continuing")
+    # Define dummy classes for type hints when s3fs is not available
+    s3fs = None
+
+    class S3File:
+        pass
+
+    class S3FileSystem:
+        pass
 
 # Avoid the following dependency from other `helpers` modules to prevent import cycles.
 # import helpers.hpandas as hpandas
@@ -55,7 +75,7 @@ AWS_REGIONS = [AWS_EUROPE_REGION_1, AWS_TOKYO_REGION_1, AWS_US_REGION_1]
 # Basic utils.
 # #############################################################################
 
-AwsProfile = Optional[Union[str, s3fs.core.S3FileSystem]]
+AwsProfile = Optional[Union[str, S3FileSystem]]
 
 
 def is_s3_path(s3_path: str) -> bool:
@@ -253,7 +273,7 @@ def listdir(
         # Basically the goal is to remove `s3://` from the full S3 path.
         root_path = f"{bucket}{absolute_path}"
         # Remove redundant separators.
-        paths = set([os.path.normpath(path) for path in paths])
+        paths = {os.path.normpath(path) for path in paths}
         # Remove special entries such as `.` (`root_path` in this case) and
         # bucket name to keep the same return format as in `hio.listdir()`.
         paths_to_exclude = [bucket, root_path]
@@ -409,7 +429,7 @@ def copy_file_to_s3(
 
 def get_local_or_s3_stream(
     file_name: str, **kwargs: Any
-) -> Tuple[Union[s3fs.core.S3FileSystem, str], Any]:
+) -> Tuple[Union[S3FileSystem, str], Any]:
     """
     Get S3 stream for desired file or simply returns file name.
 
@@ -425,7 +445,7 @@ def get_local_or_s3_stream(
             "Credentials through s3fs are needed to access an S3 path",
         )
         s3fs_ = kwargs.pop("s3fs")
-        hdbg.dassert_isinstance(s3fs_, s3fs.core.S3FileSystem)
+        hdbg.dassert_isinstance(s3fs_, S3FileSystem)
         dassert_path_exists(file_name, s3fs_)
         stream = s3fs_.open(file_name)
     else:
@@ -667,7 +687,9 @@ def generate_aws_files(
     config_file_name = os.path.join(home_dir, ".aws", "config")
     credentials_file_name = os.path.join(home_dir, ".aws", "credentials")
     # Check if the files already exist.
-    if os.path.exists(credentials_file_name) and os.path.exists(config_file_name):
+    if os.path.exists(credentials_file_name) and os.path.exists(
+        config_file_name
+    ):
         _LOG.info(
             "Both files exist: %s and %s; exiting",
             credentials_file_name,
@@ -840,7 +862,7 @@ def get_aws_credentials(
 # ///////////////////////////////////////////////////////////////////////////////
 
 
-def get_s3fs(aws_profile: AwsProfile) -> s3fs.core.S3FileSystem:
+def get_s3fs(aws_profile: AwsProfile) -> S3FileSystem:
     """
     Return a `s3fs` object from a given AWS profile.
 
@@ -850,7 +872,7 @@ def get_s3fs(aws_profile: AwsProfile) -> s3fs.core.S3FileSystem:
         # On IG prod machines we let the Docker container infer the right AWS
         # account.
         _LOG.warning("Not using AWS profile='%s'", aws_profile)
-        s3fs_ = s3fs.core.S3FileSystem()
+        s3fs_ = S3FileSystem()
     else:
         if isinstance(aws_profile, str):
             # When deploying jobs via ECS the container obtains credentials
@@ -859,19 +881,19 @@ def get_s3fs(aws_profile: AwsProfile) -> s3fs.core.S3FileSystem:
             # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
             if aws_profile == "ck" and hserver.is_inside_ecs_container():
                 _LOG.info("Fetching credentials from task IAM role")
-                s3fs_ = s3fs.core.S3FileSystem()
+                s3fs_ = S3FileSystem()
             else:
                 # From https://stackoverflow.com/questions/62562945
                 aws_credentials = get_aws_credentials(aws_profile)
                 _LOG.debug("%s", pprint.pformat(aws_credentials))
-                s3fs_ = s3fs.core.S3FileSystem(
+                s3fs_ = S3FileSystem(
                     anon=False,
                     key=aws_credentials["aws_access_key_id"],
                     secret=aws_credentials["aws_secret_access_key"],
                     token=aws_credentials["aws_session_token"],
                     client_kwargs={"region_name": aws_credentials["aws_region"]},
                 )
-        elif isinstance(aws_profile, s3fs.core.S3FileSystem):
+        elif isinstance(aws_profile, S3FileSystem):
             s3fs_ = aws_profile
         else:
             raise ValueError(f"Invalid aws_profile='{aws_profile}'")

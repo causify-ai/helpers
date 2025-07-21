@@ -1,6 +1,4 @@
-# Pytest Allure
-
-## Pytest Allure Explanantion
+# Pytest Allure - Explanation
 
 <!-- toc -->
 
@@ -43,14 +41,14 @@ A1 ==> B1 ==> C1[View the report in the browser]
 
 ## Core features
 
-### Rich and Interactive Reports:
+### Rich and Interactive Reports
 
 - Allure generates visually appealing and interactive HTML reports, making it
   easy to analyze test results
 - Reports include detailed information about test cases, steps, attachments, and
   more
 
-### Annotations and Labels:
+### Annotations and Labels
 
 - Allure uses annotations and labels to provide additional information about
   test methods, making it easier to understand and categorize test results

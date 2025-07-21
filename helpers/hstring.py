@@ -8,7 +8,7 @@ import logging
 import os
 import re
 import tempfile
-from typing import List, Optional, Tuple, cast
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -65,9 +65,6 @@ def diff_strings(
         # We don't care if they are different.
         abort_on_error=False,
     )
-    # For some reason, mypy doesn't understand that system_to_string returns a
-    # string.
-    txt = cast(str, txt)
     return txt
 
 

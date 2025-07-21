@@ -10,7 +10,7 @@ The full list of transformations is:
 - Remove comments
 - Expand abbreviations
 - Process questions "* ..."
-- remove empty lines in the questions and answers
+- Remove empty lines in the questions and answers
 - Remove all the lines with only spaces
 - Add TOC
 """
@@ -48,70 +48,10 @@ def _process_abbreviations(in_line: str) -> str:
         (r"-^", r"\uparrow"),
         (r"-v", r"\downarrow"),
     ]:
-        line = re.sub(
-            r"(\s)%s(\s)" % re.escape(x), r"\1$%s$\2" % re.escape(y), line
-        )
+        line = re.sub(rf"(\s){re.escape(x)}(\s)", rf"\1${re.escape(y)}$\2", line)
     if line != in_line:
         _LOG.debug("    -> line=%s", line)
     return line
-
-
-def _process_color_commands(in_line: str) -> str:
-    r"""
-    Transform color commands like `\red{xyz}` into valid LaTeX syntax.
-
-    If the content is text (not math), wraps it in `\text{}`.
-
-    E.g.:
-    - \red{abc} -> \textcolor{red}{\text{abc}}
-    - \blue{x + y} -> \textcolor{blue}{x + y}
-    """
-    # Define supported colors
-    colors = {
-        "red": "red",
-        "orange": "orange",
-        "yellow": "yellow",
-        "lime": "lime",
-        "green": "darkgreen",
-        "teal": "teal",
-        "cyan": "cyan",
-        "blue": "blue",
-        "purple": "purple",
-        "violet": "violet",
-        "magenta": "magenta",
-        "pink": "pink",
-        "brown": "brown",
-        "olive": "olive",
-        "gray": "gray",
-        "darkgray": "darkgray",
-        "lightgray": "lightgray",
-        "black": "black",
-        "white": "white",
-    }
-    for color, value in colors.items():
-        # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
-        pattern = re.compile(
-            rf"""
-            \\{color}    # Match the color command (e.g., \red, \blue, etc.).
-            \{{          # Match the opening curly brace.
-            ([^}}]*)     # Capture everything inside the curly braces.
-            \}}          # Match the closing curly brace.
-            """,
-            re.VERBOSE,
-        )
-
-        def _replacement(match: re.Match, value: str) -> str:
-            content = match.group(1)
-            # Check if content appears to be math expression.
-            is_math = any(c in content for c in "+-*/=<>{}[]()^_")
-            if is_math:
-                return rf"\textcolor{{{value}}}{{{content}}}"
-            else:
-                return rf"\textcolor{{{value}}}{{\text{{{content}}}}}"
-
-        # Replace the color command with the LaTeX color command.
-        in_line = re.sub(pattern, lambda m: _replacement(m, value), in_line)
-    return in_line
 
 
 def _process_enumerated_list(in_line: str) -> str:
@@ -164,6 +104,8 @@ def _process_question_to_slides(
     return do_continue, line
 
 
+# TODO(gp): Use hmarkdown.process_lines().
+# TODO(gp): Pass List[str].
 def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     """
     Process the notes to convert them into a format suitable for pandoc.
@@ -173,7 +115,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     :param is_qa: True if the input is a QA file.
     :return: List of lines of the notes.
     """
-    _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
+    _LOG.debug("\n%s", hprint.frame("transform_lines"))
     hdbg.dassert_isinstance(txt, str)
     lines = [line.rstrip("\n") for line in txt.split("\n")]
     out: List[str] = []
@@ -198,7 +140,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         _LOG.debug("%s:line=%s", i, line)
         # 1) Remove comment block.
         if _TRACE:
-            _LOG.debug("# 1) Process comment block.")
+            _LOG.debug("# Process comment block.")
         do_continue, in_skip_block = hmarkdo.process_comment_block(
             line, in_skip_block
         )
@@ -206,9 +148,9 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         #   do_continue, in_skip_block)
         if do_continue:
             continue
-        # 2) Remove code block.
+        # 2) Process code block.
         if _TRACE:
-            _LOG.debug("# 2) Process code block.")
+            _LOG.debug("# Process code block.")
         # TODO(gp): Not sure why this is needed. For sure the extra spacing
         # creates a problem with the Python code blocks rendered by pandoc beamer.
         if False:
@@ -220,25 +162,25 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                 continue
         # 3) Remove single line comment.
         if _TRACE:
-            _LOG.debug("# 3) Process single line comment.")
+            _LOG.debug("# Process single line comment.")
         do_continue = hmarkdo.process_single_line_comment(line)
         if do_continue:
             continue
         # 4) Expand abbreviations.
         if _TRACE:
-            _LOG.debug("# 4) Process abbreviations.")
+            _LOG.debug("# Process abbreviations.")
         line = _process_abbreviations(line)
         # 5) Process enumerated list.
         if _TRACE:
-            _LOG.debug("# 5) Process enumerated list.")
+            _LOG.debug("# Process enumerated list.")
         line = _process_enumerated_list(line)
         # 6) Process color commands.
         if _TRACE:
-            _LOG.debug("# 6) Process color commands.")
-        line = _process_color_commands(line)
+            _LOG.debug("# Process color commands.")
+        line = hmarkdo.process_color_commands(line)
         # 7) Process question.
         if _TRACE:
-            _LOG.debug("# 7) Process question.")
+            _LOG.debug("# Process question.")
         if type_ == "slides":
             do_continue, line = _process_question_to_slides(line)
         else:
@@ -248,7 +190,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
             continue
         # 8) Process empty lines in the questions and answers.
         if _TRACE:
-            _LOG.debug("# 8) Process empty lines in the questions and answers.")
+            _LOG.debug("# Process empty lines in the questions and answers.")
         if not is_qa:
             out.append(line)
         else:

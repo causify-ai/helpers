@@ -32,7 +32,7 @@ class _Obj_to_str_TestCase(abc.ABC):
         """
         ...
 
-    def helper(self, *, exp: Optional[str] = None, **kwargs: Any) -> None:
+    def helper(self, *, expected: Optional[str] = None, **kwargs: Any) -> None:
         obj = self.get_object()
         hdbg.dassert_is_not(obj, None)
         #
@@ -46,29 +46,29 @@ class _Obj_to_str_TestCase(abc.ABC):
         # Concat.
         txt = "\n".join(txt)
         # Check.
-        if exp is None:
+        if expected is None:
             self.check_string(txt, purify_text=True)
         else:
-            hdbg.dassert_isinstance(exp, str)
-            self.assert_equal(txt, exp, purify_text=True, fuzzy_match=True)
+            hdbg.dassert_isinstance(expected, str)
+            self.assert_equal(txt, expected, purify_text=True, fuzzy_match=True)
 
-    def test1(self, exp: str) -> None:
+    def test1(self, expected: str) -> None:
         """
         Use `__dict__` to extract the attributes.
         """
-        self.helper(exp=exp, attr_mode="__dict__")
+        self.helper(expected=expected, attr_mode="__dict__")
 
-    def test2(self, exp: str) -> None:
+    def test2(self, expected: str) -> None:
         """
         Use `dir` to extract the attributes.
         """
-        self.helper(exp=exp, attr_mode="dir")
+        self.helper(expected=expected, attr_mode="dir")
 
-    def test3(self, exp: str) -> None:
+    def test3(self, expected: str) -> None:
         """
         Use `__dict__` and print the type of the attributes.
         """
-        self.helper(exp=exp, print_type=True)
+        self.helper(expected=expected, print_type=True)
 
     def test4(self) -> None:
         """
@@ -114,13 +114,12 @@ class _Object1:
 
 
 class Test_obj_to_str1(hunitest.TestCase, _Obj_to_str_TestCase):
-
     def get_object(self) -> Any:
         obj = _Object1()
         return obj
 
     def test1(self) -> None:
-        exp = r"""
+        expected = r"""
         ################################################################################
         str:
         ################################################################################
@@ -133,10 +132,10 @@ class Test_obj_to_str1(hunitest.TestCase, _Obj_to_str_TestCase):
           b='hello'
           c='3.14'
         """
-        super().test1(exp)
+        super().test1(expected)
 
     def test2(self) -> None:
-        exp = r"""
+        expected = r"""
         ################################################################################
         str:
         ################################################################################
@@ -149,10 +148,10 @@ class Test_obj_to_str1(hunitest.TestCase, _Obj_to_str_TestCase):
           b='hello'
           c='3.14'
         """
-        super().test2(exp)
+        super().test2(expected)
 
     def test3(self) -> None:
-        exp = r"""
+        expected = r"""
         ################################################################################
         str:
         ################################################################################
@@ -165,7 +164,7 @@ class Test_obj_to_str1(hunitest.TestCase, _Obj_to_str_TestCase):
           b='hello' <str>
           c='3.14' <float>
         """
-        super().test3(exp)
+        super().test3(expected)
 
 
 # #############################################################################
@@ -212,7 +211,6 @@ class _Object3:
 
 
 class Test_obj_to_str2(hunitest.TestCase, _Obj_to_str_TestCase):
-
     def get_object(self) -> Any:
         obj = _Object3()
         return obj
@@ -220,7 +218,7 @@ class Test_obj_to_str2(hunitest.TestCase, _Obj_to_str_TestCase):
     def test1(self) -> None:
         # TODO(gp): object2 in repr should be printed recursively as repr, but
         # it's not.
-        exp = r"""
+        expected = r"""
         ################################################################################
         str:
         ################################################################################
@@ -233,10 +231,10 @@ class Test_obj_to_str2(hunitest.TestCase, _Obj_to_str_TestCase):
           q='q'
           object2='_Object2 at 0x=(x=True, y=world, z=6.28)'
         """
-        super().test1(exp)
+        super().test1(expected)
 
     def test2(self) -> None:
-        exp = r"""
+        expected = r"""
         ################################################################################
         str:
         ################################################################################
@@ -249,10 +247,10 @@ class Test_obj_to_str2(hunitest.TestCase, _Obj_to_str_TestCase):
           p='p'
           q='q'
         """
-        super().test2(exp)
+        super().test2(expected)
 
     def test3(self) -> None:
-        exp = r"""
+        expected = r"""
         ################################################################################
         str:
         ################################################################################
@@ -265,7 +263,7 @@ class Test_obj_to_str2(hunitest.TestCase, _Obj_to_str_TestCase):
           q='q' <str>
           object2='_Object2 at 0x=(x=True, y=world, z=6.28)' <helpers.test.test_hobject._Object2>
         """
-        super().test3(exp)
+        super().test3(expected)
 
 
 # #############################################################################
@@ -354,31 +352,30 @@ class _ClassA(_Abstract_ClassA):
 
 
 class Test_PrintableMixin_to_config_str(hunitest.TestCase):
-
-    def check_test_class_str(self, test_class: Any, exp: str) -> None:
-        act = test_class.to_config_str()
+    def check_test_class_str(self, test_class: Any, expected: str) -> None:
+        actual = test_class.to_config_str()
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_txt_from_client(act)
-        self.assert_equal(act, exp, fuzzy_match=True)
+        actual = text_purifier.purify_txt_from_client(actual)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test1(self) -> None:
         """
         Print `_Abstract_ClassA`.
         """
         test_class = _Abstract_ClassA()
-        exp = r"""
+        expected = r"""
         <helpers.test.test_hobject._Abstract_ClassA at 0x>:
             _arg1='one' <str>
             _arg2='2' <int>
         """
-        self.check_test_class_str(test_class, exp)
+        self.check_test_class_str(test_class, expected)
 
     def test2(self) -> None:
         """
         Print `_ClassA`.
         """
         test_class = _ClassA()
-        exp = r"""
+        expected = r"""
         <helpers.test.test_hobject._ClassA at 0x>:
             _arg1='one' <str>
             _arg2='2' <int>
@@ -392,4 +389,4 @@ class Test_PrintableMixin_to_config_str(hunitest.TestCase):
                     _arg6='abc' <str>>,
                     'key': 1}
         """
-        self.check_test_class_str(test_class, exp)
+        self.check_test_class_str(test_class, expected)

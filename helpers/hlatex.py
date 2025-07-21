@@ -1,7 +1,7 @@
 import re
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hprint as hprint
 
@@ -24,11 +24,13 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
         f"pandoc {in_file_name} -o {out_file_name} --read=markdown --write=latex"
     )
     container_type = "pandoc_only"
-    hdocker.run_dockerized_pandoc(cmd, container_type)
+    hdocexec.run_dockerized_pandoc(cmd, container_type)
     # Read tmp file.
     res = hio.from_file(out_file_name)
     # Remove lines that contain \tightlist.
-    res = "\n".join([line for line in res.splitlines() if "\\tightlist" not in line])
+    res = "\n".join(
+        [line for line in res.splitlines() if "\\tightlist" not in line]
+    )
     return res
 
 
@@ -59,7 +61,7 @@ def markdown_list_to_latex(markdown: str) -> str:
     txt = "\n".join(lines)
     # Add the title frame.
     if title:
-        txt = "\\begin{frame}{%s}" % title + "\n" + txt + "\n" + "\\end{frame}"
+        txt = f"\\begin{{frame}}{{{title}}}" + "\n" + txt + "\n" + "\\end{frame}"
     return txt
 
 

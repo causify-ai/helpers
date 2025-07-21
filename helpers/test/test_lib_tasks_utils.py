@@ -200,15 +200,15 @@ class Test_get_files_to_process1(hunitest.TestCase):
                 mutually_exclusive,
                 remove_dirs,
             )
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         '3'
         ==
         '1'
         Specify only one among --modified, --branch, --last-commit, --all_files, and --files
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_assert2(self) -> None:
         """
@@ -232,15 +232,15 @@ class Test_get_files_to_process1(hunitest.TestCase):
                 mutually_exclusive,
                 remove_dirs,
             )
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         '2'
         ==
         '1'
         Specify only one among --modified, --branch, --last-commit, --all_files, and --files
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_assert3(self) -> None:
         """
@@ -281,11 +281,11 @@ class TestLibTasksRemoveSpaces1(hunitest.TestCase):
                 --entrypoint bash \
                 user_space
             """
-        act = hlitauti._to_single_line_cmd(txt)
-        exp = (
+        actual = hlitauti._to_single_line_cmd(txt)
+        expected = (
             "IMAGE=*****.dkr.ecr.us-east-1.amazonaws.com/amp_test:dev"
             " docker-compose --file"
             " $GIT_ROOT/devops/compose/docker-compose_as_submodule.yml"
             " run --rm -l user=$USER_NAME --entrypoint bash user_space"
         )
-        self.assert_equal(act, exp, fuzzy_match=False)
+        self.assert_equal(actual, expected, fuzzy_match=False)

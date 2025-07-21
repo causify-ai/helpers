@@ -1,15 +1,21 @@
 [tool.ruff]
+# Maximum allowed line length for code.
 line-length = 81
+# Target Python version for linting and autofixes.
 target-version = "py311"
+# Automatically apply fixes for linting issues when possible.
 fix = true
+# Exclude specific directories from linting and fixing.
 exclude = [
   "**/outcomes/**",
   "**/import_check/example/**"
 ]
+# Format of the output from Ruff.
 output-format = "concise"
 
 [tool.ruff.lint]
-# E731 Do not assign a `lambda` expression, use a `def`
+# Ignore specific lint rules
+# E731: Do not assign a `lambda` expression, use a `def`
 ignore = ["E731"]
 
 [tool.pyrefly]
@@ -18,12 +24,12 @@ ignore = ["E731"]
 # But you can still define this for documentation or future support
 path = "."
 
-[tool.fixit]
-lint.ignore_codes = []
-lint.enabled = true
-lint.format = "text"
-lint.exclude = [
-  "**/outcomes/**",
-  "**/import_check/example/**"
-]
-lint.show_source = true
+#[tool.fixit]
+#ignore_codes = []
+#enabled = true
+#format = "text"
+#exclude = [
+#  "**/outcomes/**",
+#  "**/import_check/example/**"
+#]
+#show_source = true

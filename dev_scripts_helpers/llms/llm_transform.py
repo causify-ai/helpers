@@ -32,20 +32,20 @@ Examples
 import argparse
 import logging
 import os
-import re
 from typing import List, Optional, cast
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
+import dev_scripts_helpers.llms.llm_utils as dshlllut
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.hlatex as hlatex
 
 _LOG = logging.getLogger(__name__)
 
@@ -191,40 +191,14 @@ def _run_dockerized_llm_transform(
     return ret
 
 
-# TODO(gp): Move this to somewhere else, `hdocker_utils.py`?
-def _convert_file_names(in_file_name: str, out_file_name: str) -> None:
-    """
-    Convert the files from inside the container to outside.
-
-    Replace the name of the file inside the container (e.g.,
-    `/app/helpers_root/tmp.llm_transform.in.txt`) with the name of the
-    file outside the container.
-    """
-    # TODO(gp): We should use the `convert_caller_to_callee_docker_path`
-    txt_out = []
-    txt = hio.from_file(out_file_name)
-    for line in txt.split("\n"):
-        if line.strip() == "":
-            continue
-        # E.g., the format is like
-        # ```
-        # /app/helpers_root/r.py:1: Change the shebang line to `#!/usr/bin/env python3` to e
-        # ```
-        _LOG.debug("before: %s", hprint.to_str("line in_file_name"))
-        line = re.sub(r"^.*(:\d+:.*)$", rf"{in_file_name}\1", line)
-        _LOG.debug("after: %s", hprint.to_str("line"))
-        txt_out.append(line)
-    txt_out = "\n".join(txt_out)
-    hio.to_file(out_file_name, txt_out)
-
-
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hparser.init_logger_for_input_output_transform(args, verbose=False)
     #
     if args.prompt == "list":
         print("# Available prompt tags:")
-        print("\n".join(dshlllpr.get_prompt_tags()))
+        prompt_tags = dshlllpr.get_prompt_tags()
+        print(dshlllpr.prompt_tags_to_str(prompt_tags))
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
@@ -277,67 +251,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Run post-transforms outside the container.
     if not args.skip_post_transforms:
-        post_container_transforms = dshlllpr.get_post_container_transforms(
-            args.prompt
+        out_txt = dshlllut.run_post_transforms(
+            args.prompt,
+            args.compare,
+            in_file_name,
+            tmp_in_file_name,
+            tmp_out_file_name,
         )
-        #
-        if dshlllpr.to_run("convert_file_names", post_container_transforms):
-            _convert_file_names(in_file_name, tmp_out_file_name)
-        #
-        out_txt = hio.from_file(tmp_out_file_name)
-        if dshlllpr.to_run("prettier_markdown", post_container_transforms):
-            # Note that we need to run this outside the `llm_transform`
-            # container to avoid to do docker-in-docker in the `llm_transform`
-            # container (which doesn't support that).
-            out_txt = hmarkdo.prettier_markdown(out_txt)
-        #
-        if dshlllpr.to_run("format_markdown", post_container_transforms):
-            # Same as `prettier_markdown`.
-            out_txt = hmarkdo.md_clean_up(out_txt)
-            out_txt = hmarkdo.format_markdown(out_txt)
-        #
-        if dshlllpr.to_run("format_latex", post_container_transforms):
-            # Same as `prettier_markdown`.
-            out_txt = hmarkdo.md_clean_up(out_txt)
-            out_txt = hmarkdo.format_markdown(out_txt)
-        #
-        if dshlllpr.to_run("format_slide", post_container_transforms):
-            # Same as `prettier_markdown`.
-            out_txt = hmarkdo.md_clean_up(out_txt)
-            out_txt = hmarkdo.format_markdown_slide(out_txt)
-        #
-        if dshlllpr.to_run("append_to_text", post_container_transforms):
-            out_txt_tmp = []
-            # Append the original text.
-            txt = hio.from_file(tmp_in_file_name)
-            out_txt_tmp.append(txt)
-            # Append the transformed text.
-            out_txt_tmp.append("\n#### Comments ####")
-            out_txt_tmp.append(out_txt)
-            # Join everything.
-            out_txt = "\n".join(out_txt_tmp)
-        # Check that all post-transforms were run.
-        hdbg.dassert_eq(
-            len(post_container_transforms),
-            0,
-            "Not all post_transforms were run: %s",
-            post_container_transforms,
-        )
-        # Save the original and transformed text on file and a script to compare
-        # them.
-        txt = hio.from_file(tmp_in_file_name)
-        hio.to_file("original.txt", txt)
-        hio.to_file("transformed.txt", out_txt)
-        cmd = "vimdiff original.txt transformed.txt"
-        hio.create_executable_script("tmp.llm_diff.sh", cmd)
-        #
-        if args.compare:
-            out_txt_tmp = []
-            out_txt_tmp.append("#### Original ####")
-            out_txt_tmp.append(hio.from_file(tmp_in_file_name))
-            out_txt_tmp.append("#### Transformed ####")
-            out_txt_tmp.append(out_txt)
-            out_txt = "\n\n".join(out_txt_tmp)
     else:
         _LOG.info("Skipping post-transforms")
         out_txt = hio.from_file(tmp_out_file_name)
