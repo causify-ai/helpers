@@ -35,6 +35,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_pull,
     docker_pull_helpers,
     docker_push_dev_image,
+    docker_push_base_image,
     docker_push_prod_candidate_image,
     docker_push_prod_image,
     docker_release_dev_image,
@@ -43,6 +44,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_rollback_prod_image,
     docker_stats,
     docker_tag_local_image_as_dev,  # TODO(gp): -> docker_release_...
+    docker_tag_local_image_as_base,  
     docker_tag_push_multi_arch_prod_image,
     docker_update_prod_task_definition,
     #

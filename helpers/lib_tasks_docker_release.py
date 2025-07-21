@@ -97,6 +97,7 @@ def _build_multi_arch_image(
     build_args: str,
     build_image: str,
     dockerfile: str,
+    target_opts: str,
 ) -> None:
     """
     Build a multi-architecture Docker image in a remote Docker registry.
@@ -108,6 +109,7 @@ def _build_multi_arch_image(
     :param build_args: build arguments for the Docker build command
     :param build_image: name of the image to build
     :param dockerfile: path to the Dockerfile to use for building
+    :param target_opts: Docker target stage, e.g., `--target builder`
     """
     # Build the multi-arch image.
     # Compress the current directory (in order to dereference symbolic
@@ -121,6 +123,7 @@ def _build_multi_arch_image(
         --push \
         --platform {multi_arch} \
         {build_args} \
+        {target_opts} \
         --tag {build_image} \
         --file {dockerfile} \
         -
@@ -341,6 +344,7 @@ def docker_build_local_image(  # type: ignore
     just_do_it=False,
     multi_arch="",
     cleanup_installation=True,
+    target_stage="",
 ):
     """
     Build a local image, i.e., a release candidate "dev" image.
@@ -366,6 +370,7 @@ def docker_build_local_image(  # type: ignore
           `linux/amd64,linux/arm64`
     :param cleanup_installation: force clean up Docker installation. This can
         be disabled to speed up the build process
+    :param target_stage: target stage for the Docker image
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
     # For poetry_mode="update", the `poetry.lock` file is updated and saved as
@@ -373,6 +378,7 @@ def docker_build_local_image(  # type: ignore
     # For poetry_mode="no_update", the `poetry.lock` file from the repo is used,
     # and it's passed as `/install/poetry.lock.in` to the container.
     hdbg.dassert_in(poetry_mode, ("update", "no_update"))
+    hdbg.dassert_in(target_stage, ("", "base", "dev"))
     if just_do_it:
         _LOG.warning("Skipping subsequent version check")
     else:
@@ -392,6 +398,7 @@ def docker_build_local_image(  # type: ignore
     # files inside the tar stream and avoids file not found errors.
     # dockerfile = _to_abs_path(dockerfile)
     opts = "--no-cache" if not cache else ""
+    target_stage_opts = f"--target {target_stage}" if target_stage else ""
     build_args = [
         ("AM_CONTAINER_VERSION", dev_version),
         ("INSTALL_DIND", True),
@@ -406,7 +413,13 @@ def docker_build_local_image(  # type: ignore
         hlitadoc.docker_login(ctx)
         _create_multiarch_builder(ctx)
         _build_multi_arch_image(
-            ctx, opts, multi_arch, build_args, image_local, dockerfile
+            ctx,
+            opts,
+            multi_arch,
+            build_args,
+            image_local,
+            dockerfile,
+            target_stage_opts
         )
         # TODO(sandeep): If possible, switch to using hlitadoc._docker_pull().
         # Pull the image from registry after building.
@@ -423,6 +436,7 @@ def docker_build_local_image(  # type: ignore
             docker build \
             {opts} \
             {build_args} \
+            {target_stage_opts} \
             --tag {image_local} \
             --file {dockerfile} \
             -
@@ -454,6 +468,37 @@ def docker_build_local_image(  # type: ignore
     _list_image(ctx, image_local)
 
 
+def _docker_tag_local_image(  # type: ignore
+    ctx,
+    version,
+    target_tag,
+    base_image="",
+    container_dir_name=".",
+):
+    """
+    Mark the "local" image as "dev".
+
+    :param ctx: invoke context
+    :param version: version to tag the image and code with
+    :param target_tag: tag to apply to the local image (e.g., "dev")
+    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
+    :param container_dir_name: directory where the Dockerfile is located
+    """
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    # Get the version.
+    dev_version = _get_dev_version(version, container_dir_name)
+    # Tag local image as versioned image (e.g., `dev-1.0.0`).
+    image_versioned_local = hlitadoc.get_image(base_image, "local", dev_version)
+    image_versioned_dev = hlitadoc.get_image(base_image, target_tag, dev_version)
+    cmd = f"docker tag {image_versioned_local} {image_versioned_dev}"
+    hlitauti.run(ctx, cmd)
+    # Tag local image.
+    latest_version = None
+    image_dev = hlitadoc.get_image(base_image, target_tag, latest_version)
+    cmd = f"docker tag {image_versioned_local} {image_dev}"
+    hlitauti.run(ctx, cmd)
+
+
 @task
 def docker_tag_local_image_as_dev(  # type: ignore
     ctx,
@@ -464,24 +509,66 @@ def docker_tag_local_image_as_dev(  # type: ignore
     """
     Mark the "local" image as "dev".
 
+    See _docker_tag_local_image() for details.
+    """
+    _docker_tag_local_image(
+        ctx,
+        version,
+        target_tag="dev",
+        base_image=base_image,
+        container_dir_name=container_dir_name,
+    )
+
+@task
+def docker_tag_local_image_as_base(  # type: ignore
+    ctx,
+    version,
+    base_image="",
+    container_dir_name=".",
+):
+    """
+    Mark the "local" image as "base".
+
+    See _docker_tag_local_image() for details.
+    """
+    _docker_tag_local_image(
+        ctx,
+        version,
+        target_tag="base",
+        base_image=base_image,
+        container_dir_name=container_dir_name,
+    )    
+
+def _docker_push_image(  # type: ignore
+    ctx,
+    version,
+    target_tag,
+    base_image="",
+    container_dir_name=".",
+):
+    """
+    Push the "dev" image to ECR.
+
     :param ctx: invoke context
     :param version: version to tag the image and code with
+    :param target_tag: tag to apply to the local image (e.g., "dev")
     :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
     :param container_dir_name: directory where the Dockerfile is located
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
-    # Get the version.
+    #
     dev_version = _get_dev_version(version, container_dir_name)
-    # Tag local image as versioned dev image (e.g., `dev-1.0.0`).
-    image_versioned_local = hlitadoc.get_image(base_image, "local", dev_version)
-    image_versioned_dev = hlitadoc.get_image(base_image, "dev", dev_version)
-    cmd = f"docker tag {image_versioned_local} {image_versioned_dev}"
-    hlitauti.run(ctx, cmd)
-    # Tag local image as dev image.
+    #
+    hlitadoc.docker_login(ctx)
+    # Push Docker versioned tag.
+    image_versioned_dev = hlitadoc.get_image(base_image, target_tag, dev_version)
+    cmd = f"docker push {image_versioned_dev}"
+    hlitauti.run(ctx, cmd, pty=True)
+    # Push Docker tag.
     latest_version = None
-    image_dev = hlitadoc.get_image(base_image, "dev", latest_version)
-    cmd = f"docker tag {image_versioned_local} {image_dev}"
-    hlitauti.run(ctx, cmd)
+    image_dev = hlitadoc.get_image(base_image, target_tag, latest_version)
+    cmd = f"docker push {image_dev}"
+    hlitauti.run(ctx, cmd, pty=True)
 
 
 @task
@@ -494,25 +581,36 @@ def docker_push_dev_image(  # type: ignore
     """
     Push the "dev" image to ECR.
 
-    :param ctx: invoke context
-    :param version: version to tag the image and code with
-    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
-    :param container_dir_name: directory where the Dockerfile is located
+    See _docker_push_image() for details.
     """
-    hlitauti.report_task(container_dir_name=container_dir_name)
-    #
-    dev_version = _get_dev_version(version, container_dir_name)
-    #
-    hlitadoc.docker_login(ctx)
-    # Push Docker versioned tag.
-    image_versioned_dev = hlitadoc.get_image(base_image, "dev", dev_version)
-    cmd = f"docker push {image_versioned_dev}"
-    hlitauti.run(ctx, cmd, pty=True)
-    # Push Docker tag.
-    latest_version = None
-    image_dev = hlitadoc.get_image(base_image, "dev", latest_version)
-    cmd = f"docker push {image_dev}"
-    hlitauti.run(ctx, cmd, pty=True)
+    _docker_push_image(
+        ctx,
+        version,
+        target_tag="dev",
+        base_image=base_image,
+        container_dir_name=container_dir_name,
+    )
+
+
+@task
+def docker_push_base_image(  # type: ignore
+    ctx,
+    version,
+    base_image="",
+    container_dir_name=".",
+):
+    """
+    Push the "dev" image to ECR.
+
+    See _docker_push_image() for details.
+    """
+    _docker_push_image(
+        ctx,
+        version,
+        target_tag="base",
+        base_image=base_image,
+        container_dir_name=container_dir_name,
+    )
 
 
 @task
