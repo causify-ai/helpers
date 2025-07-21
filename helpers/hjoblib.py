@@ -335,7 +335,8 @@ def workload_to_string(workload: Workload, *, use_pprint: bool = True) -> str:
     validate_workload(workload)
     workload_func, func_name, tasks = workload
     txt = []
-    txt.append(f"workload_func={workload_func.__name__}")
+    workload_func_str = getattr(workload_func, "__name__", "unknown_function")
+    txt.append(f"workload_func={workload_func_str}")
     txt.append(f"func_name={func_name}")
     for i, task in enumerate(tasks):
         txt.append(f"# task {i + 1} / {len(tasks)}")
@@ -367,8 +368,8 @@ def _workload_function(*args: Any, **kwargs: Any) -> str:
     num_attempts = kwargs.pop("num_attempts")
     _ = incremental, num_attempts
     func_output: List[str] = []
-    func_output = "\n".join(func_output)
-    return func_output
+    result = "\n".join(func_output)
+    return result
 
 
 def _get_workload(
@@ -517,14 +518,15 @@ def _parallel_execute_decorator(
     tag = f"{task_idx + 1}/{task_len} ({start_ts})"
     txt.append("\n" + hprint.frame(tag) + "\n")
     txt.append(f"tag={tag}")
-    txt.append(f"workload_func={workload_func.__name__}")
+    workload_func_str = getattr(workload_func, "__name__", "unknown_function")
+    txt.append(f"workload_func={workload_func_str}")
     txt.append(f"func_name={func_name}")
     txt.append(task_to_string(task))
     # Run the workload.
     args, kwargs = task
     kwargs.update({"incremental": incremental, "num_attempts": num_attempts})
     with htimer.TimedScope(
-        logging.DEBUG, f"Execute '{workload_func.__name__}'"
+        logging.DEBUG, f"Execute '{workload_func_str}'"
     ) as ts:
         try:
             if processify_func:
@@ -565,7 +567,9 @@ def _parallel_execute_decorator(
         if abort_on_error:
             _LOG.error("Aborting since abort_on_error=%s", abort_on_error)
             raise exception  # noqa: F821
-        _LOG.error("Continuing execution since abort_on_error=%s", abort_on_error)
+        _LOG.error(
+            "Continuing execution since abort_on_error=%s", abort_on_error
+        )
         res = str(exception)
     else:
         # The execution was successful.

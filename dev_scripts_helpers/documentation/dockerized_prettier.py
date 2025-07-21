@@ -31,7 +31,7 @@ Examples
 import argparse
 import logging
 
-import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdocexec
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("cmd_opts: %s", cmd_opts)
     # TODO(gp): This should be passed or inferred.
     file_type = "md"
-    hdocker.run_dockerized_prettier(
+    hdocexec.run_dockerized_prettier(
         in_file_name,
         cmd_opts,
         out_file_name,

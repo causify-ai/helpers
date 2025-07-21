@@ -418,15 +418,15 @@ def find_check_string_output(  # type: ignore
     if as_python:
         # Package the code snippet.
         if not fuzzy_match:
-            # Align the output at the same level as 'exp = r...'.
+            # Align the output at the same level as 'expected = r...'.
             num_spaces = 8
             txt = hprint.indent(txt, num_spaces=num_spaces)
         output = f"""
-        act =
-        exp = r\"\"\"
+        actual =
+        expected = r\"\"\"
 {txt}
         \"\"\".lstrip().rstrip()
-        self.assert_equal(act, exp, fuzzy_match={fuzzy_match})
+        self.assert_equal(actual, expected, fuzzy_match={fuzzy_match})
         """
     else:
         output = txt
@@ -539,7 +539,7 @@ def find_dependency(  # type: ignore
         # Parse import code.
         m = re.match(r"^import\s+(\S+)(\s+as)?", import_code)
         hdbg.dassert(m, "Can't parse line='%s'", import_code)
-        #
+        assert m is not None
         import_name = m.group(1)
         _LOG.debug("import_name='%s'", import_name)
         lev1_import = import_name.split(".")[0]

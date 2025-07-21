@@ -127,6 +127,8 @@ def git_clean(ctx, fix_perms_=False, dry_run=False):  # type: ignore
         r"cfile",
         r"tmp.*",
         r"*.tmp",
+        r".*_cache",
+        "htmlcov",
     ]
     opts = [f"-name '{opt}'" for opt in to_delete]
     opts = " -o ".join(opts)
@@ -571,7 +573,6 @@ def git_branch_next_name(ctx, branch_name=None):  # type: ignore
     print(f"branch_next_name='{branch_next_name}'")
 
 
-# TODO(gp): @all Improve docstring
 @task
 def git_branch_copy(  # type: ignore
     ctx,

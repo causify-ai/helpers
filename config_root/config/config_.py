@@ -147,8 +147,9 @@ _VALID_REPORT_MODES = ("verbose_log_error", "verbose_exception", "none")
 #   - `assert_on_error`: raise an error for unused variables
 _VALID_UNUSED_VARIABLES_MODES = ("warning_on_error", "assert_on_error")
 
+
 # #############################################################################
-# _ConfigWriterInfo
+# OverwriteError
 # #############################################################################
 
 
@@ -156,6 +157,11 @@ class OverwriteError(RuntimeError):
     """
     Trying to overwrite a value.
     """
+
+
+# #############################################################################
+# ClobberError
+# #############################################################################
 
 
 class ClobberError(RuntimeError):
@@ -168,6 +174,11 @@ class ClobberError(RuntimeError):
 # _OrderedDictType = collections.OrderedDict[ScalarKey, Any]
 # TODO(gp): Consider using a dict since after Python3.6 it is ordered.
 _OrderedDictType = collections.OrderedDict
+
+
+# #############################################################################
+# _ConfigWriterInfo
+# #############################################################################
 
 
 class _ConfigWriterInfo:
@@ -535,7 +546,7 @@ class _OrderedConfig(_OrderedDictType):
 
 
 # #############################################################################
-# Config
+# ReadOnlyConfigError
 # #############################################################################
 
 
@@ -543,6 +554,11 @@ class ReadOnlyConfigError(RuntimeError):
     """
     Trying to write on a Config marked read-only.
     """
+
+
+# #############################################################################
+# Config
+# #############################################################################
 
 
 class Config:

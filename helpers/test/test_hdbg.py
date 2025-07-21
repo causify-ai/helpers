@@ -170,8 +170,8 @@ class Test_dassert_misc1(hunitest.TestCase):
             b = [2, 2, 1]
             hdbg.dassert_set_eq(a, b)
         # Check.
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         val1 - val2=[3]
         val2 - val1=[]
@@ -179,7 +179,7 @@ class Test_dassert_misc1(hunitest.TestCase):
         set eq
         val2=[1, 2]
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     # dassert_is_subset
 
@@ -194,15 +194,15 @@ class Test_dassert_misc1(hunitest.TestCase):
             b = [4, 2, 1]
             hdbg.dassert_is_subset(a, b)
         # Check.
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         val1=[1, 2, 3]
         issubset
         val2=[1, 2, 4]
         val1 - val2=[3]
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     # dassert_not_intersection
 
@@ -216,15 +216,15 @@ class Test_dassert_misc1(hunitest.TestCase):
             a = [1, 2, 3]
             b = [4, 2, 1]
             hdbg.dassert_not_intersection(a, b)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         val1=[1, 2, 3]
         has no intersection
         val2=[1, 2, 4]
         val1.intersection(val2)=[1, 2]
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     # dassert_no_duplicates
 
@@ -302,12 +302,12 @@ class Test_dassert_lgt1(hunitest.TestCase):
             hdbg.dassert_lgt(
                 0, 0, 3, lower_bound_closed=False, upper_bound_closed=True
             )
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         0 < 0
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -327,13 +327,13 @@ class Test_dassert_lgt1(hunitest.TestCase):
                 "hello %s",
                 "world",
             )
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         100 <= 3
         hello world
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -364,13 +364,13 @@ class Test_dassert_is_proportion1(hunitest.TestCase):
         """
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_is_proportion(1.01, "hello %s", "world")
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         1.01 <= 1
         hello world
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_assert2(self) -> None:
         """
@@ -378,13 +378,13 @@ class Test_dassert_is_proportion1(hunitest.TestCase):
         """
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_is_proportion(1.01, "hello world")
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         1.01 <= 1
         hello world
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_assert3(self) -> None:
         """
@@ -392,15 +392,15 @@ class Test_dassert_is_proportion1(hunitest.TestCase):
         """
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_is_proportion(1.01, "hello", "world")
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         1.01 <= 1
         Caught assertion while formatting message:
         'not all arguments converted during string formatting'
         hello world
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_assert4(self) -> None:
         """
@@ -408,15 +408,15 @@ class Test_dassert_is_proportion1(hunitest.TestCase):
         """
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_is_proportion(1.01, "hello %s %s", "world")
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         1.01 <= 1
         Caught assertion while formatting message:
         'not enough arguments for format string'
         hello %s %s world
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -434,13 +434,13 @@ class Test_dassert_container_type1(hunitest.TestCase):
         list_ = "a b c".split()
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_container_type(list_, Tuple, str)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         Instance of '['a', 'b', 'c']' is '<class 'list'>' instead of 'typing.Tuple'
         obj='['a', 'b', 'c']'
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_assert2(self) -> None:
         """
@@ -449,13 +449,13 @@ class Test_dassert_container_type1(hunitest.TestCase):
         list_ = ["a", 2, "c", "d"]
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_container_type(list_, list, str)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         Instance of '2' is '<class 'int'>' instead of '<class 'str'>'
         obj='['a', 2, 'c', 'd']'
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_assert3(self) -> None:
         """
@@ -466,14 +466,14 @@ class Test_dassert_container_type1(hunitest.TestCase):
             hdbg.dassert_container_type(
                 list_, list, str, "list_ is %s homogeneous", "not"
             )
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         Instance of '2' is '<class 'int'>' instead of '<class 'str'>'
         list_ is not homogeneous
         obj='['a', 2, 'c', 'd']'
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -554,12 +554,12 @@ class Test_dassert_callable1(hunitest.TestCase):
         func = 4
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_callable(func)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         Obj '4' of type '<class 'int'>' is not callable
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -581,12 +581,12 @@ class Test_dassert_all_defined_or_all_None(hunitest.TestCase):
         vals = [1, 2, None, None]
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_all_defined_or_all_None(vals)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         Some values in list are defined and some are None: '[1, 2, None, None]'
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -615,15 +615,15 @@ class Test_dassert_related_params1(hunitest.TestCase):
         with self.assertRaises(Exception) as cm:
             mode = "all_or_none_non_null"
             hdbg.dassert_related_params(obj, mode, "message %s", "'hello world'")
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         All or none parameter should be non-null:
         val2=0
         params={'val1': 1, 'val2': 0, 'val3': 'hello'}
         message 'hello world'
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
 
 # #############################################################################
@@ -649,15 +649,15 @@ class Test_dassert_related_params2(hunitest.TestCase):
         with self.assertRaises(Exception) as cm:
             mode = "all_or_none_non_None"
             hdbg.dassert_related_params(obj, mode, "message %s", "'hello world'")
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         All or none parameter should be non-None:
         val1=None
         params={'val1': None, 'val2': None, 'val3': 'hello'}
         message 'hello world'
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
 
 # #############################################################################
@@ -670,12 +670,12 @@ class Test_dassert_all_attributes_are_same1(hunitest.TestCase):
         """
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_all_attributes_are_same(5, "a")
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         Instance of '5' is '<class 'int'>' instead of '<class 'list'>'
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -683,12 +683,12 @@ class Test_dassert_all_attributes_are_same1(hunitest.TestCase):
         """
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_all_attributes_are_same([1, 2, 3], 1)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         Instance of '1' is '<class 'int'>' instead of '<class 'str'>'
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -698,14 +698,14 @@ class Test_dassert_all_attributes_are_same1(hunitest.TestCase):
         list_ = [Obj(1, 2), Obj(1, 3)]
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_all_attributes_are_same(list_, "b")
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         Elements in the list have different values for
         attribute b:
         {2, 3}
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
     def test4(self) -> None:
         """
@@ -740,13 +740,13 @@ class Test_dassert_lt(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_lt(val1, val2)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         2 < 2
         """
         # Check.
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -759,13 +759,13 @@ class Test_dassert_lt(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_lt(val1, val2)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         3 < 2
         """
         # Check.
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test4(self) -> None:
         """
@@ -787,13 +787,13 @@ class Test_dassert_lt(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_lt(val1, val2)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         2.0 < 1.0
         """
         # Check.
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 class Test_dassert_is_integer(hunitest.TestCase):
@@ -822,13 +822,13 @@ class Test_dassert_is_integer(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_is_integer(val)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         Invalid val='5.5' of type '<class 'float'>'
         """
         # Check.
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test4(self) -> None:
         """
@@ -840,10 +840,10 @@ class Test_dassert_is_integer(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hdbg.dassert_is_integer(val)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         Invalid val='5' of type '<class 'str'>'
         """
         # Check.
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)

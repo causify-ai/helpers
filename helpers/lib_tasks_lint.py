@@ -193,6 +193,7 @@ def lint(  # type: ignore
     stage="prod",
     version="",
     files="",
+    from_file="",
     skip_files="",
     dir_name="",
     modified=False,
@@ -226,6 +227,7 @@ def lint(  # type: ignore
     :param stage: the image stage to use (e.g., "prod", "dev", "local")
     :param version: the version of the container to use
     :param files: specific files to lint (e.g. "dir1/file1.py dir2/file2.md")
+    :param from_file: specific file storing files to lint
     :param skip_files: specific files to skip during linting (e.g. "dir1/file1.py dir2/file2.md")
     :param dir_name: name of the dir where all files should be linted
     :param modified: lint the files modified in the current git client
@@ -246,15 +248,18 @@ def lint(  # type: ignore
     # Add the file selection argument.
     hdbg.dassert_eq(
         int(len(files) > 0)
+        + int(len(from_file) > 0)
         + int(len(dir_name) > 0)
         + int(modified)
         + int(last_commit)
         + int(branch),
         1,
-        msg="Specify exactly one among --files, --dir-name, --modified, --last-commit, --branch",
+        msg="Specify exactly one among --files, --from_file, --dir-name, --modified, --last-commit, --branch",
     )
     if len(files) > 0:
         lint_cmd_opts.append(f"--files {files}")
+    elif len(from_file) > 0:
+        lint_cmd_opts.append(f"--from_file {from_file}")
     elif len(dir_name) > 0:
         lint_cmd_opts.append(f"--dir_name {dir_name}")
     elif modified:

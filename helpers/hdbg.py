@@ -453,9 +453,9 @@ def _set_to_str(set_: Set[Any], thr: Optional[int] = 20) -> str:
     ```
     with self.assertRaises(AssertionError) as cm:
         ...
-    act = str(cm.exception)
-    exp = r
-    self.assert_equal(act, exp, fuzzy_match=True)
+    actual = str(cm.exception)
+    expected = r
+    self.assert_equal(actual, expected, fuzzy_match=True)
     ```
     """
     try:
@@ -952,6 +952,8 @@ def init_logger(
         sys.stdout.write("\033[0m")
     if isinstance(verbosity, str):
         # pylint: disable=protected-access
+        dassert(hasattr(logging, "_checkLevel"))
+        assert hasattr(logging, "_checkLevel")
         verbosity = logging._checkLevel(verbosity)
     # From https://stackoverflow.com/questions/14058453
     root_logger = logging.getLogger()
@@ -981,6 +983,8 @@ def init_logger(
     ch.setLevel(verbosity)
     # Set the formatter.
     # formatter = hloggin.set_v1_formatter(
+    dassert(hasattr(hloggin, "set_v2_formatter"))
+    assert hasattr(hloggin, "set_v2_formatter")
     formatter = hloggin.set_v2_formatter(
         ch,
         root_logger,
@@ -1027,6 +1031,8 @@ def init_logger(
     #
     _LOG.debug("Effective logging level=%s", _LOG.getEffectiveLevel())
     # Shut up chatty modules.
+    dassert(hasattr(hloggin, "shutup_chatty_modules"))
+    assert hasattr(hloggin, "shutup_chatty_modules")
     hloggin.shutup_chatty_modules(verbose=False)
     _LOG.info("> cmd='%s'", get_command_line())
     #

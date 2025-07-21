@@ -28,12 +28,12 @@ if False:
             pyproj2 = self._get_pyproj1()
             pyprojs = [_to_toml(pyproj1), _to_toml(pyproj2)]
             # Call function to test.
-            act = dsctomer._merge_toml(pyprojs=pyprojs)
+            actual = dsctomer._merge_toml(pyprojs=pyprojs)
             # Define expected output.
-            exp = pyproj1
-            exp = _to_toml(exp)
+            expected = pyproj1
+            expected = _to_toml(expected)
             # Compare actual and expected output.
-            self.assert_equal(pprint.pformat(act), pprint.pformat(exp))
+            self.assert_equal(pprint.pformat(actual), pprint.pformat(expected))
 
         def test2(self) -> None:
             """
@@ -62,9 +62,9 @@ if False:
             """
             pyprojs = [_to_toml(pyproj1), _to_toml(pyproj2)]
             # Call function to test.
-            act = dsctomer._merge_toml(pyprojs=pyprojs)
+            actual = dsctomer._merge_toml(pyprojs=pyprojs)
             # Define expected output.
-            exp = """
+            expected = """
             [tool.poetry]
             name = "lm"
             version = "0.1.0"
@@ -83,9 +83,9 @@ if False:
             requires = ["poetry>=0.12"]
             build-backend = "poetry.masonry.api"
             """
-            exp = _to_toml(exp)
+            expected = _to_toml(expected)
             # Compare actual and expected output.
-            self.assert_equal(pprint.pformat(act), pprint.pformat(exp))
+            self.assert_equal(pprint.pformat(actual), pprint.pformat(expected))
 
         def test3(self) -> None:
             """
