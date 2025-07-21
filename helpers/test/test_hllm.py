@@ -33,15 +33,6 @@ _MODEL4 = "openai/gpt-4o-mini"
 
 
 # Test functions for the unit tests.
-def _get_completion_parameters0() -> Dict[str, Any]:
-    data = {
-        "user_prompt": _USER_PROMPT1,
-        "system_prompt": _SYSTEM_PROMPT1,
-        "temperature": _TEMPERATURE1,
-    }
-    return data
-
-
 def _get_completion_parameters1() -> Dict[str, Any]:
     data = {
         "user_prompt": _USER_PROMPT1,
