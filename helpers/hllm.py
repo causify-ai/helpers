@@ -93,11 +93,11 @@ def response_to_txt(response: Any) -> str:
     :param response: API response object
     :return: extracted text contents as a string
     """
-    if isinstance(response, openai.types.chat.chat_completion.ChatCompletion):
+    if isinstance(response, openai.types.chat.chat_completion.ChatCompletion): # type: ignore[attr-defined]
         ret = response.choices[0].message.content
     # elif isinstance(response, openai.pagination.SyncCursorPage):
     #     ret = response.data[0].content[0].text.value
-    elif isinstance(response, openai.types.beta.threads.message.Message):
+    elif isinstance(response, openai.types.beta.threads.message.Message): # type: ignore[attr-defined]
         ret = response.content[0].text.value
     elif isinstance(response, str):
         ret = response
@@ -158,7 +158,7 @@ class LLMClient:
         self.provider_name = provider_name
         self.model = model
 
-    def create_client(self) -> openai.OpenAI:
+    def create_client(self) -> None:
         """
         Create an LLM client.
         """
@@ -305,17 +305,16 @@ def _save_models_info_to_csv(
     model_info_df["completion_pricing"] = model_info_df["pricing"].apply(
         lambda x: x["completion"]
     )
-    # Take only relevant columns.
-    model_info_df = model_info_df[
-        [
-            "id",
-            "name",
-            "description",
-            "prompt_pricing",
-            "completion_pricing",
-            "supported_parameters",
-        ]
+    required_columns = [
+        "id",
+        "name",
+        "description",
+        "prompt_pricing",
+        "completion_pricing",
+        "supported_parameters"
     ]
+    # Take only relevant columns.
+    model_info_df = model_info_df.loc[:, required_columns]
     # Save to CSV file.
     model_info_df.to_csv(file_name, index=False)
     return model_info_df
@@ -361,7 +360,7 @@ class LLMCostTracker:
 
     def calculate_cost(
         self,
-        completion: openai.types.chat.chat_completion.ChatCompletion,
+        completion: openai.types.chat.chat_completion.ChatCompletion, # type: ignore[attr-defined]
         model: str,
         *,
         models_info_file: str = "",
@@ -448,9 +447,9 @@ def _call_api_sync(
         `get_completion()` params for other param details.
     :return: OpenAI chat completion object as a dictionary
     """
-    completion = client.chat.completions.create(
+    completion = client.chat.completions.create( # type: ignore[call-arg]
         model=model,
-        messages=messages,
+        messages=messages, # type: ignore[call-arg]
         temperature=temperature,
         **create_kwargs,
     )
@@ -526,9 +525,9 @@ def get_completion(
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.
         # Create a stream to show progress.
-        completion = llm_client.client.chat.completions.create(
+        completion = llm_client.client.chat.completions.create( # type: ignore[call-arg,arg-type]
             model=model,
-            messages=messages,
+            messages=messages, # type: ignore[arg-type]
             stream=True,  # Enable streaming
             **create_kwargs,
         )
@@ -810,7 +809,7 @@ def apply_prompt_to_dataframe(
     if not allow_overwrite:
         hdbg.dassert_not_in(response_col, df.columns)
     response_data = []
-    for start in tqdm(range(0, len(df), chunk_size), desc="Processing chunks"):
+    for start in tqdm.tqdm(range(0, len(df), chunk_size), desc="Processing chunks"):
         end = start + chunk_size
         chunk = df.iloc[start:end]
         _LOG.debug("chunk.size=%s", chunk.shape[0])
