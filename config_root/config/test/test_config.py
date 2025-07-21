@@ -25,16 +25,16 @@ _LOG = logging.getLogger(__name__)
 
 
 def _check_config_string(
-    self: Any, config: cconfig.Config, exp: str, mode: str = "str"
+    self: Any, config: cconfig.Config, expected: str, mode: str = "str"
 ) -> None:
     _LOG.debug("config=\n%s", config)
     if mode == "str":
-        act = str(config)
+        actual = str(config)
     elif mode == "repr":
-        act = repr(config)
+        actual = repr(config)
     else:
         raise ValueError(f"Invalid mode='{mode}'")
-    self.assert_equal(act, exp, fuzzy_match=True)
+    self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 def _check_roundtrip_transformation(self_: Any, config: cconfig.Config) -> str:
@@ -51,17 +51,17 @@ def _check_roundtrip_transformation(self_: Any, config: cconfig.Config) -> str:
     # Verify that the round-trip transformation is correct.
     self_.assertEqual(str(config), str(config2))
     # Build the signature of the test.
-    act = []
-    act.append(f"# config=\n{str(config)}")
-    act.append(f"# code=\n{str(code)}")
-    act = "\n".join(act)
-    return act
+    actual = []
+    actual.append(f"# config=\n{str(config)}")
+    actual.append(f"# code=\n{str(code)}")
+    actual = "\n".join(actual)
+    return actual
 
 
 def _purify_assertion_string(txt: str) -> str:
     # For some reason (probably the catch and re-raise of exceptions) the assertion
     # has `\n` literally and not interpreted as new lines, e.g.,
-    # exp = r"""'"key=\'nrows_tmp\' not in:\\n  nrows: 10000\\n  nrows2: hello"\nconfig=\n  nrows: 10000\n  nrows2: hello'
+    # expected = r"""'"key=\'nrows_tmp\' not in:\\n  nrows: 10000\\n  nrows2: hello"\nconfig=\n  nrows: 10000\n  nrows2: hello'
     txt = txt.replace(r"\\n", "\n")
     txt = txt.replace(r"\n", "\n")
     txt = txt.replace(r"\'", "'")
@@ -79,11 +79,11 @@ def _get_flat_config1(self: Any) -> cconfig.Config:
     config["hello"] = "world"
     config["foo"] = [1, 2, 3]
     # Check.
-    exp = """
+    expected = """
     hello: world
     foo: [1, 2, 3]
     """
-    _check_config_string(self, config, exp)
+    _check_config_string(self, config, expected)
     return config
 
 
@@ -99,11 +99,11 @@ class Test_flat_config_set1(hunitest.TestCase):
         """
         config = cconfig.Config()
         config["hello"] = "world"
-        act = str(config)
-        exp = r"""
+        actual = str(config)
+        expected = r"""
         hello: world
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_roundtrip_transform1(self) -> None:
         """
@@ -111,15 +111,15 @@ class Test_flat_config_set1(hunitest.TestCase):
         """
         config = _get_flat_config1(self)
         #
-        act = _check_roundtrip_transformation(self, config)
-        exp = r"""
+        actual = _check_roundtrip_transformation(self, config)
+        expected = r"""
         # config=
         hello: world
         foo: [1, 2, 3]
         # code=
         Config({'hello': 'world', 'foo': [1, 2, 3]})
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_config_with_function(self) -> None:
         config = cconfig.Config()
@@ -154,11 +154,11 @@ def _get_flat_config2(self: Any) -> cconfig.Config:
     config["nrows"] = 10000
     config["nrows2"] = "hello"
     # Check.
-    exp = r"""
+    expected = r"""
     nrows: 10000
     nrows2: hello
     """
-    _check_config_string(self, config, exp)
+    _check_config_string(self, config, expected)
     return config
 
 
@@ -177,11 +177,11 @@ class Test_flat_config_get1(hunitest.TestCase):
         Look up an existing key.
         """
         config = _get_flat_config2(self)
-        exp = r"""
+        expected = r"""
         nrows: 10000
         nrows2: hello
         """
-        self.assert_equal(str(config), exp, fuzzy_match=True)
+        self.assert_equal(str(config), expected, fuzzy_match=True)
         #
         self.assertEqual(config["nrows"], 10000)
 
@@ -235,16 +235,16 @@ class Test_flat_config_get1(hunitest.TestCase):
         # KeyError: '"key=\'nrows_tmp\' not in:\n  nrows: 10000\n  nrows2: hello"\nconfig=\n  nrows: 10000\n  nrows2: hello'
         with self.assertRaises(KeyError) as cm:
             config.get("nrows_tmp", report_mode="verbose_exception")
-        act = str(cm.exception)
-        act = _purify_assertion_string(act)
-        exp = r"""
+        actual = str(cm.exception)
+        actual = _purify_assertion_string(actual)
+        expected = r"""
         'exception="key='nrows_tmp' not in ['nrows', 'nrows2'] at level 0"
         key='nrows_tmp'
         config=
           nrows: 10000
           nrows2: hello'
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_non_existing_key3(self) -> None:
         """
@@ -254,16 +254,16 @@ class Test_flat_config_get1(hunitest.TestCase):
         #
         with self.assertRaises(KeyError) as cm:
             config.get(("nrows2", "nrows_tmp"), report_mode="verbose_exception")
-        act = str(cm.exception)
-        act = _purify_assertion_string(act)
-        exp = r"""
+        actual = str(cm.exception)
+        actual = _purify_assertion_string(actual)
+        expected = r"""
         'exception="tail_key=('nrows_tmp',) at level 0"
         key='('nrows2', 'nrows_tmp')'
         config=
           nrows: 10000
           nrows2: hello'
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_non_existing_key4(self) -> None:
         """
@@ -273,16 +273,16 @@ class Test_flat_config_get1(hunitest.TestCase):
         #
         with self.assertRaises(KeyError) as cm:
             config.get(("nrows2", "hello"), report_mode="verbose_exception")
-        act = str(cm.exception)
-        act = _purify_assertion_string(act)
-        exp = r"""
+        actual = str(cm.exception)
+        actual = _purify_assertion_string(actual)
+        expected = r"""
         'exception="tail_key=('hello',) at level 0"
         key='('nrows2', 'hello')'
         config=
           nrows: 10000
           nrows2: hello'
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     # /////////////////////////////////////////////////////////////////////////////
 
@@ -310,12 +310,12 @@ class Test_flat_config_get1(hunitest.TestCase):
         config = _get_flat_config2(self)
         with self.assertRaises(AssertionError) as cm:
             _ = config.get("nrows", None, str, report_mode="verbose_exception")
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         Instance of '10000' is '<class 'int'>' instead of '<class 'str'>'
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
     def test_non_existing_key_with_type1(self) -> None:
         """
@@ -327,12 +327,12 @@ class Test_flat_config_get1(hunitest.TestCase):
             _ = config.get(
                 "nrows", "hello", str, report_mode="verbose_exception"
             )
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         Instance of '10000' is '<class 'int'>' instead of '<class 'str'>'
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
 
 # #############################################################################
@@ -382,7 +382,7 @@ def _get_nested_config1(self: Any) -> cconfig.Config:
     config["zscore"]["style"] = "gaz"
     config["zscore"]["com"] = 28
     # Check.
-    exp = r"""
+    expected = r"""
     nrows: 10000
     read_data:
       file_name: foo_bar.txt
@@ -392,7 +392,7 @@ def _get_nested_config1(self: Any) -> cconfig.Config:
       style: gaz
       com: 28
     """
-    _check_config_string(self, config, exp)
+    _check_config_string(self, config, expected)
     return config
 
 
@@ -455,12 +455,12 @@ class Test_nested_config_get1(hunitest.TestCase):
         #
         with self.assertRaises(KeyError) as cm:
             _ = config["read_data2"]
-        act = str(cm.exception)
-        act = _purify_assertion_string(act)
-        exp = r"""
+        actual = str(cm.exception)
+        actual = _purify_assertion_string(actual)
+        expected = r"""
         "key='read_data2' not in ['nrows', 'read_data', 'single_val', 'zscore'] at level 0"
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_non_existing_key2(self) -> None:
         """
@@ -470,12 +470,12 @@ class Test_nested_config_get1(hunitest.TestCase):
         #
         with self.assertRaises(KeyError) as cm:
             _ = config["read_data"]["file_name2"]
-        act = str(cm.exception)
-        act = _purify_assertion_string(act)
-        exp = r"""
+        actual = str(cm.exception)
+        actual = _purify_assertion_string(actual)
+        expected = r"""
         "key='file_name2' not in ['file_name', 'nrows'] at level 0"
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_non_existing_key3(self) -> None:
         """
@@ -485,12 +485,12 @@ class Test_nested_config_get1(hunitest.TestCase):
         #
         with self.assertRaises(KeyError) as cm:
             _ = config["read_data2"]["file_name2"]
-        act = str(cm.exception)
-        act = _purify_assertion_string(act)
-        exp = r"""
+        actual = str(cm.exception)
+        actual = _purify_assertion_string(actual)
+        expected = r"""
         "key='read_data2' not in ['nrows', 'read_data', 'single_val', 'zscore'] at level 0"
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -508,16 +508,16 @@ class Test_nested_config_set1(hunitest.TestCase):
                 "rets/read_data": cconfig.DUMMY,
             }
         )
-        exp = r"""
+        expected = r"""
         rets/read_data: __DUMMY__"""
-        self.assert_equal(str(config), hprint.dedent(exp))
+        self.assert_equal(str(config), hprint.dedent(expected))
         # Set a key that doesn't exist.
         config["rets/hello"] = "world"
         # Check.
-        exp = r"""
+        expected = r"""
         rets/read_data: __DUMMY__
         rets/hello: world"""
-        self.assert_equal(str(config), hprint.dedent(exp))
+        self.assert_equal(str(config), hprint.dedent(expected))
 
     def test_existing_key1(self) -> None:
         """
@@ -532,9 +532,9 @@ class Test_nested_config_set1(hunitest.TestCase):
         # Overwrite an existing value.
         config["rets/read_data"] = "hello world"
         # Check.
-        exp = r"""
+        expected = r"""
         rets/read_data: hello world"""
-        self.assert_equal(str(config), hprint.dedent(exp))
+        self.assert_equal(str(config), hprint.dedent(expected))
 
     @pytest.mark.skip(reason="See AmpTask1573")
     def test_existing_key2(self) -> None:
@@ -551,9 +551,9 @@ class Test_nested_config_set1(hunitest.TestCase):
         # This also doesn't work.
         # config["rets/read_data"]["source_node_name"] = "data_downloader"
         # Check.
-        exp = r"""
+        expected = r"""
         rets/read_data: hello world"""
-        self.assert_equal(str(config), hprint.dedent(exp))
+        self.assert_equal(str(config), hprint.dedent(expected))
 
     def test_existing_key3(self) -> None:
         """
@@ -570,10 +570,10 @@ class Test_nested_config_set1(hunitest.TestCase):
             {"source_node_name": "data_downloader"}
         )
         # Check.
-        exp = r"""
+        expected = r"""
         rets/read_data:
           source_node_name: data_downloader"""
-        self.assert_equal(str(config), hprint.dedent(exp))
+        self.assert_equal(str(config), hprint.dedent(expected))
 
     def test_existing_key4(self) -> None:
         """
@@ -601,7 +601,7 @@ class Test_nested_config_set1(hunitest.TestCase):
             }
         )
         # Check.
-        exp = r"""
+        expected = r"""
         rets/read_data:
           source_node_name: data_downloader
           source_node_kwargs:
@@ -612,7 +612,7 @@ class Test_nested_config_set1(hunitest.TestCase):
             end_date: 2021-01-04 09:30:00
             nrows: None
             columns: None"""
-        self.assert_equal(str(config), hprint.dedent(exp))
+        self.assert_equal(str(config), hprint.dedent(expected))
 
 
 # #############################################################################
@@ -634,7 +634,7 @@ def _get_nested_config2(self: Any) -> cconfig.Config:
     config_tmp["style"] = "gaz"
     config_tmp["com"] = 28
     # Check.
-    exp = r"""
+    expected = r"""
     nrows: 10000
     read_data:
       file_name: foo_bar.txt
@@ -644,7 +644,7 @@ def _get_nested_config2(self: Any) -> cconfig.Config:
       style: gaz
       com: 28
     """
-    _check_config_string(self, config, exp)
+    _check_config_string(self, config, expected)
     return config
 
 
@@ -661,7 +661,7 @@ def _get_nested_config3(self: Any) -> cconfig.Config:
     config_tmp["style"] = "gaz"
     config_tmp["com"] = 28
     # Check.
-    exp = r"""
+    expected = r"""
     read_data:
       file_name: foo_bar.txt
       nrows: 999
@@ -670,7 +670,7 @@ def _get_nested_config3(self: Any) -> cconfig.Config:
       style: gaz
       com: 28
     """
-    _check_config_string(self, config, exp)
+    _check_config_string(self, config, expected)
     return config
 
 
@@ -690,7 +690,7 @@ def _get_nested_config4(self: Any) -> cconfig.Config:
     config_tmp["style"] = "gaz"
     config_tmp["com"] = 28
     # Check.
-    exp = """
+    expected = """
     write_data:
       file_name: baz.txt
       nrows: 999
@@ -699,7 +699,7 @@ def _get_nested_config4(self: Any) -> cconfig.Config:
       style: gaz
       com: 28
     """
-    _check_config_string(self, config, exp)
+    _check_config_string(self, config, expected)
     return config
 
 
@@ -722,7 +722,7 @@ def _get_nested_config5(self: Any) -> cconfig.Config:
     config_tmp["style"] = "universal"
     config_tmp["tau"] = 32
     # Check.
-    exp = """
+    expected = """
     read_data:
       file_name: baz.txt
       nrows: 999
@@ -733,7 +733,7 @@ def _get_nested_config5(self: Any) -> cconfig.Config:
       style: universal
       tau: 32
     """
-    _check_config_string(self, config, exp)
+    _check_config_string(self, config, expected)
     return config
 
 
@@ -749,8 +749,8 @@ class Test_nested_config_misc1(hunitest.TestCase):
         """
         config = _get_nested_config1(self)
         #
-        act = str(config)
-        exp = r"""
+        actual = str(config)
+        expected = r"""
         nrows: 10000
         read_data:
           file_name: foo_bar.txt
@@ -760,7 +760,7 @@ class Test_nested_config_misc1(hunitest.TestCase):
           style: gaz
           com: 28
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_config_to_python1(self) -> None:
         """
@@ -768,11 +768,11 @@ class Test_nested_config_misc1(hunitest.TestCase):
         """
         config = _get_nested_config1(self)
         # Check.
-        act = config.to_python()
-        exp = r"""
+        actual = config.to_python()
+        expected = r"""
         Config({'nrows': 10000, 'read_data': Config({'file_name': 'foo_bar.txt', 'nrows': 999}), 'single_val': 'hello', 'zscore': Config({'style': 'gaz', 'com': 28})})
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_roundtrip_transform1(self) -> None:
         """
@@ -780,8 +780,8 @@ class Test_nested_config_misc1(hunitest.TestCase):
         """
         config = _get_nested_config1(self)
         # Check.
-        act = _check_roundtrip_transformation(self, config)
-        exp = r"""
+        actual = _check_roundtrip_transformation(self, config)
+        expected = r"""
         # config=
         nrows: 10000
         read_data:
@@ -794,7 +794,7 @@ class Test_nested_config_misc1(hunitest.TestCase):
         # code=
         Config({'nrows': 10000, 'read_data': Config({'file_name': 'foo_bar.txt', 'nrows': 999}), 'single_val': 'hello', 'zscore': Config({'style': 'gaz', 'com': 28})})
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_config1(self) -> None:
         """
@@ -818,8 +818,8 @@ class Test_nested_config_in1(hunitest.TestCase):
         """
         config = _get_nested_config1(self)
         #
-        act = str(config)
-        exp = r"""
+        actual = str(config)
+        expected = r"""
         nrows: 10000
         read_data:
           file_name: foo_bar.txt
@@ -829,7 +829,7 @@ class Test_nested_config_in1(hunitest.TestCase):
           style: gaz
           com: 28
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
         #
         self.assertIn("nrows", config)
         #
@@ -874,8 +874,8 @@ class Test_nested_config_update1(hunitest.TestCase):
         #
         config1.update(config2)
         # Check.
-        act = str(config1)
-        exp = r"""
+        actual = str(config1)
+        expected = r"""
         read_data:
           file_name: foo_bar.txt
           nrows: 999
@@ -891,7 +891,7 @@ class Test_nested_config_update1(hunitest.TestCase):
           style: gaz
           com: 28
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_update2(self) -> None:
         config1 = _get_nested_config3(self)
@@ -899,8 +899,8 @@ class Test_nested_config_update1(hunitest.TestCase):
         #
         config1.update(config2, update_mode="overwrite")
         # Check.
-        act = str(config1)
-        exp = r"""
+        actual = str(config1)
+        expected = r"""
         read_data:
           file_name: baz.txt
           nrows: 999
@@ -912,7 +912,7 @@ class Test_nested_config_update1(hunitest.TestCase):
           style: universal
           tau: 32
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_update3(self) -> None:
         """
@@ -920,17 +920,17 @@ class Test_nested_config_update1(hunitest.TestCase):
         """
         config = cconfig.Config()
         config_tmp = config.add_subconfig("key1")
-        exp = """
+        expected = """
         key1:
         """
-        _check_config_string(self, config, exp)
+        _check_config_string(self, config, expected)
         #
         subconfig = cconfig.Config()
         subconfig.add_subconfig("key0")
-        exp = """
+        expected = """
         key0:
         """
-        _check_config_string(self, subconfig, exp)
+        _check_config_string(self, subconfig, expected)
         #
         _LOG.debug("\n" + hprint.frame("update"))
         config_tmp.update(subconfig)
@@ -941,12 +941,12 @@ class Test_nested_config_update1(hunitest.TestCase):
         config_tmp.add_subconfig("key0")
         #
         self.assert_equal(str(config), str(expected_result))
-        exp = r"""
+        expected = r"""
         key1:
           key0:
         """
-        exp = hprint.dedent(exp)
-        self.assert_equal(str(config), exp)
+        expected = hprint.dedent(expected)
+        self.assert_equal(str(config), expected)
 
 
 # #############################################################################
@@ -971,7 +971,7 @@ class Test_nested_config_update2(hunitest.TestCase):
         ):
             config1 = _get_nested_config3(self)
             # Check the value of the config.
-            exp = """
+            expected = """
             read_data:
               file_name: foo_bar.txt
               nrows: 999
@@ -980,7 +980,7 @@ class Test_nested_config_update2(hunitest.TestCase):
               style: gaz
               com: 28
             """
-            self.assert_equal(str(config1), exp, fuzzy_match=True)
+            self.assert_equal(str(config1), expected, fuzzy_match=True)
             #
             config2 = cconfig.Config()
             config2["read_data", "file_name2"] = "hello"
@@ -989,8 +989,8 @@ class Test_nested_config_update2(hunitest.TestCase):
             # matter what update_mode we are using.
             config1.update(config2, update_mode=update_mode)
             # Check.
-            act = str(config1)
-            exp = r"""
+            actual = str(config1)
+            expected = r"""
             read_data:
               file_name: foo_bar.txt
               nrows: 999
@@ -1001,7 +1001,7 @@ class Test_nested_config_update2(hunitest.TestCase):
               com: 28
             read_data2: world
             """
-            self.assert_equal(act, exp, fuzzy_match=True)
+            self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_assert_on_overwrite2(self) -> None:
         """
@@ -1018,8 +1018,8 @@ class Test_nested_config_update2(hunitest.TestCase):
         # The first value exists so we should assert.
         with self.assertRaises(cconfig.OverwriteError) as cm:
             config1.update(config2)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         exception=Trying to overwrite old value 'foo_bar.txt' with new value 'hello' for key 'file_name' when update_mode=assert_on_overwrite
         self=
           file_name: foo_bar.txt
@@ -1034,7 +1034,7 @@ class Test_nested_config_update2(hunitest.TestCase):
             style: gaz
             com: 28
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     # /////////////////////////////////////////////////////////////////////////
 
@@ -1044,7 +1044,7 @@ class Test_nested_config_update2(hunitest.TestCase):
         """
         config1 = _get_nested_config3(self)
         # Check the value of the config.
-        exp = """
+        expected = """
         read_data:
           file_name: foo_bar.txt
           nrows: 999
@@ -1053,7 +1053,7 @@ class Test_nested_config_update2(hunitest.TestCase):
           style: gaz
           com: 28
         """
-        self.assert_equal(str(config1), exp, fuzzy_match=True)
+        self.assert_equal(str(config1), expected, fuzzy_match=True)
         #
         config2 = cconfig.Config()
         config2["read_data", "file_name"] = "hello"
@@ -1061,8 +1061,8 @@ class Test_nested_config_update2(hunitest.TestCase):
         # Just overwrite.
         config1.update(config2, update_mode="overwrite")
         # Check.
-        act = str(config1)
-        exp = r"""
+        actual = str(config1)
+        expected = r"""
         read_data:
           file_name: hello
           nrows: 999
@@ -1072,7 +1072,7 @@ class Test_nested_config_update2(hunitest.TestCase):
           com: 28
         read_data2: world
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     # /////////////////////////////////////////////////////////////////////////
 
@@ -1083,7 +1083,7 @@ class Test_nested_config_update2(hunitest.TestCase):
         """
         config1 = _get_nested_config3(self)
         # Check the value of the config.
-        exp = """
+        expected = """
         read_data:
           file_name: foo_bar.txt
           nrows: 999
@@ -1092,7 +1092,7 @@ class Test_nested_config_update2(hunitest.TestCase):
           style: gaz
           com: 28
         """
-        self.assert_equal(str(config1), exp, fuzzy_match=True)
+        self.assert_equal(str(config1), expected, fuzzy_match=True)
         #
         config2 = cconfig.Config()
         config2["read_data", "file_name"] = "hello"
@@ -1101,8 +1101,8 @@ class Test_nested_config_update2(hunitest.TestCase):
         # the second since it doesn't exist.
         config1.update(config2, update_mode="assign_if_missing")
         # Check.
-        act = str(config1)
-        exp = r"""
+        actual = str(config1)
+        expected = r"""
         read_data:
           file_name: foo_bar.txt
           nrows: 999
@@ -1112,7 +1112,7 @@ class Test_nested_config_update2(hunitest.TestCase):
           com: 28
         read_data2: world
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -1132,14 +1132,14 @@ def _get_nested_config6(self: Any) -> cconfig.Config:
     #
     config.add_subconfig("zscore")
     # Check.
-    exp = r"""
+    expected = r"""
     read_data:
       file_name: foo_bar.txt
       nrows: 999
     single_val: hello
     zscore:
     """
-    _check_config_string(self, config, exp)
+    _check_config_string(self, config, expected)
     return config
 
 
@@ -1163,8 +1163,8 @@ class Test_nested_config_flatten1(hunitest.TestCase):
         config_tmp["style"] = "gaz"
         config_tmp["com"] = 28
         # Check the representation.
-        act = str(config)
-        exp = r"""
+        actual = str(config)
+        expected = r"""
         read_data:
           file_name: foo_bar.txt
           nrows: 999
@@ -1173,33 +1173,33 @@ class Test_nested_config_flatten1(hunitest.TestCase):
           style: gaz
           com: 28
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
         # Run.
         flattened = config.flatten()
         # Check the output.
-        act = pprint.pformat(flattened)
-        exp = r"""
+        actual = pprint.pformat(flattened)
+        expected = r"""
         OrderedDict([(('read_data', 'file_name'), 'foo_bar.txt'),
              (('read_data', 'nrows'), 999),
              (('single_val',), 'hello'),
              (('zscore', 'style'), 'gaz'),
              (('zscore', 'com'), 28)])
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_flatten2(self) -> None:
         config = _get_nested_config6(self)
         # Run.
         flattened = config.flatten()
         # Check.
-        act = pprint.pformat(flattened)
-        exp = r"""
+        actual = pprint.pformat(flattened)
+        expected = r"""
         OrderedDict([(('read_data', 'file_name'), 'foo_bar.txt'),
                     (('read_data', 'nrows'), 999),
                     (('single_val',), 'hello'),
                     (('zscore',), )])
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -1221,11 +1221,11 @@ class Test_subtract_config1(hunitest.TestCase):
         #
         diff = cconfig.subtract_config(config1, config2)
         # Check.
-        act = str(diff)
-        exp = r"""
+        actual = str(diff)
+        expected = r"""
         l0: 1st_floor
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
         config1 = cconfig.Config()
@@ -1241,14 +1241,14 @@ class Test_subtract_config1(hunitest.TestCase):
         #
         diff = cconfig.subtract_config(config1, config2)
         # Check.
-        act = str(diff)
-        exp = r"""
+        actual = str(diff)
+        expected = r"""
         l0: 1st_floor
         r1:
           r2:
             r3: [1, 2, 3]
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -1374,8 +1374,8 @@ class Test_make_read_only1(hunitest.TestCase):
         # Try to assign an existing key and check it raises an error.
         with self.assertRaises(cconfig.ReadOnlyConfigError) as cm:
             config["zscore", "style"] = "oil"
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         Can't set key='('zscore', 'style')' to val='oil' in read-only config
         self=
           nrows: 10000
@@ -1387,7 +1387,7 @@ class Test_make_read_only1(hunitest.TestCase):
             style: gasoline
             com: 28
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_set2(self) -> None:
         """
@@ -1400,8 +1400,8 @@ class Test_make_read_only1(hunitest.TestCase):
         # Try to assign a new key and check it raises an error.
         with self.assertRaises(cconfig.ReadOnlyConfigError) as cm:
             config["zscore2"] = "gasoline"
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         Can't set key='zscore2' to val='gasoline' in read-only config
         self=
           nrows: 10000
@@ -1413,7 +1413,7 @@ class Test_make_read_only1(hunitest.TestCase):
             style: gaz
             com: 28
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_set3(self) -> None:
         """
@@ -1427,8 +1427,8 @@ class Test_make_read_only1(hunitest.TestCase):
         # Check.
         with self.assertRaises(RuntimeError) as cm:
             config1.update(config2, update_mode="overwrite")
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         Can't set key='('write_data', 'file_name')' to val='baz.txt' in read-only config
         self=
           read_data:
@@ -1446,7 +1446,7 @@ class Test_make_read_only1(hunitest.TestCase):
             style: gaz
             com: 28
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_set4(self) -> None:
         """
@@ -1468,8 +1468,8 @@ class Test_make_read_only1(hunitest.TestCase):
         config["single_val"] = "hello1"
         self.assertEqual(config["single_val"], "hello1")
         # Check the final config.
-        act = str(config)
-        exp = r"""
+        actual = str(config)
+        expected = r"""
         nrows: 10000
         read_data:
           file_name: foo_bar.txt
@@ -1479,7 +1479,7 @@ class Test_make_read_only1(hunitest.TestCase):
           style: gasoline
           com: 11
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -1500,8 +1500,8 @@ class Test_to_dict1(hunitest.TestCase):
         :param expected_result_as_str: expected `Config` value as string
         """
         config = cconfig.Config.from_dict(config_as_dict)
-        act = str(config)
-        self.assert_equal(act, expected_result_as_str, fuzzy_match=True)
+        actual = str(config)
+        self.assert_equal(actual, expected_result_as_str, fuzzy_match=True)
         # Ensure that the round trip transform is correct.
         config_as_dict2 = config.to_dict()
         _LOG.debug("type(config_as_dict)=%s", type(config_as_dict))
@@ -1520,12 +1520,12 @@ class Test_to_dict1(hunitest.TestCase):
             }
         )
         #
-        exp = r"""
+        expected = r"""
         param1: 1
         param2: 2
         param3: 3
         """
-        self.helper(config_as_dict, exp)
+        self.helper(config_as_dict, expected)
 
     def test2(self) -> None:
         """
@@ -1545,14 +1545,14 @@ class Test_to_dict1(hunitest.TestCase):
             }
         )
         #
-        exp = r"""
+        expected = r"""
         param1: 1
         param2: 2
         param3_as_config:
           sub_key1: sub_value1
           sub_key2: sub_value2
         """
-        self.helper(config_as_dict, exp)
+        self.helper(config_as_dict, expected)
 
     def test3(self) -> None:
         """
@@ -1568,12 +1568,12 @@ class Test_to_dict1(hunitest.TestCase):
             }
         )
         #
-        exp = r"""
+        expected = r"""
         param1: 1
         param2: 2
         param3:
         """
-        self.helper(config_as_dict, exp)
+        self.helper(config_as_dict, expected)
 
     # def test4(self) -> None:
     #     import dataflow_lime.pipelines.E8.E8d_pipeline as dtflpee8pi
@@ -1639,27 +1639,27 @@ class Test_to_dict2(hunitest.TestCase):
         # Run.
         flattened = config.to_dict()
         # Check.
-        act = pprint.pformat(flattened)
-        exp = r"""
+        actual = pprint.pformat(flattened)
+        expected = r"""
         OrderedDict([('read_data',
             OrderedDict({'file_name': 'foo_bar.txt', 'nrows': 999})),
             ('single_val', 'hello'),
             ('zscore', )])
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
         config = _get_nested_config6(self)
         # Run.
         flattened = config.to_dict(keep_leaves=False)
         # Check.
-        act = pprint.pformat(flattened)
-        exp = r"""
+        actual = pprint.pformat(flattened)
+        expected = r"""
         OrderedDict([('read_data',
             OrderedDict({'file_name': 'foo_bar.txt', 'nrows': 999})),
             ('single_val', 'hello')])
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -1679,8 +1679,8 @@ class Test_get_config_from_flattened_dict1(hunitest.TestCase):
             ]
         )
         config = cconfig.Config._get_config_from_flattened_dict(flattened)
-        act = str(config)
-        exp = r"""
+        actual = str(config)
+        expected = r"""
         read_data:
           file_name: foo_bar.txt
           nrows: 999
@@ -1688,8 +1688,8 @@ class Test_get_config_from_flattened_dict1(hunitest.TestCase):
         zscore:
           style: gaz
           com: 28"""
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp, fuzzy_match=False)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=False)
 
     def test2(self) -> None:
         flattened = collections.OrderedDict(
@@ -1701,16 +1701,16 @@ class Test_get_config_from_flattened_dict1(hunitest.TestCase):
             ]
         )
         config = cconfig.Config._get_config_from_flattened_dict(flattened)
-        act = str(config)
-        exp = r"""
+        actual = str(config)
+        expected = r"""
         read_data:
           file_name: foo_bar.txt
           nrows: 999
         single_val: hello
         zscore:
         """
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp, fuzzy_match=False)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=False)
 
 
 # #############################################################################
@@ -1732,8 +1732,8 @@ class Test_from_dict1(hunitest.TestCase):
             },
         }
         config = cconfig.Config.from_dict(nested)
-        act = str(config)
-        exp = r"""
+        actual = str(config)
+        expected = r"""
         read_data:
           file_name: foo_bar.txt
           nrows: 999
@@ -1741,8 +1741,8 @@ class Test_from_dict1(hunitest.TestCase):
         zscore:
           style: gaz
           com: 28"""
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp, fuzzy_match=False)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=False)
 
     def test2(self) -> None:
         nested = {
@@ -1754,16 +1754,16 @@ class Test_from_dict1(hunitest.TestCase):
             "zscore": cconfig.Config(),
         }
         config = cconfig.Config.from_dict(nested)
-        act = str(config)
-        exp = r"""
+        actual = str(config)
+        expected = r"""
         read_data:
           file_name: foo_bar.txt
           nrows: 999
         single_val: hello
         zscore:
         """
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp, fuzzy_match=False)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=False)
 
     def test3(self) -> None:
         """
@@ -1774,15 +1774,15 @@ class Test_from_dict1(hunitest.TestCase):
             "key2": {"key3": {"key4": {}}},
         }
         config = cconfig.Config.from_dict(nested)
-        act = str(config)
-        exp = r"""
+        actual = str(config)
+        expected = r"""
         key1: val1
         key2:
           key3:
             key4:
         """
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp, fuzzy_match=False)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=False)
         # Check the the value type.
         check = isinstance(config["key2", "key3", "key4"], cconfig.Config)
         self.assertTrue(check)
@@ -1796,15 +1796,15 @@ class Test_from_dict1(hunitest.TestCase):
         """
         test_dict = {"key1": "value1", "key2": {"key3": "value2"}}
         test_config = cconfig.Config.from_dict(test_dict)
-        act = str(test_config)
-        exp = r"""
+        actual = str(test_config)
+        expected = r"""
         key1: value1
         key2:
           key3: value2
         """
         # Compare expected vs. actual outputs.
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp, fuzzy_match=False)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, fuzzy_match=False)
         # Check the the value type.
         check = isinstance(test_config["key2"], cconfig.Config)
         self.assertTrue(check)
@@ -2281,38 +2281,38 @@ class _Config_execute_stmt_TestCase1(hunitest.TestCase):
     """
 
     def execute_stmt(
-        self, stmt: str, exp: Optional[str], mode: str, _globals: Dict
+        self, stmt: str, expected: Optional[str], mode: str, _globals: Dict
     ) -> str:
         """
         - Execute statement stmt
         - Print the resulting config
-        - Check that config is what's expected, if exp is not `None`
+        - Check that config is what's expected, if expected is not `None`
         """
         _LOG.debug("%s", "\n" + hprint.frame(stmt))
         exec(stmt, _globals)  # pylint: disable=exec-used
         #
         config = _globals["config"]
         if mode == "str":
-            act = str(config)
+            actual = str(config)
         elif mode == "repr":
-            act = repr(config)
+            actual = repr(config)
         else:
             raise ValueError(f"Invalid mode={mode}")
-        _LOG.debug("config=\n%s", act)
-        if exp is not None:
-            self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        _LOG.debug("config=\n%s", actual)
+        if expected is not None:
+            self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
         # Package the output.
-        act = hprint.frame(stmt) + "\n" + act
-        return act
+        actual = hprint.frame(stmt) + "\n" + actual
+        return actual
 
     def raise_stmt(
-        self, stmt: str, assertion_type: Any, exp: Optional[str], globals_: Dict
+        self, stmt: str, assertion_type: Any, expected: Optional[str], globals_: Dict
     ) -> None:
         _LOG.debug("\n" + hprint.frame(stmt))
         with self.assertRaises(assertion_type) as cm:
             exec(stmt, globals_)  # pylint: disable=exec-used
-        act = str(cm.exception)
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        actual = str(cm.exception)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
     def run_steps_assert_string(
         self,
@@ -2322,16 +2322,16 @@ class _Config_execute_stmt_TestCase1(hunitest.TestCase):
     ) -> None:
         for data in workload:
             hdbg.dassert_eq(len(data), 2, "Invalid data='%s'", str(data))
-            stmt, exp = data
-            self.execute_stmt(stmt, exp, mode, globals_)
+            stmt, expected = data
+            self.execute_stmt(stmt, expected, mode, globals_)
 
     def run_steps_check_string(
         self, workload: List[str], mode: str, globals_: Dict
     ) -> None:
-        exp = None
+        expected = None
         res = []
         for stmt in workload:
-            res_tmp = self.execute_stmt(stmt, exp, mode, globals_)
+            res_tmp = self.execute_stmt(stmt, expected, mode, globals_)
             res.append(res_tmp)
         txt = "\n".join(res)
         self.check_string(txt, purify_text=True, fuzzy_match=True)
@@ -2351,21 +2351,21 @@ class Test_nested_config_set_execute_stmt1(_Config_execute_stmt_TestCase1):
         workload = []
         #
         stmt = "config = cconfig.Config()"
-        exp = ""
-        workload.append((stmt, exp))
+        expected = ""
+        workload.append((stmt, expected))
         #
         stmt = 'config["nrows"] = 10000'
-        exp = r"""
+        expected = r"""
         nrows: 10000
         """
-        workload.append((stmt, exp))
+        workload.append((stmt, expected))
         #
         stmt = 'config.add_subconfig("read_data")'
-        exp = r"""
+        expected = r"""
         nrows: 10000
         read_data:
         """
-        workload.append((stmt, exp))
+        workload.append((stmt, expected))
         #
         mode = "str"
         self.run_steps_assert_string(workload, mode, globals())
@@ -2374,21 +2374,21 @@ class Test_nested_config_set_execute_stmt1(_Config_execute_stmt_TestCase1):
         workload = []
         #
         stmt = "config = cconfig.Config()"
-        exp = ""
-        workload.append((stmt, exp))
+        expected = ""
+        workload.append((stmt, expected))
         #
         stmt = 'config["nrows"] = 10000'
-        exp = """
+        expected = """
         nrows (marked_as_used=False, writer=None, val_type=int): 10000
         """
-        workload.append((stmt, exp))
+        workload.append((stmt, expected))
         #
         stmt = 'config.add_subconfig("read_data")'
-        exp = r"""
+        expected = r"""
         nrows (marked_as_used=False, writer=None, val_type=int): 10000
         read_data (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
         """
-        workload.append((stmt, exp))
+        workload.append((stmt, expected))
         #
         mode = "repr"
         self.run_steps_assert_string(workload, mode, globals())
@@ -2432,27 +2432,27 @@ class Test_basic1(_Config_execute_stmt_TestCase1):
         update_mode = "overwrite"
         clobber_mode = "allow_write_after_use"
         stmt = f'config = cconfig.Config(update_mode="{update_mode}", clobber_mode="{clobber_mode}")'
-        exp = ""
-        self.execute_stmt(stmt, exp, mode, globals())
+        expected = ""
+        self.execute_stmt(stmt, expected, mode, globals())
         # Assign with a flat key.
         stmt = 'config["key1"] = "hello.txt"'
-        exp = r"""
+        expected = r"""
         key1 (marked_as_used=False, writer=None, val_type=str): hello.txt
         """
-        self.execute_stmt(stmt, exp, mode, globals())
+        self.execute_stmt(stmt, expected, mode, globals())
         # Invalid access.
         stmt = 'config["key1"]["key2"] = "world.txt"'
-        exp = """
+        expected = """
         'str' object does not support item assignment
         """
-        self.raise_stmt(stmt, TypeError, exp, globals())
+        self.raise_stmt(stmt, TypeError, expected, globals())
         # Invalid access.
         stmt = 'config["key1", "key2"] = "world.txt"'
-        exp = """
+        expected = """
         * Failed assertion *
         Instance of 'hello.txt' is '<class 'str'>' instead of '<class 'config_root.config.config_.Config'>'
         """
-        self.raise_stmt(stmt, AssertionError, exp, globals())
+        self.raise_stmt(stmt, AssertionError, expected, globals())
 
     def test2(self) -> None:
         """
@@ -2463,22 +2463,22 @@ class Test_basic1(_Config_execute_stmt_TestCase1):
         update_mode = "overwrite"
         clobber_mode = "allow_write_after_use"
         stmt = f'config = cconfig.Config(update_mode="{update_mode}", clobber_mode="{clobber_mode}")'
-        exp = ""
-        self.execute_stmt(stmt, exp, mode, globals())
+        expected = ""
+        self.execute_stmt(stmt, expected, mode, globals())
         # Assign with a compound key.
         stmt = 'config["key1", "key2"] = "hello.txt"'
-        exp = r"""
+        expected = r"""
         key1 (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
         key2 (marked_as_used=False, writer=None, val_type=str): hello.txt
         """
-        self.execute_stmt(stmt, exp, mode, globals())
+        self.execute_stmt(stmt, expected, mode, globals())
         # Assign with a compound key.
         stmt = 'config["key1"]["key2"] = "hello2.txt"'
-        exp = r"""
+        expected = r"""
         key1 (marked_as_used=False, writer=None, val_type=config_root.config.config_.Config):
         key2 (marked_as_used=False, writer=None, val_type=str): hello2.txt
         """
-        self.execute_stmt(stmt, exp, mode, globals())
+        self.execute_stmt(stmt, expected, mode, globals())
 
     def test3(self) -> None:
         mode = "repr"
@@ -2486,11 +2486,11 @@ class Test_basic1(_Config_execute_stmt_TestCase1):
         update_mode = "overwrite"
         clobber_mode = "assert_on_write_after_use"
         stmt = f'config = cconfig.Config(update_mode="{update_mode}", clobber_mode="{clobber_mode}")'
-        exp = ""
-        self.execute_stmt(stmt, exp, mode, globals())
+        expected = ""
+        self.execute_stmt(stmt, expected, mode, globals())
         # Assign a value.
         stmt = 'config["key1"] = "hello.txt"'
-        exp = r"""
+        expected = r"""
         key1 (marked_as_used=False, writer=None, val_type=str): hello.txt
         """
-        self.execute_stmt(stmt, exp, mode, globals())
+        self.execute_stmt(stmt, expected, mode, globals())

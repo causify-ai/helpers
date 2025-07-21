@@ -118,20 +118,20 @@ class _DockerFlowTestHelper(hunitest.TestCase):
             patcher.stop()
 
     def _check_docker_command_output(
-        self, exp: str, call_args_list: List[umock._Call]
+        self, expected: str, call_args_list: List[umock._Call]
     ) -> None:
         """
         Verify that the sequence of Docker commands from mock calls matches the
         expected string.
 
-        :param exp: expected command string
+        :param expected: expected command string
         :param call_args_list: list of mock call objects
         """
         actual_cmds = _extract_commands_from_call(call_args_list)
         actual_cmds = "\n".join(actual_cmds)
         self.assert_equal(
             actual_cmds,
-            exp,
+            expected,
             purify_text=True,
             purify_expected_text=True,
             fuzzy_match=True,
@@ -169,7 +169,7 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
             poetry_mode="update",
         )
         # The output is a list of strings, each representing a command.
-        exp = r"""
+        expected = r"""
         cp -f devops/docker_build/dockerignore.dev .dockerignore
         tar -czh . | DOCKER_BUILDKIT=0 \
         time \
@@ -184,7 +184,7 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         cp -f pip_list.txt ./devops/docker_build/pip_list.txt
         docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
     def test_multi_arch1(self) -> None:
         """
@@ -205,7 +205,7 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
             poetry_mode="update",
             multi_arch=self.test_multi_arch,
         )
-        exp = r"""
+        expected = r"""
         cp -f devops/docker_build/dockerignore.dev .dockerignore
         docker buildx create \
             --name multiarch_builder \
@@ -229,7 +229,7 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         cp -f pip_list.txt ./devops/docker_build/pip_list.txt
         docker image ls test-registry.com/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
 
 # #############################################################################
@@ -260,7 +260,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             base_image=self.test_base_image,
             cache=False,
         )
-        exp = r"""
+        expected = r"""
         cp -f devops/docker_build/dockerignore.prod .dockerignore
         DOCKER_BUILDKIT=0 \
         time \
@@ -275,7 +275,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         docker tag test-registry.com/test-image:prod-1.0.0 test-registry.com/test-image:prod
         docker image ls test-registry.com/test-image:prod
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
     def test_multi_arch_prod_image1(self) -> None:
         """
@@ -296,7 +296,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             cache=False,
             multi_arch=self.test_multi_arch,
         )
-        exp = r"""
+        expected = r"""
         cp -f devops/docker_build/dockerignore.prod .dockerignore
         docker buildx create \
             --name multiarch_builder \
@@ -317,7 +317,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         docker pull test-registry.com/test-image:prod-1.0.0
         docker image ls test-registry.com/test-image:prod-1.0.0
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
     def test_candidate_tag1(self) -> None:
         """
@@ -339,7 +339,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             candidate=True,
             tag=test_tag,
         )
-        exp = r"""
+        expected = r"""
         cp -f devops/docker_build/dockerignore.prod .dockerignore
         DOCKER_BUILDKIT=0 \
         time \
@@ -353,7 +353,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             /app
         docker image ls test-registry.com/test-image:prod-test_tag
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
     def test_candidate_user_tag1(self) -> None:
         """
@@ -377,7 +377,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             user_tag=test_user_tag,
             tag=test_tag,
         )
-        exp = r"""
+        expected = r"""
         cp -f devops/docker_build/dockerignore.prod .dockerignore
         DOCKER_BUILDKIT=0 \
         time \
@@ -391,7 +391,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
             /app
         docker image ls test-registry.com/test-image:prod-test_user-test_tag
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
 
 # #############################################################################
@@ -420,10 +420,10 @@ class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
             self.test_version,
             target_registry=target_registry,
         )
-        exp = r"""
+        expected = r"""
         docker buildx imagetools create -t test.ecr.path/test-image:prod test.ecr.path/test-image:prod-1.0.0
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
     def test_dockerhub1(self) -> None:
         """
@@ -442,11 +442,11 @@ class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
             self.test_version,
             target_registry=target_registry,
         )
-        exp = r"""
+        expected = r"""
         docker buildx imagetools create -t causify/test-image:prod-1.0.0 test.ecr.path/test-image:prod-1.0.0
         docker buildx imagetools create -t causify/test-image:prod test.ecr.path/test-image:prod-1.0.0
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
 
 # #############################################################################
@@ -478,11 +478,11 @@ class Test_docker_tag_push_multi_build_local_image_as_dev1(
             self.test_version,
             target_registry=target_registry,
         )
-        exp = r"""
+        expected = r"""
         docker buildx imagetools create -t test.ecr.path/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
         docker buildx imagetools create -t test.ecr.path/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
     def test_dockerhub1(self) -> None:
         """
@@ -501,11 +501,11 @@ class Test_docker_tag_push_multi_build_local_image_as_dev1(
             self.test_version,
             target_registry=target_registry,
         )
-        exp = r"""
+        expected = r"""
         docker buildx imagetools create -t causify/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
         docker buildx imagetools create -t causify/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
 
 # #############################################################################
@@ -543,7 +543,7 @@ class Test_docker_release_dev_image1(_DockerFlowTestHelper):
             qa_tests=False,
             push_to_repo=True,
         )
-        exp = r"""
+        expected = r"""
         cp -f devops/docker_build/dockerignore.dev .dockerignore
         tar -czh . | DOCKER_BUILDKIT=0 \
         time \
@@ -562,7 +562,7 @@ class Test_docker_release_dev_image1(_DockerFlowTestHelper):
         docker push test.ecr.path/test-image:dev-1.0.0
         docker push test.ecr.path/test-image:dev
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
 
 # #############################################################################
@@ -600,7 +600,7 @@ class Test_docker_release_prod_image1(_DockerFlowTestHelper):
             qa_tests=False,
             push_to_repo=True,
         )
-        exp = r"""
+        expected = r"""
         cp -f devops/docker_build/dockerignore.prod .dockerignore
         DOCKER_BUILDKIT=0 \
         time \
@@ -617,7 +617,7 @@ class Test_docker_release_prod_image1(_DockerFlowTestHelper):
         docker push test.ecr.path/test-image:prod-1.0.0
         docker push test.ecr.path/test-image:prod
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
 
 # #############################################################################
@@ -653,7 +653,7 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
             qa_tests=False,
             target_registries="aws_ecr.ck",
         )
-        exp = r"""
+        expected = r"""
         cp -f devops/docker_build/dockerignore.dev .dockerignore
         docker buildx create \
             --name multiarch_builder \
@@ -679,7 +679,7 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
         docker buildx imagetools create -t test.ecr.path/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
         docker buildx imagetools create -t test.ecr.path/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
     def test_multiple_registries1(self) -> None:
         """
@@ -703,7 +703,7 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
             qa_tests=False,
             target_registries="aws_ecr.ck,dockerhub.causify",
         )
-        exp = r"""
+        expected = r"""
         cp -f devops/docker_build/dockerignore.dev .dockerignore
         docker buildx create \
             --name multiarch_builder \
@@ -731,7 +731,7 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
         docker buildx imagetools create -t causify/test-image:dev-1.0.0 test.ecr.path/test-image:local-$USER_NAME-1.0.0
         docker buildx imagetools create -t causify/test-image:dev test.ecr.path/test-image:local-$USER_NAME-1.0.0
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
 
 # #############################################################################
@@ -760,13 +760,13 @@ class Test_docker_rollback_dev_image1(_DockerFlowTestHelper):
             self.test_version,
             push_to_repo=True,
         )
-        exp = r"""
+        expected = r"""
         docker pull test.ecr.path/test-image:dev-1.0.0
         docker tag test.ecr.path/test-image:dev-1.0.0 test.ecr.path/test-image:dev
         docker push test.ecr.path/test-image:dev-1.0.0
         docker push test.ecr.path/test-image:dev
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
 
 # #############################################################################
@@ -795,13 +795,13 @@ class Test_docker_rollback_prod_image1(_DockerFlowTestHelper):
             self.test_version,
             push_to_repo=True,
         )
-        exp = r"""
+        expected = r"""
         docker pull test.ecr.path/test-image:prod-1.0.0
         docker tag test.ecr.path/test-image:prod-1.0.0 test.ecr.path/test-image:prod
         docker push test.ecr.path/test-image:prod-1.0.0
         docker push test.ecr.path/test-image:prod
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
 
 # #############################################################################
@@ -829,10 +829,10 @@ class Test_docker_push_prod_candidate_image1(_DockerFlowTestHelper):
             self.mock_ctx,
             candidate=candidate,
         )
-        exp = r"""
+        expected = r"""
         docker push test.ecr.path/test-image:prod-4759b3685f903e6c669096e960b248ec31c63b69
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
 
 # #############################################################################
@@ -867,7 +867,7 @@ class Test_docker_release_multi_arch_prod_image1(_DockerFlowTestHelper):
             qa_tests=False,
             docker_registry=["aws_ecr.ck", "dockerhub.causify"],
         )
-        exp = r"""
+        expected = r"""
         cp -f devops/docker_build/dockerignore.prod .dockerignore
         docker buildx create \
             --name multiarch_builder \
@@ -891,7 +891,7 @@ class Test_docker_release_multi_arch_prod_image1(_DockerFlowTestHelper):
         docker buildx imagetools create -t causify/test-image:prod-1.0.0 test.ecr.path/test-image:prod-1.0.0
         docker buildx imagetools create -t causify/test-image:prod test.ecr.path/test-image:prod-1.0.0
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
 
 # #############################################################################
@@ -1113,7 +1113,7 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
             airflow_dags_s3_path="s3://test-bucket/dags/",
             task_definition="test_task",
         )
-        exp = r"""
+        expected = r"""
         docker pull test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69
         docker tag test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69 test.ecr.path/test-image:prod-1.0.0
         docker tag test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69 test.ecr.path/test-image:prod
@@ -1121,7 +1121,7 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         docker push test.ecr.path/test-image:prod-1.0.0
         docker push test.ecr.path/test-image:prod
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
         # Check whether `update_task_definition` was called with the expected arguments.
         expected_image_url = "test.ecr.path/test-image:prod-1.0.0"
         mock_update_task_definition.assert_called_once_with(
@@ -1181,12 +1181,12 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         # Check the error message.
         self.assertIn("S3 upload failed", str(cm.exception))
         # Check whether rollback commands were executed.
-        exp = r"""
+        expected = r"""
         docker pull test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69
         docker tag test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69 test.ecr.path/test-image:prod-1.0.0
         docker tag test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69 test.ecr.path/test-image:prod
         docker rmi test.ecr.path/test-image:4759b3685f903e6c669096e960b248ec31c63b69
         """
-        self._check_docker_command_output(exp, self.mock_run.call_args_list)
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
         # Check whether task definition was rolled back.
         self.mock_aws.assert_called_with("test_task")

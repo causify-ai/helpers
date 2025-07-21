@@ -268,20 +268,20 @@ def _test_navigation_flow(
 ) -> None:
     # 1) Extract headers.
     header_list = hmarkdo.extract_headers_from_markdown(txt, max_level=3)
-    act = pprint.pformat(header_list)
+    actual = pprint.pformat(header_list)
     self_.assert_equal(
-        act, header_list_exp, dedent=True, remove_lead_trail_empty_lines=True
+        actual, header_list_exp, dedent=True, remove_lead_trail_empty_lines=True
     )
     # 2) Build header tree.
     tree = hmarkdo.build_header_tree(header_list)
-    act = hmarkdo.header_tree_to_str(tree, ancestry=None)
+    actual = hmarkdo.header_tree_to_str(tree, ancestry=None)
     self_.assert_equal(
-        act, header_tree_exp, dedent=True, remove_lead_trail_empty_lines=True
+        actual, header_tree_exp, dedent=True, remove_lead_trail_empty_lines=True
     )
     # 3) Compute the navigation bar for a specific header.
-    act = hmarkdo.selected_navigation_to_str(tree, level, description)
+    actual = hmarkdo.selected_navigation_to_str(tree, level, description)
     self_.assert_equal(
-        act, nav_str_exp, dedent=True, remove_lead_trail_empty_lines=True
+        actual, nav_str_exp, dedent=True, remove_lead_trail_empty_lines=True
     )
 
 
@@ -300,8 +300,8 @@ def _test_full_navigation_flow(self_: Any, txt: str) -> None:
         res_tmp = hmarkdo.selected_navigation_to_str(tree, level, description)
         res.append(res_tmp)
     # Check.
-    act = "\n".join(res)
-    self_.check_string(act)
+    actual = "\n".join(res)
+    self_.check_string(actual)
 
 
 # #############################################################################
@@ -315,9 +315,9 @@ class Test_header_list_to_vim_cfile1(hunitest.TestCase):
         markdown_file = "test.py"
         headers = get_header_list1()
         # Call function.
-        act = hmarkdo.header_list_to_vim_cfile(markdown_file, headers)
+        actual = hmarkdo.header_list_to_vim_cfile(markdown_file, headers)
         # Check output.
-        exp = r"""
+        expected = r"""
         test.py:1:Chapter 1
         test.py:6:Section 1.1
         test.py:11:Subsection 1.1.1
@@ -328,7 +328,7 @@ class Test_header_list_to_vim_cfile1(hunitest.TestCase):
         test.py:36:Subsection 2.1.1
         test.py:41:Section 2.2
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -342,9 +342,9 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
         headers = get_header_list1()
         mode = "list"
         # Call function.
-        act = hmarkdo.header_list_to_markdown(headers, mode)
+        actual = hmarkdo.header_list_to_markdown(headers, mode)
         # Check output.
-        exp = r"""
+        expected = r"""
         - Chapter 1
           - Section 1.1
             - Subsection 1.1.1
@@ -355,16 +355,16 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
             - Subsection 2.1.1
           - Section 2.2
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test_mode_headers1(self) -> None:
         # Prepare inputs.
         headers = get_header_list1()
         mode = "headers"
         # Call function.
-        act = hmarkdo.header_list_to_markdown(headers, mode)
+        actual = hmarkdo.header_list_to_markdown(headers, mode)
         # Check output.
-        exp = r"""
+        expected = r"""
         # Chapter 1
         ## Section 1.1
         ### Subsection 1.1.1
@@ -375,7 +375,7 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
         ### Subsection 2.1.1
         ## Section 2.2
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -388,118 +388,118 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Prepare inputs.
         line = "-----------------------"
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = True
-        self.assertEqual(act, exp)
+        expected = True
+        self.assertEqual(actual, expected)
 
     def test_valid_separator2(self) -> None:
         # Prepare inputs.
         line = "# ------"
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = True
-        self.assertEqual(act, exp)
+        expected = True
+        self.assertEqual(actual, expected)
 
     def test_valid_separator3(self) -> None:
         # Prepare inputs.
         line = "# #########"
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = True
-        self.assertEqual(act, exp)
+        expected = True
+        self.assertEqual(actual, expected)
 
     def test_valid_separator4(self) -> None:
         # Prepare inputs.
         line = "### ====="
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = True
-        self.assertEqual(act, exp)
+        expected = True
+        self.assertEqual(actual, expected)
 
     def test_valid_separator5(self) -> None:
         # Prepare inputs.
         line = "#//////"
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = True
-        self.assertEqual(act, exp)
+        expected = True
+        self.assertEqual(actual, expected)
 
     def test_valid_separator6(self) -> None:
         # Prepare inputs.
         line = "#  //////"
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = True
-        self.assertEqual(act, exp)
+        expected = True
+        self.assertEqual(actual, expected)
 
     def test_invalid_separator1(self) -> None:
         # Prepare inputs.
         line = "Not a separator"
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = False
-        self.assertEqual(act, exp)
+        expected = False
+        self.assertEqual(actual, expected)
 
     def test_invalid_separator2(self) -> None:
         # Prepare inputs.
         line = "# --"
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = False
-        self.assertEqual(act, exp)
+        expected = False
+        self.assertEqual(actual, expected)
 
     def test_invalid_separator3(self) -> None:
         # Prepare inputs.
         line = "# ###---"
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = False
-        self.assertEqual(act, exp)
+        expected = False
+        self.assertEqual(actual, expected)
 
     def test_invalid_separator4(self) -> None:
         # Prepare inputs.
         line = "=="
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = False
-        self.assertEqual(act, exp)
+        expected = False
+        self.assertEqual(actual, expected)
 
     def test_invalid_separator5(self) -> None:
         # Prepare inputs.
         line = "- //////"
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = False
-        self.assertEqual(act, exp)
+        expected = False
+        self.assertEqual(actual, expected)
 
     def test_invalid_separator6(self) -> None:
         # Prepare inputs.
         line = "=== Not a seperator"
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = False
-        self.assertEqual(act, exp)
+        expected = False
+        self.assertEqual(actual, expected)
 
     def test_invalid_separator7(self) -> None:
         # Prepare inputs.
         line = "--- Not a seperator ---"
         # Call function.
-        act = hmarkdo.is_markdown_line_separator(line)
+        actual = hmarkdo.is_markdown_line_separator(line)
         # Check output.
-        exp = False
-        self.assertEqual(act, exp)
+        expected = False
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################
@@ -513,55 +513,55 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_example1()
         # Call functions.
-        act = hmarkdo.extract_section_from_markdown(content, "Header1")
+        actual = hmarkdo.extract_section_from_markdown(content, "Header1")
         # Check output.
-        exp = r"""
+        expected = r"""
         # Header1
         Content under header 1.
         ## Header2
         Content under subheader 2.
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test2(self) -> None:
         # Prepare inputs.
         content = _get_markdown_example1()
         content = hprint.dedent(content)
         # Call functions.
-        act = hmarkdo.extract_section_from_markdown(content, "Header2")
+        actual = hmarkdo.extract_section_from_markdown(content, "Header2")
         # Check output.
-        exp = r"""
+        expected = r"""
         ## Header2
         Content under subheader 2.
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test3(self) -> None:
         # Prepare inputs.
         content = _get_markdown_example1()
         content = hprint.dedent(content)
         # Call tested function.
-        act = hmarkdo.extract_section_from_markdown(content, "Header3")
+        actual = hmarkdo.extract_section_from_markdown(content, "Header3")
         # Check output.
-        exp = r"""
+        expected = r"""
         # Header3
         Content under header 3.
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test4(self) -> None:
         # Prepare inputs.
         content = _get_markdown_example2()
         # Call function.
-        act = hmarkdo.extract_section_from_markdown(content, "Header1")
+        actual = hmarkdo.extract_section_from_markdown(content, "Header1")
         # Check output.
-        exp = r"""
+        expected = r"""
         # Header1
         Content under header 1.
         ## Header2
         Content under subheader 2.
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test_no_header(self) -> None:
         # Prepare inputs.
@@ -585,19 +585,19 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_example1()
         # Call function.
-        act = hmarkdo.extract_headers_from_markdown(content, max_level=3)
+        actual = hmarkdo.extract_headers_from_markdown(content, max_level=3)
         # Check output.
-        exp = r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3), HeaderInfo(1, 'Header3', 5)]"""
-        self.assert_equal(str(act), exp)
+        expected = r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3), HeaderInfo(1, 'Header3', 5)]"""
+        self.assert_equal(str(actual), expected)
 
     def test_single_header(self) -> None:
         # Prepare inputs.
         content = _get_markdown_example2()
         # Call function.
-        act = hmarkdo.extract_headers_from_markdown(content, max_level=3)
+        actual = hmarkdo.extract_headers_from_markdown(content, max_level=3)
         # Check output.
-        exp = r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3)]"""
-        self.assert_equal(str(act), exp)
+        expected = r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3)]"""
+        self.assert_equal(str(actual), expected)
 
     def test_no_headers(self) -> None:
         # Prepare inputs.
@@ -606,10 +606,10 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         """
         content = hprint.dedent(content)
         # Call function.
-        act = hmarkdo.extract_headers_from_markdown(content, max_level=3)
+        actual = hmarkdo.extract_headers_from_markdown(content, max_level=3)
         # Check output.
-        exp: List[str] = []
-        self.assert_equal(str(act), str(exp))
+        expected: List[str] = []
+        self.assert_equal(str(actual), str(expected))
 
 
 # #############################################################################
@@ -622,28 +622,28 @@ class Test_extract_slides_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_slides_example1()
         # Call function.
-        act = hmarkdo.extract_slides_from_markdown(content)
+        actual = hmarkdo.extract_slides_from_markdown(content)
         # Check output.
-        exp = r"""([HeaderInfo(1, 'Slide 1', 3), HeaderInfo(1, 'Slide 2', 8), HeaderInfo(1, 'Slide 3', 11)], 12)"""
-        self.assert_equal(str(act), exp)
+        expected = r"""([HeaderInfo(1, 'Slide 1', 3), HeaderInfo(1, 'Slide 2', 8), HeaderInfo(1, 'Slide 3', 11)], 12)"""
+        self.assert_equal(str(actual), expected)
 
     def test_single_slides(self) -> None:
         # Prepare inputs.
         content = _get_markdown_slides_example2()
         # Call function.
-        act = hmarkdo.extract_slides_from_markdown(content)
+        actual = hmarkdo.extract_slides_from_markdown(content)
         # Check output.
-        exp = r"""([HeaderInfo(1, 'Slide1', 3)], 4)"""
-        self.assert_equal(str(act), exp)
+        expected = r"""([HeaderInfo(1, 'Slide1', 3)], 4)"""
+        self.assert_equal(str(actual), expected)
 
     def test_no_slides(self) -> None:
         # Prepare inputs.
         content = _get_markdown_no_header_example1()
         # Call function.
-        act = hmarkdo.extract_slides_from_markdown(content)
+        actual = hmarkdo.extract_slides_from_markdown(content)
         # Check output.
-        exp = r"""([], 1)"""
-        self.assert_equal(str(act), exp)
+        expected = r"""([], 1)"""
+        self.assert_equal(str(actual), expected)
 
 
 # #############################################################################
@@ -1111,32 +1111,32 @@ class Test_sanity_check_header_list1(hunitest.TestCase):
 
 
 class Test_capitalize_header1(hunitest.TestCase):
-    def helper(self, txt: str, exp: str) -> None:
+    def helper(self, txt: str, expected: str) -> None:
         # Prepare inputs.
         txt = hprint.dedent(txt)
         # Run function.
-        act = hmarkdo.capitalize_header(txt)
+        actual = hmarkdo.capitalize_header(txt)
         # Check outputs.
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         txt = r"""
         * ML theory
         """
-        exp = r"""
+        expected = r"""
         * ML Theory
         """
-        self.helper(txt, exp)
+        self.helper(txt, expected)
 
     def test2(self) -> None:
         txt = r"""
         * A map of machine learning
         """
-        exp = r"""
+        expected = r"""
         * A Map of Machine Learning
         """
-        self.helper(txt, exp)
+        self.helper(txt, expected)
 
     def test_backticks_preserved(self) -> None:
         """
@@ -1145,10 +1145,10 @@ class Test_capitalize_header1(hunitest.TestCase):
         txt = r"""
         # Using `python` for Machine Learning
         """
-        exp = r"""
+        expected = r"""
         # Using `python` for Machine Learning
         """
-        self.helper(txt, exp)
+        self.helper(txt, expected)
 
     def test_single_quotes_preserved(self) -> None:
         """
@@ -1157,10 +1157,10 @@ class Test_capitalize_header1(hunitest.TestCase):
         txt = r"""
         * Working with 'machine learning' algorithms
         """
-        exp = r"""
+        expected = r"""
         * Working with 'machine learning' Algorithms
         """
-        self.helper(txt, exp)
+        self.helper(txt, expected)
 
     def test_double_quotes_preserved(self) -> None:
         """
@@ -1169,10 +1169,10 @@ class Test_capitalize_header1(hunitest.TestCase):
         txt = r"""
         # Understanding "deep learning" concepts
         """
-        exp = r"""
+        expected = r"""
         # Understanding "deep learning" Concepts
         """
-        self.helper(txt, exp)
+        self.helper(txt, expected)
 
     def test_mixed_quotes_and_backticks(self) -> None:
         """
@@ -1181,10 +1181,10 @@ class Test_capitalize_header1(hunitest.TestCase):
         txt = r"""
         * Using `python` and "machine learning" for 'data science'
         """
-        exp = r"""
+        expected = r"""
         * Using `python` and "machine learning" for 'data science'
         """
-        self.helper(txt, exp)
+        self.helper(txt, expected)
 
     def test_complex_title_with_quotes(self) -> None:
         """
@@ -1193,7 +1193,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         txt = r"""
         # Introduction to `sklearn` and "data preprocessing" in 'python'
         """
-        exp = r"""
+        expected = r"""
         # Introduction to `sklearn` and "data preprocessing" in 'python'
         """
-        self.helper(txt, exp)
+        self.helper(txt, expected)

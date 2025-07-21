@@ -77,6 +77,6 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         ::::
         :::
         """
-        act = hmarkdo.colorize_bullet_points_in_slide(text)
+        actual = hmarkdo.colorize_bullet_points_in_slide(text)
         # Check output.
-        self.assert_equal(act, expected)
+        self.assert_equal(actual, expected)
