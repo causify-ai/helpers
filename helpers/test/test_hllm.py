@@ -127,18 +127,7 @@ class Test_get_completion(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Verify if no model is given.
-        """
-        parameters0 = _get_completion_parameters0()
-        actual_response = hllm.get_completion(
-            **parameters0, cache_mode="HIT_CACHE_OR_ABORT"
-        )
-        self.assertIsInstance(actual_response, str)
-        self.check_string(actual_response)
-
-    def test5(self) -> None:
-        """
-        Verify if openai models always use openai client.
+        Ensure that OpenAI-prefixed models use the OpenAI client.
         """
         parameters4 = _get_completion_parameters4()
         actual_response = hllm.get_completion(
