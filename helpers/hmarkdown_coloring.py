@@ -15,8 +15,6 @@ from helpers.hmarkdown_fenced_blocks import (
 
 _LOG = logging.getLogger(__name__)
 
-# TODO(gp): Add a decorator like in hprint to process both strings and lists
-#  of strings.
 
 # #############################################################################
 # Colorize

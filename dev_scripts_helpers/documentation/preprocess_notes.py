@@ -106,6 +106,7 @@ def _process_question_to_slides(
 
 # TODO(gp): Use hmarkdown.process_lines().
 # TODO(gp): Pass List[str].
+# TODO(gp): -> _preprocess_lines
 def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     """
     Process the notes to convert them into a format suitable for pandoc.
@@ -229,7 +230,6 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     out.append(" " * _NUM_SPACES + line)
     #
     if type_ == "slides":
-
         def _transform(slide_text: List[str]) -> str:
             slide_text = "\n".join(slide_text)
             if not hmarkdo.has_color_command(slide_text):
