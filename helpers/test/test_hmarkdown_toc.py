@@ -99,6 +99,3 @@ class Test_remove_table_of_contents1(hunitest.TestCase):
         # Check output.
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
-
-
-

@@ -1073,13 +1073,13 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     file_len = len(reference_txt.split("\n"))
     reference_txt = hmarkdo.remove_table_of_contents(reference_txt)
     # This represents how many lines of the TOC were removed, so that we can
-    # point to the line number in the file even if 
+    # point to the line number in the file even if
     line_offset = file_len - len(reference_txt.split("\n"))
     #
     max_level = 4
     header_list = hmarkdo.extract_headers_from_markdown(reference_txt, max_level)
-    #reference_txt = hmarkdo.add_line_numbers(header_list)
-    #print(reference_txt)
+    # reference_txt = hmarkdo.add_line_numbers(header_list)
+    # print(reference_txt)
     guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
     #
     selection_rules = ["General:Spelling:LLM"]
@@ -1087,9 +1087,11 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     print(selected_guidelines)
     for guideline in selected_guidelines:
         print(guideline)
-        rules = hmarkdo.extract_rules_from_section(reference_txt, guideline.line_number)
+        rules = hmarkdo.extract_rules_from_section(
+            reference_txt, guideline.line_number
+        )
         print(rules)
-    assert 0
+    #assert 0
     system += rf"""
     You will **analyze the code** and report only violations of the coding rules described below.
 

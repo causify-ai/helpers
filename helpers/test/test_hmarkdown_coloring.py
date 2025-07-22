@@ -60,7 +60,6 @@ class Test_process_color_commands1(hunitest.TestCase):
 
 
 class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
-    
     def test1(self) -> None:
         # Prepare inputs.
         text = r"""
@@ -86,28 +85,30 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         """
         # Run function.
         all_md_colors = [
-    "red",
-    "orange",
-    "yellow",
-    "lime",
-    "green",
-    "teal",
-    "cyan",
-    "blue",
-    "purple",
-    "violet",
-    "magenta",
-    "pink",
-    "brown",
-    "olive",
-    "gray",
-    "darkgray",
-    "lightgray",
-    "black",
-    "white",
-    ]
+            "red",
+            "orange",
+            "yellow",
+            "lime",
+            "green",
+            "teal",
+            "cyan",
+            "blue",
+            "purple",
+            "violet",
+            "magenta",
+            "pink",
+            "brown",
+            "olive",
+            "gray",
+            "darkgray",
+            "lightgray",
+            "black",
+            "white",
+        ]
 
-        actual = hmarkdo.colorize_bullet_points_in_slide(text, all_md_colors=all_md_colors)
+        actual = hmarkdo.colorize_bullet_points_in_slide(
+            text, all_md_colors=all_md_colors
+        )
         # Check output.
         expected = r"""
         - **\red{VC Theory}**

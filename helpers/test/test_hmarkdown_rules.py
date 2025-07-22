@@ -225,7 +225,7 @@ class Test_parse_rules_from_txt1(hunitest.TestCase):
         - Item 2
         - Item 3
         """
-        expected = ['- Item 1', '- Item 2', '- Item 3']
+        expected = ["- Item 1", "- Item 2", "- Item 3"]
         self.helper(text, expected)
 
     def test_nested_list1(self) -> None:
@@ -239,7 +239,11 @@ class Test_parse_rules_from_txt1(hunitest.TestCase):
           - Sub-item 2.2
         - Item 3
         """
-        expected = ['- Item 1', '- Item 2\n  - Sub-item 2.1\n  - Sub-item 2.2', '- Item 3']
+        expected = [
+            "- Item 1",
+            "- Item 2\n  - Sub-item 2.1\n  - Sub-item 2.2",
+            "- Item 3",
+        ]
         self.helper(text, expected)
 
     def test_empty_list1(self) -> None:

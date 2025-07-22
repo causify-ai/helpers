@@ -69,9 +69,7 @@ class Test_process_question1(hunitest.TestCase):
         exp = "-" + " " * len(space) + "**Hope is not a strategy**"
         self.helper(txt_in, do_continue_exp, exp)
 
-    def helper(
-        self, txt_in: str, do_continue_exp: bool, exp: str
-    ) -> None:
+    def helper(self, txt_in: str, do_continue_exp: bool, exp: str) -> None:
         do_continue, act = dshdprno._process_question_to_markdown(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
         self.assert_equal(act, exp)
@@ -165,6 +163,7 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
 # #############################################################################
 # Test_preprocess_notes1
 # #############################################################################
+
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),

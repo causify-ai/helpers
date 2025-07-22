@@ -230,6 +230,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     out.append(" " * _NUM_SPACES + line)
     #
     if type_ == "slides":
+
         def _transform(slide_text: List[str]) -> str:
             slide_text = "\n".join(slide_text)
             if not hmarkdo.has_color_command(slide_text):
