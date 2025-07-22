@@ -1,11 +1,11 @@
 import logging
 import os
-import pprint
 
 import pytest
 
 import dev_scripts_helpers.documentation.render_images as dshdreim
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -28,128 +28,42 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         out_file = "/a/b/c/d/e.md"
         image_code_idx = 8
         dst_ext = "png"
+        use_github_hosting = False
         # Run function.
         paths = dshdreim._get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext
+            out_file, image_code_idx, dst_ext, use_github_hosting
         )
         # Check output.
-        act = "\n".join(paths)
-        exp = """
+        actual = "\n".join(paths)
+        expected = """
         tmp.render_images/e.8.txt
         /a/b/c/d/figs
         figs/e.8.png
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
-
-# #############################################################################
-# Test_ImageHashCache1
-# #############################################################################
-
-
-class Test_ImageHashCache1(hunitest.TestCase):
-    def test1(self) -> None:
+    def test2(self) -> None:
         """
-        Test basic functionality of ImageHashCache.
+        Check generation of file paths for GitHub absolute reference.
         """
-        # Create a temporary cache file.
-        cache_file = os.path.join(
-            self.get_scratch_space(), "image_hash_cache.json"
+        # Prepare inputs.
+        out_file = "/a/b/c/d/e.md"
+        image_code_idx = 8
+        dst_ext = "png"
+        use_github_hosting = True
+        # Run function.
+        paths = dshdreim._get_rendered_file_paths(
+            out_file, image_code_idx, dst_ext, use_github_hosting
         )
-        # Initialize cache.
-        cache = dshdreim.ImageHashCache(cache_file)
-        # Test initial state.
-        self.assertEqual(cache.cache, {})
-        # Test computing hash.
-        image_code = "digraph { A -> B }"
-        image_code_type = "graphviz"
-        out_file = "/tmp/test.png"
-        hash_key, cache_value = cache.compute_hash(
-            image_code, image_code_type, out_file
-        )
-        # Verify the cache value structure.
-        act = pprint.pformat(cache_value)
-        exp = """
-        {'image_code_hash': 'f068f0efa138e56c739c1b9f8456c312f714f96488204242c73f4ce457236f88',
-         'image_code_type': 'graphviz',
-         'out_file': '/tmp/test.png'}
+        # Check output.
+        actual = "\n".join(paths)
+        repo_name = hgit.get_repo_full_name_from_client(super_module=True)
+        expected = f"""
+        tmp.render_images/e.8.txt
+        /a/b/c/d/figs
+        https://raw.githubusercontent.com/{repo_name}/master/figs/e.8.png
         """
-        self.assert_equal(act, exp, dedent=True)
-        # Update the cache.
-        cache_updated = cache.update_cache(hash_key, cache_value)
-        # There should be an update since the cache is empty.
-        self.assertTrue(cache_updated)
-        # Check the content of the cache file.
-        act = hio.from_file(cache_file)
-        exp = r"""
-        {
-            "/tmp/test.png": {
-                "image_code_hash": "f068f0efa138e56c739c1b9f8456c312f714f96488204242c73f4ce457236f88",
-                "image_code_type": "graphviz",
-                "out_file": "/tmp/test.png"
-            }
-        }"""
-        self.assert_equal(act, exp, dedent=True)
-        # 2) Perform a second update without changing the cache value.
-        cache_updated = cache.update_cache(hash_key, cache_value)
-        # No update should happen since the value is the same.
-        self.assertFalse(cache_updated)
-        # 3) Perform a third update with a different cache value.
-        image_code = "new image code"
-        image_code_type = "graphviz"
-        out_file = "/tmp/test.png"
-        hash_key, cache_value = cache.compute_hash(
-            image_code, image_code_type, out_file
-        )
-        # Verify the cache value structure.
-        act = pprint.pformat(cache_value)
-        exp = """
-        {'image_code_hash': 'e28869819b0fb5b24a37cec1f0f05190b622d1c696fdc43de5c79026f07bb869',
-         'image_code_type': 'graphviz',
-         'out_file': '/tmp/test.png'}
-        """
-        self.assert_equal(act, exp, dedent=True)
-        # Update the cache.
-        cache_updated = cache.update_cache(hash_key, cache_value)
-        self.assertTrue(cache_updated)
-        # Check the content of the cache file.
-        act = hio.from_file(cache_file)
-        exp = r"""
-        {
-            "/tmp/test.png": {
-                "image_code_hash": "e28869819b0fb5b24a37cec1f0f05190b622d1c696fdc43de5c79026f07bb869",
-                "image_code_type": "graphviz",
-                "out_file": "/tmp/test.png"
-            }
-        }"""
-        self.assert_equal(act, exp, dedent=True)
-        # 4) Update the cache with a different key.
-        image_code = "new image code 2"
-        image_code_type = "graphviz"
-        out_file = "/tmp/test2.png"
-        hash_key, cache_value = cache.compute_hash(
-            image_code, image_code_type, out_file
-        )
-        # Update the cache.
-        cache_updated = cache.update_cache(hash_key, cache_value)
-        # There should be an update since the cache is empty.
-        self.assertTrue(cache_updated)
-        # Check the content of the cache file.
-        act = hio.from_file(cache_file)
-        exp = r"""
-        {
-            "/tmp/test.png": {
-                "image_code_hash": "e28869819b0fb5b24a37cec1f0f05190b622d1c696fdc43de5c79026f07bb869",
-                "image_code_type": "graphviz",
-                "out_file": "/tmp/test.png"
-            },
-            "/tmp/test2.png": {
-                "image_code_hash": "ffc71f5ebd6f0df6d0fafe70a87413096d5498f90353c0f8a1908e18656b8de9",
-                "image_code_type": "graphviz",
-                "out_file": "/tmp/test2.png"
-            }
-        }"""
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -164,65 +78,7 @@ class Test_ImageHashCache1(hunitest.TestCase):
 class Test_render_image_code1(hunitest.TestCase):
     def test1(self) -> None:
         """
-        Test rendering a basic image code block.
-        """
-        is_cache_hit = self._get_test_render_image_code_inputs1(use_cache=True)
-        # Check output.
-        self.assertFalse(is_cache_hit)
-
-    def test2(self) -> None:
-        """
-        Test rendering with cache.
-        """
-        # 1) New computation -> cache miss.
-        is_cache_hit = self._get_test_render_image_code_inputs1(use_cache=True)
-        self.assertFalse(is_cache_hit)
-        # 2) Same as 1) -> cache hit.
-        is_cache_hit = self._get_test_render_image_code_inputs1(use_cache=True)
-        self.assertTrue(is_cache_hit)
-        # 3) Different image code -> cache miss.
-        is_cache_hit = self._get_test_render_image_code_inputs2(use_cache=True)
-        self.assertTrue(is_cache_hit)
-        # 4) Different file -> cache miss.
-        is_cache_hit = self._get_test_render_image_code_inputs3(use_cache=True)
-        # Check output.
-        self.assertFalse(is_cache_hit)
-        # 5) Same as 3) -> cache hit.
-        is_cache_hit = self._get_test_render_image_code_inputs2(use_cache=True)
-        self.assertTrue(is_cache_hit)
-        # 6) Same as 4) -> cache hit.
-        is_cache_hit = self._get_test_render_image_code_inputs3(use_cache=True)
-        self.assertTrue(is_cache_hit)
-
-    def test3(self) -> None:
-        """
-        Test rendering without cache.
-
-        There are only cache misses when rendering without cache.
-        """
-        # 1) New computation.
-        is_cache_hit = self._get_test_render_image_code_inputs1(use_cache=False)
-        self.assertFalse(is_cache_hit)
-        # 2) Same as 1).
-        is_cache_hit = self._get_test_render_image_code_inputs1(use_cache=False)
-        self.assertFalse(is_cache_hit)
-        # 3) Different image code.
-        is_cache_hit = self._get_test_render_image_code_inputs2(use_cache=False)
-        self.assertFalse(is_cache_hit)
-        # 4) Different file.
-        is_cache_hit = self._get_test_render_image_code_inputs3(use_cache=False)
-        # Check output.
-        self.assertFalse(is_cache_hit)
-        # 5) Same as 3).
-        is_cache_hit = self._get_test_render_image_code_inputs2(use_cache=False)
-        self.assertFalse(is_cache_hit)
-        # 6) Same as 4).
-        is_cache_hit = self._get_test_render_image_code_inputs3(use_cache=False)
-        self.assertFalse(is_cache_hit)
-
-    def _get_test_render_image_code_inputs1(self, use_cache: bool) -> bool:
-        """
-        Run `render_image_code()` function.
+        Check rendering of an image code in a Markdown file.
         """
         # Prepare inputs.
         image_code = "digraph { A -> B }"
@@ -230,76 +86,60 @@ class Test_render_image_code1(hunitest.TestCase):
         image_code_type = "graphviz"
         template_out_file = os.path.join(self.get_scratch_space(), "test.md")
         dst_ext = "png"
-        cache_file = os.path.join(
-            self.get_scratch_space(), "image_hash_cache.json"
-        )
         # Run function.
-        rel_img_path, is_cache_hit = dshdreim._render_image_code(
+        rel_img_path = dshdreim._render_image_code(
             image_code,
             image_code_idx,
             image_code_type,
             template_out_file,
             dst_ext,
-            use_cache=use_cache,
-            cache_file=cache_file,
         )
         # Check output.
         self.assertEqual(rel_img_path, "figs/test.1.png")
-        return is_cache_hit
 
-    def _get_test_render_image_code_inputs2(self, use_cache: bool) -> bool:
+    def test2(self) -> None:
         """
-        Same file as `example1` but different image code.
+        Check rendering of an image code in a Markdown file with a different
+        image code type.
         """
         # Prepare inputs.
         image_code = "digraph { B -> A }"
         image_code_idx = 1
-        image_code_type = "graphviz"
+        image_code_type = "mermaid"
         template_out_file = os.path.join(self.get_scratch_space(), "test.md")
         dst_ext = "png"
-        cache_file = os.path.join(
-            self.get_scratch_space(), "image_hash_cache.json"
-        )
         # Run function.
-        rel_img_path, is_cache_hit = dshdreim._render_image_code(
+        rel_img_path = dshdreim._render_image_code(
             image_code,
             image_code_idx,
             image_code_type,
             template_out_file,
             dst_ext,
-            use_cache=use_cache,
-            cache_file=cache_file,
         )
         # Check output.
         self.assertEqual(rel_img_path, "figs/test.1.png")
-        return is_cache_hit
 
-    def _get_test_render_image_code_inputs3(self, use_cache: bool) -> bool:
+    def test3(self) -> None:
         """
-        Different file than `example1` and `example2`.
+        Check rendering of an image code in a Markdown file with a different
+        output file and extension.
         """
         # Prepare inputs.
         image_code = "digraph { A -> B }"
         image_code_idx = 1
         image_code_type = "graphviz"
         template_out_file = os.path.join(self.get_scratch_space(), "test2.md")
-        dst_ext = "png"
-        cache_file = os.path.join(
-            self.get_scratch_space(), "image_hash_cache.json"
-        )
+        dst_ext = "svg"
         # Run function.
-        rel_img_path, is_cache_hit = dshdreim._render_image_code(
+        rel_img_path = dshdreim._render_image_code(
             image_code,
             image_code_idx,
             image_code_type,
             template_out_file,
             dst_ext,
-            use_cache=use_cache,
-            cache_file=cache_file,
         )
         # Check output.
-        self.assertEqual(rel_img_path, "figs/test2.1.png")
-        return is_cache_hit
+        self.assertEqual(rel_img_path, "figs/test2.1.svg")
 
 
 # #############################################################################
@@ -317,7 +157,7 @@ class Test_render_images1(hunitest.TestCase):
     creating images).
     """
 
-    def helper(self, txt: str, file_ext: str, exp: str) -> None:
+    def helper(self, txt: str, file_ext: str, expected: str) -> None:
         """
         Check that the text is updated correctly.
 
@@ -328,18 +168,18 @@ class Test_render_images1(hunitest.TestCase):
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True).split("\n")
         out_file = os.path.join(self.get_scratch_space(), f"out.{file_ext}")
         dst_ext = "png"
-        cache_file = os.path.join(
-            self.get_scratch_space(), "image_hash_cache.json"
-        )
         # Render images.
         out_lines = dshdreim._render_images(
-            txt, out_file, dst_ext, dry_run=True, cache_file=cache_file
+            txt,
+            out_file,
+            dst_ext,
+            dry_run=True,
         )
         # Check output.
-        act = "\n".join(out_lines)
-        hdbg.dassert_ne(act, "")
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp, remove_lead_trail_empty_lines=True)
+        actual = "\n".join(out_lines)
+        hdbg.dassert_ne(actual, "")
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, remove_lead_trail_empty_lines=True)
 
     # ///////////////////////////////////////////////////////////////////////////
 
@@ -352,8 +192,8 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "tex"
-        exp = in_lines
-        self.helper(in_lines, file_ext, exp)
+        expected = in_lines
+        self.helper(in_lines, file_ext, expected)
 
     def test2(self) -> None:
         """
@@ -367,8 +207,8 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        exp = in_lines
-        self.helper(in_lines, file_ext, exp)
+        expected = in_lines
+        self.helper(in_lines, file_ext, expected)
 
     # ///////////////////////////////////////////////////////////////////////////
 
@@ -382,13 +222,13 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        exp = r"""
+        expected = r"""
         [//]: # ( ```plantuml)
         [//]: # ( Alice --> Bob)
         [//]: # ( ```)
         ![](figs/out.1.png)
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_plantuml2(self) -> None:
         """
@@ -402,7 +242,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        exp = r"""
+        expected = r"""
         A
         [//]: # ( ```plantuml)
         [//]: # ( Alice --> Bob)
@@ -410,7 +250,7 @@ class Test_render_images1(hunitest.TestCase):
         ![](figs/out.1.png)
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_plantuml3(self) -> None:
         """
@@ -425,7 +265,7 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        exp = r"""
+        expected = r"""
         [//]: # ( ```plantuml)
         [//]: # ( @startuml)
         [//]: # ( Alice --> Bob)
@@ -433,7 +273,7 @@ class Test_render_images1(hunitest.TestCase):
         [//]: # ( ```)
         ![](figs/out.1.png)
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_plantuml4(self) -> None:
         """
@@ -445,13 +285,13 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "tex"
-        exp = r"""
+        expected = r"""
         % ```plantuml
         % Alice --> Bob
         % ```
         \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_plantuml5(self) -> None:
         """
@@ -465,7 +305,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "tex"
-        exp = r"""
+        expected = r"""
         A
         % ```plantuml
         % Alice --> Bob
@@ -473,7 +313,7 @@ class Test_render_images1(hunitest.TestCase):
         \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_plantuml6(self) -> None:
         """
@@ -488,7 +328,7 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "tex"
-        exp = r"""
+        expected = r"""
         % ```plantuml
         % @startuml
         % Alice --> Bob
@@ -496,7 +336,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     # ///////////////////////////////////////////////////////////////////////////
 
@@ -511,14 +351,14 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        exp = r"""
+        expected = r"""
         [//]: # ( ```mermaid)
         [//]: # ( flowchart TD;)
         [//]: # (   A[Start] --> B[End];)
         [//]: # ( ```)
         ![](figs/out.1.png)
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid2(self) -> None:
         """
@@ -533,7 +373,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        exp = r"""
+        expected = r"""
         A
         [//]: # ( ```mermaid)
         [//]: # ( flowchart TD;)
@@ -542,7 +382,7 @@ class Test_render_images1(hunitest.TestCase):
         ![](figs/out.1.png)
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid3(self) -> None:
         """
@@ -555,15 +395,14 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "tex"
-        exp = r"""
-
+        expected = r"""
         % ```mermaid
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
         \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid4(self) -> None:
         """
@@ -578,7 +417,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "tex"
-        exp = r"""
+        expected = r"""
         A
         % ```mermaid
         % flowchart TD;
@@ -587,7 +426,7 @@ class Test_render_images1(hunitest.TestCase):
         \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid5(self) -> None:
         """
@@ -595,29 +434,23 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
-
         ```mermaid
         flowchart TD;
           A[Start] --> B[End];
         ```
-
-
         B
         """
         file_ext = "txt"
-        exp = r"""
+        expected = r"""
         A
-
         // ```mermaid
         // flowchart TD;
         //   A[Start] --> B[End];
         // ```
         ![](figs/out.1.png)
-
-
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid6(self) -> None:
         """
@@ -629,21 +462,19 @@ class Test_render_images1(hunitest.TestCase):
         flowchart TD;
           A[Start] --> B[End];
         ```
-
         B
         """
         file_ext = "txt"
-        exp = r"""
+        expected = r"""
         A
         // ```mermaid(hello_world.png)
         // flowchart TD;
         //   A[Start] --> B[End];
         // ```
         ![](hello_world.png)
-
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid7(self) -> None:
         """
@@ -658,7 +489,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "txt"
-        exp = r"""
+        expected = r"""
         A
         // ```mermaid(hello_world2.png)
         // flowchart TD;
@@ -666,7 +497,7 @@ class Test_render_images1(hunitest.TestCase):
         ![](hello_world2.png)
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
 
 # #############################################################################
@@ -689,16 +520,16 @@ class Test_render_images2(hunitest.TestCase):
         out_file = os.path.join(self.get_scratch_space(), file_name)
         dst_ext = "png"
         dry_run = True
-        cache_file = os.path.join(
-            self.get_scratch_space(), "image_hash_cache.json"
-        )
         # Call function to test.
         out_lines = dshdreim._render_images(
-            in_lines, out_file, dst_ext, dry_run=dry_run, cache_file=cache_file
+            in_lines,
+            out_file,
+            dst_ext,
+            dry_run=dry_run,
         )
-        act = "\n".join(out_lines)
+        actual = "\n".join(out_lines)
         # Check output.
-        self.check_string(act)
+        self.check_string(actual)
 
     def test1(self) -> None:
         """

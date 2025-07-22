@@ -453,9 +453,9 @@ def _set_to_str(set_: Set[Any], thr: Optional[int] = 20) -> str:
     ```
     with self.assertRaises(AssertionError) as cm:
         ...
-    act = str(cm.exception)
-    exp = r
-    self.assert_equal(act, exp, fuzzy_match=True)
+    actual = str(cm.exception)
+    expected = r
+    self.assert_equal(actual, expected, fuzzy_match=True)
     ```
     """
     try:
@@ -607,7 +607,7 @@ def dassert_eq_all(
 
 
 def _get_first_type(obj: Iterable, tag: str) -> Type:
-    obj_types = set(type(v) for v in obj)
+    obj_types = {type(v) for v in obj}
     dassert_eq(
         len(obj_types),
         1,
@@ -850,16 +850,18 @@ def dassert_file_extension(
     )
 
 
-def dassert_is_path_abs(
-    path: str, only_warning: bool = False
-) -> None:
+def dassert_is_path_abs(path: str, only_warning: bool = False) -> None:
     """
     Assert that `path` is an absolute path.
     """
     dassert_isinstance(path, str)
     dassert_ne(path, "")
-    dassert(os.path.isabs(path), "Path '%s' is not absolute", path,
-        only_warning=only_warning)
+    dassert(
+        os.path.isabs(path),
+        "Path '%s' is not absolute",
+        path,
+        only_warning=only_warning,
+    )
 
 
 def dassert_related_params(
@@ -887,10 +889,7 @@ def dassert_related_params(
         one_is_non_null = functools.reduce(lambda x, y: x or y, is_non_null)
         for k, v in params.items():
             if bool(v) != one_is_non_null:
-                txt = (
-                    "All or none parameter should be non-null:\n%s=%s\nparams=%s\n"
-                    % (k, v, pprint.pformat(params))
-                )
+                txt = f"All or none parameter should be non-null:\n{k}={v}\nparams={pprint.pformat(params)}\n"
                 _dfatal(txt, msg, *args, only_warning=only_warning)
     elif mode == "all_or_none_non_None":
         # Find out if at least one value is not None.
@@ -898,10 +897,7 @@ def dassert_related_params(
         one_is_non_None = functools.reduce(lambda x, y: x or y, is_non_None)
         for k, v in params.items():
             if (v is not None) != one_is_non_None:
-                txt = (
-                    "All or none parameter should be non-None:\n%s=%s\nparams=%s\n"
-                    % (k, v, pprint.pformat(params))
-                )
+                txt = f"All or none parameter should be non-None:\n{k}={v}\nparams={pprint.pformat(params)}\n"
                 _dfatal(txt, msg, *args, only_warning=only_warning)
     else:
         raise ValueError(f"Invalid mode='{mode}'")
@@ -956,6 +952,8 @@ def init_logger(
         sys.stdout.write("\033[0m")
     if isinstance(verbosity, str):
         # pylint: disable=protected-access
+        dassert(hasattr(logging, "_checkLevel"))
+        assert hasattr(logging, "_checkLevel")
         verbosity = logging._checkLevel(verbosity)
     # From https://stackoverflow.com/questions/14058453
     root_logger = logging.getLogger()
@@ -985,6 +983,8 @@ def init_logger(
     ch.setLevel(verbosity)
     # Set the formatter.
     # formatter = hloggin.set_v1_formatter(
+    dassert(hasattr(hloggin, "set_v2_formatter"))
+    assert hasattr(hloggin, "set_v2_formatter")
     formatter = hloggin.set_v2_formatter(
         ch,
         root_logger,
@@ -1031,6 +1031,8 @@ def init_logger(
     #
     _LOG.debug("Effective logging level=%s", _LOG.getEffectiveLevel())
     # Shut up chatty modules.
+    dassert(hasattr(hloggin, "shutup_chatty_modules"))
+    assert hasattr(hloggin, "shutup_chatty_modules")
     hloggin.shutup_chatty_modules(verbose=False)
     _LOG.info("> cmd='%s'", get_command_line())
     #

@@ -8,7 +8,12 @@ This is the `helpers` repository - a foundational Python library providing utili
 
 ### Core Structure
 
-- **`helpers/`** - Core utility modules (hdbg, hio, hpandas, etc.) following `h<name>` naming convention. Each module provides focused functionality (debugging, I/O, pandas extensions, etc.)
+- **`helpers/`** - Core utility modules (65+ modules) following `h<name>` naming convention organized into categories:
+  - **Core Infrastructure**: `hdbg`, `hio`, `hsystem`, `hserver`, `henv` - debugging, I/O, system operations
+  - **Data Processing**: `hpandas`, `hdataframe`, `hnumpy`, `hparquet`, `hcsv` - data manipulation and analysis
+  - **Testing Framework**: `hunit_test`, `hpytest`, `hcoverage`, `hplayback` - comprehensive testing utilities
+  - **External Services**: `haws`, `hs3`, `hgit`, `hdocker`, `hchatgpt`, `hllm` - cloud and tool integrations
+  - **Caching & Performance**: `hcache`, `hcache_simple`, `hjoblib`, `htimer` - performance optimization
 - **`config_root/`** - Configuration system with `Config` class and builders for hierarchical configuration management
 - **`linters/`** - Pluggable linting framework with custom linters for code quality (amp_black, amp_isort, etc.)
 - **`dev_scripts_helpers/`** - Development automation scripts organized by functionality (git, docker, documentation, etc.)
@@ -22,7 +27,7 @@ The repository uses `pyinvoke` for task automation with a modular task system:
 
 ### Testing Architecture
 
-- Uses pytest with custom markers: `slow`, `superslow`, `requires_docker_in_docker`
+- Uses pytest with custom markers: `fast`, `slow`, `superslow`, `requires_docker_in_docker`
 - **`helpers/hunit_test.py`** - Base test class with helpers for golden file testing and test utilities
 - Tests are categorized by speed and infrastructure requirements
 - Timeout-based test classification with different timeouts per category
@@ -30,66 +35,54 @@ The repository uses `pyinvoke` for task automation with a modular task system:
 ## Common Development Commands
 
 ### Testing
-```bash
-# Run fast tests only
-invoke run_fast_tests
+- To run tests
+  ```bash
+  # Run fast tests only
+  invoke run_fast_tests
 
-# Run all tests
-invoke run_tests
+  # Run all tests
+  invoke run_tests
 
-# Run specific test categories
-invoke run_slow_tests
-invoke run_superslow_tests
+  # Run specific test categories
+  invoke run_slow_tests
+  invoke run_superslow_tests
 
-# Run tests with coverage
-invoke run_coverage
-
-# Run single test file
-pytest path/to/test_file.py::TestClass::test_method
-```
+  # Run single test file
+  invoke docker_cmd --pytest-opts "path/to/test_file.py::TestClass::test_method"
+  ```
 
 ### Linting and Code Quality
-```bash
-# Lint all modified files
-invoke lint --modified
 
-# Lint specific files
-invoke lint --files "file1.py file2.py"
+- To lint code
+  ```bash
+  # Lint all modified files
+  invoke lint --modified
 
-# Check Python files compilation
-invoke lint_check_python_files --modified
-```
+  # Lint specific files
+  invoke lint --files "file1.py file2.py"
 
-### Docker Development
-```bash
-# Start bash shell in development container
-invoke docker_bash
-
-# Build local development image
-invoke docker_build_local_image
-
-# Run Jupyter in container
-invoke docker_jupyter
-```
+  # Check Python files compilation
+  invoke lint_check_python_files --modified
+  ```
 
 ### Git and Branch Management
-```bash
-# Create new branch following naming convention
-invoke git_branch_create --name "HelpersTask123_Description"
 
-# Show files in current branch vs master
-invoke git_branch_files
+- To use branch
+  ```bash
+  # Create new branch following naming convention
+  invoke git_branch_create --name "HelpersTask123_Description"
 
-# Merge master into current branch
-invoke git_merge_master
-```
+  # Merge master into current branch
+  invoke git_merge_master
+  ```
 
 ## Key Configuration
 
-- **`repo_config.yaml`** - Repository metadata including Docker image names, S3 buckets, GitHub settings
-- **`pytest.ini`** - Test configuration with custom markers and options
+- **`repo_config.yaml`** - Repository metadata including Docker image names, S3 buckets, GitHub settings, ECR configuration
+- **`pytest.ini`** - Test configuration with custom markers (`slow`, `superslow`, `requires_docker_in_docker`, `requires_ck_infra`) and options
+- **`pyproject.toml`** - Ruff linting configuration (line length 81, Python 3.11 target) and Fixit settings
 - **`mypy.ini`** - Type checking configuration with library-specific ignore rules
-- **`invoke.yaml`** - Invoke task configuration
+- **`invoke.yaml`** - Invoke task configuration (auto_dash_names: false, echo: true)
 
 ## Development Patterns
 
@@ -100,28 +93,14 @@ import helpers.hio as hio
 import config_root.config.config_ as crococon
 ```
 
-### Task Implementation
-- Tasks in `lib_tasks_*.py` files use `@task` decorator
-- Minimize dependencies in task functions (they run outside Docker)
-- Call `hlitauti.report_task()` at start of each task
-
 ### Testing Patterns
 - Inherit from `hunitest.TestCase` for enhanced test utilities
 - Use golden file pattern via `check_string()` method
-- Mark tests with appropriate speed markers
-- Use `pytest.mark.requires_docker_in_docker` for Docker-dependent tests
+- Mark tests with appropriate speed markers: `@pytest.mark.slow`, `@pytest.mark.superslow`
+- Use `pytest.mark.requires_docker_in_docker` for tests requiring Docker children/sibling containers
+- Use `pytest.mark.requires_ck_infra` for tests requiring CK infrastructure
+- Use `pytest.mark.no_container` for invoke target tests that run outside containers
+- Test outcomes stored in `test/outcomes/` directories following module structure
 
-### Configuration Management
-- Use `Config` class from `config_root.config.config_` for hierarchical configs
-- Support config versioning (currently v3)
-- Use `DUMMY` placeholder for multi-phase config building
-
-## Linting Framework
-
-The custom linting system in `linters/` provides:
-- Modular linter plugins (`amp_*.py` files)
-- Base framework in `linters/base.py`
-- Integration with invoke tasks for automated linting
-- Support for parallel execution via joblib
-
-When running `invoke lint`, it executes appropriate linters based on file types and applies fixes automatically where possible.
+### Code Conventions
+- Coding guidelines are in `docs/code_guidelines/all.coding_style_guidelines.reference.md`

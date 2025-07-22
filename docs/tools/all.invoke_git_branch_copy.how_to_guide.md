@@ -6,10 +6,14 @@
 - [Workflow Explanation](#workflow-explanation)
 - [Usage Instructions](#usage-instructions)
   * [Example](#example)
+    + [Step 1: Make sure your branch is up to date](#step-1-make-sure-your-branch-is-up-to-date)
+    + [Step 2: Create a new branch from your feature branch](#step-2-create-a-new-branch-from-your-feature-branch)
+    + [Step 3: Confirm the new branch is created](#step-3-confirm-the-new-branch-is-created)
+- [Execution flow diagram](#execution-flow-diagram)
 - [Alternative Manual Workflow](#alternative-manual-workflow)
   * [Using invoke `git_create_patch`](#using-invoke-git_create_patch)
-  * [Known Limitations](#known-limitations)
-  * [Future Improvements](#future-improvements)
+- [Known Limitations](#known-limitations)
+- [Future Improvements](#future-improvements)
 
 <!-- tocstop -->
 
@@ -45,6 +49,7 @@
 ## Usage Instructions
 
 - Go to the target branch to merge
+
   ```bash
   > git checkout CmTask5874_Document_PR_flow
   ```
@@ -80,7 +85,9 @@
 - Rather than merging the main PR, we create one or more children PRs, and merge
   them into `master` one at a time
 
-- Step 1: Make sure your branch is up to date with origin
+#### Step 1: Make sure your branch is up to date
+
+- Use this workflow to ensure your branch is up to date with `master`
 
   ```bash
   # First switch to your feature branch.
@@ -98,6 +105,7 @@
   ```
 
 - The output looks like:
+
   ```bash
   INFO: > cmd='/data/sameepp/src/venv/amp.client_venv/bin/invoke git_branch_diff_with -t base --only-print-files'
   04:58:35 - INFO  lib_tasks_git.py _git_diff_with_branch:726
@@ -114,10 +122,12 @@
 - As shown above, three files have been modified
 
 - Suppose we only want to partially merge this PR, specifically, just the `.png`
-  files, while continuing development in the main feature branch.
+  files, while continuing development in the main feature branch
 
-- Step 2: Create a new branch (e.g., `CmTask5874_Document_PR_flow_02`) derived
-  from our feature branch `CmTask5874_Document_PR_flow`
+#### Step 2: Create a new branch from your feature branch
+
+- Create a new branch (e.g., `CmTask5874_Document_PR_flow_02`) derived from our
+  feature branch `CmTask5874_Document_PR_flow`
 
   ```bash
   # Create a derived branch from the feature branch.
@@ -165,9 +175,10 @@
   docs/work_tools/figs/development/Fig2.png
   ```
 
-- Step 3: After running the command, a new branch
-  `CmTask5874_Document_PR_flow_2` is created, containing all changes from the
-  original feature branch.
+#### Step 3: Confirm the new branch is created
+
+- After running the command, a new branch `CmTask5874_Document_PR_flow_2` is
+  created, containing all changes from the original feature branch
 
   ```bash
   > git status
@@ -183,24 +194,49 @@
 
 - You can now stage and commit only the files you want to merge (e.g., the
   `.png` files), and proceed to create a PR to merge those changes into `master`
+
   ```bash
   # Add, commit and push only the required files.
   > git add ./figs/development/Fig1.png ./figs/development/Fig2.png
   > git commit -m "Checkpoint"
   > git push origin CmTask5874_Document_PR_flow_2
   ```
+
 - From this you can create a PR, test it, review it, and merge it
 
 - Once the chunk is merged into `master`, you can go to the father branch and
   merge `master`
+
   ```bash
   > git checkout CmTask5874_Document_PR_flow
   > i git_merge_master
   > git commit -am "Merge"
   > git push
   ```
+
 - Note that the merge it's typically very simple, since the incoming code is the
   same one that is already in the branch
+
+## Execution flow diagram
+
+```mermaid
+%%{init: {'theme': 'base', 'gitGraph': {'mainBranchName': 'master'}}}%%
+gitGraph
+    commit id: "Initial commit (master)"
+    branch CmTask5874_Document_PR_flow
+    checkout CmTask5874_Document_PR_flow
+    commit id: "Feature change 1"
+    commit id: "Feature change 2"
+    checkout master
+    branch CmTask5874_Document_PR_flow_2
+    checkout CmTask5874_Document_PR_flow_2
+    merge CmTask5874_Document_PR_flow id: "Squash feature changes"
+    commit id: "Commit .png files only"
+    checkout master
+    merge CmTask5874_Document_PR_flow_2 id: "Partial PR merged"
+    checkout CmTask5874_Document_PR_flow
+    merge master id: "Sync with master"
+```
 
 ## Alternative Manual Workflow
 
@@ -245,14 +281,14 @@
   > git pull
   ```
 
-### Known Limitations
+## Known Limitations
 
 - Currently, the `use_patch` option for creating branches via patches is
   unimplemented and reserved for future enhancements
 - The workflow doesn't explicitly handle merge conflicts during the squash merge
   step, manual resolution may be required
 
-### Future Improvements
+## Future Improvements
 
 - Implement the `use_patch` option to support patch-based branch creation
 - Introduce enhanced automation for conflict resolution and interactive conflict

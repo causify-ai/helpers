@@ -8,9 +8,9 @@ class Test_check_readme_is_capitalized(hunitest.TestCase):
         Incorrect README name: error.
         """
         file_name = "linter/readme.md"
-        exp = f"{file_name}:1: All README files should be named README.md"
+        expected = f"{file_name}:1: All README files should be named README.md"
         msg = lamlimd._check_readme_is_capitalized(file_name)
-        self.assertEqual(exp, msg)
+        self.assertEqual(expected, msg)
 
     def test2(self) -> None:
         """

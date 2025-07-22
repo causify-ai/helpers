@@ -5,15 +5,19 @@ Main script used for running tests in runnable directories.
 """
 
 import argparse
+import glob
 import logging
 import os
 import subprocess
 import sys
 from typing import List
 
+import junitparser
+
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hparser as hparser
+import helpers.hpytest as hpytest
 
 _LOG = logging.getLogger(__name__)
 
@@ -80,13 +84,14 @@ def _is_runnable_dir(runnable_dir: str) -> bool:
     return True
 
 
-def _run_test(runnable_dir: str, command: str) -> None:
+def _run_test(runnable_dir: str, command: str) -> bool:
     """
     Run test in for specified runnable directory.
 
     :param runnable_dir: directory to run tests in
     :param command: command to run tests (e.g. run_fast_tests,
         run_slow_tests, run_superslow_tests)
+    :return: True if the tests were run successfully, False otherwise
     """
     is_runnable_dir = _is_runnable_dir(runnable_dir)
     hdbg.dassert(is_runnable_dir, f"{runnable_dir} is not a runnable dir.")
@@ -105,12 +110,28 @@ def _run_test(runnable_dir: str, command: str) -> None:
     result = subprocess.run(
         f"invoke {command}", shell=True, env=env, cwd=runnable_dir
     )
-    # Error code is not propagated upward to the parent process causing the
-    # GH actions to not fail the pipeline (See CmampTask11449).
-    # We need to explicitly exit with the return code of the subprocess.
-    # pytest returns 5 if no tests are collected.
-    if result.returncode not in [0, 5]:
-        sys.exit(result.returncode)
+    # pytest returns:
+    # - 0 if all tests passed
+    # - 5 if no tests are collected
+    if result.returncode in [0, 5]:
+        return True
+    return False
+
+
+def _run_tests(runnable_dirs: List[str], command: str) -> bool:
+    """
+    Run tests for all runnable directories.
+
+    :param runnable_dirs: list of runnable directories
+    :param command: command to run tests (e.g. `run_fast_tests`,
+        `run_slow_tests`, `run_superslow_tests`)
+    :return: True if all tests for all runnable directories passed, False otherwise
+    """
+    results = []
+    for runnable_dir in runnable_dirs:
+        res = _run_test(runnable_dir, command)
+        results.append(res)
+    return all(results)
 
 
 def _find_runnable_dirs() -> List[str]:
@@ -134,39 +155,53 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     command = args.command
-    runnable_dirs = _find_runnable_dirs()
-    if command == "run_fast_tests":
-        runnable_dir = args.dir
+    runnable_dir = args.dir
+    all_tests_passed = False
+    try:
         if runnable_dir:
-            # Run tests for the specified runnable directory.
-            _run_test(runnable_dir, command)
+            # If a runnable directory is specified, run tests for it.
+            runnable_dirs = [runnable_dir]
         else:
-            # Run tests for all runnable directories.
-            _LOG.info("Running fast tests for all runnable directories.")
-            for runnable_dir in runnable_dirs:
-                _run_test(runnable_dir, command)
-    elif command == "run_slow_tests":
-        runnable_dir = args.dir
-        if runnable_dir:
-            # Run tests for the specified runnable directory.
-            _run_test(runnable_dir, command)
+            # If no runnable directory is specified, run tests for all runnable directories.
+            runnable_dirs = _find_runnable_dirs()
+        # Run tests.
+        if command == "run_fast_tests":
+            all_tests_passed = _run_tests(
+                runnable_dirs=runnable_dirs, command=command
+            )
+        elif command == "run_slow_tests":
+            all_tests_passed = _run_tests(
+                runnable_dirs=runnable_dirs, command=command
+            )
+        elif command == "run_superslow_tests":
+            all_tests_passed = _run_tests(
+                runnable_dirs=runnable_dirs, command=command
+            )
         else:
-            # Run tests for all runnable directories.
-            _LOG.info("Running slow tests for all runnable directories.")
-            for runnable_dir in runnable_dirs:
-                _run_test(runnable_dir, command)
-    elif command == "run_superslow_tests":
-        runnable_dir = args.dir
-        if runnable_dir:
-            # Run tests for the specified runnable directory.
-            _run_test(runnable_dir, command)
-        else:
-            # Run tests for all runnable directories.
-            _LOG.info("Running superslow tests for all runnable directories.")
-            for runnable_dir in runnable_dirs:
-                _run_test(runnable_dir, command)
-    else:
-        _LOG.error("Invalid command.")
+            _LOG.error("Invalid command.")
+        # Search for junit xml report files.
+        junit_xml_files = glob.glob("**/tmp.junit.xml", recursive=True)
+        # Combine the junit xml files into a single file.
+        combined_junit_xml = junitparser.JUnitXml()
+        for junit_xml_file in junit_xml_files:
+            _LOG.debug(f"Processing {junit_xml_file}.")
+            junit_xml = junitparser.JUnitXml.fromfile(junit_xml_file)
+            combined_junit_xml += junit_xml
+        combined_junit_xml_file = "tmp.combined_junit.xml"
+        combined_junit_xml.write(combined_junit_xml_file)
+        # Print report based on the combined junit xml file.
+        reporter = hpytest.JUnitReporter(combined_junit_xml_file)
+        reporter.parse()
+        reporter.print_summary()
+    except Exception as e:
+        _LOG.error(f"Error: {e}")
+        sys.exit(1)
+    finally:
+        if not all_tests_passed:
+            # Error code is not propagated upward to the parent process causing the
+            # GH actions to not fail the pipeline (See CmampTask11449).
+            # We need to explicitly exit to fail the pipeline.
+            sys.exit(1)
 
 
 if __name__ == "__main__":

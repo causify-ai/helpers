@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.1
+#       jupytext_version: 1.16.7
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -46,7 +46,7 @@ def func(a, b):
     # hello
     # assert 0
     out = a * b
-    print("Multiplication: %s * %s = %s" % (a, b, out))
+    print(f"Multiplication: {a} * {b} = {out}")
     return out
 
 
@@ -104,6 +104,7 @@ mem = joblib.Memory(
 # hjoblib.register_s3fs_store_backend()
 
 s3fs = hs3.get_s3fs("am")
+dict_ = {}
 
 dict2 = {
     "bucket": "alphamatic-data",
@@ -156,7 +157,7 @@ s3fs.clear_instance_cache()
 @mem.cache()
 def f(x):
     # hello
-    print("Running f(%s)" % x)
+    print(f"Running f({x})")
     return x
 
 
@@ -205,15 +206,15 @@ def computation_function(a, b):
     # hello
     # assert 0
     out = a * b
-    print("Multiplication: %s * %s = %s" % (a, b, out))
+    print(f"Multiplication: {a} * {b} = {out}")
     return out
 
 
 inputs = (1, 2)
 exp_output = 2
 
-hdbg.dassert_eq(memory_cached_computation(*inputs), exp_output)
-hdbg.dassert_eq(memory_cached_computation.get_last_cache_accessed(), "mem")
+# hdbg.dassert_eq(memory_cached_computation(*inputs), exp_output)
+# hdbg.dassert_eq(memory_cached_computation.get_last_cache_accessed(), "mem")
 
 # %% [markdown]
 # ## Disk cache
@@ -223,7 +224,7 @@ disk_cached_computation = hcache._Cached(
     computation_function, use_mem_cache=False, use_disk_cache=True
 )
 
-disk_cached_computation.clear_function_cache("disk")
+disk_cached_computation.clear_function_cache()
 
 hdbg.dassert_eq(disk_cached_computation(*inputs), exp_output)
 hdbg.dassert_eq(disk_cached_computation.get_last_cache_accessed(), "no_cache")
@@ -253,7 +254,7 @@ hdbg.dassert_eq(fully_cached_computation(*inputs), exp_output)
 hdbg.dassert_eq(fully_cached_computation.get_last_cache_accessed(), "mem")
 
 print("Clear mem cache")
-fully_cached_computation.clear_function_cache("mem")
+fully_cached_computation.clear_function_cache()
 
 hdbg.dassert_eq(fully_cached_computation(*inputs), exp_output)
 hdbg.dassert_eq(fully_cached_computation.get_last_cache_accessed(), "disk")
@@ -269,6 +270,6 @@ hdbg.dassert_eq(fully_cached_computation.get_last_cache_accessed(), "mem")
 
 # %%
 # This should fail all the times, because we clear the memory cache.
-fully_cached_computation.clear_function_cache("mem")
+fully_cached_computation.clear_function_cache()
 hdbg.dassert_eq(fully_cached_computation(*inputs), exp_output)
 hdbg.dassert_eq(fully_cached_computation.get_last_cache_accessed(), "mem")

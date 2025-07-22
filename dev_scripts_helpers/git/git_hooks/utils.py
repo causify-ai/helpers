@@ -93,7 +93,7 @@ def get_function_name(count: int = 0) -> str:
 def _system_to_string(
     cmd: str, abort_on_error: bool = True, verbose: bool = False
 ) -> Tuple[int, str]:
-    assert isinstance(cmd, str), "Type of '%s' is %s" % (str(cmd), type(cmd))
+    assert isinstance(cmd, str), f"Type of '{str(cmd)}' is {type(cmd)}"
     if verbose:
         print(f"> {cmd}")
     stdout = subprocess.PIPE
@@ -111,9 +111,9 @@ def _system_to_string(
         p.stdout.close()  # type: ignore
         rc = p.wait()
     if abort_on_error and rc != 0:
-        msg = (
-            "cmd='%s' failed with rc='%s'" % (cmd, rc)
-        ) + "\nOutput of the failing command is:\n%s" % output
+        msg = f"cmd='{cmd}' failed with rc='{rc}'"
+        msg += "\nOutput of the failing command is:\n"
+        msg += output
         _LOG.error(msg)
         sys.exit(-1)
     return rc, output
@@ -254,7 +254,7 @@ def _sizeof_fmt(num: float) -> str:
         if num < 1024.0:
             return "%3.1f %s" % (num, x)
         num /= 1024.0
-    assert 0, "Invalid num='%s'" % num
+    assert 0, f"Invalid num='{num}'"
 
 
 # End copy-paste.

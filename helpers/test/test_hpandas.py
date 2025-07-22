@@ -28,7 +28,6 @@ _AWS_PROFILE = "ck"
 
 
 class Test_dassert_is_unique1(hunitest.TestCase):
-
     def get_df1(self) -> pd.DataFrame:
         """
         Return a df without duplicated index.
@@ -42,15 +41,15 @@ class Test_dassert_is_unique1(hunitest.TestCase):
         df = pd.DataFrame(values, index=idx)
         _LOG.debug("df=\n%s", df)
         #
-        act = hpandas.df_to_str(df)
-        exp = r"""
+        actual = hpandas.df_to_str(df)
+        expected = r"""
                              0
         2000-01-01 09:00:00  0
         2000-01-01 09:01:00  1
         2000-01-01 09:02:00  2
         2000-01-01 09:03:00  3
         2000-01-01 09:04:00  4"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
         return df
 
     def test_dassert_is_unique1(self) -> None:
@@ -71,23 +70,23 @@ class Test_dassert_is_unique1(hunitest.TestCase):
         df = pd.DataFrame(values, index=idx)
         _LOG.debug("df=\n%s", df)
         #
-        act = hpandas.df_to_str(df)
-        exp = r"""
+        actual = hpandas.df_to_str(df)
+        expected = r"""
                              0
         2000-01-01 09:00:00  0
         2000-01-01 09:01:00  1
         2000-01-01 09:02:00  2
         2000-01-01 09:03:00  3
         2000-01-01 09:00:00  4"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
         return df
 
     def test_dassert_is_unique2(self) -> None:
         df = self.get_df2()
         with self.assertRaises(AssertionError) as cm:
             hpandas.dassert_unique_index(df)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         cond=False
         Duplicated rows are:
@@ -95,10 +94,7 @@ class Test_dassert_is_unique1(hunitest.TestCase):
         2000-01-01 09:00:00  0
         2000-01-01 09:00:00  4
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
-
-
-# #############################################################################
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -107,44 +103,40 @@ class Test_dassert_is_unique1(hunitest.TestCase):
 
 
 class Test_to_series1(hunitest.TestCase):
-
-    def helper(self, n: int, exp: str) -> None:
+    def helper(self, n: int, expected: str) -> None:
         vals = list(range(n))
         df = pd.DataFrame([vals], columns=[f"a{i}" for i in vals])
         df = df.T
         _LOG.debug("df=\n%s", df)
         srs = hpandas.to_series(df)
         _LOG.debug("srs=\n%s", srs)
-        act = str(srs)
-        self.assert_equal(act, exp, dedent=True, fuzzy_match=True)
+        actual = str(srs)
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
     def test1(self) -> None:
         n = 0
-        exp = r"""
+        expected = r"""
         Series([], dtype: float64)
         """
-        self.helper(n, exp)
+        self.helper(n, expected)
 
     def test2(self) -> None:
         n = 1
-        exp = r"""
+        expected = r"""
         a0    0
         dtype: int64"""
-        self.helper(n, exp)
+        self.helper(n, expected)
 
     def test3(self) -> None:
         n = 5
-        exp = r"""
+        expected = r"""
         a0    0
         a1    1
         a2    2
         a3    3
         a4    4
         Name: 0, dtype: int64"""
-        self.helper(n, exp)
-
-
-# #############################################################################
+        self.helper(n, expected)
 
 
 # #############################################################################
@@ -153,7 +145,6 @@ class Test_to_series1(hunitest.TestCase):
 
 
 class Test_dassert_valid_remap(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that the function works with correct inputs.
@@ -255,15 +246,11 @@ class Test_dassert_valid_remap(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_trim_df1
 # #############################################################################
 
 
 class Test_trim_df1(hunitest.TestCase):
-
     def get_df(self, *args: Any, **kwargs: Any) -> pd.DataFrame:
         """
         Return a df where the CSV txt is read verbatim without inferring dates.
@@ -296,10 +283,10 @@ class Test_trim_df1(hunitest.TestCase):
         """
         df = self.get_df()
         #
-        act = hpandas.df_to_str(
+        actual = hpandas.df_to_str(
             df, print_dtypes=True, print_shape_info=True, tag="df"
         )
-        exp = r"""# df=
+        expected = r"""# df=
         index=[4, 44]
         columns=start_time,egid,close
         shape=(10, 3)
@@ -317,7 +304,7 @@ class Test_trim_df1(hunitest.TestCase):
         38 2022-01-04 21:35:00 17085 179.42
         40 2022-01-04 21:34:00 17085 179.42
         44 2022-01-04 21:34:00 13684 1146.00"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def get_df_with_parse_dates(self) -> pd.DataFrame:
         """
@@ -336,10 +323,10 @@ class Test_trim_df1(hunitest.TestCase):
         """
         df = self.get_df_with_parse_dates()
         # Check.
-        act = hpandas.df_to_str(
+        actual = hpandas.df_to_str(
             df, print_dtypes=True, print_shape_info=True, tag="df"
         )
-        exp = r"""# df=
+        expected = r"""# df=
         index=[4, 44]
         columns=start_time,egid,close
         shape=(10, 3)
@@ -357,7 +344,7 @@ class Test_trim_df1(hunitest.TestCase):
         38 2022-01-04 21:35:00  17085   179.42
         40 2022-01-04 21:34:00  17085   179.42
         44 2022-01-04 21:34:00  13684  1146.00"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def get_df_with_tz_timestamp(self) -> pd.DataFrame:
         """
@@ -381,10 +368,10 @@ class Test_trim_df1(hunitest.TestCase):
         """
         df = self.get_df_with_tz_timestamp()
         # Check.
-        act = hpandas.df_to_str(
+        actual = hpandas.df_to_str(
             df, print_dtypes=True, print_shape_info=True, tag="df"
         )
-        exp = r"""# df=
+        expected = r"""# df=
         index=[4, 44]
         columns=start_time,egid,close
         shape=(10, 3)
@@ -402,7 +389,7 @@ class Test_trim_df1(hunitest.TestCase):
         38 2022-01-04 16:35:00-05:00  17085   179.42
         40 2022-01-04 16:34:00-05:00  17085   179.42
         44 2022-01-04 16:34:00-05:00  13684  1146.00"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     # //////////////////////////////////////////////////////////////////////////////
 
@@ -440,7 +427,7 @@ class Test_trim_df1(hunitest.TestCase):
         end_ts = pd.Timestamp("2022-01-04 21:38:00")
         left_close = True
         right_close = True
-        exp = r"""# df_trim=
+        expected = r"""# df_trim=
         index=[4, 38]
         columns=start_time,egid,close
         shape=(8, 3)
@@ -453,7 +440,7 @@ class Test_trim_df1(hunitest.TestCase):
         34 2022-01-04 21:35:00 13684 1146.00
         38 2022-01-04 21:35:00 17085 179.42"""
         self.helper(
-            df, ts_col_name, start_ts, end_ts, left_close, right_close, exp
+            df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
     def test_trim_df2(self) -> None:
@@ -470,7 +457,7 @@ class Test_trim_df1(hunitest.TestCase):
         end_ts = pd.Timestamp("2022-01-04 21:38:00")
         left_close = True
         right_close = True
-        exp = r"""# df_trim=
+        expected = r"""# df_trim=
         index=[4, 38]
         columns=start_time,egid,close
         shape=(8, 3)
@@ -483,7 +470,7 @@ class Test_trim_df1(hunitest.TestCase):
         34 2022-01-04 21:35:00  13684  1146.00
         38 2022-01-04 21:35:00  17085   179.42"""
         self.helper(
-            df, ts_col_name, start_ts, end_ts, left_close, right_close, exp
+            df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
     def test_trim_df3(self) -> None:
@@ -500,7 +487,7 @@ class Test_trim_df1(hunitest.TestCase):
         end_ts = pd.Timestamp("2022-01-04 21:38:00", tz="UTC")
         left_close = True
         right_close = True
-        exp = r"""# df_trim=
+        expected = r"""# df_trim=
         index=[4, 38]
         columns=start_time,egid,close
         shape=(8, 3)
@@ -513,7 +500,7 @@ class Test_trim_df1(hunitest.TestCase):
         34 2022-01-04 16:35:00-05:00  13684  1146.00
         38 2022-01-04 16:35:00-05:00  17085   179.42"""
         self.helper(
-            df, ts_col_name, start_ts, end_ts, left_close, right_close, exp
+            df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
     # pylint: disable=line-too-long
@@ -536,10 +523,10 @@ class Test_trim_df1(hunitest.TestCase):
                 df, ts_col_name, start_ts, end_ts, left_close, right_close
             )
         # Check.
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         Invalid comparison between dtype=datetime64[ns, America/New_York] and Timestamp"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_trim_df5(self) -> None:
         """
@@ -553,7 +540,7 @@ class Test_trim_df1(hunitest.TestCase):
         end_ts = pd.Timestamp("2022-01-04 21:38:00")
         left_close = True
         right_close = True
-        exp = r"""# df_trim=
+        expected = r"""# df_trim=
         index=[2022-01-04 21:35:00, 2022-01-04 21:38:00]
         columns=egid,close
         shape=(8, 2)
@@ -567,7 +554,7 @@ class Test_trim_df1(hunitest.TestCase):
         2022-01-04 21:35:00 13684 1146.00
         2022-01-04 21:35:00 17085 179.42"""
         self.helper(
-            df, ts_col_name, start_ts, end_ts, left_close, right_close, exp
+            df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
     def test_trim_df6(self) -> None:
@@ -581,7 +568,7 @@ class Test_trim_df1(hunitest.TestCase):
         end_ts = pd.Timestamp("2022-01-04 21:38:00")
         left_close = False
         right_close = True
-        exp = r"""# df_trim=
+        expected = r"""# df_trim=
         index=[4, 27]
         columns=start_time,egid,close
         shape=(6, 3)
@@ -593,7 +580,7 @@ class Test_trim_df1(hunitest.TestCase):
         24 2022-01-04 21:36:00 13684 1146.00
         27 2022-01-04 21:36:00 17085 179.46"""
         self.helper(
-            df, ts_col_name, start_ts, end_ts, left_close, right_close, exp
+            df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
     def test_trim_df7(self) -> None:
@@ -607,7 +594,7 @@ class Test_trim_df1(hunitest.TestCase):
         end_ts = pd.Timestamp("2022-01-04 21:38:00")
         left_close = True
         right_close = False
-        exp = r"""# df_trim=
+        expected = r"""# df_trim=
         index=[14, 38]
         columns=start_time,egid,close
         shape=(6, 3)
@@ -619,7 +606,7 @@ class Test_trim_df1(hunitest.TestCase):
         34 2022-01-04 21:35:00 13684 1146.00
         38 2022-01-04 21:35:00 17085 179.42"""
         self.helper(
-            df, ts_col_name, start_ts, end_ts, left_close, right_close, exp
+            df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
     def test_trim_df8(self) -> None:
@@ -634,7 +621,7 @@ class Test_trim_df1(hunitest.TestCase):
         left_close = True
         right_close = True
         df = df.sort_values(ts_col_name)
-        exp = r"""# df_trim=
+        expected = r"""# df_trim=
         index=[4, 38]
         columns=start_time,egid,close
         shape=(8, 3)
@@ -647,7 +634,7 @@ class Test_trim_df1(hunitest.TestCase):
         4 2022-01-04 21:38:00 13684 1146.48
         8 2022-01-04 21:38:00 17085 179.45"""
         self.helper(
-            df, ts_col_name, start_ts, end_ts, left_close, right_close, exp
+            df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
     def test_trim_df9(self) -> None:
@@ -663,7 +650,7 @@ class Test_trim_df1(hunitest.TestCase):
         left_close = True
         right_close = True
         df = df.sort_index()
-        exp = r"""# df_trim=
+        expected = r"""# df_trim=
         index=[2022-01-04 21:35:00, 2022-01-04 21:38:00]
         columns=egid,close
         shape=(8, 2)
@@ -677,7 +664,7 @@ class Test_trim_df1(hunitest.TestCase):
         2022-01-04 21:38:00 13684 1146.48
         2022-01-04 21:38:00 17085 179.45"""
         self.helper(
-            df, ts_col_name, start_ts, end_ts, left_close, right_close, exp
+            df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
     def test_trim_df10(self) -> None:
@@ -693,7 +680,7 @@ class Test_trim_df1(hunitest.TestCase):
         left_close = False
         right_close = False
         df = df.sort_index()
-        exp = r"""# df_trim=
+        expected = r"""# df_trim=
         index=[2022-01-04 21:36:00, 2022-01-04 21:37:00]
         columns=egid,close
         shape=(4, 2)
@@ -704,7 +691,7 @@ class Test_trim_df1(hunitest.TestCase):
         2022-01-04 21:37:00 13684 1146.26
         2022-01-04 21:37:00 17085 179.42"""
         self.helper(
-            df, ts_col_name, start_ts, end_ts, left_close, right_close, exp
+            df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
     def test_trim_df11(self) -> None:
@@ -718,7 +705,7 @@ class Test_trim_df1(hunitest.TestCase):
         end_ts = pd.Timestamp("2022-01-04 21:37:00")
         left_close = True
         right_close = True
-        exp = r"""# df_trim=
+        expected = r"""# df_trim=
         index=[14, 44]
         columns=start_time,egid,close
         shape=(8, 3)
@@ -731,7 +718,7 @@ class Test_trim_df1(hunitest.TestCase):
         40 2022-01-04 21:34:00 17085 179.42
         44 2022-01-04 21:34:00 13684 1146.00"""
         self.helper(
-            df, ts_col_name, start_ts, end_ts, left_close, right_close, exp
+            df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
     def test_trim_df12(self) -> None:
@@ -747,7 +734,7 @@ class Test_trim_df1(hunitest.TestCase):
         left_close = True
         right_close = True
         df = df.sort_index()
-        exp = r"""# df_trim=
+        expected = r"""# df_trim=
         index=[2022-01-04 21:35:00, 2022-01-04 21:38:00]
         columns=egid,close
         shape=(8, 2)
@@ -761,7 +748,7 @@ class Test_trim_df1(hunitest.TestCase):
         2022-01-04 21:38:00 13684 1146.48
         2022-01-04 21:38:00 17085 179.45"""
         self.helper(
-            df, ts_col_name, start_ts, end_ts, left_close, right_close, exp
+            df, ts_col_name, start_ts, end_ts, left_close, right_close, expected
         )
 
 
@@ -915,9 +902,9 @@ class Test_trim_df2(Test_trim_df1):
         )
         # Run.
         start_time = time.time()
-        filter_values = pd.Series(df.index.get_level_values(ts_col_name)).between(
-            start_ts, end_ts, inclusive="both"
-        )
+        filter_values = pd.Series(
+            df.index.get_level_values(ts_col_name)
+        ).between(start_ts, end_ts, inclusive="both")
         df = df.droplevel(ts_col_name)
         df = df[filter_values]
         end_time = time.time()
@@ -1116,15 +1103,11 @@ class Test_trim_df2(Test_trim_df1):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_df_to_str
 # #############################################################################
 
 
 class Test_df_to_str(hunitest.TestCase):
-
     @staticmethod
     def get_test_data() -> pd.DataFrame:
         test_data = {
@@ -1545,15 +1528,11 @@ class Test_str_to_df(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # TestDataframeToJson
 # #############################################################################
 
 
 class TestDataframeToJson(hunitest.TestCase):
-
     def test_dataframe_to_json(self) -> None:
         """
         Verify correctness of dataframe to JSON transformation.
@@ -1633,15 +1612,11 @@ class TestDataframeToJson(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # TestFindGapsInDataframes
 # #############################################################################
 
 
 class TestFindGapsInDataframes(hunitest.TestCase):
-
     def test_find_gaps_in_dataframes(self) -> None:
         """
         Verify that gaps are caught.
@@ -1668,15 +1643,11 @@ class TestFindGapsInDataframes(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # TestCompareDataframeRows
 # #############################################################################
 
 
 class TestCompareDataframeRows(hunitest.TestCase):
-
     def get_test_data(self) -> pd.DataFrame:
         test_data = {
             "dummy_value_1": [0, 1, 3, 2, 0],
@@ -1735,9 +1706,6 @@ class TestCompareDataframeRows(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # TestReadDataFromS3
 # #############################################################################
 
@@ -1745,7 +1713,6 @@ class TestCompareDataframeRows(hunitest.TestCase):
 @pytest.mark.requires_ck_infra
 @pytest.mark.requires_aws
 class TestReadDataFromS3(hunitest.TestCase):
-
     def test_read_csv1(self) -> None:
         s3fs = hs3.get_s3fs(_AWS_PROFILE)
         file_name = os.path.join(
@@ -1777,7 +1744,6 @@ class TestReadDataFromS3(hunitest.TestCase):
 
 
 class TestSubsetDf1(hunitest.TestCase):
-
     def test1(self) -> None:
         # Generate some random data.
         np.random.seed(42)
@@ -1807,7 +1773,6 @@ class TestSubsetDf1(hunitest.TestCase):
 
 
 class TestDropNa(hunitest.TestCase):
-
     def test_dropna1(self) -> None:
         """
         Test if all types of NaNs are dropped.
@@ -1871,7 +1836,6 @@ class TestDropNa(hunitest.TestCase):
 
 
 class TestDropAxisWithAllNans(hunitest.TestCase):
-
     def test_drop_rows1(self) -> None:
         """
         Test if row full of nans is dropped.
@@ -2406,9 +2370,6 @@ class Test_merge_dfs1(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_compare_dfs
 # #############################################################################
 
@@ -2709,8 +2670,8 @@ class Test_compare_dfs(hunitest.TestCase):
             hpandas.compare_dfs(
                 df1, df2, compare_nans=compare_nans, only_warning=False
             )
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         DataFrame.iloc[:, 0] (column name="A") are different
 
@@ -2737,7 +2698,7 @@ class Test_compare_dfs(hunitest.TestCase):
         5  inf  0
         are not equal.
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
     def test9(self) -> None:
         """
@@ -2755,8 +2716,8 @@ class Test_compare_dfs(hunitest.TestCase):
                 row_mode="equal",
                 column_mode="equal",
             )
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         cond=False
         df1.index.difference(df2.index)=
@@ -2764,7 +2725,7 @@ class Test_compare_dfs(hunitest.TestCase):
         df2.index.difference(df1.index)=
         DatetimeIndex(['2021-01-01', '2021-01-02', '2021-01-03'], dtype='datetime64[ns]', freq=None)
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
     def test10(self) -> None:
         """
@@ -2833,8 +2794,8 @@ class Test_compare_dfs(hunitest.TestCase):
                 remove_inf=False,
                 only_warning=False,
             )
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         DataFrame.iloc[:, 0] (column name="tsA") are different
 
@@ -2856,7 +2817,7 @@ class Test_compare_dfs(hunitest.TestCase):
         2022-01-01 21:03:00+00:00  300  600  900
         have pct_change more than `assert_diff_threshold`.
         """
-        self.assert_equal(act, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
 
     def test12(self) -> None:
         """
@@ -2943,9 +2904,6 @@ class Test_compare_dfs(hunitest.TestCase):
                 column_mode="equal",
                 diff_mode="pct_change",
             )
-
-
-# #############################################################################
 
 
 # #############################################################################
@@ -3190,9 +3148,6 @@ class Test_subset_multiindex_df(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_compare_multiindex_dfs
 # #############################################################################
 
@@ -3212,7 +3167,9 @@ class Test_compare_multiindex_dfs(hunitest.TestCase):
             pd.Timestamp("2022-01-01 21:05:00+00:00"),
         ]
         iterables1 = [["asset1", "asset2"], ["open", "high", "low", "close"]]
-        index1 = pd.MultiIndex.from_product(iterables1, names=[None, "timestamp"])
+        index1 = pd.MultiIndex.from_product(
+            iterables1, names=[None, "timestamp"]
+        )
         nums1 = np.array(
             [
                 [
@@ -3283,7 +3240,9 @@ class Test_compare_multiindex_dfs(hunitest.TestCase):
             ["asset1", "asset2", "asset3"],
             ["open", "high", "low", "close", "volume"],
         ]
-        index2 = pd.MultiIndex.from_product(iterables2, names=[None, "timestamp"])
+        index2 = pd.MultiIndex.from_product(
+            iterables2, names=[None, "timestamp"]
+        )
         nums2 = [
             [
                 0.79095104,
@@ -3617,15 +3576,11 @@ class Test_compute_duration_df(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_compare_nans_in_dataframes
 # #############################################################################
 
 
 class Test_compare_nans_in_dataframes(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that NaN differences are identified correctly.
@@ -3656,15 +3611,11 @@ class Test_compare_nans_in_dataframes(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_dassert_increasing_index
 # #############################################################################
 
 
 class Test_dassert_increasing_index(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that a monotonically increasing index passes the assert.
@@ -3698,15 +3649,15 @@ class Test_dassert_increasing_index(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hpandas.dassert_increasing_index(df)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         cond=False
         Not increasing indices are:
                                 0
         2000-01-01 09:04:00  0
         2000-01-01 09:03:00  0"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -3727,15 +3678,11 @@ class Test_dassert_increasing_index(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_dassert_strictly_increasing_index
 # #############################################################################
 
 
 class Test_dassert_strictly_increasing_index(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that unique and monotonically increasing index passes the assert.
@@ -3768,15 +3715,15 @@ class Test_dassert_strictly_increasing_index(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hpandas.dassert_strictly_increasing_index(df)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         cond=False
         Duplicated rows are:
                             0
         2000-01-01 09:01:00  0
         2000-01-01 09:01:00  0"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -3795,18 +3742,15 @@ class Test_dassert_strictly_increasing_index(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hpandas.dassert_strictly_increasing_index(df)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         cond=False
         Not increasing indices are:
                                 0
         2000-01-01 09:03:00  0
         2000-01-01 09:02:00  0"""
-        self.assert_equal(act, exp, fuzzy_match=True)
-
-
-# #############################################################################
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -3815,7 +3759,6 @@ class Test_dassert_strictly_increasing_index(hunitest.TestCase):
 
 
 class Test_apply_index_mode(hunitest.TestCase):
-
     @staticmethod
     def get_test_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
@@ -3897,12 +3840,9 @@ class Test_apply_index_mode(hunitest.TestCase):
         # Check that both indices are equal, assert otherwise.
         with self.assertRaises(AssertionError) as cm:
             hpandas.apply_index_mode(df1_in, df2_in, mode)
-        act = str(cm.exception)
+        actual = str(cm.exception)
         # Check the error exception message.
-        self.check_string(act)
-
-
-# #############################################################################
+        self.check_string(actual)
 
 
 # #############################################################################
@@ -4009,7 +3949,6 @@ class Test_apply_column_mode(hunitest.TestCase):
 
 
 class Test_get_df_from_iterator(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that a dataframe is correctly built from an iterator of
@@ -4052,7 +3991,6 @@ class Test_get_df_from_iterator(hunitest.TestCase):
 
 
 class Test_multiindex_df_info1(hunitest.TestCase):
-
     @staticmethod
     def get_multiindex_df_with_datetime_index() -> pd.DataFrame:
         datetime_index = [
@@ -4134,9 +4072,9 @@ class Test_multiindex_df_info1(hunitest.TestCase):
         Test DataFrame with a datetime index.
         """
         df = self.get_multiindex_df_with_datetime_index()
-        act = hpandas.multiindex_df_info(df)
+        actual = hpandas.multiindex_df_info(df)
         # This is required by `pandas` >= 2.2.
-        exp = """
+        expected = """
             shape=2 x 4 x 5
             columns_level0=2 ['asset1', 'asset2']
             columns_level1=4 ['close', 'high', 'low', 'open']
@@ -4145,7 +4083,7 @@ class Test_multiindex_df_info1(hunitest.TestCase):
             end_timestamp=2022-01-01 21:05:00+00:00
             frequency=min
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -4160,8 +4098,8 @@ class Test_multiindex_df_info1(hunitest.TestCase):
             pd.Timestamp("2022-01-01 21:06:00+00:00"),
         ]
         df.index = non_frequency_datetime_index
-        act = hpandas.multiindex_df_info(df)
-        exp = """
+        actual = hpandas.multiindex_df_info(df)
+        expected = """
             shape=2 x 4 x 5
             columns_level0=2 ['asset1', 'asset2']
             columns_level1=4 ['close', 'high', 'low', 'open']
@@ -4170,24 +4108,21 @@ class Test_multiindex_df_info1(hunitest.TestCase):
             end_timestamp=2022-01-01 21:06:00+00:00
             frequency=None
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
         Test DataFrame with a non-datetime index.
         """
         df = self.get_multiindex_df_with_non_datetime_index()
-        act = hpandas.multiindex_df_info(df)
-        exp = """
+        actual = hpandas.multiindex_df_info(df)
+        expected = """
             shape=2 x 2 x 2
             columns_level0=2 ['A', 'B']
             columns_level1=2 ['X', 'Y']
             rows=2 ['M', 'N']
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
-
-
-# #############################################################################
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -4217,7 +4152,7 @@ class Test_cast_series_to_type(hunitest.TestCase):
         series_type = None
         actual = hpandas.cast_series_to_type(series, series_type)
         for i in range(len(actual)):
-            self.assertTrue(actual.iloc[i] is None)
+            self.assertIsNone(actual.iloc[i])
 
     def test4(self) -> None:
         series = pd.Series(["2020-01-01", "2020-02-02", "2020-03-03"])
@@ -4234,15 +4169,11 @@ class Test_cast_series_to_type(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_dassert_index_is_datetime
 # #############################################################################
 
 
 class Test_dassert_index_is_datetime(hunitest.TestCase):
-
     @staticmethod
     def get_multiindex_df(
         index_is_datetime: bool,
@@ -4304,12 +4235,12 @@ class Test_dassert_index_is_datetime(hunitest.TestCase):
         df = self.get_multiindex_df(index_is_datetime)
         with self.assertRaises(AssertionError) as cm:
             hpandas.dassert_index_is_datetime(df)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         cond=False
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -4318,12 +4249,12 @@ class Test_dassert_index_is_datetime(hunitest.TestCase):
         df = pd.DataFrame()
         with self.assertRaises(AssertionError) as cm:
             hpandas.dassert_index_is_datetime(df)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         Instance of 'RangeIndex(start=0, stop=0, step=1)' is '<class 'pandas.core.indexes.range.RangeIndex'>' instead of '<class 'pandas.core.indexes.datetimes.DatetimeIndex'>'
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test4(self) -> None:
         """
@@ -4336,15 +4267,11 @@ class Test_dassert_index_is_datetime(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_dassert_approx_eq1
 # #############################################################################
 
 
 class Test_dassert_approx_eq1(hunitest.TestCase):
-
     def test1(self) -> None:
         hpandas.dassert_approx_eq(1, 1.0000001)
 
@@ -4355,15 +4282,11 @@ class Test_dassert_approx_eq1(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_CheckSummary
 # #############################################################################
 
 
 class Test_CheckSummary(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         All the tests have passed.
@@ -4380,8 +4303,8 @@ class Test_CheckSummary(hunitest.TestCase):
         is_ok = obj.is_ok()
         self.assertTrue(is_ok)
         #
-        act = obj.report_outcome(notebook_output=False, assert_on_error=False)
-        self.check_string(act)
+        actual = obj.report_outcome(notebook_output=False, assert_on_error=False)
+        self.check_string(actual)
         # No assertion expected.
         obj.report_outcome()
 
@@ -4401,11 +4324,11 @@ class Test_CheckSummary(hunitest.TestCase):
         is_ok = obj.is_ok()
         self.assertFalse(is_ok)
         #
-        act = obj.report_outcome(notebook_output=False, assert_on_error=False)
-        self.check_string(act)
+        actual = obj.report_outcome(notebook_output=False, assert_on_error=False)
+        self.check_string(actual)
         #
         with self.assertRaises(ValueError) as e:
-            act = obj.report_outcome()
+            actual = obj.report_outcome()
         actual_exception = str(e.exception)
         expected_exception = r"""
         The checks have failed:
@@ -4418,15 +4341,11 @@ class Test_CheckSummary(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_compute_weighted_sum
 # #############################################################################
 
 
 class Test_compute_weighted_sum(hunitest.TestCase):
-
     def helper(
         self,
         index1: List[int],
@@ -4533,15 +4452,11 @@ class Test_compute_weighted_sum(hunitest.TestCase):
 
 
 # #############################################################################
-
-
-# #############################################################################
 # Test_list_to_str
 # #############################################################################
 
 
 class Test_list_to_str(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check that a list is converted to string correctly.
@@ -4586,7 +4501,6 @@ class Test_list_to_str(hunitest.TestCase):
 
 
 class Test_convert_to_type(hunitest.TestCase):
-
     def test_convert_to_type_bool(self) -> None:
         """
         Check converting to bool column.
@@ -4639,7 +4553,6 @@ class Test_convert_to_type(hunitest.TestCase):
 
 
 class Test_infer_column_types(hunitest.TestCase):
-
     def test_numeric_dominance(self) -> None:
         """
         Check with numeric dominant column.
@@ -4699,7 +4612,6 @@ class Test_infer_column_types(hunitest.TestCase):
 
 
 class Test_convert_df(hunitest.TestCase):
-
     def test_convert_df_all_bool(self) -> None:
         """
         A column of pure booleans should stay booleans.
@@ -4731,7 +4643,9 @@ class Test_convert_df(hunitest.TestCase):
         """
         A column of strings (and mixed non-numeric non-bool) stays as-is.
         """
-        df = pd.DataFrame({"name": ["alice", "bob", "", "charlie"]}, dtype=object)
+        df = pd.DataFrame(
+            {"name": ["alice", "bob", "", "charlie"]}, dtype=object
+        )
         df_out = hpandas.convert_df(df)
         print(df_out.head(5))
         assert isinstance(df_out, pd.DataFrame)

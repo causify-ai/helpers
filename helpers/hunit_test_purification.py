@@ -170,6 +170,8 @@ class TextPurifier:
             (r"class 'amp\.", "class '"),
             # Replace 'amp.helpers' with 'helpers' in package references.
             (r"\bamp\.helpers\b", "helpers"),
+            # Replace 'amp.app.helpers_root' with 'helpers'.
+            (r"\bamp\.app\.helpers_root\b", "helpers"),
             # Remove amp references from test creation comments.
             (r"# Test created for amp\.([\w\.]+)", r"# Test created for \1"),
             # Remove leading './' from relative paths.

@@ -55,11 +55,6 @@
   objects, sets, etc.), while JSON is more portable and human-readable but
   limited to basic types. The user can choose based on their use case.
 
-- **Argument Handling**: Cache keys are built using only positional arguments
-  (`args`) for simplicity and consistency. Keyword arguments (`kwargs`) are
-  ignored, which can lead to unexpected reuse of cache if the function behavior
-  changes based on `kwargs`.
-
 - **Property Storage**: Properties are stored in separate `user` and `system`
   pickle files to separate runtime configuration (user behavior) from
   infrastructure-level settings (e.g., storage format).
@@ -77,7 +72,7 @@
 
 - Flow example:
   - When a decorated function is called with arguments `(3,)`, the system:
-    - Checks if `_CACHE` contains the key `"(3,)"`
+    - Checks if `_CACHE` contains the key `'{"args": [3], "kwargs": {}}'`
     - Returns the cached value if found `(cache hit)`
     - Otherwise, calls the function to compute the result, stores it in
       `_CACHE`, and then returns it
@@ -178,9 +173,11 @@
       `@simple_cache(cache_type="json")`, the decorator sets the system property
       for the cache type
   - Wrapper execution:
-    - Key generation: The wrapper generates a `cache key` from the positional
-      arguments. (Keyword arguments are not part of the key in this
-      implementation.)
+    - Key generation: The wrapper generates a `cache key` from both arguments
+      and keyword arguments.
+      - Exclude Keys: The wrapper excludes certain keys from the cache key by
+        using the `exclude_keys` argument in the decorator. These keys are
+        omitted from `kwargs` when forming the cache key.
     - Cache lookup:
       - If the key exists in the memory cache (and no force refresh is
         requested), it returns the cached value
@@ -202,7 +199,7 @@
     ```
   - First call:
     - When you call `multiply_by_two(4)`, the cache key is generated (in this
-      case, `(4,)` as a string)
+      case, `{"args": [4], "kwargs": {}}` as a string)
     - Since the key is not in the cache, the function is executed, returning
       `8`, which is then stored in the `memory cache`.
   - Subsequent call:
@@ -217,9 +214,23 @@
   - Set Force Refresh:
     - With this property set, each call to `multiply_by_two(4)` will recompute
       the result and update the cache.
-  - Enable Write-Through:
+  - Enable `write_through`:
     - When using `@simple_cache(write_through=True)`, the decorator will flush
       the memory cache to disk immediately after updating.
+  - Exclude certain keys from cache key:
+    - Suppose we have a function that uses an OpenAI client to fetch
+      completions, but the actual output depends only on the prompt. The
+      `client` object should be excluded from the cache key because it varies
+      per session:
+      ```python
+      @simple_cache(exclude_keys=["client"])
+      def get_summary(prompt: str, client: Any):
+          return client.complete(prompt=prompt)
+      ```
+    - Without `exclude_keys=["client"]`, each call with a different `client`
+      instance (even for the same prompt) would result in a cache miss. This
+      exclusion ensures the cache key is based only on the `prompt`, improving
+      hit rates.
 
 ## Common Misunderstandings
 
@@ -228,7 +239,7 @@
   non-deterministic behavior (e.g., randomness, time-based logic) may yield
   inconsistent results.
 
-- **force_refresh Must Be Reset**: Once `force_refresh` is set, every call
+- **`force_refresh` Must Be Reset**: Once `force_refresh` is set, every call
   recomputes the result. Users must manually unset this flag if they want to
   resume normal caching.
 
@@ -254,7 +265,7 @@ flowchart TD
 
     %% Function Call Flow %%
     subgraph "Function Call Flow"
-        B1[Function Called with Args]
+        B1[Function Called with Args, Keyword Arguments]
         B2[Generate Cache Key]
         B3[Update Performance Totals]
         B4{force_refresh Enabled?}

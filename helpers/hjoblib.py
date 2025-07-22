@@ -335,7 +335,8 @@ def workload_to_string(workload: Workload, *, use_pprint: bool = True) -> str:
     validate_workload(workload)
     workload_func, func_name, tasks = workload
     txt = []
-    txt.append(f"workload_func={workload_func.__name__}")
+    workload_func_str = getattr(workload_func, "__name__", "unknown_function")
+    txt.append(f"workload_func={workload_func_str}")
     txt.append(f"func_name={func_name}")
     for i, task in enumerate(tasks):
         txt.append(f"# task {i + 1} / {len(tasks)}")
@@ -367,8 +368,8 @@ def _workload_function(*args: Any, **kwargs: Any) -> str:
     num_attempts = kwargs.pop("num_attempts")
     _ = incremental, num_attempts
     func_output: List[str] = []
-    func_output = "\n".join(func_output)
-    return func_output
+    result = "\n".join(func_output)
+    return result
 
 
 def _get_workload(
@@ -407,6 +408,23 @@ def get_num_executing_threads(args_num_threads: Union[str, int]) -> int:
     return num_executing_threads
 
 
+def _run_in_process(func: Callable, q: Queue, *args: Any, **kwargs: Any) -> None:
+    """
+    Run function as a process and store output in the input Queue.
+    """
+    _LOG.debug("pid after processify=", os.getpid())
+    try:
+        ret = func(*args, **kwargs)
+    except Exception:
+        # Store error logs in the queue.
+        ex_type, ex_value, tb = sys.exc_info()
+        error = ex_type, ex_value, "".join(traceback.format_tb(tb))
+        ret = None
+    else:
+        error = None
+    q.put((ret, error))
+
+
 # TODO(grisha): Add type hints, add unit test to understand the behavior.
 # From https://gist.github.com/schlamar/2311116
 # Note that this is not going to work with joblib.parallel with
@@ -420,37 +438,18 @@ def processify(func):
     created process is joined, so the code does not run in parallel.
     """
 
-    def process_func(q: Queue, *args: Any, **kwargs: Any) -> None:
-        """
-        Run function as a process and store output in the input Queue.
-        """
-        _LOG.debug("pid after processify=", os.getpid())
-        try:
-            ret = func(*args, **kwargs)
-        except Exception:
-            # Store error logs in the queue.
-            ex_type, ex_value, tb = sys.exc_info()
-            error = ex_type, ex_value, "".join(traceback.format_tb(tb))
-            ret = None
-        else:
-            error = None
-        q.put((ret, error))
-
-    # Register original function with different name in `sys.modules` so it is
-    # pickable.
-    process_func.__name__ = func.__name__ + "processify_func"
-    setattr(sys.modules[__name__], process_func.__name__, process_func)
-
     @wraps(func)
     def wrapper(*args, **kwargs):
         q = Queue()
-        p = Process(target=process_func, args=[q] + list(args), kwargs=kwargs)
+        p = Process(
+            target=_run_in_process, args=[func] + [q] + list(args), kwargs=kwargs
+        )
         p.start()
         ret, error = q.get()
         p.join()
         if error:
             ex_type, ex_value, tb_str = error
-            message = "%s (in subprocess)\n%s" % (ex_value.message, tb_str)
+            message = f"{ex_value.message} (in subprocess)\n{tb_str}"
             raise ex_type(message)
         return ret
 
@@ -519,14 +518,15 @@ def _parallel_execute_decorator(
     tag = f"{task_idx + 1}/{task_len} ({start_ts})"
     txt.append("\n" + hprint.frame(tag) + "\n")
     txt.append(f"tag={tag}")
-    txt.append(f"workload_func={workload_func.__name__}")
+    workload_func_str = getattr(workload_func, "__name__", "unknown_function")
+    txt.append(f"workload_func={workload_func_str}")
     txt.append(f"func_name={func_name}")
     txt.append(task_to_string(task))
     # Run the workload.
     args, kwargs = task
     kwargs.update({"incremental": incremental, "num_attempts": num_attempts})
     with htimer.TimedScope(
-        logging.DEBUG, f"Execute '{workload_func.__name__}'"
+        logging.DEBUG, f"Execute '{workload_func_str}'"
     ) as ts:
         try:
             if processify_func:

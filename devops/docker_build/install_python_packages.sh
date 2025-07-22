@@ -76,6 +76,16 @@ else
   fi;
 fi;
 
+# Custom package installation.
+echo "# Checking for custom package installation..."
+if [[ -f "./install_custom_packages.sh" ]]; then
+    echo "# Found custom installation script, executing..."
+    chmod +x "./install_custom_packages.sh"
+    source "./install_custom_packages.sh"
+else
+    echo "# No custom installation script found, skipping"
+fi
+
 # Clean up.
 if [[ $CLEAN_UP_INSTALLATION ]]; then
   echo "Cleaning up installation..."

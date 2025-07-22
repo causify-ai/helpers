@@ -150,12 +150,68 @@ foo
         actual_warnings = "\n".join(actual_warning_list)
         expected_warnings = (
             f"{temp_file}:2: Found unbalanced triple backticks; "
-            f"make sure both opening and closing backticks are "
-            f"the leftmost element of their line"
+            "make sure both opening and closing backticks are "
+            "the leftmost element of their line"
         )
         # Check.
         self.assertEqual(actual_warnings, expected_warnings)
         self.assert_equal(actual_content, text, fuzzy_match=True)
+
+    def test8(self) -> None:
+        """
+        Test that code blocks in a string literal are preserved.
+        """
+        # Prepare inputs.
+        text = """
+```
+doc1
+```
+A
+```
+doc2
+```
+B
+```
+doc3
+```
+C
+```
+doc4
+```
+D
+```
+doc5
+```
+E
+```
+doc6
+```
+F
+```
+doc7
+```
+G
+```
+doc8
+```
+H
+```
+doc9
+```
+I
+```
+doc10
+```
+J
+```
+doc11
+```
+        """
+        # Run.
+        actual, _, _ = self._docformatter(text)
+        # Check.
+        expected = text
+        self.assertEqual(expected.strip(), actual.strip())
 
     def _docformatter(self, text: str) -> Tuple[str, List[str], str]:
         """

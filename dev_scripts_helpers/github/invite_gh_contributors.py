@@ -46,9 +46,8 @@ REQUIRED_PACKAGES: List[str] = [
     "requests",
 ]
 
-INNER_SCRIPT_REL = (
-    "dev_scripts_helpers/github/dockerized_invite_gh_contributors.py"
-)
+INNER_SCRIPT_REL = "dockerized_invite_gh_contributors.py"
+
 CONTAINER_IMAGE_BASE = "tmp.invite_gh_contributors"
 
 
@@ -78,14 +77,10 @@ def _run_dockerized_invite(args: argparse.Namespace) -> None:  # noqa: D401
     caller_mount, callee_mount, mount_str = hdocker.get_docker_mount_info(
         is_host, sibling
     )
-    # Locate inner script (repo or CWD fallback).
-    try:
-        inner_script_host = hsystem.find_file_in_repo(
-            INNER_SCRIPT_REL, root_dir=hgit.find_git_root()
-        )
-    except AssertionError:
-        inner_script_host = os.path.abspath(INNER_SCRIPT_REL)
-        _LOG.warning("Using local path for inner script: %s", inner_script_host)
+    # Locate inner script.
+    inner_script_host = hsystem.find_file_in_repo(
+        INNER_SCRIPT_REL, root_dir=hgit.find_git_root()
+    )
     inner_script_docker = hdocker.convert_caller_to_callee_docker_path(
         inner_script_host,
         caller_mount,
@@ -137,6 +132,7 @@ def _run_dockerized_invite(args: argparse.Namespace) -> None:  # noqa: D401
     docker_cmd_parts = hdocker.get_docker_base_cmd(args.dockerized_use_sudo)
     docker_cmd_parts.extend(
         [
+            "-e GITHUB_TOKEN",
             f"-e PYTHONPATH={helpers_root_docker}",
             f"--workdir {callee_mount}",
             f"--mount {mount_str}",
@@ -180,7 +176,8 @@ def _parse() -> argparse.Namespace:
 def _main(args: argparse.Namespace) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hdbg.dassert(
-        os.getenv("GITHUB_TOKEN"), "Environment variable GITHUB_TOKEN must be set"
+        os.getenv("GITHUB_TOKEN"),
+        "Environment variable GITHUB_TOKEN must be set",
     )
     _run_dockerized_invite(args)
 

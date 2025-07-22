@@ -183,7 +183,7 @@ def convert_info_to_string(info: Mapping) -> str:
 
 # TODO(gp): This seems the python3.9 version of `to_str`. Remove if possible.
 def to_string(var: str) -> str:
-    return """f"%s={%s}""" % (var, var)
+    return f"""f"{var}={{{var}}}"""
 
 
 # TODO(gp): @all move to hpandas
@@ -331,8 +331,8 @@ def get_dir_signature(
     else:
         hdbg.dassert_is(num_lines, None)
     # Concat everything in a single string.
-    txt = "\n".join(txt)
-    return txt
+    result = "\n".join(txt)
+    return result
 
 
 # TODO(gp): GSI. Use the copy in helpers/hprint.py
@@ -674,7 +674,7 @@ def assert_equal(
     values: Dict[str, str] = collections.OrderedDict()
 
     def _append(tag: str, actual: str, expected: str) -> None:
-        _LOG.debug("tag=%s\n  act='\n%s'\n  exp='\n%s'", tag, actual, expected)
+        _LOG.debug("tag=%s\n  actual='\n%s'\n  expected='\n%s'", tag, actual, expected)
         hdbg.dassert_not_in(tag, values)
         values[tag] = (actual, expected)
 
@@ -753,7 +753,7 @@ def assert_equal(
     if not check_string:
         # If this is a `self.assert_equal()` and not a `self.check_string()`,
         # then print the correct output, like:
-        #   exp = r'"""
+        #   expected = r'"""
         #   2021-02-17 09:30:00-05:00
         #   2021-02-17 10:00:00-05:00
         #   2021-02-17 11:00:00-05:00
@@ -761,7 +761,7 @@ def assert_equal(
         txt = []
         txt.append(hprint.frame(f"ACTUAL VARIABLE: {full_test_name}", char1="-"))
         # TODO(gp): Switch to expected or expected_result.
-        exp_var = "exp = r"
+        exp_var = "expected = r"
         # We always return the variable exactly as this should be, even if we
         # could make it look better through indentation in case of fuzzy match.
         actual_orig = values["original"][0]
@@ -794,7 +794,7 @@ def assert_equal(
     if debug:
         for idx, key in enumerate(values.keys()):
             actual_tmp, expected_tmp = values[key]
-            tag = "%s.%s" % (idx, key)
+            tag = f"{idx}.{key}"
             _save_diff(actual_tmp, expected_tmp, tag, test_dir)
     else:
         key = "final"
@@ -1314,7 +1314,9 @@ class TestCase(unittest.TestCase):
                     # Create golden file and add it to the repo.
                     _LOG.warning("Creating the golden outcome")
                     outcome_updated = True
-                    self._check_string_update_outcome(file_name, actual, use_gzip)
+                    self._check_string_update_outcome(
+                        file_name, actual, use_gzip
+                    )
                     is_equal = None
                 else:
                     hdbg.dfatal(

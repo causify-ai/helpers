@@ -11,10 +11,9 @@ import os
 import random
 import re
 import string
-from typing import List, Match, Optional, Tuple, cast
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -106,7 +105,7 @@ def get_branch_next_name(
     max_num_ids = 100
     for i in range(1, max_num_ids):
         new_branch_name = f"{curr_branch_name}_{i}"
-        _LOG.log(log_verb, "Trying branch name '%s'", new_branch_name)
+        _LOG.info("Trying branch name '%s' ...", new_branch_name)
         mode = "all"
         exists = does_branch_exist(new_branch_name, mode, dir_name=dir_name)
         _LOG.log(log_verb, "-> exists=%s", exists)
@@ -131,7 +130,6 @@ def get_branch_hash(dir_name: str = ".") -> str:
     cmd = f"cd {dir_name} && git merge-base master {curr_branch_name}"
     _, hash_ = hsystem.system_to_string(cmd)
     hash_ = hash_.rstrip("\n").lstrip("\n")
-    hash_ = cast(str, hash_)
     hdbg.dassert_eq(len(hash_.split("\n")), 1)
     return hash_
 
@@ -187,6 +185,8 @@ def find_git_root(path: str = ".") -> str:
     :param path: starting file system path. Defaults to the current directory (".")
     :return: absolute path to the top-level Git repository directory
     """
+    import helpers.hio as hio
+
     path = os.path.abspath(path)
     git_root_dir = None
     while True:
@@ -270,7 +270,6 @@ def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     _LOG.debug(hprint.to_str("cmd"))
     _, res = hsystem.system_to_one_line(cmd)
     hdbg.dassert_ne(res, "Can't find file '%s' in '%s'", file_name, dir_path)
-    res = cast(str, res)
     return res
 
 
@@ -299,9 +298,7 @@ def find_helpers_root(dir_path: str = ".") -> str:
         # Make sure the dir and that `helpers` subdir exists.
         hdbg.dassert_dir_exists(helpers_root)
         hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
-    # TODO(gp): Unclear why this happens.
-    helpers_root_ = cast(str, helpers_root)
-    return helpers_root_
+    return helpers_root
 
 
 # #############################################################################
@@ -708,13 +705,18 @@ def _parse_github_repo_name(repo_name: str) -> Tuple[str, str]:
         # Try tp parse the HTTPS format, e.g., `https://github.com/alphamatic/amp`
         m = re.match(r"^https://(\S+.com)/(\S+)$", repo_name)
     hdbg.dassert(m, "Can't parse '%s'", repo_name)
-    m: Match[str]
+    # The linter doesn't understand that `dassert` is equivalent to an
+    # `assert`.
+    assert m is not None
     host_name = m.group(1)
     repo_name = m.group(2)
     _LOG.debug("host_name=%s repo_name=%s", host_name, repo_name)
     # We expect something like "alphamatic/amp".
     m = re.match(r"^\S+/\S+$", repo_name)
     hdbg.dassert(m, "repo_name='%s'", repo_name)
+    # The linter doesn't understand that `dassert` is equivalent to an
+    # `assert`.
+    assert m is not None
     # origin  git@github.com:.../ORG_....git (fetch)
     suffix_to_remove = ".git"
     if repo_name.endswith(suffix_to_remove):
@@ -1292,7 +1294,6 @@ def git_describe(
         cmd = f"{cmd} --match '{match}'"
     num, tag = hsystem.system_to_one_line(cmd, log_level=log_level)
     _ = num
-    tag = cast(str, tag)
     return tag
 
 
@@ -1373,7 +1374,6 @@ def _get_gh_pr_list() -> str:
     cmd = "gh pr list -s all --limit 1000"
     rc, txt = hsystem.system_to_string(cmd)
     _ = rc
-    txt = cast(str, txt)
     return txt
 
 
