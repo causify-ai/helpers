@@ -35,41 +35,41 @@ class Test_process_question1(hunitest.TestCase):
         txt_in = "* Hope is not a strategy"
         do_continue_exp = True
         exp = "- **Hope is not a strategy**"
-        self.helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
     def test_process_question2(self) -> None:
         txt_in = "** Hope is not a strategy"
         do_continue_exp = True
         exp = "- **Hope is not a strategy**"
-        self.helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
     def test_process_question3(self) -> None:
         txt_in = "*: Hope is not a strategy"
         do_continue_exp = True
         exp = "- **Hope is not a strategy**"
-        self.helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
     def test_process_question4(self) -> None:
         txt_in = "- Systems don't run themselves, they need to be run"
         do_continue_exp = False
         exp = txt_in
-        self.helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
     def test_process_question5(self) -> None:
         space = "   "
         txt_in = "*" + space + "Hope is not a strategy"
         do_continue_exp = True
         exp = "-" + space + "**Hope is not a strategy**"
-        self.helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
     def test_process_question6(self) -> None:
         space = "   "
         txt_in = "**" + space + "Hope is not a strategy"
         do_continue_exp = True
         exp = "-" + " " * len(space) + "**Hope is not a strategy**"
-        self.helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
-    def helper_process_question(
+    def helper(
         self, txt_in: str, do_continue_exp: bool, exp: str
     ) -> None:
         do_continue, act = dshdprno._process_question_to_markdown(txt_in)
@@ -176,7 +176,7 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
     """
 
     @staticmethod
-    def run_preprocess_notes(in_file: str, out_file: str, type_: str) -> str:
+    def helper(in_file: str, out_file: str, type_: str) -> str:
         """
         Execute the end-to-end flow for `preprocess_notes.py` returning the output
         as string.
@@ -204,7 +204,7 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
         type_ = "pdf"
         # Run.
-        act = self.run_preprocess_notes(in_file, out_file, type_)
+        act = self.helper(in_file, out_file, type_)
         # Check.
         self.check_string(act)
 
@@ -214,7 +214,7 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
         type_ = "pdf"
         # Run.
-        act = self.run_preprocess_notes(in_file, out_file, type_)
+        act = self.helper(in_file, out_file, type_)
         # Check.
         self.check_string(act)
 
@@ -224,6 +224,6 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
         type_ = "pdf"
         # Run.
-        act = self.run_preprocess_notes(in_file, out_file, type_)
+        act = self.helper(in_file, out_file, type_)
         # Check.
         self.check_string(act)

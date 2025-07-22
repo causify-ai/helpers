@@ -1,9 +1,5 @@
-import logging
-
 import helpers.hmarkdown as hmarkdo
 import helpers.hunit_test as hunitest
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -11,7 +7,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(gp): -> Move to hmarkdown_coloring.py
 class Test_process_color_commands1(hunitest.TestCase):
     def test_text_content1(self) -> None:
         """
@@ -90,7 +85,29 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
             - Assumptions may not align with practical problems
         """
         # Run function.
-        actual = hmarkdo.colorize_bullet_points_in_slide(text)
+        all_md_colors = [
+    "red",
+    "orange",
+    "yellow",
+    "lime",
+    "green",
+    "teal",
+    "cyan",
+    "blue",
+    "purple",
+    "violet",
+    "magenta",
+    "pink",
+    "brown",
+    "olive",
+    "gray",
+    "darkgray",
+    "lightgray",
+    "black",
+    "white",
+    ]
+
+        actual = hmarkdo.colorize_bullet_points_in_slide(text, all_md_colors=all_md_colors)
         # Check output.
         expected = r"""
         - **\red{VC Theory}**
@@ -153,35 +170,24 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         actual = hmarkdo.colorize_bullet_points_in_slide(text)
         # Check output.
         expected = r"""
-        * Machine Learning Flow
+        - **\red{VC Theory}**
+            - Measures model
 
-        ::: columns
-        :::: {.column width=90%}
-        - Question
-        - E.g., "How can we predict house prices?"
-        - Input data
-        - E.g., historical data of house sales
+        - **\yellow{Bias-Variance Decomposition}**
+            - Prediction error
+                - **\green{Bias}**
+                - **\cyan{Variance}**
 
-        - _"If I were given one hour to save the planet, I would spend 59 minutes
-        defining the problem and one minute resolving it"_ (Albert Einstein)
+        - **\purple{Computation Complexity}**
+            - Balances model
+            - Related to
+            - E.g., Minimum
 
-        - **\\red{Not all phases are equally important!}**
-        - Question $>$ Data $>$ Features $>$ Algorithm
-        - Clarity of the question impacts project success
-        - Quality and relevance of data are crucial for performance
-        - Proper feature selection simplifies the model and improves accuracy
-        - Algorithm is often less important (contrary to popular belief!)
-        ::::
-        :::: {.column width=5%}
+        - **\magenta{Bayesian Approach}**
+            - Treats ML as probability
+            - Combines prior knowledge with observed data to update belief about a model
 
-        ```graphviz[height=90%]
-        digraph BayesianFlow {
-            rankdir=TD;
-            splines=true;
-            ...
-        }
-        ```
-        ::::
-        :::
+        - **\brown{Problem in ML Theory:}**
+            - Assumptions may not align with practical problems
         """
         self.assert_equal(actual, expected)
