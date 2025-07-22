@@ -967,7 +967,7 @@ def misc_categorize_topics() -> _PROMPT_OUT:
 # #############################################################################
 
 
-def _review_from_file_old(file: str) -> _PROMPT_OUT:
+def _review_from_file(file: str) -> _PROMPT_OUT:
     """
     Review the code for refactoring opportunities.
     """
@@ -1063,7 +1063,8 @@ def _review_from_file_old(file: str) -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def _review_from_file(file: str) -> _PROMPT_OUT:
+#def _review_from_file(file: str) -> _PROMPT_OUT:
+def _review_from_file_new(file: str) -> _PROMPT_OUT:
     """
     Apply the rules from a reference file to the code.
     """
