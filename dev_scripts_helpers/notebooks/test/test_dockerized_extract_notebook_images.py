@@ -24,8 +24,8 @@ class TestNotebookImageExtractor1(hunitest.TestCase):
             input_dir, "test_notebook_image_extractor.ipynb"
         )
         # Run the function.
-        act = dshndb._NotebookImageExtractor._extract_regions_from_notebook(
+        actual = dshndb._NotebookImageExtractor._extract_regions_from_notebook(
             src_test_notebook
         )
         # Check the output.
-        print(act)
+        print(actual)

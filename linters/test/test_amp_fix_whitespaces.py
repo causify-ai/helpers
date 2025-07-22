@@ -14,11 +14,11 @@ class Test_replace_tabs_with_spaces(hunitest.TestCase):
             "Many\ttabs\tsome \twith\t spaces\t\tor \t\t double": "Many    tabs    some    with     spaces     or       double",
         }
         num_spaces = 4
-        for line, exp in in_out_dict.items():
+        for line, expected in in_out_dict.items():
             actual = lamfiwhi._replace_tabs_with_spaces(
                 line, num_spaces=num_spaces
             )
-            self.assertEqual(exp, actual)
+            self.assertEqual(expected, actual)
 
 
 class Test_remove_trailing_whitespaces(hunitest.TestCase):
@@ -32,9 +32,9 @@ class Test_remove_trailing_whitespaces(hunitest.TestCase):
             "trailing space and carriage return \r": "trailing space and carriage return",
             "\r text with non-trailing whitespaces": "\r text with non-trailing whitespaces",
         }
-        for line, exp in in_out_dict.items():
+        for line, expected in in_out_dict.items():
             actual = lamfiwhi._remove_trailing_whitespaces(line)
-            self.assertEqual(exp, actual)
+            self.assertEqual(expected, actual)
 
 
 class Test_format_end_of_file(hunitest.TestCase):
@@ -48,6 +48,6 @@ class Test_format_end_of_file(hunitest.TestCase):
             (["first", "second", "", ""], ["first", "second", ""]),
             (["first", "second", "", "\r", ""], ["first", "second", ""]),
         ]
-        for lines, exp in in_out_lst:
+        for lines, expected in in_out_lst:
             actual = lamfiwhi._format_end_of_file(lines)
-            self.assertEqual(exp, actual)
+            self.assertEqual(expected, actual)

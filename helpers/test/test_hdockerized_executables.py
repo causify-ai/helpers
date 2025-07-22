@@ -39,7 +39,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
     Test running the `prettier` command inside a Docker container.
     """
 
-    def helper(self, txt: str, exp: str) -> None:
+    def helper(self, txt: str, expected: str) -> None:
         """
         Test running the `prettier` command in a Docker container.
 
@@ -66,9 +66,9 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check.
-        act = hio.from_file(out_file_path)
+        actual = hio.from_file(out_file_path)
         self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
         )
 
     def test1(self) -> None:
@@ -77,12 +77,12 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
           - B
               - C
                 """
-        exp = """
+        expected = """
         - A
           - B
             - C
         """
-        self.helper(txt, exp)
+        self.helper(txt, expected)
 
     def test2(self) -> None:
         txt = r"""
@@ -91,13 +91,13 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
         1. choose the right tasks
             -   avoid non-essential tasks
         """
-        exp = r"""
+        expected = r"""
         - Good time management
 
         1. choose the right tasks
            - avoid non-essential tasks
         """
-        self.helper(txt, exp)
+        self.helper(txt, expected)
 
 
 # #############################################################################
@@ -113,9 +113,9 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        act = hdocexec.convert_pandoc_cmd_to_arguments(cmd)
+        actual = hdocexec.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
-        exp = {
+        expected = {
             "input": "input.md",
             "output": "output.pdf",
             "in_dir_params": {
@@ -125,7 +125,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
             },
             "cmd_opts": ["--toc", "--toc-depth", "2"],
         }
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(actual), str(expected))
 
     def test2(self) -> None:
         # Prepare inputs.
@@ -134,9 +134,9 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        act = hdocexec.convert_pandoc_cmd_to_arguments(cmd)
+        actual = hdocexec.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
-        exp = {
+        expected = {
             "input": "input.md",
             "output": "output.pdf",
             "in_dir_params": {
@@ -146,7 +146,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
             },
             "cmd_opts": ["--toc"],
         }
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(actual), str(expected))
 
     def test3(self) -> None:
         # Prepare inputs.
@@ -160,9 +160,9 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        act = hdocexec.convert_pandoc_cmd_to_arguments(cmd)
+        actual = hdocexec.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
-        exp = {
+        expected = {
             "input": "test/outcomes/tmp.pandoc.preprocess_notes.txt",
             "output": "test/outcomes/tmp.pandoc.tex",
             "in_dir_params": {
@@ -185,7 +185,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
                 "2",
             ],
         }
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(actual), str(expected))
 
     def test_parse_and_convert1(self) -> None:
         # Prepare inputs.
@@ -198,9 +198,9 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         # Convert back to command.
         converted_cmd = hdocexec.convert_pandoc_arguments_to_cmd(parsed_args)
         # Check that the converted command matches the original command.
-        act = "pandoc " + converted_cmd
-        exp = cmd
-        self.assert_equal(act, exp)
+        actual = "pandoc " + converted_cmd
+        expected = cmd
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -218,7 +218,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
     Test running the `pandoc` command inside a Docker container.
     """
 
-    def run_pandoc(self, txt: str, exp: str) -> None:
+    def run_pandoc(self, txt: str, expected: str) -> None:
         """
         Test running the `pandoc` command in a Docker container.
 
@@ -238,9 +238,9 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         use_sudo = hdocker.get_use_sudo()
         hdocexec.run_dockerized_pandoc(cmd, container_type, use_sudo=use_sudo)
         # Check.
-        act = hio.from_file(out_file_path)
+        actual = hio.from_file(out_file_path)
         self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
         )
 
     def test1(self) -> None:
@@ -254,7 +254,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         -  Hello
             - World
         """
-        exp = r"""
+        expected = r"""
         - [Good](#good){#toc-good}
           - [Bad](#bad){#toc-bad}
 
@@ -270,7 +270,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
         - Hello
           - World
         """
-        self.run_pandoc(txt, exp)
+        self.run_pandoc(txt, expected)
 
 
 # #############################################################################
@@ -284,7 +284,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_run_markdown_toc1(hunitest.TestCase):
-    def run_markdown_toc(self, txt: str, exp: str) -> None:
+    def run_markdown_toc(self, txt: str, expected: str) -> None:
         """
         Test running the `markdown-toc` command in a Docker container.
         """
@@ -300,9 +300,9 @@ class Test_run_markdown_toc1(hunitest.TestCase):
             force_rebuild=force_rebuild,
         )
         # Check.
-        act = hio.from_file(in_file_path)
+        actual = hio.from_file(in_file_path)
         self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
+            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
         )
 
     def test1(self) -> None:
@@ -321,7 +321,7 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         -  Hello
             - World
         """
-        exp = r"""
+        expected = r"""
         <!-- toc -->
 
         - [Good](#good)
@@ -338,7 +338,7 @@ class Test_run_markdown_toc1(hunitest.TestCase):
         -  Hello
             - World
         """
-        self.run_markdown_toc(txt, exp)
+        self.run_markdown_toc(txt, expected)
 
 
 # #############################################################################

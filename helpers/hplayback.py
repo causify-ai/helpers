@@ -248,26 +248,26 @@ class Playback:
             if isinstance(func_output, (pd.DataFrame, pd.Series, str)):
                 if not isinstance(func_output, str):
                     self._append(
-                        "act = hpandas.df_to_str(act, num_rows=None)", 2
+                        "actual = hpandas.df_to_str(actual, num_rows=None)", 2
                     )
             if not isinstance(func_output, (str, bytes)):
-                self._append("act = str(act)", 2)
+                self._append("actual = str(actual)", 2)
             self._append("# Check output.", 2)
-            self._append("self.check_string(act)", 2)
+            self._append("self.check_string(actual)", 2)
         elif self.mode == "assert_equal":
             self._append("# Define expected output.", 2)
             func_output_as_code = to_python_code(func_output)
-            self._append(f"exp = {func_output_as_code}", 2)
+            self._append(f"expected = {func_output_as_code}", 2)
             if not isinstance(
                 func_output, (int, float, str, list, dict, pd.DataFrame)
             ):
-                self._append("exp = jsonpickle.decode(exp)", 2)
+                self._append("expected = jsonpickle.decode(expected)", 2)
 
             if isinstance(func_output, (pd.DataFrame, pd.Series)):
-                self._append("act = hpandas.df_to_str(act, num_rows=None)", 2)
-                self._append("exp = hpandas.df_to_str(exp, num_rows=None)", 2)
+                self._append("actual = hpandas.df_to_str(actual, num_rows=None)", 2)
+                self._append("expected = hpandas.df_to_str(expected, num_rows=None)", 2)
             self._append("# Compare actual and expected output.", 2)
-            self._append("self.assertEqual(act, exp)", 2)
+            self._append("self.assertEqual(actual, expected)", 2)
         else:
             raise ValueError(f"Invalid mode='{self.mode}'")
 
@@ -335,7 +335,7 @@ class Playback:
         self._append("# Call function to test.", 2)
         if self._parent_class is None:
             fnc_call = [f"{k}={k}" for k in self._kwargs.keys()]
-            self._append(f"act = {self._func_name}({', '.join(fnc_call)})", 2)
+            self._append(f"actual = {self._func_name}({', '.join(fnc_call)})", 2)
         else:
             var_code = to_python_code(self._parent_class)
             # Re-create the parent class.
@@ -344,7 +344,7 @@ class Playback:
             fnc_call = [f"{k}={k}" for k in self._kwargs.keys()]
             # Call the method as a child of the parent class.
             self._append(
-                f"act = cls.{self._func_name}({', '.join(fnc_call)})", 2
+                f"actual = cls.{self._func_name}({', '.join(fnc_call)})", 2
             )
 
     def _add_var_definitions(self) -> None:

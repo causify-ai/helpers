@@ -72,7 +72,7 @@ class Test_process_question1(hunitest.TestCase):
     def helper(self, txt_in: str, do_continue_exp: bool, exp: str) -> None:
         do_continue, act = dshdprno._process_question_to_markdown(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
-        self.assert_equal(act, exp)
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -117,9 +117,9 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         # Execute function.
         type_ = "pdf"
-        act = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
         # Check.
-        exp = r"""
+        expected = r"""
         ---
         fontsize: 10pt
         ---

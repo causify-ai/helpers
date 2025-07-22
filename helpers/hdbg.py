@@ -453,9 +453,9 @@ def _set_to_str(set_: Set[Any], thr: Optional[int] = 20) -> str:
     ```
     with self.assertRaises(AssertionError) as cm:
         ...
-    act = str(cm.exception)
-    exp = r
-    self.assert_equal(act, exp, fuzzy_match=True)
+    actual = str(cm.exception)
+    expected = r
+    self.assert_equal(actual, expected, fuzzy_match=True)
     ```
     """
     try:
