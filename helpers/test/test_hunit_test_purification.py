@@ -28,10 +28,10 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_purify_text1(hunitest.TestCase):
-    def check_helper(self, txt: str, exp: str, **kwargs: Any) -> None:
+    def check_helper(self, txt: str, expected: str) -> None:
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_txt_from_client(txt)
-        self.assert_equal(act, exp, **kwargs)
+        actual = text_purifier.purify_txt_from_client(txt)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         txt = "amp/helpers/test/test_system_interaction.py"
@@ -127,7 +127,7 @@ class Test_purify_text1(hunitest.TestCase):
         """
         txt = hprint.dedent(txt)
         txt = txt.replace("$SUPER_MODULE", super_module_path)
-        exp = r"""
+        expected = r"""
         ************* Module input [pylint]
         $GIT_ROOT/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py: Your code has been rated at -10.00/10 (previous run: -10.00/10, +0.00) [pylint]
         $GIT_ROOT/dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3:20: W605 invalid escape sequence '\s' [flake8]
@@ -138,7 +138,7 @@ class Test_purify_text1(hunitest.TestCase):
         dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/input.py:3: error: Name 're' is not defined [mypy]
         """
         # pylint: enable=line-too-long
-        self.check_helper(txt, exp, dedent=True)
+        self.check_helper(txt, expected, dedent=True)
 
     def test10(self) -> None:
         """

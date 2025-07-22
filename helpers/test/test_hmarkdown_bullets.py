@@ -534,7 +534,9 @@ class Test_process_lines1(hunitest.TestCase):
             _LOG.debug(hprint.to_str("line"))
             out.append(f"{i}:{line}")
         actual = "\n".join(out)
-        self.check_string(actual, dedent=True, remove_lead_trail_empty_lines=True)
+        self.check_string(
+            actual, dedent=True, remove_lead_trail_empty_lines=True
+        )
 
 
 # #############################################################################
@@ -566,4 +568,6 @@ class Test_process_code_block1(hunitest.TestCase):
         txt_in = hio.from_file(input_file_path)
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         actual = self.helper_process_code_block(txt_in)
-        self.check_string(actual, dedent=True, remove_lead_trail_empty_lines=True)
+        self.check_string(
+            actual, dedent=True, remove_lead_trail_empty_lines=True
+        )

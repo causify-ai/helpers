@@ -243,8 +243,8 @@ class Test_lint_notes2(hunitest.TestCase):
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self._get_text_problematic_for_prettier1()
-        act = hdocexec.prettier_on_str(txt, file_type="txt")
-        exp = r"""
+        actual = hdocexec.prettier_on_str(txt, file_type="txt")
+        expected = r"""
         - Python formatting
 
         * Python has several built-in ways of formatting strings
@@ -336,7 +336,9 @@ class Test_lint_notes2(hunitest.TestCase):
         file_name = os.path.join(self.get_scratch_space(), file_name)
         actual = dshdlino._process(txt, file_name)
         if expected:
-            expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+            expected = hprint.dedent(
+                expected, remove_lead_trail_empty_lines_=True
+            )
             self.assert_equal(actual, expected)
         return actual
 

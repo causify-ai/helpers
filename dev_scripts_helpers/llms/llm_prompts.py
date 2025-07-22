@@ -1063,7 +1063,7 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-#def _review_from_file(file: str) -> _PROMPT_OUT:
+# def _review_from_file(file: str) -> _PROMPT_OUT:
 def _review_from_file_new(file: str) -> _PROMPT_OUT:
     """
     Apply the rules from a reference file to the code.
@@ -1092,7 +1092,7 @@ def _review_from_file_new(file: str) -> _PROMPT_OUT:
             reference_txt, guideline.line_number
         )
         print(rules)
-    #assert 0
+    # assert 0
     system += rf"""
     You will **analyze the code** and report only violations of the coding rules described below.
 

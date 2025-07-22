@@ -212,9 +212,9 @@ class Test_parse_rules_from_txt1(hunitest.TestCase):
         # Call function.
         actual = hmarkdo.parse_rules_from_txt(text)
         # Check output.
-        act = str(actual)
+        actual = str(actual)
         expected = str(expected)
-        self.assert_equal(act, expected, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test_basic_list1(self) -> None:
         """
@@ -299,7 +299,9 @@ class Test_end_to_end_rules1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True)
 
-    def helper_extract_rules(self, selection_rules: List[str], expected: str) -> None:
+    def helper_extract_rules(
+        self, selection_rules: List[str], expected: str
+    ) -> None:
         """
         Helper function to test extracting rules from a markdown file.
         """
