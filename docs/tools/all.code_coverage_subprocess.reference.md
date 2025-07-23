@@ -64,9 +64,24 @@ Containers built with `hdocker.build_container_image()` automatically include:
 Manual Docker setup requires:
 
 ```dockerfile
-RUN pip install coverage pytest pytest-cov
+RUN pip install --no-cache-dir coverage pytest pytest-cov
+
+# Create coverage data directory with proper permissions.
 RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data
-# Install Coverage Hook in Site-Packages
+
+# Setup coverage configuration.
+COPY .coveragerc /app/coverage_data/.coveragerc
+ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc
+
+# Create coverage.pth file for automatic startup.
+# This ensures coverage tracking starts automatically when Python runs.
+RUN python - <<PYCODE
+import site, os
+site_dir = site.getsitepackages()[0]
+pth_file = os.path.join(site_dir, 'coverage.pth')
+with open(pth_file, 'w') as f:
+    f.write('import coverage; coverage.process_startup()')
+PYCODE
 ```
 
 ## Troubleshooting

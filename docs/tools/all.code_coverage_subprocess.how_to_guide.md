@@ -92,22 +92,24 @@ coverage support.
 For manual Docker setups, add to your Dockerfile:
 
 ```dockerfile
-# Install Coverage and Testing Dependencies
 RUN pip install --no-cache-dir coverage pytest pytest-cov
 
-# Create Coverage Data Directory
+# Create coverage data directory with proper permissions.
 RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data
 
-# Copy Coverage Configuration
+# Setup coverage configuration.
 COPY .coveragerc /app/coverage_data/.coveragerc
 ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc
 
-# Install Coverage Hook
-RUN python -c "import site, os; \
-    site_dir = site.getsitepackages()[0]; \
-    pth_file = os.path.join(site_dir, 'coverage.pth'); \
-    with open(pth_file, 'w') as f: \
-        f.write('import coverage; coverage.process_startup()')"
+# Create coverage.pth file for automatic startup.
+# This ensures coverage tracking starts automatically when Python runs.
+RUN python - <<PYCODE
+import site, os
+site_dir = site.getsitepackages()[0]
+pth_file = os.path.join(site_dir, 'coverage.pth')
+with open(pth_file, 'w') as f:
+    f.write('import coverage; coverage.process_startup()')
+PYCODE
 ```
 
 ### Step 5: Run Tests with Coverage
