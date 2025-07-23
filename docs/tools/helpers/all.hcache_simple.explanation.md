@@ -2,7 +2,7 @@
 
 - [Cache Simple](#cache-simple)
   * [Overview](#overview)
-  * [Design Rationale and Trade-Offs](#design-rationale-and-trade-offs)
+  * [Design Rationale and Trade-offs](#design-rationale-and-trade-offs)
   * [Memory Cache](#memory-cache)
   * [Disk Cache](#disk-cache)
   * [Cache Performance Monitoring](#cache-performance-monitoring)
@@ -39,7 +39,7 @@
 - Additionally, the system monitors cache performance and allows users to
   configure caching behavior via `user` and `system` properties
 
-## Design Rationale and Trade-Offs
+## Design Rationale and Trade-offs
 
 - **Memory vs Disk**: Memory cache provides fast access but is volatile and
   non-persistent. Disk cache persists across sessions but comes with I/O
