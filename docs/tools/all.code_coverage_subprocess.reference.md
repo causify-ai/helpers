@@ -66,15 +66,15 @@ Manual Docker setup requires:
 ```dockerfile
 RUN pip install --no-cache-dir coverage pytest pytest-cov
 
-# Create coverage data directory with proper permissions.
+# Create Coverage Data Directory with Proper Permissions.
 RUN mkdir -p /app/coverage_data && chmod 777 /app/coverage_data
 
-# Setup coverage configuration.
+# Setup Coverage Configuration.
 COPY .coveragerc /app/coverage_data/.coveragerc
 ENV COVERAGE_PROCESS_START=/app/coverage_data/.coveragerc
 
-# Create coverage.pth file for automatic startup.
-# This ensures coverage tracking starts automatically when Python runs.
+# Create Coverage.Pth File for Automatic Startup.
+# This Ensures Coverage Tracking Starts Automatically When Python Runs.
 RUN python - <<PYCODE
 import site, os
 site_dir = site.getsitepackages()[0]

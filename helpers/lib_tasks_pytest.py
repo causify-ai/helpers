@@ -15,6 +15,7 @@ from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
+import helpers.hcoverage as hcovera
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
@@ -28,7 +29,6 @@ import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_lint as hlitalin
 import helpers.lib_tasks_utils as hlitauti
 import helpers.repo_config_utils as hrecouti
-import helpers.hcoverage as hcovera
 
 _LOG = logging.getLogger(__name__)
 
@@ -151,9 +151,7 @@ def _build_run_command_line(
     timeout_in_sec = _TEST_TIMEOUTS_IN_SECS[test_list_name]
     # Detect if we are running on a CK dev server / inside CI
     # or a laptop outside the CK infra.
-    is_outside_ck_infra = (
-        not hserver.is_dev_csfy() and not hserver.is_inside_ci()
-    )
+    is_outside_ck_infra = not hserver.is_dev_csfy() and not hserver.is_inside_ci()
     if is_outside_ck_infra:
         timeout_multiplier = 10
         _LOG.warning(
@@ -420,9 +418,7 @@ def _get_custom_marker(
     """
     # If we are running outside the CK server / CI, tests requiring CK infra
     # should be automatically skipped.
-    is_outside_ck_infra = (
-        not hserver.is_dev_csfy() and not hserver.is_inside_ci()
-    )
+    is_outside_ck_infra = not hserver.is_dev_csfy() and not hserver.is_inside_ci()
     # Skip tests that requires CK infra.
     if is_outside_ck_infra:
         _LOG.warning(
@@ -994,15 +990,18 @@ def run_coverage(ctx, suite, target_dir=".", generate_html_report=False):  # typ
     docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
     hlitauti.run(ctx, docker_cmd_)
 
+
 @task
-def run_coverage_subprocess(ctx, target_dir=".", generate_html_report=False): # type: ignore 
+def run_coverage_subprocess(ctx, target_dir=".", generate_html_report=False):  # type: ignore
     """
-    Run comprehensive coverage using subprocess mode with hcoverage injection and direct coverage run.
-    This function runs all tests (fast, slow, superslow) to generate complete coverage.
+    Run comprehensive coverage using subprocess mode with hcoverage injection
+    and direct coverage run. This function runs all tests (fast, slow,
+    superslow) to generate complete coverage.
 
     :param ctx: invoke context
     :param target_dir: directory to measure coverage
-    :param generate_html_report: whether to generate HTML coverage report or not
+    :param generate_html_report: whether to generate HTML coverage
+        report or not
     """
     _LOG.info("Running comprehensive test coverage with subprocess injection...")
     # Inject coverage hooks.
@@ -1024,16 +1023,21 @@ def run_coverage_subprocess(ctx, target_dir=".", generate_html_report=False): # 
         # Combine coverage data from subprocesses directly.
         hcovera.coverage_combine()
         hdbg.dassert_file_exists(".coverage")
-        include_in_report, exclude_from_report = _get_inclusion_settings(target_dir)
-        include_in_report = include_in_report.replace("/./", "/").replace("//", "/")
+        include_in_report, exclude_from_report = _get_inclusion_settings(
+            target_dir
+        )
+        include_in_report = include_in_report.replace("/./", "/").replace(
+            "//", "/"
+        )
         report_cmd: List[str] = []
         # Generate a text report, including only our target paths.
         report_stats_cmd = (
-            f"coverage report "
-            f"--include={include_in_report} --sort=Cover"
+            f"coverage report " f"--include={include_in_report} --sort=Cover"
         )
         if exclude_from_report:
-            exclude_from_report = exclude_from_report.replace("/./", "/").replace("//", "/")
+            exclude_from_report = exclude_from_report.replace("/./", "/").replace(
+                "//", "/"
+            )
             report_stats_cmd += f" --omit={exclude_from_report}"
         report_cmd.append(report_stats_cmd)
         if generate_html_report:
@@ -1047,12 +1051,13 @@ def run_coverage_subprocess(ctx, target_dir=".", generate_html_report=False): # 
         full_report_cmd = " && ".join(report_cmd)
         # Run coverage report commands directly (avoid Docker-in-Docker issues).
         hsystem.system(full_report_cmd, abort_on_error=True)
-    except Exception as e:
+    except Exception:
         _LOG.error("Coverage with subprocess failed: {e}")
         raise
     finally:
         # Always cleanup coverage hooks.
         hcovera.remove()
+
 
 # #############################################################################
 # Traceback.
