@@ -180,7 +180,9 @@
 
   run_blank_tests                                       (ONLY CI/CD) Test that pytest in the container works.
   run_coverage_report                                   Compute test coverage stats.
-  run_fast_slow_superslow_tests                         Run fast, slow, superslow tests back-to-back.
+  run_coverage_subprocess                               Run comprehensive coverage using subprocess mode with hcoverage injection and direct
+                                                        coverage run.
+  run_fast_slow_superslow_tests                         Run fast, slow, superslow tests back-to-back.back-to-back.
   run_fast_slow_tests                                   Run fast and slow tests back-to-back.
   run_fast_tests                                        Run fast tests. check `gh auth status` before invoking to avoid auth
   run_qa_tests                                          Run QA tests independently.
