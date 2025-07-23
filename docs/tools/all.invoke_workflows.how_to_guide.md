@@ -3,28 +3,28 @@
 <!-- toc -->
 
 - [Introduction](#introduction)
-  * [Listing all the tasks](#listing-all-the-tasks)
-  * [Getting help for a specific workflow](#getting-help-for-a-specific-workflow)
-  * [Implementation details](#implementation-details)
+  * [Listing All the Tasks](#listing-all-the-tasks)
+  * [Getting Help for a Specific Workflow](#getting-help-for-a-specific-workflow)
+  * [Implementation Details](#implementation-details)
 - [Git](#git)
-  * [Merge master in the current branch](#merge-master-in-the-current-branch)
-- [GitHub](#github)
+  * [Merge Master in the Current Branch](#merge-master-in-the-current-branch)
+- [Github](#github)
   * [Create a PR](#create-a-pr)
-  * [Extract a PR from a larger one](#extract-a-pr-from-a-larger-one)
-  * [Systematic code transformation](#systematic-code-transformation)
-  * [Generate a local `amp` Docker image](#generate-a-local-amp-docker-image)
+  * [Extract a PR From a Larger One](#extract-a-pr-from-a-larger-one)
+  * [Systematic Code Transformation](#systematic-code-transformation)
+  * [Generate a Local `amp` Docker Image](#generate-a-local-amp-docker-image)
 - [Update the dev `amp` Docker image](#update-the-dev-amp-docker-image)
 - [Experiment in a local image](#experiment-in-a-local-image)
-- [GitHub Actions (CI)](#github-actions-ci)
-- [pytest](#pytest)
-  * [Run with coverage](#run-with-coverage)
-  * [Capture output of a pytest](#capture-output-of-a-pytest)
-  * [Run only one test based on its name](#run-only-one-test-based-on-its-name)
-  * [Iterate on stacktrace of failing test](#iterate-on-stacktrace-of-failing-test)
-  * [Iterating on a failing regression test](#iterating-on-a-failing-regression-test)
-  * [Detect mismatches with golden test outcomes](#detect-mismatches-with-golden-test-outcomes)
+- [Github Actions (CI)](#github-actions-ci)
+- [Pytest](#pytest)
+  * [Run with Coverage](#run-with-coverage)
+  * [Capture Output of a Pytest](#capture-output-of-a-pytest)
+  * [Run Only One Test Based on Its Name](#run-only-one-test-based-on-its-name)
+  * [Iterate on Stacktrace of Failing Test](#iterate-on-stacktrace-of-failing-test)
+  * [Iterating on a Failing Regression Test](#iterating-on-a-failing-regression-test)
+  * [Detect Mismatches with Golden Test Outcomes](#detect-mismatches-with-golden-test-outcomes)
 - [Lint](#lint)
-  * [Lint everything](#lint-everything)
+  * [Lint Everything](#lint-everything)
 
 <!-- tocstop -->
 
@@ -79,7 +79,7 @@
   - Tabbing after typing a dash (-) or double dash (--) will display valid
     options/flags for the current context.
 
-### Listing all the tasks
+### Listing All the Tasks
 
 - New commands are always being added, but a list of valid tasks is below
 
@@ -180,6 +180,8 @@
 
   run_blank_tests                                       (ONLY CI/CD) Test that pytest in the container works.
   run_coverage_report                                   Compute test coverage stats.
+  run_coverage_subprocess                               Run comprehensive coverage using subprocess mode with hcoverage injection and direct
+                                                        coverage run.
   run_fast_slow_superslow_tests                         Run fast, slow, superslow tests back-to-back.
   run_fast_slow_tests                                   Run fast and slow tests back-to-back.
   run_fast_tests                                        Run fast tests. check `gh auth status` before invoking to avoid auth
@@ -191,7 +193,7 @@
   traceback                                             Parse the traceback from Pytest and navigate it with vim.
   ````
 
-### Getting help for a specific workflow
+### Getting Help for a Specific Workflow
 
 - You can get a more detailed help with
 
@@ -220,7 +222,7 @@
   -y STRING, --pytest-mark=STRING
   ```
 
-### Implementation details
+### Implementation Details
 
 - By convention all invoke targets are in `*_lib_tasks.py`, e.g.,
   - `helpers/lib_tasks.py` - tasks to be run in `cmamp`
@@ -250,13 +252,13 @@
 
 ## Git
 
-### Merge master in the current branch
+### Merge Master in the Current Branch
 
 ```bash
 > i git_merge_master
 ```
 
-## GitHub
+## Github
 
 - Get the official branch name corresponding to an Issue
 
@@ -273,18 +275,18 @@
 
 TODO(gp): Describe
 
-### Extract a PR from a larger one
+### Extract a PR From a Larger One
 
 - For splitting large PRs, use the dedicated workflow `git_branch_copy'
 - See detailed guide in
   [all.invoke_git_branch_copy.how_to_guide.md](/docs/tools/all.invoke_git_branch_copy.how_to_guide.md)
 
-### Systematic code transformation
+### Systematic Code Transformation
 
 - Can be done with the help of
   `dev_scripts_helpers/system_tools/replace_text.py`
 
-### Generate a local `amp` Docker image
+### Generate a Local `amp` Docker Image
 
 - This is a manual flow used to test and debug images before releasing them to
   the team.
@@ -369,7 +371,7 @@ TODO(gp): Describe
 - If you are running inside a notebook using `i docker_jupyter` you can install
   packages using a one liner `! sudo su -; source ...; `
 
-## GitHub Actions (CI)
+## Github Actions (CI)
 
 - To run a single test in GH Action
   - Create a branch
@@ -380,7 +382,7 @@ TODO(gp): Describe
     -s --dbg"
     ```
 
-## pytest
+## Pytest
 
 - From
   [https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a](https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a)
@@ -388,13 +390,13 @@ TODO(gp): Describe
 - More details on running unit tests with `invoke` is
   [/docs/coding/all.run_unit_tests.how_to_guide.md](/docs/coding/all.run_unit_tests.how_to_guide.md)
 
-### Run with coverage
+### Run with Coverage
 
 ```bash
 > i run_fast_tests --pytest-opts="core/test/test_finance.py" --coverage
 ```
 
-### Capture output of a pytest
+### Capture Output of a Pytest
 
 - Inside the `dev` container (i.e., docker bash)
 
@@ -412,7 +414,7 @@ TODO(gp): Describe
   ...
   ```
 
-### Run only one test based on its name
+### Run Only One Test Based on Its Name
 
 - Outside the `dev` container
 
@@ -426,7 +428,7 @@ TODO(gp): Describe
   ./helpers/test/test_hobject.py::Test_obj_to_str1
   ```
 
-### Iterate on stacktrace of failing test
+### Iterate on Stacktrace of Failing Test
 
 - Inside docker bash
   ```bash
@@ -459,7 +461,7 @@ TODO(gp): Describe
 
 - The short form is `it`
 
-### Iterating on a failing regression test
+### Iterating on a Failing Regression Test
 
 - The workflow is:
 
@@ -472,7 +474,7 @@ TODO(gp): Describe
   > invoke pytest_repro
   ```
 
-### Detect mismatches with golden test outcomes
+### Detect Mismatches with Golden Test Outcomes
 
 - The command is
 
@@ -502,7 +504,7 @@ TODO(gp): Describe
 
 ## Lint
 
-### Lint everything
+### Lint Everything
 
 ```bash
 > i lint --phases="amp_isort amp_class_method_order amp_normalize_import
