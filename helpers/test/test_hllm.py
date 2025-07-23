@@ -118,7 +118,7 @@ class Test_get_completion(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Ensure that OpenAI-prefixed models use the OpenAI client.
+        Verify with OpenAI-prefixed models.
         """
         parameters4 = _get_completion_parameters4()
         actual_response = hllm.get_completion(
