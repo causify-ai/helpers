@@ -28,6 +28,7 @@ import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_lint as hlitalin
 import helpers.lib_tasks_utils as hlitauti
 import helpers.repo_config_utils as hrecouti
+import helpers.hcoverage as hcovera
 
 _LOG = logging.getLogger(__name__)
 
@@ -993,6 +994,65 @@ def run_coverage(ctx, suite, target_dir=".", generate_html_report=False):  # typ
     docker_cmd_ = f"invoke docker_cmd --use-bash --cmd '{full_report_cmd}'"
     hlitauti.run(ctx, docker_cmd_)
 
+@task
+def run_coverage_subprocess(ctx, target_dir=".", generate_html_report=False): # type: ignore 
+    """
+    Run comprehensive coverage using subprocess mode with hcoverage injection and direct coverage run.
+    This function runs all tests (fast, slow, superslow) to generate complete coverage.
+
+    :param ctx: invoke context
+    :param target_dir: directory to measure coverage
+    :param generate_html_report: whether to generate HTML coverage report or not
+    """
+    _LOG.info("Running comprehensive test coverage with subprocess injection...")
+    # Inject coverage hooks.
+    hcovera.inject()
+    try:
+        # Setup coverage environment for subprocess.
+        hcovera.coverage_commands_subprocess()
+        # Clean any existing coverage data.
+        erase_cmd = "coverage erase"
+        hsystem.system(erase_cmd, abort_on_error=True)
+        # Build the coverage command with parallel mode - run all tests.
+        coverage_cmd = ["coverage", "run", "--parallel-mode", "-m", "pytest"]
+        # Add target directory.
+        coverage_cmd.append(target_dir)
+        test_cmd = hlitauti.to_multi_line_cmd(coverage_cmd)
+        _LOG.debug("About to run command: {test_cmd}")
+        # Run tests with coverage tracking directly.
+        hsystem.system(test_cmd, abort_on_error=True)
+        # Combine coverage data from subprocesses directly.
+        hcovera.coverage_combine()
+        hdbg.dassert_file_exists(".coverage")
+        include_in_report, exclude_from_report = _get_inclusion_settings(target_dir)
+        include_in_report = include_in_report.replace("/./", "/").replace("//", "/")
+        report_cmd: List[str] = []
+        # Generate a text report, including only our target paths.
+        report_stats_cmd = (
+            f"coverage report "
+            f"--include={include_in_report} --sort=Cover"
+        )
+        if exclude_from_report:
+            exclude_from_report = exclude_from_report.replace("/./", "/").replace("//", "/")
+            report_stats_cmd += f" --omit={exclude_from_report}"
+        report_cmd.append(report_stats_cmd)
+        if generate_html_report:
+            # Generate HTML report with the coverage stats.
+            report_html_cmd = f"coverage html --include={include_in_report}"
+            if exclude_from_report:
+                report_html_cmd += f" --omit={exclude_from_report}"
+            report_cmd.append(report_html_cmd)
+        # Export XML coverage report to integrate with Codecov.
+        report_cmd.append("coverage xml -o coverage.xml")
+        full_report_cmd = " && ".join(report_cmd)
+        # Run coverage report commands directly (avoid Docker-in-Docker issues).
+        hsystem.system(full_report_cmd, abort_on_error=True)
+    except Exception as e:
+        _LOG.error("Coverage with subprocess failed: {e}")
+        raise
+    finally:
+        # Always cleanup coverage hooks.
+        hcovera.remove()
 
 # #############################################################################
 # Traceback.
