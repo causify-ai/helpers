@@ -2,7 +2,7 @@ import logging
 import pprint
 from typing import Dict, List
 
-import helpers.hmarkdown_tables as hmarktab
+import helpers.hmarkdown_tables as hmartabl
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -24,7 +24,7 @@ class Test_replace_tables_with_tags1(hunitest.TestCase):
         lines = hprint.dedent(text, remove_lead_trail_empty_lines_=True)
         lines = lines.split("\n")
         # Call function.
-        actual_lines, table_map = hmarktab.replace_tables_with_tags(lines)
+        actual_lines, table_map = hmartabl.replace_tables_with_tags(lines)
         # Check output.
         table_map_as_str = pprint.pformat(table_map)
         expected_map_as_str = pprint.pformat(expected_map)
@@ -42,8 +42,8 @@ class Test_replace_tables_with_tags1(hunitest.TestCase):
         """
         # Do the round trip.
         lines = text.split("\n")
-        actual_lines, table_map = hmarktab.replace_tables_with_tags(lines)
-        act_text = hmarktab.replace_tags_with_tables(actual_lines, table_map)
+        actual_lines, table_map = hmartabl.replace_tables_with_tags(lines)
+        act_text = hmartabl.replace_tags_with_tables(actual_lines, table_map)
         # Check output.
         act_text = "\n".join(act_text)
         self.assert_equal(act_text, text)
@@ -150,7 +150,7 @@ class Test_replace_tables_with_tags1(hunitest.TestCase):
         | A | B |
         |---|---|
         | 1 | 2 |
-        
+
         Second table:
         | X | Y | Z | W |
         |---|---|---|---|
@@ -160,7 +160,7 @@ class Test_replace_tables_with_tags1(hunitest.TestCase):
         expected_lines = """
         First table:
         <table1>
-        
+
         Second table:
         <table2>
         """

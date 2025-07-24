@@ -153,8 +153,8 @@ def colorize_bullet_points_in_slide(
     :param txt: text to colorize
     :param use_abbreviations: use abbreviations for the colors like
         `\red{foo}` instead of `\textcolor{red}{foo}`
-    :param interpolate_colors: interpolate the colors to use for the bold items
-        instead of using a fixed set of colors
+    :param interpolate_colors: interpolate the colors to use for the
+        bold items instead of using a fixed set of colors
     :param all_colors: list of colors to use for the bold items
     :return: colored text
     """
