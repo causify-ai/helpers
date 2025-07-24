@@ -46,22 +46,22 @@ def replace_tables_with_tags(
     i = 0
     while i < len(lines):
         line = lines[i].strip()
-        # Check if this line starts a table (contains |)
+        # Check if this line starts a table (contains |).
         if "|" in line and line.strip():
-            # Look ahead to see if next line is a separator
+            # Look ahead to see if next line is a separator.
             if i + 1 < len(lines):
                 next_line = lines[i + 1].strip()
-                # Check if next line is a table separator (contains --- and |)
+                # Check if next line is a table separator (contains --- and |).
                 if "|" in next_line and "-" in next_line:
-                    # Found a table, collect all table lines
+                    # Found a table, collect all table lines.
                     table_lines = []
-                    # Add header line
+                    # Add header line.
                     table_lines.append(lines[i])
                     i += 1
-                    # Add separator line
+                    # Add separator line.
                     table_lines.append(lines[i])
                     i += 1
-                    # Add data rows (continue while lines contain |)
+                    # Add data rows (continue while lines contain |).
                     while (
                         i < len(lines)
                         and "|" in lines[i].strip()
@@ -69,13 +69,13 @@ def replace_tables_with_tags(
                     ):
                         table_lines.append(lines[i])
                         i += 1
-                    # Store the table
+                    # Store the table.
                     table_count += 1
                     table_text = "\n".join(table_lines)
                     table_map[str(table_count)] = table_text
                     result.append(f"<table{table_count}>")
                     continue
-        # Not a table line, add as-is
+        # Not a table line, add as-is.
         result.append(lines[i])
         i += 1
     return result, table_map
@@ -98,20 +98,20 @@ def replace_tags_with_tables(
 
     for line in lines:
         if line.startswith("<table") and line.endswith(">"):
-            # Extract table number from tag like <table1>
+            # Extract table number from tag like <table1>.
             tag_match = line[6:-1]  # Remove '<table' and '>'
             hdbg.dassert_in(
                 tag_match, table_map_copy, f"Found unmatched tag {tag_match}"
             )
-            # Split table text into lines and add them
+            # Split table text into lines and add them.
             table_text = table_map_copy[tag_match]
             table_lines = table_text.split("\n")
             result.extend(table_lines)
-            # Remove used tag from map
+            # Remove used tag from map.
             del table_map_copy[tag_match]
         else:
             result.append(line)
-    # Ensure all tags were used
+    # Ensure all tags were used.
     hdbg.dassert_eq(
         len(table_map_copy),
         0,
