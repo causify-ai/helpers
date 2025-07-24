@@ -1486,7 +1486,9 @@ def docker_update_prod_task_definition(
     successful_uploads = []
     try:
         # Update prod task definition to the latest prod tag.
-        haws.update_task_definition(task_definition, new_prod_image_url, environment="prod")
+        haws.update_task_definition(
+            task_definition, new_prod_image_url, environment="prod"
+        )
         # Add prod DAGs to airflow s3 bucket after all checks are passed.
         for dag_path in dag_paths:
             # Update prod DAGs.
@@ -1501,7 +1503,9 @@ def docker_update_prod_task_definition(
     except Exception as ex:
         _LOG.info("Rollback started!")
         # Rollback prod task definition image URL.
-        haws.update_task_definition(task_definition, original_prod_image_url, environment="prod")
+        haws.update_task_definition(
+            task_definition, original_prod_image_url, environment="prod"
+        )
         _LOG.info(
             "Reverted prod task definition image url to `%s`!",
             original_prod_image_url,

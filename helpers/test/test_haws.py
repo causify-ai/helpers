@@ -11,7 +11,13 @@ import helpers.haws as haws
 import helpers.hunit_test as hunitest
 
 
+# #############################################################################
+# Haws_test_case
+# #############################################################################
+
+
 class Haws_test_case(hunitest.TestCase):
+
     @pytest.fixture(autouse=True, scope="class")
     def aws_credentials(self) -> None:
         """
@@ -24,7 +30,13 @@ class Haws_test_case(hunitest.TestCase):
         os.environ["MOCK_AWS_DEFAULT_REGION"] = "us-east-1"
 
 
+# #############################################################################
+# Test_get_session
+# #############################################################################
+
+
 class Test_get_session(Haws_test_case):
+
     @pytest.fixture(autouse=True)
     def set_up_test(self) -> None:
         os.environ["MOCK_AWS_S3_BUCKET"] = "mock_aws_bucket"
@@ -68,7 +80,13 @@ class Test_get_session(Haws_test_case):
         self.mock_session(region="us-east-1")
 
 
+# #############################################################################
+# Test_get_service_client
+# #############################################################################
+
+
 class Test_get_service_client(Haws_test_case):
+
     @mock_aws
     def test1(self) -> None:
         """
@@ -87,7 +105,13 @@ class Test_get_service_client(Haws_test_case):
         self.assert_equal(client.meta.region_name, region)
 
 
+# #############################################################################
+# Test_get_service_resource
+# #############################################################################
+
+
 class Test_get_service_resource(Haws_test_case):
+
     @mock_aws
     def test1(self) -> None:
         """
@@ -109,7 +133,13 @@ class Test_get_service_resource(Haws_test_case):
         self.assertIn("my-test-bucket", bucket_names)
 
 
+# #############################################################################
+# Test_get_task_definition_image_url
+# #############################################################################
+
+
 class Test_get_task_definition_image_url(Haws_test_case):
+
     @mock_aws
     @umock.patch("helpers.haws.get_service_client")
     def test1(self, mock_get_service_client: umock.Mock) -> None:
@@ -131,11 +161,19 @@ class Test_get_task_definition_image_url(Haws_test_case):
                 {"name": "my-container", "image": mock_image_url, "memory": 512}
             ],
         )
-        image_url = haws.get_task_definition_image_url(task_definition_name, environment="test")
+        image_url = haws.get_task_definition_image_url(
+            task_definition_name, environment="test"
+        )
         self.assertEqual(image_url, mock_image_url)
 
 
+# #############################################################################
+# Test_update_task_definition
+# #############################################################################
+
+
 class Test_update_task_definition(Haws_test_case):
+
     @mock_aws
     @umock.patch("helpers.haws.get_ecs_client")
     def test1(self, mock_get_ecs_client: BaseClient) -> None:
@@ -176,7 +214,13 @@ class Test_update_task_definition(Haws_test_case):
         self.assertEqual(updated_image_url, new_image_url)
 
 
+# #############################################################################
+# Test_get_ecs_client
+# #############################################################################
+
+
 class Test_get_ecs_client(Haws_test_case):
+
     def mock_aws_client(self, *, region: Optional[str] = None) -> None:
         aws_profile = "__mock__"
         test_cluster_name = "test-cluster"
