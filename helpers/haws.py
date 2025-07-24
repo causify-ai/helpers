@@ -53,17 +53,19 @@ def get_session(
             del credentials["aws_s3_bucket"]
         if aws_profile == "csfy-prod":
             source_session = boto3.Session(**credentials)
-            sts_client = source_session.client('sts')
+            sts_client = source_session.client("sts")
             # TODO(heanh): Use environment variable to get the role ARN.
             assumed_role = sts_client.assume_role(
-                RoleArn='arn:aws:iam::726416904550:role/ProdAccountAccessRole',
-                RoleSessionName='csfy-prod-session',
+                RoleArn="arn:aws:iam::726416904550:role/ProdAccountAccessRole",
+                RoleSessionName="csfy-prod-session",
             )
             credentials = {
-                'aws_access_key_id': assumed_role['Credentials']['AccessKeyId'],
-                'aws_secret_access_key': assumed_role['Credentials']['SecretAccessKey'],
-                'aws_session_token': assumed_role['Credentials']['SessionToken'],
-                'region_name': 'us-east-1'
+                "aws_access_key_id": assumed_role["Credentials"]["AccessKeyId"],
+                "aws_secret_access_key": assumed_role["Credentials"][
+                    "SecretAccessKey"
+                ],
+                "aws_session_token": assumed_role["Credentials"]["SessionToken"],
+                "region_name": "us-east-1",
             }
         session = boto3.Session(**credentials)
     return session

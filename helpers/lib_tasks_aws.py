@@ -161,7 +161,9 @@ def _get_ecs_task_definition_template(environment: str) -> Dict[str, Any]:
     # TODO(heanh): Read the path from repo config.
     s3_path = f"{_SHARED_CONFIGS_DIR}/{environment}/templates/ecs/ecs_task_definition_template.json"
     hs3.dassert_is_s3_path(s3_path)
-    task_definition_config = hs3.from_file(s3_path, aws_profile=_AWS_PROFILE[environment])
+    task_definition_config = hs3.from_file(
+        s3_path, aws_profile=_AWS_PROFILE[environment]
+    )
     task_definition_config = json.loads(task_definition_config)
     return task_definition_config
 
@@ -179,8 +181,12 @@ def _get_efs_mount_config_template(environment: str) -> Dict[str, Any]:
     efs_config = json.loads(efs_config)
     return efs_config
 
+
 def _set_task_definition_config(
-    task_definition_config: Dict, task_definition_name: str, region: str, environment: str
+    task_definition_config: Dict,
+    task_definition_name: str,
+    region: str,
+    environment: str,
 ) -> Dict[str, Any]:
     """
     Update template of ECS task definition with concrete values.
@@ -195,9 +201,9 @@ def _set_task_definition_config(
     # We use single container inside our task definition and
     # the convention is to set the same name as the task
     # definition itself.
-    task_definition_config["containerDefinitions"][0]["name"] = (
-        task_definition_name
-    )
+    task_definition_config["containerDefinitions"][0][
+        "name"
+    ] = task_definition_name
     # Set placeholder image URL.
     # TODO(heanh): Select image based on environment and region.
     registry_url = hrecouti.get_repo_config().get_container_registry_url()
@@ -225,13 +231,15 @@ def _set_task_definition_config(
     # Configure access to EFS.
     efs_config = _get_efs_mount_config_template(environment)
     task_definition_config["volumes"] = efs_config[region]["volumes"]
-    task_definition_config["containerDefinitions"][0]["mountPoints"] = (
-        efs_config[region]["mountPoints"]
-    )
+    task_definition_config["containerDefinitions"][0]["mountPoints"] = efs_config[
+        region
+    ]["mountPoints"]
     return task_definition_config
 
 
-def _register_task_definition(task_definition_name: str, region: str, environment: str) -> None:
+def _register_task_definition(
+    task_definition_name: str, region: str, environment: str
+) -> None:
     """
     Register a new ECS task definition.
 
@@ -265,9 +273,7 @@ def _register_task_definition(task_definition_name: str, region: str, environmen
         placementConstraints=task_definition_config.get(
             "placementConstraints", []
         ),
-        requiresCompatibilities=task_definition_config[
-            "requiresCompatibilities"
-        ],
+        requiresCompatibilities=task_definition_config["requiresCompatibilities"],
         cpu=task_definition_config["cpu"],
         memory=task_definition_config["memory"],
     )
@@ -300,7 +306,9 @@ def aws_update_ecs_task_definition(
     )
     # Edit container version, e.g. cmamp:prod-12a45 - > cmamp:prod-12b46`.
     new_image_url = re.sub("prod-(.+)$", f"prod-{image_tag}", old_image_url)
-    haws.update_task_definition(task_definition, new_image_url, region=region, environment=environment)
+    haws.update_task_definition(
+        task_definition, new_image_url, region=region, environment=environment
+    )
 
 
 @task
@@ -326,7 +334,10 @@ def aws_create_test_task_definition(
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-test-{issue_id}"
     # Register task definition.
-    _register_task_definition(task_definition_name, region=region, environment="test")
+    _register_task_definition(
+        task_definition_name, region=region, environment="test"
+    )
+
 
 @task
 def aws_create_preprod_task_definition(
@@ -344,7 +355,9 @@ def aws_create_preprod_task_definition(
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-preprod"
     # Register task definition.
-    _register_task_definition(task_definition_name, region=region, environment="preprod")
+    _register_task_definition(
+        task_definition_name, region=region, environment="preprod"
+    )
 
 
 @task
@@ -363,4 +376,6 @@ def aws_create_prod_task_definition(
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-prod"
     # Register task definition.
-    _register_task_definition(task_definition_name, region=region, environment="prod")
+    _register_task_definition(
+        task_definition_name, region=region, environment="prod"
+    )
