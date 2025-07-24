@@ -51,7 +51,7 @@ def get_session(
         #  then passing everything.
         if "aws_s3_bucket" in credentials:
             del credentials["aws_s3_bucket"]
-        # TODO(heanh): Find a better way to handle different AWS accounts 
+        # TODO(heanh): Find a better way to handle different AWS accounts
         # and environments.
         if aws_profile == "csfy-prod":
             source_session = boto3.Session(**credentials)
