@@ -103,7 +103,10 @@ class Test_render_image_code1(hunitest.TestCase):
         image code type.
         """
         # Prepare inputs.
-        image_code = "digraph { B -> A }"
+        image_code = """
+        graph TD
+            B --> A
+        """
         image_code_idx = 1
         image_code_type = "mermaid"
         template_out_file = os.path.join(self.get_scratch_space(), "test.md")

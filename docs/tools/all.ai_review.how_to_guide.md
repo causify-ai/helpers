@@ -27,26 +27,26 @@
   - Apply modifications from a `cfile` to a set of files
     - E.g., from linter and AI review
   - Add TODOs from a `cfile` to Python or markdown files
-  - Apply a set of transformations to an entire file
+  - Apply a set of transformations to an entire Python file
     - E.g., styling / formatting code
   - Rewrite an entire markdown to fix English mistakes without changing its
     structure
-  - Reformat an entire markdown or Python using LLMs or code
+    - E.g., styling / formatting a markdown
 
-- You should always commit your code before applying automatic transforms (e.g.,
-  linting)
+- You should always commit your code before applying automatic transforms, in the
+  same way that we run the `linter` on a clean tree
   - In this way, modifying a file is a separate commit and it's easy to review
 
 # Use templates
 
-- We use templates for code and documentation to show and describe how a
-  document or code should look like, e.g.,
+- We use templates for code and documentation to show and describe how a document
+  or code should look like, e.g.,
   - `code_template.py` shows our coding style
   - `unit_test_template.py` shows how our unit tests look like
-  - `all.how_to_guide_template_doc.md` shows how a Diataxis how to guide should be
-    structured and look like (same for `explanation`, `tutorial`, `reference`)
+  - `all.how_to_guide_template_doc.md` shows how a Diataxis how to guide should
+    be structured and look like (same for `explanation`, `tutorial`, `reference`)
 
-- The same template can have multiple applications for:
+- The same templates can have multiple applications for:
   - Humans:
     - Understand how to write documentation and code
     - As boilerplate
@@ -108,7 +108,45 @@
 
 ## `ai_review.py`
 
-./docs/code_guidelines/all.coding_style_guidelines.reference.md
+- The rules for AI are saved in the file
+  ./docs/code_guidelines/all.coding_style_guidelines.reference.md
+- This file has a special structure:
+  ```bash
+  > extract_headers_from_markdown.py -i ./docs/code_guidelines/all.coding_style_guidelines.reference.md --max_level 2
+  - All Style Guide
+    - Summary
+  - General
+    - Spelling
+  - Python
+    - Naming
+    - Docstrings
+    - Comments
+    - Code Implementation
+    - Code Design
+    - Imports
+    - Type Annotations
+    - Functions
+    - Scripts
+    - Logging
+    - Misc
+  - Unit Tests
+    - Rules
+  - Notebooks
+    - General
+    - Plotting
+    - Jupytext
+  - Markdown
+    - General
+    - Headers
+    - Text
+  ```
+  - The first level represents the target language (e.g. `General`, `Python`)
+  - The second level represents a rule topic (e.g., `Imports`, `Functions`)
+  - The third level represents instructions for an LLM vs Linter, since some
+    instructions:
+    - Are easier to enforce by an LLM
+    - While others should be enforced by the `linter` (even if they are temporary not
+      enforced by the `linter` but by LLM or by humans)
 
 ## `inject_todos.py`
 
@@ -137,10 +175,10 @@
 ## A reviewer workflow
 
 - This workflow can be used by the author of the code directly or by a reviewer
+  - Initially, reviewers use these tools as part of dogfooding of the workflows
   - The goal is to make these tools robust enough so that they can be used
     directly by the author and potentially integrated in the `linter` flow
     itself
-  - Initially, reviewers use these tools as part of dogfooding of the workflows
 
 - Go to the Git branch with the code to review
 

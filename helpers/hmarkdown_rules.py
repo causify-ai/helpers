@@ -286,6 +286,7 @@ def extract_rules(
     return rule_sections
 
 
+# TODO(gp): This seems private?
 def parse_rules_from_txt(txt: str) -> List[str]:
     """
     Parse rules from a chunk of markdown text.
@@ -333,25 +334,26 @@ def parse_rules_from_txt(txt: str) -> List[str]:
     return bullet_points
 
 
-def extract_rules_from_section(txt: str, line_number: int) -> List[str]:
+def extract_rules_from_section(txt: str, start_line_number: int) -> List[str]:
     """
     Extract rules from a section of a markdown file.
 
     :param txt: markdown text to extract the rules from
-    :param line_number: line number of the section to start extracting
+    :param start_line_number: line number of the section to start extracting
         the rules from
     :return: extracted rules
     """
     # Find the line number of the next header.
-    i = line_number
+    end_line_number = start_line_number
     while True:
-        hdbg.dassert_lt(i, len(txt))
-        line = txt[i]
+        hdbg.dassert_lt(end_line_number, len(txt))
+        line = txt[end_line_number]
         if line.startswith("#"):
             break
-        i += 1
+        end_line_number += 1
+    _LOG.debug("end_line_number=%s", end_line_number)
     # Parse the markdown text into a list of bullet points.
-    bullet_points = parse_rules_from_txt(txt)
+    bullet_points = parse_rules_from_txt(txt[start_line_number:end_line_number])
     # Extract the rules from the bullet points.
     rules = []
     for bullet_point in bullet_points:

@@ -44,9 +44,13 @@ class Test_check_import(hunitest.TestCase):
         expected = ""
         self._helper_check_import(line, expected, file_name="test.py")
 
-    def _helper_check_import(self, line: str, expected: str, file_name: str) -> None:
+    def _helper_check_import(
+        self, line: str, expected: str, file_name: str
+    ) -> None:
         file_name = file_name or "test.py"
         line_num = 1
-        expected = f"{file_name}:{line_num}: {expected}" if expected else expected
+        expected = (
+            f"{file_name}:{line_num}: {expected}" if expected else expected
+        )
         msg = lamchimp._check_import(file_name, line_num, line)
         self.assertEqual(expected, msg)

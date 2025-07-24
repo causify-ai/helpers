@@ -986,7 +986,9 @@ class TestToPartitionedDataset(hunitest.TestCase):
         dummy_value_1=3
         dummy_value_1=3/dummy_value_2=C
         dummy_value_1=3/dummy_value_2=C/data.parquet"""
-        self.assert_equal(dir_signature, expected, purify_text=True, fuzzy_match=True)
+        self.assert_equal(
+            dir_signature, expected, purify_text=True, fuzzy_match=True
+        )
         #
         include_file_content = True
         dir_signature = hunitest.get_dir_signature(

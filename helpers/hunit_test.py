@@ -674,7 +674,9 @@ def assert_equal(
     values: Dict[str, str] = collections.OrderedDict()
 
     def _append(tag: str, actual: str, expected: str) -> None:
-        _LOG.debug("tag=%s\n  actual='\n%s'\n  expected='\n%s'", tag, actual, expected)
+        _LOG.debug(
+            "tag=%s\n  actual='\n%s'\n  expected='\n%s'", tag, actual, expected
+        )
         hdbg.dassert_not_in(tag, values)
         values[tag] = (actual, expected)
 

@@ -300,7 +300,7 @@ class TextPurifier:
 
     def purify_parquet_file_names(self, txt: str) -> str:
         """
-        Replace UUIDs file names to `data.parquet` in the goldens.
+        Replace UUIDs file names to `data.parquet` in the golden outcomes.
 
         :param txt: input text containing parquet file names
         :return: text with standardized parquet file names
@@ -342,18 +342,56 @@ class TextPurifier:
 
     def purify_docker_image_name(self, txt: str) -> str:
         """
-        Remove temporary docker image name that are function of their content.
+        Remove temporary docker image name.
 
         :param txt: input text containing docker image names
         :return: text with standardized docker image names
         """
-        # In a command like:
+        # Purify command like:
         # > docker run --rm ...  tmp.latex.edb567be ..
+        # > ... tmp.latex.aarch64.2f590c86.2f590c86
+        pattern = r"""
+            ^                  # Start of line
+            (                  # Start capture group 1
+                .*docker.*     # Any text containing "docker"
+                \s+            # One or more whitespace
+                tmp\.\S+\.     # tmp.something.
+            )                  # End capture group 1
+            [a-z0-9]{8}        # 8 character hex hash
+            (                  # Start capture group 2
+                \s+            # One or more whitespace
+                .*             # Rest of the line
+            )                  # End capture group 2
+            $                  # End of line
+        """
         txt = re.sub(
-            r"^(.*docker.*\s+tmp\.\S+\.)[a-z0-9]{8}(\s+.*)$",
+            pattern,
             r"\1xxxxxxxx\2",
             txt,
-            flags=re.MULTILINE,
+            flags=re.MULTILINE | re.VERBOSE,
+        )
+        # Handle patterns like `tmp.latex.aarch64.2f590c86.2f590c86`.
+        pattern = r"""
+            ^                    # Start of line
+            (                    # Start capture group 1
+                .*docker.*       # Any text containing "docker"
+                \s+              # One or more whitespace
+                tmp\.\S+\.\S+\.  # tmp.something.something.
+            )                    # End capture group 1
+            [a-z0-9]{8}          # 8 character hex hash
+            \.                   # Literal dot
+            [a-z0-9]{8}          # Another 8 character hex hash
+            (                    # Start capture group 2
+                \s+              # One or more whitespace
+                .*               # Rest of the line
+            )                    # End capture group 2
+            $                    # End of line
+        """
+        txt = re.sub(
+            pattern,
+            r"\1xxxxxxxx\2",
+            txt,
+            flags=re.MULTILINE | re.VERBOSE,
         )
         return txt
 
