@@ -1314,6 +1314,7 @@ def docker_release_test_task_definition(
         task_definition=task_definition,
         image_tag=image_tag,
         region=region,
+        environment="test",
     )
 
 @task
@@ -1343,6 +1344,7 @@ def docker_release_preprod_task_definition(
         task_definition=task_definition_name,
         image_tag=image_tag,
         region=region,
+        environment="preprod",
     )
 
 @task
@@ -1372,6 +1374,7 @@ def docker_release_prod_task_definition(
         task_definition=task_definition_name,
         image_tag=image_tag,
         region=region,
+        environment="prod",
     )
 
 
