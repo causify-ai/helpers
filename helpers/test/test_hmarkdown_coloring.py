@@ -105,7 +105,6 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
             "black",
             "white",
         ]
-
         actual = hmarkdo.colorize_bullet_points_in_slide(
             text, all_md_colors=all_md_colors
         )
@@ -114,21 +113,21 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         - **\red{VC Theory}**
             - Measures model
 
-        - **\orange{Bias-Variance Decomposition}**
+        - **\yellow{Bias-Variance Decomposition}**
             - Prediction error
-                - **\yellow{Bias}**
-                - **\lime{Variance}**
+                - **\green{Bias}**
+                - **\cyan{Variance}**
 
-        - **\green{Computation Complexity}**
+        - **\purple{Computation Complexity}**
             - Balances model
             - Related to
             - E.g., Minimum
 
-        - **\teal{Bayesian Approach}**
+        - **\magenta{Bayesian Approach}**
             - Treats ML as probability
             - Combines prior knowledge with observed data to update belief about a model
 
-        - **\cyan{Problem in ML Theory:}**
+        - **\brown{Problem in ML Theory:}**
             - Assumptions may not align with practical problems
         """
         self.assert_equal(actual, expected)
