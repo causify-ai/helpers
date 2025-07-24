@@ -25,7 +25,7 @@ class Test_remove_latex_formatting1(hunitest.TestCase):
           \textcolor{violet}{data is all that matters}.
         """
         txt = hprint.dedent(txt)
-        exp = r"""
+        expected = r"""
         - If there is no pattern, we can try learning:
           - Measure if learning works.
           - In the worst case, conclude that it
@@ -36,6 +36,6 @@ class Test_remove_latex_formatting1(hunitest.TestCase):
             technique, but it still works.
         - Without data, we cannot do anything:
           data is all that matters."""
-        exp = hprint.dedent(exp)
-        act = hlatex.remove_latex_formatting(txt)
-        self.assert_equal(act, exp)
+        expected = hprint.dedent(expected)
+        actual = hlatex.remove_latex_formatting(txt)
+        self.assert_equal(actual, expected)

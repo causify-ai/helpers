@@ -34,13 +34,13 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
             out_file, image_code_idx, dst_ext, use_github_hosting
         )
         # Check output.
-        act = "\n".join(paths)
-        exp = """
+        actual = "\n".join(paths)
+        expected = """
         tmp.render_images/e.8.txt
         /a/b/c/d/figs
         figs/e.8.png
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test2(self) -> None:
         """
@@ -56,14 +56,14 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
             out_file, image_code_idx, dst_ext, use_github_hosting
         )
         # Check output.
-        act = "\n".join(paths)
+        actual = "\n".join(paths)
         repo_name = hgit.get_repo_full_name_from_client(super_module=True)
-        exp = f"""
+        expected = f"""
         tmp.render_images/e.8.txt
         /a/b/c/d/figs
         https://raw.githubusercontent.com/{repo_name}/master/figs/e.8.png
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -157,7 +157,7 @@ class Test_render_images1(hunitest.TestCase):
     creating images).
     """
 
-    def helper(self, txt: str, file_ext: str, exp: str) -> None:
+    def helper(self, txt: str, file_ext: str, expected: str) -> None:
         """
         Check that the text is updated correctly.
 
@@ -176,10 +176,10 @@ class Test_render_images1(hunitest.TestCase):
             dry_run=True,
         )
         # Check output.
-        act = "\n".join(out_lines)
-        hdbg.dassert_ne(act, "")
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp, remove_lead_trail_empty_lines=True)
+        actual = "\n".join(out_lines)
+        hdbg.dassert_ne(actual, "")
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, remove_lead_trail_empty_lines=True)
 
     # ///////////////////////////////////////////////////////////////////////////
 
@@ -192,8 +192,8 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "tex"
-        exp = in_lines
-        self.helper(in_lines, file_ext, exp)
+        expected = in_lines
+        self.helper(in_lines, file_ext, expected)
 
     def test2(self) -> None:
         """
@@ -207,8 +207,8 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        exp = in_lines
-        self.helper(in_lines, file_ext, exp)
+        expected = in_lines
+        self.helper(in_lines, file_ext, expected)
 
     # ///////////////////////////////////////////////////////////////////////////
 
@@ -222,13 +222,13 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        exp = r"""
+        expected = r"""
         [//]: # ( ```plantuml)
         [//]: # ( Alice --> Bob)
         [//]: # ( ```)
         ![](figs/out.1.png)
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_plantuml2(self) -> None:
         """
@@ -242,7 +242,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        exp = r"""
+        expected = r"""
         A
         [//]: # ( ```plantuml)
         [//]: # ( Alice --> Bob)
@@ -250,7 +250,7 @@ class Test_render_images1(hunitest.TestCase):
         ![](figs/out.1.png)
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_plantuml3(self) -> None:
         """
@@ -265,7 +265,7 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        exp = r"""
+        expected = r"""
         [//]: # ( ```plantuml)
         [//]: # ( @startuml)
         [//]: # ( Alice --> Bob)
@@ -273,7 +273,7 @@ class Test_render_images1(hunitest.TestCase):
         [//]: # ( ```)
         ![](figs/out.1.png)
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_plantuml4(self) -> None:
         """
@@ -285,13 +285,13 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "tex"
-        exp = r"""
+        expected = r"""
         % ```plantuml
         % Alice --> Bob
         % ```
         \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_plantuml5(self) -> None:
         """
@@ -305,7 +305,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "tex"
-        exp = r"""
+        expected = r"""
         A
         % ```plantuml
         % Alice --> Bob
@@ -313,7 +313,7 @@ class Test_render_images1(hunitest.TestCase):
         \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_plantuml6(self) -> None:
         """
@@ -328,7 +328,7 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "tex"
-        exp = r"""
+        expected = r"""
         % ```plantuml
         % @startuml
         % Alice --> Bob
@@ -336,7 +336,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     # ///////////////////////////////////////////////////////////////////////////
 
@@ -351,14 +351,14 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "md"
-        exp = r"""
+        expected = r"""
         [//]: # ( ```mermaid)
         [//]: # ( flowchart TD;)
         [//]: # (   A[Start] --> B[End];)
         [//]: # ( ```)
         ![](figs/out.1.png)
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid2(self) -> None:
         """
@@ -373,7 +373,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "md"
-        exp = r"""
+        expected = r"""
         A
         [//]: # ( ```mermaid)
         [//]: # ( flowchart TD;)
@@ -382,7 +382,7 @@ class Test_render_images1(hunitest.TestCase):
         ![](figs/out.1.png)
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid3(self) -> None:
         """
@@ -395,14 +395,14 @@ class Test_render_images1(hunitest.TestCase):
         ```
         """
         file_ext = "tex"
-        exp = r"""
+        expected = r"""
         % ```mermaid
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
         \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid4(self) -> None:
         """
@@ -417,7 +417,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "tex"
-        exp = r"""
+        expected = r"""
         A
         % ```mermaid
         % flowchart TD;
@@ -426,7 +426,7 @@ class Test_render_images1(hunitest.TestCase):
         \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid5(self) -> None:
         """
@@ -441,7 +441,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "txt"
-        exp = r"""
+        expected = r"""
         A
         // ```mermaid
         // flowchart TD;
@@ -450,7 +450,7 @@ class Test_render_images1(hunitest.TestCase):
         ![](figs/out.1.png)
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid6(self) -> None:
         """
@@ -465,7 +465,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "txt"
-        exp = r"""
+        expected = r"""
         A
         // ```mermaid(hello_world.png)
         // flowchart TD;
@@ -474,7 +474,7 @@ class Test_render_images1(hunitest.TestCase):
         ![](hello_world.png)
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
     def test_mermaid7(self) -> None:
         """
@@ -489,7 +489,7 @@ class Test_render_images1(hunitest.TestCase):
         B
         """
         file_ext = "txt"
-        exp = r"""
+        expected = r"""
         A
         // ```mermaid(hello_world2.png)
         // flowchart TD;
@@ -497,7 +497,7 @@ class Test_render_images1(hunitest.TestCase):
         ![](hello_world2.png)
         B
         """
-        self.helper(in_lines, file_ext, exp)
+        self.helper(in_lines, file_ext, expected)
 
 
 # #############################################################################
@@ -527,9 +527,9 @@ class Test_render_images2(hunitest.TestCase):
             dst_ext,
             dry_run=dry_run,
         )
-        act = "\n".join(out_lines)
+        actual = "\n".join(out_lines)
         # Check output.
-        self.check_string(act)
+        self.check_string(actual)
 
     def test1(self) -> None:
         """

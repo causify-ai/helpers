@@ -16,8 +16,8 @@ hello
 world
 """
         is_executable = True
-        exp = "exec.py:1: any executable needs to start with a shebang '#!/usr/bin/env python'"
-        self._helper_check_shebang(file_name, txt, is_executable, exp)
+        expected = "exec.py:1: any executable needs to start with a shebang '#!/usr/bin/env python'"
+        self._helper_check_shebang(file_name, txt, is_executable, expected)
 
     def test2(self) -> None:
         """
@@ -29,8 +29,8 @@ hello
 world
 """
         is_executable = True
-        exp = ""
-        self._helper_check_shebang(file_name, txt, is_executable, exp)
+        expected = ""
+        self._helper_check_shebang(file_name, txt, is_executable, expected)
 
     def test3(self) -> None:
         """
@@ -42,8 +42,8 @@ hello
 world
 """
         is_executable = False
-        exp = "exec.py:1: a non-executable can't start with a shebang."
-        self._helper_check_shebang(file_name, txt, is_executable, exp)
+        expected = "exec.py:1: a non-executable can't start with a shebang."
+        self._helper_check_shebang(file_name, txt, is_executable, expected)
 
     def test4(self) -> None:
         """
@@ -56,15 +56,15 @@ Import as:
 import _setenv_lib as selib
 '''
         is_executable = False
-        exp = ""
-        self._helper_check_shebang(file_name, txt, is_executable, exp)
+        expected = ""
+        self._helper_check_shebang(file_name, txt, is_executable, expected)
 
     def _helper_check_shebang(
         self,
         file_name: str,
         txt: str,
         is_executable: bool,
-        exp: str,
+        expected: str,
     ) -> None:
         import mock
 
@@ -72,4 +72,4 @@ import _setenv_lib as selib
 
         with mock.patch("os.access", return_value=is_executable):
             msg = lamchshe._check_shebang(file_name, txt_array)
-        self.assert_equal(msg, exp)
+        self.assert_equal(msg, expected)

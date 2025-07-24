@@ -67,9 +67,9 @@ class TestRepoConfig_Amp(hunitest.TestCase):
         When running Amp on dev_csfy, the CSFY bucket should be available.
         """
         if hserver.is_dev_csfy():
-            act = hserver.is_CK_S3_available()
-            exp = True
-            self.assertEqual(act, exp)
+            actual = hserver.is_CK_S3_available()
+            expected = True
+            self.assertEqual(actual, expected)
 
 
 # #############################################################################
@@ -92,7 +92,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         #
         hunteuti.execute_only_on_dev_csfy()
         #
-        exp = r"""
+        expected = r"""
         # Repo config:
           # repo_config.config
             enable_privileged_mode='True'
@@ -129,7 +129,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
           CSFY_CI=''
           GH_ACTION_ACCESS_TOKEN=empty
           """
-        hunteuti.check_env_to_str(self, exp)
+        hunteuti.check_env_to_str(self, expected)
 
     def test_mac(self) -> None:
         target_name = "amp"
@@ -137,7 +137,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         #
         hunteuti.execute_only_on_mac(version="Catalina")
         #
-        exp = r"""
+        expected = r"""
         # Repo config:
             # repo_config.config
             enable_privileged_mode='False'
@@ -171,7 +171,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         CSFY_CI=''
         GH_ACTION_ACCESS_TOKEN=empty
         """
-        hunteuti.check_env_to_str(self, exp)
+        hunteuti.check_env_to_str(self, expected)
         #
         exp_enable_privileged_mode = True
         exp_has_dind_support = True
@@ -186,7 +186,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
     def test_amp_ci(self) -> None:
         hunteuti.execute_only_on_ci()
         #
-        exp = r"""
+        expected = r"""
         # Repo config:
           # repo_config.config
             enable_privileged_mode='True'
@@ -225,7 +225,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         # We ignore the AWS vars, since GH Actions does some replacement to mask
         # the env vars coming from secrets.
         skip_secrets_vars = True
-        hunteuti.check_env_to_str(self, exp, skip_secrets_vars=skip_secrets_vars)
+        hunteuti.check_env_to_str(self, expected, skip_secrets_vars=skip_secrets_vars)
 
     @pytest.mark.skipif(
         not hrecouti.get_repo_config().get_name() == "//cmamp",
@@ -234,7 +234,7 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
     def test_cmamp_ci(self) -> None:
         hunteuti.execute_only_on_ci()
         #
-        exp = r"""
+        expected = r"""
         # Repo config
           get_host_name='github.com'
           get_html_dir_to_url_mapping='{'s3://cryptokaizen-html': 'http://172.30.2.44', 's3://cryptokaizen-html/v2': 'http://172.30.2.44/v2'}'
@@ -277,4 +277,4 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         # We ignore the AWS vars, since GH Actions does some replacement to mask
         # the env vars coming from secrets.
         skip_secrets_vars = True
-        hunteuti.check_env_to_str(self, exp, skip_secrets_vars=skip_secrets_vars)
+        hunteuti.check_env_to_str(self, expected, skip_secrets_vars=skip_secrets_vars)

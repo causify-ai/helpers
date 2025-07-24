@@ -230,16 +230,16 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
     Test `_get_docker_compose_cmd()`.
     """
 
-    def check(self, act: str, exp: str) -> None:
+    def check(self, actual: str, expected: str) -> None:
         # Remove current timestamp (e.g., `20220317_232120``) from the `--name`
         # so that the tests pass.
         timestamp_regex = r"\.\d{8}_\d{6}"
-        act = re.sub(timestamp_regex, "", act)
+        actual = re.sub(timestamp_regex, "", actual)
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_txt_from_client(act)
+        actual = text_purifier.purify_txt_from_client(actual)
         # This is required when different repos run Docker with user vs root / remap.
-        act = hunitest.filter_text("--user", act)
-        self.assert_equal(act, exp, fuzzy_match=True)
+        actual = hunitest.filter_text("--user", actual)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     @pytest.mark.requires_ck_infra
     # TODO(gp): After using a single docker file as part of AmpTask2308
@@ -259,7 +259,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         service_name = "app"
         use_entrypoint = False
         print_docker_config = False
-        act = hlitadoc._get_docker_compose_cmd(
+        actual = hlitadoc._get_docker_compose_cmd(
             base_image,
             stage,
             version,
@@ -268,7 +268,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             use_entrypoint=use_entrypoint,
             print_docker_config=print_docker_config,
         )
-        exp = r"""
+        expected = r"""
         IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
             docker compose \
             --file $GIT_ROOT/devops/compose/tmp.docker-compose.yml \
@@ -279,7 +279,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             --entrypoint bash \
             app
         """
-        self.check(act, exp)
+        self.check(actual, expected)
 
     @pytest.mark.requires_ck_infra
     @pytest.mark.skipif(
@@ -294,14 +294,14 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         version = "1.0.0"
         cmd = "bash"
         print_docker_config = False
-        act = hlitadoc._get_docker_compose_cmd(
+        actual = hlitadoc._get_docker_compose_cmd(
             base_image,
             stage,
             version,
             cmd,
             print_docker_config=print_docker_config,
         )
-        exp = r"""IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
+        expected = r"""IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
                 docker compose \
                 --file $GIT_ROOT/devops/compose/tmp.docker-compose.yml \
                 --env-file devops/env/default.env \
@@ -310,7 +310,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
                 --name $USER_NAME.amp_test.app.app \
                 app \
                 bash """
-        self.check(act, exp)
+        self.check(actual, expected)
 
     @pytest.mark.requires_ck_infra
     @pytest.mark.skipif(
@@ -326,7 +326,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         cmd = "bash"
         extra_env_vars = ["PORT=9999", "SKIP_RUN=1"]
         print_docker_config = False
-        act = hlitadoc._get_docker_compose_cmd(
+        actual = hlitadoc._get_docker_compose_cmd(
             base_image,
             stage,
             version,
@@ -334,7 +334,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             extra_env_vars=extra_env_vars,
             print_docker_config=print_docker_config,
         )
-        exp = r"""
+        expected = r"""
         IMAGE=$CSFY_ECR_BASE_PATH/amp_test:local-$USER_NAME-1.0.0 \
         PORT=9999 \
         SKIP_RUN=1 \
@@ -347,7 +347,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             app \
             bash
         """
-        self.check(act, exp)
+        self.check(actual, expected)
 
     if False:
 
@@ -362,7 +362,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             cmd = "bash"
             entrypoint = False
             print_docker_config = False
-            act = hlitadoc._get_docker_compose_cmd(
+            actual = hlitadoc._get_docker_compose_cmd(
                 base_image,
                 stage,
                 version,
@@ -370,7 +370,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
                 entrypoint=entrypoint,
                 print_docker_config=print_docker_config,
             )
-            exp = r"""
+            expected = r"""
             IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
             docker compose \
             --file $GIT_ROOT/devops/compose/tmp.docker-compose.yml \
@@ -381,7 +381,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             --entrypoint bash \
             app
             """
-            self.check(act, exp)
+            self.check(actual, expected)
 
     @pytest.mark.skipif(
         not hgit.is_in_amp_as_submodule(), reason="Only run in amp as submodule"
@@ -393,7 +393,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
         port = 9999
         self_test = True
         print_docker_config = False
-        act = hlitadoc._get_docker_jupyter_cmd(
+        actual = hlitadoc._get_docker_jupyter_cmd(
             base_image,
             stage,
             version,
@@ -401,7 +401,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             self_test,
             print_docker_config=print_docker_config,
         )
-        exp = r"""
+        expected = r"""
         IMAGE=$CSFY_ECR_BASE_PATH/amp_test:dev-1.0.0 \
         PORT=9999 \
             docker compose \
@@ -413,7 +413,7 @@ class TestLibTasksGetDockerCmd1(httestlib._LibTasksTestCase):
             --service-ports \
             jupyter_server_test
         """
-        self.check(act, exp)
+        self.check(actual, expected)
 
 
 # #############################################################################

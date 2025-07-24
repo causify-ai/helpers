@@ -23,7 +23,7 @@
   color: #0073e6;            /* Lighter blue */
   font-size: 1.8em;
   font-weight: 600;
-  border-left: 4px solid #0073e6;  /* Fancy left border */
+  // border-left: 4px solid #0073e6;  /* Fancy left border */
   padding-left: 0.5em;       /* Space for the border */
   margin-top: 1.2em;
 }
@@ -50,7 +50,7 @@
 a {
   color: #007acc;          /* link color */
   font-weight: 600;
-  text-decoration: underline; /* underline all links */
+  // text-decoration: underline; /* underline all links */
 }
 
 a:hover {

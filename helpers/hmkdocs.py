@@ -9,6 +9,7 @@ import re
 import helpers.hdbg as hdbg
 
 
+# TODO(gp): -> hamrkdown_toc.py
 def remove_table_of_contents(txt: str) -> str:
     """
     Remove the table of contents from the text of a markdown file.
@@ -27,6 +28,7 @@ def remove_table_of_contents(txt: str) -> str:
     return txt
 
 
+# TODO(gp): -> hmarkdown_?.py
 def dedent_python_code_blocks(txt: str) -> str:
     """
     Dedent Python code blocks so they are aligned to column 0.
@@ -70,8 +72,10 @@ def replace_indentation(txt: str, input_spaces: int, output_spaces: int) -> str:
     Replace indentation from input_spaces to output_spaces.
 
     :param txt: Input markdown text
-    :param input_spaces: Number of spaces to detect as one indentation level
-    :param output_spaces: Number of spaces to replace each indentation level with
+    :param input_spaces: Number of spaces to detect as one indentation
+        level
+    :param output_spaces: Number of spaces to replace each indentation
+        level with
     :return: Text with indentation replaced
     """
     hdbg.dassert_lte(1, input_spaces)

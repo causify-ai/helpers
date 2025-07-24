@@ -681,10 +681,10 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         """
         code = "import test"
         expected: List[Tuple[str, str]] = []
-        act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
+        actual = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
         )[0]
-        self.assertEqual(act, expected)
+        self.assertEqual(actual, expected)
 
     def test2(self) -> None:
         """
@@ -692,10 +692,10 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         """
         code = "import test as te"
         expected = [("test", "te")]
-        act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
+        actual = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
         )[0]
-        self.assertEqual(act, expected)
+        self.assertEqual(actual, expected)
 
     def test3(self) -> None:
         """
@@ -703,10 +703,10 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         """
         code = "import test.sub as tsub"
         expected = [("test.sub", "tsub")]
-        act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
+        actual = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
         )[0]
-        self.assertEqual(act, expected)
+        self.assertEqual(actual, expected)
 
     def test4(self) -> None:
         """
@@ -717,10 +717,10 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         import test.sub as tsub
         """
         expected = [("test", "te"), ("test.sub", "tsub")]
-        act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
+        actual = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
         )[0]
-        self.assertEqual(act, expected)
+        self.assertEqual(actual, expected)
 
     def test5(self) -> None:
         """
@@ -730,10 +730,10 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         import IPython.utils.shimmodule as iush
         """
         expected: List[Tuple[str, str]] = []
-        act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
+        actual = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
         )[0]
-        self.assertEqual(act, expected)
+        self.assertEqual(actual, expected)
 
     def test6(self) -> None:
         """
@@ -750,10 +750,10 @@ class TestExtractExistingImportMappingsFromCode(hunitest.TestCase):
         y = "helpers.abc as xyz"
         """
         expected = [("helpers.abc", "abc"), ("helpers.abc", "xyz")]
-        act = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
+        actual = lamnoimp.CodeImportNormalizer._extract_existing_import_mappings_from_code(
             code=code
         )[0]
-        self.assertEqual(act, expected)
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################

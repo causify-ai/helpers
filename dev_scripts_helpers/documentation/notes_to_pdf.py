@@ -26,7 +26,7 @@ import sys
 from typing import Any, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
@@ -225,7 +225,7 @@ def _run_pandoc_to_pdf(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = hdocker.run_dockerized_pandoc(
+        cmd = hdocexec.run_dockerized_pandoc(
             cmd,
             container_type,
             mode="return_cmd",
@@ -263,7 +263,7 @@ def _run_pandoc_to_pdf(
     )
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
-        cmd = hdocker.run_dockerized_latex(
+        cmd = hdocexec.run_dockerized_latex(
             cmd, mode="return_cmd", use_sudo=False
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
@@ -348,7 +348,7 @@ def _build_pandoc_cmd(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = hdocker.run_dockerized_pandoc(
+        cmd = hdocexec.run_dockerized_pandoc(
             cmd,
             container_type,
             mode="return_cmd",
@@ -511,17 +511,20 @@ def _run_all(args: argparse.Namespace) -> None:
         _cleanup_before(prefix)
     # - Filter
     if args.filter_by_header:
-        file_name = hmarkdo.filter_by_header(
-            file_name, args.filter_by_header, prefix
-        )
+        text = hio.from_file(file_name)
+        filtered_text = hmarkdo.filter_by_header(text, args.filter_by_header)
+        file_name = f"{prefix}.filter_by_header.txt"
+        hio.to_file(file_name, filtered_text)
     if args.filter_by_lines:
-        file_name = hmarkdo.filter_by_lines(
-            file_name, args.filter_by_lines, prefix
-        )
+        text = hio.from_file(file_name)
+        filtered_text = hmarkdo.filter_by_lines(text, args.filter_by_lines)
+        file_name = f"{prefix}.filter_by_lines.txt"
+        hio.to_file(file_name, filtered_text)
     if args.filter_by_slides:
-        file_name = hmarkdo.filter_by_slides(
-            file_name, args.filter_by_slides, prefix
-        )
+        text = hio.from_file(file_name)
+        filtered_text = hmarkdo.filter_by_slides(text, args.filter_by_slides)
+        file_name = f"{prefix}.filter_by_slides.txt"
+        hio.to_file(file_name, filtered_text)
     # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)

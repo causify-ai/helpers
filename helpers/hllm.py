@@ -8,7 +8,7 @@ import functools
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import openai
 import pandas as pd
@@ -25,9 +25,6 @@ _LOG = logging.getLogger(__name__)
 # hdbg.set_logger_verbosity(logging.DEBUG)
 
 # _LOG.debug = _LOG.info
-
-# gpt-4o-mini is Openai Model, its great for most tasks.
-_MODEL = "openai/gpt-4o-mini"
 
 
 # #############################################################################
@@ -58,6 +55,35 @@ def get_update_llm_cache() -> bool:
 # #############################################################################
 # Utility Functions
 # #############################################################################
+
+
+def _get_llm_provider_and_model(model: str) -> Tuple[str, str]:
+    """
+    Get the provider and model names from a model string.
+
+    The model can be specified as:
+    - "gpt-4o-mini"
+    - "openai/gpt-4o-mini"
+    - "deepseek/deepseek-r1-0528-qwen3-8b:free/"
+
+    :param model: model to use for the completion
+    :return: tuple of provider name and model name
+    """
+    if "/" in model:
+        if model.startswith("openai/"):
+            provider_name = "openai"
+            model = model.split("/")[1]
+        else:
+            provider_name = "openrouter"
+    else:
+        provider_name = "openai"
+    hdbg.dassert_in(
+        provider_name,
+        ("openai", "openrouter"),
+        "Unknown provider: %s",
+        provider_name,
+    )
+    return provider_name, model
 
 
 def response_to_txt(response: Any) -> str:
@@ -99,45 +125,112 @@ def _extract(
 
 
 # #############################################################################
-# OpenAI API Helpers
+# LLMClient
 # #############################################################################
 
-# TODO(gp): There are a lot of functions that share state (e.g., provider_name).
-# We should refactor them to use a class `LlmResponse`.
 
-
-# TODO(*): Select the provider from command line together with the model.
-_PROVIDER_NAME = "openai"
-
-
-def get_openai_client(provider_name: str = _PROVIDER_NAME) -> openai.OpenAI:
+class LLMClient:
     """
-    Get an OpenAI compatible client.
+    Class to handle LLM API client creation and requests.
     """
-    if provider_name == "openai":
-        base_url = "https://api.openai.com/v1"
-        api_key = os.environ.get("OPENAI_API_KEY")
-    elif provider_name == "openrouter":
-        base_url = "https://openrouter.ai/api/v1"
-        api_key = os.environ.get("OPENROUTER_API_KEY")
-    else:
-        raise ValueError(f"Unknown provider: {provider_name}")
-    _LOG.debug(hprint.to_str("provider_name base_url"))
-    client = openai.OpenAI(base_url=base_url, api_key=api_key)
-    return client
+
+    def __init__(
+        self,
+        model: str,
+    ) -> None:
+        """
+        Initialize the LLMClient.
+
+        The model can be specified as:
+        - "gpt-4o-mini"
+        - "openai/gpt-4o-mini"
+        - "deepseek/deepseek-r1-0528-qwen3-8b:free/"
+
+        :param model: model to use for the completion.
+        """
+        hdbg.dassert_isinstance(model, str)
+        if model == "":
+            provider_name = "openai"
+            model = self._get_default_model(provider_name)
+        else:
+            provider_name, model = _get_llm_provider_and_model(model)
+
+        self.provider_name = provider_name
+        self.model = model
+
+    def create_client(self) -> openai.OpenAI:
+        """
+        Create an LLM client.
+        """
+        if self.provider_name == "openai":
+            base_url = "https://api.openai.com/v1"
+            api_key = os.environ.get("OPENAI_API_KEY")
+        elif self.provider_name == "openrouter":
+            base_url = "https://openrouter.ai/api/v1"
+            api_key = os.environ.get("OPENROUTER_API_KEY")
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        _LOG.debug(hprint.to_str("self.provider_name base_url"))
+        client = openai.OpenAI(base_url=base_url, api_key=api_key)
+        self.client = client
+
+    def build_messages(
+        self, system_prompt: str, user_prompt: str
+    ) -> List[Dict[str, str]]:
+        """
+        Construct the standard messages payload for the chat API.
+
+        :param system_prompt: system prompt
+        :param user_prompt: user prompt
+        :return: messages in the format expected by the API
+        """
+        hdbg.dassert_isinstance(system_prompt, str)
+        hdbg.dassert_isinstance(user_prompt, str)
+        ret = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
+        return ret
+
+    def call_llm(
+        self,
+        cache_mode: str,
+        messages: List[Dict[str, str]],
+        temperature: float,
+        **create_kwargs,
+    ) -> dict[Any, Any]:
+        """
+        Call the LLM API.
+
+        Check `_call_api_sync()` params for more details.
+        """
+        return _call_api_sync(
+            cache_mode=cache_mode,
+            client=self.client,
+            messages=messages,
+            temperature=temperature,
+            model=self.model,
+            **create_kwargs,
+        )
+
+    def _get_default_model(self, provider_name: str) -> str:
+        """
+        Get the default model for a provider.
+
+        :return: default model for the provider
+        """
+        if provider_name == "openai":
+            model = "gpt-4o"
+        elif provider_name == "openrouter":
+            model = "openai/gpt-4o"
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        return model
 
 
-def _get_default_model(provider_name: str = _PROVIDER_NAME) -> str:
-    """
-    Get the default model for a provider.
-    """
-    if provider_name == "openai":
-        model = "gpt-4o"
-    elif provider_name == "openrouter":
-        model = "openai/gpt-4o"
-    else:
-        raise ValueError(f"Unknown provider: {provider_name}")
-    return model
+# #############################################################################
+# OpenRouter API Helpers
+# #############################################################################
 
 
 def _get_models_info_file() -> str:
@@ -229,24 +322,6 @@ def _save_models_info_to_csv(
 
 
 # #############################################################################
-
-
-def _build_messages(
-    system_prompt: str, user_prompt: str
-) -> List[Dict[str, str]]:
-    """
-    Construct the standard messages payload for the chat API.
-    """
-    hdbg.dassert_isinstance(system_prompt, str)
-    hdbg.dassert_isinstance(user_prompt, str)
-    ret = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
-    ]
-    return ret
-
-
-# #############################################################################
 # LLMCostTracker
 # #############################################################################
 
@@ -290,7 +365,6 @@ class LLMCostTracker:
         model: str,
         *,
         models_info_file: str = "",
-        provider_name: str = _PROVIDER_NAME,
     ) -> float:
         """
         Calculate the cost of an API call, based on the provider.
@@ -301,6 +375,7 @@ class LLMCostTracker:
         """
         prompt_tokens = completion.usage.prompt_tokens
         completion_tokens = completion.usage.completion_tokens
+        provider_name, model = _get_llm_provider_and_model(model)
         if provider_name == "openai":
             # Get the pricing for the selected model.
             # TODO(gp): Use pricing from OpenAI or Openrouter API.
@@ -354,28 +429,23 @@ _LLM_COST_Tracker = LLMCostTracker()
     write_through=True, exclude_keys=["client", "cache_mode", "cost_tracker"]
 )
 def _call_api_sync(
+    # pylint: disable=unused-argument
+    # This is needed to support caching.
     cache_mode: str,
     client: openai.OpenAI,
     messages: List[Dict[str, str]],
     temperature: float,
-    model: str = _MODEL,
+    model: str,
     cost_tracker: Optional[LLMCostTracker] = None,
     **create_kwargs,
 ) -> dict[Any, Any]:
     """
     Make a non-streaming API call.
 
-    :param cache_mode: "DISABLE_CACHE", "REFRESH_CACHE",
-        "HIT_CACHE_OR_ABORT", "NORMAL"
-    :param client: OpenAI client
+    :param client: LLM client
     :param messages: list of messages to send to the API
-    :param model: model to use for the completion
-    :param temperature: adjust an LLM's sampling diversity: lower values
-        make it more deterministic, while higher values foster creative
-        variation. 0 < temperature <= 2, 0.1 is default value in OpenAI
-        models.
-    :param cost_tracker: LLMCostTracker instance to track costs
-    :param create_kwargs: additional parameters for the API call
+    :param cost_tracker: LLMCostTracker instance to track costs Check
+        `get_completion()` params for other param details.
     :return: OpenAI chat completion object as a dictionary
     """
     completion = client.chat.completions.create(
@@ -438,20 +508,17 @@ def get_completion(
     update_llm_cache = get_update_llm_cache()
     if update_llm_cache:
         cache_mode = "REFRESH_CACHE"
-    if model == "":
-        model = _get_default_model()
-    # Construct messages in OpenAI API request format.
-    messages = _build_messages(system_prompt, user_prompt)
 
-    client = get_openai_client()
-    # print("LLM API call ... ")
+    llm_client = LLMClient(model=model)
+    llm_client.create_client()
+    # Construct messages in OpenAI API request format.
+    messages = llm_client.build_messages(system_prompt, user_prompt)
+    print("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
-        completion = _call_api_sync(
+        completion = llm_client.call_llm(
             cache_mode=cache_mode,
-            client=client,
             messages=messages,
-            model=model,
             temperature=temperature,
             **create_kwargs,
         )
@@ -459,7 +526,7 @@ def get_completion(
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.
         # Create a stream to show progress.
-        completion = client.chat.completions.create(
+        completion = llm_client.client.chat.completions.create(
             model=model,
             messages=messages,
             stream=True,  # Enable streaming
@@ -765,6 +832,9 @@ def apply_prompt_to_dataframe(
         for i in range(len(processed_response)):
             m = re.match(r"\d+: (.*)\s*", processed_response[i])
             hdbg.dassert(m, f"Invalid response: {processed_response[i]}")
+            # The linter doesn't understand that `dassert` is equivalent to an
+            # `assert`.
+            assert m is not None
             processed_response[i] = m.group(1).rstrip().lstrip()
         _LOG.debug(hprint.to_str("processed_response"))
         response_data.extend(processed_response)
