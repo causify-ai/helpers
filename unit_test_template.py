@@ -12,6 +12,16 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_format_compressed_markdown1(hunitest.TestCase):
+    def helper(self, actual: str, expected: str) -> None:
+        # Prepare inputs.
+        actual = hprint.dedent(actual)
+        actual = [line for line in actual.split("\n") if line != ""]
+        actual = "\n".join(actual)
+        # Prepare outputs.
+        expected = hprint.dedent(expected)
+        # Check output.
+        self.assert_equal(actual, expected)
+
     def test1(self) -> None:
         # Prepare inputs.
         # ...
@@ -25,35 +35,33 @@ class Test_format_compressed_markdown1(hunitest.TestCase):
         """
         Test basic case with single first level bullet.
         """
+        # Prepare inputs.
         text = """
         Some text
 
         - First bullet
         More text"""
+        # Prepare outputs.
         expected = """
         Some text
         - First bullet
         More text"""
-        self._format_and_compare_markdown(text, expected)
+        # Check.
+        self.helper(text, expected)
 
     def test3(self) -> None:
         """
         Test multiple first level bullets.
         """
+        # Prepare inputs.
         text = """
         - First bullet
         - Second bullet
         - Third bullet"""
+        # Prepare outputs.
         expected = """
         - First bullet
         - Second bullet
         - Third bullet"""
-        self._format_and_compare_markdown(text, expected)
-
-    def _format_and_compare_markdown(self, actual: str, expected: str) -> None:
-        actual = hprint.dedent(actual)
-        actual = [line for line in actual.split("\n") if line != ""]
-        actual = "\n".join(actual)
-        expected = hprint.dedent(expected)
-        #
-        self.assert_equal(actual, expected)
+        # Check.
+        self.helper(text, expected)
