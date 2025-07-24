@@ -31,48 +31,48 @@ class Test_process_question1(hunitest.TestCase):
     the library function directly.
     """
 
+    def helper(self, txt_in: str, do_continue_exp: bool, expected: str) -> None:
+        do_continue, actual = dshdprno._process_question_to_markdown(txt_in)
+        self.assertEqual(do_continue, do_continue_exp)
+        self.assert_equal(actual, expected)
+
     def test_process_question1(self) -> None:
         txt_in = "* Hope is not a strategy"
         do_continue_exp = True
-        exp = "- **Hope is not a strategy**"
-        self.helper(txt_in, do_continue_exp, exp)
+        expected = "- **Hope is not a strategy**"
+        self.helper(txt_in, do_continue_exp, expected)
 
     def test_process_question2(self) -> None:
         txt_in = "** Hope is not a strategy"
         do_continue_exp = True
-        exp = "- **Hope is not a strategy**"
-        self.helper(txt_in, do_continue_exp, exp)
+        expected = "- **Hope is not a strategy**"
+        self.helper(txt_in, do_continue_exp, expected)
 
     def test_process_question3(self) -> None:
         txt_in = "*: Hope is not a strategy"
         do_continue_exp = True
-        exp = "- **Hope is not a strategy**"
-        self.helper(txt_in, do_continue_exp, exp)
+        expected = "- **Hope is not a strategy**"
+        self.helper(txt_in, do_continue_exp, expected)
 
     def test_process_question4(self) -> None:
         txt_in = "- Systems don't run themselves, they need to be run"
         do_continue_exp = False
-        exp = txt_in
-        self.helper(txt_in, do_continue_exp, exp)
+        expected = txt_in
+        self.helper(txt_in, do_continue_exp, expected)
 
     def test_process_question5(self) -> None:
         space = "   "
         txt_in = "*" + space + "Hope is not a strategy"
         do_continue_exp = True
-        exp = "-" + space + "**Hope is not a strategy**"
-        self.helper(txt_in, do_continue_exp, exp)
+        expected = "-" + space + "**Hope is not a strategy**"
+        self.helper(txt_in, do_continue_exp, expected)
 
     def test_process_question6(self) -> None:
         space = "   "
         txt_in = "**" + space + "Hope is not a strategy"
         do_continue_exp = True
-        exp = "-" + " " * len(space) + "**Hope is not a strategy**"
-        self.helper(txt_in, do_continue_exp, exp)
-
-    def helper(self, txt_in: str, do_continue_exp: bool, exp: str) -> None:
-        do_continue, act = dshdprno._process_question_to_markdown(txt_in)
-        self.assertEqual(do_continue, do_continue_exp)
-        self.assert_equal(actual, expected)
+        expected = "-" + " " * len(space) + "**Hope is not a strategy**"
+        self.helper(txt_in, do_continue_exp, expected)
 
 
 # #############################################################################
@@ -143,8 +143,8 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
                         print(v)
             ```
         """
-        exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(act, exp)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
 
     def test_run_all2(self) -> None:
         """
@@ -155,9 +155,9 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         # Run function.
         type_ = "slides"
-        act = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
         # Check.
-        self.check_string(act)
+        self.check_string(actual)
 
 
 # #############################################################################
@@ -194,8 +194,8 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         # Run.
         hsystem.system(cmd_as_str)
         # Check.
-        act = hio.from_file(out_file)
-        return act  # type: ignore
+        actual = hio.from_file(out_file)
+        return actual  # type: ignore
 
     def test1(self) -> None:
         # Prepare inputs.
@@ -203,9 +203,9 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
         type_ = "pdf"
         # Run.
-        act = self.helper(in_file, out_file, type_)
+        actual = self.helper(in_file, out_file, type_)
         # Check.
-        self.check_string(act)
+        self.check_string(actual)
 
     def test2(self) -> None:
         # Prepare inputs.
@@ -213,9 +213,9 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
         type_ = "pdf"
         # Run.
-        act = self.helper(in_file, out_file, type_)
+        actual = self.helper(in_file, out_file, type_)
         # Check.
-        self.check_string(act)
+        self.check_string(actual)
 
     def test3(self) -> None:
         # Prepare inputs.
@@ -223,6 +223,6 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         out_file = os.path.join(self.get_scratch_space(), "output.txt")
         type_ = "pdf"
         # Run.
-        act = self.helper(in_file, out_file, type_)
+        actual = self.helper(in_file, out_file, type_)
         # Check.
-        self.check_string(act)
+        self.check_string(actual)
