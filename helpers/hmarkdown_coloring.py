@@ -112,14 +112,14 @@ def process_color_commands(in_line: str) -> str:
     return in_line
 
 
-def has_color_command(line: str) -> bool:
+def has_color_command(text: str) -> bool:
     """
     Check if line contains any color commands.
 
     :param line: line to check
     :return: whether the line contains color commands
     """
-    hdbg.dassert_isinstance(line, str)
+    hdbg.dassert_isinstance(text, str)
     # hdbg.dassert_not_in("\n", line)
     for color in _MD_COLORS_LATEX_MAPPING.keys():
         # This regex matches LaTeX color commands like \red{content},
@@ -133,7 +133,7 @@ def has_color_command(line: str) -> bool:
             """,
             re.VERBOSE,
         )
-        if re.search(pattern, line):
+        if re.search(pattern, text):
             return True
     return False
 
