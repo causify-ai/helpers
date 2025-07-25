@@ -359,6 +359,9 @@ def _parse() -> argparse.ArgumentParser:
         "-f", "--files", nargs="+", type=str, help="Files to process"
     )
     parser.add_argument(
+        "--from_file", type=str, help="File containing files to process"
+    )
+    parser.add_argument(
         "-d",
         "--dir_name",
         action="store",
@@ -422,6 +425,7 @@ def _main(args: argparse.Namespace) -> None:
     # Get the files to be linted.
     file_paths = liutils.get_files_to_check(
         args.files,
+        args.from_file,
         args.skip_files,
         args.dir_name,
         args.modified,

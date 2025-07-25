@@ -224,7 +224,7 @@ disk_cached_computation = hcache._Cached(
     computation_function, use_mem_cache=False, use_disk_cache=True
 )
 
-disk_cached_computation.clear_function_cache("disk")
+disk_cached_computation.clear_function_cache()
 
 hdbg.dassert_eq(disk_cached_computation(*inputs), exp_output)
 hdbg.dassert_eq(disk_cached_computation.get_last_cache_accessed(), "no_cache")
@@ -254,7 +254,7 @@ hdbg.dassert_eq(fully_cached_computation(*inputs), exp_output)
 hdbg.dassert_eq(fully_cached_computation.get_last_cache_accessed(), "mem")
 
 print("Clear mem cache")
-fully_cached_computation.clear_function_cache("mem")
+fully_cached_computation.clear_function_cache()
 
 hdbg.dassert_eq(fully_cached_computation(*inputs), exp_output)
 hdbg.dassert_eq(fully_cached_computation.get_last_cache_accessed(), "disk")
@@ -270,6 +270,6 @@ hdbg.dassert_eq(fully_cached_computation.get_last_cache_accessed(), "mem")
 
 # %%
 # This should fail all the times, because we clear the memory cache.
-fully_cached_computation.clear_function_cache("mem")
+fully_cached_computation.clear_function_cache()
 hdbg.dassert_eq(fully_cached_computation(*inputs), exp_output)
 hdbg.dassert_eq(fully_cached_computation.get_last_cache_accessed(), "mem")

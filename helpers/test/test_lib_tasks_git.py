@@ -124,12 +124,12 @@ class TestLibTasksGitCreatePatch1(hunitest.TestCase):
             hlitagit.git_patch_create(
                 ctx, mode, modified, branch, last_commit, files
             )
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         '0'
         ==
         '1'
         Specify only one among --modified, --branch, --last-commit
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)

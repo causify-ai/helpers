@@ -74,15 +74,15 @@ class Test_llm_transform1(hunitest.TestCase):
         # TODO(gp): We should be able to check the output once we have CmampTask10710
         # fixed and we can run dind.
         if False:
-            act = hio.from_file(out_file_name)
-            exp = r"""
+            actual = hio.from_file(out_file_name)
+            expected = r"""
             - If there is no pattern we can try learning, measure if learning works and, in
               the worst case, conclude that it does not work
             - If we can find the solution in one step or program the solution, machine
               learning is not the recommended technique, but it still works
             - Without data we cannot do anything: data is all that matters
             """
-            self.assert_equal(act, exp, dedent=True)
+            self.assert_equal(actual, expected, dedent=True)
 
     def test_test1(self) -> None:
         """
@@ -96,11 +96,11 @@ class Test_llm_transform1(hunitest.TestCase):
         hsystem.system(cmd)
         # Check.
         self.assertTrue(os.path.exists(out_file_name))
-        act = hio.from_file(out_file_name)
-        exp = r"""
+        actual = hio.from_file(out_file_name)
+        expected = r"""
         1ad0d344ac10cac079e4eed01074c5e6ca29da2f91ce99bfaea890479aace045
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test_test2(self) -> None:
         """
@@ -114,11 +114,11 @@ class Test_llm_transform1(hunitest.TestCase):
         hsystem.system(cmd)
         # Check.
         self.assertTrue(os.path.exists(out_file_name))
-        act = hio.from_file(out_file_name)
-        exp = r"""
+        actual = hio.from_file(out_file_name)
+        expected = r"""
         1ad0d344ac10cac079e4eed01074c5e6ca29da2f91ce99bfaea890479aace045
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     # TODO(gp): This can be enabled once we can mock the OpenAI interactions.
     @pytest.mark.skip(reason="Run manually since it needs OpenAI credentials")

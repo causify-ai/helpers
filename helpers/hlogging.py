@@ -764,11 +764,35 @@ def set_level(logger: Any, level: int) -> None:
 # #############################################################################
 
 
+def getLogger(name: str) -> logging.Logger:
+    """
+    Get logger with custom trace method support.
+
+    This function provides the same functionality as `logging.getLogger()`
+    but with proper type hints that include the custom trace method.
+
+    Usage:
+        ```
+        # Instead of `import logging`.
+        import helpers.hlogging as hlogging
+
+        _LOG = hlogging.getLogger(__name__)
+        _LOG.trace("This works without type checker errors")
+        _LOG.debug("Standard logging methods also work")
+        ```
+    """
+    return logging.getLogger(name)
+
+
 def test_logger() -> None:
     print("# Testing logger ...")
     print("effective level=", _LOG.getEffectiveLevel())
     #
-    _LOG.trace("TRACE=%s", logging.TRACE)
+    if hasattr(_LOG, "trace"):
+        if hasattr(logging, "TRACE"):
+            _LOG.trace("TRACE=%s", logging.TRACE)
+        else:
+            _LOG.trace("TRACE level not available")
     #
     _LOG.debug("DEBUG=%s", logging.DEBUG)
     #

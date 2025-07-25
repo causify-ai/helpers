@@ -13,8 +13,6 @@ from typing import Callable, Optional, Union
 
 _LOG = logging.getLogger(__name__)
 
-# TODO(gp): Consider adding a `import pandas as pd` to use the type hints.
-
 # #############################################################################
 # Simulated real time
 # #############################################################################

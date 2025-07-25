@@ -478,8 +478,8 @@ def _helper_success(
     )
     # Check.
     _LOG.debug("res=%s", str(res))
-    act = _outcome_to_string(res)
-    self_.assert_equal(act, expected_return)
+    actual = _outcome_to_string(res)
+    self_.assert_equal(actual, expected_return)
 
 
 def _helper_fail(
@@ -509,8 +509,8 @@ def _helper_fail(
         # Print result if it succeeds.
         _LOG.debug("res=%s", str(res))
     # Check.
-    act = str(cm.exception)
-    self_.assert_equal(act, expected_assertion)
+    actual = str(cm.exception)
+    self_.assert_equal(actual, expected_assertion)
 
 
 # # To observe the output in real-time.

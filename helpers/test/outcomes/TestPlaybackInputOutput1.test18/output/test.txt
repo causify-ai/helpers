@@ -10,8 +10,8 @@ import config_root.config as cconfi
 class TestGetResultAssertEqualNone(hunitest.TestCase):
     def test1(self) -> None:
         # Call function to test.
-        act = get_result_assert_equal_none()
+        actual = get_result_assert_equal_none()
         # Define expected output.
-        exp = "Some string."
+        expected = "Some string."
         # Compare actual and expected output.
-        self.assertEqual(act, exp)
+        self.assertEqual(actual, expected)
