@@ -918,7 +918,7 @@ _FULL_IMAGE_NAME_RE = r"([a-z0-9]+(-[a-z0-9]+)*\.)*[a-z]{2,}(\/[a-z0-9_-]+){1,2}
 _IMAGE_USER_RE = r"[a-z0-9_-]+"
 # For candidate prod images which have added hash for easy identification.
 _IMAGE_HASH_RE = r"[a-z0-9]{9}"
-_IMAGE_STAGE_RE = rf"(local(?:-{_IMAGE_USER_RE})?|dev|prod|prod(?:-{_IMAGE_USER_RE})(?:-{_IMAGE_HASH_RE})?|prod(?:-{_IMAGE_HASH_RE})?)"
+_IMAGE_STAGE_RE = rf"(local(?:-{_IMAGE_USER_RE})?|base|dev|prod|prod(?:-{_IMAGE_USER_RE})(?:-{_IMAGE_HASH_RE})?|prod(?:-{_IMAGE_HASH_RE})?)"
 
 
 # TODO(Grisha): call `_dassert_is_base_image_name_valid()` and a separate
@@ -1028,7 +1028,7 @@ def get_image(
     """
     # Docker refers the default image as "latest", although in our stage
     # nomenclature we call it "dev".
-    hdbg.dassert_in(stage, "local dev prod".split())
+    hdbg.dassert_in(stage, "local base dev prod".split())
     # Get the base image.
     base_image = _get_base_image(base_image)
     _dassert_is_base_image_name_valid(base_image)
