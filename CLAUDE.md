@@ -34,13 +34,6 @@ The repository uses `pyinvoke` for task automation with a modular task system:
 
 ## Common Development Commands
 
-### Thin environment
-
-```bash
-# Activate thin environment
-source dev_scripts_helpers/thin_client/setenv.sh
-```
-
 ### Testing
 - To run tests
   ```bash
