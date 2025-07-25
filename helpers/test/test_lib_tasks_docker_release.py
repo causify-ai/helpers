@@ -1125,7 +1125,7 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         # Check whether `update_task_definition` was called with the expected arguments.
         expected_image_url = "test.ecr.path/test-image:prod-1.0.0"
         mock_update_task_definition.assert_called_once_with(
-            "test_task", expected_image_url
+            "test_task", expected_image_url, environment="prod"
         )
 
     @moto.mock_aws
