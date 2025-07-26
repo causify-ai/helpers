@@ -463,7 +463,7 @@ def extract_slides_from_markdown(
 
 
 def header_list_to_vim_cfile(
-    lines: List[str], header_list: HeaderList
+    markdown_file: str, header_list: HeaderList
 ) -> List[str]:
     """
     Convert a list of headers into a Vim cfile format.
@@ -472,21 +472,21 @@ def header_list_to_vim_cfile(
         `:cfile <output_file>`
         Use `:cnext` and `:cprev` to navigate between headers.
 
-    :param lines: list of markdown lines (for consistency with interface)
+    :param markdown_file: path to the input Markdown file
     :param header_list: list of headers, where each header is a tuple containing
         the line number, level, and title
     :return: generated cfile content as a list of strings in the format:
         ```
         ...
-        <line number>:<header title>
+        <file path>:<line number>:<header title>
         ...
         ```
     """
-    hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_isinstance(markdown_file, str)
     hdbg.dassert_isinstance(header_list, list)
     _LOG.debug(hprint.to_str("header_list"))
     output_lines = [
-        f"{header_info.line_number}:{header_info.description}"
+        f"{markdown_file}:{header_info.line_number}:{header_info.description}"
         for header_info in header_list
     ]
     hdbg.dassert_isinstance(output_lines, list)

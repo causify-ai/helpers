@@ -14,6 +14,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(gp): Factor out common logic.
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
     def test_standard_case(self) -> None:
         txt = "Hello.\nWorld.\nThis is a test."

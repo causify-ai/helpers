@@ -49,7 +49,7 @@ def remove_code_delimiters(lines: List[str]) -> List[str]:
     :return: lines with the code delimiters removed
     """
     hdbg.dassert_isinstance(lines, list)
-    # Join lines back to text, apply original regex logic, then split again
+    # Join lines back to text, apply regex logic, then split again.
     txt = "\n".join(lines)
     # Replace the ```python and ``` delimiters with empty strings.
     txt_out = txt.replace("```python", "").replace("```", "")
@@ -57,7 +57,7 @@ def remove_code_delimiters(lines: List[str]) -> List[str]:
     # Remove the numbers at the beginning of the line, if needed
     # E.g., `3: """` -> `"""`.
     txt_out = re.sub(r"(^\d+: )", "", txt_out, flags=re.MULTILINE)
-    # Split back into lines
+    # Split back into lines.
     result = txt_out.split("\n") if txt_out else []
     hdbg.dassert_isinstance(result, list)
     return result

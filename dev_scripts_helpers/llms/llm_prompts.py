@@ -1691,18 +1691,14 @@ def run_prompt(
         txt_out = hllm.response_to_txt(response)
     hdbg.dassert_isinstance(txt_out, str)
     # 3) Run post-transforms.
+    lines = txt_out.split("\n")
     if to_run("remove_code_delimiters", post_transforms):
-        lines = txt_out.split("\n")
         lines = hmarkdo.remove_code_delimiters(lines)
-        txt_out = "\n".join(lines)
     if to_run("remove_end_of_line_periods", post_transforms):
-        lines = txt_out.split("\n")
         lines = hmarkdo.remove_end_of_line_periods(lines)
-        txt_out = "\n".join(lines)
     if to_run("remove_empty_lines", post_transforms):
-        lines = txt_out.split("\n")
         lines = hmarkdo.remove_empty_lines(lines)
-        txt_out = "\n".join(lines)
+    txt_out = "\n".join(lines)
     if to_run("convert_to_vim_cfile", post_transforms):
         hdbg.dassert_ne(in_file_name, "")
         hdbg.dassert_ne(out_file_name, "")

@@ -314,22 +314,22 @@ def _test_full_navigation_flow(self_: Any, txt: str) -> None:
 class Test_header_list_to_vim_cfile1(hunitest.TestCase):
     def test_get_header_list1(self) -> None:
         # Prepare inputs.
-        lines = []  # Empty lines since function doesn't use them for cfile generation
+        markdown_file = "test.py"
         headers = get_header_list1()
         # Call function.
-        actual_lines = hmarkdo.header_list_to_vim_cfile(lines, headers)
+        actual_lines = hmarkdo.header_list_to_vim_cfile(markdown_file, headers)
         actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
-        1:Chapter 1
-        6:Section 1.1
-        11:Subsection 1.1.1
-        16:Subsection 1.1.2
-        21:Section 1.2
-        26:Chapter 2
-        31:Section 2.1
-        36:Subsection 2.1.1
-        41:Section 2.2
+        test.py:1:Chapter 1
+        test.py:6:Section 1.1
+        test.py:11:Subsection 1.1.1
+        test.py:16:Subsection 1.1.2
+        test.py:21:Section 1.2
+        test.py:26:Chapter 2
+        test.py:31:Section 2.1
+        test.py:36:Subsection 2.1.1
+        test.py:41:Section 2.2
         """
         self.assert_equal(actual, expected, dedent=True)
 
