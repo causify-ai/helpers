@@ -114,21 +114,21 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         - **\red{VC Theory}**
             - Measures model
 
-        - **\orange{Bias-Variance Decomposition}**
+        - **\yellow{Bias-Variance Decomposition}**
             - Prediction error
-                - **\yellow{Bias}**
-                - **\lime{Variance}**
+                - **\green{Bias}**
+                - **\cyan{Variance}**
 
-        - **\green{Computation Complexity}**
+        - **\purple{Computation Complexity}**
             - Balances model
             - Related to
             - E.g., Minimum
 
-        - **\teal{Bayesian Approach}**
+        - **\magenta{Bayesian Approach}**
             - Treats ML as probability
             - Combines prior knowledge with observed data to update belief about a model
 
-        - **\cyan{Problem in ML Theory:}**
+        - **\brown{Problem in ML Theory:}**
             - Assumptions may not align with practical problems
         """
         self.assert_equal(actual, expected)
@@ -171,24 +171,35 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         actual = hmarkdo.colorize_bullet_points_in_slide(text)
         # Check output.
         expected = r"""
-        - **\red{VC Theory}**
-            - Measures model
+        * Machine Learning Flow
 
-        - **\yellow{Bias-Variance Decomposition}**
-            - Prediction error
-                - **\green{Bias}**
-                - **\cyan{Variance}**
+        ::: columns
+        :::: {.column width=90%}
+        - Question
+        - E.g., "How can we predict house prices?"
+        - Input data
+        - E.g., historical data of house sales
 
-        - **\purple{Computation Complexity}**
-            - Balances model
-            - Related to
-            - E.g., Minimum
+        - _"If I were given one hour to save the planet, I would spend 59 minutes
+        defining the problem and one minute resolving it"_ (Albert Einstein)
 
-        - **\magenta{Bayesian Approach}**
-            - Treats ML as probability
-            - Combines prior knowledge with observed data to update belief about a model
+        - **\red{Not all phases are equally important!}**
+        - Question $>$ Data $>$ Features $>$ Algorithm
+        - Clarity of the question impacts project success
+        - Quality and relevance of data are crucial for performance
+        - Proper feature selection simplifies the model and improves accuracy
+        - Algorithm is often less important (contrary to popular belief!)
+        ::::
+        :::: {.column width=5%}
 
-        - **\brown{Problem in ML Theory:}**
-            - Assumptions may not align with practical problems
+        ```graphviz[height=90%]
+        digraph BayesianFlow {
+            rankdir=TD;
+            splines=true;
+            ...
+        }
+        ```
+        ::::
+        :::
         """
         self.assert_equal(actual, expected)
