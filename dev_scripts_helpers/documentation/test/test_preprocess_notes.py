@@ -150,7 +150,7 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
         type_ = "slides"
         actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
         # Check.
-        self.check_string(actual)
+        self.check_string(actual, purify_text=True)
 
 
 # #############################################################################

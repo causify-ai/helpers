@@ -510,20 +510,26 @@ def _run_all(args: argparse.Namespace) -> None:
     if to_execute:
         _cleanup_before(prefix)
     # - Filter
-    if args.filter_by_header:
+    hdbg.dassert_lte(
+        int(args.filter_by_header is not None)
+        + int(args.filter_by_lines is not None)
+        + int(args.filter_by_slides is not None),
+        1,
+        "You can specify at most one between --filter_by_header, --filter_by_lines, --filter_by_slides",
+    )
+    if args.filter_by_header or args.filter_by_lines or args.filter_by_slides:
         text = hio.from_file(file_name)
-        filtered_text = hmarkdo.filter_by_header(text, args.filter_by_header)
-        file_name = f"{prefix}.filter_by_header.txt"
-        hio.to_file(file_name, filtered_text)
-    if args.filter_by_lines:
-        text = hio.from_file(file_name)
-        filtered_text = hmarkdo.filter_by_lines(text, args.filter_by_lines)
-        file_name = f"{prefix}.filter_by_lines.txt"
-        hio.to_file(file_name, filtered_text)
-    if args.filter_by_slides:
-        text = hio.from_file(file_name)
-        filtered_text = hmarkdo.filter_by_slides(text, args.filter_by_slides)
-        file_name = f"{prefix}.filter_by_slides.txt"
+        text = text.split("\n")
+        if args.filter_by_header:
+            filtered_text = hmarkdo.filter_by_header(text, args.filter_by_header)
+            file_name = f"{prefix}.filter_by_header.txt"
+        if args.filter_by_lines:
+            filtered_text = hmarkdo.filter_by_lines(text, args.filter_by_lines)
+            file_name = f"{prefix}.filter_by_lines.txt"
+        if args.filter_by_slides:
+            filtered_text = hmarkdo.filter_by_slides(text, args.filter_by_slides)
+            file_name = f"{prefix}.filter_by_slides.txt"
+        filtered_text = "\n".join(filtered_text)
         hio.to_file(file_name, filtered_text)
     # - Preprocess_notes
     action = "preprocess_notes"

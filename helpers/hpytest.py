@@ -47,7 +47,7 @@ def _pytest_show_artifacts(
     )
     file_names.extend(output_tmp.split())
     # Remove empty lines.
-    file_names = hprint.remove_empty_lines_from_string_list(file_names)
+    file_names = hprint.remove_empty_lines(file_names)
     #
     if tag is not None:
         num_files = len(file_names)

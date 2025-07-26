@@ -213,7 +213,7 @@ def tee(
     output1 = output.split("\n")
     _LOG.debug("output1= (%d)\n'%s'", len(output1), "\n".join(output1))
     #
-    output2 = hprint.remove_empty_lines_from_string_list(output1)
+    output2 = hprint.remove_empty_lines(output1)
     _LOG.debug("output2= (%d)\n'%s'", len(output2), "\n".join(output2))
     hdbg.dassert_list_of_strings(output2)
     return rc, output2

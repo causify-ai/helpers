@@ -32,8 +32,10 @@ class Test_filter_by_header1(hunitest.TestCase):
         test_content = hprint.dedent(
             test_content, remove_lead_trail_empty_lines_=False
         )
+        lines = test_content.split("\n")
         # Run test.
-        result_content = hmarfilt.filter_by_header(test_content, "Introduction")
+        result_lines = hmarfilt.filter_by_header(lines, "Introduction")
+        result_content = "\n".join(result_lines)
         # Check outputs.
         expected = """
         # Introduction
@@ -55,10 +57,11 @@ class Test_filter_by_header1(hunitest.TestCase):
         This is the introduction section.
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
         # Check outputs.
         with self.assertRaises(ValueError):
-            hmarfilt.filter_by_header(test_content, "NonExistent")
+            hmarfilt.filter_by_header(lines, "NonExistent")
 
 
 # #############################################################################
@@ -146,8 +149,10 @@ class Test_filter_by_lines1(hunitest.TestCase):
         Line 5
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
-        result_content = hmarfilt.filter_by_lines(test_content, "2:4")
+        result_lines = hmarfilt.filter_by_lines(lines, "2:4")
+        result_content = "\n".join(result_lines)
         # Check outputs.
         expected = "Line 2\nLine 3"
         self.assertEqual(result_content, expected)
@@ -165,8 +170,10 @@ class Test_filter_by_lines1(hunitest.TestCase):
         Line 5
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
-        result_content = hmarfilt.filter_by_lines(test_content, "None:3")
+        result_lines = hmarfilt.filter_by_lines(lines, "None:3")
+        result_content = "\n".join(result_lines)
         # Check outputs.
         expected = "Line 1\nLine 2"
         self.assertEqual(result_content, expected)
@@ -182,8 +189,10 @@ class Test_filter_by_lines1(hunitest.TestCase):
         Line 3
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
-        result_content = hmarfilt.filter_by_lines(test_content, "2:None")
+        result_lines = hmarfilt.filter_by_lines(lines, "2:None")
+        result_content = "\n".join(result_lines)
         # Check outputs.
         expected = "Line 2\nLine 3"
         self.assertEqual(result_content, expected)
@@ -194,10 +203,11 @@ class Test_filter_by_lines1(hunitest.TestCase):
         """
         # Prepare inputs.
         test_content = "Line 1\nLine 2\nLine 3"
+        lines = test_content.split("\n")
         # Run test.
         # Check outputs.
         with self.assertRaises(AssertionError):
-            hmarfilt.filter_by_lines(test_content, "3:1")
+            hmarfilt.filter_by_lines(lines, "3:1")
 
 
 # #############################################################################
@@ -227,8 +237,10 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Content for slide 3.
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
-        result_content = hmarfilt.filter_by_slides(test_content, "0:1")
+        result_lines = hmarfilt.filter_by_slides(lines, "0:1")
+        result_content = "\n".join(result_lines)
         # Check outputs.
         self.assertIn("Slide 1", result_content)
         self.assertNotIn("Slide 2", result_content)
@@ -246,8 +258,10 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Content 2.
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
-        result_content = hmarfilt.filter_by_slides(test_content, "0:None")
+        result_lines = hmarfilt.filter_by_slides(lines, "0:None")
+        result_content = "\n".join(result_lines)
         # Check outputs.
         self.assertIn("Slide 1", result_content)
         self.assertIn("Slide 2", result_content)
@@ -262,10 +276,11 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Content 1.
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
         # Check outputs.
         with self.assertRaises(AssertionError):
-            hmarfilt.filter_by_slides(test_content, "1:0")
+            hmarfilt.filter_by_slides(lines, "1:0")
 
     def test_slide_filtering_beyond_slides(self) -> None:
         """
@@ -277,10 +292,11 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Content 1.
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
         # Check outputs.
         with self.assertRaises(AssertionError):
-            hmarfilt.filter_by_slides(test_content, "0:5")
+            hmarfilt.filter_by_slides(lines, "0:5")
 
     def test_no_slides_content(self) -> None:
         """
@@ -292,10 +308,11 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Just regular content without slides.
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
         # Check outputs.
         with self.assertRaises(IndexError):
-            hmarfilt.filter_by_slides(test_content, "0:1")
+            hmarfilt.filter_by_slides(lines, "0:1")
 
     def test_slide_filtering_single_slide(self) -> None:
         """
@@ -308,8 +325,10 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Additional content after the slide.
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
-        result_content = hmarfilt.filter_by_slides(test_content, "0:2")
+        result_lines = hmarfilt.filter_by_slides(lines, "0:2")
+        result_content = "\n".join(result_lines)
         # Check outputs.
         self.assertIn("Only Slide", result_content)
         self.assertIn("This is the only content.", result_content)
@@ -327,8 +346,10 @@ class Test_filter_by_slides1(hunitest.TestCase):
         Content 2.
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
-        result_content = hmarfilt.filter_by_slides(test_content, "0:3")
+        result_lines = hmarfilt.filter_by_slides(lines, "0:3")
+        result_content = "\n".join(result_lines)
         # Check outputs.
         self.assertIn("Slide 1", result_content)
         self.assertIn("Slide 2", result_content)
@@ -359,8 +380,10 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         Final thoughts.
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
-        result_content = hmarfilt.filter_by_header(test_content, "Subsection 1")
+        result_lines = hmarfilt.filter_by_header(lines, "Subsection 1")
+        result_content = "\n".join(result_lines)
         # Check outputs.
         self.assertIn("## Subsection 1", result_content)
         self.assertIn("Content for subsection 1.", result_content)
@@ -388,8 +411,10 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         """
         # Prepare inputs.
         test_content = "Single line content"
+        lines = test_content.split("\n")
         # Run test.
-        result_content = hmarfilt.filter_by_lines(test_content, "1:1")
+        result_lines = hmarfilt.filter_by_lines(lines, "1:1")
+        result_content = "\n".join(result_lines)
         # Check outputs.
         self.assertEqual(result_content, "")
 
@@ -404,8 +429,10 @@ class Test_additional_edge_cases1(hunitest.TestCase):
         Line 3
         """
         test_content = hprint.dedent(test_content)
+        lines = test_content.split("\n")
         # Run test.
-        result_content = hmarfilt.filter_by_lines(test_content, "1:3")
+        result_lines = hmarfilt.filter_by_lines(lines, "1:3")
+        result_content = "\n".join(result_lines)
         # Check outputs.
         expected = "Line 1\nLine 2"
         self.assertEqual(result_content, expected)
