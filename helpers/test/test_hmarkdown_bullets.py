@@ -563,11 +563,14 @@ class Test_process_code_block1(hunitest.TestCase):
         return "\n".join(out)
 
     def test1(self) -> None:
+        # Prepare inputs.
         in_dir_name = self.get_input_dir()
         input_file_path = os.path.join(in_dir_name, "test.txt")
         txt_in = hio.from_file(input_file_path)
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        # Run function.
         actual = self.helper_process_code_block(txt_in)
+        # Check output.
         self.check_string(
             actual, dedent=True, remove_lead_trail_empty_lines=True
         )

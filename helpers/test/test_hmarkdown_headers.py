@@ -267,7 +267,8 @@ def _test_navigation_flow(
     nav_str_exp: str,
 ) -> None:
     # 1) Extract headers.
-    header_list = hmarkdo.extract_headers_from_markdown(txt, max_level=3)
+    lines = txt.split("\n")
+    header_list = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
     actual = pprint.pformat(header_list)
     self_.assert_equal(
         actual, header_list_exp, dedent=True, remove_lead_trail_empty_lines=True
@@ -288,7 +289,8 @@ def _test_navigation_flow(
 def _test_full_navigation_flow(self_: Any, txt: str) -> None:
     res: List[str] = []
     # Extract headers.
-    header_list = hmarkdo.extract_headers_from_markdown(txt, max_level=3)
+    lines = txt.split("\n")
+    header_list = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
     # Build header tree.
     tree = hmarkdo.build_header_tree(header_list)
     # Create a navigation map for any header.
@@ -342,7 +344,8 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
         headers = get_header_list1()
         mode = "list"
         # Call function.
-        actual = hmarkdo.header_list_to_markdown(headers, mode)
+        actual_lines = hmarkdo.header_list_to_markdown(headers, mode)
+        actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
         - Chapter 1
@@ -362,7 +365,8 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
         headers = get_header_list1()
         mode = "headers"
         # Call function.
-        actual = hmarkdo.header_list_to_markdown(headers, mode)
+        actual_lines = hmarkdo.header_list_to_markdown(headers, mode)
+        actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
         # Chapter 1
@@ -513,7 +517,9 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_example1()
         # Call functions.
-        actual = hmarkdo.extract_section_from_markdown(content, "Header1")
+        lines = content.split("\n")
+        actual_lines = hmarkdo.extract_section_from_markdown(lines, "Header1")
+        actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
         # Header1
@@ -528,7 +534,9 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         content = _get_markdown_example1()
         content = hprint.dedent(content)
         # Call functions.
-        actual = hmarkdo.extract_section_from_markdown(content, "Header2")
+        lines = content.split("\n")
+        actual_lines = hmarkdo.extract_section_from_markdown(lines, "Header2")
+        actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
         ## Header2
@@ -541,7 +549,9 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         content = _get_markdown_example1()
         content = hprint.dedent(content)
         # Call tested function.
-        actual = hmarkdo.extract_section_from_markdown(content, "Header3")
+        lines = content.split("\n")
+        actual_lines = hmarkdo.extract_section_from_markdown(lines, "Header3")
+        actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
         # Header3
@@ -553,7 +563,9 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_example2()
         # Call function.
-        actual = hmarkdo.extract_section_from_markdown(content, "Header1")
+        lines = content.split("\n")
+        actual_lines = hmarkdo.extract_section_from_markdown(lines, "Header1")
+        actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
         # Header1
@@ -568,7 +580,8 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         content = _get_markdown_no_header_example1()
         # Call tested function.
         with self.assertRaises(ValueError) as fail:
-            hmarkdo.extract_section_from_markdown(content, "Header4")
+            lines = content.split("\n")
+            hmarkdo.extract_section_from_markdown(lines, "Header4")
         # Check output.
         actual = str(fail.exception)
         expected = r"Header 'Header4' not found"
@@ -585,7 +598,8 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_example1()
         # Call function.
-        actual = hmarkdo.extract_headers_from_markdown(content, max_level=3)
+        lines = content.split("\n")
+        actual = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
         # Check output.
         expected = r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3), HeaderInfo(1, 'Header3', 5)]"""
         self.assert_equal(str(actual), expected)
@@ -594,7 +608,8 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_example2()
         # Call function.
-        actual = hmarkdo.extract_headers_from_markdown(content, max_level=3)
+        lines = content.split("\n")
+        actual = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
         # Check output.
         expected = (
             r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3)]"""
@@ -608,7 +623,8 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         """
         content = hprint.dedent(content)
         # Call function.
-        actual = hmarkdo.extract_headers_from_markdown(content, max_level=3)
+        lines = content.split("\n")
+        actual = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
         # Check output.
         expected: List[str] = []
         self.assert_equal(str(actual), str(expected))
@@ -624,7 +640,8 @@ class Test_extract_slides_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_slides_example1()
         # Call function.
-        actual = hmarkdo.extract_slides_from_markdown(content)
+        lines = content.split("\n")
+        actual = hmarkdo.extract_slides_from_markdown(lines)
         # Check output.
         expected = r"""([HeaderInfo(1, 'Slide 1', 3), HeaderInfo(1, 'Slide 2', 8), HeaderInfo(1, 'Slide 3', 11)], 12)"""
         self.assert_equal(str(actual), expected)
@@ -633,7 +650,8 @@ class Test_extract_slides_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_slides_example2()
         # Call function.
-        actual = hmarkdo.extract_slides_from_markdown(content)
+        lines = content.split("\n")
+        actual = hmarkdo.extract_slides_from_markdown(lines)
         # Check output.
         expected = r"""([HeaderInfo(1, 'Slide1', 3)], 4)"""
         self.assert_equal(str(actual), expected)
@@ -642,7 +660,8 @@ class Test_extract_slides_from_markdown1(hunitest.TestCase):
         # Prepare inputs.
         content = _get_markdown_no_header_example1()
         # Call function.
-        actual = hmarkdo.extract_slides_from_markdown(content)
+        lines = content.split("\n")
+        actual = hmarkdo.extract_slides_from_markdown(lines)
         # Check output.
         expected = r"""([], 1)"""
         self.assert_equal(str(actual), expected)
@@ -763,7 +782,8 @@ class Test_modify_header_level1(hunitest.TestCase):
         # Prepare inputs.
         input_text = "\n".join(input_lines)
         # Call tested function.
-        actual = hmarkdo.modify_header_level(input_text, level)
+        actual_lines = hmarkdo.modify_header_level(input_lines, level)
+        actual = "\n".join(actual_lines)
         # Check output.
         expected = "\n".join(expected_lines)
         self.assertEqual(actual, expected)
@@ -1117,7 +1137,9 @@ class Test_capitalize_header1(hunitest.TestCase):
         # Prepare inputs.
         txt = hprint.dedent(txt)
         # Run function.
-        actual = hmarkdo.capitalize_header(txt)
+        lines = txt.split("\n")
+        actual_lines = hmarkdo.capitalize_header(lines)
+        actual = "\n".join(actual_lines)
         # Check outputs.
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
