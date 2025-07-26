@@ -416,7 +416,9 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
         config1 = _get_test_config1()
         config2 = _get_test_config2()
         #
-        actual = cconfig.build_config_diff_dataframe({"1": config1, "2": config2})
+        actual = cconfig.build_config_diff_dataframe(
+            {"1": config1, "2": config2}
+        )
         actual = hpandas.df_to_str(actual, num_rows=None)
         #
         expected = pd.DataFrame(
@@ -433,7 +435,9 @@ class Test_build_config_diff_dataframe1(hunitest.TestCase):
         """
         config1 = _get_test_config1()
         #
-        actual = cconfig.build_config_diff_dataframe({"1": config1, "2": config1})
+        actual = cconfig.build_config_diff_dataframe(
+            {"1": config1, "2": config1}
+        )
         actual = hpandas.df_to_str(actual, num_rows=None)
         #
         expected = """

@@ -873,7 +873,9 @@ class TestCheckDataFrame1(hunitest.TestCase):
         golden_outcomes.to_csv(file_name)
         try:
             outcome_updated, file_exists, is_equal = self.check_dataframe(
-                actual, abort_on_error=abort_on_error, err_threshold=err_threshold
+                actual,
+                abort_on_error=abort_on_error,
+                err_threshold=err_threshold,
             )
         finally:
             # Clean up.
@@ -892,7 +894,9 @@ class Test_check_string_debug1(hunitest.TestCase):
         actual = "hello"
         # action_on_missing_golden = "assert"
         action_on_missing_golden = "update"
-        self.check_string(actual, action_on_missing_golden=action_on_missing_golden)
+        self.check_string(
+            actual, action_on_missing_golden=action_on_missing_golden
+        )
 
     def test2(self) -> None:
         actual = pd.DataFrame([[0, 1, 2], [3, 4, 5]], columns="a b c".split())

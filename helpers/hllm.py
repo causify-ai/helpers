@@ -489,7 +489,7 @@ def get_completion(
     :param model: model to use or empty string to use the default model
     :param report_progress: whether to report progress running the API
         call
-    :param cache_mode : "DISABLE_CACHE","REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"
+    :param cache_mode:
         - "DISABLE_CACHE": No caching
         - "REFRESH_CACHE": Make API calls and save responses to cache
         - "HIT_CACHE_OR_ABORT": Use cached responses, fail if not in cache
@@ -508,7 +508,6 @@ def get_completion(
     update_llm_cache = get_update_llm_cache()
     if update_llm_cache:
         cache_mode = "REFRESH_CACHE"
-
     llm_client = LLMClient(model=model)
     llm_client.create_client()
     # Construct messages in OpenAI API request format.

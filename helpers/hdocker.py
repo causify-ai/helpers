@@ -339,6 +339,8 @@ def replace_shared_root_path(
 # Dockerized executable utils.
 # #############################################################################
 
+# See `docs/tools/docker/all.dockerized_flow.explanation.md` for details
+# about the Dockerized flow.
 
 def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     """
@@ -356,6 +358,7 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     :return: The base command for running a Docker container.
     """
     docker_executable = get_docker_executable(use_sudo)
+    # Get the env vars to pass to the Docker container.
     vars_to_pass = henv.get_csfy_env_vars() + henv.get_api_key_env_vars()
     vars_to_pass = sorted(vars_to_pass)
     vars_to_pass_as_str = " ".join(f"-e {v}" for v in vars_to_pass)
@@ -366,9 +369,13 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
         "--user $(id -u):$(id -g)",
         vars_to_pass_as_str,
     ]
+    # Handle coverage.
+    # TODO(gp): Is this env var standard, or should it be
+    # CSFY_COVERAGE_PROCESS_START?
     if os.environ.get("COVERAGE_PROCESS_START"):
         _LOG.debug("Enabling coverage")
         host_cov_dir = os.path.abspath("coverage_data")
+        # TODO(gp): Use `hio.create_dir()` instead.
         os.makedirs(host_cov_dir, exist_ok=True)
         os.chmod(host_cov_dir, 0o777)
         coverage_dir_container = "/app/coverage_data"
@@ -381,7 +388,6 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
     return docker_cmd
 
 
-# TODO(gp): Pass `use_cache` to control using Docker cache.
 def build_container_image(
     image_name: str,
     dockerfile: str,
@@ -467,29 +473,30 @@ def build_container_image(
 
 def get_host_git_root() -> str:
     """
-    Get the Git root path on the host machine.
+    Get the Git root path on the host machine, when inside a Docker container.
     """
     hdbg.dassert_in("CSFY_HOST_GIT_ROOT_PATH", os.environ)
     host_git_root_path = os.environ["CSFY_HOST_GIT_ROOT_PATH"]
     return host_git_root_path
 
 
-# TODO(gp): This can even go to helpers.hdbg.
+# TODO(gp): Move to helpers.hdbg.
 def _dassert_valid_path(file_path: str, is_input: bool) -> None:
     """
     Assert that a file path is valid, based on it being input or output.
 
     For input files, it ensures that the file or directory exists. For
     output files, it ensures that the enclosing directory exists.
+
+    :param file_path: The file path to check.
+    :param is_input: Whether the file path is an input file.
     """
-    _LOG.debug(hprint.func_signature_to_str())
     if is_input:
         # If it's an input file, then `file_path` must exist as a file or a dir.
         hdbg.dassert_path_exists(file_path)
     else:
         # If it's an output, we might be writing a file that doesn't exist yet,
-        # but we assume that at the least the directory should be already
-        # present.
+        # but we assume that the including directory is already present.
         dir_name = os.path.normpath(os.path.dirname(file_path))
         hio.create_dir(dir_name, incremental=True)
         hdbg.dassert(
@@ -504,10 +511,12 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     """
     Assert that a file path is included within another path.
 
-    This function checks if the given file path starts with the
-    specified including path. If not, it raises an assertion error.
+    This function checks if the given file path starts with the specified
+    including path. If not, it raises an assertion error.
+
+    :param file_path: The file path to check.
+    :param including_path: The path that should include the file path.
     """
-    _LOG.debug(hprint.func_signature_to_str())
     # TODO(gp): Maybe we need to normalize the paths.
     hdbg.dassert(
         file_path.startswith(including_path),
@@ -525,7 +534,6 @@ def get_docker_mount_info(
 
     This function determines the appropriate source and target paths for
     mounting a directory in a Docker container.
-    See docs/work_tools/docker/all.dockerized_flow.explanation.md for details.
 
     Same inputs as `convert_caller_to_callee_docker_path()`.
 
@@ -579,7 +587,8 @@ def convert_caller_to_callee_docker_path(
     :param callee_mount_path: The target mount path inside the Docker
         container.
     :param check_if_exists: Whether to check if the file path exists.
-    :param is_input: Whether the file path is an input file.
+    :param is_input: Whether the file path is an input file (used only if
+        `check_if_exists` is True).
     :param is_caller_host: Whether the caller is running on the host
         machine or inside a Docker container.
     :param use_sibling_container_for_callee: Whether to use a sibling
@@ -613,3 +622,89 @@ def convert_caller_to_callee_docker_path(
         "  Converted %s -> %s -> %s", caller_file_path, rel_path, docker_path
     )
     return docker_path
+
+
+def is_path(path: str) -> bool:
+    """
+    Check if `path` can be considered a file or a directory using heuristics.
+
+    Criteria:
+    - It has a file extension (e.g., .txt, .csv)
+    - It is an absolute or relative path (e.g., starts with / or ./ or ../)
+    - It ends with a slash, indicating a folder
+    
+    E.g., 
+    ```
+    is_path("file.txt")           # True, since it has an extension
+    is_path("/path/to/file.py")   # True, since it has an absolute path
+    is_path("/path/to")           # True, since it has an absolute path
+    is_path("../data.csv")        # True, since it has an relative path
+    is_path("folder/")            # True, since it has a trailing slash
+    is_path("readme")             # False, since it has no extension and no path
+    ```
+    - return: True if the string looks like a path, False otherwise.
+    """
+    # Check if it has a file extension.
+    if os.path.splitext(path)[1]:
+        return True
+    # Check if it's an absolute or relative path.
+    if path.startswith('/') or path.startswith('./') or path.startswith('../'):
+        return True
+    # Check if it ends with a slash.
+    if path.endswith('/'):
+        return True
+    return False
+
+
+def convert_all_paths_from_caller_to_callee_docker_path(
+    cmd_opts: List[str],
+    caller_mount_path: str,
+    callee_mount_path: str,
+    is_caller_host: bool,
+    use_sibling_container_for_callee: bool,
+) -> str:
+    """
+    Convert all the paths from the caller to the callee Docker container path.
+
+    The paths are recognized by checking whether they point to an existing file
+    or directory.
+
+    The limitation of this approach is that output files are not recognized. To
+    work around this problem:
+    - Create output dirs
+    - Explicitly parse options that are outputs (e.g., `-o <file>`)
+
+    :param cmd_opts: List of command options.
+    :param caller_mount_path: See `get_docker_mount_info()`.
+    :param callee_mount_path: See `get_docker_mount_info()`.
+    :param is_caller_host: See `get_docker_mount_info()`.
+    :param use_sibling_container_for_callee: See `get_docker_mount_info()`.
+    :return: List of converted command options.
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    # Converted command options.
+    cmd_opts_out = []
+    # Scan the list of command option.
+    for cmd_opt_in in cmd_opts:
+        exists = os.path.exists(cmd_opt_in)
+        is_path_ = is_path(cmd_opt_in)
+        _LOG.debug(hprint.to_str("cmd_opt_in exists is_path_"))
+        if exists or is_path_:
+            check_if_exists = False
+            is_input = False
+            cmd_opt_out = convert_caller_to_callee_docker_path(
+                cmd_opt_in,
+                caller_mount_path,
+                callee_mount_path,
+                check_if_exists,
+                is_input,
+                is_caller_host,
+                use_sibling_container_for_callee,
+            )
+            _LOG.debug(hprint.to_str("cmd_opt_in -> cmd_opt_out"))
+            cmd_opts_out.append(cmd_opt_out)
+        else:
+            _LOG.debug("File does not exist: %s", cmd_opt_in)
+            cmd_opts_out.append(cmd_opt_in)
+    _LOG.debug(hprint.to_str("cmd_opts_out"))
+    return cmd_opts_out

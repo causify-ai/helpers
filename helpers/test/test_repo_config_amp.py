@@ -225,7 +225,9 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         # We ignore the AWS vars, since GH Actions does some replacement to mask
         # the env vars coming from secrets.
         skip_secrets_vars = True
-        hunteuti.check_env_to_str(self, expected, skip_secrets_vars=skip_secrets_vars)
+        hunteuti.check_env_to_str(
+            self, expected, skip_secrets_vars=skip_secrets_vars
+        )
 
     @pytest.mark.skipif(
         not hrecouti.get_repo_config().get_name() == "//cmamp",
@@ -277,4 +279,6 @@ class TestRepoConfig_Amp_signature1(hunitest.TestCase):
         # We ignore the AWS vars, since GH Actions does some replacement to mask
         # the env vars coming from secrets.
         skip_secrets_vars = True
-        hunteuti.check_env_to_str(self, expected, skip_secrets_vars=skip_secrets_vars)
+        hunteuti.check_env_to_str(
+            self, expected, skip_secrets_vars=skip_secrets_vars
+        )
