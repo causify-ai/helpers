@@ -219,7 +219,7 @@ class Test_is_path1(hunitest.TestCase):
         # Prepare inputs.
         test_cases = [
             ("file.txt", True),
-            ("document.pdf", True), 
+            ("document.pdf", True),
             ("script.py", True),
             ("data.csv", True),
             ("image.jpg", True),
@@ -315,19 +315,19 @@ class Test_is_path1(hunitest.TestCase):
             ("../parent/folder/", True),
             ("/absolute/path/file.py", True),
             # - Files without extension in paths.
-              # True because it contains a slash
+            # True because it contains a slash
             ("folder/README", True),
-# True because starts with ./
-            ("./config", True),       
-# True because starts with /
-            ("/usr/bin/python", True), 
+            # True because starts with ./
+            ("./config", True),
+            # True because starts with /
+            ("/usr/bin/python", True),
             # - Strings that might be confused with paths.
-# True because has extension.
-            ("folder.name", True),    
-# False because no extension, slash, or path prefix.
-            ("file-name", False),     
-# False because no extension, slash, or path prefix.
-            ("under_score", False),   
+            # True because has extension.
+            ("folder.name", True),
+            # False because no extension, slash, or path prefix.
+            ("file-name", False),
+            # False because no extension, slash, or path prefix.
+            ("under_score", False),
         ]
         # Run tests.
         for path, expected in test_cases:
@@ -339,7 +339,9 @@ class Test_is_path1(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_convert_all_paths_from_caller_to_callee_docker_path1(hunitest.TestCase):
+class Test_convert_all_paths_from_caller_to_callee_docker_path1(
+    hunitest.TestCase
+):
     def helper(
         self,
         cmd_opts: List[str],
@@ -397,14 +399,14 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(hunitest.TestCas
         expected_output = [
             "--verbose",
             "/app/file.txt",  # Converted
-            "--output", 
+            "--output",
             "/app/output.log",  # Converted
             "command",  # Not converted
             "/app/absolute/path",  # Converted
             "--flag",
             "/app/folder/",  # Converted
         ]
-        
+
         # Run test and check outputs.
         self.helper(cmd_opts, expected_output)
 
@@ -425,7 +427,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(hunitest.TestCas
             f"/app/{os.path.relpath(existing_file, hgit.find_git_root())}",  # Converted
             "nonexistent",  # Not converted
         ]
-        
+
         # Run test and check outputs.
         self.helper(cmd_opts, expected_output, create_files=[existing_file])
 
@@ -446,7 +448,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(hunitest.TestCas
             "/app/usr/bin/tool",  # Converted (absolute path)
             "plain_word",  # Not converted
         ]
-        
+
         # Run test and check outputs.
         self.helper(cmd_opts, expected_output)
 
@@ -457,7 +459,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(hunitest.TestCas
         # Prepare inputs.
         cmd_opts = []
         expected_output = []
-        
+
         # Run test and check outputs.
         self.helper(cmd_opts, expected_output)
 
@@ -468,7 +470,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(hunitest.TestCas
         # Prepare inputs.
         cmd_opts = [
             "--verbose",
-            "--debug", 
+            "--debug",
             "command",
             "argument",
             "--flag",
@@ -476,11 +478,11 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(hunitest.TestCas
         expected_output = [
             "--verbose",
             "--debug",
-            "command", 
+            "command",
             "argument",
             "--flag",
         ]
-        
+
         # Run test and check outputs.
         self.helper(cmd_opts, expected_output)
 
@@ -498,12 +500,12 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(hunitest.TestCas
         ]
         expected_output = [
             "/app/input.txt",
-            "/app/config.yaml", 
+            "/app/config.yaml",
             "/app/var/log/app.log",
             "/app/data/",
             "/app/output.json",
         ]
-        
+
         # Run test and check outputs.
         self.helper(cmd_opts, expected_output)
 
@@ -521,10 +523,10 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(hunitest.TestCas
         expected_output = [
             "/app/archive.tar.gz",
             "/app/.hidden",
-            "/app/backup.sql.bz2", 
+            "/app/backup.sql.bz2",
             "/app/.gitignore",
         ]
-        
+
         # Run test and check outputs.
         self.helper(cmd_opts, expected_output)
 
@@ -534,21 +536,21 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(hunitest.TestCas
         """
         # Prepare inputs.
         cmd_opts = ["input.txt", "output/"]
-        
+
         # Test sibling container mode.
         expected_sibling = ["/app/input.txt", "/app/output/"]
         self.helper(
-            cmd_opts, 
-            expected_sibling, 
-            is_caller_host=True, 
-            use_sibling_container_for_callee=True
+            cmd_opts,
+            expected_sibling,
+            is_caller_host=True,
+            use_sibling_container_for_callee=True,
         )
-        
+
         # Test child container mode.
         expected_child = ["/app/input.txt", "/app/output/"]
         self.helper(
-            cmd_opts, 
-            expected_child, 
-            is_caller_host=True, 
-            use_sibling_container_for_callee=False
+            cmd_opts,
+            expected_child,
+            is_caller_host=True,
+            use_sibling_container_for_callee=False,
         )

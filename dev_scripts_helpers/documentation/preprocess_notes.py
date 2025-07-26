@@ -321,7 +321,9 @@ def _add_navigation_slides(
     return txt_out
 
 
-def _preprocess_lines(lines: List[str], type_: str, toc_type: str, is_qa: bool) -> List[str]:
+def _preprocess_lines(
+    lines: List[str], type_: str, toc_type: str, is_qa: bool
+) -> List[str]:
     """
     Preprocess the lines of the notes.
     """

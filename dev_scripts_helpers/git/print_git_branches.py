@@ -3,7 +3,7 @@
 """
 Print the branch name for each git submodule directory.
 
-This script checks all git submodules and prints the name of the branch each 
+This script checks all git submodules and prints the name of the branch each
 directory is currently on. If no submodules are found, it reports that.
 
 Example usage:
@@ -44,7 +44,7 @@ def _parse() -> argparse.ArgumentParser:
 def _get_submodule_paths() -> list[str]:
     """
     Get list of submodule paths from .gitmodules file.
-    
+
     Returns:
         List of submodule directory paths, empty if no submodules found.
     """
@@ -52,19 +52,19 @@ def _get_submodule_paths() -> list[str]:
     if not os.path.exists(gitmodules_path):
         _LOG.info("No .gitmodules file found")
         return []
-    
+
     try:
         # Use git config to list submodule paths
         cmd = "git config --file .gitmodules --get-regexp path"
         _, output = hsystem.system_to_string(cmd)
-        
+
         submodule_paths = []
-        for line in output.strip().split('\n'):
+        for line in output.strip().split("\n"):
             if line:
                 # Format: "submodule.<name>.path <path>"
-                path = line.split(' ', 1)[1]
+                path = line.split(" ", 1)[1]
                 submodule_paths.append(path)
-        
+
         return submodule_paths
     except Exception as e:
         _LOG.warning(f"Error reading submodules: {e}")
@@ -74,19 +74,19 @@ def _get_submodule_paths() -> list[str]:
 def _get_branch_name(submodule_path: str) -> str:
     """
     Get the current branch name for a submodule.
-    
+
     Args:
         submodule_path: Path to the submodule directory
-        
+
     Returns:
         Branch name or error message
     """
     if not os.path.exists(submodule_path):
         return "ERROR: Directory not found"
-    
+
     if not os.path.exists(os.path.join(submodule_path, ".git")):
         return "ERROR: Not a git repository"
-    
+
     try:
         # Get current branch name
         cmd = f"cd {submodule_path} && git rev-parse --abbrev-ref HEAD"
@@ -99,21 +99,21 @@ def _get_branch_name(submodule_path: str) -> str:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    
+
     _LOG.info("Checking git submodules...")
-    
+
     submodule_paths = _get_submodule_paths()
-    
+
     if not submodule_paths:
         _LOG.info("No git submodules found in this repository")
         return
-    
+
     _LOG.info(f"Found {len(submodule_paths)} submodule(s)")
-    
+
     # Print header
     print("Submodule branches:")
     print("-" * 40)
-    
+
     # Check each submodule
     for path in submodule_paths:
         branch_name = _get_branch_name(path)

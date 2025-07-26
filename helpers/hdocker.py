@@ -633,8 +633,8 @@ def is_path(path: str) -> bool:
     - It has a file extension (e.g., .txt, .csv)
     - It is an absolute or relative path (e.g., starts with / or ./ or ../)
     - It ends with a slash, indicating a folder
-    
-    E.g., 
+
+    E.g.,
     ```
     is_path("file.txt")           # True, since it has an extension
     is_path("/path/to/file.py")   # True, since it has an absolute path
@@ -649,10 +649,10 @@ def is_path(path: str) -> bool:
     if os.path.splitext(path)[1]:
         return True
     # Check if it's an absolute or relative path.
-    if path.startswith('/') or path.startswith('./') or path.startswith('../'):
+    if path.startswith("/") or path.startswith("./") or path.startswith("../"):
         return True
     # Check if it ends with a slash.
-    if path.endswith('/'):
+    if path.endswith("/"):
         return True
     return False
 
