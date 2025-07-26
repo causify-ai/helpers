@@ -518,7 +518,13 @@ def is_valid_filename_extension(ext: str) -> bool:
     return valid
 
 
-def remove_extension(filename: str, extension: str, *, check_file_exists: bool = False, check_has_extension: bool = True) -> Optional[str]:
+def remove_extension(
+    filename: str,
+    extension: str,
+    *,
+    check_file_exists: bool = False,
+    check_has_extension: bool = True,
+) -> Optional[str]:
     """
     Attempt to remove `extension` from `filename`.
 
@@ -540,15 +546,15 @@ def remove_extension(filename: str, extension: str, *, check_file_exists: bool =
     #
     ret: Optional[str] = None
     if check_has_extension:
-        hdbg.dassert(filename.endswith(extension),
-        "Filename '%s' doesn't have extension=`%s`",
-        filename,
-        extension)
+        hdbg.dassert(
+            filename.endswith(extension),
+            "Filename '%s' doesn't have extension=`%s`",
+            filename,
+            extension,
+        )
     if filename.endswith(extension):
         ret = filename[: -len(extension)]
     return ret
-
-
 
 
 def change_filename_extension(filename: str, old_ext: str, new_ext: str) -> str:

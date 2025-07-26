@@ -43,8 +43,6 @@ def run_dockerized_ty(
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> str:
-    """
-    """
     _LOG.debug(hprint.func_signature_to_str())
     container_image = "tmp.ty"
     dockerfile = r"""

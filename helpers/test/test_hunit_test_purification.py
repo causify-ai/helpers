@@ -28,10 +28,10 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_purify_text1(hunitest.TestCase):
-    def check_helper(self, txt: str, expected: str) -> None:
+    def check_helper(self, txt: str, expected: str, **kwargs: Any) -> None:
         text_purifier = huntepur.TextPurifier()
         actual = text_purifier.purify_txt_from_client(txt)
-        self.assert_equal(actual, expected)
+        self.assert_equal(actual, expected, **kwargs)
 
     def test1(self) -> None:
         txt = "amp/helpers/test/test_system_interaction.py"

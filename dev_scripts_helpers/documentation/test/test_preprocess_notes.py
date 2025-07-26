@@ -154,7 +154,7 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_preprocess_notes1
+# Test_preprocess_notes_end_to_end2
 # #############################################################################
 
 
@@ -192,6 +192,7 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
             tag = os.path.basename(file)
             tag = hio.remove_extension(tag, ".txt", check_file_exists=False)
             self.check_string(actual, tag=tag)
+
 
 # #############################################################################
 # Test_preprocess_notes1

@@ -248,13 +248,16 @@ def convert_csv_dir_to_pq_dir(
     # TODO(gp): Consider parallelizing.
     for filename in filenames:
         # Remove .csv/.csv.gz.
-        csv_stem = hio.remove_extension(filename, ".csv", 
-                                        check_file_exists=True,
-                                        check_has_extension=False)
+        csv_stem = hio.remove_extension(
+            filename, ".csv", check_file_exists=True, check_has_extension=False
+        )
         if csv_stem is None:
-            csv_stem = hio.remove_extension(filename, ".csv.gz",
-                                        check_file_exists=True,
-                                        check_has_extension=False)
+            csv_stem = hio.remove_extension(
+                filename,
+                ".csv.gz",
+                check_file_exists=True,
+                check_has_extension=False,
+            )
         if csv_stem is None:
             _LOG.warning(
                 "Skipping filename=%s since it has invalid extension", csv_stem

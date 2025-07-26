@@ -323,7 +323,7 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
     @pytest.mark.skipif(
         not hgit.is_in_helpers_as_supermodule(),
         # TODO(gp): Is the assertion too strict?
-        reason="Needs to run insde a super module",
+        reason="Needs to run inside a super module",
     )
     def test_candidate_tag1(self) -> None:
         """
