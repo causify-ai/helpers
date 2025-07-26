@@ -204,7 +204,7 @@ def capitalize_header(txt: str) -> str:
 
 
 # TODO(gp): This could be done by processing `HeaderList`.
-def extract_section_from_markdown(content: str, header_name: str) -> str:
+def extract_section_from_markdown(txt: str, header_name: str) -> str:
     """
     Extract a section of text from a Markdown document based on the header
     name.
@@ -221,7 +221,7 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
         itself and all lines until the next header of the same or higher
         level
     """
-    lines = content.splitlines()
+    lines = txt.splitlines()
     _LOG.debug(hprint.to_str("lines"))
     extracted_lines = []
     # Level of the current header being processed.

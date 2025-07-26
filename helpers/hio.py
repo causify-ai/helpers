@@ -528,16 +528,22 @@ def remove_extension(filename: str, extension: str, *, check_file_exists: bool =
     """
     hdbg.dassert_isinstance(filename, str)
     hdbg.dassert(filename)
-    hdbg.dassert_file_exists(filename)
+    if check_file_exists:
+        hdbg.dassert_file_exists(filename)
     #
     hdbg.dassert_isinstance(extension, str)
     hdbg.dassert(
         extension.startswith("."),
-        "filename extension=`%s` expected to start with `.`",
+        "Filename extension=`%s` expected to start with `.`",
         extension,
     )
     #
     ret: Optional[str] = None
+    if check_has_extension:
+        hdbg.dassert(filename.endswith(extension),
+        "Filename '%s' doesn't have extension=`%s`",
+        filename,
+        extension)
     if filename.endswith(extension):
         ret = filename[: -len(extension)]
     return ret

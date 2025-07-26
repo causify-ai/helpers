@@ -333,6 +333,8 @@ def _preprocess_lines(lines: List[str], type_: str, toc_type: str, is_qa: bool) 
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
         out = _add_navigation_slides(out, max_level, sanity_check=True)
+        out = out.split("\n")
+    hdbg.dassert_isinstance(out, list)
     return out
 
 

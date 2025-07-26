@@ -190,6 +190,7 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
             # Check.
             actual = "\n".join(actual)
             tag = os.path.basename(file)
+            tag = hio.remove_extension(tag, ".txt", check_file_exists=False)
             self.check_string(actual, tag=tag)
 
 # #############################################################################
