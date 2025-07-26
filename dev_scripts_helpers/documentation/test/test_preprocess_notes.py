@@ -1,5 +1,6 @@
 import logging
 import os
+import glob
 
 import pytest
 
@@ -21,10 +22,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# @pytest.mark.skipif(
-#     hserver.is_inside_ci() or hserver.is_dev_csfy(),
-#     reason="Disabled because of CmampTask10710",
-# )
 class Test_process_question1(hunitest.TestCase):
     """
     Check that the output of `preprocess_notes.py` is the expected one calling
@@ -69,8 +66,8 @@ class Test_process_question1(hunitest.TestCase):
         exp = "-" + " " * len(space) + "**Hope is not a strategy**"
         self.helper(txt_in, do_continue_exp, exp)
 
-    def helper(self, txt_in: str, do_continue_exp: bool, exp: str) -> None:
-        do_continue, act = dshdprno._process_question_to_markdown(txt_in)
+    def helper(self, txt_in: str, do_continue_exp: bool, expected: str) -> None:
+        do_continue, actual = dshdprno._process_question_to_markdown(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
         self.assert_equal(actual, expected)
 
@@ -80,10 +77,6 @@ class Test_process_question1(hunitest.TestCase):
 # #############################################################################
 
 
-# @pytest.mark.skipif(
-#     hserver.is_inside_ci() or hserver.is_dev_csfy(),
-#     reason="Disabled because of CmampTask10710",
-# )
 class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
     """
     Test `preprocess_notes.py` by calling the library function directly.
@@ -143,8 +136,8 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
                         print(v)
             ```
         """
-        exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(act, exp)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
 
     def test_run_all2(self) -> None:
         """
@@ -155,10 +148,49 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         # Run function.
         type_ = "slides"
-        act = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
         # Check.
-        self.check_string(act)
+        self.check_string(actual)
 
+
+# #############################################################################
+# Test_preprocess_notes1
+# #############################################################################
+
+
+class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
+    """
+    Test `preprocess_notes.py` by calling the library function directly.
+
+    > cd /Users/saggese/src/umd_msml6101
+    > cp -r lectures_source/Lesson*.txt ./helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2/input/
+    """
+
+    def test_run_all1(self) -> None:
+        input_dir = self.get_input_dir()
+        _LOG.debug("input_dir=%s", input_dir)
+        # Find all the files in the `test/input` directory.
+        files = glob.glob(os.path.join(input_dir, "*.txt"))
+        _LOG.debug("Found %s files", len(files))
+        hdbg.dassert_lt(0, len(files))
+        for file in files:
+            # preprocess_notes.py \
+            #   --input lectures_source/Lesson02-Techniques.txt \
+            #   --output tmp.notes_to_pdf.preprocess_notes.txt \
+            #   --type slides \
+            #   --toc_type navigation
+            # Read the file.
+            text = hio.from_file(file)
+            # Run the function.
+            lines = text.split("\n")
+            type_ = "slides"
+            toc_type = "navigation"
+            is_qa = False
+            actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
+            # Check.
+            actual = "\n".join(actual)
+            tag = os.path.basename(file)
+            self.check_string(actual, tag=tag)
 
 # #############################################################################
 # Test_preprocess_notes1

@@ -1,0 +1,383 @@
+// notes_to_pdf.py --input lectures_source/Lesson1-Intro.txt --output tmp.pdf --type slides --skip_action cleanup_after --debug_on_error --toc_type navigation
+
+::: columns
+:::: {.column width=15%}
+![](lectures_source/UMD_Logo.png)
+::::
+:::: {.column width=75%}
+
+\vspace{0.4cm}
+\begingroup \large
+MSML610: Advanced Machine Learning
+\endgroup
+::::
+:::
+
+\vspace{1cm}
+
+\begingroup \Large
+**$$\text{\blue{MSML610 Class Mechanics}}$$**
+\endgroup
+\vspace{1cm}
+
+**Instructor**: Dr. GP Saggese - `gsaggese@umd.edu`
+
+# ##############################################################################
+# MSML610
+# ##############################################################################
+
+* Invariants of a Class Lecture
+- **Invariants**
+  - Focus on intuition over math (unless necessary)
+  - Emphasize realistic assumptions and numerical methods
+    - Analytical solutions are so 1800s
+  - Interactive Jupyter notebook tutorials to foster hands-on approach
+    - Tutorials are mainly done at home
+    - Videos of each tutorial will be added over time
+
+- Lessons alternate between slides, whiteboard, tutorials
+  - 2:45 hours per class lessons
+    - 50 mins
+    - 10 break
+    - 50 mins
+    - 10 mins
+    - 45 slides (Topic refresher!)
+
+* Books of the Class
+- The goal is to make the slides self-sufficient
+
+- For each class, I recommend a few books I liked about that topic
+
+  - **Simple**
+    - Burkov: _"Machine Learning Engineering"_ (2020)
+    - Burkov: _"The Hundred-Page Machine Learning Book"_ (2019)
+  - **Medium**
+    - Abu-Mostafa et al.: _"Learning From Data"_ (2012)
+    - Martin: _"Bayesian Analysis with Python"_ (2nd ed, 2021)
+    - Russell et al.: _"Artificial Intelligence: A Modern Approach"_ (4th ed, 2020)
+  - **Hardcore**
+    - Hastie et al.: _"The Elements of Statistical Learning"_ (2nd ed, 2009)
+    - Koller et al.: _"Probabilistic Graphical Models: Principles and Techniques"_ (2009)
+    - Murphy: Machine Learning: _"A Probabilistic Perspective"_ (2012)
+    - Sutton et al.: _"Reinforcement Learning: An Introduction"_ (2nd ed, 2018)
+
+// TODO: Add book pictures
+
+* Grading
+- **Class Participation** (10%)
+  - Attendance
+  - Contributions to discussions and engagement
+
+- **Quizzes** (40%)
+  - Multi-choice quizzes on previous 2 lessons
+  - 4-5 quizzes to make you study during the semester and don't cram
+
+- **Final Project** (50%)
+  - A comprehensive application of course concepts
+  - Python project selected from a list of topics
+
+* Class Projects
+- The project is _"Build $X$ with $Y$"_, where $X$ is a use case and $Y$ is a
+  technology
+  - Study and describe a technology $Y$
+  - Implement a use case $X$ using the technology $Y$
+  - Create Jupyter notebooks to demo your project
+  - Commit code to GitHub and contribute to open-source repo
+  - Write a blog entry
+  - Present your project in a video
+
+- Each project:
+  - Is individual
+  - Has different levels of difficulty
+
+- There is a list of $X$ and $Y$ you can pick from, e.g.,
+  - LLMs
+  - Deep learning
+  - Big data
+  - Statistical learning
+  - ...
+
+* Links
+- Syllabus
+- Schedule
+- GitHub project
+- FAQs
+- Project specs
+- Announcements on ELMS
+
+* Yours truly
+- GP Saggese, PhD
+  - 2001-2006, PhD / Postdoc at the University of Illinois at Urbana-Champaign
+- **LinkedIn**: https://www.linkedin.com/in/gpsaggese/
+- **Email**: gsaggese@umd.edu
+- **In the real-world**
+  - Research scientist at NVIDIA, Synopys, Teza, Engineers' Gate
+  - 3x AI and fin-tech startup founder (ZeroSoft, June, Causify AI)
+  - 20+ academic papers, 2 US patents
+- **UMD**:
+  - 2023-, Lecturer for UMD DATA605: Big Data Systems
+
+# ##############################################################################
+# Class Map
+# ##############################################################################
+
+// TODO(gp): Refresh this once the slides are complete
+// lectures_source/get_syllabus.sh
+
+* 1. Intro
+- A map of machine learning
+- What is Artificial Intelligence
+  - AI
+  - ML
+  - AI vs ML vs Deep-learning
+  - The foundation of AI
+  - Brief history of AI
+  - AI state of the art
+  - Risks and benefits of AI
+
+* 2. Techniques
+- Paradigms
+- Techniques
+  - Machine learning in practice
+  - How to do research
+    - Simple is better
+    - Research methodology
+  - Pipeline organization
+  - Input processing
+  - Learning algorithms
+    - Gradient descent
+    - Stochastic gradient descent
+  - Performance metrics
+    - Precision and recall
+  - Model selection
+  - Aggregation
+    - Bagging
+    - Boosting
+    - Stacking
+
+* 3. Knowledge Representation
+- Knowledge Representation
+  - Basics of Knowledge Representation
+  - Examples of Logic
+  - Logical Agents
+  - Ontologies
+  - Reasoning in Ontologies
+- Propositional logic
+- First-order Logic
+- Non-classical Logics
+- Description Logics
+  - Semantic Web
+
+* 4. Machine Learning Models
+- Models
+  - Naive Bayes
+  - Decision trees
+  - Random forests
+  - Linear models
+  - Perceptron
+  - Logistic regression
+  - LDA, QDA
+  - Kernel methods
+  - Support vector machines
+  - Similarity-based models
+  - Clustering
+  - Anomaly detection
+
+* 5. Machine Learning Theories
+- Is learning possible?
+  - Training vs Testing
+  - Growth function
+  - The VC dimension
+  - Regularization
+    - Bias vs variance
+    - Learning curves
+    - Learn-validation approach
+
+* 6. Bayesian Statistics
+- Logic-Based AI Under Uncertainty
+- Probabilistic Reasoning
+  - Conditional Independence
+  - Bayesian Networks
+  - Semantics of Bayesian Networks
+  - Constructing a Bayesian Network
+  - Exact Inference in Bayesian Networks
+  - Approximate Inference in Bayesian Networks
+    - Direct sampling methods
+
+* 7. Probabilistic Programming
+- Probabilistic programming
+  - Probability theory
+  - Single-parameter inference
+  - How to choose priors
+  - Communicating a Bayesian analysis
+  - Probabilistic programming
+  - Posterior-based decisions
+  - Gaussians all the way down
+  - Posterior predictive checks
+  - Robust inference
+  - Groups comparison
+  - Hierarchical models
+  - Simple linear model
+  - Variable variance
+  - Hierarchical linear regression
+  - Multiple linear regression
+  - Comparing models
+    - Posterior predictive checks
+  - The balance between simplicity and accuracy
+  - Measures of predictive accuracy
+    - Information criteria
+    - Cross-validation
+  - Model averaging
+  - Bayes factors
+    - Bayes factors and information criteria
+  - Regularizing priors
+  - Mixture models
+  - 7.5, Zero-inflated and hurdle models
+  - 7.6, Mixture models and clustering
+  - 7.7, Non-finite mixture models
+  - 7.8, Continuous mixtures
+  - Inference engines
+  - 10.1, Inference engines
+
+* 8. Reasoning Over Time
+- Reasoning over time
+- HMMs
+- Markov random fields
+- Markov logic network
+- State space models and Kalman filter
+  - G-h filter
+  - Discrete Bayes filter
+- Dynamic Bayesian networks
+- State space model
+- Variational Inference
+  - Expectation-Maximization (EM) Algorithm
+
+* 9. Causal Inference
+- Causal AI
+  - Why Causal AI?
+  - Concepts in Causal AI
+  - Variables
+  - Paths
+  - The Ladder of Causation
+  - Correlation vs causation models
+- Business processes around data modeling
+  - Modeling processes
+  - Roles
+
+* 10. Timeseries Forecasting
+- Time Series
+  - Basic definition
+  - Time series operators
+  - Time series decomposition
+- Classical Methods
+  - Simple models for stochastic process
+  - Autoregressive models
+  - Moving average models
+  - ARMA(p, q) process
+  - ARIMA model
+  - ARCH model
+
+* 11. Probabilistic Deep Learning
+- Neural networks
+  - Biological inspiration
+  - Neural networks
+- Advanced Neural Network Architectures
+  - Convolutional networks
+  - Recurrent Neural Networks (RNNs)
+  - Deep learning learning algorithms
+  - Deep learning architectures
+- Fundamentals of Deep Learning
+- Training Deep Neural Networks
+- Interpretability and Explainability
+- Deep Generative Models
+- Bayesian Deep Learning
+- Deep Probabilistic Models
+- Uncertainty Quantification
+- Probabilistic Programming and Inference
+- Modern Research Frontiers
+- Bonus Topics
+
+* 12. Reinforcement Learning
+- Sequential decision problems
+  - Utilities over time
+  - Algorithms for MDPs
+- Reinforcement learning
+  - Passive reinforcement learning
+  - Active reinforcement learning
+  - Generalization in reinforcement learning
+  - Policy search
+- Fundamentals
+- Classical Methods
+- Exploration Strategies
+- Policy Gradient Methods
+- Value Function Approximation
+- Deep Reinforcement Learning
+- Model-Based Reinforcement Learning
+- Advanced Topics
+- Applications
+
+* Refresher: Probability
+- Probability
+  - Probability definition
+  - Probability measure
+  - Independent events
+  - Conditional probability
+  - Law of total probability
+  - Bayes theorem
+- Random variables
+  - Random variables
+  - CDF, PMF, PDF of Random Variables
+  - Joint distributions
+  - Marginal distributions
+  - Independent RVs
+  - Conditional PDF RVs
+- Mathematical expectation of RVs
+  - Mean
+  - Variance and covariance
+  - Statistics of RVs
+- Probability inequalities
+- Statistical Inference
+  - Definitions
+  - Sample mean
+  - Sample variance
+  - Asymptotics
+  - Confidence intervals
+  - Hypothesis testing
+  - Multiple hypothesis testing
+  - Estimating CDF and statistical functional
+  - Bootstrap
+
+* Refresher Probability Distributions
+- Interesting RVs
+  - Bernoulli
+  - Binomial
+  - Gaussian
+  - Log-Normal
+  - Poisson
+  - Chi-square
+  - Student's t-distribution
+- Probability inequalities
+
+* Refresher Linear Algebra
+- Linear algebra
+  - Vector and vector spaces
+  - Affine spaces
+  - Vectors and matrices
+  - Linear functions
+  - Connections between Machine Learning and Linear Algebra
+
+* Refresher Information Theory
+- Information theory
+  - Entropy
+    - Kullback-Leibler divergence
+  - Connections between Information Theory and ML
+
+* Refresher Game Theory
+- Game theory
+  - Connections between Machine Learning and Game Theory
+
+* Refresher: Numerical Optimization
+- Optimization / numerical methods
+
+* Refresher: Stochastic Processes
+- Stochastic processes

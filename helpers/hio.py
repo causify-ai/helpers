@@ -518,6 +518,33 @@ def is_valid_filename_extension(ext: str) -> bool:
     return valid
 
 
+def remove_extension(filename: str, extension: str, *, check_file_exists: bool = False, check_has_extension: bool = True) -> Optional[str]:
+    """
+    Attempt to remove `extension` from `filename`.
+
+    :param filename: str filename
+    :param extension: file extension starting with a dot. E.g., ".csv"
+    :return: filename without `extension`, if applicable, else returns `None`.
+    """
+    hdbg.dassert_isinstance(filename, str)
+    hdbg.dassert(filename)
+    hdbg.dassert_file_exists(filename)
+    #
+    hdbg.dassert_isinstance(extension, str)
+    hdbg.dassert(
+        extension.startswith("."),
+        "filename extension=`%s` expected to start with `.`",
+        extension,
+    )
+    #
+    ret: Optional[str] = None
+    if filename.endswith(extension):
+        ret = filename[: -len(extension)]
+    return ret
+
+
+
+
 def change_filename_extension(filename: str, old_ext: str, new_ext: str) -> str:
     """
     Change extension of a filename (e.g. "data.csv" to "data.json").

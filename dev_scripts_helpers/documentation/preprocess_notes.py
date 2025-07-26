@@ -105,9 +105,7 @@ def _process_question_to_slides(
 
 
 # TODO(gp): Use hmarkdown.process_lines().
-# TODO(gp): Pass List[str].
-# TODO(gp): -> _preprocess_lines
-def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
+def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> str:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
@@ -117,8 +115,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     :return: List of lines of the notes.
     """
     _LOG.debug("\n%s", hprint.frame("transform_lines"))
-    hdbg.dassert_isinstance(txt, str)
-    lines = [line.rstrip("\n") for line in txt.split("\n")]
+    lines = [line.rstrip("\n") for line in lines]
     out: List[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
     if lines[0] != "---":
@@ -324,6 +321,21 @@ def _add_navigation_slides(
     return txt_out
 
 
+def _preprocess_lines(lines: List[str], type_: str, toc_type: str, is_qa: bool) -> List[str]:
+    """
+    Preprocess the lines of the notes.
+    """
+    hdbg.dassert_isinstance(lines, list)
+    # Apply transformations.
+    out = _transform_lines(lines, type_, is_qa=is_qa)
+    # Add TOC, if needed.
+    if toc_type == "navigation":
+        hdbg.dassert_eq(type_, "slides")
+        max_level = 2
+        out = _add_navigation_slides(out, max_level, sanity_check=True)
+    return out
+
+
 # #############################################################################
 
 
@@ -361,13 +373,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("cmd line=%s", hdbg.get_command_line())
     # Read file.
     txt = hio.from_file(args.input)
-    # Apply transformations.
-    out = _transform_lines(txt, args.type, is_qa=args.qa)
-    # Add TOC, if needed.
-    if args.toc_type == "navigation":
-        hdbg.dassert_eq(args.type, "slides")
-        max_level = 2
-        out = _add_navigation_slides(out, max_level, sanity_check=True)
+    # Process.
+    lines = txt.split("\n")
+    out = _preprocess_lines(lines, args.type, args.toc_type, args.qa)
+    out = "\n".join(out)
     # Save results.
     hio.to_file(args.output, out)
 

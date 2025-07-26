@@ -76,40 +76,61 @@
 
 ## Directory and Module Structure
 
+### Core Infrastructure Modules
+
 - `helpers/hdocker.py`
-  - Core Docker infrastructure module providing low-level Docker operations like:
-    - Container management
-    - Image building
+  - Core Docker infrastructure module providing low-level Docker operations:
+    - Container lifecycle management (build, run, remove)
+    - Image building and caching with content-based hashing
     - Path conversion between host and container filesystems
-    - Mount point configuration
+    - Mount point configuration for different container types (children vs
+      sibling)
+    - Architecture compatibility checking
+  - Contains generic utilities that work with any Docker container
+  - Examples: `build_container_image()`,
+    `convert_caller_to_callee_docker_path()`, `get_docker_mount_info()`
 
 - `helpers/hdockerized_executables.py`
-  - High-level wrappers for specific tools (prettier, pandoc, latex, mermaid,
-    etc.) that use hdocker.py functions to run these tools inside Docker
-    containers with proper argument parsing and path handling
-  - Contains tool-specific functions like `run_dockerized_prettier()`,
-    `run_dockerized_pandoc()`, and `run_dockerized_latex()` that handle the
-    unique requirements of each executable
+  - High-level wrappers for specific external tools (prettier, pandoc, latex,
+    mermaid, etc.)
+  - Uses `hdocker.py` functions to run tools inside Docker containers
+  - Handles tool-specific requirements:
+    - Custom Dockerfiles for each tool
+    - Command-line argument parsing and conversion
+    - Input/output file path mapping
+    - Tool-specific configuration options
+  - Contains functions like `run_dockerized_prettier()`,
+    `run_dockerized_pandoc()`, `run_dockerized_latex()`
 
-- `dockerized_XYZ.py`
-  - Contains the "actual" script doing the work, i.e., the one that would run the
-    code if all the dependencies were satisfied
-  - Needs to be run inside a Docker container
-  - E.g.,
-    - `dockerized_llm_transform.py`
-    - `dockerized_extract_notebook_images.py`
-    - `dockerized_sync_gh_issue_labels.py`
+### Script Architecture Pattern
 
-- `XYZ.py`
-  - Is the entrypoint for the user
-  - Contains the call to the actual `dockerized_XYZ.py` scripts
-  - E.g.,
-    - `llm_transform.py`
-    - `extract_notebook_images.py`
-    - `sync_gh_issue_labels.py`
+The dockerized executable pattern follows a three-layer architecture:
 
-- Core functionalities for the module can be placed in separate files
-  - E.g., image extraction logic might reside in `helpers/hjupyter.py`
+1. **Entry Point Scripts (`XYZ.py`)**
+   - User-facing command-line interface
+   - Handles argument parsing and validation
+   - Calls the appropriate dockerized function from `hdockerized_executables.py`
+   - Examples: 
+     - `dev_scripts_helpers/llms/llm_transform.py`
+     - `dev_scripts_helpers/documentation/dockerized_prettier.py`
+
+2. **Dockerized Wrapper Functions**
+   - Located in `helpers/hdockerized_executables.py`
+   - Manages Docker container execution
+   - Converts file paths between host and container contexts
+   - Examples: `run_dockerized_prettier()`, `run_dockerized_pandoc()`
+
+3. **Core Business Logic (Optional)**
+   - Complex functionality can be separated into dedicated helper modules
+   - Examples: 
+     - Image extraction logic in `helpers/hjupyter.py`
+     - LLM operations in `helpers/hllm.py`
+
+### File Naming Conventions
+
+- **`dockerized_XYZ.py`**: Scripts that run inside containers (deprecated pattern)
+- **`XYZ.py`**: User entry points that invoke dockerized functions
+- **`run_dockerized_XYZ()`**: Functions in `hdockerized_executables.py` that manage container execution
 
 ## Running a Dockerized executable
 

@@ -11,7 +11,11 @@ from typing import List, Optional
 import helpers.hdbg as hdbg
 from helpers.hmarkdown_fenced_blocks import (
     replace_fenced_blocks_with_tags,
-    replace_tags_with_fenced_blocks,
+    replace_tags_with_fenced_blocks
+)
+from helpers.hmarkdown_tables import (
+    replace_tables_with_tags,
+    replace_tags_with_tables,
 )
 
 _LOG = logging.getLogger(__name__)
@@ -165,6 +169,9 @@ def colorize_bullet_points_in_slide(
     lines = txt.split("\n")
     lines, fence_map = replace_fenced_blocks_with_tags(lines)
     _LOG.debug("Found %s fenced blocks", len(fence_map))
+    # Replace tables with tags.
+    lines, table_map = replace_tables_with_tags(lines)
+    _LOG.debug("Found %s tables", len(table_map))
     # Count the number of bold items.
     tot_bold = 0
     # Scan the text line by line and count how many bold items there are.
@@ -230,5 +237,8 @@ def colorize_bullet_points_in_slide(
         txt_out.append(line)
     # Replace the tags with the fenced code blocks.
     txt_out = replace_tags_with_fenced_blocks(txt_out, fence_map)
+    # Replace the tags with the tables.
+    txt_out = replace_tags_with_tables(txt_out, table_map)
+    # Join the lines.
     txt_out = "\n".join(txt_out)
     return txt_out
