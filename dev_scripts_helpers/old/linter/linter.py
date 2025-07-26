@@ -121,7 +121,7 @@ def _tee(
     output1 = output.split("\n")
     _LOG.debug("output1= (%d)\n'%s'", len(output1), "\n".join(output1))
     #
-    output2 = hprint.remove_empty_lines_from_string_list(output1)
+    output2 = hprint.remove_empty_lines(output1)
     _LOG.debug("output2= (%d)\n'%s'", len(output2), "\n".join(output2))
     _dassert_list_of_strings(output2)
     return rc, output2
@@ -1682,7 +1682,7 @@ def _run_linter(
         )
         output_tmp = list(itertools.chain.from_iterable(output_tmp))
     output.extend(output_tmp)
-    output = hprint.remove_empty_lines_from_string_list(output)
+    output = hprint.remove_empty_lines(output)
     return output  # type: ignore
 
 

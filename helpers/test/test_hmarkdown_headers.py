@@ -317,7 +317,8 @@ class Test_header_list_to_vim_cfile1(hunitest.TestCase):
         markdown_file = "test.py"
         headers = get_header_list1()
         # Call function.
-        actual = hmarkdo.header_list_to_vim_cfile(markdown_file, headers)
+        actual_lines = hmarkdo.header_list_to_vim_cfile(markdown_file, headers)
+        actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
         test.py:1:Chapter 1
@@ -990,11 +991,9 @@ class Test_format_headers1(hunitest.TestCase):
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        read_file = os.path.join(scratch_dir, "read_file.txt")
         write_file = os.path.join(scratch_dir, "write_file.txt")
-        hio.to_file(read_file, "\n".join(input_text))
         # Call tested function.
-        hmarkdo.format_headers(read_file, write_file, max_lev=max_lev)
+        hmarkdo.format_headers(input_text, write_file, max_lev=max_lev)
         # Check output.
         actual = hio.from_file(write_file)
         self.assertEqual(actual, "\n".join(expected))

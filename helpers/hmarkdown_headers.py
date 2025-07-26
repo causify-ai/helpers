@@ -462,9 +462,9 @@ def extract_slides_from_markdown(
     return header_list, last_line_number
 
 
-# TODO(ai): Convert to
-# def header_list_to_vim_cfile(lines: List[str], header_list: HeaderList) -> List[str]:
-def header_list_to_vim_cfile(markdown_file: str, header_list: HeaderList) -> str:
+def header_list_to_vim_cfile(
+    markdown_file: str, header_list: HeaderList
+) -> List[str]:
     """
     Convert a list of headers into a Vim cfile format.
 
@@ -475,21 +475,22 @@ def header_list_to_vim_cfile(markdown_file: str, header_list: HeaderList) -> str
     :param markdown_file: path to the input Markdown file
     :param header_list: list of headers, where each header is a tuple containing
         the line number, level, and title
-    :return: generated cfile content as a string in the format:
+    :return: generated cfile content as a list of strings in the format:
         ```
         ...
         <file path>:<line number>:<header title>
         ...
         ```
     """
+    hdbg.dassert_isinstance(markdown_file, str)
     hdbg.dassert_isinstance(header_list, list)
-    _LOG.debug(hprint.to_str("markdown_file header_list"))
+    _LOG.debug(hprint.to_str("header_list"))
     output_lines = [
         f"{markdown_file}:{header_info.line_number}:{header_info.description}"
         for header_info in header_list
     ]
-    output_content = "\n".join(output_lines)
-    return output_content
+    hdbg.dassert_isinstance(output_lines, list)
+    return output_lines
 
 
 def header_list_to_markdown(header_list: HeaderList, mode: str) -> List[str]:
@@ -525,20 +526,19 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> List[str]:
 # #############################################################################
 
 
-# TODO(ai): Convert to
-# def format_headers(lines: List[str], out_file_name: str, max_lev: int) -> None:
-def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
+def format_headers(lines: List[str], out_file_name: str, max_lev: int) -> None:
     """
-    Format the headers in the input file and write the formatted text to the
+    Format the headers in the input lines and write the formatted text to the
     output file.
 
-    :param in_file_name: name of the input file to read
+    :param lines: list of input lines to process
     :param out_file_name: name of the output file to write the formatted
         text to
     :param max_lev: maximum level of headings to include in the
         formatted text
     """
-    txt = hparser.read_file(in_file_name)
+    hdbg.dassert_isinstance(lines, list)
+    txt = lines[:]
     #
     for line in txt:
         m = re.search(r"max_level=(\d+)", line)
