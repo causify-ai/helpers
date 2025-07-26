@@ -274,7 +274,8 @@ class Test_end_to_end_rules1(hunitest.TestCase):
         txt = get_guidelines_txt1()
         max_level = 4
         # Run function.
-        header_list = hmarkdo.extract_headers_from_markdown(txt, max_level)
+        lines = txt.split("\n")
+        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level)
         # Check output.
         actual = "\n".join(map(str, header_list))
         expected = """
@@ -311,7 +312,8 @@ class Test_end_to_end_rules1(hunitest.TestCase):
         # Prepare inputs.
         txt = get_guidelines_txt1()
         max_level = 4
-        header_list = hmarkdo.extract_headers_from_markdown(txt, max_level)
+        lines = txt.split("\n")
+        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level)
         guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
         # Call function.
         selected_guidelines = hmarkdo.extract_rules(guidelines, selection_rules)

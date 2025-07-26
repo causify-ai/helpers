@@ -94,14 +94,13 @@ _LOG = logging.getLogger(__name__)
 #   ```
 
 
-def sanity_check_rules(txt: List[str]) -> None:
+def sanity_check_rules(lines: List[str]) -> None:
     """
     Sanity check the rules.
 
-    :param txt: list of text lines to check
+    :param lines: list of text lines to check
     """
-    txt_tmp = "\n".join(txt)
-    header_list = extract_headers_from_markdown(txt_tmp, max_level=5)
+    header_list = extract_headers_from_markdown(lines, max_level=5)
     # 1) Start with level 1 headers.
     # 2) All level 1 headers are unique.
     # 3) Header levels are increasing / decreasing by at most 1.
@@ -286,6 +285,8 @@ def extract_rules(
     return rule_sections
 
 
+# TODO(ai): Convert to
+# def parse_rules_from_txt(lines: List[str]) -> List[str]:
 def parse_rules_from_txt(txt: str) -> List[str]:
     """
     Parse rules from a chunk of markdown text.
@@ -333,6 +334,8 @@ def parse_rules_from_txt(txt: str) -> List[str]:
     return bullet_points
 
 
+# TODO(ai): Convert to
+# def extract_rules_from_section(lines: List[str], line_number: int) -> List[str]:
 def extract_rules_from_section(txt: str, line_number: int) -> List[str]:
     """
     Extract rules from a section of a markdown file.

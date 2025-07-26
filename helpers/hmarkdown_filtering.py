@@ -17,6 +17,8 @@ from helpers.hmarkdown_headers import (
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(ai): Convert to
+# def filter_by_header(lines: List[str], header: str) -> List[str]:
 def filter_by_header(text: str, header: str) -> str:
     """
     Extract a specific header from markdown text.
@@ -26,7 +28,9 @@ def filter_by_header(text: str, header: str) -> str:
     :return: filtered text
     """
     # Filter by header.
-    txt = extract_section_from_markdown(text, header)
+    lines = text.split("\n")
+    txt_lines = extract_section_from_markdown(lines, header)
+    txt = "\n".join(txt_lines)
     return txt
 
 
@@ -57,6 +61,8 @@ def _parse_range(range_as_str: str, max_value: int) -> Tuple[int, int]:
     return start_value, end_value
 
 
+# TODO(ai): Convert to
+# def filter_by_lines(lines: List[str], filter_by_lines: str) -> List[str]:
 def filter_by_lines(text: str, filter_by_lines: str) -> str:
     """
     Filter the lines of text in `[start_line, end_line[`.
@@ -81,6 +87,8 @@ def filter_by_lines(text: str, filter_by_lines: str) -> str:
     return txt
 
 
+# TODO(ai): Convert to
+# def filter_by_slides(lines: List[str], filter_by_slides: str) -> List[str]:
 def filter_by_slides(text: str, filter_by_slides: str) -> str:
     """
     Filter the lines of text in `[start_slide, end_slide[`.
@@ -90,7 +98,8 @@ def filter_by_slides(text: str, filter_by_slides: str) -> str:
     :return: filtered text
     """
     # Filter by slides.
-    slides_info, last_line_number = extract_slides_from_markdown(text)
+    lines = text.split("\n")
+    slides_info, last_line_number = extract_slides_from_markdown(lines)
     _LOG.debug("slides_info=%s\n%s", len(slides_info), slides_info)
     # E.g., filter_by_slides='1:10'.
     start_slide, end_slide = _parse_range(filter_by_slides, len(slides_info))

@@ -20,6 +20,7 @@ _LOG = logging.getLogger(__name__)
 _TRACE = True
 
 
+# TODO(gp): Consider passing and returning List[str]
 def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str:
     """
     Process markdown text by applying transform function to each slide.

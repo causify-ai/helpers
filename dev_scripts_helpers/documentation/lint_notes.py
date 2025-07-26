@@ -27,6 +27,8 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(ai): Convert to
+# def _preprocess(lines: List[str]) -> List[str]:
 def _preprocess(txt: str) -> str:
     """
     Preprocess the given text before applying `prettier`.
@@ -95,6 +97,8 @@ def _preprocess(txt: str) -> str:
 
 
 # TODO(gp): Rename to `postprocess_after_prettier`.
+# TODO(ai): Convert to
+# def _postprocess(lines: List[str], in_file_name: str) -> List[str]:
 def _postprocess(txt: str, in_file_name: str) -> str:
     """
     Post-process the given text by applying various transformations.
@@ -145,6 +149,14 @@ def _postprocess(txt: str, in_file_name: str) -> str:
 
 
 # TODO(gp): Should go in `hmarkdown_toc.py`.
+# TODO(ai): Convert to
+# def _refresh_toc(
+#    lines: List[str],
+#    *,
+#    use_dockerized_markdown_toc: bool = True,
+#    # TODO(gp): Remove this.
+#    **kwargs: Any,
+#) -> List[str],
 def _refresh_toc(
     txt: str,
     *,
@@ -217,6 +229,15 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
 
 
 # TODO(gp): -> _perform_actions()
+# TODO(ai): Convert to 
+#def _process(
+#    lines: List[str],
+#    in_file_name: str,
+#    *,
+#    actions: Optional[List[str]] = None,
+#    **kwargs: Any,
+#) -> List[str]:
+# 
 def _process(
     txt: str,
     in_file_name: str,
@@ -259,11 +280,15 @@ def _process(
         # For markdown files, we don't use the frame since it's not rendered
         # correctly.
         if not is_md_file:
-            txt = hmarkdo.frame_chapters(txt)
+            lines = txt.split("\n")
+            lines = hmarkdo.frame_chapters(lines)
+            txt = "\n".join(lines)
     # Improve header and slide titles.
     action = "capitalize_header"
     if _to_execute_action(action, actions):
-        txt = hmarkdo.capitalize_header(txt)
+        lines = txt.split("\n")
+        lines = hmarkdo.capitalize_header(lines)
+        txt = "\n".join(lines)
     # Refresh table of content.
     action = "refresh_toc"
     if _to_execute_action(action, actions):

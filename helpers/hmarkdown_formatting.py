@@ -13,6 +13,8 @@ import helpers.hdockerized_executables as hdocexec
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(ai): Convert to
+# def remove_end_of_line_periods(lines: List[str]) -> List[str]:
 def remove_end_of_line_periods(txt: str) -> str:
     """
     Remove periods at the end of each line in the given text.
@@ -26,6 +28,8 @@ def remove_end_of_line_periods(txt: str) -> str:
     return txt_out
 
 
+# TODO(ai): Convert to
+# def remove_empty_lines(lines: List[str]) -> List[str]:
 def remove_empty_lines(txt: str) -> str:
     """
     Remove empty lines from the given text.
@@ -40,6 +44,8 @@ def remove_empty_lines(txt: str) -> str:
 
 
 # TODO(gp): Add tests.
+# TODO(ai): Convert to
+# def remove_code_delimiters(lines: List[str]) -> List[str]:
 def remove_code_delimiters(txt: str) -> str:
     """
     Remove ```python and ``` delimiters from a given text.
@@ -55,7 +61,8 @@ def remove_code_delimiters(txt: str) -> str:
     txt_out = re.sub(r"(^\d+: )", "", txt_out, flags=re.MULTILINE)
     return txt_out
 
-
+# TODO(ai): Convert to
+# def add_line_numbers(lines: List[str]) -> List[str]:
 def add_line_numbers(txt: str) -> str:
     """
     Add line numbers to each line of text.
@@ -137,15 +144,17 @@ def md_clean_up(txt: str) -> str:
     return txt
 
 
-def remove_empty_lines_from_markdown(markdown_text: str) -> str:
+# TODO(ai): Convert to
+# def remove_empty_lines_from_markdown(lines: List[str]) -> List[str]:
+def remove_empty_lines_from_markdown(text: str) -> str:
     """
     Remove all empty lines from markdown text.
 
-    :param markdown_text: input markdown text
+    :param text: input markdown text
     :return: formatted markdown text
     """
     # Split into lines and remove empty ones.
-    result = [line for line in markdown_text.split("\n") if line.strip()]
+    result = [line for line in text.split("\n") if line.strip()]
     return "\n".join(result)
 
 
@@ -174,16 +183,18 @@ def format_markdown(txt: str) -> str:
     return txt
 
 
-def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str:
+# TODO(ai): Convert to
+# def bold_first_level_bullets(lines: List[str], *, max_length: int = 30) -> List[str]:
+def bold_first_level_bullets(text: str, *, max_length: int = 30) -> str:
     """
     Make first-level bullets bold in markdown text.
 
-    :param markdown_text: input markdown text
+    :param text: input markdown text
     :param max_length: max length of the bullet text to be bolded. The
         value '-1' means no limit
     :return: formatted markdown text with first-level bullets in bold
     """
-    lines = markdown_text.split("\n")
+    lines = text.split("\n")
     result = []
     for line in lines:
         # Check if this is a first-level bullet point.
@@ -204,16 +215,18 @@ def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str
     return "\n".join(result)
 
 
-def format_first_level_bullets(markdown_text: str) -> str:
+# TODO(ai): Convert to
+# def format_first_level_bullets(text: List[str]) -> List[str]:
+def format_first_level_bullets(text: str) -> str:
     """
     Add empty lines only before first level bullets and remove all empty lines
     from markdown text.
 
-    :param markdown_text: input markdown text
+    :param text: input markdown text
     :return: formatted markdown text
     """
     # Split into lines and remove empty ones.
-    lines = [line for line in markdown_text.split("\n") if line.strip()]
+    lines = [line for line in text.split("\n") if line.strip()]
     # Add empty lines only before first level bullets.
     result = []
     for i, line in enumerate(lines):

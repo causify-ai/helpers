@@ -33,6 +33,13 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(ai): Convert to
+#def _extract_headers_from_markdown(
+#    lines: List[str],
+#    mode: str,
+#    max_level: int,
+#    out_file_name: str,
+#) -> None:
 def _extract_headers_from_markdown(
     in_file_name: str,
     mode: str,
@@ -43,7 +50,6 @@ def _extract_headers_from_markdown(
     Extract headers from a Markdown file.
     """
     input_content = hparser.read_file(in_file_name)
-    input_content = "\n".join(input_content)
     # We don't want to sanity check since we want to show the headers, even
     # if malformed.
     sanity_check = False
