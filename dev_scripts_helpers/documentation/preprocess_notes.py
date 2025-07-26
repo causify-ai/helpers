@@ -105,7 +105,7 @@ def _process_question_to_slides(
 
 
 # TODO(gp): Use hmarkdown.process_lines().
-def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> str:
+def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
@@ -115,6 +115,7 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> str:
     :return: List of lines of the notes.
     """
     _LOG.debug("\n%s", hprint.frame("transform_lines"))
+    hdbg.dassert_isinstance(lines, list)
     lines = [line.rstrip("\n") for line in lines]
     out: List[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
@@ -265,13 +266,13 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> str:
             line = ""
         out_tmp.append(line)
     # Return result.
-    out = "\n".join(out_tmp)
-    return out
+    hdbg.dassert_isinstance(out_tmp, list)
+    return out_tmp
 
 
 def _add_navigation_slides(
-    txt: str, max_level: int, *, sanity_check: bool = False
-) -> str:
+    lines: List[str], max_level: int, *, sanity_check: bool = False
+) -> List[str]:
     """
     Add the navigation slides to the notes.
 
@@ -282,9 +283,9 @@ def _add_navigation_slides(
     :return: The notes text with the navigation slides.
     """
     _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
-    hdbg.dassert_isinstance(txt, str)
+    hdbg.dassert_isinstance(lines, list)
     header_list = hmarkdo.extract_headers_from_markdown(
-        txt, max_level, sanity_check=sanity_check
+        lines, max_level, sanity_check=sanity_check
     )
     _LOG.debug("header_list=\n%s", header_list)
     tree = hmarkdo.build_header_tree(header_list)
@@ -292,7 +293,7 @@ def _add_navigation_slides(
     out: List[str] = []
     open_modifier = r"**\textcolor{purple}{"
     close_modifier = r"}**"
-    for line in txt.split("\n"):
+    for line in lines:
         is_header, level, description = hmarkdo.is_header(line)
         if is_header and level <= max_level:
             _LOG.debug(hprint.to_str("line level description"))
@@ -317,8 +318,8 @@ def _add_navigation_slides(
             out.append(line_tmp)
         else:
             out.append(line)
-    txt_out = "\n".join(out)
-    return txt_out
+    hdbg.dassert_isinstance(out, list)
+    return out
 
 
 def _preprocess_lines(
@@ -335,7 +336,6 @@ def _preprocess_lines(
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
         out = _add_navigation_slides(out, max_level, sanity_check=True)
-        out = out.split("\n")
     hdbg.dassert_isinstance(out, list)
     return out
 
