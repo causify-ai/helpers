@@ -1,7 +1,7 @@
 import logging
 import os
 import unittest.mock as umock
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit

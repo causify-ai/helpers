@@ -264,8 +264,12 @@ class Playback:
                 self._append("expected = jsonpickle.decode(expected)", 2)
 
             if isinstance(func_output, (pd.DataFrame, pd.Series)):
-                self._append("actual = hpandas.df_to_str(actual, num_rows=None)", 2)
-                self._append("expected = hpandas.df_to_str(expected, num_rows=None)", 2)
+                self._append(
+                    "actual = hpandas.df_to_str(actual, num_rows=None)", 2
+                )
+                self._append(
+                    "expected = hpandas.df_to_str(expected, num_rows=None)", 2
+                )
             self._append("# Compare actual and expected output.", 2)
             self._append("self.assertEqual(actual, expected)", 2)
         else:

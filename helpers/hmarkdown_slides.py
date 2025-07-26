@@ -57,7 +57,7 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
         # 2) Process slide.
         if _TRACE:
             _LOG.debug(" -> %s", hprint.to_str("in_slide"))
-        if line.startswith("* "):
+        if line.startswith("* ") or line.startswith("#### "):
             _LOG.debug("### Found slide")
             # Found a slide or the end of the file.
             if slide_txt:

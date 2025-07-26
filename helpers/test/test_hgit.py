@@ -112,7 +112,11 @@ class Test_git_submodule2(hunitest.TestCase):
         self._helper_group_hashes(head_hash, remh_hash, subm_hash, expected)
 
     def _helper_group_hashes(
-        self, head_hash: str, remh_hash: str, subm_hash: Optional[str], expected: str
+        self,
+        head_hash: str,
+        remh_hash: str,
+        subm_hash: Optional[str],
+        expected: str,
     ) -> None:
         actual = hgit._group_hashes(head_hash, remh_hash, subm_hash)
         self.assert_equal(actual, expected, fuzzy_match=True)

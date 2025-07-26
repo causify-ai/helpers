@@ -190,7 +190,7 @@ class Test_lint_notes2(hunitest.TestCase):
 
         # Good
 
-        - Good Time Management
+        - Good time management
           1. Choose the right tasks
           - Avoid non-essential tasks
 
@@ -245,13 +245,13 @@ class Test_lint_notes2(hunitest.TestCase):
         txt = self._get_text_problematic_for_prettier1()
         actual = hdocexec.prettier_on_str(txt, file_type="txt")
         expected = r"""
-        - Python Formatting
+        - Python formatting
 
         * Python has several built-in ways of formatting strings
           1. `%` format operator
           2. `format` and `str.format`
 
-        - `%` Format Operator
+        - `%` format operator
 
         * Text template as a format string
           - Values to insert are provided as a value or a `tuple`
@@ -336,7 +336,9 @@ class Test_lint_notes2(hunitest.TestCase):
         file_name = os.path.join(self.get_scratch_space(), file_name)
         actual = dshdlino._process(txt, file_name)
         if expected:
-            expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+            expected = hprint.dedent(
+                expected, remove_lead_trail_empty_lines_=True
+            )
             self.assert_equal(actual, expected)
         return actual
 

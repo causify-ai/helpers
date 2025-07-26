@@ -104,3 +104,9 @@ import config_root.config.config_ as crococon
 
 ### Code Conventions
 - Coding guidelines are in `docs/code_guidelines/all.coding_style_guidelines.reference.md`
+
+- Templates for code are:
+  - `code_template.py`: template for code
+  - `unit_test_template.py`: template for unit test
+  - `dev_scripts_helpers/coding_tools/script_template.py`: template for
+    self-standing Python script

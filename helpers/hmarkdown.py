@@ -13,3 +13,5 @@ from helpers.hmarkdown_formatting import *  # isort:skip  # noqa: F401,F403 # py
 from helpers.hmarkdown_headers import *  # isort:skip  # noqa: F401,F403 # pylint: disable=unused-import,unused-wildcard-import,wildcard-import
 from helpers.hmarkdown_rules import *  # isort:skip  # noqa: F401,F403 # pylint: disable=unused-import,unused-wildcard-import,wildcard-import
 from helpers.hmarkdown_slides import *  # isort:skip  # noqa: F401,F403 # pylint: disable=unused-import,unused-wildcard-import,wildcard-import
+from helpers.hmarkdown_tables import *  # isort:skip  # noqa: F401,F403 # pylint: disable=unused-import,unused-wildcard-import,wildcard-import
+from helpers.hmarkdown_toc import *  # isort:skip  # noqa: F401,F403 # pylint: disable=unused-import,unused-wildcard-import,wildcard-import

@@ -7,6 +7,7 @@ import boto3
 import moto
 import pytest
 
+import helpers.hgit as hgit
 import helpers.hunit_test as hunitest
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_docker_release as hltadore
@@ -319,6 +320,11 @@ class Test_docker_build_prod_image1(_DockerFlowTestHelper):
         """
         self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
+    @pytest.mark.skipif(
+        not hgit.is_in_helpers_as_supermodule(),
+        # TODO(gp): Is the assertion too strict?
+        reason="Needs to run inside a super module",
+    )
     def test_candidate_tag1(self) -> None:
         """
         Test building with candidate mode using tag.

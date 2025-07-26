@@ -272,7 +272,7 @@ def _save_cache_dict_to_disk(func_name: str, data: Dict) -> None:
             pickle.dump(data, file)
     elif cache_type == "json":
         with open(file_name, "w", encoding="utf-8") as file:
-            json.dump(data, file)
+            json.dump(data, file, indent=4, sort_keys=True, ensure_ascii=False)
     else:
         raise ValueError(f"Invalid cache type '{cache_type}'")
 
