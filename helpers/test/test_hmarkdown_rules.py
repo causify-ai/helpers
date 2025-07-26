@@ -209,8 +209,9 @@ class Test_parse_rules_from_txt1(hunitest.TestCase):
     def helper(self, text: str, expected: List[str]) -> None:
         # Prepare inputs.
         text = hprint.dedent(text)
+        lines = text.split("\n")
         # Call function.
-        actual = hmarkdo.parse_rules_from_txt(text)
+        actual = hmarkdo.parse_rules_from_txt(lines)
         # Check output.
         actual = str(actual)
         expected = str(expected)

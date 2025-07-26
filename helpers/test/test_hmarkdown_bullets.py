@@ -21,7 +21,9 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
         Helper to test bold_first_level_bullets function.
         """
         text = hprint.dedent(text)
-        actual = hmarkdo.bold_first_level_bullets(text)
+        lines = text.split("\n")
+        actual_lines = hmarkdo.bold_first_level_bullets(lines)
+        actual = "\n".join(actual_lines)
         self.assert_equal(actual, expected, dedent=True)
 
     def test1(self) -> None:
@@ -293,7 +295,9 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
         text = hprint.dedent(text)
         expected = hprint.dedent(expected)
         #
-        actual = hmarkdo.format_first_level_bullets(text)
+        lines = text.split("\n")
+        actual_lines = hmarkdo.format_first_level_bullets(lines)
+        actual = "\n".join(actual_lines)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:

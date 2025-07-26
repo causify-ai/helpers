@@ -974,7 +974,9 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     system = _CODING_CONTEXT
     # Load the reference file.
     reference_txt = hio.from_file(file)
-    reference_txt = hmarkdo.add_line_numbers(reference_txt)
+    lines = reference_txt.split("\n")
+    numbered_lines = hmarkdo.add_line_numbers(lines)
+    reference_txt = "\n".join(numbered_lines)
     # TODO(gp): Remove table of contents between <!-- toc --> and <!-- tocstop -->.
     # system += rf"""
     # You will review the code and make sure it follows the rules described in the
@@ -1650,7 +1652,9 @@ def run_prompt(
     system_prompt = hprint.dedent(system_prompt)
     # 1) Run pre-transforms.
     if to_run("add_line_numbers", pre_transforms):
-        txt = hmarkdo.add_line_numbers(txt)
+        lines = txt.split("\n")
+        numbered_lines = hmarkdo.add_line_numbers(lines)
+        txt = "\n".join(numbered_lines)
     if to_run("add_instructions", pre_transforms):
         # Add the specific instructions to the system prompt.
         # E.g.,
@@ -1688,11 +1692,17 @@ def run_prompt(
     hdbg.dassert_isinstance(txt_out, str)
     # 3) Run post-transforms.
     if to_run("remove_code_delimiters", post_transforms):
-        txt_out = hmarkdo.remove_code_delimiters(txt_out)
+        lines = txt_out.split("\n")
+        lines = hmarkdo.remove_code_delimiters(lines)
+        txt_out = "\n".join(lines)
     if to_run("remove_end_of_line_periods", post_transforms):
-        txt_out = hmarkdo.remove_end_of_line_periods(txt_out)
+        lines = txt_out.split("\n")
+        lines = hmarkdo.remove_end_of_line_periods(lines)
+        txt_out = "\n".join(lines)
     if to_run("remove_empty_lines", post_transforms):
-        txt_out = hmarkdo.remove_empty_lines(txt_out)
+        lines = txt_out.split("\n")
+        lines = hmarkdo.remove_empty_lines(lines)
+        txt_out = "\n".join(lines)
     if to_run("convert_to_vim_cfile", post_transforms):
         hdbg.dassert_ne(in_file_name, "")
         hdbg.dassert_ne(out_file_name, "")
