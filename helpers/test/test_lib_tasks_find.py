@@ -216,6 +216,20 @@ class TestLibTasksRunTests1(hunitest.TestCase):
 
 
 class Test_find_check_string_output1(hunitest.TestCase):
+    def helper(self, expected: str, fuzzy_match: bool) -> None:
+        # Look for the `check_string()` corresponding to this test.
+        ctx = httestlib._build_mock_context_returning_ok()
+        class_name = self.__class__.__name__
+        method_name = self._testMethodName
+        as_python = True
+        # We don't want to copy but just print.
+        pbcopy = False
+        actual = hlitafin.find_check_string_output(
+            ctx, class_name, method_name, as_python, fuzzy_match, pbcopy
+        )
+        # Check that it matches exactly.
+        self.assert_equal(actual, expected, fuzzy_match=False)
+
     def test1(self) -> None:
         """
         Test `find_check_string_output()` by searching the `check_string` of
@@ -229,11 +243,10 @@ class Test_find_check_string_output1(hunitest.TestCase):
         actual =
         expected = r"""
         A fake check_string output to use for test1
-
         """.lstrip().rstrip()
         self.assert_equal(actual, expected, fuzzy_match=False)
         '''
-        self._helper(expected, fuzzy_match=False)
+        self.helper(expected, fuzzy_match=False)
 
     def test2(self) -> None:
         """
@@ -251,18 +264,4 @@ A fake check_string output to use for test2
         """.lstrip().rstrip()
         self.assert_equal(actual, expected, fuzzy_match=True)
         '''
-        self._helper(expected, fuzzy_match=True)
-
-    def _helper(self, expected: str, fuzzy_match: bool) -> None:
-        # Look for the `check_string()` corresponding to this test.
-        ctx = httestlib._build_mock_context_returning_ok()
-        class_name = self.__class__.__name__
-        method_name = self._testMethodName
-        as_python = True
-        # We don't want to copy but just print.
-        pbcopy = False
-        actual = hlitafin.find_check_string_output(
-            ctx, class_name, method_name, as_python, fuzzy_match, pbcopy
-        )
-        # Check that it matches exactly.
-        self.assert_equal(actual, expected, fuzzy_match=False)
+        self.helper(expected, fuzzy_match=True)
