@@ -61,49 +61,30 @@ def run_dockerized_ty(
     caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    in_file_path = hdocker.convert_caller_to_callee_docker_path(
-        in_file_path,
+    cmd_opts_out = hdocker.convert_all_paths_from_caller_to_callee_docker_path(
+        cmd_opts,
         caller_mount_path,
         callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
+        is_caller_host,
+        use_sibling_container_for_callee,
     )
-    out_file_path = hdocker.convert_caller_to_callee_docker_path(
-        out_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=False,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    #
-    cmd_opts_str = " ".join(cmd_opts)
-    graphviz_cmd = [
-        "dot",
-        f"{cmd_opts_str}",
-        "-T png",
-        "-Gdpi=300",
-        f"-o {out_file_path}",
-        in_file_path,
-    ]
-    graphviz_cmd = " ".join(graphviz_cmd)
-    #
+    cmd_opts_str = " ".join(cmd_opts_out)
+    # Build the docker command.
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
     docker_cmd.extend(
         [
             f"--workdir {callee_mount_path} --mount {mount}",
             container_image,
-            graphviz_cmd,
+            cmd_opts_str,
         ]
     )
     docker_cmd = " ".join(docker_cmd)
+    # Run the docker command.
     ret = hdocker.process_docker_cmd(
         docker_cmd, container_image, dockerfile, mode
     )
     return ret
+
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
@@ -116,7 +97,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
     # Run latex.
-    hdocexec.run_basic_latex(
+    hdocexec.run_dockerized_ty(
         args.input,
         cmd_opts,
         args.run_latex_again,

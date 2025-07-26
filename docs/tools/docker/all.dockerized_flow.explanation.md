@@ -14,33 +14,45 @@
 
 <!-- tocstop -->
 
-# The concept of "dockerized" executables
+# Dockerized Executable Flow
 
-The objective of utilizing "dockerized" executables is to execute software
-applications (e.g., Prettier, LaTeX, and Pandoc) within a Docker container with
-all the needed dependencies.
+## The concept of "dockerized" executables
 
-This approach eliminates the need for installing these applications directly on
-the host system or within a development container.
+- The objective of "dockerized" executables is to execute software applications
+  (e.g., `prettier`, LaTeX, `pandoc`) within a Docker container with all the
+  needed dependencies
 
-In other terms, instead of install and execute `prettier` on the host
+- This approach eliminates the need for installing these applications directly on
+  the host system, in a virtual environment, or within a development container
 
-```bash
-> install prettier
-> prettier ...cmd opts...
-```
+- In other terms, instead of install and execute `prettier` on the host
+  ```bash
+  > install prettier
+  > prettier ...cmd opts...
+  ```
+  you want to run it in a container with minimal changes to the system call:
+  ```bash
+  > dockerized_prettier ...cmd opts...
+  ```
 
-we want to run it in a container with minimal changes to the system call:
-
-```bash
-> dockerized_prettier ...cmd opts...
-```
+## Templates
 
 - There are two template for dockerized scripts:
   - [`/dev_scripts_helpers/dockerize/dockerized_template.py`](/dev_scripts_helpers/dockerize/dockerized_template.py)
-    - TODO(gp): This is not the most updated
   - [`/dev_scripts_helpers/dockerize/dockerized_template.sh`](/dev_scripts_helpers/dockerize/dockerized_template.sh)
-    - We prefer to use Python, instead of shell scripts
+
+- As always, prefer to use the Python approach, instead of shell scripts
+
+## Examples of Dockerized Executables
+
+- We support several dockerized executables in `hdocker.py`
+  - Prettier
+  - Pandoc
+  - Markdown-toc
+  - Latex
+  - `llm_transform` (which relies on `hllm`)
+  - Plantuml
+  - Mermaid
 
 - Examples of dockerized Python scripts are:
   - [`/dev_scripts_helpers/llms/llm_transform.py`](/dev_scripts_helpers/llms/llm_transform.py)
@@ -50,76 +62,110 @@ we want to run it in a container with minimal changes to the system call:
   - [`/dev_scripts_helpers/documentation/convert_docx_to_markdown.py`](/dev_scripts_helpers/documentation/convert_docx_to_markdown.py)
     - Run `pandoc` in a container
 
+- You can find all the Python dockerized executable with:
+  ```bash
+  > ffind.py dockerized | grep py
+  ./dev_scripts_helpers/dockerize/dockerized_template.py
+  ./dev_scripts_helpers/documentation/dockerized_graphviz.py
+  ./dev_scripts_helpers/documentation/dockerized_latex.py
+  ./dev_scripts_helpers/documentation/dockerized_mermaid.py
+  ./dev_scripts_helpers/documentation/dockerized_pandoc.py
+  ./dev_scripts_helpers/documentation/dockerized_prettier.py
+  ./dev_scripts_helpers/documentation/dockerized_tikz_to_bitmap.py
+  ./dev_scripts_helpers/documentation/test/test_dockerized_pandoc.py
+  ./dev_scripts_helpers/documentation/test/test_dockerized_prettier.py
+  ./dev_scripts_helpers/github/dockerized_invite_gh_contributors.py
+  ./dev_scripts_helpers/github/dockerized_sync_gh_issue_labels.py
+  ...
+  ./linters/dockerized_ty.py
+  ```
+
 - Examples of dockerized shell scripts are:
   - [`/dev_scripts_helpers/documentation/lint_latex.sh`](/dev_scripts_helpers/documentation/lint_latex.sh)
   - [`/dev_scripts_helpers/documentation/latexdockercmd.sh`](/dev_scripts_helpers/documentation/latexdockercmd.sh)
   - [`/dev_scripts_helpers/documentation/run_latex.sh`](/dev_scripts_helpers/documentation/run_latex.sh)
-  - TODO(gp): Convert the scripts in Python
+  - TODO(gp): Convert the scripts in Python and remove these
 
-## Examples of dockerized executables
+## Directory and Module Structure
 
-- We support several dockerized executables in `hdocker.py`
-  - Prettier
-  - Pandoc
-  - Markdown-toc
-  - Latex
-  - Llm_transform (which relies on `hllm`)
-  - Plantuml
-  - Mermaid
+- `helpers/hdocker.py`
+  - Contains functions managing Docker operations
+  - E.g., `run_dockerized_notebook_image_extractor()`
 
-- Some of these are exposed in the `dev_scripts_helpers` scripts, e.g.,
-  - [`/dev_scripts_helpers/dockerize/dockerized_template.py`](/dev_scripts_helpers/dockerize/dockerized_template.py)
-  - [`/dev_scripts_helpers/documentation/dockerized_pandoc.py`](/dev_scripts_helpers/documentation/dockerized_pandoc.py)
-  - [`/dev_scripts_helpers/documentation/dockerized_prettier.py`](/dev_scripts_helpers/documentation/dockerized_prettier.py)
+- `dockerized_XYZ.py`
+  - Contains the "actual" script doing the work, i.e., the one that would run the
+    code if all the dependencies were satisfied
+  - Needs to be run inside a Docker container
+  - E.g.,
+    - `dockerized_llm_transform.py`
+    - `dockerized_extract_notebook_images.py`
+    - `dockerized_sync_gh_issue_labels.py`
 
-## Children- vs Sibling-container
+- `XYZ.py`
+  - Is the entrypoint for the user
+  - Contains the call to the actual `dockerized_XYZ.py` scripts
+  - E.g.,
+    - `llm_transform.py`
+    - `extract_notebook_images.py`
+    - `sync_gh_issue_labels.py`
+
+- Core functionalities for the module can be placed in separate files
+  - E.g., image extraction logic might reside in `helpers/hjupyter.py`
+
+## Running a Dockerized executable
+
+### Children- vs Sibling-container
 
 - There are several scenarios when one needs to run a dockerized executable
-  inside another docker container, e.g., when running a dockerized executable
-  inside the dev container as part of development or unit testing (both CI and
-  not CI)
+  inside another docker container
+  - E.g., run an executable which has system and package dependencies:
+    - in the thin environment, outside of a dev container
+    - inside the dev container while developing
+    - as part of unit testing (both CI and not CI)
 
 - In this case we need to use one of the following approaches:
-  - **Children-container**:
-    - It typically addresses most operational issues, since it runs a Docker
-      container in another container, as the outermost container was a host
+  - **Children-container** (aka **Docker-in-Docker**)
+    - Run a Docker container inside another container
     - It requires elevated privileges
   - **Sibling-container**:
-    - More efficient and secure compared to Docker-in-Docker
+    - More efficient and secure compared to children container approach
     - It comes with greater usage restrictions
 
-### Bind mounting a directory from inside the development container
+### Bind Mounting a Directory for Dockerized Executables
 
-- Caution must be exercised when bind mounting a directory to facilitate file
-  exchange with the dockerized executable
+- Files that needs to be processed by dockerized executables needs to be visible
+  and referred to in the file system of the dockerized executable
+- So we need to convert them to paths that are valid inside the filesystem of the
+  new Docker container
+
+- **Problem**: There are multiple scenarios to consider
+
+  - Files can be specified as absolute or relative path in the caller file system
+
+  - We can run a Dockerized executable:
+    - On the host; or
+    - Inside a Docker container
+
+  - The dockerized executables can be run:
+    - As children-container (aka docker-in-docker, dind); or
+    - As sibling-container
+
+- Let's consider the problems and how to solve them
+
 - **Children-container**
-  - In this case, bind mounting a directory does not pose any issues, since the
-    dockerized executable can use the same filesystem as the hosting container
+  - In this case bind mounting a directory does not pose any issues, since the
+    dockerized executable uses the same filesystem as the hosting container
+
 - **Sibling-container**
   - The mounted directory must be accessible from the host system
   - For instance, when a local directory is mounted within the container at
     `/src` (which is shared with the host):
     - The reference name within the container is `/src`, but the corresponding
-      name outside on the host system is different.
+      name outside on the host system is different
     - This introduces dependencies that can complicate the development
-      environment.
+      environment
     - For example, the local directory `/tmp` on the host is not visible from
-      the development container.
-
-# Running a Dockerized executable
-
-- The problem is that files that needs to be processed by dockerized executables
-  can be specified as absolute or relative path in the caller file system, and
-  we need to convert them to paths that are valid inside the filesystem of the
-  new Docker container
-
-- We can run a Dockerized executable:
-  - On the host; or
-  - Inside a Docker container
-
-- The dockerized executables can be run:
-  - As children-container (aka docker-in-docker, dind); or
-  - As sibling-container
+      the development container
 
 - Assumption:
   - `src_root` and `dst_root` are the dirs used to bind mount the dockerized
@@ -206,30 +252,7 @@ we want to run it in a container with minimal changes to the system call:
   - Compute the path as relative to the mount point of the caller
   - Use the mount point of the caller container
 
-# Directory & Module Structure
-
-- Directory Organization:
-  - `helpers/hdocker`: Contains functions managing Docker operations (e.g.,
-    `run_dockerized_notebook_image_extractor()`)
-  - `dockerized_*`: Houses executable scripts (`extract_notebook_images.py` or
-    `dockerized_latex.py`) that serve as the entry point for users
-    - Core functionalities for the module can be placed in separate files. For
-      example, image extraction logic might reside in `helpers/hjupyter`
-
-# Naming convention
-
-- `dockerized_XYZ_*`: contains the "actual" scripts that do the work and needs
-  to be run inside a Docker container. For example,
-  - `dockerized_llm_transform.py`
-  - `dockerized_extract_notebook_images.py`
-  - `dockerized_sync_gh_issue_labels.py`
-- `XYZ_*`: is the entrypoint and the wrapper for the dockerized executable. It
-  contains the call to the actual `dockerized_XYZ_*` scripts. For example,
-  - `llm_transform.py`
-  - `extract_notebook_images.py`
-  - `sync_gh_issue_labels.py`
-
-# Testing a dockerized executable
+## Testing a dockerized executable
 
 - Testing a dockerized executable can be complex, since in our development
   system `pytest` is executed within a container environment.
@@ -298,9 +321,9 @@ we want to run it in a container with minimal changes to the system call:
   Example:
   [`/dev_scripts_helpers/notebooks/test/test_extract_notebook_images.py`](/dev_scripts_helpers/notebooks/test/test_extract_notebook_images.py)
 
-# Examples
+## Examples
 
-## Example 1: Notebook Image Extraction
+### Example 1: Notebook Image Extraction
 
 - Executable Script:
   - Location:[`/dev_scripts_helpers/notebooks/extract_notebook_images.py`](/dev_scripts_helpers/notebooks/extract_notebook_images.py)
@@ -330,7 +353,7 @@ we want to run it in a container with minimal changes to the system call:
     defined in `helpers/hdocker`, and then asserting that the expected output
     (such as extracted images) is produced
 
-## Example 2: llm_transform
+### Example 2: llm_transform
 
 The example illustrates how the dockerized executable for llm_transform manages
 file path conversions and container invocation in two different scenarios.
