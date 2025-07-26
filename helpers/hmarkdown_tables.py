@@ -93,9 +93,10 @@ def replace_tags_with_tables(
     """
     hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_isinstance(table_map, dict)
+    # Initialize output.
     result = []
     table_map_copy = table_map.copy()
-
+    # Parse data.
     for line in lines:
         if line.startswith("<table") and line.endswith(">"):
             # Extract table number from tag like <table1>.
