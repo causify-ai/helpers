@@ -462,7 +462,9 @@ def extract_slides_from_markdown(
     return header_list, last_line_number
 
 
-def header_list_to_vim_cfile(lines: List[str], header_list: HeaderList) -> List[str]:
+def header_list_to_vim_cfile(
+    lines: List[str], header_list: HeaderList
+) -> List[str]:
     """
     Convert a list of headers into a Vim cfile format.
 

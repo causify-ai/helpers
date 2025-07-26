@@ -185,7 +185,9 @@ def format_markdown(txt: str) -> str:
     return txt
 
 
-def bold_first_level_bullets(lines: List[str], *, max_length: int = 30) -> List[str]:
+def bold_first_level_bullets(
+    lines: List[str], *, max_length: int = 30
+) -> List[str]:
     """
     Make first-level bullets bold in markdown text.
 

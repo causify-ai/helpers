@@ -334,7 +334,9 @@ def parse_rules_from_txt(lines: List[str]) -> List[str]:
     return bullet_points
 
 
-def extract_rules_from_section(lines: List[str], start_line_number: int) -> List[str]:
+def extract_rules_from_section(
+    lines: List[str], start_line_number: int
+) -> List[str]:
     """
     Extract rules from a section of a markdown file.
 
@@ -354,7 +356,9 @@ def extract_rules_from_section(lines: List[str], start_line_number: int) -> List
         end_line_number += 1
     _LOG.debug("end_line_number=%s", end_line_number)
     # Parse the markdown text into a list of bullet points.
-    bullet_points = parse_rules_from_txt(lines[start_line_number:end_line_number])
+    bullet_points = parse_rules_from_txt(
+        lines[start_line_number:end_line_number]
+    )
     # Extract the rules from the bullet points.
     rules = []
     for bullet_point in bullet_points:
