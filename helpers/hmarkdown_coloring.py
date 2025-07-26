@@ -11,7 +11,7 @@ from typing import List, Optional
 import helpers.hdbg as hdbg
 from helpers.hmarkdown_fenced_blocks import (
     replace_fenced_blocks_with_tags,
-    replace_tags_with_fenced_blocks
+    replace_tags_with_fenced_blocks,
 )
 from helpers.hmarkdown_tables import (
     replace_tables_with_tags,
