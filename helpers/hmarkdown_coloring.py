@@ -17,6 +17,10 @@ from helpers.hmarkdown_tables import (
     replace_tables_with_tags,
     replace_tags_with_tables,
 )
+from helpers.hmarkdown_tables import (
+    replace_tables_with_tags,
+    replace_tags_with_tables,
+)
 
 _LOG = logging.getLogger(__name__)
 

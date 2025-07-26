@@ -9,6 +9,15 @@ import os
 import re
 from typing import Any
 
+import argparse
+import logging
+import os
+from typing import List
+
+import helpers.hdbg as hdbg
+import helpers.hparser as hparser
+import helpers.hsystem as hsystem
+
 from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
@@ -964,7 +973,74 @@ def git_repo_copy(ctx, file_name, src_git_dir, dst_git_dir):  # type: ignore
     hsystem.system_to_string(f"cp {file_name} {dst_file_path}")
 
 
-# pylint: disable=line-too-long
+# #############################################################################
+
+
+def _get_submodule_paths() -> List[str]:
+    """
+    Get list of submodule paths from .gitmodules file.
+
+    :return: List of submodule directory paths, empty if no submodules found
+    """
+    gitmodules_path = ".gitmodules"
+    if not os.path.exists(gitmodules_path):
+        _LOG.info("No .gitmodules file found")
+        return []
+    # Use git config to list submodule paths.
+    cmd = "git config --file .gitmodules --get-regexp path"
+    _, output = hsystem.system_to_string(cmd)
+    submodule_paths = []
+    for line in output.strip().split("\n"):
+        if line:
+            # Format: "submodule.<name>.path <path>"
+            path = line.split(" ", 1)[1]
+            submodule_paths.append(path)
+    return submodule_paths
+
+
+def _get_branch_name(submodule_path: str) -> str:
+    """
+    Get the current branch name for a git repository.
+
+    :param submodule_path: Path to the git repository directory
+    :return: Branch name or error message
+    """
+    hdbg.dassert_dir_exists(submodule_path)
+    hdbg.dassert_path_exists(os.path.join(submodule_path, ".git"))
+    # Get current branch name
+    cmd = f"cd {submodule_path} && git rev-parse --abbrev-ref HEAD"
+    _, branch_name = hsystem.system_to_string(cmd)
+    return branch_name.strip()
+
+
+@task
+def git_branches(ctx):  # type: ignore
+    """
+    Print the branch name for the main repository and each git submodule directory.
+
+    Example usage::
+    > dev_scripts_helpers/git/print_git_branches.py
+    . (main): master
+    submodule1: feature/new-feature
+    submodule2: develop
+    submodule3: main
+    """
+    _ = ctx
+    submodule_paths = hgit.get_submodule_paths()
+    # Print main repository branch first.
+    main_branch = _get_branch_name(".")
+    print(f". -> {main_branch}")
+    # Check for submodules.
+    submodule_paths = _get_submodule_paths()
+    if not submodule_paths:
+        _LOG.debug("No git submodules found in this repository")
+        return
+    # Check each submodule.
+    for path in submodule_paths:
+        branch_name = _get_branch_name(path)
+        print(f"{path} -> {branch_name}")
+
+
 
 # TODO(gp): Add the following scripts:
 # dev_scripts/git/git_backup.sh
