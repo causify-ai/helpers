@@ -1,17 +1,5 @@
 <!-- toc -->
 
-- [The concept of "dockerized" executables](#the-concept-of-dockerized-executables)
-  * [Examples of dockerized executables](#examples-of-dockerized-executables)
-  * [Children- vs Sibling-container](#children--vs-sibling-container)
-    + [Bind mounting a directory from inside the development container](#bind-mounting-a-directory-from-inside-the-development-container)
-- [Running a Dockerized executable](#running-a-dockerized-executable)
-- [Directory & Module Structure](#directory--module-structure)
-- [Naming convention](#naming-convention)
-- [Testing a dockerized executable](#testing-a-dockerized-executable)
-- [Examples](#examples)
-  * [Example 1: Notebook Image Extraction](#example-1-notebook-image-extraction)
-  * [Example 2: llm_transform](#example-2-llm_transform)
-
 <!-- tocstop -->
 
 # Dockerized Executable Flow
@@ -25,7 +13,7 @@
 - This approach eliminates the need for installing these applications directly on
   the host system, in a virtual environment, or within a development container
 
-- In other terms, instead of install and execute `prettier` on the host
+- In other words, instead of install and execute `prettier` on the host
   ```bash
   > install prettier
   > prettier ...cmd opts...
@@ -45,14 +33,14 @@
 
 ## Examples of Dockerized Executables
 
-- We support several dockerized executables in `hdocker.py`
-  - Prettier
-  - Pandoc
-  - Markdown-toc
+- We support several dockerized executables
+  - `prettier`
+  - `pandoc`
+  - `markdown-toc`
+  - `plantuml`
+  - `mermaid`
   - Latex
-  - `llm_transform` (which relies on `hllm`)
-  - Plantuml
-  - Mermaid
+  - `llm_transform` (which relies on `helpers/hllm.py`)
 
 - Examples of dockerized Python scripts are:
   - [`/dev_scripts_helpers/llms/llm_transform.py`](/dev_scripts_helpers/llms/llm_transform.py)
@@ -89,8 +77,19 @@
 ## Directory and Module Structure
 
 - `helpers/hdocker.py`
-  - Contains functions managing Docker operations
-  - E.g., `run_dockerized_notebook_image_extractor()`
+  - Core Docker infrastructure module providing low-level Docker operations like:
+    - Container management
+    - Image building
+    - Path conversion between host and container filesystems
+    - Mount point configuration
+
+- `helpers/hdockerized_executables.py`
+  - High-level wrappers for specific tools (prettier, pandoc, latex, mermaid,
+    etc.) that use hdocker.py functions to run these tools inside Docker
+    containers with proper argument parsing and path handling
+  - Contains tool-specific functions like `run_dockerized_prettier()`,
+    `run_dockerized_pandoc()`, and `run_dockerized_latex()` that handle the
+    unique requirements of each executable
 
 - `dockerized_XYZ.py`
   - Contains the "actual" script doing the work, i.e., the one that would run the
@@ -378,8 +377,8 @@ Here's a breakdown:
     `/app/tmp.llm_transform.out.txt`
 
 - Script and Directory Conversion: The script located at
-  [`/dev_scripts_helpers/llms/_llm_transform.py`](/dev_scripts_helpers/llms/_llm_transform.py)
-  is converted to `/app/dev_scripts_helpers/llms/_llm_transform.py` so that it
+  [`/dev_scripts_helpers/llms/dockerized_llm_transform.py`](/dev_scripts_helpers/llms/dockerized_llm_transform.py)
+  is converted to `/app/dev_scripts_helpers/llms/dockerized_llm_transform.py` so that it
   can be accessed inside the container.
 
 - Docker Run Command Construction
@@ -393,7 +392,7 @@ Here's a breakdown:
     - Command Execution:
 
     The container then executes the transformed script
-    (`/app/dev_scripts_helpers/llms/_llm_transform.py`) with the converted input
+    (`/app/dev_scripts_helpers/llms/dockerized_llm_transform.py`) with the converted input
     and output paths and additional flags (e.g.,
     `transformation type -t md_rewrite and verbosity -v DEBUG`).
   - For the second scenario (when `is_caller_host = False`):
