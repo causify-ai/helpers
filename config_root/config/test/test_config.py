@@ -2300,13 +2300,19 @@ class _Config_execute_stmt_TestCase1(hunitest.TestCase):
             raise ValueError(f"Invalid mode={mode}")
         _LOG.debug("config=\n%s", actual)
         if expected is not None:
-            self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
+            self.assert_equal(
+                actual, expected, purify_text=True, fuzzy_match=True
+            )
         # Package the output.
         actual = hprint.frame(stmt) + "\n" + actual
         return actual
 
     def raise_stmt(
-        self, stmt: str, assertion_type: Any, expected: Optional[str], globals_: Dict
+        self,
+        stmt: str,
+        assertion_type: Any,
+        expected: Optional[str],
+        globals_: Dict,
     ) -> None:
         _LOG.debug("\n" + hprint.frame(stmt))
         with self.assertRaises(assertion_type) as cm:

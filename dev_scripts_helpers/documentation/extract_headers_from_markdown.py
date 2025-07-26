@@ -34,12 +34,12 @@ _LOG = logging.getLogger(__name__)
 
 
 # TODO(ai): Convert to
-#def _extract_headers_from_markdown(
+# def _extract_headers_from_markdown(
 #    lines: List[str],
 #    mode: str,
 #    max_level: int,
 #    out_file_name: str,
-#) -> None:
+# ) -> None:
 def _extract_headers_from_markdown(
     in_file_name: str,
     mode: str,

@@ -305,7 +305,9 @@ class Test_end_to_end_rules1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True)
 
-    def helper_extract_rules(self, selection_rules: List[str], expected: str) -> None:
+    def helper_extract_rules(
+        self, selection_rules: List[str], expected: str
+    ) -> None:
         """
         Helper function to test extracting rules from a markdown file.
         """

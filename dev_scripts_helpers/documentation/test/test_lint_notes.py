@@ -336,7 +336,9 @@ class Test_lint_notes2(hunitest.TestCase):
         file_name = os.path.join(self.get_scratch_space(), file_name)
         actual = dshdlino._process(txt, file_name)
         if expected:
-            expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+            expected = hprint.dedent(
+                expected, remove_lead_trail_empty_lines_=True
+            )
             self.assert_equal(actual, expected)
         return actual
 

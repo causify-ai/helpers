@@ -156,7 +156,7 @@ def _postprocess(txt: str, in_file_name: str) -> str:
 #    use_dockerized_markdown_toc: bool = True,
 #    # TODO(gp): Remove this.
 #    **kwargs: Any,
-#) -> List[str],
+# ) -> List[str],
 def _refresh_toc(
     txt: str,
     *,
@@ -229,15 +229,15 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
 
 
 # TODO(gp): -> _perform_actions()
-# TODO(ai): Convert to 
-#def _process(
+# TODO(ai): Convert to
+# def _process(
 #    lines: List[str],
 #    in_file_name: str,
 #    *,
 #    actions: Optional[List[str]] = None,
 #    **kwargs: Any,
-#) -> List[str]:
-# 
+# ) -> List[str]:
+#
 def _process(
     txt: str,
     in_file_name: str,

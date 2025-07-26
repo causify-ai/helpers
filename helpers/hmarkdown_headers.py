@@ -206,7 +206,9 @@ def capitalize_header(lines: List[str]) -> List[str]:
 
 
 # TODO(gp): This could be done by processing `HeaderList`.
-def extract_section_from_markdown(lines: List[str], header_name: str) -> List[str]:
+def extract_section_from_markdown(
+    lines: List[str], header_name: str
+) -> List[str]:
     """
     Extract a section of text from a Markdown document based on the header
     name.
@@ -488,6 +490,7 @@ def header_list_to_vim_cfile(markdown_file: str, header_list: HeaderList) -> str
     ]
     output_content = "\n".join(output_lines)
     return output_content
+
 
 def header_list_to_markdown(header_list: HeaderList, mode: str) -> List[str]:
     """

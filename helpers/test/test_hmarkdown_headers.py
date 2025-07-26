@@ -611,7 +611,9 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         lines = content.split("\n")
         actual = hmarkdo.extract_headers_from_markdown(lines, max_level=3)
         # Check output.
-        expected = r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3)]"""
+        expected = (
+            r"""[HeaderInfo(1, 'Header1', 1), HeaderInfo(2, 'Header2', 3)]"""
+        )
         self.assert_equal(str(actual), expected)
 
     def test_no_headers(self) -> None:

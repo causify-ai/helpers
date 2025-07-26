@@ -61,6 +61,7 @@ def remove_code_delimiters(txt: str) -> str:
     txt_out = re.sub(r"(^\d+: )", "", txt_out, flags=re.MULTILINE)
     return txt_out
 
+
 # TODO(ai): Convert to
 # def add_line_numbers(lines: List[str]) -> List[str]:
 def add_line_numbers(txt: str) -> str:
