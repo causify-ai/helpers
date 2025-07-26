@@ -8,6 +8,7 @@ import copy
 import hashlib
 import logging
 import os
+import shutil
 import time
 from typing import List, Optional, Tuple
 
@@ -384,6 +385,7 @@ def get_docker_base_cmd(use_sudo: bool) -> List[str]:
             [
                 f"-e COVERAGE_FILE={coverage_dir_container}/.coverage",
                 f"-e COVERAGE_PROCESS_START={coverage_dir_container}/.coveragerc",
+                f"-v {host_cov_dir}:{coverage_dir_container}",
             ]
         )
     return docker_cmd
@@ -414,27 +416,40 @@ def build_container_image(
     :raises AssertionError: If the container ID is not found.
     """
     _LOG.debug(hprint.func_signature_to_str("dockerfile"))
-    #
     dockerfile = hprint.dedent(dockerfile)
-    # Add install coverage and hook to the Dockerfile.
     if os.environ.get("COVERAGE_PROCESS_START"):
         _LOG.debug("Enabling coverage")
-        dockerfile = (
-            dockerfile.strip() + "\n" + hcovera.generate_coverage_dockerfile()
-        )
-    _LOG.debug("Dockerfile:\n%s", dockerfile)
+        # Check if this is a Python-based Dockerfile.
+        if any(
+            keyword in dockerfile.lower()
+            for keyword in ["python", "pip", "python3"]
+        ):
+            coverage_dockerfile = hcovera.generate_coverage_dockerfile()
+            _LOG.debug("Coverage Dockerfile content:\n{coverage_dockerfile}")
+            dockerfile = dockerfile.strip() + "\n" + coverage_dockerfile
+            _LOG.debug("Coverage support added to Dockerfile")
+        else:
+            _LOG.warning(
+                "Skipping coverage addition - not a Python-based Dockerfile"
+            )
+    _LOG.debug("Final Dockerfile:\n%s", dockerfile)
     # Get the current architecture.
     current_arch = get_current_arch()
-    # Compute the hash of the dockerfile and append it to the name to track the
-    # content of the container.
     sha256_hash = hashlib.sha256(dockerfile.encode()).hexdigest()
     short_hash = sha256_hash[:8]
     # Build the name of the container image.
-    image_name_out = f"{image_name}.{current_arch}.{short_hash}.coverage"
+    image_name_out = f"{image_name}.{current_arch}.{short_hash}"
     # Check if the container already exists. If not, build it.
     has_container, _ = image_exists(image_name_out, use_sudo)
-    _LOG.debug(hprint.to_str("has_container"))
-    use_cache = False
+    coverage_enabled = os.environ.get("COVERAGE_PROCESS_START")
+    if coverage_enabled:
+        # Add coverage suffix to image name for tracking.
+        image_name_out += ".coverage"
+        # Force rebuild when coverage is enabled.
+        has_container = False
+        _LOG.debug(
+            "Coverage enabled - forcing rebuild of image: {image_name_out}"
+        )
     if force_rebuild:
         _LOG.warning(
             "Forcing to rebuild of container '%s' without cache",
@@ -443,13 +458,30 @@ def build_container_image(
         has_container = False
         use_cache = False
     _LOG.debug(hprint.to_str("has_container use_cache"))
+    # Always prepare coverage files when coverage is enabled, regardless of container existence.
+    if coverage_enabled:
+        # Create build context directory for coverage files.
+        build_context_dir = "tmp.docker_build"
+        hio.create_dir(build_context_dir, incremental=incremental)
+        # Always copy .coveragerc when coverage is enabled.
+        coveragerc_src = ".coveragerc"
+        coveragerc_dst = os.path.join(build_context_dir, ".coveragerc")
+        if os.path.exists(coveragerc_src):
+            shutil.copy2(coveragerc_src, coveragerc_dst)
+            _LOG.debug(
+                "Coverage enabled - copied {coveragerc_src} to {coveragerc_dst}"
+            )
+        else:
+            _LOG.warning(
+                "Coverage enabled but .coveragerc not found at {coveragerc_src}"
+            )
     if not has_container:
         # Create a temporary Dockerfile.
         _LOG.warning("Building Docker container...")
-        build_context_dir = "tmp.docker_build"
-        # There might be already some file in the build context dir, so the
-        # caller needs to specify `incremental`.
-        hio.create_dir(build_context_dir, incremental=incremental)
+        if not coverage_enabled:
+            # Only create build context if not already created for coverage
+            build_context_dir = "tmp.docker_build"
+            hio.create_dir(build_context_dir, incremental=incremental)
         temp_dockerfile = os.path.join(build_context_dir, "Dockerfile")
         hio.to_file(temp_dockerfile, dockerfile)
         # Build the container.
