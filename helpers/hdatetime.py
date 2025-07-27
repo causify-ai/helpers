@@ -9,7 +9,7 @@ import calendar
 import datetime
 import logging
 import re
-from typing import Callable, Iterable, Optional, Tuple, Union
+from typing import Any, Callable, Iterable, Optional, Tuple, Union, cast
 
 # TODO(gp): Use hdbg.WARNING
 _WARNING = "\033[33mWARNING\033[0m"
@@ -371,11 +371,12 @@ def get_current_time(
         # We accept only `hasyncio.EventLoop` here. If we are using standard asyncio
         # EventLoop we rely on wall-clock time instead of `loop.time()`.
         hdbg.dassert_isinstance(event_loop, asyncio.AbstractEventLoop)
+        assert isinstance(event_loop, asyncio.AbstractEventLoop)
         hdbg.dassert(hasattr(event_loop, "get_current_time"))
         timestamp = event_loop.get_current_time()
     else:
         # Use true real-time.
-        timestamp = datetime.datetime.utcnow()
+        timestamp = datetime.datetime.now(datetime.timezone.utc)
     # Convert it into the right
     timestamp = pd.Timestamp(timestamp, tz=get_UTC_tz())
     if tz == "UTC":
@@ -616,9 +617,9 @@ def to_generalized_datetime(
     # Handle both scalar and array cases for `pd.isna()`.
     if hasattr(datetime_dates, "all"):
         # datetime_dates is a Series or array-like
-        all_na = pd.isna(datetime_dates).all()
+        all_na = cast(Any, pd.isna(datetime_dates)).all()
         datetime_example = (
-            datetime_dates.tolist()[format_example_index]
+            cast(Any, datetime_dates).tolist()[format_example_index]
             if hasattr(datetime_dates, "tolist")
             else datetime_dates
         )
@@ -632,7 +633,7 @@ def to_generalized_datetime(
             and hasattr(datetime_example, "strftime")
             and datetime_example.strftime("%Y-%m-%d") == date_example
         ):
-            return datetime_dates
+            return cast(Union[pd.Series, pd.Index], datetime_dates)
         shift_func = _shift_to_period_end(date_example)
         if shift_func is not None:
             if hasattr(datetime_dates, "map"):
