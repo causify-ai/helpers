@@ -40,47 +40,47 @@ MSML610: Advanced Machine Learning
 
 #### Machine Learning Paradigms with Examples (1/3)
 
-- **\textcolor{teal}{Supervised Learning}**
+- **\textcolor{blue}{Supervised Learning}**
   - Learn from labeled data to predict labels for new inputs
   - E.g., image classification using ResNet on ImageNet
 
-- **\textcolor{cyan}{Unsupervised Learning}**
+- **\textcolor{red}{Unsupervised Learning}**
   - Discover hidden patterns or structure in unlabeled data
   - E.g., K-means clustering for customer segmentation
 
-- **\textcolor{orange}{Reinforcement Learning}**
+- **\textcolor{olive}{Reinforcement Learning}**
   - Learn through interaction with an environment, receiving rewards/punishments
   - E.g., deep Q-Learning for playing Atari games
 
-- **\textcolor{violet}{Self-Supervised Learning}**
+- **\textcolor{cyan}{Self-Supervised Learning}**
   - Generate pseudo-labels from unlabeled data to pre-train models
   - E.g., BERT (Masked Language Modeling)
 
-- **\textcolor{red}{Semi-Supervised Learning}**
+- **\textcolor{orange}{Semi-Supervised Learning}**
   - Combine small labeled data with large unlabeled data to improve performance
   - E.g., named entity recognition (NER) using annotated sentences with entity
     tags combined with many raw text documents
 
 #### Machine Learning Paradigms with Examples (2/3)
 
-- **\textcolor{teal}{Online Learning}**
+- **\textcolor{blue}{Online Learning}**
   - Learn incrementally from a stream of data in real time
   - E.g., online logistic regression for click-through rate prediction
 
-- **\textcolor{cyan}{Multi-Task Learning}**
+- **\textcolor{red}{Multi-Task Learning}**
   - Train simultaneously a model to perform multiple related tasks
   - E.g., learn sentiment analysis and question answering
 
-- **\textcolor{orange}{Meta-Learning}**
+- **\textcolor{olive}{Meta-Learning}**
   - "Learning to learn": adapt quickly to new tasks using prior experience
   - E.g., a model can be fine-tuned quickly on a new task using just a few
     gradient steps
 
-- **\textcolor{violet}{Zero-Shot / Few-Shot Learning}**
+- **\textcolor{cyan}{Zero-Shot / Few-Shot Learning}**
   - Generalize to new tasks with no or few labeled examples
   - E.g., GPT-4 solving tasks with zero-shot prompting
 
-- **\textcolor{red}{Active Learning}**
+- **\textcolor{orange}{Active Learning}**
   - The model selects the most informative samples to be labeled by an oracle
     (e.g., a human)
   - E.g., pick samples where the model is least confident to get more examples
@@ -130,25 +130,25 @@ MSML610: Advanced Machine Learning
   - ...
 
 #### Unsupervised Learning
-- Learn from data **\textcolor{teal}{without}** labeled outputs
+- Learn from data **\textcolor{blue}{without}** labeled outputs
   - Goal: discover patterns, groupings, or structure in the data
   - No explicit feedback signal
   - Evaluation can be qualitative
 
 - **\textcolor{gray}{Main techniques}**:
-  - **\textcolor{cyan}{Clustering}**: Group similar examples, e.g.,
+  - **\textcolor{red}{Clustering}**: Group similar examples, e.g.,
     - Customer segmentation
     - Grouping news articles by topic without knowing the topics
-  - **\textcolor{darkgray}{Dimensionality Reduction}**: Reduce number of variables with PCA while
+  - **\textcolor{brown}{Dimensionality Reduction}**: Reduce number of variables with PCA while
     preserving structure
     - E.g., visualize high-dimensional data in 2D
-  - **\textcolor{orange}{Density Estimation}**: Estimate probability distribution of data
+  - **\textcolor{olive}{Density Estimation}**: Estimate probability distribution of data
     - E.g., anomaly detection in server logs
-  - **\textcolor{blue}{Association Rule Learning}**: Discover interesting relations between
+  - **\textcolor{darkgreen}{Association Rule Learning}**: Discover interesting relations between
     variables
     - E.g., market basket analysis (e.g., "people who buy X also buy Y")
 
-- **\textcolor{violet}{Common algorithms:}**
+- **\textcolor{cyan}{Common algorithms:}**
   - K-means
   - PCA
   - Autoencoders
@@ -237,17 +237,17 @@ digraph BayesianFlow {
 
 
 #### Machine Learning Flow
-- **\textcolor{teal}{Question}**
+- **\textcolor{blue}{Question}**
   - E.g., "How can we predict house prices?"
-- **\textcolor{cyan}{Input data}**
+- **\textcolor{red}{Input data}**
   - E.g., historical data of house sales
-- **\textcolor{orange}{Features}**
+- **\textcolor{olive}{Features}**
   - E.g., number of bedrooms, location, square footage
-- **\textcolor{violet}{Algorithm}**
+- **\textcolor{cyan}{Algorithm}**
   - E.g., linear regression, decision trees
-- **\textcolor{red}{Parameters}**
+- **\textcolor{orange}{Parameters}**
   - E.g., learning rate, number of trees in a random forest
-- **\textcolor{olive}{Evaluation}**
+- **\textcolor{darkgray}{Evaluation}**
   - E.g., accuracy, precision, recall
 
 #### Machine Learning Flow
@@ -347,21 +347,21 @@ problem
 
 #### Models
 - Best models are:
-  - **\textcolor{teal}{Interpretable}**
+  - **\textcolor{blue}{Interpretable}**
     - Allow users to understand and trust the model's decisions
     - E.g., decision trees are appropriate in medical studies since they produce
       a "reasoning"
-  - **\textcolor{cyan}{Simple}**
+  - **\textcolor{red}{Simple}**
     - Easier to implement and maintain
     - Reduces the risk of overfitting
-  - **\textcolor{orange}{Accurate}**
+  - **\textcolor{olive}{Accurate}**
     - Often accuracy is traded off for remaining characteristics
     - E.g., accuracy vs interpretability, accuracy vs speed
-  - **\textcolor{violet}{Fast}**
+  - **\textcolor{cyan}{Fast}**
     - To train and test
     - Essential for real-time applications
     - Reduce computational costs
-  - **\textcolor{red}{Scalable}**
+  - **\textcolor{orange}{Scalable}**
     - Can handle large datasets efficiently (growing data and user bases)
     - E.g., in the Netflix prize, Netflix didn't end up implementing the best
       algorithm since it wasn't scalable enough
@@ -855,23 +855,23 @@ problem
 
 #### Data Processing Transformations
 
-- **\textcolor{teal}{Purpose of Data Processing}**
+- **\textcolor{blue}{Purpose of Data Processing}**
   - Prepare raw data for effective machine learning
   - Improve model performance and generalization
 
-- **\textcolor{cyan}{Data Cleanup}**
+- **\textcolor{red}{Data Cleanup}**
   - Apply filters or smoothing to remove irrelevant variations
 
-- **\textcolor{orange}{Handling Missing Data}**
+- **\textcolor{olive}{Handling Missing Data}**
 
-- **\textcolor{violet}{Types of Transformations}**
+- **\textcolor{cyan}{Types of Transformations}**
   - Normalization and standardization
   - Encoding categorical data
   - Feature construction
   - Dimensionality reduction
   - Discretization
 
-- **\textcolor{red}{Data Augmentation}**
+- **\textcolor{orange}{Data Augmentation}**
   - Increase dataset size using transformations (common in vision)
 
 #### Data Cleaning

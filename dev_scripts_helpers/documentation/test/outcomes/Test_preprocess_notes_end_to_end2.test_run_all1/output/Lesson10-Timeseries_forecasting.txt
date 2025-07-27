@@ -84,24 +84,24 @@ MSML610: Advanced Machine Learning
     - E.g., adjusting inventory levels based on predicted demand
 
 #### Time Series: Visualization and Exploration
-- **\textcolor{teal}{Visualization:}**
+- **\textcolor{blue}{Visualization:}**
   - Guides preprocessing choices
   - Helps form hypotheses before modeling
   - Distinguishes between underlying structure and randomness
 
 - **\textcolor{gray}{Patterns:}**
-  - **\textcolor{cyan}{Trend}**: Long-term increase or decrease
-  - **\textcolor{darkgray}{Seasonality}**: Repeating patterns at regular intervals
-  - **\textcolor{orange}{Noise}**: Random fluctuations
+  - **\textcolor{red}{Trend}**: Long-term increase or decrease
+  - **\textcolor{brown}{Seasonality}**: Repeating patterns at regular intervals
+  - **\textcolor{olive}{Noise}**: Random fluctuations
 
-- **\textcolor{blue}{Line plots}** show raw data over time, e.g.,
+- **\textcolor{darkgreen}{Line plots}** show raw data over time, e.g.,
   - Trend presence
   - Outliers or abrupt changes
 
-- **\textcolor{violet}{Seasonal plots}** reveal periodic patterns
+- **\textcolor{cyan}{Seasonal plots}** reveal periodic patterns
   - E.g., plot monthly sales to find yearly seasonality
 
-- **\textcolor{brown}{Autocorrelation plots}** detect repeating structures
+- **\textcolor{violet}{Autocorrelation plots}** detect repeating structures
 
 #### Autocovariance
 - The $j$-lag **\textcolor{red}{autocovariance}** of a time series $\{Y_t\}$ is the covariance of
@@ -1188,7 +1188,7 @@ Sub-seasonal plot
 
 #### Time Series Machine Learning: Problems
 
-- **\textcolor{teal}{Time Dependence}**
+- **\textcolor{blue}{Time Dependence}**
   - Observations are not independent and identically distributed (i.i.d.)
   - Temporal ordering affects model assumptions and evaluation
   - Past values can strongly influence future ones (autocorrelation)
@@ -1197,21 +1197,21 @@ Sub-seasonal plot
   - Data distributions change over time (mean, variance, etc.)
   - Models trained on past data may perform poorly on future data
 
-- **\textcolor{cyan}{Data Leakage}**
+- **\textcolor{red}{Data Leakage}**
   - Using future information in training can lead to over-optimistic results
   - Requires careful data splitting (e.g., no random shuffling)
 
-- **\textcolor{darkgray}{Seasonality and Trends}**
+- **\textcolor{brown}{Seasonality and Trends}**
   - Regular patterns (e.g., daily, yearly) complicate modeling
   - Need to be explicitly handled or removed
 
-- **\textcolor{orange}{Missing or Irregular Data}**
+- **\textcolor{olive}{Missing or Irregular Data}**
   - Time series often have missing timestamps or irregular intervals
 
-- **\textcolor{blue}{Evaluation Challenges}**
+- **\textcolor{darkgreen}{Evaluation Challenges}**
   - Time-aware cross-validation needed (e.g., rolling windows)
 
-- **\textcolor{violet}{Feature Engineering Complexity}**
+- **\textcolor{cyan}{Feature Engineering Complexity}**
   - Lagged variables, rolling statistics, and domain-specific features needed
   - Makes pipeline design more involved compared to i.i.d. data
 

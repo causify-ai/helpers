@@ -162,8 +162,12 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
     """
     Test `preprocess_notes.py` by calling the library function directly.
 
+    # To update the outcomes:
     > cd /Users/saggese/src/umd_msml6101
     > cp -r lectures_source/Lesson*.txt ./helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2/input/
+
+    # To compare inputs and outputs:
+    > vimdiff dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2.test_run_all1/{input,output}/Lesson01-Intro.txt
     """
 
     def test_run_all1(self) -> None:
@@ -174,14 +178,14 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
         _LOG.debug("Found %s files", len(files))
         hdbg.dassert_lt(0, len(files))
         for file in files:
-            # preprocess_notes.py \
-            #   --input lectures_source/Lesson02-Techniques.txt \
-            #   --output tmp.notes_to_pdf.preprocess_notes.txt \
-            #   --type slides \
-            #   --toc_type navigation
             # Read the file.
             text = hio.from_file(file)
             # Run the function.
+            # > preprocess_notes.py \
+            #     --input lectures_source/Lesson02-Techniques.txt \
+            #     --output tmp.notes_to_pdf.preprocess_notes.txt \
+            #     --type slides \
+            #     --toc_type navigation
             lines = text.split("\n")
             type_ = "slides"
             toc_type = "navigation"

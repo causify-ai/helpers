@@ -98,27 +98,27 @@ MSML610: Advanced Machine Learning
 
 #### MDP: Solution
 
-- The solution of an MDP is a **\textcolor{teal}{policy}** _"in state $s$ take action $a$"_
+- The solution of an MDP is a **\textcolor{blue}{policy}** _"in state $s$ take action $a$"_
   $$
   \pi(s): s \to a \in Actions(s)
   $$
-  - Any execution of the policy leads to a different **\textcolor{cyan}{environment history}**
+  - Any execution of the policy leads to a different **\textcolor{red}{environment history}**
     because of the stochastic nature of the environment
   - Environment history is a sequence of states and actions
     $(s_0, a_0) \to (s_1, a_1) \to ... \to (s_i, a_i) \to ...$
 
-- A policy is measured by the **\textcolor{orange}{expected utility}** of the environment history
+- A policy is measured by the **\textcolor{olive}{expected utility}** of the environment history
   $$
   U(\pi(s)) = \EE[f(s_0, \pi(s), R(s, a, s'))]
   $$
-- The **\textcolor{violet}{optimal policy}** $\pi^*(s)$ yields the highest expected utility
+- The **\textcolor{cyan}{optimal policy}** $\pi^*(s)$ yields the highest expected utility
   $$
   \pi^*(s) = \argmax_{\pi} \; \EE[f(s_0, \pi(s), R(s, a, s'))]
   $$
   - Note: the optimal policy is a function of the reward function
 
 
-- MDP is often solved with **\textcolor{red}{dynamic programming}**
+- MDP is often solved with **\textcolor{orange}{dynamic programming}**
   1. Break the problem in smaller pieces recursively
   2. Solve the sub-problems
   3. Remember solutions of the pieces
@@ -272,21 +272,21 @@ MSML610: Advanced Machine Learning
 ::::
 :::: {.column width=80%}
 
-- **\textcolor{teal}{States $S$}**
+- **\textcolor{blue}{States $S$}**
   - Current board configuration and falling piece
-- **\textcolor{cyan}{Actions $A$}**
+- **\textcolor{red}{Actions $A$}**
   - Valid final placements of the piece
     - Rotation (0–3 positions)
     - Horizontal movement (left, right)
     - Hard drop (instant placement)
-- **\textcolor{orange}{Transition Model $T(s, a, s')$}**
+- **\textcolor{olive}{Transition Model $T(s, a, s')$}**
   - Deterministic or stochastic based on next piece modeling
   - Piece generation often random (uniform or "bag" system)
-- **\textcolor{violet}{Reward $R(s, a, s')$}**
+- **\textcolor{cyan}{Reward $R(s, a, s')$}**
   - +1 for each cleared line
   - Negative reward for new block addition or height increase
   - Game over may have large negative reward
-- **\textcolor{red}{Discount Factor $\gamma$}**
+- **\textcolor{orange}{Discount Factor $\gamma$}**
   - Close to 1 for valuing long-term survival and line-clearing
 ::::
 :::
@@ -787,7 +787,7 @@ digraph TetrisDDN {
 
 #### Applications of Reinforcement Learning
 
-- **\textcolor{teal}{Games and Simulations}**
+- **\textcolor{blue}{Games and Simulations}**
   - RL has achieved superhuman performance in games like Go, Chess, and Dota2
   - Algorithms learn strategies through self-play and reward-driven improvement
 
@@ -796,57 +796,57 @@ digraph TetrisDDN {
     manipulation
   - Applications include robotic arms, quadrupeds, and autonomous drones
 
-- **\textcolor{cyan}{Autonomous Vehicles}**
+- **\textcolor{red}{Autonomous Vehicles}**
   - RL used for decision-making and control in self-driving cars
   - Handles tasks like lane merging, navigation, and obstacle avoidance
 
-- **\textcolor{darkgray}{Recommendation Systems}**
+- **\textcolor{brown}{Recommendation Systems}**
   - Adaptive recommendation based on user interactions (e.g., Netflix, YouTube)
     to optimize long-term engagement and satisfaction
 
-- **\textcolor{orange}{Finance and Trading}**
+- **\textcolor{olive}{Finance and Trading}**
   - Portfolio management and trading strategies learned through market
     simulations
   - Agents aim to maximize returns under uncertainty and risk constraints
 
-- **\textcolor{blue}{Healthcare}**
+- **\textcolor{darkgreen}{Healthcare}**
   - Personalized treatment policies learned from patient data
   - Applications in dynamic dosing, diagnostics, and medical decision support
 
-- **\textcolor{violet}{Industrial Control}**
+- **\textcolor{cyan}{Industrial Control}**
   - Optimization of manufacturing processes, energy grids, and logistics
 
-- **\textcolor{brown}{Natural Language Processing}**
+- **\textcolor{violet}{Natural Language Processing}**
   - Dialogue systems and chatbots that learn optimal conversational strategies
   - Use RL to improve response quality and user satisfaction over time
 
 #### Model-Based Reinforcement Learning
 
-- **\textcolor{teal}{Definition}**
+- **\textcolor{blue}{Definition}**
   - Learns an explicit model of the environment's dynamics and uses it to make a
     decision about how to act
   - **\textcolor{gray}{Transition model}**: estimates $\Pr(s'|s,a)$, i.e., probability of reaching
     state $s'$ from $s$ after action $a$
-  - **\textcolor{cyan}{Reward model}**: estimates $R(s,a)$, i.e., expected reward after taking
+  - **\textcolor{red}{Reward model}**: estimates $R(s,a)$, i.e., expected reward after taking
     action $a$ in state $s$
   - Intuition: learn to drive by studying the manual and physics
 
-- **\textcolor{darkgray}{Learning Process}**
+- **\textcolor{brown}{Learning Process}**
   - Collects experience tuples $(s, a, r, s')$
   - Updates the model of the environment (transition and reward)
   - Plans using the model to improve policy (e.g., via value iteration or policy
     iteration)
   - Dyna-Q algorithm: combines model-free updates with simulated planning steps
 
-- **\textcolor{orange}{Advantages}**
+- **\textcolor{olive}{Advantages}**
   - Efficient sample usage: fewer real-world interactions required
   - Enables planning by simulating outcomes
 
-- **\textcolor{blue}{Disadvantages}**
+- **\textcolor{darkgreen}{Disadvantages}**
   - Learning an accurate model is challenging
   - Errors in the model can propagate and lead to poor decisions
 
-- **\textcolor{violet}{Examples}**
+- **\textcolor{cyan}{Examples}**
 
 #### Model-Free Reinforcement Learning
 
@@ -874,29 +874,29 @@ digraph TetrisDDN {
 
 #### Model-Based vs Model-Free Reinforcement Learning
 
-- **\textcolor{teal}{Core Distinction}**
+- **\textcolor{blue}{Core Distinction}**
   - Model-Based RL: Learns a model of environment dynamics $P(s'|s,a)$ and
     $R(s,a)$ and uses it for planning
   - Model-Free RL: Learns value functions $Q(s,a)$ or policies $\pi(a|s)$
     directly from experience
 
-- **\textcolor{cyan}{Sample Efficiency}**
+- **\textcolor{red}{Sample Efficiency}**
   - Model-Based: Generally more sample efficient due to simulated planning
   - Model-Free: Typically needs more environment interactions
 
-- **\textcolor{orange}{Computation}**
+- **\textcolor{olive}{Computation}**
   - Model-Based: Higher planning overhead; simulations required
   - Model-Free: Simpler computations per step; often more scalable
 
-- **\textcolor{violet}{Flexibility and Robustness}**
+- **\textcolor{cyan}{Flexibility and Robustness}**
   - Model-Based: Sensitive to model inaccuracies
   - Model-Free: More robust to model errors (since it doesn't learn one)
 
-- **\textcolor{red}{Typical Use Cases}**
+- **\textcolor{orange}{Typical Use Cases}**
   - Model-Based: Robotics, planning tasks, known environments
   - Model-Free: Games, large-scale unknown or stochastic environments
 
-- **\textcolor{olive}{Examples}**
+- **\textcolor{darkgray}{Examples}**
   - Model-Based: Dyna-Q, PILCO
   - Model-Free: Q-learning, Deep Q-Networks (DQN), REINFORCE
   - Hybrid Approaches combine both strengths: learn models for planning and use
@@ -904,7 +904,7 @@ digraph TetrisDDN {
 
 #### Active vs Passive Reinforcement Learning
 
-- **\textcolor{teal}{Basic Distinction}**
+- **\textcolor{blue}{Basic Distinction}**
   - Passive RL: Learns value of a fixed policy; does not choose actions
   - Active RL: Learns both the value function and the optimal policy through
     exploration
@@ -915,29 +915,29 @@ digraph TetrisDDN {
   - Active: Improves policy over time, aiming for $\pi^*(s)$ that maximizes
     reward
 
-- **\textcolor{cyan}{Exploration}**
+- **\textcolor{red}{Exploration}**
   - Passive: No exploration — strictly evaluates the given policy
   - Active: Explores actions to improve the policy (e.g., $\epsilon$-greedy,
     softmax)
 
-- **\textcolor{darkgray}{Learning Goal}**
+- **\textcolor{brown}{Learning Goal}**
   - Passive: Accurate value function for a known policy
   - Active: Optimal policy and value function via interaction
 
-- **\textcolor{orange}{Algorithms}**
+- **\textcolor{olive}{Algorithms}**
   - Passive: Temporal Difference Learning (TD), Adaptive Dynamic Programming for
     a fixed policy
   - Active: Q-learning, SARSA, policy iteration methods
 
-- **\textcolor{blue}{Use Cases}**
+- **\textcolor{darkgreen}{Use Cases}**
   - Passive: Evaluation of policies from human demonstrations or expert systems
   - Active: Autonomous agents discovering optimal strategies from scratch
 
-- **\textcolor{violet}{Sample Efficiency}**
+- **\textcolor{cyan}{Sample Efficiency}**
   - Passive: Can converge faster if policy is close to optimal
   - Active: Slower due to need for exploration and policy improvement
 
-- **\textcolor{brown}{Challenges}**
+- **\textcolor{violet}{Challenges}**
   - Passive: Limited by the quality of the provided policy
   - Active: Balancing exploration and exploitation effectively
 
@@ -994,11 +994,11 @@ digraph TetrisDDN {
 
 #### Adaptive Dynamic Programming
 
-- **\textcolor{teal}{Objective}**
+- **\textcolor{blue}{Objective}**
   - Learn utility estimates $U^\pi(s)$ for a fixed policy $\pi$ using an
     estimated model of the environment
 
-- **\textcolor{cyan}{Key Components}**
+- **\textcolor{red}{Key Components}**
   - Model learning: Estimate transition probabilities $\Pr(s'|s,a)$ and reward
     function $R(s,a)$ from experience
   - Utility update: Solve the Bellman equations for the fixed policy:
@@ -1006,22 +1006,22 @@ digraph TetrisDDN {
     U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')
     $$
 
-- **\textcolor{orange}{Learning Process}**
+- **\textcolor{olive}{Learning Process}**
   - Collect transitions $(s, \pi(s), r, s')$ during execution
   - Update model estimates:
     - $\Pr(s'|s,a) \approx$ empirical frequency
     - $R(s,a) \approx$ average observed reward
   - Use dynamic programming to compute $U^\pi(s)$
 
-- **\textcolor{violet}{Advantages}**
+- **\textcolor{cyan}{Advantages}**
   - More sample-efficient than direct utility estimation
   - Leverages structure of the MDP to generalize better
 
-- **\textcolor{red}{Limitations}**
+- **\textcolor{orange}{Limitations}**
   - Requires accurate model estimation
   - Computational cost of solving Bellman equations repeatedly
 
-- **\textcolor{olive}{Example}**
+- **\textcolor{darkgray}{Example}**
   - Suitable when environment dynamics are stationary and can be learned from
     interaction
   - A thermostat estimates room temperature dynamics and uses them to predict
@@ -1029,7 +1029,7 @@ digraph TetrisDDN {
 
 #### Temporal-Difference Learning
 
-- **\textcolor{teal}{Objective}**
+- **\textcolor{blue}{Objective}**
   - Estimate utility values $U^\pi(s)$ for a fixed policy $\pi$ using experience
     without a model
 
@@ -1037,7 +1037,7 @@ digraph TetrisDDN {
   - Combine benefits of Monte Carlo methods and Dynamic Programming
   - Update estimates after every transition using bootstrapping
 
-- **\textcolor{cyan}{TD(0) Update Rule}**
+- **\textcolor{red}{TD(0) Update Rule}**
   - When a transition occurs from state $s$ to state $s'$ via action $\pi(s)$,
     we apply the update:
     $$
@@ -1050,19 +1050,19 @@ digraph TetrisDDN {
     - $\alpha$ is the learning rate
     - $\gamma$ is the discount factor
 
-- **\textcolor{darkgray}{Characteristics}**
+- **\textcolor{brown}{Characteristics}**
   - Online and incremental: updates occur after each step
   - Does not require knowledge of model $P(s'|s,a)$ or $R(s,a)$
 
-- **\textcolor{orange}{Advantages}**
+- **\textcolor{olive}{Advantages}**
   - More efficient and lower variance than Monte Carlo methods
   - Simpler and more memory-efficient than model-based methods
 
-- **\textcolor{blue}{Limitations}**
+- **\textcolor{darkgreen}{Limitations}**
   - Introduces bias due to bootstrapping
   - May require careful tuning of learning rate $\alpha$
 
-- **\textcolor{violet}{Example}**
+- **\textcolor{cyan}{Example}**
   - Real-time systems, streaming environments, or when dynamics are too complex
     to model
   - An autonomous cleaner estimates long-term dirtiness reduction for each room

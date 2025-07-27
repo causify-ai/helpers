@@ -78,48 +78,48 @@ mindmap
 
 
 #### ML Theory
-- **\textcolor{teal}{VC Theory}**
+- **\textcolor{blue}{VC Theory}**
   - Measures model capacity and generalize based on hypothesis space complexity
 
 - **\textcolor{gray}{Bias-Variance Decomposition}**
   - Prediction error consists of:
-    - **\textcolor{cyan}{Bias}**: Error from simplistic model assumptions, causing underfitting
-    - **\textcolor{darkgray}{Variance}**: Error due to sensitivity to training data fluctuations,
+    - **\textcolor{red}{Bias}**: Error from simplistic model assumptions, causing underfitting
+    - **\textcolor{brown}{Variance}**: Error due to sensitivity to training data fluctuations,
       causing overfitting
 
-- **\textcolor{orange}{Computation Complexity}**
+- **\textcolor{olive}{Computation Complexity}**
   - Balances model complexity and fit
   - Related to information theory and compression
   - E.g., Minimum Description Length (MDL) measures computational complexity via
     efficient model and data description
 
-- **\textcolor{blue}{Bayesian Approach}**
+- **\textcolor{darkgreen}{Bayesian Approach}**
   - Treats ML as probability
   - Combines prior knowledge with observed data to update belief about a model
 
-- **\textcolor{violet}{Problem in ML Theory:}** Assumptions may not align with practical problems
+- **\textcolor{cyan}{Problem in ML Theory:}** Assumptions may not align with practical problems
 
 #### ML Paradigms
 - Machine learning paradigms are structured approaches to learning problems
 
-- **\textcolor{teal}{Supervised learning}**
+- **\textcolor{blue}{Supervised learning}**
   - The dataset includes inputs with corresponding outputs
   - Develop an input-output relationship
 
-- **\textcolor{cyan}{Unsupervised learning}**
+- **\textcolor{red}{Unsupervised learning}**
   - The data is unlabeled
   - Discover structure within the data
   - E.g., anomaly detection, clustering
 
-- **\textcolor{orange}{Reinforcement learning}**
+- **\textcolor{olive}{Reinforcement learning}**
   - The correct answer isn't immediately available
   - Evaluate actions based on final outcomes
 
-- **\textcolor{violet}{Active learning}**
+- **\textcolor{cyan}{Active learning}**
   - Not all examples are available initially
   - Request outputs for specific inputs
 
-- **\textcolor{red}{Online learning}**
+- **\textcolor{orange}{Online learning}**
   - The dataset cannot be stored in memory
   - Data is streamed and the model is updated in real-time
 
@@ -521,55 +521,55 @@ mindmap
 
 #### AI and Philosophy (1/2)
 
-_**\textcolor{teal}{Can formal rules be used to draw valid conclusions?}**_
+_**\textcolor{blue}{Can formal rules be used to draw valid conclusions?}**_
 
-- **\textcolor{cyan}{Reasoning}**
+- **\textcolor{red}{Reasoning}**
   - Aristotle formulated laws governing the rational mind
     - E.g., syllogism, deduction (400 BC)
   - Machines were built for arithmetic operations
     - E.g., Pascaline by Blaise Pascal (1640)
   - Logic studies rules of proper reasoning
 
-- **\textcolor{orange}{Rationalism}** = use reasoning to understand the world
+- **\textcolor{olive}{Rationalism}** = use reasoning to understand the world
 
-_**\textcolor{violet}{How does the mind arise from a physical brain?}**_
+_**\textcolor{cyan}{How does the mind arise from a physical brain?}**_
 
-- **\textcolor{red}{Dualism}**
+- **\textcolor{orange}{Dualism}**
   - Nature follows physical laws
   - Part of the human mind ("the soul") is exempt from physical laws
 
-- **\textcolor{olive}{Materialism}**
+- **\textcolor{darkgray}{Materialism}**
   - The mind is a physical system, following the laws of physics
   - Where is free will?
     - Free will is the perception of available choices
 
 #### AI and Philosophy (2/2)
 
-_**\textcolor{teal}{What does knowledge come from?}**_
+_**\textcolor{blue}{What does knowledge come from?}**_
 
 - **\textcolor{gray}{Empiricism}**
   - Knowledge via senses
   - Example: Observing a tree to know it is green
 
-- **\textcolor{cyan}{Induction}**
+- **\textcolor{red}{Induction}**
   - General rules from associations
   - Example: Seeing many swans are white, inferring all swans are white
 
-- **\textcolor{darkgray}{Logical Positivism}**
+- **\textcolor{brown}{Logical Positivism}**
   - Knowledge as logical theories linked to sensory observations
   - Example: Scientific hypotheses connected to experimental data
 
-_**\textcolor{orange}{How does knowledge lead to action?}**_
+_**\textcolor{olive}{How does knowledge lead to action?}**_
 
-- **\textcolor{blue}{Utilitarianism}**
+- **\textcolor{darkgreen}{Utilitarianism}**
   - Measures "utility" linking knowledge to action
   - Actions justified by logic connecting goals and outcomes
 
-- **\textcolor{violet}{Consequentialism}**
+- **\textcolor{cyan}{Consequentialism}**
   - Right or wrong determined by action's expected outcomes
   - E.g., "If you kill, you will go to jail"
 
-- **\textcolor{brown}{Deontological ethics}**
+- **\textcolor{violet}{Deontological ethics}**
   - Opposes consequentialism
   - "Right actions" based on universal laws, not outcomes
     - E.g., "don't kill", "don't lie"
@@ -594,25 +594,25 @@ _**\textcolor{red}{How do humans think and act?}**_
 
 #### AI and Mathematics
 
-_**\textcolor{teal}{What are the formal rules to draw valid conclusions?}**_
+_**\textcolor{blue}{What are the formal rules to draw valid conclusions?}**_
 
-- **\textcolor{cyan}{Formal Logic}**
+- **\textcolor{red}{Formal Logic}**
   - Boole established logical deduction rules (1850)
   - Frege expanded Boole's logic to include objects and relations, creating
     first-order logic (1879)
 
-- **\textcolor{orange}{Limits to Deduction}**
+- **\textcolor{olive}{Limits to Deduction}**
   - Some statements are "undecidable."
   - Godel's incompleteness theorem (1931): True statements exist that cannot be
     proved in any formal theory
 
-_**\textcolor{violet}{How do we reason with uncertain information?}**_
+_**\textcolor{cyan}{How do we reason with uncertain information?}**_
 
-- **\textcolor{red}{Probability}**
+- **\textcolor{orange}{Probability}**
   - Mathematics of uncertainty
   - Key contributors: Cardano, Pascal, Bernoulli, Bayes (1500-1700)
 
-- **\textcolor{olive}{Statistics}**
+- **\textcolor{darkgray}{Statistics}**
   - Combines data with probability
   - Key areas: experiment design, data analysis, hypothesis testing, asymptotics
 
@@ -637,27 +637,27 @@ _**\textcolor{red}{What can be computed?}**_
 
 #### AI and Economics (1/2)
 
-_**\textcolor{teal}{How to make decisions to maximize payoff according to our preferences?}**_
+_**\textcolor{blue}{How to make decisions to maximize payoff according to our preferences?}**_
 
-- **\textcolor{cyan}{Economies}**
+- **\textcolor{red}{Economies}**
   - Agents maximize economic well-being (utility)
   - Studies desires and preferences
   - "Large" vs "small economies"
 
-- **\textcolor{orange}{Decision theory}**
+- **\textcolor{olive}{Decision theory}**
   - Making decisions under uncertainty
   - Probability theory + utility theory
   - Study choices for preferred outcomes
   - Examples: Investment choices, policy decisions
 
-_**\textcolor{violet}{ How to make decisions when the payoffs are result of several actions?}**_
+_**\textcolor{cyan}{ How to make decisions when the payoffs are result of several actions?}**_
 
-- **\textcolor{red}{Operations Research}**
+- **\textcolor{orange}{Operations Research}**
   - Make rational decisions with payoffs from a sequence of actions
     - E.g., Markov Decision Processes
   - Bellman, 1957
 
-- **\textcolor{olive}{Satisficing}**
+- **\textcolor{darkgray}{Satisficing}**
   - Decisions that are good enough
   - Closer to human behavior
   - Example: Choosing a restaurant that meets basic criteria rather than finding
@@ -742,28 +742,28 @@ _**\textcolor{blue}{How does language relate to thought?}**_
 
 #### AI and Computer Engineering
 
-_**\textcolor{teal}{How can we build an efficient computer?}**_
+_**\textcolor{blue}{How can we build an efficient computer?}**_
 
-- **\textcolor{cyan}{Electronic computers}**
+- **\textcolor{red}{Electronic computers}**
   - Built during World War II
 
-- **\textcolor{orange}{Moore's Law}**
+- **\textcolor{olive}{Moore's Law}**
   - Performance doubled every 18 months until 2005
   - Power and scaling issues shifted focus to core multiplication over clock
     speed
 
-- **\textcolor{violet}{Hardware for AI}**
+- **\textcolor{cyan}{Hardware for AI}**
   - GPUs
   - TPUs
   - Wafer-scale engines
 
-- **\textcolor{red}{Current Trends}**
+- **\textcolor{orange}{Current Trends}**
   - Massive parallelism (like brain function)
     - Computing power doubling every 3 months
     - GPUs / TPUs used in deep learning
   - High precision (e.g., 64b) often unnecessary
 
-- **\textcolor{olive}{Quantum Computing}**
+- **\textcolor{darkgray}{Quantum Computing}**
   - Potential for significant acceleration in key computations
   - E.g., Shor's algorithm for factorization
 
@@ -1052,24 +1052,24 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
   - AI computing power doubles every 3 months
 
 #### What Can AI Do Today? (1/2)
-- **\textcolor{teal}{Robotic vehicles}**
+- **\textcolor{blue}{Robotic vehicles}**
   - Waymo passed 10 million miles without serious accident
 
-- **\textcolor{cyan}{Legged locomotion}**
+- **\textcolor{red}{Legged locomotion}**
   - BigDog recovers on ice
   - Atlas walks on uneven terrain, jumps on boxes, backflips
 
-- **\textcolor{orange}{Autonomous planning and scheduling}**
+- **\textcolor{olive}{Autonomous planning and scheduling}**
   - Space probes, Mars rovers
 
-- **\textcolor{violet}{Machine translation}**
+- **\textcolor{cyan}{Machine translation}**
   - Translates 100 languages with human-level performance
 
-- **\textcolor{red}{Speech recognition}**
+- **\textcolor{orange}{Speech recognition}**
   - Real-time speech-to-speech with human-level performance
   - AI assistants
 
-- **\textcolor{olive}{Recommendations}**
+- **\textcolor{darkgray}{Recommendations}**
   - ML recommends based on past experiences
   - Spam filtering 99.9% accuracy
   - E.g., Amazon, Facebook, Netflix, Spotify, YouTube

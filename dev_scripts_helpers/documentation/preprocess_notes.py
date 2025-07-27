@@ -256,9 +256,9 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
             continue
         out_tmp.append(line)
     out = out_tmp
-    # out = "\n".join(out_tmp)
     # c) Clean up.
     _LOG.debug("Clean up")
+    hdbg.dassert_isinstance(out, list)
     # Remove all the lines with only spaces.
     out_tmp = []
     for line in out:

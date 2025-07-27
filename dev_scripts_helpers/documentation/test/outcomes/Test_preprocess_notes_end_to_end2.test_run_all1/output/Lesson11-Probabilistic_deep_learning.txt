@@ -143,26 +143,26 @@ MSML610: Advanced Machine Learning
   - Popular in '80s and '90s
   - Then fell out of fashion due to limitations
 
-- **\textcolor{teal}{Key Reasons for Resurgence}**
+- **\textcolor{blue}{Key Reasons for Resurgence}**
 
-  - **\textcolor{cyan}{Increased Computational Power}**
+  - **\textcolor{red}{Increased Computational Power}**
     - GPUs and TPUs suited for matrix operations in neural nets
 
-  - **\textcolor{orange}{Availability of Big Data}**
+  - **\textcolor{olive}{Availability of Big Data}**
     - Open-source frameworks (e.g., TensorFlow and PyTorch)
     - Massive amounts of labeled data (Internet, IoT, and digital storage)
 
-  - **\textcolor{violet}{Algorithmic Improvements}**
+  - **\textcolor{cyan}{Algorithmic Improvements}**
     - Better activation functions (ReLU)
     - Advanced optimization techniques (Adam, RMSprop)
     - Regularization methods (dropout, batch normalization)
 
-  - **\textcolor{red}{Breakthrough Architectures}**
+  - **\textcolor{orange}{Breakthrough Architectures}**
     - CNNs for image tasks
     - RNNs and LSTMs for sequences
     - Transformers for language and vision
 
-  - **\textcolor{olive}{Demonstrated Success in Applications}**
+  - **\textcolor{darkgray}{Demonstrated Success in Applications}**
     - State-of-the-art performance in vision, speech, language, and games
     - Commercial impact in healthcare, finance, and autonomous vehicles
     - 2012: AlexNet outperformed methods on ImageNet using deep CNNs
@@ -809,28 +809,28 @@ MSML610: Advanced Machine Learning
 
 #### Convolutional Neural Networks
 
-- **\textcolor{teal}{Convolutional Layer Mechanics}**
+- **\textcolor{blue}{Convolutional Layer Mechanics}**
   - Filter (or kernel): small matrix of weights (E.g., $3 \times 3$)
   - Apply dot product between filter and local patch of input
 
-- **\textcolor{cyan}{Weight Sharing}**
+- **\textcolor{red}{Weight Sharing}**
   - Each filter is reused across all spatial locations
   - Spatial invariance: things detectable in an image should be independent of
     the position in the image
   - Reduces number of parameters and improves generalization
 
-- **\textcolor{orange}{Feature map }**
+- **\textcolor{olive}{Feature map }**
   - Output of a convolutional layer after applying filters (kernels) to the
     input
   - Represents spatial patterns such as edges, textures, or more complex
     features learned by the network
 
-- **\textcolor{violet}{Stacking Convolutions}**
+- **\textcolor{cyan}{Stacking Convolutions}**
   - Multiple layers can detect increasingly abstract features:
     - Early layers detect edges, textures
     - Later layers detect object parts or entire objects
 
-- **\textcolor{red}{Example}**
+- **\textcolor{orange}{Example}**
   - An image of size $32 \times 32 \times 3$ with a $5 \times 5$ filter creates a
     $28 \times 28$ feature map (ignoring padding)
 
@@ -864,25 +864,25 @@ MSML610: Advanced Machine Learning
 
 ::: columns
 :::: {.column width=70%}
-- **\textcolor{teal}{Motivation for Deep Networks}**
+- **\textcolor{blue}{Motivation for Deep Networks}**
   - Deeper networks perform better on complex tasks
   - Very deep networks suffer from vanishing/exploding gradient problems
 
-- **\textcolor{cyan}{Key Idea: Residual Learning}**
+- **\textcolor{red}{Key Idea: Residual Learning}**
   - Learn a residual function $F(x) = H(x) - x$ instead of a direct mapping
     $H(x)$
   - Original function becomes $H(x) = F(x) + x$
   - Easier to learn a small change from a function than a new function
 
-- **\textcolor{orange}{Residual Block Structure}**
+- **\textcolor{olive}{Residual Block Structure}**
   - Each block computes $F(x)$ and outputs $F(x) + x$
   - $x$ is the _shortcut connection_ or _skip connection_
 
-- **\textcolor{violet}{Pros}**
+- **\textcolor{cyan}{Pros}**
   - Enable training of deeper networks (e.g., hundreds of layers)
   - Help gradients flow during backpropagation
 
-- **\textcolor{red}{Empirical Success}**
+- **\textcolor{orange}{Empirical Success}**
   - ResNets outperform plain networks of the same depth
   - Achieved state-of-the-art results on ImageNet and other benchmarks
 ::::
@@ -1030,24 +1030,24 @@ digraph FeedbackSystem {
 
 
 - Alternative to LSTMs for sequential modeling
-  - Combine **\textcolor{teal}{forget}** and **\textcolor{cyan}{input}** gates into a single **\textcolor{orange}{update gate}**
+  - Combine **\textcolor{blue}{forget}** and **\textcolor{red}{input}** gates into a single **\textcolor{olive}{update gate}**
   - Retain essential functionality with fewer components:
     - Update gate controls how much of the past state to keep
     - Reset gate controls how much of the past information to forget
 
-- **\textcolor{violet}{Pros}**
+- **\textcolor{cyan}{Pros}**
   - Requires fewer parameters, leading to faster training
   - Comparable or better performance than LSTM on many tasks
   - Easier to tune and implement
   - Suitable for real-time and low-resource applications
 
-- **\textcolor{red}{Cons}**
+- **\textcolor{orange}{Cons}**
   - May be less expressive than LSTM for very complex patterns
   - Lacks a separate memory cell, which may limit ability to retain long-term
     information
   - Slightly less studied and standardized than LSTM in some domains
 
-- **\textcolor{olive}{Example}**
+- **\textcolor{darkgray}{Example}**
   - GRUs are preferred in real-time speech recognition systems due to their
     efficiency
 
@@ -1129,31 +1129,31 @@ digraph FeedbackSystem {
 
 
 #### NLP Tasks
-- **\textcolor{teal}{Part-of-speech (POS) tagging}**
+- **\textcolor{blue}{Part-of-speech (POS) tagging}**
   - Assign a POS (e.g., noun, verb, adjective) to each word in a sentence 
   - Data needs: labelled data
 
-- **\textcolor{cyan}{Co-reference resolution}**
+- **\textcolor{red}{Co-reference resolution}**
   - E.g., _"Mike told that John was sick, so I took him to the hospital"_
     - Who does _"him"_ refer to?
     - _"John"_ with high probability
   - The output is a distribution over possible antecedents
   - Data needs: labelled data
 
-- **\textcolor{orange}{Sentiment analysis}**
+- **\textcolor{olive}{Sentiment analysis}**
   - Classify a text as having positive or negative sentiment
     - E.g., "the movie was poorly written and acted" $\to$ negative
   - Data needs: nothing in theory
 
-- **\textcolor{violet}{Machine translation}**
+- **\textcolor{cyan}{Machine translation}**
   - Translate a sentence from a source language to a target language
     - E.g., from Spanish to English
   - Data needs: large corpus of source/target sentence pairs
 
-- **\textcolor{red}{Information extraction}**
+- **\textcolor{orange}{Information extraction}**
   - Automatically extracting structured information from unstructured text
 
-- **\textcolor{olive}{Named entity recognition}**
+- **\textcolor{darkgray}{Named entity recognition}**
   - Identify and classify named entities (e.g., people, organizations, locations)
     in text
 
@@ -1417,16 +1417,16 @@ digraph FeedbackSystem {
   - $d_k$: dimensionality of the key vectors
   - $QK^T$: dot products between each query and all keys (shape: $n_q \times n_k$)
 
-- **\textcolor{teal}{Steps}**:
-  1. **\textcolor{cyan}{Dot Product}**: Compute similarity between each query and all keys
+- **\textcolor{blue}{Steps}**:
+  1. **\textcolor{red}{Dot Product}**: Compute similarity between each query and all keys
      - $QK^T$ produces attention scores
-  2. **\textcolor{orange}{Scaling}**: Divide scores by $\sqrt{d_k}$
+  2. **\textcolor{olive}{Scaling}**: Divide scores by $\sqrt{d_k}$
      - To stabilize gradients
-  3. **\textcolor{violet}{Softmax}**: Apply softmax to each row of the scaled scores
+  3. **\textcolor{cyan}{Softmax}**: Apply softmax to each row of the scaled scores
      - Converts scores into a probability distribution (attention weights)
-  4. **\textcolor{red}{Weighted Sum}**: Multiply weights by $V$ to produce context vectors
+  4. **\textcolor{orange}{Weighted Sum}**: Multiply weights by $V$ to produce context vectors
 
-- **\textcolor{olive}{Advantages}**
+- **\textcolor{darkgray}{Advantages}**
   - Parallelizable computation
   - Better handling of long-range dependencies than RNNs
 

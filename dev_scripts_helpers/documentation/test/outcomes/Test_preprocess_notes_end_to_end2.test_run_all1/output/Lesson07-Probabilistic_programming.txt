@@ -250,11 +250,11 @@ MSML610: Advanced Machine Learning
 :::
 
 #### Coin example: analytical solution
-- The **\textcolor{teal}{\textcolor{red}{\text{posterior}}}** is proportional to **\textcolor{cyan}{\textcolor{darkgreen}{\text{likelihood}}}** $\times$
-  **\textcolor{orange}{\textcolor{blue}{\text{prior}}}**
+- The **\textcolor{blue}{\textcolor{red}{\text{posterior}}}** is proportional to **\textcolor{red}{\textcolor{darkgreen}{\text{likelihood}}}** $\times$
+  **\textcolor{olive}{\textcolor{blue}{\text{prior}}}**
   $$\textcolor{red}{\Pr(\theta | y)} \propto \textcolor{darkgreen}{\Pr(y | theta)} \textcolor{blue}{\Pr(theta)}$$
-- Substituting the **\textcolor{violet}{\textcolor{darkgreen}{\text{likelihood}}}** with a Binomial and the
-  **\textcolor{red}{\textcolor{blue}{\text{prior}}}** with a Beta
+- Substituting the **\textcolor{cyan}{\textcolor{darkgreen}{\text{likelihood}}}** with a Binomial and the
+  **\textcolor{orange}{\textcolor{blue}{\text{prior}}}** with a Beta
   \begin{align*}
   & \Pr(\theta \mid Y)
   \\
@@ -457,18 +457,18 @@ MSML610: Advanced Machine Learning
 
 #### Bayesian statistics
 - Given:
-  - The \textcolor{darkgreen}{**\textcolor{teal}{"knows"}**}
+  - The \textcolor{darkgreen}{**\textcolor{blue}{"knows"}**}
     - Model structure (modeled as a graph of probability distributions)
     - Data, observations (modeled as constants)
-  - The \textcolor{red}{**\textcolor{cyan}{"unknowns"}**}
+  - The \textcolor{red}{**\textcolor{red}{"unknowns"}**}
     - Model parameters (modeled as probability distributions)
-- We use Bayes' theorem to condition \textcolor{red}{**\textcolor{orange}{unknowns}**} to \textcolor{darkgreen}{**\textcolor{violet}{knowns}**},
+- We use Bayes' theorem to condition \textcolor{red}{**\textcolor{olive}{unknowns}**} to \textcolor{darkgreen}{**\textcolor{cyan}{knowns}**},
   hoping to reduce the uncertainty about the \textcolor{red}{\text{unknowns}}
 
-- **\textcolor{red}{Problem}** ![](pics/puzzle.png){ width=14px }
+- **\textcolor{orange}{Problem}** ![](pics/puzzle.png){ width=14px }
   - Most probabilistic models are analytically intractable
 
-- **\textcolor{olive}{Solution}** ![](pics/lightbulb.png){ width=14px }
+- **\textcolor{darkgray}{Solution}** ![](pics/lightbulb.png){ width=14px }
   - Probabilistic programming
     - Specify a probabilistic model using code
     - Solve models using numerical techniques

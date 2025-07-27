@@ -331,26 +331,26 @@ MSML610: Advanced Machine Learning
   entropy is high, your probability of error must also be high."
 
 #### Differential Entropy
-- **\textcolor{teal}{Definition}**
+- **\textcolor{blue}{Definition}**
   - The differential entropy $h(x)$ for continuous random variable $X$ with
     density $p(x)$ is defined as:
     $$h(X) \defeq -\int p(x) \log p(x) \, dx$$
 
-- **\textcolor{cyan}{Concept}**
+- **\textcolor{red}{Concept}**
   - Extends Shannon entropy to continuous distributions
   - Measures "spread" or uncertainty of $X$
 
-- **\textcolor{orange}{Key Properties}**
+- **\textcolor{olive}{Key Properties}**
   - Not invariant under variable change
     - E.g., scaling affects $h(X)$
   - Can be negative, unlike non-negative discrete entropy
   - Units depend on logarithm base
 
-- **\textcolor{violet}{Example}**
+- **\textcolor{cyan}{Example}**
   - For Gaussian $X \sim \mathcal{N}(\mu, \sigma^2)$:
     $$h(X) = \frac{1}{2} \log(2\pi e \sigma^2)$$
 
-- **\textcolor{red}{Limitations}**
+- **\textcolor{orange}{Limitations}**
   - Cannot compare directly across variables with different units or scales
 
 #### Maximum entropy principle
@@ -366,7 +366,7 @@ MSML610: Advanced Machine Learning
     - A given variance: normal distribution
 
 #### Minimum Description Length (MDL)
-- **\textcolor{teal}{Definition}**
+- **\textcolor{blue}{Definition}**
   - The total description length of a dataset $MDL(H)$ is given by:
     $$MDL(H) = L(H) + L(D \mid H)$$
     where:
@@ -376,26 +376,26 @@ MSML610: Advanced Machine Learning
   - MDL selects the hypothesis $H$ that minimizes the total description length
     $$\text{MDL}(H) = L(H) + L(D \mid H)$$
 
-- **\textcolor{cyan}{Intuition}**
+- **\textcolor{red}{Intuition}**
   - Prefers the model that gives the shortest total description of data
   - Based on Occam’s Razor: simpler models are preferred
   - Balances model complexity and data fit
 
-- **\textcolor{darkgray}{Example}**
+- **\textcolor{brown}{Example}**
   - Given two decision trees for classifying email as spam:
     - Tree A is small and classifies 95% correctly
     - Tree B is large and classifies 96% correctly
     - MDL may prefer Tree A if the increased accuracy doesn't justify the extra complexity
 
-- **\textcolor{orange}{Applications}**
+- **\textcolor{olive}{Applications}**
   - Model selection in statistics and machine learning
   - Compression-based clustering and classification
 
-- **\textcolor{blue}{Advantages}**
+- **\textcolor{darkgreen}{Advantages}**
   - No need for explicit prior probabilities
   - Naturally penalizes overfitting
 
-- **\textcolor{violet}{Limitations}**
+- **\textcolor{cyan}{Limitations}**
   - Requires a good encoding scheme
   - Computationally intensive for large hypothesis spaces
 
@@ -403,27 +403,27 @@ MSML610: Advanced Machine Learning
 - The Kolmogorov complexity $K(x)$ of a string $x$ is the length of the shortest
   binary program that outputs $x$ on a universal Turing machine
 
-- **\textcolor{teal}{Examples}**
+- **\textcolor{blue}{Examples}**
   - A string of 1000 random bits: high Kolmogorov complexity, no compressible
     pattern
   - A string of 1000 repeated `0`s: low Kolmogorov complexity, described by a
     short loop
 
-- **\textcolor{cyan}{Intuition}**
+- **\textcolor{red}{Intuition}**
   - Measures "algorithmic randomness" or compressibility of a string
   - A string is complex if it has no shorter description than itself
 
-- **\textcolor{orange}{Formal Properties}**
+- **\textcolor{olive}{Formal Properties}**
   - Incomputable: no algorithm computes $K(x)$ for all $x$
   - $K(x) \leq |x| + c$ for some constant $c$, showing the trivial upper bound
     (print $x$)
 
-- **\textcolor{violet}{Relation to MDL}**
+- **\textcolor{cyan}{Relation to MDL}**
   - MDL approximates Kolmogorov complexity by minimizing a practical description
     length
   - Both capture the essence of a pattern's simplicity
 
-- **\textcolor{red}{Theoretical Importance}**
+- **\textcolor{orange}{Theoretical Importance}**
   - Provides a framework for understanding randomness and information
   - Links to information theory, learning theory, and data compression
   - Not computable but can be approximated from

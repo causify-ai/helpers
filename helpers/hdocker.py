@@ -661,22 +661,22 @@ def is_path(path: str) -> bool:
     """
     Check if `path` can be considered a file or a directory using heuristics.
 
-    Criteria:
-    - It has a file extension (e.g., .txt, .csv)
-    - It is an absolute or relative path (e.g., starts with / or ./ or ../)
-    - It ends with a slash, indicating a folder
-
-    E.g.,
-    ```
-    is_path("file.txt")           # True, since it has an extension
-    is_path("/path/to/file.py")   # True, since it has an absolute path
-    is_path("/path/to")           # True, since it has an absolute path
-    is_path("../data.csv")        # True, since it has an relative path
-    is_path("folder/")            # True, since it has a trailing slash
-    is_path("readme")             # False, since it has no extension and no path
-    ```
     - return: True if the string looks like a path, False otherwise.
     """
+    # Heuristic: a path is a file or directory if
+    # - It has a file extension (e.g., .txt, .csv)
+    # - It is an absolute or relative path (e.g., starts with "/" or "./" or "../")
+    # - It ends with "/", indicating a folder
+    # 
+    # E.g.,
+    # ```
+    # is_path("file.txt")           # True, since it has an extension
+    # is_path("/path/to/file.py")   # True, since it has an absolute path
+    # is_path("/path/to")           # True, since it has an absolute path
+    # is_path("../data.csv")        # True, since it has an relative path
+    # is_path("folder/")            # True, since it has a trailing slash
+    # is_path("readme")             # False, since it has no extension and no path
+    # ```
     # Check if it has a file extension.
     if os.path.splitext(path)[1]:
         return True

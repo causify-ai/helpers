@@ -84,19 +84,19 @@ MSML610: Advanced Machine Learning
 #### Causal and Exhaustive Augmentation
 - To use propositional logic under uncertainty, augment the left-side of
   $X \implies Y$ to make it:
-  1. **\textcolor{teal}{Causal}**: identify true causal-effect relationships
+  1. **\textcolor{blue}{Causal}**: identify true causal-effect relationships
   2. **\textcolor{gray}{Exhaustive}**: identify all possible conditions leading to the outcome
 
-- **\textcolor{cyan}{Logical qualification problem}**
+- **\textcolor{red}{Logical qualification problem}**
   - Try to enumerate all the preconditions necessary for an action to succeed
 
-- **\textcolor{darkgray}{Problems}**
-  1. **\textcolor{orange}{Laziness}**
+- **\textcolor{brown}{Problems}**
+  1. **\textcolor{olive}{Laziness}**
      - Too much work to create all possible rules
-  2. **\textcolor{blue}{Theoretical ignorance}**
+  2. **\textcolor{darkgreen}{Theoretical ignorance}**
      - Science doesn't always have a complete theory of the domain
      - E.g., medical science doesn't know all the "rules"
-  3. **\textcolor{violet}{Practical ignorance}**
+  3. **\textcolor{cyan}{Practical ignorance}**
      - Even if you knew all the rules, you might not have all the information
        needed
      - E.g., not all necessary tests can be run for a particular patient
@@ -1511,21 +1511,21 @@ digraph InsuranceRiskModel {
 
 #### Exact Inference in Bayesian Networks
 
-- **\textcolor{teal}{Goal of exact inference}**
+- **\textcolor{blue}{Goal of exact inference}**
   - Compute the posterior $P(X|\ve)$ for query variable $X$ given evidence $\ve$
-- **\textcolor{cyan}{Variables involved}**
+- **\textcolor{red}{Variables involved}**
   - Query variable $X$
   - Evidence variables $\vE = \{E_1, \dots, E_m\}$
   - Hidden variables $\vY = \{Y_1, \dots, Y_\ell\}$
-- **\textcolor{orange}{Inference by Enumeration}**
+- **\textcolor{olive}{Inference by Enumeration}**
   - Use full joint distribution and sum over all hidden variables:
     $$P(X|e) = \alpha \sum_Y P(X,e,Y)$$
-- **\textcolor{violet}{Variable Elimination}**
+- **\textcolor{cyan}{Variable Elimination}**
   - Improves efficiency by caching intermediate results
   - Eliminates variables systematically to avoid redundant sums
   - Removing irrelevant variables
     - Variables not ancestors of query or evidence can be ignored
-- **\textcolor{red}{Complexity of exact inference}**
+- **\textcolor{orange}{Complexity of exact inference}**
   - Exact inference is efficient for trees, but intractable in general
     - Singly connected networks (polytrees): linear in network size
     - Multiply connected networks: can be exponential; inference is NP-hard

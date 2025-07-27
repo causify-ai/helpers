@@ -79,24 +79,24 @@ MSML610: Advanced Machine Learning
       emerging competitor?
 
 #### What are Data Analytics?
-- **\textcolor{teal}{Collections of data}**
+- **\textcolor{blue}{Collections of data}**
   - Aggregated and organized data sets for analysis
   - E.g., customer purchase histories stored in a CRM system
 
-- **\textcolor{cyan}{Dashboards}**
+- **\textcolor{red}{Dashboards}**
   - Visual displays of key metrics for quick insights
   - E.g., dashboard showing quarterly revenue and expenses
 
-- **\textcolor{orange}{Descriptive statistics}**
+- **\textcolor{olive}{Descriptive statistics}**
   - Summary metrics like mean, median, mode, and standard deviation
   - E.g., calculating the average sales per quarter to understand performance
     trends
 
-- **\textcolor{violet}{Historical reports}**
+- **\textcolor{cyan}{Historical reports}**
   - Detailed examination of past performance
   - E.g., monthly sales reports for the past fiscal year
 
-- **\textcolor{red}{Models}**
+- **\textcolor{orange}{Models}**
   - Statistical representations to forecast or explain phenomena
   - E.g., a predictive model to anticipate customer churn based on behavioral
     data
@@ -138,45 +138,45 @@ MSML610: Advanced Machine Learning
   - Trust the results by the machine
 
 #### Correlation is Not Causation!
-- **\textcolor{teal}{Correlation}** is a statistical method for understanding relationships between
+- **\textcolor{blue}{Correlation}** is a statistical method for understanding relationships between
   data
-  - **\textcolor{cyan}{Pros}**
+  - **\textcolor{red}{Pros}**
     - Use past outcomes to predict future outcomes by finding patterns and
       anomalies in data
-  - **\textcolor{orange}{Cons}**
+  - **\textcolor{olive}{Cons}**
     - Doesn't explain the cause of the results
     - Two variables may move together due to coincidence or a hidden factor
 
-- **\textcolor{violet}{Causation}** explains how / why changing one variable influences the other,
+- **\textcolor{cyan}{Causation}** explains how / why changing one variable influences the other,
   - This cannot be concluded from correlation alone
 
-- **\textcolor{red}{Data does not understand causes and effects}**
+- **\textcolor{orange}{Data does not understand causes and effects}**
   - Only humans can identify variables and relationships (cause-effect) based on
     their understanding of context of data
   - Without causation, you can't make intelligent decisions
 
-- AI needs to **\textcolor{olive}{augment the power of humans}** to understand the world
+- AI needs to **\textcolor{darkgray}{augment the power of humans}** to understand the world
 
 #### Causal AI
 - Causal AI solves the previous problems
 
-- **\textcolor{teal}{Understands the why}**
+- **\textcolor{blue}{Understands the why}**
   - Determines cause-and-effect between variables
   - E.g., determining whether a marketing campaign increased sales
 
-- **\textcolor{cyan}{Identify interventions}**
+- **\textcolor{red}{Identify interventions}**
   - Identifies variables and interventions to change outcomes
   - E.g., determining which lifestyle changes can reduce blood pressure
 
-- **\textcolor{orange}{Predicting counterfactuals}**
+- **\textcolor{olive}{Predicting counterfactuals}**
   - Hypothesizes what could happen under different circumstances
   - E.g., estimating student grades if they attended a different school
 
-- **\textcolor{violet}{Avoiding bias}**
+- **\textcolor{cyan}{Avoiding bias}**
   - Traditional AI is biased by training data and ignored variables
   - Ensure fairness by accounting for confounding variables
 
-- **\textcolor{red}{Improving decision-making}**
+- **\textcolor{orange}{Improving decision-making}**
   - Provides a deeper understanding of relationships for better decisions
   - E.g., improving supply chain by understanding logistic impact
 
@@ -1547,25 +1547,25 @@ digraph CausalFlowGrid {
 
 #### Steps for a hybrid team project
 
-- **\textcolor{teal}{Establish a Phased, Collaborative Approach}**
+- **\textcolor{blue}{Establish a Phased, Collaborative Approach}**
   - Align strategic goals with technical efforts
   - Emphasize early stakeholder engagement and shared ownership
 - **\textcolor{gray}{Strategic Kickoff Meeting}**
   - Unite business, technical, and operational roles
   - Clarify problems, outcomes, responsibilities, success metrics
-- **\textcolor{cyan}{Define Team Goals}**
+- **\textcolor{red}{Define Team Goals}**
   - Use SMART objectives aligned with business strategy
   - Focus on outcomes and supported decisions, not tools
-- **\textcolor{darkgray}{Target a Project}**
+- **\textcolor{brown}{Target a Project}**
   - Choose a bounded, feasible, high-value use case
   - Prioritize early wins for trust and momentum
-- **\textcolor{orange}{Define the Hypothesis}**
+- **\textcolor{olive}{Define the Hypothesis}**
   - Translate business problems into testable causal assumptions
   - Build a preliminary DAG with experts' input
-- **\textcolor{blue}{Incremental Model Development}**
+- **\textcolor{darkgreen}{Incremental Model Development}**
   - Build the model in small, reviewable stages
   - Iterate with regular feedback, refining scope and variables
-- **\textcolor{violet}{Embrace Iteration and Continuous Refinement}**
+- **\textcolor{cyan}{Embrace Iteration and Continuous Refinement}**
   - Keep progress collaborative and aligned with business needs
   - Add complexity gradually to manage risk and enhance understanding
 
@@ -1662,19 +1662,19 @@ digraph CausalFlowGrid {
 
 #### SMART goals
 - SMART is an acronym for Specific, Measurable, Achievable, Relevant, Time-bound
-- **\textcolor{teal}{Specific}**
+- **\textcolor{blue}{Specific}**
   - Clearly defines what is to be achieved
   - E.g., "Increase website traffic by 15%"
-- **\textcolor{cyan}{Measurable}**
+- **\textcolor{red}{Measurable}**
   - Includes criteria to track progress and success
   - E.g., "Track visits using Google Analytics"
-- **\textcolor{orange}{Achievable}**
+- **\textcolor{olive}{Achievable}**
   - Realistic based on resources and constraints
   - E.g., "Based on historical growth rates, 15% is attainable"
-- **\textcolor{violet}{Relevant}**
+- **\textcolor{cyan}{Relevant}**
   - Aligns with broader organizational or personal objectives
   - E.g., "Traffic increase supports lead generation goals"
-- **\textcolor{red}{Time-bound}**
+- **\textcolor{orange}{Time-bound}**
   - Specifies a deadline or timeframe
   - E.g., "Achieve by end of Q3"
 
@@ -1739,7 +1739,7 @@ digraph CausalFlowGrid {
 
 #### Key Performance Indicators (KPIs): General Overview
 
-- **\textcolor{teal}{What are KPIs?}**
+- **\textcolor{blue}{What are KPIs?}**
   - Quantitative metrics that reflect how well an individual, team, or
     organization is achieving key objectives
 
@@ -1747,30 +1747,30 @@ digraph CausalFlowGrid {
   - Provide focus for strategic and operational improvement
   - Serve as benchmarks for progress and performance evaluation
 
-- **\textcolor{cyan}{Categories of KPIs}**
-  - **\textcolor{darkgray}{Financial KPIs}**: Revenue, profit margin, cost per acquisition
-  - **\textcolor{orange}{Customer KPIs}**: Customer satisfaction, churn rate
-  - **\textcolor{blue}{Process KPIs}**: Efficiency, cycle time, error rate
-  - **\textcolor{violet}{People KPIs}**: Employee engagement, turnover rate, training hours
+- **\textcolor{red}{Categories of KPIs}**
+  - **\textcolor{brown}{Financial KPIs}**: Revenue, profit margin, cost per acquisition
+  - **\textcolor{olive}{Customer KPIs}**: Customer satisfaction, churn rate
+  - **\textcolor{darkgreen}{Process KPIs}**: Efficiency, cycle time, error rate
+  - **\textcolor{cyan}{People KPIs}**: Employee engagement, turnover rate, training hours
 
-- **\textcolor{brown}{Characteristics of Effective KPIs}**
+- **\textcolor{violet}{Characteristics of Effective KPIs}**
   - Specific and clearly defined
   - Measurable with reliable data
   - Achievable and realistic
   - Relevant to the business goals
   - Time-bound for periodic evaluation
 
-- **\textcolor{red}{Developing KPIs}**
+- **\textcolor{orange}{Developing KPIs}**
   - Align with strategic goals
   - Involve key stakeholders in the design process
   - Establish baseline and targets
 
-- **\textcolor{darkgreen}{Using KPIs}**
+- **\textcolor{teal}{Using KPIs}**
   - Monitor performance regularly
   - Identify trends and root causes
   - Inform decisions and prioritize actions
 
-- **\textcolor{olive}{Continuous Improvement}**
+- **\textcolor{darkgray}{Continuous Improvement}**
   - Review and refine KPIs as objectives and environments evolve
 
 #### The Importance of Synthetic Data in Causal AI
@@ -1949,7 +1949,7 @@ digraph BayesianNetwork1 {
 - Estimate the effect of an intervention $do(X_j = x_{jk})$ on another variable
   $X_i$ in a causal network
 
-- **\textcolor{teal}{The Basic Adjustment Formula}**
+- **\textcolor{blue}{The Basic Adjustment Formula}**
   - Derived from the modified joint distribution after intervention:
     $$\Pr(X_i = x_i | do(X_j = x_{jk})) = \sum_{\text{parents}(X_j)} \Pr(x_i | x_{jk}, \text{parents}(X_j)) \Pr(\text{parents}(X_j))$$
   - Omits the causal mechanism for $X_j$ and treats it as fixed
@@ -1958,25 +1958,25 @@ digraph BayesianNetwork1 {
   - Weighted average of the effect of $X_j$ and its parents on $X_i$
   - Weights are given by the prior probabilities of the parent values
 
-- **\textcolor{cyan}{Causal Inference via Graph Surgery}**
+- **\textcolor{red}{Causal Inference via Graph Surgery}**
   - "Mutilate" the network by cutting incoming edges to $X_j$
   - Replace $X_j$'s structural equation with $X_j = x_{jk}$
 
-- **\textcolor{darkgray}{E.g., (Sprinkler Network)}**
+- **\textcolor{brown}{E.g., (Sprinkler Network)}**
   - To evaluate $\Pr(GreenerGrass | do(Sprinkler = true))$:
     $$\Pr(g | do(S = \text{true})) = \sum_r \Pr(g | S = \text{true}, r) \Pr(r)$$
 
-- **\textcolor{orange}{Back-door Criterion for Valid Adjustment Sets}**
+- **\textcolor{olive}{Back-door Criterion for Valid Adjustment Sets}**
   - A set $Z$ satisfies the back-door criterion if it blocks all back-door paths
     from $X_j$ to $X_i$
   - Formally: $X_i$ is conditionally independent of the parents of $X_j$ given
     $X_j$ and $Z$
 
-- **\textcolor{blue}{Why This Matters}**
+- **\textcolor{darkgreen}{Why This Matters}**
   - Enables causal reasoning from observational data
   - Avoids the need for randomized controlled trials in some cases
 
-- **\textcolor{violet}{Applications}**
+- **\textcolor{cyan}{Applications}**
   - Estimating treatment effects, policy interventions, and understanding system
     behavior under manipulation
 

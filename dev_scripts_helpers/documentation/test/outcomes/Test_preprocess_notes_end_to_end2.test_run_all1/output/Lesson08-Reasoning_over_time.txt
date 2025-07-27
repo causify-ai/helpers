@@ -48,14 +48,14 @@ MSML610: Advanced Machine Learning
 #### Agents
 - Agents in partially observable environments track the current state using
   sensor information
-  1. **\textcolor{teal}{Belief state}**
+  1. **\textcolor{blue}{Belief state}**
      - Store possible world states (by enumeration or logical formulas)
      - Use probability theory to quantify belief
      - Belief state is the posterior distribution of the current state given all
        evidence so far
-  2. **\textcolor{cyan}{Belief state}** + **\textcolor{orange}{Transition model}**
+  2. **\textcolor{red}{Belief state}** + **\textcolor{olive}{Transition model}**
      - Predict how the world might evolve in the next step
-  3. **\textcolor{violet}{Sensor model}** + **\textcolor{red}{Percepts}**
+  3. **\textcolor{cyan}{Sensor model}** + **\textcolor{orange}{Percepts}**
      - Update belief state
 
 - Time is handled by making each quantity a function of time
@@ -757,28 +757,28 @@ digraph Viterbi {
 
 #### Hidden Markov Model: State and Transition Model
 
-- **\textcolor{teal}{Hidden Markov Model (HMM)}**: A temporal model with simplified structure for
+- **\textcolor{blue}{Hidden Markov Model (HMM)}**: A temporal model with simplified structure for
   efficiency
-  - **\textcolor{cyan}{State model}**:
+  - **\textcolor{red}{State model}**:
     - The system state at time $t$ is a discrete random variable
       $X_t \in \{1, \dots, S\}$
     - E.g., in the umbrella domain, $X_t = Rain_t$ with states {rain, no rain}
     - Generality: Multiple variables can be combined into one "mega-state"
       variable
 
-  - **\textcolor{orange}{Transition model}** $\Pr(X_t | X_{t-1})$:
+  - **\textcolor{olive}{Transition model}** $\Pr(X_t | X_{t-1})$:
     - Described by a transition matrix $\vT$ of size $S \times S$
     - Entry $T_{ij} = \Pr(X_t = j | X_{t-1} = i)$: probability of transitioning
       from state $i$ to $j$
 
-  - **\textcolor{violet}{Sensor model}**:
+  - **\textcolor{cyan}{Sensor model}**:
     - Defined as $\Pr(E_t | X_t = i)$ for each state $i$
     - Representable as a vector (discrete observations) or a diagonal matrix
       $\vO$ (for convenience)
     - No assumptions about the number or type (discrete / continuous) of
       observation variables
 
-- **\textcolor{red}{Benefit}**
+- **\textcolor{orange}{Benefit}**
   - This structure enables efficient algorithms like forward, backward, and
     Viterbi
 
@@ -1086,32 +1086,32 @@ digraph Viterbi {
 - State space models were developed in control theory, so there is a different
   nomenclature
 
-- **\textcolor{teal}{System}**: object you want to estimate/track
+- **\textcolor{blue}{System}**: object you want to estimate/track
 
 - **\textcolor{gray}{Filter}**: algorithm to estimate the state of the system
 
-- **\textcolor{cyan}{State of the system `x`}**: current values you are interested in
+- **\textcolor{red}{State of the system `x`}**: current values you are interested in
   - E.g., weight
   - Part of the state might be hidden (i.e., not observable)
   - You cannot observe the entire state directly, only measure it indirectly
 
-- **\textcolor{darkgray}{Measurement `z`}**: the measured value of the system
+- **\textcolor{brown}{Measurement `z`}**: the measured value of the system
   - It is observable
   - It can be inaccurate
     - E.g., 99.3kg instead of 100kg
 
-- **\textcolor{orange}{State estimate `x_est`}**: filter estimate of the state
+- **\textcolor{olive}{State estimate `x_est`}**: filter estimate of the state
 
-- **\textcolor{blue}{System model}**: mathematical model of the system
+- **\textcolor{darkgreen}{System model}**: mathematical model of the system
   - E.g., "weight today = weight yesterday + weight gain"
   - The system model is typically imperfect 
   - There is error in the specification of the model
 
-- **\textcolor{violet}{System propagation}**: predict step using the system model to form a new state
+- **\textcolor{cyan}{System propagation}**: predict step using the system model to form a new state
   estimate `x_pred`
   - Because the system model is imperfect, the estimate is imperfect
 
-- **\textcolor{brown}{Measurement update}**: update step
+- **\textcolor{violet}{Measurement update}**: update step
 
 
 #### g-h filter algorithm: pseudo-code
@@ -1889,27 +1889,27 @@ def update(prior, measurement):
   - Inter-slice links
 
 #### DBN example: Tracking a robot (1/3)
-- **\textcolor{teal}{Problem:}**
+- **\textcolor{blue}{Problem:}**
   - Tracking a robot moving randomly on a line $X$ over time
 
-- **\textcolor{cyan}{Initial model:}**
+- **\textcolor{red}{Initial model:}**
   - Position $X_t$ and velocity $\dot{X_t}$ as state variables
   - Update via Newton's laws
   - Easy to generalize for 2d or 3d by using a $\vX_t$
 
-- **\textcolor{orange}{Issue:}**
+- **\textcolor{olive}{Issue:}**
   - Velocity changes over time
   - Battery exhaustion affects velocity systematically
   - Effect depends on cumulative energy use
   - Violates the Markov property (future depends on full history)
 
-- **\textcolor{violet}{Solution:}**
+- **\textcolor{cyan}{Solution:}**
   - Include battery level $Battery_t$ in the state $X_t$
   - Restores the Markov assumption
   - Allows motion prediction considering energy constraints
   - Enables coherent reasoning about motion and power consumption over time
 
-- **\textcolor{red}{New requirement for state:}**
+- **\textcolor{orange}{New requirement for state:}**
   - $S_t = (X_t, \dot{X}_t, \text{BatteryLevel}_t)$
   - $E_t = (\text{GPS}_t, \text{BMeter}_t)$
 
@@ -2178,23 +2178,23 @@ digraph RobotDBN {
 
 #### Introduction to the Expectation–Maximization (EM) Algorithm
 
-- **\textcolor{teal}{Purpose of EM Algorithm}**
+- **\textcolor{blue}{Purpose of EM Algorithm}**
   - Iterative method for finding maximum likelihood or maximum a posteriori
     (MAP) estimates in statistical models with latent variables
   - Particularly useful when data is incomplete or has missing values
 - **\textcolor{gray}{Key Concepts}**
-  - **\textcolor{cyan}{Observed Data ($\mathbf{X}$)}**: The data we can directly observe
-  - **\textcolor{darkgray}{Latent Variables ($\mathbf{Z}$)}**: Hidden or unobserved variables that
+  - **\textcolor{red}{Observed Data ($\mathbf{X}$)}**: The data we can directly observe
+  - **\textcolor{brown}{Latent Variables ($\mathbf{Z}$)}**: Hidden or unobserved variables that
     influence the observed data
-  - **\textcolor{orange}{Parameters ($\boldsymbol{\theta}$)}**: Unknown parameters to be estimated
-- **\textcolor{blue}{Challenge Addressed}**
+  - **\textcolor{olive}{Parameters ($\boldsymbol{\theta}$)}**: Unknown parameters to be estimated
+- **\textcolor{darkgreen}{Challenge Addressed}**
   - Direct maximization of the likelihood function
     $p(\mathbf{X}|\boldsymbol{\theta})$ is often intractable due to the presence
     of latent variables
-- **\textcolor{violet}{EM Algorithm Overview}**
+- **\textcolor{cyan}{EM Algorithm Overview}**
   - Alternates between estimating the expected value of the log-likelihood
     (E-step) and maximizing this expectation (M-step)
-- **\textcolor{brown}{Applications}**
+- **\textcolor{violet}{Applications}**
   - Widely used in clustering (e.g., Gaussian Mixture Models), natural language
     processing, and image reconstruction
 
@@ -2232,38 +2232,38 @@ digraph RobotDBN {
 
 #### Example: Gaussian Mixture Models (GMM)
 
-- **\textcolor{teal}{Problem Setup}**
+- **\textcolor{blue}{Problem Setup}**
   - Data is assumed to be generated from a mixture of Gaussian distributions,
     each with its own mean and covariance
-- **\textcolor{cyan}{Latent Variables}**
+- **\textcolor{red}{Latent Variables}**
   - Each data point is associated with a latent variable indicating the Gaussian
     component from which it was generated
-- **\textcolor{orange}{E-Step in GMM}**
+- **\textcolor{olive}{E-Step in GMM}**
   - Compute the posterior probabilities (responsibilities) that each data point
     belongs to each Gaussian component
-- **\textcolor{violet}{M-Step in GMM}**
+- **\textcolor{cyan}{M-Step in GMM}**
   - Update the parameters (means, covariances, and mixing coefficients) of each
     Gaussian component using the responsibilities computed in the E-step
-- **\textcolor{red}{Iteration}**
+- **\textcolor{orange}{Iteration}**
   - Repeat E and M steps until the parameters converge
 
 #### Properties and Limitations of EM
 
-- **\textcolor{teal}{Advantages}**
+- **\textcolor{blue}{Advantages}**
   - Can handle missing or incomplete data effectively
   - Provides a framework for parameter estimation in complex models
 - **\textcolor{gray}{Limitations}**
   - Converges to a local maximum, which may not be the global maximum
   - Sensitive to initial parameter estimates; poor initialization can lead to
     suboptimal solutions
-- **\textcolor{cyan}{Extensions and Variants}**
-  - **\textcolor{darkgray}{Variational Bayes}**: Provides a fully Bayesian approach by estimating
+- **\textcolor{red}{Extensions and Variants}**
+  - **\textcolor{brown}{Variational Bayes}**: Provides a fully Bayesian approach by estimating
     distributions over parameters
-  - **\textcolor{orange}{Generalized EM (GEM)}**: Relaxes the requirement of fully maximizing the
+  - **\textcolor{olive}{Generalized EM (GEM)}**: Relaxes the requirement of fully maximizing the
     expected log-likelihood in the M-step
-  - **\textcolor{blue}{Expectation Conditional Maximization (ECM)}**: Breaks the M-step into
+  - **\textcolor{darkgreen}{Expectation Conditional Maximization (ECM)}**: Breaks the M-step into
     several conditional maximization steps
-- **\textcolor{violet}{Practical Considerations}**
+- **\textcolor{cyan}{Practical Considerations}**
   - Multiple runs with different initializations can help in finding better
     solutions
   - Monitoring the increase in likelihood can help in determining convergence

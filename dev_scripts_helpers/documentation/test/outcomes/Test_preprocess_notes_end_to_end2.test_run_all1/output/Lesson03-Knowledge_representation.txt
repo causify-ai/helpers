@@ -90,9 +90,9 @@ MSML610: Advanced Machine Learning
 ::: columns
 :::: {.column width=55%}
 
-- **\textcolor{teal}{Tradeoff in AI / ML}**
-  - **\textcolor{cyan}{Expressiveness}**: richness of concepts that can be captured
-  - **\textcolor{orange}{Tractability}**: whether reasoning can be performed efficiently
+- **\textcolor{blue}{Tradeoff in AI / ML}**
+  - **\textcolor{red}{Expressiveness}**: richness of concepts that can be captured
+  - **\textcolor{olive}{Tractability}**: whether reasoning can be performed efficiently
   - More expressive languages lead to harder computation
 
 ::::
@@ -141,17 +141,17 @@ MSML610: Advanced Machine Learning
 
 - Choosing the right knowledge representation formalism depends on the
   application needs
-  - **\textcolor{violet}{Atomic}**
+  - **\textcolor{cyan}{Atomic}**
     - Treats each state as a single, indivisible entity
     - E.g., depth-first search algorithms (e.g., `E3` in Chess)
     - Simple and fast but limited in capturing complex relationships
-  - **\textcolor{red}{Factored}**
+  - **\textcolor{orange}{Factored}**
     - E.g., propositional logic
     - E.g., $P_{1,1}$: _"Pit in square (1,1)"_,
       $B_{1,2} \Leftrightarrow (P_{1,1} \lor P_{2,2} \lor P_{1,3})$
     - Captures relationships between variables but can't express complex
       structures
-  - **\textcolor{olive}{Structured}**
+  - **\textcolor{darkgray}{Structured}**
     - E.g., first-order logic
     - $\forall x \, \forall y \, Father(x, y) \Rightarrow Parent(x, y)$ =
       _"A father of a person is their parent"_
@@ -238,22 +238,22 @@ MSML610: Advanced Machine Learning
 #### Propositional Logic
 
 - Uses atomic statements (propositions) and logical connectives
-  - **\textcolor{teal}{Syntax}**
+  - **\textcolor{blue}{Syntax}**
     - Atomic formulas: $P$, $Q$
     - Connectives: NOT ($\lnot$), AND ($\land$), OR ($\lor$), IMPLIES ($\implies$)
-  - **\textcolor{cyan}{Semantics}**
+  - **\textcolor{red}{Semantics}**
     - Based on truth tables
     - Each proposition has a binary truth value: true or false
-  - **\textcolor{orange}{Inference mechanisms}**
+  - **\textcolor{olive}{Inference mechanisms}**
     - Modus ponens: from $P$ and $P \implies Q$, infer $Q$
     - Resolution: derive contradictions to infer conclusions
 
-- **\textcolor{violet}{Applications}**: best used in closed and well-defined environments
+- **\textcolor{cyan}{Applications}**: best used in closed and well-defined environments
   - Digital circuit design
   - Rule-based systems
   - Simplified AI models
 
-- **\textcolor{red}{Limitations}**
+- **\textcolor{orange}{Limitations}**
   - Cannot represent objects, relations, or quantifiers
   - Not suitable for open or dynamic domains
 
@@ -324,29 +324,29 @@ MSML610: Advanced Machine Learning
 
 #### Reasoning and Inference in Logic
 
-- **\textcolor{teal}{Logical inference}** is the process of deriving new facts from known ones
+- **\textcolor{blue}{Logical inference}** is the process of deriving new facts from known ones
   using formal rules
   - Used to make decisions and answer questions based on a Knowledge Base
 
 - **\textcolor{gray}{Knowledge base (KB)}**:
   - A structured set of facts and rules used for logical reasoning
 
-- **\textcolor{cyan}{Inference engine}**:
+- **\textcolor{red}{Inference engine}**:
   - Mechanism that applies logical rules to a KB to derive conclusions or answer
     queries
-  - **\textcolor{darkgray}{Forward chaining}**:
+  - **\textcolor{brown}{Forward chaining}**:
     - Starts with known facts and applies inference rules to extract more data
     - E.g., given $A \rightarrow B$ and $A$, infer $B$
 
-  - **\textcolor{orange}{Backward chaining}**:
+  - **\textcolor{olive}{Backward chaining}**:
     - Begins with a goal and works backward to find supporting facts
     - E.g., to prove $B$, check if $A \rightarrow B$ and then prove $A$
 
-  - **\textcolor{blue}{Resolution}**:
+  - **\textcolor{darkgreen}{Resolution}**:
     - A complete inference rule for propositional and first-order logic
     - Useful in automated theorem proving
 
-  - **\textcolor{violet}{Entailment ($KB \models \alpha$)}**:
+  - **\textcolor{cyan}{Entailment ($KB \models \alpha$)}**:
     - Sentence $\alpha$ is entailed by KB if it is true in all models where KB is
       true
 
@@ -447,16 +447,16 @@ MSML610: Advanced Machine Learning
 
 #### Logic / Knowledge Base (2/2)
 
-- **\textcolor{teal}{Axiom}** is sentence taken as given without being derived from other sentences
+- **\textcolor{blue}{Axiom}** is sentence taken as given without being derived from other sentences
 
-- **\textcolor{cyan}{Inference}** is a process of deriving new sentences from old ones
+- **\textcolor{red}{Inference}** is a process of deriving new sentences from old ones
   - It should be done in a "logical" way, i.e., the answer should "follow" from
     what is in the knowledge base
 
 - Truth values of a sentence
-  - In **\textcolor{orange}{most logics}** every sentence is either true or false
-  - **\textcolor{violet}{Fuzzy logic}** allows sentences to have different degrees of truth
-  - **\textcolor{red}{Probabilistic logic}** allows sentences to have different probability of
+  - In **\textcolor{olive}{most logics}** every sentence is either true or false
+  - **\textcolor{cyan}{Fuzzy logic}** allows sentences to have different degrees of truth
+  - **\textcolor{orange}{Probabilistic logic}** allows sentences to have different probability of
     being true
 
 #### Model and possible worlds
@@ -681,7 +681,7 @@ digraph EntailmentSemantics {
 
 #### Ontologies: Main Components
 
-- **\textcolor{teal}{Classes / Concepts}**:
+- **\textcolor{blue}{Classes / Concepts}**:
   - Represent general concepts in a domain
   - E.g., `Person`, `City`, `Car`
 
@@ -689,24 +689,24 @@ digraph EntailmentSemantics {
   - Specific, concrete examples of classes
   - E.g., `GP` (an instance of `Person`), `Rome`, `Ferrari 458`
 
-- **\textcolor{cyan}{Properties / Relations}**:
+- **\textcolor{red}{Properties / Relations}**:
   - Describe interactions or associations between classes or instances
   - E.g., `isMortal`, `locatedIn`, `hasAge`
 
-- **\textcolor{darkgray}{Attributes / Data values}**
+- **\textcolor{brown}{Attributes / Data values}**
   - Specify data associated with instances
   - E.g., (`GP`, `hasAge`, `<your_guess>`)
 
-- **\textcolor{orange}{Constraints}**
+- **\textcolor{olive}{Constraints}**
   - Rules that restrict the kinds of values a property can take
   - E.g., (`Ferrari 458`, `mustBe`, `red`)
 
-- **\textcolor{blue}{Axioms}**:
+- **\textcolor{darkgreen}{Axioms}**:
   - Logical statements that define rules and constraints
   - Used to infer new knowledge
   - E.g., all humans are mortal: $\forall x (Person(x) \implies Mortal(x))$
 
-- **\textcolor{violet}{Hierarchies}**:
+- **\textcolor{cyan}{Hierarchies}**:
   - Organize classes and properties into parent-child relationships
   - E.g., `Student` is a subclass of `Person`
 
@@ -1281,11 +1281,11 @@ digraph UniversityOntology {
 
 ::: columns
 :::: {.column width=60%}
-- **\textcolor{teal}{Constants}**: represent specific objects (e.g., Socrates)
-- **\textcolor{cyan}{Predicates}**: describe properties or relations (e.g., $Human(x)$)
-- **\textcolor{orange}{Functions}**: map tuples of objects to objects (e.g., $Mother(x)$)
-- **\textcolor{violet}{Variables}**: placeholders (e.g., $x, y$)
-- **\textcolor{red}{Quantifiers}**: $\forall x$ (for all $x$), $\exists x$ (there exists an $x$)
+- **\textcolor{blue}{Constants}**: represent specific objects (e.g., Socrates)
+- **\textcolor{red}{Predicates}**: describe properties or relations (e.g., $Human(x)$)
+- **\textcolor{olive}{Functions}**: map tuples of objects to objects (e.g., $Mother(x)$)
+- **\textcolor{cyan}{Variables}**: placeholders (e.g., $x, y$)
+- **\textcolor{orange}{Quantifiers}**: $\forall x$ (for all $x$), $\exists x$ (there exists an $x$)
 ::::
 :::: {.column width=35%}
 
@@ -1318,16 +1318,16 @@ digraph UniversityOntology {
 - Quantifiers express properties of entire collections of objects, instead of
   enumerating objects by name (like in propositional logic)
 
-- **\textcolor{teal}{Universal quantifier}**: $\forall x\, P(x)$
+- **\textcolor{blue}{Universal quantifier}**: $\forall x\, P(x)$
   - Universal quantifier makes a statement about _every_ object
   - Statement is true if $P(x)$ is true for all $x$
-- **\textcolor{cyan}{Existential quantifier}**: $\exists x\, P(x)$
+- **\textcolor{red}{Existential quantifier}**: $\exists x\, P(x)$
   - Existential quantifier makes a statement about _some_ object (without naming
     it)
   - True if $P(x)$ is true for at least one $x$
 - Scope determines the portion of a formula a quantifier applies to
-- Variables are **\textcolor{orange}{bound}** by quantifiers or **\textcolor{violet}{free}** (unbound)
-- Sentences with no free variables are called **\textcolor{red}{closed formulas}**
+- Variables are **\textcolor{olive}{bound}** by quantifiers or **\textcolor{cyan}{free}** (unbound)
+- Sentences with no free variables are called **\textcolor{orange}{closed formulas}**
 - Example:
   - $\forall x (Cat(x) \rightarrow Mammal(x))$
 
@@ -1727,21 +1727,21 @@ digraph OWL_Example {
 
 #### RDF (Resource Description Framework)
 
-- **\textcolor{teal}{RDF}** is a standard model for data interchange on the web
+- **\textcolor{blue}{RDF}** is a standard model for data interchange on the web
   - Represent structured information in a machine-readable way
 
 - **\textcolor{gray}{Basic building block}** is a triple $(Subject, Predicate, Object)$
-  - **\textcolor{cyan}{Subject}**: the entity being described, e.g., `Nuvolo`
-  - **\textcolor{darkgray}{Predicate}**: the property or relationship, e.g., `isA`
-  - **\textcolor{orange}{Object}**: the value or another entity, e.g., `Dog`
+  - **\textcolor{red}{Subject}**: the entity being described, e.g., `Nuvolo`
+  - **\textcolor{brown}{Predicate}**: the property or relationship, e.g., `isA`
+  - **\textcolor{olive}{Object}**: the value or another entity, e.g., `Dog`
 
-- **\textcolor{blue}{Key Features}**:
+- **\textcolor{darkgreen}{Key Features}**:
   - Statements are directed graphs of nodes and edges
   - Components of the triple are URIs (Uniform Resource Identifiers) to ensure
     global uniqueness or literals (e.g., strings, numbers), e.g.,
     `http://example.org/Nuvolo`
 
-- **\textcolor{violet}{Use Cases}**:
+- **\textcolor{cyan}{Use Cases}**:
   - Building knowledge graphs
   - Enabling semantic search
   - Supporting ontologies (e.g., OWL)
@@ -1763,13 +1763,13 @@ digraph OWL_Example {
 - SPARQL is the query language for RDF data
   - Allows users to retrieve and manipulate data stored in RDF format
 
-- **\textcolor{teal}{Key Concepts}**:
-  - **\textcolor{cyan}{Triple Patterns}**: Query fragments that match triples in an RDF graph
-  - **\textcolor{orange}{Basic Graph Pattern}**: A set of triple patterns combined
-  - **\textcolor{violet}{Variables}**: Stand in for unknown parts of the triples (e.g., `?person`,
+- **\textcolor{blue}{Key Concepts}**:
+  - **\textcolor{red}{Triple Patterns}**: Query fragments that match triples in an RDF graph
+  - **\textcolor{olive}{Basic Graph Pattern}**: A set of triple patterns combined
+  - **\textcolor{cyan}{Variables}**: Stand in for unknown parts of the triples (e.g., `?person`,
     `?animal`)
 
-- **\textcolor{red}{Main Query Types}**:
+- **\textcolor{orange}{Main Query Types}**:
   - `SELECT`: Retrieve specific variables from the data
   - `CONSTRUCT`: Create new RDF triples based on query results
   - `ASK`: Return a boolean indicating whether a pattern exists
@@ -1792,27 +1792,27 @@ digraph OWL_Example {
 
 #### Semantic Web
 
-- The **\textcolor{teal}{Semantic Web}** extends the current Web by enabling machines to understand
+- The **\textcolor{blue}{Semantic Web}** extends the current Web by enabling machines to understand
   and interpret data
   - HTML is human-readable but lacks semantic structure for computers
   - The Semantic Web adds meaning / semantics to data
   - Allow better data integration, automation, and discovery across sites
 
-- **\textcolor{cyan}{Key Technologies}**
+- **\textcolor{red}{Key Technologies}**
   - RDF (Resource Description Framework): base data model
   - SPARQL: query language for RDF data
   - OWL (Web Ontology Language): define rich ontologies
 
-- **\textcolor{orange}{Current Status}**
+- **\textcolor{olive}{Current Status}**
   - Some core ideas (e.g., structured data and ontologies) are widely adopted
   - Full vision remains only partially realized
 
-- **\textcolor{violet}{Challenges}**
+- **\textcolor{cyan}{Challenges}**
   - Complexity of widespread adoption
   - Issues around privacy, data ownership, and feasibility
   - Need for standardization and tools
 
-- **\textcolor{red}{Criticism}**
+- **\textcolor{orange}{Criticism}**
   - Skepticism about practicality and scalability
   - Concerns about centralization and censorship
 
@@ -2023,7 +2023,7 @@ digraph UniversityOntology {
 
 #### Technologies
 
-- **\textcolor{teal}{TransE (Translation Embedding)}**
+- **\textcolor{blue}{TransE (Translation Embedding)}**
   - Embedding model for knowledge graph completion
   - Represents relationships as translations in vector space: $h + r \approx t$
   - Good for 1-to-1 relations, less effective with complex patterns
@@ -2034,27 +2034,27 @@ digraph UniversityOntology {
     multiplication
   - Captures symmetry, antisymmetry, inversion, and composition
 
-- **\textcolor{cyan}{DeepProbLog}**
+- **\textcolor{red}{DeepProbLog}**
   - Combines ProbLog (probabilistic logic) with deep learning
   - Supports neural predicates in logic programs
   - Learns probabilistic facts and neural components jointly
 
-- **\textcolor{darkgray}{PyMLN}**
+- **\textcolor{brown}{PyMLN}**
   - Python-based Markov Logic Network (MLN) system
   - MLNs combine first-order logic with probabilistic graphical models
   - Allows reasoning with weighted logical rules
 
-- **\textcolor{orange}{ProbLog}**
+- **\textcolor{olive}{ProbLog}**
   - Probabilistic logic programming language
   - Extends Prolog by attaching probabilities to facts
   - Computes success probabilities of queries
 
-- **\textcolor{blue}{Tuffy}**
+- **\textcolor{darkgreen}{Tuffy}**
   - Scalable Markov Logic Network inference engine
   - Uses an RDBMS (E.g., postgreSQL) to scale to large domains
   - Optimized for grounding and inference efficiency
 
-- **\textcolor{violet}{Datalog}**
+- **\textcolor{cyan}{Datalog}**
   - Subset of Prolog used in databases and deductive reasoning
   - Uses Horn clauses with no function symbols (ensuring decidability)
   - Often used in static analysis, data integration, and semantic web
