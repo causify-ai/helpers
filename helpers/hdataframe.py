@@ -236,6 +236,7 @@ def infer_sampling_points_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
     :return: number of time points per year (approximate)
     """
     hdbg.dassert(hasattr(df.index, "freq") and df.index.freq is not None)
+    assert hasattr(df.index, "freq") and df.index.freq is not None
     freq = df.index.freq
     # TODO(*): Make start, end dates parameters that can be passed in.
     return compute_points_per_year_for_given_freq(freq)

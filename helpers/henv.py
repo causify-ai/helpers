@@ -453,7 +453,7 @@ def _get_library_version(lib_name: str) -> str:
     return version
 
 
-def _get_package_info() -> Tuple[List[str], int]:
+def _get_package_info() -> Tuple[str, int]:
     """
     Get package version information.
 

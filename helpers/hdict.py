@@ -6,6 +6,7 @@ import helpers.hdict as hdict
 
 import logging
 from typing import (
+    TYPE_CHECKING,
     Any,
     Dict,
     Generator,
@@ -22,6 +23,9 @@ except ImportError:
     from collections import Mapping as AbcMapping
 
 import helpers.hdbg as hdbg
+
+#if TYPE_CHECKING:
+#    from config_root.config.config_ import Config
 
 _LOG = logging.getLogger(__name__)
 

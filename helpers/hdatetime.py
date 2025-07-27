@@ -373,7 +373,7 @@ def get_current_time(
         hdbg.dassert_isinstance(event_loop, asyncio.AbstractEventLoop)
         assert isinstance(event_loop, asyncio.AbstractEventLoop)
         hdbg.dassert(hasattr(event_loop, "get_current_time"))
-        timestamp = event_loop.get_current_time()
+        timestamp = cast(Any, event_loop).get_current_time()
     else:
         # Use true real-time.
         timestamp = datetime.datetime.now(datetime.timezone.utc)
@@ -637,21 +637,21 @@ def to_generalized_datetime(
         shift_func = _shift_to_period_end(date_example)
         if shift_func is not None:
             if hasattr(datetime_dates, "map"):
-                datetime_dates = datetime_dates.map(shift_func)
+                datetime_dates = cast(Any, datetime_dates).map(shift_func)
             else:
                 # For scalar case, apply the shift function directly
                 datetime_dates = shift_func(datetime_dates)
-        return datetime_dates
+        return cast(Union[pd.Series, pd.Index], datetime_dates)
     # If standard conversion fails, attempt our own conversion.
     date_standard = date_standard or "standard"
     format_determination_output = _determine_date_format(
         date_example, date_standard
     )
     if format_determination_output is None:
-        return datetime_dates
+        return cast(Union[pd.Series, pd.Index], datetime_dates)
     format_, date_modification_func = format_determination_output
     dates = dates.map(date_modification_func)
-    return pd.to_datetime(dates, format=format_)
+    return cast(Union[pd.Series, pd.Index], pd.to_datetime(dates, format=format_))
 
 
 def _handle_incorrect_conversions(
@@ -723,7 +723,7 @@ def _shift_to_period_end(  # pylint: disable=too-many-return-statements
     # shift the month aliases by one to get the correct order.
     # E.g., `calendar.month_name[1:]` is `['January', 'February', ...]` and
     # `calendar.month_abbr[1:]` is `['Jan', 'Feb', ...]`.
-    month_aliases = calendar.month_name[1:] + calendar.month_abbr[1:]
+    month_aliases = list(calendar.month_name[1:]) + list(calendar.month_abbr[1:])
     pattern = re.compile("|".join(month_aliases), re.IGNORECASE)
     match = pattern.search(date)
     if match is None:

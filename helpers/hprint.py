@@ -988,6 +988,7 @@ def filter_text(regex: str, txt: str) -> str:
 
 
 def dassert_one_trailing_newline(txt: str) -> None:
+    hdbg.dassert_isinstance(txt, str)
     match = re.search(r"\n*$", txt)
     hdbg.dassert(match)
     assert match is not None
