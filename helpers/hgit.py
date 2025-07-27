@@ -11,7 +11,7 @@ import os
 import random
 import re
 import string
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -853,7 +853,7 @@ def get_path_from_git_root(
         super_module,
         ret,
     )
-    return ret
+    return cast(str, str(ret))
 
 
 # TODO(gp): Rewrite this function in a better way.

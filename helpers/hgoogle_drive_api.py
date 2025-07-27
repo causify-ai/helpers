@@ -28,11 +28,11 @@ from typing import List, Optional
 # ```
 
 
-import google.oauth2.service_account as goasea
-import googleapiclient.discovery as godisc
-import gspread
+import google.oauth2.service_account as goasea  # type: ignore
+import googleapiclient.discovery as godisc  # type: ignore
+import gspread  # type: ignore
 import pandas as pd
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build  # type: ignore
 
 import helpers.hdbg as hdbg
 
@@ -408,7 +408,7 @@ def create_empty_google_file(
         move_gfile_to_dir(gfile_id, gdrive_folder_id, credentials=credentials)
     # Share the Google file to the user and send an email.
     if user:
-        share_google_file(gfile_id, user)
+        share_google_file(gfile_id, user, credentials=credentials)
         _LOG.debug(
             "The new Google '%s': '%s' is shared with '%s'",
             gfile_type,

@@ -16,7 +16,7 @@ import helpers.henv as henv
 import helpers.hio as hio
 
 if TYPE_CHECKING:
-    import openai
+    import openai  # type: ignore
 else:
     henv.install_module_if_not_present("openai")
     import openai  # noqa: E402

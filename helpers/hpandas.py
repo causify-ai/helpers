@@ -1286,7 +1286,7 @@ def _df_to_str(
         display_width,
     ):
         if use_tabulate:
-            import tabulate
+            import tabulate  # type: ignore
 
             out.append(tabulate.tabulate(df, headers="keys", tablefmt="psql"))
         # TODO(Grisha): Add an option to display all rows since if `num_rows`

@@ -235,9 +235,8 @@ class _LocalTimeZoneFormatter:
         # superclass method.
         _ = self
         # timestamp=1622423570.0147252
-        dt = datetime.datetime.utcfromtimestamp(timestamp)
-        # Convert it to an aware datetime object in UTC time.
-        dt = dt.replace(tzinfo=datetime.timezone.utc)
+        # Use timezone-aware datetime creation instead of deprecated utcfromtimestamp
+        dt = datetime.datetime.fromtimestamp(timestamp, datetime.timezone.utc)
         if self._tzinfo is not None:
             # Convert it to desired timezone.
             dt = dt.astimezone(self._tzinfo)
@@ -676,7 +675,7 @@ class CustomFormatter(logging.Formatter):
         return time_as_str
 
     def _get_wall_clock_time(self) -> str:
-        dt = datetime.datetime.utcnow()
+        dt = datetime.datetime.now(datetime.timezone.utc)
         return self._convert_time_to_string(dt, self._date_fmt)
 
     def _colorize_level(self, level_name: str) -> str:

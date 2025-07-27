@@ -24,8 +24,8 @@ except ImportError:
 
 import helpers.hdbg as hdbg
 
-#if TYPE_CHECKING:
-#    from config_root.config.config_ import Config
+if TYPE_CHECKING:
+    from config_root.config.config_ import Config
 
 _LOG = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ _NO_VALUE_SPECIFIED = "__NO_VALUE_SPECIFIED__"
 
 
 def typed_get(
-    dict_: Union[Dict, "Config"],  # noqa: F821
+    dict_: Union[Dict, "Config"],  # noqa: F821  # type: ignore
     key: Any,
     default_value: Optional[Any] = _NO_VALUE_SPECIFIED,
     *,

@@ -239,7 +239,7 @@ def infer_sampling_points_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
     assert hasattr(df.index, "freq") and df.index.freq is not None
     freq = df.index.freq
     # TODO(*): Make start, end dates parameters that can be passed in.
-    return compute_points_per_year_for_given_freq(freq)
+    return compute_points_per_year_for_given_freq(str(cast(Any, freq)))
 
 
 @functools.lru_cache()
