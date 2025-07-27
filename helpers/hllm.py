@@ -158,7 +158,7 @@ class LLMClient:
         self.provider_name = provider_name
         self.model = model
 
-    def create_client(self) -> openai.OpenAI:
+    def create_client(self) -> None:
         """
         Create an LLM client.
         """
@@ -305,17 +305,16 @@ def _save_models_info_to_csv(
     model_info_df["completion_pricing"] = model_info_df["pricing"].apply(
         lambda x: x["completion"]
     )
-    # Take only relevant columns.
-    model_info_df = model_info_df[
-        [
-            "id",
-            "name",
-            "description",
-            "prompt_pricing",
-            "completion_pricing",
-            "supported_parameters",
-        ]
+    required_columns = [
+        "id",
+        "name",
+        "description",
+        "prompt_pricing",
+        "completion_pricing",
+        "supported_parameters",
     ]
+    # Take only relevant columns.
+    model_info_df = model_info_df.loc[:, required_columns]
     # Save to CSV file.
     model_info_df.to_csv(file_name, index=False)
     return model_info_df
@@ -809,7 +808,9 @@ def apply_prompt_to_dataframe(
     if not allow_overwrite:
         hdbg.dassert_not_in(response_col, df.columns)
     response_data = []
-    for start in tqdm(range(0, len(df), chunk_size), desc="Processing chunks"):
+    for start in tqdm.tqdm(
+        range(0, len(df), chunk_size), desc="Processing chunks"
+    ):
         end = start + chunk_size
         chunk = df.iloc[start:end]
         _LOG.debug("chunk.size=%s", chunk.shape[0])
