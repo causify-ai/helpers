@@ -74,13 +74,14 @@ def is_header(line: str) -> Tuple[bool, int, str]:
 # #############################################################################
 
 
-def frame_chapters(txt: str, *, max_lev: int = 4) -> str:
+def frame_chapters(lines: List[str], *, max_lev: int = 4) -> List[str]:
     """
     Add the frame around each chapter.
     """
+    hdbg.dassert_isinstance(lines, list)
     txt_new: List[str] = []
-    # _LOG.debug("txt=%s", txt)
-    for i, line in enumerate(txt.split("\n")):
+    # _LOG.debug("lines=%s", lines)
+    for i, line in enumerate(lines):
         _LOG.debug("line=%d:%s", i, line)
         m = re.match(r"^(\#+) ", line)
         txt_processed = False
@@ -102,11 +103,11 @@ def frame_chapters(txt: str, *, max_lev: int = 4) -> str:
                 )
         if not txt_processed:
             txt_new.append(line)
-    txt_new_as_str = "\n".join(txt_new).rstrip("\n")
-    return txt_new_as_str
+    hdbg.dassert_isinstance(txt_new, list)
+    return txt_new
 
 
-def capitalize_header(txt: str) -> str:
+def capitalize_header(lines: List[str]) -> List[str]:
     """
     Improve the header and slide titles.
 
@@ -123,8 +124,9 @@ def capitalize_header(txt: str) -> str:
 
     - Strings inside backticks, single quotes, and double quotes are preserved.
     """
+    hdbg.dassert_isinstance(lines, list)
     txt_new: List[str] = []
-    for i, line in enumerate(txt.split("\n")):
+    for i, line in enumerate(lines):
         # Parse header (starting with `#`) and slide title (starting with `*`).
         m = re.match(r"^(\#+|\*) (.*)$", line)
         if m:
@@ -194,8 +196,8 @@ def capitalize_header(txt: str) -> str:
             txt_new.append(line)
         else:
             txt_new.append(line)
-    txt_new_as_str = "\n".join(txt_new)
-    return txt_new_as_str
+    hdbg.dassert_isinstance(txt_new, list)
+    return txt_new
 
 
 # #############################################################################
@@ -204,7 +206,9 @@ def capitalize_header(txt: str) -> str:
 
 
 # TODO(gp): This could be done by processing `HeaderList`.
-def extract_section_from_markdown(content: str, header_name: str) -> str:
+def extract_section_from_markdown(
+    lines: List[str], header_name: str
+) -> List[str]:
     """
     Extract a section of text from a Markdown document based on the header
     name.
@@ -214,14 +218,14 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
     or higher level. Headers are identified by the '#' prefix, and their
     level is determined by the number of '#' characters.
 
-    :param content: markdown content as a single string
+    :param lines: markdown content as a list of strings
     :param header_name: exact header name to extract (excluding `#`
         symbols)
-    :return: extracted section as a string, including the header line
+    :return: extracted section as a list of strings, including the header line
         itself and all lines until the next header of the same or higher
         level
     """
-    lines = content.splitlines()
+    hdbg.dassert_isinstance(lines, list)
     _LOG.debug(hprint.to_str("lines"))
     extracted_lines = []
     # Level of the current header being processed.
@@ -261,7 +265,8 @@ def extract_section_from_markdown(content: str, header_name: str) -> str:
             _LOG.debug(hprint.to_str("extracted_lines"))
     if not found:
         raise ValueError(f"Header '{header_name}' not found")
-    return "\n".join(extracted_lines)
+    hdbg.dassert_isinstance(extracted_lines, list)
+    return extracted_lines
 
 
 # #############################################################################
@@ -380,12 +385,12 @@ def sanity_check_header_list(header_list: HeaderList) -> None:
 
 # TODO(gp): Move sanity check outside?
 def extract_headers_from_markdown(
-    txt: str, max_level: int, *, sanity_check: bool = True
+    lines: List[str], max_level: int, *, sanity_check: bool = True
 ) -> HeaderList:
     """
     Extract headers from Markdown file and return an `HeaderList`.
 
-    :param txt: content of the input Markdown file
+    :param lines: content of the input Markdown file as list of strings
     :param max_level: maximum header levels to parse (e.g., '3' parses all levels
         included `###`, but not `####`)
     :param sanity_check: whether to check that the header list is valid
@@ -396,11 +401,11 @@ def extract_headers_from_markdown(
             (2, "Section 1.1", 10), ...]
         ```
     """
-    hdbg.dassert_isinstance(txt, str)
+    hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_lte(1, max_level)
     header_list: HeaderList = []
     # Process the input file to extract headers.
-    for line_number, line in enumerate(txt.splitlines(), start=1):
+    for line_number, line in enumerate(lines, start=1):
         # TODO(gp): Use the iterator.
         # Skip the visual separators.
         if is_markdown_line_separator(line):
@@ -415,18 +420,19 @@ def extract_headers_from_markdown(
         sanity_check_header_list(header_list)
     else:
         _LOG.debug("Skipping sanity check")
+    hdbg.dassert_isinstance(header_list, list)
     return header_list
 
 
 # TODO(gp): Should it go to markdown_slides?
 def extract_slides_from_markdown(
-    txt: str,
+    lines: List[str],
 ) -> Tuple[HeaderList, int]:
     """
     Extract slides (i.e., sections prepended by `*`) from Markdown file and
     return an `HeaderList`.
 
-    :param txt: content of the input Markdown file
+    :param lines: content of the input Markdown file as list of strings
     :return: tuple containing:
         - generated `HeaderList`
             ```
@@ -436,10 +442,10 @@ def extract_slides_from_markdown(
             ```
         - last line number of the file, e.g., '100'
     """
-    hdbg.dassert_isinstance(txt, str)
+    hdbg.dassert_isinstance(lines, list)
     header_list: HeaderList = []
     # Process the input file to extract headers.
-    for line_number, line in enumerate(txt.splitlines(), start=1):
+    for line_number, line in enumerate(lines, start=1):
         _LOG.debug("%d: %s", line_number, line)
         # TODO(gp): Use the iterator.
         # Skip the visual separators.
@@ -451,11 +457,14 @@ def extract_slides_from_markdown(
             title = m.group(1)
             header_info = HeaderInfo(1, title, line_number)
             header_list.append(header_info)
-    last_line_number = len(txt.splitlines())
+    last_line_number = len(lines)
+    hdbg.dassert_isinstance(header_list, list)
     return header_list, last_line_number
 
 
-def header_list_to_vim_cfile(markdown_file: str, header_list: HeaderList) -> str:
+def header_list_to_vim_cfile(
+    markdown_file: str, header_list: HeaderList
+) -> List[str]:
     """
     Convert a list of headers into a Vim cfile format.
 
@@ -466,24 +475,25 @@ def header_list_to_vim_cfile(markdown_file: str, header_list: HeaderList) -> str
     :param markdown_file: path to the input Markdown file
     :param header_list: list of headers, where each header is a tuple containing
         the line number, level, and title
-    :return: generated cfile content as a string in the format:
+    :return: generated cfile content as a list of strings in the format:
         ```
         ...
         <file path>:<line number>:<header title>
         ...
         ```
     """
+    hdbg.dassert_isinstance(markdown_file, str)
     hdbg.dassert_isinstance(header_list, list)
-    _LOG.debug(hprint.to_str("markdown_file header_list"))
+    _LOG.debug(hprint.to_str("header_list"))
     output_lines = [
         f"{markdown_file}:{header_info.line_number}:{header_info.description}"
         for header_info in header_list
     ]
-    output_content = "\n".join(output_lines)
-    return output_content
+    hdbg.dassert_isinstance(output_lines, list)
+    return output_lines
 
 
-def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
+def header_list_to_markdown(header_list: HeaderList, mode: str) -> List[str]:
     """
     Convert a list of headers into a Markdown format.
 
@@ -492,7 +502,7 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
     :param mode: format of the output:
         - `list`: indents headers to create a nested list
         - `headers`: uses Markdown header syntax (e.g., '#', '##', '###')
-    :return: generated Markdown content as a string
+    :return: generated Markdown content as a list of strings
     """
     hdbg.dassert_isinstance(header_list, list)
     _LOG.debug(hprint.to_str("header_list mode"))
@@ -507,8 +517,8 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
         else:
             raise ValueError(f"Invalid mode '{mode}'")
         output_lines.append(f"{header_prefix} {title}")
-    output_content = "\n".join(output_lines)
-    return output_content
+    hdbg.dassert_isinstance(output_lines, list)
+    return output_lines
 
 
 # #############################################################################
@@ -516,19 +526,19 @@ def header_list_to_markdown(header_list: HeaderList, mode: str) -> str:
 # #############################################################################
 
 
-# TODO(gp): Pass the text and not the file.
-def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
+def format_headers(lines: List[str], out_file_name: str, max_lev: int) -> None:
     """
-    Format the headers in the input file and write the formatted text to the
+    Format the headers in the input lines and write the formatted text to the
     output file.
 
-    :param in_file_name: name of the input file to read
+    :param lines: list of input lines to process
     :param out_file_name: name of the output file to write the formatted
         text to
     :param max_lev: maximum level of headings to include in the
         formatted text
     """
-    txt = hparser.read_file(in_file_name)
+    hdbg.dassert_isinstance(lines, list)
+    txt = lines[:]
     #
     for line in txt:
         m = re.search(r"max_level=(\d+)", line)
@@ -563,17 +573,16 @@ def format_headers(in_file_name: str, out_file_name: str, max_lev: int) -> None:
     hparser.write_file(txt_tmp, out_file_name)
 
 
-def modify_header_level(text: str, level: int) -> str:
+def modify_header_level(lines: List[str], level: int) -> List[str]:
     """
     Increase or decrease the level of headings by the specified amount.
 
-    :param input_text: input text to modify
+    :param lines: input lines to modify
     :param level: amount to adjust header levels (positive increases,
         negative decreases)
-    :return: modified text with header levels adjusted
+    :return: modified lines with header levels adjusted
     """
-    lines = text.split("\n")
-    #
+    hdbg.dassert_isinstance(lines, list)
     txt_tmp = []
     for line in lines:
         # TODO(gp): Use the iterator.
@@ -586,8 +595,8 @@ def modify_header_level(text: str, level: int) -> str:
             hdbg.dassert_lte(modified_level, 6)
             line = "#" * modified_level + " " + title
         txt_tmp.append(line)
-    #
-    return "\n".join(txt_tmp)
+    hdbg.dassert_isinstance(txt_tmp, list)
+    return txt_tmp
 
 
 # #############################################################################

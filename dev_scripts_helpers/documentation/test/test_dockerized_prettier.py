@@ -75,7 +75,7 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
             "2",
         ]
         # Call function to test.
-        act = hdocexec.prettier_on_str(
+        actual = hdocexec.prettier_on_str(
             text,
             file_type="md",
             cmd_opts=cmd_opts,
@@ -91,4 +91,4 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
 
         ## Content
         """
-        self.assert_equal(act, expected, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)

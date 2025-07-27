@@ -39,16 +39,24 @@ The repository uses `pyinvoke` for task automation with a modular task system:
   ```bash
   # Run fast tests only
   invoke run_fast_tests
-
-  # Run all tests
-  invoke run_tests
-
-  # Run specific test categories
+  # Run slow tests only
   invoke run_slow_tests
+  # Run superslow tests only
   invoke run_superslow_tests
 
   # Run single test file
-  invoke docker_cmd --pytest-opts "path/to/test_file.py::TestClass::test_method"
+  invoke docker_cmd --cmd "pytest path/to/test_file.py -v"
+  # Run single test class
+  invoke docker_cmd --cmd "pytest path/to/test_file.py::TestClass -v"
+  # Run single test method
+  invoke docker_cmd --cmd "pytest path/to/test_file.py::TestClass::test_method -v" 
+
+  ## Run coverage for fast tests only 
+  invoke run_coverage --suite fast --generate-html-report
+  ## Run coverage for fast tests only
+  invoke run_coverage --suite slow --generate-html-report
+  ## Run test coverage superslow tests only  
+  invoke run_coverage --suite superslow --generate-html-report
   ```
 
 ### Linting and Code Quality
@@ -104,3 +112,9 @@ import config_root.config.config_ as crococon
 
 ### Code Conventions
 - Coding guidelines are in `docs/code_guidelines/all.coding_style_guidelines.reference.md`
+
+- Templates for code are:
+  - `code_template.py`: template for code
+  - `unit_test_template.py`: template for unit test
+  - `dev_scripts_helpers/coding_tools/script_template.py`: template for
+    self-standing Python script

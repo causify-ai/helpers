@@ -70,11 +70,11 @@ class Test_system1(hunitest.TestCase):
         """
         with self.assertRaises(RuntimeError) as cm:
             hsystem.system("ls this_file_doesnt_exist")
-        act = str(cm.exception)
+        actual = str(cm.exception)
         # Different systems return different rc.
         # cmd='(ls this_file_doesnt_exist) 2>&1' failed with rc='2'
-        act = re.sub(r"rc='(\d+)'", "rc=''", act)
-        self.check_string(act)
+        actual = re.sub(r"rc='(\d+)'", "rc=''", actual)
+        self.check_string(actual)
 
     def test8(self) -> None:
         """
@@ -172,32 +172,32 @@ class Test_system1(hunitest.TestCase):
 
 class Test_system2(hunitest.TestCase):
     def test_get_user_name(self) -> None:
-        act = hsystem.get_user_name()
-        _LOG.debug("act=%s", act)
+        actual = hsystem.get_user_name()
+        _LOG.debug("actual=%s", actual)
         #
-        exp = hsystem.system_to_string("whoami")[1]
-        _LOG.debug("exp=%s", exp)
-        self.assertEqual(act, exp)
+        expected = hsystem.system_to_string("whoami")[1]
+        _LOG.debug("expected=%s", expected)
+        self.assertEqual(actual, expected)
         #
-        exp = hsystem.system_to_one_line("whoami")[1]
-        _LOG.debug("exp=%s", exp)
-        self.assertEqual(act, exp)
+        expected = hsystem.system_to_one_line("whoami")[1]
+        _LOG.debug("expected=%s", expected)
+        self.assertEqual(actual, expected)
 
     def test_get_server_name(self) -> None:
-        act = hsystem.get_server_name()
-        _LOG.debug("act=%s", act)
+        actual = hsystem.get_server_name()
+        _LOG.debug("actual=%s", actual)
         #
-        exp = hsystem.system_to_string("uname -n")[1]
-        _LOG.debug("exp=%s", exp)
-        self.assertEqual(act, exp)
+        expected = hsystem.system_to_string("uname -n")[1]
+        _LOG.debug("expected=%s", expected)
+        self.assertEqual(actual, expected)
 
     def test_get_os_name(self) -> None:
-        act = hsystem.get_os_name()
-        _LOG.debug("act=%s", act)
+        actual = hsystem.get_os_name()
+        _LOG.debug("actual=%s", actual)
         #
-        exp = hsystem.system_to_string("uname -s")[1]
-        _LOG.debug("exp=%s", exp)
-        self.assertEqual(act, exp)
+        expected = hsystem.system_to_string("uname -s")[1]
+        _LOG.debug("expected=%s", expected)
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################
@@ -218,9 +218,9 @@ class Test_compute_file_signature1(hunitest.TestCase):
             + "test_check_same_configs_error/output/test.txt"
         )
         dir_depth = 1
-        act = hsystem._compute_file_signature(file_name, dir_depth=dir_depth)
-        exp = ["output", "test.txt"]
-        self.assert_equal(str(act), str(exp))
+        actual = hsystem._compute_file_signature(file_name, dir_depth=dir_depth)
+        expected = ["output", "test.txt"]
+        self.assert_equal(str(actual), str(expected))
 
     def test2(self) -> None:
         """
@@ -231,13 +231,13 @@ class Test_compute_file_signature1(hunitest.TestCase):
             + "test_check_same_configs_error/output/test.txt"
         )
         dir_depth = 2
-        act = hsystem._compute_file_signature(file_name, dir_depth=dir_depth)
-        exp = [
+        actual = hsystem._compute_file_signature(file_name, dir_depth=dir_depth)
+        expected = [
             "TestCheckSameConfigs.test_check_same_configs_error",
             "output",
             "test.txt",
         ]
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(actual), str(expected))
 
     def test3(self) -> None:
         """
@@ -245,15 +245,15 @@ class Test_compute_file_signature1(hunitest.TestCase):
         """
         file_name = "/app/amp/core/test/TestApplyAdfTest.test1/output/test.txt"
         dir_depth = 4
-        act = hsystem._compute_file_signature(file_name, dir_depth=dir_depth)
-        exp = [
+        actual = hsystem._compute_file_signature(file_name, dir_depth=dir_depth)
+        expected = [
             "core",
             "test",
             "TestApplyAdfTest.test1",
             "output",
             "test.txt",
         ]
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(actual), str(expected))
 
 
 # #############################################################################
@@ -272,9 +272,9 @@ class Test_find_file_with_dir1(hunitest.TestCase):
         # Use this file.
         file_name = "helpers/test/test_hsystem.py"
         dir_depth = 1
-        act = hsystem.find_file_with_dir(file_name, dir_depth=dir_depth)
-        exp = r"""['helpers/test/test_hsystem.py']"""
-        self.assert_equal(str(act), str(exp), purify_text=True)
+        actual = hsystem.find_file_with_dir(file_name, dir_depth=dir_depth)
+        expected = r"""['helpers/test/test_hsystem.py']"""
+        self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def test2(self) -> None:
         """
@@ -287,9 +287,9 @@ class Test_find_file_with_dir1(hunitest.TestCase):
         # E.g., .../test/TestSqlWriterBackend1.test_insert_tick_data1/output/test.txt
         dir_depth = 1
         mode = "return_all_results"
-        act = self._helper(dir_depth, mode)
+        actual = self._helper(dir_depth, mode)
         # For sure there are more than 100 tests.
-        self.assertGreater(len(act), 100)
+        self.assertGreater(len(actual), 100)
 
     def test3(self) -> None:
         """
@@ -298,12 +298,12 @@ class Test_find_file_with_dir1(hunitest.TestCase):
         """
         dir_depth = 2
         mode = "return_all_results"
-        act = self._helper(dir_depth, mode)
-        _LOG.debug("Found %d matching files", len(act))
+        actual = self._helper(dir_depth, mode)
+        _LOG.debug("Found %d matching files", len(actual))
         # There should be a single match.
-        exp = r"""['helpers/test/outcomes/Test_find_file_with_dir1.test3/output/test.txt']"""
-        self.assert_equal(str(act), str(exp), purify_text=True)
-        self.assertEqual(len(act), 1)
+        expected = r"""['helpers/test/outcomes/Test_find_file_with_dir1.test3/output/test.txt']"""
+        self.assert_equal(str(actual), str(expected), purify_text=True)
+        self.assertEqual(len(actual), 1)
 
     def test4(self) -> None:
         """
@@ -312,12 +312,12 @@ class Test_find_file_with_dir1(hunitest.TestCase):
         """
         dir_depth = 2
         mode = "assert_unless_one_result"
-        act = self._helper(dir_depth, mode)
-        _LOG.debug("Found %d matching files", len(act))
+        actual = self._helper(dir_depth, mode)
+        _LOG.debug("Found %d matching files", len(actual))
         # There should be a single match.
-        exp = r"""['helpers/test/outcomes/Test_find_file_with_dir1.test4/output/test.txt']"""
-        self.assert_equal(str(act), str(exp), purify_text=True)
-        self.assertEqual(len(act), 1)
+        expected = r"""['helpers/test/outcomes/Test_find_file_with_dir1.test4/output/test.txt']"""
+        self.assert_equal(str(actual), str(expected), purify_text=True)
+        self.assertEqual(len(actual), 1)
 
     def test5(self) -> None:
         """
@@ -326,24 +326,24 @@ class Test_find_file_with_dir1(hunitest.TestCase):
         """
         dir_depth = 3
         mode = "assert_unless_one_result"
-        act = self._helper(dir_depth, mode)
-        _LOG.debug("Found %d matching files", len(act))
-        exp = r"""['helpers/test/outcomes/Test_find_file_with_dir1.test5/output/test.txt']"""
-        self.assert_equal(str(act), str(exp), purify_text=True)
-        self.assertEqual(len(act), 1)
+        actual = self._helper(dir_depth, mode)
+        _LOG.debug("Found %d matching files", len(actual))
+        expected = r"""['helpers/test/outcomes/Test_find_file_with_dir1.test5/output/test.txt']"""
+        self.assert_equal(str(actual), str(expected), purify_text=True)
+        self.assertEqual(len(actual), 1)
 
     def _helper(self, dir_depth: int, mode: str) -> List[str]:
         # Create a fake golden outcome to be used in this test.
-        act = "hello world"
-        self.check_string(act)
+        actual = "hello world"
+        self.check_string(actual)
         # E.g., helpers/test/test_hsystem.py::Test_find_file_with_dir1::test2/test.txt
         file_name = os.path.join(self.get_output_dir(), "test.txt")
         _LOG.debug("file_name=%s", file_name)
-        act: List[str] = hsystem.find_file_with_dir(
+        actual: List[str] = hsystem.find_file_with_dir(
             file_name, dir_depth=dir_depth, mode=mode
         )
-        _LOG.debug("Found %d matching files", len(act))
-        return act
+        _LOG.debug("Found %d matching files", len(actual))
+        return actual
 
 
 # #############################################################################
@@ -373,54 +373,54 @@ class Test_has_timestamp1(hunitest.TestCase):
         No timestamp.
         """
         file_name = "patch.amp.8c5a2da9.tgz"
-        act = hsystem.has_timestamp(file_name)
-        exp = False
-        self.assertEqual(act, exp)
+        actual = hsystem.has_timestamp(file_name)
+        expected = False
+        self.assertEqual(actual, expected)
 
     def test_has_timestamp1(self) -> None:
         """
         Valid timestamp.
         """
         file_name = "patch.amp.8c5a2da9.20210725_225857.tgz"
-        act = hsystem.has_timestamp(file_name)
-        exp = True
-        self.assertEqual(act, exp)
+        actual = hsystem.has_timestamp(file_name)
+        expected = True
+        self.assertEqual(actual, expected)
 
     def test_has_timestamp2(self) -> None:
         """
         Valid timestamp.
         """
         file_name = "/foo/bar/patch.amp.8c5a2da9.20210725-22_58_57.tgz"
-        act = hsystem.has_timestamp(file_name)
-        exp = True
-        self.assertEqual(act, exp)
+        actual = hsystem.has_timestamp(file_name)
+        expected = True
+        self.assertEqual(actual, expected)
 
     def test_has_timestamp3(self) -> None:
         """
         Valid timestamp.
         """
         file_name = "/foo/bar/patch.amp.8c5a2da9.20210725225857.tgz"
-        act = hsystem.has_timestamp(file_name)
-        exp = True
-        self.assertEqual(act, exp)
+        actual = hsystem.has_timestamp(file_name)
+        expected = True
+        self.assertEqual(actual, expected)
 
     def test_has_timestamp4(self) -> None:
         """
         Valid timestamp.
         """
         file_name = "/foo/bar/patch.amp.8c5a2da9.20210725_22_58_57.tgz"
-        act = hsystem.has_timestamp(file_name)
-        exp = True
-        self.assertEqual(act, exp)
+        actual = hsystem.has_timestamp(file_name)
+        expected = True
+        self.assertEqual(actual, expected)
 
     def test_has_timestamp5(self) -> None:
         """
         Valid timestamp.
         """
         file_name = "/foo/bar/patch.amp.8c5a2da9.20210725225857.tgz"
-        act = hsystem.has_timestamp(file_name)
-        exp = True
-        self.assertEqual(act, exp)
+        actual = hsystem.has_timestamp(file_name)
+        expected = True
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################
@@ -435,10 +435,10 @@ class Test_append_timestamp_tag1(hunitest.TestCase):
         """
         file_name = "/foo/bar/patch.amp.8c5a2da9.tgz"
         tag = ""
-        act = hsystem.append_timestamp_tag(file_name, tag)
+        actual = hsystem.append_timestamp_tag(file_name, tag)
         # /foo/bar/patch.amp.8c5a2da9.20210726-15_11_25.tgz
-        exp = r"/foo/bar/patch.amp.8c5a2da9.\S+.tgz"
-        self.assertRegex(act, exp)
+        expected = r"/foo/bar/patch.amp.8c5a2da9.\S+.tgz"
+        self.assertRegex(actual, expected)
 
     def test_no_timestamp2(self) -> None:
         """
@@ -446,10 +446,10 @@ class Test_append_timestamp_tag1(hunitest.TestCase):
         """
         file_name = "/foo/bar/patch.amp.8c5a2da9.tgz"
         tag = "hello"
-        act = hsystem.append_timestamp_tag(file_name, tag)
+        actual = hsystem.append_timestamp_tag(file_name, tag)
         # /foo/bar/patch.amp.8c5a2da9.20210726-15_11_25.hello.tgz
-        exp = r"/foo/bar/patch.amp.8c5a2da9.\S+.hello.tgz"
-        self.assertRegex(act, exp)
+        expected = r"/foo/bar/patch.amp.8c5a2da9.\S+.hello.tgz"
+        self.assertRegex(actual, expected)
 
     def test1(self) -> None:
         """
@@ -457,10 +457,10 @@ class Test_append_timestamp_tag1(hunitest.TestCase):
         """
         file_name = "/foo/bar/patch.amp.8c5a2da9.20210725_225857.tgz"
         tag = ""
-        act = hsystem.append_timestamp_tag(file_name, tag)
+        actual = hsystem.append_timestamp_tag(file_name, tag)
         # /foo/bar/patch.amp.8c5a2da9.20210725_225857.20210726-15_11_25.tgz
-        exp = "/foo/bar/patch.amp.8c5a2da9.20210725_225857.tgz"
-        self.assertEqual(act, exp)
+        expected = "/foo/bar/patch.amp.8c5a2da9.20210725_225857.tgz"
+        self.assertEqual(actual, expected)
 
     def test2(self) -> None:
         """
@@ -468,6 +468,6 @@ class Test_append_timestamp_tag1(hunitest.TestCase):
         """
         file_name = "/foo/bar/patch.amp.8c5a2da9.20210725_225857.tgz"
         tag = "hello"
-        act = hsystem.append_timestamp_tag(file_name, tag)
-        exp = "/foo/bar/patch.amp.8c5a2da9.20210725_225857.hello.tgz"
-        self.assertEqual(act, exp)
+        actual = hsystem.append_timestamp_tag(file_name, tag)
+        expected = "/foo/bar/patch.amp.8c5a2da9.20210725_225857.hello.tgz"
+        self.assertEqual(actual, expected)

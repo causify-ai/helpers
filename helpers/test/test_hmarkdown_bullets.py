@@ -21,7 +21,9 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
         Helper to test bold_first_level_bullets function.
         """
         text = hprint.dedent(text)
-        actual = hmarkdo.bold_first_level_bullets(text)
+        lines = text.split("\n")
+        actual_lines = hmarkdo.bold_first_level_bullets(lines)
+        actual = "\n".join(actual_lines)
         self.assert_equal(actual, expected, dedent=True)
 
     def test1(self) -> None:
@@ -293,7 +295,9 @@ class Test_format_first_level_bullets1(hunitest.TestCase):
         text = hprint.dedent(text)
         expected = hprint.dedent(expected)
         #
-        actual = hmarkdo.format_first_level_bullets(text)
+        lines = text.split("\n")
+        actual_lines = hmarkdo.format_first_level_bullets(lines)
+        actual = "\n".join(actual_lines)
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -533,8 +537,10 @@ class Test_process_lines1(hunitest.TestCase):
         for i, line in hmarkdo.process_lines(lines):
             _LOG.debug(hprint.to_str("line"))
             out.append(f"{i}:{line}")
-        act = "\n".join(out)
-        self.check_string(act, dedent=True, remove_lead_trail_empty_lines=True)
+        actual = "\n".join(out)
+        self.check_string(
+            actual, dedent=True, remove_lead_trail_empty_lines=True
+        )
 
 
 # #############################################################################
@@ -561,9 +567,14 @@ class Test_process_code_block1(hunitest.TestCase):
         return "\n".join(out)
 
     def test1(self) -> None:
+        # Prepare inputs.
         in_dir_name = self.get_input_dir()
         input_file_path = os.path.join(in_dir_name, "test.txt")
         txt_in = hio.from_file(input_file_path)
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
-        act = self.helper_process_code_block(txt_in)
-        self.check_string(act, dedent=True, remove_lead_trail_empty_lines=True)
+        # Run function.
+        actual = self.helper_process_code_block(txt_in)
+        # Check output.
+        self.check_string(
+            actual, dedent=True, remove_lead_trail_empty_lines=True
+        )

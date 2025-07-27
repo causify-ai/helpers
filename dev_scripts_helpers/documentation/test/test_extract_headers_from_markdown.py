@@ -22,20 +22,19 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Header3
         """
         content = hprint.dedent(content)
-        input_file = self.get_scratch_space() + "/input.md"
-        hio.to_file(input_file, content)
+        content = content.split("\n")
         mode = "headers"
         max_level = 3
         output_file = self.get_scratch_space() + "/output.md"
         # Call tested function.
         dshdehfma._extract_headers_from_markdown(
-            input_file, mode, max_level, output_file
+            content, mode, max_level, output_file
         )
         # Check output.
-        act = hio.from_file(output_file)
-        exp = r"""
+        actual = hio.from_file(output_file)
+        expected = r"""
         # Header1
         ## Header2
         # Header3
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)

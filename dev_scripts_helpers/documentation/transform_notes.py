@@ -89,7 +89,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         txt = hashlib.sha256(txt.encode("utf-8")).hexdigest()
         hparser.write_file(txt, out_file_name)
     elif cmd == "format_headers":
-        hmarkdo.format_headers(in_file_name, out_file_name, max_lev)
+        txt = hparser.read_file(in_file_name)
+        hmarkdo.format_headers(txt, out_file_name, max_lev)
     elif cmd == "increase_headers_level":
         txt = hparser.read_file(in_file_name)
         txt = "\n".join(txt)
@@ -120,7 +121,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif cmd == "md_only_format":
             txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_bold_bullets":
-            txt = hmarkdo.bold_first_level_bullets(txt)
+            lines = txt.split("\n")
+            lines = hmarkdo.bold_first_level_bullets(lines)
+            txt = "\n".join(lines)
             txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_colorize_bold_text":
             txt = hmarkdo.colorize_bold_text(txt)

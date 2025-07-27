@@ -121,8 +121,8 @@ class Test_convert_header_list_into_guidelines1(hunitest.TestCase):
         # Call function.
         guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
         # Check output.
-        act = "\n".join(map(str, guidelines))
-        exp = """
+        actual = "\n".join(map(str, guidelines))
+        expected = """
         HeaderInfo(1, 'Spelling:All:LLM', 11)
         HeaderInfo(1, 'Spelling:All:Linter', 16)
         HeaderInfo(1, 'Python:Naming:LLM', 31)
@@ -132,7 +132,7 @@ class Test_convert_header_list_into_guidelines1(hunitest.TestCase):
         HeaderInfo(1, 'Unit_tests:All:LLM', 66)
         HeaderInfo(1, 'Unit_tests:All:Linter', 71)
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -141,7 +141,7 @@ class Test_convert_header_list_into_guidelines1(hunitest.TestCase):
 
 
 class Test_extract_rules1(hunitest.TestCase):
-    def helper(self, selection_rules: List[str], exp: str) -> None:
+    def helper(self, selection_rules: List[str], expected: str) -> None:
         """
         Test extracting rules from a markdown file.
         """
@@ -151,45 +151,45 @@ class Test_extract_rules1(hunitest.TestCase):
         # Call function.
         selected_guidelines = hmarkdo.extract_rules(guidelines, selection_rules)
         # Check output.
-        act = "\n".join(map(str, selected_guidelines))
-        self.assert_equal(act, exp, dedent=True)
+        actual = "\n".join(map(str, selected_guidelines))
+        self.assert_equal(actual, expected, dedent=True)
 
     def test1(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
         selection_rules = ["Spelling:*:LLM"]
-        exp = """
+        expected = """
         HeaderInfo(1, 'Spelling:All:LLM', 11)
         """
-        self.helper(selection_rules, exp)
+        self.helper(selection_rules, expected)
 
     def test2(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
         selection_rules = ["Spelling:NONE:LLM"]
-        exp = """
+        expected = """
         """
-        self.helper(selection_rules, exp)
+        self.helper(selection_rules, expected)
 
     def test3(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
         selection_rules = ["Spelling:All:*"]
-        exp = """
+        expected = """
         HeaderInfo(1, 'Spelling:All:LLM', 11)
         HeaderInfo(1, 'Spelling:All:Linter', 16)
         """
-        self.helper(selection_rules, exp)
+        self.helper(selection_rules, expected)
 
     def test4(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
         selection_rules = ["Spelling:All:*", "Python:*:*"]
-        exp = """
+        expected = """
         HeaderInfo(1, 'Spelling:All:LLM', 11)
         HeaderInfo(1, 'Spelling:All:Linter', 16)
         HeaderInfo(1, 'Python:Naming:LLM', 31)
@@ -197,7 +197,7 @@ class Test_extract_rules1(hunitest.TestCase):
         HeaderInfo(1, 'Python:Docstrings:LLM', 46)
         HeaderInfo(1, 'Python:Docstrings:Linter', 51)
         """
-        self.helper(selection_rules, exp)
+        self.helper(selection_rules, expected)
 
 
 # #############################################################################
@@ -206,14 +206,16 @@ class Test_extract_rules1(hunitest.TestCase):
 
 
 class Test_parse_rules_from_txt1(hunitest.TestCase):
-    def helper(self, text: str, expected: str) -> None:
+    def helper(self, text: str, expected: List[str]) -> None:
         # Prepare inputs.
         text = hprint.dedent(text)
+        lines = text.split("\n")
         # Call function.
-        actual = hmarkdo.parse_rules_from_txt(text)
+        actual = hmarkdo.parse_rules_from_txt(lines)
         # Check output.
-        act = "\n".join(actual)
-        self.assert_equal(act, expected, dedent=True)
+        actual = str(actual)
+        expected = str(expected)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test_basic_list1(self) -> None:
         """
@@ -224,11 +226,7 @@ class Test_parse_rules_from_txt1(hunitest.TestCase):
         - Item 2
         - Item 3
         """
-        expected = """
-        - Item 1
-        - Item 2
-        - Item 3
-        """
+        expected = ["- Item 1", "- Item 2", "- Item 3"]
         self.helper(text, expected)
 
     def test_nested_list1(self) -> None:
@@ -242,13 +240,11 @@ class Test_parse_rules_from_txt1(hunitest.TestCase):
           - Sub-item 2.2
         - Item 3
         """
-        expected = """
-        - Item 1
-        - Item 2
-          - Sub-item 2.1
-          - Sub-item 2.2
-        - Item 3
-        """
+        expected = [
+            "- Item 1",
+            "- Item 2\n  - Sub-item 2.1\n  - Sub-item 2.2",
+            "- Item 3",
+        ]
         self.helper(text, expected)
 
     def test_empty_list1(self) -> None:
@@ -256,7 +252,7 @@ class Test_parse_rules_from_txt1(hunitest.TestCase):
         Test handling empty input.
         """
         text = ""
-        expected = ""
+        expected = []
         self.helper(text, expected)
 
 
@@ -274,10 +270,11 @@ class Test_end_to_end_rules1(hunitest.TestCase):
         txt = get_guidelines_txt1()
         max_level = 4
         # Run function.
-        header_list = hmarkdo.extract_headers_from_markdown(txt, max_level)
+        lines = txt.split("\n")
+        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level)
         # Check output.
-        act = "\n".join(map(str, header_list))
-        exp = """
+        actual = "\n".join(map(str, header_list))
+        expected = """
         HeaderInfo(1, 'General', 1)
         HeaderInfo(2, 'Spelling', 3)
         HeaderInfo(3, 'LLM', 5)
@@ -290,88 +287,91 @@ class Test_end_to_end_rules1(hunitest.TestCase):
         HeaderInfo(2, 'Rules', 35)
         HeaderInfo(3, 'LLM', 37)
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
         # Run function.
         guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
         # Check output.
-        act = "\n".join(map(str, guidelines))
-        exp = """
+        actual = "\n".join(map(str, guidelines))
+        expected = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
         HeaderInfo(1, 'General:Spelling:Linter', 7)
         HeaderInfo(1, 'Python:Naming:LLM', 18)
         HeaderInfo(1, 'Python:Naming:Linter', 28)
         HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
         """
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
-    def helper_extract_rules(self, selection_rules: List[str], exp: str) -> None:
+    def helper_extract_rules(
+        self, selection_rules: List[str], expected: str
+    ) -> None:
         """
         Helper function to test extracting rules from a markdown file.
         """
         # Prepare inputs.
         txt = get_guidelines_txt1()
         max_level = 4
-        header_list = hmarkdo.extract_headers_from_markdown(txt, max_level)
+        lines = txt.split("\n")
+        header_list = hmarkdo.extract_headers_from_markdown(lines, max_level)
         guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
         # Call function.
         selected_guidelines = hmarkdo.extract_rules(guidelines, selection_rules)
         # Check output.
-        act = "\n".join(map(str, selected_guidelines))
-        self.assert_equal(act, exp, dedent=True)
+        actual = "\n".join(map(str, selected_guidelines))
+        self.assert_equal(actual, expected, dedent=True)
 
     def test_extract_rules1(self) -> None:
         """
         Test extracting rules from a markdown file.
         """
         selection_rules = ["General:*:LLM"]
-        exp = """
+        expected = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
         """
-        self.helper_extract_rules(selection_rules, exp)
+        self.helper_extract_rules(selection_rules, expected)
 
     def test_extract_rules2(self) -> None:
         selection_rules = ["General:NONE:LLM"]
-        exp = """
+        expected = """
         """
-        self.helper_extract_rules(selection_rules, exp)
+        self.helper_extract_rules(selection_rules, expected)
 
     def test_extract_rules3(self) -> None:
         selection_rules = ["*:*:LLM"]
-        exp = """
+        expected = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
         HeaderInfo(1, 'Python:Naming:LLM', 18)
         HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
         """
-        self.helper_extract_rules(selection_rules, exp)
+        self.helper_extract_rules(selection_rules, expected)
 
     def test_extract_rules4(self) -> None:
         selection_rules = ["*:*:LLM", "General:*:*"]
-        exp = """
+        expected = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
         HeaderInfo(1, 'General:Spelling:Linter', 7)
         HeaderInfo(1, 'Python:Naming:LLM', 18)
         HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
         """
-        self.helper_extract_rules(selection_rules, exp)
+        self.helper_extract_rules(selection_rules, expected)
 
     def test_extract_rules5(self) -> None:
         selection_rules = ["*:*:*"]
-        exp = """
+        expected = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
         HeaderInfo(1, 'General:Spelling:Linter', 7)
         HeaderInfo(1, 'Python:Naming:LLM', 18)
         HeaderInfo(1, 'Python:Naming:Linter', 28)
         HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
         """
-        self.helper_extract_rules(selection_rules, exp)
+        self.helper_extract_rules(selection_rules, expected)
 
     def test_extract_rules6(self) -> None:
         selection_rules = ["*:*:*", "General:*:*"]
-        exp = """
+        expected = """
         HeaderInfo(1, 'General:Spelling:LLM', 5)
         HeaderInfo(1, 'General:Spelling:Linter', 7)
         HeaderInfo(1, 'Python:Naming:LLM', 18)
         HeaderInfo(1, 'Python:Naming:Linter', 28)
         HeaderInfo(1, 'Unit_tests:Rules:LLM', 37)
         """
-        self.helper_extract_rules(selection_rules, exp)
+        self.helper_extract_rules(selection_rules, expected)

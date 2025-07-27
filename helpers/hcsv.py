@@ -216,32 +216,6 @@ def convert_csv_to_pq(
     df.to_parquet(pq_path, compression=compression)
 
 
-# TODO(gp): Promote to hio.
-def _maybe_remove_extension(filename: str, extension: str) -> Optional[str]:
-    """
-    Attempt to remove `extension` from `filename`.
-
-    :param filename: str filename
-    :param extension: file extension starting with a dot. E.g., ".csv"
-    :return: filename without `extension`, if applicable, else returns `None`.
-    """
-    hdbg.dassert_isinstance(filename, str)
-    hdbg.dassert(filename)
-    hdbg.dassert_file_exists(filename)
-    #
-    hdbg.dassert_isinstance(extension, str)
-    hdbg.dassert(
-        extension.startswith("."),
-        "filename extension=`%s` expected to start with `.`",
-        extension,
-    )
-    #
-    ret: Optional[str] = None
-    if filename.endswith(extension):
-        ret = filename[: -len(extension)]
-    return ret
-
-
 def convert_csv_dir_to_pq_dir(
     csv_dir: str,
     pq_dir: str,
@@ -274,9 +248,16 @@ def convert_csv_dir_to_pq_dir(
     # TODO(gp): Consider parallelizing.
     for filename in filenames:
         # Remove .csv/.csv.gz.
-        csv_stem = _maybe_remove_extension(filename, ".csv")
+        csv_stem = hio.remove_extension(
+            filename, ".csv", check_file_exists=True, check_has_extension=False
+        )
         if csv_stem is None:
-            csv_stem = _maybe_remove_extension(filename, ".csv.gz")
+            csv_stem = hio.remove_extension(
+                filename,
+                ".csv.gz",
+                check_file_exists=True,
+                check_has_extension=False,
+            )
         if csv_stem is None:
             _LOG.warning(
                 "Skipping filename=%s since it has invalid extension", csv_stem

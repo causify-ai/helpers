@@ -14,36 +14,47 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(gp): Factor out common logic.
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
     def test_standard_case(self) -> None:
         txt = "Hello.\nWorld.\nThis is a test."
-        act = hmarkdo.remove_end_of_line_periods(txt)
-        exp = "Hello\nWorld\nThis is a test"
-        self.assertEqual(act, exp)
+        lines = txt.split("\n")
+        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
+        actual = "\n".join(actual_lines)
+        expected = "Hello\nWorld\nThis is a test"
+        self.assertEqual(actual, expected)
 
     def test_no_periods(self) -> None:
         txt = "Hello\nWorld\nThis is a test"
-        act = hmarkdo.remove_end_of_line_periods(txt)
-        exp = "Hello\nWorld\nThis is a test"
-        self.assertEqual(act, exp)
+        lines = txt.split("\n")
+        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
+        actual = "\n".join(actual_lines)
+        expected = "Hello\nWorld\nThis is a test"
+        self.assertEqual(actual, expected)
 
     def test_multiple_periods(self) -> None:
         txt = "Line 1.....\nLine 2.....\nEnd."
-        act = hmarkdo.remove_end_of_line_periods(txt)
-        exp = "Line 1\nLine 2\nEnd"
-        self.assertEqual(act, exp)
+        lines = txt.split("\n")
+        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
+        actual = "\n".join(actual_lines)
+        expected = "Line 1\nLine 2\nEnd"
+        self.assertEqual(actual, expected)
 
     def test_empty_string(self) -> None:
         txt = ""
-        act = hmarkdo.remove_end_of_line_periods(txt)
-        exp = ""
-        self.assertEqual(act, exp)
+        lines = txt.split("\n") if txt else []
+        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
+        actual = "\n".join(actual_lines)
+        expected = ""
+        self.assertEqual(actual, expected)
 
     def test_leading_and_trailing_periods(self) -> None:
         txt = ".Line 1.\n.Line 2.\n..End.."
-        act = hmarkdo.remove_end_of_line_periods(txt)
-        exp = ".Line 1\n.Line 2\n..End"
-        self.assertEqual(act, exp)
+        lines = txt.split("\n")
+        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
+        actual = "\n".join(actual_lines)
+        expected = ".Line 1\n.Line 2\n..End"
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################
@@ -82,9 +93,9 @@ class Test_md_clean_up1(hunitest.TestCase):
         \]
         """
         txt = hprint.dedent(txt)
-        act = hmarkdo.md_clean_up(txt)
-        act = hprint.dedent(act)
-        exp = r"""
+        actual = hmarkdo.md_clean_up(txt)
+        actual = hprint.dedent(actual)
+        expected = r"""
         **States**:
         - $S = \{\text{Sunny}, \text{Rainy}\}$
         **Observations**:
@@ -110,7 +121,7 @@ class Test_md_clean_up1(hunitest.TestCase):
         \Pr(\text{Yes} | \text{Rainy}) &= 0.8, \quad \Pr(\text{No} | \text{Rainy}) = 0.2
         \end{aligned}
         $$"""
-        self.assert_equal(act, exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
 
 # #############################################################################
@@ -131,14 +142,16 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         ```
         """
         content = hprint.dedent(content)
+        lines = content.split("\n")
         # Call function.
-        act = hmarkdo.remove_code_delimiters(content)
+        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual = "\n".join(actual_lines)
         # Check output.
-        exp = r"""
+        expected = r"""
         def hello_world():
             print("Hello, World!")
         """
-        self.assert_equal(str(act), exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test2(self) -> None:
         """
@@ -148,14 +161,16 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         in_dir_name = self.get_input_dir()
         input_file_path = os.path.join(in_dir_name, "test.txt")
         content = hio.from_file(input_file_path)
+        lines = content.split("\n")
         # Call function.
-        act = hmarkdo.remove_code_delimiters(content)
+        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual = "\n".join(actual_lines)
         # Check output.
-        exp = r"""
+        expected = r"""
         def check_empty_lines():
             print("Check empty lines are present!")
         """
-        self.assert_equal(str(act), exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test3(self) -> None:
         """
@@ -190,10 +205,12 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         ```
         """
         content = hprint.dedent(content)
+        lines = content.split("\n")
         # Call function.
-        act = hmarkdo.remove_code_delimiters(content)
+        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual = "\n".join(actual_lines)
         # Check output.
-        exp = r"""
+        expected = r"""
         # Section 1
 
         This section contains comment and python code.
@@ -220,7 +237,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         - Sustainable solutions
 
         """
-        self.assert_equal(str(act), exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)
 
     def test4(self) -> None:
         """
@@ -231,10 +248,12 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         input_file_path = os.path.join(in_dir_name, "test.txt")
         content = hio.from_file(input_file_path)
         content = hprint.dedent(content)
+        lines = content.split("\n")
         # Call function.
-        act = hmarkdo.remove_code_delimiters(content)
+        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual = "\n".join(actual_lines)
         # Check output.
-        self.check_string(act, dedent=True)
+        self.check_string(actual, dedent=True)
 
     def test5(self) -> None:
         """
@@ -242,11 +261,13 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         """
         # Prepare inputs.
         content = ""
+        lines = content.split("\n") if content else []
         # Call function.
-        act = hmarkdo.remove_code_delimiters(content)
+        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual = "\n".join(actual_lines)
         # Check output.
-        exp = ""
-        self.assert_equal(str(act), exp, dedent=True)
+        expected = ""
+        self.assert_equal(actual, expected, dedent=True)
 
     def test6(self) -> None:
         """
@@ -256,10 +277,12 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         in_dir_name = self.get_input_dir()
         input_file_path = os.path.join(in_dir_name, "test.txt")
         content = hio.from_file(input_file_path)
+        lines = content.split("\n")
         # Call function.
-        act = hmarkdo.remove_code_delimiters(content)
+        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual = "\n".join(actual_lines)
         # Check output.
-        exp = r"""
+        expected = r"""
         def no_start_python():
             print("No mention of python at the start")
 
@@ -268,4 +291,4 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
             A markdown paragraph contains
             delimiters that needs to be removed.
         """
-        self.assert_equal(str(act), exp, dedent=True)
+        self.assert_equal(actual, expected, dedent=True)

@@ -25,10 +25,10 @@ class Test_find_short_import1(hunitest.TestCase):
             ("file1.py", 11, "import helpers.hpandas as hpandas"),
         ]
         results = hlitafin._find_short_import(iterator, "dtfcodarun")
-        act = "\n".join(map(str, results))
+        actual = "\n".join(map(str, results))
         # pylint: disable=line-too-long
-        exp = r"""('file1.py', 10, 'import dataflow.core.dag_runner as dtfcodarun', 'dtfcodarun', 'import dataflow.core.dag_runner as dtfcodarun')"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        expected = r"""('file1.py', 10, 'import dataflow.core.dag_runner as dtfcodarun', 'dtfcodarun', 'import dataflow.core.dag_runner as dtfcodarun')"""
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -53,11 +53,11 @@ class Test_find_func_class_uses1(hunitest.TestCase):
             ("file1.py", 13, ":param dag_builder: `DagRunner` instance"),
         ]
         results = hlitafin._find_func_class_uses(iterator, "DagRunner")
-        act = "\n".join(map(str, results))
-        exp = r"""
+        actual = "\n".join(map(str, results))
+        expected = r"""
         ('file1.py', 10, 'dag_runner = dtfamsys.RealTimeDagRunner(**dag_runner_kwargs)', 'dtfamsys', 'RealTimeDagRunner')
         ('file1.py', 12, 'dag_builder: dtfcodabui.DagRunner,', 'dtfcodabui', 'DagRunner')"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -98,9 +98,9 @@ class TestLibTasksRunTests1(hunitest.TestCase):
             "TestLibTasksRunTests1", file_names
         )
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_file_names(file_names)
-        exp = ["helpers/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
-        self.assert_equal(str(act), str(exp), purify_text=True)
+        actual = text_purifier.purify_file_names(file_names)
+        expected = ["helpers/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
+        self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def test_find_test_class2(self) -> None:
         """
@@ -112,9 +112,9 @@ class TestLibTasksRunTests1(hunitest.TestCase):
             "TestLibTasksRunTests1", file_names
         )
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_file_names(file_names)
-        exp = ["helpers/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
-        self.assert_equal(str(act), str(exp), purify_text=True)
+        actual = text_purifier.purify_file_names(file_names)
+        expected = ["helpers/test/test_lib_tasks_find.py::TestLibTasksRunTests1"]
+        self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def test_find_test_class3(self) -> None:
         """
@@ -149,14 +149,14 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         exp_file_names = ["test/test_that.py", "test/test_this.py"]
         self.assert_equal(str(act_file_names), str(exp_file_names))
         #
-        act = hlitafin._find_test_class("TestHelloWorld", file_names)
+        actual = hlitafin._find_test_class("TestHelloWorld", file_names)
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_file_names(act)
-        exp = [
+        actual = text_purifier.purify_file_names(actual)
+        expected = [
             "helpers/test/outcomes/TestLibTasksRunTests1.test_find_test_class3/tmp.scratch/"
             "test/test_this.py::TestHelloWorld"
         ]
-        self.assert_equal(str(act), str(exp), purify_text=True)
+        self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def test_find_test_decorator1(self) -> None:
         """
@@ -188,14 +188,14 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         hunitest.create_test_dir(dir_name, incremental, file_dict)
         #
         file_names = hlitafin._find_test_files(dir_name)
-        act = hlitafin._find_test_decorator("no_container", file_names)
+        actual = hlitafin._find_test_decorator("no_container", file_names)
         text_purifier = huntepur.TextPurifier()
-        act = text_purifier.purify_file_names(act)
-        exp = [
+        actual = text_purifier.purify_file_names(actual)
+        expected = [
             "helpers/test/outcomes/TestLibTasksRunTests1.test_find_test_decorator1/"
             "tmp.scratch/test/test_that.py"
         ]
-        self.assert_equal(str(act), str(exp), purify_text=True)
+        self.assert_equal(str(actual), str(expected), purify_text=True)
 
     # TODO(gp): This test can run in amp.
     @pytest.mark.skipif(not hgit.is_amp(), reason="Only run in amp")
@@ -205,9 +205,9 @@ class TestLibTasksRunTests1(hunitest.TestCase):
         """
         file_name = hgit.find_file_in_git_tree("hunit_test.py")
         file_names = [file_name]
-        act = hlitafin._find_test_decorator("qa", file_names)
-        exp = ["$GIT_ROOT/helpers/hunit_test.py"]
-        self.assert_equal(str(act), str(exp), purify_text=True)
+        actual = hlitafin._find_test_decorator("qa", file_names)
+        expected = ["$GIT_ROOT/helpers/hunit_test.py"]
+        self.assert_equal(str(actual), str(expected), purify_text=True)
 
 
 # #############################################################################
@@ -216,44 +216,7 @@ class TestLibTasksRunTests1(hunitest.TestCase):
 
 
 class Test_find_check_string_output1(hunitest.TestCase):
-    def test1(self) -> None:
-        """
-        Test `find_check_string_output()` by searching the `check_string` of
-        this test.
-        """
-        # Force to generate a `check_string` file so we can search for it.
-        act = "A fake check_string output to use for test1"
-        self.check_string(act)
-        # Check.
-        exp = '''
-        act =
-        exp = r"""
-        A fake check_string output to use for test1
-
-        """.lstrip().rstrip()
-        self.assert_equal(act, exp, fuzzy_match=False)
-        '''
-        self._helper(exp, fuzzy_match=False)
-
-    def test2(self) -> None:
-        """
-        Like test1 but using `fuzzy_match=True`.
-        """
-        # Force to generate a `check_string` file so we can search for it.
-        act = "A fake check_string output to use for test2"
-        self.check_string(act)
-        # Check.
-        exp = '''
-        act =
-        exp = r"""
-A fake check_string output to use for test2
-
-        """.lstrip().rstrip()
-        self.assert_equal(act, exp, fuzzy_match=True)
-        '''
-        self._helper(exp, fuzzy_match=True)
-
-    def _helper(self, exp: str, fuzzy_match: bool) -> None:
+    def helper(self, expected: str, fuzzy_match: bool) -> None:
         # Look for the `check_string()` corresponding to this test.
         ctx = httestlib._build_mock_context_returning_ok()
         class_name = self.__class__.__name__
@@ -261,8 +224,44 @@ A fake check_string output to use for test2
         as_python = True
         # We don't want to copy but just print.
         pbcopy = False
-        act = hlitafin.find_check_string_output(
+        actual = hlitafin.find_check_string_output(
             ctx, class_name, method_name, as_python, fuzzy_match, pbcopy
         )
         # Check that it matches exactly.
-        self.assert_equal(act, exp, fuzzy_match=False)
+        self.assert_equal(actual, expected, fuzzy_match=False)
+
+    def test1(self) -> None:
+        """
+        Test `find_check_string_output()` by searching the `check_string` of
+        this test.
+        """
+        # Force to generate a `check_string` file so we can search for it.
+        actual = "A fake check_string output to use for test1"
+        self.check_string(actual)
+        # Check.
+        expected = '''
+        actual =
+        expected = r"""
+        A fake check_string output to use for test1
+        """.lstrip().rstrip()
+        self.assert_equal(actual, expected, fuzzy_match=False)
+        '''
+        self.helper(expected, fuzzy_match=False)
+
+    def test2(self) -> None:
+        """
+        Like test1 but using `fuzzy_match=True`.
+        """
+        # Force to generate a `check_string` file so we can search for it.
+        actual = "A fake check_string output to use for test2"
+        self.check_string(actual)
+        # Check.
+        expected = '''
+        actual =
+        expected = r"""
+A fake check_string output to use for test2
+
+        """.lstrip().rstrip()
+        self.assert_equal(actual, expected, fuzzy_match=True)
+        '''
+        self.helper(expected, fuzzy_match=True)

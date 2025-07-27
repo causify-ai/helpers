@@ -340,7 +340,7 @@ def _run_linter(
             for file_path in file_paths
         )
         lints.extend(list(itertools.chain.from_iterable(lints_tmp)))
-    lints = hprint.remove_empty_lines_from_string_list(lints)
+    lints = hprint.remove_empty_lines(lints)
     return lints  # type: ignore
 
 

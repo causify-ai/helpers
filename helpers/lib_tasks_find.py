@@ -418,15 +418,15 @@ def find_check_string_output(  # type: ignore
     if as_python:
         # Package the code snippet.
         if not fuzzy_match:
-            # Align the output at the same level as 'exp = r...'.
+            # Align the output at the same level as 'expected = r...'.
             num_spaces = 8
             txt = hprint.indent(txt, num_spaces=num_spaces)
         output = f"""
-        act =
-        exp = r\"\"\"
+        actual =
+        expected = r\"\"\"
 {txt}
         \"\"\".lstrip().rstrip()
-        self.assert_equal(act, exp, fuzzy_match={fuzzy_match})
+        self.assert_equal(actual, expected, fuzzy_match={fuzzy_match})
         """
     else:
         output = txt

@@ -26,8 +26,8 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
             "--template default --extract-media media -- --verbose --extra"
         )
         # Call function to test.
-        act = pprint.pformat(hdocexec.convert_pandoc_cmd_to_arguments(cmd))
-        exp = """
+        actual = pprint.pformat(hdocexec.convert_pandoc_cmd_to_arguments(cmd))
+        expected = """
         {'cmd_opts': ['--verbose', '--extra'],
         'in_dir_params': {'data-dir': 'data',
                         'extract-media': 'media',
@@ -36,7 +36,7 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
         'output': 'output.md'}
         """
         # Check output.
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -55,13 +55,13 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
             "cmd_opts": ["--verbose", "--extra"],
         }
         # Call function to test.
-        act = pprint.pformat(hdocexec.convert_pandoc_arguments_to_cmd(params))
-        exp = """
+        actual = pprint.pformat(hdocexec.convert_pandoc_arguments_to_cmd(params))
+        expected = """
         ('sample.md --output output.md --data-dir data --template default '
         '--extract-media media --verbose --extra')"""
-        print("Actual...", act)
+        print("Actual...", actual)
         # Check output.
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################

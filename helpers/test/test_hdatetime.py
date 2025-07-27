@@ -133,15 +133,15 @@ class Test_dassert_tz1(hunitest.TestCase):
         datetime_ = 5
         with self.assertRaises(AssertionError) as cm:
             hdateti.dassert_is_datetime(datetime_)
-        act = str(cm.exception)
+        actual = str(cm.exception)
         # pylint: disable=line-too-long
-        exp = r"""
+        expected = r"""
         * Failed assertion *
         Instance of '5' is '<class 'int'>' instead of '(<class 'str'>, <class 'pandas._libs.tslibs.timestamps.Timestamp'>, <class 'datetime.datetime'>)'
         datetime_='5' of type '<class 'int'>' is not a DateTimeType
         """
         # pylint: enable=line-too-long
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_to_datetime1(self) -> None:
         """
@@ -153,15 +153,15 @@ class Test_dassert_tz1(hunitest.TestCase):
             _DT_DT_NAIVE,
         ]:
             _LOG.debug("obj='%s' type='%s'", obj, type(obj))
-            act = hdateti.to_datetime(obj)
-            exp = _DT_DT_NAIVE
-            self.assertEqual(act, exp)
+            actual = hdateti.to_datetime(obj)
+            expected = _DT_DT_NAIVE
+            self.assertEqual(actual, expected)
             # Check the tz info.
-            hdateti.dassert_is_tz_naive(act)
+            hdateti.dassert_is_tz_naive(actual)
             with self.assertRaises(AssertionError):
-                hdateti.dassert_has_tz(act)
-                hdateti.dassert_has_UTC_tz(act)
-                hdateti.dassert_has_ET_tz(act)
+                hdateti.dassert_has_tz(actual)
+                hdateti.dassert_has_UTC_tz(actual)
+                hdateti.dassert_has_ET_tz(actual)
 
     def test_to_datetime2(self) -> None:
         """
@@ -173,15 +173,15 @@ class Test_dassert_tz1(hunitest.TestCase):
             _DT_DT_UTC,
         ]:
             _LOG.debug("obj='%s' type='%s'", obj, type(obj))
-            act = hdateti.to_datetime(obj)
-            exp = _DT_DT_UTC
-            self.assertEqual(act, exp)
+            actual = hdateti.to_datetime(obj)
+            expected = _DT_DT_UTC
+            self.assertEqual(actual, expected)
             # Check the tz info.
-            hdateti.dassert_has_tz(act)
-            hdateti.dassert_has_UTC_tz(act)
+            hdateti.dassert_has_tz(actual)
+            hdateti.dassert_has_UTC_tz(actual)
             with self.assertRaises(AssertionError):
-                hdateti.dassert_is_tz_naive(act)
-                hdateti.dassert_has_ET_tz(act)
+                hdateti.dassert_is_tz_naive(actual)
+                hdateti.dassert_has_ET_tz(actual)
 
     def test_to_datetime3(self) -> None:
         """
@@ -193,9 +193,9 @@ class Test_dassert_tz1(hunitest.TestCase):
             _DT_DT_ET,
         ]:
             _LOG.debug("obj='%s' type='%s'", obj, type(obj))
-            act = hdateti.to_datetime(obj)
-            exp = _DT_DT_ET
-            self.assertEqual(str(act), str(exp))
+            actual = hdateti.to_datetime(obj)
+            expected = _DT_DT_ET
+            self.assertEqual(str(actual), str(expected))
 
 
 # #############################################################################
@@ -227,9 +227,9 @@ class Test_dassert_tz_compatible1(hunitest.TestCase):
         """
         with self.assertRaises(AssertionError) as cm:
             hdateti.dassert_tz_compatible(_PD_TS_NAIVE, _DT_DT_UTC)
-        act = str(cm.exception)
+        actual = str(cm.exception)
         # pylint: disable=line-too-long
-        exp = """
+        expected = """
         * Failed assertion *
         'False'
         ==
@@ -237,7 +237,7 @@ class Test_dassert_tz_compatible1(hunitest.TestCase):
         datetime1='2021-01-04 09:30:00' and datetime2='2021-01-04 09:30:00+00:00' are not compatible
         """
         # pylint: enable=line-too-long
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_dassert_compatible_timestamp_assert2(self) -> None:
         """
@@ -284,9 +284,9 @@ class Test_dassert_have_same_tz1(hunitest.TestCase):
         """
         with self.assertRaises(AssertionError) as cm:
             hdateti.dassert_have_same_tz(_DT_DT_ET, _DT_DT_UTC)
-        act = str(cm.exception)
+        actual = str(cm.exception)
         # pylint: disable=line-too-long
-        exp = """
+        expected = """
         * Failed assertion *
         'America/New_York'
         ==
@@ -294,7 +294,7 @@ class Test_dassert_have_same_tz1(hunitest.TestCase):
         datetime1=2021-01-04 09:30:00-05:00 (datetime1.tzinfo=America/New_York) datetime2=2021-01-04 09:30:00+00:00 (datetime2.tzinfo=UTC)
         """
         # pylint: enable=line-too-long
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test4(self) -> None:
         """
@@ -484,13 +484,13 @@ class Test_find_bar_timestamp1(hunitest.TestCase):
     def helper1(self, current_timestamp: pd.Timestamp) -> None:
         bar_duration_in_secs = 15 * 60
         max_distance_in_secs = 10
-        act = hdateti.find_bar_timestamp(
+        actual = hdateti.find_bar_timestamp(
             current_timestamp,
             bar_duration_in_secs,
             max_distance_in_secs=max_distance_in_secs,
         )
-        exp = pd.Timestamp("2021-09-09T08:00:00", tz="UTC")
-        self.assert_equal(str(act), str(exp))
+        expected = pd.Timestamp("2021-09-09T08:00:00", tz="UTC")
+        self.assert_equal(str(actual), str(expected))
 
     def test1(self) -> None:
         current_timestamp = pd.Timestamp("2021-09-09T08:00:00", tz="UTC")
@@ -510,11 +510,11 @@ class Test_find_bar_timestamp1(hunitest.TestCase):
         )
         bar_duration_in_secs = 1
         #
-        act = hdateti.find_bar_timestamp(
+        actual = hdateti.find_bar_timestamp(
             current_timestamp, bar_duration_in_secs, mode="round"
         )
-        exp = pd.Timestamp("2021-09-09T08:02:00+0000", tz="UTC")
-        self.assert_equal(str(act), str(exp))
+        expected = pd.Timestamp("2021-09-09T08:02:00+0000", tz="UTC")
+        self.assert_equal(str(actual), str(expected))
 
     # ///////////////////////////////////////////////////////////////////////////
 
@@ -522,25 +522,25 @@ class Test_find_bar_timestamp1(hunitest.TestCase):
         current_timestamp = pd.Timestamp("2021-09-09T07:59:20", tz="UTC")
         with self.assertRaises(AssertionError) as cm:
             self.helper1(current_timestamp)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         40 <= 10
         current_timestamp=2021-09-09 07:59:20+00:00 is too distant from bar_timestamp=2021-09-09 08:00:00+00:00
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test6(self) -> None:
         current_timestamp = pd.Timestamp("2021-09-09T08:10:20", tz="UTC")
         with self.assertRaises(AssertionError) as cm:
             self.helper1(current_timestamp)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         280 <= 10
         current_timestamp=2021-09-09 08:10:20+00:00 is too distant from bar_timestamp=2021-09-09 08:15:00+00:00
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 class Test_find_bar_timestamp2(hunitest.TestCase):
@@ -552,21 +552,21 @@ class Test_find_bar_timestamp2(hunitest.TestCase):
         current_timestamp = pd.Timestamp("2021-09-09T07:59:55", tz="UTC")
         bar_duration_in_secs = 15 * 60
         #
-        act = hdateti.find_bar_timestamp(
+        actual = hdateti.find_bar_timestamp(
             current_timestamp, bar_duration_in_secs, mode="floor"
         )
-        exp = pd.Timestamp("2021-09-09T07:45:00", tz="UTC")
-        self.assert_equal(str(act), str(exp))
+        expected = pd.Timestamp("2021-09-09T07:45:00", tz="UTC")
+        self.assert_equal(str(actual), str(expected))
 
     def test2(self) -> None:
         current_timestamp = pd.Timestamp("2021-09-09T08:01:55", tz="UTC")
         bar_duration_in_secs = 15 * 60
         #
-        act = hdateti.find_bar_timestamp(
+        actual = hdateti.find_bar_timestamp(
             current_timestamp, bar_duration_in_secs, mode="floor"
         )
-        exp = pd.Timestamp("2021-09-09T08:00:00", tz="UTC")
-        self.assert_equal(str(act), str(exp))
+        expected = pd.Timestamp("2021-09-09T08:00:00", tz="UTC")
+        self.assert_equal(str(actual), str(expected))
 
     def test3(self) -> None:
         current_timestamp = pd.Timestamp(
@@ -574,11 +574,11 @@ class Test_find_bar_timestamp2(hunitest.TestCase):
         )
         bar_duration_in_secs = 1
         #
-        act = hdateti.find_bar_timestamp(
+        actual = hdateti.find_bar_timestamp(
             current_timestamp, bar_duration_in_secs, mode="floor"
         )
-        exp = pd.Timestamp("2021-09-09T08:01:59+0000", tz="UTC")
-        self.assert_equal(str(act), str(exp))
+        expected = pd.Timestamp("2021-09-09T08:01:59+0000", tz="UTC")
+        self.assert_equal(str(actual), str(expected))
 
 
 # #############################################################################
@@ -592,9 +592,9 @@ class Test_convert_seconds_to_minutes(hunitest.TestCase):
         Check that conversion is implemented correcty.
         """
         num_secs = 300
-        act = hdateti.convert_seconds_to_minutes(num_secs)
-        exp = int(num_secs / 60)
-        self.assertEqual(act, exp)
+        actual = hdateti.convert_seconds_to_minutes(num_secs)
+        expected = int(num_secs / 60)
+        self.assertEqual(actual, expected)
 
     def test2(self) -> None:
         """
@@ -604,15 +604,15 @@ class Test_convert_seconds_to_minutes(hunitest.TestCase):
         num_secs = 10
         with self.assertRaises(AssertionError) as cm:
             hdateti.convert_seconds_to_minutes(num_secs)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         '10'
         ==
         '0'
         num_secs=10 is not an integer number of minutes
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -804,14 +804,14 @@ class Test_dassert_is_valid_timestamp(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hdateti.dassert_is_valid_timestamp(timestamp)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         'None' is not 'None'
         datetime_='2021-01-04 09:30:00' doesn't have timezone info
         """
         # Check.
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -829,13 +829,13 @@ class Test_dassert_is_valid_timestamp(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hdateti.dassert_is_valid_timestamp(timestamp)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         Instance of '2021-01-04 09:30:00' is '<class 'str'>' instead of '<class 'pandas._libs.tslibs.timestamps.Timestamp'>'
         """
         # Check.
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -862,13 +862,13 @@ class Test_dassert_timestamp_lt(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hdateti.dassert_timestamp_lt(start_timestamp, end_timestamp)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
          * Failed assertion *
         2021-02-02 09:30:00+00:00 < 2021-02-02 09:30:00+00:00
         """
         # Check.
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -885,13 +885,13 @@ class Test_dassert_timestamp_lt(hunitest.TestCase):
         # Run.
         with self.assertRaises(AssertionError) as cm:
             hdateti.dassert_timestamp_lt(start_timestamp, end_timestamp)
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         2021-02-04 09:30:00-05:00 < 2021-01-04 09:30:00-05:00
         """
         # Check.
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test4(self) -> None:
         """

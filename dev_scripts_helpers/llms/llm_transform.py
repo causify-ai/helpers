@@ -83,6 +83,7 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
+# TODO(gp): Make it public and move it to `hdockerized_executables.py`.
 def _run_dockerized_llm_transform(
     in_file_path: str,
     cmd_opts: List[str],
@@ -217,7 +218,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             txt = hmarkdo.md_clean_up(txt)
             txt = hmarkdo.format_markdown(txt)
         elif args.prompt == "md_bold_bullets":
-            txt = hmarkdo.bold_first_level_bullets(txt)
+            lines = txt.split("\n")
+            lines = hmarkdo.bold_first_level_bullets(lines)
+            txt = "\n".join(lines)
             txt = hmarkdo.format_markdown(txt)
         else:
             raise ValueError(f"Invalid prompt='{args.prompt}'")

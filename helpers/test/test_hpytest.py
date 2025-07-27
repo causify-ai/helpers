@@ -66,8 +66,8 @@ class Test_JUnitReporter(hunitest.TestCase):
         """
         reporter = self.helper()
         reporter.parse()
-        act = pprint.pformat(reporter.overall_stats)
-        exp = r"""
+        actual = pprint.pformat(reporter.overall_stats)
+        expected = r"""
         {'error': 0,
         'failed': 0,
         'passed': 1,
@@ -75,7 +75,7 @@ class Test_JUnitReporter(hunitest.TestCase):
         'total_tests': 2,
         'total_time': 3.0}
         """
-        self.assert_equal(act, exp, dedent=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
     def test_print_summary(self) -> None:
         """
@@ -86,9 +86,9 @@ class Test_JUnitReporter(hunitest.TestCase):
         captured_output = io.StringIO()
         with redirect_stdout(captured_output):
             reporter.print_summary()
-        act = captured_output.getvalue()
-        act = _strip_color_codes(act)
-        exp = r"""
+        actual = captured_output.getvalue()
+        actual = _strip_color_codes(actual)
+        expected = r"""
         ======================================================================
         collected 2 items
 
@@ -111,8 +111,8 @@ class Test_JUnitReporter(hunitest.TestCase):
         Result: PASSED
         """
         self.assert_equal(
-            act,
-            exp,
+            actual,
+            expected,
             dedent=True,
             fuzzy_match=True,
         )
@@ -167,8 +167,8 @@ class Test_JUnitReporter2(hunitest.TestCase):
         """
         reporter = self.helper()
         reporter.parse()
-        act = pprint.pformat(reporter.overall_stats)
-        exp = r"""
+        actual = pprint.pformat(reporter.overall_stats)
+        expected = r"""
         {'error': 1,
         'failed': 1,
         'passed': 2,
@@ -176,7 +176,7 @@ class Test_JUnitReporter2(hunitest.TestCase):
         'total_tests': 5,
         'total_time': 6.0}
         """
-        self.assert_equal(act, exp, dedent=True, fuzzy_match=True)
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
     def test_print_summary(self) -> None:
         """
@@ -187,9 +187,9 @@ class Test_JUnitReporter2(hunitest.TestCase):
         captured_output = io.StringIO()
         with redirect_stdout(captured_output):
             reporter.print_summary()
-        act = captured_output.getvalue()
-        act = _strip_color_codes(act)
-        exp = r"""
+        actual = captured_output.getvalue()
+        actual = _strip_color_codes(actual)
+        expected = r"""
         ======================================================================
         collected 5 items
 
@@ -221,8 +221,8 @@ class Test_JUnitReporter2(hunitest.TestCase):
         Result: FAILED
         """
         self.assert_equal(
-            act,
-            exp,
+            actual,
+            expected,
             dedent=True,
             fuzzy_match=True,
         )
