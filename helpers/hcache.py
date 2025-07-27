@@ -182,7 +182,7 @@ def _get_cache_size(path: str, description: str) -> str:
     else:
         if os.path.exists(path):
             size_in_bytes = hsystem.du(path)
-            size_as_str = hintros.format_size(size_in_bytes)
+            size_as_str = hintros.format_size(int(size_in_bytes))
         else:
             size_as_str = "nan"
         # TODO(gp): Compute number of files.

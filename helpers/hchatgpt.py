@@ -9,14 +9,17 @@ import math
 import os
 import sys
 import time
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hio as hio
 
-henv.install_module_if_not_present("openai")
-import openai  # noqa: E402
+if TYPE_CHECKING:
+    import openai
+else:
+    henv.install_module_if_not_present("openai")
+    import openai  # noqa: E402
 
 _LOG = logging.getLogger(__name__)
 

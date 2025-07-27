@@ -58,7 +58,7 @@ class _EventLoop(async_solipsism.EventLoop):
     #  the replayed time approach and can remove `ReplayedTime` object.
     def __init__(self) -> None:
         super().__init__()
-        self._initial_dt = datetime.datetime.utcnow()
+        self._initial_dt = datetime.datetime.now(datetime.timezone.utc)
 
     def get_current_time(self) -> datetime.datetime:
         # `loop.time()` returns the number of seconds as `float` from when the event
@@ -100,7 +100,7 @@ def solipsism_context() -> Iterator:
 
 
 async def gather_coroutines_with_wall_clock(
-    event_loop: asyncio.AbstractEventLoop, *coroutines: List[Coroutine]
+    event_loop: asyncio.AbstractEventLoop, *coroutines: Callable[..., Coroutine]
 ) -> List[Any]:
     """
     Inject a wall clock associated to `event_loop` in all the coroutines and
