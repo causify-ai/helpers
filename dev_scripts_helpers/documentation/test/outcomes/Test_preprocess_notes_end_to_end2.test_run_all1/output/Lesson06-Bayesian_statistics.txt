@@ -743,7 +743,7 @@ digraph BayesianFlow {
 #### Statement Probability from Bayesian Network
 - The full joint distribution represents the probability of an assignment to
   each variable $X_i = x_i$:
-  $$\Pr(x_1, ..., x_n) \triangleq \Pr(X_1 = x_1 \land ... \land X_n = x_n)$$
+  $$\Pr(x_1, ..., x_n) \defeq \Pr(X_1 = x_1 \land ... \land X_n = x_n)$$
 
 - To evaluate a Bayesian network
   - Sort the nodes in topological order (there are several orderings consistent
