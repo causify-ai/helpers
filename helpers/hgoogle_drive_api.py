@@ -454,7 +454,7 @@ def create_google_drive_folder(
 # #############################################################################
 
 
-def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
+def _get_folders_in_gdrive(*, service: godisc.Resource = None, credentials: Optional[goasea.Credentials] = None) -> list:
     """
     Get a list of folders in Google Drive.
 
@@ -462,7 +462,9 @@ def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
         - Will use GDrive file service as default if None is given.
     """
     if service is None:
-        service = get_gdrive_service()
+        if credentials is None:
+            raise ValueError("Either service or credentials must be provided")
+        service = get_gdrive_service(credentials=credentials)
     response = (
         service.files()
         .list(

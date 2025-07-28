@@ -9,7 +9,7 @@ import contextlib
 import copy
 import datetime
 import logging
-from typing import Any, Iterable, List, Optional, Tuple, Union
+from typing import Any, Generator, Iterable, List, Optional, Tuple, Union
 
 # Avoid dependency from other helpers modules since this is used when the code
 # is bootstrapped.
@@ -747,7 +747,7 @@ def set_v2_formatter(
 
 # TODO(gp): Not sure it works properly.
 @contextlib.contextmanager
-def set_level(logger: Any, level: int) -> None:
+def set_level(logger: Any, level: int) -> Generator[None, None, None]:
     """
     Context manager changing the verbosity level.
     """

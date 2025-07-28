@@ -853,7 +853,7 @@ def get_path_from_git_root(
         super_module,
         ret,
     )
-    return cast(str, str(ret))
+    return str(ret)
 
 
 # TODO(gp): Rewrite this function in a better way.

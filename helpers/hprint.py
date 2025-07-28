@@ -90,8 +90,8 @@ def pprint_pformat(obj: Any, *, sort_dicts: bool = False) -> str:
     Pretty-print in color.
     """
     from pygments import highlight
-    from pygments.formatters import Terminal256Formatter
-    from pygments.lexers import PythonLexer
+    from pygments.formatters import Terminal256Formatter  # type: ignore
+    from pygments.lexers import PythonLexer  # type: ignore
 
     txt = pprint.pformat(obj, sort_dicts=sort_dicts)
     txt = highlight(txt, PythonLexer(), Terminal256Formatter())

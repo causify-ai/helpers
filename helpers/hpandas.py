@@ -2519,7 +2519,7 @@ def to_gsheet(
         before saving the dataframe into it; if False, the dataframe is
         appended to the contents of the sheet
     """
-    import gspread_pandas
+    import gspread_pandas  # type: ignore
 
     spread = gspread_pandas.Spread(
         gsheet_name, sheet=gsheet_sheet_name, create_sheet=True
