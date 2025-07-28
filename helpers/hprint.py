@@ -260,9 +260,10 @@ def strict_split(lines: List[str], max_length: int) -> List[str]:
     """
     hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_lte(1, max_length)
-    lines_out = [
-        lines[i : i + max_length] for i in range(0, len(lines), max_length)
-    ]
+    lines_out = []
+    for line in lines:
+        for i in range(0, len(line), max_length):
+            lines_out.append(line[i:i + max_length])
     hdbg.dassert_isinstance(lines_out, list)
     return lines_out
 
