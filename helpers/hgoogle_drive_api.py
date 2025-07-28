@@ -478,14 +478,14 @@ def _get_folders_in_gdrive(*, service: godisc.Resource = None, credentials: Opti
     return response.get("files")
 
 
-def get_folder_id_by_name(name: str) -> Optional[list]:
+def get_folder_id_by_name(name: str, *, credentials: Optional[goasea.Credentials] = None) -> Optional[list]:
     """
     Get the folder id by the folder name.
 
     :param name: str, the name of the folder.
     :return: list, the list of the folder id and folder name.
     """
-    folders = _get_folders_in_gdrive()
+    folders = _get_folders_in_gdrive(credentials=credentials)
     folder_list = []
     #
     for folder in folders:
@@ -638,8 +638,10 @@ def read_google_file(
         return df
     except gspread.exceptions.SpreadsheetNotFound:
         _LOG.error("Spreadsheet with URL '%s' not found.", url)
+        return pd.DataFrame()
     except Exception as e:
         _LOG.error("An error occurred: '%s'", str(e))
+        return pd.DataFrame()
 
 
 def write_to_google_sheet(

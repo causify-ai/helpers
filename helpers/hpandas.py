@@ -29,11 +29,11 @@ try:
             from s3fs import S3File, S3FileSystem
         except ImportError:
             # Fallback to dynamic import
-            S3File = getattr(s3fs, "S3File", None)
-            S3FileSystem = getattr(s3fs, "S3FileSystem", None)
+            S3File = getattr(s3fs, "S3File", None)  # type: ignore
+            S3FileSystem = getattr(s3fs, "S3FileSystem", None)  # type: ignore
 except ImportError:
     # If s3fs is not available, define dummy classes for type hints.
-    s3fs = None
+    s3fs = None  # type: ignore
 
     class S3File:
         pass
@@ -165,7 +165,7 @@ def dassert_unique_index(
             msg = dup_msg
         else:
             msg = dup_msg + msg
-        hdbg.dassert(index.is_unique, msg=msg, *args)
+        hdbg.dassert(index.is_unique, msg, *args)
 
 
 # TODO(gp): @all Add unit tests.
@@ -205,7 +205,7 @@ def dassert_increasing_index(
             msg = dup_msg + msg
         # Dump the data to file for further inspection.
         # obj.to_csv("index.csv")
-        hdbg.dassert(index.is_monotonic_increasing, msg=msg, *args)
+        hdbg.dassert(index.is_monotonic_increasing, msg, *args)
 
 
 # TODO(gp): @all Add more info in case of failures and unit tests.
@@ -234,7 +234,7 @@ def dassert_monotonic_index(
     dassert_unique_index(obj, msg, *args)
     index = _get_index(obj)
     cond = index.is_monotonic_increasing or index.is_monotonic_decreasing
-    hdbg.dassert(cond, msg=msg, *args)
+    hdbg.dassert(cond, msg, *args)
 
 
 # TODO(Paul): @gp -> dassert_datetime_indexed_df
@@ -819,7 +819,7 @@ def drop_axis_with_all_nans(
             _LOG.info(
                 "removed cols with all nans: %s %s",
                 pct_removed,
-                hprint.list_to_str(removed_cols),
+                hprint.list_to_str(list(removed_cols)),
             )
     if drop_rows:
         # Remove rows with all nans, if any.
@@ -1547,6 +1547,9 @@ def df_to_str(
     if not hsystem.is_running_in_ipynb():
         out.append(df_as_str)
         txt = "\n".join(out)
+    else:
+        # When running in ipynb, return the df_as_str since we already printed above
+        txt = df_as_str
     return txt
 
 
@@ -2160,7 +2163,7 @@ def compare_dfs(
         # Check `is_ok` and raise an assertion depending on `only_warning`.
         if not is_ok:
             hdbg._dfatal(
-                _,
+                str(_),
                 "df1=\n%s\n and df2=\n%s\n are not equal.",
                 df_to_str(df1, log_level=log_level),
                 df_to_str(df2, log_level=log_level),
@@ -2211,7 +2214,7 @@ def compare_dfs(
             # Check `is_ok` and raise assertion depending on `only_warning`.
             if not is_ok:
                 hdbg._dfatal(
-                    _,
+                    str(_),
                     "df1=\n%s\n and df2=\n%s\n have pct_change more than `assert_diff_threshold`.",
                     df_to_str(df1, log_level=log_level),
                     df_to_str(df2, log_level=log_level),
@@ -2451,7 +2454,7 @@ def compute_duration_df(
         intersect indices as is
     :return: timestamp stats and updated dict of dfs, see `intersect_dfs` param
     """
-    hdbg.dassert_isinstance(tag_to_df, Dict)
+    hdbg.dassert_isinstance(tag_to_df, dict)
     # Create df and assign columns.
     data_stats = pd.DataFrame()
     min_col = "min_index"
@@ -2607,7 +2610,7 @@ class CheckSummary:
                 print(self.title)
 
             # Convert DataFrame to HTML with colored rows based on 'is_ok' column.
-            def _color_rows(row: bool) -> str:
+            def _color_rows(row) -> List[str]:
                 """
                 Apply red/green color based on boolean value in `row["is_ok"]`.
                 """
@@ -2680,5 +2683,6 @@ def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Dict[str, Any]) -> str:
     """
     if isinstance(vals, list):
         vals = pd.Series(vals)
+    perc_kwargs['use_float'] = False
     ret = hprint.perc(vals.sum(), len(vals), **perc_kwargs)
-    return ret
+    return str(ret)

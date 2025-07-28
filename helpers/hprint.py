@@ -391,8 +391,8 @@ def to_object_repr(obj: Any) -> str:
 
 
 def thousand_separator(v: float) -> str:
-    v = "{0:,}".format(v)
-    return v
+    formatted_v = "{0:,}".format(v)
+    return formatted_v
 
 
 # TODO(gp): -> to_percentage

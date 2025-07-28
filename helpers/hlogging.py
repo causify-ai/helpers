@@ -789,9 +789,9 @@ def test_logger() -> None:
     #
     if hasattr(_LOG, "trace"):
         if hasattr(logging, "TRACE"):
-            _LOG.trace("TRACE=%s", logging.TRACE)
+            _LOG.trace("TRACE=%s", logging.TRACE)  # type: ignore
         else:
-            _LOG.trace("TRACE level not available")
+            _LOG.trace("TRACE level not available")  # type: ignore
     #
     _LOG.debug("DEBUG=%s", logging.DEBUG)
     #

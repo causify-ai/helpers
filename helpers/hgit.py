@@ -242,7 +242,8 @@ def find_git_root(path: str = ".") -> str:
         )
         # Update the path to the parent directory for the next iteration.
         path = parent
-    return git_root_dir
+    hdbg.dassert_is_not(git_root_dir, None, "Git root directory should have been found")
+    return str(git_root_dir)
 
 
 # #############################################################################
@@ -1394,7 +1395,7 @@ def does_branch_exist(
             exists_tmp = does_branch_exist(
                 branch_name, mode_tmp, dir_name=dir_name
             )
-            exists |= exists_tmp
+            exists = exists or exists_tmp
         return exists
     #
     hdbg.dassert_in(mode, ("git_local", "git_remote", "github"))

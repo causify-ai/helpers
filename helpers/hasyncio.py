@@ -111,9 +111,9 @@ async def gather_coroutines_with_wall_clock(
     )
     # Construct the coroutines here by passing the `get_wall_clock_time()`
     # function.
-    coroutines = [coro(get_wall_clock_time) for coro in coroutines]
+    coroutine_instances = [coro(get_wall_clock_time) for coro in coroutines]
     #
-    result: List[Any] = await asyncio.gather(*coroutines)
+    result: List[Any] = await asyncio.gather(*coroutine_instances)
     return result
 
 
