@@ -10,16 +10,7 @@ import logging
 import pprint
 import re
 import sys
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-    Union,
-)
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import helpers.hdbg as hdbg
 
@@ -263,7 +254,7 @@ def strict_split(lines: List[str], max_length: int) -> List[str]:
     lines_out = []
     for line in lines:
         for i in range(0, len(line), max_length):
-            lines_out.append(line[i:i + max_length])
+            lines_out.append(line[i : i + max_length])
     hdbg.dassert_isinstance(lines_out, list)
     return lines_out
 
@@ -304,9 +295,7 @@ def dedent(
     # Find the minimum number of leading spaces.
     min_num_spaces = None
     for curr_line in lines:
-        _LOG.debug(
-            "min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line
-        )
+        _LOG.debug("min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line)
         # Skip empty lines.
         if curr_line.lstrip().rstrip() == "":
             _LOG.debug("  -> Skipping empty line")
@@ -602,9 +591,7 @@ def _func_signature_to_str(
     # Get the caller's frame (i.e., the function that called this function).
     caller_frame = inspect.currentframe()
     for _ in range(frame_level):
-        hdbg.dassert_is_not(
-            caller_frame, None, "caller_frame should not be None"
-        )
+        hdbg.dassert_is_not(caller_frame, None, "caller_frame should not be None")
         caller_frame = caller_frame.f_back
     hdbg.dassert_is_not(
         caller_frame,
