@@ -20,6 +20,7 @@ Examples:
 import argparse
 import logging
 import os
+import random
 from typing import Optional
 
 import helpers.hdbg as hdbg
@@ -38,7 +39,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("prompt", help="Text prompt for image generation")
+    parser.add_argument("prompt", nargs="?", help="Text prompt for image generation")
     parser.add_argument(
         "--dst_dir",
         action="store",
@@ -58,6 +59,10 @@ def _parse() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--api_key", help="OpenAI API key (if not set via OPENAI_API_KEY env var)"
+    )
+    parser.add_argument(
+        "--workload",
+        help="Workload type (MSLM610 generates images for predefined word sets)"
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -116,23 +121,130 @@ def _generate_images(
     _LOG.info("Image generation complete. Images saved to: %s", dst_dir)
 
 
+def _generate_workload_images(
+    workload: str,
+    dst_dir: str,
+    low_res: bool = False,
+    api_key: Optional[str] = None,
+) -> None:
+    """
+    Generate images for specific workload types.
+    """
+    random.seed()  # Seeds with current system time by default
+    if workload != "MSLM610":
+        raise ValueError(f"Unsupported workload: {workload}")
+    # MSLM610 workload data.
+    WORKLOAD_DATA = {
+        1: ["Compass", "Spark", "Roadmap"],
+        2: ["Toolbox", "Gears", "Flowchart"],
+        3: ["Graph", "Symbols", "Ontology Tree"],
+        4: ["Blueprint", "Layers", "Curve"],
+        5: ["Book", "Equation", "Lightbulb"],
+        6: ["Prior", "Posterior", "Update"],
+        7: ["Code", "Dice", "Distribution"],
+        8: ["Timeline", "Clock", "Arrows"],
+        9: ["Arrow", "Chain", "Intervention"],
+        10: ["Line Chart", "Calendar", "Horizon"],
+        11: ["Neural Net", "Layers", "Circuit"],
+        12: ["Agent", "Reward", "Maze"],
+        13: ["Brain", "Question Mark", "Galaxy"]
+    }
+    values = {
+        1: ["Cimabue", "Maestà", "c. 1280"], 
+        2: ["Giotto di Bondone", "Lamentation", "c. 1305"],
+        3: ["Sandro Botticelli", "The Birth of Venus", "c. 1485"],
+        4: ["Leonardo da Vinci", "Mona Lisa", "c. 1503–1506"],
+        5: ["Rembrandt van Rijn", "The Night Watch", "1642"],
+        6: ["Vincent van Gogh", "The Starry Night", "1889"],
+        7: ["Pablo Picasso", "Guernica", 1937],
+        8: ["Jackson Pollock", "No. 5, 1948", 1948],
+        9: ["Mark Rothko", "Orange and Yellow", 1956],
+        10: ["Andy Warhol", "Marilyn Diptych", 1962],
+        11: ["Jean-Michel Basquiat", "Untitled", 1981],
+        12: ["Jenny Saville", "Propped", 1992],
+        13: ["Banksy", "Girl with Balloon", 2002],
+    }
+    # Set up OpenAI client.
+    if api_key:
+        client = openai.OpenAI(api_key=api_key)
+    else:
+        # Will use OPENAI_API_KEY environment variable.
+        client = openai.OpenAI()
+    # Ensure destination directory exists.
+    hio.create_dir(dst_dir, incremental=True)
+    # Set image parameters.
+    size = "1024x1024"
+    quality = "standard" if low_res else "hd"
+    # Base prompt for abstract expressionist style.
+    #base_prompt = "Create an abstract expressionist brushwork with fluid, organic motion for"
+    # Calculate total number of images.
+    total_images = sum(len(words) for words in WORKLOAD_DATA.values())
+    _LOG.info("Generating %s images for workload %s", total_images, workload)
+    _LOG.info("Resolution: %s, Quality: %s", size, quality)
+    image_count = 0
+    for number, words in WORKLOAD_DATA.items():
+        for word in words:
+            # Pick a random value from values dictionary
+            random_number = random.choice(list(values.keys()))
+            style = values[random_number][0]
+            # style = values[number][0]
+            prompt = "Create a painting in the style of " + style
+            prompt += " for the word " + word
+            prompt += ". There should be no text in the image."
+            print(prompt)
+            image_count += 1
+            # Create filename: image.1.compass.png.
+            word_clean = word.lower().replace(" ", "_")
+            #filename = f"image.{style}.{word_clean}.png"
+            filename = f"image.{word_clean}.{style}.png"
+            filepath = os.path.join(dst_dir, filename)
+            if os.path.exists(filepath):
+                _LOG.info("Image already exists: %s", filepath)
+                continue
+            #prompt = f"{base_prompt} {word}"
+            _LOG.info("Generating image %s/%s: %s", image_count, total_images, word)
+            response = client.images.generate(
+                model="dall-e-3",
+                prompt=prompt,
+                size=size,
+                quality=quality,
+                n=1,
+            )
+            # Get the image URL.
+            image_url = response.data[0].url
+            # Download the image.
+            _download_image(image_url, filepath)
+            _LOG.info("Saved image to: %s", filepath)
+    _LOG.info("Workload image generation complete. Images saved to: %s", dst_dir)
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate arguments.
-    hdbg.dassert_is_not(args.prompt, None, "Prompt is required")
     hdbg.dassert_is_not(args.dst_dir, None, "Destination directory is required")
-    hdbg.dassert_lte(1, args.count, "Count must be at least 1")
-    hdbg.dassert_lte(
-        args.count, 10, "Count should not exceed 10 for practical reasons"
-    )
-    _generate_images(
-        prompt=args.prompt,
-        count=args.count,
-        dst_dir=args.dst_dir,
-        low_res=args.low_res,
-        api_key=args.api_key,
-    )
+    if args.workload:
+        # Workload mode.
+        _generate_workload_images(
+            workload=args.workload,
+            dst_dir=args.dst_dir,
+            low_res=args.low_res,
+            api_key=args.api_key,
+        )
+    else:
+        # Regular mode.
+        hdbg.dassert_is_not(args.prompt, None, "Prompt is required")
+        hdbg.dassert_lte(1, args.count, "Count must be at least 1")
+        hdbg.dassert_lte(
+            args.count, 10, "Count should not exceed 10 for practical reasons"
+        )
+        _generate_images(
+            prompt=args.prompt,
+            count=args.count,
+            dst_dir=args.dst_dir,
+            low_res=args.low_res,
+            api_key=args.api_key,
+        )
 
 
 if __name__ == "__main__":
