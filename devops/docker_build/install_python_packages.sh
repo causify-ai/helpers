@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 #
 # Install Python packages.
+# 
+# Usage:
+#   ./install_python_packages.sh [dependency_groups]
+#   dependency_groups: Comma-separated list of dependency groups to install.
 #
 
 echo "#############################################################################"
@@ -42,7 +46,13 @@ if [[ 1 == 1 ]]; then
   python3 -m ${ENV_NAME} /${ENV_NAME}
   source /${ENV_NAME}/bin/activate
   #pip3 install wheel
-  poetry install --no-root
+  # Install only specified dependency groups.
+  # e.g.: `poetry install --no-root --with dev,docs`.
+  if [[ -n "$1" ]]; then
+    poetry install --no-root --with "$1"
+  else
+    poetry install --no-root
+  fi
   poetry env list
   # Clean up.
   if [[ $CLEAN_UP_INSTALLATION ]]; then
