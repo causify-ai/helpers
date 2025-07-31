@@ -167,7 +167,7 @@ def _process_comments(comments: List[str], log_filepath: str) -> None:
     # Clean up.
     hdbg.dassert_list_of_strings(comments)
     comments = sorted(comments)
-    comments = hprint.remove_empty_lines_from_string_list(comments)
+    comments = hprint.remove_empty_lines(comments)
     comments = hlist.remove_duplicates(comments)
     # Write into a file.
     hio.to_file(log_filepath, "\n".join(comments))

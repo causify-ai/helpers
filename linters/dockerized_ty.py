@@ -4,12 +4,18 @@
 Dockerized template.
 
 This script is a template for creating a Dockerized script.
+
+> ty check --output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' .
 """
 
 import argparse
 import logging
+from typing import List
 
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
+import helpers.hserver as hserver
+import helpers.hprint as hprint
 import helpers.hdockerized_executables as hdocexec
 import helpers.hparser as hparser
 
@@ -22,19 +28,61 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # TODO(*): Add more options.
-    # parser.add_argument(
-    #     "--docx_file",
-    #     required=True,
-    #     type=str,
-    #     help="Path to the DOCX file to convert.",
-    # )
     # Add Docker-specific arguments (e.g., --dockerized_force_rebuild,
     # --dockerized_use_sudo).
     hparser.add_dockerized_script_arg(parser)
     # Add logging verbosity parsing.
     hparser.add_verbosity_arg(parser)
     return parser
+
+
+def run_dockerized_ty(
+    cmd_opts: List[str],
+    *,
+    mode: str = "system",
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> str:
+    """ """
+    _LOG.debug(hprint.func_signature_to_str())
+    container_image = "tmp.ty"
+    dockerfile = r"""
+    FROM causify/helpers:dev
+
+    RUN sudo bash -c "(source /venv/bin/activate; pip install ty)"
+    """
+    container_image = hdocker.build_container_image(
+        container_image, dockerfile, force_rebuild, use_sudo
+    )
+    # Convert files to Docker paths.
+    is_caller_host = not hserver.is_inside_docker()
+    use_sibling_container_for_callee = True
+    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
+        is_caller_host, use_sibling_container_for_callee
+    )
+    cmd_opts_out = hdocker.convert_all_paths_from_caller_to_callee_docker_path(
+        cmd_opts,
+        caller_mount_path,
+        callee_mount_path,
+        is_caller_host,
+        use_sibling_container_for_callee,
+    )
+    cmd_opts_str = " ".join(cmd_opts_out)
+    # Build the docker command.
+    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
+    docker_cmd.extend(
+        [
+            f"--workdir {callee_mount_path} --mount {mount}",
+            container_image,
+            cmd_opts_str,
+        ]
+    )
+    docker_cmd = " ".join(docker_cmd)
+    # Run the docker command.
+    ret = hdocker.process_docker_cmd(
+        docker_cmd, container_image, dockerfile, mode
+    )
+    return ret
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -48,7 +96,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
     # Run latex.
-    hdocexec.run_basic_latex(
+    hdocexec.run_dockerized_ty(
         args.input,
         cmd_opts,
         args.run_latex_again,

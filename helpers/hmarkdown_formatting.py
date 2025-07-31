@@ -6,6 +6,7 @@ import helpers.hmarkdown as hmarkdo
 
 import logging
 import re
+from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
@@ -13,62 +14,68 @@ import helpers.hdockerized_executables as hdocexec
 _LOG = logging.getLogger(__name__)
 
 
-def remove_end_of_line_periods(txt: str) -> str:
+def remove_end_of_line_periods(lines: List[str]) -> List[str]:
     """
     Remove periods at the end of each line in the given text.
 
-    :param txt: input text to process
-    :return: text with end-of-line periods removed
+    :param lines: list of input lines to process
+    :return: lines with end-of-line periods removed
     """
-    hdbg.dassert_isinstance(txt, str)
-    txt_out = [line.rstrip(".") for line in txt.split("\n")]
-    txt_out = "\n".join(txt_out)
+    hdbg.dassert_isinstance(lines, list)
+    txt_out = [line.rstrip(".") for line in lines]
+    hdbg.dassert_isinstance(txt_out, list)
     return txt_out
 
 
-def remove_empty_lines(txt: str) -> str:
+def remove_empty_lines(lines: List[str]) -> List[str]:
     """
     Remove empty lines from the given text.
 
-    :param txt: input text to process
-    :return: text with empty lines removed
+    :param lines: list of input lines to process
+    :return: lines with empty lines removed
     """
-    hdbg.dassert_isinstance(txt, str)
-    txt_out = [line for line in txt.split("\n") if line != ""]
-    txt_out = "\n".join(txt_out)
+    hdbg.dassert_isinstance(lines, list)
+    txt_out = [line for line in lines if line != ""]
+    hdbg.dassert_isinstance(txt_out, list)
     return txt_out
 
 
 # TODO(gp): Add tests.
-def remove_code_delimiters(txt: str) -> str:
+def remove_code_delimiters(lines: List[str]) -> List[str]:
     """
     Remove ```python and ``` delimiters from a given text.
 
-    :param txt: input text containing code delimiters
-    :return: text with the code delimiters removed
+    :param lines: list of input lines containing code delimiters
+    :return: lines with the code delimiters removed
     """
+    hdbg.dassert_isinstance(lines, list)
+    # Join lines back to text, apply regex logic, then split again.
+    txt = "\n".join(lines)
     # Replace the ```python and ``` delimiters with empty strings.
     txt_out = txt.replace("```python", "").replace("```", "")
     txt_out = txt_out.strip()
     # Remove the numbers at the beginning of the line, if needed
     # E.g., `3: """` -> `"""`.
     txt_out = re.sub(r"(^\d+: )", "", txt_out, flags=re.MULTILINE)
-    return txt_out
+    # Split back into lines.
+    result = txt_out.split("\n") if txt_out else []
+    hdbg.dassert_isinstance(result, list)
+    return result
 
 
-def add_line_numbers(txt: str) -> str:
+def add_line_numbers(lines: List[str]) -> List[str]:
     """
     Add line numbers to each line of text.
 
-    :param txt: input text to process
-    :return: text with line numbers added
+    :param lines: list of input lines to process
+    :return: lines with line numbers added
     """
-    lines = txt.split("\n")
+    hdbg.dassert_isinstance(lines, list)
     numbered_lines = []
     for i, line in enumerate(lines, 1):
         numbered_lines.append(f"{i}: {line}")
-    txt_out = "\n".join(numbered_lines)
-    return txt_out
+    hdbg.dassert_isinstance(numbered_lines, list)
+    return numbered_lines
 
 
 def remove_formatting(txt: str) -> str:
@@ -137,16 +144,18 @@ def md_clean_up(txt: str) -> str:
     return txt
 
 
-def remove_empty_lines_from_markdown(markdown_text: str) -> str:
+def remove_empty_lines_from_markdown(lines: List[str]) -> List[str]:
     """
     Remove all empty lines from markdown text.
 
-    :param markdown_text: input markdown text
-    :return: formatted markdown text
+    :param lines: list of input markdown lines
+    :return: formatted markdown lines
     """
-    # Split into lines and remove empty ones.
-    result = [line for line in markdown_text.split("\n") if line.strip()]
-    return "\n".join(result)
+    hdbg.dassert_isinstance(lines, list)
+    # Remove empty lines.
+    result = [line for line in lines if line.strip()]
+    hdbg.dassert_isinstance(result, list)
+    return result
 
 
 def prettier_markdown(txt: str) -> str:
@@ -170,20 +179,24 @@ def format_markdown(txt: str) -> str:
     """
     file_type = "md"
     txt = hdocexec.prettier_on_str(txt, file_type)
-    txt = remove_empty_lines_from_markdown(txt)
+    lines = txt.split("\n")
+    clean_lines = remove_empty_lines_from_markdown(lines)
+    txt = "\n".join(clean_lines)
     return txt
 
 
-def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str:
+def bold_first_level_bullets(
+    lines: List[str], *, max_length: int = 30
+) -> List[str]:
     """
     Make first-level bullets bold in markdown text.
 
-    :param markdown_text: input markdown text
+    :param lines: list of input markdown lines
     :param max_length: max length of the bullet text to be bolded. The
         value '-1' means no limit
-    :return: formatted markdown text with first-level bullets in bold
+    :return: formatted markdown lines with first-level bullets in bold
     """
-    lines = markdown_text.split("\n")
+    hdbg.dassert_isinstance(lines, list)
     result = []
     for line in lines:
         # Check if this is a first-level bullet point.
@@ -201,29 +214,32 @@ def bold_first_level_bullets(markdown_text: str, *, max_length: int = 30) -> str
                         spaces = m.group(1)  # type: ignore[union-attr]
                         line = spaces + "**" + bullet_text + "**"
         result.append(line)
-    return "\n".join(result)
+    hdbg.dassert_isinstance(result, list)
+    return result
 
 
-def format_first_level_bullets(markdown_text: str) -> str:
+def format_first_level_bullets(lines: List[str]) -> List[str]:
     """
     Add empty lines only before first level bullets and remove all empty lines
     from markdown text.
 
-    :param markdown_text: input markdown text
-    :return: formatted markdown text
+    :param lines: list of input markdown lines
+    :return: formatted markdown lines
     """
-    # Split into lines and remove empty ones.
-    lines = [line for line in markdown_text.split("\n") if line.strip()]
+    hdbg.dassert_isinstance(lines, list)
+    # Remove empty lines.
+    lines_clean = [line for line in lines if line.strip()]
     # Add empty lines only before first level bullets.
     result = []
-    for i, line in enumerate(lines):
+    for i, line in enumerate(lines_clean):
         # Check if current line is a first level bullet (no indentation).
         if re.match(r"^- ", line):
             # Add empty line before first level bullet if not at start.
             if i > 0:
                 result.append("")
         result.append(line)
-    return "\n".join(result)
+    hdbg.dassert_isinstance(result, list)
+    return result
 
 
 def format_markdown_slide(txt: str) -> str:
@@ -234,10 +250,14 @@ def format_markdown_slide(txt: str) -> str:
     :return: formatted slide text
     """
     # Split the text into title and body.
-    txt = bold_first_level_bullets(txt)
+    lines = txt.split("\n")
+    lines = bold_first_level_bullets(lines)
+    txt = "\n".join(lines)
     file_type = "md"
     txt = hdocexec.prettier_on_str(txt, file_type)
-    txt = format_first_level_bullets(txt)
+    lines = txt.split("\n")
+    lines = format_first_level_bullets(lines)
+    txt = "\n".join(lines)
     # txt = capitalize_slide_titles(txt)
     return txt
 

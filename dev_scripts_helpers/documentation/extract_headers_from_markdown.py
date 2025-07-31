@@ -26,7 +26,9 @@ The script:
 
 import argparse
 import logging
+from typing import List
 
+import helpers.hdbg as hdbg
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 
@@ -34,7 +36,7 @@ _LOG = logging.getLogger(__name__)
 
 
 def _extract_headers_from_markdown(
-    in_file_name: str,
+    lines: List[str],
     mode: str,
     max_level: int,
     out_file_name: str,
@@ -42,19 +44,16 @@ def _extract_headers_from_markdown(
     """
     Extract headers from a Markdown file.
     """
-    input_content = hparser.read_file(in_file_name)
-    input_content = "\n".join(input_content)
+    hdbg.dassert_isinstance(lines, list)
     # We don't want to sanity check since we want to show the headers, even
     # if malformed.
     sanity_check = False
     header_list = hmarkdo.extract_headers_from_markdown(
-        input_content, max_level=max_level, sanity_check=sanity_check
+        lines, max_level=max_level, sanity_check=sanity_check
     )
     # Print the headers.
     if mode == "cfile":
-        output_content = hmarkdo.header_list_to_vim_cfile(
-            in_file_name, header_list
-        )
+        output_content = hmarkdo.header_list_to_vim_cfile(lines, header_list)
     else:
         output_content = hmarkdo.header_list_to_markdown(header_list, mode)
     hparser.write_file(output_content, out_file_name)
@@ -95,8 +94,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.init_logger_for_input_output_transform(args, verbose=verbose)
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     #
+    input_content = hparser.read_file(in_file_name)
     _extract_headers_from_markdown(
-        in_file_name, args.mode, args.max_level, out_file_name
+        input_content, args.mode, args.max_level, out_file_name
     )
 
 

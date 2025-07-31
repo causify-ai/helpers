@@ -6,7 +6,7 @@ import helpers.hmarkdown as hmarkdo
 
 import logging
 import re
-from typing import Tuple
+from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 from helpers.hmarkdown_headers import (
@@ -17,17 +17,19 @@ from helpers.hmarkdown_headers import (
 _LOG = logging.getLogger(__name__)
 
 
-def filter_by_header(text: str, header: str) -> str:
+def filter_by_header(lines: List[str], header: str) -> List[str]:
     """
     Extract a specific header from markdown text.
 
-    :param text: markdown text to be processed
+    :param lines: list of markdown lines to be processed
     :param header: header to filter by (e.g., `# Introduction`)
-    :return: filtered text
+    :return: filtered lines
     """
+    hdbg.dassert_isinstance(lines, list)
     # Filter by header.
-    txt = extract_section_from_markdown(text, header)
-    return txt
+    txt_lines = extract_section_from_markdown(lines, header)
+    hdbg.dassert_isinstance(txt_lines, list)
+    return txt_lines
 
 
 def _parse_range(range_as_str: str, max_value: int) -> Tuple[int, int]:
@@ -57,40 +59,41 @@ def _parse_range(range_as_str: str, max_value: int) -> Tuple[int, int]:
     return start_value, end_value
 
 
-def filter_by_lines(text: str, filter_by_lines: str) -> str:
+def filter_by_lines(lines: List[str], filter_by_lines: str) -> List[str]:
     """
     Filter the lines of text in `[start_line, end_line[`.
 
-    :param text: text to be processed
+    :param lines: list of lines to be processed
     :param filter_by_lines: string like `1:10` or `1:None` or `None:10`
-    :return: filtered text
+    :return: filtered lines
     """
-    txt = text.split("\n")
+    hdbg.dassert_isinstance(lines, list)
     # E.g., filter_by_lines='1:10'.
-    start_line, end_line = _parse_range(filter_by_lines, len(txt))
+    start_line, end_line = _parse_range(filter_by_lines, len(lines))
     # Filter by lines.
     hdbg.dassert_lte(start_line, end_line)
-    txt = txt[start_line - 1 : end_line - 1]
-    txt = "\n".join(txt)
+    txt = lines[start_line - 1 : end_line - 1]
     _LOG.warning(
         "filter_by_lines='%s' -> lines=[%s:%s]",
         filter_by_lines,
         start_line,
         end_line,
     )
+    hdbg.dassert_isinstance(txt, list)
     return txt
 
 
-def filter_by_slides(text: str, filter_by_slides: str) -> str:
+def filter_by_slides(lines: List[str], filter_by_slides: str) -> List[str]:
     """
     Filter the lines of text in `[start_slide, end_slide[`.
 
-    :param text: text to be processed
+    :param lines: list of lines to be processed
     :param filter_by_slides: string like `1:10` or `1:None` or `None:10`
-    :return: filtered text
+    :return: filtered lines
     """
+    hdbg.dassert_isinstance(lines, list)
     # Filter by slides.
-    slides_info, last_line_number = extract_slides_from_markdown(text)
+    slides_info, last_line_number = extract_slides_from_markdown(lines)
     _LOG.debug("slides_info=%s\n%s", len(slides_info), slides_info)
     # E.g., filter_by_slides='1:10'.
     start_slide, end_slide = _parse_range(filter_by_slides, len(slides_info))
@@ -110,7 +113,6 @@ def filter_by_slides(text: str, filter_by_slides: str) -> str:
         end_line,
     )
     # Filter by slides.
-    txt = text.split("\n")
-    txt = txt[start_line - 1 : end_line - 1]
-    txt = "\n".join(txt)
+    txt = lines[start_line - 1 : end_line - 1]
+    hdbg.dassert_isinstance(txt, list)
     return txt

@@ -1,0 +1,7 @@
+---
+fontsize: 10pt
+---
+\let\emph\textit
+\let\uline\underline
+\let\ul\underline
+$GIT_ROOT/dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end1.test_run_all2/input/input.txt

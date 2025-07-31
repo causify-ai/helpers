@@ -164,8 +164,8 @@
 - `pytest-rerunfailures` is not completely compatible with `pytest-timeout`.
   This is why we have to add the `-o timeout_func_only=true` flag to
   `pytest-timeout`. See
-  [https://github.com/pytest-dev/pytest-rerunfailures/issues/99](https://github.com/pytest-dev/pytest-rerunfailures/issues/99)` `for
-  more information
+  [https://github.com/pytest-dev/pytest-rerunfailures/issues/99](https://github.com/pytest-dev/pytest-rerunfailures/issues/99)
+  for more information
 - We rerun time outed fast tests twice and time outed slow and superslow tests
   once
 - There is a
@@ -210,7 +210,7 @@
   Coverage.py, version 5.5 with C extension
   Measure, collect, and report on code coverage in Python programs.
 
-  usage: coverage <command> [options] [args]
+  usage: `coverage <command>` [options] [args]
 
   Commands:
       annotate    Annotate source files with execution information.
@@ -224,7 +224,7 @@
       run         Run a Python program and measure code execution.
       xml         Create an XML report of coverage results.
 
-  Use "coverage help <command>" for detailed help on any command.
+  Use `coverage help <command>` for detailed help on any command.
   Full documentation is at https://coverage.readthedocs.io
   ```
 
