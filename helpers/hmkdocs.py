@@ -7,25 +7,7 @@ import helpers.hmkdocs as hmkdocs
 import re
 
 import helpers.hdbg as hdbg
-
-
-# TODO(gp): -> hamrkdown_toc.py
-def remove_table_of_contents(txt: str) -> str:
-    """
-    Remove the table of contents from the text of a markdown file.
-
-    The table of contents is stored between
-    ```
-    <!-- toc -->
-    ...
-    <!-- tocstop -->
-    ```
-
-    :param txt: Input markdown text
-    :return: Text with table of contents removed
-    """
-    txt = re.sub(r"<!-- toc -->.*?<!-- tocstop -->", "", txt, flags=re.DOTALL)
-    return txt
+import helpers.hmarkdown as hmarkdo
 
 
 # TODO(gp): -> hmarkdown_?.py
@@ -119,7 +101,7 @@ def preprocess_mkdocs_markdown(txt: str) -> str:
     :return: Preprocessed markdown text
     """
     # Apply all preprocessing steps.
-    txt = remove_table_of_contents(txt)
+    txt = hmarkdo.remove_table_of_contents(txt)
     txt = dedent_python_code_blocks(txt)
     txt = replace_indentation_with_four_spaces(txt)
     return txt

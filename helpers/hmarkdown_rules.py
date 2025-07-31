@@ -94,14 +94,13 @@ _LOG = logging.getLogger(__name__)
 #   ```
 
 
-def sanity_check_rules(txt: List[str]) -> None:
+def sanity_check_rules(lines: List[str]) -> None:
     """
     Sanity check the rules.
 
-    :param txt: list of text lines to check
+    :param lines: list of text lines to check
     """
-    txt_tmp = "\n".join(txt)
-    header_list = extract_headers_from_markdown(txt_tmp, max_level=5)
+    header_list = extract_headers_from_markdown(lines, max_level=5)
     # 1) Start with level 1 headers.
     # 2) All level 1 headers are unique.
     # 3) Header levels are increasing / decreasing by at most 1.
@@ -286,7 +285,8 @@ def extract_rules(
     return rule_sections
 
 
-def parse_rules_from_txt(txt: str) -> List[str]:
+# TODO(gp): This seems private?
+def parse_rules_from_txt(lines: List[str]) -> List[str]:
     """
     Parse rules from a chunk of markdown text.
 
@@ -294,7 +294,7 @@ def parse_rules_from_txt(txt: str) -> List[str]:
     - Sub-lists nested under first-level items are extracted together with the
       first-level items.
 
-    :param txt: text to process
+    :param lines: list of text lines to process
         ```
         - Item 1
         - Item 2
@@ -303,7 +303,7 @@ def parse_rules_from_txt(txt: str) -> List[str]:
         ```
     :return: extracted bullet points
     """
-    lines = txt.split("\n")
+    hdbg.dassert_isinstance(lines, list)
     # Store the first-level bullet points.
     bullet_points = []
     # Store the current item including the first level bullet point and all
@@ -330,30 +330,38 @@ def parse_rules_from_txt(txt: str) -> List[str]:
     # Add the last item if there is one.
     if current_item:
         bullet_points.append(current_item)
+    hdbg.dassert_isinstance(bullet_points, list)
     return bullet_points
 
 
-def extract_rules_from_section(txt: str, line_number: int) -> List[str]:
+def extract_rules_from_section(
+    lines: List[str], start_line_number: int
+) -> List[str]:
     """
     Extract rules from a section of a markdown file.
 
-    :param txt: markdown text to extract the rules from
-    :param line_number: line number of the section to start extracting
+    :param lines: list of markdown text lines to extract the rules from
+    :param start_line_number: line number of the section to start extracting
         the rules from
     :return: extracted rules
     """
+    hdbg.dassert_isinstance(lines, list)
     # Find the line number of the next header.
-    i = line_number
+    end_line_number = start_line_number
     while True:
-        hdbg.dassert_lt(i, len(txt))
-        line = txt[i]
+        hdbg.dassert_lt(end_line_number, len(lines))
+        line = lines[end_line_number]
         if line.startswith("#"):
             break
-        i += 1
+        end_line_number += 1
+    _LOG.debug("end_line_number=%s", end_line_number)
     # Parse the markdown text into a list of bullet points.
-    bullet_points = parse_rules_from_txt(txt)
+    bullet_points = parse_rules_from_txt(
+        lines[start_line_number:end_line_number]
+    )
     # Extract the rules from the bullet points.
     rules = []
     for bullet_point in bullet_points:
         rules.append(bullet_point)
+    hdbg.dassert_isinstance(rules, list)
     return rules

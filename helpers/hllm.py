@@ -158,7 +158,7 @@ class LLMClient:
         self.provider_name = provider_name
         self.model = model
 
-    def create_client(self) -> openai.OpenAI:
+    def create_client(self) -> None:
         """
         Create an LLM client.
         """
@@ -305,17 +305,16 @@ def _save_models_info_to_csv(
     model_info_df["completion_pricing"] = model_info_df["pricing"].apply(
         lambda x: x["completion"]
     )
-    # Take only relevant columns.
-    model_info_df = model_info_df[
-        [
-            "id",
-            "name",
-            "description",
-            "prompt_pricing",
-            "completion_pricing",
-            "supported_parameters",
-        ]
+    required_columns = [
+        "id",
+        "name",
+        "description",
+        "prompt_pricing",
+        "completion_pricing",
+        "supported_parameters",
     ]
+    # Take only relevant columns.
+    model_info_df = model_info_df.loc[:, required_columns]
     # Save to CSV file.
     model_info_df.to_csv(file_name, index=False)
     return model_info_df
@@ -489,7 +488,7 @@ def get_completion(
     :param model: model to use or empty string to use the default model
     :param report_progress: whether to report progress running the API
         call
-    :param cache_mode : "DISABLE_CACHE","REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"
+    :param cache_mode:
         - "DISABLE_CACHE": No caching
         - "REFRESH_CACHE": Make API calls and save responses to cache
         - "HIT_CACHE_OR_ABORT": Use cached responses, fail if not in cache
@@ -508,7 +507,6 @@ def get_completion(
     update_llm_cache = get_update_llm_cache()
     if update_llm_cache:
         cache_mode = "REFRESH_CACHE"
-
     llm_client = LLMClient(model=model)
     llm_client.create_client()
     # Construct messages in OpenAI API request format.
@@ -810,7 +808,9 @@ def apply_prompt_to_dataframe(
     if not allow_overwrite:
         hdbg.dassert_not_in(response_col, df.columns)
     response_data = []
-    for start in tqdm(range(0, len(df), chunk_size), desc="Processing chunks"):
+    for start in tqdm.tqdm(
+        range(0, len(df), chunk_size), desc="Processing chunks"
+    ):
         end = start + chunk_size
         chunk = df.iloc[start:end]
         _LOG.debug("chunk.size=%s", chunk.shape[0])
