@@ -18,7 +18,8 @@ import helpers.hserver as hserver
 _LOG = logging.getLogger(__name__)
 
 
-# AWS profile is as a mechanism to differentiate between different AWS accounts.
+# AWS profile is used as a mechanism to differentiate between different AWS accounts.
+# See CmampTask12943.
 # `test` and `preprod` environments are in the same account using `ck` profile.
 # `prod` environment is in the different account using `csfy` profile.
 AWS_PROFILE = {
