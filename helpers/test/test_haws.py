@@ -73,8 +73,10 @@ class Test_get_session(Haws_test_case):
         # Test that `get_session` returns a session object with the specified region.
         session = haws.get_session(aws_profile, region=region)
         self.assertEqual(session, mock_session)
-        # Verify that `boto3.Session` was called with the correct profile
-        mock_boto3_session.assert_called_once_with(profile_name=aws_profile)
+        # Verify that `boto3.Session` was called with the correct profile and region.
+        mock_boto3_session.assert_called_once_with(
+            profile_name=aws_profile, region_name=region
+        )
 
 
 # #############################################################################

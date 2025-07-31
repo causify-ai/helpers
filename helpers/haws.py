@@ -47,13 +47,16 @@ def get_session(
     # When deploying jobs via ECS the container obtains credentials based on
     # passed task role specified in the ECS task-definition, refer to:
     # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
-    if aws_profile == "ck" and hserver.is_inside_ecs_container():
+    if aws_profile in ["ck", "csfy"] and hserver.is_inside_ecs_container():
         _LOG.info("Fetching credentials from task IAM role")
         session = boto3.session.Session()
     else:
         # We do not need to extract the credential from the file because
         # the credential is already set and `boto3` know where to find them.
-        session = boto3.Session(profile_name=aws_profile)
+        if region:
+            session = boto3.Session(profile_name=aws_profile, region_name=region)
+        else:
+            session = boto3.Session(profile_name=aws_profile)
     return session
 
 
