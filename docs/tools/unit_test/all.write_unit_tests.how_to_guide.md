@@ -1246,12 +1246,12 @@ datetime_patch = umock.patch.object(imvcdeexut, "datetime", spec=imvcdeexut.date
   class TestExtractor1(hunitest.TestCase):
       # Mock `Extractor`'s abstract functions.
       abstract_methods_patch = umock.patch.object(
-          imvcdexex.Extractor, "__abstractmethods__", new=set()
+          imvcdexex.MarketDataExtractor, "__abstractmethods__", new=set()
       )
       ohlcv_patch = umock.patch.object(
-          imvcdexex.Extractor,
+          imvcdexex.MarketDataExtractor,
           "_download_ohlcv",
-          spec=imvcdexex.Extractor._download_ohlcv,
+          spec=imvcdexex.MarketDataExtractor._download_ohlcv,
       )
   ```
 
