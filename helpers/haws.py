@@ -5,6 +5,7 @@ import helpers.haws as haws
 """
 
 import logging
+import os
 from typing import Dict, List, Optional
 
 import boto3
@@ -53,13 +54,14 @@ def get_session(
             del credentials["aws_s3_bucket"]
         # TODO(heanh): Find a better way to handle different AWS accounts
         # and environments.
-        if aws_profile == "csfy-prod":
+        if aws_profile == "csfy":
             source_session = boto3.Session(**credentials)
             sts_client = source_session.client("sts")
-            # TODO(heanh): Use environment variable to get the role ARN.
+            # Get role ARN from environment variable
+            role_arn = os.environ.get("CSFY_PROD_ACCOUNT_ACCESS_ROLE_ARN")
             assumed_role = sts_client.assume_role(
-                RoleArn="arn:aws:iam::726416904550:role/ProdAccountAccessRole",
-                RoleSessionName="csfy-prod-session",
+                RoleArn=role_arn,
+                RoleSessionName="csfy-session",
             )
             credentials = {
                 "aws_access_key_id": assumed_role["Credentials"]["AccessKeyId"],
@@ -67,7 +69,6 @@ def get_session(
                     "SecretAccessKey"
                 ],
                 "aws_session_token": assumed_role["Credentials"]["SessionToken"],
-                "region_name": "us-east-1",
             }
         session = boto3.Session(**credentials)
     return session
@@ -126,7 +127,7 @@ def get_task_definition_image_url(
     :param region: AWS region, if None get region from AWS credentials.
     :param region: look at `get_session()`
     """
-    aws_profile = "csfy-prod" if environment == "prod" else "ck"
+    aws_profile = "csfy" if environment == "prod" else "ck"
     service_name = "ecs"
     client = get_service_client(aws_profile, service_name, region=region)
     # Get the last revision of the task definition.
@@ -182,7 +183,7 @@ def update_task_definition(
         `***.dkr.ecr.***/cmamp:prod`.
     :param region: AWS region, if None get region from AWS credentials.
     """
-    aws_profile = "csfy-prod" if environment == "prod" else "ck"
+    aws_profile = "csfy" if environment == "prod" else "ck"
     client = get_ecs_client(aws_profile, region=region)
     # Get the last revision of the task definition.
     task_description = client.describe_task_definition(

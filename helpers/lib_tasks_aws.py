@@ -140,7 +140,7 @@ def release_dags_to_airflow(
 _AWS_PROFILE = {
     "test": "ck",
     "preprod": "ck",
-    "prod": "csfy-prod",
+    "prod": "csfy",
 }
 _TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {
     "awslogs-create-group": "true",
