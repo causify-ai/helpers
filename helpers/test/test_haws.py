@@ -74,8 +74,6 @@ class Test_get_session(Haws_test_case):
         session = haws.get_session(aws_profile, region=region)
         self.assertEqual(session, mock_session)
         # Verify that boto3.Session was called with the correct profile
-        # The region parameter is passed to get_session but not to boto3.Session
-        # since get_session handles region internally
         mock_boto3_session.assert_called_once_with(profile_name=aws_profile)
 
 
@@ -95,7 +93,6 @@ class Test_get_service_client(Haws_test_case):
         aws_profile = "__mock__"
         service_name = "s3"
         region = "us-east-1"
-        
         # Create a mock session with the expected credentials
         mock_session = boto3.session.Session(
             aws_access_key_id="testing",
@@ -103,7 +100,6 @@ class Test_get_service_client(Haws_test_case):
             region_name=region,
         )
         mock_get_session.return_value = mock_session
-        
         # Create mock client for S3.
         client = haws.get_service_client(
             aws_profile=aws_profile, service_name=service_name, region=region
@@ -130,7 +126,6 @@ class Test_get_service_resource(Haws_test_case):
         """
         aws_profile = "__mock__"
         service_name = "s3"
-        
         # Create a mock session with the expected credentials
         mock_session = boto3.session.Session(
             aws_access_key_id="testing",
@@ -138,7 +133,6 @@ class Test_get_service_resource(Haws_test_case):
             region_name="us-east-1",
         )
         mock_get_session.return_value = mock_session
-        
         # Create mock S3 bucket.
         s3 = boto3.resource("s3")
         s3.create_bucket(Bucket="my-test-bucket")
@@ -240,10 +234,11 @@ class Test_update_task_definition(Haws_test_case):
 
 class Test_get_ecs_client(Haws_test_case):
 
-    def mock_aws_client(self, mock_get_session: umock.Mock, *, region: Optional[str] = None) -> None:
+    def mock_aws_client(
+        self, mock_get_session: umock.Mock, *, region: Optional[str] = None
+    ) -> None:
         aws_profile = "__mock__"
         test_cluster_name = "test-cluster"
-        
         # Create a mock session with the expected credentials
         mock_session = boto3.session.Session(
             aws_access_key_id="testing",
@@ -251,7 +246,6 @@ class Test_get_ecs_client(Haws_test_case):
             region_name=region or "us-east-1",
         )
         mock_get_session.return_value = mock_session
-        
         # Create mock ECS client.
         ecs_client = boto3.client("ecs", region_name="us-east-1")
         ecs_client.create_cluster(clusterName=test_cluster_name)

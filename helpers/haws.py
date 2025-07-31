@@ -5,7 +5,6 @@ import helpers.haws as haws
 """
 
 import logging
-import os
 from typing import Dict, List, Optional
 
 import boto3
@@ -14,7 +13,6 @@ from boto3.resources.base import ServiceResource
 from botocore.client import BaseClient
 
 import helpers.hdbg as hdbg
-import helpers.hs3 as hs3
 import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
@@ -41,7 +39,7 @@ def get_session(
         _LOG.info("Fetching credentials from task IAM role")
         session = boto3.session.Session()
     else:
-        # We do not need to extract the credential from the file because 
+        # We do not need to extract the credential from the file because
         # the credential is already set and `boto3` know where to find them.
         session = boto3.Session(profile_name=aws_profile)
     return session
