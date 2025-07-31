@@ -174,9 +174,7 @@ class Test_get_task_definition_image_url(Haws_test_case):
                 {"name": "my-container", "image": mock_image_url, "memory": 512}
             ],
         )
-        image_url = haws.get_task_definition_image_url(
-            task_definition_name, environment="test"
-        )
+        image_url = haws.get_task_definition_image_url(task_definition_name)
         self.assertEqual(image_url, mock_image_url)
 
 
@@ -215,7 +213,7 @@ class Test_update_task_definition(Haws_test_case):
         )
         # Update task definition.
         haws.update_task_definition(
-            task_definition_name, new_image_url, region=region, environment="test"
+            task_definition_name, new_image_url, region=region
         )
         # Check if the task definition is updated.
         task_description = mock_client.describe_task_definition(
