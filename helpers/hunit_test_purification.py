@@ -25,6 +25,8 @@ _LOG.setLevel(logging.INFO)
 # #############################################################################
 
 
+# TODO(gp): Not sure the class is really needed since now it's in a separate
+# file.
 class TextPurifier:
     """
     A class to purify text by removing environment-specific information and
@@ -207,6 +209,8 @@ class TextPurifier:
             # Update legacy module path forms to use amp.helpers.
             (r"app\.amp\.helpers_root\.helpers", "amp.helpers"),
             (r"app\.amp\.helpers", "amp.helpers"),
+            #
+            (r"/helpers_root", ""),
             # Remove leading './' from relative paths.
             (r"(?m)^\./", ""),
         ]
@@ -429,3 +433,12 @@ class TextPurifier:
                 txt_out,
             )
         return txt_out
+
+
+def purify_text(txt: str) -> str:
+    """
+    Purify text by removing environment-specific information and standardizing
+    output for test comparisons.
+    """
+    purifier = TextPurifier()
+    return purifier.purify_txt_from_client(txt)

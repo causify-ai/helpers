@@ -663,11 +663,6 @@ def is_path(path: str) -> bool:
 
     - return: True if the string looks like a path, False otherwise.
     """
-    # Heuristic: a path is a file or directory if
-    # - It has a file extension (e.g., .txt, .csv)
-    # - It is an absolute or relative path (e.g., starts with "/" or "./" or "../")
-    # - It ends with "/", indicating a folder
-    # 
     # E.g.,
     # ```
     # is_path("file.txt")           # True, since it has an extension
@@ -675,16 +670,25 @@ def is_path(path: str) -> bool:
     # is_path("/path/to")           # True, since it has an absolute path
     # is_path("../data.csv")        # True, since it has an relative path
     # is_path("folder/")            # True, since it has a trailing slash
+    # is_path(".hidden")            # True, since it has a leading dot
     # is_path("readme")             # False, since it has no extension and no path
     # ```
-    # Check if it has a file extension.
+    # Check if it has a file extension (e.g., .txt, .csv).
     if os.path.splitext(path)[1]:
         return True
-    # Check if it's an absolute or relative path.
+    # Check if it is an absolute or relative path (e.g., starts with "/" or "./"
+    # or "../")
     if path.startswith("/") or path.startswith("./") or path.startswith("../"):
         return True
     # Check if it ends with a slash.
     if path.endswith("/"):
+        return True
+    # Check if it has a hidden file.
+    basename = os.path.basename(path)
+    if basename.startswith(".") and basename.count(".") == 1:
+        return True
+    # Check if it contains a slash.
+    if "/" in path:
         return True
     return False
 
