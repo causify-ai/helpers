@@ -342,6 +342,12 @@ class TextPurifier:
         txt = re.sub(
             r"helpers_root/config_root/", "config_root/", txt, flags=re.MULTILINE
         )
+        txt = re.sub(
+            r"helpers_root/dev_scripts_helpers/",
+            "dev_scripts_helpers/",
+            txt,
+            flags=re.MULTILINE,
+        )
         return txt
 
     def purify_docker_image_name(self, txt: str) -> str:
