@@ -13,7 +13,6 @@ from boto3.resources.base import ServiceResource
 from botocore.client import BaseClient
 
 import helpers.hdbg as hdbg
-import helpers.hs3 as hs3
 import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
@@ -40,18 +39,9 @@ def get_session(
         _LOG.info("Fetching credentials from task IAM role")
         session = boto3.session.Session()
     else:
-        # Original credentials are cached, thus we do not want to edit them.
-        credentials = hs3.get_aws_credentials(aws_profile=aws_profile)
-        credentials = credentials.copy()
-        # Boto session expects `region_name`.
-        credentials["region_name"] = credentials.pop("aws_region")
-        if region:
-            credentials["region_name"] = region
-        # TODO(gp): a better approach is to just extract what boto.Session needs rather
-        #  then passing everything.
-        if "aws_s3_bucket" in credentials:
-            del credentials["aws_s3_bucket"]
-        session = boto3.session.Session(**credentials)
+        # We do not need to extract the credential from the file because
+        # the credential is already set and `boto3` know where to find them.
+        session = boto3.Session(profile_name=aws_profile)
     return session
 
 
@@ -98,7 +88,7 @@ def get_ecs_client(
 
 
 def get_task_definition_image_url(
-    task_definition_name: str, *, region: Optional[str] = None
+    task_definition_name: str, environment: str, *, region: Optional[str] = None
 ) -> str:
     """
     Get ECS task definition by name and return only image URL.
@@ -108,7 +98,7 @@ def get_task_definition_image_url(
     :param region: AWS region, if None get region from AWS credentials.
     :param region: look at `get_session()`
     """
-    aws_profile = "ck"
+    aws_profile = "csfy" if environment == "prod" else "ck"
     service_name = "ecs"
     client = get_service_client(aws_profile, service_name, region=region)
     # Get the last revision of the task definition.
@@ -149,6 +139,7 @@ def update_task_definition(
     new_image_url: str,
     *,
     region: Optional[str] = None,
+    environment: str,
 ) -> None:
     """
     Create the new revision of specified ECS task definition.
@@ -163,7 +154,8 @@ def update_task_definition(
         `***.dkr.ecr.***/cmamp:prod`.
     :param region: AWS region, if None get region from AWS credentials.
     """
-    client = get_ecs_client("ck", region=region)
+    aws_profile = "csfy" if environment == "prod" else "ck"
+    client = get_ecs_client(aws_profile, region=region)
     # Get the last revision of the task definition.
     task_description = client.describe_task_definition(
         taskDefinition=task_definition_name
