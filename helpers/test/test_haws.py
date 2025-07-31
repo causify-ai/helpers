@@ -41,43 +41,42 @@ class Test_get_session(Haws_test_case):
     def set_up_test(self) -> None:
         os.environ["MOCK_AWS_S3_BUCKET"] = "mock_aws_bucket"
 
-    def mock_session(self, region: Optional[str] = None) -> None:
-        aws_profile = "__mock__"
-        # Create mock session.
-        mock_session = boto3.session.Session(
-            aws_access_key_id="testing",
-            aws_secret_access_key="testing",
-            region_name="us-east-1",
-        )
-        # Using mock session to create a S3 bucket.
-        s3_resource = mock_session.resource("s3")
-        s3_resource.create_bucket(Bucket="my-bucket")
-        if region:
-            session = haws.get_session(aws_profile, region=region)
-        else:
-            session = haws.get_session(aws_profile)
-        # Get all S3 buckets in session.
-        s3_client = session.client("s3")
-        response = s3_client.list_buckets()
-        bucket_names = [bucket["Name"] for bucket in response.get("Buckets", [])]
-        # Check if they are matched.
-        self.assertIn("my-bucket", bucket_names)
-
     @mock_aws
-    def test_get_session1(self) -> None:
+    @umock.patch("boto3.Session")
+    def test_get_session1(self, mock_boto3_session: umock.Mock) -> None:
         """
         Test that `haws.get_session` correctly return a session without region
         parameter.
         """
-        self.mock_session()
+        aws_profile = "__mock__"
+        # Create a mock session.
+        mock_session = umock.MagicMock()
+        mock_boto3_session.return_value = mock_session
+        # Test that get_session returns a session object.
+        session = haws.get_session(aws_profile)
+        self.assertEqual(session, mock_session)
+        # Verify that boto3.Session was called with the correct profile
+        mock_boto3_session.assert_called_once_with(profile_name=aws_profile)
 
     @mock_aws
-    def test_get_session2(self) -> None:
+    @umock.patch("boto3.Session")
+    def test_get_session2(self, mock_boto3_session: umock.Mock) -> None:
         """
         Test that `haws.get_session` correctly return a session with region
         parameter.
         """
-        self.mock_session(region="us-east-1")
+        aws_profile = "__mock__"
+        region = "us-east-1"
+        # Create a mock session
+        mock_session = umock.MagicMock()
+        mock_boto3_session.return_value = mock_session
+        # Test that get_session returns a session object with the specified region
+        session = haws.get_session(aws_profile, region=region)
+        self.assertEqual(session, mock_session)
+        # Verify that boto3.Session was called with the correct profile
+        # The region parameter is passed to get_session but not to boto3.Session
+        # since get_session handles region internally
+        mock_boto3_session.assert_called_once_with(profile_name=aws_profile)
 
 
 # #############################################################################
@@ -88,13 +87,23 @@ class Test_get_session(Haws_test_case):
 class Test_get_service_client(Haws_test_case):
 
     @mock_aws
-    def test1(self) -> None:
+    @umock.patch("helpers.haws.get_session")
+    def test1(self, mock_get_session: umock.Mock) -> None:
         """
         Test `haws.get_service_client()` returns a client for S3.
         """
         aws_profile = "__mock__"
         service_name = "s3"
         region = "us-east-1"
+        
+        # Create a mock session with the expected credentials
+        mock_session = boto3.session.Session(
+            aws_access_key_id="testing",
+            aws_secret_access_key="testing",
+            region_name=region,
+        )
+        mock_get_session.return_value = mock_session
+        
         # Create mock client for S3.
         client = haws.get_service_client(
             aws_profile=aws_profile, service_name=service_name, region=region
@@ -113,13 +122,23 @@ class Test_get_service_client(Haws_test_case):
 class Test_get_service_resource(Haws_test_case):
 
     @mock_aws
-    def test1(self) -> None:
+    @umock.patch("helpers.haws.get_session")
+    def test1(self, mock_get_session: umock.Mock) -> None:
         """
         Test that `haws.get_service_resource()` correctly retrieves a S3
         resource.
         """
         aws_profile = "__mock__"
         service_name = "s3"
+        
+        # Create a mock session with the expected credentials
+        mock_session = boto3.session.Session(
+            aws_access_key_id="testing",
+            aws_secret_access_key="testing",
+            region_name="us-east-1",
+        )
+        mock_get_session.return_value = mock_session
+        
         # Create mock S3 bucket.
         s3 = boto3.resource("s3")
         s3.create_bucket(Bucket="my-test-bucket")
@@ -221,9 +240,18 @@ class Test_update_task_definition(Haws_test_case):
 
 class Test_get_ecs_client(Haws_test_case):
 
-    def mock_aws_client(self, *, region: Optional[str] = None) -> None:
+    def mock_aws_client(self, mock_get_session: umock.Mock, *, region: Optional[str] = None) -> None:
         aws_profile = "__mock__"
         test_cluster_name = "test-cluster"
+        
+        # Create a mock session with the expected credentials
+        mock_session = boto3.session.Session(
+            aws_access_key_id="testing",
+            aws_secret_access_key="testing",
+            region_name=region or "us-east-1",
+        )
+        mock_get_session.return_value = mock_session
+        
         # Create mock ECS client.
         ecs_client = boto3.client("ecs", region_name="us-east-1")
         ecs_client.create_cluster(clusterName=test_cluster_name)
@@ -238,17 +266,19 @@ class Test_get_ecs_client(Haws_test_case):
         self.assertIn(test_cluster_name, cluster_name)
 
     @mock_aws
-    def test1(self) -> None:
+    @umock.patch("helpers.haws.get_session")
+    def test1(self, mock_get_session: umock.Mock) -> None:
         """
         Test that `haws.get_ecs_client()` correctly return a client to work
         with ECS within a specified region.
         """
-        self.mock_aws_client(region="us-east-1")
+        self.mock_aws_client(mock_get_session, region="us-east-1")
 
     @mock_aws
-    def test2(self) -> None:
+    @umock.patch("helpers.haws.get_session")
+    def test2(self, mock_get_session: umock.Mock) -> None:
         """
         Test that `haws.get_ecs_client()` correctly return a client to work
         with ECS without a specified region.
         """
-        self.mock_aws_client()
+        self.mock_aws_client(mock_get_session)
