@@ -55,7 +55,7 @@ class Test_get_session(Haws_test_case):
         # Test that get_session returns a session object.
         session = haws.get_session(aws_profile)
         self.assertEqual(session, mock_session)
-        # Verify that boto3.Session was called with the correct profile
+        # Verify that `boto3.Session` was called with the correct profile.
         mock_boto3_session.assert_called_once_with(profile_name=aws_profile)
 
     @mock_aws
@@ -70,10 +70,10 @@ class Test_get_session(Haws_test_case):
         # Create a mock session
         mock_session = umock.MagicMock()
         mock_boto3_session.return_value = mock_session
-        # Test that get_session returns a session object with the specified region
+        # Test that `get_session` returns a session object with the specified region.
         session = haws.get_session(aws_profile, region=region)
         self.assertEqual(session, mock_session)
-        # Verify that boto3.Session was called with the correct profile
+        # Verify that `boto3.Session` was called with the correct profile
         mock_boto3_session.assert_called_once_with(profile_name=aws_profile)
 
 
@@ -93,7 +93,7 @@ class Test_get_service_client(Haws_test_case):
         aws_profile = "__mock__"
         service_name = "s3"
         region = "us-east-1"
-        # Create a mock session with the expected credentials
+        # Create a mock session with the expected credentials.
         mock_session = boto3.session.Session(
             aws_access_key_id="testing",
             aws_secret_access_key="testing",
@@ -126,7 +126,7 @@ class Test_get_service_resource(Haws_test_case):
         """
         aws_profile = "__mock__"
         service_name = "s3"
-        # Create a mock session with the expected credentials
+        # Create a mock session with the expected credentials.
         mock_session = boto3.session.Session(
             aws_access_key_id="testing",
             aws_secret_access_key="testing",
@@ -239,7 +239,7 @@ class Test_get_ecs_client(Haws_test_case):
     ) -> None:
         aws_profile = "__mock__"
         test_cluster_name = "test-cluster"
-        # Create a mock session with the expected credentials
+        # Create a mock session with the expected credentials.
         mock_session = boto3.session.Session(
             aws_access_key_id="testing",
             aws_secret_access_key="testing",

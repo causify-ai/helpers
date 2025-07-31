@@ -88,7 +88,7 @@ def get_ecs_client(
 
 
 def get_task_definition_image_url(
-    task_definition_name: str, environment: str, *, region: Optional[str] = None
+    task_definition_name: str, *, region: Optional[str] = None
 ) -> str:
     """
     Get ECS task definition by name and return only image URL.
@@ -98,7 +98,7 @@ def get_task_definition_image_url(
     :param region: AWS region, if None get region from AWS credentials.
     :param region: look at `get_session()`
     """
-    aws_profile = "csfy" if environment == "prod" else "ck"
+    aws_profile = "ck"
     service_name = "ecs"
     client = get_service_client(aws_profile, service_name, region=region)
     # Get the last revision of the task definition.
@@ -139,7 +139,6 @@ def update_task_definition(
     new_image_url: str,
     *,
     region: Optional[str] = None,
-    environment: str,
 ) -> None:
     """
     Create the new revision of specified ECS task definition.
@@ -154,8 +153,7 @@ def update_task_definition(
         `***.dkr.ecr.***/cmamp:prod`.
     :param region: AWS region, if None get region from AWS credentials.
     """
-    aws_profile = "csfy" if environment == "prod" else "ck"
-    client = get_ecs_client(aws_profile, region=region)
+    client = get_ecs_client("ck", region=region)
     # Get the last revision of the task definition.
     task_description = client.describe_task_definition(
         taskDefinition=task_definition_name
