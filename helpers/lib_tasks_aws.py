@@ -137,6 +137,11 @@ def release_dags_to_airflow(
 # ECS Task Definition
 # #############################################################################
 
+# TODO(heanh): Find a better way to handle different AWS accounts
+# and environments.
+# AWS profile is as a mechanism to differentiate between different AWS accounts.
+# `test` and `preprod` environments are in the same account using `ck` profile.
+# `prod` environment is in the different account using `csfy` profile.
 _AWS_PROFILE = {
     "test": "ck",
     "preprod": "ck",

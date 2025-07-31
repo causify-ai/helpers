@@ -41,36 +41,40 @@ def get_session(
         _LOG.info("Fetching credentials from task IAM role")
         session = boto3.session.Session()
     else:
-        # Original credentials are cached, thus we do not want to edit them.
-        credentials = hs3.get_aws_credentials(aws_profile=aws_profile)
-        credentials = credentials.copy()
-        # Boto session expects `region_name`.
-        credentials["region_name"] = credentials.pop("aws_region")
-        if region:
-            credentials["region_name"] = region
-        # TODO(gp): a better approach is to just extract what boto.Session needs rather
-        #  then passing everything.
-        if "aws_s3_bucket" in credentials:
-            del credentials["aws_s3_bucket"]
-        # TODO(heanh): Find a better way to handle different AWS accounts
-        # and environments.
-        if aws_profile == "csfy":
-            source_session = boto3.Session(**credentials)
-            sts_client = source_session.client("sts")
-            # Get role ARN from environment variable
-            role_arn = os.environ.get("CSFY_PROD_ACCOUNT_ACCESS_ROLE_ARN")
-            assumed_role = sts_client.assume_role(
-                RoleArn=role_arn,
-                RoleSessionName="csfy-session",
-            )
-            credentials = {
-                "aws_access_key_id": assumed_role["Credentials"]["AccessKeyId"],
-                "aws_secret_access_key": assumed_role["Credentials"][
-                    "SecretAccessKey"
-                ],
-                "aws_session_token": assumed_role["Credentials"]["SessionToken"],
-            }
-        session = boto3.Session(**credentials)
+        # # Original credentials are cached, thus we do not want to edit them.
+        # credentials = hs3.get_aws_credentials(aws_profile=aws_profile)
+        # credentials = credentials.copy()
+        # # Boto session expects `region_name`.
+        # credentials["region_name"] = credentials.pop("aws_region")
+        # if region:
+        #     credentials["region_name"] = region
+        # # TODO(gp): a better approach is to just extract what boto.Session needs rather
+        # #  then passing everything.
+        # if "aws_s3_bucket" in credentials:
+        #     del credentials["aws_s3_bucket"]
+        # To interact with resources in the prod account, we need to assume a role.
+        # if aws_profile == "csfy":
+        #     source_session = boto3.Session(**credentials)
+        #     sts_client = source_session.client("sts")
+        #     # Get role ARN from environment variable
+        #     role_arn = os.environ.get("CSFY_PROD_ACCOUNT_ACCESS_ROLE_ARN")
+        #     assumed_role = sts_client.assume_role(
+        #         RoleArn=role_arn,
+        #         RoleSessionName="csfy-session",
+        #     )
+        #     credentials = {
+        #         "aws_access_key_id": assumed_role["Credentials"]["AccessKeyId"],
+        #         "aws_secret_access_key": assumed_role["Credentials"][
+        #             "SecretAccessKey"
+        #         ],
+        #         "aws_session_token": assumed_role["Credentials"]["SessionToken"],
+        #     }
+        # # If we are not in the prod account, we can use the credentials directly.
+        # session = boto3.Session(**credentials)
+        # 
+        # We do not need to extract the credential from the file because 
+        # the credential is already set and `boto3` know where to find them.
+        session = boto3.Session(profile_name=aws_profile)
     return session
 
 
