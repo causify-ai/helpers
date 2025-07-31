@@ -137,16 +137,6 @@ def release_dags_to_airflow(
 # ECS Task Definition
 # #############################################################################
 
-# TODO(heanh): Find a better way to handle different AWS accounts
-# and environments.
-# AWS profile is as a mechanism to differentiate between different AWS accounts.
-# `test` and `preprod` environments are in the same account using `ck` profile.
-# `prod` environment is in the different account using `csfy` profile.
-_AWS_PROFILE = {
-    "test": "ck",
-    "preprod": "ck",
-    "prod": "csfy",
-}
 _TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {
     "awslogs-create-group": "true",
     "awslogs-group": "/ecs/{}",
@@ -167,7 +157,7 @@ def _get_ecs_task_definition_template(environment: str) -> Dict[str, Any]:
     s3_path = f"{_SHARED_CONFIGS_DIR}/{environment}/templates/ecs/ecs_task_definition_template.json"
     hs3.dassert_is_s3_path(s3_path)
     task_definition_config = hs3.from_file(
-        s3_path, aws_profile=_AWS_PROFILE[environment]
+        s3_path, aws_profile=haws.AWS_PROFILE[environment]
     )
     task_definition_config = json.loads(task_definition_config)
     return task_definition_config
@@ -182,7 +172,7 @@ def _get_efs_mount_config_template(environment: str) -> Dict[str, Any]:
     # TODO(heanh): Read the path from repo config.
     s3_path = f"{_SHARED_CONFIGS_DIR}/{environment}/templates/efs/efs_mount_config_template.json"
     hs3.dassert_is_s3_path(s3_path)
-    efs_config = hs3.from_file(s3_path, aws_profile=_AWS_PROFILE[environment])
+    efs_config = hs3.from_file(s3_path, aws_profile=haws.AWS_PROFILE[environment])
     efs_config = json.loads(efs_config)
     return efs_config
 
@@ -255,7 +245,7 @@ def _register_task_definition(
     :param environment: environment to create the task definition in
     """
     task_definition_config = _get_ecs_task_definition_template(environment)
-    client = haws.get_ecs_client(_AWS_PROFILE[environment], region=region)
+    client = haws.get_ecs_client(haws.AWS_PROFILE[environment], region=region)
     # Prevent overwriting existing task definition if it exists.
     if haws.is_task_definition_exists(task_definition_name, region=region):
         _LOG.info(
