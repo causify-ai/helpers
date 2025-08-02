@@ -207,6 +207,8 @@ def colorize_bullet_points_in_slide(
             colors = ["red", "green", "blue"]
         elif num_bolds == 4:
             colors = ["red", "green", "blue", "violet"]
+        elif num_bolds == 5:
+            colors = ["red", "green", "blue", "teal", "violet"]
         else:
             colors = _interpolate_colors(num_bolds)
     _LOG.debug("colors=%s", colors)
