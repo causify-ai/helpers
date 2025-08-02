@@ -1041,6 +1041,25 @@ def git_branches(ctx):  # type: ignore
         print(f"{path} -> {branch_name}")
 
 
+@task
+def git_branch_is_merged(ctx):  # type: ignore
+    """
+    Check if the current branch was merged into master.
+
+    :return: True if the branch was merged, False otherwise
+    """
+    _ = ctx
+    hlitauti.report_task()
+    branch_name = hgit.get_branch_name()
+    print(f"branch_name='{branch_name}'")
+    #
+    # Check with GitHub.
+    cmd = f"gh pr list --base master --head {branch_name}"
+    ctx.run(cmd, pty=True)
+    # Check if the branch exists in remote.
+    cmd = f"git ls-remote --heads origin {branch_name}"
+    ctx.run(cmd, pty=True)
+
 
 # TODO(gp): Add the following scripts:
 # dev_scripts/git/git_backup.sh
@@ -1048,9 +1067,3 @@ def git_branches(ctx):  # type: ignore
 # dev_scripts/git/git_branch.sh
 # dev_scripts/git/git_branch_point.sh
 # dev_scripts/create_class_diagram.sh
-
-# How to find out if the current branch was merged
-# ```
-# > git branch --merged master | grep "$(git rev-parse --abbrev-ref HEAD)"
-# ```
-# If the output is empty it was merged, otherwise it was not merged.
