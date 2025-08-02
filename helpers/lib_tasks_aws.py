@@ -11,7 +11,7 @@ import json
 import logging
 import os
 import re
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from invoke import task
 
@@ -300,7 +300,7 @@ def aws_update_ecs_task_definition(
 @task
 def aws_create_test_task_definition(
     ctx,
-    issue_id: int = None,
+    issue_id: Optional[int] = None,
     region: str = hs3.AWS_EUROPE_REGION_1,
 ) -> None:
     """

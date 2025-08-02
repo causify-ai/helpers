@@ -10,7 +10,7 @@ import shutil
 import sys
 from typing import List, Optional
 
-import junitparser
+import junitparser  # type: ignore
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint

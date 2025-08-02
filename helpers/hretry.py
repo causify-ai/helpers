@@ -50,6 +50,7 @@ def sync_retry(
             _LOG.error(
                 "Function %s failed after %d attempts", func, num_attempts
             )
+            assert last_exception is not None
             raise last_exception
 
         return retry_wrapper
@@ -87,6 +88,7 @@ def async_retry(
             _LOG.error(
                 "Function %s failed after %d attempts", func, num_attempts
             )
+            assert last_exception is not None
             raise last_exception
 
         return retry_wrapper

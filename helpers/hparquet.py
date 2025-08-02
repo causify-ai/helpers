@@ -249,7 +249,7 @@ def generate_parquet_files(
     freq: str = "1H",
     output_type: str = "basic",
     partition_mode: str = "by_date",
-    custom_partition_cols: str = None,
+    custom_partition_cols: Optional[str] = None,
     reset_index: bool = False,
 ) -> None:
     """
@@ -401,6 +401,7 @@ def from_parquet(
     ) as ts:
         if n_rows:
             # Get the latest parquet file in the directory.
+            hdbg.dassert_isinstance(aws_profile, str, "aws_profile must be a string for S3 operations")
             last_pq_file = hs3.get_latest_pq_in_s3_dir(file_name, aws_profile)
             file = s3_filesystem.open(last_pq_file, "rb")
             # Load the data.
@@ -563,7 +564,7 @@ def to_parquet(
 
 def _yield_parquet_tile(
     file_name: str,
-    columns: List[str],
+    columns: Optional[List[str]],
     filters: List[Any],
     asset_id_col: str,
 ) -> Iterator[pd.DataFrame]:

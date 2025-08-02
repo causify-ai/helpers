@@ -453,7 +453,7 @@ def _get_library_version(lib_name: str) -> str:
     return version
 
 
-def _get_package_info() -> Tuple[List[str], int]:
+def _get_package_info() -> Tuple[str, int]:
     """
     Get package version information.
 
@@ -559,8 +559,8 @@ def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
     hprint.dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
     #
-    txt = hprint.to_info("System signature", txt)
-    return txt, failed_imports
+    txt_str: str = hprint.to_info("System signature", txt)
+    return txt_str, failed_imports
 
 
 # #############################################################################

@@ -192,6 +192,7 @@ def colorize_bullet_points_in_slide(
         """
         Sample `num_bolds` colors evenly spaced from the available colors.
         """
+        assert all_md_colors is not None
         step = len(all_md_colors) // num_bolds
         colors = list(all_md_colors)[::step][:num_bolds]
         return colors

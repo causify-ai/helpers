@@ -39,8 +39,8 @@
 # https://docs.sympy.org/latest/tutorials/intro-tutorial/intro.html#what-is-symbolic-computation
 
 # %%
-import sympy
-from sympy import *  # noqa: F403
+import sympy  # type: ignore
+from sympy import *  # noqa: F403  # type: ignore
 
 # %%
 x, y = sympy.symbols("x,y")
@@ -64,7 +64,7 @@ sympy.simplify_logic(b)
 
 # %%
 # Compute truth table.
-from sympy.logic.boolalg import truth_table  # noqa: E402
+from sympy.logic.boolalg import truth_table  # noqa: E402  # type: ignore
 
 table = truth_table(x >> y, [x, y])
 for t in table:

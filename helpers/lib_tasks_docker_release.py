@@ -1294,8 +1294,8 @@ def docker_create_candidate_image(ctx, container_dir_name=".", user_tag=""):  # 
 @task
 def docker_release_test_task_definition(
     ctx,
-    task_definition: str = None,
-    user_tag: str = None,
+    task_definition: Optional[str] = None,
+    user_tag: Optional[str] = None,
     region: str = hs3.AWS_EUROPE_REGION_1,
 ):  # type: ignore
     """
