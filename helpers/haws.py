@@ -13,7 +13,6 @@ from boto3.resources.base import ServiceResource
 from botocore.client import BaseClient
 
 import helpers.hdbg as hdbg
-import helpers.hs3 as hs3
 import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
@@ -36,22 +35,16 @@ def get_session(
     # When deploying jobs via ECS the container obtains credentials based on
     # passed task role specified in the ECS task-definition, refer to:
     # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
-    if aws_profile == "ck" and hserver.is_inside_ecs_container():
+    if aws_profile in ["ck", "csfy"] and hserver.is_inside_ecs_container():
         _LOG.info("Fetching credentials from task IAM role")
         session = boto3.session.Session()
     else:
-        # Original credentials are cached, thus we do not want to edit them.
-        credentials = hs3.get_aws_credentials(aws_profile=aws_profile)
-        credentials = credentials.copy()
-        # Boto session expects `region_name`.
-        credentials["region_name"] = credentials.pop("aws_region")
+        # We do not need to extract the credential from the file because
+        # the credential is already set and `boto3` know where to find them.
         if region:
-            credentials["region_name"] = region
-        # TODO(gp): a better approach is to just extract what boto.Session needs rather
-        #  then passing everything.
-        if "aws_s3_bucket" in credentials:
-            del credentials["aws_s3_bucket"]
-        session = boto3.session.Session(**credentials)
+            session = boto3.Session(profile_name=aws_profile, region_name=region)
+        else:
+            session = boto3.Session(profile_name=aws_profile)
     return session
 
 
