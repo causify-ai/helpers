@@ -9,6 +9,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 
 _LOG = logging.getLogger(__name__)
 
@@ -194,4 +195,360 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
             check_if_exists,
             exp_docker_file_path,
             exp_mount,
+        )
+
+
+# #############################################################################
+# Test_is_path1
+# #############################################################################
+
+
+class Test_is_path1(hunitest.TestCase):
+    def helper(self, path: str, expected: bool) -> None:
+        """
+        Test helper for `is_path()` function.
+        """
+        # Run test.
+        actual = hdocker.is_path(path)
+        # Check outputs.
+        _LOG.debug(hprint.to_str("path actual expected"))
+        self.assertEqual(actual, expected)
+
+    def test_file_with_extension(self) -> None:
+        """
+        Test paths with file extensions.
+        """
+        # Prepare inputs.
+        test_cases = [
+            ("file.txt", True),
+            ("document.pdf", True),
+            ("script.py", True),
+            ("data.csv", True),
+            ("image.jpg", True),
+            ("config.json", True),
+            ("readme.md", True),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_absolute_paths(self) -> None:
+        """
+        Test absolute paths.
+        """
+        # Prepare inputs.
+        test_cases = [
+            ("/path/to/file.py", True),
+            ("/usr/bin/python", True),
+            ("/etc/config", True),
+            ("/home/user", True),
+            ("/", True),
+            ("/data/shared", True),
+        ]
+        # Check outputs.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_relative_paths(self) -> None:
+        """
+        Test relative paths starting with ./ or ../.
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            ("./file.txt", True),
+            ("../data.csv", True),
+            ("./folder/subfolder", True),
+            ("../parent/file", True),
+            ("./", True),
+            ("../", True),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_trailing_slash_paths(self) -> None:
+        """
+        Test paths ending with slash (indicating directories).
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            ("folder/", True),
+            ("data/", True),
+            ("my_directory/", True),
+            ("nested/folder/", True),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_non_path_strings(self) -> None:
+        """
+        Test strings that should not be considered paths.
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            ("readme", False),
+            ("hello", False),
+            ("command", False),
+            ("data", False),
+            ("test", False),
+            ("python", False),
+            ("docker", False),
+            ("", False),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_edge_cases(self) -> None:
+        """
+        Test edge cases and complex scenarios.
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            # - Files with multiple extensions.
+            ("file.tar.gz", True),
+            ("backup.sql.bz2", True),
+            # - Hidden files.
+            (".hidden", True),
+            (".gitignore", True),
+            # - Complex paths.
+            ("./nested/folder/file.txt", True),
+            ("../parent/folder/", True),
+            ("/absolute/path/file.py", True),
+            # - Files without extension in paths.
+            # True because it contains a slash.
+            ("folder/README", True),
+            # True because starts with "./".
+            ("./config", True),
+            # True because starts with "/".
+            ("/usr/bin/python", True),
+            # - Strings that might be confused with paths.
+            # True because has extension.
+            ("folder.name", True),
+            # False because no extension, slash, or path prefix.
+            ("file-name", False),
+            # False because no extension, slash, or path prefix.
+            ("under_score", False),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+
+# #############################################################################
+# Test_convert_all_paths_from_caller_to_callee_docker_path1
+# #############################################################################
+
+
+class Test_convert_all_paths_from_caller_to_callee_docker_path1(
+    hunitest.TestCase
+):
+    def helper(
+        self,
+        cmd_opts: List[str],
+        expected_output: List[str],
+        *,
+        is_caller_host: bool = True,
+        use_sibling_container_for_callee: bool = True,
+        create_files: Optional[List[str]] = None,
+    ) -> None:
+        """
+        Helper for `convert_all_paths_from_caller_to_callee_docker_path()`.
+        """
+        # Prepare inputs.
+        if create_files:
+            # Create temporary files for testing existing file paths.
+            for file_path in create_files:
+                dir_name = os.path.dirname(file_path)
+                if dir_name:
+                    hio.create_dir(dir_name, incremental=True)
+                hio.to_file(file_path, "test content")
+        # Get docker mount info for the test.
+        (
+            caller_mount_path,
+            callee_mount_path,
+            _,
+        ) = hdocker.get_docker_mount_info(
+            is_caller_host, use_sibling_container_for_callee
+        )
+        # Run test.
+        actual = hdocker.convert_all_paths_from_caller_to_callee_docker_path(
+            cmd_opts,
+            caller_mount_path,
+            callee_mount_path,
+            is_caller_host,
+            use_sibling_container_for_callee,
+        )
+        _LOG.debug("actual=\n%s", str(actual))
+        # Check outputs.
+        actual_str = "\n".join(actual)
+        actual_str = huntepur.purify_text(actual_str)
+        expected_str = "\n".join(expected_output)
+        expected_str = huntepur.purify_text(expected_str)
+        self.assert_equal(actual_str, expected_str)
+
+    def test_mixed_options_with_paths_and_non_paths(self) -> None:
+        """
+        Test converting mixed command options with paths and non-paths.
+        """
+        # Prepare inputs.
+        cmd_opts = [
+            "--verbose",
+            "file.txt",  # Path-like (has extension)
+            "--output",
+            "./output.log",  # Path-like (relative path)
+            "command",  # Not a path
+            #"/absolute/path",  # Path-like (absolute)
+            "--flag",
+            "folder/",  # Path-like (trailing slash)
+        ]
+        expected_output = [
+            "--verbose",
+            "/app/file.txt",  # Converted
+            "--output",
+            "/app/output.log",  # Converted
+            "command",  # Not converted
+            #"/app/absolute/path",  # Converted
+            "--flag",
+            "/app/folder/",  # Converted
+        ]
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
+
+    def test_existing_files_get_converted(self) -> None:
+        """
+        Test that existing files are converted even without path-like appearance.
+        """
+        # Prepare inputs.
+        temp_dir = self.get_scratch_space()
+        existing_file = os.path.join(temp_dir, "testfile")
+        cmd_opts = [
+            "--input",
+            existing_file,  # Will exist, should be converted
+            "nonexistent",  # Doesn't exist and not path-like, won't be converted
+        ]
+        expected_output = [
+            "--input",
+            f"/app/{os.path.relpath(existing_file, hgit.find_git_root())}",  # Converted
+            "nonexistent",  # Not converted
+        ]
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output, create_files=[existing_file])
+
+    def test_path_like_strings_without_existing_files(self) -> None:
+        """
+        Test that path-like strings are converted even if files don't exist.
+        """
+        # Prepare inputs.
+        cmd_opts = [
+            "script.py",  # Path-like (extension) but doesn't exist
+            "../config.json",  # Path-like (relative) but doesn't exist
+            "/usr/bin/tool",  # Path-like (absolute) but doesn't exist
+            "plain_word",  # Not path-like and doesn't exist
+        ]
+        expected_output = [
+            "/app/script.py",  # Converted (has extension)
+            "/app/config.json",  # Converted (relative path)
+            "/app/usr/bin/tool",  # Converted (absolute path)
+            "plain_word",  # Not converted
+        ]
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
+
+    def test_empty_command_options(self) -> None:
+        """
+        Test handling of empty command options list.
+        """
+        # Prepare inputs.
+        cmd_opts = []
+        expected_output = []
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
+
+    def test_only_non_path_options(self) -> None:
+        """
+        Test command options with no paths.
+        """
+        # Prepare inputs.
+        cmd_opts = [
+            "--verbose",
+            "--debug",
+            "command",
+            "argument",
+            "--flag",
+        ]
+        expected_output = [
+            "--verbose",
+            "--debug",
+            "command",
+            "argument",
+            "--flag",
+        ]
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
+
+    def test_only_path_options(self) -> None:
+        """
+        Test command options with only paths.
+        """
+        # Prepare inputs.
+        cmd_opts = [
+            "input.txt",
+            "./config.yaml",
+            "/var/log/app.log",
+            "data/",
+            "../output.json",
+        ]
+        expected_output = [
+            "/app/input.txt",
+            "/app/config.yaml",
+            "/app/var/log/app.log",
+            "/app/data/",
+            "/app/output.json",
+        ]
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
+
+    def test_complex_paths_with_extensions(self) -> None:
+        """
+        Test complex paths with multiple extensions and special cases.
+        """
+        # Prepare inputs.
+        cmd_opts = [
+            "archive.tar.gz",  # Multiple extensions
+            ".hidden",  # Hidden file
+            "backup.sql.bz2",  # Multiple extensions
+            ".gitignore",  # Hidden config file
+        ]
+        expected_output = [
+            "/archive.tar.gz",
+            "/.hidden",
+            "/backup.sql.bz2",
+            "/.gitignore",
+        ]
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
+
+    def test_sibling_vs_child_container_modes(self) -> None:
+        """
+        Test different container modes (sibling vs child).
+        """
+        # Prepare inputs.
+        cmd_opts = ["input.txt", "output/"]
+        # Test sibling container mode.
+        expected_sibling = ["/app/input.txt", "/app/output/"]
+        self.helper(
+            cmd_opts,
+            expected_sibling,
+            is_caller_host=True,
+            use_sibling_container_for_callee=True,
+        )
+        # Test child container mode.
+        expected_child = ["/app/input.txt", "/app/output/"]
+        self.helper(
+            cmd_opts,
+            expected_child,
+            is_caller_host=True,
+            use_sibling_container_for_callee=False,
         )
