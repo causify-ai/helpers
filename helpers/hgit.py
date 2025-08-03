@@ -242,7 +242,9 @@ def find_git_root(path: str = ".") -> str:
         )
         # Update the path to the parent directory for the next iteration.
         path = parent
-    hdbg.dassert_is_not(git_root_dir, None, "Git root directory should have been found")
+    hdbg.dassert_is_not(
+        git_root_dir, None, "Git root directory should have been found"
+    )
     return str(git_root_dir)
 
 

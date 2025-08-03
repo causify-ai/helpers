@@ -1086,7 +1086,9 @@ def expand_archived_data(src_tgz_file: str, dst_dir: str) -> str:
     return tgz_dst_dir
 
 
-def get_s3_bucket_from_stage(stage: str, *, add_suffix: Optional[str] = None) -> str:
+def get_s3_bucket_from_stage(
+    stage: str, *, add_suffix: Optional[str] = None
+) -> str:
     """
     Retrieve the S3 bucket name based on the provided deployment stage.
 

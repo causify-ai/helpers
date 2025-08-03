@@ -401,7 +401,11 @@ def from_parquet(
     ) as ts:
         if n_rows:
             # Get the latest parquet file in the directory.
-            hdbg.dassert_isinstance(aws_profile, str, "aws_profile must be a string for S3 operations")
+            hdbg.dassert_isinstance(
+                aws_profile,
+                str,
+                "aws_profile must be a string for S3 operations",
+            )
             last_pq_file = hs3.get_latest_pq_in_s3_dir(file_name, aws_profile)
             file = s3_filesystem.open(last_pq_file, "rb")
             # Load the data.

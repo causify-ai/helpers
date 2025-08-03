@@ -18,7 +18,17 @@ import signal
 import subprocess
 import sys
 import time
-from typing import Any, Callable, Generator, List, Match, Optional, Tuple, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Generator,
+    List,
+    Match,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros

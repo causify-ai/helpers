@@ -23,9 +23,8 @@ import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
 
-_STANDARD_TY_ARGS = (
-    "--output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' | tee ty.log"
-)
+_STANDARD_TY_ARGS = "--output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' | tee ty.log"
+
 
 def _parse() -> argparse.ArgumentParser:
     # Create an ArgumentParser instance with the provided docstring.
@@ -137,7 +136,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     script = hprint.dedent(script)
     file_name = "tmp.dockerized_ty.sh"
-    hio.create_executable_script( file_name, script)
+    hio.create_executable_script(file_name, script)
     #
     cmd = f"invoke docker_cmd --cmd='{file_name}'"
     # ty returns an error code if there are linting errors.

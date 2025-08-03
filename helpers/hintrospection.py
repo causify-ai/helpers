@@ -245,7 +245,7 @@ def get_size_in_bytes(obj: object, seen: Optional[set] = None) -> int:
     ):
         size += sum((get_size_in_bytes(i, seen) for i in obj))
     if hasattr(obj, "__slots__"):  # can have __slots__ with __dict__
-        slots = getattr(obj, '__slots__', None)
+        slots = getattr(obj, "__slots__", None)
         if slots is not None:
             size += sum(
                 get_size_in_bytes(getattr(obj, s), seen)
