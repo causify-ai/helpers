@@ -132,7 +132,7 @@ class RepoConfig:
                     type(data),
                 )
         except Exception as e:
-            raise f"Error reading YAML file {file_name}: {e}"
+            raise ValueError(f"Error reading YAML file {file_name}: {e}")
         return cls(data)
 
     # TODO(gp): -> __str__?

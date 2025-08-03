@@ -295,7 +295,9 @@ def dedent(
     # Find the minimum number of leading spaces.
     min_num_spaces = None
     for curr_line in lines:
-        _LOG.debug("min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line)
+        _LOG.debug(
+            "min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line
+        )
         # Skip empty lines.
         if curr_line.lstrip().rstrip() == "":
             _LOG.debug("  -> Skipping empty line")
@@ -591,7 +593,9 @@ def _func_signature_to_str(
     # Get the caller's frame (i.e., the function that called this function).
     caller_frame = inspect.currentframe()
     for _ in range(frame_level):
-        hdbg.dassert_is_not(caller_frame, None, "caller_frame should not be None")
+        hdbg.dassert_is_not(
+            caller_frame, None, "caller_frame should not be None"
+        )
         caller_frame = caller_frame.f_back
     hdbg.dassert_is_not(
         caller_frame,

@@ -4,6 +4,7 @@ Import as:
 import helpers.hjoblib as hjoblib
 """
 
+import collections.abc as cabc
 import concurrent.futures
 import logging
 import math
@@ -242,7 +243,7 @@ def validate_workload(workload: Workload) -> bool:
     # Parse.
     workload_func, func_name, tasks = workload
     # Check each component.
-    hdbg.dassert_isinstance(workload_func, Callable)
+    hdbg.dassert_callable(workload_func)
     hdbg.dassert_isinstance(func_name, str)
     hdbg.dassert_container_type(tasks, List, tuple)
     hdbg.dassert(all(validate_task(task) for task in tasks))
@@ -374,7 +375,7 @@ def _workload_function(*args: Any, **kwargs: Any) -> str:
 
 def _get_workload(
     # args: argparse.Namespace
-) -> Workload:
+) -> None:
     """
     Prepare the workload using the parameters from command line.
     """
@@ -493,7 +494,7 @@ def _parallel_execute_decorator(
     hdbg.dassert_isinstance(abort_on_error, bool)
     hdbg.dassert_lte(1, num_attempts)
     hdbg.dassert_isinstance(log_file, str)
-    hdbg.dassert_isinstance(workload_func, Callable)
+    hdbg.dassert_callable(workload_func)
     hdbg.dassert_isinstance(func_name, str)
     hdbg.dassert(validate_task(task))
     # Redirect the logging output of each task to a different file.
