@@ -399,7 +399,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
             "--output",
             "./output.log",  # Path-like (relative path)
             "command",  # Not a path
-            #"/absolute/path",  # Path-like (absolute)
+            # "/absolute/path",  # Path-like (absolute)
             "--flag",
             "folder/",  # Path-like (trailing slash)
         ]
@@ -409,7 +409,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
             "--output",
             "/app/output.log",  # Converted
             "command",  # Not converted
-            #"/app/absolute/path",  # Converted
+            # "/app/absolute/path",  # Converted
             "--flag",
             "/app/folder/",  # Converted
         ]

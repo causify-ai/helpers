@@ -390,7 +390,14 @@ def _render_images(
             image_code_type = m.group(2)
             hdbg.dassert_in(
                 image_code_type,
-                ["plantuml", "mermaid", "tikz", "graphviz", "latex", "raw_latex"],
+                [
+                    "plantuml",
+                    "mermaid",
+                    "tikz",
+                    "graphviz",
+                    "latex",
+                    "raw_latex",
+                ],
             )
             if m.group(3):
                 hdbg.dassert_eq(user_rel_img_path, "")

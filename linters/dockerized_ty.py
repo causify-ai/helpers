@@ -23,9 +23,8 @@ import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
 
-_STANDARD_TY_ARGS = (
-    "--output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' | tee ty.log"
-)
+_STANDARD_TY_ARGS = "--output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' | tee ty.log"
+
 
 def _parse() -> argparse.ArgumentParser:
     # Create an ArgumentParser instance with the provided docstring.
