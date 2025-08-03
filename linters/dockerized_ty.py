@@ -137,7 +137,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     script = hprint.dedent(script)
     file_name = "tmp.dockerized_ty.sh"
-    hio.create_executable_script( file_name, script)
+    hio.create_executable_script(file_name, script)
     #
     cmd = f"invoke docker_cmd --cmd='{file_name}'"
     # ty returns an error code if there are linting errors.

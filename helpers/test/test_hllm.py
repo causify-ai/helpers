@@ -6,9 +6,7 @@ from typing import Any, Dict
 import pandas as pd
 import pytest
 
-pytest.importorskip(
-    "openai"
-)  # noqa: E402 # pylint: disable=wrong-import-position
+pytest.importorskip("openai")  # noqa: E402 # pylint: disable=wrong-import-position
 import helpers.hdbg as hdbg  # noqa: E402
 import helpers.hllm as hllm  # noqa: E402
 import helpers.hunit_test as hunitest  # noqa: E402
@@ -81,7 +79,6 @@ def _get_completion_parameters4() -> Dict[str, Any]:
 
 
 class Test_get_completion(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Verify that get_completion() returns response from cache with the
@@ -137,14 +134,12 @@ class Test_response_to_txt(hunitest.TestCase):
     # Dummy classes to satisfy `isinstance` checks.
 
     class DummyChatCompletion:
-
         def __init__(self, text: str = "") -> None:
             msg = types.SimpleNamespace(content=text)
             choice = types.SimpleNamespace(message=msg)
             self.choices = [choice]
 
     class DummyThreadMessage:
-
         def __init__(self, text: str = "") -> None:
             # mimic .content[0].text.value
             value_obj = types.SimpleNamespace(value=text)
@@ -188,7 +183,6 @@ class Test_response_to_txt(hunitest.TestCase):
 
 
 class Test_retrieve_openrouter_model_info(hunitest.TestCase):
-
     @umock.patch("requests.get")
     def test_retrieve_success(self, mock_get) -> None:
         # Prepare dummy JSON data.
@@ -227,7 +221,6 @@ class Test_retrieve_openrouter_model_info(hunitest.TestCase):
 
 
 class Test_save_models_info_to_csv(hunitest.TestCase):
-
     def get_temp_path(self) -> str:
         """
         Helper function for creating temporary directory.
@@ -301,7 +294,6 @@ class Test_save_models_info_to_csv(hunitest.TestCase):
 
 
 class Test_calculate_cost(hunitest.TestCase):
-
     def get_tmp_path(self) -> str:
         """
         Return temporary file path.

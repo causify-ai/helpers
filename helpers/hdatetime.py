@@ -722,7 +722,7 @@ def _shift_to_period_end(  # pylint: disable=too-many-return-statements
     # shift the month aliases by one to get the correct order.
     # E.g., `calendar.month_name[1:]` is `['January', 'February', ...]` and
     # `calendar.month_abbr[1:]` is `['Jan', 'Feb', ...]`.
-    month_aliases = calendar.month_name[1:] + calendar.month_abbr[1:]
+    month_aliases = list(calendar.month_name[1:]) + list(calendar.month_abbr[1:])
     pattern = re.compile("|".join(month_aliases), re.IGNORECASE)
     match = pattern.search(date)
     if match is None:
