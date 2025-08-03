@@ -8,7 +8,7 @@ import logging
 from typing import Any, Callable, TypeVar
 
 try:
-    import numba  # type: ignore
+    import numba
 
     numba_available = True
 except ImportError:

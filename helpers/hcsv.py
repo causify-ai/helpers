@@ -7,7 +7,7 @@ import helpers.hcsv as hcsv
 import ast
 import logging
 import os
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional
 
 import pandas as pd
 
@@ -236,7 +236,7 @@ def convert_csv_dir_to_pq_dir(
     if hs3.is_s3_path(csv_dir):
         # TODO(gp): Pass aws_profile.
         s3fs = hs3.get_s3fs("am")
-        filenames = cast(Any, s3fs).ls(csv_dir)
+        filenames = s3fs.ls(csv_dir)
     else:
         # Local filesystem.
         hdbg.dassert_dir_exists(csv_dir)

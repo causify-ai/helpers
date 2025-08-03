@@ -6,7 +6,6 @@ import helpers.hdict as hdict
 
 import logging
 from typing import (
-    TYPE_CHECKING,
     Any,
     Dict,
     Generator,
@@ -23,9 +22,6 @@ except ImportError:
     from collections import Mapping as AbcMapping
 
 import helpers.hdbg as hdbg
-
-if TYPE_CHECKING:
-    from config_root.config.config_ import Config
 
 _LOG = logging.getLogger(__name__)
 
@@ -75,7 +71,7 @@ _NO_VALUE_SPECIFIED = "__NO_VALUE_SPECIFIED__"
 
 
 def typed_get(
-    dict_: Union[Dict, "Config"],  # noqa: F821  # type: ignore
+    dict_: Union[Dict, "Config"],  # noqa: F821
     key: Any,
     default_value: Optional[Any] = _NO_VALUE_SPECIFIED,
     *,

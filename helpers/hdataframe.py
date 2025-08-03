@@ -236,10 +236,9 @@ def infer_sampling_points_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
     :return: number of time points per year (approximate)
     """
     hdbg.dassert(hasattr(df.index, "freq") and df.index.freq is not None)
-    assert hasattr(df.index, "freq") and df.index.freq is not None
     freq = df.index.freq
     # TODO(*): Make start, end dates parameters that can be passed in.
-    return compute_points_per_year_for_given_freq(str(cast(Any, freq)))
+    return compute_points_per_year_for_given_freq(freq)
 
 
 @functools.lru_cache()
@@ -275,7 +274,7 @@ def compute_count_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
     assert hasattr(df.index, "freq") and df.index.freq is not None
     freq = df.index.freq
     # Calculate the time span of `df` in years.
-    points_per_year = compute_points_per_year_for_given_freq(str(freq))
+    points_per_year = compute_points_per_year_for_given_freq(freq)
     span_in_years = df.size / points_per_year
     # Determine the number of non-NaN/inf/etc. data points per year.
     count_per_year = df.count() / span_in_years
@@ -303,7 +302,7 @@ def remove_duplicates(
     # Fix maximum value of control column at the bottom.
     if control_column:
         df = df.sort_values(by=control_column)
-    duplicate_columns = duplicate_columns or list(df.columns)
+    duplicate_columns = duplicate_columns or df.columns
     df = df.drop_duplicates(subset=duplicate_columns)
     # Sort by index to return to original view.
     df = df.sort_index()

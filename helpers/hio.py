@@ -829,7 +829,7 @@ def from_json(file_name: str, *, use_types: bool = False) -> Dict:
 
 
 # TODO(gp): -> pandas_helpers.py
-def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # noqa: F821  # type: ignore
+def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # noqa: F821
     """
     Load a dataframe from a json file.
 

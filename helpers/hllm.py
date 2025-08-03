@@ -10,7 +10,7 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-import openai  # type: ignore
+import openai
 import pandas as pd
 import requests
 import tqdm

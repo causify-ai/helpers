@@ -635,7 +635,7 @@ def _get_best_workflow_run(
 
 def gh_get_details_for_all_workflows(
     repo_list: List[str],
-) -> "pd.DataFrame":  # noqa: F821  # type: ignore
+) -> "pd.DataFrame":  # noqa: F821
     """
     Get status for all the workflows.
 
@@ -707,7 +707,7 @@ def gh_get_details_for_all_workflows(
 
 
 def gh_get_overall_build_status_for_repo(
-    repo_df: "pd.Dataframe",  # noqa: F821  # type: ignore
+    repo_df: "pd.Dataframe",  # noqa: F821
     *,
     use_colors: bool = True,
 ) -> str:
@@ -879,7 +879,7 @@ def color_format(val: str, status_color_mapping: Dict[str, str]) -> str:
 
 
 def render_repo_workflow_status_table(
-    workflow_df: "pd.DataFrame",  # noqa: F821  # type: ignore
+    workflow_df: "pd.DataFrame",  # noqa: F821
     status_color_mapping: Dict[str, str],
     timezone: str = "America/New_York",
 ) -> None:
