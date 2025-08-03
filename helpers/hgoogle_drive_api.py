@@ -28,11 +28,11 @@ from typing import List, Optional
 # ```
 
 
-import google.oauth2.service_account as goasea
-import googleapiclient.discovery as godisc
-import gspread
+import google.oauth2.service_account as goasea  # type: ignore
+import googleapiclient.discovery as godisc  # type: ignore
+import gspread  # type: ignore
 import pandas as pd
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build  # type: ignore
 
 import helpers.hdbg as hdbg
 
@@ -408,7 +408,7 @@ def create_empty_google_file(
         move_gfile_to_dir(gfile_id, gdrive_folder_id, credentials=credentials)
     # Share the Google file to the user and send an email.
     if user:
-        share_google_file(gfile_id, user)
+        share_google_file(gfile_id, user, credentials=credentials)
         _LOG.debug(
             "The new Google '%s': '%s' is shared with '%s'",
             gfile_type,
@@ -454,7 +454,7 @@ def create_google_drive_folder(
 # #############################################################################
 
 
-def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
+def _get_folders_in_gdrive(*, service: godisc.Resource = None, credentials: Optional[goasea.Credentials] = None) -> list:
     """
     Get a list of folders in Google Drive.
 
@@ -462,7 +462,9 @@ def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
         - Will use GDrive file service as default if None is given.
     """
     if service is None:
-        service = get_gdrive_service()
+        if credentials is None:
+            raise ValueError("Either service or credentials must be provided")
+        service = get_gdrive_service(credentials=credentials)
     response = (
         service.files()
         .list(
@@ -476,14 +478,14 @@ def _get_folders_in_gdrive(*, service: godisc.Resource = None) -> list:
     return response.get("files")
 
 
-def get_folder_id_by_name(name: str) -> Optional[list]:
+def get_folder_id_by_name(name: str, *, credentials: Optional[goasea.Credentials] = None) -> Optional[list]:
     """
     Get the folder id by the folder name.
 
     :param name: str, the name of the folder.
     :return: list, the list of the folder id and folder name.
     """
-    folders = _get_folders_in_gdrive()
+    folders = _get_folders_in_gdrive(credentials=credentials)
     folder_list = []
     #
     for folder in folders:
@@ -636,8 +638,10 @@ def read_google_file(
         return df
     except gspread.exceptions.SpreadsheetNotFound:
         _LOG.error("Spreadsheet with URL '%s' not found.", url)
+        return pd.DataFrame()
     except Exception as e:
         _LOG.error("An error occurred: '%s'", str(e))
+        return pd.DataFrame()
 
 
 def write_to_google_sheet(

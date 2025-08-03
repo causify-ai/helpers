@@ -18,7 +18,7 @@ import signal
 import subprocess
 import sys
 import time
-from typing import Any, Callable, List, Match, Optional, Tuple, Union, cast
+from typing import Any, Callable, Generator, List, Match, Optional, Tuple, Union, cast
 
 import helpers.hdbg as hdbg
 import helpers.hintrospection as hintros
@@ -985,7 +985,7 @@ def find_file_with_dir(
 
 # https://stackoverflow.com/questions/169070
 @contextlib.contextmanager
-def cd(dir_name: str) -> None:
+def cd(dir_name: str) -> Generator[None, None, None]:
     """
     Context manager managing changing directory.
     """

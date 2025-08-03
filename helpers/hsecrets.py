@@ -228,4 +228,4 @@ def dassert_valid_secret(secret_id: str) -> None:
     )
     hdbg.dassert_in(values[1], ["local", "preprod"])
     hdbg.dassert_in(values[2], ["trading", "sandbox"])
-    hdbg.dassert_is(values[3].isnumeric(), True)
+    hdbg.dassert(values[3].isnumeric(), "values[3] should be numeric, got: %s", values[3])

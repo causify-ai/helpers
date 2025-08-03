@@ -62,7 +62,7 @@ def get_function_name(count: int = 0) -> str:
     return func_name
 
 
-def get_name_from_function(func: callable) -> str:
+def get_name_from_function(func: Callable) -> str:
     """
     Return the name of the passed function.
 
@@ -245,11 +245,13 @@ def get_size_in_bytes(obj: object, seen: Optional[set] = None) -> int:
     ):
         size += sum((get_size_in_bytes(i, seen) for i in obj))
     if hasattr(obj, "__slots__"):  # can have __slots__ with __dict__
-        size += sum(
-            get_size_in_bytes(getattr(obj, s), seen)
-            for s in obj.__slots__
-            if hasattr(obj, s)
-        )
+        slots = getattr(obj, '__slots__', None)
+        if slots is not None:
+            size += sum(
+                get_size_in_bytes(getattr(obj, s), seen)
+                for s in slots
+                if hasattr(obj, s)
+            )
     return size
 
 
