@@ -30,13 +30,13 @@ try:
             from s3fs import S3File, S3FileSystem
         except ImportError:
             # Fallback to dynamic import
-            S3File = getattr(s3fs, "S3File", None)
-            S3FileSystem = getattr(s3fs, "S3FileSystem", None)
+            S3File = getattr(s3fs, "S3File", None)  # type: ignore
+            S3FileSystem = getattr(s3fs, "S3FileSystem", None)  # type: ignore
 except ModuleNotFoundError:
     _module = "s3fs"
     print(_WARNING + f": Can't find {_module}: continuing")
     # Define dummy classes for type hints when s3fs is not available
-    s3fs = None
+    s3fs = None  # type: ignore
 
     class S3File:
         pass
@@ -1086,7 +1086,7 @@ def expand_archived_data(src_tgz_file: str, dst_dir: str) -> str:
     return tgz_dst_dir
 
 
-def get_s3_bucket_from_stage(stage: str, *, add_suffix: str = None) -> str:
+def get_s3_bucket_from_stage(stage: str, *, add_suffix: Optional[str] = None) -> str:
     """
     Retrieve the S3 bucket name based on the provided deployment stage.
 

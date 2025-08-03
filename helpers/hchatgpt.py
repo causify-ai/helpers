@@ -9,14 +9,17 @@ import math
 import os
 import sys
 import time
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hio as hio
 
-henv.install_module_if_not_present("openai")
-import openai  # noqa: E402
+if TYPE_CHECKING:
+    import openai  # type: ignore
+else:
+    henv.install_module_if_not_present("openai")
+    import openai  # noqa: E402
 
 _LOG = logging.getLogger(__name__)
 
@@ -41,7 +44,7 @@ def create_assistant(
     model: str = "gpt-3.5-turbo-1106",
     use_retrieval: bool = True,
     use_code_interpreter: bool = True,
-    use_function: Dict = None,
+    use_function: Optional[Dict] = None,
 ) -> str:
     """
     Create an OpenAI Assistant for your OpenAI Organization. All configs can
@@ -175,6 +178,7 @@ def _path_to_dict(path: str) -> Dict:
         tree = {d: _path_to_dict(os.path.join(root, d)) for d in dirs}
         tree.update({f: {"name": f} for f in files})
         return tree
+    return {}
 
 
 # TODO(Henry): We use fileIO here to store the directory structure, which may

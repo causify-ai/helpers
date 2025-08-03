@@ -7,7 +7,7 @@ import helpers.hcsv as hcsv
 import ast
 import logging
 import os
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, cast
 
 import pandas as pd
 
@@ -45,7 +45,7 @@ def _read_csv_range(
     """
     hdbg.dassert_lt(0, from_, msg="Row 0 assumed to be header row")
     hdbg.dassert_lt(from_, to, msg="Empty range requested!")
-    skiprows = range(1, from_)
+    skiprows = list(range(1, from_))
     nrows = to - from_
     df = pd.read_csv(csv_path, skiprows=skiprows, nrows=nrows, **kwargs)
     if df.shape[0] < to:
@@ -236,7 +236,7 @@ def convert_csv_dir_to_pq_dir(
     if hs3.is_s3_path(csv_dir):
         # TODO(gp): Pass aws_profile.
         s3fs = hs3.get_s3fs("am")
-        filenames = s3fs.ls(csv_dir)
+        filenames = cast(Any, s3fs).ls(csv_dir)
     else:
         # Local filesystem.
         hdbg.dassert_dir_exists(csv_dir)
