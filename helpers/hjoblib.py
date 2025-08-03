@@ -116,8 +116,9 @@ def split_list_in_tasks(
     hdbg.dassert_lte(1, n)
     hdbg.dassert_lte(n, len(list_in), "There are fewer tasks than threads")
     if keep_order:
-        hdbg.dassert(
-            num_elems_per_task is None,
+        hdbg.dassert_is(
+            num_elems_per_task,
+            None,
             "Can't specify num_elems_per_task with keep_order",
         )
         list_out: List[list] = [[] for _ in range(n)]

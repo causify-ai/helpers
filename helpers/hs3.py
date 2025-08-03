@@ -30,13 +30,13 @@ try:
             from s3fs import S3File, S3FileSystem
         except ImportError:
             # Fallback to dynamic import
-            S3File = getattr(s3fs, "S3File", None)  # type: ignore
-            S3FileSystem = getattr(s3fs, "S3FileSystem", None)  # type: ignore
+            S3File = getattr(s3fs, "S3File", None)
+            S3FileSystem = getattr(s3fs, "S3FileSystem", None)
 except ModuleNotFoundError:
     _module = "s3fs"
     print(_WARNING + f": Can't find {_module}: continuing")
     # Define dummy classes for type hints when s3fs is not available
-    s3fs = None  # type: ignore
+    s3fs = None
 
     class S3File:
         pass

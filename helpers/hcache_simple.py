@@ -5,10 +5,7 @@ import logging
 import os
 import pickle
 import re
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Union, cast
-
-if TYPE_CHECKING:
-    import pandas as pd
+from typing import Any, Callable, Dict, List, Union, cast
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -409,7 +406,7 @@ def get_cache(func_name: str) -> _CacheType:
 # #############################################################################
 
 
-def cache_stats_to_str(func_name: str = "") -> "pd.DataFrame":
+def cache_stats_to_str(func_name: str = "") -> "pd.DataFrame":  # noqa: F821
     """
     Print the cache stats for a function or for all functions.
 

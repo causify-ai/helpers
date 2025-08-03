@@ -81,8 +81,8 @@ def pprint_pformat(obj: Any, *, sort_dicts: bool = False) -> str:
     Pretty-print in color.
     """
     from pygments import highlight
-    from pygments.formatters import Terminal256Formatter  # type: ignore
-    from pygments.lexers import PythonLexer  # type: ignore
+    from pygments.formatters import Terminal256Formatter
+    from pygments.lexers import PythonLexer
 
     txt = pprint.pformat(obj, sort_dicts=sort_dicts)
     txt = highlight(txt, PythonLexer(), Terminal256Formatter())
@@ -381,8 +381,8 @@ def to_object_repr(obj: Any) -> str:
 
 
 def thousand_separator(v: float) -> str:
-    formatted_v = "{0:,}".format(v)
-    return formatted_v
+    v = "{0:,}".format(v)
+    return v
 
 
 # TODO(gp): -> to_percentage
@@ -976,7 +976,6 @@ def filter_text(regex: str, txt: str) -> str:
 
 
 def dassert_one_trailing_newline(txt: str) -> None:
-    hdbg.dassert_isinstance(txt, str)
     match = re.search(r"\n*$", txt)
     hdbg.dassert(match)
     assert match is not None
