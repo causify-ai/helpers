@@ -17,7 +17,6 @@ import helpers.hunit_test as hunitest
 
 
 class Haws_test_case(hunitest.TestCase):
-
     @pytest.fixture(autouse=True, scope="class")
     def aws_credentials(self) -> None:
         """
@@ -36,7 +35,6 @@ class Haws_test_case(hunitest.TestCase):
 
 
 class Test_get_session(Haws_test_case):
-
     @pytest.fixture(autouse=True)
     def set_up_test(self) -> None:
         os.environ["MOCK_AWS_S3_BUCKET"] = "mock_aws_bucket"
@@ -85,7 +83,6 @@ class Test_get_session(Haws_test_case):
 
 
 class Test_get_service_client(Haws_test_case):
-
     @mock_aws
     @umock.patch("helpers.haws.get_session")
     def test1(self, mock_get_session: umock.Mock) -> None:
@@ -118,7 +115,6 @@ class Test_get_service_client(Haws_test_case):
 
 
 class Test_get_service_resource(Haws_test_case):
-
     @mock_aws
     @umock.patch("helpers.haws.get_session")
     def test1(self, mock_get_session: umock.Mock) -> None:
@@ -154,7 +150,6 @@ class Test_get_service_resource(Haws_test_case):
 
 
 class Test_get_task_definition_image_url(Haws_test_case):
-
     @mock_aws
     @umock.patch("helpers.haws.get_service_client")
     def test1(self, mock_get_service_client: umock.Mock) -> None:
@@ -186,7 +181,6 @@ class Test_get_task_definition_image_url(Haws_test_case):
 
 
 class Test_update_task_definition(Haws_test_case):
-
     @mock_aws
     @umock.patch("helpers.haws.get_ecs_client")
     def test1(self, mock_get_ecs_client: BaseClient) -> None:
@@ -233,7 +227,6 @@ class Test_update_task_definition(Haws_test_case):
 
 
 class Test_get_ecs_client(Haws_test_case):
-
     def mock_aws_client(
         self, mock_get_session: umock.Mock, *, region: Optional[str] = None
     ) -> None:

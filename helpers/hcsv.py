@@ -45,7 +45,7 @@ def _read_csv_range(
     """
     hdbg.dassert_lt(0, from_, msg="Row 0 assumed to be header row")
     hdbg.dassert_lt(from_, to, msg="Empty range requested!")
-    skiprows = range(1, from_)
+    skiprows = list(range(1, from_))
     nrows = to - from_
     df = pd.read_csv(csv_path, skiprows=skiprows, nrows=nrows, **kwargs)
     if df.shape[0] < to:
