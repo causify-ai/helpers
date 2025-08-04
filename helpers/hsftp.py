@@ -18,20 +18,22 @@ import helpers.hsecrets as hsecret
 henv.install_module_if_not_present("pysftp")
 
 import pysftp  # noqa: E402
-
-
 import pytest
 from packaging import version
 
 #
 import logging
+
 _LOG = logging.getLogger(__name__)
 
 # TODO(heanh): Remove this once we upgrade the `paramiko` package.
 # See CmampTask12951.
 paramiko = pytest.importorskip("paramiko", reason="Paramiko not installed")
 if version.parse(paramiko.__version__) >= version.parse("3.0.0"):
-    pytest.skip("Skipping tests because Paramiko >=3.0 is incompatible with pysftp", allow_module_level=True)
+    pytest.skip(
+        "Skipping tests because Paramiko >=3.0 is incompatible with pysftp",
+        allow_module_level=True,
+    )
 
 # Create a logger instance.
 _LOG = logging.getLogger(__name__)
