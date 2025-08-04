@@ -9,6 +9,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 
 _LOG = logging.getLogger(__name__)
 
@@ -195,3 +196,141 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
             exp_docker_file_path,
             exp_mount,
         )
+
+
+# #############################################################################
+# Test_is_path1
+# #############################################################################
+
+
+class Test_is_path1(hunitest.TestCase):
+    def helper(self, path: str, expected: bool) -> None:
+        """
+        Test helper for `is_path()` function.
+        """
+        # Run test.
+        actual = hdocker.is_path(path)
+        # Check outputs.
+        _LOG.debug(hprint.to_str("path actual expected"))
+        self.assertEqual(actual, expected)
+
+    def test_file_with_extension(self) -> None:
+        """
+        Test paths with file extensions.
+        """
+        # Prepare inputs.
+        test_cases = [
+            ("file.txt", True),
+            ("document.pdf", True),
+            ("script.py", True),
+            ("data.csv", True),
+            ("image.jpg", True),
+            ("config.json", True),
+            ("readme.md", True),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_absolute_paths(self) -> None:
+        """
+        Test absolute paths.
+        """
+        # Prepare inputs.
+        test_cases = [
+            ("/path/to/file.py", True),
+            ("/usr/bin/python", True),
+            ("/etc/config", True),
+            ("/home/user", True),
+            ("/", True),
+            ("/data/shared", True),
+        ]
+        # Check outputs.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_relative_paths(self) -> None:
+        """
+        Test relative paths starting with ./ or ../.
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            ("./file.txt", True),
+            ("../data.csv", True),
+            ("./folder/subfolder", True),
+            ("../parent/file", True),
+            ("./", True),
+            ("../", True),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_trailing_slash_paths(self) -> None:
+        """
+        Test paths ending with slash (indicating directories).
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            ("folder/", True),
+            ("data/", True),
+            ("my_directory/", True),
+            ("nested/folder/", True),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_non_path_strings(self) -> None:
+        """
+        Test strings that should not be considered paths.
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            ("readme", False),
+            ("hello", False),
+            ("command", False),
+            ("data", False),
+            ("test", False),
+            ("python", False),
+            ("docker", False),
+            ("", False),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_edge_cases(self) -> None:
+        """
+        Test edge cases and complex scenarios.
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            # - Files with multiple extensions.
+            ("file.tar.gz", True),
+            ("backup.sql.bz2", True),
+            # - Hidden files.
+            (".hidden", True),
+            (".gitignore", True),
+            # - Complex paths.
+            ("./nested/folder/file.txt", True),
+            ("../parent/folder/", True),
+            ("/absolute/path/file.py", True),
+            # - Files without extension in paths.
+            # True because it contains a slash.
+            ("folder/README", True),
+            # True because starts with "./".
+            ("./config", True),
+            # True because starts with "/".
+            ("/usr/bin/python", True),
+            # - Strings that might be confused with paths.
+            # True because has extension.
+            ("folder.name", True),
+            # False because no extension, slash, or path prefix.
+            ("file-name", False),
+            # False because no extension, slash, or path prefix.
+            ("under_score", False),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)

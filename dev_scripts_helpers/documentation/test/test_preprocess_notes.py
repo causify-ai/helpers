@@ -107,10 +107,12 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
                         print(v)
             ```
         """
+        txt_in = txt_in.split("\n")
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         # Execute function.
         type_ = "pdf"
         actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = "\n".join(actual)
         # Check.
         expected = r"""
         ---
@@ -139,18 +141,50 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
 
-    def test_run_all2(self) -> None:
-        """
-        Test type_="slides".
-        """
-        # Prepare inputs.
-        txt_in = os.path.join(self.get_input_dir(), "input.txt")
-        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
-        # Run function.
-        type_ = "slides"
-        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
-        # Check.
-        self.check_string(actual, purify_text=True)
+
+# #############################################################################
+# Test_preprocess_notes_end_to_end2
+# #############################################################################
+
+
+class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
+    """
+    Test `preprocess_notes.py` by calling the library function directly.
+
+    # To update the outcomes:
+    > cd /Users/saggese/src/umd_msml6101
+    > cp -r lectures_source/Lesson*.txt ./helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2/input/
+
+    # To compare inputs and outputs:
+    > vimdiff dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2.test_run_all1/{input,output}/Lesson01-Intro.txt
+    """
+
+    def test_run_all1(self) -> None:
+        input_dir = self.get_input_dir()
+        _LOG.debug("input_dir=%s", input_dir)
+        # Find all the files in the `test/input` directory.
+        files = glob.glob(os.path.join(input_dir, "*.txt"))
+        _LOG.debug("Found %s files", len(files))
+        hdbg.dassert_lt(0, len(files))
+        for file in files:
+            # Read the file.
+            text = hio.from_file(file)
+            # Run the function.
+            # > preprocess_notes.py \
+            #     --input lectures_source/Lesson02-Techniques.txt \
+            #     --output tmp.notes_to_pdf.preprocess_notes.txt \
+            #     --type slides \
+            #     --toc_type navigation
+            lines = text.split("\n")
+            type_ = "slides"
+            toc_type = "navigation"
+            is_qa = False
+            actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
+            # Check.
+            actual = "\n".join(actual)
+            tag = os.path.basename(file)
+            tag = hio.remove_extension(tag, ".txt", check_file_exists=False)
+            self.check_string(actual, tag=tag)
 
 
 # #############################################################################
