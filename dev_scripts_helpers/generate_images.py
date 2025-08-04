@@ -39,7 +39,9 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("prompt", nargs="?", help="Text prompt for image generation")
+    parser.add_argument(
+        "prompt", nargs="?", help="Text prompt for image generation"
+    )
     parser.add_argument(
         "--dst_dir",
         action="store",
@@ -58,11 +60,12 @@ def _parse() -> argparse.ArgumentParser:
         help="Generate standard quality images (vs HD quality)",
     )
     parser.add_argument(
-        "--api_key", help="OpenAI API key (if not set via OPENAI_API_KEY env var)"
+        "--api_key",
+        help="OpenAI API key (if not set via OPENAI_API_KEY env var)",
     )
     parser.add_argument(
         "--workload",
-        help="Workload type (MSLM610 generates images for predefined word sets)"
+        help="Workload type (MSLM610 generates images for predefined word sets)",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -73,6 +76,7 @@ def _download_image(url: str, filepath: str) -> None:
     Download an image from URL to local file.
     """
     import urllib.request
+
     _LOG.info("Downloading image to %s", filepath)
     urllib.request.urlretrieve(url, filepath)
 
@@ -101,7 +105,7 @@ def _generate_images(
     _LOG.info("Generating %s images with prompt: '%s'", count, prompt)
     _LOG.info("Resolution: %s, Quality: %s", size, quality)
     for i in range(count):
-        _LOG.info("Generating image %s/%s", i+1, count)
+        _LOG.info("Generating image %s/%s", i + 1, count)
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
@@ -113,7 +117,7 @@ def _generate_images(
         image_url = response.data[0].url
         # Create filename.
         resolution_suffix = "standard" if low_res else "hd"
-        filename = f"image_{i+1:02d}_{resolution_suffix}.png"
+        filename = f"image_{i + 1:02d}_{resolution_suffix}.png"
         filepath = os.path.join(dst_dir, filename)
         # Download the image.
         _download_image(image_url, filepath)
@@ -147,10 +151,10 @@ def _generate_workload_images(
         10: ["Line Chart", "Calendar", "Horizon"],
         11: ["Neural Net", "Layers", "Circuit"],
         12: ["Agent", "Reward", "Maze"],
-        13: ["Brain", "Question Mark", "Galaxy"]
+        13: ["Brain", "Question Mark", "Galaxy"],
     }
     values = {
-        1: ["Cimabue", "Maestà", "c. 1280"], 
+        1: ["Cimabue", "Maestà", "c. 1280"],
         2: ["Giotto di Bondone", "Lamentation", "c. 1305"],
         3: ["Sandro Botticelli", "The Birth of Venus", "c. 1485"],
         4: ["Leonardo da Vinci", "Mona Lisa", "c. 1503–1506"],
@@ -176,7 +180,7 @@ def _generate_workload_images(
     size = "1024x1024"
     quality = "standard" if low_res else "hd"
     # Base prompt for abstract expressionist style.
-    #base_prompt = "Create an abstract expressionist brushwork with fluid, organic motion for"
+    # base_prompt = "Create an abstract expressionist brushwork with fluid, organic motion for"
     # Calculate total number of images.
     total_images = sum(len(words) for words in WORKLOAD_DATA.values())
     _LOG.info("Generating %s images for workload %s", total_images, workload)
@@ -195,14 +199,16 @@ def _generate_workload_images(
             image_count += 1
             # Create filename: image.1.compass.png.
             word_clean = word.lower().replace(" ", "_")
-            #filename = f"image.{style}.{word_clean}.png"
+            # filename = f"image.{style}.{word_clean}.png"
             filename = f"image.{word_clean}.{style}.png"
             filepath = os.path.join(dst_dir, filename)
             if os.path.exists(filepath):
                 _LOG.info("Image already exists: %s", filepath)
                 continue
-            #prompt = f"{base_prompt} {word}"
-            _LOG.info("Generating image %s/%s: %s", image_count, total_images, word)
+            # prompt = f"{base_prompt} {word}"
+            _LOG.info(
+                "Generating image %s/%s: %s", image_count, total_images, word
+            )
             response = client.images.generate(
                 model="dall-e-3",
                 prompt=prompt,

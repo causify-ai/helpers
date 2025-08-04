@@ -50,7 +50,7 @@ MSML610: Advanced Machine Learning
 
 
 #### Time Series
-- A **\textcolor{red}{time series}** is a sequence of observations over time, e.g.,
+- A **time series** is a sequence of observations over time, e.g.,
   - Finance: Hourly stock prices
   - Web Analytics: Number of active users on a site sampled every minute
   - Manufacturing: Sensor data from machinery (e.g., temperature or vibration)
@@ -71,7 +71,7 @@ MSML610: Advanced Machine Learning
   - The time dimension matters since random variables exhibit dependence over
     time
 
-- **\textcolor{red}{Goals:}**
+- **Goals:**
   - Understand patterns
     - Identify trends, seasonality, and cyclic behavior
     - Detect anomalies or outliers
@@ -84,33 +84,33 @@ MSML610: Advanced Machine Learning
     - E.g., adjusting inventory levels based on predicted demand
 
 #### Time Series: Visualization and Exploration
-- **\textcolor{blue}{Visualization:}**
+- **Visualization:**
   - Guides preprocessing choices
   - Helps form hypotheses before modeling
   - Distinguishes between underlying structure and randomness
 
-- **\textcolor{gray}{Patterns:}**
-  - **\textcolor{red}{Trend}**: Long-term increase or decrease
-  - **\textcolor{brown}{Seasonality}**: Repeating patterns at regular intervals
-  - **\textcolor{olive}{Noise}**: Random fluctuations
+- **Patterns:**
+  - **Trend**: Long-term increase or decrease
+  - **Seasonality**: Repeating patterns at regular intervals
+  - **Noise**: Random fluctuations
 
-- **\textcolor{darkgreen}{Line plots}** show raw data over time, e.g.,
+- **Line plots** show raw data over time, e.g.,
   - Trend presence
   - Outliers or abrupt changes
 
-- **\textcolor{cyan}{Seasonal plots}** reveal periodic patterns
+- **Seasonal plots** reveal periodic patterns
   - E.g., plot monthly sales to find yearly seasonality
 
-- **\textcolor{violet}{Autocorrelation plots}** detect repeating structures
+- **Autocorrelation plots** detect repeating structures
 
 #### Autocovariance
-- The $j$-lag **\textcolor{red}{autocovariance}** of a time series $\{Y_t\}$ is the covariance of
+- The $j$-lag **autocovariance** of a time series $\{Y_t\}$ is the covariance of
   a random variable and the variable $j$ samples before:
   $$\Cov(Y_t, Y_{t-j}) \defeq \EE[(Y_t - \EE[Y_t]) (Y_{t-j} - \EE[Y_{t-j}])]$$
   - Represent how a variable varies over time
   - Linear relationship
 
-- The $j$-lag **\textcolor{blue}{autocorrelation}** of a time series $\{Y_t\}$ is:
+- The $j$-lag **autocorrelation** of a time series $\{Y_t\}$ is:
   $$
   \Corr(Y_t, Y_{t-j})
   = \rho(Y_t, Y_{t-j})
@@ -120,7 +120,7 @@ MSML610: Advanced Machine Learning
   - Scale-free
 
 #### Stationarity: Intuition
-- A time series $\{Y_t\}$ is **\textcolor{red}{stationary}** if some statistical properties (e.g.,
+- A time series $\{Y_t\}$ is **stationary** if some statistical properties (e.g.,
   mean, variance, autocorrelation structure) do not change over time
   - I.e., the time series is "unchanged" by shifts in time
   - Stationarity is analogous to IID sampling for random variables
@@ -128,16 +128,16 @@ MSML610: Advanced Machine Learning
 - Time series are rarely stationary
   - Stationarity is often an approximation/simplification of reality
 
-- **\textcolor{darkgreen}{Why important:}**
+- **Why important:**
   - Many models (e.g., ARIMA) assume stationarity
   - E.g., raw stock prices are non-stationary, returns often are
 
-- **\textcolor{blue}{Tests for stationarity:}**
+- **Tests for stationarity:**
   - ADF Test (Augmented Dickey-Fuller): tests for unit root
   - KPSS Test: tests for trend stationarity
 
 #### Strictly Stationary: Definition
-- A time series $\{Y_t\}$ is **\textcolor{red}{strictly stationary}** iff for any any set of
+- A time series $\{Y_t\}$ is **strictly stationary** iff for any any set of
   $r > 0$ indices $t_1, t_2, ..., t_r < t$, the joint distribution of
   $(Y_{t_1}, Y_{t_2}, ..., Y_{t_r})$ depends only on the differences $t_1 - t_2,
   ..., t_1 - t_r$
@@ -146,7 +146,7 @@ MSML610: Advanced Machine Learning
   - $(Y_1, Y_5)$ has the same joint distribution as $(Y_{12}, Y_{16})$
   - $(Y_1, Y_2, Y_3)$ has the same joint distribution as $(Y_3, Y_4, Y_5)$
 
-- **\textcolor{blue}{Intuition}**:
+- **Intuition**:
   - The data (i.e., joint probability of any set of observations) is invariant
     when we shift it in time
   - Only the distances in time matter
@@ -157,7 +157,7 @@ MSML610: Advanced Machine Learning
     in time between lags
 
 #### Weakly Stationary: Definition
-- **\textcolor{red}{Weakly stationarity}** requires milder assumptions than for strictly
+- **Weakly stationarity** requires milder assumptions than for strictly
   stationary process:
 
   1. The mean is constant over time:
@@ -172,7 +172,7 @@ MSML610: Advanced Machine Learning
   - First and second moments
   - The joint distribution of 2 time indices
 
-- **\textcolor{blue}{Intuition}**:
+- **Intuition**:
   - No trend (mean is constant)
   - Variations around the mean have constant amplitude (variance is constant)
   - Consistent wiggling (random patterns look the same)
@@ -181,7 +181,7 @@ MSML610: Advanced Machine Learning
 #### Original ####
 
 #### Auto-Correlation Function (ACF)
-- **\textcolor{red}{Auto-correlation function}** (ACF) is a graphical representation of the
+- **Auto-correlation function** (ACF) is a graphical representation of the
   $i$-lag autocorrelation of a time series
   - Plot the correlation coefficient of a time series with its own lagged values
   - (Ideally) Plot the uncertainty of the coefficients
@@ -189,7 +189,7 @@ MSML610: Advanced Machine Learning
   - E.g., for a time series of daily temperatures, the ACF can help you see if
     today's temperature is correlated with the temperature from previous days
 
-- **\textcolor{blue}{Partial Auto-Correlation Function}** (PACF) is like ACF but controls for the
+- **Partial Auto-Correlation Function** (PACF) is like ACF but controls for the
   values of the time series at all shorter lags
   $$\alpha(k) = \Corr(Y_t - Proj_{t,k}(Y_t), Y_{t-k} - Proj_{t,k}(Y_{t,k}))$$
   where:
@@ -205,7 +205,7 @@ MSML610: Advanced Machine Learning
 - Any deterministic transformation $g(\cdot)$ of a strictly (weakly) stationary
   process $\{Y_t\}$ is also strictly (weakly) stationary
 
-- **\textcolor{red}{Examples}**:
+- **Examples**:
   - Log transformations useful when data grows exponentially
   - Differencing removes trend and makes series stationary
     - First difference: $z_t = y_t - y_{t-1}$
@@ -234,7 +234,7 @@ MSML610: Advanced Machine Learning
   time series:
   $$Y_t = L X_t = X_{t-1}$$
 
-- **\textcolor{red}{Intuition}**
+- **Intuition**
   - Lagging a time series means that the $t$ (today) element of the new time
     series is the $t - 1$ (yesterday) element of the old time series
   - It delays the time series
@@ -301,7 +301,7 @@ MSML610: Advanced Machine Learning
 - The first difference can be written in terms of lag operator as:
   $$\Delta X_t = (1 - L) X_t$$
 
-- **\textcolor{red}{Intuition}**:
+- **Intuition**:
   - Differencing means computing the difference between consecutive observations:
     $$Y_t = X_t - X_{t-1}$$
   - This means removing the changes in the level of a time series
@@ -349,17 +349,17 @@ MSML610: Advanced Machine Learning
 #### Decomposition of Time Series
 - A time series can be broken into several components:
   $$y_t = \text{Trend}_t + \text{Seasonality}_t + \text{Cycle}_t + \text{Residual}_t$$
-  - **\textcolor{red}{Trend}**
+  - **Trend**
     - Long-term increase or decrease in data
     - Can change direction over time
-  - **\textcolor{darkgreen}{Seasonality}**
+  - **Seasonality**
     - Affected by seasonal factors (e.g., time of day, day of week, month of
       year)
     - Fixed and known frequency
-  - **\textcolor{blue}{Cycle}**
+  - **Cycle**
     - Value rises and falls without fixed frequency
     - E.g., economic conditions exhibit cycles
-  - **\textcolor{violet}{Residual (noise)}**
+  - **Residual (noise)**
     - Everything that is left after removing the other components
     - Idiosyncratic component
 
@@ -374,7 +374,7 @@ MSML610: Advanced Machine Learning
   - Dip in February
   - Increase over the year
 
-- **\textcolor{red}{Why?}**
+- **Why?**
   - In January, government subsidy makes it cost-effective to stockpile drugs
   - In February, dip occurs as people have already bought many drugs
   - Demand increases until December as people use their reserves
@@ -391,20 +391,20 @@ MSML610: Advanced Machine Learning
   - Understanding these cycles aids in economic planning and forecasting
 
 - Different cycles:
-  - **\textcolor{red}{Inventory}**: 3-5 years
+  - **Inventory**: 3-5 years
     - Driven by inventory level changes in response to demand fluctuations
     - E.g., a retailer overstocks during high demand and then reduce orders,
       leading to a cycle
-  - **\textcolor{darkgreen}{Fixed investment}**: 7-11 years
+  - **Fixed investment**: 7-11 years
     - Investments in long-term assets like machinery and buildings
     - E.g., a manufacturing company invests in new machinery every decade to
       improve efficiency
-  - **\textcolor{blue}{Infrastructural investment}**: 15-25 years
+  - **Infrastructural investment**: 15-25 years
     - Large-scale infrastructure projects such as roads, bridges, and public
       utilities
     - E.g., a government plans a major highway expansion every 20 years to
       accommodate growing traffic
-  - **\textcolor{violet}{Technological investment}**: 45-60 years
+  - **Technological investment**: 45-60 years
     - Major technological advancements and their adoption across industries
     - E.g., the widespread adoption of the Internet in 1995-2010
 
@@ -425,7 +425,7 @@ MSML610: Advanced Machine Learning
 ::::
 :::
 
-- **\textcolor{red}{Questions:}**
+- **Questions:**
   - Do the data exhibit a seasonal pattern?
   - Is there a within-group pattern (e.g., Jan and July exhibit similar
     patterns)?
@@ -514,7 +514,7 @@ Sub-seasonal plot
       $Y_t \sim \text{ IID from distribution } F$ (not necessarily Gaussian)
   - With mean $\EE[Y_t] = 0$ and constant variance $\VV[Y_t] = \sigma^2$
 
-- **\textcolor{red}{Key points:}**
+- **Key points:**
   - It's strictly stationary
   - $\{ Y_t \}$ is uncorrelated over time
   - Variance $\sigma^2$ is constant for all $t$
@@ -989,7 +989,7 @@ Sub-seasonal plot
   = \alpha y_t + \alpha(1 - \alpha) y_{t-1} + \alpha(1 - \alpha)^2 y_{t-2} + \cdots \\
   & = \sum_{k=0}^{\infty} \alpha (1 - \alpha)^k y_{t - k} \\
   \end{alignat*}
-- **\textcolor{red}{Interpretation}**
+- **Interpretation**
   - $\alpha$: smoothing parameter ($0 < \alpha < 1$)
   - Most recent observations have the greatest influence on forecast
   - Suitable for series with no trend or seasonality
@@ -1083,7 +1083,7 @@ Sub-seasonal plot
 - State space models describes how a system evolves over time using states and
   observations
 
-- **\textcolor{red}{Components}**
+- **Components**
   - State vector $x_t$: Hidden/internal state of the system at time $t$
   - Observation vector $y_t$: What we can measure at time $t$
   - The model is
@@ -1097,16 +1097,16 @@ Sub-seasonal plot
     - $H_t$: Observation matrix
     - $w_t$, $v_t$: Process and observation noise
 
-- **\textcolor{darkgreen}{Goal}**
+- **Goal**
   - Infer hidden states from noisy observations
   - Predict future observations or states
 
-- **\textcolor{blue}{Applications}**
+- **Applications**
   - Engineering: control systems, signal processing
   - Economics: modeling time series data
   - Robotics: tracking position and velocity
 
-- **\textcolor{violet}{Common Algorithms}**
+- **Common Algorithms**
   - Kalman Filter (linear, Gaussian)
   - Extended/Unscented Kalman Filter (nonlinear)
   - Particle Filter (nonlinear, non-Gaussian)
@@ -1159,11 +1159,11 @@ Sub-seasonal plot
 #### Bayesian Time Series Models
 
 - Incorporate prior beliefs and uncertainty into time series modeling
-  - **\textcolor{red}{Bayesian ARIMA}**:
+  - **Bayesian ARIMA**:
     - Extends classical ARIMA with prior distributions on parameters
     - Captures uncertainty in predictions and parameter estimates
 
-  - **\textcolor{blue}{Bayesian State Space Models}**:
+  - **Bayesian State Space Models**:
     - General framework for modeling hidden processes over time
     - Includes Kalman Filters and extensions with Bayesian inference
 
@@ -1188,53 +1188,53 @@ Sub-seasonal plot
 
 #### Time Series Machine Learning: Problems
 
-- **\textcolor{blue}{Time Dependence}**
+- **Time Dependence**
   - Observations are not independent and identically distributed (i.i.d.)
   - Temporal ordering affects model assumptions and evaluation
   - Past values can strongly influence future ones (autocorrelation)
 
-- **\textcolor{gray}{Non-Stationarity}**
+- **Non-Stationarity**
   - Data distributions change over time (mean, variance, etc.)
   - Models trained on past data may perform poorly on future data
 
-- **\textcolor{red}{Data Leakage}**
+- **Data Leakage**
   - Using future information in training can lead to over-optimistic results
   - Requires careful data splitting (e.g., no random shuffling)
 
-- **\textcolor{brown}{Seasonality and Trends}**
+- **Seasonality and Trends**
   - Regular patterns (e.g., daily, yearly) complicate modeling
   - Need to be explicitly handled or removed
 
-- **\textcolor{olive}{Missing or Irregular Data}**
+- **Missing or Irregular Data**
   - Time series often have missing timestamps or irregular intervals
 
-- **\textcolor{darkgreen}{Evaluation Challenges}**
+- **Evaluation Challenges**
   - Time-aware cross-validation needed (e.g., rolling windows)
 
-- **\textcolor{cyan}{Feature Engineering Complexity}**
+- **Feature Engineering Complexity**
   - Lagged variables, rolling statistics, and domain-specific features needed
   - Makes pipeline design more involved compared to i.i.d. data
 
 #### Cross-Validation for Time Series
 - Standard cross-validation is not suitable due to time dependency
 
-- **\textcolor{red}{Walk-forward validation}** is a time-aware cross-validation method for time
+- **Walk-forward validation** is a time-aware cross-validation method for time
   series data
   - Mimics real-world usage: train on past, predict future
   - Choose a fixed-size training window
   - Move the training and testing windows forward in time step-by-step
   - Train and evaluate model performance at each step
 
-- **\textcolor{darkgreen}{Example}**:
+- **Example**:
   - Step 1: Train on $[t_1, t_{100}]$, test on $t_{101}$
   - Step 2: Train on $[t_2, t_{101}]$, test on $t_{102}$
   - Continue moving forward through the time series
 
-- **\textcolor{blue}{Pros}**:
+- **Pros**:
   - Preserves time order
   - Provides multiple performance estimates across time
 
-- **\textcolor{violet}{Cons}**
+- **Cons**
   - Machine learning becomes even more complicated
   - Conflates generalization error and non-stationarity
 
@@ -1302,7 +1302,7 @@ Sub-seasonal plot
   - Trend change
   - Distribution change
 
-- **\textcolor{red}{Methods}**
+- **Methods**
   - Offline detection: analyze full data set
     - Useful when historical data is available
     - E.g., analyzing stock prices over the past year to detect shifts
@@ -1310,13 +1310,13 @@ Sub-seasonal plot
     - Crucial for applications requiring immediate response
     - E.g., monitoring network traffic for anomalies
 
-- **\textcolor{darkgreen}{Approaches}**
+- **Approaches**
   - Model-based methods rely on assumptions about data distribution
     - E.g., ARIMA models for time series forecasting
   - Bayesian approaches:
     - Model changes with probabilistic assumptions and priors
 
-- **\textcolor{blue}{Applications}**
+- **Applications**
   - Financial market regime shifts
     - Detecting bull and bear markets
   - Environmental change
@@ -1333,13 +1333,14 @@ Sub-seasonal plot
     - Has its own parameters (e.g., mean, variance, AR coefficients)
     - Can represent different behaviors (e.g., growth vs. recession)
 
-- **\textcolor{red}{Markov Property}**:
+- **Markov Property**:
   - Probability of switching depends only on the current state
   - Defined by a state transition matrix
 
-- **\textcolor{blue}{Applications}**:
+- **Applications**:
   - Economics: modeling business cycles
   - Finance: volatility modeling (e.g., bull vs. bear markets)
 
 - Pros:
   - Captures nonlinear dynamics and structural breaks in time series
+

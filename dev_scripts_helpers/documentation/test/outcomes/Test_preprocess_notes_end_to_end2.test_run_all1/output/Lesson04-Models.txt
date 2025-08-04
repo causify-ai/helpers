@@ -71,11 +71,11 @@ MSML610: Advanced Machine Learning
     where the evidence $\vv{E}$ is the vector of features
   - The training data provides an estimate of joint probability $\Pr(H_i, \vE)$
 
-- **\textcolor{red}{Naive Bayes assumptions:}**
+- **Naive Bayes assumptions:**
   1. Features are independent
   2. Features are equally important (or at least all relevant)
 
-- **\textcolor{blue}{Naive Bayes model:}**
+- **Naive Bayes model:**
   - Called "naive" due to the simplifying assumption of independence, even if
     not true
   - Works surprisingly well
@@ -85,11 +85,11 @@ MSML610: Advanced Machine Learning
 ::: columns
 :::: {.column width=55%}
 
-- **\textcolor{red}{Problem}**
+- **Problem**
   - Predict whether kids are going to play outside or not using past observations
     of weather condition
 
-- **\textcolor{blue}{ML formulation}**
+- **ML formulation**
   - Supervised learning set-up
   - Predictor vars are:
     - `outlook = {sunny, overcast, rainy}`
@@ -173,7 +173,7 @@ MSML610: Advanced Machine Learning
 #### 1-Rule
 - Aka "tree stump", i.e., a decision tree with a single node
 
-- **\textcolor{red}{Algorithm}**
+- **Algorithm**
   - Pick a single feature (e.g., `outlook`):
     - Most discriminant
     - Based on expert opinion
@@ -219,7 +219,7 @@ MSML610: Advanced Machine Learning
   \Pr(E_i = e') = \frac{\# I(E_i = e')}{\sum_{k=1}^K \# I(E_i = e_k)}
   $$
 
-- **\textcolor{red}{Problem}**
+- **Problem**
   - A particular value $e'$ of a feature $E_i$ does not occur in the training
     set in conjunction with an output class $H_j$
   - The estimated probability $\Pr(E_i=e'|H_j) = 0$
@@ -342,7 +342,7 @@ MSML610: Advanced Machine Learning
 
 
 #### Learning decision trees: intuition
-- **\textcolor{red}{Several algorithms}**
+- **Several algorithms**
   - ID3
   - C4.5
   - CART (Classification And Regression Trees)
@@ -380,7 +380,7 @@ MSML610: Advanced Machine Learning
 - Then we recurse on $Q_{L}(j, t_m)^*$ and $Q_{R}(j, t_m)^*$
 
 #### Measures of node impurity for classification
-- **\textcolor{red}{Measures of node impurity:}**
+- **Measures of node impurity:**
   - Are based on probabilities of choosing objects of different classes
     $k = 1, ..., K$ in the $m$-th node , i.e., $p_k$
   - Smaller impurity values are better
@@ -554,7 +554,7 @@ MSML610: Advanced Machine Learning
 
 
 #### From decision trees to random forests
-- **\textcolor{red}{Decision trees have:}**
+- **Decision trees have:**
   - Low bias
   - High variance (i.e., high capacity models)
 
@@ -602,10 +602,10 @@ MSML610: Advanced Machine Learning
 #### Random forests: pros and cons
 - The pros and cons are the same as ensemble learning
 
-- **\textcolor{red}{Pros}**
+- **Pros**
   - Increased accuracy
 
-- **\textcolor{blue}{Cons}**
+- **Cons**
   - Lower training and evaluation speed
   - Loss of interpretability
   - Overfitting (cross-validation is needed)
@@ -645,13 +645,13 @@ MSML610: Advanced Machine Learning
   $$
 
 #### In sample error for linear regression
-- For **\textcolor{red}{regression}**, we use the squared error for the in-sample error of
+- For **regression**, we use the squared error for the in-sample error of
   hypothesis $h$:
   $$
   E_{in}(h) = \frac{1}{N} \sum_{i=1}^{N} (h(\vx_i) - f(\vx_i)) ^ 2
   $$
 
-- For **\textcolor{blue}{linear regression:}**
+- For **linear regression:**
   $$
   E_{in}(h)
   = E_{in}(\vw)
@@ -777,7 +777,7 @@ MSML610: Advanced Machine Learning
 #### Perceptron learning algorithm (PLA)
 - First learning algorithm discovered
 
-- **\textcolor{red}{Algorithm}**
+- **Algorithm**
   - Initialize weights $\vw$
     - Random values
     - Use linear classification value as seed
@@ -791,7 +791,7 @@ MSML610: Advanced Machine Learning
 
 - The algorithm is guaranteed to converge (slowly) for linearly separable data
 
-- **\textcolor{blue}{Pocket version of PLA}**
+- **Pocket version of PLA**
   - Idea
     - Continuously update the solution
     - Keep the best solution "in the back pocket"
@@ -830,7 +830,7 @@ MSML610: Advanced Machine Learning
 - In logistic regression, we learn $\Pr(y | \vx)$, i.e., the probability of each
   class given the input, instead of predicting the class directly
 
-- **\textcolor{red}{Parametric approach:}**
+- **Parametric approach:**
   - Assume $\Pr(y | \vx; \vw)$ has a known functional form
     $$\Pr(y=1|\vx; \vw) = \text{logit}(\vw^T \vx)$$
   - Learn by optimizing parameters $\vw$ using maximum likelihood
@@ -1140,12 +1140,12 @@ MSML610: Advanced Machine Learning
   - The functional form of the model is known
   - The model is parametrized with unknown parameters to estimate
 
-- **\textcolor{red}{Pros}**
+- **Pros**
   - Utilize structure in the data
   - Models are easy to fit: few parameters to estimate
   - Accurate predictions if model assumptions are correct
 
-- **\textcolor{blue}{Cons}**
+- **Cons**
   - Strong assumptions about the data
   - Low accuracy if model assumptions are incorrect
 
@@ -1155,12 +1155,12 @@ MSML610: Advanced Machine Learning
   - Assume each class generating process is multivariate Gaussian
   - Classifiers with linear and quadratic decision surface
 
-- **\textcolor{red}{Pros}**
+- **Pros**
   - Closed-form solutions easy to compute (sample mean and covariance)
   - Inherently multiclass
   - No hyperparams to tune
 
-- **\textcolor{blue}{Cons}**
+- **Cons**
   - Strong assumptions about the data
 
 #### LDA / QDA: Model form
@@ -1850,7 +1850,7 @@ MSML610: Advanced Machine Learning
 #### Radial Basis Function Model
 - Aka RBF
 
-- The model form for **\textcolor{red}{regression}** is:
+- The model form for **regression** is:
   $$
   h(\vx) = \sum_{i=1}^{N} w_i \exp(-\gamma \|\vx - \vx_i\| ^2)
   $$
@@ -1861,7 +1861,7 @@ MSML610: Advanced Machine Learning
     nothing outside
 
 
-- For **\textcolor{blue}{classification}** use a similar approach to "linear regression for
+- For **classification** use a similar approach to "linear regression for
   classification"
   - Fit a regression model:
     $$
@@ -1911,7 +1911,7 @@ MSML610: Advanced Machine Learning
   h(\vx) = \sum_{i=1}^{K} w_i \exp (-\gamma \|\vx - \vmu_i\|^2)
   $$
 
-- **\textcolor{red}{Minimize:}**
+- **Minimize:**
   $$
   E_{in} = \sum_i (h_{\vw, \gamma}(\vx_i) - y_i)^2 = f(\vw, \gamma)
   $$
@@ -1922,7 +1922,7 @@ MSML610: Advanced Machine Learning
   - Fix $\gamma$, solve for $\vw$ (using one-step learning)
   - Fix $\vw$, solve for $\gamma$ (with gradient descent)
 
-- **\textcolor{red}{Step 1}**
+- **Step 1**
   - Assume that $\gamma$ is known and fixed
   - Learn $\vw$
 
@@ -1954,7 +1954,7 @@ MSML610: Advanced Machine Learning
     - Assign the weights as:
       $$\vw = (\mat{\Phi}^T \mat{\Phi})^{-1} \mat{\Phi}^T \vy$$
 
-- **\textcolor{red}{Step 2}**
+- **Step 2**
   - Assume that $\vw$ is known and fixed
   - Learn $\gamma$
 
@@ -1996,7 +1996,7 @@ MSML610: Advanced Machine Learning
   h_{\vw}(\vx) = \frac{1}{n} \sum_{\vx_i \text{closest to } \vx} w_i
   $$
 
-- **\textcolor{red}{Idea}**:
+- **Idea**:
   - Closeness implies a distance (e.g., euclidean metric) or similarity (e.g., a
     kernel)
   - Consider the $k$ closest points to the evaluation point $\vx$
@@ -2035,10 +2035,10 @@ MSML610: Advanced Machine Learning
   - We have the typical behavior of model complexity as in bias-variance diagrams
 
 #### KNN vs RBF models
-- **\textcolor{red}{Similarities}**
+- **Similarities**
   - K-Nearest Neighbor is a \textit{discrete} version of the RBF model
 
-- **\textcolor{blue}{Differences:}**
+- **Differences:**
   - Consider only the $k$ \textit{closest examples} to the point $\vx$ (not all
     examples in the training set)
   - Use a \textit{constant kernel} (responses are not weighted by distance)
@@ -2085,12 +2085,12 @@ MSML610: Advanced Machine Learning
   - Better than picking randomly the centroids of the clusters
 - Each iteration does 2 steps
 
-- **\textcolor{red}{Step 1}**: Move centroid
+- **Step 1**: Move centroid
   - We move the centroid of each cluster to the mean point of the current cluster
   - This loop iterates over the $K$ clusters
   - $\vmu_k \leftarrow \frac{1}{|S_k|}\sum_{\vx_n \in S_k}\vx_n$
 
-- **\textcolor{blue}{Step 2}**: Cluster assignment
+- **Step 2**: Cluster assignment
 
   - Each $\vx_n$ is assigned to the closest cluster based on its center
   - This loop iterates over the $N$ points
@@ -2200,12 +2200,12 @@ MSML610: Advanced Machine Learning
 
 
 #### Anomaly detection: problem formulation
-- **\textcolor{red}{Problem}**:
+- **Problem**:
   - We have $\{\vx_1, ..., \vx_N\}$ examples with features $\vx \in \bbR^P$ for
     good / non-anomalous instances
   - We want to find a way to detect bad / anomalous instances
 
-- **\textcolor{blue}{Algorithm}**:
+- **Algorithm**:
   - We don't know what makes a _"bad instances"_
   - We learn what _"good instances"_ have in common using unsupervised learning
     - I.e., find the distribution for _"good instances"_ $\vx_i$, 
@@ -2221,10 +2221,10 @@ MSML610: Advanced Machine Learning
     we flag it as an anomaly
 
 #### Anomaly detection: example of aircraft engines
-- **\textcolor{red}{Problem}**
+- **Problem**
   - Test aircraft engines to identify anomalies in a new engine
 
-- **\textcolor{blue}{Solution}**:
+- **Solution**:
   - Features $\vx_i$ can be:
     - Heat generated
     - Vibration intensity
@@ -2235,10 +2235,10 @@ MSML610: Advanced Machine Learning
     or needs more testing
 
 #### Anomaly detection: example of hacked account
-- **\textcolor{red}{Problem}**
+- **Problem**
   - Find if an account for a given user $i$ was hacked
 
-- **\textcolor{blue}{Solution}**:
+- **Solution**:
   - Model features that represent "user $i$ activity" 
   - Features $\vx_i$ can be:
     - How many times s/he logs a day
@@ -2251,10 +2251,10 @@ MSML610: Advanced Machine Learning
   - Identify unusual users by checking $\Pr(\vx_{new}) \le \varepsilon$
 
 #### Anomaly detection: example of computers in data center
-- **\textcolor{red}{Problem}**
+- **Problem**
   - Monitor servers in a data center to find malfunctioning or hanged servers
 
-- **\textcolor{blue}{Solution}**:
+- **Solution**:
   - Features $\vx_i$ can be:
     - Memory in use
     - CPU load
@@ -2309,19 +2309,19 @@ MSML610: Advanced Machine Learning
 - Vectorize the computation
 
 #### Estimate a multi-variate Gaussian model
-- **\textcolor{red}{Problem}**:
+- **Problem**:
   - Sometimes features vary together (e.g., network use and CPU load), so using
     the independent assumption might cause misclassifications
   - E.g., the components of an example $\vx_{new}$ are within the expected range
     but together make no sense
     - E.g., low network use with high CPU load
 
-- **\textcolor{darkgreen}{Solution 1}**:
+- **Solution 1**:
   - Engineer features to create features that are high in case of an anomaly
   - This bridges the gap for the correlation between variables (that can't be
     modeled in independent Gaussian models)
 
-- **\textcolor{blue}{Solution 2}**:
+- **Solution 2**:
   - Estimate the entire multivariate model, instead of assuming independence and
     estimating one marginal Gaussian at a time
 
@@ -2374,7 +2374,7 @@ MSML610: Advanced Machine Learning
   - E.g., 10,000 good vs 20 bad examples
   - Important to address class imbalance for accurate model performance
 
-- **\textcolor{red}{Algorithm}**:
+- **Algorithm**:
   - Pick 60% of data with $y = 0$ to train (only on the good examples)
 
   - Split the remaining data $y = 0$ and $y = 1$ into validation and test sets
@@ -2390,7 +2390,7 @@ MSML610: Advanced Machine Learning
     - The model is trained on normal data and tested on both normal and anomalous
       data
 
-- **\textcolor{blue}{Example}**:
+- **Example**:
   - In aircraft engine example there are 10,000 good engines ($y = 0$), 20 bad
     engines ($y=1$) 
   - Train set: 6,000 $y=0$ examples

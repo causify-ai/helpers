@@ -41,13 +41,13 @@ MSML610: Advanced Machine Learning
 
 
 #### Sequential Decision Problems
-- **\textcolor{red}{Agents need to make decisions in the real world}**:
+- **Agents need to make decisions in the real world**:
   - In a stochastic environment (randomness, unpredictability)
     - E.g., weather conditions affecting a delivery route
   - Where utility depends on a sequence of decisions
     - E.g., planning a multi-step journey where each step influences the next
 
-- **\textcolor{blue}{What is involved}**
+- **What is involved**
   - Uncertainty
     - Represent the lack of certainty in outcomes, modeled using probabilities
     - E.g., weather forecasts often include uncertainty (70% chance of rain)
@@ -65,9 +65,9 @@ MSML610: Advanced Machine Learning
     - E.g., a GPS system planning the shortest route to a destination
 
 #### Markov Decision Process
-- **\textcolor{red}{MDPs}** are a formal model for sequential decision making
+- **MDPs** are a formal model for sequential decision making
 
-- **\textcolor{blue}{Assumptions}**
+- **Assumptions**
   - Fully observable but stochastic environment
     - Sensors give agent the complete state of the environment $\forall t$
     - Next state is not completely determined by current state and agent's action
@@ -98,27 +98,27 @@ MSML610: Advanced Machine Learning
 
 #### MDP: Solution
 
-- The solution of an MDP is a **\textcolor{blue}{policy}** _"in state $s$ take action $a$"_
+- The solution of an MDP is a **policy** _"in state $s$ take action $a$"_
   $$
   \pi(s): s \to a \in Actions(s)
   $$
-  - Any execution of the policy leads to a different **\textcolor{red}{environment history}**
+  - Any execution of the policy leads to a different **environment history**
     because of the stochastic nature of the environment
   - Environment history is a sequence of states and actions
     $(s_0, a_0) \to (s_1, a_1) \to ... \to (s_i, a_i) \to ...$
 
-- A policy is measured by the **\textcolor{olive}{expected utility}** of the environment history
+- A policy is measured by the **expected utility** of the environment history
   $$
   U(\pi(s)) = \EE[f(s_0, \pi(s), R(s, a, s'))]
   $$
-- The **\textcolor{cyan}{optimal policy}** $\pi^*(s)$ yields the highest expected utility
+- The **optimal policy** $\pi^*(s)$ yields the highest expected utility
   $$
   \pi^*(s) = \argmax_{\pi} \; \EE[f(s_0, \pi(s), R(s, a, s'))]
   $$
   - Note: the optimal policy is a function of the reward function
 
 
-- MDP is often solved with **\textcolor{orange}{dynamic programming}**
+- MDP is often solved with **dynamic programming**
   1. Break the problem in smaller pieces recursively
   2. Solve the sub-problems
   3. Remember solutions of the pieces
@@ -127,19 +127,19 @@ MSML610: Advanced Machine Learning
 
 ::: columns
 :::: {.column width=70%}
-- **\textcolor{red}{Environment}**
+- **Environment**
   - A 4 x 3 grid world
   - Fully observable: the agent always knows its location
   - Non-deterministic: actions are not reliable
     - Pr(intended action) = 0.8
     - Pr(move right/left angle) = 0.1
-- **\textcolor{darkgreen}{Agent}**
+- **Agent**
   - Begin at the `START` cell
   - Choose actions `Up`, `Down`, `Left`, `Right` at each step
   - Aim to reach goal states marked `+1` or `-1`
-- **\textcolor{blue}{Transition Model}**
+- **Transition Model**
   - Result of each action in each state $\Pr(s' | s, a)$
-- **\textcolor{violet}{Utility Function}**
+- **Utility Function**
   - The reward for each state transition $s \to s'$ via action $a$ is
     $R(s, a, s')$
     - -0.04 for all transitions (to encourage reaching terminal states swiftly)
@@ -174,13 +174,13 @@ MSML610: Advanced Machine Learning
 
 
 #### Utility Function
-- The **\textcolor{red}{utility function}** for environment histories (finite or infinite) is
+- The **utility function** for environment histories (finite or infinite) is
   expressed as:
   $$
   U_h([\textcolor{blue}{s_0, a_0}, \textcolor{darkgreen}{s_1, a_1}, ..., s_n, ...])
   $$
 
-- A **\textcolor{darkgreen}{finite horizon}** indicates a fixed time $N$ after which nothing matters:
+- A **finite horizon** indicates a fixed time $N$ after which nothing matters:
   $$
   U_h([s_0, a_0, s_1, ..., \textcolor{red}{s_N, ...s_{N+k}}])
   = U_h([s_0, a_0, s_1, ..., \textcolor{red}{s_N}]) \; \forall k > 0
@@ -188,22 +188,22 @@ MSML610: Advanced Machine Learning
   - Actions are chosen based on the current state and remaining steps
   - Lead to non-stationary policies
 
-- **\textcolor{blue}{Infinite horizon}**
+- **Infinite horizon**
   - No fixed time limit, i.e., the process continues indefinitely
   - Utility is often defined using a discount factor $\gamma < 1$ for
     convergence
-  - The optimal policy can be **\textcolor{violet}{stationary}**
+  - The optimal policy can be **stationary**
     - Policies do not depend on the specific time step
     - Same action is chosen whenever the agent visits the same state
 
 #### Additive Rewards
-- **\textcolor{red}{Additive rewards}**:
+- **Additive rewards**:
   - Rewards for each transition $s_i \xrightarrow{a_i} s_{i+1}$ are summed:
     $$
     U_h([s_0, a_0, s_1, a_1, \ldots]) = \sum_{i=0} R(s_i, a_i, s_{i+1})
     $$
 
-- **\textcolor{darkgreen}{Additive discounted rewards}**:
+- **Additive discounted rewards**:
   - Include a discount factor $\gamma \in [0, 1]$:
     $$
     \begin{aligned}
@@ -217,14 +217,14 @@ MSML610: Advanced Machine Learning
     - $\gamma \to 0$: future rewards are negligible
     - $\gamma \to 1$: future rewards significant
 
-- **\textcolor{blue}{Pros of discounted rewards}**:
+- **Pros of discounted rewards**:
   - Reflect human tendency to prioritize near-term rewards
   - In economics, early rewards can be reinvested, compounding further rewards
   - Support infinite horizons, preventing unbounded rewards
 
 #### Expected Utility of a Policy
 - We said that a policy leads to different environment histories
-- The expected **\textcolor{red}{utility of executing policy}** $\pi$ from state $s$:
+- The expected **utility of executing policy** $\pi$ from state $s$:
   $$
   U^\pi(s) = \EE[ \sum_{i=0}^\infty \gamma^t R(S_i, \pi(S_i), S_{i+1}) ]
   $$
@@ -232,7 +232,7 @@ MSML610: Advanced Machine Learning
   - Over state sequences determined by $s$, $\pi(s)$
   - The environment's transition model $\Pr(s' | s, a)$
 
-- The agent should choose the **\textcolor{blue}{optimal policy}**:
+- The agent should choose the **optimal policy**:
   $$
   \pi_s^* = \argmax_{\pi} U^{\pi}(s)
   $$
@@ -245,7 +245,7 @@ MSML610: Advanced Machine Learning
 - MEU posits: _"A rational agent should choose the action that maximizes its
   expected utility based on its beliefs"_
 
-- **\textcolor{red}{Formal Definition}**
+- **Formal Definition**
   - Possible actions: $a \in A$
   - Possible outcomes: $s'$
   - Probability distribution: $\Pr(s'|a)$ for each action
@@ -257,7 +257,7 @@ MSML610: Advanced Machine Learning
   - Choose the action $a^*
     = \argmax_{a \in A} \sum_{s'} U(s') \Pr(s'|a)$
 
-- **\textcolor{blue}{Example}**:
+- **Example**:
   - E.g., an agent must choose between:
     - `Action A`: 80% chance of reward 10; 20% chance of reward 0
     - `Action B`: 100% chance of reward 6
@@ -272,21 +272,21 @@ MSML610: Advanced Machine Learning
 ::::
 :::: {.column width=80%}
 
-- **\textcolor{blue}{States $S$}**
+- **States $S$**
   - Current board configuration and falling piece
-- **\textcolor{red}{Actions $A$}**
+- **Actions $A$**
   - Valid final placements of the piece
     - Rotation (0–3 positions)
     - Horizontal movement (left, right)
     - Hard drop (instant placement)
-- **\textcolor{olive}{Transition Model $T(s, a, s')$}**
+- **Transition Model $T(s, a, s')$**
   - Deterministic or stochastic based on next piece modeling
   - Piece generation often random (uniform or "bag" system)
-- **\textcolor{cyan}{Reward $R(s, a, s')$}**
+- **Reward $R(s, a, s')$**
   - +1 for each cleared line
   - Negative reward for new block addition or height increase
   - Game over may have large negative reward
-- **\textcolor{orange}{Discount Factor $\gamma$}**
+- **Discount Factor $\gamma$**
   - Close to 1 for valuing long-term survival and line-clearing
 ::::
 :::
@@ -302,7 +302,7 @@ MSML610: Advanced Machine Learning
 
 ::: columns
 :::: {.column width=70%}
-- **\textcolor{red}{Example}**:
+- **Example**:
   - In a 4x3 environment, the utility of a state is:
     - Higher closer to the +1 state, as fewer steps are needed to reach it
     - Lower for the one close to the -1 state, since the agent needs to go
@@ -318,7 +318,7 @@ MSML610: Advanced Machine Learning
 :::
 
 #### Bellman Equation
-- The **\textcolor{red}{utility of a state}** $s$ is the expected reward for the next transition
+- The **utility of a state** $s$ is the expected reward for the next transition
   plus the discounted utility of the next state, assuming the agent chooses the
   optimal action:
   $$
@@ -343,7 +343,7 @@ MSML610: Advanced Machine Learning
   - E.g., in a grid world with a finite number of cells and actions
 
 #### Bellman Equation: Intuition
-- The **\textcolor{red}{Bellman Equation:}** says
+- The **Bellman Equation:** says
   $$
   \textit{"Utility of a state = Best immediate action + Future potential"}
   $$
@@ -383,20 +383,20 @@ MSML610: Advanced Machine Learning
     $$
 
 #### Shaping Theorem
-- For discounted sums of rewards, the **\textcolor{red}{scale of utilities}** is arbitrary:
+- For discounted sums of rewards, the **scale of utilities** is arbitrary:
   - An affine transformation $U'(s) = m \cdot U(s) + b$ does not change the
     optimal policy $\pi^*(s)$
   - What matters for decision-making is the relative ordering of utilities
     (which is preserved)
 
-- More generally, a **\textcolor{darkgreen}{potential-based reward shaping}**, i.e., using a function
+- More generally, a **potential-based reward shaping**, i.e., using a function
   $\Phi(s)$ of the state $s$ doesn't change the optimal policy:
   $$
   R'(s, a, s') = R(s, a, s') + \gamma \Phi(s') - \Phi(s)
   $$
   - It ensures the difference in value between states remains consistent
 
-- **\textcolor{blue}{Pros}**
+- **Pros**
   - Speed: Can significantly speed up learning by guiding the agent
     - E.g., adding a potential function that increases with proximity to a goal
       can encourage faster convergence
@@ -412,7 +412,7 @@ MSML610: Advanced Machine Learning
   - For sparse MDPs (i.e., each $s$ transitions to only a few states $s'$), the
     table size is $O(|S| \cdot |A|)$
 
-- MDPs can be represented using **\textcolor{red}{Dynamic Decision Networks}** (DDNs):
+- MDPs can be represented using **Dynamic Decision Networks** (DDNs):
   - DDNs are a type of probabilistic graphical model extending Bayesian networks
     for sequential decision problems
   - DDNs offer a factored representation, compactly encoding state variables and
@@ -428,16 +428,16 @@ MSML610: Advanced Machine Learning
 
 - DDN models Tetris in terms of time slices with the game's state, actions, and
   rewards
-  - **\textcolor{red}{State variables}**:
+  - **State variables**:
     - $Board_t$: grid configuration at time $t$
     - $Piece_t$: current piece falling
     - $NextPiece_t$: upcoming piece
-  - **\textcolor{darkgreen}{Decision variable}**:
+  - **Decision variable**:
     - $Action_t$: placement of $Piece_t$ (rotation and position)
-  - **\textcolor{blue}{Chance nodes}** (transition):
+  - **Chance nodes** (transition):
     - $Board_{t+1}$: board after action
     - $Piece_{t+1}$: next piece, depending on $NextPiece_t$ or random selection
-  - **\textcolor{violet}{Utility node}**:
+  - **Utility node**:
     - $Reward_t$: derived from $Board_{t+1}$ (e.g., lines cleared, holes created)
 ::::
 :::: {.column width=45%}
@@ -486,11 +486,11 @@ digraph TetrisDDN {
 
 
 #### Value Iteration (1/2)
-- **\textcolor{red}{Value iteration}** solves MDPs using 2 steps:
+- **Value iteration** solves MDPs using 2 steps:
   - Compute optimal utility for each state $U(s)$
   - Extract optimal policy $\pi^*$ from utilities $U(s)$
 
-- **\textcolor{blue}{Step 1}**: compute optimal utility for each state
+- **Step 1**: compute optimal utility for each state
   - There are $n$ possible states, so $n$ Bellman equations, one per state
     $$
     U(s) = \max_{a \in A(s)} \sum_{s'} \Pr(s' | s, a)[R(s, a, s') + \gamma U(s')]
@@ -504,7 +504,7 @@ digraph TetrisDDN {
 
 #### Value Iteration (2/2)
 
-- **\textcolor{red}{Solve system of Bellman equations}**
+- **Solve system of Bellman equations**
   - Start with arbitrary values for utilities $U(s) = 0$
   - Perform Bellman updates:
     $$
@@ -518,7 +518,7 @@ digraph TetrisDDN {
   - Guaranteed to converge to the unique fixed point (optimal policy) for
     additive discounted rewards and $\gamma < 1$
 
-- **\textcolor{blue}{Step 2}**: compute optimal policy
+- **Step 2**: compute optimal policy
   - Derive optimal policy by choosing action $a$ that maximizes expected utility
     for each state $s$:
     $$
@@ -527,11 +527,11 @@ digraph TetrisDDN {
 
 #### Policy Iteration
 
-- **\textcolor{red}{Policy iteration}** solves MDPs by iteratively improving a policy
+- **Policy iteration** solves MDPs by iteratively improving a policy
   - Alternates between evaluating the current policy and improving it
   - Uses the simplified Bellman equation with a fixed action per state
 
-- **\textcolor{darkgreen}{Algorithm steps}**
+- **Algorithm steps**
   - Start with an initial (random) policy $\pi$
   - Policy Evaluation: compute $U^\pi(s)$ by solving:
     $$
@@ -543,17 +543,17 @@ digraph TetrisDDN {
     $$
   - Repeat until policy is unchanged or close to convergence
 
-- **\textcolor{blue}{Convergence Guarantee}**
+- **Convergence Guarantee**
   - Each iteration strictly improves or maintains policy performance
   - Guaranteed to terminate with an optimal policy for finite MDPs
 
-- **\textcolor{violet}{Efficiency Considerations}**
+- **Efficiency Considerations**
   - Policy evaluation involves solving linear equations
   - Typically converges in fewer iterations than value iteration
 
 #### Off-Line vs On-Line Solution of MDPS
 
-- **\textcolor{red}{Offline methods}** (e.g., value iteration, policy iteration) precompute full
+- **Offline methods** (e.g., value iteration, policy iteration) precompute full
   solutions
   - Pros:
     - Compute the entire optimal policy $\pi^* \; \forall s$ before taking any
@@ -563,7 +563,7 @@ digraph TetrisDDN {
       reward function $R(s,a,s')$
     - Not feasible for large MDPs (e.g., Tetris with $10^{62}$ states)
 
-- **\textcolor{blue}{Online methods}** compute actions at runtime, using only reachable parts of
+- **Online methods** compute actions at runtime, using only reachable parts of
   the state space
   - Interleave planning and acting
   - Agent explores the environment and updates estimates (e.g., Q-learning)
@@ -598,18 +598,18 @@ digraph TetrisDDN {
 ::::
 :::
 
-- **\textcolor{red}{Exploration vs. Exploitation}**
+- **Exploration vs. Exploitation**
   - Exploration: try different arms to learn their rewards
   - Exploitation: choose the best-known arm to maximize immediate reward
 
-- **\textcolor{blue}{Applications}**
+- **Applications**
   - Online advertising (choosing ads to show)
   - Clinical trials (testing treatments)
   - A/B testing in web development
 
 #### Partially Observable MDPs (POMDPs)
 
-- **\textcolor{red}{Motivation}**
+- **Motivation**
   - Traditional MDPs assume full observability of the environment
   - The agent knows in which state it is in
   - In real-world situations, agents often lack precise knowledge of the current
@@ -617,7 +617,7 @@ digraph TetrisDDN {
   - POMDPs (read "pom-dee-pees") extend MDPs to handle uncertainty in state
     perception
 
-- **\textcolor{darkgreen}{Definition}**
+- **Definition**
   - A POMDP is defined by:
     - States $S$
     - Actions $A$
@@ -626,7 +626,7 @@ digraph TetrisDDN {
     - Sensor model $\Pr(e|s)$: probability of observing evidence $e$ in state
       $s$
 
-- **\textcolor{blue}{Belief States}**
+- **Belief States**
   - A belief state $b(s)$ is a probability distribution over possible actual
     states $s$ (i.e., the probability of being in $s$)
   - The agent maintains $b(s)$ as its internal representation of the environment
@@ -644,13 +644,13 @@ digraph TetrisDDN {
   - Produces a four-bit string (e.g., `1010`), each bit indicating presence
     (`1`) or absence (`0`) of a wall in one direction
 
-- **\textcolor{red}{Error Model}**
+- **Error Model**
   - Each bit is correct with probability $1 - \epsilon$, incorrect with
     probability $\epsilon$
   - Errors are assumed to be independent across bits
   - Example: true config is `1100`, observed is `1110`
 
-- **\textcolor{blue}{Localization Rule}**
+- **Localization Rule**
   - Helps infer the robot's position by comparing sensor output with map-based
     expectations (integrated into belief state updates)
   - Localization is achievable with high error rate by aggregating observations
@@ -666,7 +666,7 @@ digraph TetrisDDN {
 
 #### Belief State Transitions and Value of Information
 
-- **\textcolor{red}{Belief Update}**
+- **Belief Update**
   - After action $a$ and observation $e$, belief state $b$ is updated:
     $$
     b'(s') = \alpha \Pr(e|s') \sum_s \Pr(s'|s,a) b(s)
@@ -675,7 +675,7 @@ digraph TetrisDDN {
   - Same equation as the filtering task to calculate the new belief state
     $b'(s)$ from the previous belief state $b(s)$ and the new evidence $e$
 
-- **\textcolor{darkgreen}{Belief space}**
+- **Belief space**
   - Everything (policy, transition and reward models) is now function of belief
     state
   - It can't be function of the actual state the agent is in, since the agent
@@ -683,7 +683,7 @@ digraph TetrisDDN {
   - Intermediate belief states have lower utility due to uncertainty
   - Information-gathering actions can improve future decision quality
 
-- **\textcolor{blue}{Transition and Reward Models in Belief Space}**
+- **Transition and Reward Models in Belief Space**
   - Transition: $\Pr(b'|b,a)$ defined using:
     $$
     \Pr(b'|b,a) = \sum_e \Pr(b'|e,a,b) \Pr(e|a,b)
@@ -693,29 +693,29 @@ digraph TetrisDDN {
     \rho(b,a) = \sum_s b(s) \sum_{s'} \Pr(s'|s,a) R(s,a,s')
     $$
 
-- **\textcolor{violet}{Decision cycle for POMDP}**
+- **Decision cycle for POMDP**
   - Repeat
     1. Given the current belief state $b$, execute action $a = \pi(b)$
     2. Observe percept $e$
     3. Update belief state $b'$
 
 #### Solving POMDPs
-- **\textcolor{red}{Observable MDP over Belief Space}**
+- **Observable MDP over Belief Space**
   - A POMDP on an actual state space can be converted into an MDP on the belief
     space
 
-- **\textcolor{darkgreen}{Value Iteration for POMDPs}**
+- **Value Iteration for POMDPs**
   - Maintains a set of conditional plans $p$ with associated utility vectors
     $\alpha_p$
   - Expected utility of a plan in belief state $b$ is $b \cdot \alpha_p$
   - Optimal utility is piecewise linear and convex over belief space
 
-- **\textcolor{blue}{Recursive Plan Evaluation}**
+- **Recursive Plan Evaluation**
   $$
   \alpha_p(s) = \sum_{s'} \Pr(s'|s,a) \left[ R(s,a,s') + \gamma \sum_e \Pr(e|s') \alpha_{p.e}(s') \right]
   $$
 
-- **\textcolor{violet}{Challenges}**
+- **Challenges**
   - Number of plans grows exponentially with depth
   - Even small problems generate many plans (e.g., $2^{255}$ plans for a
     two-state POMDP at depth 8)
@@ -732,7 +732,7 @@ digraph TetrisDDN {
 
 
 #### Problem with Supervised Learning
-- **\textcolor{red}{In supervised learning}**
+- **In supervised learning**
   - An agent learns by observing examples of input / outputs
   - It's hard to find labeled data for all situations
 
@@ -750,20 +750,20 @@ digraph TetrisDDN {
 
 #### Reinforcement Learning
 
-- **\textcolor{red}{Reinforcement Learning (RL) Paradigm}**
+- **Reinforcement Learning (RL) Paradigm**
   - Agent learns from direct interaction with the environment
   - Periodically receives reward signals indicating success or failure
     ("reinforcements")
   - Learns a policy to maximize cumulative future rewards
   - Goal: maximize expected sum of rewards
 
-- **\textcolor{darkgreen}{RL vs supervised learning}**
+- **RL vs supervised learning**
   - Providing a reward signal to the agent is easier than providing inputs /
     outputs
   - RL is active since the agent explores the environment and learn from actions
     and consequences
 
-- **\textcolor{blue}{RL vs MDP}**
+- **RL vs MDP**
   - The goal of both is to maximize the expected sum of rewards
   - In RL the agent:
     - Doesn't know the transition model or the reward function (doesn't know the
@@ -787,70 +787,70 @@ digraph TetrisDDN {
 
 #### Applications of Reinforcement Learning
 
-- **\textcolor{blue}{Games and Simulations}**
+- **Games and Simulations**
   - RL has achieved superhuman performance in games like Go, Chess, and Dota2
   - Algorithms learn strategies through self-play and reward-driven improvement
 
-- **\textcolor{gray}{Robotics}**
+- **Robotics**
   - RL enables learning of complex control policies for walking, grasping, and
     manipulation
   - Applications include robotic arms, quadrupeds, and autonomous drones
 
-- **\textcolor{red}{Autonomous Vehicles}**
+- **Autonomous Vehicles**
   - RL used for decision-making and control in self-driving cars
   - Handles tasks like lane merging, navigation, and obstacle avoidance
 
-- **\textcolor{brown}{Recommendation Systems}**
+- **Recommendation Systems**
   - Adaptive recommendation based on user interactions (e.g., Netflix, YouTube)
     to optimize long-term engagement and satisfaction
 
-- **\textcolor{olive}{Finance and Trading}**
+- **Finance and Trading**
   - Portfolio management and trading strategies learned through market
     simulations
   - Agents aim to maximize returns under uncertainty and risk constraints
 
-- **\textcolor{darkgreen}{Healthcare}**
+- **Healthcare**
   - Personalized treatment policies learned from patient data
   - Applications in dynamic dosing, diagnostics, and medical decision support
 
-- **\textcolor{cyan}{Industrial Control}**
+- **Industrial Control**
   - Optimization of manufacturing processes, energy grids, and logistics
 
-- **\textcolor{violet}{Natural Language Processing}**
+- **Natural Language Processing**
   - Dialogue systems and chatbots that learn optimal conversational strategies
   - Use RL to improve response quality and user satisfaction over time
 
 #### Model-Based Reinforcement Learning
 
-- **\textcolor{blue}{Definition}**
+- **Definition**
   - Learns an explicit model of the environment's dynamics and uses it to make a
     decision about how to act
-  - **\textcolor{gray}{Transition model}**: estimates $\Pr(s'|s,a)$, i.e., probability of reaching
+  - **Transition model**: estimates $\Pr(s'|s,a)$, i.e., probability of reaching
     state $s'$ from $s$ after action $a$
-  - **\textcolor{red}{Reward model}**: estimates $R(s,a)$, i.e., expected reward after taking
+  - **Reward model**: estimates $R(s,a)$, i.e., expected reward after taking
     action $a$ in state $s$
   - Intuition: learn to drive by studying the manual and physics
 
-- **\textcolor{brown}{Learning Process}**
+- **Learning Process**
   - Collects experience tuples $(s, a, r, s')$
   - Updates the model of the environment (transition and reward)
   - Plans using the model to improve policy (e.g., via value iteration or policy
     iteration)
   - Dyna-Q algorithm: combines model-free updates with simulated planning steps
 
-- **\textcolor{olive}{Advantages}**
+- **Advantages**
   - Efficient sample usage: fewer real-world interactions required
   - Enables planning by simulating outcomes
 
-- **\textcolor{darkgreen}{Disadvantages}**
+- **Disadvantages**
   - Learning an accurate model is challenging
   - Errors in the model can propagate and lead to poor decisions
 
-- **\textcolor{cyan}{Examples}**
+- **Examples**
 
 #### Model-Free Reinforcement Learning
 
-- **\textcolor{red}{Definition}**
+- **Definition**
   - Learns directly from interactions with the environment without building a
     model of dynamics
   - Agent observes $(s, a, r, s')$ and updates value or policy estimates based
@@ -858,45 +858,45 @@ digraph TetrisDDN {
   - No attempt to predict $P(s'|s,a)$ or $R(s,a)$
   - Intuition: learn to drive by trial and error
 
-- **\textcolor{darkgreen}{Learning Process}**
+- **Learning Process**
   - Value-based methods: Learn state or state-action values (e.g., $Q(s,a)$)
     - E.g., Q-learning
   - Policy-based methods: Learn the policy directly
     - E.g., REINFORCE, actor-critic
 
-- **\textcolor{blue}{Advantages}**
+- **Advantages**
   - Simpler to implement when environment model is unknown or too complex
   - Robust to model inaccuracies since no model is used
 
-- **\textcolor{violet}{Disadvantages}**
+- **Disadvantages**
   - Requires more environment interactions (sample inefficient)
   - Harder to incorporate planning or long-term reasoning
 
 #### Model-Based vs Model-Free Reinforcement Learning
 
-- **\textcolor{blue}{Core Distinction}**
+- **Core Distinction**
   - Model-Based RL: Learns a model of environment dynamics $P(s'|s,a)$ and
     $R(s,a)$ and uses it for planning
   - Model-Free RL: Learns value functions $Q(s,a)$ or policies $\pi(a|s)$
     directly from experience
 
-- **\textcolor{red}{Sample Efficiency}**
+- **Sample Efficiency**
   - Model-Based: Generally more sample efficient due to simulated planning
   - Model-Free: Typically needs more environment interactions
 
-- **\textcolor{olive}{Computation}**
+- **Computation**
   - Model-Based: Higher planning overhead; simulations required
   - Model-Free: Simpler computations per step; often more scalable
 
-- **\textcolor{cyan}{Flexibility and Robustness}**
+- **Flexibility and Robustness**
   - Model-Based: Sensitive to model inaccuracies
   - Model-Free: More robust to model errors (since it doesn't learn one)
 
-- **\textcolor{orange}{Typical Use Cases}**
+- **Typical Use Cases**
   - Model-Based: Robotics, planning tasks, known environments
   - Model-Free: Games, large-scale unknown or stochastic environments
 
-- **\textcolor{darkgray}{Examples}**
+- **Examples**
   - Model-Based: Dyna-Q, PILCO
   - Model-Free: Q-learning, Deep Q-Networks (DQN), REINFORCE
   - Hybrid Approaches combine both strengths: learn models for planning and use
@@ -904,40 +904,40 @@ digraph TetrisDDN {
 
 #### Active vs Passive Reinforcement Learning
 
-- **\textcolor{blue}{Basic Distinction}**
+- **Basic Distinction**
   - Passive RL: Learns value of a fixed policy; does not choose actions
   - Active RL: Learns both the value function and the optimal policy through
     exploration
 
-- **\textcolor{gray}{Policy Handling}**
+- **Policy Handling**
   - Passive: Follows a given policy $\pi(s)$ and estimates $V^\pi(s)$ or
     $Q^\pi(s,a)$
   - Active: Improves policy over time, aiming for $\pi^*(s)$ that maximizes
     reward
 
-- **\textcolor{red}{Exploration}**
+- **Exploration**
   - Passive: No exploration — strictly evaluates the given policy
   - Active: Explores actions to improve the policy (e.g., $\epsilon$-greedy,
     softmax)
 
-- **\textcolor{brown}{Learning Goal}**
+- **Learning Goal**
   - Passive: Accurate value function for a known policy
   - Active: Optimal policy and value function via interaction
 
-- **\textcolor{olive}{Algorithms}**
+- **Algorithms**
   - Passive: Temporal Difference Learning (TD), Adaptive Dynamic Programming for
     a fixed policy
   - Active: Q-learning, SARSA, policy iteration methods
 
-- **\textcolor{darkgreen}{Use Cases}**
+- **Use Cases**
   - Passive: Evaluation of policies from human demonstrations or expert systems
   - Active: Autonomous agents discovering optimal strategies from scratch
 
-- **\textcolor{cyan}{Sample Efficiency}**
+- **Sample Efficiency**
   - Passive: Can converge faster if policy is close to optimal
   - Active: Slower due to need for exploration and policy improvement
 
-- **\textcolor{violet}{Challenges}**
+- **Challenges**
   - Passive: Limited by the quality of the provided policy
   - Active: Balancing exploration and exploitation effectively
 
@@ -954,7 +954,7 @@ digraph TetrisDDN {
 - Consider a fully observable environment with a small number of actions and
   states
 
-- **\textcolor{red}{The agent:}**
+- **The agent:**
   - Has a fixed policy $\pi(s)$ to determine its action
   - Needs to learn $U^\pi(s)$, the expected discounted reward if policy $\pi$ is
     executed starting in state $s$
@@ -978,27 +978,27 @@ digraph TetrisDDN {
     $$
     where $G_i(s)$ is the return after state $s$ in episode $i$
 
-- **\textcolor{darkgreen}{Advantages}**
+- **Advantages**
   - Unbiased estimator of utility under $\pi$
   - Simple
 
-- **\textcolor{blue}{Limitations}**
+- **Limitations**
   - High variance: requires many samples
   - Inefficient if state visits are rare or episode lengths vary greatly
   - (Important): Ignore the connections between states given that the utility
     values obeys the Bellman equation for a fixed policy
 
-- **\textcolor{violet}{Example}**
+- **Example**
   - Evaluating a delivery drone's route utility based on completed delivery
     missions without changing its behavior
 
 #### Adaptive Dynamic Programming
 
-- **\textcolor{blue}{Objective}**
+- **Objective**
   - Learn utility estimates $U^\pi(s)$ for a fixed policy $\pi$ using an
     estimated model of the environment
 
-- **\textcolor{red}{Key Components}**
+- **Key Components**
   - Model learning: Estimate transition probabilities $\Pr(s'|s,a)$ and reward
     function $R(s,a)$ from experience
   - Utility update: Solve the Bellman equations for the fixed policy:
@@ -1006,22 +1006,22 @@ digraph TetrisDDN {
     U^\pi(s) = R(s, \pi(s)) + \gamma \sum_{s'} \Pr(s'|s, \pi(s)) U^\pi(s')
     $$
 
-- **\textcolor{olive}{Learning Process}**
+- **Learning Process**
   - Collect transitions $(s, \pi(s), r, s')$ during execution
   - Update model estimates:
     - $\Pr(s'|s,a) \approx$ empirical frequency
     - $R(s,a) \approx$ average observed reward
   - Use dynamic programming to compute $U^\pi(s)$
 
-- **\textcolor{cyan}{Advantages}**
+- **Advantages**
   - More sample-efficient than direct utility estimation
   - Leverages structure of the MDP to generalize better
 
-- **\textcolor{orange}{Limitations}**
+- **Limitations**
   - Requires accurate model estimation
   - Computational cost of solving Bellman equations repeatedly
 
-- **\textcolor{darkgray}{Example}**
+- **Example**
   - Suitable when environment dynamics are stationary and can be learned from
     interaction
   - A thermostat estimates room temperature dynamics and uses them to predict
@@ -1029,15 +1029,15 @@ digraph TetrisDDN {
 
 #### Temporal-Difference Learning
 
-- **\textcolor{blue}{Objective}**
+- **Objective**
   - Estimate utility values $U^\pi(s)$ for a fixed policy $\pi$ using experience
     without a model
 
-- **\textcolor{gray}{Key Idea}**
+- **Key Idea**
   - Combine benefits of Monte Carlo methods and Dynamic Programming
   - Update estimates after every transition using bootstrapping
 
-- **\textcolor{red}{TD(0) Update Rule}**
+- **TD(0) Update Rule**
   - When a transition occurs from state $s$ to state $s'$ via action $\pi(s)$,
     we apply the update:
     $$
@@ -1050,19 +1050,19 @@ digraph TetrisDDN {
     - $\alpha$ is the learning rate
     - $\gamma$ is the discount factor
 
-- **\textcolor{brown}{Characteristics}**
+- **Characteristics**
   - Online and incremental: updates occur after each step
   - Does not require knowledge of model $P(s'|s,a)$ or $R(s,a)$
 
-- **\textcolor{olive}{Advantages}**
+- **Advantages**
   - More efficient and lower variance than Monte Carlo methods
   - Simpler and more memory-efficient than model-based methods
 
-- **\textcolor{darkgreen}{Limitations}**
+- **Limitations**
   - Introduces bias due to bootstrapping
   - May require careful tuning of learning rate $\alpha$
 
-- **\textcolor{cyan}{Example}**
+- **Example**
   - Real-time systems, streaming environments, or when dynamics are too complex
     to model
   - An autonomous cleaner estimates long-term dirtiness reduction for each room
@@ -1146,13 +1146,13 @@ digraph TetrisDDN {
     learning
 
 - Safer Policy Approaches
-  - **\textcolor{red}{Bayesian Reinforcement Learning}**: Maintain a probability distribution
+  - **Bayesian Reinforcement Learning**: Maintain a probability distribution
     over possible models
     - Compute a policy that maximizes expected utility across all plausible
       models
     - In complex cases, leads to an "exploration POMDP" which is computationally
       intractable but conceptually useful
-  - **\textcolor{blue}{Robust Control Theory}**: Optimize for the worst-case scenario among all
+  - **Robust Control Theory**: Optimize for the worst-case scenario among all
     plausible models
     - Resulting policies are conservative but safe
     - E.g., agent avoids any action that could possibly lead to death
@@ -1169,7 +1169,7 @@ digraph TetrisDDN {
   estimates
   - Unlike Monte Carlo methods, it updates after every step using bootstrapping
 
-- **\textcolor{red}{Q-learning update rule:}**
+- **Q-learning update rule:**
   $$
   Q(s,a) \leftarrow Q(s,a) + \alpha [ r + \gamma \max_{a'} Q(s',a') - Q(s,a) ]
   $$
@@ -1229,9 +1229,9 @@ digraph TetrisDDN {
     \hat{Q}_\theta(s',a') - \hat{Q}_\theta(s,a)] \frac{\partial \hat{Q}_\theta(s,a)}{\partial \theta_i}
     $$
   - Issues and solutions:
-    - **\textcolor{red}{Divergence}**: parameters can grow uncontrollably
-    - **\textcolor{darkgreen}{Catastrophic forgetting}**: important knowledge can be lost
-    - **\textcolor{blue}{Solution}**: experience replay reuses old data to stabilize learning
+    - **Divergence**: parameters can grow uncontrollably
+    - **Catastrophic forgetting**: important knowledge can be lost
+    - **Solution**: experience replay reuses old data to stabilize learning
 
 - Deep reinforcement learning:
   - Uses deep neural networks to approximate $U$ or $Q$
@@ -1285,3 +1285,4 @@ digraph TetrisDDN {
     out the gradient
   - High variance in trial outcomes makes gradients noisy
   - Requires many trials to ensure reliable gradient estimation
+

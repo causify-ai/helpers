@@ -48,14 +48,14 @@ MSML610: Advanced Machine Learning
 #### Agents
 - Agents in partially observable environments track the current state using
   sensor information
-  1. **\textcolor{blue}{Belief state}**
+  1. **Belief state**
      - Store possible world states (by enumeration or logical formulas)
      - Use probability theory to quantify belief
      - Belief state is the posterior distribution of the current state given all
        evidence so far
-  2. **\textcolor{red}{Belief state}** + **\textcolor{olive}{Transition model}**
+  2. **Belief state** + **Transition model**
      - Predict how the world might evolve in the next step
-  3. **\textcolor{cyan}{Sensor model}** + **\textcolor{orange}{Percepts}**
+  3. **Sensor model** + **Percepts**
      - Update belief state
 
 - Time is handled by making each quantity a function of time
@@ -82,13 +82,13 @@ digraph BeliefStateTracking {
 ```
 
 #### Static vs dynamic probabilistic reasoning: example
-- **\textcolor{red}{Static probabilistic reasoning}**
+- **Static probabilistic reasoning**
   - Each random variable has a single fixed value over time
   - E.g., when repairing a car:
     - Whatever is broken stays broken during the diagnosis
     - Observed evidence remains fixed
 
-- **\textcolor{blue}{Dynamic probabilistic reasoning}**
+- **Dynamic probabilistic reasoning**
   - Random variables change over time
   - E.g.,
     - Tracking the location of a plane
@@ -113,7 +113,7 @@ digraph BeliefStateTracking {
 
 
 #### Discrete vs continuous time models
-- **\textcolor{red}{Discrete time models}**
+- **Discrete time models**
   - View the world as a series of time slices ("snapshots")
     - Assume time intervals are equal, so samples are equispaced
     - Label times $t = 0, 1, 2, ...$
@@ -122,7 +122,7 @@ digraph BeliefStateTracking {
     - Other RVs are observable $\vE_t$ (evidence)
     - $\vX_{a:b}$ represents variables in $[a, b]$
 
-- **\textcolor{blue}{Continuous time models}**
+- **Continuous time models**
   - Uncertainty over continuous time can be modeled by stochastic differential
     equations (SDEs)
   - Discrete time models can be discrete approximations to SDEs
@@ -134,7 +134,7 @@ digraph BeliefStateTracking {
   \Pr(\vX_t | history) =
   \Pr(\vX_t | \vX_0, \vX_1, ..., \vX_{t-1})
   $$
-- **\textcolor{red}{Markov property}**: the current state (conditionally) depends only on a
+- **Markov property**: the current state (conditionally) depends only on a
   finite fixed number of $k$ previous states:
 
   $$
@@ -143,12 +143,12 @@ digraph BeliefStateTracking {
   $$
 
 #### Markov process
-- **\textcolor{red}{Markov processes}** (aka **\textcolor{darkgreen}{Markov chains}**) have the Markov property
+- **Markov processes** (aka **Markov chains**) have the Markov property
   $$
   \Pr(\vX_t | history) = \Pr(\vX_t | \textcolor{blue}{\vX_{t-1:t-k}})
   $$
 
-- **\textcolor{blue}{First-order Markov process}**: the current state depends only on the previous
+- **First-order Markov process**: the current state depends only on the previous
   state (and no other earlier state):
   $$
   \Pr(\vX_t | history) = \Pr(\vX_t | \textcolor{darkgreen}{\vX_{t-1}})
@@ -172,20 +172,20 @@ digraph BeliefStateTracking {
   }
   ```
 
-- **\textcolor{violet}{Second-order Markov process}**: the current state $\vX_t$ is conditionally
+- **Second-order Markov process**: the current state $\vX_t$ is conditionally
   dependent only on $\vX_{t-1}$ and $\vX_{t-2}$ and no other earlier state
 
 #### Time-homogeneous process
 - Even with the Markov assumption, there are infinite probability distributions
   $\Pr(\vX_t | \vX_{t-1})$, one for every value of $t$
 
-- **\textcolor{red}{Stationarity}**: the transition probability doesn't change over time
+- **Stationarity**: the transition probability doesn't change over time
   $$
   \Pr(\textcolor{blue}{\vX_t} | \vX_{0:t-1}) = \Pr(\textcolor{blue}{\vX_{t-k}} | \vX_{0:t-k-1}) \; \forall k, t
   $$
   - The process evolves over time, but the governing laws don't change
 
-- **\textcolor{blue}{First-order time-homogeneous}**: only one conditional probability table
+- **First-order time-homogeneous**: only one conditional probability table
   is needed
   $$
   \Pr(\vX_t | \vX_{t-1}) = \Pr(\vX_{t-k} | \vX_{t-k-1}) \; \forall k, t
@@ -194,7 +194,7 @@ digraph BeliefStateTracking {
     same every day: $\Pr(R_t | R_{t-1}) = f(R_{t-1}) \; \forall t$
 
 #### Sensor model
-- **\textcolor{red}{Aka "observation model"}**
+- **Aka "observation model"**
 
 - In general, the evidence variables $\vE_t$ could depend on previous $\vX$
   (state of the world) and $\vE$ (sensor value) variables:
@@ -202,7 +202,7 @@ digraph BeliefStateTracking {
   \Pr(\vE_t | \vX_{0:t}, \vE_{0:t-1})
   $$
 
-- **\textcolor{blue}{Sensor Markov property}**
+- **Sensor Markov property**
   - We assume that the sensor value $\vE_t$ depends only on the current state of
     the world $\vX_t$, not on previous sensor values
     $$
@@ -348,9 +348,9 @@ digraph BeliefStateTracking {
 \endgroup
 
 #### Task 1: Filtering
-- **\textcolor{red}{Aka "state estimation"}**
+- **Aka "state estimation"**
 
-- **\textcolor{blue}{Filtering}** computes the posterior distribution of the _current_ state
+- **Filtering** computes the posterior distribution of the _current_ state
   (belief state) given all evidence to date:
   $$
   \Pr(\vX_t | \vE_{1:t} = \ve_{1:t})
@@ -370,7 +370,7 @@ digraph BeliefStateTracking {
   out noise in a signal by estimating system parameters
 
 #### Task 2: Prediction
-- **\textcolor{red}{Prediction}** involves predicting the posterior distribution over a _future_
+- **Prediction** involves predicting the posterior distribution over a _future_
   state, given all evidence to date:
   $$
   \Pr(\vX_{t+k} | \ve_{1:t}) \text{ with } k > 0
@@ -382,7 +382,7 @@ digraph BeliefStateTracking {
   outcomes
 
 #### Task 3: Smoothing
-- **\textcolor{red}{Smoothing}** is the task of computing the posterior distribution over a
+- **Smoothing** is the task of computing the posterior distribution over a
   _past_ state given _all_ the past, present, and future evidence:
   $$
   \Pr(\vX_k | \ve_{1:t}) \text{ with } 0 \le k < t
@@ -398,7 +398,7 @@ digraph BeliefStateTracking {
   than filtering
 
 #### Task 4: Most-likely explanation
-- **\textcolor{red}{Most-likely explanation}** finds the sequence of states $\vx_{1:t}$ most
+- **Most-likely explanation** finds the sequence of states $\vx_{1:t}$ most
   likely to have generated observations $\ve_{1:t}$:
   $$
   \argmax_{\vx_{1:t}} \Pr(\vx_{1:t} | \ve_{1:t})
@@ -415,7 +415,7 @@ digraph BeliefStateTracking {
 - Learning involves estimating the transition model $\Pr(\vX_t | \vX_{0:t-1})$
   and the sensor model $\Pr(\vE_i | \vX_i)$ from observations
 
-- **\textcolor{red}{Learning:}**
+- **Learning:**
   - Can be a byproduct of inference
   - Requires smoothing rather than filtering for better state estimates
     - Smoothing uses all available data to estimate states, leading to more
@@ -436,11 +436,11 @@ digraph BeliefStateTracking {
   NextState = f(PreviousState, e_{t+1})
   $$
 
-- **\textcolor{red}{Why?}**
+- **Why?**
   - Time and space requirements for updating must be constant if a (finite) agent
     needs to keep track of current state indefinitively
 
-- **\textcolor{blue}{Is it possible?}**
+- **Is it possible?**
   - What is the formula $f(...)$?
 
 #### Task 1: Recursive filtering: update formula
@@ -472,18 +472,18 @@ digraph BeliefStateTracking {
   - Recursive term: $\Pr(x_t|e_{1:t})$
 
 #### Task 1: Recursive filtering: intuition
-- Recursive state estimation updates in **\textcolor{red}{two steps}** the belief about a system's
+- Recursive state estimation updates in **two steps** the belief about a system's
   state over time as new evidence arrives
   $$\textcolor{red}{\Pr(X_{t+1} | e_{1:t+1})}
   = \textcolor{darkgreen}{\alpha \Pr(e_{t+1} | X_{t+1})}
   \textcolor{blue}{\sum_{x_t} \Pr(X_{t+1} | x_t) \textcolor{teal}{\Pr(x_t | e_{1:t})}}$$
-  1. **\textcolor{darkgreen}{\textcolor{blue}{\text{Prediction step}}}**: Use the transition model to predict the next state
+  1. **\textcolor{blue}{\text{Prediction step}}**: Use the transition model to predict the next state
      based on the current belief
      $$\textcolor{blue}{\Pr(X_{t+1} | e_{1:t})
        = \sum_{x_t} \Pr(X_{t+1} | x_t) \textcolor{teal}{\Pr(x_t | e_{1:t})}}$$
      - Intuition: Project the current belief forward using the model of system
        evolution
-  2. **\textcolor{blue}{\textcolor{red}{\text{Update step}}}**: Incorporate the new observation to refine the prediction
+  2. **\textcolor{red}{\text{Update step}}**: Incorporate the new observation to refine the prediction
      $$\textcolor{red}{\Pr(X_{t+1} | e_{1:t+1})} =
      \textcolor{darkgreen}{\alpha \Pr(e_{t+1} | X_{t+1})} \textcolor{blue}{\Pr(X_{t+1} | e_{1:t})}$$
      - Intuition: Correct the prediction using the likelihood of the new evidence
@@ -541,7 +541,7 @@ digraph BeliefStateTracking {
 
 - Smoothing refines the estimate of past states using later evidence
 
-- **\textcolor{red}{E.g.,}**
+- **E.g.,**
   - You're tracking whether it was raining yesterday
   - You had some evidence up to yesterday (e.g., a cloudy sky)
   - Today you see puddles on the ground
@@ -551,7 +551,7 @@ digraph BeliefStateTracking {
 - Using the same math as for filtering and the two key assumptions of Markov
   process and Markov sensor
 
-- **\textcolor{red}{Forward Pass (aka filtering):}**
+- **Forward Pass (aka filtering):**
   - Move forward through time, using the filtering algorithm to compute:
     $$
     f_{1:k} = \Pr(X_k | e_{1:k})
@@ -559,7 +559,7 @@ digraph BeliefStateTracking {
   - This gives you a "best guess" of the state at time $k$, based only on
     evidence up to $k$
 
-- **\textcolor{darkgreen}{Backward Pass (aka smoothing):}**
+- **Backward Pass (aka smoothing):**
   - Move backward through time from time $t$, computing:
     $$
     b_{k+1:t} = P(e_{k+1:t} | X_k)
@@ -567,7 +567,7 @@ digraph BeliefStateTracking {
   - This captures how likely the future evidence is, given a particular value of
     $X_k$
 
-- **\textcolor{blue}{Combine them:}**
+- **Combine them:**
   - Multiply forward and backward messages to get:
     $$
     P(X_k | e_{1:t}) \propto f_{1:k} \times b_{k+1:t}
@@ -591,19 +591,19 @@ digraph BeliefStateTracking {
 
 #### Task 4: Most likely explanation: Intuition 2/2
 
-- **\textcolor{red}{Naive approach}**: Use smoothing to choose the most likely state at each time
+- **Naive approach**: Use smoothing to choose the most likely state at each time
   step
   - Cons
     - Might lead to an implausible overall path
     - Suboptimal since the question addresses joint probability and we are not
       using all the information (only one step at the time!)
 
-- **\textcolor{darkgreen}{Viterbi algorithm}**:
+- **Viterbi algorithm**:
   - Constructs a path through a state-time graph with states as nodes and
     transitions as edges
   - Finds the most likely entire path through the hidden states
 
-- **\textcolor{blue}{Key difference:}**
+- **Key difference:**
   - E.g., in speech recognition, find the most likely word sequence behind a
     noisy audio signal
   - Smoothing: Best guess per time step (may not find words that are not English
@@ -613,7 +613,7 @@ digraph BeliefStateTracking {
 
 #### Viterbi algorithm: Intuition
 
-- Objective: Find the most likely **\textcolor{red}{sequence}** of hidden states given
+- Objective: Find the most likely **sequence** of hidden states given
   observations
 
 1. Initialization
@@ -680,7 +680,7 @@ digraph BeliefStateTracking {
 ::: columns
 :::: {.column width=50%}
 
-- Final most probable state: **\textcolor{red}{Sunny}** (Day 3)
+- Final most probable state: **Sunny** (Day 3)
 - Find the most likely sequence: ${Rainy} \rightarrow \text{Rainy} \rightarrow \text{Sunny}$
 
 ::::
@@ -743,11 +743,11 @@ digraph Viterbi {
     - Nature of state and evidence variables (discrete or continuous)
 
 - Efficiency and accuracy can improve by exploiting specific model structures:
-  - **\textcolor{red}{Hidden Markov Models (HMMs)}**:
+  - **Hidden Markov Models (HMMs)**:
     - State is a single discrete variable
     - Transition and observation models are discrete probability tables
     - Enables fast algorithms like the Viterbi algorithm, forward-backward, etc
-  - **\textcolor{blue}{Kalman Filters}** (for continuous domains):
+  - **Kalman Filters** (for continuous domains):
     - State variables are continuous and normally distributed
     - Linear-Gaussian models for transitions and observations
     - Allows exact, efficient updates using matrix operations
@@ -757,28 +757,28 @@ digraph Viterbi {
 
 #### Hidden Markov Model: State and Transition Model
 
-- **\textcolor{blue}{Hidden Markov Model (HMM)}**: A temporal model with simplified structure for
+- **Hidden Markov Model (HMM)**: A temporal model with simplified structure for
   efficiency
-  - **\textcolor{red}{State model}**:
+  - **State model**:
     - The system state at time $t$ is a discrete random variable
       $X_t \in \{1, \dots, S\}$
     - E.g., in the umbrella domain, $X_t = Rain_t$ with states {rain, no rain}
     - Generality: Multiple variables can be combined into one "mega-state"
       variable
 
-  - **\textcolor{olive}{Transition model}** $\Pr(X_t | X_{t-1})$:
+  - **Transition model** $\Pr(X_t | X_{t-1})$:
     - Described by a transition matrix $\vT$ of size $S \times S$
     - Entry $T_{ij} = \Pr(X_t = j | X_{t-1} = i)$: probability of transitioning
       from state $i$ to $j$
 
-  - **\textcolor{cyan}{Sensor model}**:
+  - **Sensor model**:
     - Defined as $\Pr(E_t | X_t = i)$ for each state $i$
     - Representable as a vector (discrete observations) or a diagonal matrix
       $\vO$ (for convenience)
     - No assumptions about the number or type (discrete / continuous) of
       observation variables
 
-- **\textcolor{orange}{Benefit}**
+- **Benefit**
   - This structure enables efficient algorithms like forward, backward, and
     Viterbi
 
@@ -968,17 +968,17 @@ digraph Viterbi {
     and observations
 
 #### Some guiding principles
-- **\textcolor{red}{The world is noisy}**
+- **The world is noisy**
   - A car might swerve around a pothole or brake for a pedestrian
   - Wind or ice might change the car's path
 
-- **\textcolor{darkgreen}{Sensors are noisy}**
+- **Sensors are noisy**
   - E.g., a kitchen scale gives different readings for the same object
 
 - Data is better than a guess
   - Even if noisy
 
-- **\textcolor{blue}{Knowledge is uncertain}**
+- **Knowledge is uncertain**
   - We alter beliefs based on evidence strength
 
 - Use past information and system knowledge to estimate future information
@@ -1008,11 +1008,11 @@ digraph Viterbi {
   - Estimate your weight over time
 
 - You could:
-  1. **\textcolor{red}{Predict your weight}**
+  1. **Predict your weight**
      - Track calorie intake and energy expense
      - Compute expected weight gain
      - Cons: Difficult to track food intake and exercise accurately
-  2. **\textcolor{darkgreen}{Measure your weight}**
+  2. **Measure your weight**
      - Use a scale
      - Cons: Scale is noisy, water weight fluctuates, different clothes
 
@@ -1023,15 +1023,15 @@ digraph Viterbi {
     - Scale measures 164
     - Estimate $\hat{x}_{t|t-1} = 159$ based on calorie intake
 
-- **\textcolor{blue}{What's your real weight?}**
+- **What's your real weight?**
   - You need to blend prediction and measurement
 
 #### Example of weight: correct gain_rate
-- **\textcolor{red}{Blend the estimates like:}**
+- **Blend the estimates like:**
   $$\text{estimate = 0.6} \times \text{prediction} + (1 - 0.6) \times \text{measurement}$$
   - You believe the prediction is more likely correct than the measurement
 
-- **\textcolor{blue}{Algorithm}**
+- **Algorithm**
   1. Start with an initial guess
      - Assume it's correct for now
   2. Predict the next weight based on the model
@@ -1042,11 +1042,11 @@ digraph Viterbi {
 
 #### Example of weight: 
 
-- The black line is the actual weight, i.e., **\textcolor{red}{ground truth}**
+- The black line is the actual weight, i.e., **ground truth**
 - The initial guess is 160 lbs
-- The \textcolor{red}{\text{red line}} is the **\textcolor{darkgreen}{prediction}** from previous day's weight
-- The **\textcolor{blue}{measurements}** are the circles
-- The \textcolor{blue}{\text{blue}} line is the **\textcolor{violet}{estimate}** from the filter
+- The \textcolor{red}{\text{red line}} is the **prediction** from previous day's weight
+- The **measurements** are the circles
+- The \textcolor{blue}{\text{blue}} line is the **estimate** from the filter
   - Always falls between measurement and prediction
 
 - It's not impressive since the prediction model describes the ground truth, so
@@ -1070,7 +1070,7 @@ digraph Viterbi {
 
 
 #### g-h filter
-- The previous algorithm is called **\textcolor{red}{g-h filter}**
+- The previous algorithm is called **g-h filter**
   - $g$: scaling used to blend predicted state and measurement
   - $h$: scaling used to update the parameter of the system model based on the
     measurements
@@ -1086,32 +1086,32 @@ digraph Viterbi {
 - State space models were developed in control theory, so there is a different
   nomenclature
 
-- **\textcolor{blue}{System}**: object you want to estimate/track
+- **System**: object you want to estimate/track
 
-- **\textcolor{gray}{Filter}**: algorithm to estimate the state of the system
+- **Filter**: algorithm to estimate the state of the system
 
-- **\textcolor{red}{State of the system `x`}**: current values you are interested in
+- **State of the system `x`**: current values you are interested in
   - E.g., weight
   - Part of the state might be hidden (i.e., not observable)
   - You cannot observe the entire state directly, only measure it indirectly
 
-- **\textcolor{brown}{Measurement `z`}**: the measured value of the system
+- **Measurement `z`**: the measured value of the system
   - It is observable
   - It can be inaccurate
     - E.g., 99.3kg instead of 100kg
 
-- **\textcolor{olive}{State estimate `x_est`}**: filter estimate of the state
+- **State estimate `x_est`**: filter estimate of the state
 
-- **\textcolor{darkgreen}{System model}**: mathematical model of the system
+- **System model**: mathematical model of the system
   - E.g., "weight today = weight yesterday + weight gain"
   - The system model is typically imperfect 
   - There is error in the specification of the model
 
-- **\textcolor{cyan}{System propagation}**: predict step using the system model to form a new state
+- **System propagation**: predict step using the system model to form a new state
   estimate `x_pred`
   - Because the system model is imperfect, the estimate is imperfect
 
-- **\textcolor{violet}{Measurement update}**: update step
+- **Measurement update**: update step
 
 
 #### g-h filter algorithm: pseudo-code
@@ -1188,7 +1188,7 @@ digraph BayesianFlow {
   - The filter reacts to the transient rapidly if the signal varies significantly
     with respect to the time step
 
-- **\textcolor{red}{Note}**: an incorrect initial state (e.g., initial value/rate of change) is
+- **Note**: an incorrect initial state (e.g., initial value/rate of change) is
   similar to a changing state
 
 
@@ -1263,7 +1263,7 @@ digraph BayesianFlow {
   \end{aligned}
   $$
 
-- **\textcolor{red}{Interpretation:}**
+- **Interpretation:**
   - The variance may be reduced as more information is incorporated
   - If one Gaussian $N_1$ is much narrower than the other (i.e., one measure is
     more accurate), the result is pushed towards $N_1$
@@ -1301,15 +1301,15 @@ digraph BayesianFlow {
   - $z$: measurement
   - $R$: measurement noise
 
-- **\textcolor{red}{Initialization}**
+- **Initialization**
   - Initialize state of filter $x = x_0$
   - Initialize belief in the state $P = P_0$
 
-- **\textcolor{darkgreen}{Predict}**
+- **Predict**
   - Use system model to predict state at the next time step $x = f(x)$
   - Adjust belief to account for uncertainty in prediction $P = P + Q$
 
-- **\textcolor{blue}{Update}**
+- **Update**
   - Get measurement $z$ and belief about its accuracy $R$
   - Compute residual between estimated state $x$ and $z$: $y = z - x$
   - Compute scaling factor (Kalman $K$) based on accuracy of prediction $P$ and
@@ -1359,14 +1359,14 @@ def update(prior, measurement):
   - Position and velocity of a dog (probably uncorrelated)
   - Height and weight of an adult (correlated)
 
-- **\textcolor{red}{Variance}** is a measure of how a population varies, e.g.,
+- **Variance** is a measure of how a population varies, e.g.,
   - Variance = 0 means constant
   - Large variance means lots of variation
 
-- **\textcolor{darkgreen}{Covariance}** are correlated variances
+- **Covariance** are correlated variances
   - E.g., height and weight are generally positively correlated
 
-- **\textcolor{blue}{Covariance matrix}**
+- **Covariance matrix**
   - The diagonal contains the variance for each variable
   - The off-diagonal elements contain the covariance between $i$ and $j$
     variables
@@ -1392,7 +1392,7 @@ def update(prior, measurement):
   \mSigma &= \mSigma_1 (\mSigma_1 + \mSigma_2)^{-1} \mSigma_2 \\
   \end{aligned}
   $$
-- **\textcolor{red}{Note}**: this is a generalization of the 1-d case to multivariate
+- **Note**: this is a generalization of the 1-d case to multivariate
   $$
   \begin{aligned}
   & \mu = \frac{\mu_1 \sigma_2^2 + \mu_2 \sigma_1^2}{\sigma_1^2 + \sigma_2^2} \\
@@ -1409,7 +1409,7 @@ def update(prior, measurement):
   - Knowing an approximate value for the velocity helps constrain possible next
     positions
 
-- **\textcolor{red}{E.g., airplane}**
+- **E.g., airplane**
   - You are tracking a plane moving in a direction (1-d problem)
   - At time 1, you are fairly certain about the position $x=0$, but you don't
     know the velocity
@@ -1442,7 +1442,7 @@ def update(prior, measurement):
   - The posterior is $\hat{\vx}_{t|t}$, since you know all the information at
     time $t$, i.e., the measurement
 
-- **\textcolor{red}{A simpler notation:}**
+- **A simpler notation:**
   - Indicate the "prior" version of the variables (i.e., after the system
     update) with an overline (E.g., $\overline{x}$, $\overline{\bx}$,
     $\overline{\bX}$)
@@ -1689,7 +1689,7 @@ def update(prior, measurement):
 
 
 #### Optimality
-- **\textcolor{red}{Assumptions:}**
+- **Assumptions:**
   - Everything is linear
   - System and sensor noise is Gaussian
 - Under these assumptions, the Kalman filter is optimal in a least square sense
@@ -1700,7 +1700,7 @@ def update(prior, measurement):
 #### The world is non-linear
 - The Kalman filter uses linear equations and can only handle linear problems
 
-- **\textcolor{red}{The world is non-linear:}**
+- **The world is non-linear:**
   - System model can be non-linear:
     - Many physical systems are described by non-linear differential equations
     - E.g., a ball flying through air is affected by drag, leading to non-linear
@@ -1740,7 +1740,7 @@ def update(prior, measurement):
   - Pass them through the non-linear function $\phi$
   - Approximate the result (E.g., compute mean and variance)
 
-- **\textcolor{red}{Problem}**:
+- **Problem**:
   - "How many points are needed to build an accurate output distribution"?
   - Even if $n$=500,000 points are enough for 1 dimension, for $k$ dimensions
     you might need $n^k$ points (curse of dimensionality)
@@ -1753,7 +1753,7 @@ def update(prior, measurement):
     covariance estimate
   - Called "unscented" since "it doesn't stink."
 
-- **\textcolor{red}{Intuition}**
+- **Intuition**
   - Given a PDF $C$ with mean $\vmu$ and covariance $\mSigma$
   - Encode mean and covariance in a set of points (sigma points) that represent
     a discrete PMF $D$ with the same mean $\vmu$ and covariance $\mSigma$
@@ -1869,12 +1869,12 @@ def update(prior, measurement):
   - DBN variables can mix discrete/continuous and non-Gaussian
   - Allow arbitrary conditional dependencies among variables
 
-- **\textcolor{red}{Pros of DBNs}**
+- **Pros of DBNs**
   - DBNs are applicable to broader domains including:
     - Fault diagnosis in networks
     - Complex system monitoring
 
-- **\textcolor{blue}{Pros of Kalman filters:}**
+- **Pros of Kalman filters:**
   - Optimal for linear systems with Gaussian noise
   - Support exact inference, DBNs often require approximate methods
 
@@ -1889,27 +1889,27 @@ def update(prior, measurement):
   - Inter-slice links
 
 #### DBN example: Tracking a robot (1/3)
-- **\textcolor{blue}{Problem:}**
+- **Problem:**
   - Tracking a robot moving randomly on a line $X$ over time
 
-- **\textcolor{red}{Initial model:}**
+- **Initial model:**
   - Position $X_t$ and velocity $\dot{X_t}$ as state variables
   - Update via Newton's laws
   - Easy to generalize for 2d or 3d by using a $\vX_t$
 
-- **\textcolor{olive}{Issue:}**
+- **Issue:**
   - Velocity changes over time
   - Battery exhaustion affects velocity systematically
   - Effect depends on cumulative energy use
   - Violates the Markov property (future depends on full history)
 
-- **\textcolor{cyan}{Solution:}**
+- **Solution:**
   - Include battery level $Battery_t$ in the state $X_t$
   - Restores the Markov assumption
   - Allows motion prediction considering energy constraints
   - Enables coherent reasoning about motion and power consumption over time
 
-- **\textcolor{orange}{New requirement for state:}**
+- **New requirement for state:**
   - $S_t = (X_t, \dot{X}_t, \text{BatteryLevel}_t)$
   - $E_t = (\text{GPS}_t, \text{BMeter}_t)$
 
@@ -1973,11 +1973,11 @@ digraph BayesianFlow {
 ::: columns
 :::: {.column width=40%}
 
-- **\textcolor{red}{Replicate for Multiple Time Slices}**:
+- **Replicate for Multiple Time Slices**:
    - Create slices for $t = 0, 1, 2, \ldots$ with the above variables and
      dependencies
    - Group each time slice vertically or horizontally for clarity
-- **\textcolor{blue}{Unrolling}**:
+- **Unrolling**:
    - Visualize the full DBN by unrolling these slices over the desired number of
      time steps (e.g., three slices for $t = 0, 1, 2$)
 ::::
@@ -2145,8 +2145,8 @@ digraph RobotDBN {
   - Works by iteratively improving parameter estimates
   - Alternates between estimating missing data and optimizing parameters
 - Two main steps:
-  - **\textcolor{red}{E-step (Expectation)}**: Estimate distribution over hidden variables using current parameters
-  - **\textcolor{blue}{M-step (Maximization)}**: Update parameters to maximize expected log-likelihood from the E-step
+  - **E-step (Expectation)**: Estimate distribution over hidden variables using current parameters
+  - **M-step (Maximization)**: Update parameters to maximize expected log-likelihood from the E-step
 - Used in diverse settings:
   - Unsupervised clustering (e.g., Gaussian Mixture Models)
   - Learning with incomplete data in Bayesian networks
@@ -2158,11 +2158,11 @@ digraph RobotDBN {
 #### EM Algorithm: Mechanics and Example in Gaussian Mixture Models
 
 - Goal: Recover parameters of Gaussian components from unlabeled data
-- **\textcolor{red}{E-step}**:
+- **E-step**:
   - Compute $p_{ij} = P(C=i \mid x_j)$ using Bayes' rule
   - $p_{ij} \propto P(x_j \mid C=i) P(C=i)$
   - Calculate effective count: $n_i = \sum_j p_{ij}$
-- **\textcolor{blue}{M-step}**:
+- **M-step**:
   - Update means: $\mu_i \leftarrow \sum_j p_{ij} x_j / n_i$
   - Update covariances: $\Sigma_i \leftarrow \sum_j p_{ij} (x_j - \mu_i)(x_j - \mu_i)^T / n_i$
   - Update weights: $w_i \leftarrow n_i / N$
@@ -2178,92 +2178,92 @@ digraph RobotDBN {
 
 #### Introduction to the Expectation–Maximization (EM) Algorithm
 
-- **\textcolor{blue}{Purpose of EM Algorithm}**
+- **Purpose of EM Algorithm**
   - Iterative method for finding maximum likelihood or maximum a posteriori
     (MAP) estimates in statistical models with latent variables
   - Particularly useful when data is incomplete or has missing values
-- **\textcolor{gray}{Key Concepts}**
-  - **\textcolor{red}{Observed Data ($\mathbf{X}$)}**: The data we can directly observe
-  - **\textcolor{brown}{Latent Variables ($\mathbf{Z}$)}**: Hidden or unobserved variables that
+- **Key Concepts**
+  - **Observed Data ($\mathbf{X}$)**: The data we can directly observe
+  - **Latent Variables ($\mathbf{Z}$)**: Hidden or unobserved variables that
     influence the observed data
-  - **\textcolor{olive}{Parameters ($\boldsymbol{\theta}$)}**: Unknown parameters to be estimated
-- **\textcolor{darkgreen}{Challenge Addressed}**
+  - **Parameters ($\boldsymbol{\theta}$)**: Unknown parameters to be estimated
+- **Challenge Addressed**
   - Direct maximization of the likelihood function
     $p(\mathbf{X}|\boldsymbol{\theta})$ is often intractable due to the presence
     of latent variables
-- **\textcolor{cyan}{EM Algorithm Overview}**
+- **EM Algorithm Overview**
   - Alternates between estimating the expected value of the log-likelihood
     (E-step) and maximizing this expectation (M-step)
-- **\textcolor{violet}{Applications}**
+- **Applications**
   - Widely used in clustering (e.g., Gaussian Mixture Models), natural language
     processing, and image reconstruction
 
 #### The EM Algorithm: Step-by-Step
 
-- **\textcolor{red}{Initialization}**
+- **Initialization**
   - Start with initial guesses for the parameters $\boldsymbol{\theta}^{(0)}$
-- **\textcolor{darkgreen}{E-Step (Expectation Step)}**
+- **E-Step (Expectation Step)**
   - Compute the expected value of the log-likelihood function, with respect to
     the conditional distribution of the latent variables given the observed data
     and current parameter estimates:
     - $Q(\boldsymbol{\theta}|\boldsymbol{\theta}^{(t)}) = \mathbb{E}_{\mathbf{Z}|\mathbf{X},\boldsymbol{\theta}^{(t)}}[\log p(\mathbf{X}, \mathbf{Z}|\boldsymbol{\theta})]$
-- **\textcolor{blue}{M-Step (Maximization Step)}**
+- **M-Step (Maximization Step)**
   - Maximize the expected log-likelihood found in the E-step to update the
     parameters:
     - $\boldsymbol{\theta}^{(t+1)} = \arg\max_{\boldsymbol{\theta}} Q(\boldsymbol{\theta}|\boldsymbol{\theta}^{(t)})$
-- **\textcolor{violet}{Iteration}**
+- **Iteration**
   - Repeat E and M steps until convergence, i.e., until the parameters stabilize
     or the increase in likelihood is below a threshold
 
 #### Mathematical Foundation of EM
 
-- **\textcolor{red}{Likelihood with Latent Variables}**
+- **Likelihood with Latent Variables**
   - The marginal likelihood of the observed data is:
     - $p(\mathbf{X}|\boldsymbol{\theta}) = \int p(\mathbf{X}, \mathbf{Z}|\boldsymbol{\theta}) d\mathbf{Z}$
-- **\textcolor{darkgreen}{Intractability}**
+- **Intractability**
   - The integral is often difficult to compute due to the complexity introduced
     by the latent variables
-- **\textcolor{blue}{EM Solution}**
+- **EM Solution**
   - EM circumvents this by iteratively applying the E and M steps to find
     parameter estimates that locally maximize the likelihood
-- **\textcolor{violet}{Convergence}**
+- **Convergence**
   - Each iteration of EM is guaranteed to increase the likelihood function,
     ensuring convergence to a local maximum
 
 #### Example: Gaussian Mixture Models (GMM)
 
-- **\textcolor{blue}{Problem Setup}**
+- **Problem Setup**
   - Data is assumed to be generated from a mixture of Gaussian distributions,
     each with its own mean and covariance
-- **\textcolor{red}{Latent Variables}**
+- **Latent Variables**
   - Each data point is associated with a latent variable indicating the Gaussian
     component from which it was generated
-- **\textcolor{olive}{E-Step in GMM}**
+- **E-Step in GMM**
   - Compute the posterior probabilities (responsibilities) that each data point
     belongs to each Gaussian component
-- **\textcolor{cyan}{M-Step in GMM}**
+- **M-Step in GMM**
   - Update the parameters (means, covariances, and mixing coefficients) of each
     Gaussian component using the responsibilities computed in the E-step
-- **\textcolor{orange}{Iteration}**
+- **Iteration**
   - Repeat E and M steps until the parameters converge
 
 #### Properties and Limitations of EM
 
-- **\textcolor{blue}{Advantages}**
+- **Advantages**
   - Can handle missing or incomplete data effectively
   - Provides a framework for parameter estimation in complex models
-- **\textcolor{gray}{Limitations}**
+- **Limitations**
   - Converges to a local maximum, which may not be the global maximum
   - Sensitive to initial parameter estimates; poor initialization can lead to
     suboptimal solutions
-- **\textcolor{red}{Extensions and Variants}**
-  - **\textcolor{brown}{Variational Bayes}**: Provides a fully Bayesian approach by estimating
+- **Extensions and Variants**
+  - **Variational Bayes**: Provides a fully Bayesian approach by estimating
     distributions over parameters
-  - **\textcolor{olive}{Generalized EM (GEM)}**: Relaxes the requirement of fully maximizing the
+  - **Generalized EM (GEM)**: Relaxes the requirement of fully maximizing the
     expected log-likelihood in the M-step
-  - **\textcolor{darkgreen}{Expectation Conditional Maximization (ECM)}**: Breaks the M-step into
+  - **Expectation Conditional Maximization (ECM)**: Breaks the M-step into
     several conditional maximization steps
-- **\textcolor{cyan}{Practical Considerations}**
+- **Practical Considerations**
   - Multiple runs with different initializations can help in finding better
     solutions
   - Monitoring the increase in likelihood can help in determining convergence
