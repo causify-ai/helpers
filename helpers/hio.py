@@ -268,9 +268,7 @@ def create_dir(
             dir_timestamp = os.path.getmtime(dir_name)
             dir_datetime = datetime.datetime.fromtimestamp(dir_timestamp)
             # Build new dir name with timestamp.
-            dir_name_new = (
-                dir_name + "." + dir_datetime.strftime("%Y%m%d_%H%M%S")
-            )
+            dir_name_new = dir_name + "." + dir_datetime.strftime("%Y%m%d_%H%M%S")
             # Rename dir.
             if not os.path.exists(dir_name_new):
                 _LOG.warning("Renaming dir '%s' -> '%s'", dir_name, dir_name_new)
@@ -853,6 +851,7 @@ def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # noqa: F821
 
 # Copied from `hgit.py` to avoid import cycles.
 
+
 def _find_git_root(path: str = ".") -> str:
     """
     Find recursively the dir of the outermost super module.
@@ -943,7 +942,6 @@ def safe_rm_file(dir_path: str) -> None:
     :raises AssertionError: If dir_path is not within the Git client
     :raises OSError: If directory doesn't exist or can't be deleted
     """
-
     # Convert to absolute path for comparison.
     dir_path = os.path.abspath(dir_path)
     # Get the Git client root.
