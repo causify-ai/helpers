@@ -655,3 +655,93 @@ def convert_caller_to_callee_docker_path(
         "  Converted %s -> %s -> %s", caller_file_path, rel_path, docker_path
     )
     return docker_path
+
+
+def is_path(path: str) -> bool:
+    """
+    Check if `path` can be considered a file or a directory using heuristics.
+
+    - return: True if the string looks like a path, False otherwise.
+    """
+    # E.g.,
+    # ```
+    # is_path("file.txt")           # True, since it has an extension
+    # is_path("/path/to/file.py")   # True, since it has an absolute path
+    # is_path("/path/to")           # True, since it has an absolute path
+    # is_path("../data.csv")        # True, since it has an relative path
+    # is_path("folder/")            # True, since it has a trailing slash
+    # is_path(".hidden")            # True, since it has a leading dot
+    # is_path("readme")             # False, since it has no extension and no path
+    # ```
+    # Check if it has a file extension (e.g., .txt, .csv).
+    if os.path.splitext(path)[1]:
+        return True
+    # Check if it is an absolute or relative path (e.g., starts with "/" or "./"
+    # or "../")
+    if path.startswith("/") or path.startswith("./") or path.startswith("../"):
+        return True
+    # Check if it ends with a slash.
+    if path.endswith("/"):
+        return True
+    # Check if it has a hidden file.
+    basename = os.path.basename(path)
+    if basename.startswith(".") and basename.count(".") == 1:
+        return True
+    # Check if it contains a slash.
+    if "/" in path:
+        return True
+    return False
+
+
+def convert_all_paths_from_caller_to_callee_docker_path(
+    cmd_opts: List[str],
+    caller_mount_path: str,
+    callee_mount_path: str,
+    is_caller_host: bool,
+    use_sibling_container_for_callee: bool,
+) -> str:
+    """
+    Convert all the paths from the caller to the callee Docker container path.
+
+    The paths are recognized by checking whether they point to an existing file
+    or directory.
+
+    The limitation of this approach is that output files are not recognized. To
+    work around this problem:
+    - Create output dirs
+    - Explicitly parse options that are outputs (e.g., `-o <file>`)
+
+    :param cmd_opts: List of command options.
+    :param caller_mount_path: See `get_docker_mount_info()`.
+    :param callee_mount_path: See `get_docker_mount_info()`.
+    :param is_caller_host: See `get_docker_mount_info()`.
+    :param use_sibling_container_for_callee: See `get_docker_mount_info()`.
+    :return: List of converted command options.
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    # Converted command options.
+    cmd_opts_out = []
+    # Scan the list of command option.
+    for cmd_opt_in in cmd_opts:
+        exists = os.path.exists(cmd_opt_in)
+        is_path_ = is_path(cmd_opt_in)
+        _LOG.debug(hprint.to_str("cmd_opt_in exists is_path_"))
+        if exists or is_path_:
+            check_if_exists = False
+            is_input = False
+            cmd_opt_out = convert_caller_to_callee_docker_path(
+                cmd_opt_in,
+                caller_mount_path,
+                callee_mount_path,
+                check_if_exists,
+                is_input,
+                is_caller_host,
+                use_sibling_container_for_callee,
+            )
+            _LOG.debug(hprint.to_str("cmd_opt_in -> cmd_opt_out"))
+            cmd_opts_out.append(cmd_opt_out)
+        else:
+            _LOG.debug("File does not exist: %s", cmd_opt_in)
+            cmd_opts_out.append(cmd_opt_in)
+    _LOG.debug(hprint.to_str("cmd_opts_out"))
+    return cmd_opts_out

@@ -1,0 +1,920 @@
+::: columns
+:::: {.column width=15%}
+![](lectures_source/UMD_Logo.png)
+::::
+:::: {.column width=75%}
+
+\vspace{0.4cm}
+\begingroup \large
+MSML610: Advanced Machine Learning
+\endgroup
+::::
+:::
+
+\vspace{1cm}
+
+\begingroup \Large
+**$$\text{\blue{Linear Algebra}}$$**
+\endgroup
+\vspace{1cm}
+
+**Instructor**: Dr. GP Saggese - `gsaggese@umd.edu`
+
+**References**:
+
+# Linear algebra
+
+## Vector and vector spaces
+
+//* Vectors and Vector Spaces
+//- Definition of vectors as elements of $\mathbb{R}^n$
+//- Linear combinations, span, basis, and dimension
+//- Subspaces and null spaces
+
+* Field: definition
+A field $\bbF = (X, +, *)$ is a set $X$ with two binary operations + and *,
+satisfying the following 6 axioms:
+
+  1. Closed with respect to + and *:
+     $$
+     \begin{aligned}
+     & a, b \in X \implies a + b \in X \\
+     & a, b \in X \implies a * b \in X
+     \end{aligned}
+     $$
+  2. Commutativity of + and *:
+     $$
+     \begin{aligned}
+     & a + b = b + a \\
+     & a * b = b * a
+     \end{aligned}
+     $$
+  3. Associativity of + and *:
+     $$
+     \begin{aligned}
+     & a + (b + c) = (a + b) + c = a + b + c \\
+     & a * (b * c) = (a * b) * c = a * b * c
+     \end{aligned}
+     $$
+  4. Distributivity of multiplication over addition:
+     $$a * (b + c) = a * b + a * c$$
+  5. Existence of + and * identity elements, $0$ and $1$:
+     $$
+     \begin{aligned}
+     & a + 0 = a \\
+     & a * 1 = a
+     \end{aligned}
+     $$
+  6. Existence of + and * inverses (defining subtraction and division):
+     $$
+     \begin{aligned}
+     & a + (-a) = 0 \\
+     & a * \frac{1}{a} = 1 \text{ for } a \ne 0
+     \end{aligned}
+     $$
+
+* Field: examples
+
+- Examples
+  - The set of $\bbR, \bbC$, GF(2)
+  - The set of rational numbers $\mathbb{Q}$, i.e., numbers that can be written
+    as fraction $\frac{a}{b}$ with $a, b \in \bbZ$ and $b \ne 0$
+
+- Non-examples
+  - The set of positive integers $\mathbb{N} = 1, 2, 3, \dots$ is not a field 
+  - The set of integers $\mathbb{Z}$ = ..., -2, -1, 0, 1, 2, ...$ is not a field
+
+* Vector space: definition
+- A "vector space $\calV$ over a field $\bbF$" is a triple
+  $(\calV, \bbF, +, \cdot)$ where:
+  - $\calV$ is a set of vectors
+  - $\bbF$ is a field of scalars
+  - $+$ is a sum operation between vectors
+  - $\cdot$ is a scalar multiplication
+
+- A vector space needs to satisfy the following 2 properties:
+  1. Closed with respect to to scalar multiplication: if $\vx \in \calV$, then
+     $\alpha \cdot \vx \in \calV$
+  2. Closed with respect to to vector addition: if $\vx, \vy \in \calV$, then
+     $\vx + \vy \in \calV$
+
+* Linear combination of vectors
+- The vector
+  $$\alpha_1 \vvv_1 + \alpha_2 \vvv_2 + ... + \alpha_n \vvv_n$$
+  is a linear combination of vectors $\vvv_1, ..., \vvv_n$ with coefficients
+  $\alpha_1, ..., \alpha_n$
+
+- A linear combination can be written in matrix form:
+  $$\mV \cdot \valpha \text{ or } \valpha^T \cdot \mV^T$$
+  where $\mV = (\vvv_1 | ... | \vvv_n)$
+
+* Span of vectors
+- The span of $n$ $m$-dimensional vectors is the set of all linear combinations
+  of the $n$ vectors:
+  $$
+  \Span(\vvv_1, ..., \vvv_n)
+  = \{ \mV \cdot \valpha \text{ with } \valpha \in \bbF^n \}
+  = \{ \vvv \in \bbF^m: \vvv = \sum_{i=1}^n \alpha_i \vvv_i \}
+  $$
+- E.g., the span of vectors is a vector space
+
+* Null space of a matrix
+- Null space of the columns of a matrix $\mA$ is defined as the set:
+  $$\Null(\mA) = \{ \vvv: \mA \cdot \vvv = \vv{0} \}$$
+  - In words, all the vectors that are coefficients of linear combinations of
+    columns of $\mA$ yielding the zero vector
+
+- Null space is a vector space
+
+* Homogeneous linear system associated with null space
+- From the definition of matrix-vector multiplication the vector $\vvv$ is in
+  $\Null(\mA)$ $\iff$ $\vvv$ is a solution of the homogeneous linear system
+  involving the columns of $\mA$:
+  $$
+  \begin{aligned}
+  &\va^T_1 \cdot \vvv = 0\\
+  &\va^T_2 \cdot \vvv = 0\\
+  &...\\
+  &\va^T_m \cdot \vvv = 0\\
+  \end{aligned}
+  $$
+- Note that the notation is a bit confusing since we mean the transpose of the
+  columns $\va_i$ of $\mA$ and not the rows of $\mA$
+
+* Dot product on a vector space: definition
+- Given a field of scalars $\bbF$ and a vector space $\calV$ over $\bbF$, an
+  inner product is a mapping:
+  $$\langle \cdot , \cdot \rangle: \calV \times \calV \rightarrow \bbF$$
+  that satisfies the 3 axioms:
+  1. Conjugate symmetry (almost commutativity):
+     $$\langle \vx, \vy \rangle = \overline{\langle \vy, \vx \rangle}$$
+  2. Linearity in the first argument:
+     $$\langle a \vx, \vy \rangle = a \langle \vx, \vy \rangle$$
+     $$
+     \langle \vx + \vy, \vz \rangle = \langle \vx, \vz\rangle +
+     \langle \vy, \vz \rangle
+     $$
+  3. Positive definitiveness:
+     $$
+     \begin{aligned}
+     & \langle \vx, \vx \rangle \ge 0 \\
+     & \langle \vx, \vx \rangle = 0 \implies \vx = \vv{0} \\
+     \end{aligned}
+     $$
+
+* Vector inner product
+- Aka "dot product", "scalar product"
+- Given $\vx, \vy \in \bbF^n$ (i.e., same number of components and also same
+  "label" for each element), the inner product of $\vx$ and $\vy$ is defined as:
+  $$
+  \langle \vx, \vy \rangle
+  = \vx^T \cdot \vy
+  = \sum_{i=1}^n x_i y_i \in \bbF
+  $$
+- $\vx^T \cdot \vy$ is read "x dotted y" or "x transposed y"
+
+## Affine spaces
+
+* Affine space: definition
+- If $\vc$ is a vector and $\calV$ is a vector space then
+  $$\calA = \vc + \calV = \{ \vc + \vvv: \vvv \in \calV\}$$ is called an affine
+  space
+- An affine space is a vector space translated by a point represented by a
+  vector
+  - E.g., a plane or a line that do not contain the origin
+
+* Affine space: example of plane passing through 3 points
+- Given 3 not collinear vectors: $\vu_1$, $\vu_2$, and $\vu_3$, the plane
+  containing the endpoints of the 3 vectors can be represented as
+  $\calA = \vu_1 + \calV$ where $\calV = \Span(\vu_2 - \vu_1, \vu_3 - \vu_1)$
+- **Note**: the span of the 3 vectors has dimension 3, but an affine space with
+  dimension 2
+
+* Affine combination: definition
+- An affine combination is a linear combination of vectors where the sum of the
+  (positive or negative) coefficients is 1:
+  $$
+  \alpha_1 \vu_1 + \ldots + \alpha_n \vu_n
+  \text{ where } \sum_i \alpha_i = 1
+  $$
+
+- In matrix form: $\mU \cdot \valpha \text{ where } \vv{1}^T \valpha = 1$
+
+* Affine hull of vectors
+- Given vectors $\vu_1, ..., \vu_n$, the set of all affine combinations is the
+  affine hull:
+  $$
+  \calA
+  = \{ \vvv = \sum_i^n \alpha_i \vu_i : \sum_i \alpha_i = 1 \}
+  = \{ \vvv = \mU \valpha : \vv{1}^T \valpha = 1 \}
+  $$
+- The affine hull includes each point because if $\valpha$ has a single 1 in
+  position $i$ and all others 0, we get $\vu_i$
+
+* Affine hull of vectors is an affine space
+- We can write the affine hull of $\vu_1, ..., \vu_n$ as an affine space:
+  $$\vu_i + \Span(\vu_1 - \vu_i, ..., \vu_n - \vu_i)$$
+  - Thus an affine space is an affine hull and vice versa
+- This is the dual of "the span of vectors is a vector space"
+
+* The solution set of non-homogeneous linear system is empty or affine space
+- Consider the solution of a system of non-homogeneous linear equations
+  $$
+  \{ \vx : \va_1^T \vx = \beta_1, ..., \va_m^T \vx = \beta_m \}
+  \text{ or in matrix form }
+  \mA \cdot \vx = \vbeta
+  $$
+- The solution set is either empty or an affine space
+
+- There are two cases: either the non-homogeneous system has solution, or not
+
+- Consider the case where the system of equations has no solutions (e.g., it is
+  contradictory, e.g., $x = 1, x = 2$), then the solution set is empty
+
+- Consider the case where there is a solution
+- Each linear system $\mA \vx = \vbeta$ has an associated homogeneous linear
+  system $\mA \vx = \vv{0}$
+- If $\vu_1$ is a solution of the non-homogeneous system (i.e.,
+  $\mA \vu_1 = \vbeta$), then any other solution $\vu_2$ is a solution (i.e.,
+  $\mA \vu_2 = \vbeta$) $\iff$ $\vu_2 - \vu_1$ is in the vector space which is
+  the solution of the homogeneous linear system (i.e.,
+  $\mA (\vu_1 - \vu_2) = \vv{0}$)
+- So if the system has at least one solution, we can write the set of solutions
+  as $\vu + \calV$ where $\calV$ is the vector space defined by the homogeneous
+  linear system
+
+- A corollary is that a system of linear equations has only one solution if (but
+  not iff) the homogeneous linear system has only the zero vector as solution
+
+* Vector space vs affine space: summary
+- Linear combination vs affine combination
+- Span of vectors vs affine hull of vectors
+  - Span (affine hull) is the set of all linear (affine) combinations
+- Vector space vs affine space
+
+* Matrix
+- A matrix $\mA \in \bbF^{m \times n}$ is a two dimensional array with dimensions
+  $m \times n$ of elements from a field $\bbF$
+
+- Matrix notation
+  - $\mA \in \bbR^{m \times n}$ has $m$ rows and $n$ columns
+  - $A_{ij}$ is the element on $i$-th row and $j$-th column
+    $$
+    \mA =
+    \begin{pmatrix}
+    A_{1, 1} & ...      & A_{1, n} \\
+    ...      & A_{i,j}  & ... \\
+    A_{m, 1} & ...      & A_{m, n} \\
+    \end{pmatrix}
+    $$
+  - The convention is first rows and then columns (i.e., y-x instead of the more
+    usual x-y) for both elements and dimensions of a matrix
+
+- Notation for rows and columns in a matrix
+  - $j$-th column is $\va_j$ or $\va_{:,j}$ (using `numpy` notation)
+  - $i$-th row is $\va^T_i$ or $\va_{i,:}$
+  - Fixing a coordinate (e.g., row) one gets the orthogonal indices (e.g.,
+    column)
+
+## Linear functions
+
+* Linear functions over vector spaces: definition
+- Consider two vector spaces $\calV$ and $\calW$ over the same field $\bbF$
+- A linear function $f: \calV \rightarrow \calW$ satisfies two properties:
+  1. $f(\alpha \vvv) = \alpha f(\vvv)$
+  2. $f(\vu + \vvv) = f(\vu) + f(\vvv)$
+
+- Linear functions "push linear combination through":
+  $$
+  f(\alpha_1 \vvv_1 + ... + \alpha_n \vvv_n)
+  = \alpha_1 f(\vvv_1) + ... + \alpha_n f(\vvv_n)
+  $$
+  - Equivalent to the 2 properties of linear functions
+
+* Matrix and linear function
+- From matrix to linear function
+  - Given a matrix $\mA \in \bbF^{n \times m}$ we can define the function:
+    $$f(\vx) = \mA \cdot \vx$$
+  - The function $f()$ maps $m$-vectors into $n$-vectors
+    - The domain is $\bbF^m$ for the matrix-vector product to be defined
+    - The co-domain is $\bbF^n$
+  - $f(\vx)$ is a linear function because of the properties of matrix-vector
+    product
+
+- From linear function to matrix
+  - Consider a linear function $f: \bbF^m \rightarrow \bbF^n$
+  - We want to find a matrix $\mA$ such that $f(\vx) = \mA \cdot \vx$
+
+  - ___Solution___
+    - We know that $\mA \in \bbF^{n \times m}$ from matrix-vector product
+      definition
+    - If we compute $\mA \cdot \vv{e_i}$, where $e_i = (0, ..., 0, 1, ...0)$ is
+      the $i$-th standard generator, we obtain $\va_i$ (i.e., the $i$-th column
+      of $\mA$)
+    - Thus $\mA$ is the matrix with columns equal to the standard generators
+      transformed by $f()$
+
+* Linear functions: examples and non-examples
+- **Identity function** is linear
+  - Corresponds to the identity matrix
+- **Rotation** is linear transformations
+  - Corresponds to an orthonormal matrix
+- **Scaling** each coordinate independently is linear transformation
+  - Corresponds to a diagonal matrix
+
+- **Translation** is _not_ a linear function
+  - Since it does not satisfy either of the two linearity properties
+    1. $f(\alpha \vvv) = \alpha f(\vvv)$
+    2. $f(\vu + \vvv) = f(\vu) + f(\vvv)$
+
+* Kernel of a Linear Function
+- Any linear function $f: \calV \rightarrow \calW$ maps the zero vector of
+  $\calV$ to the zero vector of $\calW$
+
+- The **kernel** of a linear function $f$ is the set of vectors that are
+  transformed by $f$ into the $\vv{0}$ vector
+  $$\Ker(f) = \{ \vvv: f(\vvv) = \vv{0} \}$$
+
+- If linear function $f$ is expressed in matrix form $f(\vx) = \mA \cdot \vx$
+  then its kernel is the null space of the columns of the associated matrix $\mA$
+  $$\Ker(f) = \Null(\mA)$$
+
+* Domain, Image, Co-domain of a Function
+- Consider a (linear or not) function $f: \calV \rightarrow \calW$
+
+- The **domain** of $f$ $\calV$ is the set of all values where the function is defined
+- The **image of domain** $f(\calV)$ is the set of all values that the function
+  can assume
+- The **co-domain** $\calW$ is the set where the function assumes its value
+  - E.g., $\bbR^2$
+
+* One-to-one Function
+- Consider a function $f: \calV \rightarrow \calW$
+- A function is **one-to-one** (or injective) iff any two different elements
+  $v_1 \ne v_2 \in \calV$ have different images $f(v_1) \ne f(v_2)$
+
+- Equivalently:
+  - Using contrapositive: if two elements $v_1$ and $v_2$ have the same image
+    $f(v_1) = f(v_2)$, then they are equal $v_1 = v_2$
+  - In terms of set cardinality: $|f(\calV)| = |\calV|$, i.e., the image of the
+    domain has the same number of elements as the domain
+
+- A _linear_ function is one-to-one iff its kernel is the trivial vector space,
+  $\Ker(f) = \{ \vv{0} \}$
+  - Equivalently the associated matrix has $\Null(\mA) = \{ \vv{0} \}$
+
+* Onto function
+- Consider a function $f: \calV \rightarrow \calW$
+- A function is **onto** (or surjective) iff for any element of its co-domain
+  $w \in \calW$, there exists an element of the domain $v \in \calV$ that is
+  transformed into it, i.e., $f(v) = w$
+
+- Equivalently in terms of set cardinality:
+  - $f(\calV) = \calW$, i.e., the image of the domain is equal to the co-domain
+
+- Any function can be made surjective by restricting $\calW$ to $f(\calV)$
+
+* Invertible function
+- A function $f: \calV \rightarrow \calW$ is invertible iff it is both one-to-one
+  (injective) and onto (surjective), i.e.,
+  $$\forall w \in W \quad \exists! v \in V: f(v) = w$$
+
+- Equivalently in terms of set cardinality:
+  - $|\calV| = |\calW|$, i.e., the co-domain and the domain have the same number
+    of elements
+
+- Consider an invertible function $f: \calV \rightarrow \calW$, the inverse of
+  $f$ is:
+  - $f^{-1}: \calW \rightarrow \calV$
+  - $f \circ f^{-1}$ is the identity function
+
+* Linear function composition in matrix terms
+- There is a correspondence between linear functions and matrices
+
+- Consider two matrices $\mA$ and $\mB$ and the two associated functions:
+  - $f(\vy) = \mA \cdot \vy$
+  - $g(\vx) = \mB \cdot \vx$
+- The composed function is defined as:
+  $$h(\vx) = (f \circ g)(\vx) = f(g(\vx))$$
+- It can be shown that the associated matrix to the composed function is
+  $$h(\vx) = \mA \cdot \mB \cdot \vx$$
+
+* Matrix inverse
+- Using the definition of inverse functions, two square matrices $\mA$ and $\mB$
+  are inverses iff $\mA \cdot \mB = \mI$
+  - We indicate the (unique) inverse of $\mA$ with $\mA^{-1}$
+
+- Given an invertible (square) matrix $\mA$, then the associated function
+  $f(\vx) = \mA \cdot \vx$ is an invertible function, i.e., $f()$ is one-to-one
+  and onto
+- The matrix-vector equation $\mA \cdot \vx = \vb$ has one and only one solution
+  $\vx$ for any $\vb$, i.e., $\mA^{-1} \vb$
+
+- If $\mA$ and $\mB$ are invertible and can be multiplied, then $\mA \cdot \mB$
+  is invertible
+
+## Linear dependence
+
+* Coordinate representation of a vector
+- Consider:
+  - $\calV$ a vector space
+    - $\calV$ is not necessarily like $\bbF^n$, i.e., the vector space does not
+      need to be a "numeric" vector representation
+  - Vectors $\va_1, ..., \va_n \in \calV$
+  - $\vvv \in \Span(\va_1, ..., \va_n) \in \calV$
+
+- You can represent $\vvv$ in terms of $\va_1, ..., \va_n$ using the coordinates
+  $\vu = (\alpha_1, ..., \alpha_n)$ such that:
+  $$\vvv = \sum_{i=1}^n \alpha_i \va_i$$
+  or in terms of the matrix $\mA$ that has $\va_i$ as columns:
+  $\vvv = \mA \cdot \vu$
+
+- A generator set allows to represent any vector in terms of coordinates
+  (although not unique)
+
+- To find the coordinates $\vu$ of a vector $\vvv$ with respect to a generator
+  $\mA$, solve the matrix-vector equation for $\vu$:
+  $$\mA \cdot \vu = \vvv$$
+
+* Linear dependence between vectors: definition
+- A set $S$ of $n$ vectors $\vvv_1, ..., \vvv_n$ are **linearly dependent** _iff_
+  $$
+  \exists (\alpha_1, ..., \alpha_n) \ne \vv{0}_n:
+  \alpha_1 \vvv_1 + ... + \alpha_n \vvv_n = \vv{0}_k
+  $$
+- In words, the zero vector can be written as a _non-trivial_ linear combination
+  of the vectors
+
+- Equivalently: at least one vector of the set $S$ can be expressed as linear
+  combination of the remaining using coefficients not all zero
+
+- **Remarks**
+  - One of the vectors $\vvv_i$ can be the zero vector
+  - The notion of linear dependence / independence applies to _set of vectors_ and
+    not to a single vector
+    - The zero vector $\vv{0}$ is not "linearly dependent", rather the set
+      containing only the zero vector $\{ \vv{0} \}$ is linearly dependent
+  - A _trivial_ linear combination of the vectors $\vx_1, \vx_2, ..., \vx_n$ is a
+    combination of vectors with coefficients all equal to zero
+    - It is always equal to the zero vector $\vv{0}$
+
+- E.g., $S = \{(1, 0, 0), (0, 2, 0), (2, 4, 0)\}$ are linearly dependent since
+  $$2 \cdot (1, 0, 0) + 2 \cdot (0, 2, 0) -1 \cdot (2, 4, 0) = (0, 0, 0)$$
+
+* Linear independence: definition
+- Linear independence is the negation of the definition of linear dependence:
+  $$\neg (\exists \valpha \ne \vv{0}: \sum \alpha_i \vvv_i = \vv{0})$$
+  - By negating the existential quantifier:
+    $\neg (\exists x: P(x)) \iff \forall x: \neg P(x)$
+    $$\forall \valpha \ne \vv{0} \quad \sum \alpha_i \vvv_i \ne \vv{0}$$
+
+- Equivalently by contrapositive $(P \implies Q) \iff (\neg Q \implies \neg P)$
+  $$\sum \alpha_i \vvv_i = \vv{0} \implies \valpha = \vv{0}$$
+  - In words, the only combination of the vectors that gives the zero vector is
+    the trivial linear combination
+
+- E.g., $(1, 0, 0), (0, 2, 0), (0, 0, 3)$ are linearly independent since:
+  \begin{alignat*}{2}
+  & \alpha_1 \cdot (1, 0, 0) + \alpha_2 \cdot (0, 2, 0) +
+  \alpha_3 \cdot (0, 0, 3) \\
+  & = (\alpha_1, 2 \alpha_2, 3 \alpha_3) \\
+  & = (0, 0, 0) \\
+  & \iff \alpha_1 = \alpha_2 = \alpha_3 = 0
+  \end{alignat*}
+
+* Property of linear dependence / independence
+- Any set of vectors that contains the $\vv{0}$ is linearly dependent
+  - In fact we can make a non-trivial combination of the zero setting the
+    coefficient of the zero vector non zero and all remaining zero
+  - Thus the set $\{ \vv{0} \}$ is not linearly independent
+
+- A subset of linearly independent vectors is still independent
+
+- A superset of linearly dependent vectors is still dependent
+  - This is the contrapositive of the previous proposition
+
+* Linear dependence and null space
+- By definition linear dependence of vectors $\vvv_1, ..., \vvv_n$ means that
+  there is a non-trivial combination of those vectors that is equal to zero
+  vector
+- If $\mV$ is the matrix with $\vvv_i$ as columns, linear dependence is written:
+  $$\exists \vx \ne \vv{0}: \mV \cdot \vx = \vv{0}$$
+- In matrix form
+  $$\Null(\mV) \ne \{ \vv{0} \}$$
+  i.e., the null space of columns of $\mV$ is not trivial
+
+- Linear independence is equivalent to $\Null(\mV) = \{ \vv{0} \}$
+  i.e., the null space of the columns of $\mV$ is the trivial space
+
+* Linear one-to-one function and linear independence
+
+- A linear one-to-one function $f$ preserve linear independence
+
+- It can be proven by showing that a linear combination of transformed
+  independent vectors is $\vv{0}$ only if it is a trivial combination:
+  \begin{alignat*}{1}
+  & \vx_i \text{ independents} \\
+  & \sum \alpha_i f(\vx_i) = \vv{0} \implies \valpha = \vv{0} \\
+  \end{alignat*}
+
+* Superfluous-vector lemma
+- Given a set of vectors $S$
+- We already know that vectors are linearly dependent _iff_ a vector $\vvv \in S$
+  is a non-trivial linear combination of the remaining vectors
+
+- This is equivalent to:
+  $$\exists \vvv \in S : \Span(S) = \Span(S - \{\vvv\})$$
+  - In words, one can always remove at least a vector dependent from a generator
+    set without changing its span
+
+- **Intuition**: it establishes a relationship between linear dependence and span
+
+- **Corollary**:
+  - You can always _add_ or _remove_ linearly dependent vectors from a set,
+    without changing its span
+
+* Equivalent questions in linear algebra
+- How can we tell if:
+  - Vectors $\vvv_1, ..., \vvv_n$ are linearly dependent?
+  - The null space of a matrix is trivial?
+  - The solution set of a homogeneous linear system is trivial?
+  - A given solution of a non-homogeneous linear system is the only solution?
+
+## Basis
+
+* Basis of a vector space: definition
+- A set of vectors $B$ is a **basis** of the vector space $\calV$ iff by
+  definition:
+  - $B$ is a set of generators for $\calV$, i.e., $\Span(B) = \calV$
+  - Vectors in $B$ are linearly independent
+
+- In words, a basis is a set of linearly independent generators
+
+- Often you care about the order of the vectors
+  - You should use $B$ as a tuple or a matrix, and not a set of vectors
+
+* Unique-representation lemma
+- Consider:
+  - $\calV$ is a vector space over a scalar field $\bbF$
+  - $B = (\vb_1, ..., \vb_n)$ be a basis for $\calV$
+- For any vector $\vvv \in \calV$ there is exactly one representation of $\vvv$
+  in terms of the basis vectors
+
+- **Intuition**: a vector space can always be represented in terms of coordinate
+  vectors $\bbF^n$ using a basis
+
+- There is a function $f: \bbF^n \rightarrow \calV$ that:
+  - transforms the coordinates $\vx$ with respect to a basis $\mB$ into a vector
+    $\vvv = \mB \cdot \vx \in \calV$
+  - is one-to-one (because of linear independence of basis vectors and linearity of
+    function); and
+  - is onto (because a generator)
+
+- There is also a function $g: \calV \rightarrow \bbF^n$ that
+  - Computes the (unique) coordinates of $\vvv \in \calV$ with respect to the
+    basis $B$
+  - $f$ and $g$ are inverse of each other
+
+* Change of basis transformation
+- Consider two bases for the same vector space $\calV$
+  - $\va_1, ..., \va_n$
+  - $\vc_1, ..., \vc_k$
+  - We assume $n \ne k$ (we don't know yet that all bases of a vector space must
+    have the same cardinality)
+
+- We know that:
+  - The matrix $\mA$ with $\va_i$ as columns transforms the coordinates with
+    respect to to $\va_i$ into a vector in $\calV$
+  - The matrix $\mC^{-1}$ transforms a vector in $\calV$ into its coordinates
+    with respect to to $\vc_i$
+
+- We can compose the 2 transformations to get a transformation from the
+  coordinate space $\va$ into the coordinate space $\vc$
+  $$\vc = \mC^{-1} \cdot \mA \cdot \va$$
+  - This is called "a change of basis transformation"
+  - The entire transformation is also invertible, i.e., we can go from
+    coordinates of $\vc$ to $\va$
+
+## Dimension of a vector space
+
+* Simplified exchange lemma
+- Consider:
+  - A set $S$ of vectors, not necessarily linearly independent
+  - $\vz \ne \vv{0} \in \Span(S)$
+
+- There is a vector $\vw \in S$ such that:
+  $$\Span(S \cup \{\vz\} - \{\vw\}) = \Span(S)$$
+  - In words, one can exchange a vector from $S$ with a vector from its span
+    without changing the span
+
+- Example
+  - $S = \{\vvv_1 = (1, 0, 0), \vvv_2 = (0, 1, 0), \vvv_3 = (1, 2, 0)\}$ and
+    $\vz = (-1, -1, 0)$
+  - Note that $\vz = -1 \cdot \vvv_1 - 1 \cdot \vvv_2$
+  - WLOG we can express $\vvv_1$ in terms of $\vz, \vvv_2$
+  - Thus we can exchange $\vz$ with $\vvv_1$ without changing the span of $S$
+
+* Exchange lemma
+- Consider
+  - A set $S$ of vectors
+  - A subset of _linearly independent_ $A \subseteq S$ (aka "protected subset" of
+    $S$)
+  - Pick $\vz \in \Span(S)$ such that $A \cup \{\vz\}$ is linearly independent
+    (i.e., $\vz \not \in \Span(A)$)
+
+- There is a vector $\vw \in S - A$ such that:
+  $$\Span(S \cup \{\vz\} - \{\vw\}) = \Span(S)$$
+- In words, we can exchange $\vz$ with a vector of the set, without changing the
+  span and the protected subset
+
+* Morphing lemma
+- Consider
+  - A vector space $\calV$
+  - $G$ be a set of generators for $\calV$
+  - $B$ be a basis for $\calV$
+
+- $|B| \le |G|$, i.e., the cardinality of a basis is always smaller than the
+  cardinality of a generator
+
+- It is called morphing lemma since you can morph $G$ into $B$ without changing
+  the span
+
+* A basis as smallest generator set
+- Using the morphing lemma, a basis for $\calV$ is the smallest generating set
+  for $\calV$
+
+- Subset-basis lemma: any _finite_ generator set $S$ includes a basis $B$ for
+  $\calV = \Span(S)$
+
+- All bases for $\calV$ have the same size
+
+* Dimension of vector space
+- The dimension of a vector space $\calV$, written $\Dim(\calV)$, is the size of
+  a (any) basis for $\calV$
+- By definition of basis, $\Dim(\calV)$ is the (exact) number of linearly
+  independent vectors generating a vector space
+
+* Rank of a set S of vectors / matrix
+- Rank is the dimension of the space spanned by a set:
+  $$\Rank(S) \dd= \Dim(\Span(S))$$
+- By definition of basis, the rank of a set of vectors $S$ is the number of
+  linearly independent vectors included in $S$
+
+- MEM: $\Rank$ and $\Dim$ measure the same thing, but for vectors and vector
+  spaces
+
+* Rank and dimension: example
+- The vectors $S = \{(1, 0, 0), (0, 2, 0), (2, 4, 0)\}$ are linearly dependent,
+  thus $\Rank(S)$ is $< 3$
+- Actually $\Rank(S) = 2$ since the first 2 vectors are linearly independent
+  (basis)
+
+* Nullity of a set of vectors / matrix
+- Given a set $S$ of vectors, or column vectors in a matrix
+- Nullity is the dimension of the null space of $S$, i.e., $\Dim(\Null(S))$
+- It is the dual of $\Rank$
+
+* Dimension of trivial vector space
+- Consider the vector space $\calV = \Span(\{ \vv{0} \})$
+- One could think that the dimension is 1 since it is spanned by 1 vector
+- This is not possible since the set with the zero vector is not independent and
+  thus cannot be a basis
+
+- In reality $\calV$ is spanned by the empty set, thus $\Dim(\calV) = 0$
+
+* Subspace dimension lemma
+- $\calU$ is a vector subspace of $\calW$
+
+- ___Thesis___
+  $$\Dim(\calU) \le \Dim(\calW)$$
+  and
+  $$\Dim(\calU) = \Dim(\calW) \iff \calU = \calW$$
+- ___Proof___
+- One can use a modified version of the exchange lemma to have basis of $\calW$
+  include a basis of $\calU$
+
+* Subspace dimension lemma: example
+- $\calV = \Span\{(1, 2), (2, 1)\}$
+- Since $\calV \subseteq \bbR^2$, then $\Dim(\calV) \le 2$
+- Since the vectors are independent then $\Dim(V) = 2$ and $\calV = \bbR^2$
+
+* Column space of a matrix
+- $\Col(\mA) = \Span(\text{columns of } \mA)$
+
+* Row space of a matrix
+- $\Row(\mA) = \Span(\text{rows of } \mA) = \Span(\mA^T) = \Col(\mA^T)$
+
+* Row / column rank of a matrix $\mM$
+- = rank of (i.e., dimension of the space spanned by) row / column vectors of
+  $\mM$
+- We will see that these ranks are the same, so we can talk of "rank of a
+  matrix"
+
+* Row / column rank of a matrix: example
+- The matrix
+  $$
+  \mM =
+  \begin{pmatrix}
+  1 & 0 & 0 \\
+  0 & 2 & 0 \\
+  2 & 4 & 0
+  \end{pmatrix}
+  $$
+  has both row and column rank equal to 2
+- The matrix
+  $$
+  \mM =
+  \begin{pmatrix}
+  1 & 0 & 0 & 5 \\
+  0 & 2 & 0 & 7 \\
+  0 & 0 & 3 & 9
+  \end{pmatrix}
+  $$
+  has both row and column rank equal to 3
+
+* Matrix rank theorem: lemma
+- For any matrix $A$
+  $$\Rank(\Row(\mA)) \le \Rank(\Col(\mA))$$
+
+* Matrix rank theorem: lemma proof
+- Assume that $\mA$ is $m \times n$
+- Consider the column space $\mA = (\va_1 | \va_2 | ... | \va_n)$ which is
+  generated by $n$ vectors with $m$ components
+- This space has a dimension $k = \Rank(\Col(\mA)) \le n$ and let's call the
+  basis $\mB$
+- So each $\va_i = \alpha_1 \vb_1 + ... + \alpha_k \vb_k = \mB \cdot \valpha$
+  where the $\vb_j$ has $m$ components
+- If we write all vectors $\va_i = \mA \valpha_i$ and use the matrix-matrix
+  product in terms of matrix-vector product we get $\mA = \mB \mC$
+  ($m \times n = (m \times k) \cdot (k \times n)$)
+
+- If we transpose we have:
+  $$\mA^T = \mC^T \cdot \mB^T = (n \times k) \cdot (k \times m)$$
+  so we can express the rows of $\mA^T$ (i.e., the columns of $\mA$) as a linear
+  combination of the $k$ rows of $\mB^T$ (vector-matrix product)
+- So the $k$ rows of $\mB^T$ are a generator for rows of $\mA$
+- They contain a basis for $\Row(\mA)$ because of basis generator lemma:
+  $\Rank(\Row(\mA)) \le k = \Rank(\Col(\mA))$
+
+* Matrix rank theorem
+- For every matrix $\mA$, row rank equals column rank:
+  $$\Rank(\Row(\mA)) = \Rank(\Col(\mA))$$
+
+* Matrix rank theorem: proof
+- Penultimate step: to prove $a = b$ we can prove that $a \le b$ and the
+  converse $b \le a$
+
+- We can always exchange rows and columns of a matrix by transposing
+- So we get from the lemma:
+  $$\Rank(\Row(\mA^T)) \le \Rank(\Col(\mA^T))$$
+  but $\Row(\mA^T) = \Col(\mA)$ so we have
+  $$\Rank(\Col(\mA)) \le \Rank(\Row(\mA))$$
+  and we can use the penultimate step to reach the thesis
+
+## Direct sum
+
+* Minimal intersection of subspaces
+- Given two vector spaces $\calU$ and $\calV$, subsets of the same vector space
+  $\calW$
+  $$\calU, \calV \subseteq \calW$$
+- The minimal possible intersection of two vector spaces is
+  $$\calU \cap \calV = \{ \vv{0} \}$$
+- In other words it is not possible for two subspaces to have no intersection
+  $calU \cap \calV = \emptyset$
+
+* Direct sum of vector spaces: definition
+- Given two vector spaces $\calU$ and $\calV$, subsets of the same vector space
+  $\calW$
+  $$\calU, \calV \subseteq \calW$$
+- Assume $\calU \cap \calV = \{ \vv{0} \}$
+- We define direct sum of $\calU$ and $\calV$:
+  $$
+  \calU \oplus \calV
+  = \{ \vu + \vvv: \vu \in \calU, \vvv \in \calV \}
+  $$
+- MEM: It's like a linear combination of vectors from the two sub-spaces, the
+  coefficients $\alpha, \beta$ are provided by the underlying linearity of
+  vector space
+
+* Direct sum: geometric interpretation
+- $\calU, \calV \subseteq \bbR^n$ are spanned by two independent vectors (i.e.,
+  two non-parallel lines)
+- The direct sum $\calU \oplus \calV$ is the plane containing both lines
+
+* Direct sum: properties
+- $\calU \oplus \calV$ is a vector space (by def closed with respect to + and
+  *)
+- The union of two generators (resp. bases) for $\calU$ and for $\calV$ is a
+  generator (resp. basis) for $\calU \oplus \calV$
+- Each vector has a unique representation as sum of a vector from $\calU$ and
+  $\calV$ (by unique representation lemma)
+- The dimension of $\calU \oplus \calV$ is the sum of the dimensions
+
+* Direct sum: example
+- $\calU = \Span(1000, 0100)$ and $\calV = \Span(0010)$ over GF(2)
+- The vectors have no intersection besides $\vv{0}$ since their bases have no
+  intersection
+- $\calU \oplus \calV
+    = \{0000, 1000, 0100, 0010, 1100, 1010, 0110, 1110\}
+    = \Span(1000, 0100, 0010)$
+
+* Complementary subspace
+- Two spaces $\calU, \calV \subseteq \calW$ are complementary subspaces of
+  $\calW$ $\iff$ their direct sum is $\calU \oplus \calV = \calW$
+- Thus, any vector in $\calW$ can be written as the (unique) sum of a vector of
+  $\calU$ and a vector of $\calV$
+
+* Existence of complementary subspaces
+- Given a space $\calW$ and its subspace $\calU \subseteq \calW$, exists one
+  (unique) subspace $\calV$ such that $\calU, \calV$ are complementary subspaces
+- It can be proved using basis of $\calU$ and $\calV$
+
+
+/*
+* Systems of Linear Equations
+  - Represented as $Ax = b$
+  - Solutions using Gaussian elimination
+  - Conditions for existence and uniqueness
+
+* Rank of a Matrix
+  - Number of linearly independent rows or columns
+  - Rank-nullity theorem: $\text{rank}(A) + \text{nullity}(A) = n$
+  - Implications for solution spaces
+
+* Inverse of a Matrix
+  - Matrix $A$ is invertible if $AA^{-1} = I$
+  - Not all matrices are invertible (singular matrices)
+  - Importance for solving linear systems and optimization
+
+* Determinants
+  - Scalar value summarizing matrix properties
+  - Zero determinant implies matrix is singular
+  - Used in volume interpretation and invertibility
+
+* Orthogonality and Orthonormal Bases
+  - Two vectors are orthogonal if $x^T y = 0$
+  - Orthonormal set: orthogonal unit vectors
+  - Used in projections, decomposition, and optimization
+
+* Projections and Least Squares
+  - Projection of $b$ onto column space of $A$: $\hat{b} = A(A^T A)^{-1}A^T b$
+  - Basis for linear regression
+  - Solves inconsistent systems approximately
+
+* Eigenvalues and Eigenvectors
+  - For $Ax = \lambda x$, $x$ is an eigenvector and $\lambda$ an eigenvalue
+  - Capture invariant directions of transformations
+  - Used in PCA, spectral clustering, and stability analysis
+
+* Diagonalization
+  - Expressing matrix as $A = PDP^{-1}$ where $D$ is diagonal
+  - Simplifies powers and exponentials of matrices
+  - Requires linearly independent eigenvectors
+
+* Symmetric Matrices
+  - $A = A^T$
+  - All eigenvalues are real
+  - Basis of many ML methods (e.g., covariance matrices, kernels)
+
+* Positive Definite and Semidefinite Matrices
+  - $x^T A x > 0$ for all $x \ne 0$: positive definite
+  - Ensures convexity in optimization
+  - Common in loss functions and kernels
+
+* Singular Value Decomposition (SVD)
+  - Factorization: $A = U \Sigma V^T$
+  - Generalizes eigen-decomposition to all matrices
+  - Used in PCA, matrix compression, and pseudoinverse
+
+* Principal Component Analysis (PCA)
+  - Dimensionality reduction via eigen-decomposition of covariance matrix
+  - Projects data onto directions of maximum variance
+  - Computed using SVD in practice
+
+* Matrix Norms
+  - Measures of matrix size: Frobenius, spectral, etc.
+  - Important for measuring errors and convergence
+  - Used in regularization and optimization
+
+* Vector Norms
+  - $L^p$ norms (e.g., $L^1$, $L^2$)
+  - Measure magnitude of vectors
+  - Used in loss functions and sparsity enforcement
+
+* Trace of a Matrix
+  - Sum of diagonal entries: $\mathrm{Tr}(A)$
+  - Invariant under cyclic permutations: $\mathrm{Tr}(ABC) = \mathrm{Tr}(CAB)$
+  - Appears in matrix derivatives and expectation identities
+
+* Kronecker and Hadamard Products
+  - Kronecker: tensor product of matrices
+  - Hadamard: element-wise multiplication
+  - Important in multi-dimensional ML models and tensor operations
+
+* Matrix Calculus
+  - Derivatives of scalar functions w.r.t. vectors/matrices
+  - Gradient and Hessian computation
+  - Crucial for backpropagation and optimization algorithms
+*/
+
+## Connections between Machine Learning and Linear Algebra
