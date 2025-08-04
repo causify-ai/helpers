@@ -11,7 +11,7 @@ import os
 import random
 import re
 import string
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -242,7 +242,10 @@ def find_git_root(path: str = ".") -> str:
         )
         # Update the path to the parent directory for the next iteration.
         path = parent
-    return git_root_dir
+    hdbg.dassert_is_not(
+        git_root_dir, None, "Git root directory should have been found"
+    )
+    return str(git_root_dir)
 
 
 # #############################################################################
@@ -853,7 +856,7 @@ def get_path_from_git_root(
         super_module,
         ret,
     )
-    return ret
+    return str(ret)
 
 
 # TODO(gp): Rewrite this function in a better way.
@@ -1394,7 +1397,7 @@ def does_branch_exist(
             exists_tmp = does_branch_exist(
                 branch_name, mode_tmp, dir_name=dir_name
             )
-            exists |= exists_tmp
+            exists = exists or exists_tmp
         return exists
     #
     hdbg.dassert_in(mode, ("git_local", "git_remote", "github"))
