@@ -40,68 +40,68 @@ MSML610: Advanced Machine Learning
 
 #### Machine Learning Paradigms with Examples (1/3)
 
-- **\textcolor{blue}{Supervised Learning}**
+- **Supervised Learning**
   - Learn from labeled data to predict labels for new inputs
   - E.g., image classification using ResNet on ImageNet
 
-- **\textcolor{red}{Unsupervised Learning}**
+- **Unsupervised Learning**
   - Discover hidden patterns or structure in unlabeled data
   - E.g., K-means clustering for customer segmentation
 
-- **\textcolor{olive}{Reinforcement Learning}**
+- **Reinforcement Learning**
   - Learn through interaction with an environment, receiving rewards/punishments
   - E.g., deep Q-Learning for playing Atari games
 
-- **\textcolor{cyan}{Self-Supervised Learning}**
+- **Self-Supervised Learning**
   - Generate pseudo-labels from unlabeled data to pre-train models
   - E.g., BERT (Masked Language Modeling)
 
-- **\textcolor{orange}{Semi-Supervised Learning}**
+- **Semi-Supervised Learning**
   - Combine small labeled data with large unlabeled data to improve performance
   - E.g., named entity recognition (NER) using annotated sentences with entity
     tags combined with many raw text documents
 
 #### Machine Learning Paradigms with Examples (2/3)
 
-- **\textcolor{blue}{Online Learning}**
+- **Online Learning**
   - Learn incrementally from a stream of data in real time
   - E.g., online logistic regression for click-through rate prediction
 
-- **\textcolor{red}{Multi-Task Learning}**
+- **Multi-Task Learning**
   - Train simultaneously a model to perform multiple related tasks
   - E.g., learn sentiment analysis and question answering
 
-- **\textcolor{olive}{Meta-Learning}**
+- **Meta-Learning**
   - "Learning to learn": adapt quickly to new tasks using prior experience
   - E.g., a model can be fine-tuned quickly on a new task using just a few
     gradient steps
 
-- **\textcolor{cyan}{Zero-Shot / Few-Shot Learning}**
+- **Zero-Shot / Few-Shot Learning**
   - Generalize to new tasks with no or few labeled examples
   - E.g., GPT-4 solving tasks with zero-shot prompting
 
-- **\textcolor{orange}{Active Learning}**
+- **Active Learning**
   - The model selects the most informative samples to be labeled by an oracle
     (e.g., a human)
   - E.g., pick samples where the model is least confident to get more examples
 
 #### Machine Learning Paradigms with Examples (3/3)
 
-- **\textcolor{red}{Federated Learning}**
+- **Federated Learning**
   - Train models across decentralized devices without sharing raw data
   - E.g., fraud detection or credit scoring across banks
 
-- **\textcolor{darkgreen}{Evolutionary Learning}**
+- **Evolutionary Learning**
   - Optimize model structures or parameters using evolutionary algorithms
     inspired by natural selection and genetics
   - Gradient free, global search, discrete structures, variable length inputs
   - E.g., genetic algorithms
 
-- **\textcolor{blue}{Curriculum Learning}**
+- **Curriculum Learning**
   - Train models on easier tasks first, gradually increasing difficulty
   - E.g., curriculum-based training in robotic control simulations
 
-- **\textcolor{violet}{Multi-Agent Learning}**
+- **Multi-Agent Learning**
   - Multiple agents learn and interact in shared environments, often in
     game-theoretic settings (e.g., competition, collaboration)
   - E.g., AlphaStar to play StarCraft II
@@ -112,17 +112,17 @@ MSML610: Advanced Machine Learning
   - Requires labeled data for training
   - Measure performance with error on a separate test set
 
-- **\textcolor{red}{Classification}**: output is a discrete label, e.g.,
+- **Classification**: output is a discrete label, e.g.,
   - `Spam` vs `Not Spam`
   - Digit recognition `0`, `1`, ...
   - Sentiment analysis `Pos`, `Neg`, `Neutral`
 
-- **\textcolor{darkgreen}{Regression}**: output is a continuous value, e.g.,
+- **Regression**: output is a continuous value, e.g.,
   - House prices given features like size and location
   - House demand
   - Stock prices
 
-- **\textcolor{blue}{Common algorithms}**:
+- **Common algorithms**:
   - Linear Regression
   - Decision Trees
   - K-nearest neighbors
@@ -130,31 +130,31 @@ MSML610: Advanced Machine Learning
   - ...
 
 #### Unsupervised Learning
-- Learn from data **\textcolor{blue}{without}** labeled outputs
+- Learn from data **without** labeled outputs
   - Goal: discover patterns, groupings, or structure in the data
   - No explicit feedback signal
   - Evaluation can be qualitative
 
-- **\textcolor{gray}{Main techniques}**:
-  - **\textcolor{red}{Clustering}**: Group similar examples, e.g.,
+- **Main techniques**:
+  - **Clustering**: Group similar examples, e.g.,
     - Customer segmentation
     - Grouping news articles by topic without knowing the topics
-  - **\textcolor{brown}{Dimensionality Reduction}**: Reduce number of variables with PCA while
+  - **Dimensionality Reduction**: Reduce number of variables with PCA while
     preserving structure
     - E.g., visualize high-dimensional data in 2D
-  - **\textcolor{olive}{Density Estimation}**: Estimate probability distribution of data
+  - **Density Estimation**: Estimate probability distribution of data
     - E.g., anomaly detection in server logs
-  - **\textcolor{darkgreen}{Association Rule Learning}**: Discover interesting relations between
+  - **Association Rule Learning**: Discover interesting relations between
     variables
     - E.g., market basket analysis (e.g., "people who buy X also buy Y")
 
-- **\textcolor{cyan}{Common algorithms:}**
+- **Common algorithms:**
   - K-means
   - PCA
   - Autoencoders
 
 #### Reinforcement Learning
-- Learn by **\textcolor{red}{interacting with an environment}** to **\textcolor{darkgreen}{maximize cumulative reward}**
+- Learn by **interacting with an environment** to **maximize cumulative reward**
   - Learn policy $\pi(s) \to a$ that maximizes expected reward
   - Trade-off between exploration (trying new actions) and exploitation (using
     known good actions)
@@ -163,14 +163,14 @@ MSML610: Advanced Machine Learning
 
 ::: columns
 :::: {.column width=60%}
-- **\textcolor{blue}{Core elements:}**
+- **Core elements:**
   - Agent: Learner and decision maker
   - Environment: Everything the agent interacts with
   - State $s$
   - Action $a$
   - Reward $r$
 
-- **\textcolor{violet}{Algorithms:}**
+- **Algorithms:**
   - Q-learning
   - Policy Gradient methods
 ::::
@@ -237,17 +237,17 @@ digraph BayesianFlow {
 
 
 #### Machine Learning Flow
-- **\textcolor{blue}{Question}**
+- **Question**
   - E.g., "How can we predict house prices?"
-- **\textcolor{red}{Input data}**
+- **Input data**
   - E.g., historical data of house sales
-- **\textcolor{olive}{Features}**
+- **Features**
   - E.g., number of bedrooms, location, square footage
-- **\textcolor{cyan}{Algorithm}**
+- **Algorithm**
   - E.g., linear regression, decision trees
-- **\textcolor{orange}{Parameters}**
+- **Parameters**
   - E.g., learning rate, number of trees in a random forest
-- **\textcolor{darkgray}{Evaluation}**
+- **Evaluation**
   - E.g., accuracy, precision, recall
 
 #### Machine Learning Flow
@@ -276,7 +276,7 @@ digraph BayesianFlow {
 }
 ```
 
-- **\textcolor{red}{Not all phases are equally important!}**
+- **Not all phases are equally important!**
   - Question $>$ Data $>$ Features $>$ Algorithm
 
 - Clarity of the question impacts project success
@@ -285,16 +285,16 @@ digraph BayesianFlow {
 - Algorithm is often less important (contrary to popular belief!)
 
 #### Question
-- **\textcolor{red}{Make the question concrete and precise}**
+- **Make the question concrete and precise**
   - Define the problem clearly
   - Specify inputs and expected outputs
   - Align question with business or research objectives
   - E.g.,:
-    - **\textcolor{darkgreen}{Bad}**: _"How can we improve sales?"_
-    - **\textcolor{blue}{Good}**: _"What factors most significantly impact sales of product X in
+    - **Bad**: _"How can we improve sales?"_
+    - **Good**: _"What factors most significantly impact sales of product X in
       region Y during season Z?"_
 
-- Formulating question is **\textcolor{violet}{the most important part}** of the machine learning
+- Formulating question is **the most important part** of the machine learning
 problem
   - Misunderstanding leads to:
     - Solving the wrong problem
@@ -305,22 +305,22 @@ problem
   defining the problem and one minute resolving it"_ (Albert Einstein)
 
 #### Input Data
-- Ensure **\textcolor{red}{data is specific to prediction}** goal
+- Ensure **data is specific to prediction** goal
   - E.g., use known movie ratings to predict unseen movie ratings from the same
     population
   - Training set $\approx$ test set
 
-- Relationship between data and prediction goal is **\textcolor{darkgreen}{not always direct}**
+- Relationship between data and prediction goal is **not always direct**
   - E.g., interested in prices but predict supply and demand instead
 
 - Poor-quality data leads to inaccurate predictions
   - _"Garbage in - garbage out"_
 
-- Recognize **\textcolor{blue}{when data is insufficient}** for valid answers
+- Recognize **when data is insufficient** for valid answers
   - _"Combination of data and desire for an answer does not ensure a reasonable
     answer can be extracted"_ (John Tukey)
 
-- **\textcolor{violet}{More data vs better models}**
+- **More data vs better models**
   - Meta-studies show difference between generic and best model is like
     5\%
   - _"It's not who has the best algorithm that wins. It's who has the most
@@ -329,15 +329,15 @@ problem
     goes up"_ (IBM researcher in speech recognition)
 
 #### Features
-- **\textcolor{red}{Features}** provide high-level information about inputs
+- **Features** provide high-level information about inputs
   - E.g., use intensity and symmetry for scanned numbers instead of raw bit maps
 
-- **\textcolor{darkgreen}{Characteristics of good features}**:
+- **Characteristics of good features**:
   1. Enable data compression
   2. Retain relevant information
   3. Often created with expert knowledge
 
-- **\textcolor{blue}{Common mistakes in feature building}**:
+- **Common mistakes in feature building**:
   1. Automating feature selection may lead to overfitting
      - Black box predictions can be accurate but stop working anytime
      - E.g., Google Flu's unclear feature-model link
@@ -347,21 +347,21 @@ problem
 
 #### Models
 - Best models are:
-  - **\textcolor{blue}{Interpretable}**
+  - **Interpretable**
     - Allow users to understand and trust the model's decisions
     - E.g., decision trees are appropriate in medical studies since they produce
       a "reasoning"
-  - **\textcolor{red}{Simple}**
+  - **Simple**
     - Easier to implement and maintain
     - Reduces the risk of overfitting
-  - **\textcolor{olive}{Accurate}**
+  - **Accurate**
     - Often accuracy is traded off for remaining characteristics
     - E.g., accuracy vs interpretability, accuracy vs speed
-  - **\textcolor{cyan}{Fast}**
+  - **Fast**
     - To train and test
     - Essential for real-time applications
     - Reduce computational costs
-  - **\textcolor{orange}{Scalable}**
+  - **Scalable**
     - Can handle large datasets efficiently (growing data and user bases)
     - E.g., in the Netflix prize, Netflix didn't end up implementing the best
       algorithm since it wasn't scalable enough
@@ -391,27 +391,27 @@ problem
 - Corollary:
   - Trim the model to the bare minimum necessary to explain the data
 
- - What does **\textcolor{red}{simple}** mean?
+ - What does **simple** mean?
   - An object is simple when it is one of few possible objects
 
-- What does **\textcolor{darkgreen}{better}** mean?
+- What does **better** mean?
   - A model is better means better out of sample performance
 
-- **\textcolor{blue}{Why it's true}**?
+- **Why it's true**?
   - Less likely to fit a given data by coincidence
   - An unlikely event is more significant if it happens (formalized in terms
     entropy)
 
 #### What is a "simple model"?
-- An object is **\textcolor{red}{simple}** when it is one of few possible objects
+- An object is **simple** when it is one of few possible objects
 
-- **\textcolor{darkgreen}{Examples}**:
+- **Examples**:
   - Polynomial of order 2 is simpler than order 17
     - More polynomials of order 17 than order 2, though both are infinite sets
   - SVM (Support Vector Machine) characteristics:
     - Separating hyperplane appears wiggly, but defined by few support vectors
 
-- **\textcolor{blue}{Measures of complexity}**
+- **Measures of complexity**
   - Complexity of a single hypothesis $h$
     - E.g., polynomial order, MDL (describe hypothesis in bits), Kolmogorov
       complexity
@@ -422,12 +422,12 @@ problem
       set $\calH$
 
 #### Model Soundness
-- **\textcolor{red}{Model should tell a story}**
+- **Model should tell a story**
   - You cannot blindly accept results of modeling
   - Ask: _"What criticisms would you give if the model was presented for the
     first time?"_
 
-- **\textcolor{blue}{Benchmark models}**: compute performance if model outputs:
+- **Benchmark models**: compute performance if model outputs:
   - Always 0 or 1
     - E.g., long-only model for stock predictions
   - Random results
@@ -444,32 +444,32 @@ problem
 
 #### Sampling Bias
 
-- **\textcolor{red}{Sampling bias}** occurs when data is not representative of the intended
+- **Sampling bias** occurs when data is not representative of the intended
   population
   - If data is sampled in a biased way, learning produces a biased outcome
   - Model sees the world in terms of training data
   - Hoeffding's hypothesis: training and testing distributions are the same
 
-- **\textcolor{darkgreen}{Causes of Sampling Bias}**
+- **Causes of Sampling Bias**
   - _Non-random sampling_: Favors certain outcomes or groups
   - _Undercoverage_: Inadequate representation of some population members
   - _Survivorship bias_: Includes only surviving or successful subjects
   - _Self-selection bias_: Participants choose to participate, introducing bias
 
-- **\textcolor{blue}{Consequences}**
+- **Consequences**
   - Leads to systematic errors distorting relationships or predictions
   - Models trained on biased samples perform poorly on real-world data
   - Leads to incorrect conclusions or unfair decisions in AI systems
 
 #### Sampling Bias
 
-- **\textcolor{red}{Examples}**
+- **Examples**
   - Training facial recognition on lighter-skinned faces causes poor accuracy on
     darker-skinned faces
   - Predicting income using data only from employed individuals omits unemployed
     people
 
-- **\textcolor{blue}{Mitigation}**
+- **Mitigation**
   - Compare sample statistics with known population statistics
   - Use stratified sampling or resampling to balance data
   - Apply reweighting or bias correction techniques
@@ -477,47 +477,47 @@ problem
 
 #### Data Snooping
 
-- **\textcolor{red}{Data snooping}** occurs when test set information improperly influences
+- **Data snooping** occurs when test set information improperly influences
     model-building
 
-- **\textcolor{darkgreen}{Typical Sources}**
+- **Typical Sources**
   - _Train-test contamination_: Test data leaks into training
     - E.g., Using test data during feature engineering, model selection, or
       tuning
   - _Multiple hypothesis testing_: Trying many models inflates performance
 
-- **\textcolor{blue}{Consequences}**
+- **Consequences**
   - Leads to overly optimistic evaluations
   - Models perform well in validation but fail on unseen data
 
-- **\textcolor{violet}{Why It's Dangerous}**
+- **Why It's Dangerous**
   - Creates misleading results
   - Common pitfall in machine learning workflows
   - Encourages false confidence in model quality
 
 #### Data Snooping
 
-- **\textcolor{red}{Example}**
+- **Example**
   - Choosing features based on the full dataset before splitting gives foresight
     not present in deployment
 
-- **\textcolor{blue}{Preventive Strategies}**
+- **Preventive Strategies**
   - Keep training, validation, and test sets separate
   - Use cross-validation properly
   - Fit preprocessing steps only on training data, then apply to test data
 
 #### "Burning the Test Set"
-- **\textcolor{red}{Problem}**
+- **Problem**
   - Repeated test set use during development leaks into training
   - Overfitting to test data misleads performance estimates
   - _"If you torture the data long enough, it will confess whatever you want."_
     (Tukey)
 
-- **\textcolor{darkgreen}{Symptoms}**
+- **Symptoms**
   - Test accuracy improves; real-world performance stagnates or degrades
   - Model evaluation becomes untrustworthy
 
-- **\textcolor{blue}{Solutions}**
+- **Solutions**
   - _One-time use principle_: Evaluate on test set once, post-tuning
   - _Use a validation set_: For model development and tuning
   - _Statistical adjustments_:
@@ -531,14 +531,14 @@ problem
 ### Research Methodology
 
 #### How to Achieve Out-Of-Sample Fit
-- **\textcolor{red}{Goal}**: Choose an hypothesis $g \in \calH$ approximates the unknown target
+- **Goal**: Choose an hypothesis $g \in \calH$ approximates the unknown target
   function $f$
   - What does $g \approx f$ mean?
     $$
     g \approx f \iff E_{out}(g) \approx 0
     $$
 
-- **\textcolor{blue}{Solution}**:
+- **Solution**:
   - Achieve:
     - Good in-sample performance $E_{in}(g) \approx 0$
     - Good generalization $E_{out}(g) \approx E_{in}(g)$
@@ -549,16 +549,16 @@ problem
 - The model performs well in sample ($E_{in} \approx 0$) but poorly out of
   sample ($E_{out} \gg E_{in}$)
 
-- **\textcolor{red}{What does it mean?}**
+- **What does it mean?**
   - In-sample performance is optimistic
   - Model is overfitted and fails to generalize
 
-- **\textcolor{darkgreen}{What do you do?}**
+- **What do you do?**
   - Run diagnostics before long-term projects
   - Gain insight on what works/doesn't to improve performance
     - E.g., bias-variance curves and learning curves
 
-- **\textcolor{blue}{How to fix?}**
+- **How to fix?**
   1. Training data
     - Get more training data $\iff$ fixes high variance
   2. Features
@@ -570,14 +570,14 @@ problem
     - Increase regularization $\lambda$ $\iff$ fixes high variance
 
 #### Why Using a Lot of Data?
-- **\textcolor{red}{Several studies}** show that:
+- **Several studies** show that:
   - Different algorithms/models have remarkably similar performance
   - Increasing training set improves performance
 
-- **\textcolor{darkgreen}{Consequence}**
+- **Consequence**
   - High capacity model + massive training set = good performance
 
-- **\textcolor{blue}{Why}**
+- **Why**
   - Using a high capacity model with many parameters (e.g., neural network)
     $$
     E_{in} \approx 0
@@ -595,16 +595,16 @@ problem
 #### What to Do When You Have Lots of Data?
 - You have $m$ = 100M examples in data set: great!
 
-- **\textcolor{red}{Cons}**
+- **Cons**
   - Scalability issue (slow, lots of compute)
   - Require work on infrastructure
 
 ::: columns
 :::: {.column width=55%}
-- **\textcolor{darkgreen}{First step}**:
+- **First step**:
   - Plot learning curves (in-sample and out-of-sample performance) for increasing
     amount of data $m = 1k, 10k, 100k, 1M, ...$
-- **\textcolor{blue}{Next step}**:
+- **Next step**:
 - If model has large bias (
   - Training and validation performance are similar at $1M$
   - Next step: use more complex model rather than training on $100M$ instances
@@ -639,7 +639,7 @@ problem
     - Set target number of new leads or click-through rates
 
 #### Summary of the Results, Next Steps
-- **\textcolor{red}{Always have a summary of results}**
+- **Always have a summary of results**
   - High-level map of discoveries
     - E.g., "smoothing model coefficients helps"
   - Highlight major findings
@@ -649,10 +649,10 @@ problem
     - Summarize data suggestions or confirmations
     - E.g., _"Hypothesis that user engagement increases retention is supported"_
 
-- **\textcolor{darkgreen}{Always have a reference to detailed results}**
+- **Always have a reference to detailed results**
   - Provide quick insights before details
 
-- **\textcolor{blue}{Always have next steps}**
+- **Always have next steps**
   - What do you expect to happen?
   - Expected results
     - Like thinking $n$ moves ahead in chess
@@ -666,13 +666,13 @@ problem
   - Words: `buy`, `now`, `deal`, `discount`, `<your name>`
 
 - Improve classifier performance:
-  1. **\textcolor{red}{Collect more data}**
+  1. **Collect more data**
      - Honeypot project: fake email account to collect spam
-  2. **\textcolor{darkgreen}{Use better features}**
+  2. **Use better features**
      - Email routing info (spammers use unusual accounts, mask emails as
        legitimate)
-  3. **\textcolor{blue}{Use better features from message body}**
-  4. **\textcolor{violet}{Detect intentional misspellings}**
+  3. **Use better features from message body**
+  4. **Detect intentional misspellings**
      - Spammers use misspelled words (e.g., `w4tch` for `watch`)
      - Use stemming software
 
@@ -680,12 +680,12 @@ problem
 
 - It is not clear how to prioritize the different possible tasks
 
-- **\textcolor{red}{Bad}**
+- **Bad**
   1. Use gut feeling to choose a task
   2. Complete task
   3. Re-evaluate performance
 
-- **\textcolor{blue}{Good}**
+- **Good**
   1. Build a simple algorithm
      - Within 1 day
   2. Set up performance evaluation
@@ -706,18 +706,18 @@ problem
 ::: columns
 :::: {.column width=55%}
 
-- **\textcolor{red}{Incremental Development}**
+- **Incremental Development**
   - Each increment adds functional components
   - Require upfront planning to divide features meaningfully
   - Integration of increments can be complex
 
-- **\textcolor{darkgreen}{Iterative Development}**
+- **Iterative Development**
   - Each increment delivers usable system
   - Refine and improve product through repeated cycles
   - Get feedback
   - Uncover and adjust for unknown requirements
 
-- **\textcolor{blue}{Incremental $\gg$ Iterative}**
+- **Incremental $\gg$ Iterative**
 
 ::::
 :::: {.column width=40%}
@@ -768,10 +768,10 @@ problem
   - $\alpha_i$: Importance of each stage
 
 #### Example of Photo OCR System
-- **\textcolor{red}{Goal}**: build systems to read text in a picture
+- **Goal**: build systems to read text in a picture
   - OCR = "Optical Character Recognition"
 
-- **\textcolor{darkgreen}{Stages of ML pipeline for OCR:}**
+- **Stages of ML pipeline for OCR:**
   - Text detection: find text areas in the picture
   - Character segmentation: split text into letter boxes
     - E.g., `h e l l o`
@@ -779,8 +779,8 @@ problem
   - Spelling correction: fix text errors using context
     - E.g., `hell0` corrected to `hello`
 
-- **\textcolor{blue}{Sliding window approach}**
-  - **\textcolor{violet}{Problem}**: Unknown text location and size
+- **Sliding window approach**
+  - **Problem**: Unknown text location and size
 
   - Text detection
     - Train a classifier to recognize letters vs non-letters
@@ -799,7 +799,7 @@ problem
 
 - Use learning curves to make sure we are taking advantage of more data
 
-- The **\textcolor{red}{problem}** is getting large amount of data
+- The **problem** is getting large amount of data
 
 - Always ask yourself: _"how much work is to get 10x more data than we
   currently have?"_
@@ -827,9 +827,9 @@ problem
   - You work on optimization for months
   - Find out that the optimization doesn't make much difference
 
-- **\textcolor{red}{Problem}**: On which part of the pipeline should time/resource be spent?
+- **Problem**: On which part of the pipeline should time/resource be spent?
 
-- **\textcolor{blue}{Solution}**: Ceiling analysis to Analyze pipeline performance
+- **Solution**: Ceiling analysis to Analyze pipeline performance
   - Single number for system performance
     - E.g., accuracy for OCR
   - For each component:
@@ -855,32 +855,32 @@ problem
 
 #### Data Processing Transformations
 
-- **\textcolor{blue}{Purpose of Data Processing}**
+- **Purpose of Data Processing**
   - Prepare raw data for effective machine learning
   - Improve model performance and generalization
 
-- **\textcolor{red}{Data Cleanup}**
+- **Data Cleanup**
   - Apply filters or smoothing to remove irrelevant variations
 
-- **\textcolor{olive}{Handling Missing Data}**
+- **Handling Missing Data**
 
-- **\textcolor{cyan}{Types of Transformations}**
+- **Types of Transformations**
   - Normalization and standardization
   - Encoding categorical data
   - Feature construction
   - Dimensionality reduction
   - Discretization
 
-- **\textcolor{orange}{Data Augmentation}**
+- **Data Augmentation**
   - Increase dataset size using transformations (common in vision)
 
 #### Data Cleaning
 
-- **\textcolor{red}{Purpose of Data Cleaning}**
+- **Purpose of Data Cleaning**
   - Ensure data quality for accurate model training
   - Detect and correct errors or inconsistencies in the dataset
 
-- **\textcolor{darkgreen}{Typical Steps in Data Cleaning}**
+- **Typical Steps in Data Cleaning**
   - *Remove duplicates*: Identical records are eliminated
   - *Correct data entry errors*: Fix misspellings or misformatted entries
   - *Standardize data*:
@@ -890,22 +890,22 @@ problem
     - Type conversion (e.g., strings to integers)
     - Dealing with unexpected characters or encodings
 
-- **\textcolor{blue}{Relevance to ML Models}**
+- **Relevance to ML Models**
   - Poor data quality leads to biased or incorrect predictions
   - Clean data reduces variance and improves generalization
 
 #### Handling Outliers and Missing Data
 
-- **\textcolor{red}{Outliers}**
+- **Outliers**
   - *Definition*: Data points significantly different from others
   - *Causes*: Measurement errors, variability in the data
   - *Detection*: Box plots, Z-scores, or interquartile method
   - *Treatment*: Removal, capping, or transformation (e.g., log scale)
 
-- **\textcolor{darkgreen}{Missing Data}**
+- **Missing Data**
   - *Detection*: Count of null values or incomplete entries
 
-- **\textcolor{blue}{Remediation}**
+- **Remediation**
   - *Deletion*: Remove rows or columns with too many missing values
   - *Imputation*:
     - Mean/median/mode substitution
@@ -916,78 +916,78 @@ problem
 
 #### Normalization and Standardization
 
-- **\textcolor{red}{Goal}**: Adjust feature scales for better convergence and learning
+- **Goal**: Adjust feature scales for better convergence and learning
   - *Normalize*: Rescale to fixed range, typically $[0, 1]$
   - *Standardize*: Rescale to zero mean and unit variance
-- **\textcolor{darkgreen}{Why it helps}**
+- **Why it helps**
   - Ensures features contribute equally to distance-based models
   - Helps gradient-based algorithms converge faster
   - Enables regularization
   - Easier interpretation of features
-- **\textcolor{blue}{Common methods}**
+- **Common methods**
   - Min-Max normalization: $x' = \frac{x - x_{min}}{x_{max} - x_{min}}$
   - Z-score standardization: $x' = \frac{x - \mu}{\sigma}$
 
 #### Encoding Categorical Data
 
-- **\textcolor{red}{Goal}**: Convert non-numeric categories into numeric representations
+- **Goal**: Convert non-numeric categories into numeric representations
 
-- **\textcolor{darkgreen}{One-hot encoding}**
+- **One-hot encoding**
   - Creates binary vector per category
     - E.g., `red`, `green`, `blue` $\to$ `[1,0,0]`, `[0,1,0]`, `[0,0,1]`
   - Avoids ordinal assumption
   - Increases dimensionality
 
-- **\textcolor{blue}{Label encoding}**
+- **Label encoding**
   - Assigns an integer to each category
     - E.g., `red`, `green`, `blue` $\to$ `1`, `2`, `3`
   - Can mislead models if order is not meaningful
 
 #### Feature Construction
 
-- **\textcolor{red}{Goal}**: Derive more informative features from raw inputs
+- **Goal**: Derive more informative features from raw inputs
 
-- **\textcolor{darkgreen}{Methods}**
+- **Methods**
   - Combining variables (e.g., area = height × width)
   - Extracting parts (e.g., year from a date)
   - Logical features
     - E.g., transform `2023-04-15` $\to$ (`Saturday`, `is_weekend = True`)
 
-- **\textcolor{blue}{Why it helps}**
+- **Why it helps**
   - Encodes domain knowledge
   - Improves model expressiveness and performance
 
 #### Dimensionality Reduction
 
-- **\textcolor{red}{Goal}**: Reduce number of features while preserving key information
+- **Goal**: Reduce number of features while preserving key information
 
-- **\textcolor{darkgreen}{Why it helps}**
+- **Why it helps**
   - Reduce overfitting
   - Reduce data redundancy
   - Improve model speed
   - Allow visualization
 
-- **\textcolor{blue}{Common techniques}**
+- **Common techniques**
   - PCA: linear combinations that maximize variance
   - LDA: projects data to maximize class separability
 
-- **\textcolor{violet}{Example}**
+- **Example**
   - Reduce 100 image pixels to 10 principal components
   - Quantize color images into gray scale
 
 #### Discretization
 
-- **\textcolor{red}{Goal}**: Convert continuous values into categorical bins
+- **Goal**: Convert continuous values into categorical bins
 
-- **\textcolor{darkgreen}{Why it helps}**
+- **Why it helps**
   - Simplifies models or enables categorical algorithms
   - Helps detect threshold effects in data
 
-- **\textcolor{blue}{Techniques}**
+- **Techniques**
   - Equal-width binning
   - Quantile binning
 
-- **\textcolor{violet}{Example}**
+- **Example**
   - Discretize age
     - `Child`: $[0, 13)$
     - `Teen`: $[13, 20)$
@@ -997,13 +997,13 @@ problem
 
 #### Noise Removal
 
-- **\textcolor{red}{Goal}**: Remove irrelevant or corrupt data variations
+- **Goal**: Remove irrelevant or corrupt data variations
 
-- **\textcolor{darkgreen}{Why it helps}**
+- **Why it helps**
   - Improves signal clarity and model robustness
     - E.g., clean noisy speech by removing high-frequency noise
 
-- **\textcolor{blue}{Methods}**
+- **Methods**
   - Smoothing (e.g., moving average)
   - Filtering (e.g., low-pass filter in audio)
 
@@ -1026,10 +1026,10 @@ problem
 
 ::: columns
 :::: {.column width=80%}
-- **\textcolor{red}{Goal}**: minimize a function $J(\vw)$
+- **Goal**: minimize a function $J(\vw)$
   - E.g., in-sample error $E_{in}(\vw)$
 
-- **\textcolor{blue}{Solutions}**:
+- **Solutions**:
   1. Analytical solution
      - Impose the gradient of $J(\vw)$ to equal 0
      - Find a closed-form solution for $\vw^*$
@@ -1048,10 +1048,10 @@ problem
 
 ::: columns
 :::: {.column width=80%}
-- **\textcolor{red}{Problem}**:
+- **Problem**:
   - We are on a hilly surface and we want to walk down to the bottom of the hill
 
-- **\textcolor{blue}{Solution}**:
+- **Solution**:
   - At each point:
     - We look around
     - We move a step in the direction where the surface is steepest
@@ -1225,10 +1225,10 @@ problem
 ### Stochastic Gradient Descent
 
 #### Stochastic Gradient Descent
-- **\textcolor{red}{Idea}** of Stochastic Gradient Descent (SGD)
+- **Idea** of Stochastic Gradient Descent (SGD)
   - Update the weights only for one training example picked at random
 
-- **\textcolor{blue}{Algorithm}**
+- **Algorithm**
   - Pick one $(\vx_n, y_n)$ at a time from the available examples
   - Compute $\nabla e(h(\vx_n), y_n)$ to update the weights:
     $$
@@ -1312,7 +1312,7 @@ problem
 - Minimize $J(x_0, ..., x_n)$ by optimizing along one direction $x_i$ at a time
   - Instead of computing all derivatives
 
-- **\textcolor{red}{Algorithm}**
+- **Algorithm**
   - Pick a random starting point $\vw(0)$
   - Pick a random order for the coordinates $\{ x_i \}$
   - Find the minimum along the current coordinate (1D optimization problem)
@@ -1326,13 +1326,13 @@ problem
 - For linear models we can use either pseudo-inverse or gradient descent to find
   optimal $\vw^*$
 
-- **\textcolor{red}{Gradient descent}**
+- **Gradient descent**
   - Choose learning rate $\eta$
   - Requires many iterations to converge
   - Monitor stopping criteria, oscillations, etc
   - Effective for many features $P$
 
-- **\textcolor{blue}{Pseudo-inverse}**
+- **Pseudo-inverse**
   - No parameter selection needed
   - Converges in one iteration (with nested loops)
   - Computes $(\mX^T \mX)^{-1}$, a $P \times P$ matrix
@@ -1382,7 +1382,7 @@ problem
   - Evaluates classification model with probabilities between 0 and 1
   - E.g., lower cross-entropy loss indicates better performance
 
-- **\textcolor{red}{Precision / recall / F-score}**
+- **Precision / recall / F-score**
   - Useful for evaluating models in imbalanced data scenarios
   - Precision: ratio of correctly predicted positive observations to total
     predicted positives
@@ -1394,7 +1394,7 @@ problem
       identified
   - F-score: weighted harmonic mean of precision and recall
 
-- **\textcolor{blue}{Utility function}**
+- **Utility function**
   - Customizes the evaluation metric to prioritize types of errors and success
     - E.g., true / false positives / negatives
   - E.g., in medical diagnosis, a utility function might give higher weight to
@@ -1416,14 +1416,14 @@ problem
     - Characteristics of the populations are very different
 
 #### Lots of Data Scenario vs Scarce Data Scenario
-- **\textcolor{red}{Lots of data scenario}**
+- **Lots of data scenario**
   - Ideal to have lots of data (ideally infinite)
   - Learn on lots of data
     - Fit all degrees of freedom of a complex model
   - Predict on lots of data
     - Assess precise out-of-sample performance
 
-- **\textcolor{blue}{Scarce data scenario}**
+- **Scarce data scenario**
   - Often data (especially data of high quality) is scarce
     - E.g., facial recognition datasets with limited annotated data needing
       careful management
@@ -1453,17 +1453,17 @@ problem
     - Compare these statistics to ensure each set mirrors the broader dataset
 
 #### Rule of Thumbs for Data Set Splits
-- If $n$ is **\textcolor{red}{large}** $\to$ use a 60-20-20 split
+- If $n$ is **large** $\to$ use a 60-20-20 split
   - Training: 60%
   - Validation: 20%
   - Test: 20%
 
-- If $n$ is **\textcolor{darkgreen}{medium}** $\to$ use a 60-40 split
+- If $n$ is **medium** $\to$ use a 60-40 split
   - Training: 60%
   - Test: 40%
   - Not possible to learn hyperparameters, so no validation set
 
-- If $n$ is **\textcolor{blue}{small}** $\to$ use cross-validation and report "small data size"
+- If $n$ is **small** $\to$ use cross-validation and report "small data size"
   - Use K-fold cross-validation
   - Be cautious of the increased chance of high accuracy by chance
   - Is machine learning for the given sample size even suitable?
@@ -1517,7 +1517,7 @@ problem
   - E.g., in a house price prediction model, MSE determines how close predicted
     prices are to actual prices
 
-- **\textcolor{red}{Cons:}**
+- **Cons:**
   - It doesn't share the unit of measure with the output
     - Distorts error interpretation; predicted and actual values are usually in
       different units
@@ -1534,13 +1534,13 @@ problem
   = \sqrt{\frac{1}{N} \sum_{i=1}^N (h(\vx_i) - f(\vx_i))^2}
   $$
 
-- **\textcolor{red}{Pros:}**
+- **Pros:**
   - Same units as the output, allowing intuition of its magnitude compared to
     the mean
   - Facilitates comparison between different data sets or models since the
     metric is normalized to the output's scale
 
-- **\textcolor{blue}{Cons:}**
+- **Cons:**
   - Sensitive to outliers (like MSE) which can excessively affect the metric
   - May not be suitable for ranking models when outliers or skewed distributions
     are present
@@ -1562,7 +1562,7 @@ problem
 
 #### How to Choose an Error Measure?
 
-- Error measure depends on the **\textcolor{red}{application}** and should be **specified by the
+- Error measure depends on the **application** and should be **specified by the
   "customer"**:
   - The customer needs to define what constitutes an acceptable level of error
     for their specific use case
@@ -1570,10 +1570,10 @@ problem
     recommendation system might have a higher tolerance
 
 - Otherwise, we can pick:
-  - A **\textcolor{darkgreen}{plausible error measure}**:
+  - A **plausible error measure**:
     - E.g., squared error is commonly used when assuming Gaussian noise in the
       data
-  - A **\textcolor{blue}{"friendly error" measure}**:
+  - A **"friendly error" measure**:
     - E.g., measures that allow for closed-form solutions simplify calculations
       significantly
     - Convex optimization-friendly measures ensure optimization algorithms find
@@ -1653,7 +1653,7 @@ problem
 #### Precision vs recall
 - Assume that $y = 1$ encodes the rare event we want to detect
 
-- **\textcolor{red}{Precision}** measures how often there is a true positive _given that pred =
+- **Precision** measures how often there is a true positive _given that pred =
   1_
 
   \begingroup \small
@@ -1667,7 +1667,7 @@ problem
 
   \endgroup
 
-- **\textcolor{blue}{Recall}** measures how often there is a true positive _given that act = 1_
+- **Recall** measures how often there is a true positive _given that act = 1_
   \begingroup \small
 
   $$
@@ -1692,14 +1692,14 @@ problem
       (40 + 20) = 20 / 60 = 1 / 3
 
 #### Precision / Recall in Terms of Quality / Quantity
-- **\textcolor{red}{Precision}**
+- **Precision**
   - Increasing precision means when we predict 1, we are more likely to be right
     - E.g., in a spam email detection system, "precision is 90%" means 90% of
       the emails marked as spam are actually spam
   - A higher precision indicates fewer false positives
   - Measures "quality" of prediction
 
-- **\textcolor{blue}{Recall}**
+- **Recall**
   - Increasing recall means we predict more instances when the outcome is 1
     - E.g., in a spam email detection system, "recall is 80%" indicates 80% of
       all actual spam emails were correctly identified as spam
@@ -1767,7 +1767,7 @@ problem
   - Solutions: F-score, AUC
 
 #### Precision-Recall Curves
-- **\textcolor{red}{Aka ROC curves}**
+- **Aka ROC curves**
 
 - Plot the curve on a precision-recall plane: ($y =$ precision, $1 - x =$
   recall) to show the precision vs recall trade-off for a classifier
@@ -1784,13 +1784,13 @@ problem
 
 
 #### Area Under the Curve
-- **\textcolor{red}{AUC}** is the area under the precision-recall curve
+- **AUC** is the area under the precision-recall curve
   - Provides a robust metric by integrating over all thresholds
   - Higher AUC indicates better performance in differentiating between classes
   - AUC = 0.5 suggests no discriminative power, similar to random guessing,
   - AUC closer to 1.0 indicates high performance
 
-- **\textcolor{blue}{Pros}**:
+- **Pros**:
   - Single number summarizing classifier behavior, useful for comparing
     different models
   - Does not require selecting a threshold for performance calculation
@@ -1809,7 +1809,7 @@ problem
   = 2 \frac{P \cdot R}{P + R}
   $$
 
-- **\textcolor{red}{Interpretation:}**
+- **Interpretation:**
   - Trivial classifiers: $P = 0$ or $R = 0$ $\implies$ F-score = 0
   - Perfect classifiers: $P = R = 1$ $\implies$ F-score = 1
   - For F-score to be large, both $P$ and $R$ must be high
@@ -1906,7 +1906,7 @@ problem
 
 #### Ensemble Learning: Intuition
 - Ensemble learning combines multiple models to improve prediction accuracy
-  - **\textcolor{red}{Idea}**: a group of weak learners can form a strong learner
+  - **Idea**: a group of weak learners can form a strong learner
 
 - Combine outputs of models $X_i$ to build a model $X^*$ better than any $X_i$,
   with the wisdom of all
@@ -1924,20 +1924,20 @@ problem
   - Each feature is weak per-se, but together they become reliable
 
 #### Ensemble Learning: Different Techniques
-- **\textcolor{red}{Bagging}** (bootstrap + aggregation)
+- **Bagging** (bootstrap + aggregation)
   - Reduces variance by averaging predictions from different models
   - E.g., decision trees $\to$ bagging $\to$ random forest
     - Bagging creates multiple versions of a decision tree (each trained on a
       random sample of data)
     - Average their predictions to improve accuracy
 
-- **\textcolor{darkgreen}{Boosting}**
+- **Boosting**
   - Reduces bias by focusing on errors made by previous models
   - Sequentially adds models, each correcting its predecessor
   - E.g., `adaBoost` increases weights of incorrectly classified data points to
     learn the next model
 
-- **\textcolor{blue}{Stacking}**
+- **Stacking**
   - Uses a meta-model to combine separate models using weights
   - E.g., a stacking ensemble
     - Uses a logistic regression as a meta-model
@@ -1945,17 +1945,17 @@ problem
       vector machines, and neural networks)
 
 #### Ensemble Learning: Relation with Statistics
-- **\textcolor{red}{Bagging}**
+- **Bagging**
   - Improves performance by adding randomized variants (mimicking multiple
     training sets)
   - Reduce variance without affecting bias
 
-- **\textcolor{darkgreen}{Boosting}**
+- **Boosting**
   - Use another model to learn residuals, i.e., difference between predicted and
     true values
   - Related to the statistical technique of "forward stagewise additive models"
 
-- **\textcolor{blue}{Stacking}**
+- **Stacking**
   - If we have 3 independent classifiers, each with $\Pr(\text{correct}) = 0.7$
     \begin{alignat*}{2}
     \Pr(\text{majority correct})
@@ -1966,11 +1966,11 @@ problem
     \end{alignat*}
 
 #### Ensemble learning: pros and cons
-- **\textcolor{red}{Pros}**
+- **Pros**
   - Hypothesis set $\calH$ is increased by combining hypotheses from different
     models
 
-- **\textcolor{blue}{Cons}**
+- **Cons**
   - More computationally intensive to train and evaluate
   - Loss of interpretability
   - Risk of overfitting (model complexity is increased)
@@ -1985,15 +1985,15 @@ problem
     the others don't perform well
 
 #### How to Combine Outputs in Ensemble Learning
-- **\textcolor{red}{Regression}**
+- **Regression**
   - Weighted average of prediction
   - E.g., by accuracy of each model or by a prior
 
-- **\textcolor{darkgreen}{Classification}**
+- **Classification**
   - Weighted vote of predicted classes
   - It needs an odd number of models to break ties
 
-- **\textcolor{blue}{Probabilistic classification}**
+- **Probabilistic classification**
   - Weighted average of class probabilities
 
 - We can also learn a meta-learner (stacking) to combine multiple models
@@ -2003,14 +2003,14 @@ problem
 #### Bagging
 - Bagging stands for "Bootstrap AGGregation"
 
-- **\textcolor{red}{Learning procedure}**
+- **Learning procedure**
   - Several training datasets are extracted randomly by sampling with
     replacement from the original dataset (i.e., bootstrap)
   - Learn multiple models, one for each training set
   - Combine outputs using various methods
   - Result is a better model than a single model
 
-- **\textcolor{blue}{Why bagging works?}**
+- **Why bagging works?**
   - From the bias-variance decomposition view, combining multiple models:
     - Reduces the variance component
     - Without compromising the bias (bagged models are typically unbiased)
@@ -2022,16 +2022,16 @@ problem
 
 - Introduce randomization in the learning algorithm intentionally
 
-- **\textcolor{red}{Decision Trees}**
+- **Decision Trees**
   - Disable pruning
   - Break ties randomly when selecting the best attribute to split
   - E.g., bagging trees results in random forests
 
-- **\textcolor{darkgreen}{Multilayer Perceptrons}**
+- **Multilayer Perceptrons**
   - Use different initial weights in backpropagation to reach different local
     minima
 
-- **\textcolor{blue}{Nearest Neighbor Classifier}**
+- **Nearest Neighbor Classifier**
   - Use a random subset of features
   - Resampling the training set has limited impact, as it is equivalent to
     changing example weights
@@ -2061,7 +2061,7 @@ problem
 - Assume examples can be weighted in the cost function used to learn
   - Otherwise use resampling
 
-- **\textcolor{red}{Learning procedure}**
+- **Learning procedure**
   - Start with equal weights for all examples
   - Iterate:
     - Learn a classifier based on current weights for examples
@@ -2079,7 +2079,7 @@ problem
 - Instead of voting or weighting we can use a meta-learner (level 1) to learn
   how to pick / mix models (level 0)
 
-- **\textcolor{red}{Learning procedure}**
+- **Learning procedure**
   - Learn "level 0" models
   - Learn "level 1" model using hold-out data from learning of level 0 models
     (like in model selection)

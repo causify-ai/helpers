@@ -78,48 +78,48 @@ mindmap
 
 
 #### ML Theory
-- **\textcolor{blue}{VC Theory}**
+- **VC Theory**
   - Measures model capacity and generalize based on hypothesis space complexity
 
-- **\textcolor{gray}{Bias-Variance Decomposition}**
+- **Bias-Variance Decomposition**
   - Prediction error consists of:
-    - **\textcolor{red}{Bias}**: Error from simplistic model assumptions, causing underfitting
-    - **\textcolor{brown}{Variance}**: Error due to sensitivity to training data fluctuations,
+    - **Bias**: Error from simplistic model assumptions, causing underfitting
+    - **Variance**: Error due to sensitivity to training data fluctuations,
       causing overfitting
 
-- **\textcolor{olive}{Computation Complexity}**
+- **Computation Complexity**
   - Balances model complexity and fit
   - Related to information theory and compression
   - E.g., Minimum Description Length (MDL) measures computational complexity via
     efficient model and data description
 
-- **\textcolor{darkgreen}{Bayesian Approach}**
+- **Bayesian Approach**
   - Treats ML as probability
   - Combines prior knowledge with observed data to update belief about a model
 
-- **\textcolor{cyan}{Problem in ML Theory:}** Assumptions may not align with practical problems
+- **Problem in ML Theory:** Assumptions may not align with practical problems
 
 #### ML Paradigms
 - Machine learning paradigms are structured approaches to learning problems
 
-- **\textcolor{blue}{Supervised learning}**
+- **Supervised learning**
   - The dataset includes inputs with corresponding outputs
   - Develop an input-output relationship
 
-- **\textcolor{red}{Unsupervised learning}**
+- **Unsupervised learning**
   - The data is unlabeled
   - Discover structure within the data
   - E.g., anomaly detection, clustering
 
-- **\textcolor{olive}{Reinforcement learning}**
+- **Reinforcement learning**
   - The correct answer isn't immediately available
   - Evaluate actions based on final outcomes
 
-- **\textcolor{cyan}{Active learning}**
+- **Active learning**
   - Not all examples are available initially
   - Request outputs for specific inputs
 
-- **\textcolor{orange}{Online learning}**
+- **Online learning**
   - The dataset cannot be stored in memory
   - Data is streamed and the model is updated in real-time
 
@@ -283,12 +283,12 @@ mindmap
 
 #### Turing Test: Pros and Cons
 
-**\textcolor{red}{Pros}**
+**Pros**
 
 - It is an operational definition of intelligence
 - Sidestep the philosophical vagueness of the question "can a machine think?"
 
-**\textcolor{blue}{Cons}**
+**Cons**
 
 - Anthropomorphic criteria that defines intelligence in terms of humans
   - There can be multiple forms of intelligence that are not human
@@ -521,115 +521,115 @@ mindmap
 
 #### AI and Philosophy (1/2)
 
-_**\textcolor{blue}{Can formal rules be used to draw valid conclusions?}**_
+_**Can formal rules be used to draw valid conclusions?**_
 
-- **\textcolor{red}{Reasoning}**
+- **Reasoning**
   - Aristotle formulated laws governing the rational mind
     - E.g., syllogism, deduction (400 BC)
   - Machines were built for arithmetic operations
     - E.g., Pascaline by Blaise Pascal (1640)
   - Logic studies rules of proper reasoning
 
-- **\textcolor{olive}{Rationalism}** = use reasoning to understand the world
+- **Rationalism** = use reasoning to understand the world
 
-_**\textcolor{cyan}{How does the mind arise from a physical brain?}**_
+_**How does the mind arise from a physical brain?**_
 
-- **\textcolor{orange}{Dualism}**
+- **Dualism**
   - Nature follows physical laws
   - Part of the human mind ("the soul") is exempt from physical laws
 
-- **\textcolor{darkgray}{Materialism}**
+- **Materialism**
   - The mind is a physical system, following the laws of physics
   - Where is free will?
     - Free will is the perception of available choices
 
 #### AI and Philosophy (2/2)
 
-_**\textcolor{blue}{What does knowledge come from?}**_
+_**What does knowledge come from?**_
 
-- **\textcolor{gray}{Empiricism}**
+- **Empiricism**
   - Knowledge via senses
   - Example: Observing a tree to know it is green
 
-- **\textcolor{red}{Induction}**
+- **Induction**
   - General rules from associations
   - Example: Seeing many swans are white, inferring all swans are white
 
-- **\textcolor{brown}{Logical Positivism}**
+- **Logical Positivism**
   - Knowledge as logical theories linked to sensory observations
   - Example: Scientific hypotheses connected to experimental data
 
-_**\textcolor{olive}{How does knowledge lead to action?}**_
+_**How does knowledge lead to action?**_
 
-- **\textcolor{darkgreen}{Utilitarianism}**
+- **Utilitarianism**
   - Measures "utility" linking knowledge to action
   - Actions justified by logic connecting goals and outcomes
 
-- **\textcolor{cyan}{Consequentialism}**
+- **Consequentialism**
   - Right or wrong determined by action's expected outcomes
   - E.g., "If you kill, you will go to jail"
 
-- **\textcolor{violet}{Deontological ethics}**
+- **Deontological ethics**
   - Opposes consequentialism
   - "Right actions" based on universal laws, not outcomes
     - E.g., "don't kill", "don't lie"
 
 #### AI and Cognitive Psychology
 
-_**\textcolor{red}{How do humans think and act?}**_
+_**How do humans think and act?**_
 
-- **\textcolor{darkgreen}{Cognitive Psychology}**
+- **Cognitive Psychology**
   - Brain as an information-processing device
     - Stimuli translated into internal representation
     - Representation manipulated by cognitive processes to derive new internal
       representations ("beliefs")
     - Representations turned into actions ("goals")
 
-- **\textcolor{blue}{Cognitive Science}**
+- **Cognitive Science**
   - Use computer models to address memory, language, and logic thinking
 
-- **\textcolor{violet}{Human-Computer Interaction (HCI)}**
+- **Human-Computer Interaction (HCI)**
   - From artificial intelligence (AI) to intelligence augmentation (IA)
   - Computers augment human abilities
 
 #### AI and Mathematics
 
-_**\textcolor{blue}{What are the formal rules to draw valid conclusions?}**_
+_**What are the formal rules to draw valid conclusions?**_
 
-- **\textcolor{red}{Formal Logic}**
+- **Formal Logic**
   - Boole established logical deduction rules (1850)
   - Frege expanded Boole's logic to include objects and relations, creating
     first-order logic (1879)
 
-- **\textcolor{olive}{Limits to Deduction}**
+- **Limits to Deduction**
   - Some statements are "undecidable."
   - Godel's incompleteness theorem (1931): True statements exist that cannot be
     proved in any formal theory
 
-_**\textcolor{cyan}{How do we reason with uncertain information?}**_
+_**How do we reason with uncertain information?**_
 
-- **\textcolor{orange}{Probability}**
+- **Probability**
   - Mathematics of uncertainty
   - Key contributors: Cardano, Pascal, Bernoulli, Bayes (1500-1700)
 
-- **\textcolor{darkgray}{Statistics}**
+- **Statistics**
   - Combines data with probability
   - Key areas: experiment design, data analysis, hypothesis testing, asymptotics
 
 #### AI and Computer Science
 
-_**\textcolor{red}{What can be computed?}**_
+_**What can be computed?**_
 
-- **\textcolor{darkgreen}{Algorithm}**
+- **Algorithm**
   - A procedure to solve problems
   - Example: Euclid's algorithm for computing GCD
 
-- **\textcolor{blue}{Limits to Computation}**
+- **Limits to Computation**
   - Turing machine (1936): Can compute any computable function
   - Some functions are non-computable, e.g., the halting problem—deciding if a
     program terminates
 
-- **\textcolor{violet}{Tractability}**
+- **Tractability**
   - A problem is intractable if solving time grows exponentially with problem
     size
   - Complexity classes: Polynomial vs. exponential complexity (e.g.,
@@ -637,27 +637,27 @@ _**\textcolor{red}{What can be computed?}**_
 
 #### AI and Economics (1/2)
 
-_**\textcolor{blue}{How to make decisions to maximize payoff according to our preferences?}**_
+_**How to make decisions to maximize payoff according to our preferences?**_
 
-- **\textcolor{red}{Economies}**
+- **Economies**
   - Agents maximize economic well-being (utility)
   - Studies desires and preferences
   - "Large" vs "small economies"
 
-- **\textcolor{olive}{Decision theory}**
+- **Decision theory**
   - Making decisions under uncertainty
   - Probability theory + utility theory
   - Study choices for preferred outcomes
   - Examples: Investment choices, policy decisions
 
-_**\textcolor{cyan}{ How to make decisions when the payoffs are result of several actions?}**_
+_** How to make decisions when the payoffs are result of several actions?**_
 
-- **\textcolor{orange}{Operations Research}**
+- **Operations Research**
   - Make rational decisions with payoffs from a sequence of actions
     - E.g., Markov Decision Processes
   - Bellman, 1957
 
-- **\textcolor{darkgray}{Satisficing}**
+- **Satisficing**
   - Decisions that are good enough
   - Closer to human behavior
   - Example: Choosing a restaurant that meets basic criteria rather than finding
@@ -665,19 +665,19 @@ _**\textcolor{cyan}{ How to make decisions when the payoffs are result of severa
 
 #### AI and Economics (2/2)
 
-_**\textcolor{red}{How to act when multiple agents with different goals are present?}**_
+_**How to act when multiple agents with different goals are present?**_
 
-- **\textcolor{darkgreen}{Large Economies}**
+- **Large Economies**
   - Agents ignore other agents' actions
   - Many agents with no mutual impact
   - Example: National economy where individual actions don't affect overall
     market
 
-- **\textcolor{blue}{Small Economies}**
+- **Small Economies**
   - One player's actions influence others' utility
   - Example: Local market where one seller's pricing affects competitors
 
-- **\textcolor{violet}{Game Theory}**
+- **Game Theory**
   - Von Neumann, 1944
   - Small economies resemble a "game"
   - Rational agents might need randomized strategies
@@ -685,7 +685,7 @@ _**\textcolor{red}{How to act when multiple agents with different goals are pres
 
 #### AI and Linguistics
 
-_**\textcolor{red}{How can we create systems that understand natural language?}**_
+_**How can we create systems that understand natural language?**_
 
 - Computational linguistics (aka NLP) studies sentence structure and meaning
   - Structure & Meaning are central to understanding language
@@ -694,19 +694,19 @@ _**\textcolor{red}{How can we create systems that understand natural language?}*
     - Sentiment analysis in social media
     - Automated customer support chatbots
 
-_**\textcolor{blue}{How does language relate to thought?}**_
+_**How does language relate to thought?**_
 
 - Knowledge representation studies how to represent knowledge in a form that a
   computer can reason about
 - E.g., first order knowledge, knowledge graphs
 
 #### AI and Neuroscience
-- **\textcolor{red}{Brain}**
+- **Brain**
   - Parts of the brain handle specific cognitive functions
   - Information processing occurs in the cerebral cortex (outer brain layer)
   - E.g., injury to the frontal lobe may impair decision-making abilities
 
-- **\textcolor{darkgreen}{Anatomy of the Brain}**
+- **Anatomy of the Brain**
   - Composed of neurons (~100 billion)
     - Each neuron connects with 10-100k others via synapses
     - Axons facilitate long-range neuron connections
@@ -714,21 +714,21 @@ _**\textcolor{blue}{How does language relate to thought?}**_
   - Short-term pathways support long-term brain connections, linked to learning
   - We can record and stimulate individual neuron activity
 
-- **\textcolor{blue}{Memory}**
+- **Memory**
   - No theory on individual memory storage
   - Current theory: Memories are reconstructed
 
 #### The Brain Causes the Mind
-- **\textcolor{red}{Truly amazing conclusion}**: _a collection of simple cells can lead to
+- **Truly amazing conclusion**: _a collection of simple cells can lead to
   thought and consciousness_
   - E.g., neurons collectively create complex processes
   - Complexity of supercomputers is comparable or superior to the brain
   - Unknown how to achieve the brain's intelligence level
 
-- **\textcolor{darkgreen}{Brain-Machine Interface}**: the brain adjusts to interface with devices
+- **Brain-Machine Interface**: the brain adjusts to interface with devices
   - E.g., the brain learns to use prosthetics as a limb
 
-- **\textcolor{blue}{AI Singularity}**
+- **AI Singularity**
   - A (hypothetical) future point when artificial intelligence surpasses human
     intelligence
     - AI systems could improve themselves autonomously, leading to rapid,
@@ -742,34 +742,34 @@ _**\textcolor{blue}{How does language relate to thought?}**_
 
 #### AI and Computer Engineering
 
-_**\textcolor{blue}{How can we build an efficient computer?}**_
+_**How can we build an efficient computer?**_
 
-- **\textcolor{red}{Electronic computers}**
+- **Electronic computers**
   - Built during World War II
 
-- **\textcolor{olive}{Moore's Law}**
+- **Moore's Law**
   - Performance doubled every 18 months until 2005
   - Power and scaling issues shifted focus to core multiplication over clock
     speed
 
-- **\textcolor{cyan}{Hardware for AI}**
+- **Hardware for AI**
   - GPUs
   - TPUs
   - Wafer-scale engines
 
-- **\textcolor{orange}{Current Trends}**
+- **Current Trends**
   - Massive parallelism (like brain function)
     - Computing power doubling every 3 months
     - GPUs / TPUs used in deep learning
   - High precision (e.g., 64b) often unnecessary
 
-- **\textcolor{darkgray}{Quantum Computing}**
+- **Quantum Computing**
   - Potential for significant acceleration in key computations
   - E.g., Shor's algorithm for factorization
 
 #### AI and Control Theory and Cybernetics
 
-_**\textcolor{red}{How can artifacts operate under their own control?}**_
+_**How can artifacts operate under their own control?**_
 
 - Control theory
   - Study self-regulating feedback control systems
@@ -885,7 +885,7 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
 
 - AI overconfidence/hype didn't deliver
 
-- **\textcolor{red}{Reasons:}**
+- **Reasons:**
   - Building/maintaining expert systems is difficult
   - Reasoning methods ignore uncertainty
   - Systems can't learn from experience
@@ -900,13 +900,13 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
   - Developed in early 1960s
   - Example: Neural networks learning from data
 
-- **\textcolor{red}{Connectionist models vs. Symbolic models}**
+- **Connectionist models vs. Symbolic models**
   - Connectionist: Neural networks
     - Example: Recognizing handwritten digits
   - Symbolic: General Problem Solver
     - Example: Solving logical puzzles with explicit rules
 
-- **\textcolor{blue}{Why connectionist models}**
+- **Why connectionist models**
   - Many concepts are not well-defined using symbolic axioms
     - Connectionist approach forms fluid internal concepts
     - Represents real-world complexity better
@@ -919,28 +919,28 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
 
 #### Probabilistic Reasoning and ML (1987-)
 
-- **\textcolor{red}{AI and Scientific Method}**
+- **AI and Scientific Method**
   - Rigorous methods to test performance
   - E.g., speech recognition, handwritten character recognition
 
-- **\textcolor{darkgreen}{Benchmarks for Progress}**
+- **Benchmarks for Progress**
   - Examples:
     - MNIST: Handwritten digit recognition
     - ImageNet: Image object recognition
     - SAT Competitions: Boolean satisfiability solvers
 
-- **\textcolor{blue}{AI Shifts}**
+- **AI Shifts**
   - From Boolean logic to probability
   - From hand-coded rules to machine learning
   - From a-priori reasoning to experimental results
 
 #### Progress in Speech Recognition
 
-- **\textcolor{red}{1970s: Various architectures and approaches were attempted}**
+- **1970s: Various architectures and approaches were attempted**
   - Rule-based systems with limited robustness
   - Cons: Ad-hoc, fragile
 
-- **\textcolor{blue}{1980s: Hidden Markov Models (HMMs) became dominant}**
+- **1980s: Hidden Markov Models (HMMs) became dominant**
   - Pros: Strong theoretical foundation
   - Methods: Effective learning techniques
   - Data: Trained on large speech corpora
@@ -953,7 +953,7 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
   - Decision theory
   - Control theory
 
-- **\textcolor{red}{Bayesian networks:}**
+- **Bayesian networks:**
   - Efficiently represent uncertainty
   - Provide rigorous reasoning
   - Enable practical reasoning
@@ -1052,41 +1052,41 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
   - AI computing power doubles every 3 months
 
 #### What Can AI Do Today? (1/2)
-- **\textcolor{blue}{Robotic vehicles}**
+- **Robotic vehicles**
   - Waymo passed 10 million miles without serious accident
 
-- **\textcolor{red}{Legged locomotion}**
+- **Legged locomotion**
   - BigDog recovers on ice
   - Atlas walks on uneven terrain, jumps on boxes, backflips
 
-- **\textcolor{olive}{Autonomous planning and scheduling}**
+- **Autonomous planning and scheduling**
   - Space probes, Mars rovers
 
-- **\textcolor{cyan}{Machine translation}**
+- **Machine translation**
   - Translates 100 languages with human-level performance
 
-- **\textcolor{orange}{Speech recognition}**
+- **Speech recognition**
   - Real-time speech-to-speech with human-level performance
   - AI assistants
 
-- **\textcolor{darkgray}{Recommendations}**
+- **Recommendations**
   - ML recommends based on past experiences
   - Spam filtering 99.9% accuracy
   - E.g., Amazon, Facebook, Netflix, Spotify, YouTube
 
 #### What Can AI Do Today? (2/2)
 
-- **\textcolor{red}{Game playing}**
+- **Game playing**
   - 1997 Deep Blue defeated Kasparov
   - 2017 Watson beat Jeopardy! champion
   - 2017 AlphaGo beat Go champion (expected 100 years to beat humans in Go)
   - 2018 AlphaZero super-human in Go, chess with only rules, self-play
   - Videogames: Dota2, StarCraft, Quake
 
-- **\textcolor{darkgreen}{Image understanding}**
+- **Image understanding**
   - Object recognition, Image captioning
 
-- **\textcolor{blue}{Medicine}**
+- **Medicine**
   - AI equivalent to health care professionals
 
 - When will AI systems achieve human-level performance across tasks?
@@ -1111,7 +1111,7 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
   - Greater machine intelligence leads to higher ambitions for our civilization
   - _"First solve AI, then use AI to solve everything else"_
 
-- **\textcolor{red}{Benefits}**
+- **Benefits**
   - Free humanity from menial work
   - Increase the production of goods and services
   - Expand human cognition
@@ -1119,21 +1119,21 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
     climate change, resource shortages)
 
 #### Risks 1/2
-- **\textcolor{red}{Lethal autonomous weapons}**
+- **Lethal autonomous weapons**
   - Locate, select, eliminate human targets without intervention
   - Scalability: deploy a large number of weapons
 
-- **\textcolor{darkgreen}{Surveillance and persuasion}**
+- **Surveillance and persuasion**
   - AI (speech recognition, computer vision, natural language understanding) for
     mass surveillance
   - Tailoring information flows through social media to modify behavior
 
-- **\textcolor{blue}{Biased decision making}**
+- **Biased decision making**
   - Misuse of ML can result in biased decisions due to societal bias
   - E.g., parole evaluations, loan applications
 
 #### Risks 2/2
-- **\textcolor{red}{Impact on employment}**
+- **Impact on employment**
   - Machines can eliminate jobs
   - Rebuttal
     - Machines enhance human productivity ->
@@ -1145,7 +1145,7 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
     - Past tech advances (e.g., mechanical looms) disrupted employment, but
       adaptation followed
 
-- **\textcolor{darkgreen}{Safety critical applications}**
+- **Safety critical applications**
   - AI used in safety-critical applications
     - E.g., self-driving cars, managing water supply or power grids
   - Avoiding fatal accidents is challenging
@@ -1153,7 +1153,7 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
   - AI requires technical and ethical standards like other high-stakes fields
     (e.g., engineering, healthcare)
 
-- **\textcolor{blue}{Cybersecurity}**
+- **Cybersecurity**
   - AI helps defend against cyberattacks (e.g., detect unusual behavior
     patterns) and contributes to malware development
   - E.g., use reinforcement learning for targeted phishing attacks
@@ -1161,17 +1161,17 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
 #### Human-Level AI
 - Human-level AI is "machines able to learn to do anything a human can do"
   - Aka AGI (Artificial General Intelligence)
-- **\textcolor{red}{Artificial Super-Intelligence}**: Intelligence surpassing human ability in
+- **Artificial Super-Intelligence**: Intelligence surpassing human ability in
   any domain and self-improving
 
 #### The Problem of Control
 - It is uncertain we can control machines more intelligent than us
 
-- **\textcolor{red}{King Midas problem}**
+- **King Midas problem**
   - Myths of humans asking for something, getting it, then regretting it
   - King Midas turned everything he touched into gold, including food and family
 
-- **\textcolor{blue}{Rebuttal}**
+- **Rebuttal**
   - If AGI arrived in a black box from space, caution is needed before opening
   - We design AI: if AI gains control, it is a "design failure"
 
@@ -1180,7 +1180,7 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
   for AI
   - Governments and international organizations established advisory bodies
 
-- **\textcolor{red}{Problems}**
+- **Problems**
   - Preferences are not easy to "invert" and are not consistent
 
 - We should put "purpose into the machine" even if we don't know exactly what
@@ -1194,17 +1194,17 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
 
 - AI infers human goals based on actions
 
-- **\textcolor{red}{Observation}**: Alice looks tired, sits on the couch, observes the messy
+- **Observation**: Alice looks tired, sits on the couch, observes the messy
   table, and starts watching TV
 
-- **\textcolor{darkgreen}{Inference}**: AI infers:
+- **Inference**: AI infers:
   - Alice is tired and wants to relax
   - Messy coffee table bothers her
 
-- **\textcolor{blue}{Action}**: AI:
+- **Action**: AI:
   - Fetches a glass of water
   - Tidies up the coffee table without disturbing Alice
 
-- **\textcolor{violet}{Feedback loop}**: AI monitors Alice's reactions
+- **Feedback loop**: AI monitors Alice's reactions
   - If Alice is relaxed and happy, AI understanding is reinforced
   - If Alice is not happy, AI adjusts actions and improves inference

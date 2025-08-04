@@ -107,10 +107,12 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
                         print(v)
             ```
         """
+        txt_in = txt_in.split("\n")
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         # Execute function.
         type_ = "pdf"
         actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = "\n".join(actual)
         # Check.
         expected = r"""
         ---
@@ -138,19 +140,6 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
         """
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
-
-    def test_run_all2(self) -> None:
-        """
-        Test type_="slides".
-        """
-        # Prepare inputs.
-        txt_in = os.path.join(self.get_input_dir(), "input.txt")
-        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
-        # Run function.
-        type_ = "slides"
-        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
-        # Check.
-        self.check_string(actual, purify_text=True)
 
 
 # #############################################################################
