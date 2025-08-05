@@ -28,16 +28,17 @@ _LOG = logging.getLogger(__name__)
 
 
 # TODO(ai): Convert to
-# def _preprocess(lines: List[str]) -> List[str]:
-def _preprocess(txt: str) -> str:
+# def _preprocess_txt(lines: List[str]) -> List[str]:
+def _preprocess_txt(txt: str) -> str:
     """
     Preprocess the given text before applying `prettier`.
 
     E.g.,
-    - removes specific artifacts
-    - formats math equations
-    - formats bullet points
-    - formats frames
+    - Handle stars `*` from txt files
+    - Remove various artifacts (e.g., from Google Docs)
+    - Format math equations
+    - Format bullet points
+    - Format frames
 
     :param txt: The text to be processed.
     :return: The preprocessed text.
@@ -96,10 +97,9 @@ def _preprocess(txt: str) -> str:
     return txt_new_as_str
 
 
-# TODO(gp): Rename to `postprocess_after_prettier`.
 # TODO(ai): Convert to
-# def _postprocess(lines: List[str], in_file_name: str) -> List[str]:
-def _postprocess(txt: str, in_file_name: str) -> str:
+# def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
+def _postprocess_txt(txt: str, in_file_name: str) -> str:
     """
     Post-process the given text by applying various transformations.
 
@@ -228,9 +228,8 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
     return to_execute
 
 
-# TODO(gp): -> _perform_actions()
 # TODO(ai): Convert to
-# def _process(
+# def _perform_actions(
 #    lines: List[str],
 #    in_file_name: str,
 #    *,
@@ -238,7 +237,7 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
 #    **kwargs: Any,
 # ) -> List[str]:
 #
-def _process(
+def _perform_actions(
     txt: str,
     in_file_name: str,
     *,
@@ -265,7 +264,7 @@ def _process(
     # Pre-process text.
     action = "preprocess"
     if _to_execute_action(action, actions):
-        txt = _preprocess(txt)
+        txt = _preprocess_txt(txt)
     # Prettify.
     action = "prettier"
     if _to_execute_action(action, actions):
@@ -273,7 +272,7 @@ def _process(
     # Post-process text.
     action = "postprocess"
     if _to_execute_action(action, actions):
-        txt = _postprocess(txt, in_file_name)
+        txt = _postprocess_txt(txt, in_file_name)
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
@@ -368,7 +367,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     txt = "\n".join(txt)
     _LOG.debug("in_file_name=%s", in_file_name)
     # Process.
-    out_txt = _process(
+    out_txt = _perform_actions(
         txt,
         in_file_name,
         actions=args.action,

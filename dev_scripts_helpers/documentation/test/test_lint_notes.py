@@ -125,7 +125,7 @@ class Test_lint_notes1(hunitest.TestCase):
 
     def _helper_preprocess(self, txt: str, expected: str) -> None:
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        actual = dshdlino._preprocess(txt)
+        actual = dshdlino._preprocess_txt(txt)
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
 
@@ -334,7 +334,7 @@ class Test_lint_notes2(hunitest.TestCase):
         """
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         file_name = os.path.join(self.get_scratch_space(), file_name)
-        actual = dshdlino._process(txt, file_name)
+        actual = dshdlino._perform_actions(txt, file_name)
         if expected:
             expected = hprint.dedent(
                 expected, remove_lead_trail_empty_lines_=True
