@@ -82,8 +82,7 @@ def _get_function_line_range_and_docstring(
 
 def _enrich_function_table(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Add 'Line Range' and 'Docstring' information to a table of function
-    metadata.
+    Add 'Line Range' and 'Docstring' to a table of function metadata.
 
     :param df: table with function metadata (e.g., function type, script
         path, function name, line range, and docstring)
