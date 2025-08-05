@@ -56,8 +56,12 @@ def _get_text1() -> str:
 )
 class Test_lint_txt1(hunitest.TestCase):
     def helper(self, txt: str, expected: str) -> None:
+        # Prepare inputs.
+        txt = txt.split("\n")
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        # Run.
         actual = dshdlino._preprocess_txt(txt)
+        # Check.
         actual = "\n".join(actual)
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
@@ -174,9 +178,14 @@ class Test_lint_txt2(hunitest.TestCase):
             processing.
         :return: The processed text.
         """
+        # Prepare inputs.
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        txt = txt.split("\n")
         file_name = os.path.join(self.get_scratch_space(), file_name)
+        # Run function.
         actual = dshdlino._perform_actions(txt, file_name)
+        # Check.
+        actual = "\n".join(actual)
         if expected:
             expected = hprint.dedent(
                 expected, remove_lead_trail_empty_lines_=True
