@@ -19,6 +19,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class TestReplaceStarWithDoubleStar(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test non replacement of a single asterisk at the end of the path.
@@ -73,6 +74,7 @@ class TestReplaceStarWithDoubleStar(hunitest.TestCase):
     reason="Run only if CK S3 is available",
 )
 class TestToFileAndFromFile1(hmoto.S3Mock_TestCase):
+
     def write_read_helper(self, file_name: str, force_flush: bool) -> None:
         # Prepare inputs.
         file_content = "line_mock1\nline_mock2\nline_mock3"
@@ -162,6 +164,7 @@ class TestToFileAndFromFile1(hmoto.S3Mock_TestCase):
     reason="Run only if CK S3 is available",
 )
 class TestListdir1(hmoto.S3Mock_TestCase):
+
     def prepare_test_data(self) -> Tuple[str, hs3.AwsProfile]:
         bucket_s3_path = f"s3://{self.bucket_name}"
         depth_one_s3_path = f"{bucket_s3_path}/depth_one"
@@ -307,6 +310,7 @@ class TestListdir1(hmoto.S3Mock_TestCase):
     reason="Run only if CK S3 is available",
 )
 class TestDu1(hmoto.S3Mock_TestCase):
+
     def test_du1(self) -> None:
         """
         Verify that total file size is returned.
@@ -358,11 +362,13 @@ class TestGenerateAwsFiles(hunitest.TestCase):
         self.setUp()
         os.environ["MOCK_AWS_ACCESS_KEY_ID"] = "mock_access_key"
         os.environ["MOCK_AWS_SECRET_ACCESS_KEY"] = "mock_secret_access_key"
+        os.environ["MOCK_AWS_SESSION_TOKEN"] = "mock_session_token"
         os.environ["MOCK_AWS_S3_BUCKET"] = "mock_s3_bucket"
         os.environ["MOCK_AWS_DEFAULT_REGION"] = "mock_default_region"
         #
         os.environ["TEST_AWS_ACCESS_KEY_ID"] = "test_access_key"
         os.environ["TEST_AWS_SECRET_ACCESS_KEY"] = "test_secret_access_key"
+        os.environ["TEST_AWS_SESSION_TOKEN"] = "test_session_token"
         os.environ["TEST_AWS_S3_BUCKET"] = "test_s3_bucket"
         os.environ["TEST_AWS_DEFAULT_REGION"] = "test_default_region"
         # Generate AWS files with mock AWS profiles.
@@ -375,11 +381,13 @@ class TestGenerateAwsFiles(hunitest.TestCase):
     def tear_down_test(self) -> None:
         del os.environ["MOCK_AWS_ACCESS_KEY_ID"]
         del os.environ["MOCK_AWS_SECRET_ACCESS_KEY"]
+        del os.environ["MOCK_AWS_SESSION_TOKEN"]
         del os.environ["MOCK_AWS_S3_BUCKET"]
         del os.environ["MOCK_AWS_DEFAULT_REGION"]
         #
         del os.environ["TEST_AWS_ACCESS_KEY_ID"]
         del os.environ["TEST_AWS_SECRET_ACCESS_KEY"]
+        del os.environ["TEST_AWS_SESSION_TOKEN"]
         del os.environ["TEST_AWS_S3_BUCKET"]
         del os.environ["TEST_AWS_DEFAULT_REGION"]
 
@@ -398,11 +406,13 @@ class TestGenerateAwsFiles(hunitest.TestCase):
         [mock]
         aws_access_key_id=mock_access_key
         aws_secret_access_key=mock_secret_access_key
+        aws_session_token=mock_session_token
         aws_s3_bucket=mock_s3_bucket
 
         [test]
         aws_access_key_id=test_access_key
         aws_secret_access_key=test_secret_access_key
+        aws_session_token=test_session_token
         aws_s3_bucket=test_s3_bucket
         """
         self.helper(file_name, expected)
@@ -431,6 +441,7 @@ class TestGenerateAwsFiles(hunitest.TestCase):
 
 
 class Test_get_s3_bucket_from_stage(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check for a valid stage.
@@ -482,6 +493,7 @@ _AWS_PROFILE = "ck"
 @pytest.mark.requires_aws
 @pytest.mark.requires_ck_infra
 class Test_s3_get_credentials1(hunitest.TestCase):
+
     def test1(self) -> None:
         res = hs3.get_aws_credentials(_AWS_PROFILE)
         _LOG.debug("res=%s", str(res))
@@ -493,6 +505,7 @@ class Test_s3_get_credentials1(hunitest.TestCase):
 
 
 class Test_s3_functions1(hunitest.TestCase):
+
     def test_extract_bucket_from_path1(self) -> None:
         path = os.path.join(
             hs3.get_s3_bucket_path_unit_test(_AWS_PROFILE),
@@ -511,6 +524,7 @@ class Test_s3_functions1(hunitest.TestCase):
 @pytest.mark.requires_aws
 @pytest.mark.requires_ck_infra
 class Test_s3_1(hunitest.TestCase):
+
     def test_ls1(self) -> None:
         file_path = os.path.join(
             hs3.get_s3_bucket_path_unit_test(_AWS_PROFILE),
