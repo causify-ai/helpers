@@ -33,7 +33,7 @@ MSML610: Advanced Machine Learning
 
 
 #### Invariants of a Class Lecture
-- **Invariants**
+- **\textcolor{red}{Invariants}**
   - Focus on intuition over math (unless necessary)
   - Emphasize realistic assumptions and numerical methods
     - Analytical solutions are so 1800s
@@ -54,14 +54,14 @@ MSML610: Advanced Machine Learning
 
 - For each class, I recommend a few books I liked about that topic
 
-  - **Simple**
+  - **\textcolor{red}{Simple}**
     - Burkov: _"Machine Learning Engineering"_ (2020)
     - Burkov: _"The Hundred-Page Machine Learning Book"_ (2019)
-  - **Medium**
+  - **\textcolor{darkgreen}{Medium}**
     - Abu-Mostafa et al.: _"Learning From Data"_ (2012)
     - Martin: _"Bayesian Analysis with Python"_ (2nd ed, 2021)
     - Russell et al.: _"Artificial Intelligence: A Modern Approach"_ (4th ed, 2020)
-  - **Hardcore**
+  - **\textcolor{blue}{Hardcore}**
     - Hastie et al.: _"The Elements of Statistical Learning"_ (2nd ed, 2009)
     - Koller et al.: _"Probabilistic Graphical Models: Principles and Techniques"_ (2009)
     - Murphy: Machine Learning: _"A Probabilistic Perspective"_ (2012)
@@ -69,15 +69,15 @@ MSML610: Advanced Machine Learning
 
 
 #### Grading
-- **Class Participation** (10%)
+- **\textcolor{red}{Class Participation}** (10%)
   - Attendance
   - Contributions to discussions and engagement
 
-- **Quizzes** (40%)
+- **\textcolor{darkgreen}{Quizzes}** (40%)
   - Multi-choice quizzes on previous 2 lessons
   - 4-5 quizzes to make you study during the semester and don't cram
 
-- **Final Project** (50%)
+- **\textcolor{blue}{Final Project}** (50%)
   - A comprehensive application of course concepts
   - Python project selected from a list of topics
 
@@ -113,13 +113,13 @@ MSML610: Advanced Machine Learning
 #### Yours truly
 - GP Saggese, PhD
   - 2001-2006, PhD / Postdoc at the University of Illinois at Urbana-Champaign
-- **LinkedIn**: https://www.linkedin.com/in/gpsaggese/
-- **Email**: gsaggese@umd.edu
-- **In the real-world**
+- **\textcolor{red}{LinkedIn}**: https://www.linkedin.com/in/gpsaggese/
+- **\textcolor{darkgreen}{Email}**: gsaggese@umd.edu
+- **\textcolor{blue}{In the real-world}**
   - Research scientist at NVIDIA, Synopys, Teza, Engineers' Gate
   - 3x AI and fin-tech startup founder (ZeroSoft, June, Causify AI)
   - 20+ academic papers, 2 US patents
-- **UMD**:
+- **\textcolor{violet}{UMD}**:
   - 2023-, Lecturer for UMD DATA605: Big Data Systems
 
 #### Class Map

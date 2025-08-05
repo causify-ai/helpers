@@ -322,6 +322,7 @@ class Test_lint_txt2(hunitest.TestCase):
         expected = r"""
         * Python Formatting
         - Python has several built-in ways of formatting strings
+
           1. `%` format operator
           2. `format` and `str.format`
 

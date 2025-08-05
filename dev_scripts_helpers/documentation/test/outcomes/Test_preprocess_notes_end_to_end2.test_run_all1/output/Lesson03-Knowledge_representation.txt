@@ -67,14 +67,14 @@ MSML610: Advanced Machine Learning
 
 #### What is Knowledge Representation?
 
-- **Knowledge Representation (KR)** is the study of how to formally encode
+- **\textcolor{red}{Knowledge Representation (KR)}** is the study of how to formally encode
   information so that machines can reason with it
   - E.g., rules, logic, ontologies, semantic networks
   - It is at the heart of symbolic AI and complements learning-based approaches
 
 - Defines:
-  - **structure** (how knowledge is organized)
-  - **semantics** (what it means)
+  - **\textcolor{darkgreen}{structure}** (how knowledge is organized)
+  - **\textcolor{blue}{semantics}** (what it means)
 
 - Serves as a bridge between perception (data) and reasoning (logic)
   - Essential for explainability and transparency in intelligent systems
@@ -90,9 +90,9 @@ MSML610: Advanced Machine Learning
 ::: columns
 :::: {.column width=55%}
 
-- **Tradeoff in AI / ML**
-  - **Expressiveness**: richness of concepts that can be captured
-  - **Tractability**: whether reasoning can be performed efficiently
+- **\textcolor{gray}{Tradeoff in AI / ML}**
+  - **\textcolor{blue}{Expressiveness}**: richness of concepts that can be captured
+  - **\textcolor{teal}{Tractability}**: whether reasoning can be performed efficiently
   - More expressive languages lead to harder computation
 
 ::::
@@ -141,17 +141,17 @@ MSML610: Advanced Machine Learning
 
 - Choosing the right knowledge representation formalism depends on the
   application needs
-  - **Atomic**
+  - **\textcolor{darkgreen}{Atomic}**
     - Treats each state as a single, indivisible entity
     - E.g., depth-first search algorithms (e.g., `E3` in Chess)
     - Simple and fast but limited in capturing complex relationships
-  - **Factored**
+  - **\textcolor{brown}{Factored}**
     - E.g., propositional logic
     - E.g., $P_{1,1}$: _"Pit in square (1,1)"_,
       $B_{1,2} \Leftrightarrow (P_{1,1} \lor P_{2,2} \lor P_{1,3})$
     - Captures relationships between variables but can't express complex
       structures
-  - **Structured**
+  - **\textcolor{darkgray}{Structured}**
     - E.g., first-order logic
     - $\forall x \, \forall y \, Father(x, y) \Rightarrow Parent(x, y)$ =
       _"A father of a person is their parent"_
@@ -159,17 +159,17 @@ MSML610: Advanced Machine Learning
 
 #### Symbolic vs. Sub-symbolic Representation
 
-- **Symbolic knowledge** representation uses discrete, human-readable symbols
+- **\textcolor{red}{Symbolic knowledge}** representation uses discrete, human-readable symbols
   - E.g., logic, knowledge graphs
   - Interpretable and suitable for rule-based reasoning
   - Struggle with ambiguity
 
-- **Sub-symbolic knowledge** representation uses learned, distributed representations
+- **\textcolor{darkgreen}{Sub-symbolic knowledge}** representation uses learned, distributed representations
   - E.g., vector embeddings
   - E.g., deep learning excels at perception and pattern recognition
   - Lack transparency
 
-- **Neuro-symbolic approaches** blends the two approaches
+- **\textcolor{blue}{Neuro-symbolic approaches}** blends the two approaches
   - Reason over learned concepts using structured logic
 
  ![](lectures_source/figures/Lesson03_symbolic_vs_subsymbolic.png)
@@ -179,14 +179,14 @@ MSML610: Advanced Machine Learning
 
 ![](lectures_source/figures/Lesson03_conceptual_spaces.png)
 
-- **Conceptual spaces** are frameworks for representing knowledge using geometric
+- **\textcolor{red}{Conceptual spaces}** are frameworks for representing knowledge using geometric
   structures
   - A concepts is a region in a multidimensional space defined by quality
     dimensions
   - Similarity between objects is modeled by spatial distance
   - Each dimension represents an interpretable feature
 
-- **Example**
+- **\textcolor{darkgreen}{Example}**
   - Dimensions: `Color`, `Size`, `Shape`
   - "Apple" occupies a region that is typically red / medium-sized / round
   - "Banana" occupies a different region: yellow / medium / curved and long
@@ -195,29 +195,29 @@ MSML610: Advanced Machine Learning
   - Symbolic systems use discrete symbols without structure
     - E.g., `Apple` vs `Banana`
 
-- **Benefits**
+- **\textcolor{blue}{Benefits}**
   - Natural modeling of similarity and vagueness
   - Useful for grounding symbols in perception (link between sensory inputs and
     symbolic language)
 
 #### Procedural vs Declarative Approaches
 
-- **Procedural approach**
+- **\textcolor{red}{Procedural approach}**
   - Focuses on _how_ a task is done
   - Encodes desired behavior directly into the program
   - E.g., a robot programmed with specific steps to navigate a maze
 
-- **Declarative approach**
+- **\textcolor{darkgreen}{Declarative approach}**
   - Specifies _what_ the goal is, _not how_ to achieve it
   - Describes relationships between actions and goals
   - Leaves solution search to the system
   - E.g., describing the goal "reach the exit" and letting the system find the path
 
-- **Comparison**
+- **\textcolor{blue}{Comparison}**
   - Procedural: more control, less flexibility
   - Declarative: more abstraction, easier to modify or extend
 
-- **Integration of approaches**
+- **\textcolor{violet}{Integration of approaches}**
   - Many successful AI systems use a hybrid
   - Declarative knowledge can be compiled into procedural code
   - E.g., a planner generates procedures (plans) from declarative goals
@@ -238,28 +238,28 @@ MSML610: Advanced Machine Learning
 #### Propositional Logic
 
 - Uses atomic statements (propositions) and logical connectives
-  - **Syntax**
+  - **\textcolor{red}{Syntax}**
     - Atomic formulas: $P$, $Q$
     - Connectives: NOT ($\lnot$), AND ($\land$), OR ($\lor$), IMPLIES ($\implies$)
-  - **Semantics**
+  - **\textcolor{darkgreen}{Semantics}**
     - Based on truth tables
     - Each proposition has a binary truth value: true or false
-  - **Inference mechanisms**
+  - **\textcolor{blue}{Inference mechanisms}**
     - Modus ponens: from $P$ and $P \implies Q$, infer $Q$
     - Resolution: derive contradictions to infer conclusions
 
-- **Applications**: best used in closed and well-defined environments
+- **\textcolor{teal}{Applications}**: best used in closed and well-defined environments
   - Digital circuit design
   - Rule-based systems
   - Simplified AI models
 
-- **Limitations**
+- **\textcolor{violet}{Limitations}**
   - Cannot represent objects, relations, or quantifiers
   - Not suitable for open or dynamic domains
 
 #### First-Order Logic (FOL)
 
-- **Extension of propositional logic**
+- **\textcolor{red}{Extension of propositional logic}**
   - Introduces predicates, variables, and quantifiers
     - Variables $x$
     - Predicate $Human(x)$
@@ -269,16 +269,16 @@ MSML610: Advanced Machine Learning
   - Represents more complex and structured knowledge than propositional logic
   - Can model properties, relationships, and quantification over objects
 
-- **Inference mechanisms**
+- **\textcolor{darkgreen}{Inference mechanisms}**
   - Unification: matches predicates with variables
   - Resolution: deduces new facts from known statements
   - Model checking: verifies truth of statements under specific interpretations
 
-- **Computational properties**
+- **\textcolor{blue}{Computational properties}**
   - Inference is semi-decidable: valid conclusions may require infinite time
   - More powerful but computationally more complex than propositional logic
 
-- **Applications**
+- **\textcolor{violet}{Applications}**
   - Knowledge representation
   - Automated theorem proving
   - Semantic web and ontologies
@@ -288,35 +288,35 @@ MSML610: Advanced Machine Learning
   decisions
   - It mimics human decision-making by applying logical rules to a set of facts
 
-- **Key Components**
+- **\textcolor{red}{Key Components}**
   - Knowledge base: stores facts and rules
   - Inference engine: applies rules to known facts to infer new facts or take
     actions
   - Working memory: holds current facts being considered
 
-- **How It Works**
+- **\textcolor{darkgreen}{How It Works}**
   - Match: find rules whose conditions match current facts
   - Conflict resolution: decide which rule to apply if multiple rules match
   - Act: apply the chosen rule to modify facts or trigger actions
   - Repeat: continue until no more rules can be applied
-  - **E.g.,**
+  - **\textcolor{blue}{E.g.,}**
     - Rule: If a patient has a fever and a rash, then suggest measles
     - Fact: Patient has a fever and a rash
     - Conclusion: Suggest measles
 
 #### Rule-Based Systems (2/2)
 
-- **Pros**
+- **\textcolor{red}{Pros}**
   - Easy to modify and update rules
   - Transparent and explainable reasoning
   - Good when expert knowledge can be clearly articulated
 
-- **Cons**
+- **\textcolor{darkgreen}{Cons}**
   - Hard to scale to very large or complex domains
   - Cannot handle uncertainty without extensions (e.g., probabilistic reasoning)
   - Rule conflicts and maintenance can become challenging
 
-- **Applications**
+- **\textcolor{blue}{Applications}**
   - Expert systems (e.g., medical diagnosis, technical troubleshooting)
   - Business rule engines
   - Game AI
@@ -324,52 +324,52 @@ MSML610: Advanced Machine Learning
 
 #### Reasoning and Inference in Logic
 
-- **Logical inference** is the process of deriving new facts from known ones
+- **\textcolor{gray}{Logical inference}** is the process of deriving new facts from known ones
   using formal rules
   - Used to make decisions and answer questions based on a Knowledge Base
 
-- **Knowledge base (KB)**:
+- **\textcolor{orange}{Knowledge base (KB)}**:
   - A structured set of facts and rules used for logical reasoning
 
-- **Inference engine**:
+- **\textcolor{blue}{Inference engine}**:
   - Mechanism that applies logical rules to a KB to derive conclusions or answer
     queries
-  - **Forward chaining**:
+  - **\textcolor{magenta}{Forward chaining}**:
     - Starts with known facts and applies inference rules to extract more data
     - E.g., given $A \rightarrow B$ and $A$, infer $B$
 
-  - **Backward chaining**:
+  - **\textcolor{teal}{Backward chaining}**:
     - Begins with a goal and works backward to find supporting facts
     - E.g., to prove $B$, check if $A \rightarrow B$ and then prove $A$
 
-  - **Resolution**:
+  - **\textcolor{olive}{Resolution}**:
     - A complete inference rule for propositional and first-order logic
     - Useful in automated theorem proving
 
-  - **Entailment ($KB \models \alpha$)**:
+  - **\textcolor{darkgreen}{Entailment ($KB \models \alpha$)}**:
     - Sentence $\alpha$ is entailed by KB if it is true in all models where KB is
       true
 
 #### Grounding and Symbol Anchoring
 
-- **Grounding**
+- **\textcolor{red}{Grounding}**
   - Connecting abstract symbols to real-world entities or observations
   - E.g., the symbol `Apple` must be linked to the fruit "apple" in the world
   - Essential for making representations meaningful beyond pure syntax
     - Enables agents to act meaningfully in the real world
     - Avoids purely symbolic manipulation without real-world relevance
 
-- **Symbol Anchoring**
+- **\textcolor{darkgreen}{Symbol Anchoring}**
   - Specific instance of grounding where sensory data anchors symbols in an agent's
     memory
   - E.g., a robot sees a round red object and anchors it to the symbol `Apple`
 
-- **Challenges**
+- **\textcolor{blue}{Challenges}**
   - Sensory data is noisy and incomplete
   - Mapping from real-world inputs to abstract concepts can be complex and
     context-dependent
 
-- **Applications**
+- **\textcolor{violet}{Applications}**
   - Robotics (object recognition, manipulation)
   - Natural language understanding
   - Autonomous agents and cognitive systems
@@ -390,27 +390,27 @@ MSML610: Advanced Machine Learning
 
 #### Reflex Agents
 
-- **Reflex agents** act based on the current percept, ignoring percept history
+- **\textcolor{red}{Reflex agents}** act based on the current percept, ignoring percept history
   - Operate using a condition-action rule: "if condition, then action"
   - Rely on predefined rules
   - Have no internal state or memory
   - E.g., a thermostat turns on the heater if temperature < threshold
 
-- **Pros**
+- **\textcolor{darkgreen}{Pros}**
   - Fast and efficient in well-defined environments
 
-- **Cons**
+- **\textcolor{blue}{Cons}**
   - Struggle with complex or partially observable environments
   - Cannot plan ahead or learn from experience
 
-- **Application**
+- **\textcolor{violet}{Application}**
   - Simple or fully observable environments where quick reactions are sufficient
 
 #### Knowledge-based agents
-- **Intelligence** is achieved by _reasoning_ on an internal _representation of
+- **\textcolor{red}{Intelligence}** is achieved by _reasoning_ on an internal _representation of
   knowledge_
 
-- **Knowledge-based agents:**
+- **\textcolor{blue}{Knowledge-based agents:}**
   - Form representations of a complex world
   - Use inference to derive new representations about the world
   - Use new representations to deduce actions
@@ -426,20 +426,20 @@ MSML610: Advanced Machine Learning
   - Handle incomplete or uncertain information through probabilistic reasoning
 
 #### Logic / Knowledge Base (1/2)
-- **Knowledge base (KB)** is a set of:
+- **\textcolor{red}{Knowledge base (KB)}** is a set of:
   - Sentences $\alpha$ expressing assertions (observed, assumed or derived) about the world
     - E.g., "it rains", "the ground is dry", "the ground is wet"
   - Rules
     - E.g, "If it rains, the ground gets wet"
 
-- **Knowledge representation language** is a formal way of creating sentences about
+- **\textcolor{darkgreen}{Knowledge representation language}** is a formal way of creating sentences about
   the world
-- **Syntax** specifies all the sentences $\alpha$ that are well-formed in a logic / knowledge
+- **\textcolor{blue}{Syntax}** specifies all the sentences $\alpha$ that are well-formed in a logic / knowledge
   base
   - E.g., in arithmetic the sentence:
     - "$x + y = 4$" is well-formed
     - "$x4y+ =$" is not well-formed
-- **Semantics** is the meaning of sentences (i.e., their truth) with respect to each
+- **\textcolor{violet}{Semantics}** is the meaning of sentences (i.e., their truth) with respect to each
   possible world
   - E.g., the sentence $x + y = 4$
     - Is true in the world (model) in which $x = 2, y = 2$
@@ -447,16 +447,16 @@ MSML610: Advanced Machine Learning
 
 #### Logic / Knowledge Base (2/2)
 
-- **Axiom** is sentence taken as given without being derived from other sentences
+- **\textcolor{red}{Axiom}** is sentence taken as given without being derived from other sentences
 
-- **Inference** is a process of deriving new sentences from old ones
+- **\textcolor{darkgreen}{Inference}** is a process of deriving new sentences from old ones
   - It should be done in a "logical" way, i.e., the answer should "follow" from
     what is in the knowledge base
 
 - Truth values of a sentence
-  - In **most logics** every sentence is either true or false
-  - **Fuzzy logic** allows sentences to have different degrees of truth
-  - **Probabilistic logic** allows sentences to have different probability of
+  - In **\textcolor{blue}{most logics}** every sentence is either true or false
+  - **\textcolor{teal}{Fuzzy logic}** allows sentences to have different degrees of truth
+  - **\textcolor{violet}{Probabilistic logic}** allows sentences to have different probability of
     being true
 
 #### Model and possible worlds
@@ -493,7 +493,7 @@ MSML610: Advanced Machine Learning
   - E.g., $M(Rain = T) = \{(Rain, WetGround), (Rain, \lnot WetGround)\}$
 
 #### Logical entailment
-- **Logical entailment** between sentences is the relation representing the fact
+- **\textcolor{red}{Logical entailment}** between sentences is the relation representing the fact
   that a sentence follows logically from another sentence in a KB, e.g.,
 
 - "$\alpha$ entails $\beta$" (written $\alpha \models \beta$) iff (by def) in
@@ -515,16 +515,16 @@ MSML610: Advanced Machine Learning
 #### Logical Entailment vs Implication
 
 - Entailment and implication are related but distinct
-  - **Logical entailment** is about truth following from known facts
-  - **Implication** is about a relationship between two statements
+  - **\textcolor{red}{Logical entailment}** is about truth following from known facts
+  - **\textcolor{darkgreen}{Implication}** is about a relationship between two statements
 
-- **Logical entailment** ($KB \models \alpha$):
+- **\textcolor{blue}{Logical entailment}** ($KB \models \alpha$):
   - Means $\alpha$ is always true in any world where KB is true
   - E.g.,
     - KB: "It is raining", "If it rains, the ground is wet"
     - Entailed: "The ground is wet"
 
-- **Implication** ($A \implies B$):
+- **\textcolor{violet}{Implication}** ($A \implies B$):
   - A statement in logic that says: "If A is true, then B is true"
     - Doesn't guarantee A or B is true by itself
     - Implication is true unless A is true and B is false
@@ -537,11 +537,11 @@ MSML610: Advanced Machine Learning
 - $M(KB)$ represents all the models / possible worlds that are true given our
   $KB$
 
-- **Problem**:
+- **\textcolor{red}{Problem}**:
   - We want to verify whether "a sentence $\alpha$ is entailed by $KB$"
     ($KB \models \alpha$)
 
-- **Solution**:
+- **\textcolor{blue}{Solution}**:
   - According to the definition, we need to verify that $\alpha$ is true in all
     the models in which $KB$ is true
     - I.e., $M(KB) \subseteq M(\alpha)$
@@ -555,7 +555,7 @@ MSML610: Advanced Machine Learning
 #### Sound and Complete Inference Algorithm
 - The ideal inference algorithm is both sound and complete
 
-- **Sound** inference algorithm
+- **\textcolor{red}{Sound}** inference algorithm
   - Derives only sentences entailed from $KB$
   - "Whatever the inference algorithm finds, it's correct", i.e., no false
     positives
@@ -563,7 +563,7 @@ MSML610: Advanced Machine Learning
     - It works only when the space of models is finite
     - When it works, it is truth preserving
 
-- **Complete** inference algorithm
+- **\textcolor{blue}{Complete}** inference algorithm
   - Can derive any sentence entailed from $KB$
   - "The inference algorithm doesn't miss anything," i.e., no false negatives
 
@@ -654,7 +654,7 @@ digraph EntailmentSemantics {
 
 #### Ontologies (in computer science)
 
-- **An ontology:**
+- **\textcolor{red}{An ontology:}**
   - Is a formal, explicit representation of a domain
   - Describes the types of things that exist and how they relate to each other
   - E.g., some components are:
@@ -662,18 +662,18 @@ digraph EntailmentSemantics {
     - Individuals: specific objects
     - Properties: how things are related
 
-- **Examples**:
+- **\textcolor{darkgreen}{Examples}**:
   - A medical ontology defines relationships between diseases, symptoms, and
     treatments
   - A geographical ontology describes cities, states, and countries
   - Semantic web (an extension of the current web to give meaning to information)
 
-- **Purpose**
+- **\textcolor{blue}{Purpose}**
   - Provide a common vocabulary for a domain of knowledge
   - Enable machines and humans to understand and share information consistently
   - Enable reasoning about entities and their relationships
 
-- **Related Concepts**
+- **\textcolor{violet}{Related Concepts}**
   - Schema: database-oriented structure, often more rigid than ontologies
   - Taxonomy: simpler hierarchical classification (like a tree)
   - Knowledge base: a collection of facts and rules, sometimes built from an
@@ -681,32 +681,32 @@ digraph EntailmentSemantics {
 
 #### Ontologies: Main Components
 
-- **Classes / Concepts**:
+- **\textcolor{gray}{Classes / Concepts}**:
   - Represent general concepts in a domain
   - E.g., `Person`, `City`, `Car`
 
-- **Individuals / Instances**:
+- **\textcolor{orange}{Individuals / Instances}**:
   - Specific, concrete examples of classes
   - E.g., `GP` (an instance of `Person`), `Rome`, `Ferrari 458`
 
-- **Properties / Relations**:
+- **\textcolor{blue}{Properties / Relations}**:
   - Describe interactions or associations between classes or instances
   - E.g., `isMortal`, `locatedIn`, `hasAge`
 
-- **Attributes / Data values**
+- **\textcolor{magenta}{Attributes / Data values}**
   - Specify data associated with instances
   - E.g., (`GP`, `hasAge`, `<your_guess>`)
 
-- **Constraints**
+- **\textcolor{teal}{Constraints}**
   - Rules that restrict the kinds of values a property can take
   - E.g., (`Ferrari 458`, `mustBe`, `red`)
 
-- **Axioms**:
+- **\textcolor{olive}{Axioms}**:
   - Logical statements that define rules and constraints
   - Used to infer new knowledge
   - E.g., all humans are mortal: $\forall x (Person(x) \implies Mortal(x))$
 
-- **Hierarchies**:
+- **\textcolor{darkgreen}{Hierarchies}**:
   - Organize classes and properties into parent-child relationships
   - E.g., `Student` is a subclass of `Person`
 
@@ -798,20 +798,20 @@ digraph UniversityOntology {
 
 
 #### Example of Reasoning Tasks (1/4)
-- **Subsumption**
+- **\textcolor{red}{Subsumption}**
   - "Is class `A` a subclass of `B`?"
   - Check whether one concept is more general than another
   - E.g., if `Person` subsumes `Student`, every `Student` is necessarily a
     `Person`
   - Important for building taxonomies and ontologies
 
-- **Satisfiability**:
+- **\textcolor{darkgreen}{Satisfiability}**:
   - "Can an instance of a concept exist?"
   - Test if a concept is logically consistent (i.e., without contradiction)
   - E.g., if the concept `FlyingPenguin` requires flying but is also defined as a
     penguin (which cannot fly), it might be not satisfiable
 
-- **Classification**
+- **\textcolor{blue}{Classification}**
   - Organize concepts into a hierarchy
   - Automatically organize concepts into a hierarchy by checking subsumption
     relationships
@@ -819,49 +819,49 @@ digraph UniversityOntology {
     places `Penguin` under `Bird`, and `Bird` under `Animal`
 
 #### Example of reasoning tasks in KR (2/4)
-- **Instance Checking**
+- **\textcolor{red}{Instance Checking}**
   - "Is a specific individual an instance of a concept?"
   - E.g., is `GP` an instance of `Student`?
 
-- **Consistency Checking**
+- **\textcolor{darkgreen}{Consistency Checking}**
   - "Is the entire knowledge base free of contradictions?"
   - E.g., no `Person` is both `Alive` and `Dead` at the same time
 
-- **Realization**
+- **\textcolor{blue}{Realization}**
   - "What is the most specific class an instance belongs to?"
   - E.g., discovering that `GP` is a `Professor` rather than just a `Human`
 
-- **Retrieval**
+- **\textcolor{violet}{Retrieval}**
   - Find all individuals that satisfy a certain condition
   - E.g., retrieve all instances classified as `TeachingAssistant`
 
 #### Example of reasoning tasks in KR (3/4)
-- **Query Answering**
+- **\textcolor{red}{Query Answering}**
   - Answer complex queries about the knowledge base
   - E.g., "Find all `Person` that study at the university and are not `Student`"
 
-- **Abduction**
+- **\textcolor{darkgreen}{Abduction}**
   - Given an observation, infer the best explanation
   - E.g., seeing a `Person` carrying a backpack and wearing flip-flops in the
     snow and infer that is likely a `Student`
 
-- **Deduction**
+- **\textcolor{blue}{Deduction}**
   - Infer consequences that logically follow from facts and rules
   - E.g., if `John` is a `Student` in `ComputerScience` then he can attend `MSML610`
 
 #### E.g., of reasoning tasks in KR (4/4)
-- **Belief Revision**
+- **\textcolor{red}{Belief Revision}**
   - Update the knowledge base when new, possibly conflicting, information
     arrives
   - E.g., learning that not every student in `ComputerScience` can take `MSML610`
     and revise a previous rule
 
-- **Temporal Reasoning**
+- **\textcolor{darkgreen}{Temporal Reasoning}**
   - Reason about events over time
   - E.g., If `EventA` happens before `EventB`, then `EventB` cannot `Cause`
     `EventA`
 
-- **Causal Reasoning**
+- **\textcolor{blue}{Causal Reasoning}**
   - Infer causes and effects among entities or events
   - E.g., inferring that (`Storm`, `Cause`, `Flooding`) based on temporal and
     physical knowledge
@@ -911,7 +911,7 @@ digraph UniversityOntology {
 - Atomic representation
   - No internal structure within atomic propositions
 
-- **Uses:**
+- **\textcolor{red}{Uses:}**
   - SAT solvers
     - Tools for determining if a propositional logic formula can be satisfied
     - E.g., used in hardware verification and scheduling problems
@@ -1053,15 +1053,15 @@ digraph UniversityOntology {
       $Q$ is true. Otherwise I am making no claim"
 
 #### Model Checking is Sound and Complete
-- **Model checking algorithm:**
+- **\textcolor{red}{Model checking algorithm:}**
   - Enumerate all models (truth tables)
   - Check if $\alpha$ is true for every model where $KB$ is true
 
 - The model checking algorithm is:
-  - **Sound**
+  - **\textcolor{darkgreen}{Sound}**
     - "Any inference made by the algorithm is correct"
     - Implements the definition of entailment
-  - **Complete**
+  - **\textcolor{blue}{Complete}**
     - "Any true sentence is inferred correctly by the algorithm"
     - Works for any $KB$ and $\alpha$
     - Always terminates (finite number of models)
@@ -1218,7 +1218,7 @@ digraph UniversityOntology {
     - Meaning depends on the sentence and context
     - E.g., "Look!"
 
-- **Sapir-Whorf hypothesis**
+- **\textcolor{red}{Sapir-Whorf hypothesis}**
   - Understanding of the world is influenced by language
   - Language influences thought (even through arbitrary grammatical features,
     e.g., gender of nouns)
@@ -1229,7 +1229,7 @@ digraph UniversityOntology {
   - Data structures represent facts
   - Code updates data structures in a domain-specific way
 
-- **Cons**:
+- **\textcolor{red}{Cons}**:
   - Programming is procedural (vs declarative)
   - Programming languages lack:
   1. A general mechanism for deriving facts from other facts
@@ -1248,7 +1248,7 @@ digraph UniversityOntology {
 
 #### Propositional logic
 - E.g., $P \land Q$
-- **Pros**
+- **\textcolor{red}{Pros}**
   - Declarative
     - Semantics is based on relation between sentences and possible worlds
   - Can deal with partial information
@@ -1259,7 +1259,7 @@ digraph UniversityOntology {
   - Context independent
   - Unambiguous
 
-- **Cons**
+- **\textcolor{blue}{Cons}**
   - Can't concisely describe environment with many objects, e.g.,
     - In English "The pawn is in a cell around `b6`" requires all the possible
       states to be enumerated
@@ -1281,11 +1281,11 @@ digraph UniversityOntology {
 
 ::: columns
 :::: {.column width=60%}
-- **Constants**: represent specific objects (e.g., Socrates)
-- **Predicates**: describe properties or relations (e.g., $Human(x)$)
-- **Functions**: map tuples of objects to objects (e.g., $Mother(x)$)
-- **Variables**: placeholders (e.g., $x, y$)
-- **Quantifiers**: $\forall x$ (for all $x$), $\exists x$ (there exists an $x$)
+- **\textcolor{red}{Constants}**: represent specific objects (e.g., Socrates)
+- **\textcolor{darkgreen}{Predicates}**: describe properties or relations (e.g., $Human(x)$)
+- **\textcolor{blue}{Functions}**: map tuples of objects to objects (e.g., $Mother(x)$)
+- **\textcolor{teal}{Variables}**: placeholders (e.g., $x, y$)
+- **\textcolor{violet}{Quantifiers}**: $\forall x$ (for all $x$), $\exists x$ (there exists an $x$)
 ::::
 :::: {.column width=35%}
 
@@ -1318,16 +1318,16 @@ digraph UniversityOntology {
 - Quantifiers express properties of entire collections of objects, instead of
   enumerating objects by name (like in propositional logic)
 
-- **Universal quantifier**: $\forall x\, P(x)$
+- **\textcolor{red}{Universal quantifier}**: $\forall x\, P(x)$
   - Universal quantifier makes a statement about _every_ object
   - Statement is true if $P(x)$ is true for all $x$
-- **Existential quantifier**: $\exists x\, P(x)$
+- **\textcolor{darkgreen}{Existential quantifier}**: $\exists x\, P(x)$
   - Existential quantifier makes a statement about _some_ object (without naming
     it)
   - True if $P(x)$ is true for at least one $x$
 - Scope determines the portion of a formula a quantifier applies to
-- Variables are **bound** by quantifiers or **free** (unbound)
-- Sentences with no free variables are called **closed formulas**
+- Variables are **\textcolor{blue}{bound}** by quantifiers or **\textcolor{teal}{free}** (unbound)
+- Sentences with no free variables are called **\textcolor{violet}{closed formulas}**
 - Example:
   - $\forall x (Cat(x) \rightarrow Mammal(x))$
 
@@ -1360,14 +1360,14 @@ digraph UniversityOntology {
 - Semantics define how sentences are interpreted in a domain
 
 - Symbols represent entities, relationships, and functions in the domain
-  - **Constant symbols** represent specific objects
+  - **\textcolor{red}{Constant symbols}** represent specific objects
     - E.g., $Alice$, $GP$, $CS101$
 
-  - **Predicate symbols** represent relationships among objects
+  - **\textcolor{darkgreen}{Predicate symbols}** represent relationships among objects
     - E.g., $EnrolledIn(Student, Class)$, $Teaches(Professor, Class)$,
       $IsStudent(x)$, $IsProfessor(x)$
 
-  - **Function symbols** represent mappings between objects
+  - **\textcolor{blue}{Function symbols}** represent mappings between objects
     - E.g., $AdvisorOf(Student)$, $DepartmentOf(Professor)$
 
 - An interpretation maps the world to its mathematical description, and vice
@@ -1382,11 +1382,11 @@ digraph UniversityOntology {
 
 #### Inference in First-Order Logic
 - Goal: derive new sentences from existing ones using sound rules
-- **Universal Instantiation**:
+- **\textcolor{red}{Universal Instantiation}**:
   - From $\forall x\, P(x)$ infer $P(c)$ for any constant $c$
-- **Existential Instantiation**:
+- **\textcolor{darkgreen}{Existential Instantiation}**:
   - From $\exists x\, P(x)$ infer $P(c)$ with a new constant $c$
-- **Modus Ponens** and other propositional rules apply
+- **\textcolor{blue}{Modus Ponens}** and other propositional rules apply
 - FOL inference is semi-decidable:
   - If a sentence is entailed, a proof can be found
   - If not entailed, proof search may not terminate
@@ -1449,80 +1449,80 @@ digraph UniversityOntology {
     information is added
   - In non-monotonic logic, conclusions can change as new facts are learned
 
-- **E.g.,**
+- **\textcolor{red}{E.g.,}**
   - Initial knowledge: "Birds typically fly"
   - Conclusion: "Tweety is a bird, so Tweety can fly"
   - New information: "Tweety is a penguin"
   - Revised conclusion: "Tweety cannot fly"
 
-- **Why it Matters**
+- **\textcolor{blue}{Why it Matters}**
   - Real-world situations often involve incomplete or evolving knowledge
   - Non-monotonic logic allows systems to reason flexibly and adapt to new
     circumstances
 
 #### Default reasoning
-- **Default reasoning** is reasoning where assumptions are made by default in
+- **\textcolor{red}{Default reasoning}** is reasoning where assumptions are made by default in
   the absence of contrary evidence
   - It allows conclusions based on typical situations unless exceptions are
     found
 
-- **Key Idea**
+- **\textcolor{darkgreen}{Key Idea}**
   - Assume the most likely case unless specified otherwise
   - If new information contradicts the assumption, revise the conclusion
 
-- **E.g.,**
+- **\textcolor{blue}{E.g.,}**
   - Default rule: "Typically, birds can fly"
   - Fact: "Tweety is a bird"
   - Conclusion: "Tweety can fly"
   - New fact: "Tweety is a penguin"
   - Revised conclusion: "Tweety cannot fly"
 
-- **Why It Is Useful**
+- **\textcolor{violet}{Why It Is Useful}**
   - In real life, information is often incomplete or uncertain
   - Default reasoning allows systems to function reasonably without knowing
     everything
 
 #### Non-Monotonic Logic: University Example
 
-- **Initial Facts**
+- **\textcolor{red}{Initial Facts}**
   - $Alice$ is a $Student$
   - $Alice$ belongs to the $ComputerScience$ department
   - $CS101$ is a $Course$ offered by the $ComputerScience$ department
   - Default rule: $Students$ in the $ComputerScience$ department take classes in
     their department
 
-- **Initial Reasoning**
+- **\textcolor{darkgreen}{Initial Reasoning}**
   - Since $Alice$ is a $Student$ in $ComputerScience$, by default $Students$
     take $CS101$
   - Conclusion: $Alice$ $takesCourse$ $CS101$
 
-- **New Information**
+- **\textcolor{blue}{New Information}**
   - $Alice$ is an exchange student who does not meet the prerequisites for
     $CS101$
 
-- **Revised Reasoning**
+- **\textcolor{violet}{Revised Reasoning}**
   - New conclusion: $Alice$ does not $takeCourse$ $CS101$
 
 #### Common Sense Reasoning
-- **Common sense reasoning** is the ability to make assumptions, draw conclusions
+- **\textcolor{red}{Common sense reasoning}** is the ability to make assumptions, draw conclusions
   based on everyday knowledge about the world
   - Involves typical, unstated knowledge that humans take for granted, e.g.,
     - "If you drop a glass, it will likely break"
     - Knowing that "people eat food when they are hungry" without being
       explicitly told
 
-- **Characteristics**
+- **\textcolor{darkgreen}{Characteristics}**
   - Deals with incomplete, uncertain, or ambiguous information
   - Relies on defaults, heuristics, and typical patterns rather than strict
     logical proofs
   - Often flexible and tolerant of exceptions
 
-- **Challenges**
+- **\textcolor{blue}{Challenges}**
   - Common sense knowledge is vast, informal, and often not precisely defined
   - Difficult to encode all of it explicitly in a machine-readable form
   - Handling exceptions and contradictions is complex
 
-- **Techniques**
+- **\textcolor{violet}{Techniques}**
   - Knowledge graphs
   - Non-monotonic logic
   - Probabilistic reasoning
@@ -1530,44 +1530,44 @@ digraph UniversityOntology {
 
 #### Common Sense Reasoning: University Example
 
-- **Initial facts**
+- **\textcolor{red}{Initial facts}**
   - $Alice$ is a $Student$
   - $Bob$ is a $Student$
   - $CS101$ is a $Course$ offered by the $ComputerScience$ department
 
-- **Common sense knowledge**
+- **\textcolor{darkgreen}{Common sense knowledge}**
   - Students typically enroll in courses offered by their department
   - Students usually attend classes they are enrolled in
   - Professors usually teach the courses they are assigned
 
-- **Reasoning steps**
+- **\textcolor{blue}{Reasoning steps}**
   - $Alice$ belongs to the $ComputerScience$ department
   - $CS101$ is offered by the $ComputerScience$ department
   - Common sense suggests $Alice$ is likely enrolled in $CS101$, even if
     enrollment is not explicitly stated
   - Therefore, it is reasonable to assume: $Alice$ $takesCourse$ $CS101$
 
-- **New information**
+- **\textcolor{violet}{New information}**
   - $Alice$ is pursuing research only and not taking courses
   - The assumption that $Alice$ $takesCourse$ $CS101$ must be revised
 
 #### Open World vs Closed World Assumptions
 
-- **Closed World Assumption (CWA)**
+- **\textcolor{red}{Closed World Assumption (CWA)}**
   - Missing information is false, e.g.,
     - Fact: "Alice takes CS101" is known
     - Nothing is said about Bob
     - Under CWA: Conclude Bob does not take CS101
   - Common in databases and logic programming
 
-- **Open World Assumption (OWA)**
+- **\textcolor{darkgreen}{Open World Assumption (OWA)}**
   - Missing information is unknown, not false, e.g.,
     - Fact: "Alice takes CS101" is known
     - Nothing is said about Bob
     - Under OWA: Cannot conclude if Bob takes CS101: it is unknown
   - Common in Semantic Web, RDF, ontologies
 
-- **Applications**
+- **\textcolor{blue}{Applications}**
   - OWA
     - Semantic Web (RDF, OWL)
     - Knowledge representation with incomplete or growing data
@@ -1577,23 +1577,23 @@ digraph UniversityOntology {
 
 #### Inductive Logic Programming
 
-- **Inductive Logic Programming**
+- **\textcolor{red}{Inductive Logic Programming}**
   - Learns logical rules from examples and common sense knowledge
   - Given positive and negative examples, and background facts, infer logical
     rules that explain the examples
 
-- **Example**
+- **\textcolor{darkgreen}{Example}**
   - Background: "Birds have wings"
   - Positive example: "Tweety can fly"
   - Negative example: "Penguin cannot fly"
   - Learned rule: "Birds can fly unless they are penguins"
 
-- **Features**
+- **\textcolor{blue}{Features}**
   - Produces human-readable logical rules
   - Integrates learning with symbolic reasoning
   - Supports background knowledge integration
 
-- **Challenges**
+- **\textcolor{violet}{Challenges}**
   - Computational complexity with large datasets
   - Handling noisy, incomplete, or ambiguous data
 
@@ -1609,12 +1609,12 @@ digraph UniversityOntology {
 
 #### Description Logic
 
-- **Description Logic**
+- **\textcolor{red}{Description Logic}**
   - Represents structured knowledge about a domain
   - Balances expressivity and computational efficiency
   - More expressive than propositional logic, less than first-order logic
 
-- **Core building blocks:**
+- **\textcolor{darkgreen}{Core building blocks:}**
   - Concepts  / classes: abstract groups
     - E.g., $Person$, $Animal$
   - Roles / properties: binary relations between individuals
@@ -1626,7 +1626,7 @@ digraph UniversityOntology {
   - Concept subsumption: "is $A$ a subset of $B$?"
   - Instance checking: "does $a$ belong to $A$?"
 
-- **Syntax often combines:**
+- **\textcolor{blue}{Syntax often combines:}**
   - Atomic concepts and roles
   - Logical constructors ($\sqcap$, $\sqcup$, $\neg$, $\forall$, $\exists$)
   - E.g.,
@@ -1727,21 +1727,21 @@ digraph OWL_Example {
 
 #### RDF (Resource Description Framework)
 
-- **RDF** is a standard model for data interchange on the web
+- **\textcolor{gray}{RDF}** is a standard model for data interchange on the web
   - Represent structured information in a machine-readable way
 
-- **Basic building block** is a triple $(Subject, Predicate, Object)$
-  - **Subject**: the entity being described, e.g., `Nuvolo`
-  - **Predicate**: the property or relationship, e.g., `isA`
-  - **Object**: the value or another entity, e.g., `Dog`
+- **\textcolor{orange}{Basic building block}** is a triple $(Subject, Predicate, Object)$
+  - **\textcolor{blue}{Subject}**: the entity being described, e.g., `Nuvolo`
+  - **\textcolor{magenta}{Predicate}**: the property or relationship, e.g., `isA`
+  - **\textcolor{teal}{Object}**: the value or another entity, e.g., `Dog`
 
-- **Key Features**:
+- **\textcolor{olive}{Key Features}**:
   - Statements are directed graphs of nodes and edges
   - Components of the triple are URIs (Uniform Resource Identifiers) to ensure
     global uniqueness or literals (e.g., strings, numbers), e.g.,
     `http://example.org/Nuvolo`
 
-- **Use Cases**:
+- **\textcolor{darkgreen}{Use Cases}**:
   - Building knowledge graphs
   - Enabling semantic search
   - Supporting ontologies (e.g., OWL)
@@ -1763,13 +1763,13 @@ digraph OWL_Example {
 - SPARQL is the query language for RDF data
   - Allows users to retrieve and manipulate data stored in RDF format
 
-- **Key Concepts**:
-  - **Triple Patterns**: Query fragments that match triples in an RDF graph
-  - **Basic Graph Pattern**: A set of triple patterns combined
-  - **Variables**: Stand in for unknown parts of the triples (e.g., `?person`,
+- **\textcolor{red}{Key Concepts}**:
+  - **\textcolor{darkgreen}{Triple Patterns}**: Query fragments that match triples in an RDF graph
+  - **\textcolor{blue}{Basic Graph Pattern}**: A set of triple patterns combined
+  - **\textcolor{teal}{Variables}**: Stand in for unknown parts of the triples (e.g., `?person`,
     `?animal`)
 
-- **Main Query Types**:
+- **\textcolor{violet}{Main Query Types}**:
   - `SELECT`: Retrieve specific variables from the data
   - `CONSTRUCT`: Create new RDF triples based on query results
   - `ASK`: Return a boolean indicating whether a pattern exists
@@ -1792,37 +1792,37 @@ digraph OWL_Example {
 
 #### Semantic Web
 
-- The **Semantic Web** extends the current Web by enabling machines to understand
+- The **\textcolor{red}{Semantic Web}** extends the current Web by enabling machines to understand
   and interpret data
   - HTML is human-readable but lacks semantic structure for computers
   - The Semantic Web adds meaning / semantics to data
   - Allow better data integration, automation, and discovery across sites
 
-- **Key Technologies**
+- **\textcolor{darkgreen}{Key Technologies}**
   - RDF (Resource Description Framework): base data model
   - SPARQL: query language for RDF data
   - OWL (Web Ontology Language): define rich ontologies
 
-- **Current Status**
+- **\textcolor{blue}{Current Status}**
   - Some core ideas (e.g., structured data and ontologies) are widely adopted
   - Full vision remains only partially realized
 
-- **Challenges**
+- **\textcolor{teal}{Challenges}**
   - Complexity of widespread adoption
   - Issues around privacy, data ownership, and feasibility
   - Need for standardization and tools
 
-- **Criticism**
+- **\textcolor{violet}{Criticism}**
   - Skepticism about practicality and scalability
   - Concerns about centralization and censorship
 
 #### WikiData
 
-- **WikiData** is a free, open, collaborative knowledge base
+- **\textcolor{red}{WikiData}** is a free, open, collaborative knowledge base
   - Stores structured data for Wikipedia
   - Accessible via APIs using SPARQL queries
 
-- **Graph-based data model**
+- **\textcolor{darkgreen}{Graph-based data model}**
   - Item: represents an entity or concept, e.g.,
     - `Q42` $\rightarrow$ Douglas Adams
   - Property: describes a relationship or attribute, e.g.,
@@ -1837,7 +1837,7 @@ digraph OWL_Example {
       - With qualifier: `P585` (point in time) $\to$ "2021"
       - Meaning: "The population of Paris was 2,165,423 in the year 2021"
 
-- **Applications:**
+- **\textcolor{blue}{Applications:}**
   - Knowledge graph
   - Semantic search
   - AI reasoning
@@ -1846,14 +1846,14 @@ digraph OWL_Example {
 
 #### DBPedia
 
-- **DBpedia** extracts structured content from Wikipedia
+- **\textcolor{red}{DBpedia}** extracts structured content from Wikipedia
   - Creates a large-scale, multilingual knowledge graph for querying
   - Data is extracted as RDF triples (subject-predicate-object), e.g.,
     - "Berlin" entity linked with properties like `dbo:country Germany`,
       `dbo:populationTotal 3.7M`
   - Enables semantic queries over Wikipedia data via SPARQL endpoints
 
-- **Applications**
+- **\textcolor{blue}{Applications}**
   - Semantic Web research
   - Enhancing AI models with real-world knowledge
 
@@ -1865,14 +1865,14 @@ digraph OWL_Example {
     - E.g., if a `Dog` is an `Animal`, it inherits `Animal` traits
   - Examples: WordNet, ConceptNet
 
-- **Pros**
+- **\textcolor{red}{Pros}**
   - Easy to visualize and traverse
   - Support reasoning
   - Common in early AI systems and current KG applications
 
 #### WordNet
 
-- **WordNet** is a large lexical database of English words
+- **\textcolor{red}{WordNet}** is a large lexical database of English words
   - Designed to model the semantic relationships between words
   - Groups words into sets of synonyms
   - Manually curated, ensuring high-quality semantic relations
@@ -1898,7 +1898,7 @@ digraph OWL_Example {
 
 #### ConceptNet
 
-- **ConceptNet** is a large knowledge graph
+- **\textcolor{red}{ConceptNet}** is a large knowledge graph
   - Connects words and phrases with labeled semantic relationships
   - Represents commonsense knowledge about the world
 
@@ -2023,39 +2023,38 @@ digraph UniversityOntology {
 
 #### Technologies
 
-- **TransE (Translation Embedding)**
+- **\textcolor{gray}{TransE (Translation Embedding)}**
   - Embedding model for knowledge graph completion
   - Represents relationships as translations in vector space: $h + r \approx t$
   - Good for 1-to-1 relations, less effective with complex patterns
 
-- **RotatE**
+- **\textcolor{orange}{RotatE}**
   - Embeds entities in complex space
   - Models relations as rotations: $t = h \circ r$ where $\circ$ is complex
     multiplication
   - Captures symmetry, antisymmetry, inversion, and composition
 
-- **DeepProbLog**
+- **\textcolor{blue}{DeepProbLog}**
   - Combines ProbLog (probabilistic logic) with deep learning
   - Supports neural predicates in logic programs
   - Learns probabilistic facts and neural components jointly
 
-- **PyMLN**
+- **\textcolor{magenta}{PyMLN}**
   - Python-based Markov Logic Network (MLN) system
   - MLNs combine first-order logic with probabilistic graphical models
   - Allows reasoning with weighted logical rules
 
-- **ProbLog**
+- **\textcolor{teal}{ProbLog}**
   - Probabilistic logic programming language
   - Extends Prolog by attaching probabilities to facts
   - Computes success probabilities of queries
 
-- **Tuffy**
+- **\textcolor{olive}{Tuffy}**
   - Scalable Markov Logic Network inference engine
   - Uses an RDBMS (E.g., postgreSQL) to scale to large domains
   - Optimized for grounding and inference efficiency
 
-- **Datalog**
+- **\textcolor{darkgreen}{Datalog}**
   - Subset of Prolog used in databases and deductive reasoning
   - Uses Horn clauses with no function symbols (ensuring decidability)
   - Often used in static analysis, data integration, and semantic web
-
