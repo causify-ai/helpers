@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Extract function context and enrich a Markdown table
+Extract function context and enrich a Markdown table.
 
 This script reads a Markdown table containing function metadata and appends
 the source line range and docstring of each function by parsing the original script files.
