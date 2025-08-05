@@ -6,4 +6,4 @@ if [[ -z $GIT_ROOT ]]; then
 fi;
 FILE_NAME=$GIT_ROOT/papers/arxiv_template/template.tex
 
-lint_notes.py -i $FILE_NAME --use_dockerized_prettier
+lint_txt.py -i $FILE_NAME --use_dockerized_prettier

@@ -27,9 +27,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(ai): Convert to
-# def _preprocess_txt(lines: List[str]) -> List[str]:
-def _preprocess_txt(txt: str) -> str:
+def _preprocess_txt(lines: List[str]) -> List[str]:
     """
     Preprocess the given text before applying `prettier`.
 
@@ -40,14 +38,14 @@ def _preprocess_txt(txt: str) -> str:
     - Format bullet points
     - Format frames
 
-    :param txt: The text to be processed.
-    :return: The preprocessed text.
+    :param lines: The lines to be processed.
+    :return: The preprocessed lines.
     """
-    _LOG.debug("txt=%s", txt)
+    _LOG.debug("lines=%s", lines)
     # 1) Remove some artifacts when copying from Google Docs.
     # TODO(gp): Extract this into remove_google_docs_artifacts() since it is
     # used in other places.
-    txt = re.sub(r"’", "'", txt)
+    txt = "\n".join(lines)
     txt = re.sub(r"“", '"', txt)
     txt = re.sub(r"”", '"', txt)
     txt = re.sub(r"…", "...", txt)
@@ -88,33 +86,34 @@ def _preprocess_txt(txt: str) -> str:
                 txt_new.append(m.group(1) + m.group(2 + i))
             continue
         txt_new.append(line)
-    txt_new_as_str = "\n".join(txt_new)
     # 5) Replace multiple empty lines with one, to avoid `prettier` to start
     #    using `*` instead of `-`.
+    txt_new_as_str = "\n".join(txt_new)
     txt_new_as_str = re.sub(r"\n\s*\n", "\n\n", txt_new_as_str)
     #
     _LOG.debug("txt_new_as_str=%s", txt_new_as_str)
-    return txt_new_as_str
+    ret = txt_new_as_str.split("\n")
+    hdbg.dassert_isinstance(ret, list)
+    return ret
 
 
-# TODO(ai): Convert to
-# def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
-def _postprocess_txt(txt: str, in_file_name: str) -> str:
+def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
     """
     Post-process the given text by applying various transformations.
 
-    :param txt: The text to be processed.
+    :param lines: The lines to be processed.
     :param in_file_name: The name of the input file.
-    :return: The post-processed text.
+    :return: The post-processed lines.
     """
-    _LOG.debug("txt=%s", txt)
+    _LOG.debug("lines=%s", lines)
+    txt = "\n".join(lines)
     # Remove empty lines before ```.
     txt = re.sub(r"^\s*\n(\s*```)$", r"\1", txt, count=0, flags=re.MULTILINE)
     # Remove empty lines before higher level bullets, but not chapters.
     txt = re.sub(r"^\s*\n(\s+-\s+.*)$", r"\1", txt, count=0, flags=re.MULTILINE)
     # True if one is in inside a ``` .... ``` block.
     in_triple_tick_block: bool = False
-    txt_new: List[str] = []
+    lines_new: List[str] = []
     for i, line in enumerate(txt.split("\n")):
         # Undo the transformation `* -> STAR`.
         line = re.sub(r"^\-(\s*)STAR", r"*\1", line, count=0)
@@ -141,47 +140,39 @@ def _postprocess_txt(txt: str, in_file_name: str) -> str:
             if m:
                 line = m.group(1) + m.group(2).upper() + m.group(3)
         #
-        txt_new.append(line)
+        lines_new.append(line)
     if in_triple_tick_block:
         print(f"{in_file_name}:{1}: A ``` block was not ending")
-    txt_new_as_str = "\n".join(txt_new)
-    return txt_new_as_str
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
 
 
 # TODO(gp): Should go in `hmarkdown_toc.py`.
-# TODO(ai): Convert to
-# def _refresh_toc(
-#    lines: List[str],
-#    *,
-#    use_dockerized_markdown_toc: bool = True,
-#    # TODO(gp): Remove this.
-#    **kwargs: Any,
-# ) -> List[str],
 def _refresh_toc(
-    txt: str,
+    lines: List[str],
     *,
     use_dockerized_markdown_toc: bool = True,
     # TODO(gp): Remove this.
     **kwargs: Any,
-) -> str:
+) -> List[str]:
     """
     Refresh the table of contents (TOC) in the given text.
 
-    :param txt: The text to be processed.
+    :param lines: The lines to be processed.
     :param use_dockerized_markdown_toc: if True, run markdown-toc in a
         Docker container
-    :return: The text with the updated TOC.
+    :return: The lines with the updated TOC.
     """
-    _LOG.debug("txt=%s", txt)
+    _LOG.debug("lines=%s", lines)
     # Check whether there is a TOC otherwise add it.
-    txt_as_arr = txt.split("\n")
     # Add `<!-- toc -->` comment in the doc to generate the TOC after that
     # line. By default, it will generate at the top of the file.
     # This workaround is useful to generate the TOC after the heading of the doc
     # at the top and not include it in the TOC.
-    if "<!-- toc -->" not in txt_as_arr:
+    if "<!-- toc -->" not in lines:
         _LOG.warning("No tags for table of content in md file: adding it")
-        txt = "<!-- toc -->\n" + txt
+        lines = ["<!-- toc -->"] + lines
+    txt = "\n".join(lines)
     # Write file.
     curr_dir = os.getcwd()
     tmp_file_name = tempfile.NamedTemporaryFile(dir=curr_dir).name
@@ -213,7 +204,9 @@ def _refresh_toc(
     os.remove(tmp_file_name)
     # Remove empty lines introduced by `markdown-toc`.
     txt = hprint.remove_lead_trail_empty_lines(txt)
-    return txt  # type: ignore
+    ret = txt.split("\n")
+    hdbg.dassert_isinstance(ret, list)
+    return ret
 
 
 # #############################################################################
@@ -228,33 +221,25 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
     return to_execute
 
 
-# TODO(ai): Convert to
-# def _perform_actions(
-#    lines: List[str],
-#    in_file_name: str,
-#    *,
-#    actions: Optional[List[str]] = None,
-#    **kwargs: Any,
-# ) -> List[str]:
-#
 def _perform_actions(
-    txt: str,
+    lines: List[str],
     in_file_name: str,
     *,
     actions: Optional[List[str]] = None,
     **kwargs: Any,
-) -> str:
+) -> List[str]:
     """
     Process the given text by applying a series of actions.
 
-    :param txt: The text to be processed.
+    :param lines: The lines to be processed.
     :param in_file_name: The name of the input file.
     :param actions: A list of actions to be performed on the text. If
         None, all default actions are performed.
     :param kwargs: Additional keyword arguments to be passed to the
         actions.
-    :return: The processed text.
+    :return: The processed lines.
     """
+    hdbg.dassert_isinstance(lines, list)
     # Get the file type.
     is_md_file = in_file_name.endswith(".md")
     extension = os.path.splitext(in_file_name)[1]
@@ -264,36 +249,34 @@ def _perform_actions(
     # Pre-process text.
     action = "preprocess"
     if _to_execute_action(action, actions):
-        txt = _preprocess_txt(txt)
+        lines = _preprocess_txt(lines)
     # Prettify.
     action = "prettier"
     if _to_execute_action(action, actions):
+        txt = "\n".join(lines)
         txt = hdocexec.prettier_on_str(txt, file_type=extension, **kwargs)
+        lines = txt.split("\n")
     # Post-process text.
     action = "postprocess"
     if _to_execute_action(action, actions):
-        txt = _postprocess_txt(txt, in_file_name)
+        lines = _postprocess_txt(lines, in_file_name)
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
         # For markdown files, we don't use the frame since it's not rendered
         # correctly.
         if not is_md_file:
-            lines = txt.split("\n")
             lines = hmarkdo.frame_chapters(lines)
-            txt = "\n".join(lines)
     # Improve header and slide titles.
     action = "capitalize_header"
     if _to_execute_action(action, actions):
-        lines = txt.split("\n")
         lines = hmarkdo.capitalize_header(lines)
-        txt = "\n".join(lines)
     # Refresh table of content.
     action = "refresh_toc"
     if _to_execute_action(action, actions):
         if is_md_file:
-            txt = _refresh_toc(txt, **kwargs)
-    return txt
+            lines = _refresh_toc(lines, **kwargs)
+    return lines
 
 
 # #############################################################################
@@ -363,12 +346,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if in_file_name == "-":
         hdbg.dassert_ne(args.type, "")
     # Read input.
-    txt = hparser.read_file(in_file_name)
-    txt = "\n".join(txt)
+    lines = hparser.read_file(in_file_name)
     _LOG.debug("in_file_name=%s", in_file_name)
     # Process.
-    out_txt = _perform_actions(
-        txt,
+    out_lines = _perform_actions(
+        lines,
         in_file_name,
         actions=args.action,
         print_width=args.print_width,
@@ -376,7 +358,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,
     )
     # Write output.
-    hparser.write_file(out_txt, out_file_name)
+    hparser.write_file(out_lines, out_file_name)
 
 
 if __name__ == "__main__":

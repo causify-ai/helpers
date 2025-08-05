@@ -4,7 +4,7 @@ from typing import Optional
 
 import pytest
 
-import dev_scripts_helpers.documentation.lint_notes as dshdlino
+import dev_scripts_helpers.documentation.lint_txt as dshdlino
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
@@ -46,7 +46,7 @@ def _get_text1() -> str:
 
 
 # #############################################################################
-# Test_lint_notes1
+# Test_lint_txt1
 # #############################################################################
 
 
@@ -54,14 +54,23 @@ def _get_text1() -> str:
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
 )
-class Test_lint_notes1(hunitest.TestCase):
+class Test_lint_txt1(hunitest.TestCase):
+    def helper(self, txt: str, expected: str) -> None:
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        actual = dshdlino._preprocess_txt(txt)
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    # //////////////////////////////////////////////////////////////////////////
+
     def test_preprocess1(self) -> None:
         txt = r"""$$E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)$$"""
         expected = r"""
         $$
         E_{in} = \frac{1}{N} \sum_i e(h(\vx_i), y_i)
         $$"""
-        self._helper_preprocess(txt, expected)
+        self.helper(txt, expected)
 
     def test_preprocess2(self) -> None:
         txt = r"""
@@ -74,7 +83,7 @@ class Test_lint_notes1(hunitest.TestCase):
         -y_i \log(\Pr(h(\vx) = 1|\vx)) - (1 - y_i) \log(1 - \Pr(h(\vx)=1|\vx))
         \big)
         $$"""
-        self._helper_preprocess(txt, expected)
+        self.helper(txt, expected)
 
     def test_preprocess3(self) -> None:
         txt = _get_text1()
@@ -105,7 +114,7 @@ class Test_lint_notes1(hunitest.TestCase):
         - It can be proven that the function $E_{in}(\vw)$ to minimize is convex in
           $\vw$ (sum of exponentials and flipped exponentials is convex and log is
           monotone)"""
-        self._helper_preprocess(txt, expected)
+        self.helper(txt, expected)
 
     def test_preprocess4(self) -> None:
         txt = r"""
@@ -113,7 +122,7 @@ class Test_lint_notes1(hunitest.TestCase):
         # test
         # #############################################################################"""
         expected = r"""# test"""
-        self._helper_preprocess(txt, expected)
+        self.helper(txt, expected)
 
     def test_preprocess5(self) -> None:
         txt = r"""
@@ -121,17 +130,11 @@ class Test_lint_notes1(hunitest.TestCase):
         # test
         # ////////////////"""
         expected = r"""# test"""
-        self._helper_preprocess(txt, expected)
-
-    def _helper_preprocess(self, txt: str, expected: str) -> None:
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        actual = dshdlino._preprocess_txt(txt)
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        self.helper(txt, expected)
 
 
 # #############################################################################
-# Test_lint_notes2
+# Test_lint_txt2
 # #############################################################################
 
 
@@ -139,12 +142,55 @@ class Test_lint_notes1(hunitest.TestCase):
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
 )
-class Test_lint_notes2(hunitest.TestCase):
+class Test_lint_txt2(hunitest.TestCase):
+
+    @staticmethod
+    def get_text_problematic_for_prettier1() -> str:
+        txt = r"""
+        * Python formatting
+        - Python has several built-in ways of formatting strings
+          1) `%` format operator
+          2) `format` and `str.format`
+
+
+        * `%` format operator
+        - Text template as a format string
+          - Values to insert are provided as a value or a `tuple`
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        return txt
+
+    def helper(
+        self, txt: str, expected: Optional[str], file_name: str
+    ) -> str:
+        """
+        Helper function to process the given text and compare the result with
+        the expected output.
+
+        :param txt: The text to be processed.
+        :param expected: The expected output after processing the text. If
+            None, no comparison is made.
+        :param file_name: The name of the file to be used for
+            processing.
+        :return: The processed text.
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        file_name = os.path.join(self.get_scratch_space(), file_name)
+        actual = dshdlino._perform_actions(txt, file_name)
+        if expected:
+            expected = hprint.dedent(
+                expected, remove_lead_trail_empty_lines_=True
+            )
+            self.assert_equal(actual, expected)
+        return actual
+
+    # //////////////////////////////////////////////////////////////////////////
+
     def test_process1(self) -> None:
         txt = _get_text1()
         expected = None
         file_name = "test.txt"
-        actual = self._helper_process(txt, expected, file_name)
+        actual = self.helper(txt, expected, file_name)
         self.check_string(actual)
 
     def test_process2(self) -> None:
@@ -164,7 +210,7 @@ class Test_lint_notes2(hunitest.TestCase):
            - Avoid non-essential tasks
         """
         file_name = "test.txt"
-        self._helper_process(txt, expected, file_name)
+        self.helper(txt, expected, file_name)
 
     def test_process3(self) -> None:
         """
@@ -200,7 +246,7 @@ class Test_lint_notes2(hunitest.TestCase):
           - World
         """
         file_name = "test.md"
-        self._helper_process(txt, expected, file_name)
+        self.helper(txt, expected, file_name)
 
     def test_process4(self) -> None:
         """
@@ -236,13 +282,13 @@ class Test_lint_notes2(hunitest.TestCase):
         ```
         """
         file_name = "test.md"
-        self._helper_process(txt, expected, file_name)
+        self.helper(txt, expected, file_name)
 
     def test_process_prettier_bug1(self) -> None:
         """
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
-        txt = self._get_text_problematic_for_prettier1()
+        txt = self.get_text_problematic_for_prettier1()
         actual = hdocexec.prettier_on_str(txt, file_type="txt")
         expected = r"""
         - Python formatting
@@ -263,7 +309,7 @@ class Test_lint_notes2(hunitest.TestCase):
         """
         Run the text linter on a txt file.
         """
-        txt = self._get_text_problematic_for_prettier1()
+        txt = self.get_text_problematic_for_prettier1()
         expected = r"""
         * Python Formatting
         - Python has several built-in ways of formatting strings
@@ -275,7 +321,7 @@ class Test_lint_notes2(hunitest.TestCase):
           - Values to insert are provided as a value or a `tuple`
         """
         file_name = "test.txt"
-        self._helper_process(txt, expected, file_name)
+        self.helper(txt, expected, file_name)
 
     def test_process6(self) -> None:
         """
@@ -298,53 +344,11 @@ class Test_lint_notes2(hunitest.TestCase):
           ```
         """
         file_name = "test.txt"
-        self._helper_process(txt, expected, file_name)
-
-    # //////////////////////////////////////////////////////////////////////////
-
-    @staticmethod
-    def _get_text_problematic_for_prettier1() -> str:
-        txt = r"""
-        * Python formatting
-        - Python has several built-in ways of formatting strings
-          1) `%` format operator
-          2) `format` and `str.format`
-
-
-        * `%` format operator
-        - Text template as a format string
-          - Values to insert are provided as a value or a `tuple`
-        """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        return txt
-
-    def _helper_process(
-        self, txt: str, expected: Optional[str], file_name: str
-    ) -> str:
-        """
-        Helper function to process the given text and compare the result with
-        the expected output.
-
-        :param txt: The text to be processed.
-        :param expected: The expected output after processing the text. If
-            None, no comparison is made.
-        :param file_name: The name of the file to be used for
-            processing.
-        :return: The processed text.
-        """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        file_name = os.path.join(self.get_scratch_space(), file_name)
-        actual = dshdlino._perform_actions(txt, file_name)
-        if expected:
-            expected = hprint.dedent(
-                expected, remove_lead_trail_empty_lines_=True
-            )
-            self.assert_equal(actual, expected)
-        return actual
+        self.helper(txt, expected, file_name)
 
 
 # #############################################################################
-# Test_lint_notes_cmd_line1
+# Test_lint_txt_cmd_line1
 # #############################################################################
 
 
@@ -352,7 +356,7 @@ class Test_lint_notes2(hunitest.TestCase):
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
 )
-class Test_lint_notes_cmd_line1(hunitest.TestCase):
+class Test_lint_txt_cmd_line1(hunitest.TestCase):
     def create_md_input_file(self) -> str:
         txt = """
         # Header1
@@ -400,11 +404,11 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         return in_file
 
     # TODO(gp): Run this calling directly the code and not executing the script.
-    def run_lint_notes(
+    def run_lint_txt(
         self, in_file: str, type_: str, cmd_opts: str
     ) -> Optional[str]:
         """
-        Run the `lint_notes.py` script with the specified options.
+        Run the `lint_txt.py` script with the specified options.
 
         :param in_file: Path to the input file containing the notes.
         :param type_: The output format, either 'md' or 'tex'.
@@ -413,11 +417,11 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         :return: A tuple containing the script content and the output
             content.
         """
-        # lint_notes.py \
+        # lint_txt.py \
         #  -i papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex \
         #  --use_dockerized_prettier \
         cmd = []
-        exec_path = hgit.find_file_in_git_tree("lint_notes.py")
+        exec_path = hgit.find_file_in_git_tree("lint_txt.py")
         hdbg.dassert_path_exists(exec_path)
         cmd.append(exec_path)
         cmd.append(f"--in_file_name {in_file}")
@@ -447,7 +451,7 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         type_ = "md"
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_notes(in_file, type_, cmd_opts)
+        output_txt = self.run_lint_txt(in_file, type_, cmd_opts)
         # Check.
         self.check_string(output_txt)
 
@@ -460,6 +464,6 @@ class Test_lint_notes_cmd_line1(hunitest.TestCase):
         type_ = "tex"
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_notes(in_file, type_, cmd_opts)
+        output_txt = self.run_lint_txt(in_file, type_, cmd_opts)
         # Check.
         self.check_string(output_txt)
