@@ -105,8 +105,7 @@ def _process_question_to_slides(
 
 
 # TODO(gp): Use hmarkdown.process_lines().
-# TODO(gp): Pass List[str].
-def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
+def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
@@ -116,8 +115,8 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
     :return: List of lines of the notes.
     """
     _LOG.debug("\n%s", hprint.frame("transform_lines"))
-    hdbg.dassert_isinstance(txt, str)
-    lines = [line.rstrip("\n") for line in txt.split("\n")]
+    hdbg.dassert_isinstance(lines, list)
+    lines = [line.rstrip("\n") for line in lines]
     out: List[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
     if lines[0] != "---":
@@ -229,6 +228,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     out.append(" " * _NUM_SPACES + line)
     # c) Clean up.
     _LOG.debug("Clean up")
+    hdbg.dassert_isinstance(out, list)
     # Remove all the lines with only spaces.
     out_tmp = []
     for line in out:
@@ -236,13 +236,13 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
             line = ""
         out_tmp.append(line)
     # Return result.
-    out = "\n".join(out_tmp)
-    return out
+    hdbg.dassert_isinstance(out_tmp, list)
+    return out_tmp
 
 
 def _add_navigation_slides(
-    txt: str, max_level: int, *, sanity_check: bool = False
-) -> str:
+    lines: List[str], max_level: int, *, sanity_check: bool = False
+) -> List[str]:
     """
     Add the navigation slides to the notes.
 
@@ -253,9 +253,9 @@ def _add_navigation_slides(
     :return: The notes text with the navigation slides.
     """
     _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
-    hdbg.dassert_isinstance(txt, str)
+    hdbg.dassert_isinstance(lines, list)
     header_list = hmarkdo.extract_headers_from_markdown(
-        txt, max_level, sanity_check=sanity_check
+        lines, max_level, sanity_check=sanity_check
     )
     _LOG.debug("header_list=\n%s", header_list)
     tree = hmarkdo.build_header_tree(header_list)
@@ -263,7 +263,7 @@ def _add_navigation_slides(
     out: List[str] = []
     open_modifier = r"**\textcolor{purple}{"
     close_modifier = r"}**"
-    for line in txt.split("\n"):
+    for line in lines:
         is_header, level, description = hmarkdo.is_header(line)
         if is_header and level <= max_level:
             _LOG.debug(hprint.to_str("line level description"))
@@ -288,8 +288,26 @@ def _add_navigation_slides(
             out.append(line_tmp)
         else:
             out.append(line)
-    txt_out = "\n".join(out)
-    return txt_out
+    hdbg.dassert_isinstance(out, list)
+    return out
+
+
+def _preprocess_lines(
+    lines: List[str], type_: str, toc_type: str, is_qa: bool
+) -> List[str]:
+    """
+    Preprocess the lines of the notes.
+    """
+    hdbg.dassert_isinstance(lines, list)
+    # Apply transformations.
+    out = _transform_lines(lines, type_, is_qa=is_qa)
+    # Add TOC, if needed.
+    if toc_type == "navigation":
+        hdbg.dassert_eq(type_, "slides")
+        max_level = 2
+        out = _add_navigation_slides(out, max_level, sanity_check=True)
+    hdbg.dassert_isinstance(out, list)
+    return out
 
 
 # #############################################################################
@@ -329,13 +347,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("cmd line=%s", hdbg.get_command_line())
     # Read file.
     txt = hio.from_file(args.input)
-    # Apply transformations.
-    out = _transform_lines(txt, args.type, is_qa=args.qa)
-    # Add TOC, if needed.
-    if args.toc_type == "navigation":
-        hdbg.dassert_eq(args.type, "slides")
-        max_level = 2
-        out = _add_navigation_slides(out, max_level, sanity_check=True)
+    # Process.
+    lines = txt.split("\n")
+    out = _preprocess_lines(lines, args.type, args.toc_type, args.qa)
+    out = "\n".join(out)
     # Save results.
     hio.to_file(args.output, out)
 

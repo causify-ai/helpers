@@ -247,18 +247,18 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     :return: A dictionary with the parsed arguments.
     """
     # Use shlex.split to tokenize the string like a shell would.
-    cmd = shlex.split(cmd)
+    cmd_list = shlex.split(cmd)
     # Remove the newline character that come from multiline commands with `\n`.
-    cmd = [arg for arg in cmd if arg != "\n"]
+    cmd_list = [arg for arg in cmd_list if arg != "\n"]
     _LOG.debug(hprint.to_str("cmd"))
     # The first option is the executable.
-    hdbg.dassert_eq(cmd[0], "pandoc")
+    hdbg.dassert_eq(cmd_list[0], "pandoc")
     # pandoc parser is difficult to emulate with `argparse`, since pandoc allows
     # the input file to be anywhere in the command line options. In our case we
     # don't know all the possible command line options so for simplicity we
     # assume that the first option is always the input file.
-    in_file_path = cmd[1]
-    cmd = cmd[2:]
+    in_file_path = cmd_list[1]
+    cmd_list = cmd_list[2:]
     _LOG.debug(hprint.to_str("cmd"))
     #
     parser = argparse.ArgumentParser()
@@ -267,7 +267,7 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     parser.add_argument("--template", default=None)
     parser.add_argument("--extract-media", default=None)
     # Parse known arguments and capture the rest.
-    args, unknown_args = parser.parse_known_args(cmd)
+    args, unknown_args = parser.parse_known_args(cmd_list)
     _LOG.debug(hprint.to_str("args unknown_args"))
     # Filter out the option terminator if present.
     # Remove the `--` option terminator to treat `--option-after-terminator` as a regular argument, not as an option.
@@ -707,31 +707,31 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     :return: A dictionary with the parsed arguments.
     """
     # Use shlex.split to tokenize the string like a shell would.
-    cmd = shlex.split(cmd)
+    cmd_list = shlex.split(cmd)
     # Remove the newline character that come from multiline commands with `\n`.
-    cmd = [arg for arg in cmd if arg != "\n"]
+    cmd_list = [arg for arg in cmd_list if arg != "\n"]
     _LOG.debug(hprint.to_str("cmd"))
     # The first option is the executable.
-    hdbg.dassert_eq(cmd[0], "pdflatex")
+    hdbg.dassert_eq(cmd_list[0], "pdflatex")
     # We assume that the first option is always the input file.
-    in_file_path = cmd[-1]
+    in_file_path = cmd_list[-1]
     hdbg.dassert(
         not in_file_path.startswith("-"),
         "Invalid input file '%s'",
         in_file_path,
     )
     hdbg.dassert_file_exists(in_file_path)
-    cmd = cmd[1:-1]
+    cmd_list = cmd_list[1:-1]
     _LOG.debug(hprint.to_str("cmd"))
     #
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-directory", required=True)
     # Latex uses options like `-XYZ` which confuse `argparse` so we need to
     # replace `-XYZ` with `--XYZ`.
-    cmd = [re.sub(r"^-", r"--", cmd_opts) for cmd_opts in cmd]
+    cmd_list = [re.sub(r"^-", r"--", cmd_opts) for cmd_opts in cmd_list]
     _LOG.debug(hprint.to_str("cmd"))
     # # Parse known arguments and capture the rest.
-    args, unknown_args = parser.parse_known_args(cmd)
+    args, unknown_args = parser.parse_known_args(cmd_list)
     _LOG.debug(hprint.to_str("args unknown_args"))
     # Return all the arguments in a dictionary with names that match the
     # function signature of `run_dockerized_pandoc()`.

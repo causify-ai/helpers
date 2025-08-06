@@ -184,6 +184,8 @@ def _render_image_code(
         """
         )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
+    elif image_code_type == "raw_latex":
+        pass
     # Get paths for rendered files.
     # TODO(gp): The fact that we compute the image file path here makes it
     # not possible to use a decorator to implement the caching.
@@ -219,8 +221,8 @@ def _render_image_code(
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
-        elif image_code_type in ("tikz", "latex"):
-            cmd_opts: List[str] = ["-density 300", "-quality 20"]
+        elif image_code_type in ("tikz", "latex", "raw_latex"):
+            cmd_opts: List[str] = ["-density 600", "-quality 30"]
             hdocexec.run_dockerized_tikz_to_bitmap(
                 in_code_file_path,
                 cmd_opts,
@@ -355,7 +357,7 @@ def _render_images(
         ^\s*                # Start of the line and any leading whitespace
         ({comment}\s*)?     # Optional comment prefix
         ```                 # Opening backticks for code block
-        (plantuml|mermaid|tikz|graphviz|latex*)  # Image code type
+        (plantuml|mermaid|tikz|graphviz|latex|raw_latex*)  # Image code type
         (\((.*)\))?         # Optional user-specified image name as (...)
         (\[(.*)\])?         # Optional user-specified image size as [...]
         \s*$                # Any trailing whitespace and end of the line
@@ -388,7 +390,14 @@ def _render_images(
             image_code_type = m.group(2)
             hdbg.dassert_in(
                 image_code_type,
-                ["plantuml", "mermaid", "tikz", "graphviz", "latex"],
+                [
+                    "plantuml",
+                    "mermaid",
+                    "tikz",
+                    "graphviz",
+                    "latex",
+                    "raw_latex",
+                ],
             )
             if m.group(3):
                 hdbg.dassert_eq(user_rel_img_path, "")

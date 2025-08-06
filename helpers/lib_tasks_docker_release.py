@@ -1150,9 +1150,7 @@ def docker_release_all(ctx, version, container_dir_name="."):  # type: ignore
     """
     hlitauti.report_task()
     docker_release_dev_image(ctx, version, container_dir_name=container_dir_name)
-    docker_release_prod_image(
-        ctx, version, container_dir_name=container_dir_name
-    )
+    docker_release_prod_image(ctx, version, container_dir_name=container_dir_name)
     _LOG.info("==> SUCCESS <==")
 
 
@@ -1294,12 +1292,14 @@ def docker_create_candidate_image(ctx, container_dir_name=".", user_tag=""):  # 
 @task
 def docker_release_test_task_definition(
     ctx,
-    task_definition: str = None,
-    user_tag: str = None,
+    task_definition: Optional[str] = None,
+    user_tag: Optional[str] = None,
     region: str = hs3.AWS_EUROPE_REGION_1,
 ):  # type: ignore
     """
     Release candidate image to test ECS task definition.
+
+    :param region: region to create the task definition in
     """
     hdbg.dassert_in(region, hs3.AWS_REGIONS)
     # Verify that task definition is provided.
@@ -1312,15 +1312,49 @@ def docker_release_test_task_definition(
         task_definition=task_definition,
         image_tag=image_tag,
         region=region,
+        environment="test",
+    )
+
+
+@task
+def docker_release_preprod_task_definition(
+    ctx, region: str = hs3.AWS_EUROPE_REGION_1
+):  # type: ignore
+    """
+    Release candidate image to preprod ECS task definition.
+
+    :param region: region to create the task definition in
+    """
+    hdbg.dassert_in(region, hs3.AWS_REGIONS)
+    # Preprod release should be done from master branch and the client should be
+    # clean.
+    curr_branch = hgit.get_branch_name()
+    hdbg.dassert_eq(
+        curr_branch, "master", msg="You should release from master branch"
+    )
+    _ = hgit.is_client_clean(abort_if_not_clean=True)
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    task_definition_name = f"{image_name}-preprod"
+    # Create candidate image.
+    current_dir = os.getcwd()
+    image_tag = docker_create_candidate_image(ctx, current_dir)
+    # Update ECS task definition with new image URL.
+    hlitaaws.aws_update_ecs_task_definition(
+        task_definition=task_definition_name,
+        image_tag=image_tag,
+        region=region,
+        environment="preprod",
     )
 
 
 @task
 def docker_release_prod_task_definition(
-    ctx, region: str = hs3.AWS_EUROPE_REGION_1
+    ctx, region: str = hs3.AWS_US_REGION_1
 ):  # type: ignore
     """
     Release candidate image to prod ECS task definition.
+
+    :param region: region to create the task definition in
     """
     hdbg.dassert_in(region, hs3.AWS_REGIONS)
     # Prod release should be done from master branch and the client should be
@@ -1340,6 +1374,7 @@ def docker_release_prod_task_definition(
         task_definition=task_definition_name,
         image_tag=image_tag,
         region=region,
+        environment="prod",
     )
 
 
@@ -1425,18 +1460,14 @@ def docker_update_prod_task_definition(
     # Compose new prod image url.
     new_prod_image_url = hlitadoc.get_image(base_image, stage, prod_version)
     version = None
-    new_prod_image_url_no_version = hlitadoc.get_image(
-        base_image, stage, version
-    )
+    new_prod_image_url_no_version = hlitadoc.get_image(base_image, stage, version)
     # Check if preprod tag exist in preprod task definition as precaution.
     preprod_task_definition_name = f"{task_definition}-preprod"
     preprod_image_url = haws.get_task_definition_image_url(
         preprod_task_definition_name
     )
     preprod_tag_from_image = preprod_image_url.split(":")[-1]
-    msg = (
-        f"Preprod tag is different in the image url `{preprod_tag_from_image}`!"
-    )
+    msg = f"Preprod tag is different in the image url `{preprod_tag_from_image}`!"
     hdbg.dassert_eq(preprod_tag_from_image, preprod_tag, msg=msg)
     # Pull preprod image for re-tag.
     hlitadoc.docker_login(ctx)
@@ -1455,7 +1486,9 @@ def docker_update_prod_task_definition(
     successful_uploads = []
     try:
         # Update prod task definition to the latest prod tag.
-        haws.update_task_definition(task_definition, new_prod_image_url)
+        haws.update_task_definition(
+            task_definition, new_prod_image_url, environment="prod"
+        )
         # Add prod DAGs to airflow s3 bucket after all checks are passed.
         for dag_path in dag_paths:
             # Update prod DAGs.
@@ -1470,7 +1503,9 @@ def docker_update_prod_task_definition(
     except Exception as ex:
         _LOG.info("Rollback started!")
         # Rollback prod task definition image URL.
-        haws.update_task_definition(task_definition, original_prod_image_url)
+        haws.update_task_definition(
+            task_definition, original_prod_image_url, environment="prod"
+        )
         _LOG.info(
             "Reverted prod task definition image url to `%s`!",
             original_prod_image_url,
