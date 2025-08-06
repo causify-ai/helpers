@@ -11,8 +11,7 @@ from typing import Callable, List, Tuple
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 from helpers.hmarkdown_comments import process_comment_block
-import helpers_root.helpers.hdbg as hdbg
-from helpers_root.helpers.hmarkdown_headers import HeaderInfo, HeaderList, is_markdown_line_separator
+from helpers.hmarkdown_headers import HeaderInfo, HeaderList, is_markdown_line_separator
 
 _LOG = logging.getLogger(__name__)
 

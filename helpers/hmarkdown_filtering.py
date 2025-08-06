@@ -12,7 +12,7 @@ import helpers.hdbg as hdbg
 from helpers.hmarkdown_headers import (
     extract_section_from_markdown,
 )
-from helpers_root.helpers.hmarkdown_slides import extract_slides_from_markdown
+from helpers.hmarkdown_slides import extract_slides_from_markdown
 
 _LOG = logging.getLogger(__name__)
 
