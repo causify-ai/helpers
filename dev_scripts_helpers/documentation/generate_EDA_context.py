@@ -47,6 +47,8 @@ def _read_function_table(filepath: str) -> pd.DataFrame:
     """
     df = pd.read_csv(filepath, sep="|", engine="python")
     df = df.dropna(axis=1, how="all")
+    # Drop auto-generated 'Unnamed' index column.
+    df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
     df.columns = df.columns.str.strip()
     df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
     # Remove separator line.
