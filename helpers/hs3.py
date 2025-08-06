@@ -879,20 +879,25 @@ def get_s3fs(aws_profile: AwsProfile) -> S3FileSystem:
             # based on passed task role specified in the ECS task-definition,
             # refer to:
             # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
-            if aws_profile == "ck" and hserver.is_inside_ecs_container():
+            if aws_profile in ["ck", "csfy"] and hserver.is_inside_ecs_container():
                 _LOG.info("Fetching credentials from task IAM role")
                 s3fs_ = S3FileSystem()
             else:
                 # From https://stackoverflow.com/questions/62562945
-                aws_credentials = get_aws_credentials(aws_profile)
-                _LOG.debug("%s", pprint.pformat(aws_credentials))
-                s3fs_ = S3FileSystem(
-                    anon=False,
-                    key=aws_credentials["aws_access_key_id"],
-                    secret=aws_credentials["aws_secret_access_key"],
-                    token=aws_credentials["aws_session_token"],
-                    client_kwargs={"region_name": aws_credentials["aws_region"]},
-                )
+                # aws_credentials = get_aws_credentials(aws_profile)
+                # _LOG.debug("%s", pprint.pformat(aws_credentials))
+                # s3fs_ = S3FileSystem(
+                #     anon=False,
+                #     key=aws_credentials["aws_access_key_id"],
+                #     secret=aws_credentials["aws_secret_access_key"],
+                #     token=aws_credentials["aws_session_token"],
+                #     client_kwargs={"region_name": aws_credentials["aws_region"]},
+                # )
+                #
+                # We do not need to extract the credential from the file because
+                # the config (`~/.aws/config`) and credential
+                # (`~/.aws/credentials`) are already set.
+                s3fs_ = S3FileSystem(anon=False, profile=aws_profile)
         elif isinstance(aws_profile, S3FileSystem):
             s3fs_ = aws_profile
         else:
