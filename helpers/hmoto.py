@@ -4,6 +4,7 @@ Import as:
 import helpers.hmoto as hmoto
 """
 
+import os
 import unittest.mock as umock
 from typing import Generator, Union
 
@@ -107,5 +108,11 @@ class S3Mock_TestCase(hunitest.TestCase):
         from s3fs import S3FileSystem
 
         hdbg.dassert_isinstance(aws_profile, (str, S3FileSystem))
-        aws_profile = S3FileSystem(anon=False)
-        return aws_profile
+        # Create S3FileSystem that uses the mocked environment variables
+        s3fs_ = S3FileSystem(
+            anon=False,
+            key=os.environ.get("MOCK_AWS_ACCESS_KEY_ID", "mock_key_id"),
+            secret=os.environ.get("MOCK_AWS_SECRET_ACCESS_KEY", "mock_secret_access_key"),
+            client_kwargs={"region_name": os.environ.get("MOCK_AWS_DEFAULT_REGION", "us-east-1")},
+        )
+        return s3fs_
