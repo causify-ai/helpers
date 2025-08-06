@@ -32,6 +32,7 @@ from typing import Tuple
 import pandas as pd
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -67,8 +68,7 @@ def _get_function_line_range_and_docstring(
     :param function_name: name of the function
     :return: line range of function and docstring text
     """
-    with open(file_path, "r", encoding="utf-8") as f:
-        source = f.read()
+    source = hio.from_file(file_path, encoding="utf-8")
     tree = ast.parse(source)
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef) and node.name == function_name:
