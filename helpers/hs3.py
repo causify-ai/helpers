@@ -885,6 +885,8 @@ def get_s3fs(aws_profile: AwsProfile) -> S3FileSystem:
                 _LOG.info("Fetching credentials from task IAM role")
                 s3fs_ = S3FileSystem()
             else:
+                # TODO(heanh): Make this manual extraction of credentials
+                # code obsoleted.
                 # From https://stackoverflow.com/questions/62562945
                 # aws_credentials = get_aws_credentials(aws_profile)
                 # _LOG.debug("%s", pprint.pformat(aws_credentials))

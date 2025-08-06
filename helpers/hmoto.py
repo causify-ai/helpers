@@ -76,7 +76,7 @@ class S3Mock_TestCase(hunitest.TestCase):
         buckets = s3_test_client.list_buckets()["Buckets"]
         self.assertEqual(len(buckets), 1)
         self.assertEqual(buckets[0]["Name"], self.bucket_name)
-        # Patch `get_s3fs`that uses the mocked environment variables.
+        # Patch `get_s3fs` that uses the mocked environment variables.
         self.mock_get_s3fs = umock.patch.object(
             hs3, "get_s3fs", side_effect=self._mock_get_s3fs
         )
@@ -101,7 +101,8 @@ class S3Mock_TestCase(hunitest.TestCase):
         self, aws_profile: Union[str, hs3.S3FileSystem]
     ) -> hs3.S3FileSystem:
         """
-        Mock implementation of get_s3fs that works with moto.
+        Mock implementation of `get_s3fs` to use the mocked environment
+        variables from `moto`.
         """
         from s3fs import S3FileSystem
 
