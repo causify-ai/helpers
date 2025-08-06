@@ -12,7 +12,6 @@ import gzip
 import logging
 import os
 import pathlib
-import pprint
 import re
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -43,6 +42,7 @@ except ModuleNotFoundError:
 
     class S3FileSystem:
         pass
+
 
 # Avoid the following dependency from other `helpers` modules to prevent import cycles.
 # import helpers.hpandas as hpandas
@@ -687,9 +687,7 @@ def generate_aws_files(
     config_file_name = os.path.join(home_dir, ".aws", "config")
     credentials_file_name = os.path.join(home_dir, ".aws", "credentials")
     # Check if the files already exist.
-    if os.path.exists(credentials_file_name) and os.path.exists(
-        config_file_name
-    ):
+    if os.path.exists(credentials_file_name) and os.path.exists(config_file_name):
         _LOG.info(
             "Both files exist: %s and %s; exiting",
             credentials_file_name,
@@ -879,7 +877,11 @@ def get_s3fs(aws_profile: AwsProfile) -> S3FileSystem:
             # based on passed task role specified in the ECS task-definition,
             # refer to:
             # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
-            if aws_profile in ["ck", "csfy"] and hserver.is_inside_ecs_container():
+            if (
+                # TODO(heanh): Centralize the list of supported profiles.
+                aws_profile in ["ck", "csfy"]
+                and hserver.is_inside_ecs_container()
+            ):
                 _LOG.info("Fetching credentials from task IAM role")
                 s3fs_ = S3FileSystem()
             else:

@@ -22,6 +22,11 @@ import helpers.hs3 as hs3  # noqa: E402 module level import not at top of file  
 import helpers.hunit_test as hunitest  # noqa: E402 module level import not at top of file  # pylint: disable=wrong-import-position
 
 
+# #############################################################################
+# S3Mock_TestCase
+# #############################################################################
+
+
 @pytest.mark.requires_aws
 @pytest.mark.requires_ck_infra
 class S3Mock_TestCase(hunitest.TestCase):
@@ -58,7 +63,6 @@ class S3Mock_TestCase(hunitest.TestCase):
             import helpers.hsecrets as hsecret
 
             self.binance_secret = hsecret.get_secret("binance.preprod.trading.1")
-
         # Start boto3 mock.
         self.mock_s3.start()
         # Start AWS credentials mock. Must be started after moto mock,
@@ -74,12 +78,9 @@ class S3Mock_TestCase(hunitest.TestCase):
         self.assertEqual(buckets[0]["Name"], self.bucket_name)
         # Patch `get_s3fs`that uses the mocked environment variables.
         self.mock_get_s3fs = umock.patch.object(
-            hs3,
-            'get_s3fs',
-            side_effect=self._mock_get_s3fs
+            hs3, "get_s3fs", side_effect=self._mock_get_s3fs
         )
         self.mock_get_s3fs.start()
-        
 
     def tear_down_test(self) -> None:
         # Empty the bucket otherwise deletion will fail.
@@ -90,13 +91,15 @@ class S3Mock_TestCase(hunitest.TestCase):
         # Delete bucket.
         bucket.delete()
         # Stop mocked `get_s3fs`.
-        if hasattr(self, 'mock_get_s3fs'):
+        if hasattr(self, "mock_get_s3fs"):
             self.mock_get_s3fs.stop()
         # Stop moto.
         self.mock_aws_credentials_patch.stop()
         self.mock_s3.stop()
 
-    def _mock_get_s3fs(self, aws_profile: Union[str, hs3.S3FileSystem]) -> hs3.S3FileSystem:
+    def _mock_get_s3fs(
+        self, aws_profile: Union[str, hs3.S3FileSystem]
+    ) -> hs3.S3FileSystem:
         """
         Mock implementation of get_s3fs that works with moto.
         """
