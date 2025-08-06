@@ -107,8 +107,5 @@ class S3Mock_TestCase(hunitest.TestCase):
         from s3fs import S3FileSystem
 
         hdbg.dassert_isinstance(aws_profile, (str, S3FileSystem))
-        if isinstance(aws_profile, str):
-            if aws_profile == "__mock__":
-                # Return `S3FileSystem` that uses the mocked environment variables.
-                aws_profile = S3FileSystem(anon=False)
+        aws_profile = S3FileSystem(anon=False)
         return aws_profile
