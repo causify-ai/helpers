@@ -5,7 +5,7 @@ import helpers.hmoto as hmoto
 """
 
 import unittest.mock as umock
-from typing import Generator
+from typing import Generator, Union
 
 import pytest  # isort:skip # noqa: E402 # pylint: disable=wrong-import-position
 
@@ -20,6 +20,11 @@ import boto3  # noqa: E402 module level import not at top of file  # pylint: dis
 import helpers.hdbg as hdbg  # noqa: E402 module level import not at top of file  # pylint: disable=wrong-import-position
 import helpers.hs3 as hs3  # noqa: E402 module level import not at top of file  # pylint: disable=wrong-import-position
 import helpers.hunit_test as hunitest  # noqa: E402 module level import not at top of file  # pylint: disable=wrong-import-position
+
+
+# #############################################################################
+# S3Mock_TestCase
+# #############################################################################
 
 
 @pytest.mark.requires_aws
@@ -58,7 +63,6 @@ class S3Mock_TestCase(hunitest.TestCase):
             import helpers.hsecrets as hsecret
 
             self.binance_secret = hsecret.get_secret("binance.preprod.trading.1")
-
         # Start boto3 mock.
         self.mock_s3.start()
         # Start AWS credentials mock. Must be started after moto mock,
@@ -72,16 +76,36 @@ class S3Mock_TestCase(hunitest.TestCase):
         buckets = s3_test_client.list_buckets()["Buckets"]
         self.assertEqual(len(buckets), 1)
         self.assertEqual(buckets[0]["Name"], self.bucket_name)
+        # Patch `get_s3fs` that uses the mocked environment variables.
+        self.mock_get_s3fs = umock.patch.object(
+            hs3, "get_s3fs", side_effect=self._mock_get_s3fs
+        )
+        self.mock_get_s3fs.start()
 
     def tear_down_test(self) -> None:
         # Empty the bucket otherwise deletion will fail.
-        s3 = boto3.resource("s3")
+        s3_client = boto3.resource("s3")
         hdbg.dassert_eq(self.bucket_name, "mock_bucket")
-        bucket = s3.Bucket(self.bucket_name)
+        bucket = s3_client.Bucket(self.bucket_name)
         bucket.objects.all().delete()
         # Delete bucket.
-        s3fs_ = hs3.get_s3fs(self.mock_aws_profile)
-        s3fs_.delete(f"s3://{self.bucket_name}", recursive=True)
+        bucket.delete()
+        # Stop mocked `get_s3fs`.
+        if hasattr(self, "mock_get_s3fs"):
+            self.mock_get_s3fs.stop()
         # Stop moto.
         self.mock_aws_credentials_patch.stop()
         self.mock_s3.stop()
+
+    def _mock_get_s3fs(
+        self, aws_profile: Union[str, hs3.S3FileSystem]
+    ) -> hs3.S3FileSystem:
+        """
+        Mock implementation of `get_s3fs` to use the mocked environment
+        variables from `moto`.
+        """
+        from s3fs import S3FileSystem
+
+        hdbg.dassert_isinstance(aws_profile, (str, S3FileSystem))
+        aws_profile = S3FileSystem(anon=False)
+        return aws_profile
