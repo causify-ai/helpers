@@ -12,14 +12,13 @@ import schema_parser as schpar
 """
 
 import argparse
+import dataclasses
 import json
 import logging
-import os
-from dataclasses import dataclass
-from pathlib import Path
+import pathlib
 from typing import Any, Dict, List, Optional
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -29,11 +28,17 @@ logging.basicConfig(level=logging.INFO)
 _LOG = logging.getLogger(__name__)
 
 
-@dataclass
+# #############################################################################
+# ColumnInfo
+# #############################################################################
+
+
+@dataclasses.dataclass
 class ColumnInfo:
     """
     Represent information about a single column.
     """
+
     name: str
     data_type: str
     required: bool = False
@@ -53,11 +58,17 @@ class ColumnInfo:
             self.metadata = {}
 
 
-@dataclass
+# #############################################################################
+# ParsedSchema
+# #############################################################################
+
+
+@dataclasses.dataclass
 class ParsedSchema:
     """
     Represent the complete parsed schema result.
     """
+
     columns: List[ColumnInfo]
     raw_schema: Dict[str, Any]
     schema_type: str
@@ -75,10 +86,15 @@ class ParsedSchema:
         self.optional_columns = self.total_columns - self.required_columns
 
 
+# #############################################################################
+# SchemaParser
+# #############################################################################
+
+
 class SchemaParser:
     """
     Parse various schema formats and extract column information.
-    
+
     Supported formats:
     - JSON Schema
     - Custom column definitions
@@ -94,9 +110,11 @@ class SchemaParser:
     ) -> None:
         """
         Initialize the schema parser.
-        
-        :param include_metadata: whether to include metadata in parsed results
-        :param output_format: output format, either "detailed" or "simple"
+
+        :param include_metadata: whether to include metadata in parsed
+            results
+        :param output_format: output format, either "detailed" or
+            "simple"
         """
         hdbg.dassert_in(output_format, ["detailed", "simple"])
         self.include_metadata = include_metadata
@@ -106,27 +124,22 @@ class SchemaParser:
     def parse_file(self, file_path: str) -> ParsedSchema:
         """
         Parse schema from a file.
-        
+
         :param file_path: path to the schema file
         :return: parsed schema object with results
         """
         try:
-            path = Path(file_path)
-            
+            path = pathlib.Path(file_path)
             if not path.exists():
                 error_msg = f"Schema file not found: {file_path}"
                 return self._create_error_result(error_msg)
-            
             if not self._is_supported_format(path.suffix):
                 error_msg = f"Unsupported file format: {path.suffix}"
                 return self._create_error_result(error_msg)
-            
             # Read file content.
             content = hio.from_file(str(path))
-            
-            return self.parse_content(content, str(path))
-            
-        except Exception as e:
+            return self.parse_content(content, source=str(path))
+        except (FileNotFoundError, IOError, OSError, ValueError, TypeError) as e:
             _LOG.error("Error parsing file %s: %s", file_path, e)
             error_msg = f"Failed to parse file: {str(e)}"
             return self._create_error_result(error_msg)
@@ -139,7 +152,7 @@ class SchemaParser:
     ) -> ParsedSchema:
         """
         Parse schema from string content.
-        
+
         :param content: schema content as string
         :param source: source identifier for logging
         :return: parsed schema object with results
@@ -148,13 +161,13 @@ class SchemaParser:
             schema_data = self._parse_schema_content(content)
             schema_type = self._detect_schema_type(schema_data)
             columns = self._extract_columns(schema_data, schema_type)
-            
+
             _LOG.info(
                 "Successfully parsed %d columns from %s",
                 len(columns),
                 source,
             )
-            
+
             return ParsedSchema(
                 columns=columns,
                 raw_schema=schema_data,
@@ -163,8 +176,14 @@ class SchemaParser:
                 required_columns=0,  # Will be calculated in __post_init__.
                 optional_columns=0,  # Will be calculated in __post_init__.
             )
-            
-        except Exception as e:
+
+        except (
+            json.JSONDecodeError,
+            yaml.YAMLError,
+            ValueError,
+            KeyError,
+            TypeError,
+        ) as e:
             _LOG.error("Error parsing content from %s: %s", source, e)
             error_msg = f"Failed to parse content: {str(e)}"
             return self._create_error_result(error_msg)
@@ -172,7 +191,7 @@ class SchemaParser:
     def to_dict(self, parsed_schema: ParsedSchema) -> Dict[str, Any]:
         """
         Convert ParsedSchema to dictionary format.
-        
+
         :param parsed_schema: parsed schema object to convert
         :return: dictionary representation of the schema
         """
@@ -203,7 +222,7 @@ class SchemaParser:
     def to_dataframe_schema(self, parsed_schema: ParsedSchema) -> Dict[str, str]:
         """
         Convert to simple column_name: data_type mapping for pandas.
-        
+
         :param parsed_schema: parsed schema object to convert
         :return: simple mapping of column names to data types
         """
@@ -212,44 +231,47 @@ class SchemaParser:
     def _parse_schema_content(self, content: str) -> Dict[str, Any]:
         """
         Parse content as JSON or YAML.
-        
+
         :param content: raw content string to parse
         :return: parsed data as dictionary
         """
         content = content.strip()
-        
         # Try JSON first.
         try:
-            return json.loads(content)
+            parsed_data = json.loads(content)
+            if not isinstance(parsed_data, dict):
+                raise ValueError("Schema must be a JSON object/dictionary")
+            return parsed_data
         except json.JSONDecodeError:
             pass
-        
         # Try YAML.
         try:
-            return yaml.safe_load(content)
+            parsed_data = yaml.safe_load(content)
+            if not isinstance(parsed_data, dict):
+                raise ValueError("Schema must be a YAML object/dictionary")
+            return parsed_data
         except yaml.YAMLError as e:
-            raise ValueError(f"Invalid JSON/YAML format: {e}")
+            raise ValueError(f"Invalid JSON/YAML format: {e}") from e
 
     def _detect_schema_type(self, schema_data: Dict[str, Any]) -> str:
         """
         Detect the type of schema format.
-        
+
         :param schema_data: parsed schema data
         :return: detected schema type
         """
         if "properties" in schema_data and "type" in schema_data:
             return "json_schema"
-        elif "columns" in schema_data:
+        if "columns" in schema_data:
             return "custom_columns"
-        elif "fields" in schema_data:
+        if "fields" in schema_data:
             return "fields_format"
-        elif any(
+        if any(
             isinstance(v, dict) and ("type" in v or "dataType" in v)
             for v in schema_data.values()
         ):
             return "generic_properties"
-        else:
-            return "unknown"
+        return "unknown"
 
     def _extract_columns(
         self,
@@ -258,7 +280,7 @@ class SchemaParser:
     ) -> List[ColumnInfo]:
         """
         Extract column information based on schema type.
-        
+
         :param schema_data: parsed schema data
         :param schema_type: detected schema type
         :return: list of column information objects
@@ -270,7 +292,7 @@ class SchemaParser:
             "generic_properties": self._extract_from_generic_format,
             "unknown": self._extract_from_unknown_format,
         }
-        
+
         extractor = extractors.get(schema_type, self._extract_from_unknown_format)
         return extractor(schema_data)
 
@@ -280,18 +302,18 @@ class SchemaParser:
     ) -> List[ColumnInfo]:
         """
         Extract columns from JSON Schema format.
-        
+
         :param schema_data: JSON schema data
         :return: list of column information objects
         """
         columns = []
         properties = schema_data.get("properties", {})
         required_fields = set(schema_data.get("required", []))
-        
+
         for column_name, column_info in properties.items():
             constraints = {}
             metadata = {}
-            
+
             # Extract constraints.
             for key in [
                 "minimum",
@@ -303,7 +325,7 @@ class SchemaParser:
             ]:
                 if key in column_info:
                     constraints[key] = column_info[key]
-            
+
             # Extract metadata if enabled.
             if self.include_metadata:
                 excluded_keys = [
@@ -317,11 +339,9 @@ class SchemaParser:
                     "enum",
                 ]
                 metadata = {
-                    k: v
-                    for k, v in column_info.items()
-                    if k not in excluded_keys
+                    k: v for k, v in column_info.items() if k not in excluded_keys
                 }
-            
+
             column = ColumnInfo(
                 name=column_name,
                 data_type=self._map_json_schema_type(
@@ -334,9 +354,9 @@ class SchemaParser:
                 constraints=constraints,
                 metadata=metadata,
             )
-            
+
             columns.append(column)
-        
+
         return columns
 
     def _extract_from_custom_format(
@@ -345,20 +365,20 @@ class SchemaParser:
     ) -> List[ColumnInfo]:
         """
         Extract columns from custom columns format.
-        
+
         :param schema_data: custom format schema data
         :return: list of column information objects
         """
         columns = []
         columns_data = schema_data.get("columns", [])
-        
+
         for column_info in columns_data:
             if not isinstance(column_info, dict):
                 continue
-            
+
             constraints = column_info.get("constraints", {})
             metadata = {}
-            
+
             if self.include_metadata:
                 excluded_keys = [
                     "name",
@@ -370,11 +390,9 @@ class SchemaParser:
                     "constraints",
                 ]
                 metadata = {
-                    k: v
-                    for k, v in column_info.items()
-                    if k not in excluded_keys
+                    k: v for k, v in column_info.items() if k not in excluded_keys
                 }
-            
+
             column = ColumnInfo(
                 name=column_info.get("name", ""),
                 data_type=self._normalize_data_type(
@@ -387,9 +405,9 @@ class SchemaParser:
                 constraints=constraints,
                 metadata=metadata,
             )
-            
+
             columns.append(column)
-        
+
         return columns
 
     def _extract_from_fields_format(
@@ -398,20 +416,20 @@ class SchemaParser:
     ) -> List[ColumnInfo]:
         """
         Extract columns from fields format.
-        
+
         :param schema_data: fields format schema data
         :return: list of column information objects
         """
         columns = []
         fields_data = schema_data.get("fields", [])
-        
+
         for field_info in fields_data:
             if not isinstance(field_info, dict):
                 continue
-            
+
             constraints = field_info.get("constraints", {})
             metadata = {}
-            
+
             if self.include_metadata:
                 excluded_keys = [
                     "name",
@@ -421,11 +439,9 @@ class SchemaParser:
                     "constraints",
                 ]
                 metadata = {
-                    k: v
-                    for k, v in field_info.items()
-                    if k not in excluded_keys
+                    k: v for k, v in field_info.items() if k not in excluded_keys
                 }
-            
+
             column = ColumnInfo(
                 name=field_info.get("name", ""),
                 data_type=self._normalize_data_type(
@@ -437,9 +453,9 @@ class SchemaParser:
                 constraints=constraints,
                 metadata=metadata,
             )
-            
+
             columns.append(column)
-        
+
         return columns
 
     def _extract_from_generic_format(
@@ -448,19 +464,19 @@ class SchemaParser:
     ) -> List[ColumnInfo]:
         """
         Extract columns from generic format.
-        
+
         :param schema_data: generic format schema data
         :return: list of column information objects
         """
         columns = []
-        
+
         for key, value in schema_data.items():
             if not isinstance(value, dict):
                 continue
-            
+
             if "type" not in value and "dataType" not in value:
                 continue
-            
+
             metadata = {}
             if self.include_metadata:
                 excluded_keys = [
@@ -473,7 +489,7 @@ class SchemaParser:
                 metadata = {
                     k: v for k, v in value.items() if k not in excluded_keys
                 }
-            
+
             column = ColumnInfo(
                 name=key,
                 data_type=self._normalize_data_type(
@@ -484,9 +500,9 @@ class SchemaParser:
                 nullable=value.get("nullable", True),
                 metadata=metadata,
             )
-            
+
             columns.append(column)
-        
+
         return columns
 
     def _extract_from_unknown_format(
@@ -495,12 +511,12 @@ class SchemaParser:
     ) -> List[ColumnInfo]:
         """
         Extract columns from unknown format by making best guesses.
-        
+
         :param schema_data: unknown format schema data
         :return: list of column information objects
         """
         columns = []
-        
+
         # Try to extract any key-value pairs as potential columns.
         for key, value in schema_data.items():
             if isinstance(value, str):
@@ -511,13 +527,13 @@ class SchemaParser:
                     description="Inferred from key-value pair",
                 )
                 columns.append(column)
-        
+
         return columns
 
     def _map_json_schema_type(self, json_type: str) -> str:
         """
         Map JSON Schema types to standard data types.
-        
+
         :param json_type: JSON schema type string
         :return: normalized data type
         """
@@ -535,15 +551,13 @@ class SchemaParser:
     def _normalize_data_type(self, data_type: str) -> str:
         """
         Normalize various data type representations.
-        
+
         :param data_type: raw data type string
         :return: normalized data type
         """
         if not isinstance(data_type, str):
             return "string"
-        
         data_type = data_type.lower().strip()
-        
         type_mapping = {
             # String types.
             "str": "string",
@@ -581,13 +595,12 @@ class SchemaParser:
             "blob": "binary",
             "binary": "binary",
         }
-        
         return type_mapping.get(data_type, data_type)
 
     def _is_supported_format(self, file_extension: str) -> bool:
         """
         Check if file format is supported.
-        
+
         :param file_extension: file extension to check
         :return: whether the format is supported
         """
@@ -596,7 +609,7 @@ class SchemaParser:
     def _create_error_result(self, error_message: str) -> ParsedSchema:
         """
         Create a ParsedSchema with error information.
-        
+
         :param error_message: error message to include
         :return: ParsedSchema object with error details
         """
@@ -623,7 +636,7 @@ def parse_schema_file(
 ) -> ParsedSchema:
     """
     Parse a schema file using default settings.
-    
+
     :param file_path: path to schema file
     :param include_metadata: whether to include metadata
     :return: parsed schema object
@@ -639,7 +652,7 @@ def parse_schema_content(
 ) -> ParsedSchema:
     """
     Parse schema content using default settings.
-    
+
     :param content: schema content as string
     :param include_metadata: whether to include metadata
     :return: parsed schema object
@@ -648,19 +661,21 @@ def parse_schema_content(
     return parser.parse_content(content)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Parse a schema file and log the results.")
-    parser.add_argument("schema_file", type=str, help="Path to the schema file (JSON)")
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Parse a schema file and log the results."
+    )
+    parser.add_argument(
+        "schema_file", type=str, help="Path to the schema file (JSON)"
+    )
     args = parser.parse_args()
-
     # Read schema content from file
     try:
-        with open(args.schema_file, "r") as f:
+        with open(args.schema_file, "r", encoding="utf-8") as f:
             schema_content = f.read()
-    except Exception as e:
+    except (FileNotFoundError, IOError, OSError) as e:
         _LOG.error("Failed to read schema file %s: %s", args.schema_file, e)
         return
-
     result = parse_schema_content(schema_content)
     if result.error_message:
         _LOG.error("Error: %s", result.error_message)
@@ -671,7 +686,10 @@ def main():
         _LOG.info("Schema type: %s", result.schema_type)
         _LOG.info("Columns:")
         for col in result.columns:
-            _LOG.info("  - %s: %s (required: %s)", col.name, col.data_type, col.required)
+            _LOG.info(
+                "  - %s: %s (required: %s)", col.name, col.data_type, col.required
+            )
+
 
 if __name__ == "__main__":
     main()

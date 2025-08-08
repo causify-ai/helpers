@@ -12,29 +12,33 @@ import raw_data_analyzer as rdanal
 """
 
 import argparse
+import dataclasses
 import json
 import logging
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
-
-import numpy as np
-import pandas as pd
+import pathlib
 import warnings
+from typing import Any, Dict, List, Optional
 
-import helpers.hdbg as hdbg
+import pandas as pd
+
 import helpers.hio as hio
-import helpers.hpandas as hpandas
 
 # Configure logging.
 logging.basicConfig(level=logging.INFO)
 _LOG = logging.getLogger(__name__)
 
-@dataclass
+
+# #############################################################################
+# ColumnAnalysis
+# #############################################################################
+
+
+@dataclasses.dataclass
 class ColumnAnalysis:
     """
     Represent analysis results for a single column.
     """
+
     name: str
     data_type: str
     nullable: bool
@@ -49,11 +53,17 @@ class ColumnAnalysis:
     format_hint: Optional[str] = None
 
 
-@dataclass
+# #############################################################################
+# DataAnalysisResult
+# #############################################################################
+
+
+@dataclasses.dataclass
 class DataAnalysisResult:
     """
     Represent the complete data analysis result.
     """
+
     file_path: str
     total_rows: int
     total_columns: int
@@ -63,10 +73,15 @@ class DataAnalysisResult:
     error_message: Optional[str] = None
 
 
+# #############################################################################
+# RawDataAnalyzer
+# #############################################################################
+
+
 class RawDataAnalyzer:
     """
     Analyze raw data files and generate schema definitions.
-    
+
     Supported formats:
     - CSV files
     - JSON files
@@ -83,13 +98,17 @@ class RawDataAnalyzer:
     ) -> None:
         """
         Initialize the raw data analyzer.
-        
-        :param sample_size: maximum number of rows to sample for analysis
-        :param max_unique_values: maximum unique values to consider for enum types
-        :param datetime_formats: list of datetime formats to try for detection
+
+        :param sample_size: maximum number of rows to sample for
+            analysis
+        :param max_unique_values: maximum unique values to consider for
+            enum types
+        :param datetime_formats: list of datetime formats to try for
+            detection
         """
         self.sample_size = sample_size
         self.max_unique_values = max_unique_values
+        self.datetime_threshold = 0.8  # 80% success rate for datetime detection
         self.datetime_formats = datetime_formats or [
             "%Y-%m-%d",
             "%Y-%m-%d %H:%M:%S",
@@ -104,24 +123,20 @@ class RawDataAnalyzer:
     def analyze_file(self, file_path: str) -> DataAnalysisResult:
         """
         Analyze a data file and generate schema information.
-        
+
         :param file_path: path to the data file to analyze
         :return: analysis results with suggested schema
         """
         try:
-            path = Path(file_path)
-            
+            path = pathlib.Path(file_path)
             if not path.exists():
                 error_msg = f"Data file not found: {file_path}"
                 return self._create_error_result(file_path, error_msg)
-            
             if not self._is_supported_format(path.suffix):
                 error_msg = f"Unsupported file format: {path.suffix}"
                 return self._create_error_result(file_path, error_msg)
-            
             # Load data based on file format.
             df = self._load_data(file_path)
-            
             # Sample data if it's too large.
             if len(df) > self.sample_size:
                 _LOG.info(
@@ -130,22 +145,17 @@ class RawDataAnalyzer:
                     len(df),
                 )
                 df = df.sample(n=self.sample_size, random_state=42)
-            
             # Analyze each column.
             columns_analysis = self._analyze_columns(df)
-            
             # Generate suggested schema.
             suggested_schema = self._generate_schema(columns_analysis, df)
-            
             # Create analysis metadata.
             analysis_metadata = self._create_analysis_metadata(file_path, df)
-            
             _LOG.info(
                 "Successfully analyzed %d columns from %s",
                 len(columns_analysis),
                 file_path,
             )
-            
             return DataAnalysisResult(
                 file_path=file_path,
                 total_rows=len(df),
@@ -154,8 +164,7 @@ class RawDataAnalyzer:
                 suggested_schema=suggested_schema,
                 analysis_metadata=analysis_metadata,
             )
-            
-        except Exception as e:
+        except (IOError, ValueError, pd.errors.ParserError) as e:
             _LOG.error("Error analyzing file %s: %s", file_path, e)
             error_msg = f"Failed to analyze file: {str(e)}"
             return self._create_error_result(file_path, error_msg)
@@ -169,27 +178,30 @@ class RawDataAnalyzer:
     ) -> None:
         """
         Save the generated schema to a JSON file.
-        
+
         :param analysis_result: analysis result containing the schema
         :param output_path: path where to save the schema.json file
-        :param include_analysis_metadata: whether to include analysis metadata
+        :param include_analysis_metadata: whether to include analysis
+            metadata
         """
         try:
             schema_data = analysis_result.suggested_schema.copy()
-            
+
             if include_analysis_metadata:
-                schema_data["_analysis_metadata"] = analysis_result.analysis_metadata
-            
+                schema_data["_analysis_metadata"] = (
+                    analysis_result.analysis_metadata
+                )
+
             # Ensure output directory exists.
-            output_dir = Path(output_path).parent
+            output_dir = pathlib.Path(output_path).parent
             hio.create_dir(str(output_dir), incremental=True)
-            
+
             # Save schema to file.
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(schema_data, f, indent=2, default=str)
-            
+
             _LOG.info("Schema saved to %s", output_path)
-            
+
         except Exception as e:
             _LOG.error("Error saving schema to %s: %s", output_path, e)
             raise
@@ -197,13 +209,12 @@ class RawDataAnalyzer:
     def _load_data(self, file_path: str) -> pd.DataFrame:
         """
         Load data from file based on format.
-        
+
         :param file_path: path to the data file
         :return: loaded DataFrame
         """
-        path = Path(file_path)
+        path = pathlib.Path(file_path)
         file_extension = path.suffix.lower()
-        
         if file_extension == ".csv":
             # Try different encodings and separators.
             for encoding in ["utf-8", "latin-1", "cp1252"]:
@@ -215,45 +226,38 @@ class RawDataAnalyzer:
                             sep=sep,
                             nrows=self.sample_size,
                         )
-                        if len(df.columns) > 1:  # Good indicator of correct separator.
+                        # Good indicator of correct separator.
+                        if len(df.columns) > 1:
                             _LOG.debug(
                                 "Successfully loaded CSV with encoding=%s, sep='%s'",
                                 encoding,
                                 sep,
                             )
                             return df
-                    except Exception:
+                    except (ValueError, TypeError, pd.errors.ParserError):
                         continue
-            
             # Fallback to default pandas behavior.
             return pd.read_csv(file_path, nrows=self.sample_size)
-            
-        elif file_extension == ".json":
+        if file_extension == ".json":
             return pd.read_json(file_path, lines=True, nrows=self.sample_size)
-            
-        elif file_extension == ".parquet":
+        if file_extension == ".parquet":
             return pd.read_parquet(file_path)
-            
-        elif file_extension in [".xlsx", ".xls"]:
+        if file_extension in [".xlsx", ".xls"]:
             return pd.read_excel(file_path, nrows=self.sample_size)
-            
-        else:
-            raise ValueError(f"Unsupported file format: {file_extension}")
+        raise ValueError(f"Unsupported file format: {file_extension}")
 
     def _analyze_columns(self, df: pd.DataFrame) -> List[ColumnAnalysis]:
         """
         Analyze each column in the DataFrame.
-        
+
         :param df: DataFrame to analyze
         :return: list of column analysis results
         """
         columns_analysis = []
-        
         for col_name in df.columns:
             col_data = df[col_name]
             analysis = self._analyze_single_column(col_name, col_data)
             columns_analysis.append(analysis)
-        
         return columns_analysis
 
     def _analyze_single_column(
@@ -263,7 +267,7 @@ class RawDataAnalyzer:
     ) -> ColumnAnalysis:
         """
         Analyze a single column.
-        
+
         :param col_name: name of the column
         :param col_data: column data as pandas Series
         :return: column analysis result
@@ -272,22 +276,22 @@ class RawDataAnalyzer:
         null_count = col_data.isnull().sum()
         unique_count = col_data.nunique()
         nullable = null_count > 0
-        
+
         # Sample non-null values.
         non_null_data = col_data.dropna()
         sample_values = (
             non_null_data.head(5).tolist() if len(non_null_data) > 0 else []
         )
-        
+
         # Infer data type.
         data_type, format_hint = self._infer_data_type(non_null_data)
-        
+
         # Calculate statistics for numeric columns.
         min_value = None
         max_value = None
         mean_value = None
         std_value = None
-        
+
         if data_type in ["integer", "float"] and len(non_null_data) > 0:
             try:
                 numeric_data = pd.to_numeric(non_null_data, errors="coerce")
@@ -295,14 +299,14 @@ class RawDataAnalyzer:
                 max_value = float(numeric_data.max())
                 mean_value = float(numeric_data.mean())
                 std_value = float(numeric_data.std())
-            except Exception:
+            except (ValueError, TypeError):
                 pass
-        
+
         # Detect patterns for string columns.
         pattern = None
         if data_type == "string" and len(non_null_data) > 0:
             pattern = self._detect_pattern(non_null_data)
-        
+
         return ColumnAnalysis(
             name=col_name,
             data_type=data_type,
@@ -321,13 +325,14 @@ class RawDataAnalyzer:
     def _infer_data_type(self, data: pd.Series) -> tuple[str, Optional[str]]:
         """
         Infer the data type of a column.
-        
+
         :param data: column data (non-null values)
         :return: tuple of (data_type, format_hint)
         """
+        result_type = "string"
+        format_hint = None
         if len(data) == 0:
-            return "string", None
-        
+            return result_type, format_hint
         # Check for boolean.
         if data.dtype == bool or set(data.astype(str).str.lower()) <= {
             "true",
@@ -341,40 +346,47 @@ class RawDataAnalyzer:
             "1",
             "0",
         }:
-            return "boolean", None
-        
+            result_type = "boolean"
         # Check for integer.
-        if data.dtype in ["int64", "int32", "int16", "int8"]:
-            return "integer", None
-        
+        elif data.dtype in ["int64", "int32", "int16", "int8"]:
+            result_type = "integer"
         # Check for float.
-        if data.dtype in ["float64", "float32"]:
-            return "float", None
-        
-        # Try to convert to numeric.
-        try:
-            numeric_data = pd.to_numeric(data, errors="coerce")
-            if not numeric_data.isnull().all():
-                # Check if all values are integers.
-                if numeric_data.fillna(0).apply(lambda x: x.is_integer()).all():
-                    return "integer", None
+        elif data.dtype in ["float64", "float32"]:
+            result_type = "float"
+        else:
+            # Try to convert to numeric.
+            try:
+                numeric_data = pd.to_numeric(data, errors="coerce")
+                if not numeric_data.isnull().all():
+                    # Check if all values are integers.
+                    if (
+                        numeric_data.fillna(0)
+                        .apply(lambda x: x.is_integer())
+                        .all()
+                    ):
+                        result_type = "integer"
+                    else:
+                        result_type = "float"
                 else:
-                    return "float", None
-        except Exception:
-            pass
-        
-        # Check for datetime.
-        datetime_type, format_hint = self._check_datetime(data)
-        if datetime_type:
-            return datetime_type, format_hint
-        
-        # Default to string.
-        return "string", None
+                    # Check for datetime.
+                    datetime_type, datetime_format = self._check_datetime(data)
+                    if datetime_type:
+                        result_type = datetime_type
+                        format_hint = datetime_format
+            except (ValueError, TypeError):
+                # Check for datetime as fallback.
+                datetime_type, datetime_format = self._check_datetime(data)
+                if datetime_type:
+                    result_type = datetime_type
+                    format_hint = datetime_format
+        return result_type, format_hint
 
-    def _check_datetime(self, data: pd.Series) -> tuple[Optional[str], Optional[str]]:
+    def _check_datetime(
+        self, data: pd.Series
+    ) -> tuple[Optional[str], Optional[str]]:
         """
         Check if data represents datetime values with improved detection.
-        
+
         :param data: column data to check
         :return: tuple of (datetime_type, format_hint)
         """
@@ -384,54 +396,53 @@ class RawDataAnalyzer:
             return None, None
         except (ValueError, TypeError):
             pass
-        
         # Sample a subset for testing.
         sample_data = data.head(min(100, len(data)))
-        
         # Try specific datetime formats first.
         for fmt in self.datetime_formats:
             try:
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
-                    parsed = pd.to_datetime(sample_data, format=fmt, errors="coerce")
-                
+                    parsed = pd.to_datetime(
+                        sample_data, format=fmt, errors="coerce"
+                    )
                 # Check success rate.
-                success_rate = (1 - parsed.isnull().sum() / len(sample_data))
+                success_rate = 1 - parsed.isnull().sum() / len(sample_data)
                 if success_rate >= self.datetime_threshold:
                     # Determine if it's date or datetime.
                     non_null_parsed = parsed.dropna()
                     if len(non_null_parsed) > 0:
                         # Check if all times are midnight (date-only).
-                        if all(t.time() == non_null_parsed.iloc[0].time() for t in non_null_parsed.head(10)):
+                        if all(
+                            t.time() == non_null_parsed.iloc[0].time()
+                            for t in non_null_parsed.head(10)
+                        ):
                             return "date", fmt
-                        else:
-                            return "datetime", fmt
-            except Exception:
+                        return "datetime", fmt
+            except (ValueError, TypeError, AttributeError):
                 continue
-        
         # Try pandas automatic parsing as last resort.
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                parsed = pd.to_datetime(sample_data, errors="coerce", infer_datetime_format=True)
-            
-            success_rate = (1 - parsed.isnull().sum() / len(sample_data))
+                parsed = pd.to_datetime(
+                    sample_data, errors="coerce", infer_datetime_format=True
+                )
+            success_rate = 1 - parsed.isnull().sum() / len(sample_data)
             if success_rate >= self.datetime_threshold:
                 return "datetime", "auto"
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             pass
-        
         return None, None
 
     def _detect_pattern(self, data: pd.Series) -> Optional[str]:
         """
         Detect common patterns in string data.
-        
+
         :param data: string column data
         :return: detected pattern or None
         """
         str_data = data.astype(str)
-        
         # Check for common patterns.
         patterns = {
             "email": r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
@@ -440,11 +451,9 @@ class RawDataAnalyzer:
             "uuid": r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
             "ip_address": r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$",
         }
-        
         for pattern_name, pattern_regex in patterns.items():
             if str_data.str.match(pattern_regex, case=False).mean() > 0.8:
                 return pattern_name
-        
         return None
 
     def _generate_schema(
@@ -454,31 +463,31 @@ class RawDataAnalyzer:
     ) -> Dict[str, Any]:
         """
         Generate JSON Schema from column analysis.
-        
+
         :param columns_analysis: list of analyzed columns
         :param df: original DataFrame
         :return: JSON Schema dictionary
         """
         properties = {}
         required_fields = []
-        
+
         for col in columns_analysis:
             col_schema = {
                 "type": self._map_to_json_schema_type(col.data_type),
                 "description": f"Column '{col.name}' with {col.unique_count} unique values",
             }
-            
+
             # Add format hint if available.
             if col.format_hint and col.format_hint != "auto":
                 col_schema["format"] = col.format_hint
-            
+
             # Add constraints for numeric fields.
             if col.data_type in ["integer", "float"]:
                 if col.min_value is not None:
                     col_schema["minimum"] = col.min_value
                 if col.max_value is not None:
                     col_schema["maximum"] = col.max_value
-            
+
             # Add enum for low-cardinality categorical fields.
             if (
                 col.data_type == "string"
@@ -487,33 +496,33 @@ class RawDataAnalyzer:
             ):
                 unique_values = df[col.name].dropna().unique().tolist()
                 col_schema["enum"] = unique_values[:50]  # Limit enum size.
-            
+
             # Add pattern if detected.
             if col.pattern:
                 col_schema["pattern"] = col.pattern
-            
+
             properties[col.name] = col_schema
-            
+
             # Mark as required if no null values.
             if not col.nullable:
                 required_fields.append(col.name)
-        
+
         schema = {
             "type": "object",
             "title": "Generated Schema",
             "description": f"Auto-generated schema for data with {len(columns_analysis)} columns",
             "properties": properties,
         }
-        
+
         if required_fields:
             schema["required"] = required_fields
-        
+
         return schema
 
     def _map_to_json_schema_type(self, data_type: str) -> str:
         """
         Map internal data types to JSON Schema types.
-        
+
         :param data_type: internal data type
         :return: JSON Schema type
         """
@@ -536,7 +545,7 @@ class RawDataAnalyzer:
     ) -> Dict[str, Any]:
         """
         Create metadata about the analysis process.
-        
+
         :param file_path: path to analyzed file
         :param df: analyzed DataFrame
         :return: analysis metadata
@@ -548,7 +557,7 @@ class RawDataAnalyzer:
             "sample_size": min(len(df), self.sample_size),
             "total_rows_analyzed": len(df),
             "total_columns_analyzed": len(df.columns),
-            "file_size_bytes": Path(file_path).stat().st_size,
+            "file_size_bytes": pathlib.Path(file_path).stat().st_size,
             "analysis_settings": {
                 "max_unique_values": self.max_unique_values,
                 "datetime_formats": self.datetime_formats,
@@ -558,7 +567,7 @@ class RawDataAnalyzer:
     def _is_supported_format(self, file_extension: str) -> bool:
         """
         Check if file format is supported.
-        
+
         :param file_extension: file extension to check
         :return: whether the format is supported
         """
@@ -571,7 +580,7 @@ class RawDataAnalyzer:
     ) -> DataAnalysisResult:
         """
         Create a DataAnalysisResult with error information.
-        
+
         :param file_path: path to the file that caused the error
         :param error_message: error message to include
         :return: DataAnalysisResult object with error details
@@ -587,11 +596,12 @@ class RawDataAnalyzer:
         )
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Analyze raw data files and generate schema information.")
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Analyze raw data files and generate schema information."
+    )
     parser.add_argument("file", type=str, help="Path to the data file to analyze")
     args = parser.parse_args()
-
     analyzer = RawDataAnalyzer()
     result = analyzer.analyze_file(args.file)
     if result.error_message:
@@ -602,19 +612,20 @@ def main():
         _LOG.info("Total columns: %d", result.total_columns)
         _LOG.info("Columns:")
         for col in result.columns:
-            _LOG.info("  - %s: %s, nullable=%s", col.name, col.data_type, col.nullable)
+            _LOG.info(
+                "  - %s: %s, nullable=%s", col.name, col.data_type, col.nullable
+            )
         _LOG.info("Suggested schema: %s", result.suggested_schema)
         _LOG.info("Metadata: %s", result.analysis_metadata)
-
-        # Save suggested schema to JSON file
+        # Save suggested schema to JSON file.
         schema_path = args.file + ".schema.json"
         try:
-            with open(schema_path, "w") as f:
+            with open(schema_path, "w", encoding="utf-8") as f:
                 json.dump(result.suggested_schema, f, indent=2)
             _LOG.info("Saved schema to %s", schema_path)
-        except Exception as e:
+        except (IOError, TypeError, ValueError) as e:
             _LOG.error("Failed to save schema to %s: %s", schema_path, e)
+
 
 if __name__ == "__main__":
     main()
-

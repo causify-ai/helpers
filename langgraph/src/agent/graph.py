@@ -1,41 +1,66 @@
-"""LangGraph single-node graph template, with OpenAI API integration and .env support."""
+"""
+LangGraph single-node graph template, with OpenAI API integration and .env
+support.
 
-from __future__ import annotations
+Import as:
 
-from dataclasses import dataclass
+import langgraph.src.agent.graph as lsraggra
+"""
+
+import dataclasses
+import os
 from typing import Any, Dict, Optional, TypedDict
 
-from langchain_core.runnables import RunnableConfig
-from langgraph.graph import StateGraph
+import dotenv
+import langchain_core.runnables as lcru
 import openai
 
-import os
-from dotenv import load_dotenv
-
-from .raw_data_analyzer import RawDataAnalyzer
-from .schema_parser import parse_schema_content
+import langgraph.graph as lgg
+import langgraph.src.agent.raw_data_analyzer as lsardaan
+import langgraph.src.agent.schema_parser as lsagscpa
 
 # Load environment variables from .env.
-load_dotenv()
+dotenv.load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = openai.AsyncOpenAI(api_key=OPENAI_API_KEY)
 
-class Configuration(TypedDict):
-    """Configurable parameters for the agent."""
-    my_configurable_param: str
-    openai_model: str   
 
-@dataclass
+# #############################################################################
+# Configuration
+# #############################################################################
+
+
+class Configuration(TypedDict):
+    """
+    Configurable parameters for the agent.
+    """
+
+    my_configurable_param: str
+    openai_model: str
+
+
+# #############################################################################
+# State
+# #############################################################################
+
+
+@dataclasses.dataclass
 class State:
-    """Input state for the agent."""
+    """
+    Input state for the agent.
+    """
+
     file_path: str = ""
     raw_data_result: Optional[Dict[str, Any]] = None
     schema_content: str = ""
     schema_result: Optional[Dict[str, Any]] = None
     changeme: str = "example"
 
-async def call_model(state: State, config: RunnableConfig) -> Dict[str, Any]:
-    """Process input and returns output using OpenAI API."""
+
+async def call_model(state: State, config: lcru.RunnableConfig) -> Dict[str, Any]:
+    """
+    Process input and returns output using OpenAI API.
+    """
     configuration = config["configurable"]
     model = configuration.get("openai_model", "gpt-3.5-turbo")
 
@@ -51,9 +76,12 @@ Schema Analysis Results:
 
 Column Details:
 """
-        for col in state.schema_result.get('columns', []):
-            schema_context += f"- {col['name']}: {col['data_type']} (required: {col['required']}, nullable: {col['nullable']})\n"
-            if col.get('description'):
+        for col in state.schema_result.get("columns", []):
+            schema_context += (
+                f"- {col['name']}: {col['data_type']} "
+                f"(required: {col['required']}, nullable: {col['nullable']})\n"
+            )
+            if col.get("description"):
                 schema_context += f"  Description: {col['description']}\n"
 
     # Build context from raw data analysis
@@ -66,7 +94,7 @@ Raw Data Analysis Results:
 - Total columns: {state.raw_data_result.get('total_columns', 0)}
 """
 
-    prompt = f"""You are an AutoEDA (Automated Exploratory Data Analysis) assistant. 
+    prompt = f"""You are an AutoEDA (Automated Exploratory Data Analysis) assistant.
 Based on the data analysis and schema information below, provide insights and recommendations for exploratory data analysis.
 
 {raw_data_context}
@@ -83,49 +111,59 @@ Please provide:
 4. Suggested visualizations or analysis techniques
 """
 
-    response = await client.chat.completions.create(model=model,
-    messages=[{"role": "user", "content": prompt}],
-    temperature=0.7,
-    max_tokens=512)
+    response = await client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7,
+        max_tokens=512,
+    )
 
     output_text = response.choices[0].message.content
 
-    return {
-        "changeme": output_text
-    }
+    return {"changeme": output_text}
 
-async def analyze_raw_data(state: State, config: RunnableConfig) -> Dict[str, Any]:
-    """Analyze raw data file and generate schema."""
+
+async def analyze_raw_data(
+    state: State, _config: lcru.RunnableConfig
+) -> Dict[str, Any]:
+    """
+    Analyze raw data file and generate schema.
+    """
     if not state.file_path:
         return {"raw_data_result": {"error": "No file path provided"}}
-    
-    analyzer = RawDataAnalyzer()
+
+    analyzer = lsardaan.RawDataAnalyzer()
     result = analyzer.analyze_file(state.file_path)
-    
+
     if result.error_message:
         return {"raw_data_result": {"error": result.error_message}}
-    
+
     # Convert result to dict for state
     raw_data_result = {
         "file_path": result.file_path,
         "total_rows": result.total_rows,
         "total_columns": result.total_columns,
         "suggested_schema": result.suggested_schema,
-        "analysis_metadata": result.analysis_metadata
+        "analysis_metadata": result.analysis_metadata,
     }
-    
+
     return {"raw_data_result": raw_data_result}
 
-async def parse_schema(state: State, config: RunnableConfig) -> Dict[str, Any]:
-    """Parse schema content and extract column information."""
+
+async def parse_schema(
+    state: State, _config: lcru.RunnableConfig
+) -> Dict[str, Any]:
+    """
+    Parse schema content and extract column information.
+    """
     if not state.schema_content:
         return {"schema_result": {"error": "No schema content provided"}}
-    
-    result = parse_schema_content(state.schema_content)
-    
+
+    result = lsagscpa.parse_schema_content(state.schema_content)
+
     if result.error_message:
         return {"schema_result": {"error": result.error_message}}
-    
+
     # Convert result to dict for state
     schema_result = {
         "total_columns": result.total_columns,
@@ -138,16 +176,18 @@ async def parse_schema(state: State, config: RunnableConfig) -> Dict[str, Any]:
                 "data_type": col.data_type,
                 "required": col.required,
                 "description": col.description,
-                "nullable": col.nullable
-            } for col in result.columns
-        ]
+                "nullable": col.nullable,
+            }
+            for col in result.columns
+        ],
     }
-    
+
     return {"schema_result": schema_result}
+
 
 # Define the graph
 graph = (
-    StateGraph(State, config_schema=Configuration)
+    lgg.StateGraph(State, config_schema=Configuration)
     .add_node("analyze_raw_data", analyze_raw_data)
     .add_node("parse_schema", parse_schema)
     .add_node("call_model", call_model)
