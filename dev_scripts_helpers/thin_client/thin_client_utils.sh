@@ -259,6 +259,9 @@ set_path() {
     dtrace "GIT_ROOT=$GIT_ROOT"
     dassert_var_defined "GIT_ROOT"
     export PATH=$GIT_ROOT_DIR:$PATH
+    # TODO(gp): We should use
+    # > find . -type f -perm +111 -exec dirname {} \; | sort -u
+    # Ignore .mypy_cache and __pycache__
     # Avoid ./.mypy_cache/3.12/app/dev_scripts_helpers
     DEV_SCRIPT_HELPER_DIR=$(find ${GIT_ROOT} -name dev_scripts_helpers -type d -not -path "*.mypy_cache*")
     echo "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
@@ -266,6 +269,10 @@ set_path() {
     dtrace "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
     # Add to the PATH all the first level directory under `dev_scripts`.
     export PATH_TMP="$(find $DEV_SCRIPT_HELPER_DIR -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//')"
+    dtrace "PATH_TMP=$PATH_TMP"
+    export PATH=$PATH_TMP:$PATH
+    #
+    export PATH_TMP="$(find $DEV_SCRIPT_HELPER_DIR/documentation/mkdocs -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//')"
     dtrace "PATH_TMP=$PATH_TMP"
     export PATH=$PATH_TMP:$PATH
     # Remove duplicates.

@@ -46,12 +46,6 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Input directory containing markdown files",
     )
-    # parser.add_argument(
-    #    "--incremental",
-    #    action="store_true",
-    #    required=True,
-    #    help="Delete the output dir",
-    # )
     parser.add_argument(
         "--output_dir",
         action="store",
@@ -93,28 +87,38 @@ def _process_markdown_files(directory: str) -> None:
 
     :param directory: Directory to process
     """
-    for root, dirs, files in os.walk(directory):
+    directories = sorted(os.walk(directory))
+    _LOG.info(f"Processing {len(directories)} markdown files")
+    for root, dirs, files in directories:
         _ = dirs
+        files = sorted(files)
+        _LOG.info(f"Processing {len(files)} markdown files in '{root}'")
         for file in files:
             if file.endswith(".md"):
                 file_path = os.path.join(root, file)
                 _LOG.info(f"Processing markdown file: {file_path}")
                 # Read the file.
                 content = hio.from_file(file_path)
-                # Apply preprocessing
+                # Apply preprocessing.
                 processed_content = hmkdocs.preprocess_mkdocs_markdown(content)
-                # Write back to the same file
+                # Write back to the same file.
                 hio.to_file(file_path, processed_content)
                 _LOG.debug(f"Successfully processed: {file_path}")
 
 
-def _copy_assets_and_styles(directory: str) -> None:
+def _copy_assets_and_styles(input_dir: str, output_dir: str) -> None:
     """
     Copy assets and styles from the input directory to the output directory.
     """
     # Find the assets and styles directories.
-    mkdocs_html_dir = hgit.find_file("mkdocs_html")
-    cmd = f"cp -r {mkdocs_html_dir}/* {directory}"
+    mkdocs_html_dir = os.path.join(input_dir, "mkdocs_html")
+    hdbg.dassert_dir_exists(mkdocs_html_dir)
+    cmd = f"cp -r {mkdocs_html_dir}/* {output_dir}"
+    hsystem.system(cmd)
+    # Copy the mkdocs.yml file.
+    mkdocs_yml_file = os.path.join(input_dir, "mkdocs.yml")
+    hdbg.dassert_file_exists(mkdocs_yml_file)
+    cmd = f"cp {mkdocs_yml_file} {output_dir}"
     hsystem.system(cmd)
 
 
@@ -123,6 +127,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     input_dir = args.input_dir
     output_dir = args.output_dir
+    # If the output directory is a subdirectory of the input directory, then
+    # we process the files in the output directory from previous runs.
+    hdbg.dassert(
+        not hio.is_subdir(output_dir, input_dir),
+            "Output directory '%s' can't be a subdirectory of input directory '%s'",
+            output_dir,
+            input_dir,
+        )
+    # TODO(ai): Do not f-string.
     _LOG.info(
         f"Starting mkdocs preprocessing from '{input_dir}' to '{output_dir}'"
     )
@@ -131,7 +144,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Process markdown files in place in the output directory.
     _process_markdown_files(output_dir)
     # Copy assets and styles.
-    _copy_assets_and_styles(output_dir)
+    #_copy_assets_and_styles(input_dir, output_dir)
     _LOG.info("Mkdocs preprocessing completed successfully")
 
 

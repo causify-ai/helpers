@@ -899,3 +899,21 @@ def safe_rm_file(dir_path: str) -> None:
     _LOG.debug("Safely removing directory: %s", dir_path)
     shutil.rmtree(dir_path)
     _LOG.debug("Successfully removed directory: %s", dir_path)
+
+
+# TODO(ai): Add unit tests.
+def is_subdir(dir1: str, dir2: str) -> bool:
+    """
+    Check if `dir1` is a subdirectory of `dir2`.
+
+    :param dir1: First directory
+    :param dir2: Second directory
+    :return: True if `dir1` is a subdirectory of `dir2`, False otherwise
+    """
+    # Resolve to absolute and normalized paths.
+    abs_dir1 = os.path.abspath(dir1)
+    abs_dir2 = os.path.abspath(dir2)
+    # Get the common path prefix.
+    common = os.path.commonpath([abs_dir1, abs_dir2])
+    # It's a subdir if they share the same common path as the parent.
+    return common == abs_dir2
