@@ -17,13 +17,11 @@ class Test_process_slides(hunitest.TestCase):
     @staticmethod
     def transform(slide_text: List[str]) -> str:
         """
-        Add a @ to the beginning of each line of the slide.
+        Example adding a `@` to the beginning of each line of the slide.
         """
-        # Print input.
         _LOG.debug("input=\n%s", "\n".join(slide_text))
         # Transform.
         text_out = [f"@{line}" for line in slide_text]
-        # Print output.
         _LOG.debug("output=\n%s", "\n".join(text_out))
         return text_out
 

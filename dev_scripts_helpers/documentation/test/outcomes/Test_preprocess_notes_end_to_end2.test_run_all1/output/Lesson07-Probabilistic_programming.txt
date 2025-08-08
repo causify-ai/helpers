@@ -53,13 +53,13 @@ MSML610: Advanced Machine Learning
 
 
 #### EDA vs inference
-- **Exploratory data analysis**
+- **\textcolor{red}{Exploratory data analysis}**
   - Summarize, interpret, check data
   - Visually inspect the data
   - Compute descriptive statistics
   - Communicate results
 
-- **Inferential statistics / inference**
+- **\textcolor{blue}{Inferential statistics / inference}**
   - Draw insights from a limited set of data
   - Make statements beyond the current data
   - Make predictions for future unobserved data points
@@ -67,14 +67,14 @@ MSML610: Advanced Machine Learning
   - Choose among competing explanations for the same observations
 
 #### Good vs Bad Way to Do Statistics
-- **Bad** ![Smile Emoji](pics/angry_devil.png){ width=12px }
+- **\textcolor{red}{Bad}** ![Smile Emoji](pics/angry_devil.png){ width=12px }
   - Learn a collection of "statistical recipes"
     - Make assumption / approximate to make math workable
   - Given data and problem, pick one recipe, try until you get a "low" p-value
   - For machine learning, iterate until you get a "good" fit on out-of-sample
     data
 
-- **Good** ![Smile Emoji](pics/emoji_smile.png){ width=12px }
+- **\textcolor{blue}{Good}** ![Smile Emoji](pics/emoji_smile.png){ width=12px }
   - Bayesian statistics
     - Provide a general approach to statistical inference
     - Remove limitations from closed analytical form
@@ -120,17 +120,17 @@ MSML610: Advanced Machine Learning
   = \frac{\textcolor{teal}{\Pr(X | \theta)} \cdot \textcolor{blue}{\Pr(\theta)}}{\textcolor{violet}{\Pr(X)}}
   $$
   where:
-  - **\textcolor{red}{$\Pr(\theta | X)$}**
+  - **\textcolor{red}{\textcolor{red}{$\Pr(\theta | X)$}}**
     - Posterior: probability for parameters $\theta$ after seeing data $X$
 
-  - **\textcolor{teal}{$\Pr(X | \theta)$}**
+  - **\textcolor{darkgreen}{\textcolor{teal}{$\Pr(X | \theta)$}}**
     - Likelihood/statistical model: plausibility of data $X$ given parameters
       $\theta$
 
-  - **\textcolor{blue}{$\Pr(\theta)$}**
+  - **\textcolor{blue}{\textcolor{blue}{$\Pr(\theta)$}}**
     - Prior: knowledge about parameter $\theta$ before any data
 
-  - **\textcolor{violet}{$\Pr(X)$}**
+  - **\textcolor{violet}{\textcolor{violet}{$\Pr(X)$}}**
     - Marginal likelihood/evidence: probability of observing data $X$
     - "Marginal" as it averages over all possible parameter values
 
@@ -156,12 +156,12 @@ MSML610: Advanced Machine Learning
 
 
 #### Bayesian Models
-- **Probabilities** measure uncertainty about parameters
-- **Bayes' theorem** updates the probabilities in light of new data (hopefully)
+- **\textcolor{red}{Probabilities}** measure uncertainty about parameters
+- **\textcolor{darkgreen}{Bayes' theorem}** updates the probabilities in light of new data (hopefully)
   reducing the uncertainty
   $$\Pr(hyp | data) = \frac{\Pr(data | hyp) \Pr(hyp)}{\Pr(data)}$$
 
-- **Bayesian model workflow**
+- **\textcolor{blue}{Bayesian model workflow}**
   1. Given data and assumptions on how data could have been generated, design a
      model by combining probability distributions
      - A model can be crude approximation
@@ -177,7 +177,7 @@ MSML610: Advanced Machine Learning
     - Collect more or different data
 
 #### Coin example: problem
-- **Problem**:
+- **\textcolor{red}{Problem}**:
   - Toss a coin $N$ times
   - Record the number of heads $Y$ and tails $N - Y$
   - How biased is the coin?
@@ -190,7 +190,7 @@ MSML610: Advanced Machine Learning
     - $0.5$: half tails, half heads
   - It is related to observed realizations, but not deterministically
 
-- **Modeling assumptions**:
+- **\textcolor{blue}{Modeling assumptions}**:
   - Independent Identically Distributed (IID)
     - Independence: a coin toss does not affect other tosses
     - Identically distributed: the coin's bias is constant
@@ -250,11 +250,11 @@ MSML610: Advanced Machine Learning
 :::
 
 #### Coin example: analytical solution
-- The **\textcolor{red}{\text{posterior}}** is proportional to **\textcolor{darkgreen}{\text{likelihood}}** $\times$
-  **\textcolor{blue}{\text{prior}}**
+- The **\textcolor{red}{\textcolor{red}{\text{posterior}}}** is proportional to **\textcolor{darkgreen}{\textcolor{darkgreen}{\text{likelihood}}}** $\times$
+  **\textcolor{blue}{\textcolor{blue}{\text{prior}}}**
   $$\textcolor{red}{\Pr(\theta | y)} \propto \textcolor{darkgreen}{\Pr(y | theta)} \textcolor{blue}{\Pr(theta)}$$
-- Substituting the **\textcolor{darkgreen}{\text{likelihood}}** with a Binomial and the
-  **\textcolor{blue}{\text{prior}}** with a Beta
+- Substituting the **\textcolor{teal}{\textcolor{darkgreen}{\text{likelihood}}}** with a Binomial and the
+  **\textcolor{violet}{\textcolor{blue}{\text{prior}}}** with a Beta
   \begin{align*}
   & \Pr(\theta \mid Y)
   \\
@@ -275,7 +275,7 @@ MSML610: Advanced Machine Learning
 - This is how to update the posterior given the data
 
 #### Conjugate prior of a likelihood
-- **Conjugate prior** is a prior that when used in combination with a given
+- **\textcolor{red}{Conjugate prior}** is a prior that when used in combination with a given
   likelihood, returns a posterior with the same functional form as the prior
 
 - E.g.,
@@ -329,7 +329,7 @@ MSML610: Advanced Machine Learning
   - _"One should let the data speak"_
   - The prior doesn't let the data speak for itself
 
-- **Counterpoints** ![](pics/balance_scale.png){ width=14px }
+- **\textcolor{red}{Counterpoints}** ![](pics/balance_scale.png){ width=14px }
 - In reality _"Data doesn't speak, but murmurs"_
   - We can only make sense of data made in context of models (priors, mental
     models, mathematical models)
@@ -353,25 +353,25 @@ MSML610: Advanced Machine Learning
      your model"_
 
 #### How to choose priors
-- **Weakly-informative priors** (aka "flat", "vague", "diffuse priors")
+- **\textcolor{red}{Weakly-informative priors}** (aka "flat", "vague", "diffuse priors")
   - Provide minimal information with minimal impact on the analysis, e.g.,
     - Coefficient of linear regression is centered around 0 with little
       restriction: $\beta \sim Normal(0, 10)$
 
-- **Regularizing priors**
+- **\textcolor{darkgreen}{Regularizing priors}**
   - Known information about the parameter, e.g.,
     - Parameter is positive: $\sigma \sim HalfCauchy(0, 5)$
     - Parameter is close to zero, above/below a certain number, or in a range
     - $\beta \sim Laplace(0, 1)$ (lasso prior) encourages sparsity
     - $\beta \sim Normal(0, 1)$ discourages extreme values
 
-- **Informative priors**
+- **\textcolor{blue}{Informative priors}**
   - Strong priors conveying a lot of information from previous knowledge (expert
     opinion, studies), e.g.,
     - From experimental data: $\beta_1 \sim Normal(2.5, 0.5^2)$
     - From previous data, about 5% of cases were positive: $p \sim Beta(2, 38)$
 
-- **Prior elicitation**
+- **\textcolor{violet}{Prior elicitation}**
   - Involves computing the least informative distribution given certain
     constraints
     - E.g., estimate distribution using maximum entropy to satisfy constraints
@@ -421,12 +421,12 @@ MSML610: Advanced Machine Learning
 :::
 
 #### Confidence intervals vs Credible intervals
-- People confuse frequentist **confidence intervals** with Bayesian **credible
+- People confuse frequentist **\textcolor{red}{confidence intervals}** with Bayesian **credible
   intervals**
 
 - In the frequentist framework, there is a true (but unknown) value of a
   parameter
-  - A (frequentist) **confidence interval** can contain or not contain the true
+  - A (frequentist) **\textcolor{darkgreen}{confidence interval}** can contain or not contain the true
     value of a parameter
   - Interpretation of a 95% confidence interval
     - No: _"There is a 95% probability that the true value is in this interval"_
@@ -435,7 +435,7 @@ MSML610: Advanced Machine Learning
 
 - In the Bayesian framework, parameters are random variables and there is a
   probability of having a parameter inside an interval
-  - Bayesian **credible interval** is intuitive
+  - Bayesian **\textcolor{blue}{credible interval}** is intuitive
   - _"There is a 95% probability that the true parameter lies within this
     interval, given the observed data"_
 
@@ -457,25 +457,25 @@ MSML610: Advanced Machine Learning
 
 #### Bayesian statistics
 - Given:
-  - The \textcolor{darkgreen}{**"knows"**}
+  - The \textcolor{darkgreen}{**\textcolor{gray}{"knows"}**}
     - Model structure (modeled as a graph of probability distributions)
     - Data, observations (modeled as constants)
-  - The \textcolor{red}{**"unknowns"**}
+  - The \textcolor{red}{**\textcolor{blue}{"unknowns"}**}
     - Model parameters (modeled as probability distributions)
-- We use Bayes' theorem to condition \textcolor{red}{**unknowns**} to \textcolor{darkgreen}{**knowns**},
+- We use Bayes' theorem to condition \textcolor{red}{**\textcolor{teal}{unknowns}**} to \textcolor{darkgreen}{**\textcolor{darkgreen}{knowns}**},
   hoping to reduce the uncertainty about the \textcolor{red}{\text{unknowns}}
 
-- **Problem** ![](pics/puzzle.png){ width=14px }
+- **\textcolor{brown}{Problem}** ![](pics/puzzle.png){ width=14px }
   - Most probabilistic models are analytically intractable
 
-- **Solution** ![](pics/lightbulb.png){ width=14px }
+- **\textcolor{darkgray}{Solution}** ![](pics/lightbulb.png){ width=14px }
   - Probabilistic programming
     - Specify a probabilistic model using code
     - Solve models using numerical techniques
 
 
 #### Probabilistic programming languages
-- **Steps**:
+- **\textcolor{red}{Steps}**:
   1. Specify models using code
   2. Numerical models solve the inference problem without requiring user
      understanding (i.e., "universal inference engines")
@@ -485,7 +485,7 @@ MSML610: Advanced Machine Learning
        using multidimensional arrays (tensors) efficiently (using C, CPU, GPU)
      - `ArviZ`: a library to interpret results of probabilistic models
 
-- **Pros**:
+- **\textcolor{blue}{Pros}**:
   - Compute results, even without an analytical closed form
   - Solving the model can be considered a black box
   - Focus on model design, evaluation, and interpretation, rather than solving
@@ -585,7 +585,7 @@ MSML610: Advanced Machine Learning
 #### Savage-Dickey density ratio
 - The Savage-Dickey ratio tests point null hypotheses in Bayesian inference
 
-- **Idea**: compare prior and posterior densities at a single point $\theta_0$
+- **\textcolor{red}{Idea}**: compare prior and posterior densities at a single point $\theta_0$
   $$BF_{01} = \frac{p(\theta_0 | H_1)}{p(\theta_0 | \mathcal{D}, H_1)}$$
   where:
   - $p(\theta_0 | H_1)$ is the _prior_ density $\theta$ under the alternative
@@ -602,7 +602,7 @@ MSML610: Advanced Machine Learning
 | > 100           | Decisive evidence         |
 \endgroup
 
-- **Intuition**: this ratio tells us how much the data has changed our belief
+- **\textcolor{blue}{Intuition}**: this ratio tells us how much the data has changed our belief
   about $\theta_0$
   - If the posterior density at $\theta_0$ is much smaller than the prior
     density, the Bayes factor suggests strong evidence against $H_0$
@@ -622,12 +622,12 @@ MSML610: Advanced Machine Learning
 :::
 
 #### ROPE: Region Of Practical Equivalence
-- A **ROPE** is an interval for a parameter where all values inside are
+- A **\textcolor{red}{ROPE}** is an interval for a parameter where all values inside are
   considered "equivalent", e.g.,
   - A $H_0$: _"coin is fair"_ iff $\theta = 0.5$ is impractical
   - For a coin, the interval $\theta \in [0.45, 0.55]$ is equivalent to $0.5$
 
-- **Hypothesis testing with ROPE and HPI**
+- **\textcolor{blue}{Hypothesis testing with ROPE and HPI}**
   - Compare Region Of Practical Equivalence (ROPE) with Highest-Posterior
     Interval (HPI)
     - If the HPI is within ROPE, no effect: $H_1$ is rejected
@@ -778,10 +778,10 @@ MSML610: Advanced Machine Learning
   = \int \text{model} \times \text{posterior}
   $$
 
-- This is called the "**\textcolor{red}{\text{posterior}} \textcolor{blue}{\text{predictive}} distribution**" as it
+- This is called the "**\textcolor{red}{\textcolor{red}{\text{posterior}} \textcolor{blue}{\text{predictive}} distribution}**" as it
   predicts \textcolor{blue}{\text{future data}} using the \textcolor{red}{\text{posterior distribution}}
 
-- **Conceptually:**
+- **\textcolor{blue}{Conceptually:}**
   - Sample a value of $\theta$ from the posterior $\Pr(\theta | y)$
   - Feed the value of $\theta$ to the likelihood $\Pr(y | \theta)$
   - Obtain $\tilde{y}$
@@ -797,7 +797,7 @@ MSML610: Advanced Machine Learning
   - Generate predictions $\tilde{y}$ with observed data $y$
   - Check for consistency
 
-- **Intuition**: can the model reproduce observed data?
+- **\textcolor{red}{Intuition}**: can the model reproduce observed data?
 
 - Models should always be checked
   - Differences can arise by mistakes or limitations of the problem/data
@@ -845,7 +845,7 @@ MSML610: Advanced Machine Learning
 ![](lectures_source/figures/Chap7_Chemical_shift_pymc_solution3.png)
 ::::
 :::: {.column width=45%}
-- **Is the PPC model good?**
+- **\textcolor{red}{Is the PPC model good?}**
 - No
   - The mean of the posterior is more to the right than the data
   - The std dev of the posterior is larger
@@ -858,7 +858,7 @@ MSML610: Advanced Machine Learning
 ![](lectures_source/figures/Chap7_Chemical_shift_pymc_solution3.png)
 ::::
 :::: {.column width=55%}
-- **Problem**
+- **\textcolor{red}{Problem}**
   - Two data points lie on the tails of the distribution
   - The normal distribution is "surprised" by these points and "reacts" by
     adjusting the mean towards them and increasing the standard deviation
@@ -866,7 +866,7 @@ MSML610: Advanced Machine Learning
 ::::
 :::
 
-- **Solution**
+- **\textcolor{blue}{Solution}**
   - We could declare these points outliers and discard them
     - E.g., it's malfunction of the equipment (we need evidence!)
   - We can change the model
@@ -951,7 +951,7 @@ MSML610: Advanced Machine Learning
 
 
 #### Group comparison
-- **Group comparison** is hypothesis testing for statistically significant
+- **\textcolor{red}{Group comparison}** is hypothesis testing for statistically significant
   results when comparing a "treatment" to a "control group"
 
 - E.g., ![](pics/pushpin_tack.png){ width=12px }
@@ -961,7 +961,7 @@ MSML610: Advanced Machine Learning
   - Does college students' performance improves if they don't have cellphone at
     school?
 
-- **Effect size** quantifies the difference between two groups
+- **\textcolor{blue}{Effect size}** quantifies the difference between two groups
   - It moves from questions like "does it work?" (hypothesis testing) to "how
     well does it work?" (estimate effect size)
 
@@ -969,11 +969,11 @@ MSML610: Advanced Machine Learning
 - When something is claimed to be harder/better/faster/stronger, ask for the
   baseline used for comparison
 
-- **E.g.,**
+- **\textcolor{red}{E.g.,}**
   - Sell sugary yogurts to boost the immune system by comparing it to using milk
   - A better control group would be a less sugary yogurt
 
-- **Placebo** is a psychological phenomenon where a patient experiences
+- **\textcolor{blue}{Placebo}** is a psychological phenomenon where a patient experiences
   improvements after receiving an inactive treatment
   - Using a placebo is better than "no treatment"
   - It shows how difficult it is to account for all factors in an experiment
@@ -989,7 +989,7 @@ MSML610: Advanced Machine Learning
   - Probability of superiority
 
 #### Sample size effect
-- **Sample size effect** is the impact of the number of observations (i.e.,
+- **\textcolor{red}{Sample size effect}** is the impact of the number of observations (i.e.,
   sample size) has on statistical results (e.g., p-values, confidence intervals)
   - With a small sample, a large mean difference might not be statistical
     significant (low p-value)
@@ -999,7 +999,7 @@ MSML610: Advanced Machine Learning
   - E.g., Cohen's d
 
 #### Cohen's d
-- **Cohen's d** is the difference of the means with respect to the pooled
+- **\textcolor{red}{Cohen's d}** is the difference of the means with respect to the pooled
   standard deviation of both groups
   $$\frac{\mu_2 - \mu_1}{\sqrt{(\sigma_1^2 + \sigma_2^2) / 2}}$$
   - It normalizes the effect by the variability for the sample size for a pooled
@@ -1038,7 +1038,7 @@ MSML610: Advanced Machine Learning
 #### Hierarchical models
 - Aka "multilevel", "nested", "mixed-effects" models
 
-- **Observation**: Data points share some common structure, but also have their
+- **\textcolor{red}{Observation}**: Data points share some common structure, but also have their
   own variations
   - Data can be grouped together
     - E.g., sales in different cities: each city is a different market, but there
@@ -1048,7 +1048,7 @@ MSML610: Advanced Machine Learning
       common educational factors
   - Repeated measurements on the same objects
 
-- **Approach**: ![](pics/lightbulb.png){ width=14px }
+- **\textcolor{blue}{Approach}**: ![](pics/lightbulb.png){ width=14px }
   - Model shares information between groups and allow differences between groups
   - The parameters of the prior distributions have also a prior distribution, aka
     "hyper-priors"
@@ -1100,14 +1100,14 @@ MSML610: Advanced Machine Learning
 #### Hierarchical models: Chemical shift
 - We have experimental measures of chemical shifts vs theoretical values
   - We want to evaluate the model using different "styles" of modeling
-  1. **Unpooled**
+  1. **\textcolor{red}{Unpooled}**
      - There are 20 amino acids and so we should fit 20 Gaussians
      - More detailed analysis, but with less accuracy
-  2. **Pooled**
+  2. **\textcolor{darkgreen}{Pooled}**
      - Compute the difference between estimates and measures and fit a Gaussian
      - More accurate estimates (since we have more data), but we loose
        information about different amino acids
-  3. **Hierarchical**
+  3. **\textcolor{blue}{Hierarchical}**
      - Build a model to estimate groups assuming they belong to a common
        population
 
@@ -1168,7 +1168,7 @@ MSML610: Advanced Machine Learning
     points
   - Similar groups reinforce common estimation
 
-- **Result**: inference is more stable
+- **\textcolor{red}{Result}**: inference is more stable
 
 #### Football example
 - We have data for different leagues over 4 years
@@ -1244,7 +1244,7 @@ MSML610: Advanced Machine Learning
     & \sigma \sim HalfNormal(0, \sigma_\epsilon) \\
     \end{align*}
 
-- We can use **vague priors**:
+- We can use **\textcolor{red}{vague priors}**:
   - The prior of the intercept $\alpha$ is often centered around $0$
   - Sometimes we have info on the sign of $\beta$
   - Half-Cauchy / exponential distribution for $\sigma$ is a good way to
@@ -1320,7 +1320,7 @@ MSML610: Advanced Machine Learning
 
 #### Linear model: bike rental example (criticism)
 
-- **Problems**
+- **\textcolor{red}{Problems}**
   - The model can output a negative number of bikes which makes no sense
   - The model predict a real number of bikes, while the count is discrete
 
@@ -1328,7 +1328,7 @@ MSML610: Advanced Machine Learning
   - Extends to negative numbers
   - Is continuous
 
-- **Solutions**:
+- **\textcolor{blue}{Solutions}**:
   - We could clip predictions lower than 0 and discretize the output (hack)
   - Use a better model that is defined only for positive numbers
 
@@ -1358,17 +1358,17 @@ MSML610: Advanced Machine Learning
 - Other times, it's modeled as discrete (e.g., Poisson, negative binomial)
 
 #### Poisson distribution
-- **Poisson distribution**
+- **\textcolor{red}{Poisson distribution}**
   - Models the number of events in a fixed interval of time, space, etc
   - Assumes events happen independently and at a constant average rate
 
-- **E.g.,**
+- **\textcolor{darkgreen}{E.g.,}**
   - Call centers: model the number of customers per hour
   - Natural events: model the number of earthquakes in a region over time
   - Traffic flow: model the number of cars passing through a toll booth in a day
   - Biology: count the number of mutations in a DNA segment over time
 
-- **Cons**:
+- **\textcolor{blue}{Cons}**:
   - Assumes mean equal to variance (can't model "overdispersion")
 
 
@@ -1380,7 +1380,7 @@ MSML610: Advanced Machine Learning
     needed to achieve the first success
   - Models overdispersion (i.e., when mean is much smaller than variance)
 
-- **E.g.,**
+- **\textcolor{red}{E.g.,}**
   - Customer service: model the number of unsuccessful customer interactions
     before achieving success
   - Sports: number of games a team needs to lose before winning a number of
@@ -1388,17 +1388,17 @@ MSML610: Advanced Machine Learning
 
 
 #### Overdispersion
-- **Overdispersion** occurs when the variance of count data is significantly
+- **\textcolor{red}{Overdispersion}** occurs when the variance of count data is significantly
   larger (e.g., 15-20x) than the mean
 
-- **E.g.,**
+- **\textcolor{darkgreen}{E.g.,}**
   - Epidemiology: when modeling disease outbreak, the number of new infections
     on a given day might fluctuate widely
   - Customer service: some days there are few complaints, other days there are
     many complaints
 
 
-- **How to model it?**
+- **\textcolor{blue}{How to model it?}**
   - A Poisson distribution has mean and variance equal ![](pics/wrong.png){
     width=12px }
   - A negative binomial has a second parameter that controls the variance
@@ -1456,9 +1456,9 @@ MSML610: Advanced Machine Learning
 
 #### Classification with logistic regression
 - "Classification with logistic regression" might seem a misnomer
-  - **Regression** predicts a continuous variable given one or more input
+  - **\textcolor{red}{Regression}** predicts a continuous variable given one or more input
     variables
-  - **Classification** predicts the output as a discrete variable given one or
+  - **\textcolor{blue}{Classification}** predicts the output as a discrete variable given one or
     more input variables
 
 - Logistic regression:
@@ -1469,7 +1469,7 @@ MSML610: Advanced Machine Learning
     $$\Pr(Y = \text{versicolor} | \text{sepal\_length}) > 0.5$$
 
 #### Boundary decision for a classifier
-- The **boundary decision** $\delta$ for a classifier is the values of the
+- The **\textcolor{red}{boundary decision}** $\delta$ for a classifier is the values of the
   independent variables that makes the prob equal to 0.5
 
 - For logistic regression $\delta$ is given by:
@@ -1519,7 +1519,7 @@ MSML610: Advanced Machine Learning
 
 
 #### Heteroskedasticity
-- **Heteroskedasticity** is when the variance of the errors is not constant in
+- **\textcolor{red}{Heteroskedasticity}** is when the variance of the errors is not constant in
   all the observations
   - E.g., the variance can be a linear function of the dependent variable
 
@@ -1617,7 +1617,7 @@ MSML610: Advanced Machine Learning
 - A Bayesian p-value summarizes the comparison between simulated and observed
   data
 
-- **Procedure**
+- **\textcolor{red}{Procedure}**
   - Given the posterior predictive $\tilde{Y}$
   - Choose a summary statistic $T$ (E.g., mean, median, standard deviation)
   - Compute $T$ for:
@@ -1640,14 +1640,14 @@ MSML610: Advanced Machine Learning
 #### Bayesian p-value: example
 - Study the height of people in a population
 
-- **Fit the Bayesian model**
+- **\textcolor{red}{Fit the Bayesian model}**
   - Assume a normal distribution with unknown mean and variance
   - Collect observed data of heights (e.g., 100 people)
   - Specify a prior distribution for mean and variance
   - Combine observed data with prior to obtain a posterior distribution of mean
     and variance of population height
 
-- **Compute Bayesian p-value**
+- **\textcolor{blue}{Compute Bayesian p-value}**
   - From posterior distribution:
     - Generate new simulated datasets
     - For each dataset, compute mean height
@@ -1659,10 +1659,10 @@ MSML610: Advanced Machine Learning
     - A value close to 0 or 1 indicates a poor fit
 
 #### Bayesian vs frequentist p-value
-- **Frequentist p-value** is the probability of getting observed data as or more
+- **\textcolor{red}{Frequentist p-value}** is the probability of getting observed data as or more
   extreme, assuming the null hypothesis is true
 
-- **Bayesian p-value** is the probability that simulated data from the model
+- **\textcolor{blue}{Bayesian p-value}** is the probability that simulated data from the model
   (i.e., posterior predictive check) is as or more extreme than the observed
   data
 
@@ -1691,8 +1691,8 @@ MSML610: Advanced Machine Learning
 
 
 #### Occam's razor
-- _"If you have **equivalent** explanations for the same phenomenon, you should choose
-  the **simpler** one"_
+- _"If you have **\textcolor{red}{equivalent}** explanations for the same phenomenon, you should choose
+  the **\textcolor{blue}{simpler}** one"_
   - Quality of explanation $\approx$ accuracy
   - Simpler $\approx$ number of model parameters
 
@@ -1706,7 +1706,7 @@ MSML610: Advanced Machine Learning
     - Do a bad job generalizing to predict potentially observable data
 
 #### Overfitting and underfitting
-- A model is **overfit** when it has many parameters, fitting the training data
+- A model is **\textcolor{red}{overfit}** when it has many parameters, fitting the training data
   well but unseen data poorly
 
   - Overfitting in terms of signal/noise:
@@ -1714,17 +1714,17 @@ MSML610: Advanced Machine Learning
     - We want the model to learn the signal
     - A model overfits when it learns the noise, obscuring the signal
 
-- A model is **underfit** when it has few parameters, fitting the dataset poorly
+- A model is **\textcolor{blue}{underfit}** when it has few parameters, fitting the dataset poorly
   - An underfit model doesn't learn the signal well
   - E.g., a constant fits a dataset, only learning the mean
 
 
 #### Bias-variance trade-off
-- A model has **high bias** when it has low ability to accommodate the data
+- A model has **\textcolor{red}{high bias}** when it has low ability to accommodate the data
   (i.e., underfitting)
   - E.g., a polynomial of degree 0
 
-- A model has **high variance** when it has high capacity and it is sensitive to
+- A model has **\textcolor{blue}{high variance}** when it has high capacity and it is sensitive to
   details in the data, capturing noise (i.e., overfitting)
   - E.g., a polynomial of degree 5
 
@@ -1749,8 +1749,8 @@ MSML610: Advanced Machine Learning
 
 
 #### Accuracy measures
-- **In-sample accuracy** is measured on the data used to fit a model
-- **Out-of-sample accuracy** is measured on data not used to fit a model
+- **\textcolor{red}{In-sample accuracy}** is measured on the data used to fit a model
+- **\textcolor{blue}{Out-of-sample accuracy}** is measured on data not used to fit a model
   - Aka "predictive accuracy"
 
 - In-sample accuracy > out-of-sample accuracy
@@ -1781,7 +1781,7 @@ MSML610: Advanced Machine Learning
 
 #### Log-likelihood
 - In a probabilistic set-up, log-likelihood is more natural
-- **Log-likelihood** is defined as:
+- **\textcolor{red}{Log-likelihood}** is defined as:
   $$\sum_i \log \Pr(y_i | \theta)$$
 
 - Deviance is defined as:
@@ -1814,11 +1814,11 @@ MSML610: Advanced Machine Learning
   - $\hat{\theta}_{MLE}$ is the maximum likelihood estimation of $\theta$
   - $\text{num}_{params}$ is the number of parameters
 
-- **Interpretation**:
+- **\textcolor{red}{Interpretation}**:
   - The first term measures how well the model fits the data
   - The second term penalizes complex models
 
-- **Cons**:
+- **\textcolor{blue}{Cons}**:
   - Discard information about uncertainty of posterior estimation
   - MLE assumes flat priors (vs informative and weakly informative priors)
   - Number of parameters is not always a good measure of complexity
@@ -1841,7 +1841,7 @@ MSML610: Advanced Machine Learning
 #### Cross-validation
 - Cross-validation (CV)
   - Simple and effective solution to use all data to compare models
-  - **Procedure**
+  - **\textcolor{red}{Procedure}**
     - Partition data into $K$ portions of equal size and similar statistics
     - Use $K-1$ partitions to train the model and the remaining partition to test
       it
@@ -1849,12 +1849,12 @@ MSML610: Advanced Machine Learning
     - Average the results
 
 - Leave-one-out cross-validation (LOO-CV)
-  - **Procedure**:
+  - **\textcolor{darkgreen}{Procedure}**:
     - The model is fit for all data, excluding one observation
     - The model's predictive accuracy is tested on the left out observation
     - Repeat the process for all observations and average
 
-  - **Cons**
+  - **\textcolor{blue}{Cons}**
     - It is very computationally expensive since one needs to refit the model
 
 - How to adapt cross-validation to a Bayesian approach?
@@ -1889,7 +1889,7 @@ MSML610: Advanced Machine Learning
   - Use "Pareto smooth importance sampling leave-one-out cross-validation"
 
 #### Pointwise predictive density (PPD)
-- The **pointwise predictive density** (or probability) for a given data point
+- The **\textcolor{red}{pointwise predictive density}** (or probability) for a given data point
   $y_i$ is defined as the posterior predictive probability, given the rest of the
   data
   $$
@@ -1906,7 +1906,7 @@ MSML610: Advanced Machine Learning
   - The \textcolor{blue}{\text{integral}} averages over the posterior distribution of $\theta$,
     capturing the uncertainty about the model parameters
 
-- **Interpretation**
+- **\textcolor{blue}{Interpretation}**
   - PPD measures how well a model, training on the data excluding $y_i$, predicts
     $y_i$
   - It's like cross-validation but using the Bayesian concept of averaging over
@@ -1919,7 +1919,7 @@ MSML610: Advanced Machine Learning
   \textcolor{blue}{\int p(y_i | \theta_{-i}) p(\theta_{-i} | y_{-i}) d\theta}
   $$
 
-- **Interpretation**
+- **\textcolor{red}{Interpretation}**
   - It can be used to determine which model generalizes better to new data
   - ELPD measures the predictive accuracy of a Bayesian model on unseen data
   - Train on $y_{-i}$, i.e., all data excluding $y_i$
@@ -1943,16 +1943,16 @@ MSML610: Advanced Machine Learning
   Leave-One-Out Cross-Validation (LOO-CV):
   $$ELPD_{LOO-CV} \defeq \sum_i \log \int p(y_i | \theta) p(\theta | y_{-i}) d\theta$$
 
-- **Problem**: Train once per point
+- **\textcolor{red}{Problem}**: Train once per point
 
-- **Solution**:
+- **\textcolor{darkgreen}{Solution}**:
   - Pareto-Smoothed Importance Sampling (PSIS) Leave-One-Out Cross-Validation
     (LOO-CV) estimates the formula without refitting the model for every point
-  - **Importance sampling**:
+  - **\textcolor{blue}{Importance sampling}**:
     - Use the full dataset to approximate the posterior distribution when a
       single observation is left out
     - Re-weight posterior samples based on importance
-  - **Pareto-smoothing**:
+  - **\textcolor{violet}{Pareto-smoothing}**:
     - Stabilize importance weights, reducing the impact of extreme weights
     - E.g., if an observation left out has a large influence on the posterior
       distribution

@@ -138,4 +138,3 @@ MSML610: Advanced Machine Learning
   - Estimate current or future states from noisy observations
   - Includes Kalman filters (linear-Gaussian) and particle filters (nonlinear)
   - Essential in control, robotics, and state estimation
-

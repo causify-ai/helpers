@@ -226,6 +226,36 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
                     or next_line_is_verbatim
                 ):
                     out.append(" " * _NUM_SPACES + line)
+    #
+    if type_ == "slides":
+
+        def _transform(slide_text: List[str]) -> str:
+            slide_text = "\n".join(slide_text)
+            if not hmarkdo.has_color_command(slide_text):
+                text_out = hmarkdo.colorize_bullet_points_in_slide(
+                    slide_text, use_abbreviations=False
+                )
+            else:
+                text_out = slide_text
+            text_out = text_out.split("\n")
+            return text_out
+
+        out = "\n".join(out)
+        out = hmarkdo.process_slides(out, _transform)
+        out = out.split("\n")
+
+    # out = out.split("\n")
+    out_tmp = []
+    for line in out:
+        if type_ == "slides":
+            do_continue, line = _process_question_to_slides(line)
+        else:
+            do_continue, line = _process_question_to_markdown(line)
+        if do_continue:
+            out_tmp.append(line)
+            continue
+        out_tmp.append(line)
+    out = out_tmp
     # c) Clean up.
     _LOG.debug("Clean up")
     hdbg.dassert_isinstance(out, list)

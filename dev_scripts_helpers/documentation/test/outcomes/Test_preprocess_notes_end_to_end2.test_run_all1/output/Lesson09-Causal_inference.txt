@@ -79,24 +79,24 @@ MSML610: Advanced Machine Learning
       emerging competitor?
 
 #### What are Data Analytics?
-- **Collections of data**
+- **\textcolor{red}{Collections of data}**
   - Aggregated and organized data sets for analysis
   - E.g., customer purchase histories stored in a CRM system
 
-- **Dashboards**
+- **\textcolor{darkgreen}{Dashboards}**
   - Visual displays of key metrics for quick insights
   - E.g., dashboard showing quarterly revenue and expenses
 
-- **Descriptive statistics**
+- **\textcolor{blue}{Descriptive statistics}**
   - Summary metrics like mean, median, mode, and standard deviation
   - E.g., calculating the average sales per quarter to understand performance
     trends
 
-- **Historical reports**
+- **\textcolor{teal}{Historical reports}**
   - Detailed examination of past performance
   - E.g., monthly sales reports for the past fiscal year
 
-- **Models**
+- **\textcolor{violet}{Models}**
   - Statistical representations to forecast or explain phenomena
   - E.g., a predictive model to anticipate customer churn based on behavioral
     data
@@ -116,14 +116,14 @@ MSML610: Advanced Machine Learning
 \endgroup
 
 #### Explainability
-- **Regulators** require that if you are making decisions using ML / AI, you
+- **\textcolor{red}{Regulators}** require that if you are making decisions using ML / AI, you
   should
   be able to defend the results of your analysis
   - E.g., decide who to hire, how to set up a policy
 
 - Organizations can:
-  - Be **fined** by regulatory authorities
-  - Face **backlash** from customers and activists
+  - Be **\textcolor{darkgreen}{fined}** by regulatory authorities
+  - Face **\textcolor{blue}{backlash}** from customers and activists
 
 - E.g., neural networks are "black boxes"
   - Humans can't understand how inputs are combined into a conclusion
@@ -132,51 +132,51 @@ MSML610: Advanced Machine Learning
   - Bias
     - E.g., using age, race, sex as a feature can introduce bias
 
-- **Explainable AI** allow users to:
+- **\textcolor{violet}{Explainable AI}** allow users to:
   - Comprehend
   - Explain
   - Trust the results by the machine
 
 #### Correlation is Not Causation!
-- **Correlation** is a statistical method for understanding relationships between
+- **\textcolor{gray}{Correlation}** is a statistical method for understanding relationships between
   data
-  - **Pros**
+  - **\textcolor{blue}{Pros}**
     - Use past outcomes to predict future outcomes by finding patterns and
       anomalies in data
-  - **Cons**
+  - **\textcolor{teal}{Cons}**
     - Doesn't explain the cause of the results
     - Two variables may move together due to coincidence or a hidden factor
 
-- **Causation** explains how / why changing one variable influences the other,
+- **\textcolor{darkgreen}{Causation}** explains how / why changing one variable influences the other,
   - This cannot be concluded from correlation alone
 
-- **Data does not understand causes and effects**
+- **\textcolor{brown}{Data does not understand causes and effects}**
   - Only humans can identify variables and relationships (cause-effect) based on
     their understanding of context of data
   - Without causation, you can't make intelligent decisions
 
-- AI needs to **augment the power of humans** to understand the world
+- AI needs to **\textcolor{darkgray}{augment the power of humans}** to understand the world
 
 #### Causal AI
 - Causal AI solves the previous problems
 
-- **Understands the why**
+- **\textcolor{red}{Understands the why}**
   - Determines cause-and-effect between variables
   - E.g., determining whether a marketing campaign increased sales
 
-- **Identify interventions**
+- **\textcolor{darkgreen}{Identify interventions}**
   - Identifies variables and interventions to change outcomes
   - E.g., determining which lifestyle changes can reduce blood pressure
 
-- **Predicting counterfactuals**
+- **\textcolor{blue}{Predicting counterfactuals}**
   - Hypothesizes what could happen under different circumstances
   - E.g., estimating student grades if they attended a different school
 
-- **Avoiding bias**
+- **\textcolor{teal}{Avoiding bias}**
   - Traditional AI is biased by training data and ignored variables
   - Ensure fairness by accounting for confounding variables
 
-- **Improving decision-making**
+- **\textcolor{violet}{Improving decision-making}**
   - Provides a deeper understanding of relationships for better decisions
   - E.g., improving supply chain by understanding logistic impact
 
@@ -192,7 +192,7 @@ MSML610: Advanced Machine Learning
 
 
 #### Causal DAG
-- A **Causal DAG** is a directed acyclic graph that represents causal
+- A **\textcolor{red}{Causal DAG}** is a directed acyclic graph that represents causal
   relationships between variables
   - Directed: Arrows show direction of cause $\rightarrow$ effect
   - Acyclic: No feedback loops
@@ -200,28 +200,28 @@ MSML610: Advanced Machine Learning
     - A cycle would imply a variable is both a cause and effect of itself
       (paradox)
 
-- **Structure**:
+- **\textcolor{darkgreen}{Structure}**:
   - Nodes represent variables (e.g., income, education)
   - Edges represent causal influences (e.g., education $\to$ income)
   - E.g., education causally affects income through job skill
     $$Education \to JobSkill \to Income$$
 
-- **Benefits**
+- **\textcolor{blue}{Benefits}**
   - DAGs encode _causal_ rather than _associative_ links
   - Enables reasoning about interventions and counterfactuals
   - Supports fair, explainable AI models
 
-- **Limitations**:
+- **\textcolor{violet}{Limitations}**:
   - Requires domain knowledge to specify structure
   - Assumes all relevant variables are included (no hidden confounders)
 
 #### Structural Causal Model
-- A **Structural Causal Model** (SCM) translates a graphical model / DAG into
+- A **\textcolor{red}{Structural Causal Model}** (SCM) translates a graphical model / DAG into
   mathematical equations
   - DAGs show structure (variables and arrows)
   - SCMs add equations that define how variables interact
 
-- **Structure of SCMs**
+- **\textcolor{blue}{Structure of SCMs}**
   - Variables: $X_1, X_2, ..., X_n$ represent quantities in the system
   - Structural equations
     $$X_i = f_i(PA_i, U_i)$$
@@ -240,15 +240,15 @@ MSML610: Advanced Machine Learning
 
 ::: columns
 :::: {.column width=50%}
-- **Explanatory variables**
+- **\textcolor{red}{Explanatory variables}**
   - You can manipulate or observe when changes are applied
   - E.g., _"does a large cup of coffee before an exam help with a test?"_
 
-- **Outcome variables**
+- **\textcolor{darkgreen}{Outcome variables}**
   - Result of the action (independent variables)
   - E.g., _"by how much did the score test improve?"_
 
-- **Unobserved variables**
+- **\textcolor{blue}{Unobserved variables}**
   - Not seen and more difficult to account
   - E.g., _"temperature of the room, which makes students sleepy and less alert"_
 ::::
@@ -286,7 +286,7 @@ digraph SCMExample {
 
 
 #### Observed vs. Unobserved Variables
-- **Observed variables**
+- **\textcolor{red}{Observed variables}**
   - Aka "measurable" or "visible" variables
   - Variables directly measured or collected in a dataset
   - E.g.,
@@ -295,7 +295,7 @@ digraph SCMExample {
     - Blood pressure
     - Product price
 
-- **Unobserved variables**
+- **\textcolor{blue}{Unobserved variables}**
   - Aka "latent" or "hidden" variables
   - Variables that exist but are not measured or included in the data
   - E.g.,
@@ -310,14 +310,14 @@ digraph SCMExample {
       `Drowning`
 
 #### Endogenous vs. Exogenous Variables
-- **Endogenous variables**
+- **\textcolor{red}{Endogenous variables}**
   - Variables whose values are determined _within_ the model
     - I.e., dependent on other variables in the system
   - Represent the system’s internal behavior and outcomes
     - E.g., in a model of `Education` $\rightarrow$ `Income`, `Income` is
       endogenous since it is affected by `Education` level
 
-- **Exogenous variables**
+- **\textcolor{blue}{Exogenous variables}**
   - Variables that originate _outside_ the system being modeled
     - I.e., not caused by other variables in the model
   - Often represent background conditions or external shocks
@@ -349,7 +349,7 @@ digraph SCMExample {
 
 #### Counterfactuals
 
-- A **counterfactual** describes what would have happened under a different
+- A **\textcolor{red}{counterfactual}** describes what would have happened under a different
   scenario
   - _"What would the outcome have been _if_ X had been different?"_
   - _"If kangaroos had no tails, they would topple over"_
@@ -358,7 +358,7 @@ digraph SCMExample {
   - _"Would customers be more satisfied if we could ship products in one
     week, rather than three weeks?"_
 
-- **Causal reasoning**:
+- **\textcolor{darkgreen}{Causal reasoning}**:
   - Goes beyond correlation and association
   - Requires a causal model (like an SCM) to simulate alternate realities
 
@@ -367,7 +367,7 @@ digraph SCMExample {
     - Counterfactual: What if the student didn't receive tutoring?
     - Causal model estimates the alternative outcome (e.g., 70%)
 
-- **Challenges**:
+- **\textcolor{blue}{Challenges}**:
   - Requires strong assumptions and accurate models
   - Difficult to validate directly since counterfactuals are unobservable
 
@@ -375,7 +375,7 @@ digraph SCMExample {
 ::: columns
 :::: {.column width=70%}
 
-- A **confounder**
+- A **\textcolor{red}{confounder}**
   - Is a variable in a causal graph that influences multiple variables
   - Can lead to spurious associations
 
@@ -464,7 +464,7 @@ digraph CausalTriangle {
 #### Collider
 ::: columns
 :::: {.column width=60%}
-- A **collider** is a variable $A$ with incoming edges from variables $B,
+- A **\textcolor{red}{collider}** is a variable $A$ with incoming edges from variables $B,
   C$ in a causal DAG (i.e., influenced by multiple variables)
 - A collider complicates understanding relationships between variables $B, C$
   and those it influences, $X$
@@ -536,13 +536,13 @@ digraph ColliderDiagram {
   - $BodyWeight$ (W)
   - $HeartDisease$ (D)
 
-- **Without conditioning on $W$**
+- **\textcolor{red}{Without conditioning on $W$}**
   - $E$ and $D$ are independent
     - E.g., knowing someone's exercise level $E$ doesn't give information about
       diet $D$, and vice versa
   - The collider $W$ blocks any association between $E$ and $D$
 
-- **After conditioning on $W$**
+- **\textcolor{blue}{After conditioning on $W$}**
   - E.g., looking for individuals with specific body weight
   - You introduce a dependency between $E$ and $D$
   - Since $W$ is fixed, any change in $E$ must be balanced by a change in $D$ to
@@ -575,7 +575,7 @@ digraph ColliderDiagram {
 #### Mediator Variable
 ::: columns
 :::: {.column width=50%}
-- A **mediator variable** $M$ lies on the causal path between a treatment $X$ and an
+- A **\textcolor{red}{mediator variable}** $M$ lies on the causal path between a treatment $X$ and an
   outcome $Y$
 ::::
 :::: {.column width=45%}
@@ -616,7 +616,7 @@ digraph CausalFlow {
 #### Moderator variable
 ::: columns
 :::: {.column width=50%}
-- **Moderator variable** affects the strength or direction between two other
+- **\textcolor{red}{Moderator variable}** affects the strength or direction between two other
   variables
 ::::
 :::: {.column width=45%}
@@ -646,7 +646,7 @@ digraph ModeratorModel {
 
 ::: columns
 :::: {.column width=50%}
-- **E.g.,**
+- **\textcolor{blue}{E.g.,}**
   - Study the relationship between stress $X$ and job performance $Y$
   - The level of social support an individual receives $M$ could be a moderator
     - If social support is high, the negative effect of stress on job
@@ -692,7 +692,7 @@ digraph ModeratorModel {
 #### Fork Structure in Causal Diagrams
 ::: columns
 :::: {.column width=70%}
-- A **fork** occurs when a single variable causally influences two or more
+- A **\textcolor{red}{fork}** occurs when a single variable causally influences two or more
   variables
   - Formally: $X \rightarrow C$ and $X \rightarrow D$
 - $X$ is a common cause (confounder) of $C$ and $D$
@@ -751,8 +751,8 @@ digraph CausalDAG {
 
 ::: columns
 :::: {.column width=70%}
-- An **inverted fork** occurs when two or more arrows converge on a common node
-  - Also known as a **collider**
+- An **\textcolor{red}{inverted fork}** occurs when two or more arrows converge on a common node
+  - Also known as a **\textcolor{blue}{collider}**
 - Colliders block associations unless the collider or its descendants are
   conditioned on
 - Conditioning on a collider "opens" a path, inducing spurious correlations
@@ -805,7 +805,7 @@ digraph ColliderExample {
 :::
 
 #### Path connecting unobserved variables
-- **Unobserved variables** affect the model but we don't have a direct measure of
+- **\textcolor{red}{Unobserved variables}** affect the model but we don't have a direct measure of
   it
 
 ::: columns
@@ -939,11 +939,11 @@ digraph CausalDAG {
     CS -> S;
   }
   ```
-- **Front-door path** (i.e., a direct causal relationship):
+- **\textcolor{red}{Front-door path}** (i.e., a direct causal relationship):
   $CustomerSatisfaction \rightarrow Sales$
 ::::
 :::: {.column width=45%}
-- **Backdoor path**: $ProductQuality$ is a common cause (confounder) of
+- **\textcolor{blue}{Backdoor path}**: $ProductQuality$ is a common cause (confounder) of
   both $CustomerSatisfaction$ and $Sales$
 - To analyze the relationship between customer satisfaction and sales, we need
   to:
@@ -1156,7 +1156,7 @@ digraph CausalReasoningFlow {
 :::
 
 #### Building a DAG
-- **Causal models** visually represent complex environments and relationships
+- **\textcolor{red}{Causal models}** visually represent complex environments and relationships
 - Nodes are like "nouns" in the model:
   - E.g., "price", "sales", "revenue", "birth weight", "gestation period"
   - Variables can be endogenous/exogenous and observed/unobserved
@@ -1164,12 +1164,12 @@ digraph CausalReasoningFlow {
     - Parents, children (direct relationships)
     - Descendants, ancestors (along the path)
     - Neighbors
-- **Iterative Refinement**:
+- **\textcolor{darkgreen}{Iterative Refinement}**:
   - Models are continuously updated with new variables and insights
-- **Modeling as a Communication Tool**:
+- **\textcolor{blue}{Modeling as a Communication Tool}**:
   - A shared language that bridges gaps between technical and non-technical team
     members
-- **Unobservable Variables**:
+- **\textcolor{violet}{Unobservable Variables}**:
   - Supports inclusion of variables not empirically observed but known to exist
   - E.g., trust or competitor activity can be modeled despite lack of direct
     data
@@ -1547,25 +1547,25 @@ digraph CausalFlowGrid {
 
 #### Steps for a hybrid team project
 
-- **Establish a Phased, Collaborative Approach**
+- **\textcolor{gray}{Establish a Phased, Collaborative Approach}**
   - Align strategic goals with technical efforts
   - Emphasize early stakeholder engagement and shared ownership
-- **Strategic Kickoff Meeting**
+- **\textcolor{orange}{Strategic Kickoff Meeting}**
   - Unite business, technical, and operational roles
   - Clarify problems, outcomes, responsibilities, success metrics
-- **Define Team Goals**
+- **\textcolor{blue}{Define Team Goals}**
   - Use SMART objectives aligned with business strategy
   - Focus on outcomes and supported decisions, not tools
-- **Target a Project**
+- **\textcolor{magenta}{Target a Project}**
   - Choose a bounded, feasible, high-value use case
   - Prioritize early wins for trust and momentum
-- **Define the Hypothesis**
+- **\textcolor{teal}{Define the Hypothesis}**
   - Translate business problems into testable causal assumptions
   - Build a preliminary DAG with experts' input
-- **Incremental Model Development**
+- **\textcolor{olive}{Incremental Model Development}**
   - Build the model in small, reviewable stages
   - Iterate with regular feedback, refining scope and variables
-- **Embrace Iteration and Continuous Refinement**
+- **\textcolor{darkgreen}{Embrace Iteration and Continuous Refinement}**
   - Keep progress collaborative and aligned with business needs
   - Add complexity gradually to manage risk and enhance understanding
 
@@ -1583,7 +1583,7 @@ digraph CausalFlowGrid {
   - E.g., a false negative in a medical screening for cancer
 - Well-designed AI systems must foster trust, transparency, and user confidence
 
-- **Humans in the loop**
+- **\textcolor{red}{Humans in the loop}**
   - AI systems lack true reasoning and contextual understanding
   - Human involvement ensures interpretation and context are considered
 
@@ -1662,19 +1662,19 @@ digraph CausalFlowGrid {
 
 #### SMART goals
 - SMART is an acronym for Specific, Measurable, Achievable, Relevant, Time-bound
-- **Specific**
+- **\textcolor{red}{Specific}**
   - Clearly defines what is to be achieved
   - E.g., "Increase website traffic by 15%"
-- **Measurable**
+- **\textcolor{darkgreen}{Measurable}**
   - Includes criteria to track progress and success
   - E.g., "Track visits using Google Analytics"
-- **Achievable**
+- **\textcolor{blue}{Achievable}**
   - Realistic based on resources and constraints
   - E.g., "Based on historical growth rates, 15% is attainable"
-- **Relevant**
+- **\textcolor{teal}{Relevant}**
   - Aligns with broader organizational or personal objectives
   - E.g., "Traffic increase supports lead generation goals"
-- **Time-bound**
+- **\textcolor{violet}{Time-bound}**
   - Specifies a deadline or timeframe
   - E.g., "Achieve by end of Q3"
 
@@ -1719,12 +1719,12 @@ digraph CausalFlowGrid {
 #### Decision matrix
 - Tool to evaluate options based on criteria for objective comparison
 
-- **Goals**
+- **\textcolor{red}{Goals}**
   - Eliminate biases by quantifying decisions
   - Clarify priorities
   - Enable comparison between options
 
-- **Approach**
+- **\textcolor{blue}{Approach}**
   1. List alternatives
      - E.g., laptop A, laptop B
   2. Define criteria
@@ -1739,38 +1739,38 @@ digraph CausalFlowGrid {
 
 #### Key Performance Indicators (KPIs): General Overview
 
-- **What are KPIs?**
+- **\textcolor{gray}{What are KPIs?}**
   - Quantitative metrics that reflect how well an individual, team, or
     organization is achieving key objectives
 
-- **Purpose of KPIs**
+- **\textcolor{orange}{Purpose of KPIs}**
   - Provide focus for strategic and operational improvement
   - Serve as benchmarks for progress and performance evaluation
 
-- **Categories of KPIs**
-  - **Financial KPIs**: Revenue, profit margin, cost per acquisition
-  - **Customer KPIs**: Customer satisfaction, churn rate
-  - **Process KPIs**: Efficiency, cycle time, error rate
-  - **People KPIs**: Employee engagement, turnover rate, training hours
+- **\textcolor{blue}{Categories of KPIs}**
+  - **\textcolor{magenta}{Financial KPIs}**: Revenue, profit margin, cost per acquisition
+  - **\textcolor{teal}{Customer KPIs}**: Customer satisfaction, churn rate
+  - **\textcolor{olive}{Process KPIs}**: Efficiency, cycle time, error rate
+  - **\textcolor{darkgreen}{People KPIs}**: Employee engagement, turnover rate, training hours
 
-- **Characteristics of Effective KPIs**
+- **\textcolor{cyan}{Characteristics of Effective KPIs}**
   - Specific and clearly defined
   - Measurable with reliable data
   - Achievable and realistic
   - Relevant to the business goals
   - Time-bound for periodic evaluation
 
-- **Developing KPIs**
+- **\textcolor{brown}{Developing KPIs}**
   - Align with strategic goals
   - Involve key stakeholders in the design process
   - Establish baseline and targets
 
-- **Using KPIs**
+- **\textcolor{red}{Using KPIs}**
   - Monitor performance regularly
   - Identify trends and root causes
   - Inform decisions and prioritize actions
 
-- **Continuous Improvement**
+- **\textcolor{darkgray}{Continuous Improvement}**
   - Review and refine KPIs as objectives and environments evolve
 
 #### The Importance of Synthetic Data in Causal AI
@@ -1779,7 +1779,7 @@ digraph CausalFlowGrid {
   properties
   - Created using algorithms or simulations based on real data distributions
 
-- **Key Benefits**
+- **\textcolor{red}{Key Benefits}**
   - Enhances data availability when real data is limited, biased, or sensitive
   - Enables experimentation without risking privacy breaches
   - Protects identities by not using real personal data
@@ -1787,16 +1787,16 @@ digraph CausalFlowGrid {
   - Allows rebalancing of underrepresented groups or scenarios
   - Facilitates fairer model training and evaluation
 
-- **Use in Causal Modeling**
+- **\textcolor{darkgreen}{Use in Causal Modeling}**
   - Simulates counterfactual scenarios to test causal hypotheses
   - Assists in validating causal assumptions and interventions
 
-- **Challenges**
+- **\textcolor{blue}{Challenges}**
   - Ensuring synthetic data accurately reflects key patterns and relationships
   - Avoiding distortion of causal dependencies or overfitting to synthetic
     features
 
-- **Best Practices**
+- **\textcolor{violet}{Best Practices}**
   - Combine with real data for validation
   - Use domain knowledge to guide synthetic data generation and use
 
@@ -1848,7 +1848,7 @@ digraph BayesianNetwork1 {
 ::::
 :::
 
-- There is an **asymmetry in nature** that we need to capture
+- There is an **\textcolor{red}{asymmetry in nature}** that we need to capture
   - Extinguishing the fire will stop the smoke
   - Clearing the smoke won't affect the fire
 
@@ -1949,34 +1949,34 @@ digraph BayesianNetwork1 {
 - Estimate the effect of an intervention $do(X_j = x_{jk})$ on another variable
   $X_i$ in a causal network
 
-- **The Basic Adjustment Formula**
+- **\textcolor{gray}{The Basic Adjustment Formula}**
   - Derived from the modified joint distribution after intervention:
     $$\Pr(X_i = x_i | do(X_j = x_{jk})) = \sum_{\text{parents}(X_j)} \Pr(x_i | x_{jk}, \text{parents}(X_j)) \Pr(\text{parents}(X_j))$$
   - Omits the causal mechanism for $X_j$ and treats it as fixed
 
-- **Interpretation**
+- **\textcolor{orange}{Interpretation}**
   - Weighted average of the effect of $X_j$ and its parents on $X_i$
   - Weights are given by the prior probabilities of the parent values
 
-- **Causal Inference via Graph Surgery**
+- **\textcolor{blue}{Causal Inference via Graph Surgery}**
   - "Mutilate" the network by cutting incoming edges to $X_j$
   - Replace $X_j$'s structural equation with $X_j = x_{jk}$
 
-- **E.g., (Sprinkler Network)**
+- **\textcolor{magenta}{E.g., (Sprinkler Network)}**
   - To evaluate $\Pr(GreenerGrass | do(Sprinkler = true))$:
     $$\Pr(g | do(S = \text{true})) = \sum_r \Pr(g | S = \text{true}, r) \Pr(r)$$
 
-- **Back-door Criterion for Valid Adjustment Sets**
+- **\textcolor{teal}{Back-door Criterion for Valid Adjustment Sets}**
   - A set $Z$ satisfies the back-door criterion if it blocks all back-door paths
     from $X_j$ to $X_i$
   - Formally: $X_i$ is conditionally independent of the parents of $X_j$ given
     $X_j$ and $Z$
 
-- **Why This Matters**
+- **\textcolor{olive}{Why This Matters}**
   - Enables causal reasoning from observational data
   - Avoids the need for randomized controlled trials in some cases
 
-- **Applications**
+- **\textcolor{darkgreen}{Applications}**
   - Estimating treatment effects, policy interventions, and understanding system
     behavior under manipulation
 
@@ -2136,5 +2136,4 @@ flowchart TD
   U["Confounder (U)"] --> Y["Effect (Y)"]
   Z["Backdoor Blocker (Z)"] --- U
 ```
-
 

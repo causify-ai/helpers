@@ -20,11 +20,46 @@
 - The entrypoint for the documentation home page is
   [`/docs/README.md`](/docs/README.md)
 
+## Layout of a publishable dir
+
+- TODO(gp): Finish this and make sure the layout is always the same for all the
+  publishing stuff
+
+```
+> tree blog --dirsfirst -n -F --charset unicode
+blog/
+|-- docs/
+|   |-- assets/
+|   |   |-- favicon.ico
+|   |   `-- logo.png
+|   |-- posts/
+|   |   |-- blog1.md
+|   |   |-- blog2.md
+|   |   `-- blog3.md
+|   |-- styles/
+|   |   `-- styles.css
+|   `-- index.md
+`-- mkdocs.yml
+```
+
 ## Generate the `mkdocs` dir
+
+- Set the dir to render:
+  ```
+  > export SRC_DIR=docs
+  > export DST_DIR=dev_scripts_helpers/documentation/mkdocs/tmp.mkdocs
+  ```
+
+- To render the docs in the tutorials:
+  ```
+  > cd //tutorials1
+  > export SRC_DIR=notes.startup_admin_guide
+  > export DST_DIR=tmp.mkdocs
+  ```
 
 - Create the documentation for `mkdocs` from the `docs` directory
   ```bash
-  > ./dev_scripts_helpers/documentation/mkdocs/preprocess_mkdocs.py --input docs --output_dir dev_scripts_helpers/documentation/mkdocs/tmp.mkdocs
+  > preprocess_mkdocs.py --input $SRC_DIR --output_dir $DST_DIR
   ```
 - This script:
   - Copies all the files from `docs` to `tmp.mkdocs` so that we can modify the
@@ -37,7 +72,7 @@
 
 ## Debug 
 
-- After running `preprocess_mkdocs.py` we can see how the markdown are
+- After running `preprocess_mkdocs.py` you can see how the markdown are
   transformed with:
   ```bash
   > diff -r --brief docs tmp.mkdocs
@@ -45,8 +80,8 @@
   ```
 
 - To serve the HTML locally:
-  ```
-  > (cd dev_scripts_helpers/documentation/mkdocs; mkdocs serve --dev-addr localhost:8001)
+  ```bash
+  > (cd $DST_DIR; mkdocs serve --dev-addr localhost:8001)
   ```
 
 - Go to http://localhost:8001
@@ -68,12 +103,29 @@
 
 - Publish 
   ```
-  > (cd dev_scripts_helpers/documentation/mkdocs; mkdocs gh-deploy)
+  > (cd $DST_DIR; mkdocs gh-deploy)
   ```
 
 - GitHub renders the documentation at https://causify-ai.github.io/helpers/
 
+# Document how the stuff is deployed
+
+- TODO(gp):
+
+- How to publish the blog
+Where is it
+
+- How to publish doc for 
+notes.programming_with_ai/ notes.startup_admin_guide/
+
+- How to publish documentation
+/Users/saggese/src/cmamp1/helpers_root/.github/workflows/publish_mkdocs.yml
+
+- How to publish from gpsaggese GitHub?
+
 # MkDocs documentation deployment
+
+- TODO(gp): Review the rest
 
 ## Solution overview
 
