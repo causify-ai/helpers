@@ -1,0 +1,7019 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="all.coding_style.how_to_guide.html">
+      
+      
+        <link rel="next" href="all.reading_other_people_code.how_to_guide.html">
+      
+      
+      <link rel="icon" href="../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>All.coding style guidelines.reference - Helpers docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../styles/styles.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#all_style_guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="Helpers docs" class="md-header__button md-logo" aria-label="Helpers docs" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Helpers docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              All.coding style guidelines.reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="Helpers docs" class="md-nav__button md-logo" aria-label="Helpers docs" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    Helpers docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Build system
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Build system
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_system/all.gitleaks_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_system/all.linter_gh_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.linter gh workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_system/all.pytest_allure.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pytest allure.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_system/all.pytest_allure.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pytest allure.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_system/all.semgrep_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.semgrep workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Code guidelines
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Code guidelines
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.code_design.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code design.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.code_like_pragmatic_programmer.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code like pragmatic programmer.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.code_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.coding_style.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.coding style.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    All.coding style guidelines.reference
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="all.coding_style_guidelines.reference.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.coding style guidelines.reference
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#all_style_guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      All Style Guide
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="All Style Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#general" class="md-nav__link">
+    <span class="md-ellipsis">
+      General
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="General">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spelling
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Spelling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Naming
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Naming">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docstrings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Docstrings
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Docstrings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example_usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example usage:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the_result_is_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      The result is 8.
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The result is 8.">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#linter_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comments
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Comments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code_implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Implementation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execute_block_for_condition1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute block for condition1.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execute_block_for_condition2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute block for condition2.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execute_block_if_none_of_the_above_conditions_are_met_or_raise_an" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute block if none of the above conditions are met or raise an
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exception" class="md-nav__link">
+    <span class="md-ellipsis">
+      exception.
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="exception.">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#linter_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code_design" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Design
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Read data.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#imports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Imports
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Imports">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type_annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Type Annotations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Annotations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scripts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Logging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#misc" class="md-nav__link">
+    <span class="md-ellipsis">
+      Misc
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Misc">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unit_tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unit Tests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unit Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rules
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notebooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notebooks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Notebooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      General
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="General">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plotting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plotting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plotting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure_logger" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configure logger.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#print_system_signature" class="md-nav__link">
+    <span class="md-ellipsis">
+      Print system signature.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure_the_notebook_style" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configure the notebook style.
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configure the notebook style.">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jupytext" class="md-nav__link">
+    <span class="md-ellipsis">
+      Jupytext
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Jupytext">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      Markdown
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Markdown">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      General
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="General">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Headers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Headers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text" class="md-nav__link">
+    <span class="md-ellipsis">
+      Text
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Text">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.reading_other_people_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reading other people code.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.submit_code_for_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.submit code for review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.type_hints.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.type hints.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Documentation meta
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Documentation meta
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_meta/all.architecture_diagrams.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.architecture diagrams.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_meta/all.diataxis.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.diataxis.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_meta/all.gdocs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gdocs.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_meta/all.google_technical_writing.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.google technical writing.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_meta/all.markdown_tools.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.markdown tools.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_meta/all.mkdocs_deployment.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.mkdocs deployment.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_meta/all.plotting_in_latex.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.plotting in latex.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_meta/all.writing_docs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.writing docs.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    General background
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            General background
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../general_background/all.common_abbreviations.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.common abbreviations.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../general_background/all.glossary.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.glossary.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../general_background/all.literature_review.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.literature review.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../general_background/all.reading_list.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reading list.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Onboarding
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Onboarding
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.dev_must_read_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dev must read checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.development_documents.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development documents.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.development_setup.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development setup.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.hiring_process.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hiring process.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.organize_email.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.organize email.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.receive_crypto_payment.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.receive crypto payment.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.track_time_with_hubstaff.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.track time with hubstaff.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/bounty.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Bounty.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/intern.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/intern.prepare_for_development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.prepare for development.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/intern.running_causify_on_virtual_machine.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.running causify on virtual machine.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/intern.set_up_development_on_laptop.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.set up development on laptop.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/intern.signing_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.signing up.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tools
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.ai_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.ai review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.bfg_repo_cleaner.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.bfg repo cleaner.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.blog.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.blog.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.causify_blog_platform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.causify blog platform.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.chatgpt_api.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.chatgpt api.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.code_coverage.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.code_coverage_subprocess.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage subprocess.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.code_coverage_subprocess.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage subprocess.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.code_review_tools.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code review tools.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.codebase_clean_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.codebase clean up.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.codecov.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.codecov.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.evaluating_external_tools.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.evaluating external tools.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.explanation_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.explanation template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.how_to_guide_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.how to guide template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.import_check.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.import check.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.imports_and_packages.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.imports and packages.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.integrate_repos.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.integrate repos.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.invoke_bash_print_tree.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke bash print tree.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.invoke_git_branch_copy.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke git branch copy.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.invoke_workflows.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke workflows.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.llm_transform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.llm transform.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.parquet.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.parquet.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.precommit.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.precommit.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.profiling.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.profiling.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.pycharm.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pycharm.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.reference_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reference template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.selenium.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.selenium.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.ssh.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.ssh.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.sync_gh_projects.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.sync gh projects.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.tutorial_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.tutorial template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.veracrypt.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.veracrypt.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.visual_studio_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.visual studio code.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_33" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_33" id="__nav_7_33_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Dev system
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_33_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_33">
+            <span class="md-nav__icon md-icon"></span>
+            Dev system
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.conda_environment_obsolete.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.conda environment obsolete.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.create_a_runnable_dir.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.create a runnable dir.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.create a super repo with helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.dealing_with_missing_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dealing with missing dependencies.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.devops_docker.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.devops docker.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.devops_docker.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.devops docker.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.docker_optimizer_container.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.docker optimizer container.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.python_package_upgrade_and_troubleshooting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.python package upgrade and troubleshooting.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.replace_common_files_with_script_links.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.replace common files with script links
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.runnable_repo.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.runnable repo.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.synchronize_gh_issue_labels.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.synchronize gh issue labels.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.synchronize_gh_settings.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.synchronize gh settings.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.transition_to_cmamp2.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.transition to cmamp2.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.transition_to_repo_config_yml.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.transition to repo config yml.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_34" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_34" id="__nav_7_34_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Docker
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_34_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_34">
+            <span class="md-nav__icon md-icon"></span>
+            Docker
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/docker/all.develop_in_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.develop in helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/docker/all.dind_and_sibling_containers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dind and sibling containers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/docker/all.docker.tutorial.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.docker.tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/docker/all.dockerhub.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dockerhub.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/docker/all.dockerized_flow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dockerized flow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_35" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_35" id="__nav_7_35_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Documentation toolchain
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_35_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_35">
+            <span class="md-nav__icon md-icon"></span>
+            Documentation toolchain
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.extract_notebook_images.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.extract notebook images.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.extract_notes.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.extract notes.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.latex_toolchain.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.latex toolchain.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.notes_to_pdf.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.notes to pdf.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.notes_toolchain.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.notes toolchain.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.render_images.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.render images.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_36" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_36" id="__nav_7_36_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Git
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_36_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_36">
+            <span class="md-nav__icon md-icon"></span>
+            Git
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.git.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.git_hooks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git hooks.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.git_hooks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git hooks.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.gitleaks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.gitleaks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.integrate_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.integrate helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.invite_gh_contributors.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invite gh contributors.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.invite_gh_contributors.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invite gh contributors.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_37" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_37" id="__nav_7_37_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Helpers
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_37_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_37">
+            <span class="md-nav__icon md-icon"></span>
+            Helpers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.asyncio.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.asyncio.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.hcache.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hcache.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.hcache_simple.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hcache simple.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.hllm.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hllm.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.hplayback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hplayback.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.qgrid.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.qgrid.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.str_to_df.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.str to df.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_38" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_38" id="__nav_7_38_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Linter
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_38_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_38">
+            <span class="md-nav__icon md-icon"></span>
+            Linter
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/linter/all.amp_fix_md_links.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.amp fix md links.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/linter/all.developing_linter.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.developing linter.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_39" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_39" id="__nav_7_39_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Notebooks
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_39_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_39">
+            <span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.add_toc_to_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.add toc to notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.gsheet_into_pandas.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gsheet into pandas.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.jupyter notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.jupytext.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.jupytext.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.plotting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.plotting.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.publish_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.publish notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.run_jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.run jupyter notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_40" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_40" id="__nav_7_40_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Thin environment
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_40_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_40">
+            <span class="md-nav__icon md-icon"></span>
+            Thin environment
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/thin_environment/all.gh_and_thin_env_requirements.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gh and thin env requirements.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/thin_environment/all.gh_thin_env_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gh thin env dependencies.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/thin_environment/all.thin_environment.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.thin environment.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_41" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_41" id="__nav_7_41_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Unit test
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_41_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_41">
+            <span class="md-nav__icon md-icon"></span>
+            Unit test
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/unit_test/all.run_unit_tests.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.run unit tests.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/unit_test/all.write_unit_tests.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.write unit tests.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Work organization
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Work organization
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.buildmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.buildmeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.contributor_feedback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.contributor feedback.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.datapull_DAGmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    all.datapull DAGmeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.github_projects_process.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.github projects process.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.inframeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.inframeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.issue_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.issue workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.organize_your_work.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.organize your work.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.rollout.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.rollout.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.scrum.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.scrum.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.team_collaboration.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.team collaboration.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.use_github.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.use github.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#all_style_guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      All Style Guide
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="All Style Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#general" class="md-nav__link">
+    <span class="md-ellipsis">
+      General
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="General">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spelling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Spelling
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Spelling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Naming
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Naming">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docstrings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Docstrings
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Docstrings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example_usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example usage:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the_result_is_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      The result is 8.
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The result is 8.">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#linter_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comments
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Comments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code_implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Implementation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execute_block_for_condition1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute block for condition1.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execute_block_for_condition2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute block for condition2.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execute_block_if_none_of_the_above_conditions_are_met_or_raise_an" class="md-nav__link">
+    <span class="md-ellipsis">
+      Execute block if none of the above conditions are met or raise an
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exception" class="md-nav__link">
+    <span class="md-ellipsis">
+      exception.
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="exception.">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#linter_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code_design" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Design
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Code Design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Read data.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#imports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Imports
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Imports">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type_annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Type Annotations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Type Annotations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scripts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scripts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Logging
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Logging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#misc" class="md-nav__link">
+    <span class="md-ellipsis">
+      Misc
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Misc">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unit_tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unit Tests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unit Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rules
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notebooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notebooks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Notebooks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      General
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="General">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plotting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plotting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plotting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure_logger" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configure logger.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#print_system_signature" class="md-nav__link">
+    <span class="md-ellipsis">
+      Print system signature.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configure_the_notebook_style" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configure the notebook style.
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configure the notebook style.">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jupytext" class="md-nav__link">
+    <span class="md-ellipsis">
+      Jupytext
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Jupytext">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      Markdown
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Markdown">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      General
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="General">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Headers
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Headers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text" class="md-nav__link">
+    <span class="md-ellipsis">
+      Text
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Text">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      LLM
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linter_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      Linter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+  <h1>All.coding style guidelines.reference</h1>
+
+<h2 id="all_style_guide">All Style Guide<a class="headerlink" href="#all_style_guide" title="Permanent link">#</a></h2>
+<h3 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">#</a></h3>
+<ul>
+<li>This document contains all the rules we enforce for code and documentation
+    through the <code>linter</code> and <code>ai_review.py</code></li>
+</ul>
+<h2 id="general">General<a class="headerlink" href="#general" title="Permanent link">#</a></h2>
+<h3 id="spelling">Spelling<a class="headerlink" href="#spelling" title="Permanent link">#</a></h3>
+<h4 id="llm">LLM<a class="headerlink" href="#llm" title="Permanent link">#</a></h4>
+<h4 id="linter">Linter<a class="headerlink" href="#linter" title="Permanent link">#</a></h4>
+<ul>
+<li>Spell commands in lower case and programs with the first letter in upper case<ul>
+<li>E.g., <code>git</code> as a command, <code>Git</code> as a program</li>
+<li>E.g., capitalize the first letter of <code>Python</code></li>
+</ul>
+</li>
+<li>Spell <code>Linter</code> with the first letter in upper case and do not use an article<ul>
+<li>E.g., <code>Linter</code> instead of <code>the Linter</code></li>
+</ul>
+</li>
+<li>Capitalize <code>JSON</code>, <code>CSV</code>, <code>DB</code> and other abbreviations</li>
+<li>Represent intervals with <code>[a, b), (a, b], (a, b), [a, b]</code>, not <code>[a, b[</code></li>
+<li>Write <code>hyperparameter</code> without a hyphen</li>
+<li>Use <code>Python</code> for scripting and automation tasks</li>
+</ul>
+<h2 id="python">Python<a class="headerlink" href="#python" title="Permanent link">#</a></h2>
+<h3 id="naming">Naming<a class="headerlink" href="#naming" title="Permanent link">#</a></h3>
+<h4 id="llm_1">LLM<a class="headerlink" href="#llm_1" title="Permanent link">#</a></h4>
+<ul>
+<li>Name functions using verbs and verbs/actions<ul>
+<li>Good: <code>download_data()</code>, <code>process_input()</code>, <code>calculate_sum()</code></li>
+<li>Good: Python internal functions as <code>__repr__</code>, <code>__init__</code> are valid</li>
+<li>Good: Functions names like <code>to_dict()</code>, <code>_parse()</code>, <code>_main()</code> are valid</li>
+</ul>
+</li>
+<li>Name classes using nouns<ul>
+<li>Good: <code>Downloader()</code>, <code>DataProcessor()</code>, <code>User()</code></li>
+<li>Bad: <code>DownloadStuff()</code>, <code>ProcessData()</code>, <code>UserActions()</code></li>
+</ul>
+</li>
+<li>Name decorators with an adjective or a past tense verb<ul>
+<li>Good: <code>timed</code>, <code>cached</code>, <code>logged</code></li>
+<li>Bad: <code>time</code>, <code>cache</code>, <code>log</code></li>
+</ul>
+</li>
+<li>Variable and function names should not reference implementation details, and
+    things that can change or details that are not important<ul>
+<li>E.g., the name of a variable should not include its type<ul>
+<li>Good: <code>embeddings</code></li>
+<li>Bad: <code>embeddings_list</code></li>
+<li>Good: <code>data</code></li>
+<li>Bad: <code>data_dict</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Abbreviations in the names of variables and functions should be avoided<ul>
+<li>Exceptions are the following<ul>
+<li><code>df</code> for dataframe</li>
+<li><code>srs</code> for series</li>
+<li><code>idx</code> for index</li>
+<li><code>id</code> for identifier</li>
+<li><code>val</code> for value</li>
+<li><code>var</code> for variable</li>
+<li><code>args</code> for arguments and <code>kwargs</code> for keyword arguments</li>
+<li><code>col</code> for columns and <code>row</code> for rows</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Do not repeat in a function name what is already included in the library name
+    avoiding "code stutter"<ul>
+<li>E.g., if using a library named <code>math</code>, avoid naming a function
+    <code>math_calculate()</code><ul>
+<li>Good: <code>calculate()</code></li>
+<li>Bad: <code>math_calculate()</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="linter_1">Linter<a class="headerlink" href="#linter_1" title="Permanent link">#</a></h4>
+<ul>
+<li>Name executable Python scripts using verbs and actions<ul>
+<li>E.g., <code>download.py</code> and not <code>downloader.py</code></li>
+</ul>
+</li>
+<li>Name non-executable files using nouns<ul>
+<li>E.g., <code>downloader.py</code></li>
+</ul>
+</li>
+<li>Use <code>dir</code> and not <code>directory</code> or <code>folder</code><ul>
+<li>E.g., <code>dir_path</code></li>
+</ul>
+</li>
+<li>Use <code>file_name</code> and not <code>filename</code><ul>
+<li>E.g., <code>file_name</code> for storing the name of a file</li>
+</ul>
+</li>
+<li>Use <code>dir_name</code> and not <code>dirname</code><ul>
+<li>E.g., <code>dir_name</code> for storing the name of a directory</li>
+</ul>
+</li>
+<li>Use <code>timestamp</code> and not <code>ts</code> or <code>datetime</code><ul>
+<li>E.g., <code>event_timestamp</code></li>
+</ul>
+</li>
+<li>To refer to the name of a column, use <code>..._col</code> and not <code>..._col_name</code> or
+    <code>..._column</code><ul>
+<li>E.g., <code>age_col</code> for a column storing age values</li>
+</ul>
+</li>
+</ul>
+<h3 id="docstrings">Docstrings<a class="headerlink" href="#docstrings" title="Permanent link">#</a></h3>
+<h4 id="llm_2">LLM<a class="headerlink" href="#llm_2" title="Permanent link">#</a></h4>
+<ul>
+<li>All functions and methods must have a docstring<ul>
+<li>Good:
+    <code>def add(a, b):
+        """
+        Add two numbers and return the result
+        """
+        return a + b</code></li>
+<li>Bad:
+    <code>def add(a, b):
+        return a + b</code></li>
+</ul>
+</li>
+<li>The docstring must describe the goal of the function, the interface, and what
+    the user needs to know to use the function<ul>
+<li>Good: "Calculate the sum of two numbers and return the result."</li>
+<li>Good
+    ```
+    def get_repository_settings(
+            repo: github.Repository.Repository,
+    ) -&gt; Dict[str, Any]:
+            """
+            Get the current settings of the repository.<pre><code>    :param repo: GitHub repository object
+    :return: dictionary containing repository settings
+    """
+</code></pre>
+<p><code>- When the output is a tuple indent like:</code>
+:param mode: format of the output:
+        - <code>list</code>: indents headers to create a nested list
+        - <code>headers</code>: uses Markdown header syntax (e.g., '#', '##', '###'`)
+<code>- The docstring must use imperative form, whenever possible
+    - Good: "Calculate the sum of two numbers and return the result."
+    - Bad: "Calculates the sum of two numbers and returns the result."
+- The docstring should not describe implementation details that can be changed
+    - Good: "Sort the list of integers in ascending order."
+    - Bad: "Use the quicksort algorithm to sort the list of integers in ascending
+order."
+- Follow this example for indentation of parameter descriptions:
+    - Good</code>python
+:param param1: a very very long param description that
+continues into a second line
+:param param2: a param with two possible values
+- first value description
+- second value description that is very long and
+    continues into a second line
+<code>- Adding examples (e.g., of input and output) to the docstring is encouraged
+    - Good</code></p>
+<h2 id="example_usage">Example usage:<a class="headerlink" href="#example_usage" title="Permanent link">#</a></h2>
+<p>result = add_numbers(3, 5)</p>
+<h2 id="the_result_is_8">The result is 8.<a class="headerlink" href="#the_result_is_8" title="Permanent link">#</a></h2>
+<p><code>- References to variables, file paths, functions, classes, etc. should be
+    wrapped in backticks
+    - Good: "The `add_numbers()` function takes two arguments `a` and `b`."
+    - Bad: "The add_numbers() function takes two arguments a and b."
+- References to values should be wrapped in single ticks
+    - Good '//' with '# '
+- Multi-line representations of data structures (e.g., an output example) should
+    be wrapped in triple backticks
+    - Good</code>
+{ "name": "John", "age": 30, "city": "New York" }
+```</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="linter_2">Linter<a class="headerlink" href="#linter_2" title="Permanent link">#</a></h4>
+<ul>
+<li>The first docstring line is followed by a blank line and then, optionally, by
+    a longer description (possibly on multiple lines) with a more detailed
+    explanation of what the function does</li>
+<li>The more detailed description is followed by a blank line and then the param
+    and return description section in reST style<ul>
+<li>Use lowercase after <code>:param XYZ: ...</code> / <code>:return:</code> unless the description
+    starts with a proper noun</li>
+</ul>
+</li>
+<li>Do not mention default values of parameters in parameter descriptions</li>
+<li>Docstrings should be wrapped in triple quotation marks (<code>"""</code>)<ul>
+<li>The opening and closing triple quotation marks should be located on their
+    own separate lines</li>
+</ul>
+</li>
+</ul>
+<h3 id="comments">Comments<a class="headerlink" href="#comments" title="Permanent link">#</a></h3>
+<h4 id="llm_3">LLM<a class="headerlink" href="#llm_3" title="Permanent link">#</a></h4>
+<ul>
+<li>Add a comment for every logically distinct chunk of code, spanning 4-5 lines</li>
+<li>
+<p>Use comments to separate chunks of code instead of blank lines</p>
+<ul>
+<li>Good:
+    <code>function1()
+    # Then do something else.
+    function2()</code></li>
+<li>
+<p>Bad:
+    ```
+    function1()</p>
+<p>function2()
+```</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Do not use inline comments; every comment should be on its own separate line,
+    before the line it refers to</p>
+<ul>
+<li>Good:
+    <code># Grant access to admin panel access_admin_panel().
+    if user.is_admin():</code></li>
+<li>Bad:
+    <code>if user.is_admin(): # Check if the user is an admin access_admin_panel().</code></li>
+<li>In <code>if-elif-else</code> statements, the comments are placed underneath each
+    statement in order to explain the code that belongs to each statement in
+    particular<ul>
+<li>Good:
+    <code>if ...:
+        # Do this
+    else:
+        # Do that</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Avoid referring to the type of a variable in the comments<ul>
+<li>Keeps comments focused on functionality rather than implementation specifics</li>
+<li>Good: "Store the user's age for validation."</li>
+<li>Bad: "Store the user's age as an integer for validation."</li>
+</ul>
+</li>
+<li>Do not include implementation details in comments<ul>
+<li>Describe "what" and "why" the code does something and not "how" the code
+    does it</li>
+<li>Ensures comments remain relevant even if the implementation changes</li>
+</ul>
+</li>
+<li>If some code is commented out in a PR, a comment should be added to explain
+    the reason why<ul>
+<li>Provides context for future reference and helps other developers understand
+    the decision</li>
+<li>E.g., "This section is commented out due to a known bug that needs fixing"
+    or "Temporarily disabled for performance testing"</li>
+</ul>
+</li>
+</ul>
+<h4 id="linter_3">Linter<a class="headerlink" href="#linter_3" title="Permanent link">#</a></h4>
+<ul>
+<li>Avoid empty comments and line inside the code when possible</li>
+<li>Every comment should start with a capital letter</li>
+<li>Every comment should start with a verb in the imperative form</li>
+<li>Every comment should end with a period</li>
+<li>Comments with TODOs should have the format of <code># TODO(username): ...</code></li>
+</ul>
+<h3 id="code_implementation">Code Implementation<a class="headerlink" href="#code_implementation" title="Permanent link">#</a></h3>
+<h4 id="llm_4">LLM<a class="headerlink" href="#llm_4" title="Permanent link">#</a></h4>
+<ul>
+<li>Encode the assumptions made in the code using assertions and report as much
+    information as possible in an assertion to make it easy to debug the output<ul>
+<li>Good:
+    <code>hdbg.dassert_lt(start_date, end_date,
+        msg="start_date needs to be before end_date")</code></li>
+<li>Ensure that assertions provide detailed information for debugging</li>
+<li>Use assertions to validate input parameters and preconditions</li>
+</ul>
+</li>
+<li>
+<p>Do not use f-strings in <code>hdbg.dassert()</code>, but use traditional string
+    formatting methods in assertions</p>
+<ul>
+<li>Good:
+    <code>hdbg.dassert_eq(len(list1), len(list2), "Lists must be of equal length: %d vs %d" % (len(list1), len(list2)))</code></li>
+</ul>
+</li>
+<li>
+<p>Add type hints only to the function definitions, if they are missing.</p>
+<ul>
+<li>Good:
+    <code>def process_data(data, threshold=0.5):
+            results = []
+            for item in data:
+                    if item &gt; threshold:
+                            results.append(item)
+            return results</code></li>
+<li>Bad:
+    <code>def process_data(data: List[float], threshold: float = 0.5) -&gt; List[float]:
+            results: List[float] = []
+            for item in data:
+                    if item &gt; threshold:
+                            results.append(item)
+            return results</code></li>
+</ul>
+</li>
+<li>
+<p>Avoid complex assignments into if-then-else statements.</p>
+<ul>
+<li>Good:
+    <code>capitalized_parts = []
+    for w in parts:
+            if is_first_or_last or w.lower() not in small_words:
+                    w_out = w.capitalize()
+            else:
+                    w_out = w.lower()
+    capitalized_parts.append(w_out)</code></li>
+<li>
+<p>Bad:
+    <code>capitalized_parts = [
+            w.capitalize() if is_first_or_last or w.lower() not in small_words else w.lower()
+            for w in parts
+    ]</code></p>
+<p>to:
+    - Good:
+<code>if i == 0:
+        is_first_or_last = True
+elif i == len(tokens) - 1:
+        is_first_or_last = True
+elif i &gt; 0 and not re.search(r'\w', tokens[i - 1]):
+        is_first_or_last = True
+elif i &lt; len(tokens) - 1 and not re.search(r'\w', tokens[i + 1]):
+        is_first_or_last = True
+else:
+        is_first_or_last = False</code>
+    - Bad:
+<code>is_first_or_last = (i == 0 or i == len(tokens) - 1 or
+                                (i &gt; 0 and not re.search(r'\w', tokens[i - 1])) or
+                                (i &lt; len(tokens) - 1 and not re.search(r'\w', tokens[i + 1])))</code></p>
+</li>
+</ul>
+</li>
+<li>
+<p>Provide clear and informative error messages in exceptions using f-strings</p>
+<ul>
+<li>Good: <code>raise ValueError(f"Invalid server_name='{server_name}'")</code></li>
+<li>Good: <code>raise TypeError(f"Expected type int, but got {type(var).__name__}")</code></li>
+</ul>
+</li>
+<li>Use complete <code>if-elif-else</code> statements instead of a sequence of <code>if</code>
+    statements<ul>
+<li>Ensure logical flow and clarity in conditional statements</li>
+<li>Good:
+    ```python
+if condition1:</li>
+</ul>
+<h2 id="execute_block_for_condition1">Execute block for condition1.<a class="headerlink" href="#execute_block_for_condition1" title="Permanent link">#</a></h2>
+<p>...
+elif condition2:</p>
+<h2 id="execute_block_for_condition2">Execute block for condition2.<a class="headerlink" href="#execute_block_for_condition2" title="Permanent link">#</a></h2>
+<p>...
+else:</p>
+<h2 id="execute_block_if_none_of_the_above_conditions_are_met_or_raise_an">Execute block if none of the above conditions are met or raise an<a class="headerlink" href="#execute_block_if_none_of_the_above_conditions_are_met_or_raise_an" title="Permanent link">#</a></h2>
+<h2 id="exception">exception.<a class="headerlink" href="#exception" title="Permanent link">#</a></h2>
+<pre><code>```
+</code></pre>
+</li>
+<li>Compile a regex expression only if it's called more than once<ul>
+<li>Optimize performance by compiling regex expressions that are reused</li>
+<li>E.g.,
+    <code>import re
+    pattern = re.compile(r'\d+')
+    if pattern.match(string):
+        # Do something.</code></li>
+</ul>
+</li>
+<li>Use <code>if var is None</code> to check if <code>var</code> is <code>None</code> instead of <code>if not var</code><ul>
+<li>Good: <code>if my_variable is None:</code></li>
+<li>Bad: <code>if not my_variable:</code></li>
+</ul>
+</li>
+<li>Use <code>isinstance()</code> instead of <code>type()</code> to check the type of an object<ul>
+<li>Good: <code>if isinstance(obj, str):</code></li>
+<li>Bad: <code>if type(obj) == str:</code></li>
+</ul>
+</li>
+<li>Do not use <code>from ... import ...</code>, unless it is the <code>typing</code> package, e.g.,
+    <code>from typing import Iterable, List</code><ul>
+<li>Good: <code>from typing import Dict, Tuple</code></li>
+<li>Bad: <code>from os import path</code></li>
+</ul>
+</li>
+<li>Always import with a full path from the root of the repo / submodule<ul>
+<li>Good: <code>import myproject.module.submodule</code></li>
+<li>Bad: <code>from submodule import my_function</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="linter_4">Linter<a class="headerlink" href="#linter_4" title="Permanent link">#</a></h4>
+<h3 id="code_design">Code Design<a class="headerlink" href="#code_design" title="Permanent link">#</a></h3>
+<h4 id="llm_5">LLM<a class="headerlink" href="#llm_5" title="Permanent link">#</a></h4>
+<ul>
+<li>Follow DRY principle (Don't Repeat Yourself):<ul>
+<li>Factor out common code in a separate function/method</li>
+<li>Do not copy-and-paste parameter descriptions; instead, write them in only
+    one function and put a reference to it in the other functions where the same
+    parameters are used<ul>
+<li>E.g., "See <code>func_name()</code> for the param description"</li>
+</ul>
+</li>
+<li>Avoid redundancy in code logic and comments</li>
+</ul>
+</li>
+<li>Keep public functions in an order representing the typical flow of use:<ul>
+<li>Common functions, used by all other functions<ul>
+<li>E.g., utility functions like <code>log_message()</code>, <code>validate_input()</code></li>
+</ul>
+</li>
+<li>Read data<ul>
+<li>Good: <code>read_csv()</code>, <code>load_json()</code></li>
+</ul>
+</li>
+<li>Process data<ul>
+<li>Good: <code>clean_data()</code>, <code>transform_data()</code></li>
+</ul>
+</li>
+<li>Save data<ul>
+<li>Good: <code>write_csv()</code>, <code>export_json()</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Ensure that function names are descriptive and convey their purpose</li>
+<li>Use comments to explain complex logic or calculations</li>
+<li>Implement error handling to manage exceptions and edge cases</li>
+<li>Use inheritance or composition to reuse code in object-oriented programming</li>
+</ul>
+<h4 id="linter_5">Linter<a class="headerlink" href="#linter_5" title="Permanent link">#</a></h4>
+<ul>
+<li>Order functions / classes in a topological order so that the ones at the top
+    of the files are the "innermost" and the ones at the end of the files are the
+    "outermost"</li>
+<li>Use banners to separate large sections of code, e.g.:
+    ```python</li>
+</ul>
+<h2 id="_1"><a class="headerlink" href="#_1" title="Permanent link">#</a></h2>
+<h2 id="read_data">Read data.<a class="headerlink" href="#read_data" title="Permanent link">#</a></h2>
+<h2 id="_2"><a class="headerlink" href="#_2" title="Permanent link">#</a></h2>
+<pre><code>```
+- The text inside the banner should start with a capital letter and end with a
+    period
+</code></pre>
+<h3 id="imports">Imports<a class="headerlink" href="#imports" title="Permanent link">#</a></h3>
+<h4 id="llm_6">LLM<a class="headerlink" href="#llm_6" title="Permanent link">#</a></h4>
+<h4 id="linter_6">Linter<a class="headerlink" href="#linter_6" title="Permanent link">#</a></h4>
+<ul>
+<li>All imports should be located at the top of the file</li>
+<li>Each module that can be imported should have a docstring at the very beginning
+    describing how it should be imported<ul>
+<li>Linter adds it automatically</li>
+</ul>
+</li>
+<li>No import cycles should be introduced by the changes in the PR</li>
+</ul>
+<h3 id="type_annotations">Type Annotations<a class="headerlink" href="#type_annotations" title="Permanent link">#</a></h3>
+<h4 id="llm_7">LLM<a class="headerlink" href="#llm_7" title="Permanent link">#</a></h4>
+<ul>
+<li>For type hints use use <code>List</code>, <code>Dict</code>, and <code>Tuple</code> to provide more explicit
+    type information and help with static type checking<ul>
+<li>E.g., <code>List[int]</code> instead of <code>list</code></li>
+<li>E.g., <code>List[str]</code> instead of <code>list</code></li>
+<li>Use <code>Dict</code> instead of <code>dict</code><ul>
+<li>E.g., <code>Dict[str, int]</code> instead of <code>dict</code></li>
+<li>E.g., <code>Dict[int, List[str]]</code> instead of <code>dict</code></li>
+</ul>
+</li>
+<li>Use <code>Tuple</code> instead of <code>tuple</code><ul>
+<li>E.g., <code>Tuple[int, str]</code> instead of <code>tuple</code></li>
+<li>E.g., <code>Tuple[str, List[int]]</code> instead of <code>tuple</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="linter_7">Linter<a class="headerlink" href="#linter_7" title="Permanent link">#</a></h4>
+<ul>
+<li>All functions and methods, including constructors, must have type annotations
+    for all the parameters and returned structures<ul>
+<li>Use <code>-&gt; None</code> if a function doesn't return anything</li>
+<li>The only exception are invoke tasks, i.e. functions with the <code>@task</code>
+    decorator, they shouldn't have type annotations</li>
+</ul>
+</li>
+<li>Type annotation <code>Any</code> should be avoided, if possible</li>
+</ul>
+<h3 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">#</a></h3>
+<h4 id="llm_8">LLM<a class="headerlink" href="#llm_8" title="Permanent link">#</a></h4>
+<ul>
+<li>Avoid pure functions without side effects, i.e., for the same input arguments,
+    the returned value should not change (in contrast to functions that rely upon
+    external state)</li>
+<li>Functions should not modify the function inputs<ul>
+<li>E.g., if a function <code>f()</code> accepts a dataframe <code>df</code> as its argument, then
+    <code>f()</code> will not modify <code>df</code> but make a copy and work on it</li>
+<li>This ensures that the original data remains unchanged and can be reused</li>
+</ul>
+</li>
+<li>To maintain clarity and consistency in function definitions, use the following
+    order of parameters in a function declaration:<ul>
+<li>Input parameters</li>
+<li>Output parameters</li>
+<li>In-out parameters</li>
+<li>Default parameters</li>
+</ul>
+</li>
+<li>Default parameters should be used sparingly and only for parameters that 99%
+    of the time are constant</li>
+<li>All the default parameters should be keyword-only<ul>
+<li>They should be separated from the other parameters by <code>*</code><ul>
+<li>Good: <code>def example_function(param1: str, *, default_param1: int = 10)</code></li>
+<li>Bad: <code>def example_function(param1: str, default_param1 : int =10)</code></li>
+</ul>
+</li>
+<li>This ensures that default parameters are always explicitly specified by
+    name, improving readability</li>
+</ul>
+</li>
+<li>Do not use mutable objects (such as lists, maps, objects) as default value for
+    functions; instead, pass <code>None</code> and then initialize the default parameter
+    inside the function<ul>
+<li>E.g., instead of using a list as a default parameter, use <code>None</code> and
+    initialize the list inside the function:</li>
+<li>Good:
+    <code>def add_item(item: str, *, items: Optional[List[str]]) -&gt; List[str]:
+        if items is None:
+            items = []
+        items.append(item)
+        return items</code></li>
+</ul>
+</li>
+<li>Do not use a boolean parameter as a switch controlling some function behavior;
+    instead, use a string parameter <code>mode</code>, which is allowed to take a small
+    well-defined set of values<ul>
+<li>Good: <code>def process_data(mode: str = 'fast'):</code> where <code>mode</code> can be <code>'fast'</code>,
+    <code>'slow'</code>, etc</li>
+</ul>
+</li>
+<li>For functions dealing with dataframes, avoid hard-wired column name
+    dependencies; instead, allow the caller to pass the column name to the
+    function as a parameter<ul>
+<li>E.g., <code>def calculate_average(df: pd.DataFrame, column_name: str):</code></li>
+</ul>
+</li>
+<li>Do not put computations of the output together in a <code>return</code> statement,
+    instead, compute the output first, assign it to a variable, and then return
+    this variable<ul>
+<li>Good
+    <code>result = compute_value()
+    return result</code></li>
+<li>Bad
+    <code>return compute_value()</code></li>
+</ul>
+</li>
+<li>A function should have a single exit point, i.e., one single line with
+    <code>return</code><ul>
+<li>Good:
+    <code>python
+def calculate_total(price, tax):
+    total = price + (price * tax)
+    return total</code></li>
+<li>Bad:
+    <code>python
+def calculate_total(price, tax):
+    if price &gt; 0:
+            return price + (price * tax)
+    else:
+            return 0</code></li>
+</ul>
+</li>
+<li>A function should ideally return objects of only one type (or <code>None</code>)</li>
+<li>When calling a function, assign all the input parameter values to variables on
+    separate lines and then pass these variables to the function<ul>
+<li>Good:
+    <code>param1 = 10
+    param2 = 11
+    result = my_function(param1, param2)</code></li>
+<li>Bad:
+    <code>result = my_function(10, 11)</code></li>
+</ul>
+</li>
+<li>Explicitly bind default parameters, i.e., specify the parameter name when
+    calling a function, and do not bind non-default parameters<ul>
+<li>Good: <code>func(10, 20, param3=30)</code></li>
+<li>Bad: <code>func(10, 20, 30)</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="linter_8">Linter<a class="headerlink" href="#linter_8" title="Permanent link">#</a></h4>
+<ul>
+<li>Make a function private (e.g., <code>_foo_bar()</code>) when it is a helper of another
+    private or public function</li>
+</ul>
+<h3 id="scripts">Scripts<a class="headerlink" href="#scripts" title="Permanent link">#</a></h3>
+<h4 id="llm_9">LLM<a class="headerlink" href="#llm_9" title="Permanent link">#</a></h4>
+<h4 id="linter_9">Linter<a class="headerlink" href="#linter_9" title="Permanent link">#</a></h4>
+<ul>
+<li>Use Python and not bash for scripting</li>
+<li>All Python scripts that are meant to be executed directly should:<ul>
+<li>Be marked as executable files with <code>&gt; chmod +x foo_bar.py</code></li>
+<li>Have the standard Unix shebang notation at the top: <code>#!/usr/bin/env python</code></li>
+<li>Use the following idiom at the bottom:
+    <code>python
+if __name__ == "__main__":
+    ...</code></li>
+<li>Use <code>argparse</code> for argument parsing</li>
+</ul>
+</li>
+</ul>
+<h3 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">#</a></h3>
+<h4 id="llm_10">LLM<a class="headerlink" href="#llm_10" title="Permanent link">#</a></h4>
+<ul>
+<li>Use logging <code>_LOG.debug()</code> and not <code>print()</code> for tracing execution<ul>
+<li>Good: <code>_LOG.debug("value=%s", value)</code></li>
+<li>Bad: <code>print("value=%s", value)</code></li>
+</ul>
+</li>
+<li>Use positional args in logging and not inline formatting<ul>
+<li>Good: <code>_LOG.debug("cmd=%s", cmd1)</code></li>
+<li>Bad: <code>_LOG.debug(f"cmd={cmd1}")</code></li>
+</ul>
+</li>
+<li>
+<p>Use the following idiom to configure logging:</p>
+<p>```python
+import helpers.hdbg as hdbg</p>
+</li>
+</ul>
+<p>_LOG = logging.getLogger(<strong>name</strong>)
+...</p>
+<p>hdbg.init_logger(verbosity=logging.DEBUG)
+    ```</p>
+<h4 id="linter_10">Linter<a class="headerlink" href="#linter_10" title="Permanent link">#</a></h4>
+<h3 id="misc">Misc<a class="headerlink" href="#misc" title="Permanent link">#</a></h3>
+<h4 id="llm_11">LLM<a class="headerlink" href="#llm_11" title="Permanent link">#</a></h4>
+<h4 id="linter_11">Linter<a class="headerlink" href="#linter_11" title="Permanent link">#</a></h4>
+<ul>
+<li>If a PR includes renaming a file, variable, parameter, function, class, etc.,
+    then all the instances and references to it throughout the codebase should be
+    updated</li>
+</ul>
+<h2 id="unit_tests">Unit Tests<a class="headerlink" href="#unit_tests" title="Permanent link">#</a></h2>
+<h3 id="rules">Rules<a class="headerlink" href="#rules" title="Permanent link">#</a></h3>
+<h4 id="llm_12">LLM<a class="headerlink" href="#llm_12" title="Permanent link">#</a></h4>
+<ul>
+<li>A test class should test only one function or class to help understanding test
+    failures</li>
+<li>A test method should only test a single case to ensures clarity and precision
+    in testing<ul>
+<li>E.g., "for these inputs the function responds with this output"</li>
+</ul>
+</li>
+<li>Adhere to the following conventions for naming:<ul>
+<li>Class <code>TestFooBar</code> tests the class <code>FooBar</code> and its methods<ul>
+<li><code>TestFooBar.test_method_a</code>, <code>TestFooBar.test_method_b</code> test the methods
+    <code>FooBar.method_a</code> and <code>FooBar.method_b</code></li>
+</ul>
+</li>
+<li>Class <code>Test_foo_bar</code> tests the function <code>foo_bar()</code><ul>
+<li>E.g., <code>Test_foo_bar.test_valid_input</code>, <code>Test_foo_bar.test_invalid_input</code>
+    for different cases / inputs</li>
+</ul>
+</li>
+<li><code>Test_foo_bar.test1</code>, <code>Test_foo_bar.test2</code> for different cases / inputs</li>
+</ul>
+</li>
+<li>A unit test should be independent of all the other unit tests<ul>
+<li>Ensures that tests do not affect each other and can be run in isolation</li>
+</ul>
+</li>
+<li>If there is a lot of common code across individual test methods, it should be
+    factored out in a helper method within the test class<ul>
+<li>Reduces redundancy and improves maintainability of the test code</li>
+<li>E.g., a <code>setUp</code> method to initialize common test data or configurations</li>
+</ul>
+</li>
+<li>If some code needs to be repeated at the beginning / end of each test method,
+    it should be moved to <code>set_up_test()</code> / <code>tear_down_test()</code> methods and the
+    following idiom should be added to the test class:
+    <code>python
+@pytest.fixture(autouse=True)
+def setup_teardown_test(self):
+        # Run before each test.
+        self.set_up_test()
+        yield
+        # Run after each test.
+        self.tear_down_test()</code></li>
+<li>Each test method should have a docstring describing briefly what case is being
+    tested<ul>
+<li>E.g., "Tests the addition of two positive integers."</li>
+<li>E.g., "Verifies that an exception is raised when dividing by zero."</li>
+</ul>
+</li>
+<li>Test methods should have type hint annotations<ul>
+<li>E.g., <code>def test_addition(self) -&gt; None:</code></li>
+</ul>
+</li>
+<li>Do not create temporary files for tests (e.g., with <code>tempfile</code>) but use
+    <code>hunittest.TestCase.get_scratch_space()</code> instead</li>
+<li>If the input to the test is a large piece of code/text, it should be moved to
+    a separate file in the <code>input</code> dir corresponding to the test<ul>
+<li>E.g., <code>outcomes/&lt;TestClassName.test_method_name&gt;/input</code> and read through the
+    function <code>self.get_input_dir()</code> of <code>TestCase</code></li>
+<li>This approach allows for easy updates and modifications to test inputs
+    without altering the test code itself</li>
+</ul>
+</li>
+<li>Do not use pickle files for test inputs<ul>
+<li>Use JSON, YAML, CSV files for test inputs as they are more secure and
+    human-readable</li>
+</ul>
+</li>
+<li>In every test method separate logically distinct code chunks to prepare the
+    inputs, run the tests, and check the outputs using comments like below:<ul>
+<li>E.g.,
+    <code># Prepare inputs.
+    input_data = [1, 2, 3]
+    # Run test.
+    result = my_function(input_data)
+    # Check outputs.
+    self.assert_equal(result, expected_output)</code></li>
+</ul>
+</li>
+<li>Do not use <code>hdbg.dassert</code> in testing but use <code>self.assert*()</code> methods</li>
+<li>Prefer <code>self.assert_equal()</code> instead of <code>self.assertEqual()</code><ul>
+<li>Always use actual and then expected value</li>
+<li>E.g., <code>self.assert_equal(actual, expected)</code></li>
+</ul>
+</li>
+<li>Use strings to compare actual and expected outputs instead of data structures<ul>
+<li>E.g., use <code>self.assert_equal(str(actual_list), str(expected_list))</code></li>
+</ul>
+</li>
+<li>Use <code>self.check_string()</code> to compare the actual output to a golden output in
+    the <code>outcomes</code> dir, when the output is large or needs to be modified easily<ul>
+<li>E.g., <code>self.check_string(actual_output)</code></li>
+</ul>
+</li>
+<li>When testing for an assertion, check that you are getting the exact exception
+    that is expected
+    <code># Make sure function raises an error.
+    with self.assertRaises(AssertionError) as cm:
+            config_list.configs = configs
+    act = str(cm.exception)
+    self.check_string(act, fuzzy_match=True)</code></li>
+</ul>
+<h4 id="linter_12">Linter<a class="headerlink" href="#linter_12" title="Permanent link">#</a></h4>
+<ul>
+<li>Unit tests should be placed in a <code>test_*.py</code> file in the <code>test</code> directory,
+    close to the library / code it tests<ul>
+<li>Test file <code>test_file_name.py</code> testing the library <code>file_name.py</code></li>
+</ul>
+</li>
+<li>Every test class should inherit from <code>hunitest.TestCase</code></li>
+<li>We use <code>pytest</code> as test harness so do not add the following idiom in the
+    testing file
+    <code>python
+if __name__ == "__main__":
+        unittest.main()</code></li>
+<li>If a unit test is renamed or removed in a PR, the corresponding files in the
+    <code>outcomes</code> dir should also be renamed or removed</li>
+</ul>
+<h2 id="notebooks">Notebooks<a class="headerlink" href="#notebooks" title="Permanent link">#</a></h2>
+<h3 id="general_1">General<a class="headerlink" href="#general_1" title="Permanent link">#</a></h3>
+<h4 id="llm_13">LLM<a class="headerlink" href="#llm_13" title="Permanent link">#</a></h4>
+<ul>
+<li>The code in the notebook should adhere to the same style and formatting
+    guidelines as the code in libraries and scripts</li>
+<li>Common or general-purpose code should be factored out in functions and moved
+    from the notebook to a Python library, which would then be imported in the
+    notebook<ul>
+<li>E.g., create a <code>utils.py</code> file for helper functions</li>
+</ul>
+</li>
+<li>Notebook cells should be idempotent, i.e., able to be executed multiple times
+    without changing their output value<ul>
+<li>Avoid side effects such as modifying global variables or external states</li>
+<li>Ensure that cell execution order does not affect the results</li>
+</ul>
+</li>
+<li>If the data is transformed, display a few lines to show the outcome<ul>
+<li>E.g., <code>df.head(3)</code> to preview the first three rows of a DataFrame</li>
+</ul>
+</li>
+<li>If any data is discarded/filtered, display the percentage of the rows dropped<ul>
+<li>E.g.,
+    <code>print(f"Percentage of rows dropped: {dropped_rows / total_rows * 100:.2f}%")</code></li>
+<li>Provides insight into data cleaning and filtering processes</li>
+</ul>
+</li>
+<li>Progress bars should be added where applicable<ul>
+<li>Use libraries like <code>tqdm</code> to show progress in loops or data processing tasks</li>
+</ul>
+</li>
+</ul>
+<h4 id="linter_13">Linter<a class="headerlink" href="#linter_13" title="Permanent link">#</a></h4>
+<h3 id="plotting">Plotting<a class="headerlink" href="#plotting" title="Permanent link">#</a></h3>
+<h4 id="llm_14">LLM<a class="headerlink" href="#llm_14" title="Permanent link">#</a></h4>
+<ul>
+<li>Each plot should have a descriptive title to understand the context of the
+    plot at a glance<ul>
+<li>E.g., "Monthly Sales Data for 2023" instead of just "Sales Data"</li>
+</ul>
+</li>
+<li>Each plot should have axes labels<ul>
+<li>E.g., label the x-axis as "Months" and the y-axis as "Revenue in USD"</li>
+</ul>
+</li>
+<li>If there are several multiple data series on the same plot, it should have a
+    legend</li>
+<li>In a plotting function, <code>plt.show()</code> should not be added at the end<ul>
+<li>This allows for further customization or saving of the plot before
+    displaying</li>
+<li>E.g., users might want to save the plot using <code>plt.savefig('plot.png')</code>
+    before showing it</li>
+</ul>
+</li>
+<li>In a plotting function, the <code>ax</code> parameter should be exposed to allow users to
+    customize the plot further<ul>
+<li>E.g., users can modify the axes limits or add additional annotations</li>
+</ul>
+</li>
+<li>If a function plots multiple plots, they should be generally plotted in a
+    single figure<ul>
+<li>E.g., use <code>plt.subplots()</code> to create a grid of plots within a single figure</li>
+</ul>
+</li>
+</ul>
+<h4 id="linter_14">Linter<a class="headerlink" href="#linter_14" title="Permanent link">#</a></h4>
+<ul>
+<li>The name of a notebook should generally be the same as the branch name, unless
+    it's a Master notebook</li>
+<li>All notebooks should have a table of contents<ul>
+<li>Linter automatically adds and updates the table of contents</li>
+</ul>
+</li>
+<li>At the top of the notebook there should be a Markdown cell <code># Description</code>,
+    followed by a Markdown cell with an explanation of the notebook's goal, what
+    it does, etc.</li>
+<li>Immediately below the description, there should be a Markdown cell
+    <code># Imports</code>, followed by a code cell importing all the needed libraries<ul>
+<li>It should include autoreload modules to keep the local code updated in real
+    time:
+    <code>python
+%load_ext autoreload
+%autoreload 2</code></li>
+<li>All the imports should be located in a single cell</li>
+</ul>
+</li>
+<li>Below the cell with the imports, there should be a code cell that configures
+    the logging and notebook style, and reports execution info:
+    ```python</li>
+</ul>
+<h2 id="configure_logger">Configure logger.<a class="headerlink" href="#configure_logger" title="Permanent link">#</a></h2>
+<p>hdbg.init_logger(verbosity=logging.INFO)
+_LOG = logging.getLogger(<strong>name</strong>)</p>
+<h2 id="print_system_signature">Print system signature.<a class="headerlink" href="#print_system_signature" title="Permanent link">#</a></h2>
+<p>_LOG.info("%s", henv.get_system_signature()[0])</p>
+<h2 id="configure_the_notebook_style">Configure the notebook style.<a class="headerlink" href="#configure_the_notebook_style" title="Permanent link">#</a></h2>
+<p>hprint.config_notebook()
+    ```
+- The rest of the notebook should be clearly organized using Markdown cells with
+    headings of different levels
+- There should be no errors in the executed notebook
+- Ideally, there should be no warnings in the executed notebook</p>
+<h3 id="jupytext">Jupytext<a class="headerlink" href="#jupytext" title="Permanent link">#</a></h3>
+<h4 id="llm_15">LLM<a class="headerlink" href="#llm_15" title="Permanent link">#</a></h4>
+<h4 id="linter_15">Linter<a class="headerlink" href="#linter_15" title="Permanent link">#</a></h4>
+<ul>
+<li>Each notebook must have an accompanying Python file, linked via <code>jupytext</code>,
+    which contains a synchronized copy of the notebook's code</li>
+<li>The notebook and its paired Python file should share the same name, differing
+    only in their file extensions</li>
+<li>Ensure that the code in the notebook and its paired Python file remains
+    synchronized at all times</li>
+<li>If you update or delete the notebook, you must also update or delete its
+    paired Python file, and vice versa</li>
+</ul>
+<h2 id="markdown">Markdown<a class="headerlink" href="#markdown" title="Permanent link">#</a></h2>
+<h3 id="general_2">General<a class="headerlink" href="#general_2" title="Permanent link">#</a></h3>
+<h4 id="llm_16">LLM<a class="headerlink" href="#llm_16" title="Permanent link">#</a></h4>
+<h4 id="linter_16">Linter<a class="headerlink" href="#linter_16" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Names of documentation files should follow the format
+    <code>docs/{component}/{audience}.{topic}.{diataxis_tag}.md</code> to help in organizing
+    and categorizing documentation files effectively where:</p>
+<ul>
+<li>The <code>{component}</code> part specifies the part of the project the documentation
+    is related to</li>
+<li>The <code>{audience}</code> part indicates who the documentation is intended for</li>
+<li>The <code>{topic}</code> part describes the subject matter of the documentation</li>
+<li>The <code>{diataxis_tag}</code> part categorizes the documentation according to the
+    Diátaxis framework (e.g., explanation, tutorial)</li>
+<li>E.g., <code>docs/documentation_meta/all.diataxis.explanation.md</code></li>
+</ul>
+</li>
+<li>
+<p>All Markdown files should have a table of contents</p>
+<ul>
+<li>The linter automatically adds and updates the table of contents</li>
+</ul>
+</li>
+<li>
+<p>There should be one and only one level 1 heading (with one <code>#</code>) in a Markdown</p>
+<ul>
+<li>The level 1 heading:<ul>
+<li>Should clearly convey the primary topic or purpose of the document</li>
+<li>Serves as the main title of the document</li>
+<li>Should be the first line and located above the table of contents</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Wrap file paths, names of variables, functions, and classes in backticks</p>
+<ul>
+<li>E.g., <code>file_path</code>, <code>variable_name</code>, <code>function_name()</code>, <code>ClassName</code></li>
+</ul>
+</li>
+<li>Commands should be prepended by <code>&gt;</code><ul>
+<li>Example
+    <code>&gt; notes_to_pdf.py \
+        --input lectures_source/Lesson5-Theory_Statistical_learning.txt \
+        --output Lesson5.pdf \
+        --type slides \
+        --toc_type navigation \
+        --debug_on_error \
+        --skip_action cleanup_after</code></li>
+</ul>
+</li>
+<li>Commands should be prepended by <code>docker&gt;</code> if they need to be run inside Docker</li>
+<li>Avoid using screenshots whenever possible and instead copy-and-paste text with
+    the right highlighting<ul>
+<li>E.g., instead of a screenshot of a terminal command, provide the command
+    text: <code>&gt; ls -la</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="headers">Headers<a class="headerlink" href="#headers" title="Permanent link">#</a></h3>
+<h4 id="llm_17">LLM<a class="headerlink" href="#llm_17" title="Permanent link">#</a></h4>
+<ul>
+<li>Do not use bold or italics in headings</li>
+<li>Use headers so that it's easy to refer to something by link</li>
+<li>Do not make the chunk of text in a header too small since we don't want to
+    have too many headers<ul>
+<li>E.g., there should be at least 5-10 lines in each header</li>
+</ul>
+</li>
+</ul>
+<h4 id="linter_17">Linter<a class="headerlink" href="#linter_17" title="Permanent link">#</a></h4>
+<ul>
+<li>Headings are capitalized as a title<ul>
+<li>E.g., <code>Data schema</code> instead of <code>Data Schema</code></li>
+<li>The linter automatically formats them</li>
+</ul>
+</li>
+</ul>
+<h3 id="text">Text<a class="headerlink" href="#text" title="Permanent link">#</a></h3>
+<h4 id="llm_18">LLM<a class="headerlink" href="#llm_18" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>We use bullet point lists</p>
+<ul>
+<li>For the items, <code>-</code> should be used instead of <code>*</code> or circles</li>
+<li>Items in bullet point lists should not end with a period</li>
+</ul>
+</li>
+<li>
+<p>Boldface and italics should be used sparingly throughout the text</p>
+</li>
+<li>
+<p>Structure the text so that bullet points of higher level correspond to
+    "nesting" in the concept</p>
+</li>
+<li>
+<p>Examples should go in a sub-bullet</p>
+<ul>
+<li>Good
+    ```<ul>
+<li>We typically increment the revision, likely a minor one<ul>
+<li>E.g., from <code>v0.3</code> to <code>v0.3.1</code>
+```</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Use "you" and not "we" or "one"</p>
+<ul>
+<li>Let's just be direct: no need to be passive-aggressive</li>
+</ul>
+</li>
+<li>
+<p>Text should be reflowed to the maximum of 80 columns per line</p>
+<ul>
+<li>The linter performs this operation automatically</li>
+</ul>
+</li>
+<li>
+<p>Use active voice most of the time and use passive voice sparingly</p>
+<ul>
+<li>Good: "The user updates the file"</li>
+<li>Bad: "The file is updated by the user"</li>
+</ul>
+</li>
+<li>
+<p>Be efficient</p>
+<ul>
+<li>Do not explain things in a repetitive way</li>
+<li>Rewrite long-winded AI-generated texts in a concise way</li>
+<li>E.g.,<ul>
+<li>Good: "Update the software by following these steps"</li>
+<li>Bad: "The process of updating the software can be done by following these
+    steps"</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>When describing a tool the format should be the following:</p>
+<ul>
+<li>A description of what the tool does</li>
+<li>A list of examples of invocations of a tool with:<ul>
+<li>A comment on the command line</li>
+<li>The command line</li>
+<li>Its output if possible</li>
+</ul>
+</li>
+<li>A copy-paste version of the tool interface running <code>-h</code></li>
+</ul>
+</li>
+<li>
+<p>When nesting code blocks under list items in Markdown, we align the code block
+    to the previous block without empty lines
+    ````text</p>
+<ul>
+<li>Clone the super-repo locally
+    <code>bash
+    &gt; git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}</code></li>
+<li>Line2
+````</li>
+<li>The rendering stage makes sure that the output is correctly indented and
+    spaced</li>
+</ul>
+</li>
+</ul>
+<h4 id="linter_18">Linter<a class="headerlink" href="#linter_18" title="Permanent link">#</a></h4>
+<ul>
+<li>Code blocks should always be accompanied by language markers<ul>
+<li>E.g., <code>bash</code>, <code>python</code>, <code>text</code>, <code>markdown</code></li>
+</ul>
+</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.action.edit"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.50899def.min.js"></script>
+      
+    
+  </body>
+</html>

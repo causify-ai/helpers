@@ -1,0 +1,5696 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../code_guidelines/all.type_hints.how_to_guide.html">
+      
+      
+        <link rel="next" href="all.diataxis.explanation.html">
+      
+      
+      <link rel="icon" href="../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>All.architecture diagrams.explanation - Helpers docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../styles/styles.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture_diagrams" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="Helpers docs" class="md-header__button md-logo" aria-label="Helpers docs" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Helpers docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              All.architecture diagrams.explanation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="Helpers docs" class="md-nav__button md-logo" aria-label="Helpers docs" data-md-component="logo">
+      
+  <img src="../assets/logo.png" alt="logo">
+
+    </a>
+    Helpers docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Build system
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Build system
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_system/all.gitleaks_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_system/all.linter_gh_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.linter gh workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_system/all.pytest_allure.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pytest allure.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_system/all.pytest_allure.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pytest allure.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build_system/all.semgrep_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.semgrep workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Code guidelines
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Code guidelines
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_guidelines/all.code_design.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code design.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_guidelines/all.code_like_pragmatic_programmer.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code like pragmatic programmer.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_guidelines/all.code_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_guidelines/all.coding_style.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.coding style.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_guidelines/all.coding_style_guidelines.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.coding style guidelines.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_guidelines/all.reading_other_people_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reading other people code.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_guidelines/all.submit_code_for_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.submit code for review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_guidelines/all.type_hints.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.type hints.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Documentation meta
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Documentation meta
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    All.architecture diagrams.explanation
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="all.architecture_diagrams.explanation.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.architecture diagrams.explanation
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture_diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Diagrams
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture Diagrams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture_diagrams_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Diagrams
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#brief_introduction_to_c4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Brief introduction to C4
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Brief introduction to C4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#different_levels_of_detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      Different levels of detail
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Different levels of detail">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system_context_level_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      (System) Context (Level 1)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container_level_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Container (Level 2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component_level_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component (level 3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code_level_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code (level 4)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#our_conventions_for_c4_diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      Our conventions for C4 diagrams
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Our conventions for C4 diagrams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mapping_c4_and_code_structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mapping C4 and code structure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mapping C4 and code structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system_context_level_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      (System) Context (Level 1)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container_level_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Container (Level 2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component_level_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component (Level 3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component_level_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component (Level 4)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use_classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use classes!
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating_class_diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generating class diagram
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mermaid" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mermaid
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mermaid">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#class_diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class diagram
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support_for_c4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support for C4
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#render_on-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render on-line
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plantuml" class="md-nav__link">
+    <span class="md-ellipsis">
+      PlantUML
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PlantUML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plantuml_is_markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      PlantUML is Markdown
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PlantUML is Markdown">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#our_conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Our conventions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plotting_online" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plotting online
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uml_-_unified_modeling_language" class="md-nav__link">
+    <span class="md-ellipsis">
+      UML - Unified Modeling Language
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UML - Unified Modeling Language">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#uml_class_diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      UML Class Diagrams
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UML Class Diagrams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#class_notation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class Notation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#class_relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class Relationships
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class Relationships">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inheritancegeneralization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inheritance/Generalization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#association" class="md-nav__link">
+    <span class="md-ellipsis">
+      Association
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete_example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complete Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.diataxis.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.diataxis.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.gdocs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gdocs.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.google_technical_writing.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.google technical writing.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.markdown_tools.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.markdown tools.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.mkdocs_deployment.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.mkdocs deployment.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.plotting_in_latex.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.plotting in latex.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.writing_docs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.writing docs.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    General background
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            General background
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../general_background/all.common_abbreviations.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.common abbreviations.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../general_background/all.glossary.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.glossary.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../general_background/all.literature_review.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.literature review.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../general_background/all.reading_list.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reading list.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Onboarding
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Onboarding
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.dev_must_read_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dev must read checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.development_documents.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development documents.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.development_setup.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development setup.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.hiring_process.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hiring process.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.organize_email.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.organize email.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.receive_crypto_payment.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.receive crypto payment.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/all.track_time_with_hubstaff.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.track time with hubstaff.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/bounty.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Bounty.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/intern.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/intern.prepare_for_development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.prepare for development.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/intern.running_causify_on_virtual_machine.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.running causify on virtual machine.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/intern.set_up_development_on_laptop.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.set up development on laptop.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/intern.signing_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.signing up.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tools
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.ai_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.ai review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.bfg_repo_cleaner.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.bfg repo cleaner.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.blog.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.blog.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.causify_blog_platform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.causify blog platform.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.chatgpt_api.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.chatgpt api.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.code_coverage.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.code_coverage_subprocess.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage subprocess.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.code_coverage_subprocess.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage subprocess.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.code_review_tools.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code review tools.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.codebase_clean_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.codebase clean up.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.codecov.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.codecov.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.evaluating_external_tools.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.evaluating external tools.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.explanation_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.explanation template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.how_to_guide_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.how to guide template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.import_check.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.import check.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.imports_and_packages.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.imports and packages.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.integrate_repos.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.integrate repos.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.invoke_bash_print_tree.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke bash print tree.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.invoke_git_branch_copy.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke git branch copy.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.invoke_workflows.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke workflows.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.llm_transform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.llm transform.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.parquet.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.parquet.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.precommit.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.precommit.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.profiling.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.profiling.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.pycharm.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pycharm.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.reference_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reference template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.selenium.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.selenium.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.ssh.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.ssh.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.sync_gh_projects.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.sync gh projects.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.tutorial_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.tutorial template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.veracrypt.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.veracrypt.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/all.visual_studio_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.visual studio code.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_33" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_33" id="__nav_7_33_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Dev system
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_33_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_33">
+            <span class="md-nav__icon md-icon"></span>
+            Dev system
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.conda_environment_obsolete.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.conda environment obsolete.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.create_a_runnable_dir.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.create a runnable dir.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.create a super repo with helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.dealing_with_missing_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dealing with missing dependencies.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.devops_docker.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.devops docker.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.devops_docker.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.devops docker.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.docker_optimizer_container.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.docker optimizer container.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.python_package_upgrade_and_troubleshooting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.python package upgrade and troubleshooting.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.replace_common_files_with_script_links.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.replace common files with script links
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.runnable_repo.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.runnable repo.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.synchronize_gh_issue_labels.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.synchronize gh issue labels.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.synchronize_gh_settings.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.synchronize gh settings.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.transition_to_cmamp2.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.transition to cmamp2.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/dev_system/all.transition_to_repo_config_yml.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.transition to repo config yml.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_34" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_34" id="__nav_7_34_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Docker
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_34_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_34">
+            <span class="md-nav__icon md-icon"></span>
+            Docker
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/docker/all.develop_in_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.develop in helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/docker/all.dind_and_sibling_containers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dind and sibling containers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/docker/all.docker.tutorial.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.docker.tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/docker/all.dockerhub.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dockerhub.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/docker/all.dockerized_flow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dockerized flow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_35" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_35" id="__nav_7_35_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Documentation toolchain
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_35_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_35">
+            <span class="md-nav__icon md-icon"></span>
+            Documentation toolchain
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.extract_notebook_images.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.extract notebook images.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.extract_notes.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.extract notes.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.latex_toolchain.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.latex toolchain.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.notes_to_pdf.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.notes to pdf.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.notes_toolchain.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.notes toolchain.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/documentation_toolchain/all.render_images.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.render images.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_36" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_36" id="__nav_7_36_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Git
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_36_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_36">
+            <span class="md-nav__icon md-icon"></span>
+            Git
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.git.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.git_hooks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git hooks.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.git_hooks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git hooks.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.gitleaks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.gitleaks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.integrate_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.integrate helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.invite_gh_contributors.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invite gh contributors.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/git/all.invite_gh_contributors.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invite gh contributors.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_37" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_37" id="__nav_7_37_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Helpers
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_37_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_37">
+            <span class="md-nav__icon md-icon"></span>
+            Helpers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.asyncio.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.asyncio.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.hcache.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hcache.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.hcache_simple.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hcache simple.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.hllm.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hllm.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.hplayback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hplayback.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.qgrid.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.qgrid.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/helpers/all.str_to_df.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.str to df.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_38" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_38" id="__nav_7_38_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Linter
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_38_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_38">
+            <span class="md-nav__icon md-icon"></span>
+            Linter
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/linter/all.amp_fix_md_links.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.amp fix md links.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/linter/all.developing_linter.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.developing linter.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_39" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_39" id="__nav_7_39_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Notebooks
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_39_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_39">
+            <span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.add_toc_to_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.add toc to notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.gsheet_into_pandas.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gsheet into pandas.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.jupyter notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.jupytext.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.jupytext.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.plotting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.plotting.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.publish_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.publish notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/notebooks/all.run_jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.run jupyter notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_40" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_40" id="__nav_7_40_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Thin environment
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_40_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_40">
+            <span class="md-nav__icon md-icon"></span>
+            Thin environment
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/thin_environment/all.gh_and_thin_env_requirements.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gh and thin env requirements.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/thin_environment/all.gh_thin_env_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gh thin env dependencies.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/thin_environment/all.thin_environment.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.thin environment.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_41" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_41" id="__nav_7_41_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Unit test
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_41_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_41">
+            <span class="md-nav__icon md-icon"></span>
+            Unit test
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/unit_test/all.run_unit_tests.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.run unit tests.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tools/unit_test/all.write_unit_tests.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.write unit tests.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Work organization
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Work organization
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.buildmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.buildmeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.contributor_feedback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.contributor feedback.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.datapull_DAGmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    all.datapull DAGmeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.github_projects_process.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.github projects process.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.inframeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.inframeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.issue_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.issue workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.organize_your_work.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.organize your work.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.rollout.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.rollout.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.scrum.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.scrum.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.team_collaboration.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.team collaboration.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work_organization/all.use_github.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.use github.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture_diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Diagrams
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture Diagrams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture_diagrams_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Diagrams
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#brief_introduction_to_c4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Brief introduction to C4
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Brief introduction to C4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#different_levels_of_detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      Different levels of detail
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Different levels of detail">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system_context_level_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      (System) Context (Level 1)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container_level_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Container (Level 2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component_level_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component (level 3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code_level_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code (level 4)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#our_conventions_for_c4_diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      Our conventions for C4 diagrams
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Our conventions for C4 diagrams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mapping_c4_and_code_structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mapping C4 and code structure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mapping C4 and code structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system_context_level_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      (System) Context (Level 1)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container_level_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Container (Level 2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component_level_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component (Level 3)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#component_level_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Component (Level 4)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use_classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use classes!
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generating_class_diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generating class diagram
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mermaid" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mermaid
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mermaid">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#class_diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class diagram
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#support_for_c4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support for C4
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#render_on-line" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render on-line
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plantuml" class="md-nav__link">
+    <span class="md-ellipsis">
+      PlantUML
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PlantUML">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plantuml_is_markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      PlantUML is Markdown
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PlantUML is Markdown">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#our_conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Our conventions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plotting_online" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plotting online
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uml_-_unified_modeling_language" class="md-nav__link">
+    <span class="md-ellipsis">
+      UML - Unified Modeling Language
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UML - Unified Modeling Language">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#uml_class_diagrams" class="md-nav__link">
+    <span class="md-ellipsis">
+      UML Class Diagrams
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UML Class Diagrams">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#class_notation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class Notation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#class_relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Class Relationships
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Class Relationships">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#inheritancegeneralization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inheritance/Generalization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#association" class="md-nav__link">
+    <span class="md-ellipsis">
+      Association
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete_example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complete Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+  <h1>All.architecture diagrams.explanation</h1>
+
+<h2 id="architecture_diagrams">Architecture Diagrams<a class="headerlink" href="#architecture_diagrams" title="Permanent link">#</a></h2>
+<h3 id="architecture_diagrams_1">Architecture Diagrams<a class="headerlink" href="#architecture_diagrams_1" title="Permanent link">#</a></h3>
+<h3 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">#</a></h3>
+<ul>
+<li>We use C4 as a way to describe graphically software architecture together with
+    some conventions</li>
+<li>Both Mermaid and PlantUML support C4 diagrams</li>
+<li>Mermaid is preferred since it can be rendered natively by GitHub</li>
+<li>PlantUML can be rendered through some of our scripts in regular markdown</li>
+</ul>
+<h3 id="brief_introduction_to_c4">Brief introduction to C4<a class="headerlink" href="#brief_introduction_to_c4" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>A detailed description of C4 is https://C4model.com</p>
+</li>
+<li>
+<p>C4 stands for "context, container, component, code" (the 4 Cs)</p>
+</li>
+<li>
+<p>C4 model helps developers describe software architecture</p>
+<ul>
+<li>It maps code at various level of detail</li>
+<li>It is useful for both software architects and developers</li>
+</ul>
+</li>
+</ul>
+<h4 id="different_levels_of_detail">Different levels of detail<a class="headerlink" href="#different_levels_of_detail" title="Permanent link">#</a></h4>
+<ul>
+<li>The 4 levels of detail are:<ol>
+<li>(System) Context system</li>
+<li>How the system fits in the world</li>
+<li>Container</li>
+<li>High-level technical blocks</li>
+<li>Component</li>
+<li>Show the components inside a container (i.e., a high-level block)</li>
+<li>Code</li>
+<li>Show how components are implemented</li>
+<li>Represented in terms of UML class diagrams</li>
+</ol>
+</li>
+</ul>
+<h5 id="system_context_level_1">(System) Context (Level 1)<a class="headerlink" href="#system_context_level_1" title="Permanent link">#</a></h5>
+<ul>
+<li>
+<p>A system context describes something that delivers value to its users</p>
+<ul>
+<li>Typically a system is owned by a single software development team</li>
+</ul>
+</li>
+<li>
+<p>System context diagram shows the big picture of how the software system
+    interacts with users and other systems in the IT environment</p>
+</li>
+<li>
+<p>The focus is not on:</p>
+<ul>
+<li>Technologies</li>
+<li>Protocols</li>
+<li>Low-level details</li>
+</ul>
+</li>
+<li>
+<p>Audience:</p>
+<ul>
+<li>Both technical and non-technical people</li>
+<li>Both inside and outside the software development team</li>
+</ul>
+</li>
+<li>
+<p>A system system is made up of one or more containers</p>
+</li>
+</ul>
+<h5 id="container_level_2">Container (Level 2)<a class="headerlink" href="#container_level_2" title="Permanent link">#</a></h5>
+<ul>
+<li>
+<p>A container represents an application</p>
+<ul>
+<li>E.g.,<ul>
+<li>Server-side web application (e.g., Tomcat running Java EE web application,
+    Ruby on Rails application)</li>
+<li>Client-side web application (e.g., JavaScript running in a web browser,
+    e.g., using Angular)</li>
+<li>Client-side desktop application (e.g., an macOS application)</li>
+<li>Mobile app (e.g., an iOS or Android app)</li>
+<li>Server-side console application</li>
+<li>Server-less function (e.g., AWS Lambda)</li>
+<li>Database (e.g., MySQL, MongoDB)</li>
+<li>Content-store (e.g., AWS S3)</li>
+<li>File-system (e.g., a local filesystem)</li>
+<li>Shell script</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>A container runs some code and stores some data</p>
+<ul>
+<li>Typically each container runs in its own process space</li>
+<li>Containers communicate through inter-process communication</li>
+</ul>
+</li>
+<li>
+<p>A container diagram shows the high-level shape of the software architecture
+    and how responsibilities are distributed across it</p>
+</li>
+<li>
+<p>A container is the sum of components</p>
+<ul>
+<li>All components inside a container execute together</li>
+<li>Components can't be deployed as separate units</li>
+</ul>
+</li>
+<li>
+<p>Audience:</p>
+<ul>
+<li>Technical people</li>
+<li>Inside and outside of the software development team</li>
+</ul>
+</li>
+</ul>
+<h5 id="component_level_3">Component (level 3)<a class="headerlink" href="#component_level_3" title="Permanent link">#</a></h5>
+<ul>
+<li>
+<p>Component is a group of related functionality encapsulated behind a
+    well-defined interface</p>
+<ul>
+<li>E.g., collection of classes behind an interface</li>
+</ul>
+</li>
+<li>
+<p>A component diagram decomposes each container to identify major structural
+    building blocks and interactions</p>
+</li>
+<li>
+<p>Audience</p>
+<ul>
+<li>Software architects and developers</li>
+</ul>
+</li>
+</ul>
+<h5 id="code_level_4">Code (level 4)<a class="headerlink" href="#code_level_4" title="Permanent link">#</a></h5>
+<ul>
+<li>
+<p>Code is the implementation of the software system</p>
+<ul>
+<li>Each component can represented in terms of UML class diagrams, entity
+    relationship diagrams, etc.</li>
+<li>This diagram should be generated automatically from code</li>
+</ul>
+</li>
+<li>
+<p>Audience</p>
+<ul>
+<li>Software architects and developers</li>
+</ul>
+</li>
+</ul>
+<h3 id="our_conventions_for_c4_diagrams">Our conventions for C4 diagrams<a class="headerlink" href="#our_conventions_for_c4_diagrams" title="Permanent link">#</a></h3>
+<h4 id="mapping_c4_and_code_structure">Mapping C4 and code structure<a class="headerlink" href="#mapping_c4_and_code_structure" title="Permanent link">#</a></h4>
+<ul>
+<li>To simplify, we map the 4 levels of C4 in the code structure</li>
+</ul>
+<h5 id="system_context_level_2">(System) Context (Level 1)<a class="headerlink" href="#system_context_level_2" title="Permanent link">#</a></h5>
+<ul>
+<li>= big picture of how the system interacts with users and other systems</li>
+<li>Mapped onto a code repository</li>
+<li>E.g.,<ul>
+<li><code>//...</code> is a system providing data and analytics for commodity</li>
+</ul>
+</li>
+</ul>
+<h5 id="container_level_3">Container (Level 2)<a class="headerlink" href="#container_level_3" title="Permanent link">#</a></h5>
+<ul>
+<li>= high-level software architecture and how responsibilities are split in the
+    system</li>
+<li>Mapped onto the first level of directories in a repo</li>
+<li>E.g., in <code>//...</code><ul>
+<li><code>automl</code>: application for automatic machine learning for commodity analysis</li>
+<li><code>edgar</code>: application to handle EDGAR data</li>
+<li><code>etl3</code>: back-end db for time series with real-time and point-in-time
+    semantics</li>
+</ul>
+</li>
+</ul>
+<h5 id="component_level_4">Component (Level 3)<a class="headerlink" href="#component_level_4" title="Permanent link">#</a></h5>
+<ul>
+<li>= a group of related functionality encapsulated behind a well-defined
+    interface (e.g., collection of classes behind an interface)</li>
+<li>Mapped onto the second level of directory</li>
+<li>E.g., in <code>//.../edgar</code><ul>
+<li><code>api</code>: real-time system storing the data from EDGAR</li>
+<li><code>company_commodity_mapping</code>: data pipeline to process mapping between
+    commodities and companies</li>
+<li><code>form8</code>: data pipeline processing form 8</li>
+</ul>
+</li>
+</ul>
+<h5 id="component_level_5">Component (Level 4)<a class="headerlink" href="#component_level_5" title="Permanent link">#</a></h5>
+<ul>
+<li>= OOP classes</li>
+<li>Typically we organize multiple related classes in files</li>
+<li>E.g., in <code>//.../edgar/form8</code><ul>
+<li><code>analyze_results.py</code>: classes and functions to analyze results from the data
+    pipeline</li>
+<li><code>extract_tables.py</code>: class <code>TableExtractor</code> extracting tables from Form 8</li>
+<li><code>filter_tables.py</code>: class <code>TableFilterer</code></li>
+<li><code>match_targets.py</code></li>
+<li><code>normalize_table.py</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="use_classes">Use classes!<a class="headerlink" href="#use_classes" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>In order to be able to describe the system with C4 it is best to use classes
+    to separate responsibilities and package code</p>
+</li>
+<li>
+<p>Using classes has the following advantages:</p>
+<ul>
+<li>Organizes the code in cohesive parts</li>
+<li>Makes clear what is a public interface vs a private interface (e.g.,
+    helpers)</li>
+<li>Highlights responsibility (e.g., builder, annotation, processor, analyzer)</li>
+<li>Simplifies the interface of functions by sharing state in the object</li>
+</ul>
+</li>
+<li>
+<p>Note that classes still allow our favorite functional style of programming</p>
+<ul>
+<li>E.g., pandas is implemented with classes and it allows functional style</li>
+<li>The difference is going from:
+    <code>python
+f(ton of arguments)</code>
+    to
+    <code>python
+o(some argument).f(other arguments)</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="generating_class_diagram">Generating class diagram<a class="headerlink" href="#generating_class_diagram" title="Permanent link">#</a></h4>
+<ul>
+<li>To generate a class diagram (level 4 of C4), you can run
+    <code>bash
+    &gt; dev_scripts/create_class_diagram.sh</code></li>
+</ul>
+<h3 id="mermaid">Mermaid<a class="headerlink" href="#mermaid" title="Permanent link">#</a></h3>
+<h4 id="class_diagram">Class diagram<a class="headerlink" href="#class_diagram" title="Permanent link">#</a></h4>
+<ul>
+<li>See https://mermaid.js.org/syntax/classDiagram.html</li>
+</ul>
+<h4 id="support_for_c4">Support for C4<a class="headerlink" href="#support_for_c4" title="Permanent link">#</a></h4>
+<ul>
+<li>Mermaid supports most features of C4<ul>
+<li>See https://mermaid.js.org/syntax/c4.html</li>
+</ul>
+</li>
+</ul>
+<h4 id="render_on-line">Render on-line<a class="headerlink" href="#render_on-line" title="Permanent link">#</a></h4>
+<ul>
+<li>See https://mermaid.live/edit</li>
+</ul>
+<h3 id="plantuml">PlantUML<a class="headerlink" href="#plantuml" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>Unified Modeling Language (UML) is a modeling language for software
+    engineering to provide a standard way to visualize design of a system</p>
+</li>
+<li>
+<p>We use mainly Class Diagrams</p>
+<ul>
+<li>For information on some class diagram convention see
+    https://en.wikipedia.org/wiki/Class_diagram</li>
+</ul>
+</li>
+<li>
+<p>You can refer to the PDF guide at http://plantuml.com/guide for an extensive
+    description of what PlantUML can do</p>
+<ul>
+<li>We are mainly interested in the "Class diagram" section</li>
+</ul>
+</li>
+<li>
+<p>The website https://structurizr.com has lots of information on using tools for
+    C4 and lots of <a href="https://structurizr.com/share/52804/plantuml">examples</a></p>
+</li>
+</ul>
+<h4 id="plantuml_is_markdown">PlantUML is Markdown<a class="headerlink" href="#plantuml_is_markdown" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>We use PlantUML for rendering diagrams in our documentation</p>
+<ul>
+<li>For interactive use you can rely on online tools like:<ul>
+<li>Online editors:<ul>
+<li><a href="https://www.planttext.com/">planttext</a></li>
+<li><a href="https://liveuml.com/">liveuml</a></li>
+<li><a href="http://www.plantuml.com/plantuml/uml/SyfFKj2rKt3CoKnELR1Io4ZDoSa70000">PlantUML Web Server</a></li>
+</ul>
+</li>
+<li>PyCharm plugin (create and edit <code>.puml</code> file locally):<ul>
+<li><a href="https://plugins.jetbrains.com/plugin/7017-plantuml-integration">PlantUML integration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>We create <code>README.md</code> and <code>architecture.md</code> markdown files to document
+    software. <code>README.md</code> is for general content, <code>architecture.md</code> is for code
+    architecture description. You can embed the diagrams in <code>architecture.md</code> file
+    in a correspondent folder.</p>
+</li>
+<li>
+<p>To render PlantUML in our markdown files instead of <code>@startuml</code> you need to
+    use the tag:
+    <code>txt
+    ```plantuml
+    ...
+    ```</code></p>
+</li>
+</ul>
+<h5 id="our_conventions">Our conventions<a class="headerlink" href="#our_conventions" title="Permanent link">#</a></h5>
+<ul>
+<li>
+<p>Names</p>
+<ul>
+<li>
+<p>Each name in mappings should be exactly the same (maybe without some invalid
+    chars, like <code>.</code>) to not create a cognitive burden to the reader. It's better
+    to optimize for readability rather than by the number of chars. E.g.,</p>
+<p><code>plantuml
+[build_configs.py] as build_configs_py
+[TableExtractor] as TableExtractor</code>
+    - We keep components / classes in alphabetical order, so we can find them
+quickly in the code</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Notes</p>
+<ul>
+<li>
+<p>Put notes describing some components / classes inside the blocks they refer
+    to. E.g.,</p>
+<p><code>plantuml
+node mapping as map {
+[CIK&lt;-&gt;Ticker] as ctmap
+note top of ctmap: My useful note.
+[CIK&lt;-&gt;GVKEY] as cgmap
+}</code>
+    - We use conventions for notes as for the code comments:
+- Start a note with a capital and end with <code>.</code>. In this way, it may be even
+    easier to visually distinguish notes from arrow labels.
+- Put notes straight after their related component definition, so a note
+    will look like a comment in the code</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Arcs</p>
+<ul>
+<li>
+<p>The direction of the arcs represents the direction of the action. E.g.,</p>
+<p><code>plantuml
+apple --&gt; ground : falls to</code>
+    - We use the third person for describing actions</p>
+</li>
+</ul>
+</li>
+<li>
+<p>We use comments as headers to organize the <code>architecture.md</code>. Note that the
+    comments in <code>plantuml</code> are introduced with <code>'</code>. Some frequently used headers
+    are:</p>
+<ul>
+<li><code>' Components</code></li>
+<li><code>' Databases</code></li>
+<li><code>' Containers</code></li>
+<li><code>' Edge labels</code></li>
+<li><code>' Notes</code></li>
+</ul>
+</li>
+<li>
+<p>An example of acceptable C4 diagram plantuml snippet:</p>
+<p>```plantuml
+    ' Components
+    component [Edgar API] as Edgar_API
+    note top of Edgar_API : System storing the real-time\nand historical data from EDGAR.
+    component [Headers dataset] as Headers_dataset</p>
+<pre><code>' Databases
+database "Compustat DB" as Compustat_DB
+note top of Compustat_DB : Third-party database\nwith financial data.
+
+' Containers
+node Form8 as form8 {
+</code></pre>
+<p>[analyze_results.py] as analyze_results_py
+ note left of analyze_results_py: Computes matching statistics.
+ [build_configs.py] as build_configs_py
+ [edgar_utils.py] as edgar_utils_py
+ [run_pipeline.py] as run_pipeline_py
+ [TableExtractor]
+ note right of TableExtractor: Extracts forms tables.
+ [TableNormalizer]
+ note right of TableNormalizer: Normalizes extracted tables.
+ [TableFilterer]
+ note right of TableFilterer: Takes only financial tables\nfrom normalized tables.
+ [TargetMatcher]
+ note right of TargetMatcher: Matches financial values in tables.
+    }
+    node mapping as mapping {
+ [CIK&lt;-&gt;Ticker] as CIK_Ticker
+ [CIK&lt;-&gt;GVKEY] as CIK_GVKEY
+    }
+    node universe as universe{
+ [S&amp;P400]
+ [S&amp;P500]
+ [S&amp;P600]
+ [S&amp;P1500]
+    }
+    note left of universe: Universe of companies\n as Tickers/GVKEYs.</p>
+<pre><code>' Edge labels
+Edgar_API --&gt; edgar_utils_py: provides filings payloads to
+Compustat_DB --&gt; run_pipeline_py: provides target\nvalues to match on to
+build_configs_py --&gt; run_pipeline_py: provides pipeline\nparameters to
+edgar_utils_py --&gt; TableExtractor: provides universe filings to
+analyze_results_py --&gt; run_pipeline_py: provides functions\nto run the matching in to
+mapping --&gt; edgar_utils_py: provides mapping to construct\n universe as CIKs to
+Headers_dataset --&gt; analyze_results_py: provides filing\ndates to
+TableExtractor --&gt; TableNormalizer: provides tables to be normalized to
+TableFilterer --&gt; run_pipeline_py: provides forms\n values to be matched to
+TargetMatcher --&gt; analyze_results_py: matches values in
+TableNormalizer --&gt; TableFilterer: provides tables to be filtered to
+universe --&gt; mapping: provides universe of companies to
+</code></pre>
+<p>```</p>
+<p>You can find the correspondent <code>architecture.md</code> file
+<a href="https://github.com/.../.../blob/master/edgar/forms8/architecture.md">here</a>.</p>
+</li>
+</ul>
+<h4 id="plotting_online">Plotting online<a class="headerlink" href="#plotting_online" title="Permanent link">#</a></h4>
+<ul>
+<li><a href="https://plantuml-editor.kkeisuke.com/">Plantuml on-line</a></li>
+</ul>
+<h3 id="uml_-_unified_modeling_language">UML - Unified Modeling Language<a class="headerlink" href="#uml_-_unified_modeling_language" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>The Unified Modeling Language (UML) serves as a versatile visual modeling
+    language designed to offer a standard way to visualize the design of a system</p>
+</li>
+<li>
+<p>UML employs a standardized notation for various diagram types, broadly
+    categorized into three primary groups:</p>
+<ul>
+<li><strong>Structure diagrams</strong>: These diagrams depict the static elements within the
+    system, highlighting essential components necessary in the modeled system.
+    As they focus on system structure, they are extensively utilized in
+    documenting software architecture</li>
+<li><strong>Behavior diagrams</strong>: These diagrams portray the dynamic aspects of the
+    system, emphasizing the actions and processes required within the modeled
+    system. Given their role in illustrating system behavior, they are
+    extensively used to describe the functionality of software systems</li>
+<li><strong>Interaction diagrams</strong>: A subset of behavior diagrams, these emphasize the
+    flow of data and control among the components within the modeled system</li>
+</ul>
+<p><img src="figs/architecture_diagrams/UML.png"></p>
+</li>
+</ul>
+<h4 id="uml_class_diagrams">UML Class Diagrams<a class="headerlink" href="#uml_class_diagrams" title="Permanent link">#</a></h4>
+<ul>
+<li>The UML Class Diagram is a graphical notation used to construct and visualize
+    object-oriented systems</li>
+<li>A class diagram in the Unified Modeling Language (UML) is a type of static
+    structure diagram that describes the structure of a system by showing the
+    system's:<ul>
+<li>Classes</li>
+<li>Attributes</li>
+<li>Methods</li>
+<li>Relationships among objects</li>
+</ul>
+</li>
+</ul>
+<h5 id="class_notation">Class Notation<a class="headerlink" href="#class_notation" title="Permanent link">#</a></h5>
+<ul>
+<li>A class represents a concept which encapsulates state (attributes) and
+    behavior (methods)</li>
+<li>The class name is the only mandatory information</li>
+<li>
+<p>The class diagram consists of</p>
+<ul>
+<li>Class Name:<ul>
+<li>The name of the class appears in the first partition</li>
+<li>The first letter is capitalized</li>
+</ul>
+</li>
+<li>Class Attributes:<ul>
+<li>Attributes are shown in the second partition</li>
+<li>The attribute type is shown after the colon</li>
+<li>The first letter is lowercase</li>
+<li>Attributes map onto member variables (data members) in code</li>
+</ul>
+</li>
+<li>Class Methods:<ul>
+<li>Methods are shown in the third partition. They are services the class
+    provides</li>
+<li>The return type of a method is shown after the colon at the end of the
+    method signature</li>
+<li>The return type of method parameters are shown after the colon following
+    the parameter name</li>
+<li>The first letter is lowercase</li>
+<li>Methods map onto class methods in code</li>
+</ul>
+</li>
+<li>Class Visibility:<ul>
+<li>The <code>+, -, #</code> symbols before an attribute and operation name in a class
+    denote the visibility of the attribute and operation</li>
+<li><code>+</code> denotes public attributes or methods</li>
+<li><code>-</code> denotes private attributes or methods</li>
+<li><code>#</code> denotes protected attributes or methods</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>An example of a Class Diagram is below</p>
+<p>```mermaid
+classDiagram</p>
+<p>class BankAccount{
+    #owner: str
+    +balance: int
+    +deposit(amount: float) bool
+    +withdrawal(amount: float) int
+    -checkBalance(account_number: int) float
+}
+```</p>
+</li>
+</ul>
+<h5 id="class_relationships">Class Relationships<a class="headerlink" href="#class_relationships" title="Permanent link">#</a></h5>
+<ul>
+<li>Classes can engage in multiple relationships with other classes</li>
+<li>Relationships in UML class diagrams can be defined in several distinct types</li>
+</ul>
+<h6 id="inheritancegeneralization">Inheritance/Generalization<a class="headerlink" href="#inheritancegeneralization" title="Permanent link">#</a></h6>
+<ul>
+<li>It indicates that:<ul>
+<li>One of the two related classes (the subclass) is considered to be a
+    specialized form of the other (the superclass) and</li>
+<li>The superclass is considered a generalization of the subclass</li>
+</ul>
+</li>
+<li>Each instance of the subclass is also an indirect instance of the superclass</li>
+<li>Represents an "is-a" relationship</li>
+<li>
+<p>An abstract class name is shown in italics</p>
+</li>
+<li>
+<p>Example: in the given diagram, class <code>Animal</code> is the superclass and class
+    <code>Duck</code> and <code>Fish</code> are its subclass</p>
+<p>```mermaid
+classDiagram</p>
+<p>Animal &lt;|-- Duck
+Animal &lt;|-- Fish
+Animal : +int age
+Animal: +isMammal()
+class Duck{
+    +String beakColor
+    +swim()
+}
+class Fish{
+    -int sizeInFeet
+    -canEat()
+}
+```</p>
+</li>
+</ul>
+<h6 id="association">Association<a class="headerlink" href="#association" title="Permanent link">#</a></h6>
+<ul>
+<li>Associations are relationships between classes in a UML Class Diagram</li>
+<li>They are represented by a solid line between classes</li>
+<li>
+<p>Simple Association</p>
+<ul>
+<li>A structural link between two peer classes</li>
+<li>There is an association between Class1 and Class2</li>
+</ul>
+<p>```mermaid
+classDiagram</p>
+<p>Class1 --&gt; Class2
+```</p>
+</li>
+<li>
+<p>Aggregation</p>
+<ul>
+<li>A special type of association which represents a "part of" relationship</li>
+<li>Variant of the "has-a" association relationship</li>
+<li>Many instances (denoted by the diamond) of <code>Duck</code> can be associated with
+    <code>Pond</code></li>
+<li><code>Duck</code> is part of <code>Pond</code></li>
+<li>Objects of <code>Pond</code> and <code>Duck</code> have separate lifetimes</li>
+<li>In the given e.g., a Pond has zero or more Ducks, and a Duck has at most one
+    Pond (at a time). Duck can exist separately from a Pond</li>
+</ul>
+<p>```mermaid
+classDiagram</p>
+<p>Pond o-- Duck
+```</p>
+</li>
+<li>
+<p>Composition</p>
+<ul>
+<li>A special type of aggregation where parts are destroyed when the whole is
+    destroyed</li>
+<li>Objects of <code>Class2</code> live and die with <code>Class1</code></li>
+<li><code>Class2</code> cannot stand by itself</li>
+<li>In the given e.g., a <code>Car</code> has exactly one <code>Carburetor</code>, and a <code>Carburetor</code></li>
+<li>Is a part of one <code>Car</code>. <code>Carburetor</code>s cannot exist as separate parts,
+    detached from a specific <code>Car</code></li>
+</ul>
+<p>```mermaid
+classDiagram</p>
+<p>Car *-- Carburetor
+```</p>
+</li>
+<li>
+<p>Dependency</p>
+<ul>
+<li>An object of one class might use an object of another class in the code of a
+    method. If the object is not stored in any field, then this is modeled as a
+    dependency relationship</li>
+<li>Exists between two classes if changes to the definition of one may cause
+    changes to the other (but not the other way around)</li>
+<li><code>Class1</code> depends on <code>Class2</code></li>
+</ul>
+<p>```mermaid
+classDiagram</p>
+<p>Class1 ..&gt; Class2
+```</p>
+</li>
+<li>
+<p>Realization</p>
+<ul>
+<li>It is a relationship between the blueprint class and the object containing
+    its respective implementation level details</li>
+<li>This object is said to realize the blueprint class</li>
+<li>For e.g., the <code>Owner</code> interface might specify methods for acquiring property
+    and disposing of property. The <code>Person</code> and <code>Corporation</code> classes need to
+    implement these methods, possibly in very different ways</li>
+</ul>
+<p>```mermaid
+classDiagram</p>
+<p>class Owner{
+    &lt;<interface>&gt;
+    +accquire(property: str) bool
+    +dispose(property: str) bool
+}</p>
+<p>class Person{
+    -real
+    -tangible
+    +accquire(property: str) bool
+    +dispose(property: str) bool
+}</p>
+<p>class Corporation{
+    -current
+    -fixed
+    -longterm
+    +accquire(property: str) bool
+    +dispose(property: str) bool
+}</p>
+<p>Person ..|&gt; Owner
+Corporation ..|&gt; Owner
+```</p>
+</li>
+</ul>
+<h5 id="complete_example">Complete Example<a class="headerlink" href="#complete_example" title="Permanent link">#</a></h5>
+<pre><code class="language-mermaid">
+classDiagram
+        class Animal {
+                - String name
+                - int age
+                + Animal(name: String, age: int)
+                + setName(name: String): void
+                + setAge(age: int): void
+                + getName(): String
+                + getAge(): int
+                + makeSound(): void
+        }
+
+        class Dog {
+                - String breed
+                + Dog(name: String, age: int, breed: String)
+                + setBreed(breed: String): void
+                + getBreed(): String
+                + makeSound(): void
+        }
+
+        class Cat {
+                - boolean isLazy
+                + Cat(name: String, age: int, isLazy: boolean)
+                + setIsLazy(isLazy: boolean): void
+                + getIsLazy(): boolean
+                + makeSound(): void
+        }
+
+        class Car {
+                - String manufacturer
+                - String model
+                + Car(manufacturer: String, model: String)
+                + setManufacturer(manufacturer: String): void
+                + setModel(model: String): void
+                + getManufacturer(): String
+                + getModel(): String
+                + startEngine(): void
+        }
+
+        class Person {
+                - String name
+                - int age
+                - List&lt;Car&gt; ownedCars
+                + Person(name: String, age: int)
+                + setName(name: String): void
+                + setAge(age: int): void
+                + getName(): String
+                + getAge(): int
+                + addCar(car: Car): void
+                + removeCar(car: Car): void
+                + getOwnedCars(): List&lt;Car&gt;
+        }
+
+        Animal &lt;|-- Dog
+        Animal &lt;|-- Cat
+        Person &quot;1&quot; *-- &quot;*&quot; Car : owns
+
+        class SoundMaker {
+                &lt;&lt;interface&gt;&gt;
+                + makeSound(): void
+        }
+
+        SoundMaker &lt;|-- Animal
+        SoundMaker &lt;|-- Dog
+        SoundMaker &lt;|-- Cat
+
+        class Zoo {
+                - List&lt;Animal&gt; animals
+                + Zoo()
+                + addAnimal(animal: Animal): void
+                + removeAnimal(animal: Animal): void
+                + getAnimals(): List&lt;Animal&gt;
+        }
+
+        Zoo &quot;1&quot; *-- &quot;*&quot; Animal : contains
+</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.action.edit"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.50899def.min.js"></script>
+      
+    
+  </body>
+</html>

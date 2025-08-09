@@ -1,0 +1,6741 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="all.notes_to_pdf.explanation.html">
+      
+      
+        <link rel="next" href="all.render_images.explanation.html">
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>All.notes toolchain.how to guide - Helpers docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../styles/styles.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#documentation_toolchain" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="Helpers docs" class="md-header__button md-logo" aria-label="Helpers docs" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Helpers docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              All.notes toolchain.how to guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="Helpers docs" class="md-nav__button md-logo" aria-label="Helpers docs" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    Helpers docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Build system
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Build system
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.gitleaks_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.linter_gh_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.linter gh workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.pytest_allure.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pytest allure.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.pytest_allure.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pytest allure.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.semgrep_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.semgrep workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Code guidelines
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Code guidelines
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_design.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code design.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_like_pragmatic_programmer.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code like pragmatic programmer.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.coding_style.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.coding style.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.coding_style_guidelines.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.coding style guidelines.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.reading_other_people_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reading other people code.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.submit_code_for_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.submit code for review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.type_hints.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.type hints.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Documentation meta
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Documentation meta
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.architecture_diagrams.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.architecture diagrams.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.diataxis.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.diataxis.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.gdocs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gdocs.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.google_technical_writing.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.google technical writing.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.markdown_tools.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.markdown tools.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.mkdocs_deployment.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.mkdocs deployment.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.plotting_in_latex.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.plotting in latex.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.writing_docs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.writing docs.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    General background
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            General background
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.common_abbreviations.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.common abbreviations.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.glossary.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.glossary.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.literature_review.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.literature review.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.reading_list.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reading list.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Onboarding
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Onboarding
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.dev_must_read_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dev must read checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development_documents.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development documents.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development_setup.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development setup.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.hiring_process.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hiring process.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.organize_email.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.organize email.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.receive_crypto_payment.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.receive crypto payment.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.track_time_with_hubstaff.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.track time with hubstaff.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/bounty.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Bounty.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.prepare_for_development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.prepare for development.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.running_causify_on_virtual_machine.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.running causify on virtual machine.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.set_up_development_on_laptop.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.set up development on laptop.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.signing_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.signing up.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tools
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.ai_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.ai review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.bfg_repo_cleaner.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.bfg repo cleaner.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.blog.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.blog.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.causify_blog_platform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.causify blog platform.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.chatgpt_api.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.chatgpt api.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage_subprocess.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage subprocess.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage_subprocess.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage subprocess.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_review_tools.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code review tools.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.codebase_clean_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.codebase clean up.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.codecov.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.codecov.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.evaluating_external_tools.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.evaluating external tools.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.explanation_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.explanation template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.how_to_guide_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.how to guide template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.import_check.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.import check.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.imports_and_packages.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.imports and packages.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.integrate_repos.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.integrate repos.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_bash_print_tree.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke bash print tree.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_git_branch_copy.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke git branch copy.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_workflows.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke workflows.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.llm_transform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.llm transform.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.parquet.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.parquet.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.precommit.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.precommit.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.profiling.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.profiling.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.pycharm.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pycharm.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.reference_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reference template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.selenium.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.selenium.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.ssh.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.ssh.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.sync_gh_projects.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.sync gh projects.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.tutorial_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.tutorial template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.veracrypt.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.veracrypt.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.visual_studio_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.visual studio code.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_33" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_33" id="__nav_7_33_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Dev system
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_33_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_33">
+            <span class="md-nav__icon md-icon"></span>
+            Dev system
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.conda_environment_obsolete.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.conda environment obsolete.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.create_a_runnable_dir.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.create a runnable dir.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.create_a_super_repo_with_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.create a super repo with helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.dealing_with_missing_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dealing with missing dependencies.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.devops_docker.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.devops docker.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.devops_docker.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.devops docker.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.docker_optimizer_container.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.docker optimizer container.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.python_package_upgrade_and_troubleshooting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.python package upgrade and troubleshooting.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.replace_common_files_with_script_links.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.replace common files with script links
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.runnable_repo.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.runnable repo.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.synchronize_gh_issue_labels.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.synchronize gh issue labels.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.synchronize_gh_settings.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.synchronize gh settings.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.transition_to_cmamp2.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.transition to cmamp2.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.transition_to_repo_config_yml.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.transition to repo config yml.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_34" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_34" id="__nav_7_34_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Docker
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_34_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_34">
+            <span class="md-nav__icon md-icon"></span>
+            Docker
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.develop_in_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.develop in helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dind_and_sibling_containers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dind and sibling containers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.docker.tutorial.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.docker.tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dockerhub.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dockerhub.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dockerized_flow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dockerized flow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_35" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7_35" id="__nav_7_35_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Documentation toolchain
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_35_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7_35">
+            <span class="md-nav__icon md-icon"></span>
+            Documentation toolchain
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.extract_notebook_images.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.extract notebook images.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.extract_notes.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.extract notes.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.latex_toolchain.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.latex toolchain.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.notes_to_pdf.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.notes to pdf.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    All.notes toolchain.how to guide
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="all.notes_toolchain.how_to_guide.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.notes toolchain.how to guide
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documentation_toolchain" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation Toolchain
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation Toolchain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#causify_extended_markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      Causify Extended Markdown
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_of_tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      List of Tools
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes_to_pdfpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes_To_Pdf.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Notes_To_Pdf.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#from_scratch_with_toc" class="md-nav__link">
+    <span class="md-ellipsis">
+      From scratch with TOC:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#for_interactive_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      For interactive mode:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check_that_can_be_compiled" class="md-nav__link">
+    <span class="md-ellipsis">
+      Check that can be compiled:
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Check that can be compiled:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#render_imagespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render_Images.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Render_Images.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create_a_new_markdown_file_with_rendered_images" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a new Markdown file with rendered images:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#render_images_in_place_in_the_original_markdown_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render images in place in the original Markdown file:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#render_images_in_place_in_the_original_latex_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render images in place in the original LaTeX file:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open_rendered_images_from_a_markdown_file_in_html_to_preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Open rendered images from a Markdown file in HTML to preview:
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Open rendered images from a Markdown file in HTML to preview:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lint_notespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lint_Notes.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lint_Notes.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract_notebook_imagespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extract_Notebook_Images.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extract_Notebook_Images.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#llm_transformpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Llm_Transform.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Llm_Transform.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_pandocpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run_Pandoc.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run_Pandoc.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transform_notespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transform_Notes.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transform_Notes.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract_headers_from_markdownpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extract_Headers_From_Markdown.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extract_Headers_From_Markdown.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_tikz_to_bitmappy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Tikz_To_Bitmap.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Tikz_To_Bitmap.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#examples_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_graphvizpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Graphviz.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Graphviz.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_latexpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Latex.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Latex.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_mermaidpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Mermaid.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Mermaid.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_pandocpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Pandoc.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Pandoc.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_prettierpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Prettier.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Prettier.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic_usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic usage:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use_sudo_for_docker_commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use sudo for Docker commands:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set_logging_verbosity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Set logging verbosity:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#process_a_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Process a file:
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Process a file:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#save_screenshotpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Save_Screenshot.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Save_Screenshot.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useful_tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Useful Tools
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Useful Tools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mermaid" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mermaid
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphviz" class="md-nav__link">
+    <span class="md-ellipsis">
+      Graphviz
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      Markdown
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pandoc" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pandoc
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tikz" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tikz
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.render_images.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.render images.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_36" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_36" id="__nav_7_36_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Git
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_36_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_36">
+            <span class="md-nav__icon md-icon"></span>
+            Git
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.git.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.git_hooks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git hooks.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.git_hooks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git hooks.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.gitleaks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.gitleaks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.integrate_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.integrate helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.invite_gh_contributors.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invite gh contributors.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.invite_gh_contributors.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invite gh contributors.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_37" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_37" id="__nav_7_37_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Helpers
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_37_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_37">
+            <span class="md-nav__icon md-icon"></span>
+            Helpers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.asyncio.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.asyncio.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hcache.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hcache.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hcache_simple.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hcache simple.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hllm.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hllm.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hplayback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hplayback.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.qgrid.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.qgrid.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.str_to_df.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.str to df.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_38" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_38" id="__nav_7_38_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Linter
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_38_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_38">
+            <span class="md-nav__icon md-icon"></span>
+            Linter
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linter/all.amp_fix_md_links.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.amp fix md links.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linter/all.developing_linter.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.developing linter.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_39" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_39" id="__nav_7_39_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Notebooks
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_39_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_39">
+            <span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.add_toc_to_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.add toc to notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.gsheet_into_pandas.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gsheet into pandas.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.jupyter notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.jupytext.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.jupytext.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.plotting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.plotting.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.publish_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.publish notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.run_jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.run jupyter notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_40" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_40" id="__nav_7_40_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Thin environment
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_40_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_40">
+            <span class="md-nav__icon md-icon"></span>
+            Thin environment
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.gh_and_thin_env_requirements.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gh and thin env requirements.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.gh_thin_env_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gh thin env dependencies.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.thin_environment.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.thin environment.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_41" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_41" id="__nav_7_41_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Unit test
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_41_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_41">
+            <span class="md-nav__icon md-icon"></span>
+            Unit test
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../unit_test/all.run_unit_tests.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.run unit tests.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../unit_test/all.write_unit_tests.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.write unit tests.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Work organization
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Work organization
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.buildmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.buildmeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.contributor_feedback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.contributor feedback.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.datapull_DAGmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    all.datapull DAGmeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.github_projects_process.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.github projects process.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.inframeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.inframeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.issue_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.issue workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.organize_your_work.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.organize your work.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.rollout.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.rollout.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.scrum.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.scrum.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.team_collaboration.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.team collaboration.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.use_github.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.use github.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documentation_toolchain" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation Toolchain
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation Toolchain">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#causify_extended_markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      Causify Extended Markdown
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_of_tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      List of Tools
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#notes_to_pdfpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes_To_Pdf.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Notes_To_Pdf.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#from_scratch_with_toc" class="md-nav__link">
+    <span class="md-ellipsis">
+      From scratch with TOC:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#for_interactive_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      For interactive mode:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check_that_can_be_compiled" class="md-nav__link">
+    <span class="md-ellipsis">
+      Check that can be compiled:
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Check that can be compiled:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#render_imagespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render_Images.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Render_Images.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create_a_new_markdown_file_with_rendered_images" class="md-nav__link">
+    <span class="md-ellipsis">
+      Create a new Markdown file with rendered images:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#render_images_in_place_in_the_original_markdown_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render images in place in the original Markdown file:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#render_images_in_place_in_the_original_latex_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render images in place in the original LaTeX file:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open_rendered_images_from_a_markdown_file_in_html_to_preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Open rendered images from a Markdown file in HTML to preview:
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Open rendered images from a Markdown file in HTML to preview:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lint_notespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lint_Notes.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lint_Notes.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract_notebook_imagespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extract_Notebook_Images.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extract_Notebook_Images.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#llm_transformpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Llm_Transform.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Llm_Transform.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run_pandocpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run_Pandoc.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run_Pandoc.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transform_notespy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transform_Notes.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transform_Notes.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extract_headers_from_markdownpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Extract_Headers_From_Markdown.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Extract_Headers_From_Markdown.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_tikz_to_bitmappy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Tikz_To_Bitmap.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Tikz_To_Bitmap.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#examples_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_graphvizpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Graphviz.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Graphviz.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_latexpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Latex.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Latex.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_mermaidpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Mermaid.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Mermaid.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_pandocpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Pandoc.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Pandoc.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dockerized_prettierpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dockerized_Prettier.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dockerized_Prettier.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      Examples
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#interface_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      Interface
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic_usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic usage:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use_sudo_for_docker_commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Use sudo for Docker commands:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#set_logging_verbosity" class="md-nav__link">
+    <span class="md-ellipsis">
+      Set logging verbosity:
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#process_a_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Process a file:
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Process a file:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#save_screenshotpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Save_Screenshot.Py
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Save_Screenshot.Py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what_it_does_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      What It Does
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useful_tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Useful Tools
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Useful Tools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mermaid" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mermaid
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphviz" class="md-nav__link">
+    <span class="md-ellipsis">
+      Graphviz
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#markdown" class="md-nav__link">
+    <span class="md-ellipsis">
+      Markdown
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pandoc" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pandoc
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tikz" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tikz
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+  <h1>All.notes toolchain.how to guide</h1>
+
+<h2 id="documentation_toolchain">Documentation Toolchain<a class="headerlink" href="#documentation_toolchain" title="Permanent link">#</a></h2>
+<ul>
+<li>
+<p>This is a high‑level guide to the workflows that turn raw notes, slides, Latex
+    into polished PDFs, slide decks, etc.</p>
+</li>
+<li>
+<p>There are several documentation workflows available:</p>
+<ul>
+<li><strong>latex</strong><ul>
+<li>Standard Latex code to convert into PDF files</li>
+<li>E.g., [<code>//cmamp/papers</code>]</li>
+<li>E.g., [<code>//cmamp/papers/KaizenFlow</code>]</li>
+</ul>
+</li>
+<li><strong>markdown</strong><ul>
+<li>Documentation using Causify markdown extensions<ul>
+<li>E.g., <code>//helpers/docs</code>, <code>//cmamp/docs</code>, <code>//tutorials/docs</code></li>
+<li>E.g.,
+<a href="https://github.com/causify-ai/helpers/tree/master/docs">https://github.com/causify-ai/helpers/tree/master/docs</a></li>
+</ul>
+</li>
+<li>It is automatically rendered with <code>mkdocs</code> and published on GitHub<ul>
+<li>E.g., <a href="https://causify-ai.github.io/helpers">https://causify-ai.github.io/helpers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>notes</strong> (aka <strong>.txt</strong>)<ul>
+<li><code>Pandoc</code> markdown with Causify extensions</li>
+<li>Processed by <code>preprocess_notes.py</code> to be converted in standard <code>Pandoc</code>
+    markdown</li>
+<li>Can be converted into PDFs and in Anki Q/A</li>
+<li>E.g., <code>//notes/notes/...</code>
+    <code>&gt; vi /Users/saggese/src/notes1/notes/math.machine_learning.txt</code></li>
+</ul>
+</li>
+<li><strong>slides</strong><ul>
+<li>Same as <code>notes</code> but we use a different extension <code>.slides</code> to clarify that
+    they are rendered as slides</li>
+<li>E.g.,
+    <code>&gt; ls /Users/saggese/src/notes1/MSML610
+    &gt; vi /Users/saggese/src/notes1/lectures_source/Lesson00-Class.txt</code></li>
+<li>E.g., <code>//notes/DATA605</code></li>
+</ul>
+</li>
+<li><strong>books</strong><ul>
+<li>Extended <code>Pandoc</code> markdown that can be rendered with <code>Pandoc</code></li>
+<li>E.g., <code>//notes/books/book.programming_with_ai</code>
+    <code>&gt; vi books/programming_with_ai/docs/coding-benchmark.md</code></li>
+</ul>
+</li>
+<li><strong>jupyter books</strong></li>
+</ul>
+</li>
+</ul>
+<h4 id="causify_extended_markdown">Causify Extended Markdown<a class="headerlink" href="#causify_extended_markdown" title="Permanent link">#</a></h4>
+<ul>
+<li>We refer to it to "Causify markdown" as some extension we use on top of
+    <code>Pandoc</code> markdown</li>
+<li>
+<p>The goal is invariants in formatting that we enforce so that the code looks
+    nicely formatted for a human</p>
+<ul>
+<li>The <code>linter</code> formats and enforces some these rules</li>
+</ul>
+</li>
+<li>
+<p>E.g.,</p>
+<ul>
+<li>Cross-repo links<ul>
+<li>E.g., [<code>//helpers/docs/code_guidelines/all.coding_style_guidelines.reference.md</code>]</li>
+</ul>
+</li>
+<li>Color  <ul>
+<li>E.g., <code>\red{...}</code></li>
+</ul>
+</li>
+<li>Primitives we use in the slides  </li>
+<li>Indented triple fences</li>
+<li>Triple fences Plugins for tools  </li>
+<li>Comments  <ul>
+<li>E.g., C-like comments
+    <code>// Comment</code>
+    ```text
+    *
+    ...
+    */
+    ````</li>
+</ul>
+</li>
+<li>Framing of titles<br />
+<code>text
+    # ##############
+    # Hello
+    # ##############</code></li>
+<li>Automatically update <code>&gt; notes_to_pdf.py -h</code></li>
+</ul>
+</li>
+<li>
+<p>Causify extended markdown is rendered for different backends (e.g., slides,
+    mkdocs, ...) by converting the source markdown into something that can be
+    rendered by the target tool (e.g., <code>mkdocs</code>, <code>Pandoc</code>), e.g.,</p>
+<ul>
+<li>[<code>//helpers/dev_scripts_helpers/documentation/mkdocs/preprocess_mkdocs.py</code>]</li>
+<li>[<code>//helpers/dev_scripts_helpers/documentation/preprocess_notes.py</code>]</li>
+</ul>
+</li>
+</ul>
+<h3 id="list_of_tools">List of Tools<a class="headerlink" href="#list_of_tools" title="Permanent link">#</a></h3>
+<ul>
+<li>TODO(gp): Use the invoke to describe the list</li>
+</ul>
+<pre><code>&gt; ls -1 dev_scripts_helpers/documentation/
+convert_docx_to_markdown.py
+dockerized_graphviz.py
+dockerized_latex.py
+dockerized_mermaid.py
+dockerized_pandoc.py
+dockerized_prettier.py
+dockerized_tikz_to_bitmap.py
+extract_headers_from_markdown.py
+generate_latex_sty.py
+generate_readme_index.py
+generate_script_catalog.py
+latex_abbrevs.sty
+latexdockercmd.sh
+lint_notes.py
+mkdocs
+notes_to_pdf.py
+OLD
+open_md_in_browser.sh
+open_md_on_github.sh
+pandoc.latex
+preprocess_notes.py
+publish_notes.py
+render_images.py
+replace_latex.py
+replace_latex.sh
+run_latex.sh
+run_pandoc.py
+test
+transform_notes.py
+</code></pre>
+<h3 id="notes_to_pdfpy"><code>Notes_To_Pdf.Py</code><a class="headerlink" href="#notes_to_pdfpy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does">What It Does<a class="headerlink" href="#what_it_does" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Convert plain‑text notes into polished <strong>PDF</strong>, <strong>HTML</strong>, or <strong>Beamer slides</strong>
+    with a single command:</p>
+<p>```bash</p>
+<blockquote>
+<p>notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
+```</p>
+</blockquote>
+</li>
+<li>
+<p>The interface is:
+    ```
+    &gt; notes_to_pdf.py -h
+    usage: notes_to_pdf.py [-h] -i INPUT -o OUTPUT --type {pdf,html,slides}
+                         [--filter_by_header FILTER_BY_HEADER]
+                         [--filter_by_lines FILTER_BY_LINES] [--script SCRIPT]
+                         [--preview_actions]
+                         [--toc_type {none,pandoc_native,navigation}]
+                         [--no_run_latex_again] [--debug_on_error]
+                         [--gdrive_dir GDRIVE_DIR] [--use_host_tools]
+                         [--action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after} | --skip_action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}]
+                         [--all] [--dockerized_force_rebuild]
+                         [--dockerized_use_sudo]
+                         [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]</p>
+<p>Convert a txt file into a PDF / HTML / slides using <code>pandoc</code>.</p>
+<h2 id="from_scratch_with_toc">From scratch with TOC:<a class="headerlink" href="#from_scratch_with_toc" title="Permanent link">#</a></h2>
+<blockquote>
+<p>notes_to_pdf.py -a pdf --input ...</p>
+</blockquote>
+<h2 id="for_interactive_mode">For interactive mode:<a class="headerlink" href="#for_interactive_mode" title="Permanent link">#</a></h2>
+<blockquote>
+<p>notes_to_pdf.py -a pdf --no_cleanup_before --no_cleanup --input ...</p>
+</blockquote>
+<h2 id="check_that_can_be_compiled">Check that can be compiled:<a class="headerlink" href="#check_that_can_be_compiled" title="Permanent link">#</a></h2>
+<blockquote>
+<p>notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input ...</p>
+<p>notes_to_pdf.py     --input notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt     -t pdf     --no_cleanup --no_cleanup_before --no_run_latex_again --no_open</p>
+</blockquote>
+<p>options:
+    -h, --help            show this help message and exit
+    -i INPUT, --input INPUT
+    -o OUTPUT, --output OUTPUT
+                                                Output file
+    --type {pdf,html,slides}
+                                                Type of output to generate
+    --filter_by_header FILTER_BY_HEADER
+                                                Filter by header
+    --filter_by_lines FILTER_BY_LINES
+                                                Filter by lines (e.g., <code>0:10</code>, <code>1:None</code>, <code>None:10</code>)
+    --script SCRIPT       Bash script to generate with all the executed sub-
+                                                commands
+    --preview_actions     Print the actions and exit
+    --toc_type {none,pandoc_native,navigation}
+    --no_run_latex_again
+    --debug_on_error
+    --gdrive_dir GDRIVE_DIR
+                                                Directory where to save the output to share on Google
+                                                Drive
+    --use_host_tools      Use the host tools instead of the dockerized ones
+    --action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
+                                                Actions to execute
+    --skip_action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
+                                                Actions to skip
+    --all                 Run all the actions (cleanup_before preprocess_notes
+                                                render_images run_pandoc open cleanup_after)
+    --dockerized_force_rebuild
+                                                Force to rebuild the Docker container
+    --dockerized_use_sudo
+                                                Use sudo inside the container
+    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                                                Set the logging level
+```</p>
+</li>
+</ul>
+<h4 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h4>
+<ul>
+<li>Compile to <strong>Beamer slides</strong>
+    <code>&gt; notes_to_pdf.py -i lesson.txt -o lesson.pdf --type slides</code></li>
+<li>Produce a <strong>stand‑alone HTML</strong> page
+    <code>&gt; notes_to_pdf.py -i cheatsheet.txt -o cheatsheet.html --type html</code></li>
+<li>Build a <strong>PDF article</strong> (LaTeX)
+    <code>&gt; notes_to_pdf.py -i paper.txt -o paper.pdf --type pdf</code></li>
+<li>
+<p>Skip the final viewer <strong>open</strong> step
+    <code>&gt; ... --skip_action open`</code></p>
+</li>
+<li>
+<p><strong>Tip</strong>: Run with <code>--preview_actions</code> to print the exact steps without
+    executing them.</p>
+</li>
+<li>
+<p>Slides with navigation breadcrumbs, keeping intermediate files for inspection
+    // TODO(indro): <code>--toc_type navigation</code> fails because of the preprocess step.</p>
+<p>```bash</p>
+<blockquote>
+<p>notes_to_pdf.py \
+        --input lectures_source/Lesson5-Theory_Statistical_learning.txt \
+        --output Lesson5.pdf \
+        --type slides \
+        --toc_type navigation \
+        --debug_on_error \
+        --skip_action cleanup_after
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Focus on a subsection, compiling only from line 362 to EOF for a fast
+    iteration when debugging slides</p>
+<p>```bash</p>
+<blockquote>
+<p>notes_to_pdf.py \
+        --input Lesson8-Reasoning_over_time.txt \
+        --output Focus.pdf \
+        --type slides \
+        --filter_by_lines 362:None \
+        --skip_action cleanup_after
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Plain PDF article
+    <code>bash
+    &gt; notes_to_pdf.py -i book_notes.txt -o book_notes.pdf --type pdf</code></p>
+</li>
+</ul>
+<h3 id="render_imagespy"><code>Render_Images.Py</code><a class="headerlink" href="#render_imagespy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_1">What It Does<a class="headerlink" href="#what_it_does_1" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>This script auto renders figures by:</p>
+<ul>
+<li>Detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, ...)</li>
+<li>Rendering them into images calling the appropriate tool</li>
+<li>Commenting them out the block</li>
+<li>Inlining a <code>![](img)</code> markup</li>
+</ul>
+</li>
+<li>
+<p>Render the images in a text file
+    <code>bash
+    &gt; render_images.py -i lectures_source/Lesson9-Causal_inference.txt \
+            -o lesson9.images.txt --run_dockerized</code></p>
+</li>
+</ul>
+<p>The supported File types and code blocks are:</p>
+<ul>
+<li>File extension: <code>.md</code>, <code>.txt</code><ul>
+<li>Rendering syntax allowed:<ul>
+<li><code>plantuml</code></li>
+<li><code>mermaid</code></li>
+<li><code>graphviz</code></li>
+<li><code>tikz</code></li>
+<li><code>latex</code></li>
+</ul>
+</li>
+<li>Output embeds as: <code>&lt;img src="figs/xxx.png"&gt;</code></li>
+</ul>
+</li>
+<li>File extension: <code>.tex</code><ul>
+<li>Rendering syntax allowed:<ul>
+<li>Same tags (TikZ &amp; LaTeX especially)</li>
+</ul>
+</li>
+<li>Output embeds as: <code>\includegraphics{...}</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="examples_1">Examples<a class="headerlink" href="#examples_1" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Render to a new file</p>
+<p>```bash</p>
+<blockquote>
+<p>render_images.py -i lesson.md -o lesson.rendered.md --action render --run_dockerized
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Render in‑place (Markdown or LaTeX)</p>
+<p>```bash</p>
+<blockquote>
+<p>render_images.py -i lesson.md --action render --run_dockerized
+```</p>
+</blockquote>
+</li>
+<li>
+<p>HTML preview of already‑rendered images</p>
+<p>```bash</p>
+<blockquote>
+<p>render_images.py -i lesson.md --action open --run_dockerized
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Dry‑run (test parsing / comments only)
+    <code>bash
+    &gt; render_images.py -i lesson.md -o /tmp/out.md --dry_run</code></p>
+</li>
+</ul>
+<h4 id="interface">Interface<a class="headerlink" href="#interface" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>The interface</p>
+<p>```bash</p>
+<blockquote>
+<p>render_images.py -h
+usage: render_images.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
+                                                [--action {open,render} | --skip_action {open,render}]
+                                                [--all] [--dry_run] [--dockerized_force_rebuild]
+                                                [--dockerized_use_sudo]
+                                                [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]</p>
+</blockquote>
+<p>Replace sections of image code with rendered images, commenting out the
+original code, if needed.</p>
+<p>See <code>docs/work_tools/documentation_toolchain/all.render_images.explanation.md</code>.</p>
+<p>Usage:</p>
+<h2 id="create_a_new_markdown_file_with_rendered_images">Create a new Markdown file with rendered images:<a class="headerlink" href="#create_a_new_markdown_file_with_rendered_images" title="Permanent link">#</a></h2>
+<blockquote>
+<p>render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized</p>
+</blockquote>
+<h2 id="render_images_in_place_in_the_original_markdown_file">Render images in place in the original Markdown file:<a class="headerlink" href="#render_images_in_place_in_the_original_markdown_file" title="Permanent link">#</a></h2>
+<blockquote>
+<p>render_images.py -i ABC.md --action render --run_dockerized</p>
+</blockquote>
+<h2 id="render_images_in_place_in_the_original_latex_file">Render images in place in the original LaTeX file:<a class="headerlink" href="#render_images_in_place_in_the_original_latex_file" title="Permanent link">#</a></h2>
+<blockquote>
+<p>render_images.py -i ABC.tex --action render --run_dockerized</p>
+</blockquote>
+<h2 id="open_rendered_images_from_a_markdown_file_in_html_to_preview">Open rendered images from a Markdown file in HTML to preview:<a class="headerlink" href="#open_rendered_images_from_a_markdown_file_in_html_to_preview" title="Permanent link">#</a></h2>
+<blockquote>
+<p>render_images.py -i ABC.md --action open --run_dockerized</p>
+</blockquote>
+<p>options:
+    -h, --help            show this help message and exit
+    -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                                                Path to the input file
+    -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                                                Path to the output file
+    --action {open,render}
+                                                Actions to execute
+    --skip_action {open,render}
+                                                Actions to skip
+    --all                 Run all the actions ()
+    --dry_run             Update the file but do not render images
+    --dockerized_force_rebuild
+                                                Force to rebuild the Docker container
+    --dockerized_use_sudo
+                                                Use sudo inside the container
+    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                                                Set the logging level
+```</p>
+</li>
+</ul>
+<h3 id="lint_notespy"><code>Lint_Notes.Py</code><a class="headerlink" href="#lint_notespy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_2">What It Does<a class="headerlink" href="#what_it_does_2" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Tidy up notes in different formats (selected with the file extension or
+    <code>--type</code>):</p>
+<ul>
+<li>Markdown</li>
+<li>LaTeX</li>
+<li>Txt notes</li>
+</ul>
+</li>
+<li>
+<p>Various preprocessing and postprocessing steps:</p>
+<ul>
+<li>Refreshing the Table of Contents</li>
+<li>Normalising Google Docs artifacts</li>
+<li>Running Prettier</li>
+<li>Fixing bullet/heading quirks</li>
+</ul>
+</li>
+</ul>
+<h4 id="_1"><a class="headerlink" href="#_1" title="Permanent link">#</a></h4>
+<pre><code>    "preprocess",
+    "prettier",
+    "postprocess",
+    "frame_chapters",
+    "refresh_toc",
+</code></pre>
+<h4 id="examples_2">Examples<a class="headerlink" href="#examples_2" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Basic usage</p>
+<p>```bash</p>
+<blockquote>
+<p>lint_notes.py -i input.md -o output.md
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Process specific actions only
+    <code>&gt; lint_notes.py -i input.md -o output.md --action preprocess,prettier</code></p>
+</li>
+<li>
+<p>Prettify with Dockerized Prettier and TOC rebuild</p>
+<p>```bash</p>
+<blockquote>
+<p>lint_notes.py -i Lesson10.md \
+        --use_dockerized_prettier \
+        --use_dockerized_markdown_toc
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Custom print width and selective actions</p>
+<p>```bash</p>
+<blockquote>
+<p>lint_notes.py -i draft.txt -o tidy.txt -w 100 \
+        --action preprocess,prettier,postprocess
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Use in vim for inline formatting
+    <code>verbatim
+    :%!lint_notes.py</code></p>
+</li>
+</ul>
+<h4 id="interface_1">Interface<a class="headerlink" href="#interface_1" title="Permanent link">#</a></h4>
+<pre><code class="language-text">&gt; lint_notes.py -h
+usage: lint_notes.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME] [--type TYPE] [-w PRINT_WIDTH] [--use_dockerized_prettier] [--use_dockerized_markdown_toc]
+                     [--action {preprocess,prettier,postprocess,frame_chapters,refresh_toc} | --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}] [--all]
+                     [--dockerized_force_rebuild] [--dockerized_use_sudo] [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+
+See instructions at docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md
+
+Lint &quot;notes&quot; files.
+
+&gt; lint_notes.py -i foo.md -o bar.md     --use_dockerized_prettier     --use_dockerized_markdown_toc
+
+- It can be used in vim to prettify a part of the text using stdin / stdout.
+</code></pre>
+<p>:%!lint_notes.py</p>
+<pre><code>
+options:
+    -h, --help            show this help message and exit
+    -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                                                Input file or `-` for stdin
+    -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                                                Output file or `-` for stdout
+    --type TYPE
+    -w PRINT_WIDTH, --print-width PRINT_WIDTH
+    --use_dockerized_prettier
+    --use_dockerized_markdown_toc
+    --action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
+                                                Actions to execute
+    --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
+                                                Actions to skip
+    --all                 Run all the actions (preprocess prettier postprocess frame_chapters refresh_toc)
+    --dockerized_force_rebuild
+                                                Force to rebuild the Docker container
+    --dockerized_use_sudo
+                                                Use sudo inside the container
+    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                                                Set the logging level
+</code></pre>
+<p>// TODO</p>
+<h3 id="extract_notebook_imagespy"><code>Extract_Notebook_Images.Py</code><a class="headerlink" href="#extract_notebook_imagespy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_3">What It Does<a class="headerlink" href="#what_it_does_3" title="Permanent link">#</a></h4>
+<ul>
+<li>Spins up a docker container and dumps every <code>png/svg</code> output cell into a
+    folder.</li>
+<li>You can then publish or reuse the static plots/diagrams already rendered in a
+    Jupyter notebook.</li>
+</ul>
+<h4 id="example">Example<a class="headerlink" href="#example" title="Permanent link">#</a></h4>
+<ul>
+<li>Minimal call:
+    <code>bash
+    &gt; extract_notebook_images.py \
+            --in_notebook_filename notebooks/Lesson8.ipynb \
+            --out_image_dir notebooks/screenshots</code></li>
+</ul>
+<h4 id="interface_2">Interface<a class="headerlink" href="#interface_2" title="Permanent link">#</a></h4>
+<p>// TODO</p>
+<h3 id="llm_transformpy"><code>Llm_Transform.Py</code><a class="headerlink" href="#llm_transformpy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_4">What It Does<a class="headerlink" href="#what_it_does_4" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Apply a GPT‑style transformation (rewrite, summarise, critique code, convert
+    to slides, etc.) to any text file <em>without</em> leaving the terminal / editor.</p>
+</li>
+<li>
+<p><strong>Note</strong>: You need to have an <code>OPENAI_API_KEY</code> and an internet connection.</p>
+</li>
+</ul>
+<h4 id="examples_3">Examples<a class="headerlink" href="#examples_3" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>TODO</p>
+<p><code>bash
+llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer</code></p>
+</li>
+<li>
+<p>Finding available prompts</p>
+<p><code>bash
+llm_transform.py -p list -i - -o -</code></p>
+</li>
+<li>
+<p>Turn a code file into a review checklist</p>
+<p>```bash</p>
+<blockquote>
+<p>llm_transform.py -i foo.py -o cfile -p code_review
+vim cfile
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Color‑accent the bold bullets for slides</p>
+<p>```bash</p>
+<blockquote>
+<p>llm_transform.py -i deck.md -o - -p slide_colorize | tee deck.color.md
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Inline use in Vim, visual‑select a block, then:</p>
+<p><code>vim
+:'&lt;,'&gt;!llm_transform.py -p summarize -i - -o -</code></p>
+</li>
+</ul>
+<h4 id="interface_3">Interface<a class="headerlink" href="#interface_3" title="Permanent link">#</a></h4>
+<p>// TODO</p>
+<h3 id="run_pandocpy"><code>Run_Pandoc.Py</code><a class="headerlink" href="#run_pandocpy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_5">What It Does<a class="headerlink" href="#what_it_does_5" title="Permanent link">#</a></h4>
+<ul>
+<li>Reads <strong>Markdown</strong> from <em>stdin</em> or <code>--input</code> file.</li>
+<li>Dispatches to a named <strong>action</strong> (currently only <code>convert_md_to_latex</code>).</li>
+<li>Pushes the Pandoc output to <em>stdout</em> or the <code>--output</code> file.</li>
+</ul>
+<h4 id="example_1">Example<a class="headerlink" href="#example_1" title="Permanent link">#</a></h4>
+<ul>
+<li>Convert a Markdown file to LaTeX
+    <code>&gt; run_pandoc.py -i note.md -o note.tex</code></li>
+<li>Same, but stream from <code>stdin</code> to <code>stdout</code>
+    <code>&gt; cat note.md | run_pandoc.py -i - -o -</code></li>
+<li>
+<p>Inside Vim (visual range)
+    <code>:&lt;,'&gt;!run_pandoc.py -i - -o - -v CRITICAL</code></p>
+</li>
+<li>
+<p><strong>Tip:</strong> pass <code>-v CRITICAL</code> to silence helper logging when piping into
+    editors.</p>
+</li>
+</ul>
+<h4 id="interface_4">Interface<a class="headerlink" href="#interface_4" title="Permanent link">#</a></h4>
+<ul>
+<li><code>-i / --input</code><ul>
+<li>Default: <code>-</code></li>
+<li>Meaning: Source file or <code>-</code> for STDIN</li>
+</ul>
+</li>
+<li><code>-o / --output</code><ul>
+<li>Default: <code>-</code></li>
+<li>Meaning: Destination file or <code>-</code> for STDOUT</li>
+</ul>
+</li>
+<li><code>--action</code><ul>
+<li>Default: <code>convert_md_to_latex</code></li>
+<li>Meaning: Transformation to apply. Future-proofed for more actions</li>
+</ul>
+</li>
+<li><code>-v / --log_level</code><ul>
+<li>Default: <code>INFO</code></li>
+<li>Meaning: Standard helper-library verbosity</li>
+</ul>
+</li>
+</ul>
+<h3 id="transform_notespy"><code>Transform_Notes.Py</code><a class="headerlink" href="#transform_notespy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_6">What It Does<a class="headerlink" href="#what_it_does_6" title="Permanent link">#</a></h4>
+<ul>
+<li>Accepts a <strong>text/Markdown</strong> stream (file or <code>-</code>).</li>
+<li>Applies a named <strong>action</strong> (<code>-a/--action</code>).</li>
+<li>Writes the result to the given output (in‑place, file, or <code>-</code>).</li>
+</ul>
+<h4 id="examples_4">Examples<a class="headerlink" href="#examples_4" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Run <code>-a list</code> to print a list of the valid</p>
+<ul>
+<li><code>toc</code><ul>
+<li>Generate a bullet TOC (top-level by default)</li>
+<li>Typical Vim one-liner: <code>:!transform_notes.py -a toc -i % -l 1</code></li>
+</ul>
+</li>
+<li><code>format_headers</code><ul>
+<li>Re-flow / indent headers (up to <code>--max_lev</code>)</li>
+<li>Typical Vim one-liner: <code>:%!transform_notes.py -a format -i - --max_lev 3</code></li>
+</ul>
+</li>
+<li><code>increase_headers_level</code><ul>
+<li>Bump all headers down one level</li>
+<li>Typical Vim one-liner: <code>:%!transform_notes.py -a increase -i -</code></li>
+</ul>
+</li>
+<li><code>md_list_to_latex</code><ul>
+<li>Convert a Markdown list to LaTeX <code>\begin{itemize}</code></li>
+<li>Typical Vim one-liner: <code>:%!transform_notes.py -a md_list_to_latex -i -</code></li>
+</ul>
+</li>
+<li><code>md_*</code> family<ul>
+<li>Formatting clean-ups (bold bullets, colorize bold text, etc.)</li>
+<li>Additional Information: See <code>-a list</code> for more details</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Re‑flow &amp; clean a file in place</p>
+<p>```bash</p>
+<blockquote>
+<p>transform_notes.py -a md_format -i notes/lecture.txt
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Generate a 2‑level TOC to STDOUT</p>
+<p>```bash</p>
+<blockquote>
+<p>transform_notes.py -a toc -i notes/lecture.md -o - -l 2
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Tidy ChatGPT‑generated Markdown (visual mode in Vim)
+    <code>:'&lt;,'&gt;!transform_notes.py -i - -o - -a md_fix_chatgpt_output</code></p>
+</li>
+</ul>
+<h4 id="interface_5">Interface<a class="headerlink" href="#interface_5" title="Permanent link">#</a></h4>
+<h3 id="extract_headers_from_markdownpy"><code>Extract_Headers_From_Markdown.Py</code><a class="headerlink" href="#extract_headers_from_markdownpy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_7">What It Does<a class="headerlink" href="#what_it_does_7" title="Permanent link">#</a></h4>
+<ul>
+<li>Turn a Markdown document into either:<ul>
+<li>A <strong>plain list</strong> of headers</li>
+<li>A <strong>nested header map</strong></li>
+<li>A *<em>Vim</em> quick‑fix** (<code>cfile</code>) that lets you jump between sections with
+    <code>:cnext</code>.</li>
+</ul>
+</li>
+</ul>
+<h4 id="examples_5">Examples<a class="headerlink" href="#examples_5" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Human‑readable map (levels 1‑3) to <code>stdout</code></p>
+<p>```bash</p>
+<blockquote>
+<p>extract_headers_from_markdown.py -i README.md -o - --mode list --max-level 3
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Build a quick‑fix file and open Vim on it
+    <code>bash
+    &gt; extract_headers_from_markdown.py -i README.md -o headers.cfile --mode cfile
+    &gt; vim -c "cfile headers.cfile"</code></p>
+</li>
+</ul>
+<h3 id="dockerized_tikz_to_bitmappy"><code>Dockerized_Tikz_To_Bitmap.Py</code><a class="headerlink" href="#dockerized_tikz_to_bitmappy" title="Permanent link">#</a></h3>
+<ul>
+<li>Convert a <code>.tex</code> file containing TikZ code into a <code>.png</code> image using a Dockerized toolchain consisting of pdflatex and ImageMagick.</li>
+</ul>
+<h4 id="examples_6">Examples<a class="headerlink" href="#examples_6" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Plain 300 DPI conversion</p>
+<p>```bash</p>
+<blockquote>
+<p>dockerized_tikz_to_bitmap.py -i figure.tikz -o figure.png
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Custom ImageMagick options (e.g. 600 DPI)
+    <code>bash
+    &gt; dockerized_tikz_to_bitmap.py -i fig.tikz -o fig.png -- -density 600 -quality 90</code></p>
+<ul>
+<li>Any extra tokens after <code>--</code> are passed verbatim to <code>convert</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="dockerized_graphvizpy"><code>Dockerized_Graphviz.Py</code><a class="headerlink" href="#dockerized_graphvizpy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_8">What It Does<a class="headerlink" href="#what_it_does_8" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Converts a Graphviz <code>.dot</code> file into a <code>.png</code> image using a Dockerized
+    container.</p>
+<blockquote>
+<p><code>bash
+graphviz_wrapper.py --input input.dot --output output.png</code></p>
+</blockquote>
+</li>
+<li>
+<p>This script serves as a thin wrapper around Dockerized Graphviz for consistent
+    rendering across systems.</p>
+</li>
+</ul>
+<h4 id="interface_6">Interface<a class="headerlink" href="#interface_6" title="Permanent link">#</a></h4>
+<h4 id="examples_7">Examples<a class="headerlink" href="#examples_7" title="Permanent link">#</a></h4>
+<ul>
+<li>Convert DOT to PNG
+    <code>&gt; graphviz_wrapper.py -i diagram.dot -o diagram.png</code></li>
+<li>Rebuild Docker image
+    <code>&gt; graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_force_rebuild</code></li>
+<li>Use <code>sudo</code> for Docker
+    <code>bash
+    &gt; graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_use_sudo</code></li>
+</ul>
+<h3 id="dockerized_latexpy"><code>Dockerized_Latex.Py</code><a class="headerlink" href="#dockerized_latexpy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_9">What It Does<a class="headerlink" href="#what_it_does_9" title="Permanent link">#</a></h4>
+<ul>
+<li>Compiles a LaTeX <code>.tex</code> file into a PDF using <code>pdflatex</code> inside a Docker
+    container.</li>
+<li>Automatically rebuilds the Docker image if needed.</li>
+<li>Supports optional rerun of LaTeX for proper references or table of contents
+    generation
+    <code>bash
+    &gt; latex_wrapper.py --input doc.tex --output doc.pdf</code></li>
+</ul>
+<h4 id="examples_8">Examples<a class="headerlink" href="#examples_8" title="Permanent link">#</a></h4>
+<ul>
+<li>Compile <code>.tex</code> to <code>.pdf</code>
+    <code>&gt; latex_wrapper.py -i report.tex -o report.pdf</code></li>
+<li>Rebuild Docker image
+    <code>&gt; latex_wrapper.py -i report.tex -o report.pdf --dockerized_force_rebuild</code></li>
+<li>Use <code>sudo</code> for Docker
+    <code>&gt; latex_wrapper.py -i report.tex -o report.pdf --dockerized_use_sudo</code></li>
+<li>Run LaTeX twice
+    <code>&gt; latex_wrapper.py -i paper.tex -o paper.pdf --run_latex_again</code></li>
+</ul>
+<h3 id="dockerized_mermaidpy"><code>Dockerized_Mermaid.Py</code><a class="headerlink" href="#dockerized_mermaidpy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_10">What It Does<a class="headerlink" href="#what_it_does_10" title="Permanent link">#</a></h4>
+<ul>
+<li>Renders Mermaid <code>.mmd</code> or <code>.md</code> diagrams into image files using a Dockerized
+    container.</li>
+</ul>
+<h4 id="examples_9">Examples<a class="headerlink" href="#examples_9" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>TODO</p>
+<p>```bash</p>
+<blockquote>
+<p>mermaid_wrapper.py --input flowchart.mmd --output flowchart.png
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Automatically sets output to match input name if <code>--output</code> is omitted</p>
+</li>
+<li>
+<p>Mermaid diagram
+    <code>&gt; mermaid_wrapper.py -i diagram.mmd -o diagram.png</code></p>
+</li>
+<li>Use input as output (default)
+    <code>&gt; mermaid_wrapper.py -i diagram.mmd</code></li>
+<li>Rebuild container
+    <code>&gt; mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_force_rebuild</code></li>
+<li>Use <code>sudo</code> for Docker
+    <code>&gt; mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_use_sudo</code></li>
+</ul>
+<h3 id="dockerized_pandocpy"><code>Dockerized_Pandoc.Py</code><a class="headerlink" href="#dockerized_pandocpy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_11">What It Does<a class="headerlink" href="#what_it_does_11" title="Permanent link">#</a></h4>
+<ul>
+<li>Converts documents using <code>pandoc</code> inside a Docker container</li>
+<li>Supports output to Beamer slides, PDFs, and more with custom CLI flags.</li>
+</ul>
+<pre><code class="language-bash">&gt; pandoc_wrapper.py --input notes.md --output slides.pdf -- docker_args...
+</code></pre>
+<ul>
+<li>Internally builds a Docker container and passes the full <code>pandoc</code> command
+    string.</li>
+</ul>
+<h4 id="example_2">Example<a class="headerlink" href="#example_2" title="Permanent link">#</a></h4>
+<ul>
+<li>Convert Markdown to PDF
+    <code>&gt; pandoc_wrapper.py --input notes.md --output notes.pdf --container_type pandoc_latex</code></li>
+<li>Convert to Beamer slides
+    <code>&gt; pandoc_wrapper.py --input slides.md --output slides.pdf --container_type pandoc_latex -- -t beamer</code></li>
+<li>Rebuild Docker image
+    <code>&gt; pandoc_wrapper.py --input notes.md --output notes.pdf --dockerized_force_rebuild</code></li>
+<li>Run with sudo
+    <code>&gt; pandoc_wrapper.py --input notes.md --output notes.pdf --dockerized_use_sudo</code></li>
+</ul>
+<h3 id="dockerized_prettierpy"><code>Dockerized_Prettier.Py</code><a class="headerlink" href="#dockerized_prettierpy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_12">What It Does<a class="headerlink" href="#what_it_does_12" title="Permanent link">#</a></h4>
+<ul>
+<li>Formats text files (<code>.md</code>, <code>.txt</code>, <code>.tex</code>, etc.) using Prettier within a
+    Docker container</li>
+<li>Avoids environment-specific issues and ensures consistent formatting.</li>
+<li>
+<p>Supports full Prettier CLI flexibility via passthrough of additional options.</p>
+<blockquote>
+<p><code>bash
+dockerized_prettier.py --parser markdown --write test.md</code></p>
+</blockquote>
+</li>
+</ul>
+<h4 id="examples_10">Examples<a class="headerlink" href="#examples_10" title="Permanent link">#</a></h4>
+<ul>
+<li>Format a Markdown file
+    <code>&gt; dockerized_prettier.py --parser markdown --write test.md</code></li>
+<li>Use <code>sudo</code> for Docker execution
+    <code>&gt; dockerized_prettier.py --use_sudo --parser markdown --write test.md</code></li>
+<li>Rebuild the Docker image
+    <code>&gt; dockerized_prettier.py --dockerized_force_rebuild --parser markdown --write test.md</code></li>
+<li>Change indentation and wrap style
+    <code>dockerized_prettier.py --parser markdown --tab-width 4 --prose-wrap always --write test.md</code></li>
+</ul>
+<h4 id="interface_7">Interface<a class="headerlink" href="#interface_7" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Interface
+    ```
+    &gt; dockerized_prettier.py -h
+    usage: dockerized_prettier.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
+                                                                [--dockerized_force_rebuild]
+                                                                [--dockerized_use_sudo]
+                                                                [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]</p>
+<p>Run <code>prettier</code> inside a Docker container to ensure consistent formatting across
+different environments.</p>
+<p>This script builds the container dynamically if necessary and formats the
+specified file using the provided <code>prettier</code> options.</p>
+<p>Examples</p>
+<h2 id="basic_usage">Basic usage:<a class="headerlink" href="#basic_usage" title="Permanent link">#</a></h2>
+<blockquote>
+<p>dockerized_prettier.py --parser markdown --prose-wrap always --write     --tab-width 2 test.md</p>
+</blockquote>
+<h2 id="use_sudo_for_docker_commands">Use sudo for Docker commands:<a class="headerlink" href="#use_sudo_for_docker_commands" title="Permanent link">#</a></h2>
+<blockquote>
+<p>dockerized_prettier.py --use_sudo --parser markdown --prose-wrap always     --write --tab-width 2 test.md</p>
+</blockquote>
+<h2 id="set_logging_verbosity">Set logging verbosity:<a class="headerlink" href="#set_logging_verbosity" title="Permanent link">#</a></h2>
+<blockquote>
+<p>dockerized_prettier.py -v DEBUG --parser markdown --prose-wrap always     --write --tab-width 2 test.md </pre></p>
+</blockquote>
+<h2 id="process_a_file">Process a file:<a class="headerlink" href="#process_a_file" title="Permanent link">#</a></h2>
+<blockquote>
+<p>cat test.md
+- a
+    - b
+                - c
+dockerized_prettier.py --parser markdown --prose-wrap always     --write --tab-width 2 test.md</p>
+</blockquote>
+<p>options:
+    -h, --help            show this help message and exit
+    -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
+                                                Input file or <code>-</code> for stdin
+    -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
+                                                Output file or <code>-</code> for stdout
+    --dockerized_force_rebuild
+                                                Force to rebuild the Docker container
+    --dockerized_use_sudo
+                                                Use sudo inside the container
+    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
+                                                Set the logging level
+```</p>
+</li>
+</ul>
+<h3 id="save_screenshotpy"><code>Save_Screenshot.Py</code><a class="headerlink" href="#save_screenshotpy" title="Permanent link">#</a></h3>
+<h4 id="what_it_does_13">What It Does<a class="headerlink" href="#what_it_does_13" title="Permanent link">#</a></h4>
+<ol>
+<li>Prompts you to select a screen region (<code>⌘ + Ctrl + 4</code>).</li>
+<li>Saves it as <code>screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png</code> (or your chosen name).</li>
+<li>Prints and copies the Markdown embed <code>&lt;img src="path/to/file.png"&gt;</code>.</li>
+</ol>
+<h3 id="useful_tools">Useful Tools<a class="headerlink" href="#useful_tools" title="Permanent link">#</a></h3>
+<h4 id="mermaid">Mermaid<a class="headerlink" href="#mermaid" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>To render on-line: <a href="https://mermaid.live">https://mermaid.live</a></p>
+</li>
+<li>
+<p>Resources:</p>
+<ul>
+<li><a href="https://mermaid.js.org/syntax/examples.html">https://mermaid.js.org/syntax/examples.html</a></li>
+</ul>
+</li>
+</ul>
+<h4 id="graphviz">Graphviz<a class="headerlink" href="#graphviz" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>To render on-line:
+    <a href="https://dreampuf.github.io/GraphvizOnline">https://dreampuf.github.io/GraphvizOnline</a></p>
+</li>
+<li>
+<p>Resources:</p>
+<ul>
+<li><a href="https://graphviz.org/gallery/">https://graphviz.org/gallery/</a></li>
+</ul>
+</li>
+</ul>
+<h4 id="markdown">Markdown<a class="headerlink" href="#markdown" title="Permanent link">#</a></h4>
+<ul>
+<li>To render on-line:
+    <a href="https://markdownlivepreview.com/">https://markdownlivepreview.com/</a></li>
+</ul>
+<h4 id="pandoc">Pandoc<a class="headerlink" href="#pandoc" title="Permanent link">#</a></h4>
+<ul>
+<li>To render on-line: <a href="https://pandoc.org/try/">https://pandoc.org/try/</a></li>
+</ul>
+<h4 id="tikz">Tikz<a class="headerlink" href="#tikz" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>To render on-line use Overleaf</p>
+</li>
+<li>
+<p>Resources</p>
+<ul>
+<li><a href="https://www.overleaf.com/learn/latex/TikZ_package">https://www.overleaf.com/learn/latex/TikZ_package</a></li>
+<li><a href="https://texample.net/">https://texample.net/</a></li>
+<li><a href="https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php">https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php</a></li>
+<li><a href="https://tikz.pablopie.xyz/">https://tikz.pablopie.xyz/</a></li>
+<li><a href="https://tikzit.github.io/">https://tikzit.github.io/</a></li>
+<li><a href="https://latexdraw.com/">https://latexdraw.com/</a></li>
+</ul>
+</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
+      
+    
+  </body>
+</html>
