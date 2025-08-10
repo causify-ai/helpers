@@ -20,6 +20,8 @@
 - The entrypoint for the documentation home page is
   [`/docs/README.md`](/docs/README.md)
 
+// lint_txt.py -i notes.startup_admin_guide/docs/tools.EOS.md --use_dockerized_prettier --use_dockerized_markdown_toc
+
 ## Layout of a publishable dir
 
 - TODO(gp): Finish this and make sure the layout is always the same for all the
@@ -107,6 +109,16 @@ blog/
   ```
 
 - GitHub renders the documentation at https://causify-ai.github.io/helpers/
+
+# Docu
+
+> export SRC_DIR=notes.startup_admin_guide
+> preprocess_mkdocs.py --input $SRC_DIR --output_dir tmp.mkdocs | tee log.txt
+
+(cd ~/src/tutorials1/tmp.mkdocs; mkdocs serve --dev-addr localhost:8001)
+
+saggese@gpmac.local venv:(mkdocs) branch:'master' ~/src/tutorials1
+> (cd ~/src/tutorials1/tmp.mkdocs; mkdocs serve --dev-addr localhost:8001)
 
 # Document how the stuff is deployed
 
