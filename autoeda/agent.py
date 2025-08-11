@@ -99,7 +99,7 @@ Please provide:
 4. General recommendations for handling similar data files
 """
     else:
-        # Build consolidated dataset summary
+        # Build consolidated dataset summary.
         total_rows = (
             state.raw_data_result.get("total_rows", 0)
             if state.raw_data_result
@@ -116,7 +116,7 @@ Please provide:
             else "unknown"
         )
 
-        # Determine dataset characteristics for targeted analysis
+        # Determine dataset characteristics for targeted analysis.
         dataset_size = (
             "small"
             if total_rows < 1000
@@ -128,7 +128,7 @@ Please provide:
             else "wide" if total_columns < 50 else "very wide"
         )
 
-        # Build schema insights
+        # Build schema insights.
         schema_insights = ""
         if state.schema_result and "error" not in state.schema_result:
             required_cols = state.schema_result.get("required_columns", 0)
@@ -139,7 +139,7 @@ Schema Structure ({schema_type}):
 • {total_columns} columns total ({required_cols} required, {optional_cols} optional)
 • Column breakdown:"""
 
-            # Group columns by data type for better insights
+            # Group columns by data type for better insights.
             col_types: Dict[str, int] = {}
             nullable_count = 0
             for col in state.schema_result.get("columns", []):
@@ -156,7 +156,7 @@ Schema Structure ({schema_type}):
                     f"\n• {nullable_count} columns allow null values"
                 )
 
-        # Build targeted recommendations based on dataset characteristics
+        # Build targeted recommendations based on dataset characteristics.
         analysis_focus = ""
         if dataset_size == "small":
             analysis_focus = "completeness analysis and pattern detection"
@@ -215,7 +215,7 @@ def analyze_raw_data(state: State, _config: Configuration) -> State:
     if result.error_message:
         state.raw_data_result = {"error": result.error_message}
         return state
-    # Convert result to dict for state
+    # Convert result to dict for state.
     raw_data_result = {
         "file_path": result.file_path,
         "total_rows": result.total_rows,
@@ -249,7 +249,7 @@ def parse_schema(state: State, _config: Configuration) -> State:
     if result.error_message:
         state.schema_result = {"error": result.error_message}
         return state
-    # Convert result to dict for state
+    # Convert result to dict for state.
     schema_result = {
         "total_columns": result.total_columns,
         "required_columns": result.required_columns,
