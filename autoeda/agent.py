@@ -5,6 +5,17 @@ support.
 This refactors the original LangGraph single-node graph template to use
 LangChain's Runnable workflow and standard components.
 
+Example usage:
+agent = AutoEDAAgent(Configuration(
+    openai_model="gpt-4",
+    analysis_depth="deep",
+    include_schema_metadata=True
+))
+initial_state = State(file_path="mydata.csv")
+# schema_content will be auto-generated from the file
+result_state = agent.run(initial_state)
+print(result_state.analysis_output)
+
 Import as:
 
 import autoeda.agent as auagent
@@ -80,40 +91,7 @@ def call_model(state: State, config: Configuration) -> State:
         error_context = f"Schema parsing failed: {state.schema_result['error']}"
     if error_context:
         prompt = f"""You are an AutoEDA assistant. An error occurred during data analysis:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 {error_context}
-
 Please provide:
 1. Potential causes of this error
 2. Troubleshooting steps to resolve the issue
@@ -156,7 +134,6 @@ Please provide:
             required_cols = state.schema_result.get("required_columns", 0)
             optional_cols = state.schema_result.get("optional_columns", 0)
             schema_type = state.schema_result.get("schema_type", "unknown")
-
             schema_insights = f"""
 Schema Structure ({schema_type}):
 • {total_columns} columns total ({required_cols} required, {optional_cols} optional)
@@ -325,15 +302,3 @@ class AutoEDAAgent:
     def run(self, state: State) -> State:
         result = self.workflow.invoke(state)
         return result  # type: ignore
-
-
-# Example usage:
-# agent = AutoEDAAgent(Configuration(
-#     openai_model="gpt-4",
-#     analysis_depth="deep",
-#     include_schema_metadata=True
-# ))
-# initial_state = State(file_path="mydata.csv")
-# # schema_content will be auto-generated from the file
-# result_state = agent.run(initial_state)
-# print(result_state.analysis_output)
