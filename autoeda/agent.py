@@ -2,9 +2,6 @@
 LangChain single-node agent template with OpenAI API integration and .env
 support.
 
-This refactors the original LangGraph single-node graph template to use
-LangChain's Runnable workflow and standard components.
-
 Example usage:
 agent = AutoEDAAgent(Configuration(
     openai_model="gpt-4",
