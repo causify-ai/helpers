@@ -148,11 +148,10 @@ _IMAGE_URL_TEMPLATE = "{}/{}:prod-xyz"
 
 def _get_shared_configs_s3_bucket(environment: str) -> str:
     """
-    Get the shared configs directory.
+    Get the shared configs S3 bucket.
 
-    :param environment: environment to get the shared configs directory
-        for
-    :return: shared configs directory
+    :param environment: environment to get the shared configs for
+    :return: shared configs S3 bucket
     """
     if environment in "prod":
         return "s3://{prod}-causify-shared-configs"
