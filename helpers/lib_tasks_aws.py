@@ -153,8 +153,8 @@ def _get_shared_configs_s3_bucket(environment: str) -> str:
     :param environment: environment to get the shared configs for
     :return: shared configs S3 bucket
     """
-    if environment in "prod":
-        return "s3://{prod}-causify-shared-configs"
+    if environment in ["prod"]:
+        return "s3://prod-causify-shared-configs"
     elif environment in ["preprod", "test"]:
         return "s3://causify-shared-configs"
     else:
