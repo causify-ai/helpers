@@ -145,11 +145,13 @@ _TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {
 }
 _IMAGE_URL_TEMPLATE = "{}/{}:prod-xyz"
 
+
 def _get_shared_configs_s3_bucket(environment: str) -> str:
     """
     Get the shared configs directory.
 
-    :param environment: environment to get the shared configs directory for
+    :param environment: environment to get the shared configs directory
+        for
     :return: shared configs directory
     """
     if environment in "prod":
@@ -185,7 +187,9 @@ def _get_efs_mount_config_template(environment: str) -> Dict[str, Any]:
     """
     # TODO(heanh): Read the path from repo config.
     s3_bucket = _get_shared_configs_s3_bucket(environment)
-    s3_path = f"{s3_bucket}/{environment}/templates/efs/efs_mount_config_template.json"
+    s3_path = (
+        f"{s3_bucket}/{environment}/templates/efs/efs_mount_config_template.json"
+    )
     hs3.dassert_is_s3_path(s3_path)
     efs_config = hs3.from_file(s3_path, aws_profile=haws.AWS_PROFILE[environment])
     efs_config = json.loads(efs_config)
