@@ -16,6 +16,18 @@ import helpers.hdbg as hdbg
 import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
+
+
+# AWS profile is used as a mechanism to differentiate between different AWS accounts.
+# See CmampTask12943.
+# `test` and `preprod` environments are in the same account using `ck` profile.
+# `prod` environment is in the different account using `csfy` profile.
+AWS_PROFILE = {
+    "test": "ck",
+    "preprod": "ck",
+    "prod": "csfy",
+}
+
 # #############################################################################
 # Utils
 # #############################################################################
@@ -91,7 +103,7 @@ def get_ecs_client(
 
 
 def get_task_definition_image_url(
-    task_definition_name: str, *, region: Optional[str] = None
+    task_definition_name: str, environment: str, *, region: Optional[str] = None
 ) -> str:
     """
     Get ECS task definition by name and return only image URL.
@@ -101,7 +113,7 @@ def get_task_definition_image_url(
     :param region: AWS region, if None get region from AWS credentials.
     :param region: look at `get_session()`
     """
-    aws_profile = "ck"
+    aws_profile = AWS_PROFILE[environment]
     service_name = "ecs"
     client = get_service_client(aws_profile, service_name, region=region)
     # Get the last revision of the task definition.
@@ -142,6 +154,7 @@ def update_task_definition(
     new_image_url: str,
     *,
     region: Optional[str] = None,
+    environment: str,
 ) -> None:
     """
     Create the new revision of specified ECS task definition.
@@ -156,7 +169,8 @@ def update_task_definition(
         `***.dkr.ecr.***/cmamp:prod`.
     :param region: AWS region, if None get region from AWS credentials.
     """
-    client = get_ecs_client("ck", region=region)
+    aws_profile = AWS_PROFILE[environment]
+    client = get_ecs_client(aws_profile, region=region)
     # Get the last revision of the task definition.
     task_description = client.describe_task_definition(
         taskDefinition=task_definition_name
