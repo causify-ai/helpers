@@ -1413,8 +1413,8 @@ class _LintMarkdown(_Action):
                 "Skipping file_name='%s' because ext='%s'", file_name, ext
             )
             return output
-        # Run lint_notes.py.
-        executable = "lint_notes.py"
+        # Run lint_txt.py.
+        executable = "lint_txt.py"
         exec_path = hgit.find_file_in_git_tree(executable)
         hdbg.dassert_path_exists(exec_path)
         #

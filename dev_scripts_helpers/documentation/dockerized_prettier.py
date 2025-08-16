@@ -7,25 +7,27 @@ This script builds the container dynamically if necessary and formats the
 specified file using the provided `prettier` options.
 
 Examples
-# Basic usage:
-> dockerized_prettier.py --parser markdown --prose-wrap always --write \
-    --tab-width 2 test.md
-
-# Use sudo for Docker commands:
-> dockerized_prettier.py --use_sudo --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md
-
-# Set logging verbosity:
-> dockerized_prettier.py -v DEBUG --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md </pre>
 
 # Process a file:
 > cat test.md
 - a
   - b
         - c
-> dockerized_prettier.py --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md
+> dockerized_prettier.py \
+    --parser markdown \
+    --prose-wrap always \
+    --tab-width 2 \
+    test.md
+
+# Use sudo for Docker commands:
+> dockerized_prettier.py \
+    --use_sudo \
+    ...
+
+# Set logging verbosity:
+> dockerized_prettier.py \
+    -v DEBUG \
+    ...
 """
 
 import argparse

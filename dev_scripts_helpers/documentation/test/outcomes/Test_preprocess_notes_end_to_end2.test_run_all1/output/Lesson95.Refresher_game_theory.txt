@@ -148,4 +148,3 @@ MSML610: Advanced Machine Learning
 #### Connections between Machine Learning and Game Theory
 - Game theory
   - **\textcolor{purple}{Connections between Machine Learning and Game Theory}**
-

@@ -74,14 +74,14 @@ MSML610: Advanced Machine Learning
     - Each universe has a probability of 1/6 
 
 #### Sample outcome and sample space
-- **Sample space** $\Omega$ is the set of all possible outcomes of a random
+- **\textcolor{red}{Sample space}** $\Omega$ is the set of all possible outcomes of a random
   experiment, e.g.,
   - Toss a coin once: $\Omega = \{H, T\}$
   - Toss a die: $\Omega = \{1, 2, 3, 4, 5, 6\}$
   - Toss a coin twice: $\Omega = \{HH, HT, TH, TT\}$
   - Measure bulb lifetime in hours: real number in $0 \le 4000$
 
-- **Sample outcome** is the realization of an experiment
+- **\textcolor{blue}{Sample outcome}** is the realization of an experiment
   - E.g., toss a coin twice
     - Sample outcomes are $\omega \in \Omega = \{HH, HT, TH, TT\}$
 
@@ -94,10 +94,10 @@ MSML610: Advanced Machine Learning
     - $\Omega = \{\text{Number of heads}\} = \{0, 1, 2\}$
 
 #### Event
-- **Event** is a subset of the sample space $\Omega$
+- **\textcolor{red}{Event}** is a subset of the sample space $\Omega$
   - Combine outcomes $\omega \in \Omega$ of an experiment that interest us
 
-- **The event $A$ happened** when the outcome $\omega$ belongs to
+- **\textcolor{blue}{The event $A$ happened}** when the outcome $\omega$ belongs to
   $A \subseteq \Omega$, e.g.,
   - Toss a coin twice
   - Sample space: $\Omega = \{TT, TH, HT, HH\}$
@@ -110,11 +110,11 @@ MSML610: Advanced Machine Learning
   - Outcomes in $A$ but not in $B$: $A - B = A \cap (\Omega - B)$
 
 #### Event space $\calF$
-- **Event space** $\calF$ is the set of all possible events in $\Omega$, i.e.,
+- **\textcolor{red}{Event space}** $\calF$ is the set of all possible events in $\Omega$, i.e.,
   set of subsets of sample space $\Omega$  
   $$\calF \defeq \calP(\Omega) = \{ A: A \subseteq \Omega \}$$
 
-- **Sample space vs event space**
+- **\textcolor{blue}{Sample space vs event space}**
   - Sample space $\Omega$ contains all possible outcomes of a random experiment
   - Events $\calF$ are subsets of the possible outcomes of the experiment
   - "Sample space vs event space" provides flexibility to formulate the problem
@@ -144,7 +144,7 @@ MSML610: Advanced Machine Learning
   3. Closed under _finite_ union:  
      $A_1, ..., A_n \in \calF \implies \bigcup_i A_i \in \calF$
 
-- **Note**: Using $\calF = \calP(\Omega)$ ensures these properties
+- **\textcolor{red}{Note}**: Using $\calF = \calP(\Omega)$ ensures these properties
 
 #### Two mutually exclusive events
 - Aka disjoint, distinct
@@ -164,12 +164,12 @@ MSML610: Advanced Machine Learning
 - Two exclusive events can't happen at the same time
 - It's not obvious what it means that _several_ events are _exclusive_
 
-- **Pairwise exclusive events:**
+- **\textcolor{red}{Pairwise exclusive events:}**
   - Events $A_1, A_2, \ldots, A_n$ are pairwise exclusive $\iff$
     $A_i \cap A_j = \emptyset \; \forall i \ne j$
   - Any pair of events has no intersection
 
-- **Mutually exclusive events:**
+- **\textcolor{blue}{Mutually exclusive events:}**
   - Events $A_1, A_2, \ldots, A_n$ are mutually exclusive $\iff$
     $\bigcap_i A_i = \emptyset$
   - All events have no intersection
@@ -334,7 +334,7 @@ Mutually but not pairwise exclusive events.
   - $\Pr(A \cup B) = \Pr(A) + \Pr(B) - \Pr(A \cap B)$
 
 #### Union upper / lower bound
-- **Union upper bound**
+- **\textcolor{red}{Union upper bound}**
   $$\Pr(A \cup B) \le \Pr(A) + \Pr(B)$$
   - Consequence of:
     - $\Pr(A \cup B) = \Pr(A) + \Pr(B) - \Pr(A \cap B)$
@@ -342,12 +342,12 @@ Mutually but not pairwise exclusive events.
   - Useful to upper bound probability when $\Pr(A \cap B)$ is unknown or hard to
     compute
 
-- **Union lower bound**
+- **\textcolor{darkgreen}{Union lower bound}**
   $$\Pr(A \cup B) \ge \max(\Pr(A), \Pr(B))$$
   - From the relationship between probability of union and intersection of $A$
     and $B$
 
-- **Intersection bound**
+- **\textcolor{blue}{Intersection bound}**
   $$
   \Pr(A \cap B) \le \min(\Pr(A), \Pr(B))
   $$
@@ -393,14 +393,14 @@ Mutually but not pairwise exclusive events.
   - In words, typical exclusive events are not independent
 
 #### Set of mutually / pairwise independent events
-- A finite set of events $\{A_i: i \in I\}$ is **mutually independent** $iff$
+- A finite set of events $\{A_i: i \in I\}$ is **\textcolor{red}{mutually independent}** $iff$
   $$\Pr(\cap_k A_k) = \prod_k \Pr(A_k)$$
   - The probability of every subset of events can be factored into the product
     of the probabilities
   - Mutual independence $\iff$ each event is independent from any intersection
     of a subset of the remaining events
 
-- A finite set of events $\{A_i: i \in I\}$ is **pairwise independent** $iff$
+- A finite set of events $\{A_i: i \in I\}$ is **\textcolor{blue}{pairwise independent}** $iff$
   $$\Pr(A_i \cap A_j) = \Pr(A_i) \Pr(A_j) \; \forall i, j \in I, i \ne j$$ E.g.,
   a pair of events are independent
 
@@ -413,7 +413,7 @@ Mutually but not pairwise exclusive events.
 - Aka PPIE
   $$\Pr(A \cup B) = \Pr(A) + \Pr(B) - \Pr(A \cap B)$$
 
-- **E.g.,**
+- **\textcolor{red}{E.g.,}**
   - Probability of throwing two dice and getting at least one 6
   - Interpret "union" as "at least one" 6 and use the complement:
     $$\Pr(\text{one 6}) = \Pr(\text{at least one 6}) = 1 - \Pr(\text{no 6})$$
@@ -486,7 +486,7 @@ Mutually but not pairwise exclusive events.
 What is the probability of getting 1 from a die, given that the die yielded an
 odd number?
 
-**Solution**
+**\textcolor{red}{Solution}**
 
 1. Computing the probability directly in the new world where the event "die is
    odd", i.e., in a different sample space $\Omega$
@@ -505,7 +505,7 @@ odd number?
 - The probability that "it is Friday and that a student is absent" is 0.03
 - Today is Friday: what is the probability that the student is absent?
 
-**Solution**
+**\textcolor{red}{Solution}**
 
 - The answer is not $\Pr(A \cap B)$ since that is the probability of both events
   happening at the same time, while we know that one event has already happened
@@ -526,7 +526,7 @@ odd number?
 - In a bag there are 2 blue marbles and 3 red marbles
 - What is the chance of drawing 2 marbles and both are blue?
 
-**Solution**
+**\textcolor{red}{Solution}**
 
 1. Using conditional probability:
    $$
@@ -549,7 +549,7 @@ odd number?
 - The prosecutor's fallacy represents that:
   $$\Pr(A|B) \ne \Pr(B|A)$$
 
-**Problem**
+**\textcolor{red}{Problem}**
 
 - There is a medical test for a disease $D$ which has outcomes $+$ and $-$
 - The test is fairly accurate and has $\Pr(+|D)$ (true positive rate) =
@@ -557,7 +557,7 @@ odd number?
 - You take the test and get a positive: what's the probability that you have the
   disease?
 
-**Solution**
+**\textcolor{blue}{Solution}**
 
 - You want to know $\Pr(D|+)$ and not $\Pr(+|D)$ which is 90\%
 - In fact $\Pr(D|+)$ depends (according to Bayes' theorem) on $\Pr(+|D) = 90\%$,
@@ -622,7 +622,7 @@ odd number?
   - If it comes up heads you win $X > 0$, otherwise you lose $Y > 0$
 - What is the value of $X$ and $Y$ for the game to be fair?
 
-**Solution**
+**\textcolor{red}{Solution}**
 
 - The game is fair when expected earnings are 0:
   $$
@@ -669,7 +669,7 @@ odd number?
   - Computing conditional probabilities can be easier as our perspective changes
     when conditioning on an event
 
-**Proof**
+**\textcolor{red}{Proof}**
 
 - Define $C_i = B \cap A_i$
 - All $C_i$ are disjoint and their union is $B$ (i.e., $C_i$ are a partition of
@@ -820,7 +820,7 @@ odd number?
   - $A_1$=`spam`, $A_2$=`low priority`, $A_3$=`high priority`
 - Receive an email with the word `free`: what is the probability that it is spam?
 
-**Solution**
+**\textcolor{red}{Solution}**
 
 - Prior knowledge (e.g., from a large corpus of emails):
   - $\Pr(A_1)=.7$, $\Pr(A_2)=.2$, $\Pr(A_3)=.1$
@@ -852,7 +852,7 @@ odd number?
 - Given it rains 5 days a year, what's the probability it rains tomorrow given
   the weatherman predicts rain?
 
-**Solution**
+**\textcolor{red}{Solution}**
 
 - Assume
   - $\Pr(W | R) = 90\%$
@@ -992,7 +992,7 @@ odd number?
 
 
 #### Cumulative Distribution Function of a RV
-- The **Cumulative Distribution Function (CDF)** of a _continuous_ or _discrete_
+- The **\textcolor{red}{Cumulative Distribution Function (CDF)}** of a _continuous_ or _discrete_
   RV $X$ is defined as:
   $$F_X(x) \defeq \Pr(X \le x) \text{ for } x \in \bbR$$
 
@@ -1030,7 +1030,7 @@ odd number?
 
 
 #### Probability Mass Function for a discrete RV
-- The **Probability Mass Function (PMF)** of a discrete RV $X$ is a function
+- The **\textcolor{red}{Probability Mass Function (PMF)}** of a discrete RV $X$ is a function
   $f_X(x)$ such that:
   $$
   f_X(x) =
@@ -1131,7 +1131,7 @@ odd number?
   $$
 
 #### Probability Density Function for continuous RV var
-- The **Probability Density Function (PDF)** is defined as
+- The **\textcolor{red}{Probability Density Function (PDF)}** is defined as
   $$f_X(x) = \frac{dF_X(u)}{du} \biggr\rvert_{u=x}$$
 - The PDF is defined in all points where $F_X(x)$ is continuous and thus
   derivable
@@ -3377,11 +3377,11 @@ considers $>$)
 
 
 #### Empirical CDF
-- **Problem**
+- **\textcolor{red}{Problem}**
   - Consider $X$ with an unknown CDF $F(x)$
   - We want to estimate $F(x)$ from $n$ samples $X_1, ..., X_n$
 
-- **Solution**
+- **\textcolor{blue}{Solution}**
   - Using the frequentist interpretation:
     $$F(x) = \Pr(X \le x) \approx \frac{\#(X \le x)}{\# \text{attempts}}$$
   - The empirical CDF is defined as:
@@ -3525,7 +3525,7 @@ considers $>$)
   - The theoretical distribution of the statistic is unknown; or
   - The sample size is too small for traditional parametric methods
 
-- Bootstrap is a **non-parametric** method
+- Bootstrap is a **\textcolor{red}{non-parametric}** method
   - We don't make any assumption on the distribution we need to estimate
   - In a parametric method we assume that there is a model and we only need to
     estimate some parameters of the model
@@ -3542,7 +3542,7 @@ considers $>$)
   - We want to approximate the distribution of $T$ or estimate a statistic of $T$
     (e.g., mean, std err)
 
-**Algorithm**
+**\textcolor{red}{Algorithm}**
 
 - Use the observed data $X_1, ..., X_n$ to construct an estimated population
   distribution $\hat{F}_n$
@@ -3671,7 +3671,7 @@ def bootstrap_median(x, n_boot):
 
 #### Bootstrap for variance of sample statistics (2/3)
 
-**First approximation** (Plug-in Principle)
+**\textcolor{red}{First approximation}** (Plug-in Principle)
 
 - We don't know $F$, but we observe samples drawn from it
 
@@ -3691,7 +3691,7 @@ def bootstrap_median(x, n_boot):
 
 #### Bootstrap for variance of sample statistics (3/3)
 
-**Second approximation** (Monte Carlo Simulation)
+**\textcolor{red}{Second approximation}** (Monte Carlo Simulation)
 
 - Even with $\hat{F}$ known, $\VV_{\hat{F}}[T]$ might not have a closed-form
   expression

@@ -1065,6 +1065,95 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+# def _review_from_file(file: str) -> _PROMPT_OUT:
+def _review_from_file_new(file: str) -> _PROMPT_OUT:
+    """
+    Apply the rules from a reference file to the code.
+    """
+    system = _CODING_CONTEXT
+    # Load the reference file.
+    reference_txt = hio.from_file(file)
+    file_len = len(reference_txt.split("\n"))
+    reference_txt = hmarkdo.remove_table_of_contents(reference_txt)
+    # This represents how many lines of the TOC were removed, so that we can
+    # point to the line number in the file even if
+    line_offset = file_len - len(reference_txt.split("\n"))
+    #
+    max_level = 4
+    header_list = hmarkdo.extract_headers_from_markdown(reference_txt, max_level)
+    # reference_txt = hmarkdo.add_line_numbers(header_list)
+    # print(reference_txt)
+    guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
+    #
+    selection_rules = ["General:Spelling:LLM"]
+    selected_guidelines = hmarkdo.extract_rules(guidelines, selection_rules)
+    print(selected_guidelines)
+    for guideline in selected_guidelines:
+        print(guideline)
+        rules = hmarkdo.extract_rules_from_section(
+            reference_txt, guideline.line_number
+        )
+        print(rules)
+    # assert 0
+    system += rf"""
+    You will **analyze the code** and report only violations of the coding rules described below.
+
+    #### Rule Format
+    The rules are written in markdown and follow this format:
+
+    - Each top-level bullet point (`-`) is a **rule header** (e.g., a new requirement).
+    - Each rule contains **examples of good and bad code** using:
+    - `- Good:` followed by inline or code block examples
+    - `- Bad:` followed by inline or code block examples
+
+    Example:
+    - All functions must have a docstring
+    - Good:
+        ```python
+        def foo():
+            pass
+        ```
+    - Bad:
+        ```python
+        def foo():
+            pass
+        ```
+
+    #### List of rules
+
+    {reference_txt}
+
+    #### Rule References
+    - You will reference each rule as <section-name>-<line-number>, where:
+      - <section-name> is the header or category the rule belongs to
+      - <line-number> is the line number of the rule header in the markdown
+
+    #### Your Task
+    - Review the input code and identify only clear violations of the rules.
+    - If uncertain whether something is a violation, do not report it.
+
+    #### Output Format
+
+    For each clear violation, output a single line in this format:
+
+    <code_line_number>: <section-name>-<rule_line_number>: <brief description of suggested fix>
+
+    Examples:
+
+    14: Docstrings-3: Missing docstring for function `add`
+    27: Docstrings-17: Docstring does not describe function interface or parameters
+
+    #### Do Not
+    - Do not print explanations or summaries
+    - Do not mention rules that are followed correctly
+    - Do not modify the input code
+    """
+    pre_transforms = {"add_line_numbers"}
+    post_transforms = {"convert_to_vim_cfile"}
+    post_container_transforms = ["convert_file_names"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 def review_llm() -> _PROMPT_OUT:
     """
     Review the code using LLMs.
@@ -1214,7 +1303,8 @@ def slide_reduce() -> _PROMPT_OUT:
         "remove_end_of_line_periods",
         "remove_empty_lines",
     }
-    post_container_transforms = ["format_slide"]
+    #post_container_transforms = ["format_slide"]
+    post_container_transforms = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
@@ -1257,7 +1347,7 @@ def slide_definition() -> _PROMPT_OUT:
 
 def slide_reduce_bullets() -> _PROMPT_OUT:
     """
-    Remove the bullet points that are.
+    Remove the bullet points that are redundant or not clear.
     """
     system = _SLIDE_CONTEXT
     system += r"""
@@ -1442,6 +1532,20 @@ def slide_check() -> _PROMPT_OUT:
       - Respond with at most 3 short bullet points about what can be clarified
         or improved.
       - You MUST report only things that you are sure about.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown", "append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def slide_title() -> _PROMPT_OUT:
+    """
+    Create a title for the slide.
+    """
+    system = _SLIDE_CONTEXT
+    system += r"""
+    Given the markdown bullet points, create a title for the slide.
     """
     pre_transforms: Set[str] = set()
     post_transforms: Set[str] = set()

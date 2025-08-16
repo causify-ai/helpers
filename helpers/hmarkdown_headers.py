@@ -18,10 +18,6 @@ _LOG = logging.getLogger(__name__)
 _TRACE = False
 
 
-# TODO(gp): Add a decorator like in hprint to process both strings and lists
-#  of strings.
-
-
 def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
     """
     Check if the given line is a Markdown separator.
@@ -422,44 +418,6 @@ def extract_headers_from_markdown(
         _LOG.debug("Skipping sanity check")
     hdbg.dassert_isinstance(header_list, list)
     return header_list
-
-
-# TODO(gp): Should it go to markdown_slides?
-def extract_slides_from_markdown(
-    lines: List[str],
-) -> Tuple[HeaderList, int]:
-    """
-    Extract slides (i.e., sections prepended by `*`) from Markdown file and
-    return an `HeaderList`.
-
-    :param lines: content of the input Markdown file as list of strings
-    :return: tuple containing:
-        - generated `HeaderList`
-            ```
-            [
-                (1, "Slide 1", 5),
-                (1, "Slide 2", 10), ...]
-            ```
-        - last line number of the file, e.g., '100'
-    """
-    hdbg.dassert_isinstance(lines, list)
-    header_list: HeaderList = []
-    # Process the input file to extract headers.
-    for line_number, line in enumerate(lines, start=1):
-        _LOG.debug("%d: %s", line_number, line)
-        # TODO(gp): Use the iterator.
-        # Skip the visual separators.
-        if is_markdown_line_separator(line):
-            continue
-        # Get the header level and title.
-        m = re.match(r"^\* (.*)$", line)
-        if m:
-            title = m.group(1)
-            header_info = HeaderInfo(1, title, line_number)
-            header_list.append(header_info)
-    last_line_number = len(lines)
-    hdbg.dassert_isinstance(header_list, list)
-    return header_list, last_line_number
 
 
 def header_list_to_vim_cfile(
