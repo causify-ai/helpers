@@ -125,13 +125,16 @@ saggese@gpmac.local venv:(mkdocs) branch:'master' ~/src/tutorials1
 - TODO(gp):
 
 - How to publish the blog
-Where is it
+  - Where is it?
 
-- How to publish doc for 
-notes.programming_with_ai/ notes.startup_admin_guide/
+- How to publish `docs` from `//helpers`
 
-- How to publish documentation
-/Users/saggese/src/cmamp1/helpers_root/.github/workflows/publish_mkdocs.yml
+- How to publish doc for `notes.` in `//tutorials/
+  - notes.programming_with_ai/
+  - notes.startup_admin_guide/
+
+- How to publish documentation with GH actions
+  - /Users/saggese/src/cmamp1/helpers_root/.github/workflows/publish_mkdocs.yml
 
 - How to publish from gpsaggese GitHub?
 
