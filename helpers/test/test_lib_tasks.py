@@ -377,6 +377,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
             target = "gh_create_pr(ctx, draft=False, title='test')"
             self._check_output(target)
 
+    #TODO(*): Remove skip after migration to `csfy`.`
+    @pytest.mark.skip(
+        reason="migration to new repo "
+        "ref: https://github.com/causify-ai/cmamp/issues/13063"
+    )
     def test_gh_issue_title(self) -> None:
         target = "gh_issue_title(ctx, 1)"
         self._check_output(target)
@@ -412,6 +417,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         )
         self._check_output(target)
 
+    #TODO(*): Remove skip after migration to `csfy`.`
+    @pytest.mark.skip(
+        reason="migration to new repo "
+        "ref: https://github.com/causify-ai/cmamp/issues/13063"
+    )
     def test_git_branch_create2(self) -> None:
         # Difference between `cmamp` and `kaizenflow`.
         target = (
