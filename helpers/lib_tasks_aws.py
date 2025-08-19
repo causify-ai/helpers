@@ -155,7 +155,7 @@ def _get_shared_configs_s3_bucket(environment: str) -> str:
     """
     hdbg.dassert_in(environment, ["prod", "preprod", "test"])
     bucket_name = hrecouti.get_repo_config().get_shared_configs_bucket_name(environment)
-    hdbg.dassert_is_not(bucket_name, None)
+    hdbg.dassert_is_not(bucket_name, None, f"Shared configs bucket is not defined in `repo_config.yaml` for environment: {environment}")
     return bucket_name
 
 def _get_ecs_task_definition_template(environment: str) -> Dict[str, Any]:
@@ -164,7 +164,6 @@ def _get_ecs_task_definition_template(environment: str) -> Dict[str, Any]:
 
     :return: ECS task definition template
     """
-    # TODO(heanh): Read the path from repo config.
     s3_bucket = _get_shared_configs_s3_bucket(environment)
     s3_path = f"{s3_bucket}/{environment}/templates/ecs/ecs_task_definition_template.json"
     hs3.dassert_is_s3_path(s3_path)
@@ -181,7 +180,6 @@ def _get_efs_mount_config_template(environment: str) -> Dict[str, Any]:
 
     :return: EFS mount config template
     """
-    # TODO(heanh): Read the path from repo config.
     s3_bucket = _get_shared_configs_s3_bucket(environment)
     s3_path = (
         f"{s3_bucket}/{environment}/templates/efs/efs_mount_config_template.json"
