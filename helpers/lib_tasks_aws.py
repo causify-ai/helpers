@@ -153,13 +153,10 @@ def _get_shared_configs_s3_bucket(environment: str) -> str:
     :param environment: environment to get the shared configs for
     :return: shared configs S3 bucket
     """
-    if environment in ["prod"]:
-        return "s3://prod-causify-shared-configs"
-    elif environment in ["preprod", "test"]:
-        return "s3://causify-shared-configs"
-    else:
-        raise ValueError(f"Invalid environment: {environment}")
-
+    hdbg.dassert_in(environment, ["prod", "preprod", "test"])
+    bucket_name = hrecouti.get_repo_config().get_shared_configs_bucket_name(environment)
+    hdbg.dassert_is_not(bucket_name, None)
+    return bucket_name
 
 def _get_ecs_task_definition_template(environment: str) -> Dict[str, Any]:
     """

@@ -316,14 +316,15 @@ class RepoConfig:
         }
         return dir_to_url
 
-    def get_shared_configs_bucket_name(self) -> str:
+    def get_shared_configs_bucket_name(self, environment: str) -> str:
         """
         Return the name of the shared configs bucket.
         """
         if "shared_configs_bucket_name" not in self._data["s3_bucket_info"]:
             return None
-        value = self._data["s3_bucket_info"]["shared_configs_bucket_name"]
-        return value
+        value: Dict[str, str] = self._data["s3_bucket_info"]["shared_configs_bucket_name"]
+        bucket_name = value.get(environment, None)
+        return bucket_name
 
     def get_dir_suffix(self) -> str:
         """
