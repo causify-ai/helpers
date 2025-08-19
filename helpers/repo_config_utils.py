@@ -104,6 +104,7 @@ def _get_env_var(
 
 
 class RepoConfig:
+
     def __init__(self, data: Dict) -> None:
         """
         Set the data to be used by the module.
@@ -322,7 +323,9 @@ class RepoConfig:
         """
         if "shared_configs_bucket_name" not in self._data["s3_bucket_info"]:
             return None
-        value: Dict[str, str] = self._data["s3_bucket_info"]["shared_configs_bucket_name"]
+        value: Dict[str, str] = self._data["s3_bucket_info"][
+            "shared_configs_bucket_name"
+        ]
         bucket_name = value.get(environment, None)
         return bucket_name
 

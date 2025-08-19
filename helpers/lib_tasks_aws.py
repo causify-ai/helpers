@@ -154,9 +154,16 @@ def _get_shared_configs_s3_bucket(environment: str) -> str:
     :return: shared configs S3 bucket
     """
     hdbg.dassert_in(environment, ["prod", "preprod", "test"])
-    bucket_name = hrecouti.get_repo_config().get_shared_configs_bucket_name(environment)
-    hdbg.dassert_is_not(bucket_name, None, f"Shared configs bucket is not defined in `repo_config.yaml` for environment: {environment}")
+    bucket_name = hrecouti.get_repo_config().get_shared_configs_bucket_name(
+        environment
+    )
+    hdbg.dassert_is_not(
+        bucket_name,
+        None,
+        f"Shared configs bucket is not defined in `repo_config.yaml` for environment: {environment}",
+    )
     return bucket_name
+
 
 def _get_ecs_task_definition_template(environment: str) -> Dict[str, Any]:
     """
