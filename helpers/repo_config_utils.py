@@ -316,6 +316,15 @@ class RepoConfig:
         }
         return dir_to_url
 
+    def get_shared_configs_bucket_name(self) -> str:
+        """
+        Return the name of the shared configs bucket.
+        """
+        if "shared_configs_bucket_name" not in self._data["s3_bucket_info"]:
+            return None
+        value = self._data["s3_bucket_info"]["shared_configs_bucket_name"]
+        return value
+
     def get_dir_suffix(self) -> str:
         """
         Return the suffix of the dev_scripts_{dir_suffix} dir for the repo.
