@@ -18,6 +18,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hpytest as hpytest
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
@@ -96,6 +97,11 @@ def _run_test(runnable_dir: str, command: str) -> bool:
     is_runnable_dir = _is_runnable_dir(runnable_dir)
     hdbg.dassert(is_runnable_dir, f"{runnable_dir} is not a runnable dir.")
     _LOG.info(f"Running tests in {runnable_dir}")
+    repo_config_file = os.path.join(runnable_dir, "repo_config.yml")
+    skip_tests = hrecouti.RepoConfig.from_file(repo_config_file).skip_tests()
+    if skip_tests:
+        _LOG.info(f"Skipping tests in {runnable_dir}")
+        return True
     # Make sure the `invoke` command is referencing to the correct
     # devops and helpers directory.
     env = os.environ.copy()

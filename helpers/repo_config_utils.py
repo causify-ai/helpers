@@ -334,6 +334,13 @@ class RepoConfig:
         )
         return value
 
+    def skip_tests(self) -> bool:
+        """
+        Return whether to skip tests.
+        """
+        value = bool(self._data["runnable_dir_info"].get("skip_tests", False))
+        return value
+
     # TODO(gp): Add functions for container_registry_info.
 
     def get_container_registry_url(self, registry: str = "ecr") -> str:
