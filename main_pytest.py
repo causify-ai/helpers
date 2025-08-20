@@ -97,7 +97,7 @@ def _run_test(runnable_dir: str, command: str) -> bool:
     is_runnable_dir = _is_runnable_dir(runnable_dir)
     hdbg.dassert(is_runnable_dir, f"{runnable_dir} is not a runnable dir.")
     _LOG.info(f"Running tests in {runnable_dir}")
-    repo_config_file = os.path.join(runnable_dir, "repo_config.yml")
+    repo_config_file = os.path.join(runnable_dir, "repo_config.yaml")
     skip_tests = hrecouti.RepoConfig.from_file(repo_config_file).skip_tests()
     if skip_tests:
         _LOG.info(f"Skipping tests in {runnable_dir}")
