@@ -44,6 +44,12 @@ def _extract_headers_from_markdown(
 ) -> None:
     """
     Extract headers from a Markdown file.
+
+    :param input_file_name: path to the input Markdown file
+    :param lines: list of lines in the input Markdown file
+    :param mode: output mode
+    :param max_level: maximum header levels to parse
+    :param out_file_name: path to the output file
     """
     hdbg.dassert_isinstance(lines, list)
     # We don't want to sanity check since we want to show the headers, even
