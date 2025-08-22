@@ -9,7 +9,7 @@
     + [What It Does](#what-it-does-1)
     + [Examples](#examples-1)
     + [Interface](#interface)
-  * [`Lint_Notes.Py`](#lint_notespy)
+  * [`Lint_Notes.Py`](#lint_txtpy)
     + [What It Does](#what-it-does-2)
     + [Examples](#examples-2)
     + [Interface](#interface-1)
@@ -161,7 +161,7 @@ generate_readme_index.py
 generate_script_catalog.py
 latex_abbrevs.sty
 latexdockercmd.sh
-lint_notes.py
+lint_txt.py
 mkdocs
 notes_to_pdf.py
 OLD
@@ -441,18 +441,18 @@ The supported File types and code blocks are:
 - Basic usage
 
   ```bash
-  > lint_notes.py -i input.md -o output.md
+  > lint_txt.py -i input.md -o output.md
   ```
 
 - Process specific actions only
   ```
-  > lint_notes.py -i input.md -o output.md --action preprocess,prettier
+  > lint_txt.py -i input.md -o output.md --action preprocess,prettier
   ```
 
 - Prettify with Dockerized Prettier and TOC rebuild
 
   ```bash
-  > lint_notes.py -i Lesson10.md \
+  > lint_txt.py -i Lesson10.md \
       --use_dockerized_prettier \
       --use_dockerized_markdown_toc
   ```
@@ -460,20 +460,20 @@ The supported File types and code blocks are:
 - Custom print width and selective actions
 
   ```bash
-  > lint_notes.py -i draft.txt -o tidy.txt -w 100 \
+  > lint_txt.py -i draft.txt -o tidy.txt -w 100 \
       --action preprocess,prettier,postprocess
   ```
 
 - Use in vim for inline formatting
   ```verbatim
-  :%!lint_notes.py
+  :%!lint_txt.py
   ```
 
 ### Interface
 
 ```text
-> lint_notes.py -h
-usage: lint_notes.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME] [--type TYPE] [-w PRINT_WIDTH] [--use_dockerized_prettier] [--use_dockerized_markdown_toc]
+> lint_txt.py -h
+usage: lint_txt.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME] [--type TYPE] [-w PRINT_WIDTH] [--use_dockerized_prettier] [--use_dockerized_markdown_toc]
                      [--action {preprocess,prettier,postprocess,frame_chapters,refresh_toc} | --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}] [--all]
                      [--dockerized_force_rebuild] [--dockerized_use_sudo] [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
 
@@ -481,12 +481,12 @@ See instructions at docs/tools/documentation_toolchain/all.notes_toolchain.how_t
 
 Lint "notes" files.
 
-> lint_notes.py -i foo.md -o bar.md     --use_dockerized_prettier     --use_dockerized_markdown_toc
+> lint_txt.py -i foo.md -o bar.md     --use_dockerized_prettier     --use_dockerized_markdown_toc
 
 - It can be used in vim to prettify a part of the text using stdin / stdout.
 ```
 
-:%!lint_notes.py
+:%!lint_txt.py
 ```
 
 options:

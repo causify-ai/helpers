@@ -10,6 +10,11 @@ import helpers.hdbg as hdbg
 import helpers.hmarkdown as hmarkdo
 
 
+# TODO(ai): Make function private.
+# TODO(ai): Convert str to List[str]
+# TODO(ai): Add unit tests.
+
+
 # TODO(gp): -> hmarkdown_?.py
 def dedent_python_code_blocks(txt: str) -> str:
     """
@@ -88,6 +93,29 @@ def replace_indentation_with_four_spaces(txt: str) -> str:
     return replace_indentation(txt, input_spaces=2, output_spaces=4)
 
 
+def convert_slides_to_markdown(txt: str, level: int) -> str:
+    """
+    Convert strings storing "slides", i.e., `* ...`  to markdown headers.
+
+    E.g.,
+        ```
+        * Tools for Vision component
+        ```
+    to:
+        ```
+        #### Tools for Vision component
+        ```
+    """
+    lines = txt.split("\n")
+    result = []
+    for line in lines:
+        if line.startswith("* "):
+            result.append("#" * level + " " + line[2:])
+        else:
+            result.append(line)
+    return "\n".join(result)
+
+
 def preprocess_mkdocs_markdown(txt: str) -> str:
     """
     Preprocess markdown text for mkdocs.
@@ -100,8 +128,8 @@ def preprocess_mkdocs_markdown(txt: str) -> str:
     :param txt: Input markdown text
     :return: Preprocessed markdown text
     """
-    # Apply all preprocessing steps.
     txt = hmarkdo.remove_table_of_contents(txt)
     txt = dedent_python_code_blocks(txt)
     txt = replace_indentation_with_four_spaces(txt)
+    txt = convert_slides_to_markdown(txt, level=4)
     return txt

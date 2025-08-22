@@ -1257,7 +1257,7 @@ def slide_definition() -> _PROMPT_OUT:
 
 def slide_reduce_bullets() -> _PROMPT_OUT:
     """
-    Remove the bullet points that are.
+    Remove the bullet points that are redundant or not clear.
     """
     system = _SLIDE_CONTEXT
     system += r"""
@@ -1442,6 +1442,20 @@ def slide_check() -> _PROMPT_OUT:
       - Respond with at most 3 short bullet points about what can be clarified
         or improved.
       - You MUST report only things that you are sure about.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown", "append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def slide_title() -> _PROMPT_OUT:
+    """
+    Create a title for the slide.
+    """
+    system = _SLIDE_CONTEXT
+    system += r"""
+    Given the markdown bullet points, create a title for the slide.
     """
     pre_transforms: Set[str] = set()
     post_transforms: Set[str] = set()
