@@ -39,13 +39,12 @@
 - Describes the hook-based solution that automatically tracks coverage across
   all Python processes
 - Details design trade-offs and Docker-first architecture decisions
-- Shows business impact of comprehensive subprocess coverage measurement
 
 ## Goal
 
 - Capture complete code coverage metrics across all Python processes spawned by
   an application:
-  - System calls via `subprocess.run()`, `os.system()`, etc.
+  - System calls via `subprocess.run()`, `os.system()`,`hsystem.system()` etc.
   - Docker containerized executables
   - Multiprocessing workers
   - Any Python interpreter launched as a child process
@@ -193,7 +192,6 @@ These assumptions break when processes are isolated.
 - Defers complexity to single aggregation step
 - Handles host-to-container path translation automatically
 - Produces standard coverage reports compatible with existing tooling
-- Enables historical coverage tracking and trend analysis
 
 ## Dependencies
 
@@ -204,7 +202,6 @@ These assumptions break when processes are isolated.
 - Docker integration: Containers built with `hdocker.build_container_image()`
   include coverage support automatically
 - Limitation: Manual Docker setups require explicit configuration
-- Handles cross-platform installation and cleanup
 
 ### Docker-First Architecture
 
