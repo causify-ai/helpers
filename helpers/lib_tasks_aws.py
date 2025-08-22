@@ -144,7 +144,25 @@ _TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {
     "awslogs-stream-prefix": "ecs",
 }
 _IMAGE_URL_TEMPLATE = "{}/{}:prod-xyz"
-_SHARED_CONFIGS_DIR = "s3://causify-shared-configs"
+
+
+def _get_shared_configs_s3_bucket(environment: str) -> str:
+    """
+    Get the shared configs S3 bucket.
+
+    :param environment: environment to get the shared configs for
+    :return: shared configs S3 bucket
+    """
+    hdbg.dassert_in(environment, ["prod", "preprod", "test"])
+    bucket_name = hrecouti.get_repo_config().get_shared_configs_bucket_name(
+        environment
+    )
+    hdbg.dassert_is_not(
+        bucket_name,
+        None,
+        f"Shared configs bucket is not defined in `repo_config.yaml` for environment: {environment}",
+    )
+    return bucket_name
 
 
 def _get_ecs_task_definition_template(environment: str) -> Dict[str, Any]:
@@ -153,8 +171,8 @@ def _get_ecs_task_definition_template(environment: str) -> Dict[str, Any]:
 
     :return: ECS task definition template
     """
-    # TODO(heanh): Read the path from repo config.
-    s3_path = f"{_SHARED_CONFIGS_DIR}/{environment}/templates/ecs/ecs_task_definition_template.json"
+    s3_bucket = _get_shared_configs_s3_bucket(environment)
+    s3_path = f"{s3_bucket}/{environment}/templates/ecs/ecs_task_definition_template.json"
     hs3.dassert_is_s3_path(s3_path)
     task_definition_config = hs3.from_file(
         s3_path, aws_profile=haws.AWS_PROFILE[environment]
@@ -169,8 +187,10 @@ def _get_efs_mount_config_template(environment: str) -> Dict[str, Any]:
 
     :return: EFS mount config template
     """
-    # TODO(heanh): Read the path from repo config.
-    s3_path = f"{_SHARED_CONFIGS_DIR}/{environment}/templates/efs/efs_mount_config_template.json"
+    s3_bucket = _get_shared_configs_s3_bucket(environment)
+    s3_path = (
+        f"{s3_bucket}/{environment}/templates/efs/efs_mount_config_template.json"
+    )
     hs3.dassert_is_s3_path(s3_path)
     efs_config = hs3.from_file(s3_path, aws_profile=haws.AWS_PROFILE[environment])
     efs_config = json.loads(efs_config)
