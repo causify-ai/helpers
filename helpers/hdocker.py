@@ -644,6 +644,8 @@ def convert_caller_to_callee_docker_path(
         # the local Git root, since this is the mount point.
         caller_mount_point = hgit.find_git_root()
     _ = use_sibling_container_for_callee
+    # This is not always possible, e.g., '/var/log/app.log' needs to be
+    # underneath '/app'
     _dassert_is_path_included(abs_caller_file_path, caller_mount_point)
     # Make the path relative to the caller mount point.
     _LOG.debug(hprint.to_str("caller_file_path caller_mount_point"))

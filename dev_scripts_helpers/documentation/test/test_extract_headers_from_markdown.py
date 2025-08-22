@@ -21,6 +21,7 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         ## Header2
         # Header3
         """
+        input_file_name = "dummy"
         content = hprint.dedent(content)
         content = content.split("\n")
         mode = "headers"
@@ -28,7 +29,7 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         output_file = self.get_scratch_space() + "/output.md"
         # Call tested function.
         dshdehfma._extract_headers_from_markdown(
-            content, mode, max_level, output_file
+            input_file_name, content, mode, max_level, output_file
         )
         # Check output.
         actual = hio.from_file(output_file)

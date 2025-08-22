@@ -52,10 +52,10 @@
     - Generate a markdown file with the docstring for any script in the repo
     - TODO(gp): Unclear what to do with this. This can be a way to create an
       index of all the scripts, if we use some consistent docstring
-  - `lint_notes.py`
+  - `lint_txt.py`
     - Lint "notes" files.
     - Tested by
-      [`/dev_scripts_helpers/documentation/test/test_lint_notes.py`](/dev_scripts_helpers/documentation/test/test_lint_notes.py)
+      [`/dev_scripts_helpers/documentation/test/test_lint_txt.py`](/dev_scripts_helpers/documentation/test/test_lint_txt.py)
   - `latex_abbrevs.sty`
     - Latex macros
   - `latexdockercmd.sh`
