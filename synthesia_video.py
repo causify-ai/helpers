@@ -85,7 +85,8 @@ def create_video(
         payload["aspectRatio"] = aspect_ratio
     if test:
         payload["test"] = True
-    payload["test"] = False
+    #payload["test"] = False
+    payload["test"] = True
 
     resp = requests.post(url, headers=_headers(api_key), data=json.dumps(payload), timeout=TIMEOUT)
     if resp.status_code != 201:
@@ -193,11 +194,24 @@ def main() -> None:
         except json.JSONDecodeError as e:
             print(f"--extra must be valid JSON: {e}", file=sys.stderr)
             sys.exit(2)
+    script = """
+    <sub alias="">https://docs.google.com/document/d/18SywZGD4HskyqMZyBsecZRJtbQo8fDH_eokeX_00S6E</sub>
 
+Over the past two years, Causify has developed and licensed a powerful platform designed specifically for hedge funds and asset managers.
+
+Streamlines data onboarding, alpha signal development, risk model testing, and strategy optimization
+Supports the full lifecycle—from research and backtesting to deployment, live trading, monitoring, and refinement
+Operates seamlessly across time horizons ranging from minutes to weeks
+
+The platform represents over a decade of engineering effort and more than one million lines of production code.
+In short, it is best described as a quantitative hedge fund in a box.
+
+It natively supports causal modeling, has been battle-tested in live markets, and today manages approximately $6 billion in AUM across equities and cryptocurrency for several hedge funds.
+"""
     try:
         video_id = create_video(
             api_key=api_key,
-            script_text=args.script,
+            script_text=script,
             avatar=args.avatar,
             title=args.title,
             background=args.background,
