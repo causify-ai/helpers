@@ -56,6 +56,7 @@ def create_video(
     title: str = "API video",
     background: Optional[str] = "green_screen",
     aspect_ratio: Optional[str] = "16:9",
+    resolution: Optional[str] = "360p",
     test: bool = True,
     extra_scene_overrides: Optional[Dict[str, Any]] = None,
 ) -> str:
@@ -83,6 +84,8 @@ def create_video(
     }
     if aspect_ratio:
         payload["aspectRatio"] = aspect_ratio
+    if resolution:
+        payload["resolution"] = resolution
     if test:
         payload["test"] = True
     #payload["test"] = False
@@ -177,6 +180,7 @@ def main() -> None:
     parser.add_argument("--title", default="API Video via Python")
     parser.add_argument("--background", default="green_screen", help="Optional background identifier")
     parser.add_argument("--aspect", default="16:9", help="Aspect ratio, e.g. 16:9, 9:16, 1:1")
+    parser.add_argument("--resolution", default="360p", help="Video resolution, e.g. 360p, 480p, 720p, 1080p")
     parser.add_argument("--out", default="output.mp4", help="Where to save the MP4")
     parser.add_argument("--no-test", action="store_true", help="Disable test mode (videos may count against your quota)")
     parser.add_argument("--extra", default=None, help="JSON for extra per-scene overrides (advanced)")
@@ -216,6 +220,7 @@ It natively supports causal modeling, has been battle-tested in live markets, an
             title=args.title,
             background=args.background,
             aspect_ratio=args.aspect,
+            resolution=args.resolution,
             test=not args.no_test,
             extra_scene_overrides=extra,
         )

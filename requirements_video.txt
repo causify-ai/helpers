@@ -2,3 +2,4 @@ moviepy>=2.0.0
 python-pptx>=0.6.21
 Pillow>=9.0.0
 pdf2image
+PyMuPDF
