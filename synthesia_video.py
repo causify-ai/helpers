@@ -53,13 +53,13 @@ def create_video(
     api_key: str,
     script_text: str,
     avatar: str,
-    title: str = "API video",
-    background: Optional[str] = "green_screen",
-    aspect_ratio: Optional[str] = "16:9",
-    resolution: Optional[str] = "360p",
+    title: str,
+    background: str,
+    aspect_ratio: str = "5:4",
+    resolution: str = "720p",
     audio_only: bool = False,
-    test: bool = True,
-    extra_scene_overrides: Optional[Dict[str, Any]] = None,
+    test: bool = False,
+    #extra_scene_overrides: Optional[Dict[str, Any]] = None,
 ) -> str:
     """Create a Synthesia video. Returns the video_id from the 201 response.
 
@@ -76,8 +76,8 @@ def create_video(
     if background:
         scene["background"] = background
     
-    if extra_scene_overrides:
-        scene.update(extra_scene_overrides)
+    # if extra_scene_overrides:
+    #     scene.update(extra_scene_overrides)
 
     payload: Dict[str, Any] = {
         "title": title,
@@ -91,9 +91,9 @@ def create_video(
         payload["resolution"] = resolution
     
     if test:
-        payload["test"] = True
+        payload["test"] = test
     #payload["test"] = False
-    payload["test"] = True
+    #payload["test"] = True
 
     resp = requests.post(url, headers=_headers(api_key), data=json.dumps(payload), timeout=TIMEOUT)
     if resp.status_code != 201:
@@ -107,88 +107,89 @@ def create_video(
     return video_id
 
 
-def get_video(api_key: str, video_id: str) -> Dict[str, Any]:
-    url = f"{API_BASE}/videos/{video_id}"
-    resp = requests.get(url, headers=_headers(api_key), timeout=TIMEOUT)
-    if resp.status_code != 200:
-        raise SynthesiaError(
-            f"Retrieve video failed ({resp.status_code}): {resp.text}"
-        )
-    return resp.json()
+# def get_video(api_key: str, video_id: str) -> Dict[str, Any]:
+#     url = f"{API_BASE}/videos/{video_id}"
+#     resp = requests.get(url, headers=_headers(api_key), timeout=TIMEOUT)
+#     if resp.status_code != 200:
+#         raise SynthesiaError(
+#             f"Retrieve video failed ({resp.status_code}): {resp.text}"
+#         )
+#     return resp.json()
 
 
-def wait_until_ready(api_key: str, video_id: str, *, max_wait: int = MAX_WAIT, poll_every: int = POLL_EVERY) -> Dict[str, Any]:
-    """Poll the video until status == 'completed' or failure/timeout. Returns the final video object."""
-    started = time.time()
-    last_status = None
-    while True:
-        video = get_video(api_key, video_id)
-        status = video.get("status") or video.get("state")
-        if status != last_status:
-            print(f"[status] {status}")
-            last_status = status
-        if status == "completed":
-            return video
-        if status in {"failed", "rejected", "error"}:
-            raise SynthesiaError(f"Video processing did not complete successfully: {status} -> {video}")
-        if time.time() - started > max_wait:
-            raise SynthesiaError("Timed out waiting for video to complete")
-        time.sleep(poll_every)
+# def wait_until_ready(api_key: str, video_id: str, *, max_wait: int = MAX_WAIT, poll_every: int = POLL_EVERY) -> Dict[str, Any]:
+#     """Poll the video until status == 'completed' or failure/timeout. Returns the final video object."""
+#     started = time.time()
+#     last_status = None
+#     while True:
+#         video = get_video(api_key, video_id)
+#         status = video.get("status") or video.get("state")
+#         if status != last_status:
+#             print(f"[status] {status}")
+#             last_status = status
+#         if status == "completed":
+#             return video
+#         if status in {"failed", "rejected", "error"}:
+#             raise SynthesiaError(f"Video processing did not complete successfully: {status} -> {video}")
+#         if time.time() - started > max_wait:
+#             raise SynthesiaError("Timed out waiting for video to complete")
+#         time.sleep(poll_every)
 
 
-def _download(url: str, out_path: str) -> None:
-    with requests.get(url, stream=True, timeout=TIMEOUT) as r:
-        r.raise_for_status()
-        with open(out_path, "wb") as f:
-            for chunk in r.iter_content(chunk_size=1024 * 512):
-                if chunk:
-                    f.write(chunk)
+# def _download(url: str, out_path: str) -> None:
+#     with requests.get(url, stream=True, timeout=TIMEOUT) as r:
+#         r.raise_for_status()
+#         with open(out_path, "wb") as f:
+#             for chunk in r.iter_content(chunk_size=1024 * 512):
+#                 if chunk:
+#                     f.write(chunk)
 
 
-def download_assets(video_obj: Dict[str, Any], out_video: str, out_dir: Optional[str] = None) -> None:
-    """Download the MP4 and any available captions from the retrieve response.
+# def download_assets(video_obj: Dict[str, Any], out_video: str, out_dir: Optional[str] = None) -> None:
+#     """Download the MP4 and any available captions from the retrieve response.
 
-    The retrieve endpoint returns a 'download' object with short-lived URLs for
-    mp4, captions, and thumbnails. We only download MP4/SRT/VTT here.
-    """
-    dl = video_obj.get("download") or {}
+#     The retrieve endpoint returns a 'download' object with short-lived URLs for
+#     mp4, captions, and thumbnails. We only download MP4/SRT/VTT here.
+#     """
+#     dl = video_obj.get("download") or {}
 
-    mp4_url = dl.get("video") or dl.get("mp4")
-    if not mp4_url:
-        raise SynthesiaError("No downloadable MP4 URL found in response")
+#     mp4_url = dl.get("video") or dl.get("mp4")
+#     if not mp4_url:
+#         raise SynthesiaError("No downloadable MP4 URL found in response")
 
-    _download(mp4_url, out_video)
-    print(f"Saved video to {out_video}")
+#     _download(mp4_url, out_video)
+#     print(f"Saved video to {out_video}")
 
-    # Try captions if present
-    if out_dir is None:
-        out_dir = os.path.dirname(os.path.abspath(out_video)) or "."
+#     # Try captions if present
+#     if out_dir is None:
+#         out_dir = os.path.dirname(os.path.abspath(out_video)) or "."
 
-    srt_url = dl.get("captions", {}).get("srt") or dl.get("srt")
-    vtt_url = dl.get("captions", {}).get("vtt") or dl.get("vtt")
+#     srt_url = dl.get("captions", {}).get("srt") or dl.get("srt")
+#     vtt_url = dl.get("captions", {}).get("vtt") or dl.get("vtt")
 
-    if srt_url:
-        srt_path = os.path.join(out_dir, os.path.splitext(os.path.basename(out_video))[0] + ".srt")
-        _download(srt_url, srt_path)
-        print(f"Saved captions (SRT) to {srt_path}")
-    if vtt_url:
-        vtt_path = os.path.join(out_dir, os.path.splitext(os.path.basename(out_video))[0] + ".vtt")
-        _download(vtt_url, vtt_path)
-        print(f"Saved captions (VTT) to {vtt_path}")
+#     if srt_url:
+#         srt_path = os.path.join(out_dir, os.path.splitext(os.path.basename(out_video))[0] + ".srt")
+#         _download(srt_url, srt_path)
+#         print(f"Saved captions (SRT) to {srt_path}")
+#     if vtt_url:
+#         vtt_path = os.path.join(out_dir, os.path.splitext(os.path.basename(out_video))[0] + ".vtt")
+#         _download(vtt_url, vtt_path)
+#         print(f"Saved captions (VTT) to {vtt_path}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Create a Synthesia video from text + avatar and download it.")
-    parser.add_argument("--script", required=True, help="The text to speak in the scene (scriptText)")
-    parser.add_argument("--avatar", required=False, help="Avatar ID (e.g. anna_costume1_cameraA) - not needed for audio-only")
-    parser.add_argument("--title", default="API Video via Python")
-    parser.add_argument("--background", default="green_screen", help="Optional background identifier")
-    parser.add_argument("--aspect", default="16:9", help="Aspect ratio, e.g. 16:9, 9:16, 1:1")
-    parser.add_argument("--resolution", default="360p", help="Video resolution, e.g. 360p, 480p, 720p, 1080p")
-    parser.add_argument("--audio-only", action="store_true", help="Generate audio-only output (voice without video)")
-    parser.add_argument("--out", default="output.mp4", help="Where to save the MP4")
-    parser.add_argument("--no-test", action="store_true", help="Disable test mode (videos may count against your quota)")
-    parser.add_argument("--extra", default=None, help="JSON for extra per-scene overrides (advanced)")
+    # parser.add_argument("--script", required=True, help="The text to speak in the scene (scriptText)")
+    # parser.add_argument("--avatar", required=False, help="Avatar ID (e.g. anna_costume1_cameraA) - not needed for audio-only")
+    # parser.add_argument("--title", default="API Video via Python")
+    # parser.add_argument("--background", default="green_screen", help="Optional background identifier")
+    # parser.add_argument("--aspect", default="16:9", help="Aspect ratio, e.g. 16:9, 9:16, 1:1")
+    # parser.add_argument("--resolution", default="360p", help="Video resolution, e.g. 360p, 480p, 720p, 1080p")
+    # parser.add_argument("--audio-only", action="store_true", help="Generate audio-only output (voice without video)")
+    # parser.add_argument("--out", default="output.mp4", help="Where to save the MP4")
+    # parser.add_argument("--no-test", action="store_true", help="Disable test mode (videos may count against your quota)")
+    # parser.add_argument("--extra", default=None, help="JSON for extra per-scene overrides (advanced)")
+    parser.add_argument("--slide", type=int, default=0, help="Slide number")
     args = parser.parse_args()
 
     api_key = os.getenv("SYNTHESIA_API_KEY")
@@ -196,24 +197,24 @@ def main() -> None:
         print("Environment variable SYNTHESIA_API_KEY is not set.", file=sys.stderr)
         sys.exit(2)
 
-    extra = None
-    if args.extra:
-        try:
-            extra = json.loads(args.extra)
-        except json.JSONDecodeError as e:
-            print(f"--extra must be valid JSON: {e}", file=sys.stderr)
-            sys.exit(2)
-    slide = 1
-    if slide == 1:
-        script = """
+    # extra = None
+    # if args.extra:
+    #     try:
+    #         extra = json.loads(args.extra)
+    #     except json.JSONDecodeError as e:
+    #         print(f"--extra must be valid JSON: {e}", file=sys.stderr)
+    #         sys.exit(2)
+    slides = []
+    script = """
 Hi, I’m <sub alias="GP sah-JEH-seh">GP Saggese</sub>, co-founder and CTO of Causify AI.
 I hold a PhD in Electrical and Computer Engineering from UIUC, and for the past 20 years I’ve built high-performance machine learning systems at companies such as NVIDIA, Intel, and Synopsys.
 
 I also bring over 15 years of experience in systematic hedge funds—working as a portfolio manager, quant, head of data, and leading software platform development.
 """
-        out_file="slide1"
-    if slide == 2:
-        script = """
+    out_file="slide1"
+    slides.append((script, out_file))
+    #
+    script = """
 <sub alias="">https://docs.google.com/document/d/18SywZGD4HskyqMZyBsecZRJtbQo8fDH_eokeX_00S6E</sub>
 
 Over the past two years, Causify has developed and licensed a powerful platform designed specifically for hedge funds and asset managers.
@@ -226,10 +227,11 @@ The platform represents over a decade of engineering effort and more than one mi
 In short, it is best described as a quantitative hedge fund in a box.
 
 It natively supports causal modeling, has been battle-tested in live markets, and today manages approximately $6 billion in AUM across equities and cryptocurrency for several hedge funds.
-        """
-        out_file="slide2"
-    if slide == 3:
-        script = """
+    """
+    out_file="slide2"
+    slides.append((script, out_file))
+    #
+    script = """
 KaizenFlow allows teams to rapidly build, test, and deploy AI-driven trading strategies using state-of-the-art techniques, including:
 
 - A fully probabilistic, explainable causal AI engine grounded in Bayesian theory
@@ -261,10 +263,11 @@ Additional features include:
 - Parallelism and scalability
 - Direct integration with Jupyter notebooks and APIs
 - Full support for Airflow scheduling and monitoring
-        """
-        out_file="slide3"
-    if slide == 4:
-        script = """
+    """
+    out_file="slide3"
+    slides.append((script, out_file))
+    #
+    script = """
 We’ve begun releasing components of Kaizen Flow as standalone SaaS applications:
 
 Strategy Manager Dashboard – For performance tracking, correlation analysis, and reporting
@@ -272,10 +275,11 @@ Risk & Performance Dashboard – For VaR, volatility, and exposure monitoring
 Portfolio Optimization Tool – For mean-variance optimization and efficient frontier analysis
 
 Each application is designed with modern, intuitive UIs, drag-and-drop data uploads, and flexible export/reporting options.
-        """
-        out_file="slide4"
-    if slide == 5:
-        script = """
+    """
+    out_file="slide4"
+    slides.append((script, out_file))
+    #
+    script = """
 We provide interactive dashboards that let users:
 
 - Track key performance metrics (e.g., Sharpe ratio, annualized return, volatility, drawdowns)
@@ -288,14 +292,11 @@ Our risk management components allow users to:
 - Compute volatility and value-at-risk (VaR) at multiple confidence levels
 - Perform rolling risk estimates and monitor exposures
 - Run event analysis, measuring strategy performance under specific market conditions
-        """
-        out_file="slide5"
-    if slide == 6:
-        script = """
-        """
-        out_file="slide6"
-    if slide == 7:
-        script = """
+    """
+    out_file="slide5"
+    slides.append((script, out_file))
+    #
+    script = """
 The portfolio construction module enables:
 
 - Optimal allocation of capital given alpha forecasts and current positions
@@ -308,32 +309,36 @@ Outputs include:
 
 - The efficient frontier for trade-offs between expected return and volatility
 - Portfolio simulations under varying covariance matrix estimations and risk preferences
-        """
-        out_file="slide7"
-    try:
-        video_id = create_video(
-            api_key=api_key,
-            script_text=script,
-            avatar=args.avatar,
-            title=out_file,
-            background=args.background,
-            aspect_ratio=args.aspect,
-            resolution=args.resolution,
-            audio_only=args.audio_only,
-            test=not args.no_test,
-            extra_scene_overrides=extra,
-        )
-        print(f"Created video: id={video_id}")
-
-        video_obj = wait_until_ready(api_key, video_id)
-        download_assets(video_obj, args.out)
-        print("Done.")
-    except requests.RequestException as e:
-        print(f"HTTP error: {e}", file=sys.stderr)
-        sys.exit(1)
-    except SynthesiaError as e:
-        print(f"Synthesia API error: {e}", file=sys.stderr)
-        sys.exit(1)
+    """
+    out_file="slide7"
+    slides.append((script, out_file))
+    for script, out_file in slides[:1]:
+        try:
+            avatar = "f4f1005e-6851-414a-9120-d48122613fa0"
+            background = "workspace-media.c4ab7049-8479-4855-9856-e0d7f2854027"
+            aspect = "5:4"
+            resolution = "720p"
+            audio_only = False
+            test = False
+            video_id = create_video(
+                api_key=api_key,
+                script_text=script,
+                avatar=avatar,
+                title=out_file,
+                background=background,
+                aspect_ratio=aspect,
+                resolution=resolution,
+                audio_only=audio_only,
+                test=test,
+                #extra_scene_overrides=extra,
+            )
+            print(f"Created video: id={video_id}")
+        except requests.RequestException as e:
+            print(f"HTTP error: {e}", file=sys.stderr)
+            sys.exit(1)
+        except SynthesiaError as e:
+            print(f"Synthesia API error: {e}", file=sys.stderr)
+            sys.exit(1)
 
 
 if __name__ == "__main__":
