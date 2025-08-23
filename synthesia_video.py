@@ -57,6 +57,7 @@ def create_video(
     background: Optional[str] = "green_screen",
     aspect_ratio: Optional[str] = "16:9",
     resolution: Optional[str] = "360p",
+    audio_only: bool = False,
     test: bool = True,
     extra_scene_overrides: Optional[Dict[str, Any]] = None,
 ) -> str:
@@ -68,13 +69,13 @@ def create_video(
     url = f"{API_BASE}/videos"
     scene: Dict[str, Any] = {
         "scriptText": script_text,
-        #"avatar": avatar,
-      "avatar": "f4f1005e-6851-414a-9120-d48122613fa0",
-      #"voice": "eca78a48-32d2-4ed1-a91d-4db6f7b83c27",
     }
+    
+    # Always set avatar and background - Synthesia API requires these fields
+    scene["avatar"] = avatar
     if background:
         scene["background"] = background
-    scene["background"] = "workspace-media.c4ab7049-8479-4855-9856-e0d7f2854027"
+    
     if extra_scene_overrides:
         scene.update(extra_scene_overrides)
 
@@ -82,10 +83,13 @@ def create_video(
         "title": title,
         "input": [scene],
     }
+    
+    # Add video parameters (required even for audio-only in this API)
     if aspect_ratio:
         payload["aspectRatio"] = aspect_ratio
     if resolution:
         payload["resolution"] = resolution
+    
     if test:
         payload["test"] = True
     #payload["test"] = False
@@ -176,11 +180,12 @@ def download_assets(video_obj: Dict[str, Any], out_video: str, out_dir: Optional
 def main() -> None:
     parser = argparse.ArgumentParser(description="Create a Synthesia video from text + avatar and download it.")
     parser.add_argument("--script", required=True, help="The text to speak in the scene (scriptText)")
-    parser.add_argument("--avatar", required=True, help="Avatar ID (e.g. anna_costume1_cameraA)")
+    parser.add_argument("--avatar", required=False, help="Avatar ID (e.g. anna_costume1_cameraA) - not needed for audio-only")
     parser.add_argument("--title", default="API Video via Python")
     parser.add_argument("--background", default="green_screen", help="Optional background identifier")
     parser.add_argument("--aspect", default="16:9", help="Aspect ratio, e.g. 16:9, 9:16, 1:1")
     parser.add_argument("--resolution", default="360p", help="Video resolution, e.g. 360p, 480p, 720p, 1080p")
+    parser.add_argument("--audio-only", action="store_true", help="Generate audio-only output (voice without video)")
     parser.add_argument("--out", default="output.mp4", help="Where to save the MP4")
     parser.add_argument("--no-test", action="store_true", help="Disable test mode (videos may count against your quota)")
     parser.add_argument("--extra", default=None, help="JSON for extra per-scene overrides (advanced)")
@@ -198,29 +203,123 @@ def main() -> None:
         except json.JSONDecodeError as e:
             print(f"--extra must be valid JSON: {e}", file=sys.stderr)
             sys.exit(2)
-    script = """
-    <sub alias="">https://docs.google.com/document/d/18SywZGD4HskyqMZyBsecZRJtbQo8fDH_eokeX_00S6E</sub>
+    slide = 1
+    if slide == 1:
+        script = """
+Hi, I’m <sub alias="GP sah-JEH-seh">GP Saggese</sub>, co-founder and CTO of Causify AI.
+I hold a PhD in Electrical and Computer Engineering from UIUC, and for the past 20 years I’ve built high-performance machine learning systems at companies such as NVIDIA, Intel, and Synopsys.
+
+I also bring over 15 years of experience in systematic hedge funds—working as a portfolio manager, quant, head of data, and leading software platform development.
+"""
+        out_file="slide1"
+    if slide == 2:
+        script = """
+<sub alias="">https://docs.google.com/document/d/18SywZGD4HskyqMZyBsecZRJtbQo8fDH_eokeX_00S6E</sub>
 
 Over the past two years, Causify has developed and licensed a powerful platform designed specifically for hedge funds and asset managers.
 
-Streamlines data onboarding, alpha signal development, risk model testing, and strategy optimization
-Supports the full lifecycle—from research and backtesting to deployment, live trading, monitoring, and refinement
-Operates seamlessly across time horizons ranging from minutes to weeks
+- Streamlines data onboarding, alpha signal development, risk model testing, and strategy optimization
+- Supports the full lifecycle—from research and backtesting to deployment, live trading, monitoring, and refinement
+- Operates seamlessly across time horizons ranging from minutes to weeks
 
 The platform represents over a decade of engineering effort and more than one million lines of production code.
 In short, it is best described as a quantitative hedge fund in a box.
 
 It natively supports causal modeling, has been battle-tested in live markets, and today manages approximately $6 billion in AUM across equities and cryptocurrency for several hedge funds.
-"""
+        """
+        out_file="slide2"
+    if slide == 3:
+        script = """
+KaizenFlow allows teams to rapidly build, test, and deploy AI-driven trading strategies using state-of-the-art techniques, including:
+
+- A fully probabilistic, explainable causal AI engine grounded in Bayesian theory
+- An automated pipeline that accelerates the journey from idea to production—reducing deployment time from six months to under four weeks
+- A proprietary real-time data processing engine that identifies alpha signals even in environments with non-stationarity and non-Gaussian distributions
+
+The result:
+
+- 5x increase in productivity
+- Reduced engineering costs
+- A platform that empowers quants, quant developers, and DevOps teams
+- Managers scale faster by tapping into a wider pool of available talent
+
+The platform is modular, covering the full workflow:
+
+- Data Onboarding
+- Feature Engineering
+- Alpha Generation
+- Risk Modeling
+- Portfolio Optimization
+- Risk & Execution Management
+
+It supports both batch and streaming time-series workflows, enforces precise timing semantics, and prevents common pitfalls like look-ahead bias.
+
+Additional features include:
+
+- High observability and debuggability
+- Incremental and cached computation
+- Parallelism and scalability
+- Direct integration with Jupyter notebooks and APIs
+- Full support for Airflow scheduling and monitoring
+        """
+        out_file="slide3"
+    if slide == 4:
+        script = """
+We’ve begun releasing components of Kaizen Flow as standalone SaaS applications:
+
+Strategy Manager Dashboard – For performance tracking, correlation analysis, and reporting
+Risk & Performance Dashboard – For VaR, volatility, and exposure monitoring
+Portfolio Optimization Tool – For mean-variance optimization and efficient frontier analysis
+
+Each application is designed with modern, intuitive UIs, drag-and-drop data uploads, and flexible export/reporting options.
+        """
+        out_file="slide4"
+    if slide == 5:
+        script = """
+We provide interactive dashboards that let users:
+
+- Track key performance metrics (e.g., Sharpe ratio, annualized return, volatility, drawdowns)
+- Compare correlations across managers and strategies
+- Generate automated reports in CSV or Excel format
+- Slice, dice, and visualize data over selected time ranges or head-to-head comparisons
+
+Our risk management components allow users to:
+
+- Compute volatility and value-at-risk (VaR) at multiple confidence levels
+- Perform rolling risk estimates and monitor exposures
+- Run event analysis, measuring strategy performance under specific market conditions
+        """
+        out_file="slide5"
+    if slide == 6:
+        script = """
+        """
+        out_file="slide6"
+    if slide == 7:
+        script = """
+The portfolio construction module enables:
+
+- Optimal allocation of capital given alpha forecasts and current positions
+- Mean-variance optimization and advanced risk-based approaches
+- Incorporation of market impact models (both transient and persistent)
+- Constraints such as diversification and risk-budgeting
+- Scenario analysis with custom inputs and overrides
+
+Outputs include:
+
+- The efficient frontier for trade-offs between expected return and volatility
+- Portfolio simulations under varying covariance matrix estimations and risk preferences
+        """
+        out_file="slide7"
     try:
         video_id = create_video(
             api_key=api_key,
             script_text=script,
             avatar=args.avatar,
-            title=args.title,
+            title=out_file,
             background=args.background,
             aspect_ratio=args.aspect,
             resolution=args.resolution,
+            audio_only=args.audio_only,
             test=not args.no_test,
             extra_scene_overrides=extra,
         )
