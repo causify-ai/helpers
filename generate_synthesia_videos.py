@@ -2,9 +2,14 @@
 """
 Synthesia API helper: create a video from a text script and a chosen avatar.
 
-> python synthesia_video.py \
+> python generate_synthesia_videos.py \
     --in_dir videos \
     --slides "001:003"
+
+> python generate_synthesia_videos.py \
+    --in_dir videos \
+    --slides "001:003" \
+    --dry_run
 
 Environment:
   SYNTHESIA_API_KEY  Your Synthesia API key (Creator plan or above).
@@ -176,6 +181,7 @@ def _parse() -> argparse.Namespace:
     parser.add_argument("--slide", type=int, default=0, help="Slide number")
     parser.add_argument("--in_dir", default="videos", help="Directory containing xyz_text.txt files")
     parser.add_argument("--slides", help="Range of slides to process (e.g., '001:003', '002:005,007:009')")
+    parser.add_argument("--dry_run", action="store_true", help="Print what will be executed without calling Synthesia API")
     args = parser.parse_args()
     return args
 
@@ -220,29 +226,40 @@ def _main(args: argparse.Namespace) -> None:
         _LOG.info(f"Loaded slide {slide_num:03d} from {file_path}")
     # Create videos.
     for script, out_file in slides:
-        try:
-            audio_only = False
-            # TODO(ai): Pass test through command line.
-            test = False
-            video_id = create_video(
-                api_key=api_key,
-                script_text=script,
-                avatar=avatar,
-                title=out_file,
-                background=background,
-                aspect_ratio=aspect,
-                resolution=resolution,
-                audio_only=audio_only,
-                test=test,
-                # extra_scene_overrides=extra,
-            )
-            _LOG.info(f"Created video: id={video_id}")
-        except requests.RequestException as e:
-            _LOG.error(f"HTTP error: {e}")
-            sys.exit(1)
-        except SynthesiaError as e:
-            _LOG.error(f"Synthesia API error: {e}")
-            sys.exit(1)
+        if args.dry_run:
+            # Print what would be executed without making API calls.
+            _LOG.info(f"DRY RUN: Would create video with parameters:")
+            _LOG.info(f"  Title: {out_file}")
+            _LOG.info(f"  Avatar: {avatar}")
+            _LOG.info(f"  Background: {background}")
+            _LOG.info(f"  Aspect ratio: {aspect}")
+            _LOG.info(f"  Resolution: {resolution}")
+            _LOG.info(f"  Script text length: {len(script)} characters")
+            _LOG.debug(f"  Script text: {script[:100]}..." if len(script) > 100 else f"  Script text: {script}")
+        else:
+            try:
+                audio_only = False
+                # TODO(ai): Pass test through command line.
+                test = False
+                video_id = create_video(
+                    api_key=api_key,
+                    script_text=script,
+                    avatar=avatar,
+                    title=out_file,
+                    background=background,
+                    aspect_ratio=aspect,
+                    resolution=resolution,
+                    audio_only=audio_only,
+                    test=test,
+                    # extra_scene_overrides=extra,
+                )
+                _LOG.info(f"Created video: id={video_id}")
+            except requests.RequestException as e:
+                _LOG.error(f"HTTP error: {e}")
+                sys.exit(1)
+            except SynthesiaError as e:
+                _LOG.error(f"Synthesia API error: {e}")
+                sys.exit(1)
 
 
 def main() -> None:

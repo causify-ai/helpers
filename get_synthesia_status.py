@@ -98,16 +98,17 @@ def display_videos_status(videos: List[Dict[str, Any]]) -> None:
     :param videos: list of video objects from API
     """
     if not videos:
-        print("No videos found.")
+        _LOG.info("No videos found.")
         return
     
-    # Print header.
+    # Create table data structure
+    table = []
     headers = ["ID", "Created", "Updated", "Title", "Status", "Download"]
-    print("\t".join(headers))
-    print("-" * 80)
+    table.append(headers)
     
-    # Print video data.
+    # Process each video and add to table
     for video in videos:
+        # Extract video information with safe defaults
         video_id = video.get("id", "N/A")
         created_at = _format_timestamp(video.get("createdAt"))
         updated_at = _format_timestamp(video.get("lastUpdatedAt"))
@@ -115,8 +116,28 @@ def display_videos_status(videos: List[Dict[str, Any]]) -> None:
         status = video.get("status", "N/A")
         download = "Yes" if video.get("download") else "No"
         
-        row = [video_id, created_at, updated_at, title, status, download]
-        print("\t".join(row))
+        # Add row to table
+        row = [str(video_id), str(created_at), str(updated_at), str(title), str(status), str(download)]
+        table.append(row)
+
+    # Calculate column widths
+    col_widths = []
+    for i in range(len(table[0])):
+        col_widths.append(max(len(str(row[i])) for row in table))
+    
+    # Print the table with aligned columns
+    for i, row in enumerate(table):
+        formatted_row = []
+        for j, cell in enumerate(row):
+            formatted_row.append(str(cell).ljust(col_widths[j]))
+        print("  ".join(formatted_row))
+        
+        # Add separator line after headers
+        if i == 0:
+            separator = []
+            for width in col_widths:
+                separator.append("-" * width)
+            print("  ".join(separator))
 
 
 def _parse() -> argparse.Namespace:
@@ -153,13 +174,26 @@ def _main(args: argparse.Namespace) -> None:
     """
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     
+    # Validate API key is available.
     api_key = os.getenv("SYNTHESIA_API_KEY")
     hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
-    videos = get_videos_status(
-        api_key, limit=args.limit, offset=args.offset
-    )
-    display_videos_status(videos)
-    _LOG.info(f"Retrieved status for {len(videos)} videos")
+    
+    try:
+        # Retrieve videos from Synthesia API.
+        videos = get_videos_status(
+            api_key, limit=args.limit, offset=args.offset
+        )
+        
+        # Display the results in table format.
+        display_videos_status(videos)
+        _LOG.info("Retrieved status for %s videos", len(videos))
+        
+    except requests.RequestException as e:
+        _LOG.error("HTTP error: %s", e)
+        sys.exit(1)
+    except SynthesiaError as e:
+        _LOG.error("Synthesia API error: %s", e)
+        sys.exit(1)
 
 
 def main() -> None:

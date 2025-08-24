@@ -112,35 +112,43 @@ def download_video(api_key: str, video_id: str, out_dir: str) -> bool:
     :param out_dir: output directory
     :return: True if successful, False otherwise
     """
-    # Get video details.
+    # Get video details from API.
     video = get_video(api_key, video_id)
     
-    # Check if video is completed and has download link.
+    # Validate video is ready for download.
     status = video.get("status")
-    if status != "completed":
-        _LOG.warning(f"Video {video_id} is not completed (status: {status})")
+    if status not in ["completed", "complete"]:
+        _LOG.warning("Video %s is not completed (status: %s)", video_id, status)
         return False
     
+    # Check download information is available.
     download_info = video.get("download")
     if not download_info:
-        _LOG.error(f"No download information available for video {video_id}")
+        _LOG.error("No download information available for video %s", video_id)
         return False
     
-    video_url = download_info.get("video")
-    if not video_url:
-        _LOG.error(f"No video download URL available for video {video_id}")
+    # Handle both string URL and dict with "video" key formats.
+    if isinstance(download_info, str):
+        video_url = download_info
+    elif isinstance(download_info, dict):
+        video_url = download_info.get("video")
+        if not video_url:
+            _LOG.error("No video download URL available for video %s", video_id)
+            return False
+    else:
+        _LOG.error("Invalid download information format for video %s", video_id)
         return False
     
-    # Generate output filename.
+    # Generate safe output filename.
     title = video.get("title", "video")
-    # Clean title to be filename-safe.
+    # Clean title to be filesystem-safe.
     safe_title = "".join(c for c in title if c.isalnum() or c in "._-")
     filename = f"{safe_title}.{video_id}.mp4"
     file_path = os.path.join(out_dir, filename)
     
-    _LOG.info(f"Downloading video {video_id} ({title}) to {file_path}")
+    _LOG.info("Downloading video %s (%s) to %s", video_id, title, file_path)
     
-    # Download the video.
+    # Perform the actual download.
     return _download_file(video_url, file_path)
 
 
@@ -176,20 +184,28 @@ def _main(args: argparse.Namespace) -> None:
     :param args: parsed arguments
     """
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
+    
+    # Validate API key is available.
     api_key = os.getenv("SYNTHESIA_API_KEY")
+    hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
+    
     # Ensure output directory exists.
     out_dir = args.out_dir
     hio.create_dir(out_dir, incremental=True)
-    video_ids = args.ids.split()
-    _LOG.info(f"Attempting to download {len(video_ids)} videos to {out_dir}")
     
+    # Parse video IDs from command line.
+    video_ids = args.ids.split()
+    _LOG.info("Attempting to download %s videos to %s", len(video_ids), out_dir)
+    
+    # Process each video ID for download.
     success_count = 0
     for video_id in video_ids:
         if download_video(api_key, video_id, out_dir):
             success_count += 1
     
-    _LOG.info(f"Successfully downloaded {success_count} out of {len(video_ids)} videos")
+    _LOG.info("Successfully downloaded %s out of %s videos", success_count, len(video_ids))
+    
+    # Exit with error if some downloads failed.
     if success_count < len(video_ids):
         sys.exit(1)
 

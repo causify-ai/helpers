@@ -84,15 +84,18 @@ def cancel_video(api_key: str, video_id: str) -> bool:
     :param video_id: video ID to cancel
     :return: True if successful, False otherwise
     """
+    # Make API call to cancel video generation.
     url = f"{API_BASE}/videos/{video_id}/cancel"
     resp = requests.post(
         url, headers=_headers(api_key), timeout=TIMEOUT
     )
+    
+    # Check response and log result.
     if resp.status_code == 200:
-        _LOG.info(f"Successfully cancelled video {video_id}")
+        _LOG.info("Successfully cancelled video %s", video_id)
         return True
     else:
-        _LOG.error(f"Failed to cancel video {video_id} ({resp.status_code}): {resp.text}")
+        _LOG.error("Failed to cancel video %s (%s): %s", video_id, resp.status_code, resp.text)
         return False
 
 
@@ -104,15 +107,18 @@ def delete_video(api_key: str, video_id: str) -> bool:
     :param video_id: video ID to delete
     :return: True if successful, False otherwise
     """
+    # Make API call to delete video.
     url = f"{API_BASE}/videos/{video_id}"
     resp = requests.delete(
         url, headers=_headers(api_key), timeout=TIMEOUT
     )
+    
+    # Check response (both 200 and 204 are success for delete).
     if resp.status_code in [200, 204]:
-        _LOG.info(f"Successfully deleted video {video_id}")
+        _LOG.info("Successfully deleted video %s", video_id)
         return True
     else:
-        _LOG.error(f"Failed to delete video {video_id} ({resp.status_code}): {resp.text}")
+        _LOG.error("Failed to delete video %s (%s): %s", video_id, resp.status_code, resp.text)
         return False
 
 
@@ -147,33 +153,47 @@ def _main(args: argparse.Namespace) -> None:
     :param args: parsed arguments
     """
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    
+    # Validate API key is available.
     api_key = os.getenv("SYNTHESIA_API_KEY")
     hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
-    if args.delete_all:
-        # Get all videos and delete them.
-        videos = get_all_videos(api_key)
-        _LOG.info(f"Found {len(videos)} videos to delete")
-        
-        success_count = 0
-        for video in videos:
-            video_id = video.get("id")
-            if video_id:
-                if delete_video(api_key, video_id):
+    
+    try:
+        if args.delete_all:
+            # Delete all videos mode.
+            _LOG.info("Deleting all videos...")
+            videos = get_all_videos(api_key)
+            _LOG.info("Found %s videos to delete", len(videos))
+            
+            # Process each video for deletion.
+            success_count = 0
+            for video in videos:
+                video_id = video.get("id")
+                if video_id:
+                    if delete_video(api_key, video_id):
+                        success_count += 1
+            
+            _LOG.info("Successfully deleted %s out of %s videos", success_count, len(videos))
+            
+        else:
+            # Cancel specific video IDs mode.
+            video_ids = args.ids.split()
+            _LOG.info("Attempting to cancel %s videos", len(video_ids))
+            
+            # Process each video ID for cancellation.
+            success_count = 0
+            for video_id in video_ids:
+                if cancel_video(api_key, video_id):
                     success_count += 1
-        
-        _LOG.info(f"Successfully deleted {success_count} out of {len(videos)} videos")
-        
-    else:
-        # Cancel specific video IDs.
-        video_ids = args.ids.split()
-        _LOG.info(f"Attempting to cancel {len(video_ids)} videos")
-        
-        success_count = 0
-        for video_id in video_ids:
-            if cancel_video(api_key, video_id):
-                success_count += 1
-        
-        _LOG.info(f"Successfully cancelled {success_count} out of {len(video_ids)} videos")
+            
+            _LOG.info("Successfully cancelled %s out of %s videos", success_count, len(video_ids))
+            
+    except requests.RequestException as e:
+        _LOG.error("HTTP error: %s", e)
+        sys.exit(1)
+    except SynthesiaError as e:
+        _LOG.error("Synthesia API error: %s", e)
+        sys.exit(1)
             
 
 def main() -> None:
