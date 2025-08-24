@@ -35,26 +35,65 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
-def _discover_slide_files(in_dir: str) -> List[Tuple[int, str]]:
+def _parse_slide_range(slide_range: str) -> List[int]:
     """
-    Discover all slide_*.mp4 files in the directory.
+    Parse slide range specification into list of slide numbers.
+    
+    :param slide_range: range specification like "001-003", "001,005", "001-003,005-007"
+    :return: list of slide numbers
+    """
+    slide_numbers = []
+    # Split by comma for multiple ranges
+    parts = slide_range.split(",")
+    for part in parts:
+        part = part.strip()
+        if "-" in part:
+            # Range format: 001-003
+            start, end = part.split("-")
+            start_num = int(start)
+            end_num = int(end)
+            slide_numbers.extend(range(start_num, end_num + 1))
+        else:
+            # Single slide: 001
+            slide_numbers.append(int(part))
+    return sorted(list(set(slide_numbers)))
+
+
+def _discover_slide_files(
+    in_dir: str, slide_range: Optional[str] = None
+) -> List[Tuple[int, str]]:
+    """
+    Discover slide_*.mp4 files in the directory, optionally filtered by range.
     
     :param in_dir: input directory to search
+    :param slide_range: optional range specification like "001-003"
     :return: list of (slide_number, file_path) tuples sorted by slide number
     """
     hdbg.dassert_dir_exists(in_dir)
-    pattern = os.path.join(in_dir, "slide_*.mp4")
-    slide_files = glob.glob(pattern)
-    # Extract slide numbers and sort.
-    slides = []
-    for file_path in slide_files:
-        filename = os.path.basename(file_path)
-        match = re.match(r"slide_(\d+)\.mp4", filename)
-        if match:
-            slide_num = int(match.group(1))
-            slides.append((slide_num, file_path))
-    # Sort by slide number.
-    slides.sort(key=lambda x: x[0])
+    if slide_range:
+        # Parse requested slide numbers
+        requested_slides = _parse_slide_range(slide_range)
+        slides = []
+        for slide_num in requested_slides:
+            slide_file = os.path.join(in_dir, f"slide_{slide_num:03d}.mp4")
+            if os.path.exists(slide_file):
+                slides.append((slide_num, slide_file))
+            else:
+                _LOG.warning(f"Slide file not found: slide_{slide_num:03d}.mp4")
+    else:
+        # Discover all slides
+        pattern = os.path.join(in_dir, "slide_*.mp4")
+        slide_files = glob.glob(pattern)
+        # Extract slide numbers and sort.
+        slides = []
+        for file_path in slide_files:
+            filename = os.path.basename(file_path)
+            match = re.match(r"slide_(\d+)\.mp4", filename)
+            if match:
+                slide_num = int(match.group(1))
+                slides.append((slide_num, file_path))
+        # Sort by slide number.
+        slides.sort(key=lambda x: x[0])
     _LOG.debug(f"Found {len(slides)} slide files")
     return slides
 
@@ -138,13 +177,61 @@ def _create_pip_overlay(
     return pip_clip
 
 
+def _get_video_duration(video_path: str) -> float:
+    """
+    Get duration of a video file in seconds.
+    
+    :param video_path: path to video file
+    :return: duration in seconds
+    """
+    try:
+        clip = VideoFileClip(video_path)
+        duration = clip.duration
+        clip.close()
+        return duration
+    except Exception as e:
+        _LOG.warning(f"Could not get duration for {video_path}: {e}")
+        return 0.0
+
+
+def _print_processing_plan(
+    slides: List[Tuple[int, str]], in_dir: str
+) -> None:
+    """
+    Print detailed plan of videos to process with durations.
+    
+    :param slides: list of (slide_number, slide_path) tuples
+    :param in_dir: input directory
+    """
+    _LOG.info("Processing Plan:")
+    _LOG.info("=================")
+    for slide_num, slide_path in slides:
+        # Get slide duration
+        slide_duration = _get_video_duration(slide_path)
+        _LOG.info(f"slide_{slide_num:03d}.mp4 ({slide_duration:.1f}s)")
+        # Check for pip file
+        pip_path, comment_path = _find_companion_files(in_dir, slide_num)
+        if pip_path:
+            pip_duration = _get_video_duration(pip_path)
+            _LOG.info(f"- pip present ({pip_duration:.1f}s)")
+        else:
+            _LOG.info("- pip missing")
+        # Check for comment file
+        if comment_path:
+            comment_duration = _get_video_duration(comment_path)
+            _LOG.info(f"- comment present ({comment_duration:.1f}s)")
+        else:
+            _LOG.info("- comment missing")
+        _LOG.info("")
+
+
 def _create_slide_segment(
     slide_path: str,
     pip_path: Optional[str],
     comment_path: Optional[str],
     *,
     pip_scale: float = 0.25,
-) -> VideoFileClip:
+) -> Tuple[VideoFileClip, float]:
     """
     Create a composite video segment for one slide.
     
@@ -152,7 +239,7 @@ def _create_slide_segment(
     :param pip_path: path to pip video (optional)
     :param comment_path: path to comment video (optional)
     :param pip_scale: scale factor for PIP overlays
-    :return: composite video clip
+    :return: tuple of (composite video clip, final duration)
     """
     # Load main slide video.
     main_clip = VideoFileClip(slide_path)
@@ -187,9 +274,9 @@ def _create_slide_segment(
         clips.append(comment_overlay)
     # Create composite.
     if len(clips) == 1:
-        return clips[0]
+        return clips[0], target_duration
     else:
-        return CompositeVideoClip(clips)
+        return CompositeVideoClip(clips), target_duration
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -236,6 +323,10 @@ def _parse() -> argparse.ArgumentParser:
         default=0.25,
         help="Scale factor for PIP overlays relative to main video (default: 0.25)",
     )
+    parser.add_argument(
+        "--slides",
+        help="Range of slides to process (e.g., '001-003', '001,005', '001-003,007-009')",
+    )
     return parser
 
 
@@ -272,10 +363,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info(f"FPS: {args.fps}")
     _LOG.info(f"PIP scale: {args.pip_scale}")
     # Discover slide files.
-    slides = _discover_slide_files(in_dir)
+    slides = _discover_slide_files(in_dir, args.slides)
     if not slides:
-        hdbg.dfatal(f"No slide_*.mp4 files found in directory: {in_dir}")
+        if args.slides:
+            hdbg.dfatal(f"No matching slide files found for range: {args.slides}")
+        else:
+            hdbg.dfatal(f"No slide_*.mp4 files found in directory: {in_dir}")
     _LOG.info(f"Found {len(slides)} slides to process")
+    # Print processing plan.
+    _print_processing_plan(slides, in_dir)
     # Create video segments for each slide.
     video_segments = []
     for slide_num, slide_path in slides:
@@ -287,10 +383,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if comment_path:
             _LOG.debug(f"  Found comment: {os.path.basename(comment_path)}")
         # Create composite segment.
-        segment = _create_slide_segment(
+        segment, segment_duration = _create_slide_segment(
             slide_path, pip_path, comment_path, pip_scale=args.pip_scale
         )
         video_segments.append(segment)
+        # Report segment duration.
+        _LOG.info(f"slide_{slide_num:03d}.mp4 output ({segment_duration:.1f}s)")
     # Concatenate all segments.
     _LOG.info("Concatenating video segments...")
     final_video = concatenate_videoclips(video_segments)
@@ -321,7 +419,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info(f"Video creation completed: {out_file}")
     # Log final statistics.
     total_duration = sum(segment.duration for segment in video_segments)
-    _LOG.info(f"Final video: {len(slides)} slides, {total_duration:.2f} seconds total")
+    _LOG.info(f"Final video: {len(slides)} slides, {total_duration:.1f} seconds total")
 
 
 def main():
