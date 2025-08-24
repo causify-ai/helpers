@@ -4,9 +4,9 @@
 Create a composite presentation video from slide MP4 files with PIP overlays.
 
 This script processes MP4 files in a directory to create a concatenated video
-with picture-in-picture overlays. For each slide_XYZ.mp4 file, it can include:
-- pip_XYZ.mp4 as a centered PIP overlay
-- comment_XYZ.mp4 as a bottom-right PIP overlay
+with picture-in-picture overlays. For each XXX_slide.mp4 file, it can include:
+- XXX_pip.mp4 as a centered PIP overlay
+- XXX_comment.mp4 as a bottom-right PIP overlay
 
 The script supports two modes:
 1. Default mode: Uses fixed positioning (center for pip, bottom-right for comment)
@@ -49,7 +49,7 @@ import re
 from typing import Dict, List, Optional, Tuple, Union
 import yaml
 
-from moviepy import CompositeVideoClip, VideoFileClip, concatenate_videoclips
+from moviepy import CompositeVideoClip, VideoFileClip, concatenate_videoclips, ImageClip
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -154,7 +154,7 @@ def _discover_slide_files(
     in_dir: str, slide_range: Optional[str] = None
 ) -> List[Tuple[int, str]]:
     """
-    Discover slide_*.mp4 files in the directory, optionally filtered by range.
+    Discover XXX_slide.mp4 files in the directory, optionally filtered by range.
     
     :param in_dir: input directory to search
     :param slide_range: optional range specification like "001-003"
@@ -166,20 +166,20 @@ def _discover_slide_files(
         requested_slides = _parse_slide_range(slide_range)
         slides = []
         for slide_num in requested_slides:
-            slide_file = os.path.join(in_dir, f"slide_{slide_num:03d}.mp4")
+            slide_file = os.path.join(in_dir, f"{slide_num:03d}_slide.mp4")
             if os.path.exists(slide_file):
                 slides.append((slide_num, slide_file))
             else:
-                _LOG.warning(f"Slide file not found: slide_{slide_num:03d}.mp4")
+                _LOG.warning(f"Slide file not found: {slide_num:03d}_slide.mp4")
     else:
         # Discover all slides
-        pattern = os.path.join(in_dir, "slide_*.mp4")
+        pattern = os.path.join(in_dir, "*_slide.mp4")
         slide_files = glob.glob(pattern)
         # Extract slide numbers and sort.
         slides = []
         for file_path in slide_files:
             filename = os.path.basename(file_path)
-            match = re.match(r"slide_(\d+)\.mp4", filename)
+            match = re.match(r"(\d+)_slide\.mp4", filename)
             if match:
                 slide_num = int(match.group(1))
                 slides.append((slide_num, file_path))
@@ -199,8 +199,8 @@ def _find_companion_files(
     :param slide_num: slide number to find companions for
     :return: (pip_file_path, comment_file_path) tuple, None if not found
     """
-    pip_file = os.path.join(in_dir, f"pip_{slide_num:03d}.mp4")
-    comment_file = os.path.join(in_dir, f"comment_{slide_num:03d}.mp4")
+    pip_file = os.path.join(in_dir, f"{slide_num:03d}_pip.mp4")
+    comment_file = os.path.join(in_dir, f"{slide_num:03d}_comment.mp4")
     # Check if files exist.
     pip_path = pip_file if os.path.exists(pip_file) else None
     comment_path = comment_file if os.path.exists(comment_file) else None
@@ -220,7 +220,6 @@ def _extend_video_with_freeze(
     if video_clip.duration >= target_duration:
         return video_clip.with_duration(target_duration)
     # Freeze last frame for remaining duration.
-    from moviepy import ImageClip
     last_frame = video_clip.get_frame(video_clip.duration - 0.01)
     freeze_duration = target_duration - video_clip.duration
     freeze_clip = ImageClip(last_frame, duration=freeze_duration)
@@ -363,7 +362,7 @@ def _print_processing_plan(
     for slide_num, slide_path in slides:
         # Get slide duration
         slide_duration = _get_video_duration(slide_path)
-        _LOG.info(f"slide_{slide_num:03d}.mp4 ({slide_duration:.1f}s)")
+        _LOG.info(f"{slide_num:03d}_slide.mp4 ({slide_duration:.1f}s)")
         # Check for pip file
         pip_path, comment_path = _find_companion_files(in_dir, slide_num)
         if pip_path:
@@ -470,7 +469,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--in_dir",
         required=True,
-        help="Input directory containing slide_*.mp4, pip_*.mp4, and comment_*.mp4 files",
+        help="Input directory containing XXX_slide.mp4, XXX_pip.mp4, and XXX_comment.mp4 files",
     )
     parser.add_argument(
         "--out_file",
@@ -554,7 +553,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if args.slides:
             hdbg.dfatal(f"No matching slide files found for range: {args.slides}")
         else:
-            hdbg.dfatal(f"No slide_*.mp4 files found in directory: {in_dir}")
+            hdbg.dfatal(f"No XXX_slide.mp4 files found in directory: {in_dir}")
     _LOG.info(f"Found {len(slides)} slides to process")
     # Print processing plan.
     _print_processing_plan(slides, in_dir)
@@ -577,7 +576,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
         video_segments.append(segment)
         # Report segment duration.
-        _LOG.info(f"slide_{slide_num:03d}.mp4 output ({segment_duration:.1f}s)")
+        _LOG.info(f"{slide_num:03d}_slide.mp4 output ({segment_duration:.1f}s)")
     # Concatenate all segments.
     _LOG.info("Concatenating video segments...")
     final_video = concatenate_videoclips(video_segments)
