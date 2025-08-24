@@ -1,23 +1,23 @@
 slide_001:
-  # Only 001_comment.mp4 available for slide 001
+  # Intro.
   comment:
     coords: [1000, 50]     # Top-right corner positioning
     width: 350             # Medium width for good visibility
     duration: "normal"     # Keep original timing
 
 slide_002:
-  # Both 002_pip.mp4 and 002_comment.mp4 available for slide 002
+  # Capital market offerings.
   pip:
     coords: [200, 100]
     width: 600
     duration: "fill"
   comment:
-    coords: [1000, 550]  
-    width: 300           
-    duration: "normal"    
+    coords: [1000, 550]
+    width: 300
+    duration: "normal"
 
 slide_003:
-  # Both 003_pip.mp4 and 003_comment.mp4 available for slide 003
+  # KaizenFlow: specs.
   pip:
     coords: [200, 100]
     width: 600
@@ -28,42 +28,43 @@ slide_003:
     duration: "normal"
 
 slide_004:
-  # Only 004_comment.mp4 available for slide 004
+  # Standalone applications.
   comment:
     coords: [50, 50]
     width: 380
     duration: "fill"
 
 slide_005:
-  # Only 005_pip.mp4 available for slide 005
+  # Strategy manager: specs.
   pip:
-    coords: [600, 200]     # Center-right positioning
-    width: 450             # Large pip when it's the only overlay
-    duration: "fill"       # Fill the segment duration
+    coords: [600, 200]
+    width: 450
+    duration: "fill"
 
 slide_006:
-  # Only 006_pip.mp4 available for slide 006
+  # Strategy manager: demo.
   pip:
-    coords: [200, 500]     # Lower-left area
-    width: 400             # Good size for single overlay
-    duration: "normal"     # Keep original timing
+    coords: [200, 500]
+    width: 400
+    duration: "normal"
 
 slide_007:
-  # Both 007_pip.mp4 and 007_comment.mp4 available for slide 007
+  # Portfolio construction: specs.
   pip:
-    coords: [800, 300]     # Right side, middle
-    width: 380             # Good balance size
-    duration: "normal"     # Original timing
+    coords: [800, 300]
+    width: 380
+    duration: "normal"
   comment:
-    coords: [100, 600]     # Bottom-left corner
-    width: 340             # Medium-large comment
-    duration: "fill"       # Slow down to match
+    coords: [100, 600]
+    width: 340
+    duration: "fill"
 
 slide_008:
-  # Only 008_pip.mp4 available for slide 008
+  # Portfolio construction: demo.
   pip:
-    coords: [400, 150]     # Center-top positioning
-    width: 420             # Prominent size
-    duration: "fill"       # Fill duration for emphasis
+    coords: [400, 150]
+    width: 420
+    duration: "fill"
 
-# slide_009 (009_slide.mp4) has no pip or comment files, so it will use default behavior (no overlays)
+# slide_009 (009_slide.mp4) has no pip or comment files, so it will use default
+# behavior (no overlays)

@@ -229,19 +229,23 @@ def _extend_video_with_freeze(
 
 
 def _slow_video_to_duration(
-    video_clip: VideoFileClip, target_duration: float
+    video_clip: VideoFileClip, target_duration: float, file_path: str = "unknown"
 ) -> VideoFileClip:
     """
     Slow down video to match target duration.
     
     :param video_clip: video clip to slow down
     :param target_duration: target duration in seconds
+    :param file_path: path to the video file for logging
     :return: slowed video clip
     """
     if video_clip.duration >= target_duration:
         return video_clip.with_duration(target_duration)
     # Calculate speed factor to reach target duration.
     speed_factor = video_clip.duration / target_duration
+    slowdown_factor = target_duration / video_clip.duration
+    # Log the slowdown information.
+    _LOG.info(f"Slowing down {file_path}: {video_clip.duration:.2f}s -> {target_duration:.2f}s (factor: {slowdown_factor:.2f}x)")
     # Slow down the video by changing fps.
     slowed_clip = video_clip.with_fps(video_clip.fps * speed_factor)
     # Set the duration explicitly.
@@ -252,7 +256,8 @@ def _slow_video_to_duration(
 def _adjust_video_duration(
     video_clip: VideoFileClip, 
     target_duration: float,
-    duration_mode: str = "normal"
+    duration_mode: str = "normal",
+    file_path: str = "unknown"
 ) -> VideoFileClip:
     """
     Adjust video duration based on mode.
@@ -260,10 +265,11 @@ def _adjust_video_duration(
     :param video_clip: video clip to adjust
     :param target_duration: target duration in seconds
     :param duration_mode: "fill" to slow down, "normal" to freeze last frame
+    :param file_path: path to the video file for logging
     :return: adjusted video clip
     """
     if duration_mode == "fill":
-        return _slow_video_to_duration(video_clip, target_duration)
+        return _slow_video_to_duration(video_clip, target_duration, file_path)
     else:
         return _extend_video_with_freeze(video_clip, target_duration)
 
@@ -421,7 +427,7 @@ def _create_slide_segment(
         if slide_config and slide_config.pip:
             # Use plan configuration.
             pip_duration_mode = slide_config.pip.duration
-            pip_clip = _adjust_video_duration(pip_clip, target_duration, pip_duration_mode)
+            pip_clip = _adjust_video_duration(pip_clip, target_duration, pip_duration_mode, pip_path)
             pip_overlay = _create_custom_overlay(
                 pip_clip, slide_config.pip.coords, slide_config.pip.width
             )
@@ -437,7 +443,7 @@ def _create_slide_segment(
         if slide_config and slide_config.comment:
             # Use plan configuration.
             comment_duration_mode = slide_config.comment.duration
-            comment_clip = _adjust_video_duration(comment_clip, target_duration, comment_duration_mode)
+            comment_clip = _adjust_video_duration(comment_clip, target_duration, comment_duration_mode, comment_path)
             comment_overlay = _create_custom_overlay(
                 comment_clip, slide_config.comment.coords, slide_config.comment.width
             )
