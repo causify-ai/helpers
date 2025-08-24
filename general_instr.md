@@ -15,3 +15,7 @@
 - Use _LOG.debug to add debugging info that can help a programmer to track the
   issues
 - Use _LOG.info instead of print
+
+- Do not use too many try except but let statements raise their own errors
+
+- Use periods at the end of comments
