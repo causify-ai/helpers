@@ -241,16 +241,68 @@ def _slow_video_to_duration(
     """
     if video_clip.duration >= target_duration:
         return video_clip.with_duration(target_duration)
-    # Calculate speed factor to reach target duration.
-    speed_factor = video_clip.duration / target_duration
+    
+    # Calculate the slowdown factor for logging
     slowdown_factor = target_duration / video_clip.duration
+    
     # Log the slowdown information.
     _LOG.info(f"Slowing down {file_path}: {video_clip.duration:.2f}s -> {target_duration:.2f}s (factor: {slowdown_factor:.2f}x)")
-    # Slow down the video by changing fps.
-    slowed_clip = video_clip.with_fps(video_clip.fps * speed_factor)
-    # Set the duration explicitly.
-    slowed_clip = slowed_clip.with_duration(target_duration)
+    
+    # Use MoviePy's with_speed_scaled method to properly slow down the video
+    # We can specify the final_duration directly, which is more accurate
+    slowed_clip = video_clip.with_speed_scaled(final_duration=target_duration)
+    
+    # Verify the actual duration after speed change
+    actual_duration = slowed_clip.duration
+    _LOG.info(f"Actual slowed duration for {file_path}: {actual_duration:.2f}s (target: {target_duration:.2f}s)")
+    
+    # Verify the slowdown was successful
+    if not _verify_video_slowdown(video_clip, slowed_clip, target_duration, file_path):
+        _LOG.error(f"Video slowdown verification failed for {file_path}")
+    
     return slowed_clip
+
+
+def _verify_video_slowdown(
+    original_clip: VideoFileClip, 
+    slowed_clip: VideoFileClip, 
+    target_duration: float,
+    file_path: str = "unknown"
+) -> bool:
+    """
+    Verify that video has been properly slowed down.
+    
+    :param original_clip: original video clip
+    :param slowed_clip: slowed video clip
+    :param target_duration: expected target duration
+    :param file_path: path to the video file for logging
+    :return: True if slowdown was successful, False otherwise
+    """
+    original_duration = original_clip.duration
+    actual_duration = slowed_clip.duration
+    
+    # Check if duration was actually changed
+    if abs(actual_duration - original_duration) < 0.1:
+        _LOG.error(f"Video duration was not changed for {file_path}: {original_duration:.2f}s -> {actual_duration:.2f}s")
+        return False
+    
+    # Check if we reached the target duration (within 0.5s tolerance)
+    if abs(actual_duration - target_duration) > 0.5:
+        _LOG.warning(f"Target duration not reached for {file_path}: got {actual_duration:.2f}s, expected {target_duration:.2f}s")
+        return False
+    
+    # Calculate actual speed factor
+    actual_speed_factor = original_duration / actual_duration
+    expected_speed_factor = original_duration / target_duration
+    
+    _LOG.info(f"Slowdown verification for {file_path}:")
+    _LOG.info(f"  Original duration: {original_duration:.2f}s")
+    _LOG.info(f"  Target duration: {target_duration:.2f}s")
+    _LOG.info(f"  Actual duration: {actual_duration:.2f}s")
+    _LOG.info(f"  Expected speed factor: {expected_speed_factor:.3f}x")
+    _LOG.info(f"  Actual speed factor: {actual_speed_factor:.3f}x")
+    
+    return True
 
 
 def _adjust_video_duration(
@@ -419,6 +471,13 @@ def _create_slide_segment(
         durations.append(comment_clip.duration)
     # Segment duration is the longest duration between pip and comment movies.
     target_duration = max(durations)
+    # Report which video is the longest (main_clip, pip_clip, comment_clip).
+    _LOG.info(f"Longest video: {max(durations)}s")
+    _LOG.info(f"Main clip: {main_clip.duration}s")
+    if pip_clip:
+        _LOG.info(f"PIP clip: {pip_clip.duration}s")
+    if comment_clip:
+        _LOG.info(f"Comment clip: {comment_clip.duration}s")
     # Extend main clip to target duration.
     main_clip = _extend_video_with_freeze(main_clip, target_duration)
     clips[0] = main_clip
@@ -454,6 +513,10 @@ def _create_slide_segment(
                 comment_clip, main_clip.w, main_clip.h, "bottom-right", pip_scale
             )
         clips.append(comment_overlay)
+    # Print the duration of each clip.
+    _LOG.info(f"Clips: {clips}")
+    for clip in clips:
+        _LOG.info(f"Clip: {clip.duration}s")
     # Create composite.
     if len(clips) == 1:
         return clips[0], target_duration
@@ -614,6 +677,36 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Log final statistics.
     total_duration = sum(segment.duration for segment in video_segments)
     _LOG.info(f"Final video: {len(slides)} slides, {total_duration:.1f} seconds total")
+
+
+def test_video_slowdown(video_path: str, target_duration: float) -> None:
+    """
+    Test function to verify video slowdown functionality.
+    
+    :param video_path: path to the video file to test
+    :param target_duration: target duration in seconds
+    """
+    _LOG.info(f"Testing video slowdown for: {video_path}")
+    _LOG.info(f"Target duration: {target_duration:.2f}s")
+    
+    # Load the video
+    original_clip = VideoFileClip(video_path)
+    _LOG.info(f"Original duration: {original_clip.duration:.2f}s")
+    
+    # Test the slowdown
+    slowed_clip = _slow_video_to_duration(original_clip, target_duration, video_path)
+    
+    # Verify the result
+    success = _verify_video_slowdown(original_clip, slowed_clip, target_duration, video_path)
+    
+    if success:
+        _LOG.info("✅ Video slowdown test PASSED")
+    else:
+        _LOG.error("❌ Video slowdown test FAILED")
+    
+    # Clean up
+    original_clip.close()
+    slowed_clip.close()
 
 
 def main():
