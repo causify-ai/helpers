@@ -175,35 +175,29 @@ def extract_text_content(ppt_path: str, output_dir: str):
     _LOG.info(f"Extracted text content for {len(presentation.slides)} slides")
 
 
-def _check_platform() -> None:
+def _parse() -> argparse.Namespace:
     """
-    Check that the script is running on Linux or MacOS.
+    Parse command line arguments.
     
-    :raises: SystemExit if running on unsupported platform
+    :return: parsed arguments
     """
-    platform = sys.platform.lower()
-    if not (platform.startswith('linux') or platform.startswith('darwin')):
-        _LOG.error(f"Unsupported platform: {platform}. This script only works on Linux and MacOS.")
-        sys.exit(1)
-    _LOG.debug(f"Running on supported platform: {platform}")
-
-
-def main():
-    """
-    Main function to extract slides, notes, and text content from PowerPoint presentations.
-    """
-    # Check platform compatibility.
-    _check_platform()
-    # TODO(ai): Move this in a _parse() function like in the script_template.py
-    # Parse command line arguments.
     parser = argparse.ArgumentParser(
         description="Extract images, text content and notes from PowerPoint presentations"
     )
     hparser.add_verbosity_arg(parser)
-    parser.add_argument("ppt_file", help="Path to PowerPoint presentation file")
     parser.add_argument(
-        "-o", "--output-dir", 
+        "--in_file", 
+        required=True,
+        help="Path to PowerPoint presentation file"
+    )
+    parser.add_argument(
+        "--out_dir", 
         help="Output directory (default: presentation_name_extracted)"
+    )
+    parser.add_argument(
+        "--from_scratch", 
+        action="store_true",
+        help="Clean output directory from scratch using incremental=False"
     )
     parser.add_argument(
         "--extract-images", 
@@ -215,20 +209,29 @@ def main():
         action="store_true",
         help="Extract each slide as a PNG image"
     )
-    #
     args = parser.parse_args()
+    return args
+
+
+def main():
+    """
+    Main function to extract slides, notes, and text content from PowerPoint presentations.
+    """
+    # Parse command line arguments.
+    args = _parse()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate input file.
-    ppt_path = args.ppt_file
+    ppt_path = args.in_file
     hdbg.dassert_file_exists(ppt_path)
     # Determine output directory.
-    if args.output_dir:
-        output_dir = args.output_dir
+    if args.out_dir:
+        output_dir = args.out_dir
     else:
         ppt_name = Path(ppt_path).stem
         output_dir = f"{ppt_name}_extracted"
-    # TODO(ai): Use hio.create_dir()
-    os.makedirs(output_dir, exist_ok=True)
+    # Create output directory.
+    incremental = not args.from_scratch
+    hio.create_dir(output_dir, incremental=incremental)
     #
     _LOG.info(f"Extracting presentation: {ppt_path}")
     _LOG.info(f"Output directory: {output_dir}")
