@@ -2,6 +2,7 @@ curl --request GET      --url 'https://api.synthesia.io/v2/videos?limit=20&offse
 
 jq -r '.videos[] 
   | [ 
+      .id,
       (.createdAt     | strflocaltime("%Y-%m-%d %H:%M:%S")), 
       (.lastUpdatedAt | strflocaltime("%Y-%m-%d %H:%M:%S")),
       .title, 
