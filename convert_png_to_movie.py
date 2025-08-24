@@ -4,23 +4,22 @@ import argparse
 import glob
 import logging
 import os
-import sys
-from pathlib import Path
+
+from moviepy import ImageSequenceClip
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
-
-from moviepy import ImageSequenceClip
 
 _LOG = logging.getLogger(__name__)
 
 
-def _convert_png_to_movie(in_dir: str, out_file: str, *, duration_per_slide: float = 5.0) -> None:
+def _convert_png_to_movie(
+    in_dir: str, out_file: str, *, duration_per_slide: float = 5.0
+) -> None:
     """
     Convert PNG slides to MP4 movie.
-    
+
     :param in_dir: directory containing PNG slides in format slide_*.png
     :param out_file: output MP4 file path
     :param duration_per_slide: duration in seconds for each slide
@@ -40,7 +39,7 @@ def _convert_png_to_movie(in_dir: str, out_file: str, *, duration_per_slide: flo
         _LOG.debug(f"Slide {i+1}: {os.path.basename(slide_file)}")
     if len(slide_files) > 6:
         _LOG.debug("...")
-        for i, slide_file in enumerate(slide_files[-3:], len(slide_files)-2):
+        for i, slide_file in enumerate(slide_files[-3:], len(slide_files) - 2):
             _LOG.debug(f"Slide {i}: {os.path.basename(slide_file)}")
     # Create movie clip from image sequence.
     _LOG.info(f"Creating movie with {duration_per_slide} seconds per slide")
@@ -53,17 +52,19 @@ def _convert_png_to_movie(in_dir: str, out_file: str, *, duration_per_slide: flo
         hio.create_dir(output_dir, incremental=True)
     # Write the movie file.
     _LOG.info(f"Writing movie to: {out_file}")
-    clip.write_videofile(out_file, fps=fps, codec='libx264')
+    clip.write_videofile(out_file, fps=fps, codec="libx264")
     _LOG.info(f"Movie created successfully: {out_file}")
     # Log movie statistics.
     total_duration = len(slide_files) * duration_per_slide
-    _LOG.info(f"Movie statistics: {len(slide_files)} slides, {total_duration} seconds total")
+    _LOG.info(
+        f"Movie statistics: {len(slide_files)} slides, {total_duration} seconds total"
+    )
 
 
 def _parse() -> argparse.Namespace:
     """
     Parse command line arguments.
-    
+
     :return: parsed arguments
     """
     parser = argparse.ArgumentParser(
@@ -71,20 +72,16 @@ def _parse() -> argparse.Namespace:
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument(
-        "--in_dir", 
+        "--in_dir",
         required=True,
-        help="Input directory containing slide_*.png files"
+        help="Input directory containing slide_*.png files",
     )
+    parser.add_argument("--out_file", required=True, help="Output MP4 file path")
     parser.add_argument(
-        "--out_file", 
-        required=True,
-        help="Output MP4 file path"
-    )
-    parser.add_argument(
-        "--duration", 
+        "--duration",
         type=float,
         default=5.0,
-        help="Duration per slide in seconds (default: 5.0)"
+        help="Duration per slide in seconds (default: 5.0)",
     )
     args = parser.parse_args()
     return args
@@ -93,7 +90,7 @@ def _parse() -> argparse.Namespace:
 def _main(parser: argparse.ArgumentParser) -> None:
     """
     Main function to convert PNG slides to MP4 movie.
-    
+
     :param parser: argument parser
     """
     args = parser.parse_args()
@@ -104,8 +101,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Validate output file extension.
     out_file = args.out_file
     hdbg.dassert(
-        out_file.lower().endswith('.mp4'),
-        f"Output file must have .mp4 extension: {out_file}"
+        out_file.lower().endswith(".mp4"),
+        f"Output file must have .mp4 extension: {out_file}",
     )
     _LOG.info(f"Converting slides from directory: {in_dir}")
     _LOG.info(f"Output movie file: {out_file}")

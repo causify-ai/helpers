@@ -3,18 +3,17 @@
 import argparse
 import logging
 import os
-import sys
+import tempfile
 from pathlib import Path
+
+import fitz
+from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
-
-from pptx import Presentation
-from pptx.enum.shapes import MSO_SHAPE_TYPE
-import tempfile
-import fitz
 
 _LOG = logging.getLogger(__name__)
 
@@ -22,7 +21,7 @@ _LOG = logging.getLogger(__name__)
 def extract_slide_images(ppt_path: str, output_dir: str) -> bool:
     """
     Extract embedded images from PowerPoint presentation.
-    
+
     :param ppt_path: path to PowerPoint presentation file
     :param output_dir: directory to save extracted images
     :return: True if extraction successful
@@ -41,9 +40,11 @@ def extract_slide_images(ppt_path: str, output_dir: str) -> bool:
                 image_format = image.ext
                 image_data = image.blob
                 # Save image to file.
-                image_filename = f"slide_{slide_num:03d}_image_{shape_num:03d}.{image_format}"
+                image_filename = (
+                    f"slide_{slide_num:03d}_image_{shape_num:03d}.{image_format}"
+                )
                 image_path = os.path.join(output_dir, image_filename)
-                with open(image_path, 'wb') as img_file:
+                with open(image_path, "wb") as img_file:
                     img_file.write(image_data)
                 image_count += 1
                 _LOG.debug(f"Extracted image: {image_filename}")
@@ -53,8 +54,9 @@ def extract_slide_images(ppt_path: str, output_dir: str) -> bool:
 
 def extract_slides_as_png(ppt_path: str, output_dir: str) -> bool:
     """
-    Extract each slide as a PNG image by converting PPT to PDF first, then PDF to images.
-    
+    Extract each slide as a PNG image by converting PPT to PDF first, then PDF
+    to images.
+
     :param ppt_path: path to PowerPoint presentation file
     :param output_dir: directory to save slide images
     :return: True if extraction successful
@@ -62,9 +64,11 @@ def extract_slides_as_png(ppt_path: str, output_dir: str) -> bool:
     hdbg.dassert_file_exists(ppt_path)
     _LOG.debug(f"Converting slides from {ppt_path} to PNG images")
     # Check if LibreOffice is available.
-    rc, output = hsystem.system_to_string("libreoffice --version", abort_on_error=False)
+    rc, output = hsystem.system_to_string(
+        "libreoffice --version", abort_on_error=False
+    )
     # Create temporary file for PDF conversion.
-    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf:
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf:
         temp_pdf_path = temp_pdf.name
     # Convert PPT to PDF using LibreOffice.
     cmd = f'libreoffice --headless --convert-to pdf --outdir "{os.path.dirname(temp_pdf_path)}" "{ppt_path}"'
@@ -76,8 +80,13 @@ def extract_slides_as_png(ppt_path: str, output_dir: str) -> bool:
         return False
     # Find the actual PDF file created (LibreOffice names it based on input file).
     ppt_basename = os.path.splitext(os.path.basename(ppt_path))[0]
-    actual_pdf_path = os.path.join(os.path.dirname(temp_pdf_path), f"{ppt_basename}.pdf")
-    hdbg.dassert_file_exists(actual_pdf_path, f"PDF file not created at expected location: {actual_pdf_path}")
+    actual_pdf_path = os.path.join(
+        os.path.dirname(temp_pdf_path), f"{ppt_basename}.pdf"
+    )
+    hdbg.dassert_file_exists(
+        actual_pdf_path,
+        f"PDF file not created at expected location: {actual_pdf_path}",
+    )
     # Convert PDF pages to PNG images.
     _LOG.debug(f"Converting PDF to PNG images from {actual_pdf_path}")
     pdf_document = fitz.open(actual_pdf_path)
@@ -105,7 +114,7 @@ def extract_slides_as_png(ppt_path: str, output_dir: str) -> bool:
 def extract_notes_text(ppt_path: str, output_dir: str):
     """
     Extract notes from PowerPoint presentation.
-    
+
     :param ppt_path: path to PowerPoint presentation file
     :param output_dir: directory to save extracted notes
     """
@@ -132,7 +141,9 @@ def extract_notes_text(ppt_path: str, output_dir: str):
         all_notes.append(f"Slide {i}:\n{notes_content}\n")
     # Write combined notes file.
     all_notes_path = os.path.join(output_dir, "all_notes.txt")
-    combined_notes_content = f"PowerPoint Presentation Notes\n{'=' * 30}\n\n{chr(10).join(all_notes)}"
+    combined_notes_content = (
+        f"PowerPoint Presentation Notes\n{'=' * 30}\n\n{chr(10).join(all_notes)}"
+    )
     hio.to_file(all_notes_path, combined_notes_content)
     _LOG.info(f"Extracted notes for {len(presentation.slides)} slides")
 
@@ -140,7 +151,7 @@ def extract_notes_text(ppt_path: str, output_dir: str):
 def extract_text_content(ppt_path: str, output_dir: str):
     """
     Extract all text content from slides.
-    
+
     :param ppt_path: path to PowerPoint presentation file
     :param output_dir: directory to save extracted text content
     """
@@ -165,7 +176,9 @@ def extract_text_content(ppt_path: str, output_dir: str):
         text_content = "\n".join(slide_text) if slide_text else "No text content"
         # Write individual slide text file.
         slide_text_path = os.path.join(output_dir, f"slide_{i:03d}_text.txt")
-        text_file_content = f"Slide {i} Text Content:\n{'=' * 25}\n{text_content}\n"
+        text_file_content = (
+            f"Slide {i} Text Content:\n{'=' * 25}\n{text_content}\n"
+        )
         hio.to_file(slide_text_path, text_file_content)
         all_text.append(f"Slide {i}:\n{text_content}\n")
     # Write combined text content file.
@@ -178,7 +191,7 @@ def extract_text_content(ppt_path: str, output_dir: str):
 def _parse() -> argparse.Namespace:
     """
     Parse command line arguments.
-    
+
     :return: parsed arguments
     """
     parser = argparse.ArgumentParser(
@@ -186,28 +199,26 @@ def _parse() -> argparse.Namespace:
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument(
-        "--in_file", 
-        required=True,
-        help="Path to PowerPoint presentation file"
+        "--in_file", required=True, help="Path to PowerPoint presentation file"
     )
     parser.add_argument(
-        "--out_dir", 
-        help="Output directory (default: presentation_name_extracted)"
+        "--out_dir",
+        help="Output directory (default: presentation_name_extracted)",
     )
     parser.add_argument(
-        "--from_scratch", 
+        "--from_scratch",
         action="store_true",
-        help="Clean output directory from scratch using incremental=False"
+        help="Clean output directory from scratch using incremental=False",
     )
     parser.add_argument(
-        "--extract-images", 
+        "--extract-images",
         action="store_true",
-        help="Extract embedded images from slides"
+        help="Extract embedded images from slides",
     )
     parser.add_argument(
-        "--extract-slides", 
+        "--extract-slides",
         action="store_true",
-        help="Extract each slide as a PNG image"
+        help="Extract each slide as a PNG image",
     )
     args = parser.parse_args()
     return args
@@ -215,8 +226,9 @@ def _parse() -> argparse.Namespace:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     """
-    Main function to extract slides, notes, and text content from PowerPoint presentations.
-    
+    Main function to extract slides, notes, and text content from PowerPoint
+    presentations.
+
     :param parser: argument parser
     """
     # Check platform compatibility.

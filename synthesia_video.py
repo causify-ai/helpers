@@ -25,8 +25,7 @@ import json
 import logging
 import os
 import sys
-import time
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import requests
 
@@ -39,6 +38,11 @@ API_BASE = "https://api.synthesia.io/v2"
 TIMEOUT = 30  # seconds per HTTP request
 POLL_EVERY = 6  # seconds between status polls
 MAX_WAIT = 60 * 30  # 30 minutes max
+
+
+# #############################################################################
+# SynthesiaError
+# #############################################################################
 
 
 class SynthesiaError(RuntimeError):
@@ -66,9 +70,10 @@ def create_video(
     resolution: str = "720p",
     audio_only: bool = False,
     test: bool = False,
-    #extra_scene_overrides: Optional[Dict[str, Any]] = None,
+    # extra_scene_overrides: Optional[Dict[str, Any]] = None,
 ) -> str:
-    """Create a Synthesia video. Returns the video_id from the 201 response.
+    """
+    Create a Synthesia video. Returns the video_id from the 201 response.
 
     The minimal required fields per docs are provided below: title, input (scenes),
     and inside a scene: scriptText + avatar. Background is optional.
@@ -77,12 +82,12 @@ def create_video(
     scene: Dict[str, Any] = {
         "scriptText": script_text,
     }
-    
+
     # Always set avatar and background - Synthesia API requires these fields
     scene["avatar"] = avatar
     if background:
         scene["background"] = background
-    
+
     # if extra_scene_overrides:
     #     scene.update(extra_scene_overrides)
 
@@ -90,19 +95,21 @@ def create_video(
         "title": title,
         "input": [scene],
     }
-    
+
     # Add video parameters (required even for audio-only in this API)
     if aspect_ratio:
         payload["aspectRatio"] = aspect_ratio
     if resolution:
         payload["resolution"] = resolution
-    
+
     if test:
         payload["test"] = test
-    #payload["test"] = False
-    #payload["test"] = True
+    # payload["test"] = False
+    # payload["test"] = True
 
-    resp = requests.post(url, headers=_headers(api_key), data=json.dumps(payload), timeout=TIMEOUT)
+    resp = requests.post(
+        url, headers=_headers(api_key), data=json.dumps(payload), timeout=TIMEOUT
+    )
     if resp.status_code != 201:
         raise SynthesiaError(
             f"Create video failed ({resp.status_code}): {resp.text}"
@@ -187,10 +194,12 @@ def create_video(
 def _parse() -> argparse.Namespace:
     """
     Parse command line arguments.
-    
+
     :return: parsed arguments
     """
-    parser = argparse.ArgumentParser(description="Create a Synthesia video from text + avatar and download it.")
+    parser = argparse.ArgumentParser(
+        description="Create a Synthesia video from text + avatar and download it."
+    )
     hparser.add_verbosity_arg(parser)
     # parser.add_argument("--script", required=True, help="The text to speak in the scene (scriptText)")
     # parser.add_argument("--avatar", required=False, help="Avatar ID (e.g. anna_costume1_cameraA) - not needed for audio-only")
@@ -210,15 +219,13 @@ def _parse() -> argparse.Namespace:
 def _main(parser: argparse.ArgumentParser) -> None:
     """
     Main function to create Synthesia videos.
-    
+
     :param parser: argument parser
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-
     api_key = os.getenv("SYNTHESIA_API_KEY")
     hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
-
     # extra = None
     # if args.extra:
     #     try:
@@ -233,7 +240,7 @@ I hold a PhD in Electrical and Computer Engineering from UIUC, and for the past 
 
 I also bring over 15 years of experience in systematic hedge funds—working as a portfolio manager, quant, head of data, and leading software platform development.
 """
-    out_file="slide1"
+    out_file = "slide1"
     slides.append((script, out_file))
     #
     script = """
@@ -250,7 +257,7 @@ In short, it is best described as a quantitative hedge fund in a box.
 
 It natively supports causal modeling, has been battle-tested in live markets, and today manages approximately $6 billion in AUM across equities and cryptocurrency for several hedge funds.
     """
-    out_file="slide2"
+    out_file = "slide2"
     slides.append((script, out_file))
     #
     script = """
@@ -286,7 +293,7 @@ Additional features include:
 - Direct integration with Jupyter notebooks and APIs
 - Full support for Airflow scheduling and monitoring
     """
-    out_file="slide3"
+    out_file = "slide3"
     slides.append((script, out_file))
     #
     script = """
@@ -298,7 +305,7 @@ Portfolio Optimization Tool – For mean-variance optimization and efficient fro
 
 Each application is designed with modern, intuitive UIs, drag-and-drop data uploads, and flexible export/reporting options.
     """
-    out_file="slide4"
+    out_file = "slide4"
     slides.append((script, out_file))
     #
     script = """
@@ -315,7 +322,7 @@ Our risk management components allow users to:
 - Perform rolling risk estimates and monitor exposures
 - Run event analysis, measuring strategy performance under specific market conditions
     """
-    out_file="slide5"
+    out_file = "slide5"
     slides.append((script, out_file))
     #
     script = """
@@ -332,7 +339,7 @@ Outputs include:
 - The efficient frontier for trade-offs between expected return and volatility
 - Portfolio simulations under varying covariance matrix estimations and risk preferences
     """
-    out_file="slide7"
+    out_file = "slide7"
     slides.append((script, out_file))
     for script, out_file in slides[1:]:
         try:
@@ -352,7 +359,7 @@ Outputs include:
                 resolution=resolution,
                 audio_only=audio_only,
                 test=test,
-                #extra_scene_overrides=extra,
+                # extra_scene_overrides=extra,
             )
             _LOG.info(f"Created video: id={video_id}")
         except requests.RequestException as e:
@@ -364,10 +371,11 @@ Outputs include:
 
 
 def main() -> None:
-    """Main entry point."""
+    """
+    Main entry point.
+    """
     _main(_parse())
 
 
 if __name__ == "__main__":
     main()
-
