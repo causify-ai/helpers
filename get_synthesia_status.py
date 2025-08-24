@@ -13,7 +13,6 @@ Environment:
 """
 
 import argparse
-import json
 import logging
 import os
 import sys
@@ -31,6 +30,11 @@ API_BASE = "https://api.synthesia.io/v2"
 TIMEOUT = 30  # seconds per HTTP request
 
 
+# #############################################################################
+# SynthesiaError
+# #############################################################################
+
+
 class SynthesiaError(RuntimeError):
     pass
 
@@ -38,7 +42,7 @@ class SynthesiaError(RuntimeError):
 def _headers(api_key: str) -> Dict[str, str]:
     """
     Create headers for Synthesia API requests.
-    
+
     :param api_key: Synthesia API key
     :return: headers dictionary
     """
@@ -51,23 +55,25 @@ def _headers(api_key: str) -> Dict[str, str]:
 def _format_timestamp(timestamp: str) -> str:
     """
     Format ISO timestamp to readable format.
-    
+
     :param timestamp: ISO timestamp string
     :return: formatted timestamp
     """
     if not timestamp:
         return "N/A"
     try:
-        dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+        dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
         return dt.strftime("%Y-%m-%d %H:%M:%S")
     except (ValueError, AttributeError):
         return timestamp
 
 
-def get_videos_status(api_key: str, *, limit: int = 20, offset: int = 0) -> List[Dict[str, Any]]:
+def get_videos_status(
+    api_key: str, *, limit: int = 20, offset: int = 0
+) -> List[Dict[str, Any]]:
     """
     Get list of videos and their status from Synthesia API.
-    
+
     :param api_key: Synthesia API key
     :param limit: maximum number of videos to retrieve
     :param offset: offset for pagination
@@ -94,18 +100,16 @@ def get_videos_status(api_key: str, *, limit: int = 20, offset: int = 0) -> List
 def display_videos_status(videos: List[Dict[str, Any]]) -> None:
     """
     Display videos status in a formatted table.
-    
+
     :param videos: list of video objects from API
     """
     if not videos:
         _LOG.info("No videos found.")
         return
-    
     # Create table data structure
     table = []
     headers = ["ID", "Created", "Updated", "Title", "Status", "Download"]
     table.append(headers)
-    
     # Process each video and add to table
     for video in videos:
         # Extract video information with safe defaults
@@ -115,23 +119,26 @@ def display_videos_status(videos: List[Dict[str, Any]]) -> None:
         title = video.get("title", "N/A")
         status = video.get("status", "N/A")
         download = "Yes" if video.get("download") else "No"
-        
         # Add row to table
-        row = [str(video_id), str(created_at), str(updated_at), str(title), str(status), str(download)]
+        row = [
+            str(video_id),
+            str(created_at),
+            str(updated_at),
+            str(title),
+            str(status),
+            str(download),
+        ]
         table.append(row)
-
     # Calculate column widths
     col_widths = []
     for i in range(len(table[0])):
         col_widths.append(max(len(str(row[i])) for row in table))
-    
     # Print the table with aligned columns
     for i, row in enumerate(table):
         formatted_row = []
         for j, cell in enumerate(row):
             formatted_row.append(str(cell).ljust(col_widths[j]))
         print("  ".join(formatted_row))
-        
         # Add separator line after headers
         if i == 0:
             separator = []
@@ -143,7 +150,7 @@ def display_videos_status(videos: List[Dict[str, Any]]) -> None:
 def _parse() -> argparse.Namespace:
     """
     Parse command line arguments.
-    
+
     :return: parsed arguments
     """
     parser = argparse.ArgumentParser(
@@ -151,16 +158,13 @@ def _parse() -> argparse.Namespace:
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument(
-        "--limit", 
-        type=int, 
-        default=20, 
-        help="Maximum number of videos to retrieve (default: 20)"
+        "--limit",
+        type=int,
+        default=20,
+        help="Maximum number of videos to retrieve (default: 20)",
     )
     parser.add_argument(
-        "--offset", 
-        type=int, 
-        default=0, 
-        help="Offset for pagination (default: 0)"
+        "--offset", type=int, default=0, help="Offset for pagination (default: 0)"
     )
     args = parser.parse_args()
     return args
@@ -169,25 +173,19 @@ def _parse() -> argparse.Namespace:
 def _main(args: argparse.Namespace) -> None:
     """
     Main function to get and display video status.
-    
+
     :param args: parsed arguments
     """
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    
     # Validate API key is available.
     api_key = os.getenv("SYNTHESIA_API_KEY")
     hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
-    
     try:
         # Retrieve videos from Synthesia API.
-        videos = get_videos_status(
-            api_key, limit=args.limit, offset=args.offset
-        )
-        
+        videos = get_videos_status(api_key, limit=args.limit, offset=args.offset)
         # Display the results in table format.
         display_videos_status(videos)
         _LOG.info("Retrieved status for %s videos", len(videos))
-        
     except requests.RequestException as e:
         _LOG.error("HTTP error: %s", e)
         sys.exit(1)

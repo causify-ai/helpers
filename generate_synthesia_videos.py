@@ -50,8 +50,9 @@ class SynthesiaError(RuntimeError):
 def _parse_slide_range(slide_range: str) -> List[int]:
     """
     Parse slide range specification into list of slide numbers.
-    
-    :param slide_range: range specification like "001:003", "001,005", "001:003,005:007"
+
+    :param slide_range: range specification like "001:003", "001,005",
+        "001:003,005:007"
     :return: list of slide numbers
     """
     slide_numbers = []
@@ -74,9 +75,10 @@ def _parse_slide_range(slide_range: str) -> List[int]:
 def _discover_text_files(in_dir: str) -> List[Tuple[int, str]]:
     """
     Discover all XXX_text.txt files in the directory.
-    
+
     :param in_dir: input directory to search
-    :return: list of (slide_number, file_path) tuples sorted by slide number
+    :return: list of (slide_number, file_path) tuples sorted by slide
+        number
     """
     hdbg.dassert_dir_exists(in_dir)
     # Discover all text files.
@@ -179,9 +181,20 @@ def _parse() -> argparse.Namespace:
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument("--slide", type=int, default=0, help="Slide number")
-    parser.add_argument("--in_dir", default="videos", help="Directory containing xyz_text.txt files")
-    parser.add_argument("--slides", help="Range of slides to process (e.g., '001:003', '002:005,007:009')")
-    parser.add_argument("--dry_run", action="store_true", help="Print what will be executed without calling Synthesia API")
+    parser.add_argument(
+        "--in_dir",
+        required=True,
+        help="Directory containing xyz_text.txt files",
+    )
+    parser.add_argument(
+        "--slides",
+        help="Range of slides to process (e.g., '001:003', '002:005,007:009')",
+    )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Print what will be executed without calling Synthesia API",
+    )
     args = parser.parse_args()
     return args
 
@@ -209,10 +222,15 @@ def _main(args: argparse.Namespace) -> None:
         requested_slides = _parse_slide_range(args.slides)
         _LOG.info(f"Requested slides: {requested_slides}")
         # Filter discovered slides to only include requested ones.
-        filtered_slides = [(slide_num, file_path) for slide_num, file_path in discovered_slides 
-                          if slide_num in requested_slides]
+        filtered_slides = [
+            (slide_num, file_path)
+            for slide_num, file_path in discovered_slides
+            if slide_num in requested_slides
+        ]
         if not filtered_slides:
-            _LOG.error(f"No slides found matching the requested range: {args.slides}")
+            _LOG.error(
+                f"No slides found matching the requested range: {args.slides}"
+            )
             sys.exit(1)
     else:
         # Use all discovered slides if no range specified.
@@ -235,7 +253,7 @@ def _main(args: argparse.Namespace) -> None:
             _LOG.info(f"  Aspect ratio: {aspect}")
             _LOG.info(f"  Resolution: {resolution}")
             _LOG.info(f"  Script text length: {len(script)} characters")
-            _LOG.debug(f"  Script text: {script[:100]}..." if len(script) > 100 else f"  Script text: {script}")
+            _LOG.info(f"  Script text: {script}")
         else:
             try:
                 audio_only = False
