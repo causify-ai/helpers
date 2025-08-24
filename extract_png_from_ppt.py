@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# TODO(ai): Add a docstring with a description and examples of the script.
+
 import argparse
 import logging
 import os
@@ -224,21 +226,18 @@ def _parse() -> argparse.Namespace:
     return args
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
+def _main(args: argparse.Namespace) -> None:
     """
     Main function to extract slides, notes, and text content from PowerPoint
     presentations.
 
-    :param parser: argument parser
+    :param args: parsed arguments
     """
-    # Check platform compatibility.
-    _check_platform()
-    # Parse command line arguments.
-    args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate input file.
     ppt_path = args.in_file
     hdbg.dassert_file_exists(ppt_path)
+    # TODO(ai): Make this parameter mandatory and remove the default value.
     # Determine output directory.
     if args.out_dir:
         output_dir = args.out_dir

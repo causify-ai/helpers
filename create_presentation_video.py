@@ -1,278 +1,242 @@
 #!/usr/bin/env python3
 
 """
-Script to create a video from PDF slides and video clips with picture-in-
-picture.
+Create a composite presentation video from slide MP4 files with PIP overlays.
 
-This script:
-1. Extracts the first page from presentation.pdf as an image
-2. Creates a video with:
-   - PDF page for 3 seconds with comment1.mp4 as picture-in-picture
+This script processes MP4 files in a directory to create a concatenated video
+with picture-in-picture overlays. For each slide_XYZ.mp4 file, it can include:
+- pip_XYZ.mp4 as a centered PIP overlay
+- comment_XYZ.mp4 as a bottom-right PIP overlay
 
-Requirements:
-- moviepy
-- PyMuPDF (fitz) or Pillow (for PDF processing)
-- Pillow (for image processing)
+Examples:
+# Basic usage
+> create_presentation_video.py --in_dir ./videos --out_file final.mp4
+    
+# With custom video settings
+> create_presentation_video.py --in_dir ./videos --out_file final.mp4 --resolution 1920x1080 --quality high
+
+Import as:
+    import create_presentation_video as cpv
 """
 
 import argparse
+import glob
 import logging
 import os
-import tempfile
-from typing import List, Tuple
+import re
+from typing import Dict, List, Optional, Tuple
 
-from moviepy import (
-    CompositeVideoClip,
-    ImageClip,
-    VideoFileClip,
-    concatenate_videoclips,
-)
+from moviepy import CompositeVideoClip, VideoFileClip, concatenate_videoclips
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
 
 
-# #############################################################################
-# PresentationVideoCreator
-# #############################################################################
-
-
-class PresentationVideoCreator:
+def _discover_slide_files(in_dir: str) -> List[Tuple[int, str]]:
     """
-    Creates videos from PowerPoint presentations and video clips.
+    Discover all slide_*.mp4 files in the directory.
+    
+    :param in_dir: input directory to search
+    :return: list of (slide_number, file_path) tuples sorted by slide number
     """
+    hdbg.dassert_dir_exists(in_dir)
+    pattern = os.path.join(in_dir, "slide_*.mp4")
+    slide_files = glob.glob(pattern)
+    # Extract slide numbers and sort.
+    slides = []
+    for file_path in slide_files:
+        filename = os.path.basename(file_path)
+        match = re.match(r"slide_(\d+)\.mp4", filename)
+        if match:
+            slide_num = int(match.group(1))
+            slides.append((slide_num, file_path))
+    # Sort by slide number.
+    slides.sort(key=lambda x: x[0])
+    _LOG.debug(f"Found {len(slides)} slide files")
+    return slides
 
-    def __init__(self, presentation_path: str = "videos/presentation.pdf"):
-        self.presentation_path = presentation_path
-        self.temp_dir = tempfile.mkdtemp()
 
-    def __enter__(self):
-        return self
+def _find_companion_files(
+    in_dir: str, slide_num: int
+) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Find pip and comment files for a given slide number.
+    
+    :param in_dir: input directory to search
+    :param slide_num: slide number to find companions for
+    :return: (pip_file_path, comment_file_path) tuple, None if not found
+    """
+    pip_file = os.path.join(in_dir, f"pip_{slide_num:03d}.mp4")
+    comment_file = os.path.join(in_dir, f"comment_{slide_num:03d}.mp4")
+    # Check if files exist.
+    pip_path = pip_file if os.path.exists(pip_file) else None
+    comment_path = comment_file if os.path.exists(comment_file) else None
+    return pip_path, comment_path
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._cleanup_temp_files()
 
-    def extract_slides_as_images(self) -> List[str]:
-        """
-        Extract slides from PDF presentation as PNG images.
+def _extend_video_with_freeze(
+    video_clip: VideoFileClip, target_duration: float
+) -> VideoFileClip:
+    """
+    Extend video to target duration by freezing the last frame.
+    
+    :param video_clip: video clip to extend
+    :param target_duration: target duration in seconds
+    :return: extended video clip
+    """
+    if video_clip.duration >= target_duration:
+        return video_clip.with_duration(target_duration)
+    # Freeze last frame for remaining duration.
+    from moviepy import ImageClip
+    last_frame = video_clip.get_frame(video_clip.duration - 0.01)
+    freeze_duration = target_duration - video_clip.duration
+    freeze_clip = ImageClip(last_frame, duration=freeze_duration)
+    # Concatenate original video with frozen frame.
+    extended_clip = concatenate_videoclips([video_clip, freeze_clip])
+    return extended_clip
 
-        Returns:
-            List of paths to extracted slide images
-        """
-        hdbg.dassert_file_exists(self.presentation_path)
-        import fitz  # PyMuPDF
 
-        # Open PDF
-        pdf_document = fitz.open(self.presentation_path)
-        slide_paths = []
-        num_pages = min(5, pdf_document.page_count)  # Extract up to 5 slides
-        for page_num in range(num_pages):
-            page = pdf_document[page_num]
-            # Render page as high-resolution image
-            mat = fitz.Matrix(3.0, 3.0)  # 3x resolution for high quality
-            pix = page.get_pixmap(matrix=mat)
-            # Save as PNG
-            slide_path = os.path.join(self.temp_dir, f"slide_{page_num + 1}.png")
-            pix.save(slide_path)
-            slide_paths.append(slide_path)
-        pdf_document.close()
-        return slide_paths
-
-    def create_pip_video(
-        self,
-        main_clip: VideoFileClip,
-        pip_video_path: str,
-        pip_position: Tuple[str, str] = ("right", "bottom"),
-        pip_size: Tuple[int, int] = (320, 240),
-    ) -> CompositeVideoClip:
-        """
-        Create picture-in-picture video.
-
-        Args:
-            main_clip: Main video clip
-            pip_video_path: Path to picture-in-picture video
-            pip_position: Position of PiP ('left'/'right', 'top'/'bottom')
-            pip_size: Size of PiP video (width, height)
-
-        Returns:
-            Composite video with picture-in-picture
-        """
-        # Load and resize PiP video
-        pip_clip = VideoFileClip(pip_video_path)
-        pip_clip = pip_clip.resized(pip_size)
-        # Handle duration mismatch - use the shorter duration to avoid index errors
-        target_duration = min(main_clip.duration, pip_clip.duration)
-        main_clip = main_clip.with_duration(target_duration)
-        pip_clip = pip_clip.with_duration(target_duration)
-        # Position PiP video
+def _create_pip_overlay(
+    pip_clip: VideoFileClip,
+    main_width: int,
+    main_height: int,
+    position: str = "center",
+    pip_scale: float = 0.25,
+) -> VideoFileClip:
+    """
+    Create PIP overlay with specified position and size.
+    
+    :param pip_clip: PIP video clip
+    :param main_width: width of main video
+    :param main_height: height of main video  
+    :param position: 'center' or 'bottom-right'
+    :param pip_scale: scale factor for PIP size relative to main video
+    :return: positioned PIP clip
+    """
+    # Calculate PIP dimensions.
+    pip_width = int(main_width * pip_scale)
+    pip_height = int(main_height * pip_scale)
+    # Resize PIP clip.
+    pip_clip = pip_clip.resized((pip_width, pip_height))
+    # Set position.
+    if position == "center":
+        x_pos = (main_width - pip_width) // 2
+        y_pos = (main_height - pip_height) // 2
+    elif position == "bottom-right":
         margin = 20
-        if pip_position[0] == "right":
-            x_pos = main_clip.w - pip_size[0] - margin
-        else:  # left
-            x_pos = margin
-        if pip_position[1] == "top":
-            y_pos = margin
-        else:  # bottom
-            y_pos = main_clip.h - pip_size[1] - margin
-        pip_clip = pip_clip.with_position((x_pos, y_pos))
-        # Create composite
-        return CompositeVideoClip([main_clip, pip_clip])
-
-    def create_slide_segment(
-        self, slide_path: str, pip_video_path: str, duration: int = 2
-    ) -> CompositeVideoClip:
-        """
-        Create a slide segment with picture-in-picture.
-
-        Args:
-            slide_path: Path to slide image
-            pip_video_path: Path to PiP video
-            duration: Duration in seconds for the slide
-
-        Returns:
-            Composite video clip with slide and PiP
-        """
-        slide_clip = ImageClip(slide_path).with_duration(duration)
-        return self.create_pip_video(slide_clip, pip_video_path)
-
-    def create_video_segment(
-        self, video_path: str, pip_video_path: str
-    ) -> CompositeVideoClip:
-        """
-        Create a video segment with picture-in-picture.
-
-        Args:
-            video_path: Path to main video
-            pip_video_path: Path to PiP video
-
-        Returns:
-            Composite video clip with main video and PiP
-        """
-        main_clip = VideoFileClip(video_path)
-        return self.create_pip_video(main_clip, pip_video_path)
-
-    def create_final_video(
-        self, output_path: str = "final_presentation_video.mp4"
-    ):
-        """
-        Create the final video according to specifications from instr.md.
-
-        Args:
-            output_path: Path for output video file
-        """
-        _LOG.info("Starting video creation process...")
-        # Extract slides
-        _LOG.info("Extracting slides...")
-        slide_paths = self.extract_slides_as_images()
-        if len(slide_paths) < 5:
-            _LOG.error(f"Need at least 5 slides, found {len(slide_paths)}")
-            return
-        video_clips = []
-        # Define video sequences according to instr.md
-        sequences = [
-            # (slide_index, slide_pip_video, main_video, main_pip_video)
-            (
-                0,
-                "videos/comment1.mp4",
-                "videos/Causify_Capital_Markets.mp4",
-                "videos/comment2.mp4",
-            ),
-            (
-                1,
-                "videos/comment3.mp4",
-                "videos/Causify_KaizenFlow.mp4",
-                "videos/comment2.mp4",
-            ),
-            (
-                2,
-                "videos/comment1.mp4",
-                "videos/Causify_Portfolio_construction.mp4",
-                "videos/comment2.mp4",
-            ),
-            (
-                3,
-                "videos/comment1.mp4",
-                "videos/Causify_Trading_Strategy_Dashboard.mp4",
-                "videos/comment2.mp4",
-            ),
-            (
-                4,
-                "videos/comment1.mp4",
-                "videos/Causify_Trading_Strategy_Dashboard.mp4",
-                "videos/comment2.mp4",
-            ),
-        ]
-        # Create all video segments
-        for i, (slide_idx, slide_pip, main_video, main_pip) in enumerate(
-            sequences, 1
-        ):
-            # print(f"Creating slide {i} segment...")
-            # slide_segment = self.create_slide_segment(slide_paths[slide_idx], slide_pip)
-            # video_clips.append(slide_segment)
-            _LOG.debug(f"Adding main video {i} segment...")
-            video_segment = self.create_video_segment(main_video, main_pip)
-            video_clips.append(video_segment)
-        # Concatenate all clips
-        _LOG.info("Concatenating video segments...")
-        final_video = concatenate_videoclips(video_clips)
-        # Write final video
-        _LOG.info(f"Writing final video to {output_path}...")
-        try:
-            final_video.write_videofile(
-                output_path,
-                # fps=24,
-                fps=6,
-                codec="libx264",
-                audio_codec="aac",
-            )
-        except Exception as e:
-            _LOG.error(f"Error writing video with libx264/aac: {e}")
-            _LOG.info("Trying with default codecs...")
-            try:
-                final_video.write_videofile(output_path, fps=24)
-            except Exception as e2:
-                _LOG.error(f"Error writing video with default codecs: {e2}")
-                raise
-        # Clean up
-        final_video.close()
-        for clip in video_clips:
-            clip.close()
-        _LOG.info(f"Video creation completed: {output_path}")
-
-    def _cleanup_temp_files(self):
-        """
-        Clean up temporary files.
-        """
-        import shutil
-
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
+        x_pos = main_width - pip_width - margin
+        y_pos = main_height - pip_height - margin
+    else:
+        # Default to center.
+        x_pos = (main_width - pip_width) // 2
+        y_pos = (main_height - pip_height) // 2
+    # Position the clip.
+    pip_clip = pip_clip.with_position((x_pos, y_pos))
+    return pip_clip
 
 
-def _parse() -> argparse.Namespace:
+def _create_slide_segment(
+    slide_path: str,
+    pip_path: Optional[str],
+    comment_path: Optional[str],
+    *,
+    pip_scale: float = 0.25,
+) -> VideoFileClip:
+    """
+    Create a composite video segment for one slide.
+    
+    :param slide_path: path to main slide video
+    :param pip_path: path to pip video (optional)
+    :param comment_path: path to comment video (optional)
+    :param pip_scale: scale factor for PIP overlays
+    :return: composite video clip
+    """
+    # Load main slide video.
+    main_clip = VideoFileClip(slide_path)
+    clips = [main_clip]
+    # Determine target duration (longest of all videos).
+    target_duration = main_clip.duration
+    pip_clip = None
+    comment_clip = None
+    # Load optional clips and find max duration.
+    if pip_path:
+        pip_clip = VideoFileClip(pip_path)
+        target_duration = max(target_duration, pip_clip.duration)
+    if comment_path:
+        comment_clip = VideoFileClip(comment_path)
+        target_duration = max(target_duration, comment_clip.duration)
+    # Extend all clips to target duration.
+    main_clip = _extend_video_with_freeze(main_clip, target_duration)
+    clips[0] = main_clip
+    # Add PIP overlay (center position).
+    if pip_clip:
+        pip_clip = _extend_video_with_freeze(pip_clip, target_duration)
+        pip_overlay = _create_pip_overlay(
+            pip_clip, main_clip.w, main_clip.h, "center", pip_scale
+        )
+        clips.append(pip_overlay)
+    # Add comment overlay (bottom-right position).
+    if comment_clip:
+        comment_clip = _extend_video_with_freeze(comment_clip, target_duration)
+        comment_overlay = _create_pip_overlay(
+            comment_clip, main_clip.w, main_clip.h, "bottom-right", pip_scale
+        )
+        clips.append(comment_overlay)
+    # Create composite.
+    if len(clips) == 1:
+        return clips[0]
+    else:
+        return CompositeVideoClip(clips)
+
+
+def _parse() -> argparse.ArgumentParser:
     """
     Parse command line arguments.
 
-    :return: parsed arguments
+    :return: argument parser
     """
     parser = argparse.ArgumentParser(
-        description="Create a video from PDF slides and video clips with picture-in-picture"
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_verbosity_arg(parser)
     parser.add_argument(
-        "--presentation",
-        default="videos/presentation.pdf",
-        help="Path to PDF presentation file",
+        "--in_dir",
+        required=True,
+        help="Input directory containing slide_*.mp4, pip_*.mp4, and comment_*.mp4 files",
     )
     parser.add_argument(
-        "--output",
-        default="presentation_with_pip.mp4",
+        "--out_file",
+        required=True,
         help="Output video file path",
     )
-    args = parser.parse_args()
-    return args
+    parser.add_argument(
+        "--resolution",
+        default="1920x1080",
+        help="Output video resolution (default: 1920x1080)",
+    )
+    parser.add_argument(
+        "--quality",
+        choices=["low", "medium", "high"],
+        default="medium",
+        help="Output video quality (default: medium)",
+    )
+    parser.add_argument(
+        "--fps",
+        type=int,
+        default=24,
+        help="Output video frame rate (default: 24)",
+    )
+    parser.add_argument(
+        "--pip_scale",
+        type=float,
+        default=0.25,
+        help="Scale factor for PIP overlays relative to main video (default: 0.25)",
+    )
+    return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -283,8 +247,81 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    with PresentationVideoCreator(args.presentation) as creator:
-        creator.create_final_video(args.output)
+    # Validate input directory.
+    in_dir = args.in_dir
+    hdbg.dassert_dir_exists(in_dir)
+    # Validate output file extension.
+    out_file = args.out_file
+    hdbg.dassert(
+        out_file.lower().endswith(".mp4"),
+        f"Output file must have .mp4 extension: {out_file}",
+    )
+    # Parse resolution.
+    try:
+        width, height = map(int, args.resolution.split("x"))
+    except ValueError:
+        hdbg.dfatal(f"Invalid resolution format: {args.resolution}. Use WIDTHxHEIGHT format")
+    # Ensure output directory exists.
+    output_dir = os.path.dirname(out_file)
+    if output_dir:
+        hio.create_dir(output_dir, incremental=True)
+    _LOG.info(f"Input directory: {in_dir}")
+    _LOG.info(f"Output file: {out_file}")
+    _LOG.info(f"Resolution: {width}x{height}")
+    _LOG.info(f"Quality: {args.quality}")
+    _LOG.info(f"FPS: {args.fps}")
+    _LOG.info(f"PIP scale: {args.pip_scale}")
+    # Discover slide files.
+    slides = _discover_slide_files(in_dir)
+    if not slides:
+        hdbg.dfatal(f"No slide_*.mp4 files found in directory: {in_dir}")
+    _LOG.info(f"Found {len(slides)} slides to process")
+    # Create video segments for each slide.
+    video_segments = []
+    for slide_num, slide_path in slides:
+        _LOG.info(f"Processing slide {slide_num:03d}: {os.path.basename(slide_path)}")
+        # Find companion files.
+        pip_path, comment_path = _find_companion_files(in_dir, slide_num)
+        if pip_path:
+            _LOG.debug(f"  Found PIP: {os.path.basename(pip_path)}")
+        if comment_path:
+            _LOG.debug(f"  Found comment: {os.path.basename(comment_path)}")
+        # Create composite segment.
+        segment = _create_slide_segment(
+            slide_path, pip_path, comment_path, pip_scale=args.pip_scale
+        )
+        video_segments.append(segment)
+    # Concatenate all segments.
+    _LOG.info("Concatenating video segments...")
+    final_video = concatenate_videoclips(video_segments)
+    # Resize to target resolution if needed.
+    if final_video.w != width or final_video.h != height:
+        _LOG.info(f"Resizing video from {final_video.w}x{final_video.h} to {width}x{height}")
+        final_video = final_video.resized((width, height))
+    # Determine quality settings.
+    quality_settings = {
+        "low": {"bitrate": "1000k"},
+        "medium": {"bitrate": "2000k"},
+        "high": {"bitrate": "4000k"},
+    }
+    bitrate = quality_settings[args.quality]["bitrate"]
+    # Write final video.
+    _LOG.info(f"Writing final video to: {out_file}")
+    final_video.write_videofile(
+        out_file,
+        fps=args.fps,
+        codec="libx264",
+        audio_codec="aac",
+        bitrate=bitrate,
+    )
+    # Clean up.
+    final_video.close()
+    for segment in video_segments:
+        segment.close()
+    _LOG.info(f"Video creation completed: {out_file}")
+    # Log final statistics.
+    total_duration = sum(segment.duration for segment in video_segments)
+    _LOG.info(f"Final video: {len(slides)} slides, {total_duration:.2f} seconds total")
 
 
 def main():
