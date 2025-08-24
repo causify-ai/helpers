@@ -312,7 +312,7 @@ Outputs include:
     """
     out_file="slide7"
     slides.append((script, out_file))
-    for script, out_file in slides[:1]:
+    for script, out_file in slides[1:]:
         try:
             avatar = "f4f1005e-6851-414a-9120-d48122613fa0"
             background = "workspace-media.c4ab7049-8479-4855-9856-e0d7f2854027"

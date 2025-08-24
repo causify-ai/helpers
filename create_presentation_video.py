@@ -34,7 +34,7 @@ import helpers.hdbg as hdbg
 class PresentationVideoCreator:
     """Creates videos from PowerPoint presentations and video clips."""
     
-    def __init__(self, presentation_path: str = "presentation.pdf"):
+    def __init__(self, presentation_path: str = "videos/presentation.pdf"):
         self.presentation_path = presentation_path
         self.temp_dir = tempfile.mkdtemp()
         
@@ -64,23 +64,23 @@ class PresentationVideoCreator:
         # Open PDF
         pdf_document = fitz.open(self.presentation_path)
         
-        # Extract first page only
-        page = pdf_document[0]
+        slide_paths = []
+        num_pages = min(5, pdf_document.page_count)  # Extract up to 5 slides
         
-        # Render page as high-resolution image
-        mat = fitz.Matrix(3.0, 3.0)  # 3x resolution for high quality
-        pix = page.get_pixmap(matrix=mat)
-        
-        # Save as PNG
-        slide_path = os.path.join(self.temp_dir, "slide_1.png")
-        pix.save(slide_path)
-        
-        # Create duplicate for compatibility
-        slide_path_2 = os.path.join(self.temp_dir, "slide_2.png")
-        pix.save(slide_path_2)
+        for page_num in range(num_pages):
+            page = pdf_document[page_num]
+            
+            # Render page as high-resolution image
+            mat = fitz.Matrix(3.0, 3.0)  # 3x resolution for high quality
+            pix = page.get_pixmap(matrix=mat)
+            
+            # Save as PNG
+            slide_path = os.path.join(self.temp_dir, f"slide_{page_num + 1}.png")
+            pix.save(slide_path)
+            slide_paths.append(slide_path)
         
         pdf_document.close()
-        return [slide_path, slide_path_2]
+        return slide_paths
             
     def create_pip_video(self, main_clip: VideoFileClip, pip_video_path: str, 
                         pip_position: Tuple[str, str] = ('right', 'bottom'),
@@ -97,16 +97,14 @@ class PresentationVideoCreator:
         Returns:
             Composite video with picture-in-picture
         """
-        # if not os.path.exists(pip_video_path):
-        #     print(f"Warning: {pip_video_path} not found. Creating placeholder.")
-        #     pip_video_path = self._create_placeholder_video(pip_video_path, pip_size)
-        
         # Load and resize PiP video
         pip_clip = VideoFileClip(pip_video_path)
         pip_clip = pip_clip.resized(pip_size)
         
-        # Match duration with main clip
-        pip_clip = pip_clip.with_duration(main_clip.duration)
+        # Handle duration mismatch - use the shorter duration to avoid index errors
+        target_duration = min(main_clip.duration, pip_clip.duration)
+        main_clip = main_clip.with_duration(target_duration)
+        pip_clip = pip_clip.with_duration(target_duration)
         
         # Position PiP video
         margin = 20
@@ -125,25 +123,38 @@ class PresentationVideoCreator:
         # Create composite
         return CompositeVideoClip([main_clip, pip_clip])
     
-    # def _create_placeholder_video(self, video_path: str, size: Tuple[int, int]) -> str:
-    #     """Create a placeholder video file."""
-    #     placeholder_path = os.path.join(self.temp_dir, f"placeholder_{os.path.basename(video_path)}")
+    def create_slide_segment(self, slide_path: str, pip_video_path: str, duration: int = 2) -> CompositeVideoClip:
+        """
+        Create a slide segment with picture-in-picture.
         
-    #     # Create a simple colored clip
-    #     from moviepy import ColorClip
-    #     placeholder_clip = ColorClip(size=size, color=(100, 150, 200), duration=5)
-    #     try:
-    #         placeholder_clip.write_videofile(placeholder_path, fps=24)
-    #     except Exception as e:
-    #         print(f"Warning: Could not create placeholder video: {e}")
-    #         # Return the original path anyway, caller will handle
-    #         pass
+        Args:
+            slide_path: Path to slide image
+            pip_video_path: Path to PiP video
+            duration: Duration in seconds for the slide
+            
+        Returns:
+            Composite video clip with slide and PiP
+        """
+        slide_clip = ImageClip(slide_path).with_duration(duration)
+        return self.create_pip_video(slide_clip, pip_video_path)
+    
+    def create_video_segment(self, video_path: str, pip_video_path: str) -> CompositeVideoClip:
+        """
+        Create a video segment with picture-in-picture.
         
-    #     return placeholder_path
+        Args:
+            video_path: Path to main video
+            pip_video_path: Path to PiP video
+            
+        Returns:
+            Composite video clip with main video and PiP
+        """
+        main_clip = VideoFileClip(video_path)
+        return self.create_pip_video(main_clip, pip_video_path)
     
     def create_final_video(self, output_path: str = "final_presentation_video.mp4"):
         """
-        Create the final video according to specifications.
+        Create the final video according to specifications from instr.md.
         
         Args:
             output_path: Path for output video file
@@ -154,34 +165,31 @@ class PresentationVideoCreator:
         print("Extracting slides...")
         slide_paths = self.extract_slides_as_images()
         
-        if len(slide_paths) < 2:
-            print("Error: Need at least 2 slides")
+        if len(slide_paths) < 5:
+            print(f"Error: Need at least 5 slides, found {len(slide_paths)}")
             return
         
         video_clips = []
         
-        # 1. Slide 1 for 5 seconds with comment1.mp4 PiP
-        print("Creating slide 1 segment...")
-        slide1_clip = ImageClip(slide_paths[0]).with_duration(3)
-        slide1_with_pip = self.create_pip_video(slide1_clip, "comment1.mp4")
-        video_clips.append(slide1_with_pip)
+        # Define video sequences according to instr.md
+        sequences = [
+            # (slide_index, slide_pip_video, main_video, main_pip_video)
+            (0, "videos/comment1.mp4", "videos/Causify_Capital_Markets.mp4", "videos/comment2.mp4"),
+            (1, "videos/comment3.mp4", "videos/Causify_KaizenFlow.mp4", "videos/comment2.mp4"),
+            (2, "videos/comment1.mp4", "videos/Causify_Portfolio_construction.mp4", "videos/comment2.mp4"),
+            (3, "videos/comment1.mp4", "videos/Causify_Trading_Strategy_Dashboard.mp4", "videos/comment2.mp4"),
+            (4, "videos/comment1.mp4", "videos/Causify_Trading_Strategy_Dashboard.mp4", "videos/comment2.mp4"),
+        ]
         
-        if True:
-            # 2. demo1.mp4 with comment2.mp4 PiP
-            print("Creating demo1 segment...")
-            hdbg.dassert_file_exists("demo1.mp4")
-            demo1_clip = VideoFileClip("demo1.mp4")
-                
-            demo1_with_pip = self.create_pip_video(demo1_clip, "comment2.mp4")
-            video_clips.append(demo1_with_pip)
-        
-        if True:
-            # 3. Slide 2 with comment3.mp4 PiP
-            print("Creating slide 2 segment...")
-            hdbg.dassert_file_exists("commet3.mp4")
-            slide2_clip = ImageClip(slide_paths[1]).with_duration(3)  # Default 5 seconds
-            slide2_with_pip = self.create_pip_video(slide2_clip, "comment3.mp4")
-            video_clips.append(slide2_with_pip)
+        # Create all video segments
+        for i, (slide_idx, slide_pip, main_video, main_pip) in enumerate(sequences, 1):
+            # print(f"Creating slide {i} segment...")
+            # slide_segment = self.create_slide_segment(slide_paths[slide_idx], slide_pip)
+            # video_clips.append(slide_segment)
+            
+            print(f"Adding main video {i} segment...")  
+            video_segment = self.create_video_segment(main_video, main_pip)
+            video_clips.append(video_segment)
         
         # Concatenate all clips
         print("Concatenating video segments...")
@@ -192,7 +200,8 @@ class PresentationVideoCreator:
         try:
             final_video.write_videofile(
                 output_path,
-                fps=24,
+                #fps=24,
+                fps=6,
                 codec='libx264',
                 audio_codec='aac'
             )
@@ -211,30 +220,11 @@ class PresentationVideoCreator:
             clip.close()
         
         print(f"Video creation completed: {output_path}")
-    
-    def _create_demo_placeholder(self) -> VideoFileClip:
-        """Create a placeholder for demo1.mp4."""
-        from moviepy import ColorClip, TextClip, CompositeVideoClip
-        
-        # Create background
-        bg = ColorClip(size=(1920, 1080), color=(50, 50, 50), duration=10)
-        
-        # Add text
-        try:
-            text = TextClip("Demo Video Placeholder", fontsize=50, color='white')
-            text = text.with_position('center').with_duration(10)
-            demo_clip = CompositeVideoClip([bg, text])
-        except Exception as e:
-            print(f"Warning: TextClip failed ({e}), using plain background")
-            # Fallback if TextClip fails
-            demo_clip = bg
-            
-        return demo_clip
 
 
 def main():
     """Main function to create the presentation video."""
-    with PresentationVideoCreator("presentation.pdf") as creator:
+    with PresentationVideoCreator("videos/presentation.pdf") as creator:
         creator.create_final_video("presentation_with_pip.mp4")
 
 
