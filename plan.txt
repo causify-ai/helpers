@@ -12,7 +12,7 @@ slide_002:
     width: 600
     duration: "fill"
   comment:
-    coords: [1000, 550]
+    coords: [1100, 500]
     width: 300
     duration: "normal"
 
@@ -23,29 +23,29 @@ slide_003:
     width: 600
     duration: "fill"
   comment:
-    coords: [1000, 550]
+    coords: [1100, 500]
     width: 300
     duration: "normal"
 
 slide_004:
   # Standalone applications.
   comment:
-    coords: [50, 50]
-    width: 380
-    duration: "fill"
+    coords: [1100, 500]
+    width: 300
+    duration: "normal"
 
 slide_005:
   # Strategy manager: specs.
   pip:
-    coords: [600, 200]
-    width: 450
+    coords: [200, 100]
+    width: 600
     duration: "fill"
 
 slide_006:
   # Strategy manager: demo.
   pip:
-    coords: [200, 500]
-    width: 400
+    coords: [200, 100]
+    width: 1300
     duration: "normal"
 
 slide_007:
@@ -62,8 +62,8 @@ slide_007:
 slide_008:
   # Portfolio construction: demo.
   pip:
-    coords: [400, 150]
-    width: 420
+    coords: [200, 100]
+    width: 1300
     duration: "fill"
 
 # slide_009 (009_slide.mp4) has no pip or comment files, so it will use default

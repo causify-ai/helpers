@@ -30,6 +30,7 @@ from typing import Any, Dict
 import requests
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -212,17 +213,18 @@ def _parse() -> argparse.Namespace:
     # parser.add_argument("--no-test", action="store_true", help="Disable test mode (videos may count against your quota)")
     # parser.add_argument("--extra", default=None, help="JSON for extra per-scene overrides (advanced)")
     parser.add_argument("--slide", type=int, default=0, help="Slide number")
+    parser.add_argument("--in_dir", default="videos", help="Directory containing xyz_text.txt files")
+    parser.add_argument("--slides", help="Range of slides to process (e.g., '001:003', '002:005,007:009')")
     args = parser.parse_args()
     return args
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
+def _main(args: argparse.Namespace) -> None:
     """
     Main function to create Synthesia videos.
 
-    :param parser: argument parser
+    :param args: parsed arguments
     """
-    args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     api_key = os.getenv("SYNTHESIA_API_KEY")
     hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
@@ -234,112 +236,38 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #         print(f"--extra must be valid JSON: {e}", file=sys.stderr)
     #         sys.exit(2)
     slides = []
-    script = """
-Hi, I’m <sub alias="GP sah-JEH-seh">GP Saggese</sub>, co-founder and CTO of Causify AI.
-I hold a PhD in Electrical and Computer Engineering from UIUC, and for the past 20 years I’ve built high-performance machine learning systems at companies such as NVIDIA, Intel, and Synopsys.
-
-I also bring over 15 years of experience in systematic hedge funds—working as a portfolio manager, quant, head of data, and leading software platform development.
-"""
+    in_dir = args.in_dir
+    # Read script from file.
+    script = hio.from_file(os.path.join(in_dir, "001_text.txt"))
     out_file = "slide1"
     slides.append((script, out_file))
     #
-    script = """
-<sub alias="">https://docs.google.com/document/d/18SywZGD4HskyqMZyBsecZRJtbQo8fDH_eokeX_00S6E</sub>
-
-Over the past two years, Causify has developed and licensed a powerful platform designed specifically for hedge funds and asset managers.
-
-- Streamlines data onboarding, alpha signal development, risk model testing, and strategy optimization
-- Supports the full lifecycle—from research and backtesting to deployment, live trading, monitoring, and refinement
-- Operates seamlessly across time horizons ranging from minutes to weeks
-
-The platform represents over a decade of engineering effort and more than one million lines of production code.
-In short, it is best described as a quantitative hedge fund in a box.
-
-It natively supports causal modeling, has been battle-tested in live markets, and today manages approximately $6 billion in AUM across equities and cryptocurrency for several hedge funds.
-    """
+    # Read script from file.
+    script = hio.from_file(os.path.join(in_dir, "002_text.txt"))
     out_file = "slide2"
     slides.append((script, out_file))
-    #
-    script = """
-KaizenFlow allows teams to rapidly build, test, and deploy AI-driven trading strategies using state-of-the-art techniques, including:
-
-- A fully probabilistic, explainable causal AI engine grounded in Bayesian theory
-- An automated pipeline that accelerates the journey from idea to production—reducing deployment time from six months to under four weeks
-- A proprietary real-time data processing engine that identifies alpha signals even in environments with non-stationarity and non-Gaussian distributions
-
-The result:
-
-- 5x increase in productivity
-- Reduced engineering costs
-- A platform that empowers quants, quant developers, and DevOps teams
-- Managers scale faster by tapping into a wider pool of available talent
-
-The platform is modular, covering the full workflow:
-
-- Data Onboarding
-- Feature Engineering
-- Alpha Generation
-- Risk Modeling
-- Portfolio Optimization
-- Risk & Execution Management
-
-It supports both batch and streaming time-series workflows, enforces precise timing semantics, and prevents common pitfalls like look-ahead bias.
-
-Additional features include:
-
-- High observability and debuggability
-- Incremental and cached computation
-- Parallelism and scalability
-- Direct integration with Jupyter notebooks and APIs
-- Full support for Airflow scheduling and monitoring
-    """
+    # Read script from file.
+    script = hio.from_file(os.path.join(in_dir, "003_text.txt"))
     out_file = "slide3"
     slides.append((script, out_file))
     #
-    script = """
-We’ve begun releasing components of Kaizen Flow as standalone SaaS applications:
-
-Strategy Manager Dashboard – For performance tracking, correlation analysis, and reporting
-Risk & Performance Dashboard – For VaR, volatility, and exposure monitoring
-Portfolio Optimization Tool – For mean-variance optimization and efficient frontier analysis
-
-Each application is designed with modern, intuitive UIs, drag-and-drop data uploads, and flexible export/reporting options.
-    """
+    # Read script from file.
+    script = hio.from_file(os.path.join(in_dir, "004_text.txt"))
     out_file = "slide4"
     slides.append((script, out_file))
     #
-    script = """
-We provide interactive dashboards that let users:
-
-- Track key performance metrics (e.g., Sharpe ratio, annualized return, volatility, drawdowns)
-- Compare correlations across managers and strategies
-- Generate automated reports in CSV or Excel format
-- Slice, dice, and visualize data over selected time ranges or head-to-head comparisons
-
-Our risk management components allow users to:
-
-- Compute volatility and value-at-risk (VaR) at multiple confidence levels
-- Perform rolling risk estimates and monitor exposures
-- Run event analysis, measuring strategy performance under specific market conditions
-    """
+    # Read script from file.
+    script = hio.from_file(os.path.join(in_dir, "005_text.txt"))
     out_file = "slide5"
     slides.append((script, out_file))
     #
-    script = """
-The portfolio construction module enables:
-
-- Optimal allocation of capital given alpha forecasts and current positions
-- Mean-variance optimization and advanced risk-based approaches
-- Incorporation of market impact models (both transient and persistent)
-- Constraints such as diversification and risk-budgeting
-- Scenario analysis with custom inputs and overrides
-
-Outputs include:
-
-- The efficient frontier for trade-offs between expected return and volatility
-- Portfolio simulations under varying covariance matrix estimations and risk preferences
-    """
+    # Read script from file.
+    script = hio.from_file(os.path.join(in_dir, "007_text.txt"))
     out_file = "slide7"
+    slides.append((script, out_file))
+    # Read script from file.
+    script = hio.from_file(os.path.join(in_dir, "009_text.txt"))
+    out_file = "slide8"
     slides.append((script, out_file))
     for script, out_file in slides[1:]:
         try:
@@ -374,7 +302,8 @@ def main() -> None:
     """
     Main entry point.
     """
-    _main(_parse())
+    args = _parse()
+    _main(args)
 
 
 if __name__ == "__main__":
