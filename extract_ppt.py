@@ -213,12 +213,16 @@ def _parse() -> argparse.Namespace:
     return args
 
 
-def main():
+def _main(parser: argparse.ArgumentParser) -> None:
     """
     Main function to extract slides, notes, and text content from PowerPoint presentations.
+    
+    :param parser: argument parser
     """
+    # Check platform compatibility.
+    _check_platform()
     # Parse command line arguments.
-    args = _parse()
+    args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate input file.
     ppt_path = args.in_file
@@ -258,6 +262,13 @@ def main():
     _LOG.info("Extracting text content...")
     extract_text_content(ppt_path, output_dir)
     _LOG.info(f"Extraction complete! Check the '{output_dir}' directory.")
+
+
+def main():
+    """
+    Main entry point.
+    """
+    _main(_parse())
 
 
 if __name__ == "__main__":

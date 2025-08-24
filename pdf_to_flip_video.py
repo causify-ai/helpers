@@ -24,6 +24,7 @@ Tested with MoviePy 2.1.2 import paths and "with_*" APIs.
 """
 
 import argparse
+import logging
 import os
 import sys
 from typing import List, Tuple
@@ -35,7 +36,12 @@ import numpy as np
 # MoviePy v2.x
 from moviepy import ImageClip, ImageSequenceClip, CompositeVideoClip, concatenate_videoclips
 
-def pdf_to_images(pdf_path: str, dpi: int = 200) -> List[Image.Image]:
+import helpers.hdbg as hdbg
+import helpers.hparser as hparser
+
+_LOG = logging.getLogger(__name__)
+
+def pdf_to_images(pdf_path: str, *, dpi: int = 200) -> List[Image.Image]:
     """Convert PDF pages to a list of PIL Images."""
     images = convert_from_path(pdf_path, dpi=dpi)
     return images
@@ -46,7 +52,7 @@ def ensure_even_dimensions(w: int, h: int) -> Tuple[int, int]:
     if h % 2 != 0: h += 1
     return w, h
 
-def crossfade_sequence(prev_img: Image.Image, next_img: Image.Image, dur: float, fps: int) -> ImageSequenceClip:
+def _crossfade_sequence(prev_img: Image.Image, next_img: Image.Image, dur: float, fps: int) -> ImageSequenceClip:
     """Create an ImageSequenceClip that linearly crossfades from prev_img to next_img over dur seconds."""
     base_w, base_h = prev_img.size
     # Ensure same size
@@ -71,7 +77,7 @@ def crossfade_sequence(prev_img: Image.Image, next_img: Image.Image, dur: float,
 
     return ImageSequenceClip(frames, fps=fps)
 
-def make_crossfade_video(images: List[Image.Image], page_duration: float, crossfade: float, fps: int, out_path: str):
+def _make_crossfade_video(images: List[Image.Image], page_duration: float, crossfade: float, fps: int, out_path: str):
     """Create a video with crossfade transitions between pages (MoviePy 2.x safe)."""
     if crossfade < 0:
         crossfade = 0.0
@@ -92,7 +98,7 @@ def make_crossfade_video(images: List[Image.Image], page_duration: float, crossf
 
     # For each subsequent page, append transition + page hold
     for i in range(1, len(norm)):
-        trans = crossfade_sequence(norm[i-1], norm[i], crossfade, fps) if crossfade > 0 else None
+        trans = _crossfade_sequence(norm[i-1], norm[i], crossfade, fps) if crossfade > 0 else None
         hold = ImageClip(np.array(norm[i])).with_duration(page_duration)
         if trans is not None:
             clips.extend([trans, hold])
@@ -102,7 +108,7 @@ def make_crossfade_video(images: List[Image.Image], page_duration: float, crossf
     final = concatenate_videoclips(clips, method="compose")
     final.write_videofile(out_path, fps=fps, audio=False, codec="libx264", preset="medium")
 
-def slide_transition_clip(prev_img: Image.Image, next_img: Image.Image, dur: float):
+def _slide_transition_clip(prev_img: Image.Image, next_img: Image.Image, dur: float):
     """Return a CompositeVideoClip that slides next_img from right -> left over prev_img (MoviePy 2.x API)."""
     base_w, base_h = prev_img.size
     base_w, base_h = ensure_even_dimensions(base_w, base_h)
@@ -127,7 +133,7 @@ def slide_transition_clip(prev_img: Image.Image, next_img: Image.Image, dur: flo
     comp = CompositeVideoClip([sliding_prev, moving_next], size=(base_w, base_h)).with_duration(dur)
     return comp
 
-def make_slide_video(images: List[Image.Image], page_duration: float, transition: float, fps: int, out_path: str):
+def _make_slide_video(images: List[Image.Image], page_duration: float, transition: float, fps: int, out_path: str):
     """Create a video where each next page slides in from the right (book-like)."""
     base_w, base_h = images[0].size
     base_w, base_h = ensure_even_dimensions(base_w, base_h)
@@ -146,14 +152,20 @@ def make_slide_video(images: List[Image.Image], page_duration: float, transition
 
     for i in range(1, len(norm)):
         hold = ImageClip(np.array(norm[i])).with_duration(page_duration)
-        trans = slide_transition_clip(norm[i-1], norm[i], transition)
+        trans = _slide_transition_clip(norm[i-1], norm[i], transition)
         clips.extend([trans, hold])
 
     final = concatenate_videoclips(clips, method="compose")
     final.write_videofile(out_path, fps=fps, audio=False, codec="libx264", preset="medium")
 
-def main():
+def _parse() -> argparse.Namespace:
+    """
+    Parse command line arguments.
+    
+    :return: parsed arguments
+    """
     parser = argparse.ArgumentParser(description="Create a 'turning pages' video from a PDF (MoviePy 2.1.2 compatible).")
+    hparser.add_verbosity_arg(parser)
     parser.add_argument("pdf", help="Path to the PDF file")
     parser.add_argument("--out", default="out.mp4", help="Output video path (e.g., out.mp4)")
     parser.add_argument("--dpi", type=int, default=200, help="DPI for rasterizing PDF pages (higher = sharper, slower)")
@@ -162,28 +174,40 @@ def main():
     parser.add_argument("--transition", type=float, default=0.6, help="Transition duration in seconds")
     parser.add_argument("--style", choices=["crossfade", "slide"], default="crossfade", help="Transition style")
     args = parser.parse_args()
+    return args
 
-    if not os.path.isfile(args.pdf):
-        print(f"Error: PDF not found: {args.pdf}", file=sys.stderr)
-        sys.exit(1)
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Main function to create PDF flip video.
+    
+    :param parser: argument parser
+    """
+    args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+
+    hdbg.dassert_file_exists(args.pdf)
 
     images = pdf_to_images(args.pdf, dpi=args.dpi)
-    if len(images) == 0:
-        print("Error: No pages found in PDF.", file=sys.stderr)
-        sys.exit(1)
+    hdbg.dassert(len(images) > 0, "No pages found in PDF")
 
-    # Ensure even dimensions on the first image (others are normalized later)
+    # Ensure even dimensions on the first image (others are normalized later).
     w, h = images[0].size
     w, h = ensure_even_dimensions(w, h)
     if images[0].size != (w, h):
         images[0] = images[0].resize((w, h), Image.LANCZOS)
 
     if args.style == "crossfade":
-        make_crossfade_video(images, page_duration=args.page_duration, crossfade=args.transition, fps=args.fps, out_path=args.out)
+        _make_crossfade_video(images, page_duration=args.page_duration, crossfade=args.transition, fps=args.fps, out_path=args.out)
     else:
-        make_slide_video(images, page_duration=args.page_duration, transition=args.transition, fps=args.fps, out_path=args.out)
+        _make_slide_video(images, page_duration=args.page_duration, transition=args.transition, fps=args.fps, out_path=args.out)
 
-    print(f"✅ Done! Wrote: {args.out}")
+    _LOG.info(f"Done! Wrote: {args.out}")
+
+
+def main():
+    """Main entry point."""
+    _main(_parse())
 
 if __name__ == "__main__":
     main()

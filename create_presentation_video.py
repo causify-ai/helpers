@@ -14,6 +14,8 @@ Requirements:
 - Pillow (for image processing)
 """
 
+import argparse
+import logging
 import os
 import sys
 from pathlib import Path
@@ -29,6 +31,9 @@ from PIL import Image
 import tempfile
 
 import helpers.hdbg as hdbg
+import helpers.hparser as hparser
+
+_LOG = logging.getLogger(__name__)
 
 
 class PresentationVideoCreator:
@@ -159,14 +164,14 @@ class PresentationVideoCreator:
         Args:
             output_path: Path for output video file
         """
-        print("Starting video creation process...")
+        _LOG.info("Starting video creation process...")
         
         # Extract slides
-        print("Extracting slides...")
+        _LOG.info("Extracting slides...")
         slide_paths = self.extract_slides_as_images()
         
         if len(slide_paths) < 5:
-            print(f"Error: Need at least 5 slides, found {len(slide_paths)}")
+            _LOG.error(f"Need at least 5 slides, found {len(slide_paths)}")
             return
         
         video_clips = []
@@ -187,16 +192,16 @@ class PresentationVideoCreator:
             # slide_segment = self.create_slide_segment(slide_paths[slide_idx], slide_pip)
             # video_clips.append(slide_segment)
             
-            print(f"Adding main video {i} segment...")  
+            _LOG.debug(f"Adding main video {i} segment...")  
             video_segment = self.create_video_segment(main_video, main_pip)
             video_clips.append(video_segment)
         
         # Concatenate all clips
-        print("Concatenating video segments...")
+        _LOG.info("Concatenating video segments...")
         final_video = concatenate_videoclips(video_clips)
         
         # Write final video
-        print(f"Writing final video to {output_path}...")
+        _LOG.info(f"Writing final video to {output_path}...")
         try:
             final_video.write_videofile(
                 output_path,
@@ -206,12 +211,12 @@ class PresentationVideoCreator:
                 audio_codec='aac'
             )
         except Exception as e:
-            print(f"Error writing video with libx264/aac: {e}")
-            print("Trying with default codecs...")
+            _LOG.error(f"Error writing video with libx264/aac: {e}")
+            _LOG.info("Trying with default codecs...")
             try:
                 final_video.write_videofile(output_path, fps=24)
             except Exception as e2:
-                print(f"Error writing video with default codecs: {e2}")
+                _LOG.error(f"Error writing video with default codecs: {e2}")
                 raise
         
         # Clean up
@@ -219,13 +224,48 @@ class PresentationVideoCreator:
         for clip in video_clips:
             clip.close()
         
-        print(f"Video creation completed: {output_path}")
+        _LOG.info(f"Video creation completed: {output_path}")
+
+
+def _parse() -> argparse.Namespace:
+    """
+    Parse command line arguments.
+    
+    :return: parsed arguments
+    """
+    parser = argparse.ArgumentParser(
+        description="Create a video from PDF slides and video clips with picture-in-picture"
+    )
+    hparser.add_verbosity_arg(parser)
+    parser.add_argument(
+        "--presentation",
+        default="videos/presentation.pdf",
+        help="Path to PDF presentation file"
+    )
+    parser.add_argument(
+        "--output",
+        default="presentation_with_pip.mp4",
+        help="Output video file path"
+    )
+    args = parser.parse_args()
+    return args
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Main function to create the presentation video.
+    
+    :param parser: argument parser
+    """
+    args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    with PresentationVideoCreator(args.presentation) as creator:
+        creator.create_final_video(args.output)
 
 
 def main():
-    """Main function to create the presentation video."""
-    with PresentationVideoCreator("videos/presentation.pdf") as creator:
-        creator.create_final_video("presentation_with_pip.mp4")
+    """Main entry point."""
+    _main(_parse())
 
 
 if __name__ == "__main__":

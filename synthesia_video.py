@@ -22,12 +22,18 @@ Notes:
 
 import argparse
 import json
+import logging
 import os
 import sys
 import time
 from typing import Any, Dict, Optional
 
 import requests
+
+import helpers.hdbg as hdbg
+import helpers.hparser as hparser
+
+_LOG = logging.getLogger(__name__)
 
 API_BASE = "https://api.synthesia.io/v2"
 TIMEOUT = 30  # seconds per HTTP request
@@ -55,6 +61,7 @@ def create_video(
     avatar: str,
     title: str,
     background: str,
+    *,
     aspect_ratio: str = "5:4",
     resolution: str = "720p",
     audio_only: bool = False,
@@ -177,8 +184,14 @@ def create_video(
 #         print(f"Saved captions (VTT) to {vtt_path}")
 
 
-def main() -> None:
+def _parse() -> argparse.Namespace:
+    """
+    Parse command line arguments.
+    
+    :return: parsed arguments
+    """
     parser = argparse.ArgumentParser(description="Create a Synthesia video from text + avatar and download it.")
+    hparser.add_verbosity_arg(parser)
     # parser.add_argument("--script", required=True, help="The text to speak in the scene (scriptText)")
     # parser.add_argument("--avatar", required=False, help="Avatar ID (e.g. anna_costume1_cameraA) - not needed for audio-only")
     # parser.add_argument("--title", default="API Video via Python")
@@ -191,11 +204,20 @@ def main() -> None:
     # parser.add_argument("--extra", default=None, help="JSON for extra per-scene overrides (advanced)")
     parser.add_argument("--slide", type=int, default=0, help="Slide number")
     args = parser.parse_args()
+    return args
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Main function to create Synthesia videos.
+    
+    :param parser: argument parser
+    """
+    args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
 
     api_key = os.getenv("SYNTHESIA_API_KEY")
-    if not api_key:
-        print("Environment variable SYNTHESIA_API_KEY is not set.", file=sys.stderr)
-        sys.exit(2)
+    hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
 
     # extra = None
     # if args.extra:
@@ -332,13 +354,18 @@ Outputs include:
                 test=test,
                 #extra_scene_overrides=extra,
             )
-            print(f"Created video: id={video_id}")
+            _LOG.info(f"Created video: id={video_id}")
         except requests.RequestException as e:
-            print(f"HTTP error: {e}", file=sys.stderr)
+            _LOG.error(f"HTTP error: {e}")
             sys.exit(1)
         except SynthesiaError as e:
-            print(f"Synthesia API error: {e}", file=sys.stderr)
+            _LOG.error(f"Synthesia API error: {e}")
             sys.exit(1)
+
+
+def main() -> None:
+    """Main entry point."""
+    _main(_parse())
 
 
 if __name__ == "__main__":
