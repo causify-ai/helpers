@@ -1,0 +1,69 @@
+slide_001:
+  # Only comment available for slide 001
+  comment:
+    coords: [1200, 50]     # Top-right corner positioning
+    width: 350             # Medium width for good visibility
+    duration: "normal"     # Keep original timing
+
+slide_002:
+  # Both pip and comment available for slide 002
+  pip:
+    coords: [100, 100]     # Top-left with margin
+    width: 400             # Larger pip for emphasis
+    duration: "fill"       # Slow down to match segment
+  comment:
+    coords: [1000, 650]    # Bottom-right positioning
+    width: 300             # Standard comment width
+    duration: "normal"     # Original timing
+
+slide_003:
+  # Both pip and comment available for slide 003
+  pip:
+    coords: [50, 300]      # Left side, vertically centered
+    width: 350             # Medium size
+    duration: "normal"     # Original timing
+  comment:
+    coords: [1100, 100]    # Top-right area
+    width: 320             # Slightly larger comment
+    duration: "fill"       # Slow down to match
+
+slide_004:
+  # Only comment available for slide 004
+  comment:
+    coords: [50, 50]       # Top-left corner
+    width: 380             # Larger for single overlay
+    duration: "fill"       # Slow down for emphasis
+
+slide_005:
+  # Only pip available for slide 005
+  pip:
+    coords: [600, 200]     # Center-right positioning
+    width: 450             # Large pip when it's the only overlay
+    duration: "fill"       # Fill the segment duration
+
+slide_006:
+  # Only pip available for slide 006
+  pip:
+    coords: [200, 500]     # Lower-left area
+    width: 400             # Good size for single overlay
+    duration: "normal"     # Keep original timing
+
+slide_007:
+  # Both pip and comment available for slide 007
+  pip:
+    coords: [800, 300]     # Right side, middle
+    width: 380             # Good balance size
+    duration: "normal"     # Original timing
+  comment:
+    coords: [100, 600]     # Bottom-left corner
+    width: 340             # Medium-large comment
+    duration: "fill"       # Slow down to match
+
+slide_008:
+  # Only pip available for slide 008
+  pip:
+    coords: [400, 150]     # Center-top positioning
+    width: 420             # Prominent size
+    duration: "fill"       # Fill duration for emphasis
+
+# slide_009 has no pip or comment files, so it will use default behavior (no overlays)

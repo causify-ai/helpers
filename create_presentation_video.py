@@ -8,12 +8,34 @@ with picture-in-picture overlays. For each slide_XYZ.mp4 file, it can include:
 - pip_XYZ.mp4 as a centered PIP overlay
 - comment_XYZ.mp4 as a bottom-right PIP overlay
 
+The script supports two modes:
+1. Default mode: Uses fixed positioning (center for pip, bottom-right for comment)
+2. Plan mode: Uses a plan.txt file to specify custom coordinates, width, and duration handling
+
+Plan.txt Format (YAML-like structure):
+slide_001:
+  pip:
+    coords: [x, y]
+    width: pixels
+    duration: "fill" | "normal"
+  comment:
+    coords: [x, y]  
+    width: pixels
+    duration: "fill" | "normal"
+
+Duration modes:
+- "fill": Video is slowed down to match segment duration
+- "normal": Video keeps original duration, last frame frozen if needed
+
 Examples:
 # Basic usage
 > create_presentation_video.py --in_dir ./videos --out_file final.mp4
     
 # With custom video settings
 > create_presentation_video.py --in_dir ./videos --out_file final.mp4 --resolution 1920x1080 --quality high
+
+# With plan file for custom positioning
+> create_presentation_video.py --in_dir ./videos --out_file final.mp4 --plan plan.txt
 
 Import as:
     import create_presentation_video as cpv
@@ -24,7 +46,8 @@ import glob
 import logging
 import os
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
+import yaml
 
 from moviepy import CompositeVideoClip, VideoFileClip, concatenate_videoclips
 
@@ -33,6 +56,74 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
+
+
+# Data structures for plan configuration.
+class OverlayConfig:
+    """Configuration for pip or comment overlay."""
+    
+    def __init__(
+        self,
+        coords: Tuple[int, int],
+        width: int,
+        duration: str = "normal"
+    ):
+        self.coords = coords
+        self.width = width
+        self.duration = duration  # "fill" or "normal"
+
+
+class SlideConfig:
+    """Configuration for a single slide."""
+    
+    def __init__(self, slide_num: int):
+        self.slide_num = slide_num
+        self.pip: Optional[OverlayConfig] = None
+        self.comment: Optional[OverlayConfig] = None
+
+
+def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
+    """
+    Parse plan.txt file and return slide configurations.
+    
+    :param plan_file_path: path to plan.txt file
+    :return: dictionary mapping slide numbers to SlideConfig objects
+    """
+    hdbg.dassert_file_exists(plan_file_path)
+    
+    with open(plan_file_path, 'r') as file:
+        plan_data = yaml.safe_load(file)
+    
+    slide_configs = {}
+    
+    for slide_key, slide_data in plan_data.items():
+        # Extract slide number from key (e.g., "slide_001" -> 1)
+        if not slide_key.startswith('slide_'):
+            continue
+        slide_num = int(slide_key.split('_')[1])
+        
+        slide_config = SlideConfig(slide_num)
+        
+        # Parse pip configuration
+        if 'pip' in slide_data:
+            pip_data = slide_data['pip']
+            coords = tuple(pip_data['coords'])
+            width = pip_data['width']
+            duration = pip_data.get('duration', 'normal')
+            slide_config.pip = OverlayConfig(coords, width, duration)
+        
+        # Parse comment configuration
+        if 'comment' in slide_data:
+            comment_data = slide_data['comment']
+            coords = tuple(comment_data['coords'])
+            width = comment_data['width']
+            duration = comment_data.get('duration', 'normal')
+            slide_config.comment = OverlayConfig(coords, width, duration)
+        
+        slide_configs[slide_num] = slide_config
+    
+    _LOG.debug(f"Parsed {len(slide_configs)} slide configurations from plan file")
+    return slide_configs
 
 
 def _parse_slide_range(slide_range: str) -> List[int]:
@@ -138,6 +229,46 @@ def _extend_video_with_freeze(
     return extended_clip
 
 
+def _slow_video_to_duration(
+    video_clip: VideoFileClip, target_duration: float
+) -> VideoFileClip:
+    """
+    Slow down video to match target duration.
+    
+    :param video_clip: video clip to slow down
+    :param target_duration: target duration in seconds
+    :return: slowed video clip
+    """
+    if video_clip.duration >= target_duration:
+        return video_clip.with_duration(target_duration)
+    # Calculate speed factor to reach target duration.
+    speed_factor = video_clip.duration / target_duration
+    # Slow down the video by changing fps.
+    slowed_clip = video_clip.with_fps(video_clip.fps * speed_factor)
+    # Set the duration explicitly.
+    slowed_clip = slowed_clip.with_duration(target_duration)
+    return slowed_clip
+
+
+def _adjust_video_duration(
+    video_clip: VideoFileClip, 
+    target_duration: float,
+    duration_mode: str = "normal"
+) -> VideoFileClip:
+    """
+    Adjust video duration based on mode.
+    
+    :param video_clip: video clip to adjust
+    :param target_duration: target duration in seconds
+    :param duration_mode: "fill" to slow down, "normal" to freeze last frame
+    :return: adjusted video clip
+    """
+    if duration_mode == "fill":
+        return _slow_video_to_duration(video_clip, target_duration)
+    else:
+        return _extend_video_with_freeze(video_clip, target_duration)
+
+
 def _create_pip_overlay(
     pip_clip: VideoFileClip,
     main_width: int,
@@ -175,6 +306,30 @@ def _create_pip_overlay(
     # Position the clip.
     pip_clip = pip_clip.with_position((x_pos, y_pos))
     return pip_clip
+
+
+def _create_custom_overlay(
+    overlay_clip: VideoFileClip,
+    coords: Tuple[int, int],
+    width: int,
+) -> VideoFileClip:
+    """
+    Create overlay with custom coordinates and width.
+    
+    :param overlay_clip: video clip to overlay
+    :param coords: (x, y) coordinates for positioning
+    :param width: target width in pixels
+    :return: positioned overlay clip
+    """
+    # Calculate height maintaining aspect ratio.
+    aspect_ratio = overlay_clip.h / overlay_clip.w
+    height = int(width * aspect_ratio)
+    # Resize clip to specified dimensions.
+    overlay_clip = overlay_clip.resized((width, height))
+    # Position the clip.
+    x_pos, y_pos = coords
+    overlay_clip = overlay_clip.with_position((x_pos, y_pos))
+    return overlay_clip
 
 
 def _get_video_duration(video_path: str) -> float:
@@ -231,6 +386,7 @@ def _create_slide_segment(
     comment_path: Optional[str],
     *,
     pip_scale: float = 0.25,
+    slide_config: Optional[SlideConfig] = None,
 ) -> Tuple[VideoFileClip, float]:
     """
     Create a composite video segment for one slide.
@@ -238,39 +394,60 @@ def _create_slide_segment(
     :param slide_path: path to main slide video
     :param pip_path: path to pip video (optional)
     :param comment_path: path to comment video (optional)
-    :param pip_scale: scale factor for PIP overlays
+    :param pip_scale: scale factor for PIP overlays (used when no slide_config)
+    :param slide_config: configuration from plan.txt file (optional)
     :return: tuple of (composite video clip, final duration)
     """
     # Load main slide video.
     main_clip = VideoFileClip(slide_path)
     clips = [main_clip]
-    # Determine target duration (longest of all videos).
-    target_duration = main_clip.duration
+    # Determine target duration.
+    durations = [main_clip.duration]
     pip_clip = None
     comment_clip = None
-    # Load optional clips and find max duration.
+    # Load optional clips.
     if pip_path:
         pip_clip = VideoFileClip(pip_path)
-        target_duration = max(target_duration, pip_clip.duration)
+        durations.append(pip_clip.duration)
     if comment_path:
         comment_clip = VideoFileClip(comment_path)
-        target_duration = max(target_duration, comment_clip.duration)
-    # Extend all clips to target duration.
+        durations.append(comment_clip.duration)
+    # Segment duration is the longest duration between pip and comment movies.
+    target_duration = max(durations)
+    # Extend main clip to target duration.
     main_clip = _extend_video_with_freeze(main_clip, target_duration)
     clips[0] = main_clip
-    # Add PIP overlay (center position).
+    # Add PIP overlay.
     if pip_clip:
-        pip_clip = _extend_video_with_freeze(pip_clip, target_duration)
-        pip_overlay = _create_pip_overlay(
-            pip_clip, main_clip.w, main_clip.h, "center", pip_scale
-        )
+        if slide_config and slide_config.pip:
+            # Use plan configuration.
+            pip_duration_mode = slide_config.pip.duration
+            pip_clip = _adjust_video_duration(pip_clip, target_duration, pip_duration_mode)
+            pip_overlay = _create_custom_overlay(
+                pip_clip, slide_config.pip.coords, slide_config.pip.width
+            )
+        else:
+            # Use default behavior.
+            pip_clip = _extend_video_with_freeze(pip_clip, target_duration)
+            pip_overlay = _create_pip_overlay(
+                pip_clip, main_clip.w, main_clip.h, "center", pip_scale
+            )
         clips.append(pip_overlay)
-    # Add comment overlay (bottom-right position).
+    # Add comment overlay.
     if comment_clip:
-        comment_clip = _extend_video_with_freeze(comment_clip, target_duration)
-        comment_overlay = _create_pip_overlay(
-            comment_clip, main_clip.w, main_clip.h, "bottom-right", pip_scale
-        )
+        if slide_config and slide_config.comment:
+            # Use plan configuration.
+            comment_duration_mode = slide_config.comment.duration
+            comment_clip = _adjust_video_duration(comment_clip, target_duration, comment_duration_mode)
+            comment_overlay = _create_custom_overlay(
+                comment_clip, slide_config.comment.coords, slide_config.comment.width
+            )
+        else:
+            # Use default behavior.
+            comment_clip = _extend_video_with_freeze(comment_clip, target_duration)
+            comment_overlay = _create_pip_overlay(
+                comment_clip, main_clip.w, main_clip.h, "bottom-right", pip_scale
+            )
         clips.append(comment_overlay)
     # Create composite.
     if len(clips) == 1:
@@ -327,6 +504,10 @@ def _parse() -> argparse.ArgumentParser:
         "--slides",
         help="Range of slides to process (e.g., '001-003', '001,005', '001-003,007-009')",
     )
+    parser.add_argument(
+        "--plan",
+        help="Path to plan.txt file specifying custom positioning and sizing for overlays",
+    )
     return parser
 
 
@@ -362,6 +543,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info(f"Quality: {args.quality}")
     _LOG.info(f"FPS: {args.fps}")
     _LOG.info(f"PIP scale: {args.pip_scale}")
+    # Parse plan file if provided.
+    slide_configs = {}
+    if args.plan:
+        _LOG.info(f"Plan file: {args.plan}")
+        slide_configs = _parse_plan_file(args.plan)
     # Discover slide files.
     slides = _discover_slide_files(in_dir, args.slides)
     if not slides:
@@ -382,9 +568,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
             _LOG.debug(f"  Found PIP: {os.path.basename(pip_path)}")
         if comment_path:
             _LOG.debug(f"  Found comment: {os.path.basename(comment_path)}")
+        # Get slide configuration if available.
+        slide_config = slide_configs.get(slide_num)
         # Create composite segment.
         segment, segment_duration = _create_slide_segment(
-            slide_path, pip_path, comment_path, pip_scale=args.pip_scale
+            slide_path, pip_path, comment_path, 
+            pip_scale=args.pip_scale, slide_config=slide_config
         )
         video_segments.append(segment)
         # Report segment duration.
