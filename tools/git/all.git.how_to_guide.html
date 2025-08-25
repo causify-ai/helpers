@@ -1,0 +1,5789 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../documentation_toolchain/all.render_images.explanation.html">
+      
+      
+        <link rel="next" href="all.git_hooks.how_to_guide.html">
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+    
+    
+      
+        <title>All.git.how to guide - Helpers docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../styles/styles.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#git" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="Helpers docs" class="md-header__button md-logo" aria-label="Helpers docs" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Helpers docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              All.git.how to guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="Helpers docs" class="md-nav__button md-logo" aria-label="Helpers docs" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    Helpers docs
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Build system
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Build system
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.gitleaks_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.linter_gh_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.linter gh workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.pytest_allure.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pytest allure.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.pytest_allure.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pytest allure.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.semgrep_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.semgrep workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Code guidelines
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Code guidelines
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_design.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code design.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_like_pragmatic_programmer.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code like pragmatic programmer.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.coding_style.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.coding style.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.coding_style_guidelines.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.coding style guidelines.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.reading_other_people_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reading other people code.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.submit_code_for_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.submit code for review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.type_hints.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.type hints.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Documentation meta
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Documentation meta
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.architecture_diagrams.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.architecture diagrams.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.diataxis.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.diataxis.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.gdocs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gdocs.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.google_technical_writing.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.google technical writing.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.markdown_tools.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.markdown tools.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.mkdocs_deployment.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.mkdocs deployment.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.plotting_in_latex.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.plotting in latex.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.writing_docs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.writing docs.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    General background
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            General background
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.common_abbreviations.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.common abbreviations.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.glossary.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.glossary.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.literature_review.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.literature review.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.reading_list.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reading list.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Onboarding
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Onboarding
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.dev_must_read_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dev must read checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development_documents.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development documents.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development_setup.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.development setup.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.hiring_process.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hiring process.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.organize_email.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.organize email.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.receive_crypto_payment.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.receive crypto payment.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.track_time_with_hubstaff.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.track time with hubstaff.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/bounty.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Bounty.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.onboarding checklist.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.prepare_for_development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.prepare for development.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.running_causify_on_virtual_machine.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.running causify on virtual machine.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.set_up_development_on_laptop.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.set up development on laptop.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.signing_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Intern.signing up.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tools
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Tools
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.ai_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.ai review.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.bfg_repo_cleaner.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.bfg repo cleaner.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.blog.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.blog.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.causify_blog_platform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.causify blog platform.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.chatgpt_api.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.chatgpt api.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage_subprocess.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage subprocess.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage_subprocess.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code coverage subprocess.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_review_tools.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.code review tools.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.codebase_clean_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.codebase clean up.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.codecov.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.codecov.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.evaluating_external_tools.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.evaluating external tools.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.explanation_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.explanation template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.how_to_guide_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.how to guide template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.import_check.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.import check.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.imports_and_packages.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.imports and packages.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.integrate_repos.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.integrate repos.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_bash_print_tree.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke bash print tree.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_git_branch_copy.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke git branch copy.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_workflows.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invoke workflows.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.llm_transform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.llm transform.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.parquet.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.parquet.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.precommit.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.precommit.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.profiling.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.profiling.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.pycharm.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.pycharm.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.reference_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.reference template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.selenium.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.selenium.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.ssh.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.ssh.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.sync_gh_projects.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.sync gh projects.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.tutorial_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.tutorial template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.veracrypt.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.veracrypt.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.visual_studio_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.visual studio code.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_33" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_33" id="__nav_7_33_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Dev system
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_33_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_33">
+            <span class="md-nav__icon md-icon"></span>
+            Dev system
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.conda_environment_obsolete.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.conda environment obsolete.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.create_a_runnable_dir.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.create a runnable dir.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.create_a_super_repo_with_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.create a super repo with helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.dealing_with_missing_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dealing with missing dependencies.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.devops_docker.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.devops docker.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.devops_docker.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.devops docker.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.docker_optimizer_container.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.docker optimizer container.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.python_package_upgrade_and_troubleshooting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.python package upgrade and troubleshooting.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.replace_common_files_with_script_links.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.replace common files with script links
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.runnable_repo.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.runnable repo.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.synchronize_gh_issue_labels.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.synchronize gh issue labels.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.synchronize_gh_settings.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.synchronize gh settings.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.transition_to_cmamp2.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.transition to cmamp2.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.transition_to_repo_config_yml.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.transition to repo config yml.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_34" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_34" id="__nav_7_34_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Docker
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_34_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_34">
+            <span class="md-nav__icon md-icon"></span>
+            Docker
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.develop_in_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.develop in helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dind_and_sibling_containers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dind and sibling containers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.docker.tutorial.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.docker.tutorial
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dockerhub.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dockerhub.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dockerized_flow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.dockerized flow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_35" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_35" id="__nav_7_35_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Documentation toolchain
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_35_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_35">
+            <span class="md-nav__icon md-icon"></span>
+            Documentation toolchain
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.extract_notebook_images.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.extract notebook images.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.extract_notes.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.extract notes.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.latex_toolchain.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.latex toolchain.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.notes_to_pdf.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.notes to pdf.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.notes_toolchain.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.notes toolchain.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.render_images.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.render images.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_36" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7_36" id="__nav_7_36_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Git
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_36_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7_36">
+            <span class="md-nav__icon md-icon"></span>
+            Git
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    All.git.how to guide
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="all.git.how_to_guide.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git.how to guide
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#git" class="md-nav__link">
+    <span class="md-ellipsis">
+      Git
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Git">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#git_workflow_and_best_practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Git workflow and best practices
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#before_you_start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Before you start
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Before you start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#readings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Readings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#list_all_the_branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      List all the branches.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#make_sure_your_local_master_is_in_sync_with_the_remote" class="md-nav__link">
+    <span class="md-ellipsis">
+      Make sure your local master is in sync with the remote.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#copied_to_system_clipboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Copied to system clipboard:
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Copied to system clipboard:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#best_practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#do_not_check_in_large_data_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Do not check in large data files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write_helpful_commit_messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Write helpful commit messages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branch_workflow_best_practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Branch workflow best practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Branch workflow best practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#branches_are_cheap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Branches are cheap
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#master_is_sacred" class="md-nav__link">
+    <span class="md-ellipsis">
+      master is sacred
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#always_work_in_a_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Always work in a branch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keep_different_changes_in_separate_branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keep different changes in separate branches
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pull_request_pr_best_practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pull request (PR) best practices
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting_a_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deleting a branch
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to_and_troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      How-to and troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How-to and troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#do_not_mess_up_your_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Do not mess up your branch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analyzing_commits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Analyzing commits
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Analyzing commits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#show_files_modified_in_a_commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Show files modified in a commit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conflicts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Conflicts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting_the_conflicting_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting the conflicting files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accepting_theirs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accepting "theirs"
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how_to_get_out_of_a_messyun-mergeable_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to get out of a messy/un-mergeable branch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reverting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reverting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reverting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reverting_the_last_local_commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reverting the last local commit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Branching
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Branching">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#checking_what_work_has_been_done_in_a_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Checking what work has been done in a branch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checking_if_you_need_to_merge_master_into_your_feature_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Checking if you need to merge master into your feature branch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparing_the_difference_of_a_directory_among_branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparing the difference of a directory among branches
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resources
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#merging_master" class="md-nav__link">
+    <span class="md-ellipsis">
+      Merging master
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rebasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rebasing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#merging_pull_requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Merging pull requests
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#submodules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Submodules
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Submodules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding_a_submodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a submodule
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#working_in_a_submodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working in a submodule
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updating_a_submodule_to_the_latest_commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating a submodule to the latest commit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_check_if_supermodule_and_the_amp_submodule_are_in_sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      To check if supermodule and the amp submodule are in sync
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roll_forward_pointers_to_the_amp_submodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Roll forward pointers to the amp submodule:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_clean_all_the_repos" class="md-nav__link">
+    <span class="md-ellipsis">
+      To clean all the repos
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pull_a_branch_without_checkout" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pull a branch without checkout
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_force_update_all_the_submodules" class="md-nav__link">
+    <span class="md-ellipsis">
+      To force update all the submodules
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.git_hooks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git hooks.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.git_hooks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.git hooks.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.gitleaks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.gitleaks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gitleaks.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.integrate_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.integrate helpers.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.invite_gh_contributors.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invite gh contributors.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.invite_gh_contributors.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.invite gh contributors.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_37" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_37" id="__nav_7_37_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Helpers
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_37_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_37">
+            <span class="md-nav__icon md-icon"></span>
+            Helpers
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.asyncio.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.asyncio.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hcache.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hcache.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hcache_simple.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hcache simple.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hllm.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hllm.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hplayback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.hplayback.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.qgrid.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.qgrid.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.str_to_df.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.str to df.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_38" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_38" id="__nav_7_38_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Linter
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_38_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_38">
+            <span class="md-nav__icon md-icon"></span>
+            Linter
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linter/all.amp_fix_md_links.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.amp fix md links.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linter/all.developing_linter.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.developing linter.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_39" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_39" id="__nav_7_39_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Notebooks
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_39_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_39">
+            <span class="md-nav__icon md-icon"></span>
+            Notebooks
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.add_toc_to_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.add toc to notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.gsheet_into_pandas.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gsheet into pandas.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.jupyter notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.jupytext.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.jupytext.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.plotting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.plotting.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.publish_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.publish notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.run_jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.run jupyter notebook.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_40" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_40" id="__nav_7_40_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Thin environment
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_40_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_40">
+            <span class="md-nav__icon md-icon"></span>
+            Thin environment
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.gh_and_thin_env_requirements.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gh and thin env requirements.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.gh_thin_env_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.gh thin env dependencies.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.thin_environment.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.thin environment.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_41" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_41" id="__nav_7_41_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Unit test
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_41_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_41">
+            <span class="md-nav__icon md-icon"></span>
+            Unit test
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../unit_test/all.run_unit_tests.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.run unit tests.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../unit_test/all.write_unit_tests.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.write unit tests.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Work organization
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Work organization
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.buildmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.buildmeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.contributor_feedback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.contributor feedback.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.datapull_DAGmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    all.datapull DAGmeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.github_projects_process.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.github projects process.reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.inframeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.inframeister.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.issue_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.issue workflow.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.organize_your_work.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.organize your work.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.rollout.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.rollout.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.scrum.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.scrum.explanation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.team_collaboration.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.team collaboration.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.use_github.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    All.use github.how to guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#git" class="md-nav__link">
+    <span class="md-ellipsis">
+      Git
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Git">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#git_workflow_and_best_practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Git workflow and best practices
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#before_you_start" class="md-nav__link">
+    <span class="md-ellipsis">
+      Before you start
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Before you start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#readings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Readings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#list_all_the_branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      List all the branches.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#make_sure_your_local_master_is_in_sync_with_the_remote" class="md-nav__link">
+    <span class="md-ellipsis">
+      Make sure your local master is in sync with the remote.
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#copied_to_system_clipboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      Copied to system clipboard:
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Copied to system clipboard:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#best_practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#do_not_check_in_large_data_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Do not check in large data files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write_helpful_commit_messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Write helpful commit messages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branch_workflow_best_practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Branch workflow best practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Branch workflow best practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#branches_are_cheap" class="md-nav__link">
+    <span class="md-ellipsis">
+      Branches are cheap
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#master_is_sacred" class="md-nav__link">
+    <span class="md-ellipsis">
+      master is sacred
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#always_work_in_a_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Always work in a branch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keep_different_changes_in_separate_branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      Keep different changes in separate branches
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pull_request_pr_best_practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pull request (PR) best practices
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting_a_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deleting a branch
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to_and_troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      How-to and troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How-to and troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#do_not_mess_up_your_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Do not mess up your branch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#analyzing_commits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Analyzing commits
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Analyzing commits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#show_files_modified_in_a_commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Show files modified in a commit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conflicts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conflicts
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Conflicts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting_the_conflicting_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Getting the conflicting files
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accepting_theirs" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accepting "theirs"
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how_to_get_out_of_a_messyun-mergeable_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      How to get out of a messy/un-mergeable branch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reverting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reverting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reverting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reverting_the_last_local_commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reverting the last local commit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Branching
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Branching">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#checking_what_work_has_been_done_in_a_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Checking what work has been done in a branch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checking_if_you_need_to_merge_master_into_your_feature_branch" class="md-nav__link">
+    <span class="md-ellipsis">
+      Checking if you need to merge master into your feature branch
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comparing_the_difference_of_a_directory_among_branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comparing the difference of a directory among branches
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resources
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#merging_master" class="md-nav__link">
+    <span class="md-ellipsis">
+      Merging master
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rebasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rebasing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#merging_pull_requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Merging pull requests
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#submodules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Submodules
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Submodules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding_a_submodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a submodule
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#working_in_a_submodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Working in a submodule
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updating_a_submodule_to_the_latest_commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating a submodule to the latest commit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_check_if_supermodule_and_the_amp_submodule_are_in_sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      To check if supermodule and the amp submodule are in sync
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#roll_forward_pointers_to_the_amp_submodule" class="md-nav__link">
+    <span class="md-ellipsis">
+      Roll forward pointers to the amp submodule:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_clean_all_the_repos" class="md-nav__link">
+    <span class="md-ellipsis">
+      To clean all the repos
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pull_a_branch_without_checkout" class="md-nav__link">
+    <span class="md-ellipsis">
+      Pull a branch without checkout
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_force_update_all_the_submodules" class="md-nav__link">
+    <span class="md-ellipsis">
+      To force update all the submodules
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+  <h1>All.git.how to guide</h1>
+
+<h2 id="git">Git<a class="headerlink" href="#git" title="Permanent link">#</a></h2>
+<h3 id="git_workflow_and_best_practices">Git workflow and best practices<a class="headerlink" href="#git_workflow_and_best_practices" title="Permanent link">#</a></h3>
+<h3 id="before_you_start">Before you start<a class="headerlink" href="#before_you_start" title="Permanent link">#</a></h3>
+<ul>
+<li>GitHub is the place where we keep our code</li>
+<li><code>git</code> is the tool (program) for version control</li>
+<li>We interact with GitHub via <code>git</code></li>
+<li>Use public key for authorization<ul>
+<li>You can add a new public key here
+    <a href="https://github.com/settings/keys">GH -&gt; Personal settings -&gt; SSH keys</a></li>
+<li>More details about what is public key you can find in
+    <a href="/docs/work_tools/all.ssh.how_to_guide.md">all.ssh.how_to_guide.md</a></li>
+</ul>
+</li>
+</ul>
+<h4 id="readings">Readings<a class="headerlink" href="#readings" title="Permanent link">#</a></h4>
+<ul>
+<li>Read at least the first 3 chapters of
+    <a href="https://git-scm.com/book/en/v2">Git book</a></li>
+<li>Read about
+    <a href="https://git-scm.com/book/en/v2/Git-Tools-Submodules">Git Submodules</a><ul>
+<li>We use Git submodules to compose and share code about repos</li>
+</ul>
+</li>
+</ul>
+<h3 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>Run <code>git fetch</code>
+    ```
+    # Fetch all the data from origin.
+    &gt; git fetch</p>
+<h2 id="list_all_the_branches">List all the branches.<a class="headerlink" href="#list_all_the_branches" title="Permanent link">#</a></h2>
+<blockquote>
+<p>git branch -r
+origin/HEAD -&gt; origin/master
+origin/PTask274
+...
+```</p>
+</blockquote>
+</li>
+<li>
+<p>Checkout master and pull</p>
+<ul>
+<li>
+<p>You want to branch from the latest version of master to avoid a merge:
+    <code>``
+    # Checkout the</code>master` branch.
+    &gt; git checkout master</p>
+<h2 id="make_sure_your_local_master_is_in_sync_with_the_remote">Make sure your local <code>master</code> is in sync with the remote.<a class="headerlink" href="#make_sure_your_local_master_is_in_sync_with_the_remote" title="Permanent link">#</a></h2>
+<blockquote>
+<p>git pull --rebase
+<code>- Alternatively, and especially if you have local changes to move to a new
+branch, run</code>
+git checkout master
+i git_pull
+```</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li>
+<p>Name a branch after its corresponding issue</p>
+<ul>
+<li>
+<p>The canonical name for a new feature branch is obtained by running
+    <code>i gh_issue_title</code>:
+    ```
+    &gt; i gh_issue_title -i 274
+    INFO: &gt; cmd='/Users/saggese/src/venv/amp.client_venv/bin/invoke gh_issue_title -i 274'
+    report_memory_usage=False report_cpu_usage=False
+    ## gh_issue_title: issue_id='274', repo_short_name='current'
+    ## gh_login:
+    07:35:54 - INFO  lib_tasks_gh.py gh_login:48                            account='sorrentum'
+    export GIT_SSH_COMMAND='ssh -i /Users/saggese/.ssh/id_rsa.sorrentum.github'
+    gh auth login --with-token &lt;/Users/saggese/.ssh/github_pat.sorrentum.txt</p>
+<h2 id="copied_to_system_clipboard">Copied to system clipboard:<a class="headerlink" href="#copied_to_system_clipboard" title="Permanent link">#</a></h2>
+<p>CmTask274_Update_names: https://github.com/sorrentum/sorrentum/pull/274
+<code>- Before running verify that GitHub cli `gh` works</code>
+    &gt; gh --version
+    gh version 2.29.0 (2023-05-10)
+    https://github.com/cli/cli/releases/tag/v2.29.0
+    <code>``
+    - The name is</code>CmTask274_Update_names<code>- To use multiple branches for a given task, append a numeral to the name,
+e.g.,</code>CmTask274_Update_names_v02`
+    - Make sure the names of all your branches follow this format</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Create and checkout the branch
+    <code>&gt; git branch my_feature
+    &gt; git checkout my_feature</code></p>
+<ul>
+<li>Alternatively, you can create and checkout in one command with
+    <code>&gt; git checkout -b my_feature</code></li>
+<li>From this point on, you commit only in the branch and changes to master will
+    not affect your branch</li>
+<li>If the branch already exists, check out the branch by executing
+    <code>&gt; git checkout my_feature</code></li>
+</ul>
+</li>
+<li>Commit your work early and often<ul>
+<li>Commits on your feature branch do not affect master. Checkpoint your work
+    regularly by committing:
+    <code>&gt; git status On branch my_feature
+    &gt; git add ...
+    &gt; git commit -m "..."
+    [my_feature 820b296] My feature is awesome!</code></li>
+<li>Commits stay local (not seen on GitHub) until you explicitly tell git to
+    "upload" the commits through git push (see next)</li>
+</ul>
+</li>
+<li>Push your feature branch changes upstream<ul>
+<li>When you commit, commits are local (not seen on GitHub)</li>
+<li>When you want your code to be pushed to the server (e.g., to back up or to
+    share the changes with someone else), you need to push the branch upstream
+    <code>&gt; git push -u origin my_feature
+    ...
+    30194fc..820b296  my_feature -&gt; my_feature
+    Branch 'my_feature' set up to track remote branch 'my_feature' from 'origin'.</code></li>
+<li>Note that <code>-u</code> tells git to set the upstream of this branch to origin</li>
+<li>This operation is needed only the first time you create the branch and not
+    for each <code>git push</code></li>
+</ul>
+</li>
+<li>Merge <code>master</code> into your feature branch regularly<ul>
+<li>Merge <code>master</code> into your feature branch at least once a day, if the branch
+    stays around that long:
+    <code># Get the .git from the server
+    &gt; git fetch
+    # Make your master up to origin/master.
+    &gt; git checkout master
+    &gt; git pull
+    # Merge master into my_feature branch.
+    &gt; git checkout my_feature
+    &gt; git merge master</code></li>
+<li>A simpler flow which should be equivalent<ul>
+<li>TODO(gp): Verify that
+    <code># Get the .git from the server
+    &gt; git fetch
+    # Merge master into my_feature branch.
+    &gt; git checkout my_feature
+    &gt; git merge origin/master</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Request a review of your work by making a pull request (PR)<ul>
+<li>Verify that your work is ready for a review by going through this checklist:<ul>
+<li>The PR is self-contained</li>
+<li>The latest <code>master</code> has been merged into the feature branch</li>
+<li>All files in the PR have been linted with our Linter tool
+    (<code>i lint --files="..."</code>)</li>
+<li>All tests pass</li>
+</ul>
+</li>
+<li>If your work is ready for review, make a pull request<ul>
+<li>Use the GitHub UI (for now; we may replace with a script). Go to the
+    branch on the web interface and push "Compare &amp; pull request"</li>
+<li>Assign appropriate people as reviewers (when in doubt, ask your team lead)</li>
+</ul>
+</li>
+<li>Follow up on all comments and mark as resolved any requested changes that
+    you resolve</li>
+</ul>
+</li>
+</ul>
+<h3 id="best_practices">Best Practices<a class="headerlink" href="#best_practices" title="Permanent link">#</a></h3>
+<h4 id="do_not_check_in_large_data_files">Do not check in large data files<a class="headerlink" href="#do_not_check_in_large_data_files" title="Permanent link">#</a></h4>
+<ul>
+<li>Avoid checking in large data files<ul>
+<li>The reason is that large files bloat the repo</li>
+<li>Once a large file is checked in, it never goes away</li>
+<li>Therefore, <strong>DO NOT CHECK IN DATA FILES IN EXCESS OF 500K</strong></li>
+<li>If in doubt (even on a branch), ask first!</li>
+</ul>
+</li>
+<li>Sometimes is makes sense to check in some representative data for unit tests</li>
+<li>BUT, larger tests should obtain their data from s3 or MongoDB</li>
+</ul>
+<h4 id="write_helpful_commit_messages">Write helpful commit messages<a class="headerlink" href="#write_helpful_commit_messages" title="Permanent link">#</a></h4>
+<ul>
+<li>Use short but informative commit messages - this eases navigation for yourself
+    and reviewers<ul>
+<li>A good commit message follows the format
+    <code>IssueTag: High-level commit description</code></li>
+<li>E.g. <code>HelpersTask123: Add filtering for the inputs</code></li>
+<li>Do not make commit messages too long</li>
+<li>Do not mention the file that the commit has updated in the commit message -
+    it's already clear from the commit itself</li>
+</ul>
+</li>
+</ul>
+<h4 id="branch_workflow_best_practices">Branch workflow best practices<a class="headerlink" href="#branch_workflow_best_practices" title="Permanent link">#</a></h4>
+<h5 id="branches_are_cheap">Branches are cheap<a class="headerlink" href="#branches_are_cheap" title="Permanent link">#</a></h5>
+<ul>
+<li>One of the advantages of working with Git is that branches are cheap</li>
+</ul>
+<h5 id="master_is_sacred"><code>master</code> is sacred<a class="headerlink" href="#master_is_sacred" title="Permanent link">#</a></h5>
+<ul>
+<li>In an ideal world <code>master</code> branch is sacred (see Platinum rule of Git)<ul>
+<li>Development should never be done directly on master</li>
+<li>Changes to master should only happen by pull-request or merge</li>
+<li>One should avoid working in master except in rare cases, e.g., a simple
+    urgent bug-fix needed to unblock people</li>
+<li><code>master</code> should never be broken ("green build": all tests are passing and it
+    is deployable)</li>
+</ul>
+</li>
+</ul>
+<h5 id="always_work_in_a_branch">Always work in a branch<a class="headerlink" href="#always_work_in_a_branch" title="Permanent link">#</a></h5>
+<ul>
+<li>Generally it is best to be the sole contributor to your branch<ul>
+<li>If you need to collaborate with somebody on a branch, remember that the
+    golden rule of rebase still applies to this "public" branch: "do not rebase
+    pushed commits"</li>
+</ul>
+</li>
+<li>It is ok to open multiple branches for a given task if needed<ul>
+<li>E.g., if you have multiple chunks of work or multiple people are working on
+    orthogonal changes</li>
+<li>It might be that the task is too big and needs to be broken in smaller bugs</li>
+</ul>
+</li>
+<li>All the rules that apply to <code>master</code> apply also to a branch<ul>
+<li>E.g., commit often, use meaningful commit messages.</li>
+<li>We are ok with a little looser attitude in your branch</li>
+<li>E.g., it might be ok to not run unit tests before each commit, but be
+    careful!</li>
+</ul>
+</li>
+<li>Use a branch even if working on a research notebook<ul>
+<li>Try to avoid modifying notebooks in multiple branches simultaneously, since
+    notebook merges can be painful</li>
+<li>Working in a branch in this case facilitates review</li>
+<li>Working in a branch protects the codebase from accidental pushes of code
+    changes outside of the notebook (e.g., hacks to get the notebook working
+    that need to be cleaned up)</li>
+</ul>
+</li>
+</ul>
+<h5 id="keep_different_changes_in_separate_branches">Keep different changes in separate branches<a class="headerlink" href="#keep_different_changes_in_separate_branches" title="Permanent link">#</a></h5>
+<ul>
+<li>It is easier for you to keep work sane and separated</li>
+<li>Cons of multiple conceptual changes in the same branches</li>
+<li>You are testing / debugging all at once which might make your life more
+    difficult</li>
+<li>Reviewing unrelated changes slows down the review process</li>
+<li>Packaging unrelated changes together that means no change gets merged until
+    all of the changes are accepted</li>
+</ul>
+<h4 id="pull_request_pr_best_practices">Pull request (PR) best practices<a class="headerlink" href="#pull_request_pr_best_practices" title="Permanent link">#</a></h4>
+<ul>
+<li>Make sure your PR is coherent<ul>
+<li>It may not need to do everything the Task requires, but the PR should be
+    self-contained and not break anything</li>
+</ul>
+</li>
+<li>If you absolutely need changes under review to keep going, create the new
+    branch from the old branch rather than from master (less ideal)<ul>
+<li>Try to avoid branching from branches<ul>
+<li>This creates dependencies on the order of committing branches</li>
+<li>You end up with a spiderweb of branches</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Frequent small PRs are easier to review<ul>
+<li>You will also experience faster review turnaround</li>
+<li>Reviewers like working on smaller changes more than working on larger ones</li>
+<li>PR review time does not scale linearly with lines changed (may be more like
+    exponential)</li>
+</ul>
+</li>
+<li>Merging changes frequently means other people can more easily see how the code
+    is progressing earlier on in the process, and give you feedback<ul>
+<li>E.g., "here is a much simpler way of doing this", or even better "you don't
+    need to write any code, just do <this_and_that>"</li>
+</ul>
+</li>
+<li>Merged changes are tested through GH Actions</li>
+</ul>
+<h4 id="deleting_a_branch">Deleting a branch<a class="headerlink" href="#deleting_a_branch" title="Permanent link">#</a></h4>
+<ul>
+<li>You can run the script
+    <a href="/dev_scripts_helpers/git/git_branch.sh"><code>/dev_scripts_helpers/git/git_branch.sh</code></a>
+    to get all the branches together with some information, e.g., last commit and
+    creator</li>
+<li>E.g., let's assume we believe that <code>PTask354_INFRA_Populate_S3_bucket</code> is
+    obsolete and we want to delete it:<ul>
+<li>Get <code>master</code> up to date
+    <code>&gt; git checkout master
+    &gt; git fetch
+    &gt; git pull</code></li>
+<li>Merge <code>master</code> into the target branch</li>
+<li>Pull and merge
+    <code>&gt; git checkout PTask354_INFRA_Populate_S3_bucket
+    &gt; git pull
+    &gt; git merge master</code></li>
+<li>Resolve conflicts
+    <code>&gt; git commit
+    &gt; git pull</code></li>
+<li>Ask Git if the branch is merged<ul>
+<li>One approach is to ask Git if all the changes in master are also in the
+    branch
+    <code>&gt; git branch `PTask354_INFRA_Populate_S3_bucket` --no-merged PTask354_INFRA_Populate_S3_bucket</code></li>
+<li>Note that Git is very strict here, e.g.,
+    <code>PTask354_INFRA_Populate_S3_bucket</code> is not completely merged since I've
+    moved code "manually" (not only through <code>git cherry-pick, git merge</code>)</li>
+<li>One approach is to just merge <code>PTask354_INFRA_Populate_S3_bucket</code> into
+    master and run <code>git branch</code> again</li>
+</ul>
+</li>
+<li>Manually check if there is any textual difference<ul>
+<li>Another approach is to check what the differences are between the branch
+    and <code>origin/master</code>
+    <code>&gt; git log master..HEAD
+    6465b0c saggese, 25 seconds ago : Merge branch 'master' into PTask354_INFRA_Populate_S3_bucket  (HEAD -&gt; PTask354_INFRA_Populate_S3_bucket, origin/PTask354_INFRA_Populate_S3_bucket)
+    &gt; git log HEAD..master</code></li>
+<li>Here we see that there are no textual differences</li>
+<li>So we can either merge the branch into <code>master</code> or just kill directly</li>
+</ul>
+</li>
+<li>Kill-kill-kill!<ul>
+<li>To delete both the local and remote branch you can do
+    <code>&gt; git branch -d PTask354_INFRA_Populate_S3_bucket
+    &gt; git push origin --delete PTask354_INFRA_Populate_S3_bucket</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="how-to_and_troubleshooting">How-to and troubleshooting<a class="headerlink" href="#how-to_and_troubleshooting" title="Permanent link">#</a></h3>
+<h4 id="do_not_mess_up_your_branch">Do not mess up your branch<a class="headerlink" href="#do_not_mess_up_your_branch" title="Permanent link">#</a></h4>
+<ul>
+<li>If you are working in a branch, before doing <code>git push</code> make sure the branch
+    is not broken (e.g., from a mistake in merge / rebase mess)</li>
+<li>A way to check that the branch is sane is the following:<ul>
+<li>Make sure that you don't have extra commits in your branch:<ul>
+<li>The difference between your branch and master
+    <code>bash &gt; git fetch &gt; git checkout &lt;BRANCH&gt; &gt; git log origin/master..HEAD</code>
+    shows only commits made by you or, if you are not the only one working on
+    the branch, only commits belonging to the branch with the same <code>PTaskXYZ</code></li>
+<li>E.g., if George is working on <code>PTask275</code> and sees that something funny is
+    going on:
+    <code>a379826 Ringo, 3 weeks ago : LemTask54: finish dataflow through
+    cross-validation
+    33a46b2 George, 2 weeks ago : PTask275 Move class attributes docstrings to init, change logging</code></li>
+</ul>
+</li>
+<li>Make sure the files modified in your branch are only the files you expect to
+    be modified
+    <code>&gt; git fetch
+    &gt; git checkout &lt;BRANCH&gt;
+    &gt; git diff --name-only master..HEAD</code></li>
+<li>If you see that there is a problem, don't push upstream (because the branch
+    will be broken for everybody) and ask a Git expert</li>
+</ul>
+</li>
+</ul>
+<h4 id="analyzing_commits">Analyzing commits<a class="headerlink" href="#analyzing_commits" title="Permanent link">#</a></h4>
+<h5 id="show_files_modified_in_a_commit">Show files modified in a commit<a class="headerlink" href="#show_files_modified_in_a_commit" title="Permanent link">#</a></h5>
+<ul>
+<li>You can see the files modified in a given commit hash with:
+    <code>&gt; git show --name-only $HASH</code></li>
+<li>
+<p>E.g.,
+    ```
+    &gt; git show --name-only 39a9e335298a3fe604896fa19296d20829801cf2</p>
+<p>commit 39a9e335298a3fe604896fa19296d20829801cf2
+Author: Julia <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#106;&#117;&#108;&#105;&#97;&#64;&#46;&#46;&#46;">&#106;&#117;&#108;&#105;&#97;&#64;&#46;&#46;&#46;</a>
+Date:   Fri Sep 27 11:43:41 2019</p>
+<p>PTask274 lint</p>
+<p>vendors/cme/utils.py
+vendors/first_rate/utils.py
+```</p>
+</li>
+</ul>
+<h4 id="conflicts">Conflicts<a class="headerlink" href="#conflicts" title="Permanent link">#</a></h4>
+<h5 id="getting_the_conflicting_files">Getting the conflicting files<a class="headerlink" href="#getting_the_conflicting_files" title="Permanent link">#</a></h5>
+<ul>
+<li>To see the files in conflicts
+    <code>git diff --name-only --diff-filter=U</code></li>
+<li>This is what the script
+    <a href="/dev_scripts_helpers/git/git_conflict_files.sh"><code>/dev_scripts_helpers/git/git_conflict_files.sh</code></a>
+    does</li>
+</ul>
+<h5 id="accepting_theirs">Accepting "theirs"<a class="headerlink" href="#accepting_theirs" title="Permanent link">#</a></h5>
+<pre><code>&gt; git checkout --theirs $FILES
+&gt; git add $FILES
+</code></pre>
+<ul>
+<li>TODO(gp): Fix this ours and theirs. The first option represents the current
+    branch from which you executed the command before getting the conflicts, and
+    the second option refers to the branch where the changes are coming from.
+    <code>&gt; git show :1:README
+    &gt; git show :2:README
+    &gt; git show :3:README</code></li>
+<li>Stage #1 is the common ancestor of the files, stage #2 is the target-branch
+    version, and stage #3 is the version you are merging from.</li>
+</ul>
+<h4 id="how_to_get_out_of_a_messyun-mergeable_branch">How to get out of a messy/un-mergeable branch<a class="headerlink" href="#how_to_get_out_of_a_messyun-mergeable_branch" title="Permanent link">#</a></h4>
+<ul>
+<li>If one screws up a branch:<ul>
+<li>Rebase to master</li>
+<li>Resolve the conflicts<ul>
+<li>E.g., pick the <code>master</code> version when needed:
+    <code>git checkout --theirs ...; git add ...</code></li>
+</ul>
+</li>
+<li>Diff the changes in the branch vs another client at <code>master</code>
+    <code>&gt; diff_to_vimdiff.py --dir1 $DIR1/amp --dir2 $DIR2/amp --skip_vim
+    Saving log to file '/Users/saggese/src/...2/amp/dev_scripts/diff_to_vimdiff.py.log'
+    10-06_15:22 INFO : _parse_diff_output:36  : Reading '/tmp/tmp.diff_to_vimdiff.txt'
+    #       DIFF: README.md
+    #       DIFF: core/dataflow.py
+    #       DIFF: core/dataflow_core.py
+    #       DIFF: core/test/test_core.py
+    #       DIFF: dev_scripts/diff_to_vimdiff.py
+    #       ONLY: diff_to_vimdiff.py.log in $DIR1/dev_scripts
+    #       DIFF: dev_scripts/grc
+    #       ONLY: code_style.txt in $DIR2/docs/notes
+    ...
+    #       DIFF: vendors/test/test_vendors.py</code></li>
+<li>Diff / merge manually the files that are different
+    <code>&gt; diff_to_vimdiff.py --dir1 $DIR1/...2/amp --dir2 $DIR2/...3/amp --skip_vim
+    &gt; --only_diff_content
+    #       DIFF: README.md
+    #       DIFF: core/dataflow.py
+    #       DIFF: core/dataflow_core.py
+    #       DIFF: core/test/test_core.py
+    ...</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="reverting">Reverting<a class="headerlink" href="#reverting" title="Permanent link">#</a></h4>
+<h5 id="reverting_the_last_local_commit">Reverting the last local commit<a class="headerlink" href="#reverting_the_last_local_commit" title="Permanent link">#</a></h5>
+<pre><code>&gt; git reset --soft HEAD~
+</code></pre>
+<h4 id="branching">Branching<a class="headerlink" href="#branching" title="Permanent link">#</a></h4>
+<h5 id="checking_what_work_has_been_done_in_a_branch">Checking what work has been done in a branch<a class="headerlink" href="#checking_what_work_has_been_done_in_a_branch" title="Permanent link">#</a></h5>
+<ul>
+<li>Look at all the branches available:
+    <code># Fetch all the data from origin.
+    &gt; git fetch
+    # List all the branches.
+    &gt; git branch -r
+    origin/HEAD -&gt; origin/master
+    origin/PTask274
+    ...</code></li>
+<li>Go to the branch:
+    <code>&gt; git checkout PTask274</code></li>
+<li>Check what are the commits that are in the current branch HEAD but not in
+    <code>master</code>:
+    <code>&gt; gll master..HEAD
+    &gt; git log master..HEAD
+    eb12233 Julia PTask274 verify dataset integrity ( 13 hours ago) Sat Sep 28 18:55:12 2019 (HEAD -&gt; PTask274, origin/PTask274) ...
+    a637594 saggese PTask274: Add tag for review ( 3 days ago) Thu Sep 26 17:13:33 2019</code></li>
+<li>To see the actual changes in a branch you can't do (Bad) \
+    <code>&gt; git diff master..HEAD</code> since <code>git diff</code> compares two commits and not a
+    range of commits like <code>git log</code> (yes, Git has a horrible API)</li>
+<li>What you need to do is to get the first commit in the branch and the last from
+    <code>git log</code> and compare them:
+    <code>&gt; git difftool a637594..eb12233
+    &gt; gd a637594..eb12233</code></li>
+</ul>
+<h5 id="checking_if_you_need_to_merge_master_into_your_feature_branch">Checking if you need to merge <code>master</code> into your feature branch<a class="headerlink" href="#checking_if_you_need_to_merge_master_into_your_feature_branch" title="Permanent link">#</a></h5>
+<ul>
+<li>You can see what commits are in master but missing in your branch with:
+    <code>&gt; gll ..master
+    de51a7c saggese Improve script to help diffing trees in case of difficult merges. Add notes from reviews ( 5 hours ago) Sat Oct 5 11:24:11 2019 (origin/master, origin/HEAD, master)
+    8acd60c saggese Add a basic end-to-end unit test for the linter ( 19 hours ago) Fri Oct 4 21:28:09 2019 ...</code></li>
+<li>You want to <code>rebase</code> your feature branch onto <code>master</code></li>
+</ul>
+<h5 id="comparing_the_difference_of_a_directory_among_branches">Comparing the difference of a directory among branches<a class="headerlink" href="#comparing_the_difference_of_a_directory_among_branches" title="Permanent link">#</a></h5>
+<ul>
+<li>This is useful if we want to focus on changes in a single dir
+    <code>&gt; git ll master..PTask274 vendors/cme
+    39a9e33 Julia PTask274 lint ( 2 days ago) Fri Sep 27 11:43:41 2019
+    c8e7e1a Julia PTask268 modify according to review16 ( 2 days ago) Fri Sep 27
+    11:41:47 2019
+    a637594 saggese PTask274: Add tag for review ( 3 days ago) Thu Sep 26 17:13:33
+    2019</code>
+    <code>&gt; git diff --name-only a637594..33a46b2 -- vendors helpers
+    helpers/csv.py
+    vendors/cme/utils.py
+    vendors/first_rate/Task274_verify_datasets.ipynb
+    vendors/first_rate/Task274_verify_datasets.py
+    vendors/first_rate/reader.py
+    vendors/first_rate/utils.py
+    vendors/test/test_vendors.py</code></li>
+</ul>
+<h5 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">#</a></h5>
+<ul>
+<li>Use <a href="https://learngitbranching.js.org/">https://learngitbranching.js.org/</a> to
+    practice and understand the concept of branching</li>
+</ul>
+<h4 id="merging_master">Merging <code>master</code><a class="headerlink" href="#merging_master" title="Permanent link">#</a></h4>
+<ul>
+<li>If your branch lives long, you want to apply changes made on master to show on
+    your branch</li>
+<li>Assume your branch is clean<ul>
+<li>E.g., everything is committed, or stashed</li>
+</ul>
+</li>
+<li>Pull changes from <code>master</code> on the remote repo
+    <code>&gt; git checkout master
+    &gt; git pull</code></li>
+<li>Checkout your feature branch
+    <code>&gt; git checkout my_feature</code></li>
+<li>Merge stuff from <code>master</code> to <code>my_feature</code>
+    <code>&gt; git merge master --no-ff
+    ... editor will open a message for the merge commit ...</code></li>
+<li>In few informal words, the <code>--no-ff</code> option means that commits are not
+    "inlined" (similar to rebase) even if possible, but a merge commit is always
+    used<ul>
+<li>The problem is that if the commits are "inlined" then you can't revert the
+    change in one shot like we would do for a merge commit, but you need to
+    revert all the inlined changes</li>
+</ul>
+</li>
+</ul>
+<h4 id="rebasing">Rebasing<a class="headerlink" href="#rebasing" title="Permanent link">#</a></h4>
+<ul>
+<li><strong>For now, we suggest avoiding the rebase flow</strong></li>
+<li>The reason is that rebase makes things cleaner when used properly, but can get
+    you into deep trouble if not used properly</li>
+<li>You can rebase onto <code>master</code>, i.e., you re-apply your changes to <code>master</code></li>
+<li>Not the other way around: that would be a disaster!
+    <code>&gt; git checkout my_feature
+    # See that you have that master doesn't have.
+    &gt; git ll origin/master..
+    # See that master has that you don't have.
+    &gt; git ll ..origin/master
+    &gt; git rebase master
+    &gt; git ll ..origin/master
+    # Now you see that there is nothing in master you don't have
+    &gt; git ll origin/master..
+    # You can see that you are ahead of master</code></li>
+</ul>
+<h4 id="merging_pull_requests">Merging pull requests<a class="headerlink" href="#merging_pull_requests" title="Permanent link">#</a></h4>
+<ul>
+<li>The procedure for manual merges is as follows</li>
+<li><strong>Do not merge yourself unless explicitly requested by a reviewer</strong></li>
+<li>Pull changes from remote <code>master</code> branch
+    <code>&gt; git checkout master
+    &gt; git pull</code></li>
+<li>Merge your branch into <code>master</code> without fast-forward
+    <code>&gt; git merge --no-ff my_feature</code></li>
+<li>Push the newly merged master
+    <code>&gt; git push</code></li>
+<li>Delete the branch, if you are done with it:
+    <code>&gt; git branch -d my_feature</code></li>
+</ul>
+<h3 id="submodules">Submodules<a class="headerlink" href="#submodules" title="Permanent link">#</a></h3>
+<h4 id="adding_a_submodule">Adding a submodule<a class="headerlink" href="#adding_a_submodule" title="Permanent link">#</a></h4>
+<ul>
+<li>Following the instructions in
+    <a href="https://git-scm.com/book/en/v2/Git-Tools-Submodules">https://git-scm.com/book/en/v2/Git-Tools-Submodules</a></li>
+</ul>
+<h4 id="working_in_a_submodule">Working in a submodule<a class="headerlink" href="#working_in_a_submodule" title="Permanent link">#</a></h4>
+<ul>
+<li>When you work in a submodule, the flow should be like:<ul>
+<li>Create a branch in a submodule</li>
+<li>Do your job</li>
+<li>Push the submodule branch</li>
+<li>Create a PR in the submodule when you are done</li>
+</ul>
+</li>
+</ul>
+<h4 id="updating_a_submodule_to_the_latest_commit">Updating a submodule to the latest commit<a class="headerlink" href="#updating_a_submodule_to_the_latest_commit" title="Permanent link">#</a></h4>
+<ul>
+<li>After the submodule PR is merged:<ul>
+<li>Checkout the submodule in the master branch and do <code>git pull</code></li>
+<li>In the main repo, create a branch like <code>PTask1234_update_submodule</code></li>
+<li>From the new branch do <code>git add &lt;submodule_name&gt;</code>, e.g.,
+    <code>git add helpers_root</code></li>
+<li>Commit changes, push</li>
+<li>Create a PR</li>
+</ul>
+</li>
+</ul>
+<h4 id="to_check_if_supermodule_and_the_amp_submodule_are_in_sync">To check if supermodule and the <code>amp</code> submodule are in sync<a class="headerlink" href="#to_check_if_supermodule_and_the_amp_submodule_are_in_sync" title="Permanent link">#</a></h4>
+<ul>
+<li>Run the script:
+    <code>&gt; dev_scripts_helpers/git/git_submodules_are_updated.sh</code></li>
+</ul>
+<h4 id="roll_forward_pointers_to_the_amp_submodule">Roll forward pointers to the <code>amp</code> submodule:<a class="headerlink" href="#roll_forward_pointers_to_the_amp_submodule" title="Permanent link">#</a></h4>
+<ul>
+<li>Run the script:
+    <code>&gt; dev_scripts_helpers/git/git_submodules_roll_fwd.sh</code></li>
+</ul>
+<h4 id="to_clean_all_the_repos">To clean all the repos<a class="headerlink" href="#to_clean_all_the_repos" title="Permanent link">#</a></h4>
+<pre><code>&gt; git submodule foreach git clean -fd
+</code></pre>
+<h4 id="pull_a_branch_without_checkout">Pull a branch without checkout<a class="headerlink" href="#pull_a_branch_without_checkout" title="Permanent link">#</a></h4>
+<ul>
+<li>This is useful when merging <code>master</code> in a different branch and we don't want
+    to checkout master just to pull
+    <code>&gt; git fetch origin master:master</code></li>
+</ul>
+<h4 id="to_force_update_all_the_submodules">To force update all the submodules<a class="headerlink" href="#to_force_update_all_the_submodules" title="Permanent link">#</a></h4>
+<ul>
+<li>Run the script <code>&gt; dev_scripts_helpers/git/git_submodules_pull.sh</code> or
+    <code>&gt; git submodule update --init --recursive`
+    &gt; git submodule foreach git pull --autostash</code></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.action.edit"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+    
+  </body>
+</html>
