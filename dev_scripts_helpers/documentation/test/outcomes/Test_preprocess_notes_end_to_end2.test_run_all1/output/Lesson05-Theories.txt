@@ -46,12 +46,12 @@ MSML610: Advanced Machine Learning
 :::: {.column width=50%}
 - Consider the supervised classification problem
 
-- **Input**
+- **\textcolor{red}{Input}**
   - A 9 bit vector represented as a 3x3 black and white array
-- **Training set**
+- **\textcolor{darkgreen}{Training set}**
   - The \textcolor{blue}{\text{blue row}} $\vx_1, \vx_2, \vx_3$ for $f(\vx) = -1$
   - The \textcolor{darkgreen}{\text{green row}} $\vx_4, \vx_5, \vx_6$ for $f(\vx) = +1$
-- **Test set**
+- **\textcolor{blue}{Test set}**
   - For the \textcolor{red}{\text{red pattern}} $\vx_0$, is $f(\vx_0) = -1 \text{ or } +1$?
 
 ::::
@@ -100,12 +100,12 @@ MSML610: Advanced Machine Learning
 
 ::: columns
 :::: {.column width=70%}
-- **Option 1**
+- **\textcolor{red}{Option 1}**
   - $f(\vx) = +1$ when $\vx$ has an axis of symmetry
   - $f(\vx) = -1$ when $\vx$ is not symmetric
   - The test set is symmetrical $\implies f(\vx_0) = +1$
 
-- **Option 2**
+- **\textcolor{darkgreen}{Option 2}**
   - $f(\vx) = +1$ when the top left square $\vx$ is empty
   - $f(\vx) = -1$ when the top left square $\vx$ is full
   - The test set has top left square full $\implies f(\vx_0) = -1$
@@ -116,7 +116,7 @@ MSML610: Advanced Machine Learning
 
 - How can a limited data set reveal enough information to define the entire
   target function?
-  - **Is machine learning possible?**
+  - **\textcolor{blue}{Is machine learning possible?}**
 ::::
 :::: {.column width=30%}
 
@@ -160,7 +160,7 @@ MSML610: Advanced Machine Learning
 :::
 
 #### Is machine learning possible?
-- The function can assume **any value outside the data** we have
+- The function can assume **\textcolor{red}{any value outside the data}** we have
   - E.g., if you have temperature data only for summer, the function could
     assume a very different value for winter
 
@@ -169,11 +169,11 @@ MSML610: Advanced Machine Learning
   - Requires assumptions or models about the function's behavior
 
 - The difference is between possible and probable
-  - What is **possible**
+  - What is **\textcolor{darkgreen}{possible}**
     - We don't know anything about the unknown function
     - E.g., the function could be linear, quadratic, or a sine wave outside our
       known data
-  - What is **probable**
+  - What is **\textcolor{blue}{probable}**
     - We know something about the unknown function
     - This could come from domain knowledge or historical data patterns
     - E.g., if historical weather data usually forms a sinusoidal pattern, it is
@@ -196,17 +196,17 @@ MSML610: Advanced Machine Learning
 :::
 
 - Does $\nu$ say anything about $\mu$?
-  - **"No"**
+  - **\textcolor{red}{"No"}**
     - In strict terms, we don't know anything about the marbles we didn't pick
     - The sample can be mostly \textcolor{darkgreen}{\text{green}}, while the bin is mostly \textcolor{red}{\text{red}}
     - This is possible, but not probable
-  - **"Yes"**
+  - **\textcolor{darkgreen}{"Yes"}**
     - Under certain conditions, the sample frequency is close to the real
       frequency
 
 - Possible vs probable
-  - It is **possible** that we don't know anything about the marbles in the bin
-  - It is **probable** that we know something
+  - It is **\textcolor{blue}{possible}** that we don't know anything about the marbles in the bin
+  - It is **\textcolor{violet}{probable}** that we know something
   - Hoeffding inequality makes this intuition formal
 
 #### Hoeffding inequality
@@ -219,7 +219,7 @@ MSML610: Advanced Machine Learning
   \Pr(|\nu - \mu| > \varepsilon) \le \frac{2}{e^{-2 \varepsilon^2 N}}
   $$
 
-- **Remarks:**
+- **\textcolor{red}{Remarks:}**
   - Valid for all $N$ and $\varepsilon$, not an asymptotic result
   - Works for finite or infinite distributions
   - Holds because we picked marbles at random and only if we sample is $\nu$ and
@@ -253,15 +253,15 @@ MSML610: Advanced Machine Learning
   out-of-sample
   $$\Pr(|E_{in} - E_{out}| > \varepsilon) \le c$$
   - Generalization over unknown points (i.e., marbles) is possible
-  - **Machine learning is possible!**
+  - **\textcolor{red}{Machine learning is possible!}**
 
 #### Validation vs learning set-up: bin analogy
 
 - We know that for a given $h$, in-sample performance $E_{in}(h) = \nu$ needs to
   be close to out-of-sample performance $E_{out}(h) = \mu$
-  - This is a **validation setup**, after we have already learned a model
+  - This is a **\textcolor{red}{validation setup}**, after we have already learned a model
 
-- In a **learning setup** we have $h$ to choose from $M$ hypotheses
+- In a **\textcolor{darkgreen}{learning setup}** we have $h$ to choose from $M$ hypotheses
   - We need a bound on the out-of-sample performance of the chosen hypothesis
     $h \in \calH$, regardless of which hypothesis we choose
   - We need a Hoeffding counterpart for the case of choosing from multiple
@@ -283,12 +283,12 @@ MSML610: Advanced Machine Learning
     \\
     \end{alignat*}
     \endgroup
-  - **Intuition**: if we have 1000 bins with mostly \textcolor{red}{\text{red marbles}}, it is
+  - **\textcolor{blue}{Intuition}**: if we have 1000 bins with mostly \textcolor{red}{\text{red marbles}}, it is
     possible that our sample ends up being 100\% \textcolor{darkgreen}{\text{green}}, so the bound is
     weak
 
 #### Validation vs learning set-up: Coin Analogy
-- In a **validation set-up**, we have a coin and want to determine if it is fair
+- In a **\textcolor{red}{validation set-up}**, we have a coin and want to determine if it is fair
 
 - Assume the coin is unbiased: $\mu = 0.5$
   - Toss the coin 10 times
@@ -301,7 +301,7 @@ MSML610: Advanced Machine Learning
 
 #### Validation vs learning set-up: Coin Analogy
 
-- In a **learning set-up**, we have many coins and we need to choose one and
+- In a **\textcolor{red}{learning set-up}**, we have many coins and we need to choose one and
   determine if it's fair
 
 - If we have 1000 fair coins, how likely is it that at least one appears totally
@@ -322,7 +322,7 @@ MSML610: Advanced Machine Learning
 
 
 #### Hoeffding inequality: validation vs learning
-- In **validation / testing**
+- In **\textcolor{red}{validation / testing}**
   - We can use Hoeffding to assess how well our $g$ (the chosen hypothesis)
     approximates $f$ (unknown hypothesis):
     $$
@@ -338,7 +338,7 @@ MSML610: Advanced Machine Learning
   - Since the hypothesis $g$ is final and fixed, Hoeffding inequality guarantees
     that we can learn since it gives a bound for $E_{out}$ to track $E_{in}$
 
-- In **learning / training**
+- In **\textcolor{blue}{learning / training}**
   - We need to account that our hypothesis is the best of $M$ hypotheses, so the
     union bound gives:
     $$
@@ -444,7 +444,7 @@ MSML610: Advanced Machine Learning
 ::: columns
 :::: {.column width=65%}
 
-- **Example**
+- **\textcolor{red}{Example}**
 - 4 points in a plane $A, B, C, D$
 - $\calH$ = \{ bidimensional perceptrons (binary classifier) \}
 - Moving the separating hyperplane, one gets different classifications for the
@@ -965,7 +965,7 @@ MSML610: Advanced Machine Learning
 
 ::: columns
 :::: {.column width=55%}
-- **Fit with:**
+- **\textcolor{red}{Fit with:}**
   - Line $\to$ underfit
     - High bias (large error)
     - Low variance (stable model)
@@ -1152,7 +1152,7 @@ MSML610: Advanced Machine Learning
 
 ::: columns
 :::: {.column width=60%}
-- **Bias term**
+- **\textcolor{red}{Bias term}**
   $$
   \text{bias}^2 = \EE_{\vx} [ ( \overline{g}(\vx) - f(\vx) ) ^ 2 ]
   $$
@@ -1161,7 +1161,7 @@ MSML610: Advanced Machine Learning
     - I.e., the ability of $\calH$ to approximate the target with infinite
       training sets
 
-- **Variance term**
+- **\textcolor{blue}{Variance term}**
   $$
   \text{variance} = \EE_{\vx} \EE_D [ ( g^{(D)}(\vx) - \overline{g}(\vx) ) ^ 2]
   $$
@@ -1342,7 +1342,7 @@ MSML610: Advanced Machine Learning
   \end{aligned}
   $$
 
-- **Interpretation**:
+- **\textcolor{red}{Interpretation}**:
   - The error is the sum of 3 contributions
     1. Variance: from the set of hypotheses to the centroid of the hypothesis set
     2. Bias: from the centroid of the hypothesis set to the noiseless function
@@ -1368,12 +1368,12 @@ MSML610: Advanced Machine Learning
   - Variance
   - Stochastic noise
 
-- **Deterministic noise:**
+- **\textcolor{red}{Deterministic noise:}**
   - Fixed for a particular $\vx$
   - Depends on $\calH$
   - Independent of $\varepsilon$ or $D$
 
-- **Stochastic noise:**
+- **\textcolor{blue}{Stochastic noise:}**
   - Not fixed for $\vx$
   - Independent of $D$ or $\calH$
 
@@ -1419,7 +1419,7 @@ MSML610: Advanced Machine Learning
   _model complexity_:
   - To the _data resources_
   - To the _signal to noise ratio_
-  - **Not** to the _target complexity_
+  - **\textcolor{red}{Not}** to the _target complexity_
 
 - The rule of thumb is:
   $$
@@ -1501,13 +1501,13 @@ MSML610: Advanced Machine Learning
 ::: columns
 :::: {.column width=55%}
 
-- **Small $N$**
+- **\textcolor{red}{Small $N$}**
   - With small data $N$, $E_{in}$ might be small (even 0) depending on model
     capacity (VC dimension)
   - The model is likely overfitted, memorizing examples, generalizing poorly,
     and $E_{out}$ is large
 
-- **Increasing $N$**
+- **\textcolor{blue}{Increasing $N$}**
   - $E_{in}$ increases as the model cannot fit all data
   - $E_{out}$ decreases as the model fits better and generalizes better
     ($E_{out} - E_{in}$ decreases)
@@ -1552,7 +1552,7 @@ MSML610: Advanced Machine Learning
     - More data helps; gap between $E_{in}$ and $E_{out}$ decreases
     - Small data set $D$; high dependency on $D$
 
-  - **High-bias regime for large $N$**
+  - **\textcolor{red}{High-bias regime for large $N$}**
     - $E_{in}$ is large; flattens for large $N$
     - Best model fitted; more data won't help
     - $E_{out}$ can be close to $E_{in}$ (good generalization) or not
@@ -1634,7 +1634,7 @@ MSML610: Advanced Machine Learning
   $E_val$ since $E_{val}(h) = E_{out}(h) \pm \frac{c \sigma}{\sqrt{K}}$
 
 #### Trade-off between training and validation set size
-- **Problem**: to better estimate $E_{val}$, we need points from the training set:
+- **\textcolor{red}{Problem}**: to better estimate $E_{val}$, we need points from the training set:
   $$
   \begin{aligned}
   & D_{val} = \{K \text{ points}\} \\
@@ -1654,7 +1654,7 @@ MSML610: Advanced Machine Learning
   $$
   - If $K$ is too big, we get a reliable estimate of a bad number!
 
-- **Solution**:
+- **\textcolor{blue}{Solution}**:
   - Rule of thumb: 70-30 or 80-20 split between train and validation
   - 20\%-30\% of data for validation 
 
@@ -1679,7 +1679,7 @@ MSML610: Advanced Machine Learning
   - If $D_{val}$ affects learning (e.g., model selection), this data set is
     biased and optimistic and cannot assess the model
 
-- **Algorithm**
+- **\textcolor{red}{Algorithm}**
   1. Train with $N - K$ points to learn $g^-$
   2. Use $K$ points to compute $E_{val}[g^-]$ estimating $E_{out}[g^-]$
   3. Once the model form is finalized, use all $N$ data points (including
@@ -1692,11 +1692,11 @@ MSML610: Advanced Machine Learning
 
 
 #### Learn-validation approach: pros and cons
-- **Pros**
+- **\textcolor{red}{Pros}**
   - Estimate $E_{out}$ using $E_{val}$
   - Simple to compute, no complexity from VC analysis
 
-- **Cons**
+- **\textcolor{blue}{Cons}**
   - Cannot use all data for learning and validation; need a compromise
   - Learned model and $E_{val}$ depend on the split; different splits can give
     different results
@@ -1798,12 +1798,12 @@ Train / test validation
 :::
 
 #### Cross-validation: pros and cons
-- **Pros**
+- **\textcolor{red}{Pros}**
   - Efficient data usage (all data used for learning and validation)
   - Better estimate of $E_{val}$ than separate training/validation sets
   - Folds can be stratified
 
-- **Cons**
+- **\textcolor{blue}{Cons}**
   - Computationally intensive: $K$ learning phases
   - Dependency on fold selection
   - Errors $E_{val}$ are not independent (coupling through common training
@@ -1840,26 +1840,26 @@ Train / test validation
     $$
 
 #### Leave-one-out cross-validation: pros and cons
-- **Pros**
+- **\textcolor{red}{Pros}**
   - Max data used for training
   - Deterministic procedure (no fold selection dependency)
 
-- **Cons**
+- **\textcolor{blue}{Cons}**
   - High computational cost (as many learning phases as data points)
   - Cannot be stratified
   - Higher correlation between cross-validation estimates
 
 #### Bootstrap
-- **Algorithm**
+- **\textcolor{red}{Algorithm}**
   - Pick $N$ samples with replacement from a data set with $N$ instances to build
     training set
   - Pick the elements never chosen to build the test set ("out-of-bag" samples)
   - Training set contains 63.2\% of all the samples, 36.8\% in the test set
 
-- **Pros**
+- **\textcolor{darkgreen}{Pros}**
   - Works for small data sets since it "expands" the data
 
-- **Cons**
+- **\textcolor{blue}{Cons}**
   - Not flexible
   - Smaller percentage of instances are used for training set than 10-fold cross
     validation
