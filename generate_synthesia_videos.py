@@ -74,7 +74,7 @@ def _parse_slide_range(slide_range: str) -> List[int]:
 
 def _discover_text_files(in_dir: str) -> List[Tuple[int, str]]:
     """
-    Discover all XXX_text.txt files in the directory.
+    Discover all XXX_comment.txt files in the directory.
 
     :param in_dir: input directory to search
     :return: list of (slide_number, file_path) tuples sorted by slide
@@ -82,13 +82,13 @@ def _discover_text_files(in_dir: str) -> List[Tuple[int, str]]:
     """
     hdbg.dassert_dir_exists(in_dir)
     # Discover all text files.
-    pattern = os.path.join(in_dir, "*_text.txt")
+    pattern = os.path.join(in_dir, "*_comment.txt")
     text_files = glob.glob(pattern)
     # Extract slide numbers and sort.
     slides = []
     for file_path in text_files:
         filename = os.path.basename(file_path)
-        match = re.match(r"(\d+)_text\.txt", filename)
+        match = re.match(r"(\d+)_comment\.txt", filename)
         if match:
             slide_num = int(match.group(1))
             slides.append((slide_num, file_path))
@@ -184,7 +184,7 @@ def _parse() -> argparse.Namespace:
     parser.add_argument(
         "--in_dir",
         required=True,
-        help="Directory containing xyz_text.txt files",
+        help="Directory containing xyz_comment.txt files",
     )
     parser.add_argument(
         "--slides",

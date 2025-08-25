@@ -52,20 +52,30 @@ def _headers(api_key: str) -> Dict[str, str]:
     }
 
 
-def _format_timestamp(timestamp: str) -> str:
+def _format_timestamp(timestamp) -> str:
     """
-    Format ISO timestamp to readable format.
+    Format timestamp to readable format.
+    Handles both ISO timestamp strings and unix timestamps.
 
-    :param timestamp: ISO timestamp string
+    :param timestamp: ISO timestamp string or unix timestamp (int/float)
     :return: formatted timestamp
     """
     if not timestamp:
         return "N/A"
     try:
+        # Check if it's a unix timestamp (integer or float).
+        if isinstance(timestamp, (int, float)):
+            dt = datetime.fromtimestamp(timestamp)
+            return dt.strftime("%Y-%m-%d %H:%M:%S")
+        # Check if it's a string that might be a unix timestamp.
+        if isinstance(timestamp, str) and timestamp.isdigit():
+            dt = datetime.fromtimestamp(int(timestamp))
+            return dt.strftime("%Y-%m-%d %H:%M:%S")
+        # Try to parse as ISO timestamp.
         dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
         return dt.strftime("%Y-%m-%d %H:%M:%S")
-    except (ValueError, AttributeError):
-        return timestamp
+    except (ValueError, AttributeError, OSError):
+        return str(timestamp)
 
 
 def get_videos_status(

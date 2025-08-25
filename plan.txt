@@ -49,15 +49,14 @@ slide_006:
     duration: "normal"
 
 slide_007:
-  # Portfolio construction: specs.
   pip:
-    coords: [800, 300]
-    width: 380
-    duration: "normal"
-  comment:
-    coords: [100, 600]
-    width: 340
+    coords: [200, 100]
+    width: 600
     duration: "fill"
+  comment:
+    coords: [1100, 500]
+    width: 300
+    duration: "normal"
 
 slide_008:
   # Portfolio construction: demo.
@@ -66,5 +65,8 @@ slide_008:
     width: 1300
     duration: "fill"
 
-# slide_009 (009_slide.mp4) has no pip or comment files, so it will use default
-# behavior (no overlays)
+slide_009:
+  comment:
+    coords: [1100, 500]
+    width: 300
+    duration: "normal"
