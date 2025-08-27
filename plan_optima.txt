@@ -34,38 +34,8 @@ slide_004:
     width: 300
     duration: "normal"
 
-slide_005:
-  # Strategy manager: specs.
-  pip:
-    coords: [200, 100]
-    width: 600
-    duration: "fill"
-
-slide_006:
-  # Strategy manager: demo.
-  pip:
-    coords: [200, 100]
-    width: 1300
-    duration: "normal"
-
-slide_007:
-  pip:
-    coords: [200, 100]
-    width: 600
-    duration: "fill"
-  comment:
-    coords: [1100, 500]
-    width: 300
-    duration: "normal"
-
-slide_008:
-  # Portfolio construction: demo.
-  pip:
-    coords: [200, 100]
-    width: 1300
-    duration: "fill"
-
 slide_009:
+  # Thank you.
   comment:
     coords: [1100, 500]
     width: 300
