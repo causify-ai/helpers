@@ -119,63 +119,94 @@ def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
             
             # Extract slide number from filename (e.g., "videos/001_slide.mp4" -> 1)
             slide_path = line.split('=', 1)[1]
+            # Remove inline comments from path
+            slide_path = slide_path.split('#')[0].strip()
             filename = os.path.basename(slide_path)
             match = re.match(r"(\d+)_slide\.mp4", filename)
             if match:
                 current_slide_num = int(match.group(1))
                 current_slide_config = SlideConfig(current_slide_num)
                 current_slide_config.slide_path = slide_path
+                _LOG.debug(f"Parsing slide {current_slide_num}: {slide_path}")
             else:
                 _LOG.warning(f"Could not extract slide number from: {slide_path}")
                 i += 1
                 continue
         
-        # Check if this is a pip line
-        elif line.startswith('pip=') and current_slide_config:
-            pip_path = line.split('=', 1)[1]
+        # Check if this is a pip line (handle indented lines)
+        elif ('pip=' in line and line.lstrip().startswith('pip=')) and current_slide_config:
+            pip_path = line.lstrip().split('=', 1)[1]
+            # Remove inline comments from path
+            pip_path = pip_path.split('#')[0].strip()
             current_slide_config.pip_path = pip_path
+            _LOG.debug(f"Found pip path for slide {current_slide_num}: {pip_path}")
             
             # Parse pip configuration from following lines
+            pip_coords = None
+            pip_width = None
+            pip_duration = 'normal'
+            
             i += 1
             while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(('slide=', 'pip=', 'comment=', '#')):
                 config_line = lines[i].strip()
                 if config_line.startswith('coords:'):
                     coords_str = config_line.split(':', 1)[1].strip()
-                    coords = eval(coords_str)  # Parse [x, y] format
+                    # Remove inline comments
+                    coords_str = coords_str.split('#')[0].strip()
+                    pip_coords = eval(coords_str)  # Parse [x, y] format
                 elif config_line.startswith('width:'):
-                    width = int(config_line.split(':', 1)[1].strip())
+                    width_str = config_line.split(':', 1)[1].strip()
+                    # Remove inline comments
+                    width_str = width_str.split('#')[0].strip()
+                    pip_width = int(width_str)
                 elif config_line.startswith('duration:'):
-                    duration = config_line.split(':', 1)[1].strip().strip('"')
+                    duration_str = config_line.split(':', 1)[1].strip()
+                    # Remove inline comments
+                    duration_str = duration_str.split('#')[0].strip()
+                    pip_duration = duration_str.strip('"')
                 i += 1
             
             # Create pip overlay config
-            if 'coords' in locals() and 'width' in locals():
-                duration = locals().get('duration', 'normal')
-                current_slide_config.pip = OverlayConfig(coords, width, duration)
+            if pip_coords is not None and pip_width is not None:
+                current_slide_config.pip = OverlayConfig(pip_coords, pip_width, pip_duration)
             i -= 1  # Adjust for the extra increment
         
-        # Check if this is a comment line
-        elif line.startswith('comment=') and current_slide_config:
-            comment_path = line.split('=', 1)[1]
+        # Check if this is a comment line (handle indented lines)
+        elif ('comment=' in line and line.lstrip().startswith('comment=')) and current_slide_config:
+            comment_path = line.lstrip().split('=', 1)[1]
+            # Remove inline comments from path
+            comment_path = comment_path.split('#')[0].strip()
             current_slide_config.comment_path = comment_path
+            _LOG.debug(f"Found comment path for slide {current_slide_num}: {comment_path}")
             
             # Parse comment configuration from following lines
+            comment_coords = None
+            comment_width = None
+            comment_duration = 'normal'
+            
             i += 1
             while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(('slide=', 'pip=', 'comment=', '#')):
                 config_line = lines[i].strip()
                 if config_line.startswith('coords:'):
                     coords_str = config_line.split(':', 1)[1].strip()
-                    coords = eval(coords_str)  # Parse [x, y] format
+                    # Remove inline comments
+                    coords_str = coords_str.split('#')[0].strip()
+                    comment_coords = eval(coords_str)  # Parse [x, y] format
                 elif config_line.startswith('width:'):
-                    width = int(config_line.split(':', 1)[1].strip())
+                    width_str = config_line.split(':', 1)[1].strip()
+                    # Remove inline comments
+                    width_str = width_str.split('#')[0].strip()
+                    comment_width = int(width_str)
                 elif config_line.startswith('duration:'):
-                    duration = config_line.split(':', 1)[1].strip().strip('"')
+                    duration_str = config_line.split(':', 1)[1].strip()
+                    # Remove inline comments
+                    duration_str = duration_str.split('#')[0].strip()
+                    comment_duration = duration_str.strip('"')
                 i += 1
             
             # Create comment overlay config
-            if 'coords' in locals() and 'width' in locals():
-                duration = locals().get('duration', 'normal')
-                current_slide_config.comment = OverlayConfig(coords, width, duration)
+            if comment_coords is not None and comment_width is not None:
+                current_slide_config.comment = OverlayConfig(comment_coords, comment_width, comment_duration)
             i -= 1  # Adjust for the extra increment
         
         i += 1
@@ -183,6 +214,16 @@ def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
     # Save last slide config
     if current_slide_config and current_slide_num is not None:
         slide_configs[current_slide_num] = current_slide_config
+    
+    # Debug logging
+    for slide_num, slide_config in slide_configs.items():
+        _LOG.debug(f"Slide {slide_num}: slide_path={slide_config.slide_path}")
+        _LOG.debug(f"Slide {slide_num}: pip_path={slide_config.pip_path}")
+        _LOG.debug(f"Slide {slide_num}: comment_path={slide_config.comment_path}")
+        if slide_config.pip:
+            _LOG.debug(f"Slide {slide_num}: pip config={slide_config.pip.coords}, {slide_config.pip.width}, {slide_config.pip.duration}")
+        if slide_config.comment:
+            _LOG.debug(f"Slide {slide_num}: comment config={slide_config.comment.coords}, {slide_config.comment.width}, {slide_config.comment.duration}")
     
     _LOG.debug(f"Parsed {len(slide_configs)} slide configurations from plan file")
     return slide_configs
@@ -290,29 +331,42 @@ def _find_companion_files(
     pip_path = None
     comment_path = None
     
+    _LOG.debug(f"Looking for companions for slide {slide_num}")
+    _LOG.debug(f"slide_config provided: {slide_config is not None}")
+    
     # Use paths from slide config if available
     if slide_config:
+        _LOG.debug(f"slide_config.pip_path: {slide_config.pip_path}")
+        _LOG.debug(f"slide_config.comment_path: {slide_config.comment_path}")
+        
         if slide_config.pip_path:
             pip_file = slide_config.pip_path
             if not os.path.isabs(pip_file):
                 pip_file = os.path.join(in_dir, pip_file)
+            _LOG.debug(f"Checking pip file: {pip_file}")
             pip_path = pip_file if os.path.exists(pip_file) else None
+            _LOG.debug(f"Pip file exists: {pip_path is not None}")
         
         if slide_config.comment_path:
             comment_file = slide_config.comment_path
             if not os.path.isabs(comment_file):
                 comment_file = os.path.join(in_dir, comment_file)
+            _LOG.debug(f"Checking comment file: {comment_file}")
             comment_path = comment_file if os.path.exists(comment_file) else None
+            _LOG.debug(f"Comment file exists: {comment_path is not None}")
     
     # Fallback to default naming if not found in config
     if pip_path is None:
         pip_file = os.path.join(in_dir, f"{slide_num:03d}_pip.mp4")
+        _LOG.debug(f"Fallback pip check: {pip_file}")
         pip_path = pip_file if os.path.exists(pip_file) else None
     
     if comment_path is None:
         comment_file = os.path.join(in_dir, f"{slide_num:03d}_comment.mp4")
+        _LOG.debug(f"Fallback comment check: {comment_file}")
         comment_path = comment_file if os.path.exists(comment_file) else None
     
+    _LOG.debug(f"Final result - pip_path: {pip_path}, comment_path: {comment_path}")
     return pip_path, comment_path
 
 
@@ -649,8 +703,7 @@ def _parse() -> argparse.ArgumentParser:
     hparser.add_verbosity_arg(parser)
     parser.add_argument(
         "--in_dir",
-        required=True,
-        help="Input directory containing XXX_slide.mp4, XXX_pip.mp4, and XXX_comment.mp4 files",
+        help="Input directory containing XXX_slide.mp4, XXX_pip.mp4, and XXX_comment.mp4 files (default: current directory)",
     )
     parser.add_argument(
         "--out_file",
@@ -699,8 +752,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Validate input directory.
-    in_dir = args.in_dir
+    # Set input directory.
+    in_dir = args.in_dir if args.in_dir else "."
     hdbg.dassert_dir_exists(in_dir)
     # Validate output file extension.
     out_file = args.out_file

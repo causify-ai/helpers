@@ -1,6 +1,7 @@
 # Intro.
 slide=videos/001_slide.mp4
-  comment=videos/001_comment.mp4
+  #comment=videos/001_comment.mp4
+  comment=videos/000_comment.mp4  # Use Synthesia intro.
     coords: [1000, 50]     # Top-right corner positioning
     width: 350             # Medium width for good visibility
     duration: "normal"     # Keep original timing
