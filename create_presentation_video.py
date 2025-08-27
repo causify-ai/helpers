@@ -151,17 +151,30 @@ def _parse_slide_range(slide_range: str) -> List[int]:
 
 
 def _discover_slide_files(
-    in_dir: str, slide_range: Optional[str] = None
+    in_dir: str, 
+    slide_range: Optional[str] = None,
+    slide_configs: Optional[Dict[int, SlideConfig]] = None,
 ) -> List[Tuple[int, str]]:
     """
-    Discover XXX_slide.mp4 files in the directory, optionally filtered by range.
+    Discover XXX_slide.mp4 files in the directory, optionally filtered by range or plan.
     
     :param in_dir: input directory to search
     :param slide_range: optional range specification like "001-003"
+    :param slide_configs: optional slide configurations from plan file
     :return: list of (slide_number, file_path) tuples sorted by slide number
     """
     hdbg.dassert_dir_exists(in_dir)
-    if slide_range:
+    # If slide_configs provided, prioritize plan-based discovery.
+    if slide_configs:
+        _LOG.debug(f"Using plan-based slide discovery for {len(slide_configs)} slides")
+        slides = []
+        for slide_num in sorted(slide_configs.keys()):
+            slide_file = os.path.join(in_dir, f"{slide_num:03d}_slide.mp4")
+            if os.path.exists(slide_file):
+                slides.append((slide_num, slide_file))
+            else:
+                _LOG.warning(f"Slide file not found for plan entry: {slide_num:03d}_slide.mp4")
+    elif slide_range:
         # Parse requested slide numbers
         requested_slides = _parse_slide_range(slide_range)
         slides = []
@@ -617,9 +630,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.info(f"Plan file: {args.plan}")
         slide_configs = _parse_plan_file(args.plan)
     # Discover slide files.
-    slides = _discover_slide_files(in_dir, args.slides)
+    slides = _discover_slide_files(in_dir, args.slides, slide_configs if slide_configs else None)
     if not slides:
-        if args.slides:
+        if args.plan:
+            hdbg.dfatal(f"No matching slide files found for plan entries in: {args.plan}")
+        elif args.slides:
             hdbg.dfatal(f"No matching slide files found for range: {args.slides}")
         else:
             hdbg.dfatal(f"No XXX_slide.mp4 files found in directory: {in_dir}")
