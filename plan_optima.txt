@@ -1,42 +1,42 @@
-slide_001:
-  # Intro.
-  comment:
+# Intro.
+slide=videos/001_slide.mp4
+  comment=videos/001_comment.mp4
     coords: [1000, 50]     # Top-right corner positioning
     width: 350             # Medium width for good visibility
     duration: "normal"     # Keep original timing
 
-slide_002:
-  # Capital market offerings.
-  pip:
+# Capital market offerings.
+slide=videos/002_slide.mp4
+  pip=videos/002_pip.mp4
     coords: [200, 100]
     width: 600
     duration: "fill"
-  comment:
+  comment=videos/002_comment.mp4
     coords: [1100, 500]
     width: 300
     duration: "normal"
 
-slide_003:
-  # KaizenFlow: specs.
-  pip:
+# KaizenFlow: specs.
+slide=videos/003_slide.mp4
+  pip=videos/003_pip.mp4
     coords: [200, 100]
     width: 600
     duration: "fill"
-  comment:
+  comment=videos/003_comment.mp4
     coords: [1100, 500]
     width: 300
     duration: "normal"
 
-slide_004:
-  # Standalone applications.
-  comment:
+# Standalone applications.
+slide=videos/004_slide.mp4
+  comment=videos/004_comment.mp4
     coords: [1100, 500]
     width: 300
     duration: "normal"
 
-slide_009:
-  # Thank you.
-  comment:
+# Thank you.
+slide=videos/009_slide.mp4
+  comment=videos/009_comment.mp4
     coords: [1100, 500]
     width: 300
     duration: "normal"

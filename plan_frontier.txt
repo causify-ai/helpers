@@ -1,38 +1,38 @@
-slide_001:
-  # Intro.
-  comment:
+# Intro.
+slide=videos/001_slide.mp4
+  comment=videos/001_comment.mp4
     coords: [1000, 50]     # Top-right corner positioning
     width: 350             # Medium width for good visibility
     duration: "normal"     # Keep original timing
 
-slide_004:
-  # Standalone applications.
-  comment:
+# Standalone applications.
+slide=videos/004_slide.mp4
+  comment=videos/004_comment.mp4
     coords: [1100, 500]
     width: 300
     duration: "normal"
 
-slide_007:
-  # Portfolio construction: specs.
-  pip:
+# Portfolio construction: specs.
+slide=videos/007_slide.mp4
+  pip=videos/007_pip.mp4
     coords: [200, 100]
     width: 600
     duration: "fill"
-  comment:
+  comment=videos/007_comment.mp4
     coords: [1100, 500]
     width: 300
     duration: "normal"
 
-slide_008:
-  # Portfolio construction: demo.
-  pip:
+# Portfolio construction: demo.
+slide=videos/008_slide.mp4
+  pip=videos/008_pip.mp4
     coords: [200, 100]
     width: 1300
     duration: "fill"
 
-slide_009:
-  # Thank you.
-  comment:
+# Thank you.
+slide=videos/009_slide.mp4
+  comment=videos/009_comment.mp4
     coords: [1100, 500]
     width: 300
     duration: "normal"

@@ -12,13 +12,14 @@ The script supports two modes:
 1. Default mode: Uses fixed positioning (center for pip, bottom-right for comment)
 2. Plan mode: Uses a plan.txt file to specify custom coordinates, width, and duration handling
 
-Plan.txt Format (YAML-like structure):
-slide_001:
-  pip:
+Plan.txt Format (new file-based structure):
+# Capital market offerings.
+slide=videos/001_slide.mp4
+  pip=videos/001_pip.mp4
     coords: [x, y]
     width: pixels
     duration: "fill" | "normal"
-  comment:
+  comment=videos/001_comment.mp4
     coords: [x, y]  
     width: pixels
     duration: "fill" | "normal"
@@ -78,6 +79,9 @@ class SlideConfig:
     
     def __init__(self, slide_num: int):
         self.slide_num = slide_num
+        self.slide_path: Optional[str] = None
+        self.pip_path: Optional[str] = None
+        self.comment_path: Optional[str] = None
         self.pip: Optional[OverlayConfig] = None
         self.comment: Optional[OverlayConfig] = None
 
@@ -91,36 +95,94 @@ def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
     """
     hdbg.dassert_file_exists(plan_file_path)
     
-    with open(plan_file_path, 'r') as file:
-        plan_data = yaml.safe_load(file)
-    
     slide_configs = {}
+    current_slide_config = None
+    current_slide_num = None
     
-    for slide_key, slide_data in plan_data.items():
-        # Extract slide number from key (e.g., "slide_001" -> 1)
-        if not slide_key.startswith('slide_'):
+    with open(plan_file_path, 'r') as file:
+        lines = file.readlines()
+    
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        
+        # Skip empty lines and comments
+        if not line or line.startswith('#'):
+            i += 1
             continue
-        slide_num = int(slide_key.split('_')[1])
         
-        slide_config = SlideConfig(slide_num)
+        # Check if this is a slide line
+        if line.startswith('slide='):
+            # Save previous slide config if exists
+            if current_slide_config and current_slide_num is not None:
+                slide_configs[current_slide_num] = current_slide_config
+            
+            # Extract slide number from filename (e.g., "videos/001_slide.mp4" -> 1)
+            slide_path = line.split('=', 1)[1]
+            filename = os.path.basename(slide_path)
+            match = re.match(r"(\d+)_slide\.mp4", filename)
+            if match:
+                current_slide_num = int(match.group(1))
+                current_slide_config = SlideConfig(current_slide_num)
+                current_slide_config.slide_path = slide_path
+            else:
+                _LOG.warning(f"Could not extract slide number from: {slide_path}")
+                i += 1
+                continue
         
-        # Parse pip configuration
-        if 'pip' in slide_data:
-            pip_data = slide_data['pip']
-            coords = tuple(pip_data['coords'])
-            width = pip_data['width']
-            duration = pip_data.get('duration', 'normal')
-            slide_config.pip = OverlayConfig(coords, width, duration)
+        # Check if this is a pip line
+        elif line.startswith('pip=') and current_slide_config:
+            pip_path = line.split('=', 1)[1]
+            current_slide_config.pip_path = pip_path
+            
+            # Parse pip configuration from following lines
+            i += 1
+            while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(('slide=', 'pip=', 'comment=', '#')):
+                config_line = lines[i].strip()
+                if config_line.startswith('coords:'):
+                    coords_str = config_line.split(':', 1)[1].strip()
+                    coords = eval(coords_str)  # Parse [x, y] format
+                elif config_line.startswith('width:'):
+                    width = int(config_line.split(':', 1)[1].strip())
+                elif config_line.startswith('duration:'):
+                    duration = config_line.split(':', 1)[1].strip().strip('"')
+                i += 1
+            
+            # Create pip overlay config
+            if 'coords' in locals() and 'width' in locals():
+                duration = locals().get('duration', 'normal')
+                current_slide_config.pip = OverlayConfig(coords, width, duration)
+            i -= 1  # Adjust for the extra increment
         
-        # Parse comment configuration
-        if 'comment' in slide_data:
-            comment_data = slide_data['comment']
-            coords = tuple(comment_data['coords'])
-            width = comment_data['width']
-            duration = comment_data.get('duration', 'normal')
-            slide_config.comment = OverlayConfig(coords, width, duration)
+        # Check if this is a comment line
+        elif line.startswith('comment=') and current_slide_config:
+            comment_path = line.split('=', 1)[1]
+            current_slide_config.comment_path = comment_path
+            
+            # Parse comment configuration from following lines
+            i += 1
+            while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(('slide=', 'pip=', 'comment=', '#')):
+                config_line = lines[i].strip()
+                if config_line.startswith('coords:'):
+                    coords_str = config_line.split(':', 1)[1].strip()
+                    coords = eval(coords_str)  # Parse [x, y] format
+                elif config_line.startswith('width:'):
+                    width = int(config_line.split(':', 1)[1].strip())
+                elif config_line.startswith('duration:'):
+                    duration = config_line.split(':', 1)[1].strip().strip('"')
+                i += 1
+            
+            # Create comment overlay config
+            if 'coords' in locals() and 'width' in locals():
+                duration = locals().get('duration', 'normal')
+                current_slide_config.comment = OverlayConfig(coords, width, duration)
+            i -= 1  # Adjust for the extra increment
         
-        slide_configs[slide_num] = slide_config
+        i += 1
+    
+    # Save last slide config
+    if current_slide_config and current_slide_num is not None:
+        slide_configs[current_slide_num] = current_slide_config
     
     _LOG.debug(f"Parsed {len(slide_configs)} slide configurations from plan file")
     return slide_configs
@@ -169,11 +231,23 @@ def _discover_slide_files(
         _LOG.debug(f"Using plan-based slide discovery for {len(slide_configs)} slides")
         slides = []
         for slide_num in sorted(slide_configs.keys()):
-            slide_file = os.path.join(in_dir, f"{slide_num:03d}_slide.mp4")
-            if os.path.exists(slide_file):
-                slides.append((slide_num, slide_file))
+            slide_config = slide_configs[slide_num]
+            if slide_config.slide_path:
+                # Use slide path from plan file
+                slide_file = slide_config.slide_path
+                if not os.path.isabs(slide_file):
+                    slide_file = os.path.join(in_dir, slide_file)
+                if os.path.exists(slide_file):
+                    slides.append((slide_num, slide_file))
+                else:
+                    _LOG.warning(f"Slide file not found for plan entry: {slide_file}")
             else:
-                _LOG.warning(f"Slide file not found for plan entry: {slide_num:03d}_slide.mp4")
+                # Fallback to default naming
+                slide_file = os.path.join(in_dir, f"{slide_num:03d}_slide.mp4")
+                if os.path.exists(slide_file):
+                    slides.append((slide_num, slide_file))
+                else:
+                    _LOG.warning(f"Slide file not found for plan entry: {slide_num:03d}_slide.mp4")
     elif slide_range:
         # Parse requested slide numbers
         requested_slides = _parse_slide_range(slide_range)
@@ -203,20 +277,42 @@ def _discover_slide_files(
 
 
 def _find_companion_files(
-    in_dir: str, slide_num: int
+    in_dir: str, slide_num: int, slide_config: Optional[SlideConfig] = None
 ) -> Tuple[Optional[str], Optional[str]]:
     """
     Find pip and comment files for a given slide number.
     
     :param in_dir: input directory to search
     :param slide_num: slide number to find companions for
+    :param slide_config: optional slide configuration with file paths
     :return: (pip_file_path, comment_file_path) tuple, None if not found
     """
-    pip_file = os.path.join(in_dir, f"{slide_num:03d}_pip.mp4")
-    comment_file = os.path.join(in_dir, f"{slide_num:03d}_comment.mp4")
-    # Check if files exist.
-    pip_path = pip_file if os.path.exists(pip_file) else None
-    comment_path = comment_file if os.path.exists(comment_file) else None
+    pip_path = None
+    comment_path = None
+    
+    # Use paths from slide config if available
+    if slide_config:
+        if slide_config.pip_path:
+            pip_file = slide_config.pip_path
+            if not os.path.isabs(pip_file):
+                pip_file = os.path.join(in_dir, pip_file)
+            pip_path = pip_file if os.path.exists(pip_file) else None
+        
+        if slide_config.comment_path:
+            comment_file = slide_config.comment_path
+            if not os.path.isabs(comment_file):
+                comment_file = os.path.join(in_dir, comment_file)
+            comment_path = comment_file if os.path.exists(comment_file) else None
+    
+    # Fallback to default naming if not found in config
+    if pip_path is None:
+        pip_file = os.path.join(in_dir, f"{slide_num:03d}_pip.mp4")
+        pip_path = pip_file if os.path.exists(pip_file) else None
+    
+    if comment_path is None:
+        comment_file = os.path.join(in_dir, f"{slide_num:03d}_comment.mp4")
+        comment_path = comment_file if os.path.exists(comment_file) else None
+    
     return pip_path, comment_path
 
 
@@ -420,13 +516,14 @@ def _get_video_duration(video_path: str) -> float:
 
 
 def _print_processing_plan(
-    slides: List[Tuple[int, str]], in_dir: str
+    slides: List[Tuple[int, str]], in_dir: str, slide_configs: Optional[Dict[int, SlideConfig]] = None
 ) -> None:
     """
     Print detailed plan of videos to process with durations.
     
     :param slides: list of (slide_number, slide_path) tuples
     :param in_dir: input directory
+    :param slide_configs: optional slide configurations from plan file
     """
     _LOG.info("Processing Plan:")
     _LOG.info("=================")
@@ -434,8 +531,10 @@ def _print_processing_plan(
         # Get slide duration
         slide_duration = _get_video_duration(slide_path)
         _LOG.info(f"{slide_num:03d}_slide.mp4 ({slide_duration:.1f}s)")
+        # Get slide config if available
+        slide_config = slide_configs.get(slide_num) if slide_configs else None
         # Check for pip file
-        pip_path, comment_path = _find_companion_files(in_dir, slide_num)
+        pip_path, comment_path = _find_companion_files(in_dir, slide_num, slide_config)
         if pip_path:
             pip_duration = _get_video_duration(pip_path)
             _LOG.info(f"- pip present ({pip_duration:.1f}s)")
@@ -640,19 +739,19 @@ def _main(parser: argparse.ArgumentParser) -> None:
             hdbg.dfatal(f"No XXX_slide.mp4 files found in directory: {in_dir}")
     _LOG.info(f"Found {len(slides)} slides to process")
     # Print processing plan.
-    _print_processing_plan(slides, in_dir)
+    _print_processing_plan(slides, in_dir, slide_configs if slide_configs else None)
     # Create video segments for each slide.
     video_segments = []
     for slide_num, slide_path in slides:
         _LOG.info(f"Processing slide {slide_num:03d}: {os.path.basename(slide_path)}")
+        # Get slide configuration if available.
+        slide_config = slide_configs.get(slide_num) if slide_configs else None
         # Find companion files.
-        pip_path, comment_path = _find_companion_files(in_dir, slide_num)
+        pip_path, comment_path = _find_companion_files(in_dir, slide_num, slide_config)
         if pip_path:
             _LOG.debug(f"  Found PIP: {os.path.basename(pip_path)}")
         if comment_path:
             _LOG.debug(f"  Found comment: {os.path.basename(comment_path)}")
-        # Get slide configuration if available.
-        slide_config = slide_configs.get(slide_num)
         # Create composite segment.
         segment, segment_duration = _create_slide_segment(
             slide_path, pip_path, comment_path, 
