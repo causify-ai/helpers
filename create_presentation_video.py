@@ -215,7 +215,7 @@ def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
     if current_slide_config and current_slide_num is not None:
         slide_configs[current_slide_num] = current_slide_config
     
-    # Debug logging
+    # Debug logging and file existence validation
     for slide_num, slide_config in slide_configs.items():
         _LOG.debug(f"Slide {slide_num}: slide_path={slide_config.slide_path}")
         _LOG.debug(f"Slide {slide_num}: pip_path={slide_config.pip_path}")
@@ -227,6 +227,38 @@ def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
     
     _LOG.debug(f"Parsed {len(slide_configs)} slide configurations from plan file")
     return slide_configs
+
+
+def _validate_plan_files(
+    slide_configs: Dict[int, SlideConfig], in_dir: str
+) -> None:
+    """
+    Validate that all files specified in slide configurations exist.
+    
+    :param slide_configs: dictionary of slide configurations
+    :param in_dir: input directory for resolving relative paths
+    """
+    for slide_num, slide_config in slide_configs.items():
+        # Check slide file
+        if slide_config.slide_path:
+            slide_file = slide_config.slide_path
+            if not os.path.isabs(slide_file):
+                slide_file = os.path.join(in_dir, slide_file)
+            hdbg.dassert_file_exists(slide_file, f"Slide file for slide {slide_num} not found")
+        
+        # Check pip file
+        if slide_config.pip_path:
+            pip_file = slide_config.pip_path
+            if not os.path.isabs(pip_file):
+                pip_file = os.path.join(in_dir, pip_file)
+            hdbg.dassert_file_exists(pip_file, f"Pip file for slide {slide_num} not found")
+        
+        # Check comment file
+        if slide_config.comment_path:
+            comment_file = slide_config.comment_path
+            if not os.path.isabs(comment_file):
+                comment_file = os.path.join(in_dir, comment_file)
+            hdbg.dassert_file_exists(comment_file, f"Comment file for slide {slide_num} not found")
 
 
 def _parse_slide_range(slide_range: str) -> List[int]:
@@ -781,6 +813,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.plan:
         _LOG.info(f"Plan file: {args.plan}")
         slide_configs = _parse_plan_file(args.plan)
+        # Validate that all files specified in plan exist
+        _validate_plan_files(slide_configs, in_dir)
     # Discover slide files.
     slides = _discover_slide_files(in_dir, args.slides, slide_configs if slide_configs else None)
     if not slides:
