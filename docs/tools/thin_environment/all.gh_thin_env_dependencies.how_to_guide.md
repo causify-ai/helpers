@@ -1,11 +1,11 @@
-# Thin environment dependencies
+# Thin Environment Dependencies
 
 <!-- toc -->
 
 - [Description](#description)
-- [Change in requirements file](#change-in-requirements-file)
-- [Confirm with Build team](#confirm-with-build-team)
-- [Update requirements file](#update-requirements-file)
+- [Change in Requirements File](#change-in-requirements-file)
+- [Confirm with Build Team](#confirm-with-build-team)
+- [Update Requirements File](#update-requirements-file)
 - [Update Documentation](#update-documentation)
 - [Notify Team](#notify-team)
 
@@ -36,7 +36,7 @@
 - This document provides a step-by-step guide for adding or make any changes in
   the requirements file of both the thin env and GitHub
 
-## Change in requirements file
+## Change in Requirements File
 
 - Some reasons for updating/changing the `requirements.txt` file are:
   - A new feature requires a new package outside the container, e.g., a new or
@@ -44,7 +44,7 @@
   - Upgrading the package version since the current one is outdated
   - Removing a package since it is not used anymore
 
-## Confirm with Build team
+## Confirm with Build Team
 
 - Changes in any of the requirement files should be confirmed with the Build
   team before merging the PR
@@ -64,7 +64,7 @@ Example:
   [/helpers/lib_tasks_gh.py](https://github.com/cryptokaizen/cmamp/blob/master/helpers/lib_tasks_gh.py#L469)
   for reference.
 
-## Update requirements file
+## Update Requirements File
 
 - Update both the requirements file if relevant
   [/dev_scripts/client_setup/requirements.txt](/dev_scripts/client_setup/requirements.txt)
@@ -81,8 +81,8 @@ Example:
 
 ## Notify Team
 
-In the `#team-eng` Slack channel, notify the team about the new package and ask them
-to rebuild the thin env.
+In the `#team-eng` Slack channel, notify the team about the new package and ask
+them to rebuild the thin env.
 
 Example:
 ```
