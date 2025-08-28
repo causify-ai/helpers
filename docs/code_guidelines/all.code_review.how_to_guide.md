@@ -60,7 +60,7 @@
 ### Pull request
 
 - Our usual review process is to work in a branch and create a pull request (PR)
-  - See our [Git](/docs/work_tools/git/all.git.how_to_guide.md) doc for details
+  - See our [Git](/docs/tools/git/all.git.how_to_guide.md) doc for details
   - The name of the pull request should be based on the name of the branch,
     which in turn should reference the issue repo, number and title. The PR name
     is generally generated automatically, e.g.,
@@ -274,7 +274,7 @@
   can select the "delete branch" option (usually it is done automatically)
 
 - Otherwise you can delete the branch using the procedure in
-  [Git](/docs/work_tools/git/all.git.how_to_guide.md#deleting-a-branch)
+  [Git](/docs/tools/git/all.git.how_to_guide.md#deleting-a-branch)
 
 ### Give priority to code review
 
