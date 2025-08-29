@@ -17,42 +17,26 @@ Use --out_dir to organize output files in a dedicated directory.
 Use --llm_prompt to customize the AI analysis with your own prompt file.
 
 Basic usage:
-> run_tree_and_llm.py --target_dir /path/to/process
-> run_tree_and_llm.py --target_dir /path/to/analyze --out_dir results
+> run_tree_and_llm.py --in_dir /path/to/process
+> run_tree_and_llm.py --in_dir /path/to/analyze --out_dir results
 
 Action control:
-> run_tree_and_llm.py --target_dir /path/to/process --all
-> run_tree_and_llm.py --target_dir /path/to/process --skip_action tree
-> run_tree_and_llm.py --target_dir /path/to/process --action llm
-> run_tree_and_llm.py --target_dir /path/to/process --action tree
+> run_tree_and_llm.py --in_dir /path/to/process --all
+> run_tree_and_llm.py --in_dir /path/to/process --skip_action tree
+> run_tree_and_llm.py --in_dir /path/to/process --action llm
+> run_tree_and_llm.py --in_dir /path/to/process --action tree
 
 Custom prompts and output:
-> run_tree_and_llm.py --target_dir /path/to/process --llm_prompt my_prompt.txt
-> run_tree_and_llm.py --target_dir /path/to/process --out_dir analysis --log_file custom.log
-> run_tree_and_llm.py --target_dir /path/to/process --llm_prompt detailed_analysis.txt --out_dir reports
-
-Workflow examples:
-# Generate tree files only (useful for review before LLM processing)
-> run_tree_and_llm.py --target_dir /path/to/process --action tree --out_dir trees
-
-# Process existing tree files with LLM using custom prompt
-> run_tree_and_llm.py --target_dir /path/to/process --action llm --out_dir trees --llm_prompt custom.txt
+> run_tree_and_llm.py --in_dir /path/to/process --llm_prompt my_prompt.txt
+> run_tree_and_llm.py --in_dir /path/to/process --out_dir analysis --log_file custom.log
+> run_tree_and_llm.py --in_dir /path/to/process --llm_prompt detailed_analysis.txt --out_dir reports
 
 # Full processing with custom settings
-> run_tree_and_llm.py --target_dir /projects/code --out_dir analysis --llm_prompt analysis_prompt.txt --log_file process.log
+> run_tree_and_llm.py --in_dir /projects/code --out_dir analysis --llm_prompt analysis_prompt.txt --log_file process.log
 
 Range limiting:
 # Process only the first 3 directories (1st to 3rd)
-> run_tree_and_llm.py --target_dir /path/to/process --limit 1:3
-
-# Process directories 5 through 10
-> run_tree_and_llm.py --target_dir /path/to/process --limit 5:10 --out_dir subset_results
-
-# Process only the 2nd directory
-> run_tree_and_llm.py --target_dir /path/to/process --limit 2:2
-
-# Combine with other options - process directories 3-7 with custom prompt
-> run_tree_and_llm.py --target_dir /path/to/process --limit 3:7 --llm_prompt detailed.txt --out_dir limited_analysis
+> run_tree_and_llm.py --in_dir /path/to/process --limit 1:3
 """
 
 import argparse
@@ -85,7 +69,7 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--target_dir",
+        "--in_dir",
         action="store",
         default=".",
         help="Directory containing subdirectories to process (default: current directory)",
@@ -152,24 +136,24 @@ def _parse_limit_range(limit_str: str) -> Tuple[int, int]:
     return start - 1, end - 1
 
 
-def _get_directories(target_dir: str, *, limit_range: Optional[Tuple[int, int]] = None) -> List[str]:
+def _get_directories(in_dir: str, *, limit_range: Optional[Tuple[int, int]] = None) -> List[str]:
     """
-    Get all directories in target_dir sorted alphabetically.
+    Get all directories in in_dir sorted alphabetically.
 
-    :param target_dir: directory to scan
+    :param in_dir: directory to scan
     :param limit_range: optional tuple (start, end) for 0-indexed range filtering
     :return: sorted list of directory paths
     """
     hdbg.dassert(
-        os.path.isdir(target_dir),
-        "Target directory does not exist: %s", target_dir,
+        os.path.isdir(in_dir),
+        "Input directory does not exist: %s", in_dir,
     )
     directories = []
-    # Get all items in target directory.
-    items = os.listdir(target_dir)
+    # Get all items in input directory.
+    items = os.listdir(in_dir)
     # Filter for directories only.
     for item in items:
-        full_path = os.path.join(target_dir, item)
+        full_path = os.path.join(in_dir, item)
         if os.path.isdir(full_path):
             directories.append(full_path)
     # Sort alphabetically.
@@ -257,7 +241,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         limit_range = _parse_limit_range(args.limit)
         _LOG.info("Using limit range: %s (0-indexed: %s:%s)", args.limit, limit_range[0], limit_range[1])
     # Get directories to process.
-    directories = _get_directories(args.target_dir, limit_range=limit_range)
+    directories = _get_directories(args.in_dir, limit_range=limit_range)
     hdbg.dassert_lt(0, len(directories), "No directories found to process")
     # Create output directory if it doesn't exist.
     hio.create_dir(args.out_dir, incremental=False)
