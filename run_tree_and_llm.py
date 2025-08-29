@@ -175,8 +175,7 @@ def _get_directories(in_dir: str, *, limit_range: Optional[Tuple[int, int]] = No
         hdbg.dassert_lt(start_idx, total_dirs, "Start index %s exceeds available directories %s", start_idx + 1, total_dirs)
         hdbg.dassert_lt(end_idx, total_dirs, "End index %s exceeds available directories %s", end_idx + 1, total_dirs)
         directories = directories[start_idx:end_idx + 1]
-        # TODO(ai): Use _LOG.warning
-        _LOG.info("Found %s directories, limited to range %s:%s (%s directories)", total_dirs, start_idx + 1, end_idx + 1, len(directories))
+        _LOG.warning("Found %s directories, limited to range %s:%s (%s directories)", total_dirs, start_idx + 1, end_idx + 1, len(directories))
     else:
         _LOG.info("Found %s directories to process", len(directories))
     return directories
@@ -196,7 +195,7 @@ def _run_tree_on_directory(directory: str, output_file: str) -> None:
     hdbg.dassert_eq(rc, 0, "tree command failed on %s", directory)
     # Write output to file.
     hio.to_file(output_file, output)
-    _LOG.debug("Tree output saved to: %s", output_file)
+    _LOG.info("Tree output saved to: %s", output_file)
 
 
 def _run_llm_on_file(
@@ -232,11 +231,11 @@ For each directory add a short comment about its content
 Include a comment about the entire directory as a whole
 
 - Only directories should have a comment
-- Do not comment files, such as:
+- Do not comment single files, such as:
   (outdated) Causify Executive Manual - v2.0.gdoc
 
 The output is a bulleted markdown like:
-# All Causify
+# DIR_NAME
 - **Overall Directory Comment:**
   - This directory serves as a comprehensive resource for Causify, such as
     - Workplace processes
@@ -277,12 +276,9 @@ The output is a bulleted markdown like:
     # Use printf to avoid bash interpretation issues with hyphens in prompt.
     escaped_prompt = prompt.replace("'", "'\"'\"'")  # Escape single quotes
     llm_cmd = f"printf '%s' '{escaped_prompt}' | llm -m gpt-4o-mini -f \"{log_file}\""
-    # TODO(ai): Use abort_on_error instead of a dassert
-    rc, output = hsystem.system_to_string(llm_cmd)
-    hdbg.dassert_eq(rc, 0, "LLM command failed on %s", input_file)
+    rc, output = hsystem.system_to_string(llm_cmd, abort_on_error=True)
     # Write LLM output to file.
     hio.to_file(output_file, output)
-    # TODO(ai): Use _LOG.debug
     _LOG.info("LLM summary saved to: %s", output_file)
 
 
@@ -305,8 +301,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Handle output directory.
     if args.from_scratch:
         if os.path.exists(args.out_dir):
-            # TODO(ai): Use _LOG.warning for important messages
-            _LOG.info("Deleting existing output directory: %s", args.out_dir)
+            _LOG.warning("Deleting existing output directory: %s", args.out_dir)
             hsystem.system(f'rm -rf "{args.out_dir}"')
     # Create output directory if it doesn't exist.
     hio.create_dir(args.out_dir, incremental=True)
@@ -337,7 +332,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                     "Tree file %s does not exist, skipping LLM processing", tree_file
                 )
         else:
-            _LOG.debug(
+            _LOG.info(
                 "Skipping LLM processing for: %s", os.path.basename(directory)
             )
     _LOG.info("Completed processing %s directories", len(directories))
