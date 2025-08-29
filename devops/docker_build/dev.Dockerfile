@@ -9,6 +9,7 @@ FROM ubuntu:24.04 AS builder
 ARG AM_CONTAINER_VERSION
 ARG CLEAN_UP_INSTALLATION
 ARG INSTALL_DIND
+ARG INSTALL_PUBLISHING_TOOLS
 ARG POETRY_MODE
 
 # Name of the virtual environment to create.
@@ -50,7 +51,7 @@ RUN /bin/bash -c 'if [[ $INSTALL_DIND == "True" ]]; then ./install_dind.sh; fi;'
 
 ## - Install publishing tools.
 COPY devops/docker_build/install_publishing_tools.sh .
-RUN /bin/bash -c "./install_publishing_tools.sh"
+RUN /bin/bash -c "if [[ $INSTALL_PUBLISHING_TOOLS == "True" ]]; then ./install_publishing_tools.sh; fi;"
 
 # - Create users and set permissions.
 COPY devops/docker_build/create_users.sh .
