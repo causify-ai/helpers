@@ -57,7 +57,7 @@ if [[ 1 == 1 ]]; then
 fi;
 
 # - Install AWS CLI V2.
-if [[ -z "${AWS_CLI_INSTALL}" || "${AWS_CLI_INSTALL}" == "True" ]]; then
+if [[ -z "${INSTALL_AWS_CLI}" || "${INSTALL_AWS_CLI}" == "True" ]]; then
   # For more info see https://docs.aws.amazon.com/cli/latest/userguide/getting-started-version.html.
   # Changelog: https://raw.githubusercontent.com/aws/aws-cli/v2/CHANGELOG.rst.
   apt-get install $APT_GET_OPTS ca-certificates unzip curl
