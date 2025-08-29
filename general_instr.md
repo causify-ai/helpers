@@ -1,4 +1,5 @@
-- It should work only on Linux / MacOS systems
+- Assume the script needs to run only on Linux
+
 - Use hdbg.dassert functions in helpers/hdbg.py to check for invariants
 - Use code in helpers/hsystem.py to call commands
 
@@ -27,3 +28,15 @@
 
 - If you create a new function and this is used only in this file make it private
   by starting the name with `_`
+
+- Do not try to catching error, but let the exception propagate
+  - Bad
+  ```
+  try:
+      hsystem.system("which llm", suppress_output=True)
+      _LOG.debug("llm command found")
+  except Exception as e:
+      hdbg.dfatal(f"llm command not found: {e}")
+  ```
+  - Good
+    hsystem.system("which llm", suppress_output=True)
