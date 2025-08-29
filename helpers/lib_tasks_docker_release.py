@@ -341,7 +341,8 @@ def docker_build_local_image(  # type: ignore
     just_do_it=False,
     multi_arch="",
     cleanup_installation=True,
-    install_publishing_tools=True
+    install_publishing_tools=True,
+    install_aws_cli=True,
 ):
     """
     Build a local image, i.e., a release candidate "dev" image.
@@ -368,6 +369,7 @@ def docker_build_local_image(  # type: ignore
     :param cleanup_installation: force clean up Docker installation. This can
         be disabled to speed up the build process
     :param install_publishing_tools: whether to install publishing tools
+    :param install_aws_cli: whether to install AWS CLI
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
     # For poetry_mode="update", the `poetry.lock` file is updated and saved as
@@ -400,6 +402,7 @@ def docker_build_local_image(  # type: ignore
         ("POETRY_MODE", poetry_mode),
         ("CLEAN_UP_INSTALLATION", cleanup_installation),
         ("INSTALL_PUBLISHING_TOOLS", install_publishing_tools),
+        ("INSTALL_AWS_CLI", install_aws_cli),
     ]
     build_args = " ".join(f"--build-arg {k}={v}" for k, v in build_args)
     # Build for both a single arch or multi-arch.
