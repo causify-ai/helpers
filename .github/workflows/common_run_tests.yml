@@ -49,7 +49,7 @@ jobs:
       #   uses: aws-actions/amazon-ecr-login@v1
 
       # This is needed to pull the docker image from GHCR.
-      # Use GH_ACTION_ACCESS_TOKEN if defined, otherwise fall back to the built-in GITHUB_TOKEN.
+      # Use GH_ACTION_ACCESS_TOKEN if defined, otherwise fall back to the GITHUB_TOKEN.
       - name: Login to GHCR (with GH_ACTION_ACCESS_TOKEN if present)
         if: ${{ secrets.GH_ACTION_ACCESS_TOKEN != '' }}
         run: echo "${{ secrets.GH_ACTION_ACCESS_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
