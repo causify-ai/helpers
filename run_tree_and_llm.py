@@ -8,13 +8,14 @@ It supports selective action execution and custom output locations.
 
 Workflow:
 1. Runs 'tree --dirsfirst -n -F --charset unicode' on each directory in alphabetical order
-2. Creates 'dir_NUM.txt' files with the tree output
+2. Creates 'tree_NUM.txt' files with the tree output
 3. Runs 'llm -m gpt-4o-mini -f log.txt "Summarize this into 5 bullets"' on each
-4. Saves the LLM output to 'out_NUM.txt' files
+4. Saves the LLM output to 'llm_NUM.txt' files
 
 Actions can be selectively skipped using --skip_action or --action flags.
 Use --out_dir to organize output files in a dedicated directory.
 Use --llm_prompt to customize the AI analysis with your own prompt file.
+Use --from_scratch to delete the output directory before processing.
 
 Basic usage:
 > run_tree_and_llm.py --in_dir /path/to/process
@@ -37,6 +38,10 @@ Custom prompts and output:
 Range limiting:
 # Process only the first 3 directories (1st to 3rd)
 > run_tree_and_llm.py --in_dir /path/to/process --limit 1:3
+
+Clean processing:
+# Start fresh by deleting existing output directory
+> run_tree_and_llm.py --in_dir /path/to/process --from_scratch
 """
 
 import argparse
@@ -83,7 +88,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--out_dir",
         action="store",
-        default=".",
+        default="tmp.run_tree_and_llm",
         help="Directory to save output files (default: current directory)",
     )
     parser.add_argument(
@@ -95,6 +100,11 @@ def _parse() -> argparse.ArgumentParser:
         "--limit",
         action="store",
         help="Limit processing to directory range X:Y (1-indexed, inclusive)",
+    )
+    parser.add_argument(
+        "--from_scratch",
+        action="store_true",
+        help="Delete the output directory before processing",
     )
     # Add actions arguments.
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
@@ -165,6 +175,7 @@ def _get_directories(in_dir: str, *, limit_range: Optional[Tuple[int, int]] = No
         hdbg.dassert_lt(start_idx, total_dirs, "Start index %s exceeds available directories %s", start_idx + 1, total_dirs)
         hdbg.dassert_lt(end_idx, total_dirs, "End index %s exceeds available directories %s", end_idx + 1, total_dirs)
         directories = directories[start_idx:end_idx + 1]
+        # TODO(ai): Use _LOG.warning
         _LOG.info("Found %s directories, limited to range %s:%s (%s directories)", total_dirs, start_idx + 1, end_idx + 1, len(directories))
     else:
         _LOG.info("Found %s directories to process", len(directories))
@@ -185,7 +196,7 @@ def _run_tree_on_directory(directory: str, output_file: str) -> None:
     hdbg.dassert_eq(rc, 0, "tree command failed on %s", directory)
     # Write output to file.
     hio.to_file(output_file, output)
-    _LOG.info("Tree output saved to: %s", output_file)
+    _LOG.debug("Tree output saved to: %s", output_file)
 
 
 def _run_llm_on_file(
@@ -216,14 +227,62 @@ def _run_llm_on_file(
         prompt = hio.from_file(llm_prompt_file).strip()
         _LOG.debug("Using custom prompt from file: %s", llm_prompt_file)
     else:
-        prompt = "Summarize this into 5 bullets"
+        prompt = r"""
+For each directory add a short comment about its content
+Include a comment about the entire directory as a whole
+
+- Only directories should have a comment
+- Do not comment files, such as:
+  (outdated) Causify Executive Manual - v2.0.gdoc
+
+The output is a bulleted markdown like:
+# All Causify
+- **Overall Directory Comment:**
+  - This directory serves as a comprehensive resource for Causify, such as
+    - Workplace processes
+    - Employee information
+    - Operational tools
+    - Templates
+
+- **Causify Process/**
+  - Contains draft versions of
+    - Company policies and procedures
+    - Including HR processes
+    - Invoicing
+    - Vendor risk management
+
+- **EOS Causify/**
+  - Strategic planning materials based on the Entrepreneurial Operating System
+    (EOS) framework.
+
+- **Team Bios/**
+  - Collection of employee bios and Predictive Index assessments
+  - It serves as a people directory and HR resource
+
+- **Templates/**
+  - Repository of standardized forms (Google Forms) for surveys, invoicing, and
+    financial transactions.
+
+- **Tools/**
+  - Draft documentation of conventions and best practices for the team’s daily
+    collaboration tools, e.g.,
+    - Asana
+    - GitHub
+    - Google Docs
+    - Slack
+    - Meetings
+"""
         _LOG.debug("Using default prompt")
     # Run LLM command.
-    llm_cmd = f'llm -m gpt-4o-mini -f "{log_file}" "{prompt}"'
+    # Use printf to avoid bash interpretation issues with hyphens in prompt.
+    escaped_prompt = prompt.replace("'", "'\"'\"'")  # Escape single quotes
+    llm_cmd = f"printf '%s' '{escaped_prompt}' | llm -m gpt-4o-mini -f \"{log_file}\""
+    # TODO(ai): Use abort_on_error instead of a dassert
     rc, output = hsystem.system_to_string(llm_cmd)
     hdbg.dassert_eq(rc, 0, "LLM command failed on %s", input_file)
     # Write LLM output to file.
     hio.to_file(output_file, output)
+    # TODO(ai): Use _LOG.debug
     _LOG.info("LLM summary saved to: %s", output_file)
 
 
@@ -243,36 +302,42 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Get directories to process.
     directories = _get_directories(args.in_dir, limit_range=limit_range)
     hdbg.dassert_lt(0, len(directories), "No directories found to process")
+    # Handle output directory.
+    if args.from_scratch:
+        if os.path.exists(args.out_dir):
+            # TODO(ai): Use _LOG.warning for important messages
+            _LOG.info("Deleting existing output directory: %s", args.out_dir)
+            hsystem.system(f'rm -rf "{args.out_dir}"')
     # Create output directory if it doesn't exist.
-    hio.create_dir(args.out_dir, incremental=False)
+    hio.create_dir(args.out_dir, incremental=True)
     # Process each directory.
     for i, directory in enumerate(directories, 1):
         _LOG.info(
             "Processing directory %s/%s: %s", i, len(directories), os.path.basename(directory)
         )
         # Create filenames with output directory.
-        dir_file = os.path.join(args.out_dir, f"dir_{i:03d}.txt")
-        out_file = os.path.join(args.out_dir, f"out_{i:03d}.txt")
+        tree_file = os.path.join(args.out_dir, f"tree_{i:03d}.txt")
+        llm_file = os.path.join(args.out_dir, f"llm_{i:03d}.txt")
         log_file = os.path.join(args.out_dir, args.log_file)
         # Run tree command if action is selected.
         if _ACTION_TREE in actions:
-            _run_tree_on_directory(directory, dir_file)
+            _run_tree_on_directory(directory, tree_file)
         else:
             _LOG.info(
                 "Skipping tree collection for: %s", os.path.basename(directory)
             )
         # Run LLM command if action is selected and tree file exists.
         if _ACTION_LLM in actions:
-            if os.path.isfile(dir_file):
+            if os.path.isfile(tree_file):
                 _run_llm_on_file(
-                    dir_file, out_file, log_file, llm_prompt_file=args.llm_prompt
+                    tree_file, llm_file, log_file, llm_prompt_file=args.llm_prompt
                 )
             else:
                 _LOG.warning(
-                    "Tree file %s does not exist, skipping LLM processing", dir_file
+                    "Tree file %s does not exist, skipping LLM processing", tree_file
                 )
         else:
-            _LOG.info(
+            _LOG.debug(
                 "Skipping LLM processing for: %s", os.path.basename(directory)
             )
     _LOG.info("Completed processing %s directories", len(directories))
