@@ -3,27 +3,62 @@
 """
 Run tree command on directories and summarize with LLM.
 
-Run tree command on directories and summarize with LLM.
+This script processes directories by generating tree output and creating AI summaries.
+It supports selective action execution and custom output locations.
 
-This script:
+Workflow:
 1. Runs 'tree --dirsfirst -n -F --charset unicode' on each directory in alphabetical order
-2. Creates 'dir_NUM.txt' files with the tree output  
+2. Creates 'dir_NUM.txt' files with the tree output
 3. Runs 'llm -m gpt-4o-mini -f log.txt "Summarize this into 5 bullets"' on each
 4. Saves the LLM output to 'out_NUM.txt' files
 
 Actions can be selectively skipped using --skip_action or --action flags.
+Use --out_dir to organize output files in a dedicated directory.
+Use --llm_prompt to customize the AI analysis with your own prompt file.
 
-Example usage:
-    python run_tree_and_llm.py --target_dir /path/to/process
-    python run_tree_and_llm.py --target_dir /path/to/process --skip_action tree
-    python run_tree_and_llm.py --target_dir /path/to/process --action llm
+Basic usage:
+> run_tree_and_llm.py --target_dir /path/to/process
+> run_tree_and_llm.py --target_dir /path/to/analyze --out_dir results
+
+Action control:
+> run_tree_and_llm.py --target_dir /path/to/process --all
+> run_tree_and_llm.py --target_dir /path/to/process --skip_action tree
+> run_tree_and_llm.py --target_dir /path/to/process --action llm
+> run_tree_and_llm.py --target_dir /path/to/process --action tree
+
+Custom prompts and output:
+> run_tree_and_llm.py --target_dir /path/to/process --llm_prompt my_prompt.txt
+> run_tree_and_llm.py --target_dir /path/to/process --out_dir analysis --log_file custom.log
+> run_tree_and_llm.py --target_dir /path/to/process --llm_prompt detailed_analysis.txt --out_dir reports
+
+Workflow examples:
+# Generate tree files only (useful for review before LLM processing)
+> run_tree_and_llm.py --target_dir /path/to/process --action tree --out_dir trees
+
+# Process existing tree files with LLM using custom prompt
+> run_tree_and_llm.py --target_dir /path/to/process --action llm --out_dir trees --llm_prompt custom.txt
+
+# Full processing with custom settings
+> run_tree_and_llm.py --target_dir /projects/code --out_dir analysis --llm_prompt analysis_prompt.txt --log_file process.log
+
+Range limiting:
+# Process only the first 3 directories (1st to 3rd)
+> run_tree_and_llm.py --target_dir /path/to/process --limit 1:3
+
+# Process directories 5 through 10
+> run_tree_and_llm.py --target_dir /path/to/process --limit 5:10 --out_dir subset_results
+
+# Process only the 2nd directory
+> run_tree_and_llm.py --target_dir /path/to/process --limit 2:2
+
+# Combine with other options - process directories 3-7 with custom prompt
+> run_tree_and_llm.py --target_dir /path/to/process --limit 3:7 --llm_prompt detailed.txt --out_dir limited_analysis
 """
 
 import argparse
 import logging
 import os
-import platform
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -53,24 +88,29 @@ def _parse() -> argparse.ArgumentParser:
         "--target_dir",
         action="store",
         default=".",
-        help="Directory containing subdirectories to process (default: current directory)"
+        help="Directory containing subdirectories to process (default: current directory)",
     )
     parser.add_argument(
-        "--log_file", 
-        action="store", 
+        "--log_file",
+        action="store",
         default="log.txt",
-        help="Log file for LLM processing (default: log.txt)"
+        help="Log file for LLM processing (default: log.txt)",
     )
     parser.add_argument(
         "--out_dir",
         action="store",
         default=".",
-        help="Directory to save output files (default: current directory)"
+        help="Directory to save output files (default: current directory)",
     )
     parser.add_argument(
         "--llm_prompt",
         action="store",
-        help="File containing LLM prompt or use default prompt if not specified"
+        help="File containing LLM prompt or use default prompt if not specified",
+    )
+    parser.add_argument(
+        "--limit",
+        action="store",
+        help="Limit processing to directory range X:Y (1-indexed, inclusive)",
     )
     # Add actions arguments.
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
@@ -80,7 +120,7 @@ def _parse() -> argparse.ArgumentParser:
 
 def _check_system_requirements() -> None:
     """
-    Check that we're running on Linux and that required commands exist.
+    Check that that required commands exist.
     """
     # Check for tree command.
     hsystem.system("which tree", suppress_output=True)
@@ -90,20 +130,43 @@ def _check_system_requirements() -> None:
     _LOG.debug("llm command found")
 
 
-def _get_directories(target_dir: str) -> List[str]:
+def _parse_limit_range(limit_str: str) -> Tuple[int, int]:
+    """
+    Parse limit string in format "X:Y" and return tuple (start, end).
+    
+    :param limit_str: string in format "X:Y" where X and Y are 1-indexed integers
+    :return: tuple of (start_index, end_index) as 0-indexed integers
+    """
+    hdbg.dassert(":" in limit_str, "Limit format must be X:Y, got: %s", limit_str)
+    parts = limit_str.split(":")
+    hdbg.dassert_eq(len(parts), 2, "Limit format must be X:Y, got: %s", limit_str)
+    try:
+        start = int(parts[0])
+        end = int(parts[1])
+    except ValueError as e:
+        hdbg.dfatal("Invalid limit format, must be integers: %s", e)
+    hdbg.dassert_lt(0, start, "Start index must be >= 1, got: %s", start)
+    hdbg.dassert_lt(0, end, "End index must be >= 1, got: %s", end)
+    hdbg.dassert_lte(start, end, "Start index must be <= end index, got: %s:%s", start, end)
+    # Convert to 0-indexed.
+    return start - 1, end - 1
+
+
+def _get_directories(target_dir: str, *, limit_range: Optional[Tuple[int, int]] = None) -> List[str]:
     """
     Get all directories in target_dir sorted alphabetically.
-    
+
     :param target_dir: directory to scan
+    :param limit_range: optional tuple (start, end) for 0-indexed range filtering
     :return: sorted list of directory paths
     """
-    hdbg.dassert(os.path.isdir(target_dir), f"Target directory does not exist: {target_dir}")
+    hdbg.dassert(
+        os.path.isdir(target_dir),
+        "Target directory does not exist: %s", target_dir,
+    )
     directories = []
     # Get all items in target directory.
-    try:
-        items = os.listdir(target_dir)
-    except OSError as e:
-        hdbg.dfatal(f"Cannot list directory {target_dir}: {e}")
+    items = os.listdir(target_dir)
     # Filter for directories only.
     for item in items:
         full_path = os.path.join(target_dir, item)
@@ -111,55 +174,73 @@ def _get_directories(target_dir: str) -> List[str]:
             directories.append(full_path)
     # Sort alphabetically.
     directories.sort()
-    _LOG.info(f"Found {len(directories)} directories to process")
+    # Apply limit range if specified.
+    if limit_range is not None:
+        start_idx, end_idx = limit_range
+        total_dirs = len(directories)
+        hdbg.dassert_lt(start_idx, total_dirs, "Start index %s exceeds available directories %s", start_idx + 1, total_dirs)
+        hdbg.dassert_lt(end_idx, total_dirs, "End index %s exceeds available directories %s", end_idx + 1, total_dirs)
+        directories = directories[start_idx:end_idx + 1]
+        _LOG.info("Found %s directories, limited to range %s:%s (%s directories)", total_dirs, start_idx + 1, end_idx + 1, len(directories))
+    else:
+        _LOG.info("Found %s directories to process", len(directories))
     return directories
 
 
 def _run_tree_on_directory(directory: str, output_file: str) -> None:
     """
     Run tree command on a directory and save output to file.
-    
+
     :param directory: directory to run tree on
     :param output_file: file to save tree output
     """
-    _LOG.debug(f"Running tree on directory: {directory}")
+    _LOG.debug("Running tree on directory: %s", directory)
     tree_cmd = f'tree --dirsfirst -n -F --charset unicode "{directory}"'
     # Run tree command and capture output.
     rc, output = hsystem.system_to_string(tree_cmd)
-    hdbg.dassert_eq(rc, 0, f"tree command failed on {directory}")
+    hdbg.dassert_eq(rc, 0, "tree command failed on %s", directory)
     # Write output to file.
     hio.to_file(output_file, output)
-    _LOG.info(f"Tree output saved to: {output_file}")
+    _LOG.info("Tree output saved to: %s", output_file)
 
 
-def _run_llm_on_file(input_file: str, output_file: str, log_file: str, *, llm_prompt_file: Optional[str] = None) -> None:
+def _run_llm_on_file(
+    input_file: str,
+    output_file: str,
+    log_file: str,
+    *,
+    llm_prompt_file: Optional[str] = None,
+) -> None:
     """
     Run LLM command on input file and save summary to output file.
-    
+
     :param input_file: file to process with LLM
     :param output_file: file to save LLM summary
     :param log_file: log file for LLM processing
     :param llm_prompt_file: optional file containing LLM prompt
     """
-    _LOG.debug(f"Running LLM on file: {input_file}")
+    _LOG.debug("Running LLM on file: %s", input_file)
     # Copy input file to log file for LLM processing.
     content = hio.from_file(input_file)
     hio.to_file(log_file, content)
     # Determine prompt to use.
     if llm_prompt_file:
-        hdbg.dassert(os.path.isfile(llm_prompt_file), f"Prompt file does not exist: {llm_prompt_file}")
+        hdbg.dassert(
+            os.path.isfile(llm_prompt_file),
+            "Prompt file does not exist: %s", llm_prompt_file,
+        )
         prompt = hio.from_file(llm_prompt_file).strip()
-        _LOG.debug(f"Using custom prompt from file: {llm_prompt_file}")
+        _LOG.debug("Using custom prompt from file: %s", llm_prompt_file)
     else:
         prompt = "Summarize this into 5 bullets"
         _LOG.debug("Using default prompt")
     # Run LLM command.
     llm_cmd = f'llm -m gpt-4o-mini -f "{log_file}" "{prompt}"'
     rc, output = hsystem.system_to_string(llm_cmd)
-    hdbg.dassert_eq(rc, 0, f"LLM command failed on {input_file}")
+    hdbg.dassert_eq(rc, 0, "LLM command failed on %s", input_file)
     # Write LLM output to file.
     hio.to_file(output_file, output)
-    _LOG.info(f"LLM summary saved to: {output_file}")
+    _LOG.info("LLM summary saved to: %s", output_file)
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -167,17 +248,24 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Get the selected actions.
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    _LOG.info(f"Selected actions: {actions}")
+    _LOG.info("Selected actions: %s", actions)
     # Check system requirements.
     _check_system_requirements()
+    # Parse limit range if specified.
+    limit_range = None
+    if args.limit:
+        limit_range = _parse_limit_range(args.limit)
+        _LOG.info("Using limit range: %s (0-indexed: %s:%s)", args.limit, limit_range[0], limit_range[1])
     # Get directories to process.
-    directories = _get_directories(args.target_dir)
+    directories = _get_directories(args.target_dir, limit_range=limit_range)
     hdbg.dassert_lt(0, len(directories), "No directories found to process")
     # Create output directory if it doesn't exist.
     hio.create_dir(args.out_dir, incremental=False)
     # Process each directory.
     for i, directory in enumerate(directories, 1):
-        _LOG.info(f"Processing directory {i}/{len(directories)}: {os.path.basename(directory)}")
+        _LOG.info(
+            "Processing directory %s/%s: %s", i, len(directories), os.path.basename(directory)
+        )
         # Create filenames with output directory.
         dir_file = os.path.join(args.out_dir, f"dir_{i:03d}.txt")
         out_file = os.path.join(args.out_dir, f"out_{i:03d}.txt")
@@ -186,16 +274,24 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if _ACTION_TREE in actions:
             _run_tree_on_directory(directory, dir_file)
         else:
-            _LOG.info(f"Skipping tree collection for: {os.path.basename(directory)}")
+            _LOG.info(
+                "Skipping tree collection for: %s", os.path.basename(directory)
+            )
         # Run LLM command if action is selected and tree file exists.
         if _ACTION_LLM in actions:
             if os.path.isfile(dir_file):
-                _run_llm_on_file(dir_file, out_file, log_file, llm_prompt_file=args.llm_prompt)
+                _run_llm_on_file(
+                    dir_file, out_file, log_file, llm_prompt_file=args.llm_prompt
+                )
             else:
-                _LOG.warning(f"Tree file {dir_file} does not exist, skipping LLM processing")
+                _LOG.warning(
+                    "Tree file %s does not exist, skipping LLM processing", dir_file
+                )
         else:
-            _LOG.info(f"Skipping LLM processing for: {os.path.basename(directory)}")
-    _LOG.info(f"Completed processing {len(directories)} directories")
+            _LOG.info(
+                "Skipping LLM processing for: %s", os.path.basename(directory)
+            )
+    _LOG.info("Completed processing %s directories", len(directories))
 
 
 if __name__ == "__main__":
