@@ -17,11 +17,14 @@ import logging
 import os
 from typing import Dict, List, Tuple
 
+from tqdm.autonotebook import tqdm
+
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
+import helpers.htqdm as htqdm
 
 _LOG = logging.getLogger(__name__)
 
@@ -73,13 +76,9 @@ def _call_llm(prompt: str, content: str) -> str:
     # Write prompt to temporary file and use hsystem.system() to call llm.
     temp_file_path = "tmp.create_class_projects._call_llm.txt"
     hio.to_file(temp_file_path, full_prompt)
-    try:
-        # Use hsystem to call llm command with input file.
-        rc, output = hsystem.system_to_string(f"llm < {temp_file_path}")
-        return output.strip()
-    finally:
-        # Clean up temporary file.
-        os.unlink(temp_file_path)
+    # Use hsystem to call llm command with input file.
+    rc, output = hsystem.system_to_string(f"llm < {temp_file_path}")
+    return output.strip()
 
 
 def _extract_level2_sections(file_content: str) -> List[Tuple[str, str]]:
@@ -133,17 +132,24 @@ def _action_summarize(in_file: str, output_dir: str) -> None:
     file_content = hio.from_file(in_file)
     # Extract level 2 sections.
     sections = _extract_level2_sections(file_content)
-    _LOG.debug("Found %d level 2 sections", len(sections))
-    # Process each section with LLM.
+    _LOG.info("Found %d level 2 sections to process", len(sections))
+    # Process each section with LLM using progress bar.
     result_lines = []
-    for header, content in sections:
-        if content.strip():
-            _LOG.debug("Processing section: %s", header)
-            prompt = "Given the following markdown text summarize it into a few bullets"
-            summary = _call_llm(prompt, content)
-            result_lines.append(header)
-            result_lines.append(summary)
-            result_lines.append("")  # Empty line for spacing.
+    tqdm_out = htqdm.TqdmToLogger(_LOG, level=logging.INFO)
+    sections_to_process = [(header, content) for header, content in sections if content.strip()]
+    
+    for header, content in tqdm(
+        sections_to_process, 
+        desc="Summarizing sections", 
+        file=tqdm_out,
+        mininterval=1
+    ):
+        _LOG.debug("Processing section: %s", header)
+        prompt = "Given the following markdown text summarize it into a few bullets"
+        summary = _call_llm(prompt, content)
+        result_lines.append(header)
+        result_lines.append(summary)
+        result_lines.append("")  # Empty line for spacing.
     # Save result to output file.
     base_name = os.path.splitext(os.path.basename(in_file))[0]
     output_file = os.path.join(output_dir, f"{base_name}.summary.txt")
@@ -166,21 +172,28 @@ def _action_create_project(in_file: str, output_dir: str) -> None:
     # Read summary file.
     summary_content = hio.from_file(summary_file)
     sections = _extract_level2_sections(summary_content)
-    _LOG.debug("Found %d sections in summary", len(sections))
-    # Generate projects for each section.
+    _LOG.info("Found %d sections in summary to generate projects for", len(sections))
+    # Generate projects for each section using progress bar.
     result_lines = []
-    for header, content in sections:
-        if content.strip():
-            _LOG.debug("Generating projects for section: %s", header)
-            prompt = (
-                "Come up with the description of 3 projects that can be used to "
-                "clarify the content of the file\n"
-                "Look for Python packages that can be used to implement those projects"
-            )
-            projects = _call_llm(prompt, content)
-            result_lines.append(header)
-            result_lines.append(projects)
-            result_lines.append("")  # Empty line for spacing.
+    tqdm_out = htqdm.TqdmToLogger(_LOG, level=logging.INFO)
+    sections_to_process = [(header, content) for header, content in sections if content.strip()]
+    
+    for header, content in tqdm(
+        sections_to_process, 
+        desc="Generating projects", 
+        file=tqdm_out,
+        mininterval=1
+    ):
+        _LOG.debug("Generating projects for section: %s", header)
+        prompt = (
+            "Come up with the description of 3 projects that can be used to "
+            "clarify the content of the file\n"
+            "Look for Python packages that can be used to implement those projects"
+        )
+        projects = _call_llm(prompt, content)
+        result_lines.append(header)
+        result_lines.append(projects)
+        result_lines.append("")  # Empty line for spacing.
     # Save result to output file.
     output_file = os.path.join(output_dir, f"{base_name}.projects.txt")
     hio.to_file(output_file, '\n'.join(result_lines))

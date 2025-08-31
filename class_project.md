@@ -8,8 +8,11 @@ create_class_projects.py --in_file input_file.md --action XYZ --o output_dir
 1) Read the markdown file `input_file` using the library in helpers/hmarkdown*.py
   like we do in extract_headers_from_markdown.py
 
-2) For each section of level 2 headers create a summary in bullet points of the
-  content of that section
+2) Make sure using functions in helpers/hmarkdown_headers.py that every header of
+level 1 has headers of level 2 inside
+
+3) For each section of level 2 headers create a summary in bullet points of the
+  content of that entire section
   ```
   ## Header 2
   Content
@@ -22,8 +25,11 @@ create_class_projects.py --in_file input_file.md --action XYZ --o output_dir
 - The output is a markdown file with the same structure of headers of level 1 and
   2 but with the content of level 2 headers replaced with the summary
 
-3) Save the result in the output dir --output_dir using the same name of the input file
+4) Save the result in the output dir --output_dir using the same name of the input file
   but using a suffix ${input_file}.summary.txt
+
+5) Make sure that the structure of the input file and of the output file is the
+same up to level 2 using the functions hmarkdown.extract_headers_from_markdown
 
 ## Action create_project
 
