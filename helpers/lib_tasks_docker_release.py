@@ -341,8 +341,6 @@ def docker_build_local_image(  # type: ignore
     just_do_it=False,
     multi_arch="",
     cleanup_installation=True,
-    install_publishing_tools=True,
-    install_aws_cli=True,
 ):
     """
     Build a local image, i.e., a release candidate "dev" image.
@@ -368,8 +366,6 @@ def docker_build_local_image(  # type: ignore
           `linux/amd64,linux/arm64`
     :param cleanup_installation: force clean up Docker installation. This can
         be disabled to speed up the build process
-    :param install_publishing_tools: whether to install publishing tools
-    :param install_aws_cli: whether to install AWS CLI
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
     # For poetry_mode="update", the `poetry.lock` file is updated and saved as
@@ -395,6 +391,12 @@ def docker_build_local_image(  # type: ignore
     # Keep the relative path instead of an absolute path to ensure it matches
     # files inside the tar stream and avoids file not found errors.
     # dockerfile = _to_abs_path(dockerfile)
+    install_publishing_tools = (
+        hrecouti.get_repo_config().get_install_publishing_tools()
+    )
+    install_aws_cli = (
+        hrecouti.get_repo_config().get_install_aws_cli()
+    )
     opts = "--no-cache" if not cache else ""
     build_args = [
         ("AM_CONTAINER_VERSION", dev_version),
