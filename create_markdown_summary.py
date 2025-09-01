@@ -38,6 +38,7 @@ import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
+from tqdm import tqdm
 
 # Optional import - only needed when using library mode
 try:
@@ -314,7 +315,7 @@ def _action_summarize(
     _LOG.info("Found %d sections to summarize", len(sections))
     # Summarize each section.
     summarized_sections = []
-    for start_line, end_line, content, chunk_num in sections:
+    for start_line, end_line, content, chunk_num in tqdm(sections, desc="Summarizing chunks", unit="chunk"):
         _LOG.info(
             "Summarizing chunk %d: lines %d-%d", chunk_num, start_line, end_line
         )
