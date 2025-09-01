@@ -22,11 +22,11 @@ create_class_projects.py --in_file input_file.md --action XYZ --output_file outp
 
   The difficulty level should be medium
 
-  - Title
-  - Difficulty (1 means easy, should take around 7 days to develop, 2 is medium difficulty, should take around 10 days to complete, 3 is hard,should take 14 days to complete)
-  - Tech Description
-  - Project Idea
-  - Python libs
+  - Title:
+  - Difficulty:
+  - Tech Description:
+  - Project Idea:
+  - Python libs:
   - Is it Free?
   - Relevant tool(XYZ) related Resource Links
 

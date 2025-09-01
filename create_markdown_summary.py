@@ -40,14 +40,7 @@ import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 from tqdm import tqdm
 
-# Optional import - only needed when using library mode
-try:
-    import llm
-
-    LLM_AVAILABLE = True
-except ImportError:
-    LLM_AVAILABLE = False
-    llm = None
+import llm
 
 _LOG = logging.getLogger(__name__)
 
@@ -122,29 +115,20 @@ def _summarize_section_with_llm(
     base_prompt = f"Given the following markdown text summarize it into up to {max_num_bullets} bullets to capture the most important points"
     # Add guidelines if available.
     guidelines_file = "/Users/saggese/src/tutorials1/guidelines_for_notes.txt"
-    # TODO(ai): Use dassert_is_file to make sure the file exists and consider
-    # only that condition.
-    if os.path.isfile(guidelines_file):
-        guidelines_content = hio.from_file(guidelines_file)
-        prompt = f"""{base_prompt}
+    hdbg.dassert_is_file(guidelines_file)
+    guidelines_content = hio.from_file(guidelines_file)
+    prompt = f"""
+    {base_prompt}
 
 
-You must follow the instructions below:
-{guidelines_content}
+    You must follow the instructions below:
+    {guidelines_content}
 
-Markdown content to summarize:
-{content}"""
-    else:
-        prompt = f"""{base_prompt}
-
-Markdown content to summarize:
-{content}"""
+    Markdown content to summarize:
+    {content}"""
+    prompt = hprint.dedent(prompt)
     if use_library:
         # Use llm library
-        if not LLM_AVAILABLE:
-            raise RuntimeError(
-                "llm library not available. Install it with 'pip install llm' or use command line mode (remove --use_library flag)."
-            )
         model = llm.get_model("gpt-4o-mini")
         response = model.prompt(prompt)
         summary = response.text()
@@ -152,20 +136,8 @@ Markdown content to summarize:
         # Use command line llm tool
         tmp_content_file = "tmp.create_markdown_summary.content.txt"
         hio.to_file(tmp_content_file, content)
-
-        # Create prompt for command line version.
-        if os.path.isfile(guidelines_file):
-            guidelines_content = hio.from_file(guidelines_file)
-            cmd_prompt = f"""{base_prompt}
-
-You must follow the instructions below:
-{guidelines_content}"""
-        else:
-            cmd_prompt = base_prompt
-
-        cmd = f'llm -m gpt-4o-mini "{cmd_prompt}" < {tmp_content_file}'
+        cmd = f'llm -m gpt-4o-mini "{prompt}" < {tmp_content_file}'
         _, summary = hsystem.system_to_string(cmd)
-
     return summary.strip()
 
 
