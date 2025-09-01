@@ -37,6 +37,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 from tqdm import tqdm
 
@@ -115,7 +116,7 @@ def _summarize_section_with_llm(
     base_prompt = f"Given the following markdown text summarize it into up to {max_num_bullets} bullets to capture the most important points"
     # Add guidelines if available.
     guidelines_file = "/Users/saggese/src/tutorials1/guidelines_for_notes.txt"
-    hdbg.dassert_is_file(guidelines_file)
+    hdbg.dassert_file_exists(guidelines_file)
     guidelines_content = hio.from_file(guidelines_file)
     prompt = f"""
     {base_prompt}
@@ -133,10 +134,11 @@ def _summarize_section_with_llm(
         response = model.prompt(prompt)
         summary = response.text()
     else:
-        # Use command line llm tool
-        tmp_content_file = "tmp.create_markdown_summary.content.txt"
-        hio.to_file(tmp_content_file, content)
-        cmd = f'llm -m gpt-4o-mini "{prompt}" < {tmp_content_file}'
+        # Use command line llm tool - write both prompt and content to file
+        tmp_prompt_file = "tmp.create_markdown_summary.prompt.txt"
+        full_content = f"{prompt}\n\n{content}"
+        hio.to_file(tmp_prompt_file, full_content)
+        cmd = f'llm -m gpt-4o-mini < {tmp_prompt_file}'
         _, summary = hsystem.system_to_string(cmd)
     return summary.strip()
 

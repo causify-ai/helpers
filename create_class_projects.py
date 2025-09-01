@@ -23,6 +23,7 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.htqdm as htqdm
 
@@ -95,44 +96,48 @@ def _action_create_project(in_file: str, output_file: str) -> None:
     # Read input file directly.
     hdbg.dassert_file_exists(in_file)
     file_content = hio.from_file(in_file)
-    # TODO(ai): Use the entire file content instead of extracting sections.
+    # Use the entire file content instead of extracting sections.
+    _LOG.info("Processing entire file content")
+    
+    # Generate projects for entire file content.
+    result_lines = []
+    tqdm_out = htqdm.TqdmToLogger(_LOG, level=logging.INFO)
+    
+    _LOG.debug("Generating projects for entire file")
+    prompt = """
+    Act as a data science professor.
 
-    for header, content in tqdm(
-        sections_to_process, 
-        desc="Generating projects", 
-        file=tqdm_out,
-        mininterval=1
-    ):
-        _LOG.debug("Generating projects for section: %s", header)
-        prompt = """
-        Act as a data science professor.
+    Given the markdown for a lecture, come up with the description of 3 projects
+    that can be used to clarify the content of the lesson and train the students.
 
-        Given the markdown for a lecture, come up with the description of 3 projects
-        that can be used to clarify the content of the file .
+    Look for Python packages that can be used to implement those projects
 
-        Look for Python packages that can be used to implement those projects
+    Look for freely available data sets that can be used to implement those projects.
 
-        The Difficulty (1 means easy, should take around 7 days to develop, 2 is medium
-        difficulty, should take around 10 days to complete, 3 is hard,should take 14
-        days to complete)
+    The Difficulty of the project can be
+    - easy, should take around 7 days to develop
+    - medium , should take around 10 days to complete
+    - hard,should take 14 days to complete
 
-        The difficulty level should be medium
+    The difficulty level should be medium by default.
 
-        - Title:
-        - Difficulty:
-        - Tech Description:
-        - Project Idea:
-        - Python libs:
-        - Is it Free?
-        - Relevant tool(XYZ) related Resource Links
+    - Title:
+    - Difficulty:
+    - Tech Description:
+    - Project Idea:
+    - Data set to use:
+    - Python libs:
+    - Is it Free?
+    - Relevant tool(XYZ) related Resource Links
 
-        Avoid long texts or steps
-        """
-        prompt = hprint.dedent(prompt)
-        projects = _call_llm(prompt, content)
-        result_lines.append(header)
-        result_lines.append(projects)
-        result_lines.append("")  # Empty line for spacing.
+    Avoid long texts or steps
+    """
+    prompt = hprint.dedent(prompt)
+    projects = _call_llm(prompt, file_content)
+    result_lines.append("# Class Projects")
+    result_lines.append(projects)
+    result_lines.append("")  # Empty line for spacing.
+    
     # Save result to output file.
     if not output_file:
         base_name = os.path.splitext(os.path.basename(in_file))[0]
