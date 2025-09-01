@@ -167,6 +167,7 @@ def _parse() -> argparse.Namespace:
         description="Get Synthesia video generation status."
     )
     hparser.add_verbosity_arg(parser)
+    # TODO(ai): Use functions in hparser.
     parser.add_argument(
         "--limit",
         type=int,

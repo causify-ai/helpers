@@ -91,7 +91,9 @@ def _call_llm(prompt: str, content: str) -> str:
     return output.strip()
 
 
-def _action_create_project(in_file: str, output_file: str, level: str = "medium") -> None:
+def _action_create_project(
+    in_file: str, output_file: str, level: str = "medium"
+) -> None:
     """
     Create project descriptions based on markdown file.
 

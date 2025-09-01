@@ -96,6 +96,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         help="File containing LLM prompt or use default prompt if not specified",
     )
+    # TODO(ai): Factor out as a function in hparser like for --action.
     parser.add_argument(
         "--limit",
         action="store",
@@ -124,6 +125,7 @@ def _check_system_requirements() -> None:
     _LOG.debug("llm command found")
 
 
+# TODO(ai): Factor out as a function in hparser like for --action.
 def _parse_limit_range(limit_str: str) -> Tuple[int, int]:
     """
     Parse limit string in format "X:Y" and return tuple (start, end).
@@ -168,6 +170,7 @@ def _get_directories(in_dir: str, *, limit_range: Optional[Tuple[int, int]] = No
             directories.append(full_path)
     # Sort alphabetically.
     directories.sort()
+    # TODO(ai): Factor out as a function in hparser like for --action.
     # Apply limit range if specified.
     if limit_range is not None:
         start_idx, end_idx = limit_range
@@ -290,6 +293,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Selected actions: %s", actions)
     # Check system requirements.
     _check_system_requirements()
+    # TODO(ai): Factor out as a function in hparser like for --action.
     # Parse limit range if specified.
     limit_range = None
     if args.limit:
