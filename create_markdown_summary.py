@@ -127,7 +127,8 @@ def _create_output_structure(
     :return: formatted output markdown
     """
     output_lines = []
-    processed_lines = set()  # Track which lines we've already processed
+    # Track which lines we've already processed
+    processed_lines = set()  
     #
     # Process headers in order
     for header in header_list:
@@ -300,24 +301,33 @@ def _action_preview_chunks(input_file: str, output_file: str, max_level: int) ->
     _LOG.info("Preview saved to: %s", output_file)
 
 
-def _action_check_output(input_file: str, output_file: str, max_level: int) -> None:
+def _transform_file_to_headers(file_path: str, max_level: int, sanity_check: bool = True) -> hmarkdo.HeaderList:
+    """
+    Transform a file into its header structure.
+    
+    :param file_path: path to markdown file
+    :param max_level: maximum header level to extract
+    :param sanity_check: whether to perform sanity checks on headers
+    :return: extracted header list
+    """
+    lines = hparser.read_file(file_path)
+    headers = hmarkdo.extract_headers_from_markdown(
+        lines, max_level=max_level, sanity_check=sanity_check
+    )
+    return headers
+
+
+def _action_check_output(input_file: str, output_file: str, max_level: int, *, tmp_dir: str = ".") -> None:
     """
     Check that output file has same structure as input file.
     """
     _LOG.info("Starting check_output action")
-    # Read both files.
-    input_lines = hparser.read_file(input_file)
-    output_lines = hparser.read_file(output_file)
-    # Extract headers from both.
-    input_headers = hmarkdo.extract_headers_from_markdown(
-        input_lines, max_level=max_level, sanity_check=True
-    )
-    output_headers = hmarkdo.extract_headers_from_markdown(
-        output_lines, max_level=max_level, sanity_check=False
-    )
+    # Extract headers from both files.
+    input_headers = _transform_file_to_headers(input_file, max_level, sanity_check=True)
+    output_headers = _transform_file_to_headers(output_file, max_level, sanity_check=False)
     # Create temporary files for comparison.
-    tmp_headers_in = "tmp.headers_in.md"
-    tmp_headers_out = "tmp.headers_out.md"
+    tmp_headers_in = os.path.join(tmp_dir, "tmp.headers_in.md")
+    tmp_headers_out = os.path.join(tmp_dir, "tmp.headers_out.md")
     # Write header structures.
     input_structure_lines = hmarkdo.header_list_to_markdown(input_headers, "headers")
     output_structure_lines = hmarkdo.header_list_to_markdown(output_headers, "headers")
