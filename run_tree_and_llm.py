@@ -96,12 +96,8 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         help="File containing LLM prompt or use default prompt if not specified",
     )
-    # TODO(ai): Factor out as a function in hparser like for --action.
-    parser.add_argument(
-        "--limit",
-        action="store",
-        help="Limit processing to directory range X:Y (1-indexed, inclusive)",
-    )
+    # Add limit range argument.
+    hparser.add_limit_range_arg(parser)
     parser.add_argument(
         "--from_scratch",
         action="store_true",
@@ -125,27 +121,6 @@ def _check_system_requirements() -> None:
     _LOG.debug("llm command found")
 
 
-# TODO(ai): Factor out as a function in hparser like for --action.
-def _parse_limit_range(limit_str: str) -> Tuple[int, int]:
-    """
-    Parse limit string in format "X:Y" and return tuple (start, end).
-    
-    :param limit_str: string in format "X:Y" where X and Y are 1-indexed integers
-    :return: tuple of (start_index, end_index) as 0-indexed integers
-    """
-    hdbg.dassert(":" in limit_str, "Limit format must be X:Y, got: %s", limit_str)
-    parts = limit_str.split(":")
-    hdbg.dassert_eq(len(parts), 2, "Limit format must be X:Y, got: %s", limit_str)
-    try:
-        start = int(parts[0])
-        end = int(parts[1])
-    except ValueError as e:
-        hdbg.dfatal("Invalid limit format, must be integers: %s", e)
-    hdbg.dassert_lt(0, start, "Start index must be >= 1, got: %s", start)
-    hdbg.dassert_lt(0, end, "End index must be >= 1, got: %s", end)
-    hdbg.dassert_lte(start, end, "Start index must be <= end index, got: %s:%s", start, end)
-    # Convert to 0-indexed.
-    return start - 1, end - 1
 
 
 def _get_directories(in_dir: str, *, limit_range: Optional[Tuple[int, int]] = None) -> List[str]:
@@ -170,17 +145,8 @@ def _get_directories(in_dir: str, *, limit_range: Optional[Tuple[int, int]] = No
             directories.append(full_path)
     # Sort alphabetically.
     directories.sort()
-    # TODO(ai): Factor out as a function in hparser like for --action.
     # Apply limit range if specified.
-    if limit_range is not None:
-        start_idx, end_idx = limit_range
-        total_dirs = len(directories)
-        hdbg.dassert_lt(start_idx, total_dirs, "Start index %s exceeds available directories %s", start_idx + 1, total_dirs)
-        hdbg.dassert_lt(end_idx, total_dirs, "End index %s exceeds available directories %s", end_idx + 1, total_dirs)
-        directories = directories[start_idx:end_idx + 1]
-        _LOG.warning("Found %s directories, limited to range %s:%s (%s directories)", total_dirs, start_idx + 1, end_idx + 1, len(directories))
-    else:
-        _LOG.info("Found %s directories to process", len(directories))
+    directories = hparser.apply_limit_range(directories, limit_range, item_name="directories")
     return directories
 
 
@@ -293,12 +259,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Selected actions: %s", actions)
     # Check system requirements.
     _check_system_requirements()
-    # TODO(ai): Factor out as a function in hparser like for --action.
     # Parse limit range if specified.
-    limit_range = None
-    if args.limit:
-        limit_range = _parse_limit_range(args.limit)
-        _LOG.info("Using limit range: %s (0-indexed: %s:%s)", args.limit, limit_range[0], limit_range[1])
+    limit_range = hparser.parse_limit_range_args(args)
     # Get directories to process.
     directories = _get_directories(args.in_dir, limit_range=limit_range)
     hdbg.dassert_lt(0, len(directories), "No directories found to process")

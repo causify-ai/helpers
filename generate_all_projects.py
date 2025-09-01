@@ -12,7 +12,8 @@ The output files are generated in the specified output directory.
 
 Examples:
 > generate_all_projects.py --input_dir ~/src/umd_msml6101/msml610/lectures_source --output_dir ~/output
-> generate_all_projects.py --input_dir . --output_dir ./results --max_num_bullets 5
+> generate_all_projects.py --input_dir . --output_dir ./results --action generate_summary
+> generate_all_projects.py --input_dir ~/lectures --output_dir ~/output --limit 1:5
 
 Import as:
 
@@ -66,15 +67,17 @@ def _parse() -> argparse.ArgumentParser:
         default="both",
         help="Action to perform: generate_summary, generate_projects, or both (default: both)",
     )
+    hparser.add_limit_range_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
 
-def _find_lesson_files(input_dir: str) -> List[str]:
+def _find_lesson_files(input_dir: str, *, limit_range=None) -> List[str]:
     """
     Find all Lesson* files in the input directory.
 
     :param input_dir: Directory to search for Lesson* files
+    :param limit_range: Optional tuple (start, end) for 0-indexed range filtering
     :return: List of full paths to Lesson* files
     """
     hdbg.dassert(
@@ -86,7 +89,8 @@ def _find_lesson_files(input_dir: str) -> List[str]:
             full_path = os.path.join(input_dir, filename)
             lesson_files.append(full_path)
     lesson_files.sort()
-    _LOG.info("Found %s Lesson* files: %s", len(lesson_files), lesson_files)
+    # Apply limit range if specified.
+    lesson_files = hparser.apply_limit_range(lesson_files, limit_range, item_name="lesson files")
     return lesson_files
 
 
@@ -154,6 +158,8 @@ def _process_all_lessons(
     output_dir: str,
     from_scratch: bool,
     action: str,
+    *,
+    limit_range=None,
 ) -> None:
     """
     Process all Lesson* files in input directory.
@@ -163,11 +169,12 @@ def _process_all_lessons(
     :param from_scratch: Whether to create output directory from scratch
     :param action: Action to perform (generate_summary,
         generate_projects, or both)
+    :param limit_range: Optional tuple (start, end) for 0-indexed range filtering
     """
     # Create output directory.
     hio.create_dir(output_dir, incremental=not from_scratch)
     # Find all lesson files.
-    lesson_files = _find_lesson_files(input_dir)
+    lesson_files = _find_lesson_files(input_dir, limit_range=limit_range)
     hdbg.dassert_ne(
         len(lesson_files), 0, f"No Lesson* files found in {input_dir}"
     )
@@ -192,12 +199,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level)
     # Validate input directory
     hdbg.dassert_dir_exists(args.input_dir)
+    # Parse limit range if specified.
+    limit_range = hparser.parse_limit_range_args(args)
     # Process all lessons
     _process_all_lessons(
         args.input_dir,
         args.output_dir,
         args.from_scratch,
         args.action,
+        limit_range=limit_range,
     )
     _LOG.info("All lesson files processed successfully")
 
