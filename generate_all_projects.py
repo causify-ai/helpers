@@ -128,29 +128,38 @@ def _generate_summary(
     return out_file
 
 
-def _generate_projects(in_file: str, output_dir: str) -> str:
+def _generate_projects(in_file: str, output_dir: str) -> List[str]:
     """
     Generate projects for a lesson file using create_class_projects.py.
 
+    Creates 3 separate project files for each lesson file, one for each
+    difficulty level (easy, medium, hard).
+
     :param in_file: Input lesson file path
     :param output_dir: Output directory
-    :return: Path to generated projects file
+    :return: List of paths to generated projects files
     """
     # Extract base filename for output.
     base_name = os.path.splitext(os.path.basename(in_file))[0]
-    out_file = os.path.join(output_dir, f"{base_name}.projects.txt")
-    # Build command.
-    cmd = (
-        f"create_class_projects.py "
-        f"--in_file {in_file} "
-        f"--action create_project "
-        f"--level medium "
-        f"--output_file {out_file}"
-    )
-    _LOG.info("Running projects command: %s", cmd)
-    # Execute command.
-    hsystem.system(cmd)
-    return out_file
+    # Define difficulty levels.
+    difficulty_levels = ["easy", "medium", "hard"]
+    generated_files = []
+    # Generate projects for each difficulty level.
+    for level in difficulty_levels:
+        out_file = os.path.join(output_dir, f"{base_name}.projects.{level}.txt")
+        # Build command.
+        cmd = (
+            f"create_class_projects.py "
+            f"--in_file {in_file} "
+            f"--action create_project "
+            f"--level {level} "
+            f"--output_file {out_file}"
+        )
+        _LOG.info("Running projects command: %s", cmd)
+        # Execute command.
+        hsystem.system(cmd)
+        generated_files.append(out_file)
+    return generated_files
 
 
 def _process_all_lessons(
@@ -179,6 +188,7 @@ def _process_all_lessons(
         len(lesson_files), 0, f"No Lesson* files found in {input_dir}"
     )
     # Process each lesson file
+    # TODO(ai): Add a progress bar.
     for lesson_file in lesson_files:
         _LOG.info("Processing %s", lesson_file)
         if action in ["generate_summary", "both"]:
@@ -187,8 +197,8 @@ def _process_all_lessons(
             _LOG.info("Generated summary: %s", summary_file)
         if action in ["generate_projects", "both"]:
             # Generate projects.
-            projects_file = _generate_projects(lesson_file, output_dir)
-            _LOG.info("Generated projects: %s", projects_file)
+            projects_files = _generate_projects(lesson_file, output_dir)
+            _LOG.info("Generated projects: %s", ", ".join(projects_files))
 
 
 def _main(parser: argparse.ArgumentParser) -> None:

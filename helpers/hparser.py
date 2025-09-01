@@ -726,7 +726,6 @@ def add_limit_range_arg(
     return parser
 
 
-# TODO(ai): Add unit test for this.
 def parse_limit_range(limit_str: str) -> Tuple[int, int]:
     """
     Parse limit string in format "X:Y" and return tuple (start, end).
@@ -741,7 +740,7 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
         start = int(parts[0])
         end = int(parts[1])
     except ValueError as e:
-        hdbg.dfatal("Invalid limit format, must be integers: %s", e)
+        hdbg.dfatal("Invalid limit format, must be integers: %s" % str(e))
     hdbg.dassert_lt(0, start, "Start index must be >= 0, got: %s", start)
     hdbg.dassert_lt(0, end, "End index must be >= 0, got: %s", end)
     hdbg.dassert_lte(start, end, "Start index must be <= end index, got: %s:%s", start, end)
@@ -762,7 +761,6 @@ def parse_limit_range_args(args: argparse.Namespace) -> Optional[Tuple[int, int]
     return limit_range
 
 
-# TODO(ai): Add unit test for this.
 def apply_limit_range(
     items: List[Any], 
     limit_range: Optional[Tuple[int, int]] = None,
@@ -786,5 +784,8 @@ def apply_limit_range(
         _LOG.warning("Found %s %s, limited to range %s:%s (%s %s)", total_items, item_name, start_idx, end_idx, len(items), item_name)
     else:
         _LOG.info("Found %s %s to process", len(items), item_name)
-    # TODO(ai): Print the items that we will be processed.
+    # Print the items that will be processed.
+    _LOG.info("Items to process:")
+    for i, item in enumerate(items):
+        _LOG.info("  [%s]: %s", i, item)
     return items
