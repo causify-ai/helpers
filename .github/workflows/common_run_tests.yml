@@ -65,7 +65,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-          token: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+          token: ${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
 
       # To access modules in `amp` and `helpers_root`, make sure PYTHONPATH includes
       # them, just as it's set in `setenv.sh`.
