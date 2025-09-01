@@ -15,13 +15,9 @@ Examples:
 import argparse
 import logging
 import os
-from typing import Dict, List, Tuple
-
-from tqdm.autonotebook import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
@@ -34,7 +30,9 @@ _DEFAULT_ACTIONS = ["create_project"]
 
 
 def _parse() -> argparse.ArgumentParser:
-    """Parse command line arguments."""
+    """
+    Parse command line arguments.
+    """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -63,7 +61,9 @@ def _parse() -> argparse.ArgumentParser:
 
 
 def _check_llm_available() -> None:
-    """Check if llm command is available in the system."""
+    """
+    Check if llm command is available in the system.
+    """
     hsystem.system("which llm", suppress_output=True)
     _LOG.debug("llm command found and available")
 
@@ -71,7 +71,7 @@ def _check_llm_available() -> None:
 def _call_llm(prompt: str, content: str) -> str:
     """
     Call LLM with the given prompt and content.
-    
+
     :param prompt: The prompt to send to LLM
     :param content: The content to process
     :return: LLM response
@@ -88,7 +88,7 @@ def _call_llm(prompt: str, content: str) -> str:
 def _action_create_project(in_file: str, output_file: str) -> None:
     """
     Create project descriptions based on markdown file.
-    
+
     :param in_file: Input markdown file path
     :param output_file: Output file path
     """
@@ -98,11 +98,9 @@ def _action_create_project(in_file: str, output_file: str) -> None:
     file_content = hio.from_file(in_file)
     # Use the entire file content instead of extracting sections.
     _LOG.info("Processing entire file content")
-    
     # Generate projects for entire file content.
     result_lines = []
     tqdm_out = htqdm.TqdmToLogger(_LOG, level=logging.INFO)
-    
     _LOG.debug("Generating projects for entire file")
     prompt = """
     Act as a data science professor.
@@ -137,17 +135,18 @@ def _action_create_project(in_file: str, output_file: str) -> None:
     result_lines.append("# Class Projects")
     result_lines.append(projects)
     result_lines.append("")  # Empty line for spacing.
-    
     # Save result to output file.
     if not output_file:
         base_name = os.path.splitext(os.path.basename(in_file))[0]
         output_file = f"{base_name}.projects.txt"
-    hio.to_file(output_file, '\n'.join(result_lines))
+    hio.to_file(output_file, "\n".join(result_lines))
     _LOG.info("Projects saved to: %s", output_file)
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
-    """Main function to execute the script."""
+    """
+    Main function to execute the script.
+    """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate inputs.

@@ -33,15 +33,15 @@ import logging
 import os
 from typing import List, Tuple
 
+import llm
+from tqdm import tqdm
+
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-from tqdm import tqdm
-
-import llm
 
 _LOG = logging.getLogger(__name__)
 
@@ -138,7 +138,7 @@ def _summarize_section_with_llm(
         tmp_prompt_file = "tmp.create_markdown_summary.prompt.txt"
         full_content = f"{prompt}\n\n{content}"
         hio.to_file(tmp_prompt_file, full_content)
-        cmd = f'llm -m gpt-4o-mini < {tmp_prompt_file}'
+        cmd = f"llm -m gpt-4o-mini < {tmp_prompt_file}"
         _, summary = hsystem.system_to_string(cmd)
     return summary.strip()
 
@@ -289,7 +289,9 @@ def _action_summarize(
     _LOG.info("Found %d sections to summarize", len(sections))
     # Summarize each section.
     summarized_sections = []
-    for start_line, end_line, content, chunk_num in tqdm(sections, desc="Summarizing chunks", unit="chunk"):
+    for start_line, end_line, content, chunk_num in tqdm(
+        sections, desc="Summarizing chunks", unit="chunk"
+    ):
         _LOG.info(
             "Summarizing chunk %d: lines %d-%d", chunk_num, start_line, end_line
         )
@@ -479,15 +481,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert(
         os.path.isfile(args.in_file), "Input file does not exist:", args.in_file
     )
+    # Set default output file if not provided.
+    if args.out_file is None:
+        base_name = os.path.splitext(os.path.basename(args.in_file))[0]
+        args.out_file = f"{base_name}.summary.txt"
     # Get selected actions.
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     # Process each action.
     for action in actions:
         if action == "summarize":
-            hdbg.dassert(
-                args.out_file is not None,
-                "Output file required for summarize action",
-            )
             _action_summarize(
                 args.in_file,
                 args.out_file,
@@ -496,16 +498,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 args.use_library,
             )
         elif action == "preview_chunks":
-            hdbg.dassert(
-                args.out_file is not None,
-                "Output file required for preview_chunks action",
-            )
             _action_preview_chunks(args.in_file, args.out_file, args.max_level)
         elif action == "check_output":
-            hdbg.dassert(
-                args.out_file is not None,
-                "Output file required for check_output action",
-            )
             _action_check_output(args.in_file, args.out_file, args.max_level)
         else:
             hdbg.dfatal("Invalid action: %s", action)
