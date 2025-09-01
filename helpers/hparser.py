@@ -721,17 +721,18 @@ def add_limit_range_arg(
     parser.add_argument(
         "--limit",
         action="store",
-        help="Limit processing to item range X:Y (1-indexed, inclusive)",
+        help="Limit processing to item range X:Y (0-indexed, inclusive)",
     )
     return parser
 
 
+# TODO(ai): Add unit test for this.
 def parse_limit_range(limit_str: str) -> Tuple[int, int]:
     """
     Parse limit string in format "X:Y" and return tuple (start, end).
     
-    :param limit_str: string in format "X:Y" where X and Y are 1-indexed integers
-    :return: tuple of (start_index, end_index) as 0-indexed integers
+    :param limit_str: string in format "X:Y" where X and Y are 0-indexed integers
+    :return: tuple of (start_index, end_index)
     """
     hdbg.dassert(":" in limit_str, "Limit format must be X:Y, got: %s", limit_str)
     parts = limit_str.split(":")
@@ -741,13 +742,27 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
         end = int(parts[1])
     except ValueError as e:
         hdbg.dfatal("Invalid limit format, must be integers: %s", e)
-    hdbg.dassert_lt(0, start, "Start index must be >= 1, got: %s", start)
-    hdbg.dassert_lt(0, end, "End index must be >= 1, got: %s", end)
+    hdbg.dassert_lt(0, start, "Start index must be >= 0, got: %s", start)
+    hdbg.dassert_lt(0, end, "End index must be >= 0, got: %s", end)
     hdbg.dassert_lte(start, end, "Start index must be <= end index, got: %s:%s", start, end)
-    # Convert to 0-indexed.
-    return start - 1, end - 1
+    return start, end
 
 
+def parse_limit_range_args(args: argparse.Namespace) -> Optional[Tuple[int, int]]:
+    """
+    Parse limit range from command line arguments and log the result.
+    
+    :param args: parsed command line arguments containing 'limit' attribute
+    :return: tuple of (start_index, end_index) as 0-indexed integers, or None if no limit
+    """
+    limit_range = None
+    if args.limit:
+        limit_range = parse_limit_range(args.limit)
+        _LOG.warning("Using limit range: [%s:%s]", limit_range[0], limit_range[1])
+    return limit_range
+
+
+# TODO(ai): Add unit test for this.
 def apply_limit_range(
     items: List[Any], 
     limit_range: Optional[Tuple[int, int]] = None,
@@ -765,24 +780,11 @@ def apply_limit_range(
     if limit_range is not None:
         start_idx, end_idx = limit_range
         total_items = len(items)
-        hdbg.dassert_lt(start_idx, total_items, "Start index %s exceeds available %s %s", start_idx + 1, item_name, total_items)
-        hdbg.dassert_lt(end_idx, total_items, "End index %s exceeds available %s %s", end_idx + 1, item_name, total_items)
+        hdbg.dassert_lt(start_idx, total_items, "Start index %s exceeds available %s %s", start_idx, item_name, total_items)
+        hdbg.dassert_lt(end_idx, total_items, "End index %s exceeds available %s %s", end_idx, item_name, total_items)
         items = items[start_idx:end_idx + 1]
-        _LOG.warning("Found %s %s, limited to range %s:%s (%s %s)", total_items, item_name, start_idx + 1, end_idx + 1, len(items), item_name)
+        _LOG.warning("Found %s %s, limited to range %s:%s (%s %s)", total_items, item_name, start_idx, end_idx, len(items), item_name)
     else:
         _LOG.info("Found %s %s to process", len(items), item_name)
+    # TODO(ai): Print the items that we will be processed.
     return items
-
-
-def parse_limit_range_args(args: argparse.Namespace) -> Optional[Tuple[int, int]]:
-    """
-    Parse limit range from command line arguments and log the result.
-    
-    :param args: parsed command line arguments containing 'limit' attribute
-    :return: tuple of (start_index, end_index) as 0-indexed integers, or None if no limit
-    """
-    limit_range = None
-    if args.limit:
-        limit_range = parse_limit_range(args.limit)
-        _LOG.info("Using limit range: %s (0-indexed: %s:%s)", args.limit, limit_range[0], limit_range[1])
-    return limit_range
