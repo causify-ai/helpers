@@ -347,7 +347,7 @@ class RepoConfig:
         )
         return value
 
-    def install_publishing_tools(self) -> bool:
+    def get_install_publishing_tools(self) -> bool:
         """
         Return whether the publishing tools should be installed, True by default.
         """
@@ -356,7 +356,7 @@ class RepoConfig:
         )
         return value
 
-    def install_aws_cli(self) -> bool:
+    def get_install_aws_cli(self) -> bool:
         """
         Return whether the AWS CLI should be installed, True by default.
         """
