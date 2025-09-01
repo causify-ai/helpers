@@ -80,7 +80,10 @@ class Test_extract_sections_at_level(hunitest.TestCase):
         # Run test.
         result = crmasu._extract_sections_at_level(lines, header_list, max_level)
         # Check outputs.
-        # TODO(ai): Use self.assert_equal() with expected result.
+        expected_result = [
+            (3, 5, "## Section 1.1\n\nContent here", 1)
+        ]
+        self.assert_equal(str(result), str(expected_result))
 
     def test3(self) -> None:
         """
@@ -106,7 +109,7 @@ class Test_extract_sections_at_level(hunitest.TestCase):
         result = crmasu._extract_sections_at_level(lines, header_list, max_level)
         # Check outputs.
         expected_result = []
-        # TODO(ai): Use self.assert_equal().
+        self.assert_equal(str(result), str(expected_result))
 
 
 # #############################################################################
@@ -143,7 +146,18 @@ class Test_create_output_structure(hunitest.TestCase):
             sections, header_list, max_level, input_file, lines
         )
         # Check outputs.
-        # TODO(ai): Use self.assert_equal() with expected result.
+        expected_output = """
+        # Chapter 1
+        
+        Intro text
+        
+        ## Section 1.1
+        // From test.md: [5, 8]
+        - Summary bullet point
+        
+        """
+        expected_output = hprint.dedent(expected_output).strip()
+        self.assert_equal(result.strip(), expected_output)
 
     def test2(self) -> None:
         """
@@ -254,7 +268,12 @@ class Test_action_preview_chunks_data(hunitest.TestCase):
         max_level = 2
         # Run test.
         result = self.helper_preview_chunks(lines, max_level)
-        # TODO(ai): Use self.assert_equal() with expected result.
+        # Check outputs.
+        expected_result = [
+            (3, 5, "## Section 1.1\nContent here\n", 1),
+            (6, 7, "## Section 1.2\nMore content", 2)
+        ]
+        self.assert_equal(str(result), str(expected_result))
 
     def test2(self) -> None:
         """
@@ -287,7 +306,12 @@ class Test_action_preview_chunks_data(hunitest.TestCase):
         max_level = 2
         # Run test.
         result = self.helper_preview_chunks(lines, max_level)
-        # TODO(ai): Use self.assert_equal() with expected result.
+        # Check outputs.
+        expected_result = [
+            (5, 12, "## Section 1.1: Overview\n\nThis section provides an overview.\n\n### Subsection 1.1.1\n\nDetails here.\n", 1),
+            (13, 16, "## Section 1.2: Getting Started\n\nGetting started content.\n", 2)
+        ]
+        self.assert_equal(str(result), str(expected_result))
 
 
 # #############################################################################
@@ -321,7 +345,23 @@ class Test_end_to_end_with_files(hunitest.TestCase):
         crmasu._action_preview_chunks(input_file, output_file, 2)
         # Check outputs.
         result = hio.from_file(output_file)
-        # TODO(ai): Use self.assert_equal() with expected result.
+        expected_result = """
+        # Chapter 1
+
+        ## Section 1.1
+
+        // ---------------------> start chunk 1 <---------------------
+        Content of section 1.1
+
+        // ---------------------> end chunk 1 <---------------------
+
+        ## Section 1.2  
+
+        // ---------------------> start chunk 2 <---------------------
+        Content of section 1.2
+        // ---------------------> end chunk 2 <---------------------"""
+        expected_result = hprint.dedent(expected_result)
+        self.assert_equal(result, expected_result)
 
     def test_check_output_end_to_end(self) -> None:
         """
@@ -355,8 +395,7 @@ class Test_end_to_end_with_files(hunitest.TestCase):
         # Run test.
         # This should not raise an exception even if structures differ slightly.
         tmp_dir = os.path.join(scratch_space, "tmp")
-        # TODO(ai): Use hio.create_dir().
-        os.makedirs(tmp_dir, exist_ok=True)
+        hio.create_dir(tmp_dir, incremental=True)
         crmasu._action_check_output(input_file, output_file, 2, tmp_dir=tmp_dir)
         # Check that temporary files were created.
         tmp_headers_in = os.path.join(tmp_dir, "tmp.headers_in.md")
