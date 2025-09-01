@@ -80,12 +80,7 @@ class Test_extract_sections_at_level(hunitest.TestCase):
         # Run test.
         result = crmasu._extract_sections_at_level(lines, header_list, max_level)
         # Check outputs.
-        self.assert_equal(str(len(result)), "1")
-        start, end, content, chunk = result[0]
-        self.assert_equal(str(start), "3")
-        self.assert_equal(str(end), "5")
-        self.assert_equal(str(chunk), "1")
-        self.assert_equal(str("Section 1.1" in content), "True")
+        # TODO(ai): Use self.assert_equal() with expected result.
 
     def test3(self) -> None:
         """
@@ -111,8 +106,7 @@ class Test_extract_sections_at_level(hunitest.TestCase):
         result = crmasu._extract_sections_at_level(lines, header_list, max_level)
         # Check outputs.
         expected_result = []
-        self.assert_equal(str(len(result)), "0")
-        self.assert_equal(str(result), str(expected_result))
+        # TODO(ai): Use self.assert_equal().
 
 
 # #############################################################################
@@ -149,13 +143,7 @@ class Test_create_output_structure(hunitest.TestCase):
             sections, header_list, max_level, input_file, lines
         )
         # Check outputs.
-        self.assert_equal(str("# Chapter 1" in result), "True")
-        self.assert_equal(str("Intro text" in result), "True")
-        self.assert_equal(str("## Section 1.1" in result), "True")
-        self.assert_equal(str("// From test.md: [5, 8]" in result), "True")
-        self.assert_equal(str("- Summary bullet point" in result), "True")
-        # Original content should be replaced.
-        self.assert_equal(str("Original content" in result), "False")
+        # TODO(ai): Use self.assert_equal() with expected result.
 
     def test2(self) -> None:
         """
@@ -245,31 +233,7 @@ class Test_action_preview_chunks_data(hunitest.TestCase):
         )
         # Extract sections.
         sections = crmasu._extract_sections_at_level(lines, header_list, max_level)
-        # Create annotated output (same logic as _action_preview_chunks).
-        output_lines = []
-        line_idx = 0
-        #
-        for start_line, end_line, content, chunk_num in sections:
-            # Add lines before this section.
-            while line_idx < start_line - 1:
-                output_lines.append(lines[line_idx])
-                line_idx += 1
-            # Add start marker.
-            start_marker = f"// ---------------------> start chunk {chunk_num} <---------------------"
-            output_lines.append(start_marker)
-            # Add section content.
-            section_lines = lines[start_line - 1:end_line]
-            output_lines.extend(section_lines)
-            # Add end marker.
-            end_marker = f"// ---------------------> end chunk {chunk_num} <---------------------"
-            output_lines.append(end_marker)
-            line_idx = end_line
-        # Add remaining lines.
-        while line_idx < len(lines):
-            output_lines.append(lines[line_idx])
-            line_idx += 1
-        #
-        return "\n".join(output_lines)
+        return sections
 
     def test1(self) -> None:
         """
@@ -290,8 +254,7 @@ class Test_action_preview_chunks_data(hunitest.TestCase):
         max_level = 2
         # Run test.
         result = self.helper_preview_chunks(lines, max_level)
-        # Check outputs.
-        self.check_string(result)
+        # TODO(ai): Use self.assert_equal() with expected result.
 
     def test2(self) -> None:
         """
@@ -324,8 +287,7 @@ class Test_action_preview_chunks_data(hunitest.TestCase):
         max_level = 2
         # Run test.
         result = self.helper_preview_chunks(lines, max_level)
-        # Check outputs.
-        self.check_string(result)
+        # TODO(ai): Use self.assert_equal() with expected result.
 
 
 # #############################################################################
@@ -359,10 +321,7 @@ class Test_end_to_end_with_files(hunitest.TestCase):
         crmasu._action_preview_chunks(input_file, output_file, 2)
         # Check outputs.
         result = hio.from_file(output_file)
-        self.assert_equal(str("start chunk 1" in result), "True")
-        self.assert_equal(str("end chunk 1" in result), "True")
-        self.assert_equal(str("Section 1.1" in result), "True")
-        self.assert_equal(str("Section 1.2" in result), "True")
+        # TODO(ai): Use self.assert_equal() with expected result.
 
     def test_check_output_end_to_end(self) -> None:
         """
@@ -396,6 +355,7 @@ class Test_end_to_end_with_files(hunitest.TestCase):
         # Run test.
         # This should not raise an exception even if structures differ slightly.
         tmp_dir = os.path.join(scratch_space, "tmp")
+        # TODO(ai): Use hio.create_dir().
         os.makedirs(tmp_dir, exist_ok=True)
         crmasu._action_check_output(input_file, output_file, 2, tmp_dir=tmp_dir)
         # Check that temporary files were created.

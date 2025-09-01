@@ -278,16 +278,54 @@ def _action_preview_chunks(input_file: str, output_file: str, max_level: int) ->
         while line_idx < start_line - 1:
             output_lines.append(lines[line_idx])
             line_idx += 1
-        # Add start marker.
+        
+        # Add end marker for previous chunk (if not first chunk)
+        if chunk_num > 1:
+            end_marker = f"// ---------------------> end chunk {chunk_num - 1} <---------------------"
+            output_lines.append(end_marker)
+            output_lines.append("")  # Add blank line
+        
+        # Get section content
+        section_lines = lines[start_line - 1:end_line]
+        
+        # Look for header frame pattern: decorative line, header, decorative line
+        header_frame_end_idx = 0
+        
+        # Check if this section starts with a decorated header
+        if (len(section_lines) >= 3 and 
+            "#############################################################################" in section_lines[0] and
+            section_lines[1].startswith("##") and
+            "#############################################################################" in section_lines[2]):
+            # Full 3-line header frame
+            header_frame_lines = section_lines[0:3]
+            content_lines = section_lines[3:]
+        elif len(section_lines) >= 1 and section_lines[0].startswith("##"):
+            # Simple header without decoration
+            header_frame_lines = [section_lines[0]]
+            content_lines = section_lines[1:]
+        else:
+            # No header found
+            header_frame_lines = []
+            content_lines = section_lines
+        
+        # Add the complete header frame
+        output_lines.extend(header_frame_lines)
+        output_lines.append("")  # Add blank line
+        
+        # Add start marker for current chunk
         start_marker = f"// ---------------------> start chunk {chunk_num} <---------------------"
         output_lines.append(start_marker)
-        # Add section content.
-        section_lines = lines[start_line - 1:end_line]
-        output_lines.extend(section_lines)
-        # Add end marker.
-        end_marker = f"// ---------------------> end chunk {chunk_num} <---------------------"
-        output_lines.append(end_marker)
+        
+        # Add remaining section content
+        output_lines.extend(content_lines)
+        
         line_idx = end_line
+    
+    # Add final end marker for last chunk
+    if sections:
+        final_end_marker = f"// ---------------------> end chunk {len(sections)} <---------------------"
+        output_lines.append(final_end_marker)
+    
     # Add remaining lines.
     while line_idx < len(lines):
         output_lines.append(lines[line_idx])
