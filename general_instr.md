@@ -37,19 +37,21 @@
 - Use REST comments in docstrings
 - Do not use empty lines within functions but use comments to separate chunks of
   code
-- Use periods at the end of comments
+- Use periods at the end of all comments
 
+- Use _LOG.info instead of print
 - Use _LOG.debug to add debugging info that can help a programmer to track the
   issues
-- Use _LOG.info instead of print
-- Always use lazy % formatting in logging functions
+  - Always use lazy % formatting in logging functions
 
-- Do not use too many try except but let statements raise their own errors
+- Do not use try except to recover errors but let statements raise their own
+  errors
+- Use hdbg.dassert_* functions to check that invariants are verified
 
 - Use * for default parameters in functions
 
-- If you create a new function and this is used only in this file make it
-  private by starting the name with `_`
+- If you create a new function which it is used only in this file make it private
+  by starting the name with `_`
 
 ## Use script template
 - When creating scripts use the template

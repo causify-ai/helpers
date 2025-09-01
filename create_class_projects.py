@@ -55,6 +55,12 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Create output directory from scratch (remove if exists)",
     )
+    parser.add_argument(
+        "--level",
+        choices=["easy", "medium", "hard"],
+        required=True,
+        help="Complexity level for projects",
+    )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -85,12 +91,13 @@ def _call_llm(prompt: str, content: str) -> str:
     return output.strip()
 
 
-def _action_create_project(in_file: str, output_file: str) -> None:
+def _action_create_project(in_file: str, output_file: str, level: str = "medium") -> None:
     """
     Create project descriptions based on markdown file.
 
     :param in_file: Input markdown file path
     :param output_file: Output file path
+    :param level: Complexity level for projects (easy, medium, hard)
     """
     _LOG.info("Starting create_project action for file: %s", in_file)
     # Read input file directly.
@@ -102,10 +109,10 @@ def _action_create_project(in_file: str, output_file: str) -> None:
     result_lines = []
     tqdm_out = htqdm.TqdmToLogger(_LOG, level=logging.INFO)
     _LOG.debug("Generating projects for entire file")
-    prompt = """
-    Act as a data science professor.
+    prompt = f"""
+    You are a college level data science professor.
 
-    Given the markdown for a lecture, come up with the description of 3 projects
+    Given the markdown for a lecture, come up with the description of 1 project
     that can be used to clarify the content of the lesson and train the students.
 
     Look for Python packages that can be used to implement those projects
@@ -113,22 +120,22 @@ def _action_create_project(in_file: str, output_file: str) -> None:
     Look for freely available data sets that can be used to implement those projects.
 
     The Difficulty of the project can be
-    - easy, should take around 7 days to develop
-    - medium , should take around 10 days to complete
-    - hard,should take 14 days to complete
+    - Easy, it should take around 7 days to develop
+    - Medium , it should take around 10 days to complete
+    - Hard, it should take 14 days to complete
 
-    The difficulty level should be medium by default.
+    The difficulty level should be {level}.
 
     - Title:
     - Difficulty:
-    - Tech Description:
-    - Project Idea:
+    - Tech description:
+    - Project idea:
     - Data set to use:
     - Python libs:
-    - Is it Free?
-    - Relevant tool(XYZ) related Resource Links
+    - Links to relevant tools
+    - Links to related resources
 
-    Avoid long texts or steps
+    Avoid long texts or steps and comments, just list the projects.
     """
     prompt = hprint.dedent(prompt)
     projects = _call_llm(prompt, file_content)
@@ -164,7 +171,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 # Default output file format if not specified.
                 base_name = os.path.splitext(os.path.basename(args.in_file))[0]
                 output_file = f"{base_name}.projects.txt"
-            _action_create_project(args.in_file, output_file)
+            _action_create_project(args.in_file, output_file, args.level)
         else:
             hdbg.dfatal("Invalid action: %s", action)
 

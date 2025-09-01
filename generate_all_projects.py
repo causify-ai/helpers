@@ -31,6 +31,11 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+# Hardwired configuration constants
+_MAX_NUM_BULLETS = 3
+_USE_LIBRARY = False
+_LEVEL = "medium"
+
 
 def _parse() -> argparse.ArgumentParser:
     """
@@ -51,21 +56,21 @@ def _parse() -> argparse.ArgumentParser:
         help="Output directory for generated files",
     )
     parser.add_argument(
-        "--max_num_bullets",
-        type=int,
-        default=3,
-        help="Maximum number of bullets for summaries (default: 3)",
+        "--from_scratch",
+        action="store_true",
+        help="Create output directory from scratch (remove if exists)",
     )
     parser.add_argument(
-        "--use_library",
-        action="store_true",
-        help="Use library instead of command line llm tool",
+        "--action",
+        choices=["generate_summary", "generate_projects", "both"],
+        default="both",
+        help="Action to perform: generate_summary, generate_projects, or both (default: both)",
     )
     hparser.add_verbosity_arg(parser)
     return parser
 
 
-def find_lesson_files(input_dir: str) -> List[str]:
+def _find_lesson_files(input_dir: str) -> List[str]:
     """
     Find all Lesson* files in the input directory.
 
@@ -85,11 +90,9 @@ def find_lesson_files(input_dir: str) -> List[str]:
     return lesson_files
 
 
-def generate_summary(
+def _generate_summary(
     in_file: str,
     output_dir: str,
-    max_num_bullets: int,
-    use_library: bool,
 ) -> str:
     """
     Generate summary for a lesson file using create_markdown_summary.py.
@@ -103,25 +106,17 @@ def generate_summary(
     # Extract base filename for output
     base_name = os.path.splitext(os.path.basename(in_file))[0]
     out_file = os.path.join(output_dir, f"{base_name}.summary.txt")
-
-    # Build command
-    cmd_parts = [
-        "python",
-        "create_markdown_summary.py",
-        "--in_file",
-        in_file,
-        "--action",
-        "summarize",
-        "--out_file",
-        out_file,
-        "--max_num_bullets",
-        str(max_num_bullets),
-    ]
-
-    if use_library:
-        cmd_parts.append("--use_library")
-
-    cmd = " ".join(cmd_parts)
+    # Build command using f-string
+    library_flag = "--use_library" if _USE_LIBRARY else ""
+    cmd = (
+        f"create_markdown_summary.py "
+        f"--in_file {in_file} "
+        f"--action summarize "
+        f"--level {_LEVEL} "
+        f"--out_file {out_file} "
+        f"--max_num_bullets {_MAX_NUM_BULLETS} "
+        f"{library_flag}"
+    ).strip()
     _LOG.info("Running summary command: %s", cmd)
 
     # Execute command
@@ -131,7 +126,7 @@ def generate_summary(
     return out_file
 
 
-def generate_projects(in_file: str, output_dir: str) -> str:
+def _generate_projects(in_file: str, output_dir: str) -> str:
     """
     Generate projects for a lesson file using create_class_projects.py.
 
@@ -144,7 +139,7 @@ def generate_projects(in_file: str, output_dir: str) -> str:
     out_file = os.path.join(output_dir, f"{base_name}.projects.txt")
     # Build command
     cmd = (
-        f"python create_class_projects.py "
+        f"create_class_projects.py "
         f"--in_file {in_file} "
         f"--action create_project "
         f"--out_file {out_file}"
@@ -156,48 +151,40 @@ def generate_projects(in_file: str, output_dir: str) -> str:
     return out_file
 
 
-def process_all_lessons(
+def _process_all_lessons(
     input_dir: str,
     output_dir: str,
-    max_num_bullets: int,
-    use_library: bool,
+    from_scratch: bool,
+    action: str,
 ) -> None:
     """
     Process all Lesson* files in input directory.
 
     :param input_dir: Input directory containing Lesson* files
     :param output_dir: Output directory for generated files
-    :param max_num_bullets: Maximum number of bullets for summaries
-    :param use_library: Whether to use library instead of CLI
+    :param from_scratch: Whether to create output directory from scratch
+    :param action: Action to perform (generate_summary, generate_projects, or both)
     """
-    # Create output directory if it doesn't exist
-    hio.create_dir(output_dir, incremental=True)
-
+    # Create output directory
+    hio.create_dir(output_dir, incremental=not from_scratch)
     # Find all lesson files
-    lesson_files = find_lesson_files(input_dir)
+    lesson_files = _find_lesson_files(input_dir)
 
-    if not lesson_files:
-        _LOG.warning("No Lesson* files found in %s", input_dir)
-        return
+    hdbg.dassert_ne(len(lesson_files), 0, f"No Lesson* files found in {input_dir}")
 
     # Process each lesson file
     for lesson_file in lesson_files:
         _LOG.info("Processing %s", lesson_file)
-
-        try:
+        
+        if action in ["generate_summary", "both"]:
             # Generate summary
-            summary_file = generate_summary(
-                lesson_file, output_dir, max_num_bullets, use_library
-            )
+            summary_file = _generate_summary(lesson_file, output_dir)
             _LOG.info("Generated summary: %s", summary_file)
 
+        if action in ["generate_projects", "both"]:
             # Generate projects
-            projects_file = generate_projects(lesson_file, output_dir)
+            projects_file = _generate_projects(lesson_file, output_dir)
             _LOG.info("Generated projects: %s", projects_file)
-
-        except Exception as e:
-            _LOG.error("Failed to process %s: %s", lesson_file, e)
-            raise
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -207,14 +194,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level)
     # Validate input directory
-    if not os.path.isdir(args.input_dir):
-        raise ValueError(f"Input directory does not exist: {args.input_dir}")
+    hdbg.dassert_dir_exists(args.input_dir)
     # Process all lessons
-    process_all_lessons(
+    _process_all_lessons(
         args.input_dir,
         args.output_dir,
-        args.max_num_bullets,
-        args.use_library,
+        args.from_scratch,
+        args.action,
     )
     _LOG.info("All lesson files processed successfully")
 
