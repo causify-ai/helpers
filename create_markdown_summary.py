@@ -21,6 +21,10 @@ Import as:
 import create_markdown_summary as crmasu
 """
 
+# TODO(gp): Use mistletoe to parse the markdown file and process it.
+# See https://github.com/miyuchina/mistletoe/blob/master/dev-guide.md
+
+
 import argparse
 import logging
 import os
@@ -48,17 +52,16 @@ def _validate_llm_availability() -> None:
 
 
 def _extract_sections_at_level(
-    lines: List[str], 
-    header_list: hmarkdo.HeaderList, 
-    max_level: int
+    lines: List[str], header_list: hmarkdo.HeaderList, max_level: int
 ) -> List[Tuple[int, int, str, int]]:
     """
     Extract content sections based on header level.
-    
+
     :param lines: input markdown lines
     :param header_list: parsed header information
     :param max_level: maximum header level to process
-    :return: list of (start_line, end_line, section_content, chunk_number) tuples
+    :return: list of (start_line, end_line, section_content,
+        chunk_number) tuples
     """
     sections = []
     chunk_num = 1
@@ -83,7 +86,7 @@ def _extract_sections_at_level(
             else:
                 end_line = len(lines)
         # Extract section content.
-        section_lines = lines[start_line - 1:end_line]
+        section_lines = lines[start_line - 1 : end_line]
         section_content = "\n".join(section_lines)
         sections.append((start_line, end_line, section_content, chunk_num))
         chunk_num += 1
@@ -93,7 +96,7 @@ def _extract_sections_at_level(
 def _summarize_section_with_llm(content: str, max_num_bullets: int) -> str:
     """
     Summarize content using LLM.
-    
+
     :param content: markdown content to summarize
     :param max_num_bullets: maximum number of bullet points
     :return: summarized content as bullet points
@@ -110,15 +113,15 @@ def _summarize_section_with_llm(content: str, max_num_bullets: int) -> str:
 
 
 def _create_output_structure(
-    sections: List[Tuple[int, int, str, int]], 
-    header_list: hmarkdo.HeaderList, 
-    max_level: int, 
+    sections: List[Tuple[int, int, str, int]],
+    header_list: hmarkdo.HeaderList,
+    max_level: int,
     input_file: str,
-    lines: List[str]
+    lines: List[str],
 ) -> str:
     """
     Create output markdown structure with summaries.
-    
+
     :param sections: extracted sections with summaries
     :param header_list: original header list
     :param max_level: maximum level processed
@@ -128,7 +131,7 @@ def _create_output_structure(
     """
     output_lines = []
     # Track which lines we've already processed
-    processed_lines = set()  
+    processed_lines = set()
     #
     # Process headers in order
     for header in header_list:
@@ -142,10 +145,12 @@ def _create_output_structure(
                 # Add content after this header until next header at same/higher level
                 content_start = header_line_num + 1
                 content_end = len(lines)
-                # Find next header at same or higher level  
+                # Find next header at same or higher level
                 for next_header in header_list:
-                    if (next_header.line_number > header.line_number and 
-                        next_header.level <= header.level):
+                    if (
+                        next_header.line_number > header.line_number
+                        and next_header.level <= header.level
+                    ):
                         content_end = next_header.line_number - 1
                         break
                 # Add non-summarized content
@@ -170,7 +175,9 @@ def _create_output_structure(
                     output_lines.append(lines[header_line_num])
                     processed_lines.add(header_line_num)
                     # Add source tracking comment
-                    source_comment = f"// From {input_file}: [{start_line}, {end_line}]"
+                    source_comment = (
+                        f"// From {input_file}: [{start_line}, {end_line}]"
+                    )
                     output_lines.append(source_comment)
                     # Add summary
                     output_lines.append(summary_content)
@@ -195,10 +202,7 @@ def _create_output_structure(
 
 
 def _action_summarize(
-    input_file: str, 
-    output_file: str, 
-    max_level: int, 
-    max_num_bullets: int
+    input_file: str, output_file: str, max_level: int, max_num_bullets: int
 ) -> None:
     """
     Summarize sections at specified level.
@@ -224,9 +228,11 @@ def _action_summarize(
                 break
         #
         if next_l1_idx is not None:
-            section_headers = header_list[header_list.index(l1_header):next_l1_idx]
+            section_headers = header_list[
+                header_list.index(l1_header) : next_l1_idx
+            ]
         else:
-            section_headers = header_list[header_list.index(l1_header):]
+            section_headers = header_list[header_list.index(l1_header) :]
         #
         has_max_level = any(h.level == max_level for h in section_headers)
         hdbg.dassert(
@@ -234,7 +240,7 @@ def _action_summarize(
             "Level 1 header '%s' at line %d does not contain level %d headers",
             l1_header.description,
             l1_header.line_number,
-            max_level
+            max_level,
         )
     # Extract sections at target level.
     sections = _extract_sections_at_level(lines, header_list, max_level)
@@ -242,7 +248,9 @@ def _action_summarize(
     # Summarize each section.
     summarized_sections = []
     for start_line, end_line, content, chunk_num in sections:
-        _LOG.info("Summarizing chunk %d: lines %d-%d", chunk_num, start_line, end_line)
+        _LOG.info(
+            "Summarizing chunk %d: lines %d-%d", chunk_num, start_line, end_line
+        )
         summary = _summarize_section_with_llm(content, max_num_bullets)
         summarized_sections.append((start_line, end_line, summary, chunk_num))
     # Create output structure.
@@ -257,7 +265,9 @@ def _action_summarize(
     _LOG.info("Summary saved to: %s", output_file)
 
 
-def _action_preview_chunks(input_file: str, output_file: str, max_level: int) -> None:
+def _action_preview_chunks(
+    input_file: str, output_file: str, max_level: int
+) -> None:
     """
     Preview which chunks will be summarized.
     """
@@ -278,24 +288,23 @@ def _action_preview_chunks(input_file: str, output_file: str, max_level: int) ->
         while line_idx < start_line - 1:
             output_lines.append(lines[line_idx])
             line_idx += 1
-        
         # Add end marker for previous chunk (if not first chunk)
         if chunk_num > 1:
             end_marker = f"// ---------------------> end chunk {chunk_num - 1} <---------------------"
             output_lines.append(end_marker)
             output_lines.append("")  # Add blank line
-        
         # Get section content
-        section_lines = lines[start_line - 1:end_line]
-        
+        section_lines = lines[start_line - 1 : end_line]
         # Look for header frame pattern: decorative line, header, decorative line
-        header_frame_end_idx = 0
-        
         # Check if this section starts with a decorated header
-        if (len(section_lines) >= 3 and 
-            "#############################################################################" in section_lines[0] and
-            section_lines[1].startswith("##") and
-            "#############################################################################" in section_lines[2]):
+        if (
+            len(section_lines) >= 3
+            and "#############################################################################"
+            in section_lines[0]
+            and section_lines[1].startswith("##")
+            and "#############################################################################"
+            in section_lines[2]
+        ):
             # Full 3-line header frame
             header_frame_lines = section_lines[0:3]
             content_lines = section_lines[3:]
@@ -307,25 +316,19 @@ def _action_preview_chunks(input_file: str, output_file: str, max_level: int) ->
             # No header found
             header_frame_lines = []
             content_lines = section_lines
-        
         # Add the complete header frame
         output_lines.extend(header_frame_lines)
         output_lines.append("")  # Add blank line
-        
         # Add start marker for current chunk
         start_marker = f"// ---------------------> start chunk {chunk_num} <---------------------"
         output_lines.append(start_marker)
-        
         # Add remaining section content
         output_lines.extend(content_lines)
-        
         line_idx = end_line
-    
     # Add final end marker for last chunk
     if sections:
         final_end_marker = f"// ---------------------> end chunk {len(sections)} <---------------------"
         output_lines.append(final_end_marker)
-    
     # Add remaining lines.
     while line_idx < len(lines):
         output_lines.append(lines[line_idx])
@@ -339,10 +342,12 @@ def _action_preview_chunks(input_file: str, output_file: str, max_level: int) ->
     _LOG.info("Preview saved to: %s", output_file)
 
 
-def _transform_file_to_headers(file_path: str, max_level: int, sanity_check: bool = True) -> hmarkdo.HeaderList:
+def _transform_file_to_headers(
+    file_path: str, max_level: int, sanity_check: bool = True
+) -> hmarkdo.HeaderList:
     """
     Transform a file into its header structure.
-    
+
     :param file_path: path to markdown file
     :param max_level: maximum header level to extract
     :param sanity_check: whether to perform sanity checks on headers
@@ -355,20 +360,30 @@ def _transform_file_to_headers(file_path: str, max_level: int, sanity_check: boo
     return headers
 
 
-def _action_check_output(input_file: str, output_file: str, max_level: int, *, tmp_dir: str = ".") -> None:
+def _action_check_output(
+    input_file: str, output_file: str, max_level: int, *, tmp_dir: str = "."
+) -> None:
     """
     Check that output file has same structure as input file.
     """
     _LOG.info("Starting check_output action")
     # Extract headers from both files.
-    input_headers = _transform_file_to_headers(input_file, max_level, sanity_check=True)
-    output_headers = _transform_file_to_headers(output_file, max_level, sanity_check=False)
+    input_headers = _transform_file_to_headers(
+        input_file, max_level, sanity_check=True
+    )
+    output_headers = _transform_file_to_headers(
+        output_file, max_level, sanity_check=False
+    )
     # Create temporary files for comparison.
     tmp_headers_in = os.path.join(tmp_dir, "tmp.headers_in.md")
     tmp_headers_out = os.path.join(tmp_dir, "tmp.headers_out.md")
     # Write header structures.
-    input_structure_lines = hmarkdo.header_list_to_markdown(input_headers, "headers")
-    output_structure_lines = hmarkdo.header_list_to_markdown(output_headers, "headers")
+    input_structure_lines = hmarkdo.header_list_to_markdown(
+        input_headers, "headers"
+    )
+    output_structure_lines = hmarkdo.header_list_to_markdown(
+        output_headers, "headers"
+    )
     input_structure = "\n".join(input_structure_lines)
     output_structure = "\n".join(output_structure_lines)
     hparser.write_file(input_structure, tmp_headers_in)
@@ -392,16 +407,16 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("--in_file", required=True, help="Input markdown file")
     parser.add_argument("--out_file", help="Output file path")
     parser.add_argument(
-        "--max_level", 
-        type=int, 
-        default=2, 
-        help="Header level to summarize (default: 2)"
+        "--max_level",
+        type=int,
+        default=2,
+        help="Header level to summarize (default: 2)",
     )
     parser.add_argument(
-        "--max_num_bullets", 
-        type=int, 
-        default=5, 
-        help="Maximum number of bullets for summary (default: 5)"
+        "--max_num_bullets",
+        type=int,
+        default=5,
+        help="Maximum number of bullets for summary (default: 5)",
     )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
@@ -413,8 +428,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate input file exists.
     hdbg.dassert(
-        os.path.isfile(args.in_file), 
-        "Input file does not exist:", args.in_file
+        os.path.isfile(args.in_file), "Input file does not exist:", args.in_file
     )
     # Get selected actions.
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
@@ -422,20 +436,22 @@ def _main(parser: argparse.ArgumentParser) -> None:
     for action in actions:
         if action == "summarize":
             hdbg.dassert(
-                args.out_file is not None, 
-                "Output file required for summarize action"
+                args.out_file is not None,
+                "Output file required for summarize action",
             )
-            _action_summarize(args.in_file, args.out_file, args.max_level, args.max_num_bullets)
+            _action_summarize(
+                args.in_file, args.out_file, args.max_level, args.max_num_bullets
+            )
         elif action == "preview_chunks":
             hdbg.dassert(
-                args.out_file is not None, 
-                "Output file required for preview_chunks action"
+                args.out_file is not None,
+                "Output file required for preview_chunks action",
             )
             _action_preview_chunks(args.in_file, args.out_file, args.max_level)
         elif action == "check_output":
             hdbg.dassert(
-                args.out_file is not None, 
-                "Output file required for check_output action"
+                args.out_file is not None,
+                "Output file required for check_output action",
             )
             _action_check_output(args.in_file, args.out_file, args.max_level)
         else:
