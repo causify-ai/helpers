@@ -10,6 +10,9 @@ Examples:
 # Summarize content under level 2 headers
 > create_markdown_summary.py --in_file input.md --action summarize --out_file output.md --max_level 2
 
+# Summarize using llm library instead of command line llm tool
+> create_markdown_summary.py --in_file input.md --action summarize --out_file output.md --max_level 2 --use_library
+
 # Preview which chunks will be summarized (save to file)
 > create_markdown_summary.py --in_file input.md --action preview_chunks --out_file preview.md --max_level 2
 
@@ -35,6 +38,15 @@ import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
+
+# Optional import - only needed when using library mode
+try:
+    import llm
+
+    LLM_AVAILABLE = True
+except ImportError:
+    LLM_AVAILABLE = False
+    llm = None
 
 _LOG = logging.getLogger(__name__)
 
@@ -93,22 +105,66 @@ def _extract_sections_at_level(
     return sections
 
 
-def _summarize_section_with_llm(content: str, max_num_bullets: int) -> str:
+def _summarize_section_with_llm(
+    content: str, max_num_bullets: int, use_library: bool = False
+) -> str:
     """
     Summarize content using LLM.
 
     :param content: markdown content to summarize
     :param max_num_bullets: maximum number of bullet points
+    :param use_library: if True, use llm library; if False, use command
+        line llm tool
     :return: summarized content as bullet points
     """
-    # Create temporary file for content.
-    tmp_content_file = "tmp.create_markdown_summary.content.txt"
-    hio.to_file(tmp_content_file, content)
-    # Create prompt.
-    prompt = f"Given the following markdown text summarize it into up to {max_num_bullets} bullets to capture the most important points"
-    # Call LLM.
-    cmd = f'llm -m gpt-4o-mini "{prompt}" < {tmp_content_file}'
-    _, summary = hsystem.system_to_string(cmd)
+    # Create base prompt.
+    base_prompt = f"Given the following markdown text summarize it into up to {max_num_bullets} bullets to capture the most important points"
+    # Add guidelines if available.
+    guidelines_file = "/Users/saggese/src/tutorials1/guidelines_for_notes.txt"
+    # TODO(ai): Use dassert_is_file to make sure the file exists and consider
+    # only that condition.
+    if os.path.isfile(guidelines_file):
+        guidelines_content = hio.from_file(guidelines_file)
+        prompt = f"""{base_prompt}
+
+
+You must follow the instructions below:
+{guidelines_content}
+
+Markdown content to summarize:
+{content}"""
+    else:
+        prompt = f"""{base_prompt}
+
+Markdown content to summarize:
+{content}"""
+    if use_library:
+        # Use llm library
+        if not LLM_AVAILABLE:
+            raise RuntimeError(
+                "llm library not available. Install it with 'pip install llm' or use command line mode (remove --use_library flag)."
+            )
+        model = llm.get_model("gpt-4o-mini")
+        response = model.prompt(prompt)
+        summary = response.text()
+    else:
+        # Use command line llm tool
+        tmp_content_file = "tmp.create_markdown_summary.content.txt"
+        hio.to_file(tmp_content_file, content)
+
+        # Create prompt for command line version.
+        if os.path.isfile(guidelines_file):
+            guidelines_content = hio.from_file(guidelines_file)
+            cmd_prompt = f"""{base_prompt}
+
+You must follow the instructions below:
+{guidelines_content}"""
+        else:
+            cmd_prompt = base_prompt
+
+        cmd = f'llm -m gpt-4o-mini "{cmd_prompt}" < {tmp_content_file}'
+        _, summary = hsystem.system_to_string(cmd)
+
     return summary.strip()
 
 
@@ -202,10 +258,21 @@ def _create_output_structure(
 
 
 def _action_summarize(
-    input_file: str, output_file: str, max_level: int, max_num_bullets: int
+    input_file: str,
+    output_file: str,
+    max_level: int,
+    max_num_bullets: int,
+    use_library: bool = False,
 ) -> None:
     """
     Summarize sections at specified level.
+
+    :param input_file: path to input markdown file
+    :param output_file: path to output file
+    :param max_level: header level to summarize
+    :param max_num_bullets: maximum number of bullets per summary
+    :param use_library: if True, use llm library; if False, use command
+        line llm tool
     """
     _LOG.info("Starting summarize action for file: %s", input_file)
     # Validate LLM availability.
@@ -251,7 +318,9 @@ def _action_summarize(
         _LOG.info(
             "Summarizing chunk %d: lines %d-%d", chunk_num, start_line, end_line
         )
-        summary = _summarize_section_with_llm(content, max_num_bullets)
+        summary = _summarize_section_with_llm(
+            content, max_num_bullets, use_library
+        )
         summarized_sections.append((start_line, end_line, summary, chunk_num))
     # Create output structure.
     output_content = _create_output_structure(
@@ -418,6 +487,11 @@ def _parse() -> argparse.ArgumentParser:
         default=5,
         help="Maximum number of bullets for summary (default: 5)",
     )
+    parser.add_argument(
+        "--use_library",
+        action="store_true",
+        help="Use llm library instead of command line llm tool",
+    )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
@@ -440,7 +514,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 "Output file required for summarize action",
             )
             _action_summarize(
-                args.in_file, args.out_file, args.max_level, args.max_num_bullets
+                args.in_file,
+                args.out_file,
+                args.max_level,
+                args.max_num_bullets,
+                args.use_library,
             )
         elif action == "preview_chunks":
             hdbg.dassert(
