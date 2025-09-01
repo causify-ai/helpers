@@ -1,6 +1,3 @@
-import pytest
-from typing import List, Tuple
-
 import helpers.hparser as hparser
 import helpers.hunit_test as hunitest
 
@@ -11,6 +8,7 @@ import helpers.hunit_test as hunitest
 
 
 class TestParseLimitRange(hunitest.TestCase):
+
     def test_parse_limit_range_valid1(self) -> None:
         """
         Test parsing valid range format.
@@ -96,11 +94,12 @@ class TestParseLimitRange(hunitest.TestCase):
 
 
 # #############################################################################
-# TestApplyLimitRange  
+# TestApplyLimitRange
 # #############################################################################
 
 
 class TestApplyLimitRange(hunitest.TestCase):
+
     def test_apply_limit_range_no_limit(self) -> None:
         """
         Test that None limit range returns original items.
@@ -174,7 +173,9 @@ class TestApplyLimitRange(hunitest.TestCase):
         items = [1, 2, 3, 4, 5]
         limit_range = (0, 2)
         expected = [1, 2, 3]
-        actual = hparser.apply_limit_range(items, limit_range, item_name="numbers")
+        actual = hparser.apply_limit_range(
+            items, limit_range, item_name="numbers"
+        )
         self.assertEqual(actual, expected)
 
     def test_apply_limit_range_empty_list(self) -> None:
@@ -192,6 +193,10 @@ class TestApplyLimitRange(hunitest.TestCase):
         """
         items = [{"id": i, "value": f"item{i}"} for i in range(10)]
         limit_range = (2, 4)
-        expected = [{"id": 2, "value": "item2"}, {"id": 3, "value": "item3"}, {"id": 4, "value": "item4"}]
+        expected = [
+            {"id": 2, "value": "item2"},
+            {"id": 3, "value": "item3"},
+            {"id": 4, "value": "item4"},
+        ]
         actual = hparser.apply_limit_range(items, limit_range)
         self.assertEqual(actual, expected)

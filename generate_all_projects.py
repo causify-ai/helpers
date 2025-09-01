@@ -77,7 +77,8 @@ def _find_lesson_files(input_dir: str, *, limit_range=None) -> List[str]:
     Find all Lesson* files in the input directory.
 
     :param input_dir: Directory to search for Lesson* files
-    :param limit_range: Optional tuple (start, end) for 0-indexed range filtering
+    :param limit_range: Optional tuple (start, end) for 0-indexed range
+        filtering
     :return: List of full paths to Lesson* files
     """
     hdbg.dassert(
@@ -90,7 +91,9 @@ def _find_lesson_files(input_dir: str, *, limit_range=None) -> List[str]:
             lesson_files.append(full_path)
     lesson_files.sort()
     # Apply limit range if specified.
-    lesson_files = hparser.apply_limit_range(lesson_files, limit_range, item_name="lesson files")
+    lesson_files = hparser.apply_limit_range(
+        lesson_files, limit_range, item_name="lesson files"
+    )
     return lesson_files
 
 
@@ -178,7 +181,8 @@ def _process_all_lessons(
     :param from_scratch: Whether to create output directory from scratch
     :param action: Action to perform (generate_summary,
         generate_projects, or both)
-    :param limit_range: Optional tuple (start, end) for 0-indexed range filtering
+    :param limit_range: Optional tuple (start, end) for 0-indexed range
+        filtering
     """
     # Create output directory.
     hio.create_dir(output_dir, incremental=not from_scratch)

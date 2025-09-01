@@ -715,7 +715,7 @@ def add_limit_range_arg(
 ) -> argparse.ArgumentParser:
     """
     Add argument for limiting processing to a range of items.
-    
+
     The range format is X:Y where X and Y are 1-indexed integers.
     """
     parser.add_argument(
@@ -729,8 +729,9 @@ def add_limit_range_arg(
 def parse_limit_range(limit_str: str) -> Tuple[int, int]:
     """
     Parse limit string in format "X:Y" and return tuple (start, end).
-    
-    :param limit_str: string in format "X:Y" where X and Y are 0-indexed integers
+
+    :param limit_str: string in format "X:Y" where X and Y are 0-indexed
+        integers
     :return: tuple of (start_index, end_index)
     """
     hdbg.dassert(":" in limit_str, "Limit format must be X:Y, got: %s", limit_str)
@@ -743,16 +744,20 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
         hdbg.dfatal("Invalid limit format, must be integers: %s" % str(e))
     hdbg.dassert_lt(0, start, "Start index must be >= 0, got: %s", start)
     hdbg.dassert_lt(0, end, "End index must be >= 0, got: %s", end)
-    hdbg.dassert_lte(start, end, "Start index must be <= end index, got: %s:%s", start, end)
+    hdbg.dassert_lte(
+        start, end, "Start index must be <= end index, got: %s:%s", start, end
+    )
     return start, end
 
 
 def parse_limit_range_args(args: argparse.Namespace) -> Optional[Tuple[int, int]]:
     """
     Parse limit range from command line arguments and log the result.
-    
-    :param args: parsed command line arguments containing 'limit' attribute
-    :return: tuple of (start_index, end_index) as 0-indexed integers, or None if no limit
+
+    :param args: parsed command line arguments containing 'limit'
+        attribute
+    :return: tuple of (start_index, end_index) as 0-indexed integers, or
+        None if no limit
     """
     limit_range = None
     if args.limit:
@@ -762,26 +767,49 @@ def parse_limit_range_args(args: argparse.Namespace) -> Optional[Tuple[int, int]
 
 
 def apply_limit_range(
-    items: List[Any], 
+    items: List[Any],
     limit_range: Optional[Tuple[int, int]] = None,
-    *, 
-    item_name: str = "items"
+    *,
+    item_name: str = "items",
 ) -> List[Any]:
     """
     Apply limit range filtering to a list of items.
 
     :param items: list of items to filter
-    :param limit_range: optional tuple (start, end) for 0-indexed range filtering
+    :param limit_range: optional tuple (start, end) for 0-indexed range
+        filtering
     :param item_name: name of items for logging purposes
     :return: filtered list of items
     """
     if limit_range is not None:
         start_idx, end_idx = limit_range
         total_items = len(items)
-        hdbg.dassert_lt(start_idx, total_items, "Start index %s exceeds available %s %s", start_idx, item_name, total_items)
-        hdbg.dassert_lt(end_idx, total_items, "End index %s exceeds available %s %s", end_idx, item_name, total_items)
-        items = items[start_idx:end_idx + 1]
-        _LOG.warning("Found %s %s, limited to range %s:%s (%s %s)", total_items, item_name, start_idx, end_idx, len(items), item_name)
+        hdbg.dassert_lt(
+            start_idx,
+            total_items,
+            "Start index %s exceeds available %s %s",
+            start_idx,
+            item_name,
+            total_items,
+        )
+        hdbg.dassert_lt(
+            end_idx,
+            total_items,
+            "End index %s exceeds available %s %s",
+            end_idx,
+            item_name,
+            total_items,
+        )
+        items = items[start_idx : end_idx + 1]
+        _LOG.warning(
+            "Found %s %s, limited to range %s:%s (%s %s)",
+            total_items,
+            item_name,
+            start_idx,
+            end_idx,
+            len(items),
+            item_name,
+        )
     else:
         _LOG.info("Found %s %s to process", len(items), item_name)
     # Print the items that will be processed.
