@@ -12,6 +12,7 @@ Workflow:
 3. Runs 'llm -m gpt-4o-mini -f log.txt "Summarize this into 5 bullets"' on each
 4. Saves the LLM output to 'llm_NUM.txt' files
 5. Optionally combines all LLM outputs into a single markdown file
+6. Optionally creates a table with directory metadata (owner, department, content)
 
 Actions can be selectively skipped using --skip_action or --action flags.
 Use --out_dir to organize output files in a dedicated directory.
@@ -19,34 +20,38 @@ Use --llm_prompt to customize the AI analysis with your own prompt file.
 Use --from_scratch to delete the output directory before processing.
 
 Basic usage:
-> run_tree_and_llm.py --in_dir /path/to/process
-> run_tree_and_llm.py --in_dir /path/to/analyze --out_dir results
+> create_google_drive_map.py --in_dir /path/to/process
+> create_google_drive_map.py --in_dir /path/to/analyze --out_dir results
 
 Action control:
-> run_tree_and_llm.py --in_dir /path/to/process --all
-> run_tree_and_llm.py --in_dir /path/to/process --skip_action tree
-> run_tree_and_llm.py --in_dir /path/to/process --action llm
-> run_tree_and_llm.py --in_dir /path/to/process --action tree
-> run_tree_and_llm.py --in_dir /path/to/process --action combine
+> create_google_drive_map.py --in_dir /path/to/process --all
+> create_google_drive_map.py --in_dir /path/to/process --skip_action tree
+> create_google_drive_map.py --in_dir /path/to/process --action llm
+> create_google_drive_map.py --in_dir /path/to/process --action tree
+> create_google_drive_map.py --in_dir /path/to/process --action combine
+> create_google_drive_map.py --in_dir /path/to/process --action table
 
 Custom prompts and output:
-> run_tree_and_llm.py --in_dir /path/to/process --llm_prompt my_prompt.txt
-> run_tree_and_llm.py --in_dir /path/to/process --out_dir analysis --log_file custom.log
-> run_tree_and_llm.py --in_dir /path/to/process --llm_prompt detailed_analysis.txt --out_dir reports
+> create_google_drive_map.py --in_dir /path/to/process --llm_prompt my_prompt.txt
+> create_google_drive_map.py --in_dir /path/to/process --out_dir analysis --log_file custom.log
+> create_google_drive_map.py --in_dir /path/to/process --llm_prompt detailed_analysis.txt --out_dir reports
 
 # Full processing with custom settings
-> run_tree_and_llm.py --in_dir /projects/code --out_dir analysis --llm_prompt analysis_prompt.txt --log_file process.log
+> create_google_drive_map.py --in_dir /projects/code --out_dir analysis --llm_prompt analysis_prompt.txt --log_file process.log
 
 # Combine existing LLM outputs into a single markdown file
-> run_tree_and_llm.py --in_dir /path/to/process --action combine --out_dir existing_results
+> create_google_drive_map.py --in_dir /path/to/process --action combine --out_dir existing_results
+
+# Create directory table
+> create_google_drive_map.py --in_dir /path/to/process --action table --out_dir results
 
 Range limiting:
 # Process only the first 3 directories (1st to 3rd)
-> run_tree_and_llm.py --in_dir /path/to/process --limit 1:3
+> create_google_drive_map.py --in_dir /path/to/process --limit 1:3
 
 Clean processing:
 # Start fresh by deleting existing output directory
-> run_tree_and_llm.py --in_dir /path/to/process --from_scratch
+> create_google_drive_map.py --in_dir /path/to/process --from_scratch
 """
 
 import argparse
@@ -68,7 +73,8 @@ _LOG = logging.getLogger(__name__)
 _ACTION_TREE = "tree"
 _ACTION_LLM = "llm"
 _ACTION_COMBINE = "combine"
-_VALID_ACTIONS = [_ACTION_TREE, _ACTION_LLM, _ACTION_COMBINE]
+_ACTION_TABLE = "table"
+_VALID_ACTIONS = [_ACTION_TREE, _ACTION_LLM, _ACTION_COMBINE, _ACTION_TABLE]
 _DEFAULT_ACTIONS = [_ACTION_TREE, _ACTION_LLM]
 
 # #############################################################################
@@ -79,12 +85,14 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    # TODO(ai): Make this mandatory.
     parser.add_argument(
         "--in_dir",
         action="store",
         default=".",
         help="Directory containing subdirectories to process (default: current directory)",
     )
+    # TODO(ai): Remove this argument.
     parser.add_argument(
         "--log_file",
         action="store",
@@ -97,6 +105,7 @@ def _parse() -> argparse.ArgumentParser:
         default="tmp.run_tree_and_llm",
         help="Directory to save output files (default: current directory)",
     )
+    # TODO(ai): Remove this argument.
     parser.add_argument(
         "--llm_prompt",
         action="store",
@@ -125,8 +134,6 @@ def _check_system_requirements() -> None:
     # Check for llm command.
     hsystem.system("which llm", suppress_output=True)
     _LOG.debug("llm command found")
-
-
 
 
 def _get_directories(in_dir: str, *, limit_range: Optional[Tuple[int, int]] = None) -> List[str]:
@@ -171,6 +178,210 @@ def _run_tree_on_directory(directory: str, output_file: str) -> None:
     # Write output to file.
     hio.to_file(output_file, output)
     _LOG.info("Tree output saved to: %s", output_file)
+
+
+def _create_directory_table(directories: List[str], out_dir: str) -> None:
+    """
+    Create a markdown table with directory information.
+    
+    Maps directory names to owners, departments, and content descriptions.
+    
+    :param directories: list of directory paths that were processed
+    :param out_dir: directory to save the table file
+    """
+    _LOG.info("Creating directory table")
+    
+    # Directory mapping data.
+    directory_info = {
+        "All Causify": {
+            "owner": "",
+            "department": "General",
+            "content": ""
+        },
+        "Archives (Vielka)": {
+            "owner": "Vielka",
+            "department": "General",
+            "content": ""
+        },
+        "Causify Customers (Denis)": {
+            "owner": "Denis",
+            "department": "Sales",
+            "content": ""
+        },
+        "Causify Products": {
+            "owner": "",
+            "department": "Product",
+            "content": ""
+        },
+        "Compliance": {
+            "owner": "Denis",
+            "department": "Compliance",
+            "content": ""
+        },
+        "Customer: BWD": {
+            "owner": "Eng",
+            "department": "Engineering",
+            "content": ""
+        },
+        "Customer: Enel": {
+            "owner": "Eng",
+            "department": "Engineering",
+            "content": ""
+        },
+        "Customer: Xerox": {
+            "owner": "Eng",
+            "department": "Engineering",
+            "content": ""
+        },
+        "Employee-Contractor Documents": {
+            "owner": "Brad",
+            "department": "HR",
+            "content": ""
+        },
+        "Eng": {
+            "owner": "GP",
+            "department": "Engineering",
+            "content": ""
+        },
+        "Eng - External": {
+            "owner": "GP",
+            "department": "Engineering",
+            "content": ""
+        },
+        "Eng - TO_REORG": {
+            "owner": "GP",
+            "department": "Engineering",
+            "content": ""
+        },
+        "Eng - Team leaders": {
+            "owner": "GP",
+            "department": "Engineering",
+            "content": ""
+        },
+        "Executive Folder": {
+            "owner": "Joel",
+            "department": "Executive",
+            "content": ""
+        },
+        "Finance": {
+            "owner": "Brad",
+            "department": "Finance",
+            "content": ""
+        },
+        "General": {
+            "owner": "Joel",
+            "department": "General",
+            "content": ""
+        },
+        "Grants": {
+            "owner": "",
+            "department": "Finance",
+            "content": ""
+        },
+        "HR": {
+            "owner": "",
+            "department": "HR",
+            "content": ""
+        },
+        "Investment - TO_REORG": {
+            "owner": "Joel",
+            "department": "Finance",
+            "content": ""
+        },
+        "Investor Data Room": {
+            "owner": "Brad",
+            "department": "Finance",
+            "content": ""
+        },
+        "Marketing": {
+            "owner": "Joel",
+            "department": "Marketing",
+            "content": ""
+        },
+        "New Market Planning": {
+            "owner": "Joel",
+            "department": "Strategy",
+            "content": ""
+        },
+        "Phaseshift LTD": {
+            "owner": "GP",
+            "department": "Engineering",
+            "content": ""
+        },
+        "Private": {
+            "owner": "GP, Joel, Paul",
+            "department": "General",
+            "content": ""
+        },
+        "Process": {
+            "owner": "GP",
+            "department": "Operations",
+            "content": ""
+        },
+        "Product: FinTech apps": {
+            "owner": "Eng",
+            "department": "Product",
+            "content": ""
+        },
+        "Sales General": {
+            "owner": "Joel",
+            "department": "Sales",
+            "content": ""
+        }
+    }
+    
+    # Start building the table.
+    table_lines = []
+    table_lines.append("# Directory Index\n")
+    table_lines.append("## Directories to Process\n")
+    
+    # List directories with indices.
+    for i, directory in enumerate(directories):
+        table_lines.append(f"  [{i}]: {directory}")
+    
+    table_lines.append("\n## Directory Information\n")
+    table_lines.append("| Name | Owner | Department | Content |")
+    table_lines.append("| :---- | :---- | :---- | :---- |")
+    
+    # Process each directory.
+    for directory in directories:
+        dir_name = os.path.basename(directory)
+        
+        # Try to find matching info.
+        info = None
+        for key in directory_info:
+            # Check for exact match or partial match.
+            if key in dir_name or dir_name in key:
+                info = directory_info[key]
+                break
+        
+        # If no match found, use defaults.
+        if info is None:
+            info = {"owner": "", "department": "", "content": ""}
+        
+        # Clean up directory name for display (remove owner info in parentheses).
+        display_name = dir_name
+        if " (" in display_name and ")" in display_name:
+            display_name = display_name.split(" (")[0]
+
+        # TODO(ai): Fill content with a one line summary of the content using a call to LLM.
+        prompt = r"""
+        For each directory come up with a one-line description of the content
+
+        {content}
+        """
+
+        
+        # Add row to table.
+        table_lines.append(
+            f"| {display_name} | {info['owner']} | {info['department']} | {info['content']} |"
+        )
+    
+    # Write table to file.
+    output_file = os.path.join(out_dir, "directory_table.md")
+    table_content = "\n".join(table_lines)
+    hio.to_file(output_file, table_content)
+    _LOG.info("Directory table saved to: %s", output_file)
 
 
 def _combine_llm_outputs(directories: List[str], out_dir: str) -> None:
@@ -257,50 +468,30 @@ def _run_llm_on_file(
         _LOG.debug("Using custom prompt from file: %s", llm_prompt_file)
     else:
         prompt = r"""
-For each directory add a short comment about its content
-Include a comment about the entire directory as a whole
+        For each directory add a short comment about its content
+        Include a comment about the entire directory as a whole
 
-- Only directories should have a comment
-- Do not comment single files, such as:
-  (outdated) Causify Executive Manual - v2.0.gdoc
+        - Only directories should have a comment
+        - Do not comment single files, such as:
+        (outdated) Causify Executive Manual - v2.0.gdoc
 
-The output is a bulleted markdown like:
-# DIR_NAME
-- **Overall Directory Comment:**
-  - This directory serves as a comprehensive resource for Causify, such as
-    - Workplace processes
-    - Employee information
-    - Operational tools
-    - Templates
+        The output is a bulleted markdown like:
+        ```
+        # {DIR_NAME}
+        ## Overall
+        - This directory serves as a comprehensive resource for Causify, such as
+            - Workplace processes
+            - Employee information
+            - Operational tools
+            - Templates
 
-- **Causify Process/**
-  - Contains draft versions of
-    - Company policies and procedures
-    - Including HR processes
-    - Invoicing
-    - Vendor risk management
-
-- **EOS Causify/**
-  - Strategic planning materials based on the Entrepreneurial Operating System
-    (EOS) framework.
-
-- **Team Bios/**
-  - Collection of employee bios and Predictive Index assessments
-  - It serves as a people directory and HR resource
-
-- **Templates/**
-  - Repository of standardized forms (Google Forms) for surveys, invoicing, and
-    financial transactions.
-
-- **Tools/**
-  - Draft documentation of conventions and best practices for the team’s daily
-    collaboration tools, e.g.,
-    - Asana
-    - GitHub
-    - Google Docs
-    - Slack
-    - Meetings
-"""
+        ## Causify Process
+        -  Contains draft versions of
+            - Company policies and procedures
+            - Including HR processes
+            - Invoicing
+            - Vendor risk management
+        """
         _LOG.debug("Using default prompt")
     # Run LLM command.
     # Use printf to avoid bash interpretation issues with hyphens in prompt.
@@ -366,6 +557,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Run combine action if selected.
     if _ACTION_COMBINE in actions:
         _combine_llm_outputs(directories, args.out_dir)
+    
+    # Run table action if selected.
+    if _ACTION_TABLE in actions:
+        _create_directory_table(directories, args.out_dir)
     
     _LOG.info("Completed processing %s directories", len(directories))
 
