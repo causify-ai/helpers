@@ -48,6 +48,8 @@ if __name__ == "__main__":
     #
     dshgghout.check_master()
     #
+    dshgghout.check_branch_name()
+    #
     dshgghout.check_author()
     #
     dshgghout.check_file_size()
