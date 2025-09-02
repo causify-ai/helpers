@@ -163,8 +163,7 @@ def _create_output_structure(
     output_lines = []
     # Track which lines we've already processed
     processed_lines = set()
-    #
-    # Process headers in order
+    # Process headers in order.
     for header in header_list:
         header_line_num = header.line_number - 1  # Convert to 0-based indexing
         #

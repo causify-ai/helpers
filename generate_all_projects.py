@@ -113,6 +113,10 @@ def _generate_summary(
     # Extract base filename for output
     base_name = os.path.splitext(os.path.basename(in_file))[0]
     out_file = os.path.join(output_dir, f"{base_name}.summary.txt")
+    # Check if output file already exists.
+    if os.path.exists(out_file):
+        _LOG.warning("Output file already exists, skipping: %s", out_file)
+        return out_file
     # Build command using f-string
     library_flag = "--use_library" if _USE_LIBRARY else ""
     cmd = (
@@ -150,6 +154,11 @@ def _generate_projects(in_file: str, output_dir: str) -> List[str]:
     # Generate projects for each difficulty level.
     for level in difficulty_levels:
         out_file = os.path.join(output_dir, f"{base_name}.projects.{level}.txt")
+        # Check if output file already exists.
+        if os.path.exists(out_file):
+            _LOG.warning("Output file already exists, skipping: %s", out_file)
+            generated_files.append(out_file)
+            continue
         # Build command.
         cmd = (
             f"create_class_projects.py "

@@ -3,13 +3,13 @@
 """
 Script to generate class projects for machine learning courses.
 
-The script processes markdown files and can perform two actions:
-1. summarize: Extract level 2 headers and create bullet point summaries using LLM
-2. create_project: Generate 3 project descriptions for each section with Python packages
+The script processes markdown files and can perform these actions:
+1. create_project: Generate project descriptions for each section with Python packages
+2. find_packages: Find 5 Python packages related to the lesson content
 
 Examples:
-> create_class_projects.py --in_file input.md --action summarize --output_dir ./output
-> create_class_projects.py --in_file input.md --action create_project --output_file output.md
+> create_class_projects.py --in_file input.md --action create_project --level medium --output_file output.md
+> create_class_projects.py --in_file input.md --action find_packages --output_file packages.md
 """
 
 import argparse
@@ -25,7 +25,7 @@ import helpers.htqdm as htqdm
 
 _LOG = logging.getLogger(__name__)
 
-_VALID_ACTIONS = ["create_project"]
+_VALID_ACTIONS = ["create_project", "find_packages"]
 _DEFAULT_ACTIONS = ["create_project"]
 
 
@@ -152,6 +152,49 @@ def _action_create_project(
     _LOG.info("Projects saved to: %s", output_file)
 
 
+def _action_find_packages(in_file: str, output_file: str) -> None:
+    """
+    Find packages related to the lesson content.
+
+    :param in_file: Input markdown file path
+    :param output_file: Output file path
+    """
+    _LOG.info("Starting find_packages action for file: %s", in_file)
+    # Read input file directly.
+    hdbg.dassert_file_exists(in_file)
+    file_content = hio.from_file(in_file)
+    # Use the entire file content to find related packages.
+    _LOG.info("Processing entire file content to find packages")
+    # Generate package suggestions for entire file content.
+    result_lines = []
+    _LOG.debug("Finding packages for entire file")
+    prompt = """
+    You are a college level data science professor.
+
+    Given the markdown for a lecture, come up with the description of 5 Python
+    free packages that relate to the content of the lesson.
+
+    The output must follow the template with information about the package like
+    - Package:
+    - Description:
+    - Website:
+    - Documentation:
+
+    Avoid long texts or steps and comments, just list the packages
+    """
+    prompt = hprint.dedent(prompt)
+    packages = _call_llm(prompt, file_content)
+    result_lines.append("# Related Python Packages")
+    result_lines.append(packages)
+    result_lines.append("")  # Empty line for spacing.
+    # Save result to output file.
+    if not output_file:
+        base_name = os.path.splitext(os.path.basename(in_file))[0]
+        output_file = f"{base_name}.packages.txt"
+    hio.to_file(output_file, "\n".join(result_lines))
+    _LOG.info("Package suggestions saved to: %s", output_file)
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     """
     Main function to execute the script.
@@ -174,6 +217,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 base_name = os.path.splitext(os.path.basename(args.in_file))[0]
                 output_file = f"{base_name}.projects.txt"
             _action_create_project(args.in_file, output_file, args.level)
+        elif action == "find_packages":
+            # For find_packages action, use output_file instead of output_dir.
+            output_file = args.output_file
+            if not output_file:
+                # Default output file format if not specified.
+                base_name = os.path.splitext(os.path.basename(args.in_file))[0]
+                output_file = f"{base_name}.packages.txt"
+            _action_find_packages(args.in_file, output_file)
         else:
             hdbg.dfatal("Invalid action: %s", action)
 
