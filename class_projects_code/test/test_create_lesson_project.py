@@ -7,7 +7,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
-import create_class_projects as crcpro
+import create_lesson_project as crcpro
 
 _LOG = logging.getLogger(__name__)
 

@@ -8,15 +8,15 @@ The script processes markdown files and can perform these actions:
 2. find_packages: Find 5 Python packages related to the lesson content
 
 Examples:
-> create_class_projects.py --in_file input.md --action create_project --level medium --output_file output.md
-> create_class_projects.py --in_file input.md --action find_packages --output_file packages.md
+> create_lesson_project.py --in_file input.md --action create_project --level medium --output_file output.md
+> create_lesson_project.py --in_file input.md --action find_packages --output_file packages.md
 """
 
 import argparse
 import logging
 import os
 
-import class_utils as cutil
+import class_project_utils as cutil
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser

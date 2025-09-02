@@ -1,7 +1,7 @@
-Write a script create_class_projects.py that accepts a markdown file and actions
+Write a script create_lesson_project.py that accepts a markdown file and actions
 and generate a class project for a college level class about machine learning
 
-create_class_projects.py --in_file input_file.md --action XYZ --output_file output_file.md
+create_lesson_project.py --in_file input_file.md --action XYZ --output_file output_file.md
 
 ## Action create_project
 

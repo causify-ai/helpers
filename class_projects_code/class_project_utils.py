@@ -31,7 +31,7 @@ def call_llm(prompt: str, content: str) -> str:
     """
     full_prompt = f"{prompt}\n\n{content}"
     # Write prompt to temporary file and use hsystem.system() to call llm.
-    temp_file_path = "tmp.class_utils.call_llm.txt"
+    temp_file_path = "tmp.class_project_utils.call_llm.txt"
     hio.to_file(temp_file_path, full_prompt)
     # Use hsystem to call llm command with input file.
     rc, output = hsystem.system_to_string(f"llm < {temp_file_path}")

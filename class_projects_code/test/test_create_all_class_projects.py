@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 
 """
-Unit tests for generate_all_projects.py.
+Unit tests for create_all_class_projects.py.
 
 Import as:
 
-import test.test_generate_all_projects as ttgeallpr
+import test.test_create_all_class_projects as ttcrallcpro
 """
 
 import os
 import unittest.mock as umock
 
-import generate_all_projects as gallproj
+import create_all_class_projects as gallproj
 import helpers.hunit_test as hunitest
 
 

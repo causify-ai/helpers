@@ -13,7 +13,7 @@ import argparse
 import logging
 import os
 
-import class_utils as cutil
+import class_project_utils as cutil
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
