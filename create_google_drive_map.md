@@ -13,10 +13,8 @@
 - Command = `create_google_drive_map.py --in_dir /path/to/drive/folder`
 
 * Common Options
-- `--in_dir` = directory to process (default: current directory)
+- `--in_dir` = directory to process (required)
 - `--out_dir` = output directory (default: tmp.run_tree_and_llm)
-- `--llm_prompt` = custom prompt file for AI analysis
-- `--log_file` = log file name (default: log.txt)
 - `--from_scratch` = delete output directory before processing
 - `--limit` = process specific range of directories (e.g., 1:3)
 
@@ -46,9 +44,7 @@
 * Full Processing With Custom Settings
 ```bash
 create_google_drive_map.py --in_dir /drive/projects \
-  --out_dir analysis \
-  --llm_prompt custom_prompt.txt \
-  --log_file process.log
+  --out_dir analysis
 ```
 
 * Process First 5 Directories

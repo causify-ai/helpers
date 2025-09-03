@@ -16,7 +16,6 @@ Workflow:
 
 Actions can be selectively skipped using --skip_action or --action flags.
 Use --out_dir to organize output files in a dedicated directory.
-Use --llm_prompt to customize the AI analysis with your own prompt file.
 Use --from_scratch to delete the output directory before processing.
 
 Basic usage:
@@ -31,13 +30,12 @@ Action control:
 > create_google_drive_map.py --in_dir /path/to/process --action combine
 > create_google_drive_map.py --in_dir /path/to/process --action table
 
-Custom prompts and output:
-> create_google_drive_map.py --in_dir /path/to/process --llm_prompt my_prompt.txt
-> create_google_drive_map.py --in_dir /path/to/process --out_dir analysis --log_file custom.log
-> create_google_drive_map.py --in_dir /path/to/process --llm_prompt detailed_analysis.txt --out_dir reports
+Custom output:
+> create_google_drive_map.py --in_dir /path/to/process --out_dir analysis
+> create_google_drive_map.py --in_dir /path/to/process --out_dir reports
 
 # Full processing with custom settings
-> create_google_drive_map.py --in_dir /projects/code --out_dir analysis --llm_prompt analysis_prompt.txt --log_file process.log
+> create_google_drive_map.py --in_dir /projects/code --out_dir analysis
 
 # Combine existing LLM outputs into a single markdown file
 > create_google_drive_map.py --in_dir /path/to/process --action combine --out_dir existing_results
@@ -85,31 +83,17 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # TODO(ai): Make this mandatory.
     parser.add_argument(
         "--in_dir",
         action="store",
-        default=".",
-        help="Directory containing subdirectories to process (default: current directory)",
-    )
-    # TODO(ai): Remove this argument.
-    parser.add_argument(
-        "--log_file",
-        action="store",
-        default="log.txt",
-        help="Log file for LLM processing (default: log.txt)",
+        required=True,
+        help="Directory containing subdirectories to process",
     )
     parser.add_argument(
         "--out_dir",
         action="store",
         default="tmp.run_tree_and_llm",
         help="Directory to save output files (default: current directory)",
-    )
-    # TODO(ai): Remove this argument.
-    parser.add_argument(
-        "--llm_prompt",
-        action="store",
-        help="File containing LLM prompt or use default prompt if not specified",
     )
     # Add limit range argument.
     hparser.add_limit_range_arg(parser)
@@ -344,7 +328,9 @@ def _create_directory_table(directories: List[str], out_dir: str) -> None:
     table_lines.append("| :---- | :---- | :---- | :---- |")
     
     # Process each directory.
-    for directory in directories:
+    # TODO(ai): Add progress bar with tqdm
+    for i, directory in enumerate(directories, 1):
+        _LOG.info("Processing directory %d/%d for table", i, len(directories))
         dir_name = os.path.basename(directory)
         
         # Try to find matching info.
@@ -364,17 +350,24 @@ def _create_directory_table(directories: List[str], out_dir: str) -> None:
         if " (" in display_name and ")" in display_name:
             display_name = display_name.split(" (")[0]
 
-        # TODO(ai): Fill content with a one line summary of the content using a call to LLM.
-        prompt = r"""
-        For each directory come up with a one-line description of the content
-
-        {content}
-        """
-
+        # Fill content with a one line summary of the content using a call to LLM.
+        content_summary = ""
+        tree_file = os.path.join(out_dir, f"tree_{i:03d}.txt")
+        hdbg.dassert_file_exists(tree_file)
         
+        # Read the tree content.
+        tree_content = hio.from_file(tree_file)
+        
+        prompt = "Provide a one-line summary of the contents of this directory based on the tree structure:"
+        
+        # Run LLM command with tree content.
+        escaped_prompt = prompt.replace("'", "'\"'\"'")  # Escape single quotes
+        llm_cmd = f"printf '%s\\n\\n%s' '{escaped_prompt}' '{tree_content}' | llm -m gpt-4o-mini"
+        rc, output = hsystem.system_to_string(llm_cmd, abort_on_error=True)
+        content_summary = output.strip()
         # Add row to table.
         table_lines.append(
-            f"| {display_name} | {info['owner']} | {info['department']} | {info['content']} |"
+            f"| {display_name} | {info['owner']} | {info['department']} | {content_summary} |"
         )
     
     # Write table to file.
@@ -443,8 +436,6 @@ def _run_llm_on_file(
     input_file: str,
     output_file: str,
     log_file: str,
-    *,
-    llm_prompt_file: Optional[str] = None,
 ) -> None:
     """
     Run LLM command on input file and save summary to output file.
@@ -452,22 +443,13 @@ def _run_llm_on_file(
     :param input_file: file to process with LLM
     :param output_file: file to save LLM summary
     :param log_file: log file for LLM processing
-    :param llm_prompt_file: optional file containing LLM prompt
     """
     _LOG.debug("Running LLM on file: %s", input_file)
     # Copy input file to log file for LLM processing.
     content = hio.from_file(input_file)
     hio.to_file(log_file, content)
-    # Determine prompt to use.
-    if llm_prompt_file:
-        hdbg.dassert(
-            os.path.isfile(llm_prompt_file),
-            "Prompt file does not exist: %s", llm_prompt_file,
-        )
-        prompt = hio.from_file(llm_prompt_file).strip()
-        _LOG.debug("Using custom prompt from file: %s", llm_prompt_file)
-    else:
-        prompt = r"""
+    # Use the default prompt.
+    prompt = r"""
         For each directory add a short comment about its content
         Include a comment about the entire directory as a whole
 
@@ -492,7 +474,6 @@ def _run_llm_on_file(
             - Invoicing
             - Vendor risk management
         """
-        _LOG.debug("Using default prompt")
     # Run LLM command.
     # Use printf to avoid bash interpretation issues with hyphens in prompt.
     escaped_prompt = prompt.replace("'", "'\"'\"'")  # Escape single quotes
@@ -531,7 +512,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Create filenames with output directory.
         tree_file = os.path.join(args.out_dir, f"tree_{i:03d}.txt")
         llm_file = os.path.join(args.out_dir, f"llm_{i:03d}.txt")
-        log_file = os.path.join(args.out_dir, args.log_file)
+        log_file = os.path.join(args.out_dir, "log.txt")
         # Run tree command if action is selected.
         if _ACTION_TREE in actions:
             _run_tree_on_directory(directory, tree_file)
@@ -542,9 +523,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Run LLM command if action is selected and tree file exists.
         if _ACTION_LLM in actions:
             if os.path.isfile(tree_file):
-                _run_llm_on_file(
-                    tree_file, llm_file, log_file, llm_prompt_file=args.llm_prompt
-                )
+                _run_llm_on_file(tree_file, llm_file, log_file)
             else:
                 _LOG.warning(
                     "Tree file %s does not exist, skipping LLM processing", tree_file
