@@ -812,6 +812,7 @@ def docker_build_prod_image(  # type: ignore
         "The build should be run from a super repo, not a submodule.",
     )
     git_root_dir = hgit.find_git_root()
+    is_git_init = hrecouti.get_repo_config().get_is_git_init()
     # TODO(heanh): Expose the build context to the interface and use `git_root_dir` by default.
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
@@ -823,6 +824,7 @@ def docker_build_prod_image(  # type: ignore
         --build-arg VERSION={dev_version} \
         --build-arg ECR_BASE_PATH={os.environ["CSFY_ECR_BASE_PATH"]} \
         --build-arg IMAGE_NAME={image_name} \
+        --build-arh GIT_INIT={is_git_init} \
         {git_root_dir}
     """
     hlitauti.run(ctx, cmd)
