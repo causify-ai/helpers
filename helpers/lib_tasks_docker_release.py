@@ -50,7 +50,8 @@ def _prepare_docker_ignore(ctx: Any, docker_ignore: str) -> None:
     # Currently there is no built-in way to control which `.dockerignore` to
     # use (https://stackoverflow.com/questions/40904409).
     hdbg.dassert_path_exists(docker_ignore)
-    cmd = f"cp -f {docker_ignore} .dockerignore"
+    dest_docker_ignore = os.path.join(hgit.find_git_root(), ".dockerignore")
+    cmd = f"cp -f {docker_ignore} {dest_docker_ignore}"
     hlitauti.run(ctx, cmd)
 
 
