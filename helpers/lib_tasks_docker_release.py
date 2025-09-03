@@ -824,7 +824,7 @@ def docker_build_prod_image(  # type: ignore
         --build-arg VERSION={dev_version} \
         --build-arg ECR_BASE_PATH={os.environ["CSFY_ECR_BASE_PATH"]} \
         --build-arg IMAGE_NAME={image_name} \
-        --build-arg GIT_INIT={is_git_init} \
+        --build-arg IS_GIT_INIT={is_git_init} \
         {git_root_dir}
     """
     hlitauti.run(ctx, cmd)
