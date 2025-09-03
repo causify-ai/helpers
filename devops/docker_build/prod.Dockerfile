@@ -9,4 +9,4 @@ FROM ${ECR_BASE_PATH}/${IMAGE_NAME}:dev-${VERSION}
 
 RUN ls .
 COPY . /app
-RUN RUN /bin/bash -c 'if [[ $GIT_INIT == "True" ]]; then git init; fi;'
+RUN /bin/bash -c 'if [[ $GIT_INIT == "True" ]]; then git init; fi;'
