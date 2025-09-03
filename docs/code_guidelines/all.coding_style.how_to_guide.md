@@ -119,7 +119,10 @@
     + [`==` vs `is`](#-vs-is)
     + [`type()` vs `isinstance()`](#type-vs-isinstance)
   * [Use `helpers`](#use-helpers)
-  * [Unit tests](#unit-tests)
+  * [Unit Tests](#unit-tests)
+    + [Unit Testing Philosophy](#unit-testing-philosophy)
+    + [Test Organization](#test-organization)
+    + [Assertion Usage in Tests](#assertion-usage-in-tests)
   * [Refactoring](#refactoring)
     + [When moving / refactoring code](#when-moving--refactoring-code)
     + [Write script for renamings](#write-script-for-renamings)
@@ -2071,20 +2074,47 @@
   in `helpers`
 - Do not reinvent the wheel
 
-### Unit tests
+### Unit Tests
 
-- Provide minimal end-to-end unit testing
-- Usually we are happy with
-  - Lightly testing the tricky functions
-  - Some end-to-end test to make sure the code is working
-- Use your common sense
-  - E.g., no reason to test code that will be used only once
-- To run unit tests in a single file
+#### Unit Testing Philosophy
+
+- Code that matters needs to be unit tested
+- Code that doesn't matter should not be checked in the repo
+- Focus on **behavioral coverage** rather than line coverage
+- Test from the **outside-in**: start with public interfaces, not internal
+  implementation
+- **Don't test every assertion** - focus on observable behavior and critical
+  business logic
+
+#### Test Organization
+
+- Follow the naming convention: `TestClassName1` for test classes,
+  `test_method_name1` for methods
+- Inherit from `hunitest.TestCase` for our testing framework
+- Use consistent test structure with comments:
+  ```python
+  def test_specific_case1(self) -> None:
+      # Prepare inputs.
+      input_data = create_test_data()
+      # Run.
+      actual = function_under_test(input_data)
+      # Check.
+      expected = "expected_result"
+      self.assert_equal(str(actual), expected)
   ```
-  > pytest datetime_utils_test.py -x -s
-  ```
-- For more information on our testing conventions and guidelines, see
-  [`/docs/coding/all.write_unit_tests.how_to_guide.md`](/docs/coding/all.write_unit_tests.how_to_guide.md)
+
+#### Assertion Usage in Tests
+
+- **In production code**: Use `hdbg.dassert_*` for runtime validation and
+  pre/post-conditions
+- **In unit tests**: Use `self.assert_equal()` and other `unittest` assertions
+- **Never use `hdbg.dassert` in test code** - it's for runtime validation, not
+  testing
+
+For comprehensive unit testing guidelines, see:
+
+- [How to Write Unit Tests](/docs/tools/unit_test/all.write_unit_tests.how_to_guide.md)
+- [How to Run Unit Tests](/docs/tools/unit_test/all.run_unit_tests.how_to_guide.md)
 
 ### Refactoring
 
