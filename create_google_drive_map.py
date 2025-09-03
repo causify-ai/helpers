@@ -60,7 +60,10 @@ from typing import List, Optional, Tuple
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import llm
+from tqdm import tqdm
 
 _LOG = logging.getLogger(__name__)
 
@@ -328,9 +331,7 @@ def _create_directory_table(directories: List[str], out_dir: str) -> None:
     table_lines.append("| :---- | :---- | :---- | :---- |")
     
     # Process each directory.
-    # TODO(ai): Add progress bar with tqdm
-    for i, directory in enumerate(directories, 1):
-        _LOG.info("Processing directory %d/%d for table", i, len(directories))
+    for i, directory in enumerate(tqdm(directories, desc="Processing directories for table"), 1):
         dir_name = os.path.basename(directory)
         
         # Try to find matching info.
@@ -358,13 +359,16 @@ def _create_directory_table(directories: List[str], out_dir: str) -> None:
         # Read the tree content.
         tree_content = hio.from_file(tree_file)
         
-        prompt = "Provide a one-line summary of the contents of this directory based on the tree structure:"
+        prompt = f"""
+        Provide a one-line summary of less than 150 characters of the contents of this directory based on the tree structure:
+
+        {tree_content}"""
+        prompt = hprint.dedent(prompt)
+        # Use llm library
+        model = llm.get_model("gpt-4o-mini")
+        response = model.prompt(prompt)
+        content_summary = response.text()
         
-        # Run LLM command with tree content.
-        escaped_prompt = prompt.replace("'", "'\"'\"'")  # Escape single quotes
-        llm_cmd = f"printf '%s\\n\\n%s' '{escaped_prompt}' '{tree_content}' | llm -m gpt-4o-mini"
-        rc, output = hsystem.system_to_string(llm_cmd, abort_on_error=True)
-        content_summary = output.strip()
         # Add row to table.
         table_lines.append(
             f"| {display_name} | {info['owner']} | {info['department']} | {content_summary} |"
