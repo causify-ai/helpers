@@ -26,7 +26,7 @@
 - A runnable dir can be
   - A super-repo (e.g. `//cmamp`, `//quant_dashboard`)
     - Follow
-      [all.create_a_super_repo_with_helpers.how_to_guide.md](/docs/work_tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md)
+      [all.create_a_super_repo_with_helpers.how_to_guide.md](/docs/tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md)
       to create a runnable dir that is a super repo
   - A sub directory under a super-repo (e.g. `//cmamp/ck.infra`)
 
@@ -40,7 +40,7 @@
 ### 1) Turn the repo into a super-repo with helpers
 
 - Follow
-  [all.create_a_super_repo_with_helpers.how_to_guide.md](/docs/work_tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md)
+  [all.create_a_super_repo_with_helpers.how_to_guide.md](/docs/tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md)
   to turn the repo into a super-repo with helpers
 - For example, for `//cmamp`, the resulting root directory should have a
   structure like:
@@ -106,9 +106,9 @@
   > cp -r helpers_root/devops $CSFY_RUNNABLE_DIR
   ```
 - Follow the instructions in
-  [`/docs/work_tools/all.devops_docker.reference.md`](/docs/work_tools/all.devops_docker.reference.md)
+  [`/docs/tools/dev_system/all.devops_docker.reference.md`](/docs/tools/dev_system/all.devops_docker.reference.md)
   and
-  [`/docs/work_tools/all.devops_docker.how_to_guide.md`](/docs/work_tools/all.devops_docker.how_to_guide.md)
+  [`/docs/tools/dev_system/all.devops_docker.how_to_guide.md`](/docs/tools/dev_system/all.devops_docker.how_to_guide.md)
   to customize the files in order to build the Docker container
   - Typically, we might want to customize the following
     - `$CSFY_RUNNABLE_DIR/devops/docker_build/dev.Dockerfile`: if we need to use
@@ -161,10 +161,10 @@
   ```
 
 - Refer to
-  [Managing common files](/docs/work_tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
+  [Managing common files](/docs/tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
   for explanation
 - Refer to
-  [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
+  [Managing symbolic links between directories](/docs/tools/dev_system/all.replace_common_files_with_script_links.md)
   for how to use the commands
 
 ### 6) Commit changes
