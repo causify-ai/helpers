@@ -39,36 +39,27 @@ class SlackNotifier:
 
     def send_message(
         self,
+        channel: str,
         message: str,
-        channel_id: str,
-        title: Optional[str] = None,
     ) -> None:
         """
         Send a message to a Slack channel.
 
+        :param channel: Slack channel ID (e.g., 'C1234567890') or channel name (e.g., '#notifications')
         :param message: Message text to send
-        :param channel_id: Slack channel ID (e.g., 'C1234567890'),
-            channel name (e.g., '#notifications')
-        :param title: Optional title for the message (will be formatted
-            in bold)
         """
-        url = "https://slack.com/api/chat.postMessage"
+        URL = "https://slack.com/api/chat.postMessage"
         headers = {
             "Authorization": f"Bearer {self.bot_token}",
             "Content-Type": "application/json",
         }
-        if title:
-            # Format message with title if provided.
-            formatted_message = f"*{title}*\n{message}"
-        else:
-            formatted_message = message
         payload = {
-            "channel": channel_id,
-            "text": formatted_message,
+            "channel": channel,
+            "text": message,
         }
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        response = requests.post(URL, headers=headers, json=payload, timeout=30)
         response.raise_for_status()
         result = response.json()
         if not result.get("ok"):
             raise ValueError(f"Slack API error: {result.get('error')}")
-        _LOG.info("Message sent successfully to %s", channel_id)
+        _LOG.info("Message sent successfully to %s", channel)
