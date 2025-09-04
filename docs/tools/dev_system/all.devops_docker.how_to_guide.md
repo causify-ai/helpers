@@ -50,7 +50,7 @@
 - We use Docker extensively and assume you are familiar with Docker concepts and
   workflows
 - A short tutorial about Docker is
-  [/docs/work_tools/docker/all.docker.tutorial.md](/docs/work_tools/docker/all.docker.tutorial.md)
+  [/docs/tools/docker/all.docker.tutorial.md](/docs/tools/docker/all.docker.tutorial.md)
 
 ## Separate Docker containers
 
