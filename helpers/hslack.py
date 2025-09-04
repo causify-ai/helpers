@@ -45,7 +45,8 @@ class SlackNotifier:
         """
         Send a message to a Slack channel.
 
-        :param channel: Slack channel ID (e.g., 'C1234567890') or channel name (e.g., '#notifications')
+        :param channel: Slack channel ID (e.g., 'C1234567890') or
+            channel name (e.g., '#notifications')
         :param message: Message text to send
         """
         URL = "https://slack.com/api/chat.postMessage"
