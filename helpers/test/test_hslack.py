@@ -5,6 +5,11 @@ import helpers.hslack as hslack
 import helpers.hunit_test as hunitest
 
 
+# #############################################################################
+# TestSlackNotifier
+# #############################################################################
+
+
 class TestSlackNotifier(hunitest.TestCase):
 
     def test1(self) -> None:
@@ -20,13 +25,16 @@ class TestSlackNotifier(hunitest.TestCase):
         Check that `SlackNotifier` initializes with environment variable token.
         """
         # Mock environment variable and create notifier.
-        with umock.patch.dict(os.environ, {"SLACK_BOT_TOKEN": "xoxb-test2-token"}):
+        with umock.patch.dict(
+            os.environ, {"SLACK_BOT_TOKEN": "xoxb-test2-token"}
+        ):
             notifier = hslack.SlackNotifier()
             self.assertEqual(notifier.bot_token, "xoxb-test2-token")
 
     def test3(self) -> None:
         """
-        Check that `SlackNotifier` raises `ValueError` when no token is provided.
+        Check that `SlackNotifier` raises `ValueError` when no token is
+        provided.
         """
         # Clear environment and verify initialization fails.
         with umock.patch.dict(os.environ, {}, clear=True):
@@ -36,7 +44,8 @@ class TestSlackNotifier(hunitest.TestCase):
 
     def test4(self) -> None:
         """
-        Check that `send_message()` successfully sends message to Slack channel.
+        Check that `send_message()` successfully sends message to Slack
+        channel.
         """
         # Mock successful Slack API response.
         with umock.patch("helpers.hslack.requests.post") as mock_post:
@@ -60,7 +69,10 @@ class TestSlackNotifier(hunitest.TestCase):
         # Mock Slack API error response.
         with umock.patch("helpers.hslack.requests.post") as mock_post:
             mock_response = umock.MagicMock()
-            mock_response.json.return_value = {"ok": False, "error": "channel_not_found"}
+            mock_response.json.return_value = {
+                "ok": False,
+                "error": "channel_not_found",
+            }
             mock_response.raise_for_status.return_value = None
             mock_post.return_value = mock_response
             # Verify error is raised with correct message.
