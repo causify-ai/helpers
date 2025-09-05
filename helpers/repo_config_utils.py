@@ -347,6 +347,13 @@ class RepoConfig:
         )
         return value
 
+    def get_is_git_init(self) -> bool:
+        """
+        Return whether the repo is initialized as a git repository.
+        """
+        value = bool(self._data["runnable_dir_info"].get("is_git_init", False))
+        return value
+
     # TODO(gp): Add functions for container_registry_info.
 
     def get_container_registry_url(self, registry: str = "ecr") -> str:

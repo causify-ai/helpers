@@ -50,7 +50,8 @@ def _prepare_docker_ignore(ctx: Any, docker_ignore: str) -> None:
     # Currently there is no built-in way to control which `.dockerignore` to
     # use (https://stackoverflow.com/questions/40904409).
     hdbg.dassert_path_exists(docker_ignore)
-    cmd = f"cp -f {docker_ignore} .dockerignore"
+    dest_docker_ignore = os.path.join(hgit.find_git_root(), ".dockerignore")
+    cmd = f"cp -f {docker_ignore} {dest_docker_ignore}"
     hlitauti.run(ctx, cmd)
 
 
@@ -811,6 +812,7 @@ def docker_build_prod_image(  # type: ignore
         "The build should be run from a super repo, not a submodule.",
     )
     git_root_dir = hgit.find_git_root()
+    is_git_init = hrecouti.get_repo_config().get_is_git_init()
     # TODO(heanh): Expose the build context to the interface and use `git_root_dir` by default.
     cmd = rf"""
     DOCKER_BUILDKIT={DOCKER_BUILDKIT} \
@@ -822,6 +824,7 @@ def docker_build_prod_image(  # type: ignore
         --build-arg VERSION={dev_version} \
         --build-arg ECR_BASE_PATH={os.environ["CSFY_ECR_BASE_PATH"]} \
         --build-arg IMAGE_NAME={image_name} \
+        --build-arg IS_GIT_INIT={is_git_init} \
         {git_root_dir}
     """
     hlitauti.run(ctx, cmd)
