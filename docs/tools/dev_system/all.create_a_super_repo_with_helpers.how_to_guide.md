@@ -250,9 +250,9 @@
   ```
 
 - Follow the instructions in
-  [`/docs/work_tools/all.devops_docker.reference.md`](/docs/work_tools/all.devops_docker.reference.md)
+  [`/docs/tools/dev_system/all.devops_docker.reference.md`](/docs/tools/dev_system/all.devops_docker.reference.md)
   and
-  [`/docs/work_tools/all.devops_docker.how_to_guide.md`](/docs/work_tools/all.devops_docker.how_to_guide.md)
+  [`/docs/tools/dev_system/all.devops_docker.how_to_guide.md`](/docs/tools/dev_system/all.devops_docker.how_to_guide.md)
 
 ## Create Symbolic Links
 
@@ -273,10 +273,10 @@
   ```
 
 - Refer to
-  [Managing common files](/docs/work_tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
+  [Managing common files](/docs/tools/dev_system/dev_system/all.runnable_repo.reference.md#managing-common-files)
   for explanation
 - Refer to
-  [Managing symbolic links between directories](/docs/work_tools/dev_system/all.replace_common_files_with_script_links.md)
+  [Managing symbolic links between directories](/docs/tools/dev_system/dev_system/all.replace_common_files_with_script_links.md)
   for how to use the commands
 
 ## 5) Build Container and Running Tests

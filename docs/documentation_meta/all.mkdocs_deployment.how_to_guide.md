@@ -20,8 +20,6 @@
 - The entrypoint for the documentation home page is
   [`/docs/README.md`](/docs/README.md)
 
-// lint_txt.py -i notes.startup_admin_guide/docs/tools.EOS.md --use_dockerized_prettier --use_dockerized_markdown_toc
-
 ## Layout of a publishable dir
 
 - TODO(gp): Finish this and make sure the layout is always the same for all the
@@ -43,6 +41,13 @@ blog/
 |   `-- index.md
 `-- mkdocs.yml
 ```
+
+## To lint the markdown
+
+- Run the markdown:
+  ```
+  > lint_txt.py -i notes.startup_admin_guide/docs/tools.EOS.md --use_dockerized_prettier --use_dockerized_markdown_toc
+  ```
 
 ## Generate the `mkdocs` dir
 
@@ -134,26 +139,5 @@ saggese@gpmac.local venv:(mkdocs) branch:'master' ~/src/tutorials1
   - notes.startup_admin_guide/
 
 - How to publish documentation with GH actions
-  - /Users/saggese/src/cmamp1/helpers_root/.github/workflows/publish_mkdocs.yml
 
 - How to publish from gpsaggese GitHub?
-
-# MkDocs documentation deployment
-
-- TODO(gp): Review the rest
-
-## Solution overview
-
-### Private solution specifics
-
-- The internal (private) documentation is served on utility server:
-  http://172.30.2.44/docs
-- The deployment runs on NGINX proxy on top of MkDocs default development server
-  running in a simple docker container
-
-## Public solution specifics
-
-- We serve public documentation via GitHub pages feature
-  - We use subdomain `docs.kaizen-tech.ai`
-- The documentation website is redeployed upon each commit to `master` via
-  GitHub actions
