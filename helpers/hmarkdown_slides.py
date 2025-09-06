@@ -137,23 +137,37 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
     return result
 
 
-# TODO(ai): Implement this.
-# TODO(ai): Unit test this.
 def convert_slide_to_markdown(lines: List[str]) -> List[str]:
     """
     Convert slide to standard markdown.
+
+    - Handle *
     """
     hdbg.dassert_isinstance(lines, list)
-    # TODO(ai): Convert bullets starting with `* ` to `##### `.
-    return lines
+    converted_lines = []
+    for line in lines:
+        if line.startswith("* "):
+            # Convert slide bullet to markdown header level 5.
+            converted_line = "##### " + line[2:]
+            converted_lines.append(converted_line)
+        else:
+            converted_lines.append(line)
+    return converted_lines
 
 
-# TODO(ai): Implement this.
-# TODO(ai): Unit test this.
 def markdown_to_slide(lines: List[str]) -> List[str]:
     """
     Convert standard markdown back to slide.
+
+    - Handle *
     """
     hdbg.dassert_isinstance(lines, list)
-    # TODO(ai): Convert bullets starting with `##### ` back to `* `.
-    return lines
+    converted_lines = []
+    for line in lines:
+        if line.startswith("##### "):
+            # Convert markdown header level 5 back to slide bullet.
+            converted_line = "* " + line[6:]
+            converted_lines.append(converted_line)
+        else:
+            converted_lines.append(line)
+    return converted_lines

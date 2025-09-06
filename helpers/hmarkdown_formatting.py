@@ -247,14 +247,15 @@ def format_first_level_bullets(lines: List[str]) -> List[str]:
     return result
 
 
+# TODO(ai): Add unit tests.
 def format_markdown_slide(lines: List[str]) -> List[str]:
     """
     Format markdown text for a slide.
 
-    :param txt: input text to format
+    :param lines: input lines to format
     :return: formatted slide text
     """
-    hdbg.dassert_isinstance(txt, str)
+    hdbg.dassert_isinstance(lines, list)
     if False:
         lines = bold_first_level_bullets(lines)
         txt = "\n".join(lines)
@@ -263,6 +264,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     # passing a marker to indicate that the text is a slide.
     lines = hmarkdo.convert_slide_to_markdown(lines)
     file_type = "md"
+    txt = "\n".join(lines)
     txt = hdocexec.prettier_on_str(txt, file_type)
     lines = txt.split("\n")
     lines = hmarkdo.markdown_to_slide(lines)

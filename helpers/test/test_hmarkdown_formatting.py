@@ -292,3 +292,119 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
             delimiters that needs to be removed.
         """
         self.assert_equal(actual, expected, dedent=True)
+
+
+# #############################################################################
+# Test_format_markdown_slide
+# #############################################################################
+
+
+class Test_format_markdown_slide(hunitest.TestCase):
+    def helper(self, input_text, expected_text) -> None:
+        # Prepare inputs.
+        input_text = hprint.dedent(input_text).strip().split("\n")
+        # Run test.
+        actual = hmarkdo.format_markdown_slide(lines)
+        # Check outputs.
+        expected = hprint.dedent(expected_text).strip().split("\n")
+        self.assert_equal(str(actual), str(expected))
+
+    # TODO(ai): Use helper
+    def test_simple_slide(self) -> None:
+        """
+        Test formatting a simple slide with bullets.
+        """
+        # Prepare inputs.
+        text = """
+        * Slide title
+        - First bullet
+        - Second bullet
+        """
+        lines = hprint.dedent(text).strip().split("\n")
+        # Run test.
+        actual = hmarkdo.format_markdown_slide(lines)
+        # Check outputs.
+        expected_text = """
+        * Slide Title
+
+        - First bullet
+
+        - Second bullet
+        """
+        expected = hprint.dedent(expected_text).strip().split("\n")
+        self.assert_equal(str(actual), str(expected))
+
+    # TODO(ai): Use helper
+    def test_multiple_slides(self) -> None:
+        """
+        Test formatting multiple slides.
+        """
+        # Prepare inputs.
+        text = """
+        * First slide
+        - Point A
+        - Point B
+        * Second slide
+        - Point X
+        - Point Y
+        """
+        lines = hprint.dedent(text).strip().split("\n")
+        # Run test.
+        actual = hmarkdo.format_markdown_slide(lines)
+        # Check outputs.
+        expected_text = """
+        * First Slide
+
+        - Point A
+
+        - Point B
+        * Second Slide
+
+        - Point X
+
+        - Point Y
+        """
+        expected = hprint.dedent(expected_text).strip().split("\n")
+        self.assert_equal(str(actual), str(expected))
+
+    # TODO(ai): Use helper
+    def test_nested_bullets(self) -> None:
+        """
+        Test formatting slides with nested bullets.
+        """
+        # Prepare inputs.
+        text = """
+        * Main slide
+        - First level
+          - Nested point
+          - Another nested
+        - Second level
+        """
+        lines = hprint.dedent(text).strip().split("\n")
+        # Run test.
+        actual = hmarkdo.format_markdown_slide(lines)
+        # Check outputs.
+        expected_text = """
+        * Main Slide
+
+        - First level
+          - Nested point
+          - Another nested
+
+        - Second level
+        """
+        expected = hprint.dedent(expected_text).strip().split("\n")
+        self.assert_equal(str(actual), str(expected))
+
+    # TODO(ai): Use helper
+    def test_empty_input(self) -> None:
+        """
+        Test formatting empty input.
+        """
+        # Prepare inputs.
+        lines = []
+        # Run test.
+        actual = hmarkdo.format_markdown_slide(lines)
+        # Check outputs.
+        expected = []
+        self.assert_equal(str(actual), str(expected))

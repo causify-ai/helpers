@@ -16,7 +16,7 @@
   input_txt = hprint.dedent(input_txt)
   ```
 
-- Clearly summarize 
+- Clearly summarize
 
 - Each function should be tested using its inputs and outputs
   - If a function to be tested uses files, change the code under test to use data
@@ -109,46 +109,49 @@
   self.check_string(act, fuzzy_match=True)
   ```
 
-- Instead of 
-        # Prepare inputs.
-        lines = [
-            "# Chapter 1",  # line 1
-            "",             # line 2
-            "Intro text",   # line 3
-            "",             # line 4
-            "## Section 1.1",  # line 5
-            "",                 # line 6
-            "Content of section 1.1",  # line 7
-            "",                         # line 8
-            "## Section 1.2",          # line 9
-            "",                         # line 10
-            "Content of section 1.2",  # line 11
-            "",                         # line 12
-            "# Chapter 2",              # line 13
-            "",                         # line 14
-            "Chapter 2 intro",          # line 15
-        ]
+- When creating inputs for tests instead of using array of strings use
+  - E.g., bad
+    ```
+    # Prepare inputs.
+    lines = [
+        "# Chapter 1",
+        "",
+        "Intro text",
+        "",
+        "## Section 1.1",
+        "",
+        "Content of section 1.1",
+        "",
+        "## Section 1.2",
+        "",
+        "Content of section 1.2",
+        "",
+        "# Chapter 2",
+        "",
+        "Chapter 2 intro",
+    ]
+    ```
+  - Good
+    ```
+    # Prepare inputs.
+    lines = """
+    # Chapter 1
 
-  Use
+    Intro text
 
-        # Prepare inputs.
-        lines = """
-        # Chapter 1
+    ## Section 1.1
 
-        Intro text
+    Content of section 1.1
 
-        ## Section 1.1
+    ## Section 1.2
 
-        Content of section 1.1
+    Content of section 1.2
 
-        ## Section 1.2
+    # Chapter 2
 
-        Content of section 1.2
-
-        # Chapter 2
-
-        Chapter 2 intro
-        """
-        lines = hprint.dedent(lines)
+    Chapter 2 intro
+    """
+    lines = hprint.dedent(lines)
+    ```
 
 - Make sure that all the unit tests pass by running pytest
