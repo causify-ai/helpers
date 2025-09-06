@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is the `helpers` repository - a foundational Python library providing utilities, development tools, and infrastructure components for a larger ecosystem. The codebase follows a modular architecture with these key components:
+This is the `helpers` repository - a foundational Python library providing
+utilities, development tools, and infrastructure components for a larger
+ecosystem. The codebase follows a modular architecture with these key components:
 
 ### Core Structure
 
@@ -111,10 +113,6 @@ import config_root.config.config_ as crococon
 - Test outcomes stored in `test/outcomes/` directories following module structure
 
 ### Code Conventions
-- Coding guidelines are in `docs/code_guidelines/all.coding_style_guidelines.reference.md`
 
-- Templates for code are:
-  - `code_template.py`: template for code
-  - `unit_test_template.py`: template for unit test
-  - `dev_scripts_helpers/coding_tools/script_template.py`: template for
-    self-standing Python script
+- For writing any Python code you MUST follow instructions in ai.coding_instructions.md
+- For writing unit tests you MUST follow instructions in ai.unit_test_instructions.md

@@ -58,14 +58,14 @@ MSML610: Advanced Machine Learning
   - Choose among competing explanations for the same observations
 
 * Good vs Bad Way to Do Statistics
-- **Bad** ![Smile Emoji](pics/angry_devil.png){ width=12px }
+- **Bad** ![Smile Emoji](emoji/angry_devil.png){ width=12px }
   - Learn a collection of "statistical recipes"
     - Make assumption / approximate to make math workable
   - Given data and problem, pick one recipe, try until you get a "low" p-value
   - For machine learning, iterate until you get a "good" fit on out-of-sample
     data
 
-- **Good** ![Smile Emoji](pics/emoji_smile.png){ width=12px }
+- **Good** ![Smile Emoji](emoji/emoji_smile.png){ width=12px }
   - Bayesian statistics
     - Provide a general approach to statistical inference
     - Remove limitations from closed analytical form
@@ -310,7 +310,7 @@ MSML610: Advanced Machine Learning
   - _"One should let the data speak"_
   - The prior doesn't let the data speak for itself
 
-- **Counterpoints** ![](pics/balance_scale.png){ width=14px }
+- **Counterpoints** ![](emoji/balance_scale.png){ width=14px }
 - In reality _"Data doesn't speak, but murmurs"_
   - We can only make sense of data made in context of models (priors, mental
     models, mathematical models)
@@ -318,7 +318,7 @@ MSML610: Advanced Machine Learning
 - Every statistical model has a prior, even if not set explicitly
   - E.g., maximum likelihood estimate (MLE) in frequentist approach corresponds
     to a uniform prior and using the mode of the posterior
-  - Problems ![](pics/warning.png){ width=14px }
+  - Problems ![](emoji/warning.png){ width=14px }
     - Assumptions are unclear
     - MLE is a point-estimate, not a distribution of plausible values
 
@@ -421,10 +421,10 @@ MSML610: Advanced Machine Learning
 - We use Bayes' theorem to condition \red{**unknowns**} to \green{**knowns**},
   hoping to reduce the uncertainty about the \red{unknowns}
 
-- **Problem** ![](pics/puzzle.png){ width=14px }
+- **Problem** ![](emoji/puzzle.png){ width=14px }
   - Most probabilistic models are analytically intractable
 
-- **Solution** ![](pics/lightbulb.png){ width=14px }
+- **Solution** ![](emoji/lightbulb.png){ width=14px }
   - Probabilistic programming
     - Specify a probabilistic model using code
     - Solve models using numerical techniques
@@ -859,7 +859,7 @@ MSML610: Advanced Machine Learning
 - **Group comparison** is hypothesis testing for statistically significant
   results when comparing a "treatment" to a "control group"
 
-- E.g., ![](pics/pushpin_tack.png){ width=12px }
+- E.g., ![](emoji/pushpin_tack.png){ width=12px }
   - How well patient respond to a new drug (vs a group receiving nothing or a
     placebo)?
   - Is there a reduction of car accidents after new traffic regulation?
@@ -942,7 +942,7 @@ MSML610: Advanced Machine Learning
       common educational factors
   - Repeated measurements on the same objects
 
-- **Approach**: ![](pics/lightbulb.png){ width=14px }
+- **Approach**: ![](emoji/lightbulb.png){ width=14px }
   - Model shares information between groups and allow differences between groups
   - The parameters of the prior distributions have also a prior distribution, aka
     "hyper-priors"
@@ -1207,7 +1207,7 @@ MSML610: Advanced Machine Learning
   - There are bands representing the quantiles [0.25, 0.75] and [0.03, 0.97] of the
     prediction
 
-- Do you see a problem? ![](pics/puzzle.png){ width=14px }
+- Do you see a problem? ![](emoji/puzzle.png){ width=14px }
 
 * Linear model: bike rental example (criticism)
 
@@ -1294,10 +1294,10 @@ MSML610: Advanced Machine Learning
 // TODO: Add example from notebook of Counting (done)
 
 - **How to model it?**
-  - A Poisson distribution has mean and variance equal ![](pics/wrong.png){
+  - A Poisson distribution has mean and variance equal ![](emoji/wrong.png){
     width=12px }
   - A negative binomial has a second parameter that controls the variance
-    ![](pics/check_mark.png){ width=12px }
+    ![](emoji/check_mark.png){ width=12px }
   - When using a Normal model
     - Largest mismatch when the model predicts a negative number of rented bikes
     - Even on the positive side we see that the fit is not that good

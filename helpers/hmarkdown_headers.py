@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hmarkdown as hmarkdo
+import helpers.hmarkdown_headers as hmarkdo
 """
 
 import dataclasses

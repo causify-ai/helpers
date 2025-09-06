@@ -139,4 +139,5 @@ saggese@gpmac.local venv:(mkdocs) branch:'master' ~/src/tutorials1
   - notes.startup_admin_guide/
 
 - How to publish documentation with GH actions
-  - /Users/saggese/src/cmamp1/helpers_root/.github/workflows/publish_mkdocs.yml
+
+- How to publish from gpsaggese GitHub?

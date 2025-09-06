@@ -219,7 +219,7 @@ satisfying the following 6 axioms:
 - Given 3 not collinear vectors: $\vu_1$, $\vu_2$, and $\vu_3$, the plane
   containing the endpoints of the 3 vectors can be represented as
   $\calA = \vu_1 + \calV$ where $\calV = \Span(\vu_2 - \vu_1, \vu_3 - \vu_1)$
-- **Note**: the span of the 3 vectors has dimension 3, but an affine space with
+- **\textcolor{red}{Note}**: the span of the 3 vectors has dimension 3, but an affine space with
   dimension 2
 
 #### Affine combination: definition
@@ -357,14 +357,14 @@ satisfying the following 6 axioms:
       transformed by $f()$
 
 #### Linear functions: examples and non-examples
-- **Identity function** is linear
+- **\textcolor{red}{Identity function}** is linear
   - Corresponds to the identity matrix
-- **Rotation** is linear transformations
+- **\textcolor{darkgreen}{Rotation}** is linear transformations
   - Corresponds to an orthonormal matrix
-- **Scaling** each coordinate independently is linear transformation
+- **\textcolor{blue}{Scaling}** each coordinate independently is linear transformation
   - Corresponds to a diagonal matrix
 
-- **Translation** is _not_ a linear function
+- **\textcolor{violet}{Translation}** is _not_ a linear function
   - Since it does not satisfy either of the two linearity properties
     1. $f(\alpha \vvv) = \alpha f(\vvv)$
     2. $f(\vu + \vvv) = f(\vu) + f(\vvv)$
@@ -373,7 +373,7 @@ satisfying the following 6 axioms:
 - Any linear function $f: \calV \rightarrow \calW$ maps the zero vector of
   $\calV$ to the zero vector of $\calW$
 
-- The **kernel** of a linear function $f$ is the set of vectors that are
+- The **\textcolor{red}{kernel}** of a linear function $f$ is the set of vectors that are
   transformed by $f$ into the $\vv{0}$ vector
   $$\Ker(f) = \{ \vvv: f(\vvv) = \vv{0} \}$$
 
@@ -384,15 +384,15 @@ satisfying the following 6 axioms:
 #### Domain, Image, Co-domain of a Function
 - Consider a (linear or not) function $f: \calV \rightarrow \calW$
 
-- The **domain** of $f$ $\calV$ is the set of all values where the function is defined
-- The **image of domain** $f(\calV)$ is the set of all values that the function
+- The **\textcolor{red}{domain}** of $f$ $\calV$ is the set of all values where the function is defined
+- The **\textcolor{darkgreen}{image of domain}** $f(\calV)$ is the set of all values that the function
   can assume
-- The **co-domain** $\calW$ is the set where the function assumes its value
+- The **\textcolor{blue}{co-domain}** $\calW$ is the set where the function assumes its value
   - E.g., $\bbR^2$
 
 #### One-to-one Function
 - Consider a function $f: \calV \rightarrow \calW$
-- A function is **one-to-one** (or injective) iff any two different elements
+- A function is **\textcolor{red}{one-to-one}** (or injective) iff any two different elements
   $v_1 \ne v_2 \in \calV$ have different images $f(v_1) \ne f(v_2)$
 
 - Equivalently:
@@ -407,7 +407,7 @@ satisfying the following 6 axioms:
 
 #### Onto function
 - Consider a function $f: \calV \rightarrow \calW$
-- A function is **onto** (or surjective) iff for any element of its co-domain
+- A function is **\textcolor{red}{onto}** (or surjective) iff for any element of its co-domain
   $w \in \calW$, there exists an element of the domain $v \in \calV$ that is
   transformed into it, i.e., $f(v) = w$
 
@@ -489,7 +489,7 @@ satisfying the following 6 axioms:
   $$\mA \cdot \vu = \vvv$$
 
 #### Linear dependence between vectors: definition
-- A set $S$ of $n$ vectors $\vvv_1, ..., \vvv_n$ are **linearly dependent** _iff_
+- A set $S$ of $n$ vectors $\vvv_1, ..., \vvv_n$ are **\textcolor{red}{linearly dependent}** _iff_
   $$
   \exists (\alpha_1, ..., \alpha_n) \ne \vv{0}_n:
   \alpha_1 \vvv_1 + ... + \alpha_n \vvv_n = \vv{0}_k
@@ -500,7 +500,7 @@ satisfying the following 6 axioms:
 - Equivalently: at least one vector of the set $S$ can be expressed as linear
   combination of the remaining using coefficients not all zero
 
-- **Remarks**
+- **\textcolor{blue}{Remarks}**
   - One of the vectors $\vvv_i$ can be the zero vector
   - The notion of linear dependence / independence applies to _set of vectors_ and
     not to a single vector
@@ -579,9 +579,9 @@ satisfying the following 6 axioms:
   - In words, one can always remove at least a vector dependent from a generator
     set without changing its span
 
-- **Intuition**: it establishes a relationship between linear dependence and span
+- **\textcolor{red}{Intuition}**: it establishes a relationship between linear dependence and span
 
-- **Corollary**:
+- **\textcolor{blue}{Corollary}**:
   - You can always _add_ or _remove_ linearly dependent vectors from a set,
     without changing its span
 
@@ -605,7 +605,7 @@ satisfying the following 6 axioms:
 
 
 #### Basis of a vector space: definition
-- A set of vectors $B$ is a **basis** of the vector space $\calV$ iff by
+- A set of vectors $B$ is a **\textcolor{red}{basis}** of the vector space $\calV$ iff by
   definition:
   - $B$ is a set of generators for $\calV$, i.e., $\Span(B) = \calV$
   - Vectors in $B$ are linearly independent
@@ -622,7 +622,7 @@ satisfying the following 6 axioms:
 - For any vector $\vvv \in \calV$ there is exactly one representation of $\vvv$
   in terms of the basis vectors
 
-- **Intuition**: a vector space can always be represented in terms of coordinate
+- **\textcolor{red}{Intuition}**: a vector space can always be represented in terms of coordinate
   vectors $\bbF^n$ using a basis
 
 - There is a function $f: \bbF^n \rightarrow \calV$ that:
@@ -923,4 +923,3 @@ satisfying the following 6 axioms:
   - Dimension of a vector space
   - Direct sum
   - **\textcolor{purple}{Connections between Machine Learning and Linear Algebra}**
-
