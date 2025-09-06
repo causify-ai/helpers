@@ -1303,8 +1303,7 @@ def slide_reduce() -> _PROMPT_OUT:
         "remove_end_of_line_periods",
         "remove_empty_lines",
     }
-    #post_container_transforms = ["format_slide"]
-    post_container_transforms = []
+    post_container_transforms = ["format_slide"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
 

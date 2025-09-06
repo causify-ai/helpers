@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hmarkdown as hmarkdo
+import helpers.hmarkdown_formatting as hmarkdo
 """
 
 import logging
@@ -10,6 +10,8 @@ from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
+import helpers.hmarkdown_slides as hmarkdo
+import helpers.hmarkdown_headers as hmarkdohe
 
 _LOG = logging.getLogger(__name__)
 
@@ -218,10 +220,13 @@ def bold_first_level_bullets(
     return result
 
 
+# TODO(gp): -> format_first_level_bullets_in_slide
 def format_first_level_bullets(lines: List[str]) -> List[str]:
     """
-    Add empty lines only before first level bullets and remove all empty lines
-    from markdown text.
+    Add empty lines to separate first level bullets and remove all remaining
+    empty lines.
+
+    This is the formatting we use in the slides.
 
     :param lines: list of input markdown lines
     :return: formatted markdown lines
@@ -242,24 +247,30 @@ def format_first_level_bullets(lines: List[str]) -> List[str]:
     return result
 
 
-def format_markdown_slide(txt: str) -> str:
+def format_markdown_slide(lines: List[str]) -> List[str]:
     """
     Format markdown text for a slide.
 
     :param txt: input text to format
     :return: formatted slide text
     """
-    # Split the text into title and body.
-    lines = txt.split("\n")
-    lines = bold_first_level_bullets(lines)
-    txt = "\n".join(lines)
+    hdbg.dassert_isinstance(txt, str)
+    if False:
+        lines = bold_first_level_bullets(lines)
+        txt = "\n".join(lines)
+    # Format the markdown slides.
+    # TODO(gp): Maybe the conversion should be done inside `prettier_on_str`
+    # passing a marker to indicate that the text is a slide.
+    lines = hmarkdo.convert_slide_to_markdown(lines)
     file_type = "md"
     txt = hdocexec.prettier_on_str(txt, file_type)
     lines = txt.split("\n")
+    lines = hmarkdo.markdown_to_slide(lines)
+    # Format the first level bullets.
     lines = format_first_level_bullets(lines)
-    txt = "\n".join(lines)
-    # txt = capitalize_slide_titles(txt)
-    return txt
+    #
+    lines = hmarkdohe.capitalize_header(lines)
+    return lines
 
 
 def format_latex(txt: str) -> str:
