@@ -14,62 +14,41 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(gp): Factor out common logic.
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
-    def test_standard_case(self) -> None:
+    def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
-        txt = "Hello.\nWorld.\nThis is a test."
-        lines = txt.split("\n")
+        lines = input_text.split("\n")
         # Run test.
         actual_lines = hmarkdo.remove_end_of_line_periods(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
-        expected = "Hello\nWorld\nThis is a test"
-        self.assertEqual(actual, expected)
+        self.assertEqual(actual, expected_text)
+
+    def test_standard_case(self) -> None:
+        # TODO(ai): Convert all strings in this class to """ 
+        input_text = "Hello.\nWorld.\nThis is a test."
+        expected_text = "Hello\nWorld\nThis is a test"
+        self.helper(input_text, expected_text)
 
     def test_no_periods(self) -> None:
-        # Prepare inputs.
-        txt = "Hello\nWorld\nThis is a test"
-        lines = txt.split("\n")
-        # Run test.
-        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        expected = "Hello\nWorld\nThis is a test"
-        self.assertEqual(actual, expected)
+        input_text = "Hello\nWorld\nThis is a test"
+        expected_text = "Hello\nWorld\nThis is a test"
+        self.helper(input_text, expected_text)
 
     def test_multiple_periods(self) -> None:
-        # Prepare inputs.
-        txt = "Line 1.....\nLine 2.....\nEnd."
-        lines = txt.split("\n")
-        # Run test.
-        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        expected = "Line 1\nLine 2\nEnd"
-        self.assertEqual(actual, expected)
+        input_text = "Line 1.....\nLine 2.....\nEnd."
+        expected_text = "Line 1\nLine 2\nEnd"
+        self.helper(input_text, expected_text)
 
     def test_empty_string(self) -> None:
-        # Prepare inputs.
-        txt = ""
-        lines = txt.split("\n") if txt else []
-        # Run test.
-        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        expected = ""
-        self.assertEqual(actual, expected)
+        input_text = ""
+        expected_text = ""
+        self.helper(input_text, expected_text)
 
     def test_leading_and_trailing_periods(self) -> None:
-        # Prepare inputs.
-        txt = ".Line 1.\n.Line 2.\n..End.."
-        lines = txt.split("\n")
-        # Run test.
-        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
-        actual = "\n".join(actual_lines)
-        # Check outputs.
-        expected = ".Line 1\n.Line 2\n..End"
-        self.assertEqual(actual, expected)
+        input_text = ".Line 1.\n.Line 2.\n..End.."
+        expected_text = ".Line 1\n.Line 2\n..End"
+        self.helper(input_text, expected_text)
 
 
 # #############################################################################
@@ -395,9 +374,58 @@ class Test_format_markdown_slide(hunitest.TestCase):
         Test formatting empty input.
         """
         # Prepare inputs.
-        lines = []
-        # Run test.
-        actual = hmarkdo.format_markdown_slide(lines)
+        input_text = ""
         # Check outputs.
-        expected = []
-        self.assert_equal(str(actual), str(expected))
+        expected_text = ""
+        self.helper(input_text, expected_text)
+
+    def test_slide_with_mixed_case_title(self) -> None:
+        """
+        Test formatting slide title capitalization.
+        """
+        input_text = """
+        * mixed case slide title
+        - Point one
+        """
+        expected_text = """
+        * Mixed Case Slide Title
+
+        - Point one
+        """
+        self.helper(input_text, expected_text)
+
+    def test_slide_with_no_bullets(self) -> None:
+        """
+        Test formatting slide with only title, no bullet points.
+        """
+        input_text = """
+        * Solo slide title
+        """
+        expected_text = """
+        * Solo Slide Title
+        """
+        self.helper(input_text, expected_text)
+
+    def test_slide_with_deep_nesting(self) -> None:
+        """
+        Test formatting slide with deeply nested bullets.
+        """
+        input_text = """
+        * Main slide
+        - Level 1
+          - Level 2
+            - Level 3
+              - Level 4
+        - Back to level 1
+        """
+        expected_text = """
+        * Main Slide
+
+        - Level 1
+          - Level 2
+            - Level 3
+              - Level 4
+
+        - Back to level 1
+        """
+        self.helper(input_text, expected_text)

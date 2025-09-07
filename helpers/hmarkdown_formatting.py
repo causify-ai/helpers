@@ -247,7 +247,34 @@ def format_first_level_bullets(lines: List[str]) -> List[str]:
     return result
 
 
-# TODO(ai): Add unit tests.
+# TODO(gp): Implement and add tests.
+def format_column_blocks(lines: List[str]) -> List[str]:
+    """
+    Remove ```python and ``` delimiters from a given text.
+
+    :param lines: list of input lines contthat or 
+    # Make sure that there is a single empty line before and after the following
+    # block:
+    # 1)
+    # ```
+    # ::: columns
+    # :::: {.column width=55%}
+    # ```
+    # 2)
+    # ```
+    # ::::
+    # :::: {.column width=40%}
+    # ```
+    # 3)
+    # ```
+    # ::::
+    # :::
+    # ```
+
+    #
+    """
+    return lines
+
 def format_markdown_slide(lines: List[str]) -> List[str]:
     """
     Format markdown text for a slide.
@@ -263,9 +290,12 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     # TODO(gp): Maybe the conversion should be done inside `prettier_on_str`
     # passing a marker to indicate that the text is a slide.
     lines = hmarkdo.convert_slide_to_markdown(lines)
+    # lines = format_column_blocks()
+    #
     file_type = "md"
     txt = "\n".join(lines)
     txt = hdocexec.prettier_on_str(txt, file_type)
+    #
     lines = txt.split("\n")
     lines = hmarkdo.markdown_to_slide(lines)
     # Format the first level bullets.
