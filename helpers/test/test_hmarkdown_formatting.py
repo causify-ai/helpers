@@ -17,6 +17,8 @@ _LOG = logging.getLogger(__name__)
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
+        input_text = hprint.dedent(input_text).strip()
+        expected_text = hprint.dedent(expected_text).strip()
         lines = input_text.split("\n")
         # Run test.
         actual_lines = hmarkdo.remove_end_of_line_periods(lines)
@@ -25,19 +27,42 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
         self.assertEqual(actual, expected_text)
 
     def test_standard_case(self) -> None:
-        # TODO(ai): Convert all strings in this class to """ 
-        input_text = "Hello.\nWorld.\nThis is a test."
-        expected_text = "Hello\nWorld\nThis is a test"
+        input_text = """
+        Hello.
+        World.
+        This is a test.
+        """
+        expected_text = """
+        Hello
+        World
+        This is a test
+        """
         self.helper(input_text, expected_text)
 
     def test_no_periods(self) -> None:
-        input_text = "Hello\nWorld\nThis is a test"
-        expected_text = "Hello\nWorld\nThis is a test"
+        input_text = """
+        Hello
+        World
+        This is a test
+        """
+        expected_text = """
+        Hello
+        World
+        This is a test
+        """
         self.helper(input_text, expected_text)
 
     def test_multiple_periods(self) -> None:
-        input_text = "Line 1.....\nLine 2.....\nEnd."
-        expected_text = "Line 1\nLine 2\nEnd"
+        input_text = """
+        Line 1.....
+        Line 2.....
+        End.
+        """
+        expected_text = """
+        Line 1
+        Line 2
+        End
+        """
         self.helper(input_text, expected_text)
 
     def test_empty_string(self) -> None:
@@ -46,8 +71,16 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
         self.helper(input_text, expected_text)
 
     def test_leading_and_trailing_periods(self) -> None:
-        input_text = ".Line 1.\n.Line 2.\n..End.."
-        expected_text = ".Line 1\n.Line 2\n..End"
+        input_text = """
+        .Line 1.
+        .Line 2.
+        ..End..
+        """
+        expected_text = """
+        .Line 1
+        .Line 2
+        ..End
+        """
         self.helper(input_text, expected_text)
 
 
