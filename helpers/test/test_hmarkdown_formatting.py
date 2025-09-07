@@ -17,42 +17,57 @@ _LOG = logging.getLogger(__name__)
 # TODO(gp): Factor out common logic.
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
     def test_standard_case(self) -> None:
+        # Prepare inputs.
         txt = "Hello.\nWorld.\nThis is a test."
         lines = txt.split("\n")
+        # Run test.
         actual_lines = hmarkdo.remove_end_of_line_periods(lines)
         actual = "\n".join(actual_lines)
+        # Check outputs.
         expected = "Hello\nWorld\nThis is a test"
         self.assertEqual(actual, expected)
 
     def test_no_periods(self) -> None:
+        # Prepare inputs.
         txt = "Hello\nWorld\nThis is a test"
         lines = txt.split("\n")
+        # Run test.
         actual_lines = hmarkdo.remove_end_of_line_periods(lines)
         actual = "\n".join(actual_lines)
+        # Check outputs.
         expected = "Hello\nWorld\nThis is a test"
         self.assertEqual(actual, expected)
 
     def test_multiple_periods(self) -> None:
+        # Prepare inputs.
         txt = "Line 1.....\nLine 2.....\nEnd."
         lines = txt.split("\n")
+        # Run test.
         actual_lines = hmarkdo.remove_end_of_line_periods(lines)
         actual = "\n".join(actual_lines)
+        # Check outputs.
         expected = "Line 1\nLine 2\nEnd"
         self.assertEqual(actual, expected)
 
     def test_empty_string(self) -> None:
+        # Prepare inputs.
         txt = ""
         lines = txt.split("\n") if txt else []
+        # Run test.
         actual_lines = hmarkdo.remove_end_of_line_periods(lines)
         actual = "\n".join(actual_lines)
+        # Check outputs.
         expected = ""
         self.assertEqual(actual, expected)
 
     def test_leading_and_trailing_periods(self) -> None:
+        # Prepare inputs.
         txt = ".Line 1.\n.Line 2.\n..End.."
         lines = txt.split("\n")
+        # Run test.
         actual_lines = hmarkdo.remove_end_of_line_periods(lines)
         actual = "\n".join(actual_lines)
+        # Check outputs.
         expected = ".Line 1\n.Line 2\n..End"
         self.assertEqual(actual, expected)
 
@@ -302,28 +317,22 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
 class Test_format_markdown_slide(hunitest.TestCase):
     def helper(self, input_text, expected_text) -> None:
         # Prepare inputs.
-        input_text = hprint.dedent(input_text).strip().split("\n")
+        lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
         actual = hmarkdo.format_markdown_slide(lines)
         # Check outputs.
         expected = hprint.dedent(expected_text).strip().split("\n")
         self.assert_equal(str(actual), str(expected))
 
-    # TODO(ai): Use helper
     def test_simple_slide(self) -> None:
         """
         Test formatting a simple slide with bullets.
         """
-        # Prepare inputs.
-        text = """
+        input_text = """
         * Slide title
         - First bullet
         - Second bullet
         """
-        lines = hprint.dedent(text).strip().split("\n")
-        # Run test.
-        actual = hmarkdo.format_markdown_slide(lines)
-        # Check outputs.
         expected_text = """
         * Slide Title
 
@@ -331,16 +340,13 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
         - Second bullet
         """
-        expected = hprint.dedent(expected_text).strip().split("\n")
-        self.assert_equal(str(actual), str(expected))
+        self.helper(input_text, expected_text)
 
-    # TODO(ai): Use helper
     def test_multiple_slides(self) -> None:
         """
         Test formatting multiple slides.
         """
-        # Prepare inputs.
-        text = """
+        input_text = """
         * First slide
         - Point A
         - Point B
@@ -348,10 +354,6 @@ class Test_format_markdown_slide(hunitest.TestCase):
         - Point X
         - Point Y
         """
-        lines = hprint.dedent(text).strip().split("\n")
-        # Run test.
-        actual = hmarkdo.format_markdown_slide(lines)
-        # Check outputs.
         expected_text = """
         * First Slide
 
@@ -364,26 +366,19 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
         - Point Y
         """
-        expected = hprint.dedent(expected_text).strip().split("\n")
-        self.assert_equal(str(actual), str(expected))
+        self.helper(input_text, expected_text)
 
-    # TODO(ai): Use helper
     def test_nested_bullets(self) -> None:
         """
         Test formatting slides with nested bullets.
         """
-        # Prepare inputs.
-        text = """
+        input_text = """
         * Main slide
         - First level
           - Nested point
           - Another nested
         - Second level
         """
-        lines = hprint.dedent(text).strip().split("\n")
-        # Run test.
-        actual = hmarkdo.format_markdown_slide(lines)
-        # Check outputs.
         expected_text = """
         * Main Slide
 
@@ -393,10 +388,8 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
         - Second level
         """
-        expected = hprint.dedent(expected_text).strip().split("\n")
-        self.assert_equal(str(actual), str(expected))
+        self.helper(input_text, expected_text)
 
-    # TODO(ai): Use helper
     def test_empty_input(self) -> None:
         """
         Test formatting empty input.
