@@ -234,6 +234,9 @@ def format_first_level_bullets(lines: List[str]) -> List[str]:
     hdbg.dassert_isinstance(lines, list)
     # Remove empty lines.
     lines_clean = [line for line in lines if line.strip()]
+    # Handle special case: if input was only empty lines, preserve structure.
+    if not lines_clean and lines:
+        return lines
     # Add empty lines only before first level bullets.
     result = []
     for i, line in enumerate(lines_clean):

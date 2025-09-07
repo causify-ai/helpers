@@ -175,24 +175,20 @@ class Test_convert_slide_to_markdown(hunitest.TestCase):
         lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
         actual = hmarkdo.convert_slide_to_markdown(lines)
+        actual = "\n".join(actual)
         # Check outputs.
-        expected = hprint.dedent(expected_text).strip().split("\n")
-        self.assert_equal(str(actual), str(expected))
+        expected = hprint.dedent(expected_text).strip()
+        self.assert_equal(actual, expected)
 
-    def test_convert_simple_slide(self) -> None:
+    def test1(self) -> None:
         """
         Test converting a simple slide bullet to markdown header.
         """
-        # Prepare inputs.
-        text = "* This is a slide title"
-        lines = [text]
-        # Run test.
-        actual = hmarkdo.convert_slide_to_markdown(lines)
-        # Check outputs.
-        expected = ["##### This is a slide title"]
-        self.assert_equal(str(actual), str(expected))
+        input_text = """* This is a slide title"""
+        expected_text = """##### This is a slide title"""
+        self.helper(input_text, expected_text)
 
-    def test_convert_multiple_slides(self) -> None:
+    def test2(self) -> None:
         """
         Test converting multiple slide bullets.
         """
@@ -210,7 +206,7 @@ class Test_convert_slide_to_markdown(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_convert_mixed_content(self) -> None:
+    def test3(self) -> None:
         """
         Test converting slides mixed with other content.
         """
@@ -232,39 +228,29 @@ class Test_convert_slide_to_markdown(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_convert_no_slides(self) -> None:
+    def test4(self) -> None:
         """
         Test converting text with no slide bullets.
         """
-        # Prepare inputs.
-        text = """
+        input_text = """
         Regular text
         More text
         - Regular bullet point
         """
-        lines = hprint.dedent(text).strip().split("\n")
-        # Run test.
-        actual = hmarkdo.convert_slide_to_markdown(lines)
-        # Check outputs.
         expected_text = """
         Regular text
         More text
         - Regular bullet point
         """
-        expected = hprint.dedent(expected_text).strip().split("\n")
-        self.assert_equal(str(actual), str(expected))
+        self.helper(input_text, expected_text)
 
-    def test_convert_empty_input(self) -> None:
+    def test5(self) -> None:
         """
         Test converting empty input.
         """
-        # Prepare inputs.
-        lines = []
-        # Run test.
-        actual = hmarkdo.convert_slide_to_markdown(lines)
-        # Check outputs.
-        expected = []
-        self.assert_equal(str(actual), str(expected))
+        input_text = ""
+        expected_text = ""
+        self.helper(input_text, expected_text)
 
 
 # #############################################################################
@@ -273,7 +259,7 @@ class Test_convert_slide_to_markdown(hunitest.TestCase):
 
 
 class Test_markdown_to_slide(hunitest.TestCase):
-    def helper(self, input_text, expected_text) -> None:
+    def helper(self, input_text: str, expected_text: str) -> None:
         """
         Test converting markdown headers to slide bullets.
         """
@@ -281,11 +267,12 @@ class Test_markdown_to_slide(hunitest.TestCase):
         lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
         actual = hmarkdo.markdown_to_slide(lines)
+        actual = "\n".join(actual)
         # Check outputs.
-        expected = hprint.dedent(expected_text).strip().split("\n")
-        self.assert_equal(str(actual), str(expected))
+        expected = hprint.dedent(expected_text).strip()
+        self.assert_equal(actual, expected)
 
-    def test_convert_simple_header(self) -> None:
+    def test1(self) -> None:
         """
         Test converting a simple h5 header to slide bullet.
         """
@@ -297,7 +284,7 @@ class Test_markdown_to_slide(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_convert_multiple_headers(self) -> None:
+    def test2(self) -> None:
         """
         Test converting multiple h5 headers.
         """
@@ -315,7 +302,7 @@ class Test_markdown_to_slide(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_convert_mixed_content(self) -> None:
+    def test3(self) -> None:
         """
         Test converting headers mixed with other content.
         """
@@ -337,7 +324,7 @@ class Test_markdown_to_slide(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_convert_no_h5_headers(self) -> None:
+    def test4(self) -> None:
         """
         Test converting text with no h5 headers.
         """
@@ -355,7 +342,7 @@ class Test_markdown_to_slide(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_convert_empty_input(self) -> None:
+    def test5(self) -> None:
         """
         Test converting empty input.
         """
@@ -363,7 +350,7 @@ class Test_markdown_to_slide(hunitest.TestCase):
         expected_text = ""
         self.helper(input_text, expected_text)
 
-    def test_roundtrip_conversion(self) -> None:
+    def test6(self) -> None:
         """
         Test that converting slide to markdown and back gives original result.
         """

@@ -327,16 +327,19 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
 
 
 class Test_format_markdown_slide(hunitest.TestCase):
-    def helper(self, input_text, expected_text) -> None:
+    def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
         actual = hmarkdo.format_markdown_slide(lines)
+        actual = "\n".join(actual)
         # Check outputs.
-        expected = hprint.dedent(expected_text).strip().split("\n")
+        expected = hprint.dedent(expected_text).strip()
+        _LOG.debug("actual=\n%s", actual)
+        _LOG.debug("expected=\n%s", expected)
         self.assert_equal(str(actual), str(expected))
 
-    def test_simple_slide(self) -> None:
+    def test1(self) -> None:
         """
         Test formatting a simple slide with bullets.
         """
@@ -354,7 +357,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_multiple_slides(self) -> None:
+    def test2(self) -> None:
         """
         Test formatting multiple slides.
         """
@@ -380,7 +383,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_nested_bullets(self) -> None:
+    def test3(self) -> None:
         """
         Test formatting slides with nested bullets.
         """
@@ -402,17 +405,19 @@ class Test_format_markdown_slide(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_empty_input(self) -> None:
+    def test4(self) -> None:
         """
         Test formatting empty input.
         """
         # Prepare inputs.
-        input_text = ""
+        input_text = """
+        """
         # Check outputs.
-        expected_text = ""
+        expected_text = """
+        """
         self.helper(input_text, expected_text)
 
-    def test_slide_with_mixed_case_title(self) -> None:
+    def test5(self) -> None:
         """
         Test formatting slide title capitalization.
         """
@@ -427,7 +432,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_slide_with_no_bullets(self) -> None:
+    def test6(self) -> None:
         """
         Test formatting slide with only title, no bullet points.
         """
@@ -439,7 +444,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
-    def test_slide_with_deep_nesting(self) -> None:
+    def test7(self) -> None:
         """
         Test formatting slide with deeply nested bullets.
         """
@@ -460,5 +465,58 @@ class Test_format_markdown_slide(hunitest.TestCase):
               - Level 4
 
         - Back to level 1
+        """
+        self.helper(input_text, expected_text)
+
+    def test8(self) -> None:
+        """
+        Test formatting slide with nested bullets and special formatting.
+        """
+        input_text = """
+        * What Are Data Analytics?
+        - **Collections of data**
+
+          - Aggregated, organized data sets for analysis
+
+          - E.g., customer purchase histories in a CRM system
+        - **Dashboards**
+
+          - Visual displays of key metrics for insights
+          - E.g., dashboard showing quarterly revenue, expenses
+
+        - **Descriptive statistics**
+          - Summary metrics: mean, median, mode, standard deviation
+          - E.g., average sales per quarter to understand trends
+        - **Historical reports**
+
+          - Examination of past performance
+          - E.g., monthly sales reports for past fiscal year
+        - **Models**
+          - Statistical representations to forecast, explain phenomena
+
+          - E.g., predictive model to anticipate customer churn based on behavioral data
+        """
+        expected_text = """
+        * What Are Data Analytics?
+
+        - **Collections of data**
+          - Aggregated, organized data sets for analysis
+          - E.g., customer purchase histories in a CRM system
+
+        - **Dashboards**
+          - Visual displays of key metrics for insights
+          - E.g., dashboard showing quarterly revenue, expenses
+
+        - **Descriptive statistics**
+          - Summary metrics: mean, median, mode, standard deviation
+          - E.g., average sales per quarter to understand trends
+
+        - **Historical reports**
+          - Examination of past performance
+          - E.g., monthly sales reports for past fiscal year
+
+        - **Models**
+          - Statistical representations to forecast, explain phenomena
+          - E.g., predictive model to anticipate customer churn based on behavioral data
         """
         self.helper(input_text, expected_text)
