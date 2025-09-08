@@ -71,9 +71,8 @@ def listdir(
     :param maxdepth: limit the depth of directory traversal
     """
     hdbg.dassert_dir_exists(dir_name)
-    # Escape the directory path and pattern.
+    # Escape the directory path.
     dir_name = shlex.quote(dir_name)
-    pattern = shlex.quote(pattern)
     cmd = [f"find {dir_name}", f'-name "{pattern}"']
     if maxdepth is not None:
         cmd.append(f'-maxdepth "{maxdepth}"')
