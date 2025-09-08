@@ -43,6 +43,7 @@ def _check_file_size(file_name: str, max_kb: int = 500) -> str:
 
 
 class _FileSizeChecker(liaction.Action):
+
     def check_if_possible(self) -> bool:
         return True
 
