@@ -197,6 +197,8 @@ class LLMClient:
         cache_mode: str,
         messages: List[Dict[str, str]],
         temperature: float,
+        *,
+        cost_tracker: Optional["LLMCostTracker"] = None,
         **create_kwargs,
     ) -> dict[Any, Any]:
         """
@@ -210,6 +212,7 @@ class LLMClient:
             messages=messages,
             temperature=temperature,
             model=self.model,
+            cost_tracker=cost_tracker,
             **create_kwargs,
         )
 
@@ -478,6 +481,7 @@ def get_completion(
     print_cost: bool = False,
     cache_mode: str = "DISABLE_CACHE",
     temperature: float = 0.1,
+    cost_tracker: Optional["LLMCostTracker"] = None,
     **create_kwargs,
 ) -> str:
     """
@@ -518,6 +522,7 @@ def get_completion(
             cache_mode=cache_mode,
             messages=messages,
             temperature=temperature,
+            cost_tracker=cost_tracker,
             **create_kwargs,
         )
     else:
@@ -819,13 +824,16 @@ def apply_prompt_to_dataframe(
         user = "\n".join(data)
         _LOG.debug("user=\n%s", user)
         try:
-            response = get_completion(user, system=prompt, model=model)
+            response = get_completion(user, system_prompt=prompt, model=model)
         except Exception as e:
             _LOG.error(
                 f"Error processing column {input} in chunk {start}-{end}: {e}"
             )
             raise e
-        processed_response = response.split("\n")
+        # processed_response = response.split("\n")
+        processed_response = [
+            ln.rstrip() for ln in response.splitlines() if ln.strip()
+        ]
         _LOG.debug(hprint.to_str("processed_response"))
         _LOG.debug("len(processed_response)=%s", len(processed_response))
         hdbg.dassert_eq(len(processed_response), chunk.shape[0])
