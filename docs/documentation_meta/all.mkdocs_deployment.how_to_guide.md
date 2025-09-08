@@ -91,7 +91,7 @@ blog/
   > (cd $DST_DIR; mkdocs serve --dev-addr localhost:8001)
   ```
 
-- Go to http://localhost:8001
+- Go to [http://localhost:8001](http://localhost:8001)
 
 ## Publish the documentation
 
@@ -113,7 +113,7 @@ blog/
   > (cd $DST_DIR; mkdocs gh-deploy)
   ```
 
-- GitHub renders the documentation at https://causify-ai.github.io/helpers/
+- GitHub renders the documentation at [https://causify-ai.github.io/helpers/](https://causify-ai.github.io/helpers/)
 
 # Docu
 

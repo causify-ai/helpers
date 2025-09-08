@@ -128,10 +128,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Generate output file name.
         png_basename = os.path.splitext(os.path.basename(png_file))[0]
         out_file = os.path.join(out_dir, f"{png_basename}.mp4")
-        _LOG.info(f"Converting: {os.path.basename(png_file)} -> {os.path.basename(out_file)}")
+        # TODO(ai): Use % in logging
+        _LOG.info(
+            f"Converting: {os.path.basename(png_file)} -> {os.path.basename(out_file)}"
+        )
         # Convert PNG to movie.
         _convert_png_to_movie(png_file, out_file, duration=args.duration)
-    _LOG.info(f"Conversion complete! Created {len(png_files)} movies in {out_dir}")
+    _LOG.info(
+        f"Conversion complete! Created {len(png_files)} movies in {out_dir}"
+    )
 
 
 def main():

@@ -1,8 +1,20 @@
+<!-- toc -->
+
+- [Create Google Drive Map](#create-google-drive-map)
+  * [Purpose](#purpose)
+  * [Usage](#usage)
+  * [Workflow](#workflow)
+  * [Examples](#examples)
+  * [Output Structure](#output-structure)
+  * [Requirements](#requirements)
+
+<!-- tocstop -->
+
 # Create Google Drive Map
 
 ## Purpose
 
-* Tool to Generate Directory Maps
+- Tool to Generate Directory Maps
 - Generates directory structure maps for Google Drive folders
 - Creates AI-powered summaries of directory contents
 - Combines outputs into a single navigable document
@@ -41,37 +53,38 @@
 
 ## Examples
 
-* Full Processing With Custom Settings
-```bash
-create_google_drive_map.py --in_dir /drive/projects \
-  --out_dir analysis
-```
+- Full Processing with Custom Settings
+  ```bash
+  > create_google_drive_map.py --in_dir /drive/projects \
+    --out_dir analysis
+  ```
 
-* Process First 5 Directories
-```bash
-create_google_drive_map.py --in_dir /drive/folder --limit 1:5
-```
+- Process First 5 Directories
 
-* Combine Existing Results
-```bash
-create_google_drive_map.py --in_dir /drive/folder \
-  --action combine \
-  --out_dir existing_results
-```
+  ```bash
+  > create_google_drive_map.py --in_dir /drive/folder --limit 1:5
+  ```
 
-* Start Fresh Analysis
-```bash
-create_google_drive_map.py --in_dir /drive/folder \
-  --from_scratch \
-  --all
-```
+- Combine Existing Results
+  ```bash
+  > create_google_drive_map.py --in_dir /drive/folder \
+    --action combine \
+    --out_dir existing_results
+  ```
 
-* Create Directory Table Only
-```bash
-create_google_drive_map.py --in_dir /drive/folder \
-  --action table \
-  --out_dir results
-```
+- Start Fresh Analysis
+  ```bash
+  > create_google_drive_map.py --in_dir /drive/folder \
+    --from_scratch \
+    --all
+  ```
+
+- Create Directory Table Only
+  ```bash
+  > create_google_drive_map.py --in_dir /drive/folder \
+    --action table \
+    --out_dir results
+  ```
 
 ## Output Structure
 
@@ -90,9 +103,3 @@ create_google_drive_map.py --in_dir /drive/folder \
 * System Dependencies
 - `tree` command
 - `llm` CLI tool (configured with OpenAI API)
-
-* Python Dependencies
-- helpers.hdbg
-- helpers.hio
-- helpers.hparser
-- helpers.hsystem

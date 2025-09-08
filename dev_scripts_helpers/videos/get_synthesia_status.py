@@ -55,6 +55,7 @@ def _headers(api_key: str) -> Dict[str, str]:
 def _format_timestamp(timestamp) -> str:
     """
     Format timestamp to readable format.
+
     Handles both ISO timestamp strings and unix timestamps.
 
     :param timestamp: ISO timestamp string or unix timestamp (int/float)
