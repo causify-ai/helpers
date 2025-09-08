@@ -28,8 +28,8 @@ MSML610: Advanced Machine Learning
 
 **References**:
 
-#### Models
-- **\textcolor{purple}{Models}**
+####
+- _**\textcolor{red}{Models}**_
   - Naive Bayes
   - Decision trees
   - Random forests
@@ -44,9 +44,9 @@ MSML610: Advanced Machine Learning
   - Anomaly detection
 
 
-#### Naive Bayes
+####
 - Models
-  - **\textcolor{purple}{Naive Bayes}**
+  - _**\textcolor{red}{Naive Bayes}**_
   - Decision trees
   - Random forests
   - Linear models
@@ -248,10 +248,10 @@ MSML610: Advanced Machine Learning
   - Blends a prior that feature values are equiprobable with the estimated
     probabilities using MLE
 
-#### Decision trees
+####
 - Models
   - Naive Bayes
-  - **\textcolor{purple}{Decision trees}**
+  - _**\textcolor{red}{Decision trees}**_
   - Random forests
   - Linear models
   - Perceptron
@@ -537,11 +537,11 @@ MSML610: Advanced Machine Learning
 - Use number of trees and max depth per tree to control the size of the
   space
 
-#### Random forests
+####
 - Models
   - Naive Bayes
   - Decision trees
-  - **\textcolor{purple}{Random forests}**
+  - _**\textcolor{red}{Random forests}**_
   - Linear models
   - Perceptron
   - Logistic regression
@@ -610,12 +610,12 @@ MSML610: Advanced Machine Learning
   - Loss of interpretability
   - Overfitting (cross-validation is needed)
 
-#### Linear models
+####
 - Models
   - Naive Bayes
   - Decision trees
   - Random forests
-  - **\textcolor{purple}{Linear models}**
+  - _**\textcolor{red}{Linear models}**_
   - Perceptron
   - Logistic regression
   - LDA, QDA
@@ -733,13 +733,13 @@ MSML610: Advanced Machine Learning
   - By brute force classifying any point $\vx \in \calX$ by going to the
     $\calZ$ space
 
-#### Perceptron
+####
 - Models
   - Naive Bayes
   - Decision trees
   - Random forests
   - Linear models
-  - **\textcolor{purple}{Perceptron}**
+  - _**\textcolor{red}{Perceptron}**_
   - Logistic regression
   - LDA, QDA
   - Kernel methods
@@ -810,14 +810,14 @@ MSML610: Advanced Machine Learning
      - E.g., threshold for a variable
 
 
-#### Logistic regression
+####
 - Models
   - Naive Bayes
   - Decision trees
   - Random forests
   - Linear models
   - Perceptron
-  - **\textcolor{purple}{Logistic regression}**
+  - _**\textcolor{red}{Logistic regression}**_
   - LDA, QDA
   - Kernel methods
   - Support vector machines
@@ -1119,7 +1119,7 @@ MSML610: Advanced Machine Learning
   - The digits that are equal don't contribute to the error
   - The different digits give a positive contribution
 
-#### LDA, QDA
+####
 - Models
   - Naive Bayes
   - Decision trees
@@ -1127,7 +1127,7 @@ MSML610: Advanced Machine Learning
   - Linear models
   - Perceptron
   - Logistic regression
-  - **\textcolor{purple}{LDA, QDA}**
+  - _**\textcolor{red}{LDA, QDA}**_
   - Kernel methods
   - Support vector machines
   - Similarity-based models
@@ -1282,7 +1282,7 @@ MSML610: Advanced Machine Learning
   $\mSigma$ is diagonal because of feature independence
   - Then the expressions can be simplified even more
 
-#### Kernel methods
+####
 - Models
   - Naive Bayes
   - Decision trees
@@ -1291,7 +1291,7 @@ MSML610: Advanced Machine Learning
   - Perceptron
   - Logistic regression
   - LDA, QDA
-  - **\textcolor{purple}{Kernel methods}**
+  - _**\textcolor{red}{Kernel methods}**_
   - Support vector machines
   - Similarity-based models
   - Clustering
@@ -1431,7 +1431,7 @@ MSML610: Advanced Machine Learning
   - The kernel trick is much more computationally efficient to compute the inner
     product
 
-#### Support vector machines
+####
 - Models
   - Naive Bayes
   - Decision trees
@@ -1441,7 +1441,7 @@ MSML610: Advanced Machine Learning
   - Logistic regression
   - LDA, QDA
   - Kernel methods
-  - **\textcolor{purple}{Support vector machines}**
+  - _**\textcolor{red}{Support vector machines}**_
   - Similarity-based models
   - Clustering
   - Anomaly detection
@@ -1798,7 +1798,7 @@ MSML610: Advanced Machine Learning
   - Pick the model that gives the largest positive value (i.e., more confident
     about its class vs the rest of the classes)
 
-#### Similarity-based models
+####
 - Models
   - Naive Bayes
   - Decision trees
@@ -1809,7 +1809,7 @@ MSML610: Advanced Machine Learning
   - LDA, QDA
   - Kernel methods
   - Support vector machines
-  - **\textcolor{purple}{Similarity-based models}**
+  - _**\textcolor{red}{Similarity-based models}**_
   - Clustering
   - Anomaly detection
 
@@ -2043,7 +2043,7 @@ MSML610: Advanced Machine Learning
     examples in the training set)
   - Use a \textit{constant kernel} (responses are not weighted by distance)
 
-#### Clustering
+####
 - Models
   - Naive Bayes
   - Decision trees
@@ -2055,7 +2055,7 @@ MSML610: Advanced Machine Learning
   - Kernel methods
   - Support vector machines
   - Similarity-based models
-  - **\textcolor{purple}{Clustering}**
+  - _**\textcolor{red}{Clustering}**_
   - Anomaly detection
 
 
@@ -2183,7 +2183,7 @@ MSML610: Advanced Machine Learning
   - Cluster 3:
     $(35 \text{ yrs}, 120K, 20)$ $\to$ "High Income, Low Spending Customers"
 
-#### Anomaly detection
+####
 - Models
   - Naive Bayes
   - Decision trees
@@ -2196,7 +2196,7 @@ MSML610: Advanced Machine Learning
   - Support vector machines
   - Similarity-based models
   - Clustering
-  - **\textcolor{purple}{Anomaly detection}**
+  - _**\textcolor{red}{Anomaly detection}**_
 
 
 #### Anomaly detection: problem formulation

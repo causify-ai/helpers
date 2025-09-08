@@ -291,6 +291,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
 
 
 class Test_format_first_level_bullets1(hunitest.TestCase):
+    # TODO(ai): Rename -> helper
     def format_and_compare_markdown(self, text: str, expected: str) -> None:
         text = hprint.dedent(text)
         expected = hprint.dedent(expected)
