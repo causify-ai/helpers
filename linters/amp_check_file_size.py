@@ -5,6 +5,7 @@ Check if the file exceeds the maximum allowed size.
 
 import argparse
 import logging
+import shlex
 from typing import List
 
 import helpers.hdbg as hdbg
@@ -23,6 +24,8 @@ def _check_file_size(file_name: str, max_kb: int = 500) -> str:
     :param max_kb: the maximum allowed file size in kB
     :return: a warning about the file size
     """
+    # Escape the file path.
+    file_name = shlex.quote(file_name)
     # Get the file size.
     cmd = f"du -sk {file_name} | cut -f1"
     _, file_size = hsystem.system_to_string(cmd)

@@ -16,6 +16,7 @@ E.g.,
 import argparse
 import itertools
 import logging
+import shlex
 from typing import List, Tuple, Type
 
 import joblib
@@ -293,6 +294,8 @@ def _lint(
     if not hserver.is_inside_ci() and not in_tmp_scratch_dir:
         # Stage the linted file for commit if Linter was run manually (not within CI).
         # Skip staging files in `tmp.scratch` dir as they are temporary.
+        # Escape the file path.
+        file_path = shlex.quote(file_path)
         cmd = f"git add {file_path}"
         hsystem.system(cmd)
     return lints
