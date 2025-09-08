@@ -84,7 +84,9 @@ def run_post_transforms(
     if dshlllpr.to_run("format_slide", post_container_transforms):
         # Same as `prettier_markdown`.
         out_txt = hmarkdo.md_clean_up(out_txt)
-        out_txt = hmarkdo.format_markdown_slide(out_txt)
+        lines = out_txt.split("\n")
+        out_txt = hmarkdo.format_markdown_slide(lines)
+        out_txt = "\n".join(out_txt)
     #
     if dshlllpr.to_run("append_to_text", post_container_transforms):
         out_txt_tmp = []

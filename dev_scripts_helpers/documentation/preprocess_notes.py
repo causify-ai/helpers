@@ -240,6 +240,7 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
     return out_tmp
 
 
+# TODO(ai): Move to helpers/hmarkdown_toc.py
 def _add_navigation_slides(
     lines: List[str], max_level: int, *, sanity_check: bool = False
 ) -> List[str]:
@@ -261,8 +262,8 @@ def _add_navigation_slides(
     tree = hmarkdo.build_header_tree(header_list)
     _LOG.debug("tree=\n%s", tree)
     out: List[str] = []
-    open_modifier = r"**\textcolor{purple}{"
-    close_modifier = r"}**"
+    open_modifier = r"_**\textcolor{red}{"
+    close_modifier = r"}**_"
     for line in lines:
         is_header, level, description = hmarkdo.is_header(line)
         if is_header and level <= max_level:
@@ -278,7 +279,8 @@ def _add_navigation_slides(
             _LOG.debug("nav_str=\n%s", nav_str)
             # Replace the header slide with the navigation slide.
             # TODO(gp): We assume the slide level is 4.
-            line_tmp = f"#### {description}\n"
+            #line_tmp = f"#### {description}\n"
+            line_tmp = "####\n"
             # line_tmp += '<span style="color:blue">\n' + nav_str
             line_tmp += nav_str
             # line_tmp += "\n</span>\n"

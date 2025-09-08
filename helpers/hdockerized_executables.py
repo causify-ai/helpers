@@ -599,6 +599,7 @@ def prettier_on_str(
     Wrap `prettier()` to work on strings.
     """
     _LOG.debug("txt=\n%s", txt)
+    hdbg.dassert_isinstance(txt, str)
     # Save string as input.
     # TODO(gp): Use a context manager.
     hdbg.dassert_in(file_type, ["md", "tex", "txt"])
