@@ -253,11 +253,9 @@ def format_first_level_bullets(lines: List[str]) -> List[str]:
 # TODO(gp): Implement and add tests.
 def format_column_blocks(lines: List[str]) -> List[str]:
     """
-    Remove ```python and ``` delimiters from a given text.
-
-    :param lines: list of input lines contthat or 
     # Make sure that there is a single empty line before and after the following
     # block:
+    # <!-- prettier-ignore-start -->
     # 1)
     # ```
     # ::: columns
@@ -277,6 +275,7 @@ def format_column_blocks(lines: List[str]) -> List[str]:
     #
     """
     return lines
+
 
 def format_markdown_slide(lines: List[str]) -> List[str]:
     """

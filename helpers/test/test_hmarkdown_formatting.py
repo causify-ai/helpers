@@ -472,7 +472,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
         """
         Test formatting slide with nested bullets and special formatting.
         """
-        input_text = """
+        input_text = r"""
         * What Are Data Analytics?
         - **Collections of data**
 
@@ -496,7 +496,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
           - E.g., predictive model to anticipate customer churn based on behavioral data
         """
-        expected_text = """
+        expected_text = r"""
         * What Are Data Analytics?
 
         - **Collections of data**
@@ -518,5 +518,76 @@ class Test_format_markdown_slide(hunitest.TestCase):
         - **Models**
           - Statistical representations to forecast, explain phenomena
           - E.g., predictive model to anticipate customer churn based on behavioral data
+        """
+        self.helper(input_text, expected_text)
+
+    def test9(self) -> None:
+        """
+        This reproduces a broken behavior of prettier with fenced divs.
+        """
+        input_text = r"""
+        * Incremental vs Iterative
+        ::: columns
+        :::: {.column width=55%}
+
+        - **Incremental Development**
+          - Each increment adds functional components
+          - Require upfront planning to divide features meaningfully
+          - Integration of increments can be complex
+
+        - **Iterative Development**
+          - Each increment delivers usable system
+          - Refine and improve product through repeated cycles
+          - Get feedback
+          - Uncover and adjust for unknown requirements
+
+        - **Incremental $\gg$ Iterative**
+
+        ::::
+        :::: {.column width=40%}
+
+        ![](msml610/lectures_source/figures/Lesson02_Monalisa_incremental.png){width=90%}
+
+        \small _Incremental
+
+        \vspace{0.5cm}
+
+        ![](msml610/lectures_source/figures/Lesson02_Monalisa_iterative.png){width=90%}
+
+        \small _Iterative_
+
+        \vspace{0.5cm}
+
+        ![](msml610/lectures_source/figures/Lesson02_Skateboard.png){width=90%}
+
+        \small _Incremental vs Iterative_
+        ::::
+        :::
+        """
+        expected_text = r"""
+        * Incremental vs Iterative
+        ::: columns :::: {.column width=55%}
+
+        - **Incremental Development**
+          - Each increment adds functional components
+          - Require upfront planning to divide features meaningfully
+          - Integration of increments can be complex
+
+        - **Iterative Development**
+          - Each increment delivers usable system
+          - Refine and improve product through repeated cycles
+          - Get feedback
+          - Uncover and adjust for unknown requirements
+
+        - **Incremental $\gg$ Iterative**
+        :::: :::: {.column width=40%}
+        ![](msml610/lectures_source/figures/Lesson02_Monalisa_incremental.png){width=90%}
+        \small \_Incremental
+        \vspace{0.5cm}
+        ![](msml610/lectures_source/figures/Lesson02_Monalisa_iterative.png){width=90%}
+        \small _Iterative_
+        \vspace{0.5cm}
+        ![](msml610/lectures_source/figures/Lesson02_Skateboard.png){width=90%}
+        \small _Incremental vs Iterative_ :::: :::
         """
         self.helper(input_text, expected_text)
