@@ -40,17 +40,26 @@ def _to_abs_path(filename: str) -> str:
     return filename
 
 
-def _prepare_docker_ignore(ctx: Any, docker_ignore: str) -> None:
+def _prepare_docker_ignore(
+    ctx: Any,
+    docker_ignore: str,
+    copy_to_git_root: bool=True,
+) -> None:
     """
     Copy the target `docker_ignore` in the proper position for `docker build`.
 
     :param ctx: invoke context
     :param docker_ignore: path to the `.dockerignore` file
+    :param copy_to_git_root: if True, copy the `.dockerignore` file to the
+        git root directory; otherwise, copy it to the current directory
     """
     # Currently there is no built-in way to control which `.dockerignore` to
     # use (https://stackoverflow.com/questions/40904409).
     hdbg.dassert_path_exists(docker_ignore)
-    dest_docker_ignore = os.path.join(hgit.find_git_root(), ".dockerignore")
+    if copy_to_git_root:
+        dest_docker_ignore = os.path.join(hgit.find_git_root(), ".dockerignore")
+    else:
+        dest_docker_ignore = ".dockerignore"
     cmd = f"cp -f {docker_ignore} {dest_docker_ignore}"
     hlitauti.run(ctx, cmd)
 
