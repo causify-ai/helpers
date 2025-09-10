@@ -28,8 +28,8 @@ MSML610: Advanced Machine Learning
 
 **References**:
 
-#### Linear algebra
-- **\textcolor{purple}{Linear algebra}**
+####
+- _**\textcolor{red}{Linear algebra}**_
   - Vector and vector spaces
   - Affine spaces
   - Linear functions
@@ -40,9 +40,9 @@ MSML610: Advanced Machine Learning
   - Connections between Machine Learning and Linear Algebra
 
 
-#### Vector and vector spaces
+####
 - Linear algebra
-  - **\textcolor{purple}{Vector and vector spaces}**
+  - _**\textcolor{red}{Vector and vector spaces}**_
   - Affine spaces
   - Linear functions
   - Linear dependence
@@ -195,10 +195,10 @@ satisfying the following 6 axioms:
   $$
 - $\vx^T \cdot \vy$ is read "x dotted y" or "x transposed y"
 
-#### Affine spaces
+####
 - Linear algebra
   - Vector and vector spaces
-  - **\textcolor{purple}{Affine spaces}**
+  - _**\textcolor{red}{Affine spaces}**_
   - Linear functions
   - Linear dependence
   - Basis
@@ -308,11 +308,11 @@ satisfying the following 6 axioms:
   - Fixing a coordinate (e.g., row) one gets the orthogonal indices (e.g.,
     column)
 
-#### Linear functions
+####
 - Linear algebra
   - Vector and vector spaces
   - Affine spaces
-  - **\textcolor{purple}{Linear functions}**
+  - _**\textcolor{red}{Linear functions}**_
   - Linear dependence
   - Basis
   - Dimension of a vector space
@@ -455,12 +455,12 @@ satisfying the following 6 axioms:
 - If $\mA$ and $\mB$ are invertible and can be multiplied, then $\mA \cdot \mB$
   is invertible
 
-#### Linear dependence
+####
 - Linear algebra
   - Vector and vector spaces
   - Affine spaces
   - Linear functions
-  - **\textcolor{purple}{Linear dependence}**
+  - _**\textcolor{red}{Linear dependence}**_
   - Basis
   - Dimension of a vector space
   - Direct sum
@@ -592,13 +592,13 @@ satisfying the following 6 axioms:
   - The solution set of a homogeneous linear system is trivial?
   - A given solution of a non-homogeneous linear system is the only solution?
 
-#### Basis
+####
 - Linear algebra
   - Vector and vector spaces
   - Affine spaces
   - Linear functions
   - Linear dependence
-  - **\textcolor{purple}{Basis}**
+  - _**\textcolor{red}{Basis}**_
   - Dimension of a vector space
   - Direct sum
   - Connections between Machine Learning and Linear Algebra
@@ -657,14 +657,14 @@ satisfying the following 6 axioms:
   - The entire transformation is also invertible, i.e., we can go from
     coordinates of $\vc$ to $\va$
 
-#### Dimension of a vector space
+####
 - Linear algebra
   - Vector and vector spaces
   - Affine spaces
   - Linear functions
   - Linear dependence
   - Basis
-  - **\textcolor{purple}{Dimension of a vector space}**
+  - _**\textcolor{red}{Dimension of a vector space}**_
   - Direct sum
   - Connections between Machine Learning and Linear Algebra
 
@@ -843,7 +843,7 @@ satisfying the following 6 axioms:
   $$\Rank(\Col(\mA)) \le \Rank(\Row(\mA))$$
   and we can use the penultimate step to reach the thesis
 
-#### Direct sum
+####
 - Linear algebra
   - Vector and vector spaces
   - Affine spaces
@@ -851,7 +851,7 @@ satisfying the following 6 axioms:
   - Linear dependence
   - Basis
   - Dimension of a vector space
-  - **\textcolor{purple}{Direct sum}**
+  - _**\textcolor{red}{Direct sum}**_
   - Connections between Machine Learning and Linear Algebra
 
 
@@ -913,7 +913,7 @@ satisfying the following 6 axioms:
 
 
 
-#### Connections between Machine Learning and Linear Algebra
+####
 - Linear algebra
   - Vector and vector spaces
   - Affine spaces
@@ -922,5 +922,5 @@ satisfying the following 6 axioms:
   - Basis
   - Dimension of a vector space
   - Direct sum
-  - **\textcolor{purple}{Connections between Machine Learning and Linear Algebra}**
+  - _**\textcolor{red}{Connections between Machine Learning and Linear Algebra}**_
 

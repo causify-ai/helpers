@@ -29,8 +29,8 @@ MSML610: Advanced Machine Learning
 **References**:
   - AIMA 14: Probabilistic reasoning over time
 
-#### Reasoning over time
-- **\textcolor{purple}{Reasoning over time}**
+####
+- _**\textcolor{red}{Reasoning over time}**_
 - HMMs
 - Markov random fields
 - Markov logic network
@@ -720,9 +720,9 @@ digraph Viterbi {
 ::::
 :::
 
-#### HMMs
+####
 - Reasoning over time
-- **\textcolor{purple}{HMMs}**
+- _**\textcolor{red}{HMMs}**_
 - Markov random fields
 - Markov logic network
 - State space models and Kalman filter
@@ -909,10 +909,10 @@ digraph Viterbi {
   - Deep learning can handle complex temporal dependencies and long term
     relationships
 
-#### Markov random fields
+####
 - Reasoning over time
 - HMMs
-- **\textcolor{purple}{Markov random fields}**
+- _**\textcolor{red}{Markov random fields}**_
 - Markov logic network
 - State space models and Kalman filter
 - Multivariate Kalman filters
@@ -921,11 +921,11 @@ digraph Viterbi {
 - Variational Inference
 
 
-#### Markov logic network
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
-- **\textcolor{purple}{Markov logic network}**
+- _**\textcolor{red}{Markov logic network}**_
 - State space models and Kalman filter
 - Multivariate Kalman filters
 - Dynamic Bayesian networks
@@ -934,12 +934,12 @@ digraph Viterbi {
 
 
 
-#### State space models and Kalman filter
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
 - Markov logic network
-- **\textcolor{purple}{State space models and Kalman filter}**
+- _**\textcolor{red}{State space models and Kalman filter}**_
   - g-h filter
   - One dimensional Kalman filters
   - Multivariate Gaussians
@@ -988,13 +988,13 @@ digraph Viterbi {
 - Never discard information, no matter how poor
   - E.g., two sensors, even if one is less accurate, are better than one
 
-#### g-h filter
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
 - Markov logic network
 - State space models and Kalman filter
-  - **\textcolor{purple}{g-h filter}**
+  - _**\textcolor{red}{g-h filter}**_
   - One dimensional Kalman filters
   - Multivariate Gaussians
 - Multivariate Kalman filters
@@ -1192,14 +1192,14 @@ digraph BayesianFlow {
   similar to a changing state
 
 
-#### One dimensional Kalman filters
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
 - Markov logic network
 - State space models and Kalman filter
   - g-h filter
-  - **\textcolor{purple}{One dimensional Kalman filters}**
+  - _**\textcolor{red}{One dimensional Kalman filters}**_
   - Multivariate Gaussians
 - Multivariate Kalman filters
 - Dynamic Bayesian networks
@@ -1339,7 +1339,7 @@ def update(prior, measurement):
   return gaussian(x, P)
 ```
 
-#### Multivariate Gaussians
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
@@ -1347,7 +1347,7 @@ def update(prior, measurement):
 - State space models and Kalman filter
   - g-h filter
   - One dimensional Kalman filters
-  - **\textcolor{purple}{Multivariate Gaussians}**
+  - _**\textcolor{red}{Multivariate Gaussians}**_
 - Multivariate Kalman filters
 - Dynamic Bayesian networks
 - State space model
@@ -1421,13 +1421,13 @@ def update(prior, measurement):
     - You can infer that the velocity is 5/s
     - The covariance matrix is then stretched diagonally
 
-#### Multivariate Kalman filters
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
 - Markov logic network
 - State space models and Kalman filter
-- **\textcolor{purple}{Multivariate Kalman filters}**
+- _**\textcolor{red}{Multivariate Kalman filters}**_
   - Tracking a dog with a Kalman filter
   - Non-linear filtering
 - Dynamic Bayesian networks
@@ -1544,14 +1544,14 @@ def update(prior, measurement):
   - The measurement function $\mH$
   - The control inputs $\mB$ and $\vu$ if there are control inputs
 
-#### Tracking a dog with a Kalman filter
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
 - Markov logic network
 - State space models and Kalman filter
 - Multivariate Kalman filters
-  - **\textcolor{purple}{Tracking a dog with a Kalman filter}**
+  - _**\textcolor{red}{Tracking a dog with a Kalman filter}**_
   - Non-linear filtering
 - Dynamic Bayesian networks
 - State space model
@@ -1674,7 +1674,7 @@ def update(prior, measurement):
   - The error can be not symmetrical (e.g., temperature sensor is less precise
     as the temperature increases)
 
-#### Non-linear filtering
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
@@ -1682,7 +1682,7 @@ def update(prior, measurement):
 - State space models and Kalman filter
 - Multivariate Kalman filters
   - Tracking a dog with a Kalman filter
-  - **\textcolor{purple}{Non-linear filtering}**
+  - _**\textcolor{red}{Non-linear filtering}**_
 - Dynamic Bayesian networks
 - State space model
 - Variational Inference
@@ -1812,14 +1812,14 @@ def update(prior, measurement):
   - Compute weighted mean and covariance of the particles to get an estimate of
     the state and uncertainty
 
-#### Dynamic Bayesian networks
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
 - Markov logic network
 - State space models and Kalman filter
 - Multivariate Kalman filters
-- **\textcolor{purple}{Dynamic Bayesian networks}**
+- _**\textcolor{red}{Dynamic Bayesian networks}**_
 - State space model
 - Variational Inference
 
@@ -2098,7 +2098,7 @@ digraph RobotDBN {
   - Instead of running each sample through the entire DBN one can run all the
     samples evaluating one slice at a time to compute the posterior distribution
 
-#### State space model
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
@@ -2106,11 +2106,11 @@ digraph RobotDBN {
 - State space models and Kalman filter
 - Multivariate Kalman filters
 - Dynamic Bayesian networks
-- **\textcolor{purple}{State space model}**
+- _**\textcolor{red}{State space model}**_
 - Variational Inference
 
 
-#### Variational Inference
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
@@ -2119,13 +2119,13 @@ digraph RobotDBN {
 - Multivariate Kalman filters
 - Dynamic Bayesian networks
 - State space model
-- **\textcolor{purple}{Variational Inference}**
+- _**\textcolor{red}{Variational Inference}**_
   - Expectation-Maximization (EM) Algorithm
 
 
 
 
-#### Expectation-Maximization (EM) Algorithm
+####
 - Reasoning over time
 - HMMs
 - Markov random fields
@@ -2135,7 +2135,7 @@ digraph RobotDBN {
 - Dynamic Bayesian networks
 - State space model
 - Variational Inference
-  - **\textcolor{purple}{Expectation-Maximization (EM) Algorithm}**
+  - _**\textcolor{red}{Expectation-Maximization (EM) Algorithm}**_
 
 
 #### EM Algorithm: Intuition and Applications

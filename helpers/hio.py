@@ -334,6 +334,7 @@ def _create_dir(
         if os.path.islink(dir_name):
             delete_file(dir_name)
         else:
+            hdbg.dassert_ne(os.path.normpath(dir_name), ".")
             shutil.rmtree(dir_name)
     _LOG.debug("Creating directory '%s'", dir_name)
     # NOTE: `os.makedirs` raises `OSError` if the target directory already exists.

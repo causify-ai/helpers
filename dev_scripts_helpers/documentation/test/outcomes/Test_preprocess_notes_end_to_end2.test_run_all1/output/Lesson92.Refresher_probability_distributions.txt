@@ -28,8 +28,8 @@ MSML610: Advanced Machine Learning
 
 **References**:
 
-#### Interesting RVs
-- **\textcolor{purple}{Interesting RVs}**
+####
+- _**\textcolor{red}{Interesting RVs}**_
   - Bernoulli
   - Binomial
   - Gaussian
@@ -40,9 +40,9 @@ MSML610: Advanced Machine Learning
 - Probability inequalities
 
 
-#### Bernoulli
+####
 - Interesting RVs
-  - **\textcolor{purple}{Bernoulli}**
+  - _**\textcolor{red}{Bernoulli}**_
   - Binomial
   - Gaussian
   - Log-Normal
@@ -69,10 +69,10 @@ MSML610: Advanced Machine Learning
 - Mean: $\EE[X] = p$
 - Variance: $\VV[X] = p(1 - p)$
 
-#### Binomial
+####
 - Interesting RVs
   - Bernoulli
-  - **\textcolor{purple}{Binomial}**
+  - _**\textcolor{red}{Binomial}**_
   - Gaussian
   - Log-Normal
   - Poisson
@@ -130,11 +130,11 @@ MSML610: Advanced Machine Learning
   = 9 / 256
   $$
 
-#### Gaussian
+####
 - Interesting RVs
   - Bernoulli
   - Binomial
-  - **\textcolor{purple}{Gaussian}**
+  - _**\textcolor{red}{Gaussian}**_
   - Log-Normal
   - Poisson
   - Chi-square
@@ -249,12 +249,12 @@ MSML610: Advanced Machine Learning
 - It's not very likely since
   $\Pr(Z \ge 2.33) = 1 - \Pr(Z \le 2.33) = 1 - 99\% = 1\%$
 
-#### Log-Normal
+####
 - Interesting RVs
   - Bernoulli
   - Binomial
   - Gaussian
-  - **\textcolor{purple}{Log-Normal}**
+  - _**\textcolor{red}{Log-Normal}**_
   - Poisson
   - Chi-square
   - Student's t-distribution
@@ -273,13 +273,13 @@ MSML610: Advanced Machine Learning
 - Variance: $\VV[X] = \exp(2 \mu + \sigma^2) (\exp(\sigma^2) - 1)$
 - TODO: look at the PDF shape
 
-#### Poisson
+####
 - Interesting RVs
   - Bernoulli
   - Binomial
   - Gaussian
   - Log-Normal
-  - **\textcolor{purple}{Poisson}**
+  - _**\textcolor{red}{Poisson}**_
   - Chi-square
   - Student's t-distribution
 - Probability inequalities
@@ -345,14 +345,14 @@ MSML610: Advanced Machine Learning
 - Poisson is simpler to compute since it has only one factorial, instead of two
   factorials like the Binomial
 
-#### Chi-square
+####
 - Interesting RVs
   - Bernoulli
   - Binomial
   - Gaussian
   - Log-Normal
   - Poisson
-  - **\textcolor{purple}{Chi-square}**
+  - _**\textcolor{red}{Chi-square}**_
   - Student's t-distribution
 - Probability inequalities
 
@@ -376,7 +376,7 @@ MSML610: Advanced Machine Learning
 - The mean is equal to the number of degree of freedom: $\EE[X] = q$
 - It can be shown by its definition in terms of Gaussians
 
-#### Student's t-distribution
+####
 - Interesting RVs
   - Bernoulli
   - Binomial
@@ -384,7 +384,7 @@ MSML610: Advanced Machine Learning
   - Log-Normal
   - Poisson
   - Chi-square
-  - **\textcolor{purple}{Student's t-distribution}**
+  - _**\textcolor{red}{Student's t-distribution}**_
 - Probability inequalities
 
 
@@ -413,9 +413,9 @@ MSML610: Advanced Machine Learning
 - For large $q$ the t-distribution converges to a normal distribution
 - MEM: It's like a standard Gaussian with heavier tails
 
-#### Probability inequalities
+####
 - Interesting RVs
-- **\textcolor{purple}{Probability inequalities}**
+- _**\textcolor{red}{Probability inequalities}**_
 
 
 #### PAC statements

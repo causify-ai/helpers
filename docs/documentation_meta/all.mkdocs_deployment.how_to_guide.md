@@ -91,7 +91,7 @@ blog/
   > (cd $DST_DIR; mkdocs serve --dev-addr localhost:8001)
   ```
 
-- Go to http://localhost:8001
+- Go to [http://localhost:8001](http://localhost:8001)
 
 ## Publish the documentation
 
@@ -113,7 +113,7 @@ blog/
   > (cd $DST_DIR; mkdocs gh-deploy)
   ```
 
-- GitHub renders the documentation at https://causify-ai.github.io/helpers/
+- GitHub renders the documentation at [https://causify-ai.github.io/helpers/](https://causify-ai.github.io/helpers/)
 
 # Docu
 
@@ -139,4 +139,5 @@ saggese@gpmac.local venv:(mkdocs) branch:'master' ~/src/tutorials1
   - notes.startup_admin_guide/
 
 - How to publish documentation with GH actions
-  - /Users/saggese/src/cmamp1/helpers_root/.github/workflows/publish_mkdocs.yml
+
+- How to publish from gpsaggese GitHub?
