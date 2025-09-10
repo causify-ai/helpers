@@ -37,8 +37,8 @@ MSML610: Advanced Machine Learning
   - AIMA
   - Facuce
 
-#### Causal AI
-- **\textcolor{purple}{Causal AI}**
+####
+- _**\textcolor{red}{Causal AI}**_
   - Why Causal AI?
   - Concepts in Causal AI
   - Variables
@@ -49,9 +49,9 @@ MSML610: Advanced Machine Learning
 
 
 
-#### Why Causal AI?
+####
 - Causal AI
-  - **\textcolor{purple}{Why Causal AI?}**
+  - _**\textcolor{red}{Why Causal AI?}**_
   - Concepts in Causal AI
   - Variables
   - Paths
@@ -180,10 +180,10 @@ MSML610: Advanced Machine Learning
   - Provides a deeper understanding of relationships for better decisions
   - E.g., improving supply chain by understanding logistic impact
 
-#### Concepts in Causal AI
+####
 - Causal AI
   - Why Causal AI?
-  - **\textcolor{purple}{Concepts in Causal AI}**
+  - _**\textcolor{red}{Concepts in Causal AI}**_
   - Variables
   - Paths
   - The Ladder of Causation
@@ -274,11 +274,11 @@ digraph SCMExample {
 ::::
 :::
 
-#### Variables
+####
 - Causal AI
   - Why Causal AI?
   - Concepts in Causal AI
-  - **\textcolor{purple}{Variables}**
+  - _**\textcolor{red}{Variables}**_
   - Paths
   - The Ladder of Causation
   - Correlation vs causation models
@@ -678,12 +678,12 @@ digraph ModeratorModel {
 ::::
 :::
 
-#### Paths
+####
 - Causal AI
   - Why Causal AI?
   - Concepts in Causal AI
   - Variables
-  - **\textcolor{purple}{Paths}**
+  - _**\textcolor{red}{Paths}**_
   - The Ladder of Causation
   - Correlation vs causation models
 - Business processes around data modeling
@@ -954,13 +954,13 @@ digraph CausalDAG {
 :::
 
 
-#### The Ladder of Causation
+####
 - Causal AI
   - Why Causal AI?
   - Concepts in Causal AI
   - Variables
   - Paths
-  - **\textcolor{purple}{The Ladder of Causation}**
+  - _**\textcolor{red}{The Ladder of Causation}**_
   - Correlation vs causation models
 - Business processes around data modeling
 
@@ -1031,14 +1031,14 @@ digraph CausalDAG {
   - Marketing: "Why did my marketing campaign fail to generate sales?"
 
 
-#### Correlation vs causation models
+####
 - Causal AI
   - Why Causal AI?
   - Concepts in Causal AI
   - Variables
   - Paths
   - The Ladder of Causation
-  - **\textcolor{purple}{Correlation vs causation models}**
+  - _**\textcolor{red}{Correlation vs causation models}**_
 - Business processes around data modeling
 
 
@@ -1212,17 +1212,17 @@ digraph CausalReasoningFlow {
   }
   ```
 
-#### Business processes around data modeling
+####
 - Causal AI
-- **\textcolor{purple}{Business processes around data modeling}**
+- _**\textcolor{red}{Business processes around data modeling}**_
   - Modeling processes
   - Roles
 
 
-#### Modeling processes
+####
 - Causal AI
 - Business processes around data modeling
-  - **\textcolor{purple}{Modeling processes}**
+  - _**\textcolor{red}{Modeling processes}**_
   - Roles
 
 
@@ -1486,11 +1486,11 @@ digraph CausalFlowGrid {
 - Goal: A deployable causal AI solution that supports strategic decisions and
   delivers measurable business value
 
-#### Roles
+####
 - Causal AI
 - Business processes around data modeling
   - Modeling processes
-  - **\textcolor{purple}{Roles}**
+  - _**\textcolor{red}{Roles}**_
 
 
 #### Why ML / AI projects fail?

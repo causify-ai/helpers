@@ -28,14 +28,14 @@ MSML610: Advanced Machine Learning
 
 **References**:
 
-#### Information theory
-- **\textcolor{purple}{Information theory}**
+####
+- _**\textcolor{red}{Information theory}**_
   - Entropy
 
 
-#### Entropy
+####
 - Information theory
-  - **\textcolor{purple}{Entropy}**
+  - _**\textcolor{red}{Entropy}**_
 
 
 #### Entropy and Uncertainty

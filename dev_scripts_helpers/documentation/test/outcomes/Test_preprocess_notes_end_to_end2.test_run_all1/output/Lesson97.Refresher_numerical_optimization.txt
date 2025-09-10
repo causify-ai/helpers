@@ -28,8 +28,8 @@ MSML610: Advanced Machine Learning
 
 **References**:
 
-#### Optimization / numerical methods
-- **\textcolor{purple}{Optimization / numerical methods}**
+####
+- _**\textcolor{red}{Optimization / numerical methods}**_
 
 
 #### Unconstrained Optimization

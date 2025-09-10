@@ -28,8 +28,8 @@ MSML610: Advanced Machine Learning
 
 **References**:
 
-#### Stochastic processes
-- **\textcolor{purple}{Stochastic processes}**
+####
+- _**\textcolor{red}{Stochastic processes}**_
 
 
 #### Random Variables and Index Sets

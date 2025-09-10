@@ -31,8 +31,8 @@ MSML610: Advanced Machine Learning
 - AIMA 5: Adversarial search and game theory
 - AIMA 18: Multiagent decision making
 
-#### Game theory
-- **\textcolor{purple}{Game theory}**
+####
+- _**\textcolor{red}{Game theory}**_
   - Connections between Machine Learning and Game Theory
 
 
@@ -145,6 +145,7 @@ MSML610: Advanced Machine Learning
 - Arrow’s impossibility theorem: no perfect voting system exists
 - Relevant in ensemble methods and preference aggregation
 
-#### Connections between Machine Learning and Game Theory
+####
 - Game theory
-  - **\textcolor{purple}{Connections between Machine Learning and Game Theory}**
+  - _**\textcolor{red}{Connections between Machine Learning and Game Theory}**_
+

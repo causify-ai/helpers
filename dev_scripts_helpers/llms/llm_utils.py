@@ -7,7 +7,6 @@ import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 
-
 _LOG = logging.getLogger(__name__)
 
 

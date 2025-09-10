@@ -40,8 +40,8 @@ MSML610: Advanced Machine Learning
 ::::
 :::
 
-#### A Map of Machine Learning
-- **\textcolor{purple}{A Map of Machine Learning}**
+####
+- _**\textcolor{red}{A Map of Machine Learning}**_
 - What Is Artificial Intelligence
 
 
@@ -164,9 +164,9 @@ mindmap
   - Bagging
   - Stacking
 
-#### What Is Artificial Intelligence
+####
 - A Map of Machine Learning
-- **\textcolor{purple}{What Is Artificial Intelligence}**
+- _**\textcolor{red}{What Is Artificial Intelligence}**_
   - AI
   - ML
   - AI vs ML vs Deep-Learning
@@ -176,10 +176,10 @@ mindmap
   - Risks and Benefits of AI
 
 
-#### AI
+####
 - A Map of Machine Learning
 - What Is Artificial Intelligence
-  - **\textcolor{purple}{AI}**
+  - _**\textcolor{red}{AI}**_
   - ML
   - AI vs ML vs Deep-Learning
   - The Foundation of AI
@@ -347,11 +347,11 @@ mindmap
     - Limited rationality = acting appropriately when lacking time for all
       computations
 
-#### ML
+####
 - A Map of Machine Learning
 - What Is Artificial Intelligence
   - AI
-  - **\textcolor{purple}{ML}**
+  - _**\textcolor{red}{ML}**_
   - AI vs ML vs Deep-Learning
   - The Foundation of AI
   - Brief History of AI
@@ -432,12 +432,12 @@ mindmap
 
 - _"The unreasonable effectiveness of data"_ (Halevy, Norvig, Pereira, 2009)
 
-#### AI vs ML vs Deep-Learning
+####
 - A Map of Machine Learning
 - What Is Artificial Intelligence
   - AI
   - ML
-  - **\textcolor{purple}{AI vs ML vs Deep-Learning}**
+  - _**\textcolor{red}{AI vs ML vs Deep-Learning}**_
   - The Foundation of AI
   - Brief History of AI
   - AI State of the Art
@@ -492,13 +492,13 @@ mindmap
   \node[above] at (1.2,-1.4) {\textbf{LLMs}};
 ```
 
-#### The Foundation of AI
+####
 - A Map of Machine Learning
 - What Is Artificial Intelligence
   - AI
   - ML
   - AI vs ML vs Deep-Learning
-  - **\textcolor{purple}{The Foundation of AI}**
+  - _**\textcolor{red}{The Foundation of AI}**_
   - Brief History of AI
   - AI State of the Art
   - Risks and Benefits of AI
@@ -788,14 +788,14 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
     - Symbolic planning
     - Computation
 
-#### Brief History of AI
+####
 - A Map of Machine Learning
 - What Is Artificial Intelligence
   - AI
   - ML
   - AI vs ML vs Deep-Learning
   - The Foundation of AI
-  - **\textcolor{purple}{Brief History of AI}**
+  - _**\textcolor{red}{Brief History of AI}**_
   - AI State of the Art
   - Risks and Benefits of AI
 
@@ -1027,7 +1027,7 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
   - Universal algorithm for learning and acting, instead of specialized tasks
     (e.g., driving a car, playing chess, recognizing speech)
 
-#### AI State of the Art
+####
 - A Map of Machine Learning
 - What Is Artificial Intelligence
   - AI
@@ -1035,7 +1035,7 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
   - AI vs ML vs Deep-Learning
   - The Foundation of AI
   - Brief History of AI
-  - **\textcolor{purple}{AI State of the Art}**
+  - _**\textcolor{red}{AI State of the Art}**_
   - Risks and Benefits of AI
 
 
@@ -1094,7 +1094,7 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
     - Papers have shown that predictions of experts are no better than amateurs
   - Unclear if need new breakthroughs or refinements on current approaches
 
-#### Risks and Benefits of AI
+####
 - A Map of Machine Learning
 - What Is Artificial Intelligence
   - AI
@@ -1103,7 +1103,7 @@ _**\textcolor{red}{How can artifacts operate under their own control?}**_
   - The Foundation of AI
   - Brief History of AI
   - AI State of the Art
-  - **\textcolor{purple}{Risks and Benefits of AI}**
+  - _**\textcolor{red}{Risks and Benefits of AI}**_
 
 
 #### Civilization and AI

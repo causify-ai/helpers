@@ -86,9 +86,7 @@ def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
     return do_continue, line
 
 
-def _process_question_to_slides(
-    line: str, *, level: int = 4
-) -> Tuple[bool, str]:
+def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str]:
     """
     Transform `* foo bar` into `#### foo bar`.
     """
@@ -204,9 +202,9 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
                     out.append(" " * _NUM_SPACES + line)
             else:
                 # Empty line.
-                prev_line_is_verbatim = ((i - 1) > 0) and lines[
-                    i - 1
-                ].startswith("```")
+                prev_line_is_verbatim = ((i - 1) > 0) and lines[i - 1].startswith(
+                    "```"
+                )
                 next_line_is_verbatim = ((i + 1) < len(lines)) and (
                     lines[i + 1].startswith("```")
                 )
@@ -309,7 +307,7 @@ def _add_navigation_slides(
             _LOG.debug("nav_str=\n%s", nav_str)
             # Replace the header slide with the navigation slide.
             # TODO(gp): We assume the slide level is 4.
-            #line_tmp = f"#### {description}\n"
+            # line_tmp = f"#### {description}\n"
             line_tmp = "####\n"
             # line_tmp += '<span style="color:blue">\n' + nav_str
             line_tmp += nav_str

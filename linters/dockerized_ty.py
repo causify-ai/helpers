@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
+# TODO(ai): Add explanation.
 """
-Dockerized template.
-
-This script is a template for creating a Dockerized script.
 
 > ty check --output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' .
 """

@@ -29,8 +29,8 @@ MSML610: Advanced Machine Learning
 
 **References**:
 
-#### Time Series
-- **\textcolor{purple}{Time Series}**
+####
+- _**\textcolor{red}{Time Series}**_
   - Basic definition
   - Time series operators
   - Time series decomposition
@@ -39,9 +39,9 @@ MSML610: Advanced Machine Learning
 - Special techniques for time series modeling
 
 
-#### Basic definition
+####
 - Time Series
-  - **\textcolor{purple}{Basic definition}**
+  - _**\textcolor{red}{Basic definition}**_
   - Time series operators
   - Time series decomposition
 - Classical Methods
@@ -218,10 +218,10 @@ MSML610: Advanced Machine Learning
   - Detrending
   - Differencing (integral or fractional) 
 
-#### Time series operators
+####
 - Time Series
   - Basic definition
-  - **\textcolor{purple}{Time series operators}**
+  - _**\textcolor{red}{Time series operators}**_
   - Time series decomposition
 - Classical Methods
 - Modern Approaches
@@ -336,11 +336,11 @@ MSML610: Advanced Machine Learning
 - The notation highlights that you can express the $n$-th difference operator in
   terms of $n$-th power of the difference operator
 
-#### Time series decomposition
+####
 - Time Series
   - Basic definition
   - Time series operators
-  - **\textcolor{purple}{Time series decomposition}**
+  - _**\textcolor{red}{Time series decomposition}**_
 - Classical Methods
 - Modern Approaches
 - Special techniques for time series modeling
@@ -479,9 +479,9 @@ Sub-seasonal plot
 ::::
 :::
 
-#### Classical Methods
+####
 - Time Series
-- **\textcolor{purple}{Classical Methods}**
+- _**\textcolor{red}{Classical Methods}**_
   - Simple Models for Stochastic Process
   - Autoregressive models
   - Moving average models
@@ -491,10 +491,10 @@ Sub-seasonal plot
 - Special techniques for time series modeling
 
 
-#### Simple Models for Stochastic Process
+####
 - Time Series
 - Classical Methods
-  - **\textcolor{purple}{Simple Models for Stochastic Process}**
+  - _**\textcolor{red}{Simple Models for Stochastic Process}**_
   - Autoregressive models
   - Moving average models
   - ARMA(p, q) process
@@ -557,11 +557,11 @@ Sub-seasonal plot
   between innovations are 0
   - It is non-stationary in the variance
 
-#### Autoregressive models
+####
 - Time Series
 - Classical Methods
   - Simple Models for Stochastic Process
-  - **\textcolor{purple}{Autoregressive models}**
+  - _**\textcolor{red}{Autoregressive models}**_
   - Moving average models
   - ARMA(p, q) process
   - ARCH model
@@ -710,12 +710,12 @@ Sub-seasonal plot
   \end{aligned}
   $$
 
-#### Moving average models
+####
 - Time Series
 - Classical Methods
   - Simple Models for Stochastic Process
   - Autoregressive models
-  - **\textcolor{purple}{Moving average models}**
+  - _**\textcolor{red}{Moving average models}**_
   - ARMA(p, q) process
   - ARCH model
 - Modern Approaches
@@ -808,13 +808,13 @@ Sub-seasonal plot
   = \mu + f(\theta, L) \varepsilon_i
   $$
 
-#### ARMA(p, q) process
+####
 - Time Series
 - Classical Methods
   - Simple Models for Stochastic Process
   - Autoregressive models
   - Moving average models
-  - **\textcolor{purple}{ARMA(p, q) process}**
+  - _**\textcolor{red}{ARMA(p, q) process}**_
   - ARCH model
 - Modern Approaches
 - Special techniques for time series modeling
@@ -924,14 +924,14 @@ Sub-seasonal plot
      - If estimation is inadequate, go back to step 1) and attempt to build a
        better model
 
-#### ARCH model
+####
 - Time Series
 - Classical Methods
   - Simple Models for Stochastic Process
   - Autoregressive models
   - Moving average models
   - ARMA(p, q) process
-  - **\textcolor{purple}{ARCH model}**
+  - _**\textcolor{red}{ARCH model}**_
 - Modern Approaches
 - Special techniques for time series modeling
 
@@ -1071,10 +1071,10 @@ Sub-seasonal plot
       holidays
     - E.g., predicting higher electricity usage during a heatwave
 
-#### Modern Approaches
+####
 - Time Series
 - Classical Methods
-- **\textcolor{purple}{Modern Approaches}**
+- _**\textcolor{red}{Modern Approaches}**_
 - Special techniques for time series modeling
 
 
@@ -1179,11 +1179,11 @@ Sub-seasonal plot
 - Cons
   - Computationally expensive
 
-#### Special techniques for time series modeling
+####
 - Time Series
 - Classical Methods
 - Modern Approaches
-- **\textcolor{purple}{Special techniques for time series modeling}**
+- _**\textcolor{red}{Special techniques for time series modeling}**_
 
 
 #### Time Series Machine Learning: Problems

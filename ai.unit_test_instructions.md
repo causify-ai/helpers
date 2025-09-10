@@ -1,5 +1,6 @@
 - For a file XYZ.py add a file test/test_XYZ.py
-  - As an example see helpers/hdbg.py and its test code in helpers/test/test_hdbg.py
+  - As an example see helpers/hdbg.py and its test code in
+    helpers/test/test_hdbg.py
 
 - To write unit test follow the template ./unit_test_template.py
   - Each tested function has a test class
@@ -19,9 +20,9 @@
 - Clearly summarize
 
 - Each function should be tested using its inputs and outputs
-  - If a function to be tested uses files, change the code under test to use data
-    structures so that it is easier to test and then add functions to read /
-    write output
+  - If a function to be tested uses files, change the code under test to use
+    data structures so that it is easier to test and then add functions to read
+    / write output
 
 - Do not use mock
 

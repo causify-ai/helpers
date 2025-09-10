@@ -30,8 +30,8 @@ MSML610: Advanced Machine Learning
 
 **References**:
 
-#### Is machine learning possible?
-- **\textcolor{purple}{Is machine learning possible?}**
+####
+- _**\textcolor{red}{Is machine learning possible?}**_
 - Growth function
 - The VC dimension
 - Overfitting
@@ -424,9 +424,9 @@ MSML610: Advanced Machine Learning
 
 - This is similar to training and testing in machine learning
 
-#### Growth function
+####
 - Is machine learning possible?
-- **\textcolor{purple}{Growth function}**
+- _**\textcolor{red}{Growth function}**_
 - The VC dimension
 - Overfitting
 - Bias Variance Analysis
@@ -781,10 +781,10 @@ MSML610: Advanced Machine Learning
   - For this reason there is $m_\calH(2N)$ in the VC inequality
 
 
-#### The VC dimension
+####
 - Is machine learning possible?
 - Growth function
-- **\textcolor{purple}{The VC dimension}**
+- _**\textcolor{red}{The VC dimension}**_
 - Overfitting
 - Bias Variance Analysis
 - Learning curves
@@ -886,11 +886,11 @@ MSML610: Advanced Machine Learning
 
 ![](lectures_source/figures/Lesson05_Void_VC_guarantee.png)
 
-#### Overfitting
+####
 - Is machine learning possible?
 - Growth function
 - The VC dimension
-- **\textcolor{purple}{Overfitting}**
+- _**\textcolor{red}{Overfitting}**_
 - Bias Variance Analysis
 - Learning curves
 - Learn-validation approach
@@ -1002,12 +1002,12 @@ MSML610: Advanced Machine Learning
   performance by increasing the margin
   - More robust to noise
 
-#### Bias Variance Analysis
+####
 - Is machine learning possible?
 - Growth function
 - The VC dimension
 - Overfitting
-- **\textcolor{purple}{Bias Variance Analysis}**
+- _**\textcolor{red}{Bias Variance Analysis}**_
 - Learning curves
 - Learn-validation approach
 
@@ -1462,13 +1462,13 @@ MSML610: Advanced Machine Learning
   - This error depends on stochastic and deterministic noise
   - There is no variance (since $N = \infty$)
 
-#### Learning curves
+####
 - Is machine learning possible?
 - Growth function
 - The VC dimension
 - Overfitting
 - Bias Variance Analysis
-- **\textcolor{purple}{Learning curves}**
+- _**\textcolor{red}{Learning curves}**_
 - Learn-validation approach
 
 
@@ -1559,19 +1559,19 @@ MSML610: Advanced Machine Learning
 
 
 
-#### Learn-validation approach
+####
 - Is machine learning possible?
 - Growth function
 - The VC dimension
 - Overfitting
 - Bias Variance Analysis
 - Learning curves
-- **\textcolor{purple}{Learn-validation approach}**
+- _**\textcolor{red}{Learn-validation approach}**_
   - Train / test
   - Cross-validation
 
 
-#### Train / test
+####
 - Is machine learning possible?
 - Growth function
 - The VC dimension
@@ -1579,7 +1579,7 @@ MSML610: Advanced Machine Learning
 - Bias Variance Analysis
 - Learning curves
 - Learn-validation approach
-  - **\textcolor{purple}{Train / test}**
+  - _**\textcolor{red}{Train / test}**_
   - Cross-validation
 
 
@@ -1701,7 +1701,7 @@ MSML610: Advanced Machine Learning
   - Learned model and $E_{val}$ depend on the split; different splits can give
     different results
 
-#### Cross-validation
+####
 - Is machine learning possible?
 - Growth function
 - The VC dimension
@@ -1710,7 +1710,7 @@ MSML610: Advanced Machine Learning
 - Learning curves
 - Learn-validation approach
   - Train / test
-  - **\textcolor{purple}{Cross-validation}**
+  - _**\textcolor{red}{Cross-validation}**_
 
 
 #### Cross-validation

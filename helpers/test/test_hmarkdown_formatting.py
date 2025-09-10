@@ -1,9 +1,11 @@
 import logging
 import os
+import pytest
 
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -326,6 +328,10 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
+)
 class Test_format_markdown_slide(hunitest.TestCase):
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.

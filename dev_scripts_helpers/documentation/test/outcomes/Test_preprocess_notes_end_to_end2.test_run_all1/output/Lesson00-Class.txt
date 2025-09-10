@@ -27,8 +27,8 @@ MSML610: Advanced Machine Learning
 
 **Instructor**: Dr. GP Saggese - `gsaggese@umd.edu`
 
-#### MSML610
-- **\textcolor{purple}{MSML610}**
+####
+- _**\textcolor{red}{MSML610}**_
 - Class Map
 
 
@@ -122,9 +122,9 @@ MSML610: Advanced Machine Learning
 - **\textcolor{violet}{UMD}**:
   - 2023-, Lecturer for UMD DATA605: Big Data Systems
 
-#### Class Map
+####
 - MSML610
-- **\textcolor{purple}{Class Map}**
+- _**\textcolor{red}{Class Map}**_
 
 
 

@@ -29,8 +29,8 @@ MSML610: Advanced Machine Learning
 
 **References**:
 
-#### Probability
-- **\textcolor{purple}{Probability}**
+####
+- _**\textcolor{red}{Probability}**_
   - Probability definition
   - Probability measure
   - Independent events
@@ -44,9 +44,9 @@ MSML610: Advanced Machine Learning
 
 
 
-#### Probability definition
+####
 - Probability
-  - **\textcolor{purple}{Probability definition}**
+  - _**\textcolor{red}{Probability definition}**_
   - Probability measure
   - Independent events
   - Conditional probability
@@ -291,10 +291,10 @@ Mutually but not pairwise exclusive events.
   - We define $A_n \rightarrow A$ as:
     $$\lim_{n \to \infty} A_n = \cap A_i = A$$
 
-#### Probability measure
+####
 - Probability
   - Probability definition
-  - **\textcolor{purple}{Probability measure}**
+  - _**\textcolor{red}{Probability measure}**_
   - Independent events
   - Conditional probability
   - Law of total probability
@@ -356,11 +356,11 @@ Mutually but not pairwise exclusive events.
     $\Pr(A \cap B) = \Pr(A) + \Pr(B) - \Pr(A \cup B) \le \Pr(A) + \Pr(B)$
   - This is the dual of $\Pr(A \cup B) \ge \max(\Pr(A), \Pr(B))$
 
-#### Independent events
+####
 - Probability
   - Probability definition
   - Probability measure
-  - **\textcolor{purple}{Independent events}**
+  - _**\textcolor{red}{Independent events}**_
   - Conditional probability
   - Law of total probability
   - Bayes theorem
@@ -438,12 +438,12 @@ Mutually but not pairwise exclusive events.
   &\hspace{1cm} \Pr(A \cap B \cap C) \\
   \end{align*}
 
-#### Conditional probability
+####
 - Probability
   - Probability definition
   - Probability measure
   - Independent events
-  - **\textcolor{purple}{Conditional probability}**
+  - _**\textcolor{red}{Conditional probability}**_
   - Law of total probability
   - Bayes theorem
 - Random variables
@@ -644,13 +644,13 @@ odd number?
     long shot you need to be paid more if you win, since it is unlikely to
     happen
 
-#### Law of total probability
+####
 - Probability
   - Probability definition
   - Probability measure
   - Independent events
   - Conditional probability
-  - **\textcolor{purple}{Law of total probability}**
+  - _**\textcolor{red}{Law of total probability}**_
   - Bayes theorem
 - Random variables
 - Mathematical expectation of RVs
@@ -697,14 +697,14 @@ odd number?
   - $\Pr(A|\overline{B})$
   - $\Pr(B)$
 
-#### Bayes theorem
+####
 - Probability
   - Probability definition
   - Probability measure
   - Independent events
   - Conditional probability
   - Law of total probability
-  - **\textcolor{purple}{Bayes theorem}**
+  - _**\textcolor{red}{Bayes theorem}**_
 - Random variables
 - Mathematical expectation of RVs
 - Probability inequalities
@@ -903,9 +903,9 @@ odd number?
   - a procedure to make statements using probabilities
   - an extension of true-false logic when dealing with uncertainty
 
-#### Random variables
+####
 - Probability
-- **\textcolor{purple}{Random variables}**
+- _**\textcolor{red}{Random variables}**_
   - Random variables
   - CDF, PMF, PDF of Random Variables
   - Joint distributions
@@ -917,10 +917,10 @@ odd number?
 - Statistical Inference
 
 
-#### Random variables
+####
 - Probability
 - Random variables
-  - **\textcolor{purple}{Random variables}**
+  - _**\textcolor{red}{Random variables}**_
   - CDF, PMF, PDF of Random Variables
   - Joint distributions
   - Marginal distributions
@@ -977,11 +977,11 @@ odd number?
   - E.g., we might want to associate distinct numbers to interesting events
   - E.g., for 2 coin tosses: \{HH: 0, HT: 1, TH: 1, TT: 2\}
 
-#### CDF, PMF, PDF of Random Variables
+####
 - Probability
 - Random variables
   - Random variables
-  - **\textcolor{purple}{CDF, PMF, PDF of Random Variables}**
+  - _**\textcolor{red}{CDF, PMF, PDF of Random Variables}**_
   - Joint distributions
   - Marginal distributions
   - Independent RVs
@@ -1163,12 +1163,12 @@ odd number?
   is 0
 - This is different from a discrete RV
 
-#### Joint distributions
+####
 - Probability
 - Random variables
   - Random variables
   - CDF, PMF, PDF of Random Variables
-  - **\textcolor{purple}{Joint distributions}**
+  - _**\textcolor{red}{Joint distributions}**_
   - Marginal distributions
   - Independent RVs
   - Conditional PDF RVs
@@ -1225,13 +1225,13 @@ odd number?
   $$\Pr(A) = \int_{S} f_{X,Y}(u, v) du dv$$
 - This is a key relationship for marginal and conditional PDFs
 
-#### Marginal distributions
+####
 - Probability
 - Random variables
   - Random variables
   - CDF, PMF, PDF of Random Variables
   - Joint distributions
-  - **\textcolor{purple}{Marginal distributions}**
+  - _**\textcolor{red}{Marginal distributions}**_
   - Independent RVs
   - Conditional PDF RVs
 - Mathematical expectation of RVs
@@ -1274,14 +1274,14 @@ odd number?
   \end{aligned}
   $$
 
-#### Independent RVs
+####
 - Probability
 - Random variables
   - Random variables
   - CDF, PMF, PDF of Random Variables
   - Joint distributions
   - Marginal distributions
-  - **\textcolor{purple}{Independent RVs}**
+  - _**\textcolor{red}{Independent RVs}**_
   - Conditional PDF RVs
 - Mathematical expectation of RVs
 - Probability inequalities
@@ -1329,7 +1329,7 @@ odd number?
 - E.g., the marginal PDF $X$ is the joint PDF of $X$ and $Y$ integrated over $Y$
   so when we talk about marginal we refer to a single RV
 
-#### Conditional PDF RVs
+####
 - Probability
 - Random variables
   - Random variables
@@ -1337,7 +1337,7 @@ odd number?
   - Joint distributions
   - Marginal distributions
   - Independent RVs
-  - **\textcolor{purple}{Conditional PDF RVs}**
+  - _**\textcolor{red}{Conditional PDF RVs}**_
 - Mathematical expectation of RVs
 - Probability inequalities
 - Statistical Inference
@@ -1378,10 +1378,10 @@ odd number?
 - Marginal prob = $\int$ cond PDF $\times$ marginal PDF (like "law of total
   probability")
 
-#### Mathematical expectation of RVs
+####
 - Probability
 - Random variables
-- **\textcolor{purple}{Mathematical expectation of RVs}**
+- _**\textcolor{red}{Mathematical expectation of RVs}**_
   - Mean
   - Variance and covariance
   - Statistics of RVs
@@ -1389,11 +1389,11 @@ odd number?
 - Statistical Inference
 
 
-#### Mean
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
-  - **\textcolor{purple}{Mean}**
+  - _**\textcolor{red}{Mean}**_
   - Variance and covariance
   - Statistics of RVs
 - Probability inequalities
@@ -1658,12 +1658,12 @@ odd number?
 - The conditional mean is just a mean of a special RV $X|Y$
 - The theorem of the mean still applies to $X|Y$
 
-#### Variance and covariance
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
   - Mean
-  - **\textcolor{purple}{Variance and covariance}**
+  - _**\textcolor{red}{Variance and covariance}**_
   - Statistics of RVs
 - Probability inequalities
 - Statistical Inference
@@ -1877,13 +1877,13 @@ odd number?
 - Pearson rho measures \textit{linear} relationship
 - Spearman rho measures \textit{monotonic non-linear} relationship
 
-#### Statistics of RVs
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
   - Mean
   - Variance and covariance
-  - **\textcolor{purple}{Statistics of RVs}**
+  - _**\textcolor{red}{Statistics of RVs}**_
 - Probability inequalities
 - Statistical Inference
 
@@ -2048,11 +2048,11 @@ odd number?
 - MEM: One can start with a Gaussian and then make the peak thinner, the mass
   needs to go somewhere, and it goes in the tails
 
-#### Probability inequalities
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
-- **\textcolor{purple}{Probability inequalities}**
+- _**\textcolor{red}{Probability inequalities}**_
 - Statistical Inference
 
 
@@ -2122,12 +2122,12 @@ odd number?
 - Since $\nu$ is bound in $[\mu - \varepsilon, \mu + \varepsilon]$, we want a
   small $\varepsilon$ with a large probability
 
-#### Statistical Inference
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
 - Probability inequalities
-- **\textcolor{purple}{Statistical Inference}**
+- _**\textcolor{red}{Statistical Inference}**_
   - Definitions
   - Sample mean
   - Sample variance
@@ -2139,13 +2139,13 @@ odd number?
   - Bootstrap
 
 
-#### Definitions
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
 - Probability inequalities
 - Statistical Inference
-  - **\textcolor{purple}{Definitions}**
+  - _**\textcolor{red}{Definitions}**_
   - Sample mean
   - Sample variance
   - Asymptotics
@@ -2281,14 +2281,14 @@ odd number?
 - E.g., when physics studies effect of different cosmological constants on
   multi-verse
 
-#### Sample mean
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
 - Probability inequalities
 - Statistical Inference
   - Definitions
-  - **\textcolor{purple}{Sample mean}**
+  - _**\textcolor{red}{Sample mean}**_
   - Sample variance
   - Asymptotics
   - Confidence intervals
@@ -2406,7 +2406,7 @@ odd number?
   \textit{without} replacement, then:
   $$\VV[\overline{X}] = \frac{\VV[X]}{n}\frac{N - n}{N - 1}$$
 
-#### Sample variance
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
@@ -2414,7 +2414,7 @@ odd number?
 - Statistical Inference
   - Definitions
   - Sample mean
-  - **\textcolor{purple}{Sample variance}**
+  - _**\textcolor{red}{Sample variance}**_
   - Asymptotics
   - Confidence intervals
   - Hypothesis testing
@@ -2462,7 +2462,7 @@ odd number?
   - We don't have a relationship for it in general (it is function of higher
     moments), so we can use numerical techniques (e.g., bootstrap)
 
-#### Asymptotics
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
@@ -2471,7 +2471,7 @@ odd number?
   - Definitions
   - Sample mean
   - Sample variance
-  - **\textcolor{purple}{Asymptotics}**
+  - _**\textcolor{red}{Asymptotics}**_
   - Confidence intervals
   - Hypothesis testing
   - Multiple hypothesis testing
@@ -2617,7 +2617,7 @@ odd number?
   information on the rate of convergence, e.g., for different values of the
   params the rate of convergence can be different
 
-#### Confidence intervals
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
@@ -2627,7 +2627,7 @@ odd number?
   - Sample mean
   - Sample variance
   - Asymptotics
-  - **\textcolor{purple}{Confidence intervals}**
+  - _**\textcolor{red}{Confidence intervals}**_
   - Hypothesis testing
   - Multiple hypothesis testing
   - Estimating CDF and statistical functional
@@ -2805,7 +2805,7 @@ odd number?
   degrees of freedom (given by a formula) to approximate the underlying
   distribution
 
-#### Hypothesis testing
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
@@ -2816,7 +2816,7 @@ odd number?
   - Sample variance
   - Asymptotics
   - Confidence intervals
-  - **\textcolor{purple}{Hypothesis testing}**
+  - _**\textcolor{red}{Hypothesis testing}**_
   - Multiple hypothesis testing
   - Estimating CDF and statistical functional
   - Bootstrap
@@ -3109,7 +3109,7 @@ considers $>$)
   (i.e., it is not centered around 0)
 - In R there is a function `power.t.test` to compute the power
 
-#### Multiple hypothesis testing
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
@@ -3121,7 +3121,7 @@ considers $>$)
   - Asymptotics
   - Confidence intervals
   - Hypothesis testing
-  - **\textcolor{purple}{Multiple hypothesis testing}**
+  - _**\textcolor{red}{Multiple hypothesis testing}**_
   - Estimating CDF and statistical functional
   - Bootstrap
 
@@ -3359,7 +3359,7 @@ considers $>$)
   is evidence that some of the significant results may be true positives
 */
 
-#### Estimating CDF and statistical functional
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
@@ -3372,7 +3372,7 @@ considers $>$)
   - Confidence intervals
   - Hypothesis testing
   - Multiple hypothesis testing
-  - **\textcolor{purple}{Estimating CDF and statistical functional}**
+  - _**\textcolor{red}{Estimating CDF and statistical functional}**_
   - Bootstrap
 
 
@@ -3497,7 +3497,7 @@ considers $>$)
   \end{aligned}
   $$
 
-#### Bootstrap
+####
 - Probability
 - Random variables
 - Mathematical expectation of RVs
@@ -3511,7 +3511,7 @@ considers $>$)
   - Hypothesis testing
   - Multiple hypothesis testing
   - Estimating CDF and statistical functional
-  - **\textcolor{purple}{Bootstrap}**
+  - _**\textcolor{red}{Bootstrap}**_
 
 
 #### Bootstrap in brief

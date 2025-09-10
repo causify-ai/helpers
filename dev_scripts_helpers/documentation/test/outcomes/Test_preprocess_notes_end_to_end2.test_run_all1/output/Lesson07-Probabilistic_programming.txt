@@ -32,8 +32,8 @@ MSML610: Advanced Machine Learning
 - AIMA (Artificial Intelligence: a Modern Approach)
   - Chap 15: Probabilistic programming
 
-#### Probabilistic programming
-- **\textcolor{purple}{Probabilistic programming}**
+####
+- _**\textcolor{red}{Probabilistic programming}**_
   - Single-parameter inference
   - Communicating a Bayesian analysis
   - Probabilistic programming
@@ -140,9 +140,9 @@ MSML610: Advanced Machine Learning
   = \frac{\textcolor{teal}{\text{Likelihood}} \cdot \textcolor{blue}{\text{Prior}}}{\textcolor{violet}{\text{Evidence}}}
   $$
 
-#### Single-parameter inference
+####
 - Probabilistic programming
-  - **\textcolor{purple}{Single-parameter inference}**
+  - _**\textcolor{red}{Single-parameter inference}**_
   - Communicating a Bayesian analysis
   - Probabilistic programming
   - Posterior-based decisions
@@ -377,10 +377,10 @@ MSML610: Advanced Machine Learning
     - E.g., estimate distribution using maximum entropy to satisfy constraints
     - E.g., beta distribution with 90% of mass between 0.1 and 0.7
 
-#### Communicating a Bayesian analysis
+####
 - Probabilistic programming
   - Single-parameter inference
-  - **\textcolor{purple}{Communicating a Bayesian analysis}**
+  - _**\textcolor{red}{Communicating a Bayesian analysis}**_
   - Probabilistic programming
   - Posterior-based decisions
   - Posterior predictive checks
@@ -440,11 +440,11 @@ MSML610: Advanced Machine Learning
     interval, given the observed data"_
 
 
-#### Probabilistic programming
+####
 - Probabilistic programming
   - Single-parameter inference
   - Communicating a Bayesian analysis
-  - **\textcolor{purple}{Probabilistic programming}**
+  - _**\textcolor{red}{Probabilistic programming}**_
   - Posterior-based decisions
   - Posterior predictive checks
   - Robust inference
@@ -554,12 +554,12 @@ MSML610: Advanced Machine Learning
 ::::
 :::
 
-#### Posterior-based decisions
+####
 - Probabilistic programming
   - Single-parameter inference
   - Communicating a Bayesian analysis
   - Probabilistic programming
-  - **\textcolor{purple}{Posterior-based decisions}**
+  - _**\textcolor{red}{Posterior-based decisions}**_
   - Posterior predictive checks
   - Robust inference
   - Groups comparison
@@ -754,13 +754,13 @@ MSML610: Advanced Machine Learning
   - $\mu \in [52.55, 54.45]$
   - $\sigma \in [2.86, 4.23]$
 
-#### Posterior predictive checks
+####
 - Probabilistic programming
   - Single-parameter inference
   - Communicating a Bayesian analysis
   - Probabilistic programming
   - Posterior-based decisions
-  - **\textcolor{purple}{Posterior predictive checks}**
+  - _**\textcolor{red}{Posterior predictive checks}**_
   - Robust inference
   - Groups comparison
   - Hierarchical models
@@ -824,14 +824,14 @@ MSML610: Advanced Machine Learning
 5. Validation
    - Validate the model by comparing the original samples vs the predicted samples
 
-#### Robust inference
+####
 - Probabilistic programming
   - Single-parameter inference
   - Communicating a Bayesian analysis
   - Probabilistic programming
   - Posterior-based decisions
   - Posterior predictive checks
-  - **\textcolor{purple}{Robust inference}**
+  - _**\textcolor{red}{Robust inference}**_
   - Groups comparison
   - Hierarchical models
 - Simple linear model
@@ -935,7 +935,7 @@ MSML610: Advanced Machine Learning
 ::::
 :::
 
-#### Groups comparison
+####
 - Probabilistic programming
   - Single-parameter inference
   - Communicating a Bayesian analysis
@@ -943,7 +943,7 @@ MSML610: Advanced Machine Learning
   - Posterior-based decisions
   - Posterior predictive checks
   - Robust inference
-  - **\textcolor{purple}{Groups comparison}**
+  - _**\textcolor{red}{Groups comparison}**_
   - Hierarchical models
 - Simple linear model
 - Comparing models
@@ -1020,7 +1020,7 @@ MSML610: Advanced Machine Learning
 
 
 
-#### Hierarchical models
+####
 - Probabilistic programming
   - Single-parameter inference
   - Communicating a Bayesian analysis
@@ -1029,7 +1029,7 @@ MSML610: Advanced Machine Learning
   - Posterior predictive checks
   - Robust inference
   - Groups comparison
-  - **\textcolor{purple}{Hierarchical models}**
+  - _**\textcolor{red}{Hierarchical models}**_
 - Simple linear model
 - Comparing models
 - Inference engines
@@ -1193,9 +1193,9 @@ MSML610: Advanced Machine Learning
 - The goal is to take advantage of the structure of the data
 
 
-#### Simple linear model
+####
 - Probabilistic programming
-- **\textcolor{purple}{Simple linear model}**
+- _**\textcolor{red}{Simple linear model}**_
   - Logistic regression
   - Variable variance
   - Multiple linear regression
@@ -1420,10 +1420,10 @@ MSML610: Advanced Machine Learning
 
 
 
-#### Logistic regression
+####
 - Probabilistic programming
 - Simple linear model
-  - **\textcolor{purple}{Logistic regression}**
+  - _**\textcolor{red}{Logistic regression}**_
   - Variable variance
   - Multiple linear regression
 - Comparing models
@@ -1508,11 +1508,11 @@ MSML610: Advanced Machine Learning
   - Logistic regression models log-odds as linear regression
   - $\beta$ is the increase of log-odds for a unit change of $x$
 
-#### Variable variance
+####
 - Probabilistic programming
 - Simple linear model
   - Logistic regression
-  - **\textcolor{purple}{Variable variance}**
+  - _**\textcolor{red}{Variable variance}**_
   - Multiple linear regression
 - Comparing models
 - Inference engines
@@ -1530,12 +1530,12 @@ MSML610: Advanced Machine Learning
 
 
 
-#### Multiple linear regression
+####
 - Probabilistic programming
 - Simple linear model
   - Logistic regression
   - Variable variance
-  - **\textcolor{purple}{Multiple linear regression}**
+  - _**\textcolor{red}{Multiple linear regression}**_
 - Comparing models
 - Inference engines
 
@@ -1556,10 +1556,10 @@ MSML610: Advanced Machine Learning
 #### Multiple linear regression: rented bike example
 
 
-#### Comparing models
+####
 - Probabilistic programming
 - Simple linear model
-- **\textcolor{purple}{Comparing models}**
+- _**\textcolor{red}{Comparing models}**_
   - The balance between simplicity and accuracy
   - Measures of predictive accuracy
   - Regularizing priors
@@ -1675,11 +1675,11 @@ MSML610: Advanced Machine Learning
   - (Bayesian) Yes, incorporate uncertainty of parameter estimates
 
 
-#### The balance between simplicity and accuracy
+####
 - Probabilistic programming
 - Simple linear model
 - Comparing models
-  - **\textcolor{purple}{The balance between simplicity and accuracy}**
+  - _**\textcolor{red}{The balance between simplicity and accuracy}**_
   - Measures of predictive accuracy
   - Regularizing priors
   - Mixture models
@@ -1733,12 +1733,12 @@ MSML610: Advanced Machine Learning
   - Aim for a model that "fits the data right," avoiding overfitting or
     underfitting
 
-#### Measures of predictive accuracy
+####
 - Probabilistic programming
 - Simple linear model
 - Comparing models
   - The balance between simplicity and accuracy
-  - **\textcolor{purple}{Measures of predictive accuracy}**
+  - _**\textcolor{red}{Measures of predictive accuracy}**_
   - Regularizing priors
   - Mixture models
   - 7.5, Zero-inflated and hurdle models
@@ -2130,13 +2130,13 @@ MSML610: Advanced Machine Learning
 *
 - TODO
 
-#### Regularizing priors
+####
 - Probabilistic programming
 - Simple linear model
 - Comparing models
   - The balance between simplicity and accuracy
   - Measures of predictive accuracy
-  - **\textcolor{purple}{Regularizing priors}**
+  - _**\textcolor{red}{Regularizing priors}**_
   - Mixture models
   - 7.5, Zero-inflated and hurdle models
   - 7.6, Mixture models and clustering
@@ -2166,14 +2166,14 @@ MSML610: Advanced Machine Learning
     it provides "variable selection" since it induces sparsity of model
 
 
-#### Mixture models
+####
 - Probabilistic programming
 - Simple linear model
 - Comparing models
   - The balance between simplicity and accuracy
   - Measures of predictive accuracy
   - Regularizing priors
-  - **\textcolor{purple}{Mixture models}**
+  - _**\textcolor{red}{Mixture models}**_
   - 7.5, Zero-inflated and hurdle models
   - 7.6, Mixture models and clustering
   - 7.7, Non-finite mixture models
@@ -2316,7 +2316,7 @@ MSML610: Advanced Machine Learning
     - E.g., using posterior-predictive checks, WAIC, LOO, or domain expertise
 
 
-#### 7.5, Zero-inflated and hurdle models
+####
 - Probabilistic programming
 - Simple linear model
 - Comparing models
@@ -2324,7 +2324,7 @@ MSML610: Advanced Machine Learning
   - Measures of predictive accuracy
   - Regularizing priors
   - Mixture models
-  - **\textcolor{purple}{7.5, Zero-inflated and hurdle models}**
+  - _**\textcolor{red}{7.5, Zero-inflated and hurdle models}**_
   - 7.6, Mixture models and clustering
   - 7.7, Non-finite mixture models
   - 7.8, Continuous mixtures
@@ -2369,7 +2369,7 @@ MSML610: Advanced Machine Learning
    - It makes it simple to see if it's a good fit or not by comparing the bottom
      of the values to a base
 
-#### 7.6, Mixture models and clustering
+####
 - Probabilistic programming
 - Simple linear model
 - Comparing models
@@ -2378,7 +2378,7 @@ MSML610: Advanced Machine Learning
   - Regularizing priors
   - Mixture models
   - 7.5, Zero-inflated and hurdle models
-  - **\textcolor{purple}{7.6, Mixture models and clustering}**
+  - _**\textcolor{red}{7.6, Mixture models and clustering}**_
   - 7.7, Non-finite mixture models
   - 7.8, Continuous mixtures
 - Inference engines
@@ -2409,7 +2409,7 @@ MSML610: Advanced Machine Learning
   point belonging to one of the customers
 - E.g., we assume that data is generated by a mixture models
 
-#### 7.7, Non-finite mixture models
+####
 - Probabilistic programming
 - Simple linear model
 - Comparing models
@@ -2419,7 +2419,7 @@ MSML610: Advanced Machine Learning
   - Mixture models
   - 7.5, Zero-inflated and hurdle models
   - 7.6, Mixture models and clustering
-  - **\textcolor{purple}{7.7, Non-finite mixture models}**
+  - _**\textcolor{red}{7.7, Non-finite mixture models}**_
   - 7.8, Continuous mixtures
 - Inference engines
 
@@ -2486,7 +2486,7 @@ MSML610: Advanced Machine Learning
 - We can place a Gaussian on each data point and weight from a Dirichlet process
 - The same approach can be use for Laplace distribution
 
-#### 7.8, Continuous mixtures
+####
 - Probabilistic programming
 - Simple linear model
 - Comparing models
@@ -2497,25 +2497,25 @@ MSML610: Advanced Machine Learning
   - 7.5, Zero-inflated and hurdle models
   - 7.6, Mixture models and clustering
   - 7.7, Non-finite mixture models
-  - **\textcolor{purple}{7.8, Continuous mixtures}**
+  - _**\textcolor{red}{7.8, Continuous mixtures}**_
 - Inference engines
 
 
 
-#### Inference engines
+####
 - Probabilistic programming
 - Simple linear model
 - Comparing models
-- **\textcolor{purple}{Inference engines}**
+- _**\textcolor{red}{Inference engines}**_
   - 10.1, Inference engines
 
 
-#### 10.1, Inference engines
+####
 - Probabilistic programming
 - Simple linear model
 - Comparing models
 - Inference engines
-  - **\textcolor{purple}{10.1, Inference engines}**
+  - _**\textcolor{red}{10.1, Inference engines}**_
 
 
 #### Inference engines as black
