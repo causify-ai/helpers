@@ -1055,7 +1055,8 @@ def run_dockerized_imagemagick(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     cmd_opts_as_str = " ".join(cmd_opts)
-    cmd = f"magick {cmd_opts_as_str} {in_file_path} {out_file_path}"
+    out_dir = os.path.dirname(out_file_path)
+    cmd = f"mkdir -p {out_dir} && magick {cmd_opts_as_str} {in_file_path} {out_file_path}"
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
     docker_cmd.extend(
         [
