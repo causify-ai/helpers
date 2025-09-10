@@ -126,7 +126,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
             txt = "\n".join(lines)
             txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_colorize_bold_text":
-            txt = hmarkdo.colorize_bold_text(txt)
+            color_sequence = "fixed"
+            txt = hmarkdo.colorize_bold_text(txt, color_sequence)
             txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_format":
             txt = hmarkdo.md_clean_up(txt)
