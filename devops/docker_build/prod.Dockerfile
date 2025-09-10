@@ -7,6 +7,8 @@ ARG IMAGE_NAME
 FROM ${ECR_BASE_PATH}/${IMAGE_NAME}:dev-${VERSION}
 
 RUN ls .
-COPY . /app
-# Initialize an empty Git repo, since some of our packages need a Git repo.
+
+# Skip copying Git files, as they can be large. Added `.git/` to `.dockerignore.prod`.
+COPY . /app 
+# Initialize an empty Git repository, required by some of our packages.
 RUN /bin/bash -c 'git init'
