@@ -7,12 +7,8 @@ code in this repository.
 
 This is the `helpers` repository - a foundational Python library providing
 utilities, development tools, and infrastructure components for a larger
-<<<<<<< HEAD
-ecosystem. The codebase follows a modular architecture with these key components:
-=======
 ecosystem. The codebase follows a modular architecture with these key
 components:
->>>>>>> master
 
 ### Core Structure
 

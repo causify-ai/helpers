@@ -483,3 +483,4 @@ MSML610: Advanced Machine Learning
   $$\Pr(|\nu - \mu| > \varepsilon) \le 2 e^{-2 \varepsilon^2 N}$$
 - Since $\nu$ is bound in $[\mu - \varepsilon, \mu + \varepsilon]$, we want a
   small $\varepsilon$ with a large probability
+
