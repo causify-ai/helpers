@@ -44,7 +44,7 @@ def _prepare_docker_ignore(
     ctx: Any,
     docker_ignore: str,
     *,
-    copy_to_git_root: bool=True,
+    copy_to_git_root: bool = True,
 ) -> None:
     """
     Copy the target `docker_ignore` in the proper position for `docker build`.
