@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """
-pdf_to_flip_video.py  (MoviePy 2.1.2 compatible)
-------------------------------------------------
 Create a movie from a PDF that looks like turning pages.
 
 Requirements (macOS):
@@ -13,8 +11,8 @@ Requirements (macOS):
    pip install pdf2image moviepy pillow
 
 Usage:
-  python pdf_to_flip_video.py /path/to/file.pdf --out out.mp4 --fps 30 --page-duration 2.0 --transition 0.5 --style crossfade
-  python pdf_to_flip_video.py /path/to/file.pdf --out out.mp4 --style slide --transition 0.6
+> pdf_to_flip_video.py /path/to/file.pdf --out out.mp4 --fps 30 --page-duration 2.0 --transition 0.5 --style crossfade
+> pdf_to_flip_video.py /path/to/file.pdf --out out.mp4 --style slide --transition 0.6
 
 Notes:
 - "crossfade" dissolves between pages (implemented with ImageSequenceClip for MoviePy 2.x).

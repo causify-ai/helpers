@@ -6,7 +6,7 @@ This script retrieves the status of video generation jobs from the Synthesia API
 and displays them in a formatted table.
 
 Usage:
-> python get_synthesia_status.py
+> get_synthesia_status.py
 
 Environment:
   SYNTHESIA_API_KEY  Your Synthesia API key (Creator plan or above).
