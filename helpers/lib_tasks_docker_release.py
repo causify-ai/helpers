@@ -6,6 +6,7 @@ import helpers.lib_tasks_docker_release as hltadore
 
 import logging
 import os
+import sys
 from operator import attrgetter
 from typing import Any, Optional
 
@@ -339,9 +340,8 @@ def _docker_rollback_image(
 #   the registries
 
 
-# Use Docker buildkit or not.
-# DOCKER_BUILDKIT = 1
-DOCKER_BUILDKIT = 0
+# Set DOCKER_BUILDKIT based on platform.
+DOCKER_BUILDKIT = 1 if sys.platform == "darwin" else 0
 
 
 @task
