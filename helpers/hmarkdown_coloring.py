@@ -67,7 +67,7 @@ _MD_COLORS = {
     "gray",
     "darkgray",
     # "lightgray",
-    # "black",
+    "black",
     # "white",
 }
 

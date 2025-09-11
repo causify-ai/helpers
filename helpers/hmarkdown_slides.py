@@ -135,3 +135,39 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
     # Join the transformed slides back together.
     result = "\n".join(transformed_txt)
     return result
+
+
+def convert_slide_to_markdown(lines: List[str]) -> List[str]:
+    """
+    Convert slide to standard markdown.
+
+    - Handle *
+    """
+    hdbg.dassert_isinstance(lines, list)
+    converted_lines = []
+    for line in lines:
+        if line.startswith("* "):
+            # Convert slide bullet to markdown header level 5.
+            converted_line = "##### " + line[2:]
+            converted_lines.append(converted_line)
+        else:
+            converted_lines.append(line)
+    return converted_lines
+
+
+def markdown_to_slide(lines: List[str]) -> List[str]:
+    """
+    Convert standard markdown back to slide.
+
+    - Handle *
+    """
+    hdbg.dassert_isinstance(lines, list)
+    converted_lines = []
+    for line in lines:
+        if line.startswith("##### "):
+            # Convert markdown header level 5 back to slide bullet.
+            converted_line = "* " + line[6:]
+            converted_lines.append(converted_line)
+        else:
+            converted_lines.append(line)
+    return converted_lines

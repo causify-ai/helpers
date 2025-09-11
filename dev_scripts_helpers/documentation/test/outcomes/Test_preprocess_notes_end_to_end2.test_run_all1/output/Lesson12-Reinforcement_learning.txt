@@ -32,8 +32,8 @@ MSML610: Advanced Machine Learning
 - AIMA Chap 17: Making complex decisions
 - AIMA Chap 22: Reinforcement Learning
 
-#### Sequential Decision Problems
-- **\textcolor{purple}{Sequential Decision Problems}**
+####
+- _**\textcolor{red}{Sequential Decision Problems}**_
   - Utilities Over Time
   - Algorithms for MDPs
 - Reinforcement Learning
@@ -166,9 +166,9 @@ MSML610: Advanced Machine Learning
 ::::
 :::
 
-#### Utilities Over Time
+####
 - Sequential Decision Problems
-  - **\textcolor{purple}{Utilities Over Time}**
+  - _**\textcolor{red}{Utilities Over Time}**_
   - Algorithms for MDPs
 - Reinforcement Learning
 
@@ -478,10 +478,10 @@ digraph TetrisDDN {
 ::::
 :::
 
-#### Algorithms for MDPs
+####
 - Sequential Decision Problems
   - Utilities Over Time
-  - **\textcolor{purple}{Algorithms for MDPs}**
+  - _**\textcolor{red}{Algorithms for MDPs}**_
 - Reinforcement Learning
 
 
@@ -721,9 +721,9 @@ digraph TetrisDDN {
     two-state POMDP at depth 8)
   - Approximation Techniques
 
-#### Reinforcement Learning
+####
 - Sequential Decision Problems
-- **\textcolor{purple}{Reinforcement Learning}**
+- _**\textcolor{red}{Reinforcement Learning}**_
   - Passive Reinforcement Learning
   - Active Reinforcement Learning
   - Generalization in Reinforcement Learning
@@ -941,10 +941,10 @@ digraph TetrisDDN {
   - Passive: Limited by the quality of the provided policy
   - Active: Balancing exploration and exploitation effectively
 
-#### Passive Reinforcement Learning
+####
 - Sequential Decision Problems
 - Reinforcement Learning
-  - **\textcolor{purple}{Passive Reinforcement Learning}**
+  - _**\textcolor{red}{Passive Reinforcement Learning}**_
   - Active Reinforcement Learning
   - Generalization in Reinforcement Learning
   - Policy Search
@@ -1068,11 +1068,11 @@ digraph TetrisDDN {
   - An autonomous cleaner estimates long-term dirtiness reduction for each room
     it passes through, adjusting based on immediate results
 
-#### Active Reinforcement Learning
+####
 - Sequential Decision Problems
 - Reinforcement Learning
   - Passive Reinforcement Learning
-  - **\textcolor{purple}{Active Reinforcement Learning}**
+  - _**\textcolor{red}{Active Reinforcement Learning}**_
   - Generalization in Reinforcement Learning
   - Policy Search
 
@@ -1193,12 +1193,12 @@ digraph TetrisDDN {
 - Exploration strategy (e.g., $\epsilon$-greedy) is crucial for balancing
   learning and exploitation
 
-#### Generalization in Reinforcement Learning
+####
 - Sequential Decision Problems
 - Reinforcement Learning
   - Passive Reinforcement Learning
   - Active Reinforcement Learning
-  - **\textcolor{purple}{Generalization in Reinforcement Learning}**
+  - _**\textcolor{red}{Generalization in Reinforcement Learning}**_
   - Policy Search
 
 
@@ -1245,13 +1245,13 @@ digraph TetrisDDN {
   - Structures behavior into reusable subprograms and subgoals
   - Decomposes complex tasks to improve learning efficiency
 
-#### Policy Search
+####
 - Sequential Decision Problems
 - Reinforcement Learning
   - Passive Reinforcement Learning
   - Active Reinforcement Learning
   - Generalization in Reinforcement Learning
-  - **\textcolor{purple}{Policy Search}**
+  - _**\textcolor{red}{Policy Search}**_
 
 
 #### Policy Search in Reinforcement Learning
