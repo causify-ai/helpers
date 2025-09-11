@@ -2,14 +2,16 @@
 """
 Synthesia API helper: create a video from a text script and a chosen avatar.
 
+# Do a dry-run:
 > python generate_synthesia_videos.py \
     --in_dir videos \
-    --slides "001:003"
-
-> python generate_synthesia_videos.py \
-    --in_dir videos \
-    --slides "001:003" \
+    --limit "1:3" \
     --dry_run
+
+# Do a real run:
+> generate_synthesia_videos.py \
+    --in_dir videos \
+    --limit "1:3"
 
 Environment:
   SYNTHESIA_API_KEY  Your Synthesia API key (Creator plan or above).
@@ -47,29 +49,6 @@ class SynthesiaError(RuntimeError):
     pass
 
 
-def _parse_slide_range(slide_range: str) -> List[int]:
-    """
-    Parse slide range specification into list of slide numbers.
-
-    :param slide_range: range specification like "001:003", "001,005",
-        "001:003,005:007"
-    :return: list of slide numbers
-    """
-    slide_numbers = []
-    # Split by comma for multiple ranges.
-    parts = slide_range.split(",")
-    for part in parts:
-        part = part.strip()
-        if ":" in part:
-            # Range format: 001:003
-            start, end = part.split(":")
-            start_num = int(start)
-            end_num = int(end)
-            slide_numbers.extend(range(start_num, end_num + 1))
-        else:
-            # Single slide: 001
-            slide_numbers.append(int(part))
-    return sorted(list(set(slide_numbers)))
 
 
 def _discover_text_files(in_dir: str) -> List[Tuple[int, str]]:
@@ -117,8 +96,6 @@ def create_video(
     *,
     aspect_ratio: str = "5:4",
     resolution: str = "720p",
-    # TODO(ai): Remove audio_only.
-    audio_only: bool = False,
     test: bool = False,
 ) -> str:
     """
@@ -131,31 +108,25 @@ def create_video(
     scene: Dict[str, Any] = {
         "scriptText": script_text,
     }
-
     # Always set avatar and background - Synthesia API requires these fields
     scene["avatar"] = avatar
     if background:
         scene["background"] = background
-
     # if extra_scene_overrides:
     #     scene.update(extra_scene_overrides)
-
     payload: Dict[str, Any] = {
         "title": title,
         "input": [scene],
     }
-
     # Add video parameters (required even for audio-only in this API)
     if aspect_ratio:
         payload["aspectRatio"] = aspect_ratio
     if resolution:
         payload["resolution"] = resolution
-
     if test:
         payload["test"] = test
     # payload["test"] = False
     # payload["test"] = True
-
     resp = requests.post(
         url, headers=_headers(api_key), data=json.dumps(payload), timeout=TIMEOUT
     )
@@ -180,20 +151,21 @@ def _parse() -> argparse.Namespace:
         description="Create a Synthesia video from text + avatar."
     )
     hparser.add_verbosity_arg(parser)
-    parser.add_argument("--slide", type=int, default=0, help="Slide number")
     parser.add_argument(
         "--in_dir",
         required=True,
         help="Directory containing xyz_comment.txt files",
     )
-    parser.add_argument(
-        "--slides",
-        help="Range of slides to process (e.g., '001:003', '002:005,007:009')",
-    )
+    hparser.add_limit_range_arg(parser)
     parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Print what will be executed without calling Synthesia API",
+    )
+    parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Create test video (Synthesia API test mode)",
     )
     args = parser.parse_args()
     return args
@@ -205,7 +177,8 @@ def _main(args: argparse.Namespace) -> None:
 
     :param args: parsed arguments
     """
-    avatar = "f4f1005e-6851-414a-9120-d48122613fa0"
+    #avatar = "f4f1005e-6851-414a-9120-d48122613fa0"
+    avatar = "3b4c81e9-d476-40f6-93ff-2b817557cc1d"
     background = "workspace-media.c4ab7049-8479-4855-9856-e0d7f2854027"
     aspect = "5:4"
     resolution = "720p"
@@ -217,24 +190,12 @@ def _main(args: argparse.Namespace) -> None:
     # Discover all text files in the directory.
     discovered_slides = _discover_text_files(in_dir)
     _LOG.info(f"Discovered {len(discovered_slides)} text files in {in_dir}")
-    # Filter slides based on --slides parameter if provided.
-    if args.slides:
-        requested_slides = _parse_slide_range(args.slides)
-        _LOG.info(f"Requested slides: {requested_slides}")
-        # Filter discovered slides to only include requested ones.
-        filtered_slides = [
-            (slide_num, file_path)
-            for slide_num, file_path in discovered_slides
-            if slide_num in requested_slides
-        ]
-        if not filtered_slides:
-            _LOG.error(
-                f"No slides found matching the requested range: {args.slides}"
-            )
-            sys.exit(1)
-    else:
-        # Use all discovered slides if no range specified.
-        filtered_slides = discovered_slides
+    # Parse limit range from command line arguments.
+    limit_range = hparser.parse_limit_range_args(args)
+    # Apply limit range filtering to discovered slides.
+    slide_tuples = [(slide_num, file_path) for slide_num, file_path in discovered_slides]
+    filtered_slide_tuples = hparser.apply_limit_range(slide_tuples, limit_range, item_name="slides")
+    filtered_slides = filtered_slide_tuples
     # Load scripts from filtered slides.
     slides = []
     for slide_num, file_path in filtered_slides:
@@ -256,9 +217,7 @@ def _main(args: argparse.Namespace) -> None:
             _LOG.info(f"  Script text: {script}")
         else:
             try:
-                audio_only = False
-                # TODO(ai): Pass test through command line.
-                test = False
+                test = args.test
                 video_id = create_video(
                     api_key=api_key,
                     script_text=script,
@@ -267,7 +226,6 @@ def _main(args: argparse.Namespace) -> None:
                     background=background,
                     aspect_ratio=aspect,
                     resolution=resolution,
-                    audio_only=audio_only,
                     test=test,
                     # extra_scene_overrides=extra,
                 )

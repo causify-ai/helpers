@@ -134,7 +134,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         Test basic case with single bold text.
         """
         text = "This is **bold** text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(text, color_sequence="equidistant", use_abbreviations=True)
         expected = r"This is **\red{bold}** text"
         self.assert_equal(actual, expected)
 
@@ -143,7 +143,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         Test multiple bold sections get different colors.
         """
         text = "**First** normal **Second** text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(text, color_sequence="equidistant", use_abbreviations=True)
         expected = r"**\red{First}** normal **\teal{Second}** text"
         self.assert_equal(actual, expected)
 
@@ -152,7 +152,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         Test underscore style bold text.
         """
         text = "This is __bold__ text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(text, color_sequence="equidistant", use_abbreviations=True)
         expected = r"This is **\red{bold}** text"
         self.assert_equal(actual, expected)
 
@@ -161,7 +161,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         Test text with no bold sections returns unchanged.
         """
         text = "This is plain text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(text, color_sequence="equidistant", use_abbreviations=True)
         expected = "This is plain text"
         self.assert_equal(actual, expected)
 
@@ -170,7 +170,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         Test mixed bold styles in same text.
         """
         text = "**First** and __Second__ bold"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(text, color_sequence="equidistant", use_abbreviations=True)
         expected = r"**\red{First}** and **\teal{Second}** bold"
         self.assert_equal(actual, expected)
 
@@ -179,7 +179,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         Test with abbreviations=False uses full \textcolor syntax.
         """
         text = "This is **bold** text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=False)
+        actual = hmarkdo.colorize_bold_text(text, color_sequence="equidistant", use_abbreviations=False)
         expected = r"This is **\textcolor{red}{bold}** text"
         self.assert_equal(actual, expected)
 
@@ -196,7 +196,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         - Another item
         - Final item
         """
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(text, color_sequence="equidistant", use_abbreviations=True)
         expected = r"""
         **\red{List 1:}**
         - First item
@@ -245,7 +245,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
             interaction
         """
         )
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(text, color_sequence="equidistant", use_abbreviations=True)
         expected = hprint.dedent(
             r"""
         - **\red{Objective}**
@@ -284,6 +284,15 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         )
         self.assert_equal(actual, expected)
 
+    def test1(self) -> None:
+        """
+        Test basic case with single bold text.
+        """
+        text = "**First** normal **Second** text"
+        actual = hmarkdo.colorize_bold_text(text, color_sequence="equidistant", use_abbreviations=True)
+        expected = r"**\red{First}** normal **\teal{Second}** text"
+        expected = r"This is **\red{bold}** text"
+        self.assert_equal(actual, expected)
 
 # #############################################################################
 # Test_format_first_level_bullets1
