@@ -29,8 +29,8 @@ MSML610: Advanced Machine Learning
 
 **References**:
 
-#### Neural networks
-- **\textcolor{purple}{Neural networks}**
+####
+- _**\textcolor{red}{Neural networks}**_
   - Biological inspiration
   - Neural networks
 - Advanced Neural Network Architectures
@@ -64,9 +64,9 @@ MSML610: Advanced Machine Learning
 - The expressive power of such models is very limited
   - Real-world concepts are far more complex
 
-#### Biological inspiration
+####
 - Neural networks
-  - **\textcolor{purple}{Biological inspiration}**
+  - _**\textcolor{red}{Biological inspiration}**_
   - Neural networks
 - Advanced Neural Network Architectures
 
@@ -198,10 +198,10 @@ MSML610: Advanced Machine Learning
 ::::
 :::
 
-#### Neural networks
+####
 - Neural networks
   - Biological inspiration
-  - **\textcolor{purple}{Neural networks}**
+  - _**\textcolor{red}{Neural networks}**_
 - Advanced Neural Network Architectures
 
 
@@ -769,19 +769,19 @@ MSML610: Advanced Machine Learning
   - Trained on input-output pairs without explicit internal supervision
   - Requires minimal prior knowledge about internal components or roles
 
-#### Advanced Neural Network Architectures
+####
 - Neural networks
-- **\textcolor{purple}{Advanced Neural Network Architectures}**
+- _**\textcolor{red}{Advanced Neural Network Architectures}**_
   - Convolutional Neural Networks
   - Recurrent Neural Networks
   - Deep learning learning algorithms
   - Deep learning for NLP
 
 
-#### Convolutional Neural Networks
+####
 - Neural networks
 - Advanced Neural Network Architectures
-  - **\textcolor{purple}{Convolutional Neural Networks}**
+  - _**\textcolor{red}{Convolutional Neural Networks}**_
   - Recurrent Neural Networks
   - Deep learning learning algorithms
   - Deep learning for NLP
@@ -914,11 +914,11 @@ digraph ResidualBlock {
 ::::
 :::
 
-#### Recurrent Neural Networks
+####
 - Neural networks
 - Advanced Neural Network Architectures
   - Convolutional Neural Networks
-  - **\textcolor{purple}{Recurrent Neural Networks}**
+  - _**\textcolor{red}{Recurrent Neural Networks}**_
   - Deep learning learning algorithms
   - Deep learning for NLP
 
@@ -1052,12 +1052,12 @@ digraph FeedbackSystem {
     efficiency
 
 
-#### Deep learning learning algorithms
+####
 - Neural networks
 - Advanced Neural Network Architectures
   - Convolutional Neural Networks
   - Recurrent Neural Networks
-  - **\textcolor{purple}{Deep learning learning algorithms}**
+  - _**\textcolor{red}{Deep learning learning algorithms}**_
   - Deep learning for NLP
 
 
@@ -1119,13 +1119,13 @@ digraph FeedbackSystem {
   function of the weight magnitude
 
 
-#### Deep learning for NLP
+####
 - Neural networks
 - Advanced Neural Network Architectures
   - Convolutional Neural Networks
   - Recurrent Neural Networks
   - Deep learning learning algorithms
-  - **\textcolor{purple}{Deep learning for NLP}**
+  - _**\textcolor{red}{Deep learning for NLP}**_
 
 
 #### NLP Tasks

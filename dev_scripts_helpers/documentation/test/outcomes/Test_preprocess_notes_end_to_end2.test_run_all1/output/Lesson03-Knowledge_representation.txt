@@ -39,8 +39,8 @@ MSML610: Advanced Machine Learning
 
 - AIMA 10, Knowledge representation
 
-#### Knowledge Representation
-- **\textcolor{purple}{Knowledge Representation}**
+####
+- _**\textcolor{red}{Knowledge Representation}**_
   - Basics of Knowledge Representation
   - Examples of Logic
   - Logical Agents
@@ -52,9 +52,9 @@ MSML610: Advanced Machine Learning
 - Description Logics
 
 
-#### Basics of Knowledge Representation
+####
 - Knowledge Representation
-  - **\textcolor{purple}{Basics of Knowledge Representation}**
+  - _**\textcolor{red}{Basics of Knowledge Representation}**_
   - Examples of Logic
   - Logical Agents
   - Ontologies
@@ -222,10 +222,10 @@ MSML610: Advanced Machine Learning
   - Declarative knowledge can be compiled into procedural code
   - E.g., a planner generates procedures (plans) from declarative goals
 
-#### Examples of Logic
+####
 - Knowledge Representation
   - Basics of Knowledge Representation
-  - **\textcolor{purple}{Examples of Logic}**
+  - _**\textcolor{red}{Examples of Logic}**_
   - Logical Agents
   - Ontologies
   - Reasoning in Ontologies
@@ -375,11 +375,11 @@ MSML610: Advanced Machine Learning
   - Autonomous agents and cognitive systems
 
 
-#### Logical Agents
+####
 - Knowledge Representation
   - Basics of Knowledge Representation
   - Examples of Logic
-  - **\textcolor{purple}{Logical Agents}**
+  - _**\textcolor{red}{Logical Agents}**_
   - Ontologies
   - Reasoning in Ontologies
 - Propositional logic
@@ -639,12 +639,12 @@ digraph EntailmentSemantics {
     - Learning is still fallible
     - E.g., maybe somebody is cooking on a grill
 
-#### Ontologies
+####
 - Knowledge Representation
   - Basics of Knowledge Representation
   - Examples of Logic
   - Logical Agents
-  - **\textcolor{purple}{Ontologies}**
+  - _**\textcolor{red}{Ontologies}**_
   - Reasoning in Ontologies
 - Propositional logic
 - First-order Logic
@@ -784,13 +784,13 @@ digraph UniversityOntology {
   - Every `Student` must belong to exactly one `Department`
   - A `Department` offers at least one `Course`
 
-#### Reasoning in Ontologies
+####
 - Knowledge Representation
   - Basics of Knowledge Representation
   - Examples of Logic
   - Logical Agents
   - Ontologies
-  - **\textcolor{purple}{Reasoning in Ontologies}**
+  - _**\textcolor{red}{Reasoning in Ontologies}**_
 - Propositional logic
 - First-order Logic
 - Non-classical Logics
@@ -888,9 +888,9 @@ digraph UniversityOntology {
   - Semantic Web applications
   - AI systems that require structured knowledge
 
-#### Propositional logic
+####
 - Knowledge Representation
-- **\textcolor{purple}{Propositional logic}**
+- _**\textcolor{red}{Propositional logic}**_
 - First-order Logic
 - Non-classical Logics
 - Description Logics
@@ -1199,10 +1199,10 @@ digraph UniversityOntology {
   - Thus $\beta$ must be true
 
 
-#### First-order Logic
+####
 - Knowledge Representation
 - Propositional logic
-- **\textcolor{purple}{First-order Logic}**
+- _**\textcolor{red}{First-order Logic}**_
 - Non-classical Logics
 - Description Logics
 
@@ -1402,11 +1402,11 @@ digraph UniversityOntology {
 - Knowledge base built from axioms and facts
 - Enables reasoning about objects, properties, and their relationships
 
-#### Non-classical Logics
+####
 - Knowledge Representation
 - Propositional logic
 - First-order Logic
-- **\textcolor{purple}{Non-classical Logics}**
+- _**\textcolor{red}{Non-classical Logics}**_
 - Description Logics
 
 
@@ -1597,12 +1597,12 @@ digraph UniversityOntology {
   - Computational complexity with large datasets
   - Handling noisy, incomplete, or ambiguous data
 
-#### Description Logics
+####
 - Knowledge Representation
 - Propositional logic
 - First-order Logic
 - Non-classical Logics
-- **\textcolor{purple}{Description Logics}**
+- _**\textcolor{red}{Description Logics}**_
   - Semantic Web
 
 
@@ -1781,13 +1781,13 @@ digraph OWL_Example {
     SELECT ?animal WHERE { ?animal rdf:type ex:Bird }
     ```
 
-#### Semantic Web
+####
 - Knowledge Representation
 - Propositional logic
 - First-order Logic
 - Non-classical Logics
 - Description Logics
-  - **\textcolor{purple}{Semantic Web}**
+  - _**\textcolor{red}{Semantic Web}**_
 
 
 #### Semantic Web

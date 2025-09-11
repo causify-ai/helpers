@@ -34,8 +34,8 @@ MSML610: Advanced Machine Learning
   - Chap 13: Probabilistic reasoning
   - Chap 14: Probabilistic reasoning over time
 
-#### Logic-Based AI Under Uncertainty
-- **\textcolor{purple}{Logic-Based AI Under Uncertainty}**
+####
+- _**\textcolor{red}{Logic-Based AI Under Uncertainty}**_
 - Probabilistic Reasoning
 
 
@@ -207,9 +207,9 @@ digraph BayesianFlow {
     - Certain it did not rain, despite wet grass
     - Overrides prior evidence: $\Pr(Rain | WetGrass \land WeatherReport) = 0$
 
-#### Probabilistic Reasoning
+####
 - Logic-Based AI Under Uncertainty
-- **\textcolor{purple}{Probabilistic Reasoning}**
+- _**\textcolor{red}{Probabilistic Reasoning}**_
   - Conditional Independence
   - Bayesian Networks
   - Semantics of Bayesian Networks
@@ -219,10 +219,10 @@ digraph BayesianFlow {
 
 
 
-#### Conditional Independence
+####
 - Logic-Based AI Under Uncertainty
 - Probabilistic Reasoning
-  - **\textcolor{purple}{Conditional Independence}**
+  - _**\textcolor{red}{Conditional Independence}**_
   - Bayesian Networks
   - Semantics of Bayesian Networks
   - Constructing a Bayesian Network
@@ -403,11 +403,11 @@ digraph BayesianFlow {
   - Evidence for one explains the effect and reduces the need to believe in the
     other
 
-#### Bayesian Networks
+####
 - Logic-Based AI Under Uncertainty
 - Probabilistic Reasoning
   - Conditional Independence
-  - **\textcolor{purple}{Bayesian Networks}**
+  - _**\textcolor{red}{Bayesian Networks}**_
   - Semantics of Bayesian Networks
   - Constructing a Bayesian Network
   - Exact Inference in Bayesian Networks
@@ -681,12 +681,12 @@ digraph BayesianFlow {
 ::::
 :::
 
-#### Semantics of Bayesian Networks
+####
 - Logic-Based AI Under Uncertainty
 - Probabilistic Reasoning
   - Conditional Independence
   - Bayesian Networks
-  - **\textcolor{purple}{Semantics of Bayesian Networks}**
+  - _**\textcolor{red}{Semantics of Bayesian Networks}**_
   - Constructing a Bayesian Network
   - Exact Inference in Bayesian Networks
   - Approximate Inference in Bayesian Networks
@@ -801,13 +801,13 @@ digraph BayesianNetwork {
   & \hspace{1cm} \Pr(\lnot Burglary) \Pr(\lnot Earthquake) \\
   \end{align*}
 
-#### Constructing a Bayesian Network
+####
 - Logic-Based AI Under Uncertainty
 - Probabilistic Reasoning
   - Conditional Independence
   - Bayesian Networks
   - Semantics of Bayesian Networks
-  - **\textcolor{purple}{Constructing a Bayesian Network}**
+  - _**\textcolor{red}{Constructing a Bayesian Network}**_
   - Exact Inference in Bayesian Networks
   - Approximate Inference in Bayesian Networks
 
@@ -1497,14 +1497,14 @@ digraph InsuranceRiskModel {
 }
 ```
 
-#### Exact Inference in Bayesian Networks
+####
 - Logic-Based AI Under Uncertainty
 - Probabilistic Reasoning
   - Conditional Independence
   - Bayesian Networks
   - Semantics of Bayesian Networks
   - Constructing a Bayesian Network
-  - **\textcolor{purple}{Exact Inference in Bayesian Networks}**
+  - _**\textcolor{red}{Exact Inference in Bayesian Networks}**_
   - Approximate Inference in Bayesian Networks
 
 
@@ -1556,7 +1556,7 @@ digraph InsuranceRiskModel {
   = \alpha \sum_e \sum_a \Pr(b) \Pr(e) \Pr(a | b, e) \Pr(j | a) \Pr(m | a)
   $$
 
-#### Approximate Inference in Bayesian Networks
+####
 - Logic-Based AI Under Uncertainty
 - Probabilistic Reasoning
   - Conditional Independence
@@ -1564,7 +1564,7 @@ digraph InsuranceRiskModel {
   - Semantics of Bayesian Networks
   - Constructing a Bayesian Network
   - Exact Inference in Bayesian Networks
-  - **\textcolor{purple}{Approximate Inference in Bayesian Networks}**
+  - _**\textcolor{red}{Approximate Inference in Bayesian Networks}**_
 
 
 #### Monte Carlo Algorithms

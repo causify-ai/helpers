@@ -291,6 +291,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
 
 
 class Test_format_first_level_bullets1(hunitest.TestCase):
+    # TODO(ai): Rename -> helper
     def format_and_compare_markdown(self, text: str, expected: str) -> None:
         text = hprint.dedent(text)
         expected = hprint.dedent(expected)
@@ -549,7 +550,7 @@ class Test_process_lines1(hunitest.TestCase):
 
 
 class Test_process_code_block1(hunitest.TestCase):
-    def helper_process_code_block(self, txt: str) -> str:
+    def helper(self, txt: str) -> str:
         out: List[str] = []
         in_code_block = False
         lines = txt.split("\n")
@@ -573,7 +574,7 @@ class Test_process_code_block1(hunitest.TestCase):
         txt_in = hio.from_file(input_file_path)
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         # Run function.
-        actual = self.helper_process_code_block(txt_in)
+        actual = self.helper(txt_in)
         # Check output.
         self.check_string(
             actual, dedent=True, remove_lead_trail_empty_lines=True
