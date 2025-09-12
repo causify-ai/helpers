@@ -890,6 +890,7 @@ def get_shared_data_dirs() -> Optional[Dict[str, str]]:
             "/data/shared": "/shared_data",
             "/data/shared2": "/shared_data2",
             "/data/shared_k8s": "/shared_k8s",
+            "/data/shared_test": "/shared_test",
         }
     elif is_external_dev() or is_inside_ci() or is_prod_csfy():
         shared_data_dirs = None
