@@ -88,9 +88,7 @@ def _get_rendered_file_paths(
     # Use GitHub absolute reference when specified.
     if use_github_hosting:
         repo_name = hgit.get_repo_full_name_from_client(super_module=True)
-        github_abs_path = (
-            f"https://raw.githubusercontent.com/{repo_name}/master/"
-        )
+        github_abs_path = f"https://raw.githubusercontent.com/{repo_name}/master/"
         rel_img_path = os.path.join(github_abs_path, rel_img_path)
     # Get the path to a temporary file with the image code, e.g., "readme.1.txt".
     dir_name = "tmp.render_images"
@@ -195,6 +193,7 @@ def _render_image_code(
         )
     )
     hio.create_dir(abs_img_dir_path, incremental=True)
+    hio.create_dir(os.path.dirname(in_code_file_path), incremental=True)
     # Save the image code to a temporary file.
     hio.to_file(in_code_file_path, image_code_txt)
     # Run the rendering.
@@ -215,9 +214,17 @@ def _render_image_code(
                 use_sudo=use_sudo,
             )
         elif image_code_type == "mermaid":
+            # Build absolute path for the image file (docker runner needs host-absolute).
+            abs_img_file_path = (
+                out_img_file_path
+                if os.path.isabs(out_img_file_path)
+                else os.path.join(
+                    abs_img_dir_path, os.path.basename(out_img_file_path)
+                )
+            )
             hdocexec.run_dockerized_mermaid(
                 in_code_file_path,
-                out_img_file_path,
+                abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
