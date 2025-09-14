@@ -26,17 +26,15 @@ import dev_scripts_helpers.documentation.check_links as dsdocheli
 
 import argparse
 import logging
-import os
 import re
-import urllib.request
 import urllib.error
+import urllib.request
 from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
-import helpers.hmarkdown_headers as hmarkhe
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -45,13 +43,16 @@ _LOG = logging.getLogger(__name__)
 def _get_git_repo_info() -> Tuple[str, str]:
     """
     Get git repository URL and current branch name.
+
     :return: tuple of (repo_url, branch_name)
     """
     try:
         # Get current branch name using hgit function.
         branch_name = hgit.get_branch_name(".")
         # Get repository full name and convert to GitHub URL.
-        repo_full_name = hgit.get_repo_full_name_from_dirname(".", include_host_name=True)
+        repo_full_name = hgit.get_repo_full_name_from_dirname(
+            ".", include_host_name=True
+        )
         if repo_full_name.startswith("github.com/"):
             repo_url = f"https://{repo_full_name}"
         else:
@@ -62,11 +63,20 @@ def _get_git_repo_info() -> Tuple[str, str]:
         return "", ""
 
 
-def _convert_local_path_to_url(file_path: str, repo_url: str, branch_name: str) -> str:
+def _convert_local_path_to_url(
+    file_path: str, repo_url: str, branch_name: str
+) -> str:
     """
     Convert a local file path to a GitHub URL.
-    :param file_path: local file path (e.g., "/tutorial_template/README.md")
-    :param repo_url: repository URL (e.g., "https://github.com/user/repo")
+
+    :param file_path: local file path (e.g.,
+    "/tutorial_template/README.md") :param repo_url: repository URL
+    (e.g., "
+    https://github.com/user/repo")
+    :param file_path: local file path (e.g.,
+        "/tutorial_template/README.md")
+    :param repo_url: repository URL (e.g.,
+        "https://github.com/user/repo")
     :param branch_name: branch name (e.g., "master")
     :return: GitHub URL for the file
     """
@@ -81,14 +91,15 @@ def _extract_urls_from_text_with_original_line_numbers(
 ) -> List[Tuple[str, int]]:
     """
     Extract URLs from filtered text but return line numbers from original text.
+
     Convert local repository file paths to GitHub URLs.
     :param original_text: original text before any filtering
     :param filtered_text: text after TOC removal
     :return: list of tuples (url, original_line_number) found
     """
     urls = []
-    original_lines = original_text.split('\n')
-    filtered_lines = filtered_text.split('\n')
+    original_lines = original_text.split("\n")
+    filtered_lines = filtered_text.split("\n")
     url_set = set()
     # Get git repository information for local path conversion.
     repo_url, branch_name = _get_git_repo_info()
@@ -104,17 +115,21 @@ def _extract_urls_from_text_with_original_line_numbers(
                 break
             original_idx += 1
     for filtered_line_num, line in enumerate(filtered_lines):
-        original_line_num = line_mapping.get(filtered_line_num, filtered_line_num + 1)
+        original_line_num = line_mapping.get(
+            filtered_line_num, filtered_line_num + 1
+        )
         # Pattern for Markdown links: [text](url).
-        markdown_pattern = r'\[([^\]]*)\]\(([^)]+)\)'
+        markdown_pattern = r"\[([^\]]*)\]\(([^)]+)\)"
         matches = re.findall(markdown_pattern, line)
         for _, url in matches:
             url = url.strip()
             # Convert local file paths to GitHub URLs if in a git repo.
             if url.startswith("/") and repo_url and branch_name:
                 # Check if it looks like a file path (has file extension or common dirs).
-                if ("." in url.split("/")[-1] or
-                    any(part in url for part in ["tutorial_template", "docs", "src", "helpers"])):
+                if "." in url.split("/")[-1] or any(
+                    part in url
+                    for part in ["tutorial_template", "docs", "src", "helpers"]
+                ):
                     url = _convert_local_path_to_url(url, repo_url, branch_name)
             if url not in url_set:
                 urls.append((url, original_line_num))
@@ -129,12 +144,14 @@ def _extract_urls_from_text_with_original_line_numbers(
                 url_set.add(url)
         # Pattern for standalone local file paths.
         if repo_url and branch_name:
-            local_path_pattern = r'(/[a-zA-Z0-9_/.-]+\.[a-zA-Z0-9]+(?:\s|$))'
+            local_path_pattern = r"(/[a-zA-Z0-9_/.-]+\.[a-zA-Z0-9]+(?:\s|$))"
             matches = re.findall(local_path_pattern, line)
             for match in matches:
                 file_path = match.strip()
                 if file_path not in url_set:
-                    url = _convert_local_path_to_url(file_path, repo_url, branch_name)
+                    url = _convert_local_path_to_url(
+                        file_path, repo_url, branch_name
+                    )
                     urls.append((url, original_line_num))
                     url_set.add(file_path)
     return urls
@@ -143,14 +160,14 @@ def _extract_urls_from_text_with_original_line_numbers(
 def _check_url_reachable(url: str) -> bool:
     """
     Check if a URL is reachable via HTTP/HTTPS request.
+
     :param url: URL to check
     :return: True if URL is reachable, False otherwise
     """
     try:
         # Create request with a user agent to avoid blocking.
         request = urllib.request.Request(
-            url,
-            headers={'User-Agent': 'Mozilla/5.0 (Link Checker)'}
+            url, headers={"User-Agent": "Mozilla/5.0 (Link Checker)"}
         )
         # Set timeout to 10 seconds.
         with urllib.request.urlopen(request, timeout=10) as response:
@@ -161,9 +178,12 @@ def _check_url_reachable(url: str) -> bool:
         return False
 
 
-def _check_links_in_file(input_file: str) -> Tuple[List[str], List[Tuple[str, int]]]:
+def _check_links_in_file(
+    input_file: str,
+) -> Tuple[List[str], List[Tuple[str, int]]]:
     """
     Check all links in a file and categorize them as reachable or broken.
+
     :param input_file: path to input file
     :return: tuple of (reachable_urls, broken_urls_with_line_numbers)
     """
@@ -181,7 +201,9 @@ def _check_links_in_file(input_file: str) -> Tuple[List[str], List[Tuple[str, in
     reachable_urls = []
     broken_urls = []
     for i, (url, line_num) in enumerate(urls, 1):
-        _LOG.debug("Checking URL %d/%d: %s (line %d)", i, len(urls), url, line_num)
+        _LOG.debug(
+            "Checking URL %d/%d: %s (line %d)", i, len(urls), url, line_num
+        )
         if _check_url_reachable(url):
             reachable_urls.append(url)
             _LOG.info("✓ %s", url)
@@ -196,8 +218,10 @@ def _generate_cfile_for_broken_urls(
 ) -> List[str]:
     """
     Generate a vim cfile format for broken URLs.
+
     :param input_file: path to input file
-    :param broken_urls: list of tuples (url, line_number) for broken URLs
+    :param broken_urls: list of tuples (url, line_number) for broken
+        URLs
     :return: cfile content as list of strings
     """
     cfile_lines = []
@@ -215,13 +239,13 @@ def _parse() -> argparse.ArgumentParser:
         "--in_file",
         action="store",
         required=True,
-        help="Input file to check for URLs."
+        help="Input file to check for URLs.",
     )
     parser.add_argument(
         "--cfile",
         action="store",
         default="cfile",
-        help="Output file to write broken URLs in vim cfile format (default: 'cfile')."
+        help="Output file to write broken URLs in vim cfile format (default: 'cfile').",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -235,7 +259,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Generate cfile by default if there are broken URLs.
     if broken_urls:
         cfile_content = _generate_cfile_for_broken_urls(args.in_file, broken_urls)
-        hio.to_file(args.cfile, '\n'.join(cfile_content))
+        hio.to_file(args.cfile, "\n".join(cfile_content))
         _LOG.info("Generated cfile with broken URLs: %s", args.cfile)
     elif args.cfile != "cfile":
         # If user specified a custom cfile name but no broken URLs, create empty file.
