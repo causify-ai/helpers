@@ -1,0 +1,31 @@
+{
+	"name": "helpers",
+	"image": "causify/helpers:dev",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind",
+	"workspaceFolder": "/app",
+	"runArgs": [
+		"--cap-add=SYS_ADMIN"
+	],
+	"overrideCommand": true,
+	"containerEnv": {
+		"CSFY_HOST_NAME": "Heanhs-MacBook-Pro.local",
+		"CSFY_HOST_OS_NAME": "Darwin",
+		"CSFY_HOST_OS_VERSION": "24.1.0",
+		"CSFY_HOST_USER_NAME": "heanh",
+		"CSFY_HOST_GIT_ROOT_PATH": "${localWorkspaceFolder}",
+		"CSFY_GIT_ROOT_PATH": "/app",
+		"CSFY_HELPERS_ROOT_PATH": "/app",
+		"CSFY_USE_HELPERS_AS_NESTED_MODULE": "0",
+		"CSFY_ENABLE_DIND": "0",
+		"PYTHONPATH": "/app:${PYTHONPATH}"
+	},
+	"settings": {
+		"python.defaultInterpreterPath": "/venv/bin/python"
+	},
+	"mounts": [
+		"source=${env:HOME}/.aws,target=/home/.aws,type=bind",
+		"source=${env:HOME}/.config/gh,target=/home/.config/gh,type=bind",
+		"source=${env:HOME}/.ssh,target=/home/.ssh,type=bind",
+		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+	]
+}
