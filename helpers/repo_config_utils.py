@@ -347,6 +347,22 @@ class RepoConfig:
         )
         return value
 
+    def get_install_publishing_tools(self) -> bool:
+        """
+        Return whether the publishing tools should be installed, True by default.
+        """
+        value = self._data["runnable_dir_info"].get(
+            "install_publishing_tools", True
+        )
+        return value
+
+    def get_install_aws_cli(self) -> bool:
+        """
+        Return whether the AWS CLI should be installed, True by default.
+        """
+        value = self._data["runnable_dir_info"].get("install_aws_cli", True)
+        return value
+
     # TODO(gp): Add functions for container_registry_info.
 
     def get_container_registry_url(self, registry: str = "ecr") -> str:
