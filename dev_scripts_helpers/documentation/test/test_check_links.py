@@ -1,4 +1,5 @@
 import logging
+from unittest import mock
 
 import dev_scripts_helpers.documentation.check_links as dshdchli
 import helpers.hio as hio
@@ -29,9 +30,13 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         text = hprint.dedent(text)
         filtered_text = hmarkdo.remove_table_of_contents(text)
         # Run test.
-        actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-            text, filtered_text
-        )
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
+                text, filtered_text
+            )
         # Check outputs.
         expected = [
             ("https://github.com/gpsaggese/umd_classes/tree/master", 2),
@@ -57,13 +62,17 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         text = hprint.dedent(text)
         filtered_text = hmarkdo.remove_table_of_contents(text)
         # Run test.
-        actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-            text, filtered_text
-        )
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
+                text, filtered_text
+            )
         # Check outputs.
         expected = [
             (
-                "https://github.com/causify-ai/helpers/blob/tmp//github.com/gpsaggese/umd_classes/blob/master/class_project/DATA605/Spring2025/project_description.md",
+                "https://github.com/causify-ai/helpers/blob/HEAD//github.com/gpsaggese/umd_classes/blob/master/class_project/DATA605/Spring2025/project_description.md",
                 2,
             ),
             (
@@ -88,9 +97,13 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         text = hprint.dedent(text)
         filtered_text = hmarkdo.remove_table_of_contents(text)
         # Run test.
-        actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-            text, filtered_text
-        )
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
+                text, filtered_text
+            )
         # Check outputs.
         expected = [
             ("https://example.com/link1", 2),
@@ -112,9 +125,13 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         text = hprint.dedent(text)
         filtered_text = hmarkdo.remove_table_of_contents(text)
         # Run test.
-        actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-            text, filtered_text
-        )
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
+                text, filtered_text
+            )
         # Check outputs.
         expected = []
         self.assert_equal(str(actual), str(expected))
@@ -132,13 +149,17 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         text = hprint.dedent(text)
         filtered_text = hmarkdo.remove_table_of_contents(text)
         # Run test.
-        actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
-            text, filtered_text
-        )
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
+                text, filtered_text
+            )
         # Check outputs.
         expected = [
             ("https://example.com", 1),
-            ("https://github.com/causify-ai/helpers/blob/tmp//example.com", 2),
+            ("https://github.com/causify-ai/helpers/blob/HEAD//example.com", 2),
         ]
         self.assert_equal(str(actual), str(expected))
 
@@ -211,7 +232,11 @@ class Test_check_links_in_file(hunitest.TestCase):
         test_file = scratch_dir + "/test_links.md"
         hio.to_file(test_file, test_content)
         # Run test.
-        reachable_urls, broken_urls = dshdchli._check_links_in_file(test_file)
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            reachable_urls, broken_urls = dshdchli._check_links_in_file(test_file)
         # Check outputs.
         self.assert_equal(str(len(reachable_urls)), str(2))
         self.assert_equal(str(len(broken_urls)), str(1))
@@ -235,7 +260,11 @@ class Test_check_links_in_file(hunitest.TestCase):
         test_file = scratch_dir + "/test_broken_links.md"
         hio.to_file(test_file, test_content)
         # Run test.
-        reachable_urls, broken_urls = dshdchli._check_links_in_file(test_file)
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            reachable_urls, broken_urls = dshdchli._check_links_in_file(test_file)
         # Check outputs.
         self.assert_equal(str(len(reachable_urls)), str(0))
         self.assert_equal(str(len(broken_urls)), str(3))
@@ -243,7 +272,7 @@ class Test_check_links_in_file(hunitest.TestCase):
             ("https://this-domain-absolutely-does-not-exist-12345.com", 4),
             ("https://another-non-existent-domain-98765.com", 5),
             (
-                "https://github.com/causify-ai/helpers/blob/tmp//another-non-existent-domain-98765.com",
+                "https://github.com/causify-ai/helpers/blob/HEAD//another-non-existent-domain-98765.com",
                 5,
             ),
         ]
@@ -265,7 +294,11 @@ class Test_check_links_in_file(hunitest.TestCase):
         test_file = scratch_dir + "/test_no_links.md"
         hio.to_file(test_file, test_content)
         # Run test.
-        reachable_urls, broken_urls = dshdchli._check_links_in_file(test_file)
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            reachable_urls, broken_urls = dshdchli._check_links_in_file(test_file)
         # Check outputs.
         self.assert_equal(str(len(reachable_urls)), str(0))
         self.assert_equal(str(len(broken_urls)), str(0))
