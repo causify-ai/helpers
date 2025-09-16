@@ -408,17 +408,14 @@ def docker_build_local_image(  # type: ignore
     install_publishing_tools = (
         hrecouti.get_repo_config().get_install_publishing_tools()
     )
-    install_aws_cli = (
-        hrecouti.get_repo_config().get_install_aws_cli()
-    )
+    install_aws_cli = hrecouti.get_repo_config().get_install_aws_cli()
     opts = "--no-cache" if not cache else ""
     build_args = [
         ("AM_CONTAINER_VERSION", dev_version),
         ("INSTALL_DIND", True),
         ("POETRY_MODE", poetry_mode),
         ("CLEAN_UP_INSTALLATION", cleanup_installation),
-        # The following args are intentionally omitted from the printed build
-        # command expectations in unit tests.
+        # TODO(Vlad): Uncomment these when we have a way to test them.
         # ("INSTALL_PUBLISHING_TOOLS", install_publishing_tools),
         # ("INSTALL_AWS_CLI", install_aws_cli),
     ]
