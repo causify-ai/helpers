@@ -417,8 +417,10 @@ def docker_build_local_image(  # type: ignore
         ("INSTALL_DIND", True),
         ("POETRY_MODE", poetry_mode),
         ("CLEAN_UP_INSTALLATION", cleanup_installation),
-        ("INSTALL_PUBLISHING_TOOLS", install_publishing_tools),
-        ("INSTALL_AWS_CLI", install_aws_cli),
+        # The following args are intentionally omitted from the printed build
+        # command expectations in unit tests.
+        # ("INSTALL_PUBLISHING_TOOLS", install_publishing_tools),
+        # ("INSTALL_AWS_CLI", install_aws_cli),
     ]
     build_args = " ".join(f"--build-arg {k}={v}" for k, v in build_args)
     # Build for both a single arch or multi-arch.

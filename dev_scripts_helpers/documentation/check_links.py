@@ -157,6 +157,37 @@ def _extract_urls_from_text_with_original_line_numbers(
     return urls
 
 
+def _extract_urls_from_text(text: str) -> List[str]:
+    """
+    Extract URLs from a block of text.
+
+    Supports:
+    - Markdown links: [label](url)
+    - Standalone URLs: https://example.com
+
+    :return: list of unique URLs preserving first-seen order
+    """
+    urls: List[str] = []
+    seen = set()
+    lines = text.split("\n")
+    markdown_pattern = r"\[([^\]]*)\]\(([^)]+)\)"
+    standalone_pattern = r'https?://[^\s<>"\[\]{}|\\^`()]+'  # noqa: W605
+    for line in lines:
+        # Markdown links.
+        for _, url in re.findall(markdown_pattern, line):
+            url = url.strip()
+            if url and url not in seen:
+                seen.add(url)
+                urls.append(url)
+        # Standalone URLs.
+        for url in re.findall(standalone_pattern, line):
+            url = url.strip()
+            if url and url not in seen:
+                seen.add(url)
+                urls.append(url)
+    return urls
+
+
 def _check_url_reachable(url: str) -> bool:
     """
     Check if a URL is reachable via HTTP/HTTPS request.
@@ -180,7 +211,7 @@ def _check_url_reachable(url: str) -> bool:
 
 def _check_links_in_file(
     input_file: str,
-) -> Tuple[List[str], List[Tuple[str, int]]]:
+) -> Tuple[List[str], List[str]]:
     """
     Check all links in a file and categorize them as reachable or broken.
 
@@ -192,24 +223,20 @@ def _check_links_in_file(
     original_content = hio.from_file(input_file)
     # Remove table of contents between <!-- toc --> and <!-- tocstop --> tags.
     filtered_content = hmarkdo.remove_table_of_contents(original_content)
-    # Extract URLs from content with original line numbers.
-    urls = _extract_urls_from_text_with_original_line_numbers(
-        original_content, filtered_content
-    )
+    # Extract URLs from content.
+    urls = _extract_urls_from_text(filtered_content)
     _LOG.info("Found %d URLs in file %s", len(urls), input_file)
     # Check each URL.
-    reachable_urls = []
-    broken_urls = []
-    for i, (url, line_num) in enumerate(urls, 1):
-        _LOG.debug(
-            "Checking URL %d/%d: %s (line %d)", i, len(urls), url, line_num
-        )
+    reachable_urls: List[str] = []
+    broken_urls: List[str] = []
+    for i, url in enumerate(urls, 1):
+        _LOG.debug("Checking URL %d/%d: %s", i, len(urls), url)
         if _check_url_reachable(url):
             reachable_urls.append(url)
             _LOG.info("✓ %s", url)
         else:
-            broken_urls.append((url, line_num))
-            _LOG.info("✗ %s (line %d)", url, line_num)
+            broken_urls.append(url)
+            _LOG.info("✗ %s", url)
     return reachable_urls, broken_urls
 
 
