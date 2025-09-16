@@ -171,7 +171,7 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
         )
         # The output is a list of strings, each representing a command.
         expected = r"""
-        cp -f devops/docker_build/dockerignore.dev $GIT_ROOT/.dockerignore
+        cp -f devops/docker_build/dockerignore.dev /app/.dockerignore
         tar -czh . | DOCKER_BUILDKIT=0 \
         time \
         docker build \
@@ -207,7 +207,7 @@ class Test_docker_build_local_image1(_DockerFlowTestHelper):
             multi_arch=self.test_multi_arch,
         )
         expected = r"""
-        cp -f devops/docker_build/dockerignore.dev $GIT_ROOT/.dockerignore
+        cp -f devops/docker_build/dockerignore.dev /app/.dockerignore
         docker buildx create \
             --name multiarch_builder \
             --driver docker-container \
@@ -548,7 +548,7 @@ class Test_docker_release_dev_image1(_DockerFlowTestHelper):
             push_to_repo=True,
         )
         expected = r"""
-        cp -f devops/docker_build/dockerignore.dev $GIT_ROOT/.dockerignore
+        cp -f devops/docker_build/dockerignore.dev /app/.dockerignore
         tar -czh . | DOCKER_BUILDKIT=0 \
         time \
         docker build \
@@ -658,7 +658,7 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
             target_registries="aws_ecr.ck",
         )
         expected = r"""
-        cp -f devops/docker_build/dockerignore.dev $GIT_ROOT/.dockerignore
+        cp -f devops/docker_build/dockerignore.dev /app/.dockerignore
         docker buildx create \
             --name multiarch_builder \
             --driver docker-container \
@@ -708,7 +708,7 @@ class Test_docker_release_multi_build_dev_image1(_DockerFlowTestHelper):
             target_registries="aws_ecr.ck,dockerhub.causify",
         )
         expected = r"""
-        cp -f devops/docker_build/dockerignore.dev $GIT_ROOT/.dockerignore
+        cp -f devops/docker_build/dockerignore.dev /app/.dockerignore
         docker buildx create \
             --name multiarch_builder \
             --driver docker-container \
