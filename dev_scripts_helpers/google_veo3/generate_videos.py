@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-Generate Google Veo3 videos from storyboard markdown files.
+Generate Google Veo3 videos from storyboard text files.
 
-This script parses a markdown file containing scenes with visuals and narration
+This script parses a text file containing scenes with visuals and narration
 descriptions, then generates videos for each scene using the Google Veo3 API.
 
 Example usage:
@@ -43,11 +43,12 @@ File=reference_image.jpg
 import argparse
 import logging
 import os
-import time
+# TODO(ai): Use import pathlib and pathlib.Path.
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import tqdm
+# TODO(ai): Use import google and google.genai and google.genai.types.
 from google import genai
 from google.genai import types
 
@@ -65,26 +66,55 @@ _LOG = logging.getLogger(__name__)
 
 def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
     """
-    Parse markdown file and extract scenes with visuals, narration, and file references.
+    Parse text file and extract scenes with visuals, narration, and file references.
 
-    :param file_path: path to the markdown file
-    :return: list of scene dictionaries with 'title', 'visuals', 'narration', 'file' keys
+    Expected format:
+    # Scene Title
+
+    Visuals=
+    Multi-line visual description
+    Line 2
+    ...
+
+    Narration=
+    Multi-line narration text
+    Line 2
+    ...
+
+    NegativePrompt=
+    Multi-line negative prompt
+    Line 2
+    ...
+
+    Duration_in_secs=8
+
+    File=reference_image.jpg
+
+    :param file_path: path to the text file
+    :return: list of scene dictionaries with keys: 'title', 'visuals', 'narration', 'negative_prompt', 'duration_in_secs', 'file'
     """
     # TODO(ai): Use dassert_file_exists.
-    hdbg.dassert(os.path.isfile(file_path), "Markdown file does not exist:", file_path)
+    hdbg.dassert(os.path.isfile(file_path), "Text file does not exist:", file_path)
     #
     scenes = []
     current_scene = None
+    current_field = None
+    current_field_lines = []
     #
     # TODO(ai): Use hio.from_file.
     with open(file_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
-    # TODO(ai): Make sure that each tagged line such as visuals, narration
-    # can be multiple lines
-    for line in lines:
-        line = line.strip()
+    #
+    for line_num, line in enumerate(lines, 1):
+        _LOG.debug("Processing line %d: %s", line_num, line)
+        original_line = line
+        line = line.rstrip()
+        #
         # Check for scene title (header level 1).
         if line.startswith('# ') and len(line) > 2:
+            # Save current field content if exists.
+            if current_scene and current_field and current_field_lines:
+                current_scene[current_field] = '\n'.join(current_field_lines).strip()
             # Save previous scene if exists.
             if current_scene:
                 scenes.append(current_scene)
@@ -94,14 +124,56 @@ def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
                 'title': title,
                 'visuals': '',
                 'narration': '',
+                'negative_prompt': '',
+                'duration_in_secs': '',
                 'file': ''
             }
-        elif current_scene and line.startswith('- Visuals:'):
-            current_scene['visuals'] = line[10:].strip()
-        elif current_scene and line.startswith('- Narration:'):
-            current_scene['narration'] = line[12:].strip()
-        elif current_scene and line.startswith('- File:'):
-            current_scene['file'] = line[7:].strip()
+            current_field = None
+            current_field_lines = []
+        elif current_scene:
+            # Check for field markers.
+            if line == 'Visuals=':
+                # Save previous field if exists.
+                if current_field and current_field_lines:
+                    current_scene[current_field] = '\n'.join(current_field_lines).strip()
+                current_field = 'visuals'
+                current_field_lines = []
+            elif line == 'Narration=':
+                # Save previous field if exists.
+                if current_field and current_field_lines:
+                    current_scene[current_field] = '\n'.join(current_field_lines).strip()
+                current_field = 'narration'
+                current_field_lines = []
+            elif line == 'NegativePrompt=':
+                # Save previous field if exists.
+                if current_field and current_field_lines:
+                    current_scene[current_field] = '\n'.join(current_field_lines).strip()
+                current_field = 'negative_prompt'
+                current_field_lines = []
+            elif line.startswith('Duration_in_secs='):
+                # Save previous field if exists.
+                if current_field and current_field_lines:
+                    current_scene[current_field] = '\n'.join(current_field_lines).strip()
+                value = line[17:].strip()
+                value = int(value)
+                current_scene['duration_in_secs'] = value
+                current_field = None
+                current_field_lines = []
+            elif line.startswith('File='):
+                # Save previous field if exists.
+                if current_field and current_field_lines:
+                    current_scene[current_field] = '\n'.join(current_field_lines).strip()
+                current_scene['file'] = line[5:].strip()
+                current_field = None
+                current_field_lines = []
+            elif current_field and line.strip():
+                # Add line to current field content.
+                current_field_lines.append(line)
+            # Skip empty lines and lines that don't match any field.
+    #
+    # Save final field content if exists.
+    if current_scene and current_field and current_field_lines:
+        current_scene[current_field] = '\n'.join(current_field_lines).strip()
     # Add last scene.
     if current_scene:
         scenes.append(current_scene)
@@ -110,6 +182,7 @@ def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
     return scenes
 
 
+# TODO(ai): Make the hint types tighter.
 def _resolve_scene_file(scene: Dict[str, str], fallback_file: Optional[str]) -> Optional[str]:
     """
     Resolve the file reference for a scene, using fallback if scene file doesn't exist.
@@ -119,19 +192,16 @@ def _resolve_scene_file(scene: Dict[str, str], fallback_file: Optional[str]) -> 
     :return: resolved file path or None
     """
     scene_file = scene.get('file', '').strip()
-    #
     # Check if scene has a specific file and it exists.
     if scene_file and os.path.isfile(scene_file):
         return scene_file
-    #
     # Use fallback file if provided and exists.
     # TODO(ai): use dassert_file_exists to ensure that file exists.
     if fallback_file and os.path.isfile(fallback_file):
         _LOG.debug("Using fallback file %s for scene '%s'", fallback_file, scene['title'])
         return fallback_file
     #
-    _LOG.warning("No valid file found for scene '%s'", scene['title'])
-    return None
+    raise ValueError(f"No valid file found for scene '{scene['title']}'")
 
 
 # #############################################################################
@@ -144,8 +214,10 @@ def _generate_video_for_scene(
     scene: Dict[str, str],
     scene_index: int,
     *,
+    # TODO(ai): Make it required.
     image_file: Optional[str] = None,
-    duration_seconds: int = 8,
+    # TODO(ai): Remove default_duration_seconds.
+    default_duration_seconds: int = 8,
     resolution: str = "1080p",
     aspect_ratio: str = "16:9"
 ) -> Optional[str]:
@@ -153,10 +225,10 @@ def _generate_video_for_scene(
     Generate a video for a single scene using Google Veo3.
 
     :param client: Google GenAI client
-    :param scene: scene dictionary with visuals and narration
+    :param scene: scene dictionary with visuals, narration, negative_prompt, duration_in_secs, file
     :param scene_index: index of the scene for output naming
     :param image_file: optional reference image file
-    :param duration_seconds: video duration in seconds
+    :param default_duration_seconds: default video duration in seconds if not specified in scene
     :param resolution: video resolution
     :param aspect_ratio: video aspect ratio
     :return: path to generated video file or None if failed
@@ -164,6 +236,10 @@ def _generate_video_for_scene(
     title = scene['title']
     visuals = scene['visuals']
     narration = scene['narration']
+    negative_prompt = scene.get('negative_prompt', '').strip()
+    duration_seconds= scene.get('duration_in_secs', '').strip()
+    #
+    # Parse duration from scene or use default.
     #
     # Construct prompt combining visuals and narration.
     prompt_parts = []
@@ -177,16 +253,19 @@ def _generate_video_for_scene(
         return None
     #
     prompt = ". ".join(prompt_parts)
-    _LOG.info("Generating video for scene '%s': %s", title, prompt[:100] + "..." if len(prompt) > 100 else prompt)
-    # Configure video generation.
-    config = types.GenerateVideosConfig(
-        durationSeconds=duration_seconds,
-        resolution=resolution,
-        aspectRatio=aspect_ratio,
-        # TODO(ai): Add support for image reference if provided.
-        # negativePrompt="loud music, modern buildings",
-    )
+    _LOG.info("Generating video for scene '%s' (duration: %ds): %s", title, duration_seconds, prompt[:100] + "..." if len(prompt) > 100 else prompt)
     #
+    # Configure video generation.
+    config_kwargs = {
+        'durationSeconds': duration_seconds,
+        'resolution': resolution,
+        'aspectRatio': aspect_ratio,
+    }
+    if negative_prompt:
+        config_kwargs['negativePrompt'] = negative_prompt
+        _LOG.debug("Using negative prompt for scene '%s': %s", title, negative_prompt)
+    #
+    config = types.GenerateVideosConfig(**config_kwargs)
     # Start video generation operation.
     operation = client.models.generate_videos(
         model="veo-3.0-generate-001",
@@ -235,7 +314,6 @@ def _generate_videos_from_scenes(
     :return: list of generated video file paths
     """
     generated_files = []
-    #
     # Use progress bar for multiple scenes.
     for i, scene in enumerate(tqdm.tqdm(scenes, desc="Generating videos")):
         scene_file = _resolve_scene_file(scene, fallback_image)
@@ -245,7 +323,7 @@ def _generate_videos_from_scenes(
             scene,
             i + 1,
             image_file=scene_file,
-            duration_seconds=duration_seconds
+            default_duration_seconds=duration_seconds
         )
         #
         if output_file:
@@ -270,8 +348,9 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--in_file",
         required=True,
-        help="Input markdown file containing scenes"
+        help="Input text file containing scenes"
     )
+    # TODO(ai): Remove this parameter.
     parser.add_argument(
         "--in_pic",
         help="Fallback inspiration image file for scenes without specific files"
@@ -280,6 +359,7 @@ def _parse() -> argparse.ArgumentParser:
         "--out_file",
         help="Output file prefix (individual scene files will be generated)"
     )
+    # TODO(ai): Remove this parameter.
     parser.add_argument(
         "--duration",
         type=int,
@@ -296,31 +376,26 @@ def _main(parser: argparse.ArgumentParser) -> None:
     """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    #
     # Validate arguments.
+    # TODO(ai): Use dassert_file_exists.
     hdbg.dassert(os.path.isfile(args.in_file), "Input file does not exist:", args.in_file)
     if args.in_pic:
         hdbg.dassert(os.path.isfile(args.in_pic), "Input image file does not exist:", args.in_pic)
-    #
     # Validate API key.
     api_key = os.getenv("GOOGLE_GENAI_API_KEY")
     hdbg.dassert(api_key, "Environment variable GOOGLE_GENAI_API_KEY is not set")
-    #
     # Initialize client.
     client = genai.Client(api_key=api_key)
-    #
     # Test connection and Veo access.
     _LOG.info("Testing API connection...")
     client.models.generate_content(model="gemini-1.5-flash", contents="ping")
     _LOG.info("API connection successful")
-    #
+    # Get Veo model.
     model = client.models.get(model="veo-3.0-generate-001")
     _LOG.info("Veo model access confirmed: %s", model.name)
-    #
     # Parse scenes from markdown.
     scenes = _parse_markdown_scenes(args.in_file)
     hdbg.dassert(len(scenes) > 0, "No scenes found in input file:", args.in_file)
-    #
     # Generate videos for all scenes.
     generated_files = _generate_videos_from_scenes(
         client,
