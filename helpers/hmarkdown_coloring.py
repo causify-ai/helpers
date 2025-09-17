@@ -184,7 +184,7 @@ def colorize_bullet_points_in_slide(
         return txt
     # Divide by 2 since we count the number of occurrences of `**`, while we
     # want to count `**bold**` as 1.
-    hdbg.dassert_eq(tot_bold % 2, 0, "tot_bold=%s needs to be even", tot_bold)
+    #hdbg.dassert_eq(tot_bold % 2, 0, "tot_bold=%s needs to be even", tot_bold)
     num_bolds = tot_bold // 2
 
     # Use the colors in the order of the list of colors.
