@@ -6,6 +6,8 @@ from typing import Tuple
 
 import jupytext
 import pytest
+# Skip this test suite if libcst is not installed (skip for tutorials).
+pytest.importorskip("libcst")
 from packaging import version
 
 import helpers.hdbg as hdbg
