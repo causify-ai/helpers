@@ -43,6 +43,7 @@ File=reference_image.jpg
 import argparse
 import logging
 import os
+import pprint
 import time
 from typing import Dict, List, Optional
 
@@ -191,9 +192,10 @@ def _generate_video_for_scene(
     *,
     resolution: str = "1080p",
     aspect_ratio: str = "16:9",
-    default_duration_seconds: int = 8,
-    seed: Optional[int] = None,
-    number_of_videos: int = 1
+    default_duration_in_seconds: Optional[int] = None,
+    #seed: Optional[int] = None,
+    #number_of_videos: int = 1,
+    dry_run: bool = False
 ) -> str:
     """
     Generate a video for a single scene using Google Veo3.
@@ -213,9 +215,11 @@ def _generate_video_for_scene(
     visuals = scene['visuals']
     narration = scene['narration']
     negative_prompt = scene.get('negative_prompt', '').strip()
-    duration_seconds = scene['duration_in_secs']
-    if default_duration_seconds is not None:
-        duration_seconds = default_duration_seconds
+    duration_in_seconds = scene['duration_in_secs']
+    if default_duration_in_seconds is not None:
+        duration_in_seconds = default_duration_in_seconds
+    hdbg.dassert_lte(1, duration_in_seconds)
+    hdbg.dassert_lte(duration_in_seconds, 8)
     # Construct prompt combining visuals and narration.
     prompt_parts = []
     if visuals:
@@ -225,45 +229,58 @@ def _generate_video_for_scene(
     hdbg.dassert(prompt_parts, "Scene '%s' has no visuals or narration", title)
     #
     prompt = ". ".join(prompt_parts)
-    _LOG.info("Generating video for scene '%s' (duration: %ds): %s", title, duration_seconds, prompt[:100] + "..." if len(prompt) > 100 else prompt)
+    _LOG.info("Generating video for scene '%s' (duration: %ds): %s", title, duration_in_seconds, prompt[:100] + "..." if len(prompt) > 100 else prompt)
     # Configure video generation.
     config_kwargs = {
-        'durationSeconds': duration_seconds,
+        'durationSeconds': duration_in_seconds,
         'resolution': resolution,
         'aspectRatio': aspect_ratio,
-        'numberOfVideos': number_of_videos,
+        #'numberOfVideos': number_of_videos,
     }
     if negative_prompt:
         config_kwargs['negativePrompt'] = negative_prompt
         _LOG.debug("Using negative prompt for scene '%s': %s", title, negative_prompt)
-    if seed is not None:
-        config_kwargs['seed'] = seed
-        _LOG.debug("Using seed %d for scene '%s'", seed, title)
+    # if seed is not None:
+    #     config_kwargs['seed'] = seed
+    #     _LOG.debug("Using seed %d for scene '%s'", seed, title)
     #
     config = genai_types.GenerateVideosConfig(**config_kwargs)
+    # Create output filename.
+    output_filename = f"scene_{scene_index:03d}_{title.replace(' ', '_').replace('/', '_')}.mp4"
+    _LOG.info("output filename='%s", output_filename)
+    if dry_run:
+        config_kwargs['model'] = "veo-3.0-generate-001"
+        config_kwargs['prompt'] = prompt
+        config_kwargs['config'] = config
+        _LOG.warning("DRY RUN: Would create video with parameters:\n%s",
+                  pprint.pformat(config_kwargs))
+        return output_filename
     # Start video generation operation.
+    _LOG.info("Create video with parameters:\n%s",
+                  pprint.pformat(config_kwargs))
     operation = client.models.generate_videos(
         model="veo-3.0-generate-001",
         prompt=prompt,
         config=config
     )
-    #
-    _LOG.info("Started operation %s for scene '%s'", operation.name, title)
-    # Create output filename.
-    output_filename = f"scene_{scene_index:03d}_{title.replace(' ', '_').replace('/', '_')}.mp4"
-    _LOG.info("Saving video as %s", output_filename)
+    operation_name = operation.name
+    _LOG.info("Started operation '%s' for scene '%s'", operation_name, title)
     # Poll until completion.
+    iters = 0
     while not operation.done:
         _LOG.debug("Waiting for video generation to complete for scene '%s'", title)
         time.sleep(10)
-        operation = client.operations.get(operation.name)
+        iters += 1
+        _LOG.info("Iteration %d", iters)
+        operation = client.operations.get(operation)
+        #operation = client.operations.get(operation_name)
     # Download and save the generated video.
     if operation.response and operation.response.generated_videos:
         generated_video = operation.response.generated_videos[0]
         client.files.download(file=generated_video.video)
         # Save with scene-specific filename.
         generated_video.video.save(output_filename)
-        _LOG.info("Video saved as %s", output_filename)
+        _LOG.info("Video saved as '%s'", output_filename)
         return output_filename
     raise ValueError("No video generated for scene %d:'%s'", scene_index, title)
 
@@ -271,7 +288,8 @@ def _generate_video_for_scene(
 def _generate_videos_from_scenes(
     client: genai.Client,
     scenes: List[Dict[str, str]],
-    low_res: bool
+    low_res: bool,
+    dry_run: bool
 ) -> List[str]:
     """
     Generate videos for all scenes.
@@ -289,16 +307,18 @@ def _generate_videos_from_scenes(
                 client,
                 scene,
                 i + 1,
-                resolution="480p",
-                default_duration_seconds=4,
-                seed=42,
-                number_of_videos=1
+                #resolution="480p",
+                resolution="720p",
+                default_duration_in_seconds=8,
+                #seed=42,
+                dry_run=dry_run
             )
         else:
             output_file = _generate_video_for_scene(
                 client,
                 scene,
                 i + 1,
+                dry_run=dry_run
             )
         #
         generated_files.append(output_file)
@@ -332,6 +352,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Use low resolution settings for faster rendering (480p, 4s duration, seed=42)"
     )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Print what will be executed without calling Google Veo3 API"
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -363,7 +388,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     generated_files = _generate_videos_from_scenes(
         client,
         scenes,
-        args.low_res
+        args.low_res,
+        args.dry_run
     )
     #
     _LOG.info("Generated %d videos out of %d scenes", len(generated_files), len(scenes))
