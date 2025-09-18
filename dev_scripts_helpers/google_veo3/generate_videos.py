@@ -42,15 +42,12 @@ File=reference_image.jpg
 
 import argparse
 import logging
-import os
-# TODO(ai): Use import pathlib and pathlib.Path.
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import tqdm
-# TODO(ai): Use import google and google.genai and google.genai.types.
-from google import genai
-from google.genai import types
+import google.genai as genai
+import google.genai.types as genai_types
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -93,17 +90,15 @@ def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
     :param file_path: path to the text file
     :return: list of scene dictionaries with keys: 'title', 'visuals', 'narration', 'negative_prompt', 'duration_in_secs', 'file'
     """
-    # TODO(ai): Use dassert_file_exists.
-    hdbg.dassert(os.path.isfile(file_path), "Text file does not exist:", file_path)
+    hio.dassert_file_exists(file_path)
     #
     scenes = []
     current_scene = None
     current_field = None
     current_field_lines = []
     #
-    # TODO(ai): Use hio.from_file.
-    with open(file_path, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
+    content = hio.from_file(file_path)
+    lines = content.splitlines(keepends=True)
     #
     for line_num, line in enumerate(lines, 1):
         _LOG.debug("Processing line %d: %s", line_num, line)
@@ -182,8 +177,8 @@ def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
     return scenes
 
 
-# TODO(ai): Make the hint types tighter.
-def _resolve_scene_file(scene: Dict[str, str], fallback_file: Optional[str]) -> Optional[str]:
+# TODO(ai): Remove fallback_file.
+def _resolve_scene_file(scene: Dict[str, Any], fallback_file: Optional[str]) -> str:
     """
     Resolve the file reference for a scene, using fallback if scene file doesn't exist.
 
@@ -193,11 +188,10 @@ def _resolve_scene_file(scene: Dict[str, str], fallback_file: Optional[str]) -> 
     """
     scene_file = scene.get('file', '').strip()
     # Check if scene has a specific file and it exists.
-    if scene_file and os.path.isfile(scene_file):
+    if scene_file and Path(scene_file).is_file():
         return scene_file
     # Use fallback file if provided and exists.
-    # TODO(ai): use dassert_file_exists to ensure that file exists.
-    if fallback_file and os.path.isfile(fallback_file):
+    if fallback_file and Path(fallback_file).is_file():
         _LOG.debug("Using fallback file %s for scene '%s'", fallback_file, scene['title'])
         return fallback_file
     #
@@ -214,24 +208,20 @@ def _generate_video_for_scene(
     scene: Dict[str, str],
     scene_index: int,
     *,
-    # TODO(ai): Make it required.
-    image_file: Optional[str] = None,
-    # TODO(ai): Remove default_duration_seconds.
-    default_duration_seconds: int = 8,
+    image_file: str,
     resolution: str = "1080p",
     aspect_ratio: str = "16:9"
-) -> Optional[str]:
+) -> str:
     """
     Generate a video for a single scene using Google Veo3.
 
     :param client: Google GenAI client
     :param scene: scene dictionary with visuals, narration, negative_prompt, duration_in_secs, file
     :param scene_index: index of the scene for output naming
-    :param image_file: optional reference image file
-    :param default_duration_seconds: default video duration in seconds if not specified in scene
+    :param image_file: reference image file
     :param resolution: video resolution
     :param aspect_ratio: video aspect ratio
-    :return: path to generated video file or None if failed
+    :return: path to generated video file
     """
     title = scene['title']
     visuals = scene['visuals']
@@ -239,7 +229,7 @@ def _generate_video_for_scene(
     negative_prompt = scene.get('negative_prompt', '').strip()
     duration_seconds= scene.get('duration_in_secs', '').strip()
     #
-    # Parse duration from scene or use default.
+    # Parse duration from scene.
     #
     # Construct prompt combining visuals and narration.
     prompt_parts = []
@@ -247,10 +237,8 @@ def _generate_video_for_scene(
         prompt_parts.append(f"Visuals: {visuals}")
     if narration:
         prompt_parts.append(f"Narration: {narration}")
-    # TODO(ai): Use assertion.
-    if not prompt_parts:
-        _LOG.warning("Scene '%s' has no visuals or narration, skipping", title)
-        return None
+    # TODO(ai): Use "%s, title" for all dassert
+    hdbg.dassert(prompt_parts, f"Scene '{title}' has no visuals or narration")
     #
     prompt = ". ".join(prompt_parts)
     _LOG.info("Generating video for scene '%s' (duration: %ds): %s", title, duration_seconds, prompt[:100] + "..." if len(prompt) > 100 else prompt)
@@ -265,7 +253,7 @@ def _generate_video_for_scene(
         config_kwargs['negativePrompt'] = negative_prompt
         _LOG.debug("Using negative prompt for scene '%s': %s", title, negative_prompt)
     #
-    config = types.GenerateVideosConfig(**config_kwargs)
+    config = genai_types.GenerateVideosConfig(**config_kwargs)
     # Start video generation operation.
     operation = client.models.generate_videos(
         model="veo-3.0-generate-001",
@@ -294,40 +282,38 @@ def _generate_video_for_scene(
     # else:
     #     _LOG.error("No video generated for scene '%s'", title)
     #     return None
-        #
+    #
+    # For now, return a placeholder filename since the actual video generation is commented out
+    output_filename = f"scene_{scene_index:03d}_{title.replace(' ', '_').replace('/', '_')}.mp4"
+    # TODO(ai): Use %s, output_filename
+    _LOG.info("Would save video as %s (generation currently disabled)", output_filename)
+    return output_filename
 
 
 def _generate_videos_from_scenes(
     client: genai.Client,
-    scenes: List[Dict[str, str]],
-    *,
-    fallback_image: Optional[str] = None,
-    duration_seconds: int = 8
+    scenes: List[Dict[str, str]]
 ) -> List[str]:
     """
     Generate videos for all scenes.
 
     :param client: Google GenAI client
     :param scenes: list of scene dictionaries
-    :param fallback_image: fallback image file for scenes without specific files
-    :param duration_seconds: video duration in seconds
     :return: list of generated video file paths
     """
     generated_files = []
     # Use progress bar for multiple scenes.
     for i, scene in enumerate(tqdm.tqdm(scenes, desc="Generating videos")):
-        scene_file = _resolve_scene_file(scene, fallback_image)
+        scene_file = _resolve_scene_file(scene, None)
         #
         output_file = _generate_video_for_scene(
             client,
             scene,
             i + 1,
-            image_file=scene_file,
-            default_duration_seconds=duration_seconds
+            image_file=scene_file
         )
         #
-        if output_file:
-            generated_files.append(output_file)
+        generated_files.append(output_file)
     #
     return generated_files
 
@@ -350,21 +336,9 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Input text file containing scenes"
     )
-    # TODO(ai): Remove this parameter.
-    parser.add_argument(
-        "--in_pic",
-        help="Fallback inspiration image file for scenes without specific files"
-    )
     parser.add_argument(
         "--out_file",
         help="Output file prefix (individual scene files will be generated)"
-    )
-    # TODO(ai): Remove this parameter.
-    parser.add_argument(
-        "--duration",
-        type=int,
-        default=8,
-        help="Video duration in seconds (default: 8)"
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -377,10 +351,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate arguments.
-    # TODO(ai): Use dassert_file_exists.
-    hdbg.dassert(os.path.isfile(args.in_file), "Input file does not exist:", args.in_file)
-    if args.in_pic:
-        hdbg.dassert(os.path.isfile(args.in_pic), "Input image file does not exist:", args.in_pic)
+    hio.dassert_file_exists(args.in_file)
     # Validate API key.
     api_key = os.getenv("GOOGLE_GENAI_API_KEY")
     hdbg.dassert(api_key, "Environment variable GOOGLE_GENAI_API_KEY is not set")
@@ -395,13 +366,19 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Veo model access confirmed: %s", model.name)
     # Parse scenes from markdown.
     scenes = _parse_markdown_scenes(args.in_file)
-    hdbg.dassert(len(scenes) > 0, "No scenes found in input file:", args.in_file)
+    hdbg.dassert(len(scenes) > 0, "No scenes found in input file: %s", args.in_file)
     # Generate videos for all scenes.
+    # TODO(ai): Add a command line option --low_res that uses the following parameters
+            duration_seconds=4,      # shorter duration → faster render
+        resolution="480p",       # lower resolution → faster render
+        aspect_ratio="16:9",
+        seed=42,                 # <— key to deterministic output
+        sample_count=1,          # only 1 sample for speed
+    instead of parameters for high resolution
+
     generated_files = _generate_videos_from_scenes(
         client,
-        scenes,
-        fallback_image=args.in_pic,
-        duration_seconds=args.duration
+        scenes
     )
     #
     _LOG.info("Generated %d videos out of %d scenes", len(generated_files), len(scenes))
