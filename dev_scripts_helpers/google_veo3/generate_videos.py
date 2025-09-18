@@ -66,6 +66,7 @@ def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
     Parse text file and extract scenes with visuals, narration, and file references.
 
     Expected format:
+    ```
     # Scene Title
 
     Visuals=
@@ -86,6 +87,7 @@ def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
     Duration_in_secs=8
 
     File=reference_image.jpg
+    ```
 
     :param file_path: path to the text file
     :return: list of scene dictionaries with keys: 'title', 'visuals', 'narration', 'negative_prompt', 'duration_in_secs', 'file'
@@ -96,15 +98,13 @@ def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
     current_scene = None
     current_field = None
     current_field_lines = []
-    #
+    # Read file.
     content = hio.from_file(file_path)
     lines = content.splitlines(keepends=True)
     #
     for line_num, line in enumerate(lines, 1):
         _LOG.debug("Processing line %d: %s", line_num, line)
-        original_line = line
         line = line.rstrip()
-        #
         # Check for scene title (header level 1).
         if line.startswith('# ') and len(line) > 2:
             # Save current field content if exists.
@@ -164,8 +164,9 @@ def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
             elif current_field and line.strip():
                 # Add line to current field content.
                 current_field_lines.append(line)
-            # Skip empty lines and lines that don't match any field.
-    #
+            else:
+                # Skip empty lines and lines that don't match any field.
+                pass
     # Save final field content if exists.
     if current_scene and current_field and current_field_lines:
         current_scene[current_field] = '\n'.join(current_field_lines).strip()
@@ -175,27 +176,6 @@ def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
     #
     _LOG.info("Parsed %d scenes from %s", len(scenes), file_path)
     return scenes
-
-
-# TODO(ai): Remove fallback_file.
-def _resolve_scene_file(scene: Dict[str, Any], fallback_file: Optional[str]) -> str:
-    """
-    Resolve the file reference for a scene, using fallback if scene file doesn't exist.
-
-    :param scene: scene dictionary
-    :param fallback_file: fallback file path to use if scene file is missing
-    :return: resolved file path or None
-    """
-    scene_file = scene.get('file', '').strip()
-    # Check if scene has a specific file and it exists.
-    if scene_file and Path(scene_file).is_file():
-        return scene_file
-    # Use fallback file if provided and exists.
-    if fallback_file and Path(fallback_file).is_file():
-        _LOG.debug("Using fallback file %s for scene '%s'", fallback_file, scene['title'])
-        return fallback_file
-    #
-    raise ValueError(f"No valid file found for scene '{scene['title']}'")
 
 
 # #############################################################################
@@ -208,9 +188,11 @@ def _generate_video_for_scene(
     scene: Dict[str, str],
     scene_index: int,
     *,
-    image_file: str,
     resolution: str = "1080p",
-    aspect_ratio: str = "16:9"
+    aspect_ratio: str = "16:9",
+    default_duration_seconds: int = 8,
+    seed: Optional[int] = None,
+    sample_count: int = 1
 ) -> str:
     """
     Generate a video for a single scene using Google Veo3.
@@ -221,37 +203,41 @@ def _generate_video_for_scene(
     :param image_file: reference image file
     :param resolution: video resolution
     :param aspect_ratio: video aspect ratio
+    :param default_duration_seconds: default duration if not specified in scene
+    :param seed: seed for deterministic output
+    :param sample_count: number of samples to generate
     :return: path to generated video file
     """
     title = scene['title']
     visuals = scene['visuals']
     narration = scene['narration']
     negative_prompt = scene.get('negative_prompt', '').strip()
-    duration_seconds= scene.get('duration_in_secs', '').strip()
-    #
-    # Parse duration from scene.
-    #
+    duration_seconds = scene['duration_in_secs']
+    if default_duration_seconds is not None:
+        duration_seconds = default_duration_seconds
     # Construct prompt combining visuals and narration.
     prompt_parts = []
     if visuals:
         prompt_parts.append(f"Visuals: {visuals}")
     if narration:
         prompt_parts.append(f"Narration: {narration}")
-    # TODO(ai): Use "%s, title" for all dassert
-    hdbg.dassert(prompt_parts, f"Scene '{title}' has no visuals or narration")
+    hdbg.dassert(prompt_parts, "Scene '%s' has no visuals or narration", title)
     #
     prompt = ". ".join(prompt_parts)
     _LOG.info("Generating video for scene '%s' (duration: %ds): %s", title, duration_seconds, prompt[:100] + "..." if len(prompt) > 100 else prompt)
-    #
     # Configure video generation.
     config_kwargs = {
         'durationSeconds': duration_seconds,
         'resolution': resolution,
         'aspectRatio': aspect_ratio,
+        'sampleCount': sample_count,
     }
     if negative_prompt:
         config_kwargs['negativePrompt'] = negative_prompt
         _LOG.debug("Using negative prompt for scene '%s': %s", title, negative_prompt)
+    if seed is not None:
+        config_kwargs['seed'] = seed
+        _LOG.debug("Using seed %d for scene '%s'", seed, title)
     #
     config = genai_types.GenerateVideosConfig(**config_kwargs)
     # Start video generation operation.
@@ -285,36 +271,46 @@ def _generate_video_for_scene(
     #
     # For now, return a placeholder filename since the actual video generation is commented out
     output_filename = f"scene_{scene_index:03d}_{title.replace(' ', '_').replace('/', '_')}.mp4"
-    # TODO(ai): Use %s, output_filename
     _LOG.info("Would save video as %s (generation currently disabled)", output_filename)
     return output_filename
 
 
 def _generate_videos_from_scenes(
     client: genai.Client,
-    scenes: List[Dict[str, str]]
+    scenes: List[Dict[str, str]],
+    *,
+    # TODO(ai): Make this mandatory.
+    low_res: bool = False
 ) -> List[str]:
     """
     Generate videos for all scenes.
 
     :param client: Google GenAI client
     :param scenes: list of scene dictionaries
+    :param low_res: whether to use low resolution settings for faster rendering
     :return: list of generated video file paths
     """
     generated_files = []
     # Use progress bar for multiple scenes.
     for i, scene in enumerate(tqdm.tqdm(scenes, desc="Generating videos")):
-        scene_file = _resolve_scene_file(scene, None)
-        #
-        output_file = _generate_video_for_scene(
-            client,
-            scene,
-            i + 1,
-            image_file=scene_file
-        )
+        if low_res:
+            output_file = _generate_video_for_scene(
+                client,
+                scene,
+                i + 1,
+                resolution="480p",
+                default_duration_seconds=4,
+                seed=42,
+                sample_count=1
+            )
+        else:
+            output_file = _generate_video_for_scene(
+                client,
+                scene,
+                i + 1,
+            )
         #
         generated_files.append(output_file)
-    #
     return generated_files
 
 
@@ -339,6 +335,11 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--out_file",
         help="Output file prefix (individual scene files will be generated)"
+    )
+    parser.add_argument(
+        "--low_res",
+        action="store_true",
+        help="Use low resolution settings for faster rendering (480p, 4s duration, seed=42)"
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -366,19 +367,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Veo model access confirmed: %s", model.name)
     # Parse scenes from markdown.
     scenes = _parse_markdown_scenes(args.in_file)
-    hdbg.dassert(len(scenes) > 0, "No scenes found in input file: %s", args.in_file)
+    hdbg.dassert_lt(0, len(scenes), "No scenes found in input file: %s", args.in_file)
     # Generate videos for all scenes.
-    # TODO(ai): Add a command line option --low_res that uses the following parameters
-            duration_seconds=4,      # shorter duration → faster render
-        resolution="480p",       # lower resolution → faster render
-        aspect_ratio="16:9",
-        seed=42,                 # <— key to deterministic output
-        sample_count=1,          # only 1 sample for speed
-    instead of parameters for high resolution
-
     generated_files = _generate_videos_from_scenes(
         client,
-        scenes
+        scenes,
+        low_res=args.low_res
     )
     #
     _LOG.info("Generated %d videos out of %d scenes", len(generated_files), len(scenes))
