@@ -1557,3 +1557,57 @@ def docker_update_prod_task_definition(
         )
         _LOG.info("Rollback completed! %s", s3_rollback_message)
         raise ex
+
+
+#TODO(Dan): Choose correct location. 
+
+def _read_top_line(filepath: str) -> str:
+    """
+    Read the top non-empty line from a changelog file.
+    """
+    with open(filepath, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                return line
+    raise ValueError(f"No top-line found in {filepath}")
+
+@task
+def docker_release_frontend(
+    ctx,
+    stage,
+    dev_image_version=None,
+    app_version=None,
+    push_image=False,
+):
+    """
+    Build and optionally push the front-end release image.
+    """
+    hdbg.dassert_in(stage, ["test", "preprod", "prod"])
+    # Get changelog paths.
+    current_dir = os.getcwd()
+    changelog_file = os.path.join(current_dir, "changelog.txt")
+    app_changelog_file = os.path.join(current_dir, "app_changelog.txt")
+    # Get image and app version.
+    if not dev_image_version:
+        dev_image_version = _read_top_line(changelog_file)
+    if not app_version:
+        app_version = _read_top_line(app_changelog_file)
+    # Set ECR base path.
+    if stage in ("test", "preprod"):
+        ecr_base_path = "623860924167.dkr.ecr.eu-north-1.amazonaws.com"
+    else:
+        ecr_base_path = "726416904550.dkr.ecr.us-east-1.amazonaws.com"
+    # Set image tag.
+    image_name = "itsavvy-front-end"
+    image_tag = f"{ecr_base_path}/{image_name}:{stage}-{app_version}"
+    # Docker build command.
+    docker_cmd = [
+        "docker", "build", "--no-cache",
+        "-f", "ck_web_apps/itsavvy/app/devops/docker_build/prod.Dockerfile",
+        "--build-arg", f"VERSION={dev_image_version}",
+        "--build-arg", f"ECR_BASE_PATH={ecr_base_path}",
+        "--build-arg", f"IMAGE_NAME={image_name}",
+        "-t", image_tag,
+    ]
+    # TODO(Dan): Copmlete the function.
