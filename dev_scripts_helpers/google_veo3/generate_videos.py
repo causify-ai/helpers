@@ -222,6 +222,7 @@ def _generate_video_for_scene(
     hdbg.dassert_lte(duration_in_seconds, 8)
     # Construct prompt combining visuals and narration.
     prompt_parts = []
+    prompt_parts.append("Style: Cartoon style playful")
     if visuals:
         prompt_parts.append(f"Visuals: {visuals}")
     if narration:
@@ -236,6 +237,7 @@ def _generate_video_for_scene(
         'resolution': resolution,
         'aspectRatio': aspect_ratio,
         #'numberOfVideos': number_of_videos,
+        "style": "cartoon",
     }
     if negative_prompt:
         config_kwargs['negativePrompt'] = negative_prompt
@@ -273,7 +275,6 @@ def _generate_video_for_scene(
         iters += 1
         _LOG.info("Iteration %d", iters)
         operation = client.operations.get(operation)
-        #operation = client.operations.get(operation_name)
     # Download and save the generated video.
     if operation.response and operation.response.generated_videos:
         generated_video = operation.response.generated_videos[0]
@@ -307,7 +308,6 @@ def _generate_videos_from_scenes(
                 client,
                 scene,
                 i + 1,
-                #resolution="480p",
                 resolution="720p",
                 default_duration_in_seconds=8,
                 #seed=42,
@@ -358,6 +358,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Print what will be executed without calling Google Veo3 API"
     )
     hparser.add_verbosity_arg(parser)
+    hparser.add_limit_range_arg(parser)
     return parser
 
 
@@ -384,6 +385,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Parse scenes from markdown.
     scenes = _parse_markdown_scenes(args.in_file)
     hdbg.dassert_lt(0, len(scenes), "No scenes found in input file: %s", args.in_file)
+    # Parse limit range from command line arguments.
+    limit_range = hparser.parse_limit_range_args(args)
+    # Apply limit range filtering to discovered scenes.
+    scenes = hparser.apply_limit_range(scenes, limit_range, item_name="scenes")
     # Generate videos for all scenes.
     generated_files = _generate_videos_from_scenes(
         client,
