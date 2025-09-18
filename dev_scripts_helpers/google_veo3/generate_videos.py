@@ -42,8 +42,9 @@ File=reference_image.jpg
 
 import argparse
 import logging
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+import os
+import time
+from typing import Dict, List, Optional
 
 import tqdm
 import google.genai as genai
@@ -92,7 +93,7 @@ def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
     :param file_path: path to the text file
     :return: list of scene dictionaries with keys: 'title', 'visuals', 'narration', 'negative_prompt', 'duration_in_secs', 'file'
     """
-    hio.dassert_file_exists(file_path)
+    hdbg.dassert_file_exists(file_path)
     #
     scenes = []
     current_scene = None
@@ -192,7 +193,7 @@ def _generate_video_for_scene(
     aspect_ratio: str = "16:9",
     default_duration_seconds: int = 8,
     seed: Optional[int] = None,
-    sample_count: int = 1
+    number_of_videos: int = 1
 ) -> str:
     """
     Generate a video for a single scene using Google Veo3.
@@ -205,7 +206,7 @@ def _generate_video_for_scene(
     :param aspect_ratio: video aspect ratio
     :param default_duration_seconds: default duration if not specified in scene
     :param seed: seed for deterministic output
-    :param sample_count: number of samples to generate
+    :param number_of_videos: number of videos to generate
     :return: path to generated video file
     """
     title = scene['title']
@@ -230,7 +231,7 @@ def _generate_video_for_scene(
         'durationSeconds': duration_seconds,
         'resolution': resolution,
         'aspectRatio': aspect_ratio,
-        'sampleCount': sample_count,
+        'numberOfVideos': number_of_videos,
     }
     if negative_prompt:
         config_kwargs['negativePrompt'] = negative_prompt
@@ -248,39 +249,29 @@ def _generate_video_for_scene(
     )
     #
     _LOG.info("Started operation %s for scene '%s'", operation.name, title)
-    #
-    # # Poll until completion.
-    # while not operation.done:
-    #     _LOG.debug("Waiting for video generation to complete for scene '%s'", title)
-    #     time.sleep(10)
-    #     operation = client.operations.get(operation.name)
-    # #
-    # # Download and save the generated video.
-    # if operation.response and operation.response.generated_videos:
-    #     generated_video = operation.response.generated_videos[0]
-    #     client.files.download(file=generated_video.video)
-    #     #
-    #     # Save with scene-specific filename.
-    #     output_filename = f"scene_{scene_index:03d}_{title.replace(' ', '_').replace('/', '_')}.mp4"
-    #     generated_video.video.save(output_filename)
-    #     _LOG.info("Video saved as %s", output_filename)
-    #     return output_filename
-    # else:
-    #     _LOG.error("No video generated for scene '%s'", title)
-    #     return None
-    #
-    # For now, return a placeholder filename since the actual video generation is commented out
+    # Create output filename.
     output_filename = f"scene_{scene_index:03d}_{title.replace(' ', '_').replace('/', '_')}.mp4"
-    _LOG.info("Would save video as %s (generation currently disabled)", output_filename)
-    return output_filename
+    _LOG.info("Saving video as %s", output_filename)
+    # Poll until completion.
+    while not operation.done:
+        _LOG.debug("Waiting for video generation to complete for scene '%s'", title)
+        time.sleep(10)
+        operation = client.operations.get(operation.name)
+    # Download and save the generated video.
+    if operation.response and operation.response.generated_videos:
+        generated_video = operation.response.generated_videos[0]
+        client.files.download(file=generated_video.video)
+        # Save with scene-specific filename.
+        generated_video.video.save(output_filename)
+        _LOG.info("Video saved as %s", output_filename)
+        return output_filename
+    raise ValueError("No video generated for scene %d:'%s'", scene_index, title)
 
 
 def _generate_videos_from_scenes(
     client: genai.Client,
     scenes: List[Dict[str, str]],
-    *,
-    # TODO(ai): Make this mandatory.
-    low_res: bool = False
+    low_res: bool
 ) -> List[str]:
     """
     Generate videos for all scenes.
@@ -301,7 +292,7 @@ def _generate_videos_from_scenes(
                 resolution="480p",
                 default_duration_seconds=4,
                 seed=42,
-                sample_count=1
+                number_of_videos=1
             )
         else:
             output_file = _generate_video_for_scene(
@@ -352,7 +343,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate arguments.
-    hio.dassert_file_exists(args.in_file)
+    hdbg.dassert_file_exists(args.in_file)
     # Validate API key.
     api_key = os.getenv("GOOGLE_GENAI_API_KEY")
     hdbg.dassert(api_key, "Environment variable GOOGLE_GENAI_API_KEY is not set")
@@ -372,7 +363,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     generated_files = _generate_videos_from_scenes(
         client,
         scenes,
-        low_res=args.low_res
+        args.low_res
     )
     #
     _LOG.info("Generated %d videos out of %d scenes", len(generated_files), len(scenes))
