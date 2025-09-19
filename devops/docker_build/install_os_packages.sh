@@ -121,6 +121,7 @@ report_disk_usage
 if [[ $CLEAN_UP_INSTALLATION ]]; then
     echo "Cleaning up installation..."
     apt-get purge -y --auto-remove
+    rm -rf $INSTALL_DIR/aws
     echo "Cleaning up installation... done"
 else
     echo "WARNING: Skipping clean up installation"
