@@ -39,16 +39,24 @@ def run_test(test_name: str, dst_dir: str) -> None:
         prompt = "Panning wide shot of a calico kitten sleeping in the sunshine"
     elif test_name == "parameters":
         prompt="A cinematic shot of a majestic lion in the savannah."
+    elif test_name == "test":
+        prompt = """
+        A busy boardroom with executives debating a decision (launching a product, investing in a new market).
+        
+        Illustrate this as a flat-style business visual, like you’d see in SaaS product demos or startup pitch decks”
+        """
     else:
         raise ValueError(f"Invalid test name: {test_name}")
+    #model_name ="imagen-4.0-generate-001",
+    model_name = "imagen-4.0-fast-generate-001"
     count = 1
     for i in range(count):
         # Step 1: Generate an image with Imagen.
         imagen = client.models.generate_images(
-            model="imagen-4.0-generate-001",
+            model=model_name,
             prompt=prompt,
             config=genai_types.GenerateImagesConfig(
-                number_of_images= 4,
+                number_of_images=4,
             )
         )
         for j in range(4):
