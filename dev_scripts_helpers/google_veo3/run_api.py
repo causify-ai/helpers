@@ -9,7 +9,7 @@ import mimetypes
 import os
 import pprint
 import time
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import tqdm
 import google.genai as genai
@@ -23,7 +23,7 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
-def wait_for_video_generation(client, operation, poll_interval_secs: int = 2) -> None:
+def wait_for_video_generation(client: Any, operation: Any, poll_interval_secs: int = 2) -> None:
     """
     Wait for video generation to complete and print progress.
     
@@ -36,9 +36,10 @@ def wait_for_video_generation(client, operation, poll_interval_secs: int = 2) ->
         print(f"Waiting for video generation to complete... ({elapsed}s)")
         time.sleep(poll_interval_secs)
         operation = client.operations.get(operation)
+    return operation
 
 
-def save_generated_video(client, operation, output_file: str) -> None:
+def save_generated_video(client: Any, operation: Any, output_file: str) -> None:
     """
     Save the generated video from the operation to a file.
 
@@ -76,13 +77,11 @@ def run_test(test_name: str) -> None:
         prompt = "Panning wide shot of a calico kitten sleeping in the sunshine"
         # Step 1: Generate an image with Imagen.
         imagen = client.models.generate_images(
-            client=client,
             model="imagen-4.0-generate-001",
             prompt=prompt,
         )
         # Step 2: Generate video with Veo 3 using the image.
         operation = client.models.generate_videos(
-            client=client,
             model=model_name,
             prompt=prompt,
             image=imagen.generated_images[0].image,
@@ -92,7 +91,6 @@ def run_test(test_name: str) -> None:
         prompt="A cinematic shot of a majestic lion in the savannah."
         config = genai_types.GenerateVideosConfig(negative_prompt="cartoon, drawing, low quality")
         operation = client.models.generate_videos(
-            client=client,
             model=model_name,
             prompt=prompt,
             config=config
@@ -100,7 +98,7 @@ def run_test(test_name: str) -> None:
         file_name = "parameters_example.%s.mp4" % model_name
     else:
         raise ValueError(f"Invalid test name: {test_name}")
-    wait_for_video_generation(client, operation)
+    operation = wait_for_video_generation(client, operation)
     save_generated_video(client, operation, file_name)
 
 def _parse() -> argparse.ArgumentParser:
