@@ -9,12 +9,7 @@ FROM ubuntu:24.04 AS builder
 ARG AM_CONTAINER_VERSION
 ARG CLEAN_UP_INSTALLATION
 ARG INSTALL_DIND
-ARG INSTALL_PUBLISHING_TOOLS=True
-ARG INSTALL_AWS_CLI=True
 ARG POETRY_MODE
-
-# Promote INSTALL_AWS_CLI ARG to ENV for use in the container.
-ENV INSTALL_AWS_CLI=${INSTALL_AWS_CLI}
 
 # Name of the virtual environment to create.
 ENV APP_DIR=/app
@@ -33,7 +28,8 @@ COPY devops/docker_build/update_os.sh .
 RUN /bin/bash -c "./update_os.sh"
 
 # - Install OS packages.
-COPY devops/docker_build/install_os_packages.sh .
+COPY devops/docker_build/os_packages.txt .
+COPY devops/docker_build/install_os_*.sh ./
 RUN /bin/bash -c "./install_os_packages.sh"
 
 # - Install Python packages.
@@ -45,17 +41,9 @@ COPY devops/docker_build/pyproject.toml .
 COPY devops/docker_build/install_python_packages.sh .
 RUN /bin/bash -c "./install_python_packages.sh"
 
-# - Install Jupyter extensions.
-#COPY devops/docker_build/install_jupyter_extensions.sh .
-#RUN /bin/sh -c "./install_jupyter_extensions.sh"
-
 # - Install Docker-in-docker.
 COPY devops/docker_build/install_dind.sh .
 RUN /bin/bash -c 'if [[ $INSTALL_DIND == "True" ]]; then ./install_dind.sh; fi;'
-
-## - Install publishing tools.
-COPY devops/docker_build/install_publishing_tools.sh .
-RUN /bin/bash -c "if [[ $INSTALL_PUBLISHING_TOOLS == "True" ]]; then ./install_publishing_tools.sh; fi;"
 
 # - Create users and set permissions.
 COPY devops/docker_build/create_users.sh .
