@@ -175,7 +175,11 @@ class LLMClient:
         self.client = client
 
     def build_messages(
-        self, system_prompt: str, user_prompt: str, *, images_as_base64: Optional[List[str]] = None
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        *,
+        images_as_base64: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Construct the standard messages payload for the chat API.
@@ -193,12 +197,14 @@ class LLMClient:
             # Multi-modal message with text and images
             user_content = [{"type": "text", "text": user_prompt}]
             for image_b64 in images_as_base64:
-                user_content.append({
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/jpeg;base64,{image_b64}"
+                user_content.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{image_b64}"
+                        },
                     }
-                })
+                )
             ret.append({"role": "user", "content": user_content})
         else:
             # Text-only message.
@@ -531,7 +537,9 @@ def get_completion(
     llm_client = LLMClient(model=model)
     llm_client.create_client()
     # Construct messages in OpenAI API request format.
-    messages = llm_client.build_messages(system_prompt, user_prompt, images_as_base64=images_as_base64)
+    messages = llm_client.build_messages(
+        system_prompt, user_prompt, images_as_base64=images_as_base64
+    )
     _LOG.info("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
@@ -566,7 +574,7 @@ def get_completion(
     msg, _ = htimer.dtimer_stop(memento)
     _LOG.info(msg)
     if print_cost:
-        _LOG.info(f"cost=%.6f", completion['cost'])
+        _LOG.info(f"cost=%.6f", completion["cost"])
     response = completion["choices"][0]["message"]["content"]
     return response
 

@@ -29,8 +29,8 @@ from typing import Any, Dict, List, Tuple
 
 import requests
 
+import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
-import helpers.hdatetime as hdatetime
 import helpers.hio as hio
 import helpers.hparser as hparser
 
@@ -131,9 +131,7 @@ def create_video(
     )
     # Check the response.
     if resp.status_code != 201:
-        raise ValueError(
-            f"Create video failed ({resp.status_code}): {resp.text}"
-        )
+        raise ValueError(f"Create video failed ({resp.status_code}): {resp.text}")
     data = resp.json()
     # Extract the video ID.
     video_id = data.get("id") or data.get("videoId")
@@ -193,16 +191,22 @@ def _parse() -> argparse.Namespace:
     )
     args = parser.parse_args()
     return args
-    
 
-def _process_slides_from_dir(args: argparse.Namespace, 
-slides_info: List[Tuple[int, str]],
-avatar: str, background: str, aspect: str, resolution: str) -> None:
+
+def _process_slides_from_dir(
+    args: argparse.Namespace,
+    slides_info: List[Tuple[int, str]],
+    avatar: str,
+    background: str,
+    aspect: str,
+    resolution: str,
+) -> None:
     """
     Process slides from a directory.
 
     :param args: parsed arguments
-    :param slides_info: filtered slides in the format (slide_num, file_path)
+    :param slides_info: filtered slides in the format (slide_num,
+        file_path)
     :param avatar: avatar
     :param background: background
     :param aspect: aspect
@@ -230,7 +234,9 @@ avatar: str, background: str, aspect: str, resolution: str) -> None:
             _LOG.info(f"  Script text: {script}")
         else:
             api_key = os.getenv("SYNTHESIA_API_KEY")
-            hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
+            hdbg.dassert(
+                api_key, "Environment variable SYNTHESIA_API_KEY is not set"
+            )
             test = args.test
             video_id = create_video(
                 api_key=api_key,
@@ -244,7 +250,7 @@ avatar: str, background: str, aspect: str, resolution: str) -> None:
                 # extra_scene_overrides=extra,
             )
             _LOG.info(f"Created video: id={video_id}")
-                
+
 
 # TODO(gp): Move to hio.py
 def _make_backup_if_needed(file_path: str) -> None:
@@ -252,9 +258,11 @@ def _make_backup_if_needed(file_path: str) -> None:
     Make a backup of the file or dir if it exists.
     """
     if os.path.exists(file_path):
-        _LOG.warning(f"File or directory {file_path} already exists. Making a backup.")
+        _LOG.warning(
+            f"File or directory {file_path} already exists. Making a backup."
+        )
         # Make a backup of the file or directory.
-        timestamp = hdatetime.get_current_timestamp_as_string()
+        timestamp = hdateti.get_current_timestamp_as_string()
         file_path_backup = file_path + "." + timestamp + ".backup"
         shutil.move(file_path, file_path_backup)
 
@@ -266,7 +274,7 @@ def _main(args: argparse.Namespace) -> None:
     :param args: parsed arguments
     """
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    #avatar = "f4f1005e-6851-414a-9120-d48122613fa0"
+    # avatar = "f4f1005e-6851-414a-9120-d48122613fa0"
     avatar = "3b4c81e9-d476-40f6-93ff-2b817557cc1d"
     background = "workspace-media.c4ab7049-8479-4855-9856-e0d7f2854027"
     aspect = "5:4"
@@ -285,15 +293,21 @@ def _main(args: argparse.Namespace) -> None:
         # Parse limit range from command line arguments.
         limit_range = hparser.parse_limit_range_args(args)
         # Apply limit range filtering to discovered slides.
-        slide_tuples = [(slide_num, file_path) for slide_num, file_path in discovered_slides]
-        filtered_slide_tuples = hparser.apply_limit_range(slide_tuples, limit_range, item_name="slides")
+        slide_tuples = [
+            (slide_num, file_path) for slide_num, file_path in discovered_slides
+        ]
+        filtered_slide_tuples = hparser.apply_limit_range(
+            slide_tuples, limit_range, item_name="slides"
+        )
         # Prepare workload.
         slides_info = []
         for slide_num, file_path in filtered_slide_tuples:
             out_file = f"slide{slide_num}"
             slides_info.append((slide_num, file_path, out_file))
         # Process slides.
-        _process_slides_from_dir(args, slides_info, avatar, background, aspect, resolution)
+        _process_slides_from_dir(
+            args, slides_info, avatar, background, aspect, resolution
+        )
     elif args.in_file:
         hdbg.dassert_file_exists(args.in_file)
         hdbg.dassert_file_exists(args.out_file)
@@ -303,7 +317,9 @@ def _main(args: argparse.Namespace) -> None:
         # Prepare workload.
         slides_info = [0, args.in_file, args.out_file]
         # Process slides.
-        _process_slides_from_dir(args, slides_info, avatar, background, aspect, resolution)
+        _process_slides_from_dir(
+            args, slides_info, avatar, background, aspect, resolution
+        )
     else:
         raise ValueError("Either --in_dir or --in_file must be provided")
 

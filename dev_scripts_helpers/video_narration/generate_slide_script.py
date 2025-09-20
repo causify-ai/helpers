@@ -62,7 +62,7 @@ def _extract_image_paths_from_slide(slide_content: str) -> List[str]:
     :return: list of image file paths found in the slide
     """
     # Pattern to match markdown image syntax: ![](path/to/image.ext)
-    image_pattern = r'!\[.*?\]\(([^)]+)\)'
+    image_pattern = r"!\[.*?\]\(([^)]+)\)"
     matches = re.findall(image_pattern, slide_content)
     return matches
 
@@ -77,7 +77,7 @@ def _convert_image_to_base64(image_path: str) -> str:
     hdbg.dassert_file_exists(image_path)
     with open(image_path, "rb") as image_file:
         image_data = image_file.read()
-        base64_string = base64.b64encode(image_data).decode('utf-8')
+        base64_string = base64.b64encode(image_data).decode("utf-8")
     return base64_string
 
 
@@ -90,11 +90,9 @@ def _process_slide_images(slides_group: List[str]) -> Tuple[List[str], List[str]
     """
     images_as_base64 = []
     processed_slides = []
-
     for slide_content in slides_group:
         # Extract image paths from this slide
         image_paths = _extract_image_paths_from_slide(slide_content)
-
         # Convert images to base64 and add to collection
         for image_path in image_paths:
             if os.path.exists(image_path):
@@ -106,9 +104,7 @@ def _process_slide_images(slides_group: List[str]) -> Tuple[List[str], List[str]
                     _LOG.warning("Failed to convert image %s: %s", image_path, e)
             else:
                 _LOG.warning("Image file not found: %s", image_path)
-
         processed_slides.append(slide_content)
-
     return processed_slides, images_as_base64
 
 
@@ -191,8 +187,10 @@ def _generate_slide_script(
 
     :param in_file: path to input markdown file
     :param out_file: path to output script file
-    :param slides_per_group: number of slides to process in each LLM call
-    :param limit_range: optional tuple (start, end) to limit slides processed
+    :param slides_per_group: number of slides to process in each LLM
+        call
+    :param limit_range: optional tuple (start, end) to limit slides
+        processed
     """
     _LOG.info("Reading slides from: %s", in_file)
     slides = _extract_slides_from_file(in_file)
@@ -200,14 +198,16 @@ def _generate_slide_script(
     # Apply limit range if specified.
     if limit_range is not None:
         start, end = limit_range
-        slides = slides[start:end + 1]
+        slides = slides[start : end + 1]
         _LOG.info("Limited to slides %d-%d (%d slides)", start, end, len(slides))
     # Process slides in groups.
     output_parts = []
     total_groups = (len(slides) + slides_per_group - 1) // slides_per_group
-    for i in tqdm.tqdm(range(0, len(slides), slides_per_group),
-                       total=total_groups,
-                       desc="Processing slide groups"):
+    for i in tqdm.tqdm(
+        range(0, len(slides), slides_per_group),
+        total=total_groups,
+        desc="Processing slide groups",
+    ):
         group_end = min(i + slides_per_group, len(slides))
         slides_group = slides[i:group_end]
         _LOG.info("Processing slides %d-%d", i + 1, group_end)
