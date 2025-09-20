@@ -3,21 +3,15 @@
 # https://ai.google.dev/gemini-api/docs/video?example=dialogue
 
 import argparse
-import base64
 import logging
-import mimetypes
 import os
-import pprint
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-import tqdm
 import google.genai as genai
 import google.genai.types as genai_types
 
 import helpers.hdbg as hdbg
-import helpers.hprint as hprint
-import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)

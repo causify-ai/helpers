@@ -18,10 +18,9 @@ import logging
 import os
 import sys
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, List
 
 from google import genai
-from google.genai import types
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser

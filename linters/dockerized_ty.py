@@ -16,7 +16,6 @@ import helpers.hdocker as hdocker
 import helpers.hsystem as hsystem
 import helpers.hserver as hserver
 import helpers.hprint as hprint
-import helpers.hdockerized_executables as hdocexec
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)

@@ -24,7 +24,6 @@ import logging
 import os
 
 import helpers.hdbg as hdbg
-import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmkdocs as hmkdocs
 import helpers.hparser as hparser

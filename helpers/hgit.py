@@ -11,7 +11,7 @@ import os
 import random
 import re
 import string
-from typing import Any, List, Optional, Tuple, cast
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint

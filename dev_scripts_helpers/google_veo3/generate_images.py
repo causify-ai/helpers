@@ -4,22 +4,14 @@
 
 import argparse
 import base64
-import json
 import logging
-import mimetypes
 import os
-from platform import java_ver
-import pprint
 import requests
-import time
-from typing import Any, Dict, List, Optional
 
-import tqdm
 import google.genai as genai
 import google.genai.types as genai_types
 
 import helpers.hdbg as hdbg
-import helpers.hprint as hprint
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem

@@ -574,7 +574,7 @@ def get_completion(
     msg, _ = htimer.dtimer_stop(memento)
     _LOG.info(msg)
     if print_cost:
-        _LOG.info(f"cost=%.6f", completion["cost"])
+        _LOG.info("cost=%.6f", completion["cost"])
     response = completion["choices"][0]["message"]["content"]
     return response
 

@@ -219,12 +219,12 @@ def _process_slides_from_dir(
     for slide_num, in_file, out_file in slides_info:
         script = hio.from_file(in_file)
         slides.append((script, out_file))
-        _LOG.info(f"Loaded text for slide %d from '%s'", slide_num, in_file)
+        _LOG.info("Loaded text for slide %d from '%s'", slide_num, in_file)
     # Create videos.
     for script, out_file in slides:
         if args.dry_run:
             # Print what would be executed without making API calls.
-            _LOG.info(f"DRY RUN: Would create video with parameters:")
+            _LOG.info("DRY RUN: Would create video with parameters:")
             _LOG.info(f"  Title: {out_file}")
             _LOG.info(f"  Avatar: {avatar}")
             _LOG.info(f"  Background: {background}")
