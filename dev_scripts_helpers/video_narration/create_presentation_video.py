@@ -136,9 +136,9 @@ def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
                 current_slide_num = int(match.group(1))
                 current_slide_config = SlideConfig(current_slide_num)
                 current_slide_config.slide_path = slide_path
-                _LOG.debug(f"Parsing slide {current_slide_num}: {slide_path}")
+                _LOG.debug("Parsing slide %s: %s", current_slide_num, slide_path)
             else:
-                _LOG.warning(f"Could not extract slide number from: {slide_path}")
+                _LOG.warning("Could not extract slide number from: %s", slide_path)
                 i += 1
                 continue
         # Check if this is a pip line (handle indented lines)
@@ -239,9 +239,9 @@ def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
         slide_configs[current_slide_num] = current_slide_config
     # Debug logging and file existence validation
     for slide_num, slide_config in slide_configs.items():
-        _LOG.debug(f"Slide {slide_num}: slide_path={slide_config.slide_path}")
-        _LOG.debug(f"Slide {slide_num}: pip_path={slide_config.pip_path}")
-        _LOG.debug(f"Slide {slide_num}: comment_path={slide_config.comment_path}")
+        _LOG.debug("Slide %s: slide_path=%s", slide_num, slide_config.slide_path)
+        _LOG.debug("Slide %s: pip_path=%s", slide_num, slide_config.pip_path)
+        _LOG.debug("Slide %s: comment_path=%s", slide_num, slide_config.comment_path)
         if slide_config.pip:
             _LOG.debug(
                 f"Slide {slide_num}: pip config={slide_config.pip.coords}, {slide_config.pip.width}, {slide_config.pip.duration}"
@@ -250,7 +250,7 @@ def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
             _LOG.debug(
                 f"Slide {slide_num}: comment config={slide_config.comment.coords}, {slide_config.comment.width}, {slide_config.comment.duration}"
             )
-    _LOG.debug(f"Parsed {len(slide_configs)} slide configurations from plan file")
+    _LOG.debug("Parsed %s slide configurations from plan file", len(slide_configs))
     return slide_configs
 
 
@@ -370,7 +370,7 @@ def _discover_slide_files(
             if os.path.exists(slide_file):
                 slides.append((slide_num, slide_file))
             else:
-                _LOG.warning(f"Slide file not found: {slide_num:03d}_slide.mp4")
+                _LOG.warning("Slide file not found: %03d_slide.mp4", slide_num)
     else:
         # Discover all slides
         pattern = os.path.join(in_dir, "*_slide.mp4")
@@ -385,7 +385,7 @@ def _discover_slide_files(
                 slides.append((slide_num, file_path))
         # Sort by slide number.
         slides.sort(key=lambda x: x[0])
-    _LOG.debug(f"Found {len(slides)} slide files")
+    _LOG.debug("Found %s slide files", len(slides))
     return slides
 
 
@@ -403,39 +403,39 @@ def _find_companion_files(
     pip_path = None
     comment_path = None
 
-    _LOG.debug(f"Looking for companions for slide {slide_num}")
-    _LOG.debug(f"slide_config provided: {slide_config is not None}")
+    _LOG.debug("Looking for companions for slide %s", slide_num)
+    _LOG.debug("slide_config provided: %s", slide_config is not None)
 
     # Use paths from slide config if available
     if slide_config:
-        _LOG.debug(f"slide_config.pip_path: {slide_config.pip_path}")
-        _LOG.debug(f"slide_config.comment_path: {slide_config.comment_path}")
+        _LOG.debug("slide_config.pip_path: %s", slide_config.pip_path)
+        _LOG.debug("slide_config.comment_path: %s", slide_config.comment_path)
 
         if slide_config.pip_path:
             pip_file = slide_config.pip_path
             if not os.path.isabs(pip_file):
                 pip_file = os.path.join(in_dir, pip_file)
-            _LOG.debug(f"Checking pip file: {pip_file}")
+            _LOG.debug("Checking pip file: %s", pip_file)
             pip_path = pip_file if os.path.exists(pip_file) else None
-            _LOG.debug(f"Pip file exists: {pip_path is not None}")
+            _LOG.debug("Pip file exists: %s", pip_path is not None)
 
         if slide_config.comment_path:
             comment_file = slide_config.comment_path
             if not os.path.isabs(comment_file):
                 comment_file = os.path.join(in_dir, comment_file)
-            _LOG.debug(f"Checking comment file: {comment_file}")
+            _LOG.debug("Checking comment file: %s", comment_file)
             comment_path = comment_file if os.path.exists(comment_file) else None
-            _LOG.debug(f"Comment file exists: {comment_path is not None}")
+            _LOG.debug("Comment file exists: %s", comment_path is not None)
 
     # Fallback to default naming if not found in config
     if pip_path is None:
         pip_file = os.path.join(in_dir, f"{slide_num:03d}_pip.mp4")
-        _LOG.debug(f"Fallback pip check: {pip_file}")
+        _LOG.debug("Fallback pip check: %s", pip_file)
         pip_path = pip_file if os.path.exists(pip_file) else None
 
     if comment_path is None:
         comment_file = os.path.join(in_dir, f"{slide_num:03d}_comment.mp4")
-        _LOG.debug(f"Fallback comment check: {comment_file}")
+        _LOG.debug("Fallback comment check: %s", comment_file)
         comment_path = comment_file if os.path.exists(comment_file) else None
 
     _LOG.debug(
@@ -501,7 +501,7 @@ def _slow_video_to_duration(
     if not _verify_video_slowdown(
         video_clip, slowed_clip, target_duration, file_path
     ):
-        _LOG.error(f"Video slowdown verification failed for {file_path}")
+        _LOG.error("Video slowdown verification failed for %s", file_path)
 
     return slowed_clip
 
@@ -542,12 +542,12 @@ def _verify_video_slowdown(
     actual_speed_factor = original_duration / actual_duration
     expected_speed_factor = original_duration / target_duration
 
-    _LOG.info(f"Slowdown verification for {file_path}:")
-    _LOG.info(f"  Original duration: {original_duration:.2f}s")
-    _LOG.info(f"  Target duration: {target_duration:.2f}s")
-    _LOG.info(f"  Actual duration: {actual_duration:.2f}s")
-    _LOG.info(f"  Expected speed factor: {expected_speed_factor:.3f}x")
-    _LOG.info(f"  Actual speed factor: {actual_speed_factor:.3f}x")
+    _LOG.info("Slowdown verification for %s:", file_path)
+    _LOG.info("  Original duration: %.2fs", original_duration)
+    _LOG.info("  Target duration: %.2fs", target_duration)
+    _LOG.info("  Actual duration: %.2fs", actual_duration)
+    _LOG.info("  Expected speed factor: %.3fx", expected_speed_factor)
+    _LOG.info("  Actual speed factor: %.3fx", actual_speed_factor)
 
     return True
 
@@ -650,7 +650,7 @@ def _get_video_duration(video_path: str) -> float:
         clip.close()
         return duration
     except Exception as e:
-        _LOG.warning(f"Could not get duration for {video_path}: {e}")
+        _LOG.warning("Could not get duration for %s: %s", video_path, e)
         return 0.0
 
 
@@ -671,7 +671,7 @@ def _print_processing_plan(
     for slide_num, slide_path in slides:
         # Get slide duration
         slide_duration = _get_video_duration(slide_path)
-        _LOG.info(f"{slide_num:03d}_slide.mp4 ({slide_duration:.1f}s)")
+        _LOG.info("%03d_slide.mp4 (%.1fs)", slide_num, slide_duration)
         # Get slide config if available
         slide_config = slide_configs.get(slide_num) if slide_configs else None
         # Check for pip file
@@ -680,13 +680,13 @@ def _print_processing_plan(
         )
         if pip_path:
             pip_duration = _get_video_duration(pip_path)
-            _LOG.info(f"- pip present ({pip_duration:.1f}s)")
+            _LOG.info("- pip present (%.1fs)", pip_duration)
         else:
             _LOG.info("- pip missing")
         # Check for comment file
         if comment_path:
             comment_duration = _get_video_duration(comment_path)
-            _LOG.info(f"- comment present ({comment_duration:.1f}s)")
+            _LOG.info("- comment present (%.1fs)", comment_duration)
         else:
             _LOG.info("- comment missing")
         _LOG.info("")
@@ -728,12 +728,12 @@ def _create_slide_segment(
     # Segment duration is the longest duration between pip and comment movies.
     target_duration = max(durations)
     # Report which video is the longest (main_clip, pip_clip, comment_clip).
-    _LOG.info(f"Longest video: {max(durations)}s")
-    _LOG.info(f"Main clip: {main_clip.duration}s")
+    _LOG.info("Longest video: %ss", max(durations))
+    _LOG.info("Main clip: %ss", main_clip.duration)
     if pip_clip:
-        _LOG.info(f"PIP clip: {pip_clip.duration}s")
+        _LOG.info("PIP clip: %ss", pip_clip.duration)
     if comment_clip:
-        _LOG.info(f"Comment clip: {comment_clip.duration}s")
+        _LOG.info("Comment clip: %ss", comment_clip.duration)
     # Extend main clip to target duration.
     main_clip = _extend_video_with_freeze(main_clip, target_duration)
     clips[0] = main_clip
@@ -778,9 +778,9 @@ def _create_slide_segment(
             )
         clips.append(comment_overlay)
     # Print the duration of each clip.
-    _LOG.info(f"Clips: {clips}")
+    _LOG.info("Clips: %s", clips)
     for clip in clips:
-        _LOG.info(f"Clip: {clip.duration}s")
+        _LOG.info("Clip: %ss", clip.duration)
     # Create composite.
     if len(clips) == 1:
         return clips[0], target_duration
@@ -870,16 +870,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
     output_dir = os.path.dirname(out_file)
     if output_dir:
         hio.create_dir(output_dir, incremental=True)
-    _LOG.info(f"Input directory: {in_dir}")
-    _LOG.info(f"Output file: {out_file}")
-    _LOG.info(f"Resolution: {width}x{height}")
-    _LOG.info(f"Quality: {args.quality}")
-    _LOG.info(f"FPS: {args.fps}")
-    _LOG.info(f"PIP scale: {args.pip_scale}")
+    _LOG.info("Input directory: %s", in_dir)
+    _LOG.info("Output file: %s", out_file)
+    _LOG.info("Resolution: %sx%s", width, height)
+    _LOG.info("Quality: %s", args.quality)
+    _LOG.info("FPS: %s", args.fps)
+    _LOG.info("PIP scale: %s", args.pip_scale)
     # Parse plan file if provided.
     slide_configs = {}
     if args.plan:
-        _LOG.info(f"Plan file: {args.plan}")
+        _LOG.info("Plan file: %s", args.plan)
         slide_configs = _parse_plan_file(args.plan)
         # Validate that all files specified in plan exist
         _validate_plan_files(slide_configs, in_dir)
@@ -896,7 +896,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             hdbg.dfatal(f"No matching slide files found for range: {args.slides}")
         else:
             hdbg.dfatal(f"No XXX_slide.mp4 files found in directory: {in_dir}")
-    _LOG.info(f"Found {len(slides)} slides to process")
+    _LOG.info("Found %s slides to process", len(slides))
     # Print processing plan.
     _print_processing_plan(
         slides, in_dir, slide_configs if slide_configs else None
@@ -914,9 +914,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
             in_dir, slide_num, slide_config
         )
         if pip_path:
-            _LOG.debug(f"  Found PIP: {os.path.basename(pip_path)}")
+            _LOG.debug("  Found PIP: %s", os.path.basename(pip_path))
         if comment_path:
-            _LOG.debug(f"  Found comment: {os.path.basename(comment_path)}")
+            _LOG.debug("  Found comment: %s", os.path.basename(comment_path))
         # Create composite segment.
         segment, segment_duration = _create_slide_segment(
             slide_path,
@@ -927,7 +927,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
         video_segments.append(segment)
         # Report segment duration.
-        _LOG.info(f"{slide_num:03d}_slide.mp4 output ({segment_duration:.1f}s)")
+        _LOG.info("%03d_slide.mp4 output (%.1fs)", slide_num, segment_duration)
     # Concatenate all segments.
     _LOG.info("Concatenating video segments...")
     final_video = concatenate_videoclips(video_segments)
@@ -945,7 +945,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     }
     bitrate = quality_settings[args.quality]["bitrate"]
     # Write final video.
-    _LOG.info(f"Writing final video to: {out_file}")
+    _LOG.info("Writing final video to: %s", out_file)
     final_video.write_videofile(
         out_file,
         fps=args.fps,
@@ -957,7 +957,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     final_video.close()
     for segment in video_segments:
         segment.close()
-    _LOG.info(f"Video creation completed: {out_file}")
+    _LOG.info("Video creation completed: %s", out_file)
     # Log final statistics.
     total_duration = sum(segment.duration for segment in video_segments)
     _LOG.info(
@@ -972,11 +972,11 @@ def test_video_slowdown(video_path: str, target_duration: float) -> None:
     :param video_path: path to the video file to test
     :param target_duration: target duration in seconds
     """
-    _LOG.info(f"Testing video slowdown for: {video_path}")
-    _LOG.info(f"Target duration: {target_duration:.2f}s")
+    _LOG.info("Testing video slowdown for: %s", video_path)
+    _LOG.info("Target duration: %.2fs", target_duration)
     # Load the video
     original_clip = VideoFileClip(video_path)
-    _LOG.info(f"Original duration: {original_clip.duration:.2f}s")
+    _LOG.info("Original duration: %.2fs", original_clip.duration)
     # Test the slowdown
     slowed_clip = _slow_video_to_duration(
         original_clip, target_duration, video_path

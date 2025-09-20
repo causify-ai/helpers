@@ -91,9 +91,9 @@ def get_operations_status(
                 try:
                     operation = client.operations.get(op_id)
                     operations_data.append(operation)
-                    _LOG.debug(f"Retrieved operation {op_id}")
+                    _LOG.debug("Retrieved operation %s", op_id)
                 except Exception as e:
-                    _LOG.warning(f"Failed to get operation {op_id}: {e}")
+                    _LOG.warning("Failed to get operation %s: %s", op_id, e)
         else:
             # Try to list operations - this may not be supported by the API
             _LOG.debug("Available methods on client.operations:")
@@ -108,7 +108,7 @@ def get_operations_status(
         # Apply pagination if we have data
         if operations_data:
             paginated_operations = operations_data[offset:offset + limit]
-            _LOG.debug(f"Retrieved {len(paginated_operations)} operations")
+            _LOG.debug("Retrieved %s operations", len(paginated_operations))
             return paginated_operations
         else:
             return []

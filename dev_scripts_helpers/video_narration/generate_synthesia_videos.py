@@ -36,8 +36,8 @@ import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
 
-API_BASE = "https://api.synthesia.io/v2"
-TIMEOUT = 30  # seconds per HTTP request
+# Seconds per HTTP request.
+TIMEOUT_IN_SECS = 30  
 
 
 def _discover_text_files(in_dir: str) -> List[Tuple[int, str]]:
@@ -62,7 +62,7 @@ def _discover_text_files(in_dir: str) -> List[Tuple[int, str]]:
             slides.append((slide_num, file_path))
     # Sort by slide number.
     slides.sort(key=lambda x: x[0])
-    _LOG.debug(f"Found {len(slides)} text files")
+    _LOG.debug("Found %s text files", len(slides))
     return slides
 
 
@@ -106,7 +106,8 @@ def create_video(
     :param test: test
     :return: video_id
     """
-    url = f"{API_BASE}/videos"
+    api_base = "https://api.synthesia.io/v2"
+    url = f"{api_base}/videos"
     scene: Dict[str, Any] = {
         "scriptText": script_text,
     }
@@ -127,7 +128,7 @@ def create_video(
     # Call the Synthesia API.
     _LOG.debug("Creating video with parameters:\n%s", pprint.pformat(payload))
     resp = requests.post(
-        url, headers=_headers(api_key), data=json.dumps(payload), timeout=TIMEOUT
+        url, headers=_headers(api_key), data=json.dumps(payload), timeout=TIMEOUT_IN_SECS
     )
     # Check the response.
     if resp.status_code != 201:
@@ -193,7 +194,7 @@ def _parse() -> argparse.Namespace:
     return args
 
 
-def _process_slides_from_dir(
+def _process_slides(
     args: argparse.Namespace,
     slides_info: List[Tuple[int, str]],
     avatar: str,
@@ -219,7 +220,7 @@ def _process_slides_from_dir(
     for slide_info_tmp in slides_info:
         hdbg.dassert_isinstance(slide_info_tmp, tuple)
         hdbg.dassert_eq(len(slide_info_tmp), 3)
-        slide_num, in_file, out_file = slides_info_tmp
+        slide_num, in_file, out_file = slide_info_tmp
         script = hio.from_file(in_file)
         slides.append((script, out_file))
         _LOG.info("Loaded text for slide %d from '%s'", slide_num, in_file)
@@ -227,14 +228,14 @@ def _process_slides_from_dir(
     for script, out_file in slides:
         if args.dry_run:
             # Print what would be executed without making API calls.
-            _LOG.info("DRY RUN: Would create video with parameters:")
-            _LOG.info(f"  Title: {out_file}")
-            _LOG.info(f"  Avatar: {avatar}")
-            _LOG.info(f"  Background: {background}")
-            _LOG.info(f"  Aspect ratio: {aspect}")
-            _LOG.info(f"  Resolution: {resolution}")
-            _LOG.info(f"  Script text length: {len(script)} characters")
-            _LOG.info(f"  Script text: {script}")
+            _LOG.warning("DRY RUN: Create video with parameters:")
+            _LOG.info("  Title: %s", out_file)
+            _LOG.info("  Avatar: %s", avatar)
+            _LOG.info("  Background: %s", background)
+            _LOG.info("  Aspect ratio: %s", aspect)
+            _LOG.info("  Resolution: %s", resolution)
+            _LOG.info("  Script text length: %s characters", len(script))
+            _LOG.info("  Script text:\n%s", script)
         else:
             api_key = os.getenv("SYNTHESIA_API_KEY")
             hdbg.dassert(
@@ -252,7 +253,7 @@ def _process_slides_from_dir(
                 test=test,
                 # extra_scene_overrides=extra,
             )
-            _LOG.info(f"Created video: id={video_id}")
+            _LOG.info("Creating video: id=%s", video_id)
 
 
 # TODO(gp): Move to hio.py
@@ -292,7 +293,7 @@ def _main(args: argparse.Namespace) -> None:
         hio.create_dir(args.out_dir, incremental=True)
         # Discover all text files in the directory.
         discovered_slides = _discover_text_files(in_dir)
-        _LOG.info(f"Discovered {len(discovered_slides)} text files in {in_dir}")
+        _LOG.info("Discovered %s text files in %s", len(discovered_slides), in_dir)
         # Parse limit range from command line arguments.
         limit_range = hparser.parse_limit_range_args(args)
         # Apply limit range filtering to discovered slides.
@@ -308,7 +309,7 @@ def _main(args: argparse.Namespace) -> None:
             out_file = f"slide{slide_num}"
             slides_info.append((slide_num, file_path, out_file))
         # Process slides.
-        _process_slides_from_dir(
+        _process_slides(
             args, slides_info, avatar, background, aspect, resolution
         )
     elif args.in_file:
@@ -316,9 +317,9 @@ def _main(args: argparse.Namespace) -> None:
         _make_backup_if_needed(args.out_file)
         hio.create_enclosing_dir(args.out_file, incremental=True)
         # Prepare workload.
-        slides_info = [0, args.in_file, args.out_file]
+        slides_info = [(0, args.in_file, args.out_file)]
         # Process slides.
-        _process_slides_from_dir(
+        _process_slides(
             args, slides_info, avatar, background, aspect, resolution
         )
     else:

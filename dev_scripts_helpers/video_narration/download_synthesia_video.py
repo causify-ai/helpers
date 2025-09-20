@@ -93,8 +93,8 @@ def _download_file(url: str, file_path: str) -> bool:
                     downloaded += len(chunk)
                     if total_size > 0:
                         progress = (downloaded / total_size) * 100
-                        _LOG.debug(f"Download progress: {progress:.1f}%")
-        _LOG.info(f"Downloaded {downloaded} bytes to {file_path}")
+                        _LOG.debug("Download progress: %.1f%%", progress)
+        _LOG.info("Downloaded %s bytes to %s", downloaded, file_path)
         return True
 
 

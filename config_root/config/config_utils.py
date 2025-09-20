@@ -180,7 +180,7 @@ def load_config_from_pickle1(log_dir: str, tag: str) -> crococon.Config:
         config_version = "v2"
         # Set file name corresponding to v2 config version.
         file_name = f"{tag}.values_as_strings.pkl"
-    _LOG.info(f"Found Config {config_version} flow")
+    _LOG.info("Found Config %s flow", config_version)
     # Get config from file.
     config_path = os.path.join(log_dir, file_name)
     hdbg.dassert_path_exists(config_path)

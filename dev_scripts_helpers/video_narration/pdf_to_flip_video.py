@@ -276,7 +276,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             fps=args.fps,
             out_path=args.out,
         )
-    _LOG.info(f"Done! Wrote: {args.out}")
+    _LOG.info("Done! Wrote: %s", args.out)
 
 
 def main():

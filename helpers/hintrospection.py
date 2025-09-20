@@ -104,7 +104,7 @@ def get_function_from_string(func_as_str: str) -> Callable:
     _ = imp
     python_code = f"imp.{function}"
     func: Callable = eval(python_code)
-    _LOG.debug("{txt} -> func=%s", func)
+    _LOG.debug("%s -> func=%s", func_as_str, func)
     return func
 
 

@@ -79,7 +79,7 @@ def _is_runnable_dir(runnable_dir: str) -> bool:
     changelog_path = os.path.join(runnable_dir, "changelog.txt")
     devops_path = os.path.join(runnable_dir, "devops")
     if not os.path.exists(changelog_path) or not os.path.isdir(devops_path):
-        _LOG.warning(f"{runnable_dir} is not a runnable directory")
+        _LOG.warning("%s is not a runnable directory", runnable_dir)
         return False
     return True
 
@@ -95,7 +95,7 @@ def _run_test(runnable_dir: str, command: str) -> bool:
     """
     is_runnable_dir = _is_runnable_dir(runnable_dir)
     hdbg.dassert(is_runnable_dir, f"{runnable_dir} is not a runnable dir.")
-    _LOG.info(f"Running tests in {runnable_dir}")
+    _LOG.info("Running tests in %s", runnable_dir)
     # Make sure the `invoke` command is referencing to the correct
     # devops and helpers directory.
     env = os.environ.copy()
@@ -184,7 +184,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Combine the junit xml files into a single file.
         combined_junit_xml = junitparser.JUnitXml()
         for junit_xml_file in junit_xml_files:
-            _LOG.debug(f"Processing {junit_xml_file}.")
+            _LOG.debug("Processing %s.", junit_xml_file)
             junit_xml = junitparser.JUnitXml.fromfile(junit_xml_file)
             combined_junit_xml += junit_xml
         combined_junit_xml_file = "tmp.combined_junit.xml"
@@ -194,7 +194,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         reporter.parse()
         reporter.print_summary()
     except Exception as e:
-        _LOG.error(f"Error: {e}")
+        _LOG.error("Error: %s", e)
         sys.exit(1)
     finally:
         if not all_tests_passed:

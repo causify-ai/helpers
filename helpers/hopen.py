@@ -67,7 +67,7 @@ def _cmd_open_pdf(file_name: str, os_name: str) -> Optional[str]:
         )
     }
     if os_name not in os_cmds:
-        _LOG.warning(f"Opening PDF files on '{os_name}' is not supported yet")
+        _LOG.warning("Opening PDF files on '%s' is not supported yet", os_name)
         full_cmd = None
     else:
         full_cmd = os_cmds[os_name]

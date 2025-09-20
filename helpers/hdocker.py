@@ -425,7 +425,7 @@ def build_container_image(
             for keyword in ["python", "pip", "python3"]
         ):
             coverage_dockerfile = hcovera.generate_coverage_dockerfile()
-            _LOG.debug("Coverage Dockerfile content:\n{coverage_dockerfile}")
+            _LOG.debug("Coverage Dockerfile content:\n%s", coverage_dockerfile)
             dockerfile = dockerfile.strip() + "\n" + coverage_dockerfile
             _LOG.debug("Coverage support added to Dockerfile")
         else:

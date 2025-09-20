@@ -104,7 +104,7 @@ def get_videos_status(
         )
     data = resp.json()
     videos = data.get("videos", [])
-    _LOG.debug(f"Retrieved {len(videos)} videos")
+    _LOG.debug("Retrieved %s videos", len(videos))
     return videos
 
 
