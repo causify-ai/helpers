@@ -192,7 +192,6 @@ class LLMClient:
         if images_as_base64:
             # Multi-modal message with text and images
             user_content = [{"type": "text", "text": user_prompt}]
-            # TODO(ai): Do not use urls but accept base64-encoded images
             for image_b64 in images_as_base64:
                 user_content.append({
                     "type": "image_url",
@@ -532,8 +531,8 @@ def get_completion(
     llm_client = LLMClient(model=model)
     llm_client.create_client()
     # Construct messages in OpenAI API request format.
-    messages = llm_client.build_messages(system_prompt, user_prompt, images_as_base64)
-    print("LLM API call ... ")
+    messages = llm_client.build_messages(system_prompt, user_prompt, images_as_base64=images_as_base64)
+    _LOG.info("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
         completion = llm_client.call_llm(
@@ -565,9 +564,9 @@ def get_completion(
         response = "".join(collected_messages)
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
-    print(msg)
+    _LOG.info(msg)
     if print_cost:
-        print(f"cost=${completion['cost']:.6f}")
+        _LOG.info(f"cost=%.6f", completion['cost'])
     response = completion["choices"][0]["message"]["content"]
     return response
 

@@ -24,12 +24,13 @@ import logging
 import os
 import pprint
 import re
-import sys
+import shutil
 from typing import Any, Dict, List, Tuple
 
 import requests
 
 import helpers.hdbg as hdbg
+import helpers.hdatetime as hdatetime
 import helpers.hio as hio
 import helpers.hparser as hparser
 
@@ -37,15 +38,6 @@ _LOG = logging.getLogger(__name__)
 
 API_BASE = "https://api.synthesia.io/v2"
 TIMEOUT = 30  # seconds per HTTP request
-
-
-# #############################################################################
-# SynthesiaError
-# #############################################################################
-
-
-class SynthesiaError(RuntimeError):
-    pass
 
 
 def _discover_text_files(in_dir: str) -> List[Tuple[int, str]]:
@@ -102,10 +94,7 @@ def create_video(
     test: bool = False,
 ) -> str:
     """
-    Create a Synthesia video. Returns the video_id from the 201 response.
-
-    The minimal required fields per docs are provided below: title, input (scenes),
-    and inside a scene: scriptText + avatar. Background is optional.
+    Create a Synthesia video and return the video_id from the API response.
 
     :param api_key: Synthesia API key
     :param script_text: text script
@@ -135,19 +124,21 @@ def create_video(
         payload["resolution"] = resolution
     if test:
         payload["test"] = test
-    #
+    # Call the Synthesia API.
     _LOG.debug("Creating video with parameters:\n%s", pprint.pformat(payload))
     resp = requests.post(
         url, headers=_headers(api_key), data=json.dumps(payload), timeout=TIMEOUT
     )
+    # Check the response.
     if resp.status_code != 201:
-        raise SynthesiaError(
+        raise ValueError(
             f"Create video failed ({resp.status_code}): {resp.text}"
         )
     data = resp.json()
+    # Extract the video ID.
     video_id = data.get("id") or data.get("videoId")
     if not video_id:
-        raise SynthesiaError(f"Unexpected response (no video id): {data}")
+        raise ValueError(f"Unexpected response (no video id): {data}")
     return video_id
 
 
@@ -161,58 +152,70 @@ def _parse() -> argparse.Namespace:
         description="Create a Synthesia video from text + avatar."
     )
     hparser.add_verbosity_arg(parser)
+    # Flow to process slides from a directory.
     parser.add_argument(
         "--in_dir",
-        required=True,
+        required=False,
         help="Directory containing xyz_comment.txt files",
     )
+    parser.add_argument(
+        "--out_dir",
+        required=False,
+        help="Directory to save the videos",
+    )
     hparser.add_limit_range_arg(parser)
+    # Flow to process a single text file.
+    parser.add_argument(
+        "--in_file",
+        required=False,
+        help="Text file containing the script to be used for the video",
+    )
+    parser.add_argument(
+        "--out_file",
+        required=False,
+        help="Directory to save the videos",
+    )
+    #
     parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Print what will be executed without calling Synthesia API",
     )
     parser.add_argument(
+        "--no_incremental",
+        action="store_true",
+        help="Do not create incremental directories",
+    )
+    parser.add_argument(
         "--test",
         action="store_true",
-        help="Create test video (Synthesia API test mode)",
+        help="Create test video using Synthesia API test mode",
     )
     args = parser.parse_args()
     return args
+    
 
-
-def _main(args: argparse.Namespace) -> None:
+def _process_slides_from_dir(args: argparse.Namespace, 
+slides_info: List[Tuple[int, str]],
+avatar: str, background: str, aspect: str, resolution: str) -> None:
     """
-    Main function to create Synthesia videos.
+    Process slides from a directory.
 
     :param args: parsed arguments
+    :param slides_info: filtered slides in the format (slide_num, file_path)
+    :param avatar: avatar
+    :param background: background
+    :param aspect: aspect
+    :param resolution: resolution
     """
-    #avatar = "f4f1005e-6851-414a-9120-d48122613fa0"
-    avatar = "3b4c81e9-d476-40f6-93ff-2b817557cc1d"
-    background = "workspace-media.c4ab7049-8479-4855-9856-e0d7f2854027"
-    aspect = "5:4"
-    resolution = "720p"
-    #
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    api_key = os.getenv("SYNTHESIA_API_KEY")
-    hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
-    in_dir = args.in_dir
-    # Discover all text files in the directory.
-    discovered_slides = _discover_text_files(in_dir)
-    _LOG.info(f"Discovered {len(discovered_slides)} text files in {in_dir}")
-    # Parse limit range from command line arguments.
-    limit_range = hparser.parse_limit_range_args(args)
-    # Apply limit range filtering to discovered slides.
-    slide_tuples = [(slide_num, file_path) for slide_num, file_path in discovered_slides]
-    filtered_slide_tuples = hparser.apply_limit_range(slide_tuples, limit_range, item_name="slides")
-    filtered_slides = filtered_slide_tuples
+    hdbg.dassert_isinstance(slides_info, list)
+    hdbg.dassert_ge(0, len(slides_info), "slides_info is empty")
     # Load scripts from filtered slides.
     slides = []
-    for slide_num, file_path in filtered_slides:
-        script = hio.from_file(file_path)
-        out_file = f"slide{slide_num}"
+    for slide_num, in_file, out_file in slides_info:
+        script = hio.from_file(in_file)
         slides.append((script, out_file))
-        _LOG.info(f"Loaded slide {slide_num:03d} from {file_path}")
+        _LOG.info(f"Loaded text for slide %d from '%s'", slide_num, in_file)
     # Create videos.
     for script, out_file in slides:
         if args.dry_run:
@@ -226,26 +229,83 @@ def _main(args: argparse.Namespace) -> None:
             _LOG.info(f"  Script text length: {len(script)} characters")
             _LOG.info(f"  Script text: {script}")
         else:
-            try:
-                test = args.test
-                video_id = create_video(
-                    api_key=api_key,
-                    script_text=script,
-                    avatar=avatar,
-                    title=out_file,
-                    background=background,
-                    aspect_ratio=aspect,
-                    resolution=resolution,
-                    test=test,
-                    # extra_scene_overrides=extra,
-                )
-                _LOG.info(f"Created video: id={video_id}")
-            except requests.RequestException as e:
-                _LOG.error(f"HTTP error: {e}")
-                sys.exit(1)
-            except SynthesiaError as e:
-                _LOG.error(f"Synthesia API error: {e}")
-                sys.exit(1)
+            api_key = os.getenv("SYNTHESIA_API_KEY")
+            hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
+            test = args.test
+            video_id = create_video(
+                api_key=api_key,
+                script_text=script,
+                avatar=avatar,
+                title=out_file,
+                background=background,
+                aspect_ratio=aspect,
+                resolution=resolution,
+                test=test,
+                # extra_scene_overrides=extra,
+            )
+            _LOG.info(f"Created video: id={video_id}")
+                
+
+# TODO(gp): Move to hio.py
+def _make_backup_if_needed(file_path: str) -> None:
+    """
+    Make a backup of the file or dir if it exists.
+    """
+    if os.path.exists(file_path):
+        _LOG.warning(f"File or directory {file_path} already exists. Making a backup.")
+        # Make a backup of the file or directory.
+        timestamp = hdatetime.get_current_timestamp_as_string()
+        file_path_backup = file_path + "." + timestamp + ".backup"
+        shutil.move(file_path, file_path_backup)
+
+
+def _main(args: argparse.Namespace) -> None:
+    """
+    Main function to create Synthesia videos.
+
+    :param args: parsed arguments
+    """
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    #avatar = "f4f1005e-6851-414a-9120-d48122613fa0"
+    avatar = "3b4c81e9-d476-40f6-93ff-2b817557cc1d"
+    background = "workspace-media.c4ab7049-8479-4855-9856-e0d7f2854027"
+    aspect = "5:4"
+    resolution = "720p"
+    # Process slides.
+    if args.in_dir:
+        in_dir = args.in_dir
+        hdbg.dassert_dir_exists(in_dir)
+        #
+        if args.no_incremental:
+            _make_backup_if_needed(args.out_dir)
+        hio.create_dir(args.out_dir, incremental=True)
+        # Discover all text files in the directory.
+        discovered_slides = _discover_text_files(in_dir)
+        _LOG.info(f"Discovered {len(discovered_slides)} text files in {in_dir}")
+        # Parse limit range from command line arguments.
+        limit_range = hparser.parse_limit_range_args(args)
+        # Apply limit range filtering to discovered slides.
+        slide_tuples = [(slide_num, file_path) for slide_num, file_path in discovered_slides]
+        filtered_slide_tuples = hparser.apply_limit_range(slide_tuples, limit_range, item_name="slides")
+        # Prepare workload.
+        slides_info = []
+        for slide_num, file_path in filtered_slide_tuples:
+            out_file = f"slide{slide_num}"
+            slides_info.append((slide_num, file_path, out_file))
+        # Process slides.
+        _process_slides_from_dir(args, slides_info, avatar, background, aspect, resolution)
+    elif args.in_file:
+        hdbg.dassert_file_exists(args.in_file)
+        hdbg.dassert_file_exists(args.out_file)
+        #
+        _make_backup_if_needed(args.out_file)
+        hio.create_enclosing_dir(args.out_file, incremental=True)
+        # Prepare workload.
+        slides_info = [0, args.in_file, args.out_file]
+        # Process slides.
+        _process_slides_from_dir(args, slides_info, avatar, background, aspect, resolution)
+    else:
+        raise ValueError("Either --in_dir or --in_file must be provided")
 
 
 def main() -> None:
