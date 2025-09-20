@@ -187,11 +187,11 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_preprocess_notes_end_to_end2
+# Test_preprocess_notes_end_to_end3
 # #############################################################################
 
 
-class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
+class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
     """
     Test `preprocess_notes.py` by calling the library function directly.
 

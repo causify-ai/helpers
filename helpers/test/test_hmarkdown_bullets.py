@@ -284,7 +284,7 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         )
         self.assert_equal(actual, expected)
 
-    def test1(self) -> None:
+    def test9(self) -> None:
         """
         Test basic case with single bold text.
         """

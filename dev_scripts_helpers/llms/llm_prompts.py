@@ -1073,11 +1073,7 @@ def _review_from_file_new(file: str) -> _PROMPT_OUT:
     system = _CODING_CONTEXT
     # Load the reference file.
     reference_txt = hio.from_file(file)
-    file_len = len(reference_txt.split("\n"))
     reference_txt = hmarkdo.remove_table_of_contents(reference_txt)
-    # This represents how many lines of the TOC were removed, so that we can
-    # point to the line number in the file even if
-    line_offset = file_len - len(reference_txt.split("\n"))
     #
     max_level = 4
     header_list = hmarkdo.extract_headers_from_markdown(reference_txt, max_level)

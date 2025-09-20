@@ -121,7 +121,7 @@ def _parse_markdown_scenes(file_path: str) -> List[Dict[str, str]]:
             if current_scene:
                 must_have_fields = ['title', 'visuals', 'narration', 'duration_in_secs', 'image_file']
                 for field in must_have_fields:
-                    hdbg.dassert_ne(current_scene[field], "", "Scene '%s' must have field '%s'", title, field)
+                    hdbg.dassert_ne(current_scene[field], "", "Scene '%s' must have field '%s'", current_scene['title'], field)
                 scenes.append(current_scene)
             # Start new scene.
             title = line[2:].strip()

@@ -369,8 +369,6 @@ def _combine_llm_outputs(directories: List[str], out_dir: str) -> None:
         for line in lines:
             # Increase header level for markdown headers.
             if line.startswith("#"):
-                # Count the number of # symbols.
-                header_count = len(line) - len(line.lstrip("#"))
                 # Increase by one level (add one more #).
                 new_line = "#" + line
                 combined_content.append(new_line)
