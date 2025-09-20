@@ -27,7 +27,26 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 # Default system prompt for the LLM.
-_DEFAULT_SYSTEM_PROMPT = """You are a college professor expert of machine learning and big data. Given the following markdown slides, create a script to highlight the most important points of each slide. Each slide should last 3-4 minutes"""
+_DEFAULT_SYSTEM_PROMPT = """
+You are a college professor expert of machine learning and big data.
+
+Given the following markdown slides, create a script to highlight the most
+important points of each slide.
+
+Each slide should contain around 450 words.
+
+Create a short transitions between slides.
+
+The output should have a format like:
+
+# Slide <i>: <Title>
+
+<Discussion of the slide #i>
+
+# Slide <i+1>: <Title>
+
+<Discussion of the slide #i+1>
+"""
 
 # #############################################################################
 

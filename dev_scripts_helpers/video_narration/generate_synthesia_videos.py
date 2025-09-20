@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Synthesia API helper: create a video from a text script and a chosen avatar.
+Create a video from a text script and a chosen avatar using the Synthesia API.
 
 # Do a dry-run:
-> python generate_synthesia_videos.py \
+> generate_synthesia_videos.py \
     --in_dir videos \
     --limit "1:3" \
     --dry_run
@@ -22,6 +22,7 @@ import glob
 import json
 import logging
 import os
+import pprint
 import re
 import sys
 from typing import Any, Dict, List, Tuple
@@ -36,8 +37,6 @@ _LOG = logging.getLogger(__name__)
 
 API_BASE = "https://api.synthesia.io/v2"
 TIMEOUT = 30  # seconds per HTTP request
-POLL_EVERY = 6  # seconds between status polls
-MAX_WAIT = 60 * 30  # 30 minutes max
 
 
 # #############################################################################
@@ -49,11 +48,9 @@ class SynthesiaError(RuntimeError):
     pass
 
 
-
-
 def _discover_text_files(in_dir: str) -> List[Tuple[int, str]]:
     """
-    Discover all XXX_comment.txt files in the directory.
+    Discover all the files with format `XYZ_comment.txt` in the directory.
 
     :param in_dir: input directory to search
     :return: list of (slide_number, file_path) tuples sorted by slide
@@ -78,6 +75,12 @@ def _discover_text_files(in_dir: str) -> List[Tuple[int, str]]:
 
 
 def _headers(api_key: str) -> Dict[str, str]:
+    """
+    Create headers for Synthesia API requests.
+
+    :param api_key: Synthesia API key
+    :return: headers dictionary
+    """
     # Synthesia docs instruct to place the API key in the Authorization header.
     # Do not prefix with "Bearer" unless your account specifically requires it.
     return {
@@ -103,17 +106,24 @@ def create_video(
 
     The minimal required fields per docs are provided below: title, input (scenes),
     and inside a scene: scriptText + avatar. Background is optional.
+
+    :param api_key: Synthesia API key
+    :param script_text: text script
+    :param avatar: avatar
+    :param title: title
+    :param background: background
+    :param aspect_ratio: aspect ratio
+    :param resolution: resolution
+    :param test: test
+    :return: video_id
     """
     url = f"{API_BASE}/videos"
     scene: Dict[str, Any] = {
         "scriptText": script_text,
     }
-    # Always set avatar and background - Synthesia API requires these fields
     scene["avatar"] = avatar
     if background:
         scene["background"] = background
-    # if extra_scene_overrides:
-    #     scene.update(extra_scene_overrides)
     payload: Dict[str, Any] = {
         "title": title,
         "input": [scene],
@@ -125,8 +135,8 @@ def create_video(
         payload["resolution"] = resolution
     if test:
         payload["test"] = test
-    # payload["test"] = False
-    # payload["test"] = True
+    #
+    _LOG.debug("Creating video with parameters:\n%s", pprint.pformat(payload))
     resp = requests.post(
         url, headers=_headers(api_key), data=json.dumps(payload), timeout=TIMEOUT
     )
