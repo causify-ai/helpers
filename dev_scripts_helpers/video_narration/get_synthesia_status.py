@@ -16,7 +16,7 @@ import argparse
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Dict, List
 
 import requests
@@ -80,7 +80,7 @@ def _format_timestamp(timestamp) -> str:
 
 
 def get_videos_status(
-    api_key: str, *, limit: int = 20, offset: int = 0
+    api_key: str, *, limit: int = 20, offset: int = 0, today_only: bool = False
 ) -> List[Dict[str, Any]]:
     """
     Get list of videos and their status from Synthesia API.
@@ -88,6 +88,7 @@ def get_videos_status(
     :param api_key: Synthesia API key
     :param limit: maximum number of videos to retrieve
     :param offset: offset for pagination
+    :param today_only: if True, filter videos created today only
     :return: list of video objects
     """
     url = f"{API_BASE}/videos"
@@ -105,6 +106,29 @@ def get_videos_status(
     data = resp.json()
     videos = data.get("videos", [])
     _LOG.debug("Retrieved %s videos", len(videos))
+
+    if today_only:
+        today = date.today()
+        filtered_videos = []
+        for video in videos:
+            created_at = video.get("createdAt")
+            if created_at:
+                try:
+                    if isinstance(created_at, (int, float)):
+                        video_date = datetime.fromtimestamp(created_at).date()
+                    elif isinstance(created_at, str) and created_at.isdigit():
+                        video_date = datetime.fromtimestamp(int(created_at)).date()
+                    else:
+                        dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                        video_date = dt.date()
+
+                    if video_date == today:
+                        filtered_videos.append(video)
+                except (ValueError, AttributeError, OSError):
+                    continue
+        _LOG.debug("Filtered to %s videos created today", len(filtered_videos))
+        return filtered_videos
+
     return videos
 
 
@@ -178,6 +202,11 @@ def _parse() -> argparse.Namespace:
     parser.add_argument(
         "--offset", type=int, default=0, help="Offset for pagination (default: 0)"
     )
+    parser.add_argument(
+        "--today",
+        action="store_true",
+        help="Filter results to show only videos created today",
+    )
     args = parser.parse_args()
     return args
 
@@ -194,7 +223,7 @@ def _main(args: argparse.Namespace) -> None:
     hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
     try:
         # Retrieve videos from Synthesia API.
-        videos = get_videos_status(api_key, limit=args.limit, offset=args.offset)
+        videos = get_videos_status(api_key, limit=args.limit, offset=args.offset, today_only=args.today)
         # Display the results in table format.
         display_videos_status(videos)
         _LOG.info("Retrieved status for %s videos", len(videos))

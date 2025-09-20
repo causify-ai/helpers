@@ -111,3 +111,7 @@ Example:
   ------------------------------------  -------------------  -------------------  -----------------------------  -----------  --------
   a3bd32dd-87f7-4653-aac9-d1d07968f358  2025-09-10 12:09:20  2025-09-10 12:09:24  slide1                         in_progress  No
   ```
+
+# To reorg
+
+./dev_scripts_helpers/video_narration/generate_synthesia_videos.py --in_file script.txt --out_file output --test
