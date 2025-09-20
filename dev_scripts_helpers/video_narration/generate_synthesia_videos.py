@@ -213,10 +213,13 @@ def _process_slides_from_dir(
     :param resolution: resolution
     """
     hdbg.dassert_isinstance(slides_info, list)
-    hdbg.dassert_ge(0, len(slides_info), "slides_info is empty")
+    hdbg.dassert_lte(0, len(slides_info), "slides_info is empty")
     # Load scripts from filtered slides.
     slides = []
-    for slide_num, in_file, out_file in slides_info:
+    for slide_info_tmp in slides_info:
+        hdbg.dassert_isinstance(slide_info_tmp, tuple)
+        hdbg.dassert_eq(len(slide_info_tmp), 3)
+        slide_num, in_file, out_file = slides_info_tmp
         script = hio.from_file(in_file)
         slides.append((script, out_file))
         _LOG.info("Loaded text for slide %d from '%s'", slide_num, in_file)
@@ -310,8 +313,6 @@ def _main(args: argparse.Namespace) -> None:
         )
     elif args.in_file:
         hdbg.dassert_file_exists(args.in_file)
-        hdbg.dassert_file_exists(args.out_file)
-        #
         _make_backup_if_needed(args.out_file)
         hio.create_enclosing_dir(args.out_file, incremental=True)
         # Prepare workload.
