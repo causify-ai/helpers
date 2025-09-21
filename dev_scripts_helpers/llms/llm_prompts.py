@@ -1247,7 +1247,6 @@ def slide_expand() -> _PROMPT_OUT:
     - Add bullet points to the text that are important or missing
     - Add examples to clarify the text and help intuition
     - Not bold or italicize the text
-    - Use `E.g.,` instead of `Example`
 
     Print only the markdown without any explanation.
     """
@@ -1545,8 +1544,9 @@ def slide_improve() -> _PROMPT_OUT:
       text
     - Add bullet points to the text that are important or missing
     - Add examples to clarify the text and help intuition
-    - Not bold or italicize the text
-    - Use `E.g.,` instead of `Example`
+    - Do not bold or italicize the text
+    - Fix the English grammar
+    - Fix any mistake
 
     Print only the markdown without any explanation.
     """

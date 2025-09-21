@@ -126,7 +126,10 @@ def _process_slides(
         # Process the slide using LLM.
         processed_content = _process_slide_with_llm(slide_content, action)
         # Format the result.
-        result_entry = f"* {slide_title}\n\n{processed_content}"
+        if not processed_content.startswith(f"* {slide_title}"):
+            result_entry = f"* {slide_title}\n\n{processed_content}"
+        else:
+            result_entry = processed_content
         processed_results.append(result_entry)
     return processed_results
 
