@@ -19,12 +19,9 @@ import helpers.hio as hio
 import helpers.hmarkdown_slides as hmarksl
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 
 _LOG = logging.getLogger(__name__)
-
-# Valid actions that the script can perform.
-_VALID_ACTIONS = ["process", "critique"]
-_DEFAULT_ACTIONS = ["process"]
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -44,7 +41,6 @@ def _parse() -> argparse.ArgumentParser:
         "--action",
         action="store",
         required=True,
-        choices=_VALID_ACTIONS,
         help="Action to perform on each slide",
     )
     parser.add_argument(
@@ -67,10 +63,12 @@ def _extract_slides_from_markdown(txt: str) -> List[Tuple[str, str]]:
     """
     lines = txt.split("\n")
     header_list, _ = hmarksl.extract_slides_from_markdown(lines)
+    _LOG.debug("header_list=%s", header_list)
     # Convert header list to slides with content.
     slides: List[Tuple[str, str]] = []
     for i, header_info in enumerate(header_list):
-        slide_title = header_info.title
+        _LOG.debug("header_info=%s", header_info)
+        slide_title = header_info.description
         start_line = header_info.line_number - 1  # Convert to 0-indexed.
         # Determine end line for this slide.
         if i + 1 < len(header_list):
@@ -92,16 +90,10 @@ def _process_slide_with_llm(slide_content: str, action: str) -> str:
     :param action: action to perform (process or critique)
     :return: processed slide content
     """
-    # Import the run_prompt function.
-    import sys
-    import os
-    sys.path.append("/Users/saggese/src/umd_classes1/helpers_root/dev_scripts_helpers/llms")
-    from llm_prompts import run_prompt
-
     # Use gpt-4 model for processing.
-    model = "gpt-4"
+    model = "gpt-4o"
     # Call the run_prompt function with the action as prompt_tag.
-    result = run_prompt(
+    result = dshlllpr.run_prompt(
         prompt_tag=action,
         txt=slide_content,
         model=model,
@@ -150,11 +142,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Parse limit range.
     limit_range = hparser.parse_limit_range_args(args)
     # Validate input file exists.
-    hdbg.dassert(
-        hio.file_exists(args.in_file),
-        "Input file does not exist: %s",
-        args.in_file,
-    )
+    hdbg.dassert_file_exists(args.in_file)
     _LOG.info("Reading input file: %s", args.in_file)
     # Read the input markdown file.
     txt = hio.from_file(args.in_file)

@@ -1534,6 +1534,28 @@ def slide_check() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def slide_improve() -> _PROMPT_OUT:
+    """
+    Check the slide is clear and correct.
+    """
+    system = _SLIDE_CONTEXT
+    system += r"""
+    You will:
+    - Maintain the structure of the text and keep the content of the existing
+      text
+    - Add bullet points to the text that are important or missing
+    - Add examples to clarify the text and help intuition
+    - Not bold or italicize the text
+    - Use `E.g.,` instead of `Example`
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown", "append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 def slide_title() -> _PROMPT_OUT:
     """
     Create a title for the slide.
