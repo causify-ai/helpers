@@ -22,7 +22,7 @@ export APT_GET_OPTS="-y --no-install-recommends"
 apt-get update
 apt-get upgrade -y
 
-# - Install sudo, curl, gnupg. 
+# - Install sudo, curl, gnupg.
 apt-get install $APT_GET_OPTS sudo curl gnupg
 
 # - Install Python3 toolchain.
