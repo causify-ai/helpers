@@ -18,15 +18,11 @@ DEBIAN_FRONTEND=noninteractive
 
 export APT_GET_OPTS="-y --no-install-recommends"
 
-# - Update the packages.
-apt-get update
-apt-get upgrade -y
-
 # - Install sudo, curl, gnupg.
 apt-get install $APT_GET_OPTS sudo curl gnupg
 
 # - Install Python3 toolchain.
-apt-get $APT_GET_OPTS install python3 python3-pip python3-venv curl
+apt-get $APT_GET_OPTS install python3 python3-pip python3-venv
 echo "PYTHON VERSION="$(python3 --version)
 echo "PIP VERSION="$(pip3 --version)
 
@@ -57,7 +53,7 @@ if [[ 1 == 1 ]]; then
 fi;
 
 # - Install optional packages.
-DEPENDENCIES_FILE="os_packages.txt"
+DEPENDENCIES_FILE="os_packages/os_packages.txt"
 
 # Check if the file exists.
 if [[ ! -f "$DEPENDENCIES_FILE" ]]; then
@@ -70,10 +66,10 @@ while IFS= read -r script_file || [[ -n "$script_file" ]]; do
     # Skip empty lines or lines starting with #.
     [[ -z "$script_file" || "$script_file" =~ ^# ]] && continue
     echo "Running $script_file ..."
-    if [[ -x "$INSTALL_DIR/$script_file" ]]; then
-        bash "$INSTALL_DIR/$script_file"
+    if [[ -x "$INSTALL_DIR/os_packages/$script_file" ]]; then
+        bash "$INSTALL_DIR/os_packages/$script_file"
     else
-        echo "Warning: $INSTALL_DIR/$script_file is not executable or not found."
+        echo "Warning: $INSTALL_DIR/os_packages/$script_file is not executable or not found."
     fi
 done < "$DEPENDENCIES_FILE"
 

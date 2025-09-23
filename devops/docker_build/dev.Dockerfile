@@ -23,22 +23,18 @@ WORKDIR $INSTALL_DIR
 COPY devops/docker_build/utils.sh .
 RUN /bin/bash -c "source utils.sh; print_vars"
 
-# - Update OS.
-COPY devops/docker_build/update_os.sh .
-RUN /bin/bash -c "./update_os.sh"
-
-# - Install OS packages.
-COPY devops/docker_build/os_packages.txt .
-COPY devops/docker_build/install_os_*.sh ./
-RUN /bin/bash -c "./install_os_packages.sh"
+# - Update OS and Install OS packages.
+COPY devops/docker_build/install_os_packages.sh devops/docker_build/update_os.sh ./
+COPY devops/docker_build/os_packages/ ./os_packages/
+RUN /bin/bash -c "./update_os.sh && ./install_os_packages.sh"
 
 # - Install Python packages.
-# Copy the minimum amount of files needed to call `install_requirements.sh` so
+# Copy the minimum amount of files needed to call `install_python_packages.sh` so
 # we can cache it effectively.
 COPY devops/docker_build/poetry.lock poetry.lock.in
-COPY devops/docker_build/poetry.toml .
-COPY devops/docker_build/pyproject.toml .
-COPY devops/docker_build/install_python_packages.sh .
+COPY devops/docker_build/poetry.toml \
+     devops/docker_build/pyproject.toml \
+     devops/docker_build/install_python_packages.sh ./
 RUN /bin/bash -c "./install_python_packages.sh"
 
 # - Install Docker-in-docker.
