@@ -89,7 +89,7 @@ fi
 # Clean up.
 if [[ $CLEAN_UP_INSTALLATION ]]; then
   echo "Cleaning up installation..."
-  DIRS="/usr/lib/gcc /app/tmp.pypoetry /tmp/* /install/tmp.pypoetry"
+  DIRS="/usr/lib/gcc /tmp/* /install/tmp.pypoetry"
   echo "Cleaning up installation... done"
   du -hs $DIRS | sort -h
   rm -rf $DIRS
