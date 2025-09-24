@@ -88,9 +88,7 @@ def _is_runnable_dir(runnable_dir: str) -> bool:
 
 
 def _run_test(
-    runnable_dir: str,
-    command: str,
-    purge_docker_images: bool = False
+    runnable_dir: str, command: str, purge_docker_images: bool = False
 ) -> bool:
     """
     Run test in for specified runnable directory.
@@ -98,7 +96,8 @@ def _run_test(
     :param runnable_dir: directory to run tests in
     :param command: command to run tests (e.g. run_fast_tests,
         run_slow_tests, run_superslow_tests)
-    :param purge_docker_images: whether to purge Docker images after test
+    :param purge_docker_images: whether to purge Docker images after
+        test
     :return: True if the tests were run successfully, False otherwise
     """
     is_runnable_dir = _is_runnable_dir(runnable_dir)
@@ -130,9 +129,7 @@ def _run_test(
 
 
 def _run_tests(
-    runnable_dirs: List[str],
-    command: str,
-    purge_docker_images: bool = False
+    runnable_dirs: List[str], command: str, purge_docker_images: bool = False
 ) -> bool:
     """
     Run tests for all runnable directories.
@@ -172,7 +169,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     command = args.command
     runnable_dir = args.dir
-    purge_docker_images = getattr(args, 'purge_docker_images', False)
+    purge_docker_images = getattr(args, "purge_docker_images", False)
     all_tests_passed = False
     try:
         if runnable_dir:
@@ -184,15 +181,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Run tests.
         if command == "run_fast_tests":
             all_tests_passed = _run_tests(
-                runnable_dirs=runnable_dirs, command=command, purge_docker_images=purge_docker_images
+                runnable_dirs=runnable_dirs,
+                command=command,
+                purge_docker_images=purge_docker_images,
             )
         elif command == "run_slow_tests":
             all_tests_passed = _run_tests(
-                runnable_dirs=runnable_dirs, command=command, purge_docker_images=purge_docker_images
+                runnable_dirs=runnable_dirs,
+                command=command,
+                purge_docker_images=purge_docker_images,
             )
         elif command == "run_superslow_tests":
             all_tests_passed = _run_tests(
-                runnable_dirs=runnable_dirs, command=command, purge_docker_images=purge_docker_images
+                runnable_dirs=runnable_dirs,
+                command=command,
+                purge_docker_images=purge_docker_images,
             )
         else:
             _LOG.error("Invalid command.")

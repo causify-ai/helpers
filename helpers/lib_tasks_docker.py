@@ -64,7 +64,7 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
 def docker_images_purge() -> None:
     """
     Purge all Docker images to free up disk space.
-    
+
     This function runs Docker system prune commands to remove:
     - All stopped containers.
     - All networks not used by at least one container.
@@ -84,20 +84,23 @@ def docker_images_purge() -> None:
         _LOG.info(f"Running: {cmd}")
         result = hsystem.system(cmd, suppress_output=False)
         if result != 0:
-            _LOG.warning(f"Docker system prune command failed with exit code {result}")
+            _LOG.warning(
+                f"Docker system prune command failed with exit code {result}"
+            )
         # Run Docker image prune to remove all unused images.
         cmd = f"{docker_exec} image prune -a -f"
         _LOG.info(f"Running: {cmd}")
         result = hsystem.system(cmd, suppress_output=False)
         if result != 0:
-            _LOG.warning(f"Docker image prune command failed with exit code {result}")
+            _LOG.warning(
+                f"Docker image prune command failed with exit code {result}"
+            )
         # Display disk space after cleanup.
         _LOG.info("Disk space after cleanup:")
         hsystem.system("df -h", suppress_output=False)
         _LOG.info("Docker image cleanup completed")
     except Exception as e:
         _LOG.error(f"Error during Docker cleanup: {e}")
-        pass
 
 
 @task
@@ -591,9 +594,7 @@ def _generate_docker_compose_file(
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
-    use_helpers_as_nested_module = (
-        0 if hgit.is_in_helpers_as_supermodule() else 1
-    )
+    use_helpers_as_nested_module = 0 if hgit.is_in_helpers_as_supermodule() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -1368,9 +1369,7 @@ def _docker_cmd(
         hs3.generate_aws_files()
     docker_pull(ctx, skip_pull=skip_pull)
     _LOG.debug("cmd=%s", docker_cmd_)
-    rc: Optional[int] = hlitauti.run(
-        ctx, docker_cmd_, pty=True, **ctx_run_kwargs
-    )
+    rc: Optional[int] = hlitauti.run(ctx, docker_cmd_, pty=True, **ctx_run_kwargs)
     return rc
 
 
