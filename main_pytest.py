@@ -18,8 +18,29 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hpytest as hpytest
+import helpers.lib_tasks_docker as hlitadoc
 
 _LOG = logging.getLogger(__name__)
+
+
+def _add_common_test_arguments(parser: argparse.ArgumentParser) -> None:
+    """
+    Add common arguments shared by all test commands.
+
+    :param parser: The parser to add arguments to
+    """
+    parser.add_argument(
+        "--dir",
+        action="store",
+        required=False,
+        type=str,
+        help="Name of runnable dir",
+    )
+    parser.add_argument(
+        "--purge-docker-images",
+        action="store_true",
+        help="Purge all Docker images after running tests",
+    )
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -32,35 +53,17 @@ def _parse() -> argparse.ArgumentParser:
     run_fast_tests_parser = subparsers.add_parser(
         "run_fast_tests", help="Run fast tests"
     )
-    run_fast_tests_parser.add_argument(
-        "--dir",
-        action="store",
-        required=False,
-        type=str,
-        help="Name of runnable dir",
-    )
+    _add_common_test_arguments(run_fast_tests_parser)
     # Add command for running slow tests.
     run_slow_tests_parser = subparsers.add_parser(
         "run_slow_tests", help="Run slow tests"
     )
-    run_slow_tests_parser.add_argument(
-        "--dir",
-        action="store",
-        required=False,
-        type=str,
-        help="Name of runnable dir",
-    )
+    _add_common_test_arguments(run_slow_tests_parser)
     # Add command for running superslow tests.
     run_superslow_tests_parser = subparsers.add_parser(
         "run_superslow_tests", help="Run superslow tests"
     )
-    run_superslow_tests_parser.add_argument(
-        "--dir",
-        action="store",
-        required=False,
-        type=str,
-        help="Name of runnable dir",
-    )
+    _add_common_test_arguments(run_superslow_tests_parser)
     parser = hparser.add_verbosity_arg(parser)
     return parser
 
@@ -84,13 +87,18 @@ def _is_runnable_dir(runnable_dir: str) -> bool:
     return True
 
 
-def _run_test(runnable_dir: str, command: str) -> bool:
+def _run_test(
+    runnable_dir: str,
+    command: str,
+    purge_docker_images: bool = False
+) -> bool:
     """
     Run test in for specified runnable directory.
 
     :param runnable_dir: directory to run tests in
     :param command: command to run tests (e.g. run_fast_tests,
         run_slow_tests, run_superslow_tests)
+    :param purge_docker_images: whether to purge Docker images after test
     :return: True if the tests were run successfully, False otherwise
     """
     is_runnable_dir = _is_runnable_dir(runnable_dir)
@@ -110,6 +118,9 @@ def _run_test(runnable_dir: str, command: str) -> bool:
     result = subprocess.run(
         f"invoke {command}", shell=True, env=env, cwd=runnable_dir
     )
+    # Purge Docker images after each test run if requested.
+    if purge_docker_images:
+        hlitadoc.docker_images_purge()
     # pytest returns:
     # - 0 if all tests passed
     # - 5 if no tests are collected
@@ -118,18 +129,23 @@ def _run_test(runnable_dir: str, command: str) -> bool:
     return False
 
 
-def _run_tests(runnable_dirs: List[str], command: str) -> bool:
+def _run_tests(
+    runnable_dirs: List[str],
+    command: str,
+    purge_docker_images: bool = False
+) -> bool:
     """
     Run tests for all runnable directories.
 
     :param runnable_dirs: list of runnable directories
     :param command: command to run tests (e.g. `run_fast_tests`,
         `run_slow_tests`, `run_superslow_tests`)
+    :param purge_docker_images: whether to purge Docker images after each test
     :return: True if all tests for all runnable directories passed, False otherwise
     """
     results = []
     for runnable_dir in runnable_dirs:
-        res = _run_test(runnable_dir, command)
+        res = _run_test(runnable_dir, command, purge_docker_images)
         results.append(res)
     return all(results)
 
@@ -156,6 +172,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     command = args.command
     runnable_dir = args.dir
+    purge_docker_images = getattr(args, 'purge_docker_images', False)
     all_tests_passed = False
     try:
         if runnable_dir:
@@ -167,15 +184,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Run tests.
         if command == "run_fast_tests":
             all_tests_passed = _run_tests(
-                runnable_dirs=runnable_dirs, command=command
+                runnable_dirs=runnable_dirs, command=command, purge_docker_images=purge_docker_images
             )
         elif command == "run_slow_tests":
             all_tests_passed = _run_tests(
-                runnable_dirs=runnable_dirs, command=command
+                runnable_dirs=runnable_dirs, command=command, purge_docker_images=purge_docker_images
             )
         elif command == "run_superslow_tests":
             all_tests_passed = _run_tests(
-                runnable_dirs=runnable_dirs, command=command
+                runnable_dirs=runnable_dirs, command=command, purge_docker_images=purge_docker_images
             )
         else:
             _LOG.error("Invalid command.")

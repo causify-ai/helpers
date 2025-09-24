@@ -61,6 +61,45 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
     hlitauti.run(ctx, f"{docker_exec} image ls {ecr_base_path}")
 
 
+def docker_images_purge() -> None:
+    """
+    Purge all Docker images to free up disk space.
+    
+    This function runs Docker system prune commands to remove:
+    - All stopped containers.
+    - All networks not used by at least one container.
+    - All dangling images.
+    - All dangling build cache.
+    """
+    _LOG.info("Starting Docker image cleanup...")
+    # Get Docker executable configuration.
+    use_sudo = hdocker.get_use_sudo()
+    docker_exec = hdocker.get_docker_executable(use_sudo)
+    try:
+        # Display disk space before cleanup.
+        _LOG.info("Disk space before cleanup:")
+        hsystem.system("df -h", suppress_output=False)
+        # Run Docker system prune to remove containers, networks, and build cache.
+        cmd = f"{docker_exec} system prune -f"
+        _LOG.info(f"Running: {cmd}")
+        result = hsystem.system(cmd, suppress_output=False)
+        if result != 0:
+            _LOG.warning(f"Docker system prune command failed with exit code {result}")
+        # Run Docker image prune to remove all unused images.
+        cmd = f"{docker_exec} image prune -a -f"
+        _LOG.info(f"Running: {cmd}")
+        result = hsystem.system(cmd, suppress_output=False)
+        if result != 0:
+            _LOG.warning(f"Docker image prune command failed with exit code {result}")
+        # Display disk space after cleanup.
+        _LOG.info("Disk space after cleanup:")
+        hsystem.system("df -h", suppress_output=False)
+        _LOG.info("Docker image cleanup completed")
+    except Exception as e:
+        _LOG.error(f"Error during Docker cleanup: {e}")
+        pass
+
+
 @task
 def docker_ps(ctx, sudo=False):  # type: ignore
     # pylint: disable=line-too-long
