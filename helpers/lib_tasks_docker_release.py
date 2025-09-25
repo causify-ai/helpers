@@ -1582,7 +1582,7 @@ def docker_update_prod_task_definition(
 
 
 @task
-def docker_release_frontend_feature(
+def docker_build_frontend_feature_image(
     ctx,
     stage,
     dev_image_version=None,
