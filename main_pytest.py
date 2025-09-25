@@ -19,8 +19,37 @@ import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hpytest as hpytest
 import helpers.lib_tasks_docker as hlitadoc
+import helpers.lib_tasks_utils as hlitauti
+import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
+
+
+def _get_docker_image_for_runnable_dir(
+    runnable_dir: str, stage: str = "dev", version: str = ""
+) -> str:
+    """
+    Get the Docker image name that would be used for the given runnable directory.
+
+    :param runnable_dir: path to the runnable directory
+    :param stage: Docker stage (dev, prod, local)
+    :param version: Docker version
+    :return: full Docker image name
+    """
+    # Build the path to the repo_config.yml file in the runnable directory.
+    repo_config_file = os.path.join(runnable_dir, "repo_config.yml")
+    hdbg.dassert_path_exists(
+        repo_config_file, "repo_config.yml not found in %s", runnable_dir
+    )
+    # Load the repo config for the specific runnable directory.
+    repo_config = hrecouti.RepoConfig.from_file(repo_config_file)
+    # Build the full base image path.
+    container_registry_base_path = hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
+    base_image_name = repo_config.get_docker_base_image_name()
+    base_image = f"{container_registry_base_path}/{base_image_name}"
+    # Use the get_image function to build the full image name.
+    image_name = hlitadoc.get_image(base_image, stage, version)
+    return image_name
 
 
 def _add_common_test_arguments(parser: argparse.ArgumentParser) -> None:
@@ -82,7 +111,7 @@ def _is_runnable_dir(runnable_dir: str) -> bool:
     changelog_path = os.path.join(runnable_dir, "changelog.txt")
     devops_path = os.path.join(runnable_dir, "devops")
     if not os.path.exists(changelog_path) or not os.path.isdir(devops_path):
-        _LOG.warning(f"{runnable_dir} is not a runnable directory")
+        _LOG.warning("%s is not a runnable directory", runnable_dir)
         return False
     return True
 
@@ -101,8 +130,19 @@ def _run_test(
     :return: True if the tests were run successfully, False otherwise
     """
     is_runnable_dir = _is_runnable_dir(runnable_dir)
-    hdbg.dassert(is_runnable_dir, f"{runnable_dir} is not a runnable dir.")
-    _LOG.info(f"Running tests in {runnable_dir}")
+    hdbg.dassert(is_runnable_dir, "%s is not a runnable dir.", runnable_dir)
+    _LOG.info("Running tests in %s", runnable_dir)
+
+    # Get the Docker image that will be used for this test run.
+    docker_image = None
+    if purge_docker_images:
+        # Get the image name that would be used by the test command for this specific runnable directory.
+        # We use default stage and version as they match the invoke commands.
+        docker_image = _get_docker_image_for_runnable_dir(
+            runnable_dir, stage="dev", version=""
+        )
+        _LOG.info("Will clean up Docker image after test: %s", docker_image)
+
     # Make sure the `invoke` command is referencing to the correct
     # devops and helpers directory.
     env = os.environ.copy()
@@ -117,9 +157,10 @@ def _run_test(
     result = subprocess.run(
         f"invoke {command}", shell=True, env=env, cwd=runnable_dir
     )
-    # Purge Docker images after each test run if requested.
-    if purge_docker_images:
-        hlitadoc.docker_images_purge()
+    # Clean up the specific Docker image used in the test run if requested.
+    if purge_docker_images and docker_image:
+        _LOG.info("Cleaning up Docker image: %s", docker_image)
+        hlitadoc.docker_image_delete(docker_image)
     # pytest returns:
     # - 0 if all tests passed
     # - 5 if no tests are collected
@@ -204,7 +245,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Combine the junit xml files into a single file.
         combined_junit_xml = junitparser.JUnitXml()
         for junit_xml_file in junit_xml_files:
-            _LOG.debug(f"Processing {junit_xml_file}.")
+            _LOG.debug("Processing %s.", junit_xml_file)
             junit_xml = junitparser.JUnitXml.fromfile(junit_xml_file)
             combined_junit_xml += junit_xml
         combined_junit_xml_file = "tmp.combined_junit.xml"
@@ -214,7 +255,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         reporter.parse()
         reporter.print_summary()
     except Exception as e:
-        _LOG.error(f"Error: {e}")
+        _LOG.error("Error: %s", e)
         sys.exit(1)
     finally:
         if not all_tests_passed:

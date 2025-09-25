@@ -103,6 +103,40 @@ def docker_images_purge() -> None:
         _LOG.error(f"Error during Docker cleanup: {e}")
 
 
+def docker_image_delete(image_name: str) -> None:
+    """
+    Delete a specific Docker image to free up disk space.
+
+    :param image_name: the full Docker image name to delete
+        (e.g., "623860924167.dkr.ecr.eu-north-1.amazonaws.com/helpers:dev")
+    """
+    _LOG.info("Deleting Docker image: %s", image_name)
+    # Get Docker executable configuration.
+    use_sudo = hdocker.get_use_sudo()
+    docker_exec = hdocker.get_docker_executable(use_sudo)
+    try:
+        # Check if the image exists first.
+        check_cmd = f"{docker_exec} images -q {image_name}"
+        _, output = hsystem.system_to_string(check_cmd)
+        if not output.strip():
+            _LOG.info("Image %s not found locally, skipping deletion", image_name)
+            return
+        # Delete the specific image.
+        cmd = f"{docker_exec} rmi -f {image_name}"
+        _LOG.info("Running: %s", cmd)
+        result = hsystem.system(cmd, suppress_output=False)
+        if result != 0:
+            _LOG.warning(
+                "Docker image deletion failed with exit code %s for image: %s",
+                result,
+                image_name,
+            )
+        else:
+            _LOG.info("Successfully deleted Docker image: %s", image_name)
+    except Exception as e:
+        _LOG.error("Error during Docker image deletion: %s", e)
+
+
 @task
 def docker_ps(ctx, sudo=False):  # type: ignore
     # pylint: disable=line-too-long
