@@ -18,6 +18,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hpytest as hpytest
+import helpers.hserver as hserver
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.repo_config_utils as hrecouti
 
@@ -68,7 +69,7 @@ def _add_common_test_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--purge-docker-images",
         action="store_true",
-        help="Purge all Docker images after running tests",
+        help="Purge all Docker images after running tests (default in CI)",
     )
 
 
@@ -215,7 +216,25 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     command = args.command
     runnable_dir = args.dir
-    purge_docker_images = getattr(args, "purge_docker_images", False)
+    # Determine Docker image cleanup behavior:
+    # - If in CI: cleanup by default.
+    # - If not in CI: don't cleanup unless flag is specified.
+    # - If flag is specified: force cleanup regardless of CI status.
+    purge_docker_images_flag = getattr(args, "purge_docker_images", False)
+    if purge_docker_images_flag:
+        # Flag explicitly specified - always purge.
+        purge_docker_images = True
+        _LOG.info("Docker image cleanup enabled (explicitly requested)")
+    elif hserver.is_inside_ci():
+        # In CI - purge by default.
+        purge_docker_images = True
+        _LOG.info("Docker image cleanup enabled (running in CI)")
+    else:
+        # Not in CI and flag not specified - don't purge.
+        purge_docker_images = False
+        _LOG.info(
+            "Docker image cleanup disabled (not in CI, use --purge-docker-images to force)"
+        )
     all_tests_passed = False
     try:
         if runnable_dir:
