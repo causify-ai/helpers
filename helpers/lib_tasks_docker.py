@@ -61,88 +61,6 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
     hlitauti.run(ctx, f"{docker_exec} image ls {ecr_base_path}")
 
 
-def docker_images_purge() -> None:
-    """
-    Purge all Docker images to free up disk space.
-
-    This function runs Docker system prune commands to remove:
-    - All stopped containers.
-    - All networks not used by at least one container.
-    - All dangling images.
-    - All dangling build cache.
-    """
-    _LOG.info("Starting Docker image cleanup...")
-    # Get Docker executable configuration.
-    use_sudo = hdocker.get_use_sudo()
-    docker_exec = hdocker.get_docker_executable(use_sudo)
-    try:
-        # Display disk space before cleanup.
-        _LOG.info("Disk space before cleanup:")
-        hsystem.system("df -h", suppress_output=False)
-        # Run Docker system prune to remove containers, networks, and build cache.
-        cmd = f"{docker_exec} system prune -f"
-        _LOG.info(f"Running: {cmd}")
-        result = hsystem.system(cmd, suppress_output=False)
-        if result != 0:
-            _LOG.warning(
-                f"Docker system prune command failed with exit code {result}"
-            )
-        # Run Docker image prune to remove all unused images.
-        cmd = f"{docker_exec} image prune -a -f"
-        _LOG.info(f"Running: {cmd}")
-        result = hsystem.system(cmd, suppress_output=False)
-        if result != 0:
-            _LOG.warning(
-                f"Docker image prune command failed with exit code {result}"
-            )
-        # Display disk space after cleanup.
-        _LOG.info("Disk space after cleanup:")
-        hsystem.system("df -h", suppress_output=False)
-        _LOG.info("Docker image cleanup completed")
-    except Exception as e:
-        _LOG.error(f"Error during Docker cleanup: {e}")
-
-
-def docker_image_delete(image_name: str) -> None:
-    """
-    Delete a specific Docker image to free up disk space.
-
-    :param image_name: the full Docker image name to delete
-        (e.g., "623860924167.dkr.ecr.eu-north-1.amazonaws.com/helpers:dev")
-    """
-    _LOG.info("Deleting Docker image: %s", image_name)
-    # Get Docker executable configuration.
-    use_sudo = hdocker.get_use_sudo()
-    docker_exec = hdocker.get_docker_executable(use_sudo)
-    try:
-        # Check if the image exists first and get size info.
-        check_cmd = f"{docker_exec} images --format 'table {{{{.Repository}}}}:{{{{.Tag}}}}\\t{{{{.Size}}}}' {image_name}"
-        _, output = hsystem.system_to_string(check_cmd)
-        if not output.strip() or "REPOSITORY" in output and len(output.strip().split('\n')) <= 1:
-            _LOG.info("Image %s not found locally, skipping deletion", image_name)
-            return
-        # Log the image size before deletion
-        size_info = output.strip().split('\n')
-        if len(size_info) > 1:
-            # Skip header line and get actual image info
-            image_info = size_info[1]
-            _LOG.info("Image to be deleted: %s", image_info.strip())
-        # Delete the specific image.
-        cmd = f"{docker_exec} rmi -f {image_name}"
-        _LOG.info("Running: %s", cmd)
-        result = hsystem.system(cmd, suppress_output=False)
-        if result != 0:
-            _LOG.warning(
-                "Docker image deletion failed with exit code %s for image: %s",
-                result,
-                image_name,
-            )
-        else:
-            _LOG.info("Successfully deleted Docker image: %s", image_name)
-    except Exception as e:
-        _LOG.error("Error during Docker image deletion: %s", e)
-
-
 @task
 def docker_ps(ctx, sudo=False):  # type: ignore
     # pylint: disable=line-too-long
@@ -634,7 +552,9 @@ def _generate_docker_compose_file(
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
-    use_helpers_as_nested_module = 0 if hgit.is_in_helpers_as_supermodule() else 1
+    use_helpers_as_nested_module = (
+        0 if hgit.is_in_helpers_as_supermodule() else 1
+    )
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -1409,7 +1329,9 @@ def _docker_cmd(
         hs3.generate_aws_files()
     docker_pull(ctx, skip_pull=skip_pull)
     _LOG.debug("cmd=%s", docker_cmd_)
-    rc: Optional[int] = hlitauti.run(ctx, docker_cmd_, pty=True, **ctx_run_kwargs)
+    rc: Optional[int] = hlitauti.run(
+        ctx, docker_cmd_, pty=True, **ctx_run_kwargs
+    )
     return rc
 
 
