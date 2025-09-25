@@ -37,7 +37,7 @@ def _get_docker_image_for_runnable_dir(
     :return: full Docker image name
     """
     # Build the path to the repo_config.yml file in the runnable directory.
-    repo_config_file = os.path.join(runnable_dir, "repo_config.yml")
+    repo_config_file = os.path.join(runnable_dir, "repo_config.yaml")
     hdbg.dassert_path_exists(
         repo_config_file, "repo_config.yml not found in %s", runnable_dir
     )
