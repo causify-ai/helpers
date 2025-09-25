@@ -115,12 +115,18 @@ def docker_image_delete(image_name: str) -> None:
     use_sudo = hdocker.get_use_sudo()
     docker_exec = hdocker.get_docker_executable(use_sudo)
     try:
-        # Check if the image exists first.
-        check_cmd = f"{docker_exec} images -q {image_name}"
+        # Check if the image exists first and get size info.
+        check_cmd = f"{docker_exec} images --format 'table {{{{.Repository}}}}:{{{{.Tag}}}}\\t{{{{.Size}}}}' {image_name}"
         _, output = hsystem.system_to_string(check_cmd)
-        if not output.strip():
+        if not output.strip() or "REPOSITORY" in output and len(output.strip().split('\n')) <= 1:
             _LOG.info("Image %s not found locally, skipping deletion", image_name)
             return
+        # Log the image size before deletion
+        size_info = output.strip().split('\n')
+        if len(size_info) > 1:
+            # Skip header line and get actual image info
+            image_info = size_info[1]
+            _LOG.info("Image to be deleted: %s", image_info.strip())
         # Delete the specific image.
         cmd = f"{docker_exec} rmi -f {image_name}"
         _LOG.info("Running: %s", cmd)

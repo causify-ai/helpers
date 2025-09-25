@@ -160,7 +160,14 @@ def _run_test(
     # Clean up the specific Docker image used in the test run if requested.
     if purge_docker_images and docker_image:
         _LOG.info("Cleaning up Docker image: %s", docker_image)
+        # Display disk space before cleanup
+        _LOG.info("Disk space before cleanup:")
+        subprocess.run("df -h", shell=True)
+        # Delete the Docker image
         hlitadoc.docker_image_delete(docker_image)
+        # Display disk space after cleanup
+        _LOG.info("Disk space after cleanup:")
+        subprocess.run("df -h", shell=True)
     # pytest returns:
     # - 0 if all tests passed
     # - 5 if no tests are collected
