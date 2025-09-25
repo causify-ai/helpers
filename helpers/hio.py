@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import re
+import shlex
 import shutil
 import time
 import uuid
@@ -70,6 +71,8 @@ def listdir(
     :param maxdepth: limit the depth of directory traversal
     """
     hdbg.dassert_dir_exists(dir_name)
+    # Escape the directory path.
+    dir_name = shlex.quote(dir_name)
     cmd = [f"find {dir_name}", f'-name "{pattern}"']
     if maxdepth is not None:
         cmd.append(f'-maxdepth "{maxdepth}"')
@@ -334,6 +337,7 @@ def _create_dir(
         if os.path.islink(dir_name):
             delete_file(dir_name)
         else:
+            hdbg.dassert_ne(os.path.normpath(dir_name), ".")
             shutil.rmtree(dir_name)
     _LOG.debug("Creating directory '%s'", dir_name)
     # NOTE: `os.makedirs` raises `OSError` if the target directory already exists.

@@ -40,17 +40,31 @@ def _to_abs_path(filename: str) -> str:
     return filename
 
 
-def _prepare_docker_ignore(ctx: Any, docker_ignore: str) -> None:
+def _prepare_docker_ignore(
+    ctx: Any,
+    docker_ignore: str,
+    *,
+    copy_to_git_root: bool = True,
+) -> None:
     """
     Copy the target `docker_ignore` in the proper position for `docker build`.
 
     :param ctx: invoke context
     :param docker_ignore: path to the `.dockerignore` file
+    :param copy_to_git_root: if True, copy the `.dockerignore` file to the
+        git root directory; otherwise, copy it to the current directory
     """
     # Currently there is no built-in way to control which `.dockerignore` to
     # use (https://stackoverflow.com/questions/40904409).
     hdbg.dassert_path_exists(docker_ignore)
-    cmd = f"cp -f {docker_ignore} .dockerignore"
+    # Since all the runnable dirs copy the entire repo content, we use
+    # the Git root dir as a docker context so we need to copy the `.dockerignore`
+    # file to the Git root dir.
+    if copy_to_git_root:
+        dest_docker_ignore = os.path.join(hgit.find_git_root(), ".dockerignore")
+    else:
+        dest_docker_ignore = ".dockerignore"
+    cmd = f"cp -f {docker_ignore} {dest_docker_ignore}"
     hlitauti.run(ctx, cmd)
 
 
@@ -391,12 +405,19 @@ def docker_build_local_image(  # type: ignore
     # Keep the relative path instead of an absolute path to ensure it matches
     # files inside the tar stream and avoids file not found errors.
     # dockerfile = _to_abs_path(dockerfile)
+    install_publishing_tools = (
+        hrecouti.get_repo_config().get_install_publishing_tools()
+    )
+    install_aws_cli = hrecouti.get_repo_config().get_install_aws_cli()
     opts = "--no-cache" if not cache else ""
     build_args = [
         ("AM_CONTAINER_VERSION", dev_version),
         ("INSTALL_DIND", True),
         ("POETRY_MODE", poetry_mode),
         ("CLEAN_UP_INSTALLATION", cleanup_installation),
+        # TODO(Vlad): Uncomment these when we have a way to test them.
+        # ("INSTALL_PUBLISHING_TOOLS", install_publishing_tools),
+        # ("INSTALL_AWS_CLI", install_aws_cli),
     ]
     build_args = " ".join(f"--build-arg {k}={v}" for k, v in build_args)
     # Build for both a single arch or multi-arch.

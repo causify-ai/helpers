@@ -56,7 +56,7 @@
   - You can add a new public key here
     [GH -> Personal settings -> SSH keys](https://github.com/settings/keys)
   - More details about what is public key you can find in
-    [all.ssh.how_to_guide.md](/docs/work_tools/all.ssh.how_to_guide.md)
+    [all.ssh.how_to_guide.md](/docs/tools/all.ssh.how_to_guide.md)
 
 ### Readings
 

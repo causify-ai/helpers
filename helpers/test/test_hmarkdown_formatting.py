@@ -1,9 +1,11 @@
 import logging
 import os
+import pytest
 
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -14,47 +16,74 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(gp): Factor out common logic.
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
-    def test_standard_case(self) -> None:
-        txt = "Hello.\nWorld.\nThis is a test."
-        lines = txt.split("\n")
+    def helper(self, input_text: str, expected_text: str) -> None:
+        # Prepare inputs.
+        input_text = hprint.dedent(input_text).strip()
+        expected_text = hprint.dedent(expected_text).strip()
+        lines = input_text.split("\n")
+        # Run test.
         actual_lines = hmarkdo.remove_end_of_line_periods(lines)
         actual = "\n".join(actual_lines)
-        expected = "Hello\nWorld\nThis is a test"
-        self.assertEqual(actual, expected)
+        # Check outputs.
+        self.assertEqual(actual, expected_text)
+
+    def test_standard_case(self) -> None:
+        input_text = """
+        Hello.
+        World.
+        This is a test.
+        """
+        expected_text = """
+        Hello
+        World
+        This is a test
+        """
+        self.helper(input_text, expected_text)
 
     def test_no_periods(self) -> None:
-        txt = "Hello\nWorld\nThis is a test"
-        lines = txt.split("\n")
-        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
-        actual = "\n".join(actual_lines)
-        expected = "Hello\nWorld\nThis is a test"
-        self.assertEqual(actual, expected)
+        input_text = """
+        Hello
+        World
+        This is a test
+        """
+        expected_text = """
+        Hello
+        World
+        This is a test
+        """
+        self.helper(input_text, expected_text)
 
     def test_multiple_periods(self) -> None:
-        txt = "Line 1.....\nLine 2.....\nEnd."
-        lines = txt.split("\n")
-        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
-        actual = "\n".join(actual_lines)
-        expected = "Line 1\nLine 2\nEnd"
-        self.assertEqual(actual, expected)
+        input_text = """
+        Line 1.....
+        Line 2.....
+        End.
+        """
+        expected_text = """
+        Line 1
+        Line 2
+        End
+        """
+        self.helper(input_text, expected_text)
 
     def test_empty_string(self) -> None:
-        txt = ""
-        lines = txt.split("\n") if txt else []
-        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
-        actual = "\n".join(actual_lines)
-        expected = ""
-        self.assertEqual(actual, expected)
+        input_text = ""
+        expected_text = ""
+        self.helper(input_text, expected_text)
 
     def test_leading_and_trailing_periods(self) -> None:
-        txt = ".Line 1.\n.Line 2.\n..End.."
-        lines = txt.split("\n")
-        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
-        actual = "\n".join(actual_lines)
-        expected = ".Line 1\n.Line 2\n..End"
-        self.assertEqual(actual, expected)
+        input_text = """
+        .Line 1.
+        .Line 2.
+        ..End..
+        """
+        expected_text = """
+        .Line 1
+        .Line 2
+        ..End
+        """
+        self.helper(input_text, expected_text)
 
 
 # #############################################################################
@@ -292,3 +321,279 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
             delimiters that needs to be removed.
         """
         self.assert_equal(actual, expected, dedent=True)
+
+
+# #############################################################################
+# Test_format_markdown_slide
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
+)
+class Test_format_markdown_slide(hunitest.TestCase):
+    def helper(self, input_text: str, expected_text: str) -> None:
+        # Prepare inputs.
+        lines = hprint.dedent(input_text).strip().split("\n")
+        # Run test.
+        actual = hmarkdo.format_markdown_slide(lines)
+        actual = "\n".join(actual)
+        # Check outputs.
+        expected = hprint.dedent(expected_text).strip()
+        _LOG.debug("actual=\n%s", actual)
+        _LOG.debug("expected=\n%s", expected)
+        self.assert_equal(str(actual), str(expected))
+
+    def test1(self) -> None:
+        """
+        Test formatting a simple slide with bullets.
+        """
+        input_text = """
+        * Slide title
+        - First bullet
+        - Second bullet
+        """
+        expected_text = """
+        * Slide Title
+
+        - First bullet
+
+        - Second bullet
+        """
+        self.helper(input_text, expected_text)
+
+    def test2(self) -> None:
+        """
+        Test formatting multiple slides.
+        """
+        input_text = """
+        * First slide
+        - Point A
+        - Point B
+        * Second slide
+        - Point X
+        - Point Y
+        """
+        expected_text = """
+        * First Slide
+
+        - Point A
+
+        - Point B
+        * Second Slide
+
+        - Point X
+
+        - Point Y
+        """
+        self.helper(input_text, expected_text)
+
+    def test3(self) -> None:
+        """
+        Test formatting slides with nested bullets.
+        """
+        input_text = """
+        * Main slide
+        - First level
+          - Nested point
+          - Another nested
+        - Second level
+        """
+        expected_text = """
+        * Main Slide
+
+        - First level
+          - Nested point
+          - Another nested
+
+        - Second level
+        """
+        self.helper(input_text, expected_text)
+
+    def test4(self) -> None:
+        """
+        Test formatting empty input.
+        """
+        # Prepare inputs.
+        input_text = """
+        """
+        # Check outputs.
+        expected_text = """
+        """
+        self.helper(input_text, expected_text)
+
+    def test5(self) -> None:
+        """
+        Test formatting slide title capitalization.
+        """
+        input_text = """
+        * mixed case slide title
+        - Point one
+        """
+        expected_text = """
+        * Mixed Case Slide Title
+
+        - Point one
+        """
+        self.helper(input_text, expected_text)
+
+    def test6(self) -> None:
+        """
+        Test formatting slide with only title, no bullet points.
+        """
+        input_text = """
+        * Solo slide title
+        """
+        expected_text = """
+        * Solo Slide Title
+        """
+        self.helper(input_text, expected_text)
+
+    def test7(self) -> None:
+        """
+        Test formatting slide with deeply nested bullets.
+        """
+        input_text = """
+        * Main slide
+        - Level 1
+          - Level 2
+            - Level 3
+              - Level 4
+        - Back to level 1
+        """
+        expected_text = """
+        * Main Slide
+
+        - Level 1
+          - Level 2
+            - Level 3
+              - Level 4
+
+        - Back to level 1
+        """
+        self.helper(input_text, expected_text)
+
+    def test8(self) -> None:
+        """
+        Test formatting slide with nested bullets and special formatting.
+        """
+        input_text = r"""
+        * What Are Data Analytics?
+        - **Collections of data**
+
+          - Aggregated, organized data sets for analysis
+
+          - E.g., customer purchase histories in a CRM system
+        - **Dashboards**
+
+          - Visual displays of key metrics for insights
+          - E.g., dashboard showing quarterly revenue, expenses
+
+        - **Descriptive statistics**
+          - Summary metrics: mean, median, mode, standard deviation
+          - E.g., average sales per quarter to understand trends
+        - **Historical reports**
+
+          - Examination of past performance
+          - E.g., monthly sales reports for past fiscal year
+        - **Models**
+          - Statistical representations to forecast, explain phenomena
+
+          - E.g., predictive model to anticipate customer churn based on behavioral data
+        """
+        expected_text = r"""
+        * What Are Data Analytics?
+
+        - **Collections of data**
+          - Aggregated, organized data sets for analysis
+          - E.g., customer purchase histories in a CRM system
+
+        - **Dashboards**
+          - Visual displays of key metrics for insights
+          - E.g., dashboard showing quarterly revenue, expenses
+
+        - **Descriptive statistics**
+          - Summary metrics: mean, median, mode, standard deviation
+          - E.g., average sales per quarter to understand trends
+
+        - **Historical reports**
+          - Examination of past performance
+          - E.g., monthly sales reports for past fiscal year
+
+        - **Models**
+          - Statistical representations to forecast, explain phenomena
+          - E.g., predictive model to anticipate customer churn based on behavioral data
+        """
+        self.helper(input_text, expected_text)
+
+    def test9(self) -> None:
+        """
+        This reproduces a broken behavior of prettier with fenced divs.
+        """
+        input_text = r"""
+        * Incremental vs Iterative
+        ::: columns
+        :::: {.column width=55%}
+
+        - **Incremental Development**
+          - Each increment adds functional components
+          - Require upfront planning to divide features meaningfully
+          - Integration of increments can be complex
+
+        - **Iterative Development**
+          - Each increment delivers usable system
+          - Refine and improve product through repeated cycles
+          - Get feedback
+          - Uncover and adjust for unknown requirements
+
+        - **Incremental $\gg$ Iterative**
+
+        ::::
+        :::: {.column width=40%}
+
+        ![](msml610/lectures_source/figures/Lesson02_Monalisa_incremental.png){width=90%}
+
+        \small _Incremental
+
+        \vspace{0.5cm}
+
+        ![](msml610/lectures_source/figures/Lesson02_Monalisa_iterative.png){width=90%}
+
+        \small _Iterative_
+
+        \vspace{0.5cm}
+
+        ![](msml610/lectures_source/figures/Lesson02_Skateboard.png){width=90%}
+
+        \small _Incremental vs Iterative_
+        ::::
+        :::
+        """
+        expected_text = r"""
+        * Incremental vs Iterative
+        ::: columns :::: {.column width=55%}
+
+        - **Incremental Development**
+          - Each increment adds functional components
+          - Require upfront planning to divide features meaningfully
+          - Integration of increments can be complex
+
+        - **Iterative Development**
+          - Each increment delivers usable system
+          - Refine and improve product through repeated cycles
+          - Get feedback
+          - Uncover and adjust for unknown requirements
+
+        - **Incremental $\gg$ Iterative**
+        :::: :::: {.column width=40%}
+        ![](msml610/lectures_source/figures/Lesson02_Monalisa_incremental.png){width=90%}
+        \small \_Incremental
+        \vspace{0.5cm}
+        ![](msml610/lectures_source/figures/Lesson02_Monalisa_iterative.png){width=90%}
+        \small _Iterative_
+        \vspace{0.5cm}
+        ![](msml610/lectures_source/figures/Lesson02_Skateboard.png){width=90%}
+        \small _Incremental vs Iterative_ :::: :::
+        """
+        self.helper(input_text, expected_text)

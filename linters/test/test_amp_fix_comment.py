@@ -1,4 +1,6 @@
 import pytest
+# Skip this test suite if `more_itertools`` is not installed (skip for tutorials).
+pytest.importorskip("more_itertools")
 
 import helpers.hunit_test as hunitest
 import linters.amp_fix_comments as lamficom

@@ -548,16 +548,19 @@ directory's environment.
 
 \subsubsection{Dockerized executables}
 
-Sometimes, installing a package within a development container may not be
-justified, particularly if it is large and will only be used occasionally. In
-such cases, we use \emph{dockerized executables}: when the package is needed, a
-Docker container is dynamically created with only the specific dependencies
-required for its installation. The package is then installed and executed within
-the container, which is discarded once the task is complete. This prevents the development
-environment from becoming bloated with dependencies that are rarely used. If
-necessary, for example during test execution, a dockerized executable can be run
-inside another Docker container, whether using the children or sibling container
-approach, as discussed in Section 3.2.
+Sometimes, installing a toolchain inside a development container is not
+justified especially when it is large or used only occasionally. In such cases,
+we use \emph{dockerized executables} where the tool and its dependencies are packaged
+into a slim Docker image, and the command is executed inside a short-lived
+container. We launch a short-lived container with the repository mounted, run the
+tool, then remove the container; the versioned image stays cached for reuse,
+avoiding repeated setup.
+
+This approach prevents the development environment from being bloated with
+rarely used dependencies while preserving reproducibility and version control of
+the toolchain. When needed (e.g., during test execution), a dockerized
+executable can also run inside another Docker container using either the
+children or sibling container approach, as discussed in Section~3.2.
 
 \subsection{Discussion}
 
