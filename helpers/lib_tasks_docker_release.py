@@ -17,6 +17,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hs3 as hs3
 import helpers.hsystem as hsystem
+import helpers.hversion as hversio
 import helpers.lib_tasks_aws as hlitaaws
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_pytest as hlitapyt
@@ -408,7 +409,7 @@ def docker_build_local_image(  # type: ignore
     install_publishing_tools = (
         hrecouti.get_repo_config().get_install_publishing_tools()
     )
-    install_aws_cli = hrecouti.get_repo_config().get_install_aws_cli()
+    hrecouti.get_repo_config().get_install_aws_cli()
     opts = "--no-cache" if not cache else ""
     build_args = [
         ("AM_CONTAINER_VERSION", dev_version),
@@ -1580,55 +1581,66 @@ def docker_update_prod_task_definition(
         raise ex
 
 
-#TODO(Dan): Choose correct location. 
-
-def _read_top_line(filepath: str) -> str:
-    """
-    Read the top non-empty line from a changelog file.
-    """
-    with open(filepath, "r") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                return line
-    raise ValueError(f"No top-line found in {filepath}")
-
 @task
-def docker_release_frontend(
+def docker_release_frontend_feature(
     ctx,
     stage,
     dev_image_version=None,
     app_version=None,
-    push_image=False,
 ):
     """
-    Build and optionally push the front-end release image.
+    Build frontend image for releasing the features.
+
+    :param stage: stage to release the image
+    :param dev_image_version: base dev image version to use
+    :param app_version: app version for feature releases
     """
     hdbg.dassert_in(stage, ["test", "preprod", "prod"])
     # Get changelog paths.
     current_dir = os.getcwd()
-    changelog_file = os.path.join(current_dir, "changelog.txt")
-    app_changelog_file = os.path.join(current_dir, "app_changelog.txt")
     # Get image and app version.
     if not dev_image_version:
-        dev_image_version = _read_top_line(changelog_file)
+        dev_image_version = hversio.get_changelog_version(current_dir)
     if not app_version:
-        app_version = _read_top_line(app_changelog_file)
+        errors = []
+        # Here we assume FE has its own runnable dir or the app changelog file
+        # is inside `app` dir of a parent runnable dir.
+        for file_name in [
+            "app_changelog.txt",
+            os.path.join("app", "app_changelog.txt"),
+        ]:
+            try:
+                app_version = hversio.get_changelog_version(
+                    current_dir, file_name=file_name
+                )
+                break
+            except AssertionError as e:
+                errors.append(str(e))
+        else:
+            raise FileNotFoundError(
+                f"App changelog file not found. Provide app version explicitly. Errors: {errors}"
+            )
     # Set ECR base path.
     if stage in ("test", "preprod"):
         ecr_base_path = "623860924167.dkr.ecr.eu-north-1.amazonaws.com"
     else:
         ecr_base_path = "726416904550.dkr.ecr.us-east-1.amazonaws.com"
+    # Set prod docker file name.
+    dockerfile = "devops/docker_build/prod.Dockerfile"
+    dockerfile = _to_abs_path(dockerfile)
     # Set image tag.
-    image_name = "itsavvy-front-end"
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     image_tag = f"{ecr_base_path}/{image_name}:{stage}-{app_version}"
+    git_root_dir = hgit.find_git_root()
     # Docker build command.
-    docker_cmd = [
-        "docker", "build", "--no-cache",
-        "-f", "ck_web_apps/itsavvy/app/devops/docker_build/prod.Dockerfile",
-        "--build-arg", f"VERSION={dev_image_version}",
-        "--build-arg", f"ECR_BASE_PATH={ecr_base_path}",
-        "--build-arg", f"IMAGE_NAME={image_name}",
-        "-t", image_tag,
-    ]
-    # TODO(Dan): Copmlete the function.
+    cmd = rf"""
+    docker build --no-cache \
+    --file {dockerfile} \
+    --build-arg VERSION={dev_image_version} \
+    --build-arg ECR_BASE_PATH={ecr_base_path} \
+    --build-arg IMAGE_NAME={image_name} \
+    --tag {image_tag} \
+    {git_root_dir}
+    """
+    hlitauti.run(ctx, cmd)
+    _list_image(ctx, image_tag)
