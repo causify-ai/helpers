@@ -406,19 +406,12 @@ def docker_build_local_image(  # type: ignore
     # Keep the relative path instead of an absolute path to ensure it matches
     # files inside the tar stream and avoids file not found errors.
     # dockerfile = _to_abs_path(dockerfile)
-    install_publishing_tools = (
-        hrecouti.get_repo_config().get_install_publishing_tools()
-    )
-    hrecouti.get_repo_config().get_install_aws_cli()
     opts = "--no-cache" if not cache else ""
     build_args = [
         ("AM_CONTAINER_VERSION", dev_version),
         ("INSTALL_DIND", True),
         ("POETRY_MODE", poetry_mode),
         ("CLEAN_UP_INSTALLATION", cleanup_installation),
-        # TODO(Vlad): Uncomment these when we have a way to test them.
-        # ("INSTALL_PUBLISHING_TOOLS", install_publishing_tools),
-        # ("INSTALL_AWS_CLI", install_aws_cli),
     ]
     build_args = " ".join(f"--build-arg {k}={v}" for k, v in build_args)
     # Build for both a single arch or multi-arch.

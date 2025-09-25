@@ -1,0 +1,5 @@
+install_os_publishing_tools.sh
+install_os_aws_cli.sh
+install_os_github_cli.sh
+install_os_graphviz.sh
+install_os_publishing_tools.sh
