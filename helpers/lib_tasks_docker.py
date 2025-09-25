@@ -76,11 +76,15 @@ def docker_image_delete(image_name: str) -> None:
         # Check if the image exists first and get size info.
         check_cmd = f"{docker_exec} images --format 'table {{{{.Repository}}}}:{{{{.Tag}}}}\\t{{{{.Size}}}}' {image_name}"
         _, output = hsystem.system_to_string(check_cmd)
-        if not output.strip() or "REPOSITORY" in output and len(output.strip().split('\n')) <= 1:
+        if (
+            not output.strip()
+            or "REPOSITORY" in output
+            and len(output.strip().split("\n")) <= 1
+        ):
             _LOG.info("Image %s not found locally, skipping deletion", image_name)
             return
         # Log the image size before deletion
-        size_info = output.strip().split('\n')
+        size_info = output.strip().split("\n")
         if len(size_info) > 1:
             # Skip header line and get actual image info
             image_info = size_info[1]
