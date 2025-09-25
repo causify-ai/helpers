@@ -19,7 +19,6 @@ import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hpytest as hpytest
 import helpers.lib_tasks_docker as hlitadoc
-import helpers.lib_tasks_utils as hlitauti
 import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
@@ -29,7 +28,8 @@ def _get_docker_image_for_runnable_dir(
     runnable_dir: str, stage: str = "dev", version: str = ""
 ) -> str:
     """
-    Get the Docker image name that would be used for the given runnable directory.
+    Get the Docker image name that would be used for the given runnable
+    directory.
 
     :param runnable_dir: path to the runnable directory
     :param stage: Docker stage (dev, prod, local)
