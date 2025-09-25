@@ -44,7 +44,7 @@ def _get_docker_image_for_runnable_dir(
     # Load the repo config for the specific runnable directory.
     repo_config = hrecouti.RepoConfig.from_file(repo_config_file)
     # Build the full base image path.
-    container_registry_base_path = hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
+    container_registry_base_path = os.environ.get("CSFY_ECR_BASE_PATH")
     base_image_name = repo_config.get_docker_base_image_name()
     base_image = f"{container_registry_base_path}/{base_image_name}"
     # Use the get_image function to build the full image name.
