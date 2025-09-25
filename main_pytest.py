@@ -132,7 +132,6 @@ def _run_test(
     is_runnable_dir = _is_runnable_dir(runnable_dir)
     hdbg.dassert(is_runnable_dir, "%s is not a runnable dir.", runnable_dir)
     _LOG.info("Running tests in %s", runnable_dir)
-
     # Get the Docker image that will be used for this test run.
     docker_image = None
     if purge_docker_images:
@@ -142,7 +141,6 @@ def _run_test(
             runnable_dir, stage="dev", version=""
         )
         _LOG.info("Will clean up Docker image after test: %s", docker_image)
-
     # Make sure the `invoke` command is referencing to the correct
     # devops and helpers directory.
     env = os.environ.copy()
