@@ -7,10 +7,6 @@ echo "##> $FILE_NAME"
 
 APT_GET_OPTS="-y --no-install-recommends"
 
-# Update since sometimes it throws `404 Not Found` error, see
-# `https://askubuntu.com/questions/1159096/ubuntu-18-04-throws-404-error-while-fetching-dependencies`.
-apt-get update
-
 # Install plantuml.
 # Create necessary dir to install plantuml.
 if [[ ! -d /usr/share/man/man1/ ]]; then
