@@ -1339,60 +1339,60 @@ def slide_definition() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def slide_reduce_bullets() -> _PROMPT_OUT:
-    """
-    Remove the bullet points that are redundant or not clear.
-    """
-    system = _SLIDE_CONTEXT
-    system += r"""
-    You will:
-    - Maintain the structure of the text
-    - Keep all the figures
-    - Keep only the bullet points that are important and clear
-    - Remove all the bullet points that are redundant or not clear
+# def slide_reduce_bullets() -> _PROMPT_OUT:
+#     """
+#     Remove the bullet points that are redundant or not clear.
+#     """
+#     system = _SLIDE_CONTEXT
+#     system += r"""
+#     You will:
+#     - Maintain the structure of the text
+#     - Keep all the figures
+#     - Keep only the bullet points that are important and clear
+#     - Remove all the bullet points that are redundant or not clear
 
-    Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_code_delimiters",
-        "remove_end_of_line_periods",
-        "remove_empty_lines",
-    }
-    post_container_transforms = ["format_slide"]
-    return system, pre_transforms, post_transforms, post_container_transforms
+#     Print only the markdown without any explanation.
+#     """
+#     pre_transforms: Set[str] = set()
+#     post_transforms = {
+#         "remove_code_delimiters",
+#         "remove_end_of_line_periods",
+#         "remove_empty_lines",
+#     }
+#     post_container_transforms = ["format_slide"]
+#     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def slide_reduce2() -> _PROMPT_OUT:
-    """
-    Reduce the slide text to a maximum of 5-6 bullets per slide.
-    """
-    system = _SLIDE_CONTEXT
-    system += r"""
-    You will make sure that the text has the following characteristics:
-    - 1 idea per bullet: Keep each point focused on a single concept
-    - Max 5-6 bullets per slide: Avoid cognitive overload
-    - Max 6-8 words per bullet: Short phrases, not full sentences
-    - Parallel structure: Start each bullet with the same part of speech (e.g., verbs)
-    - No full stops (unless it's a complete sentence needing emphasis)
+# def slide_reduce2() -> _PROMPT_OUT:
+#     """
+#     Reduce the slide text to a maximum of 5-6 bullets per slide.
+#     """
+#     system = _SLIDE_CONTEXT
+#     system += r"""
+#     You will make sure that the text has the following characteristics:
+#     - 1 idea per bullet: Keep each point focused on a single concept
+#     - Max 5-6 bullets per slide: Avoid cognitive overload
+#     - Max 6-8 words per bullet: Short phrases, not full sentences
+#     - Parallel structure: Start each bullet with the same part of speech (e.g., verbs)
+#     - No full stops (unless it's a complete sentence needing emphasis)
 
-    - Be concise: Drop filler words ("the", "that", etc.)
-    - Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
-    - Use verbs for actions: e.g., "Collect feedback", "Analyze results"
-    - Highlight outcomes: Emphasize value, not process:
-        "Boost retention" > "Use spaced repetition."
+#     - Be concise: Drop filler words ("the", "that", etc.)
+#     - Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
+#     - Use verbs for actions: e.g., "Collect feedback", "Analyze results"
+#     - Highlight outcomes: Emphasize value, not process:
+#         "Boost retention" > "Use spaced repetition."
 
-    Print only the markdown without any explanation.
-    """
-    # - Minimize the changes to the text
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_code_delimiters",
-        "remove_end_of_line_periods",
-        "remove_empty_lines",
-    }
-    post_container_transforms = ["format_slide"]
-    return system, pre_transforms, post_transforms, post_container_transforms
+#     Print only the markdown without any explanation.
+#     """
+#     # - Minimize the changes to the text
+#     pre_transforms: Set[str] = set()
+#     post_transforms = {
+#         "remove_code_delimiters",
+#         "remove_end_of_line_periods",
+#         "remove_empty_lines",
+#     }
+#     post_container_transforms = ["format_slide"]
+#     return system, pre_transforms, post_transforms, post_container_transforms
 
 
 def slide_bold() -> _PROMPT_OUT:
@@ -1403,56 +1403,9 @@ def slide_bold() -> _PROMPT_OUT:
     system += r"""
     You will:
     - Not change the text or the structure of the text
-    - Highlight in bold only the most important phrases in the text—those that
-      are key to understanding the main points
-    - Keep the highlights minimal and avoid over-marking. Focus on critical
-      concepts, key data, or essential takeaways rather than full sentences or
-      excessive details.
+    - Highlight in bold some important words and phrases only on the top level bullets
 
     Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_slide"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def slide_smart_colorize() -> _PROMPT_OUT:
-    """
-    Colorize the most important phrases in the text.
-    """
-    system = _SLIDE_CONTEXT
-    system += r"""
-    You will:
-    - Not change the text or the structure of the text
-    - Use the \red{...}, \green{...}, \blue{...}, \violet{} to highlight common
-      chunks of the expression and text
-    - Consider that \Pr(.) is a single token and so it should not be highlighted
-      independently
-    - Make the chunks as big as possible
-
-    Print only the markdown without any explanation.
-# <input>
-# - Bayes' theorem states:
-#   $$\Pr(A_i|B) = \frac{\Pr(B|A_i) \cdot \Pr(A_i)}{\Pr(B)}$$
-#   where:
-#   - $\Pr(A_i|B)$ = posterior probability of $A_i$
-#   - $\Pr(B|A_i)$ = conditional (inverted) probability
-#   - $\Pr(A_i)$ = prior probability of $A_i$
-#   - $\Pr(B)$ = probability of $B$
-# </input>
-
-# <output>
-# - Bayes' theorem states:
-#   $$
-#   \red{\Pr(A_i|B)} = \frac{\green{\Pr(B|A_i)} \cdot \blue{\Pr(A_i)}}{\violet{\Pr(B)}}
-#   $$
-#   where:
-#   - \red{$\Pr(A_i|B)$} = posterior probability of \blue{$A_i$}
-#   - \green{$\Pr(B|A_i)$} = conditional (inverted) probability
-#   - \blue{$\Pr(A_i)$} = prior probability of \blue{$A_i$}
-#   - \violet{$\Pr(B)$} = probability of \violet{$B$}
-# </output>
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
