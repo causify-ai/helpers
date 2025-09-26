@@ -66,8 +66,8 @@ def docker_remove_image(ctx, base_image="") -> None:  # type: ignore
     """
     Delete the current Docker image to free up disk space.
 
-    :param base_image: base name of the image (e.g.,
-        `*****.dkr.ecr.us-east-1.amazonaws.com/amp`)
+    :param base_image: base name of the image (e.g., `*****.dkr.ecr.us-
+        east-1.amazonaws.com/amp`)
     """
     # - Handle the image.
     stage = "dev"
