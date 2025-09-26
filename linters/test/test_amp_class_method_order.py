@@ -1,3 +1,7 @@
+import pytest
+# Skip this test suite if libcst is not installed (skip for tutorials).
+pytest.importorskip("libcst")
+
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import linters.amp_class_method_order as laclmeor

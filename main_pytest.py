@@ -18,6 +18,8 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hpytest as hpytest
+import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -110,6 +112,10 @@ def _run_test(runnable_dir: str, command: str) -> bool:
     result = subprocess.run(
         f"invoke {command}", shell=True, env=env, cwd=runnable_dir
     )
+    # Temporarily hack to clean up docker images after running tests.
+    # See CmampTask7535.
+    if hserver.is_inside_ci():
+        hsystem.system("docker system prune -a -f")
     # pytest returns:
     # - 0 if all tests passed
     # - 5 if no tests are collected

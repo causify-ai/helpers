@@ -121,12 +121,15 @@ def _get_client_root(super_module: bool) -> str:
 # End copy.
 
 
-def get_changelog_version(container_dir_name: str) -> Optional[str]:
+def get_changelog_version(
+    container_dir_name: str, *, file_name: str = None
+) -> Optional[str]:
     """
     Return latest version from changelog.txt file.
 
     :param container_dir_name: container directory relative to the root
         directory
+    :param file_name: changelog file name
     """
     version: Optional[str] = None
     supermodule = True
@@ -134,7 +137,9 @@ def get_changelog_version(container_dir_name: str) -> Optional[str]:
     # Note: for `amp` as submodule one should pass `container_dir_name` relative
     # to the root, e.g., `amp/optimizer` and not just `optimizer`.
     hdbg.dassert_ne(container_dir_name, "")
-    changelog_file = os.path.join(root_dir, container_dir_name, "changelog.txt")
+    if file_name is None:
+        file_name = "changelog.txt"
+    changelog_file = os.path.join(root_dir, container_dir_name, file_name)
     hdbg.dassert_file_exists(changelog_file)
     changelog = hio.from_file(changelog_file)
     match = re.search(_VERSION_RE, changelog)
