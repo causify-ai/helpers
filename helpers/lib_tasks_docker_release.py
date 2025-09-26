@@ -17,6 +17,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hs3 as hs3
 import helpers.hsystem as hsystem
+import helpers.hversion as hversio
 import helpers.lib_tasks_aws as hlitaaws
 import helpers.lib_tasks_docker as hlitadoc
 import helpers.lib_tasks_pytest as hlitapyt
@@ -405,19 +406,12 @@ def docker_build_local_image(  # type: ignore
     # Keep the relative path instead of an absolute path to ensure it matches
     # files inside the tar stream and avoids file not found errors.
     # dockerfile = _to_abs_path(dockerfile)
-    install_publishing_tools = (
-        hrecouti.get_repo_config().get_install_publishing_tools()
-    )
-    install_aws_cli = hrecouti.get_repo_config().get_install_aws_cli()
     opts = "--no-cache" if not cache else ""
     build_args = [
         ("AM_CONTAINER_VERSION", dev_version),
         ("INSTALL_DIND", True),
         ("POETRY_MODE", poetry_mode),
         ("CLEAN_UP_INSTALLATION", cleanup_installation),
-        # TODO(Vlad): Uncomment these when we have a way to test them.
-        # ("INSTALL_PUBLISHING_TOOLS", install_publishing_tools),
-        # ("INSTALL_AWS_CLI", install_aws_cli),
     ]
     build_args = " ".join(f"--build-arg {k}={v}" for k, v in build_args)
     # Build for both a single arch or multi-arch.
@@ -1578,3 +1572,68 @@ def docker_update_prod_task_definition(
         )
         _LOG.info("Rollback completed! %s", s3_rollback_message)
         raise ex
+
+
+@task
+def docker_build_frontend_feature_image(
+    ctx,
+    stage,
+    dev_image_version=None,
+    app_version=None,
+):
+    """
+    Build frontend image for releasing the features.
+
+    :param stage: stage to release the image
+    :param dev_image_version: base dev image version to use
+    :param app_version: app version for feature releases
+    """
+    hdbg.dassert_in(stage, ["test", "preprod", "prod"])
+    # Get changelog paths.
+    current_dir = os.getcwd()
+    # Get image and app version.
+    if not dev_image_version:
+        dev_image_version = hversio.get_changelog_version(current_dir)
+    if not app_version:
+        errors = []
+        # Here we assume FE has its own runnable dir or the app changelog file
+        # is inside `app` dir of a parent runnable dir.
+        for file_name in [
+            "app_changelog.txt",
+            os.path.join("app", "app_changelog.txt"),
+        ]:
+            try:
+                app_version = hversio.get_changelog_version(
+                    current_dir, file_name=file_name
+                )
+                break
+            except AssertionError as e:
+                errors.append(str(e))
+        else:
+            raise FileNotFoundError(
+                f"App changelog file not found. Provide app version explicitly. Errors: {errors}"
+            )
+    # Set ECR base path.
+    if stage in ("test", "preprod"):
+        ecr_base_path = "623860924167.dkr.ecr.eu-north-1.amazonaws.com"
+    else:
+        ecr_base_path = "726416904550.dkr.ecr.us-east-1.amazonaws.com"
+    # Set prod docker file name.
+    dockerfile = "devops/docker_build/prod.Dockerfile"
+    dockerfile = _to_abs_path(dockerfile)
+    # Set image tag.
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    image_tag = f"{ecr_base_path}/{image_name}:{stage}-{app_version}"
+    git_root_dir = hgit.find_git_root()
+    # Docker build command.
+    cmd = rf"""
+    docker build --no-cache \
+    --file {dockerfile} \
+    --build-arg VERSION={dev_image_version} \
+    --build-arg ECR_BASE_PATH={ecr_base_path} \
+    --build-arg IMAGE_NAME={image_name} \
+    --tag {image_tag} \
+    {git_root_dir}
+    """
+    hlitauti.run(ctx, cmd)
+    _list_image(ctx, image_tag)
