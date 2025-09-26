@@ -19,38 +19,10 @@ import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hpytest as hpytest
 import helpers.hserver as hserver
-import helpers.lib_tasks_docker as hlitadoc
-import helpers.repo_config_utils as hrecouti
 
 _LOG = logging.getLogger(__name__)
 
 
-def _get_docker_image_for_runnable_dir(
-    runnable_dir: str, stage: str = "dev", version: str = ""
-) -> str:
-    """
-    Get the Docker image name that would be used for the given runnable
-    directory.
-
-    :param runnable_dir: path to the runnable directory
-    :param stage: Docker stage (dev, prod, local)
-    :param version: Docker version
-    :return: full Docker image name
-    """
-    # Build the path to the repo_config.yml file in the runnable directory.
-    repo_config_file = os.path.join(runnable_dir, "repo_config.yaml")
-    hdbg.dassert_path_exists(
-        repo_config_file, "repo_config.yml not found in %s", runnable_dir
-    )
-    # Load the repo config for the specific runnable directory.
-    repo_config = hrecouti.RepoConfig.from_file(repo_config_file)
-    # Build the full base image path.
-    container_registry_base_path = os.environ.get("CSFY_ECR_BASE_PATH")
-    base_image_name = repo_config.get_docker_base_image_name()
-    base_image = f"{container_registry_base_path}/{base_image_name}"
-    # Use the get_image function to build the full image name.
-    image_name = hlitadoc.get_image(base_image, stage, version)
-    return image_name
 
 
 def _add_common_test_arguments(parser: argparse.ArgumentParser) -> None:
@@ -133,15 +105,6 @@ def _run_test(
     is_runnable_dir = _is_runnable_dir(runnable_dir)
     hdbg.dassert(is_runnable_dir, "%s is not a runnable dir.", runnable_dir)
     _LOG.info("Running tests in %s", runnable_dir)
-    # Get the Docker image that will be used for this test run.
-    docker_image = None
-    if purge_docker_images:
-        # Get the image name that would be used by the test command for this specific runnable directory.
-        # We use default stage and version as they match the invoke commands.
-        docker_image = _get_docker_image_for_runnable_dir(
-            runnable_dir, stage="dev", version=""
-        )
-        _LOG.info("Will clean up Docker image after test: %s", docker_image)
     # Make sure the `invoke` command is referencing to the correct
     # devops and helpers directory.
     env = os.environ.copy()
@@ -156,14 +119,14 @@ def _run_test(
     result = subprocess.run(
         f"invoke {command}", shell=True, env=env, cwd=runnable_dir
     )
-    # Clean up the specific Docker image used in the test run if requested.
-    if purge_docker_images and docker_image:
-        _LOG.info("Cleaning up Docker image: %s", docker_image)
+    # Clean up the Docker image used in the test run if requested.
+    if purge_docker_images:
+        _LOG.info("Cleaning up Docker image")
         # Display disk space before cleanup
         _LOG.info("Disk space before cleanup:")
         subprocess.run("df -h", shell=True)
         # Delete the Docker image
-        hlitadoc.docker_image_delete(docker_image)
+        result = subprocess.run(f"invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir)
         # Display disk space after cleanup
         _LOG.info("Disk space after cleanup:")
         subprocess.run("df -h", shell=True)

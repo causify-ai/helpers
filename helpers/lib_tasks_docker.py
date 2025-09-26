@@ -61,46 +61,34 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
     hlitauti.run(ctx, f"{docker_exec} image ls {ecr_base_path}")
 
 
-def docker_image_delete(image_name: str) -> None:
+@task
+def docker_remove_image(ctx, base_image="", stage="dev", version="") -> None:  # type: ignore
     """
-    Delete a specific Docker image to free up disk space.
+    Delete the current Docker image to free up disk space.
 
-    :param image_name: the full Docker image name to delete
-        (e.g., "623860924167.dkr.ecr.eu-north-1.amazonaws.com/helpers:dev")
+    :param base_image: base Docker image name, if empty uses default
+    :param stage: Docker stage (dev, prod, local), default is "dev"
+    :param version: Docker version, if empty uses latest
     """
-    _LOG.info("Deleting Docker image: %s", image_name)
+    # Get the image name using the same logic as other docker commands.
+    image = get_image(base_image, stage, version)
+    _LOG.info("Deleting Docker image: %s", image)
     # Get Docker executable configuration.
     use_sudo = hdocker.get_use_sudo()
     docker_exec = hdocker.get_docker_executable(use_sudo)
+    # Delete the specific image.
+    cmd = f"{docker_exec} rmi -f {image}"
+    _LOG.info("Running: %s", cmd)
     try:
-        # Check if the image exists first and get size info.
-        check_cmd = f"{docker_exec} images --format 'table {{{{.Repository}}}}:{{{{.Tag}}}}\\t{{{{.Size}}}}' {image_name}"
-        _, output = hsystem.system_to_string(check_cmd)
-        if (
-            not output.strip()
-            or "REPOSITORY" in output
-            and len(output.strip().split("\n")) <= 1
-        ):
-            _LOG.info("Image %s not found locally, skipping deletion", image_name)
-            return
-        # Log the image size before deletion
-        size_info = output.strip().split("\n")
-        if len(size_info) > 1:
-            # Skip header line and get actual image info
-            image_info = size_info[1]
-            _LOG.info("Image to be deleted: %s", image_info.strip())
-        # Delete the specific image.
-        cmd = f"{docker_exec} rmi -f {image_name}"
-        _LOG.info("Running: %s", cmd)
         result = hsystem.system(cmd, suppress_output=False)
         if result != 0:
             _LOG.warning(
                 "Docker image deletion failed with exit code %s for image: %s",
                 result,
-                image_name,
+                image,
             )
         else:
-            _LOG.info("Successfully deleted Docker image: %s", image_name)
+            _LOG.info("Successfully deleted Docker image: %s", image)
     except Exception as e:
         _LOG.error("Error during Docker image deletion: %s", e)
 
