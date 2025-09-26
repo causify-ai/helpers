@@ -23,8 +23,6 @@ import helpers.hserver as hserver
 _LOG = logging.getLogger(__name__)
 
 
-
-
 def _add_common_test_arguments(parser: argparse.ArgumentParser) -> None:
     """
     Add common arguments shared by all test commands.
@@ -126,7 +124,9 @@ def _run_test(
         _LOG.info("Disk space before cleanup:")
         subprocess.run("df -h", shell=True)
         # Delete the Docker image
-        result = subprocess.run(f"invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir)
+        result = subprocess.run(
+            f"invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir
+        )
         # Display disk space after cleanup
         _LOG.info("Disk space after cleanup:")
         subprocess.run("df -h", shell=True)
