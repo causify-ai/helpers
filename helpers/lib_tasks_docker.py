@@ -62,21 +62,22 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
 
 
 @task
-def docker_remove_image(ctx, base_image="", stage="dev", version="") -> None:  # type: ignore
+def docker_remove_image(ctx, base_image="") -> None:  # type: ignore
     """
     Delete the current Docker image to free up disk space.
 
-    :param base_image: base Docker image name, if empty uses default
-    :param stage: Docker stage (dev, prod, local), default is "dev"
-    :param version: Docker version, if empty uses latest
+    :param base_image: base name of the image (e.g.,
+        `*****.dkr.ecr.us-east-1.amazonaws.com/amp`)
     """
-    # Get the image name using the same logic as other docker commands.
+    # - Handle the image.
+    stage = "dev"
+    version = ""
     image = get_image(base_image, stage, version)
     _LOG.info("Deleting Docker image: %s", image)
-    # Get Docker executable configuration.
+    # - Get Docker executable configuration.
     use_sudo = hdocker.get_use_sudo()
     docker_exec = hdocker.get_docker_executable(use_sudo)
-    # Delete the specific image.
+    # - Delete the specific image.
     cmd = f"{docker_exec} rmi -f {image}"
     _LOG.info("Running: %s", cmd)
     try:
