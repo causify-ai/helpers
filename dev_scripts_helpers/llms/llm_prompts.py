@@ -1523,6 +1523,44 @@ def slide_title() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def slide_format_figures() -> _PROMPT_OUT:
+    """
+    Format figures in markdown slides to use column layout.
+    """
+    system = _SLIDE_CONTEXT
+    system += r"""
+    You will format markdown slides with figures to use fenced div syntax with column layout.
+
+    Convert slides containing figures (![...]) to use a two-column layout:
+    - Left column (65% width): text content
+    - Right column (40% width): figures
+
+    Use this format:
+    ```
+    ::: columns
+    :::: {.column width=65%}
+    [text content goes here]
+    ::::
+    :::: {.column width=40%}
+
+    [figures go here]
+    ::::
+    :::
+    ```
+
+    Rules:
+    - If the slide already uses column format, return it unchanged
+    - If there are no figures, return the slide unchanged
+    - Separate all figures from text content
+    - Place figures in the right column with empty lines between them
+    - Remove trailing empty lines from text content before placing in left column
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_figures"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 # #############################################################################
 # Text.
 # #############################################################################

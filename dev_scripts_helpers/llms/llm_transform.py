@@ -190,6 +190,35 @@ def _run_dockerized_llm_transform(
     )
     ret = cast(str, ret)
     return ret
+    
+
+def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> bool:
+    if prompt in ("md_to_latex", "md_clean_up", "md_bold_bullets",
+    "slide_format_figures"):
+        # Read the input.
+        txt = hparser.read_file(in_file_name)
+        txt = "\n".join(txt)
+        if prompt == "md_to_latex":
+            txt = hlatex.convert_pandoc_md_to_latex(txt)
+            txt = hmarkdo.format_latex(txt)
+        elif prompt == "md_clean_up":
+            txt = hmarkdo.md_clean_up(txt)
+            txt = hmarkdo.format_markdown(txt)
+        elif prompt == "md_bold_bullets":
+            lines = txt.split("\n")
+            lines = hmarkdo.bold_first_level_bullets(lines)
+            txt = "\n".join(lines)
+            txt = hmarkdo.format_markdown(txt)
+        elif prompt == "slide_format_figures":
+            lines = txt.split("\n")
+            lines = hmarkdo.format_figures(lines)
+            txt = "\n".join(lines)
+            #txt = hmarkdo.format_markdown(txt)
+        else:
+            raise ValueError(f"Invalid prompt='{prompt}'")
+        hparser.write_file(txt, out_file_name)
+        return True
+    return False
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
@@ -208,29 +237,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hparser.adapt_input_output_args_for_dockerized_scripts(in_file_name, tag)
     )
     # Process targets that don't require LLMs.
-    if args.prompt in ("md_to_latex", "md_clean_up", "md_bold_bullets", "md_format_figures"):
-        # Read the input.
-        txt = hparser.read_file(tmp_in_file_name)
-        txt = "\n".join(txt)
-        if args.prompt == "md_to_latex":
-            txt = hlatex.convert_pandoc_md_to_latex(txt)
-            txt = hmarkdo.format_latex(txt)
-        elif args.prompt == "md_clean_up":
-            txt = hmarkdo.md_clean_up(txt)
-            txt = hmarkdo.format_markdown(txt)
-        elif args.prompt == "md_bold_bullets":
-            lines = txt.split("\n")
-            lines = hmarkdo.bold_first_level_bullets(lines)
-            txt = "\n".join(lines)
-            txt = hmarkdo.format_markdown(txt)
-        elif args.prompt == "md_format_figures":
-            lines = txt.split("\n")
-            lines = hmarkdo.bold_first_level_bullets(lines)
-            txt = "\n".join(lines)
-            txt = hmarkdo.format_markdown(txt)
-        else:
-            raise ValueError(f"Invalid prompt='{args.prompt}'")
-        hparser.write_file(txt, out_file_name)
+    done = process_transform(args.prompt, in_file_name, out_file_name)
+    if done:
         return
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]

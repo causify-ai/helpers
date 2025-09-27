@@ -3,7 +3,7 @@ import os
 import pytest
 
 import helpers.hio as hio
-import helpers.hmarkdown as hmarkdo
+import helpers.hmarkdown_formatting as hmarkdo
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
@@ -595,5 +595,353 @@ class Test_format_markdown_slide(hunitest.TestCase):
         \vspace{0.5cm}
         ![](msml610/lectures_source/figures/Lesson02_Skateboard.png){width=90%}
         \small _Incremental vs Iterative_ :::: :::
+        """
+        self.helper(input_text, expected_text)
+
+
+# #############################################################################
+# Test_format_figures
+# #############################################################################
+
+
+class Test_format_figures(hunitest.TestCase):
+    def helper(self, input_text: str, expected_text: str) -> None:
+        # Prepare inputs.
+        lines = hprint.dedent(input_text).strip().split("\n")
+        # Run test.
+        actual_lines = hmarkdo.format_figures(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        expected = hprint.dedent(expected_text).strip()
+        self.assert_equal(actual, expected)
+
+    def test_basic_text_with_figures(self) -> None:
+        """
+        Test converting basic text with figures to column format.
+        """
+        input_text = """
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+          - Read / write small amounts of data frequently
+        - **Columnar DBs**
+          - E.g., Amazon Redshift, Snowflake
+          - Read / write large amounts of data infrequently
+          - Analytics requires a few columns
+          - Better data compression
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_1.png)
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_2.png)
+        """
+        expected_text = """
+        ::: columns
+        :::: {.column width=65%}
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+          - Read / write small amounts of data frequently
+        - **Columnar DBs**
+          - E.g., Amazon Redshift, Snowflake
+          - Read / write large amounts of data infrequently
+          - Analytics requires a few columns
+          - Better data compression
+        ::::
+        :::: {.column width=40%}
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_1.png)
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_2.png)
+        ::::
+        :::
+        """
+        self.helper(input_text, expected_text)
+
+    def test_no_figures_no_change(self) -> None:
+        """
+        Test that text without figures remains unchanged.
+        """
+        input_text = """
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+        - **Columnar DBs**
+          - E.g., Amazon Redshift, Snowflake
+          - Better data compression
+        """
+        expected_text = """
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+        - **Columnar DBs**
+          - E.g., Amazon Redshift, Snowflake
+          - Better data compression
+        """
+        self.helper(input_text, expected_text)
+
+    def test_already_in_columns_format_no_change(self) -> None:
+        """
+        Test that text already in columns format remains unchanged.
+        """
+        input_text = """
+        ::: columns
+        :::: {.column width=65%}
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+        ::::
+        :::: {.column width=40%}
+        ![](some_image.png)
+        ::::
+        :::
+        """
+        expected_text = """
+        ::: columns
+        :::: {.column width=65%}
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+        ::::
+        :::: {.column width=40%}
+        ![](some_image.png)
+        ::::
+        :::
+        """
+        self.helper(input_text, expected_text)
+
+    def test_single_figure(self) -> None:
+        """
+        Test converting text with a single figure.
+        """
+        input_text = """
+        - **Important concept**
+          - This is the main point
+          - Supporting detail
+
+        ![](path/to/image.png)
+        """
+        expected_text = """
+        ::: columns
+        :::: {.column width=65%}
+        - **Important concept**
+          - This is the main point
+          - Supporting detail
+        ::::
+        :::: {.column width=40%}
+
+        ![](path/to/image.png)
+        ::::
+        :::
+        """
+        self.helper(input_text, expected_text)
+
+    def test_mixed_content_with_figures(self) -> None:
+        """
+        Test converting mixed content including text and figures.
+        """
+        input_text = """
+        ## Section header
+
+        Some introductory text here.
+
+        - **Point one**
+          - Detail A
+          - Detail B
+        - **Point two**
+          - Detail X
+          - Detail Y
+
+        ![](image1.png)
+
+        Additional text between figures.
+
+        ![](image2.png)
+        """
+        expected_text = """
+        ::: columns
+        :::: {.column width=65%}
+        ## Section header
+
+        Some introductory text here.
+
+        - **Point one**
+          - Detail A
+          - Detail B
+        - **Point two**
+          - Detail X
+          - Detail Y
+        ::::
+        :::: {.column width=40%}
+
+        ![](image1.png)
+
+        Additional text between figures.
+
+        ![](image2.png)
+        ::::
+        :::
+        """
+        self.helper(input_text, expected_text)
+
+    def test_empty_input(self) -> None:
+        """
+        Test that empty input returns empty output.
+        """
+        input_text = ""
+        expected_text = ""
+        self.helper(input_text, expected_text)
+
+
+# #############################################################################
+# Test_format_links
+# #############################################################################
+
+
+class Test_format_links(hunitest.TestCase):
+    def helper(self, input_text: str, expected_text: str) -> None:
+        # Prepare inputs.
+        lines = hprint.dedent(input_text).strip().split("\n")
+        # Run test.
+        actual_lines = hmarkdo.format_links(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        expected = hprint.dedent(expected_text).strip()
+        self.assert_equal(actual, expected)
+
+    def test_plain_url_conversion(self) -> None:
+        """
+        Test converting plain URLs to formatted links.
+        """
+        input_text = """
+        Check out this tutorial:
+        https://ubuntu.com/tutorials/command-line-for-beginners
+
+        Another useful link:
+        https://docs.python.org/3/
+        """
+        expected_text = r"""
+        Check out this tutorial:
+        [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
+
+        Another useful link:
+        [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        """
+        self.helper(input_text, expected_text)
+
+    def test_backtick_url_conversion(self) -> None:
+        """
+        Test converting URLs in backticks to formatted links.
+        """
+        input_text = """
+        Visit this site: `https://ubuntu.com/tutorials/command-line-for-beginners`
+
+        Documentation: `https://docs.python.org/3/`
+        """
+        expected_text = r"""
+        Visit this site: [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
+
+        Documentation: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        """
+        self.helper(input_text, expected_text)
+
+    def test_fix_mismatched_formatted_links(self) -> None:
+        """
+        Test fixing formatted links where link text and URL don't match.
+        """
+        input_text = r"""
+        Here's a link: [\textcolor{blue}{\underline{LINK1}}](https://example.com)
+
+        Another: [\textcolor{blue}{\underline{Old Text}}](https://docs.python.org/3/)
+        """
+        expected_text = r"""
+        Here's a link: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+
+        Another: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        """
+        self.helper(input_text, expected_text)
+
+    def test_correctly_formatted_links_unchanged(self) -> None:
+        """
+        Test that correctly formatted links remain unchanged.
+        """
+        input_text = r"""
+        Good link: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+
+        Another good link: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        """
+        expected_text = r"""
+        Good link: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+
+        Another good link: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        """
+        self.helper(input_text, expected_text)
+
+    def test_mixed_links_in_content(self) -> None:
+        """
+        Test handling mixed plain and formatted links in same content.
+        """
+        input_text = r"""
+        ## Resources
+
+        - Plain URL: https://ubuntu.com/tutorials/command-line-for-beginners
+        - Backtick URL: `https://docs.python.org/3/`
+        - Mismatched formatted: [\textcolor{blue}{\underline{Click here}}](https://github.com)
+        - Correct formatted: [\textcolor{blue}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
+        """
+        expected_text = r"""
+        ## Resources
+
+        - Plain URL: [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
+        - Backtick URL: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        - Mismatched formatted: [\textcolor{blue}{\underline{https://github.com}}](https://github.com)
+        - Correct formatted: [\textcolor{blue}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
+        """
+        self.helper(input_text, expected_text)
+
+    def test_no_links_no_change(self) -> None:
+        """
+        Test that content without links remains unchanged.
+        """
+        input_text = """
+        # Important Notes
+
+        - This is regular text
+        - No links here
+        - Just plain content
+
+        ## Section 2
+
+        More regular text without any URLs.
+        """
+        expected_text = """
+        # Important Notes
+
+        - This is regular text
+        - No links here
+        - Just plain content
+
+        ## Section 2
+
+        More regular text without any URLs.
+        """
+        self.helper(input_text, expected_text)
+
+    def test_empty_input(self) -> None:
+        """
+        Test that empty input returns empty output.
+        """
+        input_text = ""
+        expected_text = ""
+        self.helper(input_text, expected_text)
+
+    def test_http_and_https_urls(self) -> None:
+        """
+        Test handling both HTTP and HTTPS URLs.
+        """
+        input_text = """
+        HTTP site: http://example.com
+        HTTPS site: https://secure.example.com
+        """
+        expected_text = r"""
+        HTTP site: [\textcolor{blue}{\underline{http://example.com}}](http://example.com)
+        HTTPS site: [\textcolor{blue}{\underline{https://secure.example.com}}](https://secure.example.com)
         """
         self.helper(input_text, expected_text)

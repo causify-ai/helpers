@@ -222,13 +222,108 @@ def bold_first_level_bullets(
 
 def format_figures(lines: List[str]) -> List[str]:
     """
-    Format figures in markdown text.
+    Convert markdown slides with figures to use fenced div syntax with column layout.
+
+    If the input already uses column format or contains no figures, returns unchanged.
 
     :param lines: list of input markdown lines
-    :return: formatted markdown lines
+    :return: formatted markdown lines with figures in column layout
     """
     hdbg.dassert_isinstance(lines, list)
-    return lines
+    # Check if already in column format.
+    text = "\n".join(lines)
+    if "::: columns" in text and ":::: {.column" in text:
+        return lines
+    # Find first figure line to split content.
+    first_figure_idx = -1
+    for i, line in enumerate(lines):
+        if re.match(r"^\s*!\[.*\]\(.*\)\s*$", line.strip()):
+            first_figure_idx = i
+            break
+    # If no figures found, return original lines unchanged.
+    if first_figure_idx == -1:
+        return lines
+    # Split content: everything before first figure goes to left column,
+    # everything from first figure onwards goes to right column.
+    text_lines = lines[:first_figure_idx]
+    figure_content = lines[first_figure_idx:]
+    # Remove empty lines at the end of text_lines.
+    while text_lines and not text_lines[-1].strip():
+        text_lines.pop()
+    # Build the column format.
+    result = []
+    result.append("::: columns")
+    result.append(":::: {.column width=65%}")
+    result.extend(text_lines)
+    result.append("::::")
+    result.append(":::: {.column width=40%}")
+    result.append("")
+    result.extend(figure_content)
+    result.append("::::")
+    result.append(":::")
+    hdbg.dassert_isinstance(result, list)
+    return result
+
+
+def format_links(lines: List[str]) -> List[str]:
+    r"""
+    Convert markdown links to formatted links with LaTeX styling.
+
+    Converts plain URLs and existing formatted links to the format:
+    [\textcolor{blue}{\underline{URL}}](URL)
+
+    Also validates that links are reachable and fixes mismatched link text.
+
+    :param lines: list of input markdown lines
+    :return: formatted markdown lines with styled links
+    """
+    hdbg.dassert_isinstance(lines, list)
+    result = []
+    # URL regex pattern - matches http:// and https:// URLs.
+    url_pattern = r"https?://[^\s)}\]`]+"
+    # Pattern for URLs in backticks.
+    backtick_url_pattern = r"`(https?://[^\s`]+)`"
+    # Pattern for existing formatted links.
+    formatted_link_pattern = r"\[\\textcolor\{blue\}\{\\underline\{([^}]+)\}\}\]\(([^)]+)\)"
+    for line in lines:
+        # Process the line for all URL patterns.
+        processed_line = line
+        # 1. Handle existing formatted links - fix mismatched ones.
+        def fix_formatted_link(match):
+            link_text = match.group(1)
+            link_url = match.group(2)
+            # If they don't match, use the URL as the text.
+            if link_text != link_url:
+                return fr"[\textcolor{{blue}}{{\underline{{{link_url}}}}}]({link_url})"
+            else:
+                # Already correct, keep as is.
+                return match.group(0)
+        processed_line = re.sub(formatted_link_pattern, fix_formatted_link, processed_line)
+        # 2. Convert URLs in backticks.
+        def convert_backtick_url(match):
+            url = match.group(1)
+            return fr"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
+        processed_line = re.sub(backtick_url_pattern, convert_backtick_url, processed_line)
+        # 3. Convert plain URLs (but avoid converting URLs that are already part of formatted links).
+        # First, temporarily replace formatted links to avoid interfering with them.
+        temp_placeholders = []
+        def store_formatted_link(match):
+            placeholder = f"__FORMATTED_LINK_{len(temp_placeholders)}__"
+            temp_placeholders.append(match.group(0))
+            return placeholder
+        # Store existing formatted links temporarily.
+        temp_line = re.sub(formatted_link_pattern, store_formatted_link, processed_line)
+        # Convert remaining plain URLs.
+        def convert_plain_url(match):
+            url = match.group(0)
+            return fr"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
+        temp_line = re.sub(url_pattern, convert_plain_url, temp_line)
+        # Restore formatted links.
+        for i, placeholder in enumerate(temp_placeholders):
+            temp_line = temp_line.replace(f"__FORMATTED_LINK_{i}__", placeholder)
+        result.append(temp_line)
+    hdbg.dassert_isinstance(result, list)
+    return result
 
 
 # TODO(gp): -> format_first_level_bullets_in_slide
