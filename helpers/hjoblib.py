@@ -525,9 +525,7 @@ def _parallel_execute_decorator(
     # Run the workload.
     args, kwargs = task
     kwargs.update({"incremental": incremental, "num_attempts": num_attempts})
-    with htimer.TimedScope(
-        logging.DEBUG, f"Execute '{workload_func_str}'"
-    ) as ts:
+    with htimer.TimedScope(logging.DEBUG, f"Execute '{workload_func_str}'") as ts:
         try:
             if processify_func:
                 _LOG.debug("Using processify")
@@ -567,9 +565,7 @@ def _parallel_execute_decorator(
         if abort_on_error:
             _LOG.error("Aborting since abort_on_error=%s", abort_on_error)
             raise exception  # noqa: F821
-        _LOG.error(
-            "Continuing execution since abort_on_error=%s", abort_on_error
-        )
+        _LOG.error("Continuing execution since abort_on_error=%s", abort_on_error)
         res = str(exception)
     else:
         # The execution was successful.

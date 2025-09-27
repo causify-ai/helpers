@@ -2,8 +2,11 @@
 
 # TODO(ai): Add explanation.
 """
-
-> ty check --output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' .
+> ty check \
+        --output-format concise \
+        --color never \
+        --exclude '**/outcomes/**' \
+        --exclude '**/import_check/example/**' .
 """
 
 import argparse
@@ -11,12 +14,12 @@ import logging
 from typing import List
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hdocker as hdocker
-import helpers.hsystem as hsystem
-import helpers.hserver as hserver
-import helpers.hprint as hprint
+import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
+import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 

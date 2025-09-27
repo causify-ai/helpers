@@ -43,7 +43,7 @@
   - **Bad**: a line separator like `---`
 - Use only basic text
   - **Good**: -> "
-  - **Bad**: → “ ” 
+  - **Bad**: → “ ”
 
 * Use Bullets
 - Use bullet points inside a paragraph

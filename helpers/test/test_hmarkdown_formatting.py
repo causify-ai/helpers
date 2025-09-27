@@ -1,9 +1,10 @@
 import logging
 import os
+
 import pytest
 
 import helpers.hio as hio
-import helpers.hmarkdown_formatting as hmarkdo
+import helpers.hmarkdown_formatting as hmarform
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
@@ -17,13 +18,14 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
+
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         input_text = hprint.dedent(input_text).strip()
         expected_text = hprint.dedent(expected_text).strip()
         lines = input_text.split("\n")
         # Run test.
-        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
+        actual_lines = hmarform.remove_end_of_line_periods(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         self.assertEqual(actual, expected_text)
@@ -92,6 +94,7 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
 
 
 class Test_md_clean_up1(hunitest.TestCase):
+
     def test1(self) -> None:
         # Prepare inputs.
         txt = r"""
@@ -122,7 +125,7 @@ class Test_md_clean_up1(hunitest.TestCase):
         \]
         """
         txt = hprint.dedent(txt)
-        actual = hmarkdo.md_clean_up(txt)
+        actual = hmarform.md_clean_up(txt)
         actual = hprint.dedent(actual)
         expected = r"""
         **States**:
@@ -159,6 +162,7 @@ class Test_md_clean_up1(hunitest.TestCase):
 
 
 class Test_remove_code_delimiters1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test a basic example.
@@ -173,7 +177,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = hprint.dedent(content)
         lines = content.split("\n")
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
@@ -192,7 +196,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = hio.from_file(input_file_path)
         lines = content.split("\n")
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
@@ -236,7 +240,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = hprint.dedent(content)
         lines = content.split("\n")
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
@@ -279,7 +283,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = hprint.dedent(content)
         lines = content.split("\n")
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         self.check_string(actual, dedent=True)
@@ -292,7 +296,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = ""
         lines = content.split("\n") if content else []
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         expected = ""
@@ -308,7 +312,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = hio.from_file(input_file_path)
         lines = content.split("\n")
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
@@ -333,11 +337,12 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_format_markdown_slide(hunitest.TestCase):
+
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
-        actual = hmarkdo.format_markdown_slide(lines)
+        actual = hmarform.format_markdown_slide(lines)
         actual = "\n".join(actual)
         # Check outputs.
         expected = hprint.dedent(expected_text).strip()
@@ -605,11 +610,12 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
 
 class Test_format_figures(hunitest.TestCase):
+
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
-        actual_lines = hmarkdo.format_figures(lines)
+        actual_lines = hmarform.format_figures(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         expected = hprint.dedent(expected_text).strip()
@@ -824,17 +830,19 @@ class Test_format_figures(hunitest.TestCase):
         """
         self.helper(input_text, expected_text)
 
+
 # #############################################################################
 # Test_format_links
 # #############################################################################
 
 
 class Test_format_links(hunitest.TestCase):
+
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
-        actual_lines = hmarkdo.format_links(lines)
+        actual_lines = hmarform.format_links(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         expected = hprint.dedent(expected_text).strip()

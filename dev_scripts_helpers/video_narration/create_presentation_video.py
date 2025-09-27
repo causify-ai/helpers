@@ -138,7 +138,9 @@ def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
                 current_slide_config.slide_path = slide_path
                 _LOG.debug("Parsing slide %s: %s", current_slide_num, slide_path)
             else:
-                _LOG.warning("Could not extract slide number from: %s", slide_path)
+                _LOG.warning(
+                    "Could not extract slide number from: %s", slide_path
+                )
                 i += 1
                 continue
         # Check if this is a pip line (handle indented lines)
@@ -241,7 +243,9 @@ def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
     for slide_num, slide_config in slide_configs.items():
         _LOG.debug("Slide %s: slide_path=%s", slide_num, slide_config.slide_path)
         _LOG.debug("Slide %s: pip_path=%s", slide_num, slide_config.pip_path)
-        _LOG.debug("Slide %s: comment_path=%s", slide_num, slide_config.comment_path)
+        _LOG.debug(
+            "Slide %s: comment_path=%s", slide_num, slide_config.comment_path
+        )
         if slide_config.pip:
             _LOG.debug(
                 f"Slide {slide_num}: pip config={slide_config.pip.coords}, {slide_config.pip.width}, {slide_config.pip.duration}"
@@ -250,7 +254,9 @@ def _parse_plan_file(plan_file_path: str) -> Dict[int, SlideConfig]:
             _LOG.debug(
                 f"Slide {slide_num}: comment config={slide_config.comment.coords}, {slide_config.comment.width}, {slide_config.comment.duration}"
             )
-    _LOG.debug("Parsed %s slide configurations from plan file", len(slide_configs))
+    _LOG.debug(
+        "Parsed %s slide configurations from plan file", len(slide_configs)
+    )
     return slide_configs
 
 

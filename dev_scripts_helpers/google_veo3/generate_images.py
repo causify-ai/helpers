@@ -6,10 +6,10 @@ import argparse
 import base64
 import logging
 import os
-import requests
 
 import google.genai as genai
 import google.genai.types as genai_types
+import requests
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -51,11 +51,14 @@ def _generate_images_rest_api(
     # Get access token.
     access_token = _get_access_token()
     # Prepare REST API request.
-    endpoint = "https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/google/models/%s:predict" % (
-        location,
-        project_id,
-        location,
-        model_name,
+    endpoint = (
+        "https://%s-aiplatform.googleapis.com/v1/projects/%s/locations/%s/publishers/google/models/%s:predict"
+        % (
+            location,
+            project_id,
+            location,
+            model_name,
+        )
     )
     headers = {
         "Authorization": "Bearer %s" % access_token,
@@ -99,7 +102,9 @@ def _generate_images_rest_api(
     _LOG.info("REST API image generation complete. Images saved to: %s", dst_dir)
 
 
-def run_test(test_name: str, dst_dir: str, incremental: bool, use_rest_api: bool) -> None:
+def run_test(
+    test_name: str, dst_dir: str, incremental: bool, use_rest_api: bool
+) -> None:
     # Ensure destination directory exists.
     hio.create_dir(dst_dir, incremental=incremental)
     if False:
@@ -113,24 +118,34 @@ def run_test(test_name: str, dst_dir: str, incremental: bool, use_rest_api: bool
         Use a cartoon style like Studio Ghibli.
         """
     prompts = []
-    prompts.append("""
+    prompts.append(
+        """
     A busy boardroom with executives debating a decision (launching a product, investing in a new market)
     around a single table with 4 people around it.
-    """)
-    prompts.append("""
+    """
+    )
+    prompts.append(
+        """
     An overconfident manager slams a report on the table.
-    """)
-    prompts.append("""
+    """
+    )
+    prompts.append(
+        """
     Dice rolling across the table of a boardroom.
-    """)
-    prompts.append("""
+    """
+    )
+    prompts.append(
+        """
     A decision-maker updates forecasts as new data arrives (market trends, customer feedback).
-    """)
-    prompts.append("""
+    """
+    )
+    prompts.append(
+        """
     The executive team revisits their decision with a dashboard showing
     probabilities and confidence bands around the table. They nod with
     confidence and move forward.
-    """)
+    """
+    )
     # # Determine prompt based on test name.
     # if test_name == "dialogue":
     #     prompt = """A close up of two people staring at a cryptic drawing on a wall, torchlight flickering.
@@ -154,7 +169,7 @@ def run_test(test_name: str, dst_dir: str, incremental: bool, use_rest_api: bool
         prompt += "\n\n" + style
         dst_dir_tmp = dst_dir
         # Generate images using Python SDK.
-        #model_name = "imagen-4.0-fast-generate-001"
+        # model_name = "imagen-4.0-fast-generate-001"
         model_name = "imagen-4.0-generate-001"
         # Choose API method.
         if use_rest_api:
@@ -171,7 +186,9 @@ def run_test(test_name: str, dst_dir: str, incremental: bool, use_rest_api: bool
         else:
             # Use Python SDK.
             api_key = os.getenv("GOOGLE_GENAI_API_KEY")
-            hdbg.dassert(api_key, "Environment variable GOOGLE_GENAI_API_KEY is not set")
+            hdbg.dassert(
+                api_key, "Environment variable GOOGLE_GENAI_API_KEY is not set"
+            )
             # Initialize client.
             client = genai.Client(api_key=api_key)
             # Step 1: Generate an image with Imagen.
@@ -180,7 +197,7 @@ def run_test(test_name: str, dst_dir: str, incremental: bool, use_rest_api: bool
                 prompt=prompt,
                 config=genai_types.GenerateImagesConfig(
                     number_of_images=num_images,
-                )
+                ),
             )
             hio.create_dir(dst_dir, incremental=True)
             for j in range(4):
@@ -230,6 +247,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         not args.from_scratch,
         args.use_rest_api,
     )
+
 
 if __name__ == "__main__":
     _main(_parse())

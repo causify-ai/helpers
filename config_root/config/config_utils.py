@@ -13,11 +13,9 @@ import re
 from typing import Any, Iterable, List, Optional
 
 try:
-    from collections.abc import (
-        Hashable as AbcHashable,
-        Mapping as AbcMapping,
-        Iterable as AbcIterable,
-    )
+    from collections.abc import Hashable as AbcHashable
+    from collections.abc import Iterable as AbcIterable
+    from collections.abc import Mapping as AbcMapping
 except ImportError:
     from collections import (
         Hashable as AbcHashable,

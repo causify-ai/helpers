@@ -19,6 +19,7 @@ import helpers.hunit_test as hunitest
     reason="Disabled because of CmampTask10710",
 )
 class Test_run_dockerized_prettier(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test that Dockerized Prettier reads an input file, formats it, and
@@ -93,6 +94,7 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True)
 
+
 # This should be left untouched
 #
 # ::: columns
@@ -100,32 +102,31 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
 # ![](msml610/lectures_source/figures/UMD_Logo.png)
 # ::::
 # :::: {.column width=75%}
-# 
+#
 # \vspace{0.4cm}
 # \begingroup \large
 # MSML610: Advanced Machine Learning
 # \endgroup
 # ::::
 # :::
-# 
+#
 # \vspace{1cm}
-# 
+#
 # \begingroup \Large
 # **$$\text{\blue{Machine Learning Models}}$$**
 # \endgroup
 # \vspace{1cm}
-# 
+#
 # **Instructor**: Dr. GP Saggese - `gsaggese@umd.edu`
-# 
+#
 # **References**:
 # - Burkov: _"Machine Learning Engineering"_ (2020)
 # - Hastie et al.: _"The Elements of Statistical Learning"_ (2nd ed, 2009)
-# 
+#
 # ::::
 # :::: {.column width=40%}
-# 
+#
 # ![](msml610/lectures_source/figures/figures/book_covers/Book_cover_Hundred_page_ML_book..jpg){ height=20% }
 # ![](msml610/lectures_source/figures/figures/book_covers/Book_cover_The_Elements_of_Statistical_Learning.jpg){ height=20% }
 # ::::
 # :::
-

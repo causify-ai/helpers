@@ -68,7 +68,11 @@ def _format_timestamp(timestamp) -> str:
 
 
 def get_operations_status(
-    client: genai.Client, *, limit: int = 20, offset: int = 0, operation_ids: List[str] = None
+    client: genai.Client,
+    *,
+    limit: int = 20,
+    offset: int = 0,
+    operation_ids: List[str] = None,
 ) -> List[Any]:
     """
     Get list of operations and their status from Google GenAI API.
@@ -102,12 +106,16 @@ def get_operations_status(
             # Most operation-based APIs don't support listing all operations
             # They typically only support getting specific operations by ID
             _LOG.info("Google GenAI API does not support listing all operations")
-            _LOG.info("To check specific operations, run this script with --operation-ids")
-            _LOG.info("Operation IDs are returned when you run generate_videos.py")
+            _LOG.info(
+                "To check specific operations, run this script with --operation-ids"
+            )
+            _LOG.info(
+                "Operation IDs are returned when you run generate_videos.py"
+            )
 
         # Apply pagination if we have data
         if operations_data:
-            paginated_operations = operations_data[offset:offset + limit]
+            paginated_operations = operations_data[offset : offset + limit]
             _LOG.debug("Retrieved %s operations", len(paginated_operations))
             return paginated_operations
         else:
@@ -126,40 +134,35 @@ def display_operations_status(operations: List[Any]) -> None:
     if not operations:
         _LOG.info("No operations found.")
         return
-
     # Create table data structure
     table = []
     headers = ["Name", "Done", "Created", "Updated", "Model", "Status", "Error"]
     table.append(headers)
-
     # Process each operation and add to table
     for operation in operations:
         # Extract operation information with safe defaults
-        name = getattr(operation, 'name', 'N/A')
-        done = "Yes" if getattr(operation, 'done', False) else "No"
-
+        name = getattr(operation, "name", "N/A")
+        done = "Yes" if getattr(operation, "done", False) else "No"
         # Extract metadata if available
-        metadata = getattr(operation, 'metadata', {}) or {}
-        created_time = metadata.get('createTime', 'N/A')
-        update_time = metadata.get('updateTime', 'N/A')
-
+        metadata = getattr(operation, "metadata", {}) or {}
+        created_time = metadata.get("createTime", "N/A")
+        update_time = metadata.get("updateTime", "N/A")
         created_at = _format_timestamp(created_time)
         updated_at = _format_timestamp(update_time)
-
         # Extract model info if available
         model = "veo-3.0-generate-001"  # Default for Veo3
-
         # Extract status and error info
-        status = "Running" if not getattr(operation, 'done', False) else "Complete"
+        status = (
+            "Running" if not getattr(operation, "done", False) else "Complete"
+        )
         error = "No"
-
-        if hasattr(operation, 'error') and operation.error:
+        if hasattr(operation, "error") and operation.error:
             error = "Yes"
             status = "Error"
-
         # Add row to table
         row = [
-            str(name)[:50] + ("..." if len(str(name)) > 50 else ""),  # Truncate long names
+            str(name)[:50]
+            + ("..." if len(str(name)) > 50 else ""),  # Truncate long names
             str(done),
             str(created_at),
             str(updated_at),
@@ -168,12 +171,10 @@ def display_operations_status(operations: List[Any]) -> None:
             str(error),
         ]
         table.append(row)
-
     # Calculate column widths
     col_widths = []
     for i in range(len(table[0])):
         col_widths.append(max(len(str(row[i])) for row in table))
-
     # Print the table with aligned columns
     for i, row in enumerate(table):
         formatted_row = []
@@ -224,28 +225,23 @@ def _main(args: argparse.Namespace) -> None:
     :param args: parsed arguments
     """
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-
     # Validate API key is available.
     api_key = os.getenv("GOOGLE_GENAI_API_KEY")
     hdbg.dassert(api_key, "Environment variable GOOGLE_GENAI_API_KEY is not set")
-
     try:
         # Initialize client
         client = genai.Client(api_key=api_key)
-
         # Retrieve operations from Google GenAI API.
-        operation_ids = getattr(args, 'operation_ids', None)
+        operation_ids = getattr(args, "operation_ids", None)
         operations = get_operations_status(
             client,
             limit=args.limit,
             offset=args.offset,
-            operation_ids=operation_ids
+            operation_ids=operation_ids,
         )
-
         # Display the results in table format.
         display_operations_status(operations)
         _LOG.info("Retrieved status for %s operations", len(operations))
-
     except Exception as e:
         _LOG.error("Google GenAI API error: %s", e)
         sys.exit(1)

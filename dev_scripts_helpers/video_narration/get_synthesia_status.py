@@ -117,9 +117,13 @@ def get_videos_status(
                     if isinstance(created_at, (int, float)):
                         video_date = datetime.fromtimestamp(created_at).date()
                     elif isinstance(created_at, str) and created_at.isdigit():
-                        video_date = datetime.fromtimestamp(int(created_at)).date()
+                        video_date = datetime.fromtimestamp(
+                            int(created_at)
+                        ).date()
                     else:
-                        dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                        dt = datetime.fromisoformat(
+                            created_at.replace("Z", "+00:00")
+                        )
                         video_date = dt.date()
 
                     if video_date == today:
@@ -223,7 +227,9 @@ def _main(args: argparse.Namespace) -> None:
     hdbg.dassert(api_key, "Environment variable SYNTHESIA_API_KEY is not set")
     try:
         # Retrieve videos from Synthesia API.
-        videos = get_videos_status(api_key, limit=args.limit, offset=args.offset, today_only=args.today)
+        videos = get_videos_status(
+            api_key, limit=args.limit, offset=args.offset, today_only=args.today
+        )
         # Display the results in table format.
         display_videos_status(videos)
         _LOG.info("Retrieved status for %s videos", len(videos))

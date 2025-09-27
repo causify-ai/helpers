@@ -190,11 +190,15 @@ def _run_dockerized_llm_transform(
     )
     ret = cast(str, ret)
     return ret
-    
+
 
 def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> bool:
-    if prompt in ("md_to_latex", "md_clean_up", "md_bold_bullets",
-    "slide_format_figures"):
+    if prompt in (
+        "md_to_latex",
+        "md_clean_up",
+        "md_bold_bullets",
+        "slide_format_figures",
+    ):
         # Read the input.
         txt = hparser.read_file(in_file_name)
         txt = "\n".join(txt)
@@ -213,7 +217,7 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
             lines = txt.split("\n")
             lines = hmarkdo.format_figures(lines)
             txt = "\n".join(lines)
-            #txt = hmarkdo.format_markdown(txt)
+            # txt = hmarkdo.format_markdown(txt)
         else:
             raise ValueError(f"Invalid prompt='{prompt}'")
         hparser.write_file(txt, out_file_name)

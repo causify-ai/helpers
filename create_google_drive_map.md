@@ -1,3 +1,15 @@
+<!-- toc -->
+
+- [Create Google Drive Map](#create-google-drive-map)
+  * [Purpose](#purpose)
+  * [Usage](#usage)
+  * [Workflow](#workflow)
+  * [Examples](#examples)
+  * [Output Structure](#output-structure)
+  * [Requirements](#requirements)
+
+<!-- tocstop -->
+
 # Create Google Drive Map
 
 ## Purpose
@@ -41,18 +53,21 @@
 
 ## Examples
 
-* Full Processing With Custom Settings
+* Full Processing with Custom Settings
+
 ```bash
 create_google_drive_map.py --in_dir /drive/projects \
   --out_dir analysis
 ```
 
 * Process First 5 Directories
+
 ```bash
 create_google_drive_map.py --in_dir /drive/folder --limit 1:5
 ```
 
 * Combine Existing Results
+
 ```bash
 create_google_drive_map.py --in_dir /drive/folder \
   --action combine \
@@ -60,6 +75,7 @@ create_google_drive_map.py --in_dir /drive/folder \
 ```
 
 * Start Fresh Analysis
+
 ```bash
 create_google_drive_map.py --in_dir /drive/folder \
   --from_scratch \
@@ -67,6 +83,7 @@ create_google_drive_map.py --in_dir /drive/folder \
 ```
 
 * Create Directory Table Only
+
 ```bash
 create_google_drive_map.py --in_dir /drive/folder \
   --action table \
@@ -90,9 +107,3 @@ create_google_drive_map.py --in_dir /drive/folder \
 * System Dependencies
 - `tree` command
 - `llm` CLI tool (configured with OpenAI API)
-
-* Python Dependencies
-- helpers.hdbg
-- helpers.hio
-- helpers.hparser
-- helpers.hsystem

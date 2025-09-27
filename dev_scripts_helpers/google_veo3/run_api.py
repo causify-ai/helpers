@@ -17,12 +17,15 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
-def wait_for_video_generation(client: Any, operation: Any, poll_interval_secs: int = 2) -> None:
+def wait_for_video_generation(
+    client: Any, operation: Any, poll_interval_secs: int = 2
+) -> None:
     """
     Wait for video generation to complete and print progress.
-    
+
     :param operation: The video generation operation to monitor
-    :param poll_interval_secs: How often to check status in seconds (default: 2)
+    :param poll_interval_secs: How often to check status in seconds
+        (default: 2)
     """
     start_time = time.time()
     while not operation.done:
@@ -53,7 +56,7 @@ def run_test(test_name: str) -> None:
     client = genai.Client(api_key=api_key)
     # Get Veo model.
     model_name = "veo-3.0-fast-generate-preview"
-    #model = client.models.get(model="veo-3.0-generate-001")
+    # model = client.models.get(model="veo-3.0-generate-001")
     # veo-3.0-fast-generate-001
     # veo-3.0-generate-preview
     # veo-3.0-fast-generate-preview
@@ -82,18 +85,19 @@ def run_test(test_name: str) -> None:
         )
         file_name = "imagen_example.%s.mp4" % model_name
     elif test_name == "parameters":
-        prompt="A cinematic shot of a majestic lion in the savannah."
-        config = genai_types.GenerateVideosConfig(negative_prompt="cartoon, drawing, low quality")
+        prompt = "A cinematic shot of a majestic lion in the savannah."
+        config = genai_types.GenerateVideosConfig(
+            negative_prompt="cartoon, drawing, low quality"
+        )
         operation = client.models.generate_videos(
-            model=model_name,
-            prompt=prompt,
-            config=config
+            model=model_name, prompt=prompt, config=config
         )
         file_name = "parameters_example.%s.mp4" % model_name
     else:
         raise ValueError(f"Invalid test name: {test_name}")
     operation = wait_for_video_generation(client, operation)
     save_generated_video(client, operation, file_name)
+
 
 def _parse() -> argparse.ArgumentParser:
     """
@@ -110,7 +114,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--low_res",
         action="store_true",
-        help="Use low resolution settings for faster rendering (480p, 4s duration, seed=42)"
+        help="Use low resolution settings for faster rendering (480p, 4s duration, seed=42)",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -123,6 +127,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     run_test(args.test_name)
+
 
 if __name__ == "__main__":
     _main(_parse())

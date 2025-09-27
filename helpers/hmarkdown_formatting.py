@@ -10,8 +10,8 @@ from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
-import helpers.hmarkdown_slides as hmarkdo
-import helpers.hmarkdown_headers as hmarkdohe
+import helpers.hmarkdown_headers as hmarhead
+import helpers.hmarkdown_slides as hmarform
 
 _LOG = logging.getLogger(__name__)
 
@@ -222,9 +222,11 @@ def bold_first_level_bullets(
 
 def format_figures(lines: List[str]) -> List[str]:
     """
-    Convert markdown slides with figures to use fenced div syntax with column layout.
+    Convert markdown slides with figures to use fenced div syntax with column
+    layout.
 
-    If the input already uses column format or contains no figures, returns unchanged.
+    If the input already uses column format or contains no figures,
+    returns unchanged.
 
     :param lines: list of input markdown lines
     :return: formatted markdown lines with figures in column layout
@@ -248,7 +250,6 @@ def format_figures(lines: List[str]) -> List[str]:
     # everything from first figure onwards goes to right column.
     pre_figure_lines = lines[:first_figure_idx]
     figure_content = lines[first_figure_idx:]
-
     # Separate slide titles from other content
     slide_titles = []
     text_lines = []
@@ -257,14 +258,11 @@ def format_figures(lines: List[str]) -> List[str]:
             slide_titles.append(line)
         else:
             text_lines.append(line)
-
-
     # Remove empty lines at the beginning and end of text_lines.
     while text_lines and not text_lines[0].strip():
         text_lines.pop(0)
     while text_lines and not text_lines[-1].strip():
         text_lines.pop()
-
     # Build the column format.
     result = []
     # Add slide titles first (outside columns)
@@ -273,7 +271,6 @@ def format_figures(lines: List[str]) -> List[str]:
     result.append(":::: {.column width=65%}")
     result.extend(text_lines)
     result.append("::::")
-
     result.append(":::: {.column width=40%}")
     result.append("")
     result.extend(figure_content)
@@ -302,39 +299,55 @@ def format_links(lines: List[str]) -> List[str]:
     # Pattern for URLs in backticks.
     backtick_url_pattern = r"`(https?://[^\s`]+)`"
     # Pattern for existing formatted links.
-    formatted_link_pattern = r"\[\\textcolor\{blue\}\{\\underline\{([^}]+)\}\}\]\(([^)]+)\)"
+    formatted_link_pattern = (
+        r"\[\\textcolor\{blue\}\{\\underline\{([^}]+)\}\}\]\(([^)]+)\)"
+    )
     for line in lines:
         # Process the line for all URL patterns.
         processed_line = line
+
         # 1. Handle existing formatted links - fix mismatched ones.
         def fix_formatted_link(match):
             link_text = match.group(1)
             link_url = match.group(2)
             # If they don't match, use the URL as the text.
             if link_text != link_url:
-                return fr"[\textcolor{{blue}}{{\underline{{{link_url}}}}}]({link_url})"
+                return rf"[\textcolor{{blue}}{{\underline{{{link_url}}}}}]({link_url})"
             else:
                 # Already correct, keep as is.
                 return match.group(0)
-        processed_line = re.sub(formatted_link_pattern, fix_formatted_link, processed_line)
+
+        processed_line = re.sub(
+            formatted_link_pattern, fix_formatted_link, processed_line
+        )
+
         # 2. Convert URLs in backticks.
         def convert_backtick_url(match):
             url = match.group(1)
-            return fr"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
-        processed_line = re.sub(backtick_url_pattern, convert_backtick_url, processed_line)
+            return rf"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
+
+        processed_line = re.sub(
+            backtick_url_pattern, convert_backtick_url, processed_line
+        )
         # 3. Convert plain URLs (but avoid converting URLs that are already part of formatted links).
         # First, temporarily replace formatted links to avoid interfering with them.
         temp_placeholders = []
+
         def store_formatted_link(match):
             placeholder = f"__FORMATTED_LINK_{len(temp_placeholders)}__"
             temp_placeholders.append(match.group(0))
             return placeholder
+
         # Store existing formatted links temporarily.
-        temp_line = re.sub(formatted_link_pattern, store_formatted_link, processed_line)
+        temp_line = re.sub(
+            formatted_link_pattern, store_formatted_link, processed_line
+        )
+
         # Convert remaining plain URLs.
         def convert_plain_url(match):
             url = match.group(0)
-            return fr"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
+            return rf"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
+
         temp_line = re.sub(url_pattern, convert_plain_url, temp_line)
         # Restore formatted links.
         for i, placeholder in enumerate(temp_placeholders):
@@ -415,7 +428,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     # Format the markdown slides.
     # TODO(gp): Maybe the conversion should be done inside `prettier_on_str`
     # passing a marker to indicate that the text is a slide.
-    lines = hmarkdo.convert_slide_to_markdown(lines)
+    lines = hmarform.convert_slide_to_markdown(lines)
     # lines = format_column_blocks()
     #
     file_type = "md"
@@ -423,11 +436,11 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     txt = hdocexec.prettier_on_str(txt, file_type)
     #
     lines = txt.split("\n")
-    lines = hmarkdo.markdown_to_slide(lines)
+    lines = hmarform.markdown_to_slide(lines)
     # Format the first level bullets.
     lines = format_first_level_bullets(lines)
     #
-    lines = hmarkdohe.capitalize_header(lines)
+    lines = hmarhead.capitalize_header(lines)
     return lines
 
 

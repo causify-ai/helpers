@@ -130,10 +130,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # we process the files in the output directory from previous runs.
     hdbg.dassert(
         not hio.is_subdir(output_dir, input_dir),
-            "Output directory '%s' can't be a subdirectory of input directory '%s'",
-            output_dir,
-            input_dir,
-        )
+        "Output directory '%s' can't be a subdirectory of input directory '%s'",
+        output_dir,
+        input_dir,
+    )
     # TODO(ai): Do not f-string.
     _LOG.info(
         f"Starting mkdocs preprocessing from '{input_dir}' to '{output_dir}'"
@@ -143,7 +143,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Process markdown files in place in the output directory.
     _process_markdown_files(output_dir)
     # Copy assets and styles.
-    #_copy_assets_and_styles(input_dir, output_dir)
+    # _copy_assets_and_styles(input_dir, output_dir)
     _LOG.info("Mkdocs preprocessing completed successfully")
 
 

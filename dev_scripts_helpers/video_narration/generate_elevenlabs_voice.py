@@ -22,9 +22,8 @@ import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hmarkdown_slides as hmarslid
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
-import helpers.hmarkdown_slides as hmarkslides
 
 _LOG = logging.getLogger(__name__)
 
@@ -101,7 +100,7 @@ def _generate_voice_for_text(
         "voice_settings": {
             "stability": 0.5,
             "similarity_boost": 0.5,
-        }
+        },
     }
     _LOG.debug("Making ElevenLabs API request for text: %s", text[:50])
     # Make API request.
@@ -145,7 +144,7 @@ def _process_slides(
     content = hio.from_file(in_file)
     lines = content.splitlines()
     # Extract slides from markdown.
-    header_list, _ = hmarkslides.extract_slides_from_markdown(lines)
+    header_list, _ = hmarslid.extract_slides_from_markdown(lines)
     _LOG.info("Found %s slides in input file", len(header_list))
     # Apply limit range if specified.
     slides_to_process = hparser.apply_limit_range(
@@ -154,11 +153,18 @@ def _process_slides(
         item_name="slides",
     )
     # Process each slide.
-    for i, header_info in enumerate(tqdm.tqdm(slides_to_process, desc="Processing slides")):
+    for i, header_info in enumerate(
+        tqdm.tqdm(slides_to_process, desc="Processing slides")
+    ):
         slide_number = i + 1
         slide_title = header_info.description
         slide_line_number = header_info.line_number
-        _LOG.debug("Processing slide %s: %s (line %s)", slide_number, slide_title, slide_line_number)
+        _LOG.debug(
+            "Processing slide %s: %s (line %s)",
+            slide_number,
+            slide_title,
+            slide_line_number,
+        )
         # Extract slide content from the original lines.
         # Find the slide content by looking from the current line to the next slide or end.
         slide_lines = []

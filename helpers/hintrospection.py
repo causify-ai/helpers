@@ -71,9 +71,7 @@ def get_name_from_function(func: Callable) -> str:
     func_name = func.__name__
     #
     module = inspect.getmodule(func)
-    hdbg.dassert_is_not(
-        module, None, f"Could not get module for function {func}"
-    )
+    hdbg.dassert_is_not(module, None, f"Could not get module for function {func}")
     assert module is not None
     module_name = module.__name__
     # Remove `app.` if needed from the module name, e.g.,
@@ -232,9 +230,7 @@ def get_size_in_bytes(obj: object, seen: Optional[set] = None) -> int:
         for cls in obj.__class__.__mro__:
             if "__dict__" in cls.__dict__:
                 d = cls.__dict__["__dict__"]
-                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(
-                    d
-                ):
+                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
                     size += get_size_in_bytes(obj.__dict__, seen)
                 break
     if isinstance(obj, dict):

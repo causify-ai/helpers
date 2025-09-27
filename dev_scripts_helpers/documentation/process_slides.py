@@ -10,20 +10,17 @@ import process_slides
 
 import argparse
 import logging
-import os
-import tempfile
 from typing import List, Optional, Tuple
 
 import tqdm
 
+import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hmarkdown_slides as hmarksl
+import helpers.hmarkdown_slides as hmarslid
 import helpers.hparser as hparser
-import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 
 _LOG = logging.getLogger(__name__)
 
@@ -76,7 +73,7 @@ def _extract_slides_from_markdown(txt: str) -> List[Tuple[str, str]]:
     :return: list of tuples (slide_title, slide_content)
     """
     lines = txt.split("\n")
-    header_list, _ = hmarksl.extract_slides_from_markdown(lines)
+    header_list, _ = hmarslid.extract_slides_from_markdown(lines)
     _LOG.debug("header_list=%s", header_list)
     # Convert header list to slides with content.
     slides: List[Tuple[str, str]] = []
@@ -108,9 +105,10 @@ def _process_slide_with_llm(
 
     :param slide_content: content of the slide to process
     :param action: action to perform (process or critique)
-    :param use_llm_transform: if True, use llm_transform script instead of
-        calling the function directly
-    :param no_abort_on_error: if True, continue processing even if LLM fails
+    :param use_llm_transform: if True, use llm_transform script instead
+        of calling the function directly
+    :param no_abort_on_error: if True, continue processing even if LLM
+        fails
     :return: processed slide content
     """
     if use_llm_transform:
@@ -131,7 +129,9 @@ def _process_slide_with_llm(
         # Handle errors based on --no_abort_on_error flag.
         if result is None:
             if no_abort_on_error:
-                _LOG.warning("LLM processing failed, continuing with original content")
+                _LOG.warning(
+                    "LLM processing failed, continuing with original content"
+                )
                 result = slide_content  # Return original if processing failed.
             else:
                 hdbg.dfatal("LLM processing failed for slide")
@@ -148,7 +148,8 @@ def _process_slide_with_llm_transform(
     Process a slide using the `llm_transform` script.
 
     :param slide_content: content of the slide to process
-    :param no_abort_on_error: if True, continue processing even if LLM fails
+    :param no_abort_on_error: if True, continue processing even if LLM
+        fails
     :return: processed slide content
     """
 
@@ -160,14 +161,17 @@ def _process_slide_with_llm_transform(
     hio.to_file(tmp_in_path, slide_content)
 
     # Build the llm_transform command.
-    # TODO(ai): Use 
+    # TODO(ai): Use
     llm_transform_script = hgit.find_file_in_git_tree("llm_transform.py")
     cmd = [
         "python",
         llm_transform_script,
-        "-i", tmp_in_path,
-        "-o", tmp_out_path,
-        "-p", action,
+        "-i",
+        tmp_in_path,
+        "-o",
+        tmp_out_path,
+        "-p",
+        action,
     ]
     # Execute the command.
     rc = hsystem.system(" ".join(cmd), suppress_output=False)
@@ -192,7 +196,8 @@ def _process_slides(
     :param action: action to perform on each slide
     :param limit_range: optional range limit for processing
     :param use_llm_transform: if True, use llm_transform script
-    :param no_abort_on_error: if True, continue processing even if LLM fails
+    :param no_abort_on_error: if True, continue processing even if LLM
+        fails
     :return: list of formatted processed results
     """
     # Apply limit range filtering.

@@ -1,6 +1,6 @@
+import glob
 import logging
 import os
-import glob
 
 import pytest
 
@@ -72,7 +72,7 @@ class Test_process_question1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_preprocess_notes3
+# Test_preprocess_notes_end_to_end1
 # #############################################################################
 
 
@@ -100,6 +100,7 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
                         return value == int(value)
                     except:
                         return False
+
 
                 for v in values:
                     if _is_integer(v):
@@ -131,6 +132,7 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
                         return value == int(value)
                     except:
                         return False
+
 
                 for v in values:
                     if _is_integer(v):
@@ -232,7 +234,7 @@ class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_preprocess_notes1
+# Test_preprocess_notes_executable1
 # #############################################################################
 
 
@@ -248,8 +250,8 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
     @staticmethod
     def helper(in_file: str, out_file: str, type_: str) -> str:
         """
-        Execute the end-to-end flow for `preprocess_notes.py` returning the output
-        as string.
+        Execute the end-to-end flow for `preprocess_notes.py` returning the
+        output as string.
         """
         hdbg.dassert_path_exists(in_file)
         # Find executable.

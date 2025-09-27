@@ -3,8 +3,8 @@ import os
 import unittest.mock as umock
 from typing import List, Optional, Tuple
 
-import helpers.hdocker as hdocker
 import helpers.hdbg as hdbg
+import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -21,6 +21,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_replace_shared_root_path1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test replacing shared root path.
@@ -82,6 +83,7 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 
 class Test_convert_to_docker_path1(hunitest.TestCase):
+
     @staticmethod
     def convert_caller_to_callee_docker_path(
         in_file_path: str,
@@ -205,6 +207,7 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
 
 
 class Test_is_path1(hunitest.TestCase):
+
     def helper(self, path: str, expected: bool) -> None:
         """
         Test helper for `is_path()` function.
@@ -345,6 +348,7 @@ class Test_is_path1(hunitest.TestCase):
 class Test_convert_all_paths_from_caller_to_callee_docker_path1(
     hunitest.TestCase
 ):
+
     def helper(
         self,
         cmd_opts: List[str],
@@ -403,7 +407,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
             "--output",
             "./output.log",  # Path-like (relative path)
             "command",  # Not a path
-            #"/absolute/path",  # Path-like (absolute)
+            # "/absolute/path",  # Path-like (absolute)
             "--flag",
             "folder/",  # Path-like (trailing slash)
         ]
@@ -413,7 +417,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
             "--output",
             "/app/output.log",  # Converted
             "command",  # Not converted
-            #"/app/absolute/path",  # Converted
+            # "/app/absolute/path",  # Converted
             "--flag",
             "/app/folder",  # Converted
         ]
@@ -423,7 +427,8 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
 
     def test_existing_files_get_converted(self) -> None:
         """
-        Test that existing files are converted even without path-like appearance.
+        Test that existing files are converted even without path-like
+        appearance.
         """
         # Prepare inputs.
         temp_dir = self.get_scratch_space()
@@ -450,13 +455,13 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
         cmd_opts = [
             "script.py",  # Path-like (extension) but doesn't exist
             "../config.json",  # Path-like (relative) but doesn't exist
-            #"/usr/bin/tool",  # Path-like (absolute) but doesn't exist
+            # "/usr/bin/tool",  # Path-like (absolute) but doesn't exist
             "plain_word",  # Not path-like and doesn't exist
         ]
         expected_output = [
             "/app/script.py",  # Converted (has extension)
             "/app/config.json",  # Converted (relative path)
-            #"/app/usr/bin/tool",  # Converted (absolute path)
+            # "/app/usr/bin/tool",  # Converted (absolute path)
             "plain_word",  # Not converted
         ]
         expected_output = "\n".join(expected_output)
@@ -504,14 +509,14 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
         cmd_opts = [
             "input.txt",
             "./config.yaml",
-            #"/var/log/app.log",
+            # "/var/log/app.log",
             "data/",
             "../output.json",
         ]
         expected_output = [
             "/app/input.txt",
             "/app/config.yaml",
-            #"/app/var/log/app.log",
+            # "/app/var/log/app.log",
             "/app/data",
             "/app/output.json",
         ]

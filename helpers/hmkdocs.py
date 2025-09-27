@@ -4,10 +4,8 @@ Import as:
 import helpers.hmkdocs as hmkdocs
 """
 
-
 import helpers.hdbg as hdbg
 import helpers.hmarkdown as hmarkdo
-
 
 # TODO(ai): Make function private.
 # TODO(ai): Convert str to List[str]

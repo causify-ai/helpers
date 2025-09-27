@@ -60,11 +60,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="Stage symbolic links for modification."
     )
-    parser.add_argument(
-        "--dst_dir", required=True, help="Destination directory."
-    )
+    parser.add_argument("--dst_dir", required=True, help="Destination directory.")
     args = parser.parse_args()
-
     symlinks = find_symlinks(args.dst_dir)
     if not symlinks:
         _LOG.info("No symbolic links found to stage.")

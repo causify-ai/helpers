@@ -69,9 +69,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Install the requirements.
     thin_environ_dir = tcu.get_thin_environment_dir(dir_suffix)
     requirements_path = os.path.join(thin_environ_dir, "requirements.txt")
-    tmp_requirements_path = os.path.join(
-        thin_environ_dir, "tmp.requirements.txt"
-    )
+    tmp_requirements_path = os.path.join(thin_environ_dir, "tmp.requirements.txt")
     shutil.copy(requirements_path, tmp_requirements_path)
     if platform.system() == "Darwin" or (
         platform.system() == "Linux" and not hserver.is_dev_csfy()

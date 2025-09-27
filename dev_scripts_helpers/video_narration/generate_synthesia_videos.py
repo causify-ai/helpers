@@ -37,7 +37,7 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 # Seconds per HTTP request.
-TIMEOUT_IN_SECS = 30  
+TIMEOUT_IN_SECS = 30
 
 
 def _discover_text_files(in_dir: str) -> List[Tuple[int, str]]:
@@ -128,7 +128,10 @@ def create_video(
     # Call the Synthesia API.
     _LOG.debug("Creating video with parameters:\n%s", pprint.pformat(payload))
     resp = requests.post(
-        url, headers=_headers(api_key), data=json.dumps(payload), timeout=TIMEOUT_IN_SECS
+        url,
+        headers=_headers(api_key),
+        data=json.dumps(payload),
+        timeout=TIMEOUT_IN_SECS,
     )
     # Check the response.
     if resp.status_code != 201:
@@ -293,7 +296,9 @@ def _main(args: argparse.Namespace) -> None:
         hio.create_dir(args.out_dir, incremental=True)
         # Discover all text files in the directory.
         discovered_slides = _discover_text_files(in_dir)
-        _LOG.info("Discovered %s text files in %s", len(discovered_slides), in_dir)
+        _LOG.info(
+            "Discovered %s text files in %s", len(discovered_slides), in_dir
+        )
         # Parse limit range from command line arguments.
         limit_range = hparser.parse_limit_range_args(args)
         # Apply limit range filtering to discovered slides.
@@ -309,9 +314,7 @@ def _main(args: argparse.Namespace) -> None:
             out_file = f"slide{slide_num}"
             slides_info.append((slide_num, file_path, out_file))
         # Process slides.
-        _process_slides(
-            args, slides_info, avatar, background, aspect, resolution
-        )
+        _process_slides(args, slides_info, avatar, background, aspect, resolution)
     elif args.in_file:
         hdbg.dassert_file_exists(args.in_file)
         _make_backup_if_needed(args.out_file)
@@ -319,9 +322,7 @@ def _main(args: argparse.Namespace) -> None:
         # Prepare workload.
         slides_info = [(0, args.in_file, args.out_file)]
         # Process slides.
-        _process_slides(
-            args, slides_info, avatar, background, aspect, resolution
-        )
+        _process_slides(args, slides_info, avatar, background, aspect, resolution)
     else:
         raise ValueError("Either --in_dir or --in_file must be provided")
 
