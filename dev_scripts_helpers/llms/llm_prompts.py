@@ -1065,6 +1065,91 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+# def _review_from_file(file: str) -> _PROMPT_OUT:
+def _review_from_file_new(file: str) -> _PROMPT_OUT:
+    """
+    Apply the rules from a reference file to the code.
+    """
+    system = _CODING_CONTEXT
+    # Load the reference file.
+    reference_txt = hio.from_file(file)
+    reference_txt = hmarkdo.remove_table_of_contents(reference_txt)
+    #
+    max_level = 4
+    header_list = hmarkdo.extract_headers_from_markdown(reference_txt, max_level)
+    # reference_txt = hmarkdo.add_line_numbers(header_list)
+    # print(reference_txt)
+    guidelines = hmarkdo.convert_header_list_into_guidelines(header_list)
+    #
+    selection_rules = ["General:Spelling:LLM"]
+    selected_guidelines = hmarkdo.extract_rules(guidelines, selection_rules)
+    print(selected_guidelines)
+    for guideline in selected_guidelines:
+        print(guideline)
+        rules = hmarkdo.extract_rules_from_section(
+            reference_txt, guideline.line_number
+        )
+        print(rules)
+    # assert 0
+    system += rf"""
+    You will **analyze the code** and report only violations of the coding rules described below.
+
+    #### Rule Format
+    The rules are written in markdown and follow this format:
+
+    - Each top-level bullet point (`-`) is a **rule header** (e.g., a new requirement).
+    - Each rule contains **examples of good and bad code** using:
+    - `- Good:` followed by inline or code block examples
+    - `- Bad:` followed by inline or code block examples
+
+    Example:
+    - All functions must have a docstring
+    - Good:
+        ```python
+        def foo():
+            pass
+        ```
+    - Bad:
+        ```python
+        def foo():
+            pass
+        ```
+
+    #### List of rules
+
+    {reference_txt}
+
+    #### Rule References
+    - You will reference each rule as <section-name>-<line-number>, where:
+      - <section-name> is the header or category the rule belongs to
+      - <line-number> is the line number of the rule header in the markdown
+
+    #### Your Task
+    - Review the input code and identify only clear violations of the rules.
+    - If uncertain whether something is a violation, do not report it.
+
+    #### Output Format
+
+    For each clear violation, output a single line in this format:
+
+    <code_line_number>: <section-name>-<rule_line_number>: <brief description of suggested fix>
+
+    Examples:
+
+    14: Docstrings-3: Missing docstring for function `add`
+    27: Docstrings-17: Docstring does not describe function interface or parameters
+
+    #### Do Not
+    - Do not print explanations or summaries
+    - Do not mention rules that are followed correctly
+    - Do not modify the input code
+    """
+    pre_transforms = {"add_line_numbers"}
+    post_transforms = {"convert_to_vim_cfile"}
+    post_container_transforms = ["convert_file_names"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 def review_llm() -> _PROMPT_OUT:
     """
     Review the code using LLMs.
@@ -1162,7 +1247,6 @@ def slide_expand() -> _PROMPT_OUT:
     - Add bullet points to the text that are important or missing
     - Add examples to clarify the text and help intuition
     - Not bold or italicize the text
-    - Use `E.g.,` instead of `Example`
 
     Print only the markdown without any explanation.
     """
@@ -1255,60 +1339,60 @@ def slide_definition() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def slide_reduce_bullets() -> _PROMPT_OUT:
-    """
-    Remove the bullet points that are redundant or not clear.
-    """
-    system = _SLIDE_CONTEXT
-    system += r"""
-    You will:
-    - Maintain the structure of the text
-    - Keep all the figures
-    - Keep only the bullet points that are important and clear
-    - Remove all the bullet points that are redundant or not clear
+# def slide_reduce_bullets() -> _PROMPT_OUT:
+#     """
+#     Remove the bullet points that are redundant or not clear.
+#     """
+#     system = _SLIDE_CONTEXT
+#     system += r"""
+#     You will:
+#     - Maintain the structure of the text
+#     - Keep all the figures
+#     - Keep only the bullet points that are important and clear
+#     - Remove all the bullet points that are redundant or not clear
 
-    Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_code_delimiters",
-        "remove_end_of_line_periods",
-        "remove_empty_lines",
-    }
-    post_container_transforms = ["format_slide"]
-    return system, pre_transforms, post_transforms, post_container_transforms
+#     Print only the markdown without any explanation.
+#     """
+#     pre_transforms: Set[str] = set()
+#     post_transforms = {
+#         "remove_code_delimiters",
+#         "remove_end_of_line_periods",
+#         "remove_empty_lines",
+#     }
+#     post_container_transforms = ["format_slide"]
+#     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def slide_reduce2() -> _PROMPT_OUT:
-    """
-    Reduce the slide text to a maximum of 5-6 bullets per slide.
-    """
-    system = _SLIDE_CONTEXT
-    system += r"""
-    You will make sure that the text has the following characteristics:
-    - 1 idea per bullet: Keep each point focused on a single concept
-    - Max 5-6 bullets per slide: Avoid cognitive overload
-    - Max 6-8 words per bullet: Short phrases, not full sentences
-    - Parallel structure: Start each bullet with the same part of speech (e.g., verbs)
-    - No full stops (unless it's a complete sentence needing emphasis)
+# def slide_reduce2() -> _PROMPT_OUT:
+#     """
+#     Reduce the slide text to a maximum of 5-6 bullets per slide.
+#     """
+#     system = _SLIDE_CONTEXT
+#     system += r"""
+#     You will make sure that the text has the following characteristics:
+#     - 1 idea per bullet: Keep each point focused on a single concept
+#     - Max 5-6 bullets per slide: Avoid cognitive overload
+#     - Max 6-8 words per bullet: Short phrases, not full sentences
+#     - Parallel structure: Start each bullet with the same part of speech (e.g., verbs)
+#     - No full stops (unless it's a complete sentence needing emphasis)
 
-    - Be concise: Drop filler words ("the", "that", etc.)
-    - Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
-    - Use verbs for actions: e.g., "Collect feedback", "Analyze results"
-    - Highlight outcomes: Emphasize value, not process:
-        "Boost retention" > "Use spaced repetition."
+#     - Be concise: Drop filler words ("the", "that", etc.)
+#     - Use active voice: "Improve accuracy" instead of "Accuracy can be improved."
+#     - Use verbs for actions: e.g., "Collect feedback", "Analyze results"
+#     - Highlight outcomes: Emphasize value, not process:
+#         "Boost retention" > "Use spaced repetition."
 
-    Print only the markdown without any explanation.
-    """
-    # - Minimize the changes to the text
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_code_delimiters",
-        "remove_end_of_line_periods",
-        "remove_empty_lines",
-    }
-    post_container_transforms = ["format_slide"]
-    return system, pre_transforms, post_transforms, post_container_transforms
+#     Print only the markdown without any explanation.
+#     """
+#     # - Minimize the changes to the text
+#     pre_transforms: Set[str] = set()
+#     post_transforms = {
+#         "remove_code_delimiters",
+#         "remove_end_of_line_periods",
+#         "remove_empty_lines",
+#     }
+#     post_container_transforms = ["format_slide"]
+#     return system, pre_transforms, post_transforms, post_container_transforms
 
 
 def slide_bold() -> _PROMPT_OUT:
@@ -1319,56 +1403,9 @@ def slide_bold() -> _PROMPT_OUT:
     system += r"""
     You will:
     - Not change the text or the structure of the text
-    - Highlight in bold only the most important phrases in the text—those that
-      are key to understanding the main points
-    - Keep the highlights minimal and avoid over-marking. Focus on critical
-      concepts, key data, or essential takeaways rather than full sentences or
-      excessive details.
+    - Highlight in bold some important words and phrases only on the top level bullets
 
     Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_slide"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def slide_smart_colorize() -> _PROMPT_OUT:
-    """
-    Colorize the most important phrases in the text.
-    """
-    system = _SLIDE_CONTEXT
-    system += r"""
-    You will:
-    - Not change the text or the structure of the text
-    - Use the \red{...}, \green{...}, \blue{...}, \violet{} to highlight common
-      chunks of the expression and text
-    - Consider that \Pr(.) is a single token and so it should not be highlighted
-      independently
-    - Make the chunks as big as possible
-
-    Print only the markdown without any explanation.
-# <input>
-# - Bayes' theorem states:
-#   $$\Pr(A_i|B) = \frac{\Pr(B|A_i) \cdot \Pr(A_i)}{\Pr(B)}$$
-#   where:
-#   - $\Pr(A_i|B)$ = posterior probability of $A_i$
-#   - $\Pr(B|A_i)$ = conditional (inverted) probability
-#   - $\Pr(A_i)$ = prior probability of $A_i$
-#   - $\Pr(B)$ = probability of $B$
-# </input>
-
-# <output>
-# - Bayes' theorem states:
-#   $$
-#   \red{\Pr(A_i|B)} = \frac{\green{\Pr(B|A_i)} \cdot \blue{\Pr(A_i)}}{\violet{\Pr(B)}}
-#   $$
-#   where:
-#   - \red{$\Pr(A_i|B)$} = posterior probability of \blue{$A_i$}
-#   - \green{$\Pr(B|A_i)$} = conditional (inverted) probability
-#   - \blue{$\Pr(A_i)$} = prior probability of \blue{$A_i$}
-#   - \violet{$\Pr(B)$} = probability of \violet{$B$}
-# </output>
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -1442,6 +1479,29 @@ def slide_check() -> _PROMPT_OUT:
       - Respond with at most 3 short bullet points about what can be clarified
         or improved.
       - You MUST report only things that you are sure about.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown", "append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def slide_improve() -> _PROMPT_OUT:
+    """
+    Check the slide is clear and correct.
+    """
+    system = _SLIDE_CONTEXT
+    system += r"""
+    You will:
+    - Maintain the structure of the text and keep the content of the existing
+      text
+    - Add bullet points to the text that are important or missing
+    - Add examples to clarify the text and help intuition
+    - Do not bold or italicize the text
+    - Fix the English grammar
+    - Fix any mistake
+
+    Print only the markdown without any explanation.
     """
     pre_transforms: Set[str] = set()
     post_transforms: Set[str] = set()

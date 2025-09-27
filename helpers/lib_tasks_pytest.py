@@ -1055,8 +1055,8 @@ def run_coverage_subprocess(ctx, target_dir=".", generate_html_report=False):  #
         full_report_cmd = " && ".join(report_cmd)
         # Run coverage report commands directly (avoid Docker-in-Docker issues).
         hsystem.system(full_report_cmd, abort_on_error=True)
-    except Exception:
-        _LOG.error("Coverage with subprocess failed: {e}")
+    except Exception as e:
+        _LOG.error("Coverage with subprocess failed: %s", e)
         raise
     finally:
         # Always cleanup coverage hooks.

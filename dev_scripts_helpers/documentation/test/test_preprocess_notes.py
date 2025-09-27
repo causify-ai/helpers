@@ -8,7 +8,6 @@ import dev_scripts_helpers.documentation.preprocess_notes as dshdprno
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -188,11 +187,11 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_preprocess_notes_end_to_end2
+# Test_preprocess_notes_end_to_end3
 # #############################################################################
 
 
-class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
+class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
     """
     Test `preprocess_notes.py` by calling the library function directly.
 

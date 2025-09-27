@@ -38,7 +38,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("# python=%s", python_version)
     try:
         _, aws_version = hsystem.system_to_string("aws --version")
-        _LOG.info(f"# aws={aws_version}")
+        _LOG.info("# aws=%s", aws_version)
     except subprocess.CalledProcessError:
         raise RuntimeError(
             "AWS CLI is not installed. Please install it and try again."

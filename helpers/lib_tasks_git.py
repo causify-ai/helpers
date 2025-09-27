@@ -9,24 +9,18 @@ import os
 import re
 from typing import Any
 
-import argparse
-import logging
-import os
 from typing import List
 
 import helpers.hdbg as hdbg
-import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
-import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 import helpers.lib_tasks_gh as hlitagh
 import helpers.lib_tasks_utils as hlitauti
 

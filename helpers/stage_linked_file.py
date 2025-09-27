@@ -51,9 +51,9 @@ def stage_links(symlinks: List[str]) -> None:
             shutil.copy2(target_file, link)
             # Make the file writable.
             os.chmod(link, 0o644)
-            _LOG.info(f"Staged: {link} -> {target_file}")
+            _LOG.info("Staged: %s -> %s", link, target_file)
         except Exception as e:
-            _LOG.error(f"Error staging link {link}: {e}")
+            _LOG.error("Error staging link %s: %s", link, e)
 
 
 def main():
@@ -70,7 +70,7 @@ def main():
         _LOG.info("No symbolic links found to stage.")
         return
     stage_links(symlinks)
-    _LOG.info(f"Staged {len(symlinks)} files for modification.")
+    _LOG.info("Staged %s files for modification.", len(symlinks))
 
 
 if __name__ == "__main__":

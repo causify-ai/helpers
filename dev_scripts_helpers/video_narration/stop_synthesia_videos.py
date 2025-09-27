@@ -76,7 +76,7 @@ def get_all_videos(api_key: str) -> List[Dict[str, Any]]:
         if len(videos) < params["limit"]:
             break
         params["offset"] += params["limit"]
-    _LOG.debug(f"Retrieved {len(all_videos)} total videos")
+    _LOG.debug("Retrieved %s total videos", len(all_videos))
     return all_videos
 
 

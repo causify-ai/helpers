@@ -207,7 +207,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     tmp_in_file_name, tmp_out_file_name = (
         hparser.adapt_input_output_args_for_dockerized_scripts(in_file_name, tag)
     )
-    if args.prompt in ("md_to_latex", "md_clean_up", "md_bold_bullets"):
+    # Process targets that don't require LLMs.
+    if args.prompt in ("md_to_latex", "md_clean_up", "md_bold_bullets", "md_format_figures"):
         # Read the input.
         txt = hparser.read_file(tmp_in_file_name)
         txt = "\n".join(txt)
@@ -218,6 +219,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
             txt = hmarkdo.md_clean_up(txt)
             txt = hmarkdo.format_markdown(txt)
         elif args.prompt == "md_bold_bullets":
+            lines = txt.split("\n")
+            lines = hmarkdo.bold_first_level_bullets(lines)
+            txt = "\n".join(lines)
+            txt = hmarkdo.format_markdown(txt)
+        elif args.prompt == "md_format_figures":
             lines = txt.split("\n")
             lines = hmarkdo.bold_first_level_bullets(lines)
             txt = "\n".join(lines)

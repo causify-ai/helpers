@@ -220,6 +220,17 @@ def bold_first_level_bullets(
     return result
 
 
+def format_figures(lines: List[str]) -> List[str]:
+    """
+    Format figures in markdown text.
+
+    :param lines: list of input markdown lines
+    :return: formatted markdown lines
+    """
+    hdbg.dassert_isinstance(lines, list)
+    return lines
+
+
 # TODO(gp): -> format_first_level_bullets_in_slide
 def format_first_level_bullets(lines: List[str]) -> List[str]:
     """

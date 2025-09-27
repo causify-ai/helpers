@@ -4,7 +4,6 @@ Import as:
 import helpers.hmkdocs as hmkdocs
 """
 
-import re
 
 import helpers.hdbg as hdbg
 import helpers.hmarkdown as hmarkdo
