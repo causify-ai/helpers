@@ -196,21 +196,24 @@ def colorize_bullet_points_in_slide(
         colors = list(all_md_colors)[::step][:num_bolds]
         return colors
 
-    if interpolate_colors:
-        colors = _interpolate_colors(num_bolds)
-    else:
-        if num_bolds == 1:
-            colors = ["red"]
-        elif num_bolds == 2:
-            colors = ["red", "blue"]
-        elif num_bolds == 3:
-            colors = ["red", "green", "blue"]
-        elif num_bolds == 4:
-            colors = ["red", "green", "blue", "violet"]
-        elif num_bolds == 5:
-            colors = ["red", "green", "blue", "teal", "violet"]
-        else:
+    if False:
+        if interpolate_colors:
             colors = _interpolate_colors(num_bolds)
+        else:
+            if num_bolds == 1:
+                colors = ["red"]
+            elif num_bolds == 2:
+                colors = ["red", "blue"]
+            elif num_bolds == 3:
+                colors = ["red", "green", "blue"]
+            elif num_bolds == 4:
+                colors = ["red", "green", "blue", "violet"]
+            elif num_bolds == 5:
+                colors = ["red", "green", "blue", "teal", "violet"]
+            else:
+                colors = _interpolate_colors(num_bolds)
+    else:
+        colors = all_md_colors
     _LOG.debug("colors=%s", colors)
     hdbg.dassert_lte(num_bolds, len(colors))
     # Colorize the bold items.

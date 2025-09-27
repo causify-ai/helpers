@@ -82,6 +82,8 @@ def _extract_slides_from_markdown(txt: str) -> List[Tuple[str, str]]:
     return slides
 
 
+# TODO(ai): It should save the slide content to a file and call the
+# llm_transform script and read it back.
 def _process_slide_with_llm(slide_content: str, action: str) -> str:
     """
     Process a single slide using the LLM prompt function.
@@ -98,6 +100,8 @@ def _process_slide_with_llm(slide_content: str, action: str) -> str:
         txt=slide_content,
         model=model,
     )
+    # TODO(ai): Assert if there is an error or continue if --no_abort_on_error
+    # was used.
     if result is None:
         result = slide_content  # Return original if processing failed.
     return result
