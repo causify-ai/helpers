@@ -243,19 +243,37 @@ def format_figures(lines: List[str]) -> List[str]:
     # If no figures found, return original lines unchanged.
     if first_figure_idx == -1:
         return lines
-    # Split content: everything before first figure goes to left column,
+    # Split content: slide titles (lines starting with *) stay outside columns,
+    # other content before first figure goes to left column,
     # everything from first figure onwards goes to right column.
-    text_lines = lines[:first_figure_idx]
+    pre_figure_lines = lines[:first_figure_idx]
     figure_content = lines[first_figure_idx:]
-    # Remove empty lines at the end of text_lines.
+
+    # Separate slide titles from other content
+    slide_titles = []
+    text_lines = []
+    for line in pre_figure_lines:
+        if line.strip().startswith("*"):
+            slide_titles.append(line)
+        else:
+            text_lines.append(line)
+
+
+    # Remove empty lines at the beginning and end of text_lines.
+    while text_lines and not text_lines[0].strip():
+        text_lines.pop(0)
     while text_lines and not text_lines[-1].strip():
         text_lines.pop()
+
     # Build the column format.
     result = []
+    # Add slide titles first (outside columns)
+    result.extend(slide_titles)
     result.append("::: columns")
     result.append(":::: {.column width=65%}")
     result.extend(text_lines)
     result.append("::::")
+
     result.append(":::: {.column width=40%}")
     result.append("")
     result.extend(figure_content)

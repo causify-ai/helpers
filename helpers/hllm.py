@@ -11,7 +11,6 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import openai
-import pandas as pd
 import requests
 import tqdm
 
@@ -263,10 +262,12 @@ def _get_models_info_file() -> str:
     return file_path
 
 
-def _retrieve_openrouter_model_info() -> pd.DataFrame:
+def _retrieve_openrouter_model_info() -> "pd.DataFrame":
     """
     Retrieve OpenRouter models info from the OpenRouter API.
     """
+    import pandas as pd
+
     response = requests.get("https://openrouter.ai/api/v1/models")
     # {'architecture': {'input_modalities': ['text', 'image'],
     #                   'instruct_type': None,
@@ -311,9 +312,9 @@ def _retrieve_openrouter_model_info() -> pd.DataFrame:
 
 
 def _save_models_info_to_csv(
-    model_info_df: pd.DataFrame,
+    model_info_df: "pd.DataFrame",
     file_name: str,
-) -> pd.DataFrame:
+) -> "pd.DataFrame":
     """
     Save models info to a CSV file.
     """
@@ -394,6 +395,8 @@ class LLMCostTracker:
         :param model: The model used for the completion
         :return: The calculated cost in dollars
         """
+        import pandas as pd
+
         prompt_tokens = completion.usage.prompt_tokens
         completion_tokens = completion.usage.completion_tokens
         provider_name, model = _get_llm_provider_and_model(model)

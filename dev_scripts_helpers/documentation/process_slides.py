@@ -17,6 +17,7 @@ from typing import List, Optional, Tuple
 import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown_slides as hmarksl
 import helpers.hparser as hparser
@@ -115,7 +116,7 @@ def _process_slide_with_llm(
     if use_llm_transform:
         # Use llm_transform script.
         return _process_slide_with_llm_transform(
-            slide_content, no_abort_on_error=no_abort_on_error
+            slide_content, action, no_abort_on_error=no_abort_on_error
         )
     else:
         # Use the original method with run_prompt.
@@ -154,6 +155,9 @@ def _process_slide_with_llm_transform(
     # Create temporary files for input and output.
     tmp_in_path = "tmp.process_slide_with_llm_transform.input.txt"
     tmp_out_path = "tmp.process_slide_with_llm_transform.output.txt"
+
+    # Write slide content to temporary input file.
+    hio.to_file(tmp_in_path, slide_content)
 
     # Build the llm_transform command.
     # TODO(ai): Use 

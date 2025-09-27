@@ -789,6 +789,40 @@ class Test_format_figures(hunitest.TestCase):
         expected_text = ""
         self.helper(input_text, expected_text)
 
+    def test_with_slide_title(self) -> None:
+        """
+        Test that slide title is left unchanged.
+        """
+        input_text = """
+        * VCS: How to Track Data
+
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+          - Read / write small amounts of data frequently
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_1.png)
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_2.png)
+        """
+        expected_text = """
+        * VCS: How to Track Data
+        ::: columns
+        :::: {.column width=65%}
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+          - Read / write small amounts of data frequently
+        ::::
+        :::: {.column width=40%}
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_1.png)
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_2.png)
+        ::::
+        :::
+        """
+        self.helper(input_text, expected_text)
 
 # #############################################################################
 # Test_format_links
