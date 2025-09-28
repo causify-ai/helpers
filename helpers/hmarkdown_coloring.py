@@ -194,7 +194,7 @@ def colorize_bullet_points_in_slide(
         colors = list(all_md_colors)[::step][:num_bolds]
         return colors
 
-    if False:
+    if True:
         if interpolate_colors:
             colors = _interpolate_colors(num_bolds)
         else:

@@ -152,19 +152,15 @@ def _process_slide_with_llm_transform(
         fails
     :return: processed slide content
     """
-
     # Create temporary files for input and output.
     tmp_in_path = "tmp.process_slide_with_llm_transform.input.txt"
     tmp_out_path = "tmp.process_slide_with_llm_transform.output.txt"
-
     # Write slide content to temporary input file.
     hio.to_file(tmp_in_path, slide_content)
-
     # Build the llm_transform command.
     # TODO(ai): Use
     llm_transform_script = hgit.find_file_in_git_tree("llm_transform.py")
     cmd = [
-        "python",
         llm_transform_script,
         "-i",
         tmp_in_path,
@@ -174,9 +170,9 @@ def _process_slide_with_llm_transform(
         action,
     ]
     # Execute the command.
-    rc = hsystem.system(" ".join(cmd), suppress_output=False)
+    hsystem.system(" ".join(cmd), suppress_output=False)
+    # Read the output.
     hdbg.dassert_file_exists(tmp_out_path)
-
     result = hio.from_file(tmp_out_path)
     return result
 

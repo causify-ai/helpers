@@ -193,6 +193,16 @@ def _run_dockerized_llm_transform(
 
 
 def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> bool:
+    """
+    Process a transform that doesn't require LLMs.
+
+    :param prompt: Prompt used to generate the transformed text
+    :param in_file_name: Original input file name
+    :param out_file_name: Temporary output file name
+    :return: True if the transform was processed, False otherwise
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    #
     if prompt in (
         "md_to_latex",
         "md_clean_up",
@@ -200,6 +210,7 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
         "slide_format_figures",
     ):
         # Read the input.
+        _LOG.debug("Reading input file: %s", in_file_name)
         txt = hparser.read_file(in_file_name)
         txt = "\n".join(txt)
         if prompt == "md_to_latex":
@@ -220,6 +231,8 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
             # txt = hmarkdo.format_markdown(txt)
         else:
             raise ValueError(f"Invalid prompt='{prompt}'")
+        #
+        _LOG.debug("Writing output file: %s", out_file_name)
         hparser.write_file(txt, out_file_name)
         return True
     return False
