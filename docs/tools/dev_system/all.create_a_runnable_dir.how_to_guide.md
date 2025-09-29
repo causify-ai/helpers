@@ -116,8 +116,8 @@
     - `$CSFY_RUNNABLE_DIR/devops/docker_build/install_os_packages.sh`: if we
       need to add or remove OS packages using the declarative approach
       - See
-        [`/docs/tools/dev_system/all.devops_docker.reference.md`](/docs/tools/dev_system/all.devops_docker.reference.md)
-        for details on the `os_packages/` directory structure
+        [`/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation`](/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation)
+        for details on the declarative OS package installation system
     - `$CSFY_RUNNABLE_DIR/devops/docker_build/pyproject.toml`: if we need to add
       or remove Python dependencies
 - Always trim
@@ -282,8 +282,8 @@ dependencies
 - Modify `$CSFY_RUNNABLE_DIR/devops/docker_build/os_packages/os_packages.txt` to
   add or remove OS packages using the declarative approach
   - See
-    [`/docs/tools/dev_system/all.devops_docker.reference.md`](/docs/tools/dev_system/all.devops_docker.reference.md)
-    for details on the `os_packages/` directory structure
+    [`/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation`](/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation)
+    for details on the declarative OS package installation system
 - Modify `$CSFY_RUNNABLE_DIR/devops/docker_build/pyproject.toml` to add or
   remove Python packages
 
