@@ -114,7 +114,10 @@
     - `$CSFY_RUNNABLE_DIR/devops/docker_build/dev.Dockerfile`: if we need to use
       a base image with different Linux distro or version
     - `$CSFY_RUNNABLE_DIR/devops/docker_build/install_os_packages.sh`: if we
-      need to add or remove OS packages
+      need to add or remove OS packages using the declarative approach
+      - See
+        [`/docs/tools/dev_system/all.devops_docker.reference.md`](/docs/tools/dev_system/all.devops_docker.reference.md)
+        for details on the `os_packages/` directory structure
     - `$CSFY_RUNNABLE_DIR/devops/docker_build/pyproject.toml`: if we need to add
       or remove Python dependencies
 - Always trim
@@ -276,8 +279,11 @@ dependencies
 
 2. Modify dependencies list
 
-- Modify `$CSFY_RUNNABLE_DIR/devops/docker_build/install_os_packages.sh` to add
-  or remove OS packages
+- Modify `$CSFY_RUNNABLE_DIR/devops/docker_build/os_packages/os_packages.txt` to
+  add or remove OS packages using the declarative approach
+  - See
+    [`/docs/tools/dev_system/all.devops_docker.reference.md`](/docs/tools/dev_system/all.devops_docker.reference.md)
+    for details on the `os_packages/` directory structure
 - Modify `$CSFY_RUNNABLE_DIR/devops/docker_build/pyproject.toml` to add or
   remove Python packages
 
