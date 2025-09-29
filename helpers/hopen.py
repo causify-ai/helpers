@@ -35,9 +35,7 @@ def _cmd_open_html(file_name: str, os_name: str) -> Optional[str]:
     hdbg.dassert_in(os_name, os_cmds)
     exec_name = os_cmds[os_name]
     if not hsystem.check_exec(exec_name):
-        _LOG.warning(
-            "Can't execute the command '%s' on this platform", exec_name
-        )
+        _LOG.warning("Can't execute the command '%s' on this platform", exec_name)
         return None
     # Build the command.
     full_cmd = f"{exec_name} {file_name}"
@@ -67,7 +65,7 @@ def _cmd_open_pdf(file_name: str, os_name: str) -> Optional[str]:
         )
     }
     if os_name not in os_cmds:
-        _LOG.warning(f"Opening PDF files on '{os_name}' is not supported yet")
+        _LOG.warning("Opening PDF files on '%s' is not supported yet", os_name)
         full_cmd = None
     else:
         full_cmd = os_cmds[os_name]

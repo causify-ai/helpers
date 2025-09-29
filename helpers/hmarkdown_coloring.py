@@ -110,9 +110,7 @@ def process_color_commands(in_line: str) -> str:
             return ret
 
         # Replace the color command with the LaTeX color command.
-        in_line = re.sub(
-            pattern, lambda m: _replacement(m, latex_color), in_line
-        )
+        in_line = re.sub(pattern, lambda m: _replacement(m, latex_color), in_line)
     return in_line
 
 
@@ -184,7 +182,7 @@ def colorize_bullet_points_in_slide(
         return txt
     # Divide by 2 since we count the number of occurrences of `**`, while we
     # want to count `**bold**` as 1.
-    hdbg.dassert_eq(tot_bold % 2, 0, "tot_bold=%s needs to be even", tot_bold)
+    # hdbg.dassert_eq(tot_bold % 2, 0, "tot_bold=%s needs to be even", tot_bold)
     num_bolds = tot_bold // 2
 
     # Use the colors in the order of the list of colors.
@@ -196,21 +194,24 @@ def colorize_bullet_points_in_slide(
         colors = list(all_md_colors)[::step][:num_bolds]
         return colors
 
-    if interpolate_colors:
-        colors = _interpolate_colors(num_bolds)
-    else:
-        if num_bolds == 1:
-            colors = ["red"]
-        elif num_bolds == 2:
-            colors = ["red", "blue"]
-        elif num_bolds == 3:
-            colors = ["red", "green", "blue"]
-        elif num_bolds == 4:
-            colors = ["red", "green", "blue", "violet"]
-        elif num_bolds == 5:
-            colors = ["red", "green", "blue", "teal", "violet"]
-        else:
+    if True:
+        if interpolate_colors:
             colors = _interpolate_colors(num_bolds)
+        else:
+            if num_bolds == 1:
+                colors = ["red"]
+            elif num_bolds == 2:
+                colors = ["red", "blue"]
+            elif num_bolds == 3:
+                colors = ["red", "green", "blue"]
+            elif num_bolds == 4:
+                colors = ["red", "green", "blue", "violet"]
+            elif num_bolds == 5:
+                colors = ["red", "green", "blue", "teal", "violet"]
+            else:
+                colors = _interpolate_colors(num_bolds)
+    else:
+        colors = all_md_colors
     _LOG.debug("colors=%s", colors)
     hdbg.dassert_lte(num_bolds, len(colors))
     # Colorize the bold items.

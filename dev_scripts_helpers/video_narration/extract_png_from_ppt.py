@@ -29,7 +29,7 @@ def extract_slide_images(ppt_path: str, output_dir: str) -> bool:
     :return: True if extraction successful
     """
     hdbg.dassert_file_exists(ppt_path)
-    _LOG.debug(f"Extracting images from {ppt_path} to {output_dir}")
+    _LOG.debug("Extracting images from %s to %s", ppt_path, output_dir)
     presentation = Presentation(ppt_path)
     image_count = 0
     # Process each slide to extract images.
@@ -49,8 +49,8 @@ def extract_slide_images(ppt_path: str, output_dir: str) -> bool:
                 with open(image_path, "wb") as img_file:
                     img_file.write(image_data)
                 image_count += 1
-                _LOG.debug(f"Extracted image: {image_filename}")
-    _LOG.info(f"Extracted {image_count} images from presentation")
+                _LOG.debug("Extracted image: %s", image_filename)
+    _LOG.info("Extracted %s images from presentation", image_count)
     return True
 
 
@@ -64,7 +64,7 @@ def extract_slides_as_png(ppt_path: str, output_dir: str) -> bool:
     :return: True if extraction successful
     """
     hdbg.dassert_file_exists(ppt_path)
-    _LOG.debug(f"Converting slides from {ppt_path} to PNG images")
+    _LOG.debug("Converting slides from %s to PNG images", ppt_path)
     # Check if LibreOffice is available.
     rc, output = hsystem.system_to_string(
         "libreoffice --version", abort_on_error=False
@@ -74,10 +74,10 @@ def extract_slides_as_png(ppt_path: str, output_dir: str) -> bool:
         temp_pdf_path = temp_pdf.name
     # Convert PPT to PDF using LibreOffice.
     cmd = f'libreoffice --headless --convert-to pdf --outdir "{os.path.dirname(temp_pdf_path)}" "{ppt_path}"'
-    _LOG.debug(f"Converting PPT to PDF: {cmd}")
+    _LOG.debug("Converting PPT to PDF: %s", cmd)
     rc, output = hsystem.system_to_string(cmd, abort_on_error=False)
     if rc != 0:
-        _LOG.error(f"LibreOffice conversion failed: {output}")
+        _LOG.error("LibreOffice conversion failed: %s", output)
         os.unlink(temp_pdf_path)
         return False
     # Find the actual PDF file created (LibreOffice names it based on input file).
@@ -90,7 +90,7 @@ def extract_slides_as_png(ppt_path: str, output_dir: str) -> bool:
         f"PDF file not created at expected location: {actual_pdf_path}",
     )
     # Convert PDF pages to PNG images.
-    _LOG.debug(f"Converting PDF to PNG images from {actual_pdf_path}")
+    _LOG.debug("Converting PDF to PNG images from %s", actual_pdf_path)
     pdf_document = fitz.open(actual_pdf_path)
     slide_count = 0
     for page_num in range(pdf_document.page_count):
@@ -103,13 +103,13 @@ def extract_slides_as_png(ppt_path: str, output_dir: str) -> bool:
         slide_path = os.path.join(output_dir, slide_filename)
         pix.save(slide_path)
         slide_count += 1
-        _LOG.debug(f"Saved slide: {slide_filename}")
+        _LOG.debug("Saved slide: %s", slide_filename)
     pdf_document.close()
     # Clean up temporary files.
     os.unlink(actual_pdf_path)
     if os.path.exists(temp_pdf_path):
         os.unlink(temp_pdf_path)
-    _LOG.info(f"Extracted {slide_count} slides as PNG images")
+    _LOG.info("Extracted %s slides as PNG images", slide_count)
     return True
 
 
@@ -121,7 +121,7 @@ def extract_notes_text(ppt_path: str, output_dir: str):
     :param output_dir: directory to save extracted notes
     """
     hdbg.dassert_file_exists(ppt_path)
-    _LOG.debug(f"Extracting notes from {ppt_path}")
+    _LOG.debug("Extracting notes from %s", ppt_path)
     presentation = Presentation(ppt_path)
     all_notes = []
     # Process each slide to extract notes.
@@ -147,7 +147,7 @@ def extract_notes_text(ppt_path: str, output_dir: str):
         f"PowerPoint Presentation Notes\n{'=' * 30}\n\n{chr(10).join(all_notes)}"
     )
     hio.to_file(all_notes_path, combined_notes_content)
-    _LOG.info(f"Extracted notes for {len(presentation.slides)} slides")
+    _LOG.info("Extracted notes for %s slides", len(presentation.slides))
 
 
 def extract_text_content(ppt_path: str, output_dir: str):
@@ -158,7 +158,7 @@ def extract_text_content(ppt_path: str, output_dir: str):
     :param output_dir: directory to save extracted text content
     """
     hdbg.dassert_file_exists(ppt_path)
-    _LOG.debug(f"Extracting text content from {ppt_path}")
+    _LOG.debug("Extracting text content from %s", ppt_path)
     presentation = Presentation(ppt_path)
     all_text = []
     # Process each slide to extract text content.
@@ -187,7 +187,7 @@ def extract_text_content(ppt_path: str, output_dir: str):
     all_text_path = os.path.join(output_dir, "all_text_content.txt")
     combined_text_content = f"PowerPoint Presentation Text Content\n{'=' * 35}\n\n{chr(10).join(all_text)}"
     hio.to_file(all_text_path, combined_text_content)
-    _LOG.info(f"Extracted text content for {len(presentation.slides)} slides")
+    _LOG.info("Extracted text content for %s slides", len(presentation.slides))
 
 
 def _parse() -> argparse.Namespace:
@@ -248,8 +248,8 @@ def _main(args: argparse.Namespace) -> None:
     incremental = not args.from_scratch
     hio.create_dir(output_dir, incremental=incremental)
     #
-    _LOG.info(f"Extracting presentation: {ppt_path}")
-    _LOG.info(f"Output directory: {output_dir}")
+    _LOG.info("Extracting presentation: %s", ppt_path)
+    _LOG.info("Output directory: %s", output_dir)
     # Extract slides as PNG images if requested.
     if args.extract_slides:
         _LOG.info("Extracting slides as PNG images...")
@@ -272,7 +272,7 @@ def _main(args: argparse.Namespace) -> None:
     # Extract text content from slides.
     _LOG.info("Extracting text content...")
     extract_text_content(ppt_path, output_dir)
-    _LOG.info(f"Extraction complete! Check the '{output_dir}' directory.")
+    _LOG.info("Extraction complete! Check the '%s' directory.", output_dir)
 
 
 def main():
