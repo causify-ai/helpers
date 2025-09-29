@@ -107,6 +107,7 @@
       packages (e.g., AWS CLI, GitHub CLI, GraphViz)
   - `os_packages/`: directory containing individual OS package install scripts
     and configuration
+    - Install scripts follow the naming convention `install_os_<package_name>.sh`
     - `os_packages.txt`: declarative list of install scripts to execute, one
       script per line
       - Lines starting with `#` are treated as comments
