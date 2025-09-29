@@ -20,12 +20,13 @@ jobs:
         with:
           python-version: 3.x
       - run: pip install mkdocs mkdocs-material
-      # To see the modules in `helpers`, PYTHONPATH needs to include `helpers`
+      # To see the modules in `helpers`, PYTHONPATH needs to include `helpers`.
       # in the same way we do in `setenv.sh`.
       - name: Update PYTHONPATH
         run: echo "PYTHONPATH=.:helpers_root" >> $GITHUB_ENV
       - name: Preprocess MkDocs
+        working-directory: ./docs/mkdocs
         run: |
-          ./dev_scripts_helpers/documentation/mkdocs/preprocess_mkdocs.py --input docs --output_dir dev_scripts_helpers/documentation/mkdocs/tmp.mkdocs
+          python preprocess_mkdocs.py --input_dir docs --output_dir tmp.mkdocs
       - run: mkdocs gh-deploy --force
-        working-directory: ./dev_scripts_helpers/documentation/mkdocs
+        working-directory: ./docs/mkdocs
