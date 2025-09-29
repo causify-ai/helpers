@@ -1,23 +1,23 @@
 <!-- toc -->
 
-- [How to create a runnable dir](#how-to-create-a-runnable-dir)
+- [How to Create a Runnable Dir](#how-to-create-a-runnable-dir)
   * [Definition](#definition)
-  * [A runnable dir as sub directory under a super-repo](#a-runnable-dir-as-sub-directory-under-a-super-repo)
-    + [1) Turn the repo into a super-repo with helpers](#1-turn-the-repo-into-a-super-repo-with-helpers)
-    + [2) Copy and customize files in the top dir](#2-copy-and-customize-files-in-the-top-dir)
-    + [3) Copy and customize files in `devops`](#3-copy-and-customize-files-in-devops)
-    + [4) Copy and customize files in thin_client](#4-copy-and-customize-files-in-thin_client)
-    + [5) Replace files with symbolic links](#5-replace-files-with-symbolic-links)
-    + [6) Commit changes](#6-commit-changes)
-    + [7) Build a container for a runnable dir](#7-build-a-container-for-a-runnable-dir)
-    + [8) Test the code](#8-test-the-code)
-    + [9) Add the dependency lock files to the commit](#9-add-the-dependency-lock-files-to-the-commit)
-    + [10) Release the Docker image](#10-release-the-docker-image)
-    + [11) Update and release a new version of the image](#11-update-and-release-a-new-version-of-the-image)
+  * [A Runnable Dir as Sub Directory Under a Super-Repo](#a-runnable-dir-as-sub-directory-under-a-super-repo)
+    + [1) Turn the Repo Into a Super-Repo with Helpers](#1-turn-the-repo-into-a-super-repo-with-helpers)
+    + [2) Copy and Customize Files in the Top Dir](#2-copy-and-customize-files-in-the-top-dir)
+    + [3) Copy and Customize Files in `devops`](#3-copy-and-customize-files-in-devops)
+    + [4) Copy and Customize Files in Thin_Client](#4-copy-and-customize-files-in-thin_client)
+    + [5) Replace Files with Symbolic Links](#5-replace-files-with-symbolic-links)
+    + [6) Commit Changes](#6-commit-changes)
+    + [7) Build a Container for a Runnable Dir](#7-build-a-container-for-a-runnable-dir)
+    + [8) Test the Code](#8-test-the-code)
+    + [9) Add the Dependency Lock Files to the Commit](#9-add-the-dependency-lock-files-to-the-commit)
+    + [10) Release the Docker Image](#10-release-the-docker-image)
+    + [11) Update and Release a New Version of the Image](#11-update-and-release-a-new-version-of-the-image)
 
 <!-- tocstop -->
 
-# How to create a runnable dir
+# How to Create a Runnable Dir
 
 ## Definition
 
@@ -30,14 +30,14 @@
       to create a runnable dir that is a super repo
   - A sub directory under a super-repo (e.g. `//cmamp/ck.infra`)
 
-## A runnable dir as sub directory under a super-repo
+## A Runnable Dir as Sub Directory Under a Super-Repo
 
 ```bash
 > export CSFY_RUNNABLE_DIR="ck.infra"
 > export CSFY_RUNNABLE_DIR_SUFFIX="cmamp_infra"
 ```
 
-### 1) Turn the repo into a super-repo with helpers
+### 1) Turn the Repo Into a Super-Repo with Helpers
 
 - Follow
   [all.create_a_super_repo_with_helpers.how_to_guide.md](/docs/tools/dev_system/all.create_a_super_repo_with_helpers.how_to_guide.md)
@@ -53,7 +53,7 @@
   ...
   ```
 
-### 2) Copy and customize files in the top dir
+### 2) Copy and Customize Files in the Top Dir
 
 - Some files need to be copied from `helpers` to the runnable dir to configure
   various tools (e.g., dev container workflow, `pytest`, `invoke`)
@@ -98,7 +98,7 @@
   - `tasks.py`: the `invoke` tasks available in this container
     - This can be modified if needed
 
-### 3) Copy and customize files in `devops`
+### 3) Copy and Customize Files in `devops`
 
 - Copy the `devops` from `//helpers` as a template dir
   ```bash
@@ -124,7 +124,7 @@
   [`/devops/docker_build/pyproject.toml`](/devops/docker_build/pyproject.toml)
   to only include the dependancies requred by the runnable dir
 
-### 4) Copy and customize files in thin_client
+### 4) Copy and Customize Files in Thin_Client
 
 - Create the `dev_scripts_{runnable_dir_suffix}` dir based off the template from
   `helpers`
@@ -154,7 +154,7 @@
   > ./helpers_root/helpers/create_links.py --src_dir $SRC_DIR --dst_dir $DST_DIR --replace_links --use_relative_paths
   ```
 
-### 5) Replace files with symbolic links
+### 5) Replace Files with Symbolic Links
 
 - Some common files can be replaced with symbolic links
 
@@ -170,7 +170,7 @@
   [Managing symbolic links between directories](/docs/tools/dev_system/all.replace_common_files_with_script_links.md)
   for how to use the commands
 
-### 6) Commit changes
+### 6) Commit Changes
 
 - Commit changes
   ```bash
@@ -178,7 +178,7 @@
   > git commit -m "Add runnable dir"
   ```
 
-### 7) Build a container for a runnable dir
+### 7) Build a Container for a Runnable Dir
 
 - Run the single-arch flow to test the flow
 
@@ -199,7 +199,7 @@
   > i docker_bash --skip-pull --version 1.0.0
   ```
 
-### 8) Test the code
+### 8) Test the Code
 
 - Run tests from the runnable dir (e.g. `cmamp/ck.infra`)
 
@@ -216,7 +216,7 @@
   > main_pytest.py run_slow_tests --dir ck.infra
   ```
 
-### 9) Add the dependency lock files to the commit
+### 9) Add the Dependency Lock Files to the Commit
 
 ```bash
 > cd $CSFY_RUNNABLE_DIR
@@ -225,7 +225,7 @@
 > git commit -m "Update dependencies"
 ```
 
-### 10) Release the Docker image
+### 10) Release the Docker Image
 
 - Refer to the following docs for more info on image releases
   - [docs/tools/dev_system/all.devops_docker.how_to_guide.md#release-a-docker-image](/docs/tools/dev_system/all.devops_docker.how_to_guide.md#release-a-docker-image)
@@ -253,7 +253,7 @@
   > docker push ghcr.io/causify-ai/<image_name>:dev
   ```
 
-### 11) Update and release a new version of the image
+### 11) Update and Release a New Version of the Image
 
 We release a new version of the Docker image whenever we need to update its
 dependencies
@@ -270,7 +270,7 @@ dependencies
 > source dev_scripts_${CSFY_RUNNABLE_DIR_SUFFIX}/thin_client/setenv.sh
 > vim changelog.txt
 
-# cmamp-infra-1.2.0
+# Cmamp-Infra-1.2.0
 - 2025-05-18
 - Add support for Kubernetes Kustomize
 - Upgrade `kubectl` to v1.31.0
@@ -290,10 +290,10 @@ dependencies
 3. Build the image locally
 
 ```bash
-# Build the image.
+# Build the Image.
 > i docker_build_local_image --version 1.2.0 --container-dir-name $CSFY_RUNNABLE_DIR
 
-# Tag the image as dev.
+# Tag the Image as Dev.
 > i docker_tag_local_image_as_dev --version 1.2.0
 ```
 
@@ -316,7 +316,7 @@ dependencies
 5. Make sure all tests pass
 
 ```bash
-# Run tests.
+# Run Tests.
 > i run_fast_tests --stage local --version 1.2.0
 > i run_slow_tests --stage local --version 1.2.0
 ```
