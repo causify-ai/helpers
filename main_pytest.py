@@ -120,16 +120,10 @@ def _run_test(
     # Clean up the Docker image used in the test run if requested.
     if purge_docker_images:
         _LOG.info("Cleaning up Docker image")
-        # Display disk space before cleanup.
-        _LOG.info("Disk space before cleanup:")
-        subprocess.run("df -h", shell=True)
-        # Delete the Docker image.
+        # Delete the Docker image (disk space reporting is now handled by the task itself).
         result = subprocess.run(
             f"invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir
         )
-        # Display disk space after cleanup.
-        _LOG.info("Disk space after cleanup:")
-        subprocess.run("df -h", shell=True)
     # pytest returns:
     # - 0 if all tests passed
     # - 5 if no tests are collected

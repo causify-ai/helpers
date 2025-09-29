@@ -64,11 +64,14 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
 @task
 def docker_remove_image(ctx, base_image="") -> None:  # type: ignore
     """
-    Delete the current Docker image to free up disk space.
+    Delete the current dev image to free up disk space.
 
     :param base_image: base name of the image (e.g., `*****.dkr.ecr.us-
         east-1.amazonaws.com/amp`)
     """
+    # - Display disk space before cleanup.
+    _LOG.info("Disk space before cleanup:")
+    hsystem.system("df -h", suppress_output=False)
     # - Handle the image.
     stage = "dev"
     version = ""
@@ -92,6 +95,9 @@ def docker_remove_image(ctx, base_image="") -> None:  # type: ignore
             _LOG.info("Successfully deleted Docker image: %s", image)
     except Exception as e:
         _LOG.error("Error during Docker image deletion: %s", e)
+    # - Display disk space after cleanup.
+    _LOG.info("Disk space after cleanup:")
+    hsystem.system("df -h", suppress_output=False)
 
 
 @task
