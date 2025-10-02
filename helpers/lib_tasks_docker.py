@@ -69,18 +69,18 @@ def docker_remove_image(ctx, base_image="") -> None:  # type: ignore
     :param base_image: base name of the image (e.g., `*****.dkr.ecr.us-
         east-1.amazonaws.com/amp`)
     """
-    # - Display disk space before cleanup.
+    # Display disk space before cleanup.
     _LOG.info("Disk space before cleanup:")
     hsystem.system("df -h", suppress_output=False)
-    # - Handle the image.
+    # Handle the image.
     stage = "dev"
     version = ""
     image = get_image(base_image, stage, version)
     _LOG.info("Deleting Docker image: %s", image)
-    # - Get Docker executable configuration.
+    # Get Docker executable configuration.
     use_sudo = hdocker.get_use_sudo()
     docker_exec = hdocker.get_docker_executable(use_sudo)
-    # - Delete the specific image.
+    # Delete the specific image.
     cmd = f"{docker_exec} rmi -f {image}"
     _LOG.info("Running: %s", cmd)
     try:
@@ -95,7 +95,7 @@ def docker_remove_image(ctx, base_image="") -> None:  # type: ignore
             _LOG.info("Successfully deleted Docker image: %s", image)
     except Exception as e:
         _LOG.error("Error during Docker image deletion: %s", e)
-    # - Display disk space after cleanup.
+    # Display disk space after cleanup.
     _LOG.info("Disk space after cleanup:")
     hsystem.system("df -h", suppress_output=False)
 

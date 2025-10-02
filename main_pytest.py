@@ -37,9 +37,9 @@ def _add_common_test_arguments(parser: argparse.ArgumentParser) -> None:
         help="Name of runnable dir",
     )
     parser.add_argument(
-        "--purge-docker-images",
+        "--remove-docker-images",
         action="store_true",
-        help="Purge all Docker images after running tests (default in CI)",
+        help="Remove all Docker images after running tests (default in CI)",
     )
 
 
@@ -88,7 +88,7 @@ def _is_runnable_dir(runnable_dir: str) -> bool:
 
 
 def _run_test(
-    runnable_dir: str, command: str, purge_docker_images: bool = False
+    runnable_dir: str, command: str, remove_docker_images: bool = False
 ) -> bool:
     """
     Run test in for specified runnable directory.
@@ -96,7 +96,7 @@ def _run_test(
     :param runnable_dir: directory to run tests in
     :param command: command to run tests (e.g. run_fast_tests,
         run_slow_tests, run_superslow_tests)
-    :param purge_docker_images: whether to purge Docker images after
+    :param remove_docker_images: whether to remove Docker images after
         test
     :return: True if the tests were run successfully, False otherwise
     """
@@ -118,7 +118,7 @@ def _run_test(
         f"invoke {command}", shell=True, env=env, cwd=runnable_dir
     )
     # Clean up the Docker image used in the test run if requested.
-    if purge_docker_images:
+    if remove_docker_images:
         _LOG.info("Cleaning up Docker image")
         # Delete the Docker image (disk space reporting is now handled by the task itself).
         result = subprocess.run(
@@ -133,7 +133,7 @@ def _run_test(
 
 
 def _run_tests(
-    runnable_dirs: List[str], command: str, purge_docker_images: bool = False
+    runnable_dirs: List[str], command: str, remove_docker_images: bool = False
 ) -> bool:
     """
     Run tests for all runnable directories.
@@ -141,12 +141,12 @@ def _run_tests(
     :param runnable_dirs: list of runnable directories
     :param command: command to run tests (e.g. `run_fast_tests`,
         `run_slow_tests`, `run_superslow_tests`)
-    :param purge_docker_images: whether to purge Docker images after each test
+    :param remove_docker_images: whether to remove Docker images after each test
     :return: True if all tests for all runnable directories passed, False otherwise
     """
     results = []
     for runnable_dir in runnable_dirs:
-        res = _run_test(runnable_dir, command, purge_docker_images)
+        res = _run_test(runnable_dir, command, remove_docker_images)
         results.append(res)
     return all(results)
 
@@ -177,20 +177,20 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # - If in CI: cleanup by default.
     # - If not in CI: don't cleanup unless flag is specified.
     # - If flag is specified: force cleanup regardless of CI status.
-    purge_docker_images_flag = getattr(args, "purge_docker_images", False)
-    if purge_docker_images_flag:
-        # Flag explicitly specified - always purge.
-        purge_docker_images = True
+    remove_docker_images_flag = getattr(args, "remove_docker_images", False)
+    if remove_docker_images_flag:
+        # Flag explicitly specified - always remove.
+        remove_docker_images = True
         _LOG.info("Docker image cleanup enabled (explicitly requested)")
     elif hserver.is_inside_ci():
-        # In CI - purge by default.
-        purge_docker_images = True
+        # In CI - remove by default.
+        remove_docker_images = True
         _LOG.info("Docker image cleanup enabled (running in CI)")
     else:
-        # Not in CI and flag not specified - don't purge.
-        purge_docker_images = False
+        # Not in CI and flag not specified - don't remove.
+        remove_docker_images = False
         _LOG.info(
-            "Docker image cleanup disabled (not in CI, use --purge-docker-images to force)"
+            "Docker image cleanup disabled (not in CI, use --remove-docker-images to force)"
         )
     all_tests_passed = False
     try:
@@ -205,19 +205,19 @@ def _main(parser: argparse.ArgumentParser) -> None:
             all_tests_passed = _run_tests(
                 runnable_dirs=runnable_dirs,
                 command=command,
-                purge_docker_images=purge_docker_images,
+                remove_docker_images=remove_docker_images,
             )
         elif command == "run_slow_tests":
             all_tests_passed = _run_tests(
                 runnable_dirs=runnable_dirs,
                 command=command,
-                purge_docker_images=purge_docker_images,
+                remove_docker_images=remove_docker_images,
             )
         elif command == "run_superslow_tests":
             all_tests_passed = _run_tests(
                 runnable_dirs=runnable_dirs,
                 command=command,
-                purge_docker_images=purge_docker_images,
+                remove_docker_images=remove_docker_images,
             )
         else:
             _LOG.error("Invalid command.")
