@@ -259,7 +259,7 @@
     installation
   - Edit
     [`/devops/docker_build/os_packages/os_packages.txt`](/devops/docker_build/os_packages/os_packages.txt)
-    to control which packages are installed
+    to control which packages will be installed during the container build
     - **Disable** a package: add `#` at the beginning of the line
     - **Enable** a package: remove the `#` from the beginning of the line
   - See
