@@ -173,10 +173,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     command = args.command
     runnable_dir = args.dir
-    # Determine Docker image cleanup behavior:
-    # - If in CI: cleanup by default.
-    # - If not in CI: don't cleanup unless flag is specified.
-    # - If flag is specified: force cleanup regardless of CI status.
     remove_docker_images_flag = getattr(args, "remove_docker_images", False)
     if remove_docker_images_flag:
         # Flag explicitly specified - always remove.
