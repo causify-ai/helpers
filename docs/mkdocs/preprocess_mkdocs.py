@@ -76,7 +76,7 @@ def _copy_directory(input_dir: str, output_dir: str) -> None:
         cmd = f"mkdir {output_dir}"
         hsystem.system(cmd)
     # Copy the entire directory tree.
-    cmd = f"cp -r {input_dir}/* {output_dir}"
+    cmd = f"cp -rL {input_dir}/* {output_dir}"
     hsystem.system(cmd)
     _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
 
