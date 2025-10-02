@@ -303,6 +303,20 @@
   - Make sure the registry name matches the repo name for consistency
   - By default we add new containers to Stockholm region (`eu-north-1`)
 
+### Managing OS Package Dependencies
+
+- The Docker build system uses a declarative approach for OS package
+  installation
+- To add or remove OS packages:
+  - Edit
+    [`/devops/docker_build/os_packages/os_packages.txt`](/devops/docker_build/os_packages/os_packages.txt)
+    to control which packages are installed
+    - **Disable** a package: add `#` at the beginning of the line
+    - **Enable** a package: remove the `#` from the beginning of the line
+  - See
+    [`/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation`](/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation)
+    for details on the declarative OS package installation system
+
 ### Check If the Regressions Are Passing
 
 - Follow
