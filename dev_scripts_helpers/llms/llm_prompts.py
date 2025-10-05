@@ -1613,11 +1613,20 @@ def text_rewrite() -> _PROMPT_OUT:
     """
     system = ""
     system += r"""
+    - Create bullet lists of points
     - Rewrite the text passed to increase clarity and readability.
     - Maintain the structure of the text as much as possible, in terms of bullet
       points and their indentation
+    - Make sure it's under 200 words
     """
-    return md_rewrite()
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
 
 
 # #############################################################################

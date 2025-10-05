@@ -33,22 +33,19 @@ _LOG = logging.getLogger(__name__)
 _DEFAULT_SYSTEM_PROMPT = """
 You are a college professor expert of machine learning and big data.
 
-Given the following markdown slides, create a script to highlight the most
-important points of each slide.
-
-Each slide should contain around 450 words.
-
-Create a short transitions between slides.
+Given the following slides in markdown format create a discussion of the slide
+to highlight the most important points of each slide
+- Use plain language and do not use fancy words
+- Create bullet points for the discussion following the same structure as the original slide
+- The discussion for each slide should contain around 250 words
+- Do not use bold or italicize the text
+- Create a short transitions in less than 20 words between slides when needed.
 
 The output should have a format like:
 
-# Slide <i>: <Title>
+# <Title>
 
 <Discussion of the slide #i>
-
-# Slide <i+1>: <Title>
-
-<Discussion of the slide #i+1>
 """
 
 # #############################################################################
@@ -162,7 +159,6 @@ def _process_slides_group(
     _LOG.debug("Processing %d slides with LLM", len(processed_slides))
     if images_as_base64:
         _LOG.info("Including %d images in LLM request", len(images_as_base64))
-
     # Get completion from LLM with images if present.
     response = hllm.get_completion(
         user_prompt=user_prompt,
@@ -170,7 +166,7 @@ def _process_slides_group(
         model=model,
         cache_mode="NORMAL",
         temperature=0.1,
-        images_as_base64=images_as_base64 if images_as_base64 else None,
+        #images_as_base64=images_as_base64 if images_as_base64 else None,
     )
     return response
 
