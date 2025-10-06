@@ -186,8 +186,8 @@
     `copy_data_from_s3_to_local_dir()` use AWS CLI commands (`aws s3 cp`,
     `aws s3 sync`) which require the `awscli` package (installed via
     `install_os_aws_cli.sh`)
-  - `lib_tasks_gh.py` functions like `gh_create_pr()`, `gh_workflow_list()`,
-    and `gh_issue_title()` use GitHub CLI commands (`gh pr create`,
+  - `lib_tasks_gh.py` functions like `gh_create_pr()`, `gh_workflow_list()`, and
+    `gh_issue_title()` use GitHub CLI commands (`gh pr create`,
     `gh workflow list`, `gh issue view`) which require the `gh` package
     (installed via `install_os_github_cli.sh`)
 
