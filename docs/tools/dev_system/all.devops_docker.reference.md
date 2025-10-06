@@ -176,6 +176,24 @@
   install_os_graphviz.sh
   ```
 
+- **Important**: While it is technically possible to build the Docker image
+  without any OS packages listed in `os_packages.txt` (by commenting out all
+  entries), be aware that certain `helpers` modules depend on specific OS
+  packages to function correctly. Disabling required packages may cause runtime
+  errors when those modules attempt to execute system-level operations. For
+  example:
+  - `hs3.py` functions like `copy_file_to_s3()` and
+    `copy_data_from_s3_to_local_dir()` use AWS CLI commands (`aws s3 cp`,
+    `aws s3 sync`) which require the `awscli` package (installed via
+    `install_os_aws_cli.sh`)
+  - `lib_tasks_gh.py` functions like `gh_create_pr()`, `gh_workflow_list()`,
+    and `gh_issue_title()` use GitHub CLI commands (`gh pr create`,
+    `gh workflow list`, `gh issue view`) which require the `gh` package
+    (installed via `install_os_github_cli.sh`)
+
+  Always verify that the functionality you need will work with your selected
+  package configuration.
+
 ### How to Add a New OS Package Install Script
 
 - Create a new install script following the naming convention:
