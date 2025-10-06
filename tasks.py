@@ -42,6 +42,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_push_prod_image,
     docker_release_dev_image,
     docker_release_prod_image,
+    docker_remove_image,
     docker_rollback_dev_image,  # TODO(gp): -> docker_release_rollback_dev_image
     docker_rollback_prod_image,
     docker_stats,
