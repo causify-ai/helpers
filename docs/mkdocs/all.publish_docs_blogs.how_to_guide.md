@@ -162,7 +162,7 @@ From the site directory:
 
 ```bash
 # Preprocess: Copy Docs -> Tmp.Mkdocs (Resolving Symlinks) & Transform Markdown.
-python ../helpers_root/dev_scripts_helpers/documentation/mkdocs/preprocess_mkdocs.py \
+python ../helpers_root/docs/mkdocs/preprocess_mkdocs.py \
   --input_dir mkdocs/docs \
   --output_dir tmp.mkdocs \
   -v INFO
