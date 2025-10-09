@@ -1,5 +1,67 @@
 ################################################################################
-# dev_scripts_helpers/github/set_secrets_and_variables.py
+# Files:
+# - download.sh
+# - status.sh
+# Known leaks:
+# - Synthesia keys have been revoked
+################################################################################
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:aws-access-token:11
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:aws-access-token:12
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:aws-access-token:13
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule2:11
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule2:12
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule2:13
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule4:11
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule4:12
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule4:13
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule83:11
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule83:12
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule83:13
+18b68b3c26931770f92a1e9a7c8513a1207acb2e:download.sh:aws-access-token:1
+18b68b3c26931770f92a1e9a7c8513a1207acb2e:download.sh:rule2:1
+18b68b3c26931770f92a1e9a7c8513a1207acb2e:download.sh:rule4:1
+18b68b3c26931770f92a1e9a7c8513a1207acb2e:download.sh:rule83:1
+dca7e683f930ad456677c00620b2facbcae6a02b:download.sh:aws-access-token:1
+dca7e683f930ad456677c00620b2facbcae6a02b:download.sh:rule2:1
+dca7e683f930ad456677c00620b2facbcae6a02b:download.sh:rule4:1
+dca7e683f930ad456677c00620b2facbcae6a02b:download.sh:rule83:1
+232d47730683bd3ebbd58174596cf8a0d1063133:download.sh:aws-access-token:1
+232d47730683bd3ebbd58174596cf8a0d1063133:download.sh:rule2:1
+232d47730683bd3ebbd58174596cf8a0d1063133:download.sh:rule4:1
+232d47730683bd3ebbd58174596cf8a0d1063133:download.sh:rule83:1
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:5
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:11
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:12
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:13
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:14
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:15
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:16
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:5
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:11
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:12
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:13
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:14
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:15
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:16
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:5
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:11
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:12
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:13
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:14
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:15
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:16
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:5
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:11
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:12
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:13
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:14
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:15
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:16
+232d47730683bd3ebbd58174596cf8a0d1063133:status.sh:curl-auth-header:1
+################################################################################
+# Files:
+# - dev_scripts_helpers/github/set_secrets_and_variables.py
+# Known leaks:
 # - AWS creds have been revoked
 # - Github PATs have been revoked
 # - TG bots are deprecated since we have switched to Slack
@@ -38,6 +100,7 @@ ea394556d10f59737834952d72a233d7219298f6:dev_scripts_helpers/github/set_secrets_
 ################################################################################
 # Miscellaneous
 ################################################################################
+520ff3941cdc8879ef8d42af8380329e3c97b1e7:blog/themes/hugo-book/.github/workflows/main.yml:rule1178:32
 178609b864cec64e856a0cf4a50172d9a2b96357:docs/work_tools/all.visual_studio_code.how_to_guide.md:private-key:198
 178609b864cec64e856a0cf4a50172d9a2b96357:docs/work_tools/all.visual_studio_code.how_to_guide.md:rule622:198
 30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule300:93
