@@ -1560,6 +1560,54 @@ def slide_format_figures() -> _PROMPT_OUT:
     post_container_transforms = ["format_figures"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
+# #############################################################################
+# Lesson script.
+# #############################################################################
+
+# Operate on pure text for a lecture script, not markdown.
+
+
+def script_rewrite() -> _PROMPT_OUT:
+    """
+    Rewrite the text to increase clarity and readability.
+    """
+    system = "You are a college professor expert of machine learning and big data, reading notes for a lecture."
+    system += r"""
+    - Rewrite the text passed to increase clarity and readability.
+    - Organize the text in a way that is easy to understand and follow, using
+      bullet points
+    - Each sentence needs to be short and concise, not more than 30 words, in full
+      and correct English, using you or we
+    - Make sure it's under 200 words
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def script_reduce() -> _PROMPT_OUT:
+    """
+    Rewrite the text to increase clarity and readability.
+    """
+    system = "You are a college professor expert of machine learning and big data, reading notes for a lecture."
+    system += r"""
+    - Rewrite the text passed to reduce the number of words
+    - Keep the structure of the text
+    - Make sure it's under 200 words
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
 
 # #############################################################################
 # Text.

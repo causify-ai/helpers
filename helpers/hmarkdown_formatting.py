@@ -225,8 +225,8 @@ def format_figures(lines: List[str]) -> List[str]:
     Convert markdown slides with figures to use fenced div syntax with column
     layout.
 
-    If the input already uses column format or contains no figures,
-    returns unchanged.
+    If the input already uses column format or contains no figures, returns
+    unchanged.
 
     :param lines: list of input markdown lines
     :return: formatted markdown lines with figures in column layout
@@ -280,6 +280,7 @@ def format_figures(lines: List[str]) -> List[str]:
     return result
 
 
+# TODO(gp): -> format_md_links_to_latex_format()
 def format_links(lines: List[str]) -> List[str]:
     r"""
     Convert markdown links to formatted links with LaTeX styling.
@@ -294,7 +295,7 @@ def format_links(lines: List[str]) -> List[str]:
     """
     hdbg.dassert_isinstance(lines, list)
     result = []
-    # URL regex pattern - matches http:// and https:// URLs.
+    # URL regex pattern.
     url_pattern = r"https?://[^\s)}\]`]+"
     # Pattern for URLs in backticks.
     backtick_url_pattern = r"`(https?://[^\s`]+)`"
@@ -306,7 +307,7 @@ def format_links(lines: List[str]) -> List[str]:
         # Process the line for all URL patterns.
         processed_line = line
 
-        # 1. Handle existing formatted links - fix mismatched ones.
+        # 1. Handle existing formatted links, fixing mismatched ones.
         def fix_formatted_link(match):
             link_text = match.group(1)
             link_url = match.group(2)
@@ -329,8 +330,10 @@ def format_links(lines: List[str]) -> List[str]:
         processed_line = re.sub(
             backtick_url_pattern, convert_backtick_url, processed_line
         )
-        # 3. Convert plain URLs (but avoid converting URLs that are already part of formatted links).
-        # First, temporarily replace formatted links to avoid interfering with them.
+        # 3. Convert plain URLs (but avoid converting URLs that are already part
+        # of formatted links).
+        # First, temporarily replace formatted links to avoid interfering with
+        # them.
         temp_placeholders = []
 
         def store_formatted_link(match):
@@ -444,6 +447,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     return lines
 
 
+# TODO(gp): Not the right place to put this.
 def format_latex(txt: str) -> str:
     """
     Format LaTeX text using `prettier`.

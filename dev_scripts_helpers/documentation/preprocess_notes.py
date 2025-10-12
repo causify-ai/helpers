@@ -103,6 +103,7 @@ def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str
 
 
 # TODO(gp): Use hmarkdown.process_lines().
+# TODO(gp): Add a way to control the list of transformations.
 def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
@@ -227,7 +228,12 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
     #
     if type_ == "slides":
 
-        def _transform(slide_text: List[str]) -> str:
+        # Colorize bullets in the slides.
+
+        def _colorize_bullets(slide_text: List[str]) -> str:
+            """
+            Color bullet points in the slide.
+            """
             slide_text = "\n".join(slide_text)
             if not hmarkdo.has_color_command(slide_text):
                 text_out = hmarkdo.colorize_bullet_points_in_slide(
@@ -239,8 +245,12 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
             return text_out
 
         out = "\n".join(out)
-        out = hmarkdo.process_slides(out, _transform)
+        out = hmarkdo.process_slides(out, _colorize_bullets)
         out = out.split("\n")
+
+        # Colorize links.
+
+        # Colorize verbatim.
 
     # out = out.split("\n")
     out_tmp = []
