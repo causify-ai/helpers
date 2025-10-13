@@ -407,7 +407,7 @@ def gh_issue_title(ctx, issue_id, repo_short_name="current", pbcopy=True):  # ty
 @task
 def gh_issue_create(  # type: ignore
     ctx,
-    title,
+    title="",
     body="",
     labels="",
     assignees="",
@@ -443,6 +443,7 @@ def gh_issue_create(  # type: ignore
     # Login.
     gh_login(ctx)
     #
+    hdbg.dassert(title, "Title is required")
     hdbg.dassert_eq(repo_short_name, "current")
     repo_full_name_with_host, repo_short_name = _get_repo_full_name_from_cmd(
         repo_short_name
