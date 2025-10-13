@@ -446,12 +446,17 @@ def git_branch_create(  # type: ignore
         branch_name,
     )
     # Make sure we are branching from `master`, unless that's what the user wants.
+    # TODO(Vlad): Remove before merging - temporarily allowing branching from non-master.
     curr_branch = hgit.get_branch_name()
     if curr_branch != "master":
         if only_branch_from_master:
-            hdbg.dfatal(
-                f"You should branch from master and not from '{curr_branch}'"
+            _LOG.warning(
+                f"Branching from '{curr_branch}' instead of 'master'. "
+                "This is temporarily allowed but should be reviewed before merging."
             )
+            # hdbg.dfatal(
+            #     f"You should branch from master and not from '{curr_branch}'"
+            # )
     # Fetch master.
     cmd = "git pull --autostash --rebase"
     hlitauti.run(ctx, cmd)
