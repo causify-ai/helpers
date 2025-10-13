@@ -404,6 +404,72 @@ def gh_issue_title(ctx, issue_id, repo_short_name="current", pbcopy=True):  # ty
     hsystem.to_pbcopy(msg, pbcopy=pbcopy)
 
 
+@task
+def gh_issue_create(  # type: ignore
+    ctx,
+    title,
+    body="",
+    labels="",
+    assignees="",
+    project="",
+    repo_short_name="current",
+):
+    """
+    Create a new GitHub issue in the specified repository.
+
+    ```
+    # Create a simple issue
+    > invoke gh_issue_create --title "Fix bug in parser"
+
+    # Create an issue with body and labels
+    > invoke gh_issue_create --title "Add new feature" --body "Description here" --labels "enhancement,priority-high"
+
+    # Create an issue with assignees
+    > invoke gh_issue_create --title "Review PR" --assignees "user1,user2"
+
+    # Create an issue and add to a project
+    > invoke gh_issue_create --title "Implement feature" --project "Development Board"
+    ```
+
+    :param title: title of the issue (required)
+    :param body: body/description of the issue
+    :param labels: comma-separated list of labels to apply
+    :param assignees: comma-separated list of GitHub usernames to assign
+    :param project: GitHub project name or number to add the issue to
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
+    """
+    hlitauti.report_task(txt=hprint.to_str("title repo_short_name"))
+    # Login.
+    gh_login(ctx)
+    #
+    hdbg.dassert_eq(repo_short_name, "current")
+    repo_full_name_with_host, repo_short_name = _get_repo_full_name_from_cmd(
+        repo_short_name
+    )
+    _LOG.info(
+        "Creating issue with title '%s' in %s",
+        title,
+        repo_full_name_with_host,
+    )
+    # Build the command.
+    cmd = (
+        "gh issue create"
+        + f" --repo {repo_full_name_with_host}"
+        + f' --title "{title}"'
+    )
+    if body:
+        cmd += f' --body "{body}"'
+    if labels:
+        cmd += f' --label "{labels}"'
+    if assignees:
+        cmd += f' --assignee "{assignees}"'
+    if project:
+        cmd += f' --project "{project}"'
+    # Execute the command.
+    hlitauti.run(ctx, cmd)
+
+
 # #############################################################################
 
 
