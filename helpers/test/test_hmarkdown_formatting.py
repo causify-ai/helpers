@@ -832,17 +832,17 @@ class Test_format_figures(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_format_links
+# Test_format_md_links_to_latex_format
 # #############################################################################
 
 
-class Test_format_links(hunitest.TestCase):
+class Test_format_md_links_to_latex_format(hunitest.TestCase):
 
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
-        actual_lines = hmarform.format_links(lines)
+        actual_lines = hmarform.format_md_links_to_latex_format(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         expected = hprint.dedent(expected_text).strip()
@@ -881,38 +881,6 @@ class Test_format_links(hunitest.TestCase):
         Visit this site: [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
 
         Documentation: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
-        """
-        self.helper(input_text, expected_text)
-
-    def test_fix_mismatched_formatted_links(self) -> None:
-        """
-        Test fixing formatted links where link text and URL don't match.
-        """
-        input_text = r"""
-        Here's a link: [\textcolor{blue}{\underline{LINK1}}](https://example.com)
-
-        Another: [\textcolor{blue}{\underline{Old Text}}](https://docs.python.org/3/)
-        """
-        expected_text = r"""
-        Here's a link: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
-
-        Another: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
-        """
-        self.helper(input_text, expected_text)
-
-    def test_correctly_formatted_links_unchanged(self) -> None:
-        """
-        Test that correctly formatted links remain unchanged.
-        """
-        input_text = r"""
-        Good link: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
-
-        Another good link: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
-        """
-        expected_text = r"""
-        Good link: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
-
-        Another good link: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
         """
         self.helper(input_text, expected_text)
 
@@ -985,5 +953,87 @@ class Test_format_links(hunitest.TestCase):
         expected_text = r"""
         HTTP site: [\textcolor{blue}{\underline{http://example.com}}](http://example.com)
         HTTPS site: [\textcolor{blue}{\underline{https://secure.example.com}}](https://secure.example.com)
+        """
+        self.helper(input_text, expected_text)
+
+    def test_multiple_urls_on_same_line(self) -> None:
+        """
+        Test converting multiple URLs on the same line.
+        """
+        input_text = """
+        Visit https://example.com and https://another.com for more info
+        """
+        expected_text = r"""
+        Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com) and [\textcolor{blue}{\underline{https://another.com}}](https://another.com) for more info
+        """
+        self.helper(input_text, expected_text)
+
+    def test_urls_with_query_parameters(self) -> None:
+        """
+        Test handling URLs with query parameters and fragments.
+        """
+        input_text = """
+        Search results: https://example.com/search?q=python&page=1
+        Anchor link: https://docs.python.org/3/tutorial/index.html#tutorial-index
+        """
+        expected_text = r"""
+        Search results: [\textcolor{blue}{\underline{https://example.com/search?q=python&page=1}}](https://example.com/search?q=python&page=1)
+        Anchor link: [\textcolor{blue}{\underline{https://docs.python.org/3/tutorial/index.html#tutorial-index}}](https://docs.python.org/3/tutorial/index.html#tutorial-index)
+        """
+        self.helper(input_text, expected_text)
+
+    def test_markdown_link_conversion(self) -> None:
+        """
+        Test converting simple markdown links [Text](URL) format.
+        """
+        input_text = """
+        Check out [this tutorial](https://example.com/tutorial) for more details
+        See [documentation](https://docs.example.com) here
+        """
+        expected_text = r"""
+        Check out [\textcolor{blue}{\underline{https://example.com/tutorial}}](https://example.com/tutorial) for more details
+        See [\textcolor{blue}{\underline{https://docs.example.com}}](https://docs.example.com) here
+        """
+        self.helper(input_text, expected_text)
+
+    def test_urls_at_line_boundaries(self) -> None:
+        """
+        Test URLs at the beginning and end of lines.
+        """
+        input_text = """
+        https://example.com is a good site
+        Check this link https://another.com
+        """
+        expected_text = r"""
+        [\textcolor{blue}{\underline{https://example.com}}](https://example.com) is a good site
+        Check this link [\textcolor{blue}{\underline{https://another.com}}](https://another.com)
+        """
+        self.helper(input_text, expected_text)
+
+    def test_urls_with_path_and_file_extensions(self) -> None:
+        """
+        Test URLs with complex paths and file extensions.
+        """
+        input_text = """
+        Download: https://cdn.example.com/files/document.pdf
+        Image: https://images.example.com/photos/image.png
+        """
+        expected_text = r"""
+        Download: [\textcolor{blue}{\underline{https://cdn.example.com/files/document.pdf}}](https://cdn.example.com/files/document.pdf)
+        Image: [\textcolor{blue}{\underline{https://images.example.com/photos/image.png}}](https://images.example.com/photos/image.png)
+        """
+        self.helper(input_text, expected_text)
+
+    def test_email_links(self) -> None:
+        """
+        Test converting email links in markdown format.
+        """
+        input_text = """
+        Contact: [gsaggese@umd.edu](gsaggese@umd.edu)
+        Support: [support@example.com](support@example.com)
+        """
+        expected_text = r"""
+        Contact: [\textcolor{blue}{\underline{gsaggese@umd.edu}}](gsaggese@umd.edu)
+        Support: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
         """
         self.helper(input_text, expected_text)

@@ -228,6 +228,9 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
     #
     if type_ == "slides":
 
+        # Process links.
+        out = hmarkdo.format_md_links_to_latex_format(out)
+
         # Colorize bullets in the slides.
 
         def _colorize_bullets(slide_text: List[str]) -> str:

@@ -280,15 +280,17 @@ def format_figures(lines: List[str]) -> List[str]:
     return result
 
 
-# TODO(gp): -> format_md_links_to_latex_format()
-def format_links(lines: List[str]) -> List[str]:
+def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
     r"""
     Convert markdown links to formatted links with LaTeX styling.
 
-    Converts plain URLs and existing formatted links to the format:
-    [\textcolor{blue}{\underline{URL}}](URL)
-
-    Also validates that links are reachable and fixes mismatched link text.
+    Convert markdown links:
+    - Plain URLs: http://... or https://...
+    - Plain URLs in backticks: `http://...` or `https://...`
+    - Existing formatted links: [Text](URL)
+    - Email links: [email@domain.com](email@domain.com)
+    to the format:
+    - [\textcolor{blue}{\underline{Text}}](URL)
 
     :param lines: list of input markdown lines
     :return: formatted markdown lines with styled links
@@ -299,30 +301,19 @@ def format_links(lines: List[str]) -> List[str]:
     url_pattern = r"https?://[^\s)}\]`]+"
     # Pattern for URLs in backticks.
     backtick_url_pattern = r"`(https?://[^\s`]+)`"
-    # Pattern for existing formatted links.
+    # Pattern for existing formatted links that need normalization.
+    # This matches [\textcolor{blue}{\underline{Text}}](URL) where Text != URL.
     formatted_link_pattern = (
-        r"\[\\textcolor\{blue\}\{\\underline\{([^}]+)\}\}\]\(([^)]+)\)"
+        r"\[\\textcolor\{blue\}\{\\underline\{([^}]+)\}\}\]\((https?://[^)]+)\)"
     )
+    # Pattern for markdown links: [Text](URL).
+    markdown_link_pattern = r"\[([^\]\\]+)\]\((https?://[^\)]+)\)"
+    # Pattern for email links: [email@domain.com](email@domain.com).
+    email_link_pattern = r"\[([^\]\\]+@[^\]\\]+)\]\(([^)]+@[^)]+)\)"
     for line in lines:
         # Process the line for all URL patterns.
         processed_line = line
-
-        # 1. Handle existing formatted links, fixing mismatched ones.
-        def fix_formatted_link(match):
-            link_text = match.group(1)
-            link_url = match.group(2)
-            # If they don't match, use the URL as the text.
-            if link_text != link_url:
-                return rf"[\textcolor{{blue}}{{\underline{{{link_url}}}}}]({link_url})"
-            else:
-                # Already correct, keep as is.
-                return match.group(0)
-
-        processed_line = re.sub(
-            formatted_link_pattern, fix_formatted_link, processed_line
-        )
-
-        # 2. Convert URLs in backticks.
+        # Convert URLs in backticks.
         def convert_backtick_url(match):
             url = match.group(1)
             return rf"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
@@ -330,22 +321,48 @@ def format_links(lines: List[str]) -> List[str]:
         processed_line = re.sub(
             backtick_url_pattern, convert_backtick_url, processed_line
         )
-        # 3. Convert plain URLs (but avoid converting URLs that are already part
+        # Normalize existing formatted links to use URL as display text.
+        def normalize_formatted_link(match):
+            url = match.group(2)
+            return rf"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
+
+        processed_line = re.sub(
+            formatted_link_pattern, normalize_formatted_link, processed_line
+        )
+        # Convert markdown links [Text](URL) to formatted links.
+        def convert_markdown_link(match):
+            url = match.group(2)
+            return rf"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
+
+        processed_line = re.sub(
+            markdown_link_pattern, convert_markdown_link, processed_line
+        )
+        # Convert email links [email@domain.com](email@domain.com) to formatted links.
+        def convert_email_link(match):
+            email = match.group(2)
+            return rf"[\textcolor{{blue}}{{\underline{{{email}}}}}]({email})"
+
+        processed_line = re.sub(
+            email_link_pattern, convert_email_link, processed_line
+        )
+        # Convert plain URLs (but avoid converting URLs that are already part
         # of formatted links).
         # First, temporarily replace formatted links to avoid interfering with
         # them.
         temp_placeholders = []
+        # Store existing correctly formatted links temporarily.
+        correct_formatted_link_pattern = (
+            r"\[\\textcolor\{blue\}\{\\underline\{([^}]+)\}\}\]\(([^)]+)\)"
+        )
 
         def store_formatted_link(match):
             placeholder = f"__FORMATTED_LINK_{len(temp_placeholders)}__"
             temp_placeholders.append(match.group(0))
             return placeholder
 
-        # Store existing formatted links temporarily.
         temp_line = re.sub(
-            formatted_link_pattern, store_formatted_link, processed_line
+            correct_formatted_link_pattern, store_formatted_link, processed_line
         )
-
         # Convert remaining plain URLs.
         def convert_plain_url(match):
             url = match.group(0)
