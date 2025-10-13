@@ -26,6 +26,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_build_local_image,
     docker_build_multi_arch_prod_image,
     docker_build_prod_image,
+    docker_build_test_dev_image,
     docker_cmd,
     docker_create_candidate_image,
     docker_build_frontend_feature_image,

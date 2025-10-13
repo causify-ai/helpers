@@ -438,6 +438,7 @@ def gh_issue_create(  # type: ignore
     :param project: GitHub project name or number to add the issue to
     :param repo_short_name: `current` refer to the repo where we are in,
         otherwise a `repo_short_name` (e.g., "amp")
+    :return: issue ID (integer) of the created issue
     """
     hlitauti.report_task(txt=hprint.to_str("title repo_short_name"))
     # Login.
@@ -467,8 +468,20 @@ def gh_issue_create(  # type: ignore
         cmd += f' --assignee "{assignees}"'
     if project:
         cmd += f' --project "{project}"'
-    # Execute the command.
-    hlitauti.run(ctx, cmd)
+    # Execute the command and capture output.
+    # gh issue create outputs the URL of the created issue, e.g.,
+    # https://github.com/cryptokaizen/csfy/issues/7572
+    _, output = hsystem.system_to_string(cmd)
+    _LOG.debug("gh issue create output: %s", output)
+    # Extract the issue ID from the URL.
+    # The URL format is: https://github.com/org/repo/issues/123
+    match = re.search(r"/issues/(\d+)", output)
+    hdbg.dassert(
+        match, f"Could not extract issue ID from output: {output}"
+    )
+    issue_id = int(match.group(1))
+    _LOG.info("Created issue #%s", issue_id)
+    return issue_id
 
 
 # #############################################################################
