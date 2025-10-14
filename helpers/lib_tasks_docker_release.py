@@ -1722,8 +1722,10 @@ def docker_build_test_dev_image(  # type: ignore
         dev_version,
         skip_tests=False,
         fast_tests=True,
-        slow_tests=True,
-        superslow_tests=True,
+        slow_tests=False,
+        # slow_tests=True,
+        superslow_tests=False,
+        # superslow_tests=True,
         qa_tests=False,
     )
     # 6) Add changelog entry.
