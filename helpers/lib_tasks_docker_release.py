@@ -1772,7 +1772,8 @@ def docker_build_test_dev_image(  # type: ignore
     hlitauti.run(ctx, cmd)
     # 9) Push changes.
     _LOG.info("Step 9: Pushing changes")
-    branch_name = hgit.get_branch_name()
+    abs_container_dir_name = _to_abs_path(container_dir_name)
+    branch_name = hgit.get_branch_name(dir_name=abs_container_dir_name)
     cmd = f"git push origin {branch_name}"
     hlitauti.run(ctx, cmd)
     # 10) Create PR.
