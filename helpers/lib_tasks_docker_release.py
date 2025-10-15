@@ -1675,6 +1675,7 @@ def docker_build_test_dev_image(  # type: ignore
     :param container_dir_name: directory where the Dockerfile is located
     :return: issue ID (integer) of the created issue
     """
+    import pdb; pdb.set_trace()
     hlitauti.report_task(container_dir_name=container_dir_name)
     # 1) Get the last version from changelog.
     _LOG.info("Step 1: Getting version from changelog")
@@ -1683,7 +1684,6 @@ def docker_build_test_dev_image(  # type: ignore
     _LOG.info("Found version: %s", version)
     # 2) Create GitHub issue.
     _LOG.info("Step 2: Creating GitHub issue")
-    repo_short_name = "current"
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     issue_title = f"Periodic release of `{image_name}` dev image: {version}"
     issue_body = "Automated periodic release of dev image"
@@ -1693,41 +1693,39 @@ def docker_build_test_dev_image(  # type: ignore
         title=issue_title,
         body=issue_body,
         assignees=assignee,
-        repo_short_name=repo_short_name,
     )
     _LOG.info("Created issue #%s", issue_id)
     # 3) Create branch based on the issue.
     _LOG.info("Step 3: Creating branch from issue")
     hlitagit.git_branch_create(
         ctx,
-        issue_id=issue_id,
-        repo_short_name=repo_short_name,
+        issue_id=issue_id
     )
     # 4) Build csfy image locally.
-    _LOG.info("Step 4: Building local image with version %s", version)
-    docker_build_local_image(
-        ctx,
-        version=version,
-        cache=True,
-        poetry_mode="update",
-        container_dir_name=container_dir_name,
-    )
+    # _LOG.info("Step 4: Building local image with version %s", version)
+    # docker_build_local_image(
+    #     ctx,
+    #     version=version,
+    #     cache=True,
+    #     poetry_mode="update",
+    #     container_dir_name=container_dir_name,
+    # )
     # 5) Run tests.
-    _LOG.info("Step 5: Running tests")
-    dev_version = _get_dev_version(version, container_dir_name)
-    stage = "local"
-    _run_tests(
-        ctx,
-        stage,
-        dev_version,
-        skip_tests=False,
-        fast_tests=True,
-        slow_tests=False,
-        # slow_tests=True,
-        superslow_tests=False,
-        # superslow_tests=True,
-        qa_tests=False,
-    )
+    # _LOG.info("Step 5: Running tests")
+    # dev_version = _get_dev_version(version, container_dir_name)
+    # stage = "local"
+    # _run_tests(
+    #     ctx,
+    #     stage,
+    #     dev_version,
+    #     skip_tests=False,
+    #     fast_tests=True,
+    #     slow_tests=False,
+    #     # slow_tests=True,
+    #     superslow_tests=False,
+    #     # superslow_tests=True,
+    #     qa_tests=False,
+    # )
     # 6) Add changelog entry.
     _LOG.info("Step 6: Adding changelog entry")
     supermodule = True
@@ -1751,8 +1749,8 @@ def docker_build_test_dev_image(  # type: ignore
     # 7) Stage files.
     _LOG.info("Step 7: Staging files")
     files_to_stage = [
-        "devops/docker_build/poetry.lock",
-        "devops/docker_build/pip_list.txt",
+        # "devops/docker_build/poetry.lock",
+        # "devops/docker_build/pip_list.txt",
         "changelog.txt",
     ]
     for file_path in files_to_stage:
@@ -1782,8 +1780,6 @@ def docker_build_test_dev_image(  # type: ignore
     hlitagh.gh_create_pr(
         ctx,
         body=pr_body,
-        draft=True,
-        repo_short_name=repo_short_name,
     )
     _LOG.info("==> SUCCESS <==")
     _LOG.info("Issue #%s created and PR submitted", issue_id)
