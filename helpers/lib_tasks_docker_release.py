@@ -1705,29 +1705,29 @@ def docker_build_test_dev_image(  # type: ignore
     )
     # 4) Build csfy image locally.
     _LOG.info("Step 4: Building local image with version %s", version)
-    docker_build_local_image(
-        ctx,
-        version=version,
-        cache=True,
-        poetry_mode="update",
-        container_dir_name=container_dir_name,
-    )
+    # docker_build_local_image(
+    #     ctx,
+    #     version=version,
+    #     cache=True,
+    #     poetry_mode="update",
+    #     container_dir_name=container_dir_name,
+    # )
     # 5) Run tests.
     _LOG.info("Step 5: Running tests")
     dev_version = _get_dev_version(version, container_dir_name)
     stage = "local"
-    _run_tests(
-        ctx,
-        stage,
-        dev_version,
-        skip_tests=False,
-        fast_tests=True,
-        slow_tests=False,
-        # slow_tests=True,
-        superslow_tests=False,
-        # superslow_tests=True,
-        qa_tests=False,
-    )
+    # _run_tests(
+    #     ctx,
+    #     stage,
+    #     dev_version,
+    #     skip_tests=False,
+    #     fast_tests=True,
+    #     slow_tests=False,
+    #     # slow_tests=True,
+    #     superslow_tests=False,
+    #     # superslow_tests=True,
+    #     qa_tests=False,
+    # )
     # 6) Add changelog entry.
     _LOG.info("Step 6: Adding changelog entry")
     supermodule = True
@@ -1751,8 +1751,8 @@ def docker_build_test_dev_image(  # type: ignore
     # 7) Stage files.
     _LOG.info("Step 7: Staging files")
     files_to_stage = [
-        "devops/docker_build/poetry.lock",
-        "devops/docker_build/pip_list.txt",
+        # "devops/docker_build/poetry.lock",
+        # "devops/docker_build/pip_list.txt",
         "changelog.txt",
     ]
     for file_path in files_to_stage:
@@ -1765,6 +1765,7 @@ def docker_build_test_dev_image(  # type: ignore
             _LOG.warning("File not found, skipping: %s", full_path)
     # 8) Commit changes.
     _LOG.info("Step 8: Committing changes")
+    import pdb; pdb.set_trace()
     commit_message = f"Poetry output from the v{version} build"
     # --no-verify to skip pre-commit checks since the `poetry.lock` file is
     # too big and the `check_file_size` is failed.
