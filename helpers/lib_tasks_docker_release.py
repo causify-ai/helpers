@@ -1675,7 +1675,6 @@ def docker_build_test_dev_image(  # type: ignore
     :param container_dir_name: directory where the Dockerfile is located
     :return: issue ID (integer) of the created issue
     """
-    import pdb; pdb.set_trace()
     hlitauti.report_task(container_dir_name=container_dir_name)
     # 1) Get the last version from changelog.
     _LOG.info("Step 1: Getting version from changelog")
@@ -1770,13 +1769,18 @@ def docker_build_test_dev_image(  # type: ignore
     hlitauti.run(ctx, cmd)
     # 9) Push changes.
     _LOG.info("Step 9: Pushing changes")
-    abs_container_dir_name = _to_abs_path(container_dir_name)
-    branch_name = hgit.get_branch_name(dir_name=abs_container_dir_name)
+    # TODO(Vlad): Need to remove cache_clear after removing lru_cache from
+    # get_branch_name.
+    hgit.get_branch_name.cache_clear()
+    branch_name = hgit.get_branch_name()
     cmd = f"git push origin {branch_name}"
     hlitauti.run(ctx, cmd)
     # 10) Create PR.
     _LOG.info("Step 10: Creating pull request")
     pr_body = f"#{issue_id}\n\n- Periodic release of {image_name} dev image version {version}"
+    # TODO(Vlad): Need to remove cache_clear after removing lru_cache from
+    # get_branch_name.
+    hgit.get_branch_name.cache_clear()
     hlitagh.gh_create_pr(
         ctx,
         body=pr_body,
