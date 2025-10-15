@@ -122,14 +122,8 @@ class GitHubCache:
         path = os.path.join(self.cache_dir, f"cache.{func_name}.json")
         return path
 
-
-# #############################################################################
-# GitHubAPI
-# #############################################################################
-
 # Create global cache instance.
 _github_cache = GitHubCache()
-
 
 # #############################################################################
 # GitHubAPI
