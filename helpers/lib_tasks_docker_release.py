@@ -1659,10 +1659,10 @@ def docker_build_test_dev_image(  # type: ignore
     Automate the complete dev image periodic release workflow.
 
     This task performs:
-    1) Get latest version from changelog
+    1) Bump version (e.g., 2.2.0 -> 2.3.0)
     2) Create GitHub issue for periodic release assigned to specified user
     3) Create branch and PR based on the issue
-    4) Build csfy image locally with the version number
+    4) Build csfy image locally with the bumped version number
     5) Run tests (fast, slow, superslow)
     6) Add changelog entry for the release
     7) Stage poetry.lock and pip_list.txt files
@@ -1676,11 +1676,13 @@ def docker_build_test_dev_image(  # type: ignore
     :return: issue ID (integer) of the created issue
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
-    # 1) Get the last version from changelog.
-    _LOG.info("Step 1: Getting version from changelog")
-    version = hversio.get_changelog_version(container_dir_name)
-    hdbg.dassert(version, "Could not find version in changelog")
-    _LOG.info("Found version: %s", version)
+    # 1) Bump version.
+    _LOG.info("Step 1: Bumping version")
+    current_version = hversio.get_changelog_version(container_dir_name)
+    hdbg.dassert(current_version, "Could not find current version in changelog")
+    _LOG.info("Current version: %s", current_version)
+    version = hversio.bump_version(current_version, bump_type="minor")
+    _LOG.info("Bumped version: %s -> %s", current_version, version)
     # 2) Create GitHub issue.
     _LOG.info("Step 2: Creating GitHub issue")
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
