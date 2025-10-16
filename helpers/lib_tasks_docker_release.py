@@ -1701,30 +1701,30 @@ def docker_build_test_dev_image(  # type: ignore
         issue_id=issue_id
     )
     # 4) Build csfy image locally.
-    # _LOG.info("Step 4: Building local image with version %s", version)
-    # docker_build_local_image(
-    #     ctx,
-    #     version=version,
-    #     cache=True,
-    #     poetry_mode="update",
-    #     container_dir_name=container_dir_name,
-    # )
+    _LOG.info("Step 4: Building local image with version %s", version)
+    docker_build_local_image(
+        ctx,
+        version=version,
+        cache=True,
+        poetry_mode="update",
+        container_dir_name=container_dir_name,
+    )
     # 5) Run tests.
-    # _LOG.info("Step 5: Running tests")
-    # dev_version = _get_dev_version(version, container_dir_name)
-    # stage = "local"
-    # _run_tests(
-    #     ctx,
-    #     stage,
-    #     dev_version,
-    #     skip_tests=False,
-    #     fast_tests=True,
-    #     slow_tests=False,
-    #     # slow_tests=True,
-    #     superslow_tests=False,
-    #     # superslow_tests=True,
-    #     qa_tests=False,
-    # )
+    _LOG.info("Step 5: Running tests")
+    dev_version = _get_dev_version(version, container_dir_name)
+    stage = "local"
+    _run_tests(
+        ctx,
+        stage,
+        dev_version,
+        skip_tests=False,
+        fast_tests=True,
+        slow_tests=False,
+        # slow_tests=True,
+        superslow_tests=False,
+        # superslow_tests=True,
+        qa_tests=False,
+    )
     # 6) Add changelog entry.
     _LOG.info("Step 6: Adding changelog entry")
     supermodule = True
