@@ -26,9 +26,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class EnhancedAsanaAnalytics:
-    """
-    Enhanced Asana Analytics with time estimation and team grouping.
-    """
 
     def __init__(self, access_token: Optional[str] = None) -> None:
         # Get token from parameter or environment variable.
@@ -132,8 +129,7 @@ class EnhancedAsanaAnalytics:
 
         :param workspace_gid: workspace GID to search in
         :param username: username or partial name to search for
-        :return: user with 'gid', 'name', and 'email', or None if not
-            found
+        :return: user with 'gid', 'name', and 'email'
         """
         _LOG.info("Searching for user: %s", username)
         team_members = self.get_team_members(workspace_gid)
@@ -253,7 +249,7 @@ class EnhancedAsanaAnalytics:
         Looks for common field names like 'estimated time', 'estimate',
         'hours', etc.
 
-        :param task: task data containing custom_fields
+        :param task: tasks data containing custom_fields
         :return: estimated hours as float, or None if not found
         """
         result = None
@@ -277,7 +273,7 @@ class EnhancedAsanaAnalytics:
             if any(time_name in field_name for time_name in time_field_names):
                 # Try number_value first, then display_value.
                 if field.get("number_value") is not None:
-                    result = float(field["number_value"])
+                    result = float(field["number_value"]) / 60.0
                     _LOG.debug(
                         "Found time estimate %s hours in field '%s' for task: %s",
                         result,
@@ -287,7 +283,7 @@ class EnhancedAsanaAnalytics:
                     break
                 elif field.get("display_value"):
                     try:
-                        result = float(field["display_value"])
+                        result = float(field["display_value"]) / 60.0
                         _LOG.debug(
                             "Found time estimate %s hours in field '%s' for task: %s",
                             result,
@@ -303,6 +299,221 @@ class EnhancedAsanaAnalytics:
                         )
         return result
 
+    def get_task_stories(self, task_gid: str) -> List[Dict[str, Any]]:
+        """
+        Get all stories (comments and activity) for a task.
+
+        Fetch all stories including comments, task updates, and system
+        activities for a specific task.
+
+        :param task_gid: task GID to fetch stories for
+        :return: data of type, text, created_at, and creator information
+        """
+        _LOG.info("Fetching stories for task: %s", task_gid)
+        try:
+            opts = {
+                "opt_fields": (
+                    "type,text,created_at,created_by.name,created_by.email,"
+                    "resource_subtype,is_edited"
+                )
+            }
+            stories = self.stories_api.get_stories_for_task(task_gid, opts)
+            stories_list = list(stories) if stories else []
+            _LOG.debug(
+                "Found %d stories for task %s", len(stories_list), task_gid
+            )
+            return stories_list
+        except arest.ApiException as e:
+            _LOG.error("API error fetching stories for task %s: %s", task_gid, e)
+            return []
+        except Exception as e:
+            _LOG.error(
+                "Unexpected error fetching stories for task %s: %s", task_gid, e
+            )
+            return []
+
+    def extract_comment_metrics(self, task_gid: str) -> Dict[str, Any]:
+        """
+        Extract comment and activity metrics for a task.
+
+        Analyze all stories for a task to extract metrics including:
+        - Total comment count
+        - Unique commenters
+        - Activity count (system updates)
+        - Last activity timestamp
+        - Comment frequency
+
+        :param task_gid: task GID to analyze
+        :return: comment metrics
+        """
+        stories = self.get_task_stories(task_gid)
+        # Initialize counters.
+        num_comments = 0
+        num_activities = 0
+        unique_commenters = set()
+        last_activity_at = None
+        for story in stories:
+            # Parse created timestamp.
+            created_at = (
+                dateutil_parser.parse(story["created_at"])
+                if story.get("created_at")
+                else None
+            )
+            # Track last activity.
+            if created_at:
+                if last_activity_at is None or created_at > last_activity_at:
+                    last_activity_at = created_at
+            # Categorize story type.
+            story_type = story.get("type", "")
+            if story_type == "comment":
+                num_comments += 1
+                # Track unique commenters.
+                if story.get("created_by") and story["created_by"].get("name"):
+                    unique_commenters.add(story["created_by"]["name"])
+            else:
+                # System activities (status changes, assignments, etc).
+                num_activities += 1
+        result = {
+            "num_comments": num_comments,
+            "num_activities": num_activities,
+            "total_stories": len(stories),
+            "unique_commenters": len(unique_commenters),
+            "unique_commenter_names": list(unique_commenters),
+            "last_activity_at": last_activity_at,
+        }
+        _LOG.debug(
+            "Task %s metrics: %d comments, %d activities, %d unique commenters",
+            task_gid,
+            num_comments,
+            num_activities,
+            len(unique_commenters),
+        )
+        return result
+
+    def calculate_activity_rate(
+        self,
+        created_at: datetime_lib.datetime,
+        last_activity_at: Optional[datetime_lib.datetime],
+        num_comments: int,
+        num_activities: int,
+    ) -> Dict[str, float]:
+        """
+        Calculate activity rate metrics for a task.
+
+        Compute various activity rate metrics based on task timeline and
+        activity counts.
+
+        :param created_at: task creation timestamp
+        :param last_activity_at: timestamp of last activity/comment
+        :param num_comments: total number of comments
+        :param num_activities: total number of system activities
+        :return: activity rate metric
+        """
+        now = datetime_lib.datetime.now(datetime_lib.timezone.utc)
+
+        # Calculate task age in days.
+        task_age_days = (now - created_at).total_seconds() / 86400
+
+        # Calculate days since last activity.
+        days_since_activity = None
+        if last_activity_at:
+            days_since_activity = (now - last_activity_at).total_seconds() / 86400
+
+        # Calculate activity rates (avoid division by zero).
+        if task_age_days > 0:
+            comments_per_day = num_comments / task_age_days
+            activities_per_day = num_activities / task_age_days
+            total_activity_per_day = (
+                num_comments + num_activities
+            ) / task_age_days
+        else:
+            comments_per_day = 0.0
+            activities_per_day = 0.0
+            total_activity_per_day = 0.0
+
+        result = {
+            "task_age_days": task_age_days,
+            "comments_per_day": comments_per_day,
+            "activities_per_day": activities_per_day,
+            "total_activity_per_day": total_activity_per_day,
+            "days_since_activity": days_since_activity,
+        }
+
+        return result
+
+    def get_user_tasks_with_activity(
+        self,
+        workspace_gid: str,
+        user_identifier: str,
+        *,
+        start_date: Optional[datetime_lib.datetime] = None,
+        end_date: Optional[datetime_lib.datetime] = None,
+        include_comments: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get detailed task information including comments and activity metrics.
+
+        Extended version of get_user_tasks_detailed that also fetches
+        comment and activity data for each task.
+
+        :param workspace_gid: workspace GID to query
+        :param user_identifier: user GID or username to retrieve tasks
+            for
+        :param start_date: start date for filtering tasks by creation
+            date
+        :param end_date: end date for filtering tasks by creation date
+        :param include_comments: if True, fetch comment/activity data
+            for each task (default: True). Set to False for faster
+            execution
+        :return: task data with comment and activity metrics included
+        """
+        # Get detailed tasks first.
+        tasks = self.get_user_tasks_detailed(
+            workspace_gid,
+            user_identifier,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+        if not include_comments:
+            return tasks
+
+        _LOG.info("Fetching comment/activity data for %d tasks", len(tasks))
+
+        # Enhance each task with comment metrics.
+        for i, task in enumerate(tasks):
+            if (i + 1) % 10 == 0:
+                _LOG.info(
+                    "Processing task %d/%d for comments...", i + 1, len(tasks)
+                )
+
+            # Get comment metrics.
+            comment_metrics = self.extract_comment_metrics(task["gid"])
+
+            # Add metrics to task.
+            task["num_comments"] = comment_metrics["num_comments"]
+            task["num_activities"] = comment_metrics["num_activities"]
+            task["total_stories"] = comment_metrics["total_stories"]
+            task["unique_commenters"] = comment_metrics["unique_commenters"]
+            task["unique_commenter_names"] = comment_metrics[
+                "unique_commenter_names"
+            ]
+            task["last_activity_at"] = comment_metrics["last_activity_at"]
+
+            # Calculate activity rates if we have created_at.
+            if task.get("created_at"):
+                created_at = dateutil_parser.parse(task["created_at"])
+                activity_rates = self.calculate_activity_rate(
+                    created_at,
+                    comment_metrics["last_activity_at"],
+                    comment_metrics["num_comments"],
+                    comment_metrics["num_activities"],
+                )
+                task.update(activity_rates)
+
+        _LOG.info("Comment/activity data added to all tasks")
+        return tasks
+
     def create_task_dataframe(
         self,
         workspace_gid: str,
@@ -312,6 +523,7 @@ class EnhancedAsanaAnalytics:
         start_date: Optional[datetime_lib.datetime] = None,
         end_date: Optional[datetime_lib.datetime] = None,
         team_mapping: Optional[Dict[str, str]] = None,
+        include_comments: bool = False,
     ) -> pd.DataFrame:
         """
         Create comprehensive task DataFrame for all users.
@@ -322,19 +534,21 @@ class EnhancedAsanaAnalytics:
         assignments.
 
         :param workspace_gid: workspace GID to query
-        :param user_identifiers: usernames or GIDs to analyze. If None,
-            analyze all users in workspace
-        :param project_names: project names to filter by and use as team
-            names (e.g., ["tech-now", "tech-next"]). If provided, team
-            will be determined from project name
+        :param user_identifiers: usernames or GIDs to analyze.
+        :param project_names: project names to filter by and use
+            as team names (e.g., ["tech-now", "tech-next"]). If
+            provided, team will be determined from project name
         :param start_date: start date for filtering tasks by creation
             date
         :param end_date: end date for filtering tasks by creation date
-        :param team_mapping: map username to team name. Only used if
-            project_names is not provided
-        :return: data with columns including user info, task details,
-            dates, completion status, time estimates, project, sprint,
-            section, tags, and subtasks
+        :param team_mapping: username to team name. Only
+            used if project_names is not provided
+            - Example: {"John Doe": "tech-now", "Jane Smith": "tech-next"}
+        :param include_comments: if True, fetch comment/activity data
+            (default: False). Set to True to include activity metrics
+        :return: data with columns including user info, task
+            details, dates, completion status, time estimates, project,
+            sprint, section, tags, and subtasks
         """
         _LOG.info("Creating comprehensive task DataFrame")
         # Get users to analyze.
@@ -365,12 +579,21 @@ class EnhancedAsanaAnalytics:
         for member in team_members:
             _LOG.info("Processing tasks for: %s", member["name"])
             # Fetch detailed tasks for this user.
-            tasks = self.get_user_tasks_detailed(
-                workspace_gid,
-                member["gid"],
-                start_date=start_date,
-                end_date=end_date,
-            )
+            if include_comments:
+                tasks = self.get_user_tasks_with_activity(
+                    workspace_gid,
+                    member["gid"],
+                    start_date=start_date,
+                    end_date=end_date,
+                    include_comments=True,
+                )
+            else:
+                tasks = self.get_user_tasks_detailed(
+                    workspace_gid,
+                    member["gid"],
+                    start_date=start_date,
+                    end_date=end_date,
+                )
             # Process each task.
             for task in tasks:
                 # Parse dates.
@@ -457,6 +680,28 @@ class EnhancedAsanaAnalytics:
                     "all_sprints": ", ".join(sprints) if sprints else None,
                     "num_subtasks": task.get("num_subtasks", 0),
                 }
+                # Add comment/activity metrics if included.
+                if include_comments:
+                    task_data.update(
+                        {
+                            "num_comments": task.get("num_comments", 0),
+                            "num_activities": task.get("num_activities", 0),
+                            "total_stories": task.get("total_stories", 0),
+                            "unique_commenters": task.get("unique_commenters", 0),
+                            "last_activity_at": task.get("last_activity_at"),
+                            "task_age_days": task.get("task_age_days", 0),
+                            "comments_per_day": task.get("comments_per_day", 0.0),
+                            "activities_per_day": task.get(
+                                "activities_per_day", 0.0
+                            ),
+                            "total_activity_per_day": task.get(
+                                "total_activity_per_day", 0.0
+                            ),
+                            "days_since_activity": task.get(
+                                "days_since_activity"
+                            ),
+                        }
+                    )
                 # Add team - either from project name or mapping.
                 if project_names:
                     # Determine team from project name.
@@ -492,8 +737,6 @@ class EnhancedAsanaAnalytics:
 
         :param task_df: data with 'team' column
         :param metrics: metrics to calculate. If None, calculate all
-            available metrics including total_tasks, completed_tasks,
-            completion_rate, estimated hours, and overdue rates
         :return: data with team-level aggregated metrics
         """
         if "team" not in task_df.columns:
@@ -587,10 +830,8 @@ class EnhancedAsanaAnalytics:
         Aggregate task-level data to user-level metrics for individual
         performance comparison.
 
-        :param task_df: task data
+        :param task_df: tasks data
         :param metrics: metrics to calculate. If None, calculate all
-            available metrics including total_tasks, completed_tasks,
-            completion_rate, estimated hours, and unique_projects
         :return: data with user-level aggregated metrics
         """
         # Set default metrics if not provided.
@@ -709,6 +950,7 @@ def create_kibana_ready_dataset(
     team_mapping: Optional[Dict[str, str]] = None,
     access_token: Optional[str] = None,
     user_list: Optional[List[str]] = None,
+    include_comments: bool = False,
 ) -> Dict[str, pd.DataFrame]:
     """
     Create Kibana-ready datasets with all metrics.
@@ -724,15 +966,17 @@ def create_kibana_ready_dataset(
     :param project_names: project names to filter by
         (e.g., ["tech-now", "tech-next"]). If None, extract ALL projects.
         When provided, also uses project names as team names
-    :param team_mapping: dict mapping usernames to team names.
+    :param team_mapping: usernames to team names.
         Alternative to project_names. If both are None, uses project as
         team
         - Example: {"John Doe": "tech-now", "Jane Smith": "tech-next"}
     :param access_token: Asana access token. If None, reads from
         environment variable ASANA_ACCESS_TOKEN
-    :param user_list: list of specific usernames or GIDs to analyze. If
+    :param user_list: specific usernames or GIDs to analyze. If
         None, analyze ALL team members
-    :return: three DataFrames:
+    :param include_comments: if True, fetch comment/activity data
+        (default: False). Set to True to include activity metrics
+    :return: data with three DataFrames:
         - 'tasks': detailed task-level data with sprint/section info
         - 'users': user-level aggregated metrics
         - 'teams': team-level aggregated metrics
@@ -744,6 +988,7 @@ def create_kibana_ready_dataset(
     _LOG.info("Date range: %s to %s", start_date.date(), end_date.date())
     _LOG.info("Project filter: %s", project_names if project_names else "ALL")
     _LOG.info("User filter: %s", user_list if user_list else "ALL")
+    _LOG.info("Include comments: %s", include_comments)
 
     # Initialize analytics instance.
     _LOG.info("Initializing Asana Analytics client...")
@@ -765,6 +1010,7 @@ def create_kibana_ready_dataset(
         start_date=start_date,
         end_date=end_date,
         team_mapping=team_mapping,
+        include_comments=include_comments,
     )
     _LOG.info("Task DataFrame created with %d rows", len(task_df))
 
@@ -831,8 +1077,10 @@ def save_to_ndjson(
                 # Write bulk API metadata line.
                 action = {"index": {"_index": index_name}}
                 f.write(json.dumps(action) + "\n")
+
             # Write document data line.
             f.write(json.dumps(record) + "\n")
+
     _LOG.info("Successfully saved %d records to %s", len(records), filepath)
 
 
@@ -849,29 +1097,34 @@ def save_datasets_for_kibana(
     Save task, user, and team DataFrames to either NDJSON or CSV format
     for Kibana/OpenSearch ingestion.
 
-    :param datasets: data with 'tasks', 'users', 'teams'
+    :param datasets: dictionary with 'tasks', 'users', 'teams'
+        DataFrames from create_kibana_ready_dataset()
     :param output_dir: directory to save files (default: current
         directory)
     :param use_ndjson: if True, save as NDJSON format. If False, save as
         CSV (default: True)
     :param index_prefix: prefix for index names when using NDJSON
         (default: 'asana')
-    :return: mapping dataset names to saved file paths
+    :return: dataset names to saved file paths
     """
     _LOG.info("=" * 70)
     _LOG.info("SAVING DATASETS FOR KIBANA")
     _LOG.info("=" * 70)
     _LOG.info("Output directory: %s", output_dir)
     _LOG.info("Format: %s", "NDJSON" if use_ndjson else "CSV")
+
     saved_files = {}
     extension = "ndjson" if use_ndjson else "csv"
+
     for dataset_name, df in datasets.items():
         # Construct file path.
         filename = "{}_{}_{}.{}".format(
             index_prefix, dataset_name, "kibana", extension
         )
         filepath = "{}/{}".format(output_dir, filename)
+
         _LOG.info("Saving %s dataset (%d rows)...", dataset_name, len(df))
+
         if use_ndjson:
             # Save as NDJSON with index name.
             index_name = "{}-{}".format(index_prefix, dataset_name)
@@ -880,12 +1133,15 @@ def save_datasets_for_kibana(
             # Save as CSV.
             df.to_csv(filepath, index=False)
             _LOG.info("Saved to CSV: %s", filepath)
+
         saved_files[dataset_name] = filepath
+
     _LOG.info("=" * 70)
     _LOG.info("ALL DATASETS SAVED!")
     _LOG.info("=" * 70)
     for dataset_name, filepath in saved_files.items():
         _LOG.info("  %s: %s", dataset_name, filepath)
     _LOG.info("=" * 70)
+
     result = saved_files
     return result
