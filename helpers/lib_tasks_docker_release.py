@@ -1719,10 +1719,8 @@ def docker_build_test_dev_image(  # type: ignore
         dev_version,
         skip_tests=False,
         fast_tests=True,
-        slow_tests=False,
-        # slow_tests=True,
-        superslow_tests=False,
-        # superslow_tests=True,
+        slow_tests=True,
+        superslow_tests=True,
         qa_tests=False,
     )
     # 6) Add changelog entry.
@@ -1748,8 +1746,8 @@ def docker_build_test_dev_image(  # type: ignore
     # 7) Stage files.
     _LOG.info("Step 7: Staging files")
     files_to_stage = [
-        # "devops/docker_build/poetry.lock",
-        # "devops/docker_build/pip_list.txt",
+        "devops/docker_build/poetry.lock",
+        "devops/docker_build/pip_list.txt",
         "changelog.txt",
     ]
     for file_path in files_to_stage:
