@@ -287,18 +287,22 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
     Convert markdown links:
     - Plain URLs:
         http://... or https://...
-    to the format:
+      to the format:
         [\textcolor{blue}{\underline{URL}}](URL)
 
     - Existing formatted links:
         [Text](URL)
-    to the format:
+      to the format:
         [\textcolor{blue}{\underline{Text}}](URL)
 
     - Email links:
         [](email@domain.com) or [](http://...) or [](https://...)
-    to the format:
+      to the format:
         [\textcolor{blue}{\underline{URL}}](URL)
+
+    - Picture links
+        ![](lectures_source/.../lec_4_1_slide_5_image_1.png)
+      are left untouched
 
     :param lines: list of input markdown lines
     :return: formatted markdown lines with styled links
@@ -318,9 +322,28 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
     markdown_link_pattern = r"\[([^\]\\]+)\]\((https?://[^\)]+)\)"
     # Pattern for email links: [email@domain.com](email@domain.com).
     email_link_pattern = r"\[([^\]\\]+@[^\]\\]+)\]\(([^)]+@[^)]+)\)"
+    # Pattern for empty bracket links: [](URL) or [](email).
+    empty_bracket_pattern = r"\[\]\(([^\)]+)\)"
+    # Pattern for image links: ![...](...).
+    image_link_pattern = r"!\[.*?\]\([^\)]+\)"
     for line in lines:
         # Process the line for all URL patterns.
         processed_line = line
+        # Store image links temporarily to avoid processing them.
+        image_placeholders = []
+        def store_image_link(match):
+            placeholder = f"__IMAGE_LINK_{len(image_placeholders)}__"
+            image_placeholders.append(match.group(0))
+            return placeholder
+        processed_line = re.sub(image_link_pattern, store_image_link, processed_line)
+        # Convert empty bracket links [](URL) or [](email).
+        def convert_empty_bracket_link(match):
+            target = match.group(1)
+            return rf"[\textcolor{{blue}}{{\underline{{{target}}}}}]({target})"
+
+        processed_line = re.sub(
+            empty_bracket_pattern, convert_empty_bracket_link, processed_line
+        )
         # Convert URLs in backticks.
         def convert_backtick_url(match):
             url = match.group(1)
@@ -382,6 +405,9 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         # Restore formatted links.
         for i, placeholder in enumerate(temp_placeholders):
             temp_line = temp_line.replace(f"__FORMATTED_LINK_{i}__", placeholder)
+        # Restore image links.
+        for i, image_link in enumerate(image_placeholders):
+            temp_line = temp_line.replace(f"__IMAGE_LINK_{i}__", image_link)
         result.append(temp_line)
     hdbg.dassert_isinstance(result, list)
     return result

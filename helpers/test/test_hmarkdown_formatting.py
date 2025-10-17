@@ -1197,3 +1197,85 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         """
         # Run test.
         self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Image/picture links should be left untouched.
+    # =========================================================================
+
+    def test_filter_image_simple(self) -> None:
+        """
+        Test that simple image links are left untouched.
+        """
+        # Prepare inputs.
+        input_text = """
+        Check this image: ![](path/to/image.png)
+        """
+        expected_text = """
+        Check this image: ![](path/to/image.png)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_filter_jpg_images(self) -> None:
+        """
+        Test that JPG image links are left untouched.
+        """
+        # Prepare inputs.
+        input_text = """
+        ![](lectures_source/images/lec_4_1_slide_5_image_1.jpg)
+        """
+        expected_text = """
+        ![](lectures_source/images/lec_4_1_slide_5_image_1.jpg)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_filter_mixed_images_and_emails(self) -> None:
+        """
+        Test that image links are not processed while email links are.
+        """
+        # Prepare inputs.
+        input_text = """
+        Contact: [](support@example.com)
+        Image: ![](path/to/image.png)
+        Link: https://example.com
+        """
+        expected_text = r"""
+        Contact: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        Image: ![](path/to/image.png)
+        Link: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_filter_image_with_alt_text(self) -> None:
+        """
+        Test that image links with alt text are left untouched.
+        """
+        # Prepare inputs.
+        input_text = """
+        ![Alt text](path/to/image.png)
+        """
+        expected_text = """
+        ![Alt text](path/to/image.png)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_filter_multiple_images(self) -> None:
+        """
+        Test that multiple image links are left untouched.
+        """
+        # Prepare inputs.
+        input_text = """
+        ![](image1.png)
+        ![](image2.jpg)
+        ![](image3.gif)
+        """
+        expected_text = """
+        ![](image1.png)
+        ![](image2.jpg)
+        ![](image3.gif)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
