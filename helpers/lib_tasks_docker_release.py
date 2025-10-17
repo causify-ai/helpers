@@ -1802,18 +1802,9 @@ def docker_build_test_dev_image(  # type: ignore
     cmd = f"docker tag {image_local} {ghcr_image_versioned}"
     hlitauti.run(ctx, cmd)
     _LOG.info("Tagged as versioned GHCR dev image: %s", ghcr_image_versioned)
-    # Tag local image as latest GHCR dev image (e.g., ghcr.io/causify-ai/csfy:dev).
-    ghcr_image_latest = f"{ghcr_base_image}:dev"
-    cmd = f"docker tag {image_local} {ghcr_image_latest}"
-    hlitauti.run(ctx, cmd)
-    _LOG.info("Tagged as latest GHCR dev image: %s", ghcr_image_latest)
     # Push versioned GHCR dev image.
     cmd = f"docker push {ghcr_image_versioned}"
     hlitauti.run(ctx, cmd, pty=True)
     _LOG.info("Pushed versioned GHCR dev image: %s", ghcr_image_versioned)
-    # Push latest GHCR dev image.
-    cmd = f"docker push {ghcr_image_latest}"
-    hlitauti.run(ctx, cmd, pty=True)
-    _LOG.info("Pushed latest GHCR dev image: %s", ghcr_image_latest)
     _LOG.info("==> SUCCESS <==")
     return issue_id
