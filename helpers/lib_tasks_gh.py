@@ -507,6 +507,7 @@ def gh_create_pr(  # type: ignore
     auto_merge=False,
     repo_short_name="current",
     title="",
+    issue_id=None,
 ):
     """
     Create a draft PR for the current branch in the corresponding
@@ -523,7 +524,10 @@ def gh_create_pr(  # type: ignore
     :param body: the body of the PR
     :param draft: draft or ready-to-review PR
     :param auto_merge: enable auto merging PR
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
     :param title: title of the PR or the branch name, if title is empty
+    :param issue_id: if given, use the issue title for the PR title
     """
     hlitauti.report_task()
     # Login.
@@ -564,6 +568,8 @@ def gh_create_pr(  # type: ignore
             + f' --title "{title}"'
             + f' --body "{body}"'
         )
+        if issue_id:
+            cmd += f" --issue {issue_id}"
         # TODO(gp): Use _to_single_line_cmd
         hlitauti.run(ctx, cmd)
     if auto_merge:
