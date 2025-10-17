@@ -384,6 +384,7 @@ class Test_extract_urls_from_text(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(gp): Mock this.
 class Test_check_url_reachable(hunitest.TestCase):
 
     def test_reachable_url(self) -> None:

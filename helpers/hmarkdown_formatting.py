@@ -285,12 +285,20 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
     Convert markdown links to formatted links with LaTeX styling.
 
     Convert markdown links:
-    - Plain URLs: http://... or https://...
-    - Plain URLs in backticks: `http://...` or `https://...`
-    - Existing formatted links: [Text](URL)
-    - Email links: [email@domain.com](email@domain.com)
+    - Plain URLs:
+        http://... or https://...
     to the format:
-    - [\textcolor{blue}{\underline{Text}}](URL)
+        [\textcolor{blue}{\underline{URL}}](URL)
+
+    - Existing formatted links:
+        [Text](URL)
+    to the format:
+        [\textcolor{blue}{\underline{Text}}](URL)
+
+    - Email links:
+        [](email@domain.com) or [](http://...) or [](https://...)
+    to the format:
+        [\textcolor{blue}{\underline{URL}}](URL)
 
     :param lines: list of input markdown lines
     :return: formatted markdown lines with styled links
@@ -321,18 +329,20 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         processed_line = re.sub(
             backtick_url_pattern, convert_backtick_url, processed_line
         )
-        # Normalize existing formatted links to use URL as display text.
+        # Normalize existing formatted links to keep existing display text.
         def normalize_formatted_link(match):
+            text = match.group(1)
             url = match.group(2)
-            return rf"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
+            return rf"[\textcolor{{blue}}{{\underline{{{text}}}}}]({url})"
 
         processed_line = re.sub(
             formatted_link_pattern, normalize_formatted_link, processed_line
         )
         # Convert markdown links [Text](URL) to formatted links.
         def convert_markdown_link(match):
+            text = match.group(1)
             url = match.group(2)
-            return rf"[\textcolor{{blue}}{{\underline{{{url}}}}}]({url})"
+            return rf"[\textcolor{{blue}}{{\underline{{{text}}}}}]({url})"
 
         processed_line = re.sub(
             markdown_link_pattern, convert_markdown_link, processed_line

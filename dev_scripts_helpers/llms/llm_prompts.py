@@ -1678,6 +1678,62 @@ def text_rewrite() -> _PROMPT_OUT:
 
 
 # #############################################################################
+# Graphviz.
+# #############################################################################
+
+
+def dot_format() -> _PROMPT_OUT:
+    """
+    Format a Graphviz graph to match our style.
+    """
+    system = ""
+    system += r"""
+    Make a graphviz diagram of the following diagram
+
+    - If you are sure about the meaning of the variables use
+    - Variables are represented by circles
+    - States by rounded boxes
+    - If you are not sure, use rounded boxes for every variable
+
+    If you need to use subscripts use it in Latex format such as var_0
+
+    Use pastel colors like
+    - Red:     `#F4A6A6`
+    - Orange:  `#FFD1A6`
+    - Green:   `#B2E2B2`
+    - Teal:    `#A0D6D1`
+    - Cyan:    `#A6E7F4`
+    - Blue:    `#A6C8F4`
+    - Violet:  `#C6A6F4`
+    - Brown:   `#D2B48C`
+
+    Use a template like
+    ```graphviz
+    digraph <Name> {
+        splines=true;
+        nodesep=1.0;
+        ranksep=0.75;
+
+        node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
+
+        // Node styles
+
+        // Force ranks
+
+        // Edges
+    }
+
+    Do not print anything else than the graphviz code in a markdown format
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+    }
+    post_container_transforms = []
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+# #############################################################################
 # Transforms.
 # #############################################################################
 

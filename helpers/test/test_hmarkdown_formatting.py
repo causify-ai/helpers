@@ -848,78 +848,31 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         expected = hprint.dedent(expected_text).strip()
         self.assert_equal(actual, expected)
 
-    def test_plain_url_conversion(self) -> None:
-        """
-        Test converting plain URLs to formatted links.
-        """
-        input_text = """
-        Check out this tutorial:
-        https://ubuntu.com/tutorials/command-line-for-beginners
+    # =========================================================================
+    # Edge cases.
+    # =========================================================================
 
-        Another useful link:
-        https://docs.python.org/3/
+    def test_empty_input(self) -> None:
         """
-        expected_text = r"""
-        Check out this tutorial:
-        [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
-
-        Another useful link:
-        [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        Test empty input.
         """
+        # Prepare inputs.
+        input_text = ""
+        expected_text = ""
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_backtick_url_conversion(self) -> None:
+    def test_no_links(self) -> None:
         """
-        Test converting URLs in backticks to formatted links.
+        Test content without any links.
         """
-        input_text = """
-        Visit this site: `https://ubuntu.com/tutorials/command-line-for-beginners`
-
-        Documentation: `https://docs.python.org/3/`
-        """
-        expected_text = r"""
-        Visit this site: [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
-
-        Documentation: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
-        """
-        self.helper(input_text, expected_text)
-
-    def test_mixed_links_in_content(self) -> None:
-        """
-        Test handling mixed plain and formatted links in same content.
-        """
-        input_text = r"""
-        ## Resources
-
-        - Plain URL: https://ubuntu.com/tutorials/command-line-for-beginners
-        - Backtick URL: `https://docs.python.org/3/`
-        - Mismatched formatted: [\textcolor{blue}{\underline{Click here}}](https://github.com)
-        - Correct formatted: [\textcolor{blue}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
-        """
-        expected_text = r"""
-        ## Resources
-
-        - Plain URL: [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
-        - Backtick URL: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
-        - Mismatched formatted: [\textcolor{blue}{\underline{https://github.com}}](https://github.com)
-        - Correct formatted: [\textcolor{blue}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
-        """
-        self.helper(input_text, expected_text)
-
-    def test_no_links_no_change(self) -> None:
-        """
-        Test that content without links remains unchanged.
-        """
+        # Prepare inputs.
         input_text = """
         # Important Notes
 
         - This is regular text
         - No links here
         - Just plain content
-
-        ## Section 2
-
-        More regular text without any URLs.
         """
         expected_text = """
         # Important Notes
@@ -927,113 +880,320 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         - This is regular text
         - No links here
         - Just plain content
-
-        ## Section 2
-
-        More regular text without any URLs.
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_empty_input(self) -> None:
-        """
-        Test that empty input returns empty output.
-        """
-        input_text = ""
-        expected_text = ""
-        self.helper(input_text, expected_text)
+    # =========================================================================
+    # Plain URL conversion: http://... or https://...
+    # =========================================================================
 
-    def test_http_and_https_urls(self) -> None:
+    def test_plain_http_url(self) -> None:
         """
-        Test handling both HTTP and HTTPS URLs.
+        Test converting single plain HTTP URL.
         """
+        # Prepare inputs.
         input_text = """
-        HTTP site: http://example.com
-        HTTPS site: https://secure.example.com
+        Visit http://example.com
         """
         expected_text = r"""
-        HTTP site: [\textcolor{blue}{\underline{http://example.com}}](http://example.com)
-        HTTPS site: [\textcolor{blue}{\underline{https://secure.example.com}}](https://secure.example.com)
+        Visit [\textcolor{blue}{\underline{http://example.com}}](http://example.com)
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_multiple_urls_on_same_line(self) -> None:
+    def test_plain_https_url(self) -> None:
         """
-        Test converting multiple URLs on the same line.
+        Test converting single plain HTTPS URL.
         """
+        # Prepare inputs.
         input_text = """
-        Visit https://example.com and https://another.com for more info
+        Visit https://example.com
         """
         expected_text = r"""
-        Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com) and [\textcolor{blue}{\underline{https://another.com}}](https://another.com) for more info
+        Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_urls_with_query_parameters(self) -> None:
+    def test_plain_url_with_path(self) -> None:
         """
-        Test handling URLs with query parameters and fragments.
+        Test converting plain URLs with paths.
         """
+        # Prepare inputs.
         input_text = """
-        Search results: https://example.com/search?q=python&page=1
-        Anchor link: https://docs.python.org/3/tutorial/index.html#tutorial-index
+        Check out https://ubuntu.com/tutorials/command-line-for-beginners
         """
         expected_text = r"""
-        Search results: [\textcolor{blue}{\underline{https://example.com/search?q=python&page=1}}](https://example.com/search?q=python&page=1)
-        Anchor link: [\textcolor{blue}{\underline{https://docs.python.org/3/tutorial/index.html#tutorial-index}}](https://docs.python.org/3/tutorial/index.html#tutorial-index)
+        Check out [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_markdown_link_conversion(self) -> None:
+    def test_plain_url_with_query_parameters(self) -> None:
         """
-        Test converting simple markdown links [Text](URL) format.
+        Test converting plain URL with query parameters.
         """
+        # Prepare inputs.
         input_text = """
-        Check out [this tutorial](https://example.com/tutorial) for more details
-        See [documentation](https://docs.example.com) here
+        Search: https://example.com/search?q=python&page=1
         """
         expected_text = r"""
-        Check out [\textcolor{blue}{\underline{https://example.com/tutorial}}](https://example.com/tutorial) for more details
-        See [\textcolor{blue}{\underline{https://docs.example.com}}](https://docs.example.com) here
+        Search: [\textcolor{blue}{\underline{https://example.com/search?q=python&page=1}}](https://example.com/search?q=python&page=1)
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_urls_at_line_boundaries(self) -> None:
+    def test_plain_url_with_fragment(self) -> None:
         """
-        Test URLs at the beginning and end of lines.
+        Test converting plain URL with fragment.
         """
+        # Prepare inputs.
+        input_text = """
+        Docs: https://docs.python.org/3/tutorial/index.html#tutorial-index
+        """
+        expected_text = r"""
+        Docs: [\textcolor{blue}{\underline{https://docs.python.org/3/tutorial/index.html#tutorial-index}}](https://docs.python.org/3/tutorial/index.html#tutorial-index)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_plain_url_at_line_start(self) -> None:
+        """
+        Test plain URL at beginning of line.
+        """
+        # Prepare inputs.
         input_text = """
         https://example.com is a good site
-        Check this link https://another.com
         """
         expected_text = r"""
         [\textcolor{blue}{\underline{https://example.com}}](https://example.com) is a good site
-        Check this link [\textcolor{blue}{\underline{https://another.com}}](https://another.com)
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_urls_with_path_and_file_extensions(self) -> None:
+    def test_plain_url_at_line_end(self) -> None:
         """
-        Test URLs with complex paths and file extensions.
+        Test plain URL at end of line.
         """
+        # Prepare inputs.
+        input_text = """
+        Check this link https://example.com
+        """
+        expected_text = r"""
+        Check this link [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # URL in backticks conversion: `http://...` or `https://...`
+    # =========================================================================
+
+    def test_backtick_url(self) -> None:
+        """
+        Test converting single URL in backticks.
+        """
+        # Prepare inputs.
+        input_text = """
+        Visit `https://example.com` for details
+        """
+        expected_text = r"""
+        Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com) for details
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Markdown link conversion: [Text](URL)
+    # =========================================================================
+
+    def test_markdown_link_simple(self) -> None:
+        """
+        Test converting simple markdown link [Text](URL).
+        """
+        # Prepare inputs.
+        input_text = """
+        Check out [this tutorial](https://example.com/tutorial)
+        """
+        expected_text = r"""
+        Check out [\textcolor{blue}{\underline{this tutorial}}](https://example.com/tutorial)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_markdown_link_preserves_text(self) -> None:
+        """
+        Test that markdown link preserves the display text.
+        """
+        # Prepare inputs.
+        input_text = """
+        See [documentation](https://docs.example.com) here
+        """
+        expected_text = r"""
+        See [\textcolor{blue}{\underline{documentation}}](https://docs.example.com) here
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Email link conversion: [email@domain.com](email@domain.com)
+    # =========================================================================
+
+    def test_email_link_simple1(self) -> None:
+        """
+        Test converting simple email link.
+        """
+        # Prepare inputs.
+        input_text = """
+        Contact: [support@example.com](support@example.com)
+        """
+        expected_text = r"""
+        Contact: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_email_link_simple2(self) -> None:
+        """
+        Test converting simple email link.
+        """
+        # Prepare inputs.
+        input_text = """
+        Contact: [](support@example.com)
+        """
+        expected_text = r"""
+        Contact: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Multiple URLs.
+    # =========================================================================
+
+    def test_multiple_urls_same_line(self) -> None:
+        """
+        Test converting multiple URLs on same line.
+        """
+        # Prepare inputs.
+        input_text = """
+        Visit https://example.com and https://another.com
+        """
+        expected_text = r"""
+        Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com) and [\textcolor{blue}{\underline{https://another.com}}](https://another.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_multiple_urls_different_lines(self) -> None:
+        """
+        Test converting multiple URLs on different lines.
+        """
+        # Prepare inputs.
+        input_text = """
+        Tutorial: https://ubuntu.com/tutorials/command-line-for-beginners
+
+        Documentation: https://docs.python.org/3/
+        """
+        expected_text = r"""
+        Tutorial: [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
+
+        Documentation: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Mixed link types.
+    # =========================================================================
+
+    def test_mixed_plain_and_backtick_urls(self) -> None:
+        """
+        Test handling mixed plain and backtick URLs.
+        """
+        # Prepare inputs.
+        input_text = """
+        Plain: https://example.com
+        Backtick: `https://docs.example.com`
+        """
+        expected_text = r"""
+        Plain: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        Backtick: [\textcolor{blue}{\underline{https://docs.example.com}}](https://docs.example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_mixed_plain_and_markdown_links(self) -> None:
+        """
+        Test handling mixed plain URLs and markdown links.
+        """
+        # Prepare inputs.
+        input_text = """
+        Plain: https://example.com
+        Markdown: [Click here](https://docs.example.com)
+        """
+        expected_text = r"""
+        Plain: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        Markdown: [\textcolor{blue}{\underline{Click here}}](https://docs.example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_mixed_all_types(self) -> None:
+        """
+        Test handling all link types in same content.
+        """
+        # Prepare inputs.
+        input_text = r"""
+        ## Resources
+
+        - Plain URL: https://ubuntu.com/tutorials/command-line-for-beginners
+        - Backtick URL: `https://docs.python.org/3/`
+        - Markdown link: [Click here](https://github.com)
+        - Email: [support@example.com](support@example.com)
+        - Already formatted: [\textcolor{blue}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
+        """
+        expected_text = r"""
+        ## Resources
+
+        - Plain URL: [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
+        - Backtick URL: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        - Markdown link: [\textcolor{blue}{\underline{Click here}}](https://github.com)
+        - Email: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        - Already formatted: [\textcolor{blue}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Complex scenarios.
+    # =========================================================================
+
+    def test_url_with_file_extension(self) -> None:
+        """
+        Test URL pointing to file with extension.
+        """
+        # Prepare inputs.
         input_text = """
         Download: https://cdn.example.com/files/document.pdf
-        Image: https://images.example.com/photos/image.png
         """
         expected_text = r"""
         Download: [\textcolor{blue}{\underline{https://cdn.example.com/files/document.pdf}}](https://cdn.example.com/files/document.pdf)
-        Image: [\textcolor{blue}{\underline{https://images.example.com/photos/image.png}}](https://images.example.com/photos/image.png)
         """
+        # Run test.
         self.helper(input_text, expected_text)
 
-    def test_email_links(self) -> None:
+    def test_already_formatted_link_preserved(self) -> None:
         """
-        Test converting email links in markdown format.
+        Test that already formatted links are preserved.
         """
-        input_text = """
-        Contact: [gsaggese@umd.edu](gsaggese@umd.edu)
-        Support: [support@example.com](support@example.com)
+        # Prepare inputs.
+        input_text = r"""
+        Link: [\textcolor{blue}{\underline{Example Site}}](https://example.com)
         """
         expected_text = r"""
-        Contact: [\textcolor{blue}{\underline{gsaggese@umd.edu}}](gsaggese@umd.edu)
-        Support: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        Link: [\textcolor{blue}{\underline{Example Site}}](https://example.com)
         """
+        # Run test.
         self.helper(input_text, expected_text)

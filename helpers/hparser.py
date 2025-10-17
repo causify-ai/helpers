@@ -171,6 +171,14 @@ def add_action_arg(
     valid_actions: List[str],
     default_actions: Optional[List[str]],
 ) -> argparse.ArgumentParser:
+    """
+    Add a command line option to select actions to execute or skip.
+
+    :param parser: parser to add the option to
+    :param valid_actions: list of valid actions
+    :param default_actions: list of default actions to execute
+    :return: parser with the option added
+    """
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "--action",
@@ -197,6 +205,14 @@ def add_action_arg(
 def actions_to_string(
     actions: List[str], valid_actions: List[str], add_frame: bool
 ) -> str:
+    """
+    Convert a list of actions to a string.
+
+    :param actions: list of actions to convert
+    :param valid_actions: list of valid actions
+    :param add_frame: if `True`, add a frame around the actions
+    :return: string of the actions
+    """
     space = max(len(a) for a in valid_actions) + 2
     format_ = "%" + str(space) + "s: %s"
     actions = [
@@ -216,6 +232,14 @@ def select_actions(
     valid_actions: List[str],
     default_actions: List[str],
 ) -> List[str]:
+    """
+    Select actions based on the command line arguments.
+
+    :param args: command line arguments
+    :param valid_actions: list of valid actions
+    :param default_actions: list of default actions to execute
+    :return: list of selected actions
+    """
     hdbg.dassert(
         not (args.action and args.all),
         "You can't specify together --action and --all",
@@ -251,6 +275,13 @@ def select_actions(
 
 
 def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
+    """
+    Mark an action as to be executed or skipped.
+
+    :param action: action to mark
+    :param actions: list of actions
+    :return: tuple of (to_execute, actions)
+    """
     to_execute = action in actions
     _LOG.debug("\n%s", hprint.frame(f"action={action}"))
     if to_execute:
