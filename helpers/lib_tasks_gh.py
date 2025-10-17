@@ -89,6 +89,22 @@ def _get_branch_name(branch_mode: str) -> Optional[str]:
     return branch_name
 
 
+def _get_org_name(org_name: str) -> str:
+    """
+    Get organization name, inferring from current repo if not provided.
+
+    :param org_name: organization name or empty string
+    :return: organization name
+    """
+    if not org_name:
+        # Infer organization from current repo.
+        full_repo_name = hgit.get_repo_full_name_from_dirname(
+            ".", include_host_name=False
+        )
+        org_name = full_repo_name.split("/")[0]
+    return org_name
+
+
 def _get_workflow_table() -> htable.TableType:
     """
     Get a table with the status of the GH workflow for the current repo.
@@ -919,6 +935,65 @@ def gh_get_workflow_details(
     hdbg.dassert_eq(len(workflow_statuses), limit, only_warning=True)
     _LOG.debug("workflow_statuses=\n%s", workflow_statuses)
     return workflow_statuses
+
+
+def gh_get_org_team_names(org_name: str = "", *, sort: bool = True) -> List[str]:
+    """
+    Get a list of team names for a GitHub organization.
+
+    :param org_name: organization name, e.g., "causify-ai". If empty,
+        infers from the current repo
+    :param sort: if True, sort team names alphabetically
+    :return: list of team names (slugs)
+        Example output:
+        ```
+        ["dev_system", "dev_frontend", "qa_team"]
+        ```
+    """
+    org_name = _get_org_name(org_name)
+    _LOG.debug(hprint.to_str("org_name"))
+    # Get the team list using GitHub API.
+    cmd = f"gh api /orgs/{org_name}/teams --paginate"
+    teams_data = _gh_run_and_get_json(cmd)
+    # Extract team slugs from the response.
+    team_names = [team["slug"] for team in teams_data]
+    # Sort team names if requested.
+    if sort:
+        team_names = sorted(team_names)
+    _LOG.debug("Found %s teams for org '%s'", len(team_names), org_name)
+    return team_names
+
+
+def gh_get_team_member_names(
+    team_slug: str, org_name: str = ""
+) -> List[str]:
+    """
+    Get a list of member usernames for a specific team in a GitHub organization.
+
+    :param team_slug: team slug (URL-friendly team name), e.g., "dev_system"
+    :param org_name: organization name, e.g., "causify-ai". If empty,
+        infers from the current repo
+    :return: list of member usernames (login names)
+        Example output:
+        ```
+        ["username1", "username2", "username3"]
+        ```
+    """
+    org_name = _get_org_name(org_name)
+    hdbg.dassert_isinstance(team_slug, str)
+    _LOG.debug(hprint.to_str("org_name team_slug"))
+    # Get the team members using GitHub API.
+    cmd = f"gh api /orgs/{org_name}/teams/{team_slug}/members --paginate"
+    members_data = _gh_run_and_get_json(cmd)
+    # Extract usernames from the response.
+    usernames = [member["login"] for member in members_data]
+    _LOG.debug(
+        "Found %s members in team '%s' (org: '%s')",
+        len(usernames),
+        team_slug,
+        org_name,
+    )
+    return usernames
 
 
 def _gh_run_and_get_json(cmd: str) -> List[Dict[str, Any]]:
