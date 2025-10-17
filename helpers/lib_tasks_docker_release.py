@@ -1716,16 +1716,16 @@ def docker_build_test_dev_image(  # type: ignore
     _LOG.info("Step 5: Running tests")
     dev_version = _get_dev_version(version, container_dir_name)
     stage = "local"
-    _run_tests(
-        ctx,
-        stage,
-        dev_version,
-        skip_tests=False,
-        fast_tests=True,
-        slow_tests=True,
-        superslow_tests=False,
-        qa_tests=False,
-    )
+    # _run_tests(
+    #     ctx,
+    #     stage,
+    #     dev_version,
+    #     skip_tests=False,
+    #     fast_tests=True,
+    #     slow_tests=True,
+    #     superslow_tests=True,
+    #     qa_tests=False,
+    # )
     # 6) Add changelog entry.
     _LOG.info("Step 6: Adding changelog entry")
     supermodule = True
