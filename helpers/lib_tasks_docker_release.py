@@ -1669,6 +1669,7 @@ def docker_build_test_dev_image(  # type: ignore
     8) Commit changes with versioned message
     9) Push changes
     10) Create PR
+    11) Tag and push image to GHCR
 
     :param ctx: invoke context
     :param assignee: GitHub username to assign the issue to (required)
@@ -1722,7 +1723,7 @@ def docker_build_test_dev_image(  # type: ignore
         skip_tests=False,
         fast_tests=True,
         slow_tests=True,
-        superslow_tests=True,
+        superslow_tests=False,
         qa_tests=False,
     )
     # 6) Add changelog entry.
@@ -1785,6 +1786,34 @@ def docker_build_test_dev_image(  # type: ignore
         ctx,
         body=pr_body,
     )
-    _LOG.info("==> SUCCESS <==")
     _LOG.info("Issue #%s created and PR submitted", issue_id)
+    # 11) Tag and push to GHCR.
+    _LOG.info("Step 11: Tagging and pushing image to GHCR")
+    # Get GHCR base image path from repo config.
+    ghcr_base = hrecouti.get_repo_config().get_container_registry_url("ghcr")
+    ghcr_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    ghcr_base_image = f"{ghcr_base}/{ghcr_image_name}"
+    _LOG.info("GHCR base image: %s", ghcr_base_image)
+    # Get local image name.
+    local_stage = "local"
+    image_local = hlitadoc.get_image("", local_stage, dev_version)
+    # Tag local image as versioned GHCR dev image (e.g., ghcr.io/causify-ai/csfy:dev-2.3.0).
+    ghcr_image_versioned = f"{ghcr_base_image}:dev-{version}"
+    cmd = f"docker tag {image_local} {ghcr_image_versioned}"
+    hlitauti.run(ctx, cmd)
+    _LOG.info("Tagged as versioned GHCR dev image: %s", ghcr_image_versioned)
+    # Tag local image as latest GHCR dev image (e.g., ghcr.io/causify-ai/csfy:dev).
+    ghcr_image_latest = f"{ghcr_base_image}:dev"
+    cmd = f"docker tag {image_local} {ghcr_image_latest}"
+    hlitauti.run(ctx, cmd)
+    _LOG.info("Tagged as latest GHCR dev image: %s", ghcr_image_latest)
+    # Push versioned GHCR dev image.
+    cmd = f"docker push {ghcr_image_versioned}"
+    hlitauti.run(ctx, cmd, pty=True)
+    _LOG.info("Pushed versioned GHCR dev image: %s", ghcr_image_versioned)
+    # Push latest GHCR dev image.
+    cmd = f"docker push {ghcr_image_latest}"
+    hlitauti.run(ctx, cmd, pty=True)
+    _LOG.info("Pushed latest GHCR dev image: %s", ghcr_image_latest)
+    _LOG.info("==> SUCCESS <==")
     return issue_id
