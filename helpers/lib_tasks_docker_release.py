@@ -1785,6 +1785,8 @@ def docker_build_test_dev_image(  # type: ignore
     hlitagh.gh_create_pr(
         ctx,
         body=pr_body,
+        draft=False,
+        reviewer=assignee,
     )
     _LOG.info("Issue #%s created and PR submitted", issue_id)
     # 11) Tag and push to GHCR.
