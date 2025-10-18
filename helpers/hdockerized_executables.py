@@ -22,6 +22,7 @@ import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hmarkdown as hmarkdo
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
@@ -557,6 +558,17 @@ def prettier(
             "--use-tabs false",
         ]
     )
+    # For markdown and text files, wrap div blocks with prettier-ignore.
+    if file_type in ("md", "txt"):
+        # Pre-process the file.
+        txt = hio.from_file(in_file_path)
+        lines = txt.split("\n")
+        lines = hmarkdo.add_prettier_ignore_to_div_blocks(lines)
+        txt = "\n".join(lines)
+        # Save to tmp file.
+        tmp_file_name = "tmp.prettier." + file_type
+        hio.to_file(tmp_file_name, txt)
+        in_file_path = tmp_file_name
     # Run prettier.
     if use_dockerized_prettier:
         # Run `prettier` in a Docker container.
@@ -584,41 +596,14 @@ def prettier(
         cmd_as_str = " ".join(cmd)
         _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
         _LOG.debug("output_tmp=%s", output_tmp)
-
-
-def _add_prettier_ignore_to_div_blocks(lines: List[str]) -> List[str]:
-    """
-    Add prettier-ignore comments around div blocks.
-
-    A div block starts with a line containing ::: and has another line
-    with ::: following it.
-
-    Examples of div blocks:
-    - ::::
-      ::::{.column width=40%}
-    - :::columns
-      ::::{.column width=60%}
-    - ::::
-      :::
-
-    :param lines: List of strings representing lines in a markdown file.
-    :return: List of strings with prettier-ignore comments added.
-    """
-    # Import here to avoid circular dependency.
-    import helpers.hmarkdown_formatting as hmarkdo
-    return hmarkdo.add_prettier_ignore_to_div_blocks(lines)
-
-
-def _remove_prettier_ignore_from_div_blocks(lines: List[str]) -> List[str]:
-    """
-    Remove prettier-ignore comments that were added around div blocks.
-
-    :param lines: List of strings representing lines in a markdown file.
-    :return: List of strings with prettier-ignore comments removed.
-    """
-    # Import here to avoid circular dependency.
-    import helpers.hmarkdown_formatting as hmarkdo
-    return hmarkdo.remove_prettier_ignore_from_div_blocks(lines)
+    # For markdown and text files, remove prettier-ignore comments in place.
+    if file_type in ("md", "txt"):
+        txt = hio.from_file(out_file_path)
+        lines = txt.split("\n")
+        lines = hmarkdo.remove_prettier_ignore_from_div_blocks(lines)
+        txt = "\n".join(lines)
+        #
+        txt = hio.to_file(out_file_path, txt)
 
 
 # TODO(gp): Convert this into a decorator to adapt operations that work on
@@ -639,23 +624,13 @@ def prettier_on_str(
     # TODO(gp): Use a context manager.
     hdbg.dassert_in(file_type, ["md", "tex", "txt"])
     tmp_file_name = "tmp.prettier_on_str." + file_type
-    # For markdown and text files, wrap div blocks with prettier-ignore.
-    if file_type in ("md", "txt"):
-        lines = txt.split("\n")
-        lines = _add_prettier_ignore_to_div_blocks(lines)
-        txt = "\n".join(lines)
     hio.to_file(tmp_file_name, txt)
     # Call `prettier` in-place.
     prettier(tmp_file_name, tmp_file_name, file_type, *args, **kwargs)
     # Read result into a string.
     txt = hio.from_file(tmp_file_name)
-    # For markdown and text files, remove prettier-ignore comments.
-    if file_type in ("md", "txt"):
-        lines = txt.split("\n")
-        lines = _remove_prettier_ignore_from_div_blocks(lines)
-        txt = "\n".join(lines)
     _LOG.debug("After prettier txt=\n%s", txt)
-    os.remove(tmp_file_name)
+    #os.remove(tmp_file_name)
     return txt  # type: ignore
 
 
