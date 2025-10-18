@@ -1279,3 +1279,133 @@ class Test_format_md_links_to_latex_format(hunitest.TestCase):
         """
         # Run test.
         self.helper(input_text, expected_text)
+
+    def test_markdown_link_with_escaped_underscores(self) -> None:
+        """
+        Test markdown link with escaped underscores in the text.
+        """
+        # Prepare inputs.
+        input_text = r"""
+        [tutorial\_docker\_compose](https://github.com/gpsaggese/umd_classes/tree/main/data605/tutorials/tutorial_docker_compose)
+        """
+        expected_text = r"""
+        [\textcolor{blue}{\underline{tutorial\_docker\_compose}}](https://github.com/gpsaggese/umd_classes/tree/main/data605/tutorials/tutorial_docker_compose)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+
+# #############################################################################
+# Test_add_prettier_ignore_to_div_blocks
+# #############################################################################
+
+
+class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
+    """
+    Test the function to add prettier-ignore comments around div blocks.
+    """
+
+    def test_simple_div_block(self) -> None:
+        """
+        Test a simple div block with two colons.
+        """
+        # Prepare inputs.
+        txt = """
+        ::::
+        :::
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        # Run test.
+        actual_lines = hmarform.add_prettier_ignore_to_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        self.check_string(actual)
+
+    def test_multiple_div_blocks(self) -> None:
+        """
+        Test multiple div blocks in the same content.
+        """
+        # Prepare inputs.
+        txt = """
+        Some text before
+
+        ::::
+        ::::{.column width=40%}
+
+        Middle text
+
+        :::columns
+        ::::{.column width=60%}
+
+        Some text after
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        # Run test.
+        actual_lines = hmarform.add_prettier_ignore_to_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        self.check_string(actual)
+
+
+# #############################################################################
+# Test_remove_prettier_ignore_from_div_blocks
+# #############################################################################
+
+
+class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
+    """
+    Test the function to remove prettier-ignore comments from div blocks.
+    """
+
+    def test_remove_simple_block(self) -> None:
+        """
+        Test removing prettier-ignore from a simple div block.
+        """
+        # Prepare inputs.
+        txt = """
+
+        <!-- prettier-ignore-start -->
+        ::::
+        :::
+        <!-- prettier-ignore-end -->
+
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        # Run test.
+        actual_lines = hmarform.remove_prettier_ignore_from_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        self.check_string(actual)
+
+    def test_remove_multiple_blocks(self) -> None:
+        """
+        Test removing prettier-ignore from multiple div blocks.
+        """
+        # Prepare inputs.
+        txt = """
+        Text before
+
+        <!-- prettier-ignore-start -->
+        ::::
+        ::::{.column width=40%}
+        <!-- prettier-ignore-end -->
+
+        Middle text
+
+        <!-- prettier-ignore-start -->
+        :::columns
+        ::::{.column width=60%}
+        <!-- prettier-ignore-end -->
+
+        Text after
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        # Run test.
+        actual_lines = hmarform.remove_prettier_ignore_from_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        self.check_string(actual)

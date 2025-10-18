@@ -580,3 +580,282 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
             os.path.exists(out_file_path),
             msg=f"Output file {out_file_path} not found",
         )
+
+
+# #############################################################################
+# Test_add_prettier_ignore_to_div_blocks
+# #############################################################################
+
+
+class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
+    """
+    Test the function to add prettier-ignore comments around div blocks.
+    """
+
+    # TODO(ai): Pass also expected with the expected output and use self.assert_equal instead of check_string
+    def helper(self, txt: str) -> None:
+        """
+        Helper method to reduce redundancy in test cases.
+
+        :param txt: Input text with div blocks.
+        """
+        # Prepare inputs.
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        # Run test.
+        actual_lines = hdocexec._add_prettier_ignore_to_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        self.check_string(actual)
+
+    def test_simple_div_block(self) -> None:
+        """
+        Test a simple div block with two colons.
+        """
+        txt = """
+        ::::
+        :::
+        """
+        self.helper(txt)
+
+    def test_div_block_with_attributes(self) -> None:
+        """
+        Test a div block with column attributes.
+        """
+        txt = """
+        ::::
+        ::::{.column width=40%}
+        """
+        self.helper(txt)
+
+    def test_multiple_div_blocks(self) -> None:
+        """
+        Test multiple div blocks in the same content.
+        """
+        txt = """
+        Some text before
+
+        ::::
+        ::::{.column width=40%}
+
+        Middle text
+
+        :::columns
+        ::::{.column width=60%}
+
+        Some text after
+        """
+        self.helper(txt)
+
+    def test_no_div_blocks(self) -> None:
+        """
+        Test content with no div blocks.
+        """
+        txt = """
+        Some normal text
+        with no div blocks
+        at all
+        """
+        self.helper(txt)
+
+    def test_unclosed_div_block(self) -> None:
+        """
+        Test a div block that is not closed.
+        """
+        txt = """
+        Some text
+
+        ::::
+
+        More text
+        """
+        self.helper(txt)
+
+
+# #############################################################################
+# Test_remove_prettier_ignore_from_div_blocks
+# #############################################################################
+
+
+class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
+    """
+    Test the function to remove prettier-ignore comments from div blocks.
+    """
+
+    # TODO(ai): Pass also expected with the expected output and use self.assert_equal instead of check_string
+    def helper(self, txt: str) -> None:
+        """
+        Helper method to reduce redundancy in test cases.
+
+        :param txt: Input text with prettier-ignore comments.
+        """
+        # Prepare inputs.
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        # Run test.
+        actual_lines = hdocexec._remove_prettier_ignore_from_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        self.check_string(actual)
+
+    def test_remove_simple_block(self) -> None:
+        """
+        Test removing prettier-ignore from a simple div block.
+        """
+        txt = """
+
+        <!-- prettier-ignore-start -->
+        ::::
+        :::
+        <!-- prettier-ignore-end -->
+
+        """
+        self.helper(txt)
+
+    def test_remove_block_with_content(self) -> None:
+        """
+        Test removing prettier-ignore from a div block with content.
+        """
+        txt = """
+        Some text before
+
+        <!-- prettier-ignore-start -->
+        ::::
+        ::::{.column width=40%}
+        <!-- prettier-ignore-end -->
+
+        Some text after
+        """
+        self.helper(txt)
+
+    def test_remove_multiple_blocks(self) -> None:
+        """
+        Test removing prettier-ignore from multiple div blocks.
+        """
+        txt = """
+        Text before
+
+        <!-- prettier-ignore-start -->
+        ::::
+        ::::{.column width=40%}
+        <!-- prettier-ignore-end -->
+
+        Middle text
+
+        <!-- prettier-ignore-start -->
+        :::columns
+        ::::{.column width=60%}
+        <!-- prettier-ignore-end -->
+
+        Text after
+        """
+        self.helper(txt)
+
+    def test_no_prettier_ignore_comments(self) -> None:
+        """
+        Test content with no prettier-ignore comments.
+        """
+        txt = """
+        Some normal text
+        with no prettier-ignore comments
+        at all
+        """
+        self.helper(txt)
+
+
+# #############################################################################
+# Test_add_remove_prettier_ignore_roundtrip
+# #############################################################################
+
+
+class Test_add_remove_prettier_ignore_roundtrip(hunitest.TestCase):
+    """
+    Test that adding and removing prettier-ignore comments is a roundtrip.
+    """
+
+    def helper(txt):
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        # Run test.
+        # Add prettier-ignore comments.
+        lines_with_comments = hdocexec._add_prettier_ignore_to_div_blocks(lines)
+        # Remove prettier-ignore comments.
+        lines_restored = hdocexec._remove_prettier_ignore_from_div_blocks(
+            lines_with_comments
+        )
+        actual = "\n".join(lines_restored)
+        expected = txt
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test_roundtrip_simple(self) -> None:
+        """
+        Test that add and remove operations are inverses for simple div block.
+        """
+        # Prepare inputs.
+        txt = """
+        ::::
+        :::
+        """
+        self.helper()
+
+    def test_roundtrip_complex1(self) -> None:
+        """
+        Test roundtrip for content with multiple div blocks and text.
+        """
+        # Prepare inputs.
+        txt = """
+        Text1
+
+        ::::
+        ::::{.column width=40%}
+
+        Text2
+
+        :::columns
+        ::::{.column width=60%}
+
+        Text3
+        """
+        self.helper()
+
+    def test_roundtrip_complex2(self) -> None:
+        """
+        Test roundtrip for content with multiple div blocks and text.
+        """
+        # Prepare inputs.
+        txt = """
+        Text1
+        :::
+        ::::{.column width=40%}
+        Text2
+        ::::
+        ::::{.column width=40%}
+        Text3
+        :::columns
+        ::::{.column width=60%}
+        Text4
+        """
+        self.helper()
+
+    def test_roundtrip_complex3(self) -> None:
+        """
+        Test roundtrip for content with multiple div blocks and text.
+        """
+        # Prepare inputs.
+        txt = """
+        Text1
+
+        :::
+        ::::{.column width=40%}
+
+        Text2
+        ::::
+        ::::{.column width=40%}
+
+        Text3
+        :::columns
+        ::::{.column width=60%}
+        Text4
+        """
+        self.helper()
