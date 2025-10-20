@@ -89,6 +89,22 @@ def _get_branch_name(branch_mode: str) -> Optional[str]:
     return branch_name
 
 
+def _get_org_name(org_name: str) -> str:
+    """
+    Get organization name, inferring from current repo if not provided.
+
+    :param org_name: organization name or empty string
+    :return: organization name
+    """
+    if not org_name:
+        # Infer organization from current repo.
+        full_repo_name = hgit.get_repo_full_name_from_dirname(
+            ".", include_host_name=False
+        )
+        org_name = full_repo_name.split("/")[0]
+    return org_name
+
+
 def _get_workflow_table() -> htable.TableType:
     """
     Get a table with the status of the GH workflow for the current repo.
@@ -231,9 +247,7 @@ def gh_workflow_list(  # type: ignore
                 # to the `PATH` (when inside the container) so we can just use
                 # them without specifying the full path.
                 helpers_root_dir = hgit.find_helpers_root()
-                file_path = (
-                    f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
-                )
+                file_path = f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
                 cmd = f"{file_path}/remove_escape_chars.py -i {log_file_name}"
                 hsystem.system(cmd)
                 print(f"# Log is in '{log_file_name}'")
@@ -404,6 +418,84 @@ def gh_issue_title(ctx, issue_id, repo_short_name="current", pbcopy=True):  # ty
     hsystem.to_pbcopy(msg, pbcopy=pbcopy)
 
 
+@task
+def gh_issue_create(  # type: ignore
+    ctx,
+    title="",
+    body="",
+    labels="",
+    assignees="",
+    project="",
+    repo_short_name="current",
+):
+    """
+    Create a new GitHub issue in the specified repository.
+
+    ```
+    # Create a simple issue
+    > invoke gh_issue_create --title "Fix bug in parser"
+
+    # Create an issue with body and labels
+    > invoke gh_issue_create --title "Add new feature" --body "Description here" --labels "enhancement,priority-high"
+
+    # Create an issue with assignees
+    > invoke gh_issue_create --title "Review PR" --assignees "user1,user2"
+
+    # Create an issue and add to a project
+    > invoke gh_issue_create --title "Implement feature" --project "Development Board"
+    ```
+
+    :param title: title of the issue (required)
+    :param body: body/description of the issue
+    :param labels: comma-separated list of labels to apply
+    :param assignees: comma-separated list of GitHub usernames to assign
+    :param project: GitHub project name or number to add the issue to
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
+    :return: issue ID (integer) of the created issue
+    """
+    hlitauti.report_task(txt=hprint.to_str("title repo_short_name"))
+    # Login.
+    gh_login(ctx)
+    #
+    hdbg.dassert(title, "Title is required")
+    hdbg.dassert_eq(repo_short_name, "current")
+    repo_full_name_with_host, repo_short_name = _get_repo_full_name_from_cmd(
+        repo_short_name
+    )
+    _LOG.info(
+        "Creating issue with title '%s' in %s",
+        title,
+        repo_full_name_with_host,
+    )
+    # Build the command.
+    cmd = (
+        "gh issue create"
+        + f" --repo {repo_full_name_with_host}"
+        + f' --title "{title}"'
+    )
+    if body:
+        cmd += f' --body "{body}"'
+    if labels:
+        cmd += f' --label "{labels}"'
+    if assignees:
+        cmd += f' --assignee "{assignees}"'
+    if project:
+        cmd += f' --project "{project}"'
+    # Execute the command and capture output.
+    # gh issue create outputs the URL of the created issue, e.g.,
+    # https://github.com/cryptokaizen/csfy/issues/7572
+    _, output = hsystem.system_to_string(cmd)
+    _LOG.debug("gh issue create output: %s", output)
+    # Extract the issue ID from the URL.
+    # The URL format is: https://github.com/org/repo/issues/123
+    match = re.search(r"/issues/(\d+)", output)
+    hdbg.dassert(match, f"Could not extract issue ID from output: {output}")
+    issue_id = int(match.group(1))
+    _LOG.info("Created issue #%s", issue_id)
+    return issue_id
+
+
 # #############################################################################
 
 
@@ -427,6 +519,7 @@ def gh_create_pr(  # type: ignore
     auto_merge=False,
     repo_short_name="current",
     title="",
+    reviewer="",
 ):
     """
     Create a draft PR for the current branch in the corresponding
@@ -443,7 +536,10 @@ def gh_create_pr(  # type: ignore
     :param body: the body of the PR
     :param draft: draft or ready-to-review PR
     :param auto_merge: enable auto merging PR
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
     :param title: title of the PR or the branch name, if title is empty
+    :param reviewer: GitHub username to request review from
     """
     hlitauti.report_task()
     # Login.
@@ -484,6 +580,9 @@ def gh_create_pr(  # type: ignore
             + f' --title "{title}"'
             + f' --body "{body}"'
         )
+        if reviewer:
+            cmd += f" --reviewer {reviewer}"
+            _LOG.info("Added reviewer %s to the PR", reviewer)
         # TODO(gp): Use _to_single_line_cmd
         hlitauti.run(ctx, cmd)
     if auto_merge:
@@ -737,9 +836,7 @@ def gh_get_overall_build_status_for_repo(
     return overall_status
 
 
-def gh_get_workflow_type_names(
-    repo_name: str, *, sort: bool = True
-) -> List[str]:
+def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str]:
     """
     Get a list of workflow names for a given repo.
 
@@ -833,6 +930,64 @@ def gh_get_workflow_details(
     hdbg.dassert_eq(len(workflow_statuses), limit, only_warning=True)
     _LOG.debug("workflow_statuses=\n%s", workflow_statuses)
     return workflow_statuses
+
+
+def gh_get_org_team_names(org_name: str = "", *, sort: bool = True) -> List[str]:
+    """
+    Get a list of team names for a GitHub organization.
+
+    :param org_name: organization name, e.g., "causify-ai". If empty,
+        infers from the current repo
+    :param sort: if True, sort team names alphabetically
+    :return: list of team names (slugs)
+        Example output:
+        ```
+        ["dev_system", "dev_frontend", "qa_team"]
+        ```
+    """
+    org_name = _get_org_name(org_name)
+    _LOG.debug(hprint.to_str("org_name"))
+    # Get the team list using GitHub API.
+    cmd = f"gh api /orgs/{org_name}/teams --paginate"
+    teams_data = _gh_run_and_get_json(cmd)
+    # Extract team slugs from the response.
+    team_names = [team["slug"] for team in teams_data]
+    # Sort team names if requested.
+    if sort:
+        team_names = sorted(team_names)
+    _LOG.debug("Found %s teams for org '%s'", len(team_names), org_name)
+    return team_names
+
+
+def gh_get_team_member_names(team_slug: str, org_name: str = "") -> List[str]:
+    """
+    Get a list of member usernames for a specific team in a GitHub
+    organization.
+
+    :param team_slug: team slug (URL-friendly team name), e.g., "dev_system"
+    :param org_name: organization name, e.g., "causify-ai". If empty,
+        infers from the current repo
+    :return: list of member usernames (login names)
+        Example output:
+        ```
+        ["username1", "username2", "username3"]
+        ```
+    """
+    org_name = _get_org_name(org_name)
+    hdbg.dassert_isinstance(team_slug, str)
+    _LOG.debug(hprint.to_str("org_name team_slug"))
+    # Get the team members using GitHub API.
+    cmd = f"gh api /orgs/{org_name}/teams/{team_slug}/members --paginate"
+    members_data = _gh_run_and_get_json(cmd)
+    # Extract usernames from the response.
+    usernames = [member["login"] for member in members_data]
+    _LOG.debug(
+        "Found %s members in team '%s' (org: '%s')",
+        len(usernames),
+        team_slug,
+        org_name,
+    )
+    return usernames
 
 
 def _gh_run_and_get_json(cmd: str) -> List[Dict[str, Any]]:

@@ -217,6 +217,35 @@ def _check_version(code_version: str, container_version: str) -> bool:
     return is_ok
 
 
+def bump_version(version: str, *, bump_type: str = "minor") -> str:
+    """
+    Bump a semantic version number.
+
+    :param version: version string in format X.Y.Z (e.g., "2.2.0")
+    :param bump_type: type of version bump - "major", "minor", or "patch"
+    :return: bumped version string
+    """
+    hdbg.dassert_in(bump_type, ("major", "minor", "patch"))
+    # Parse version using regex.
+    match = re.match(r"^(\d+)\.(\d+)\.(\d+)$", version)
+    hdbg.dassert(
+        match,
+        f"Invalid version format: '{version}'. Expected X.Y.Z format.",
+    )
+    major, minor, patch = map(int, match.groups())
+    # Bump according to type.
+    if bump_type == "major":
+        major += 1
+        minor = 0
+        patch = 0
+    elif bump_type == "minor":
+        minor += 1
+        patch = 0
+    else:  # patch
+        patch += 1
+    return f"{major}.{minor}.{patch}"
+
+
 def get_container_version_info() -> str:
     txt_tmp: List[str] = []
     #
