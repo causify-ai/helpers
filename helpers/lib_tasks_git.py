@@ -7,18 +7,12 @@ import helpers.lib_tasks_git as hlitagit
 import logging
 import os
 import re
-from typing import Any
-
-import argparse
-import logging
-import os
-from typing import List
-
-import helpers.hdbg as hdbg
-import helpers.hparser as hparser
-import helpers.hsystem as hsystem
+from typing import Any, List
 
 from invoke import task
+
+import helpers.hdbg as hdbg
+import helpers.hsystem as hsystem
 
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
@@ -684,9 +678,7 @@ def _git_diff_with_branch(
         cmd.append(f"--diff-filter={diff_type}")
     cmd.append(f"--name-only HEAD {hash_}")
     cmd = " ".join(cmd)
-    files = hsystem.system_to_files(
-        cmd, dir_name, remove_files_non_present=False
-    )
+    files = hsystem.system_to_files(cmd, dir_name, remove_files_non_present=False)
     files = sorted(files)
     _LOG.debug("%s", "\n".join(files))
     # Filter by `file_name`, if needed.
@@ -985,7 +977,8 @@ def _get_submodule_paths() -> List[str]:
     """
     Get list of submodule paths from .gitmodules file.
 
-    :return: List of submodule directory paths, empty if no submodules found
+    :return: List of submodule directory paths, empty if no submodules
+        found
     """
     gitmodules_path = ".gitmodules"
     if not os.path.exists(gitmodules_path):
@@ -1021,7 +1014,8 @@ def _get_branch_name(submodule_path: str) -> str:
 @task
 def git_branches(ctx):  # type: ignore
     """
-    Print the branch name for the main repository and each git submodule directory.
+    Print the branch name for the main repository and each git submodule
+    directory.
 
     Example usage::
     > dev_scripts_helpers/git/print_git_branches.py

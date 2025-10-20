@@ -247,9 +247,7 @@ def gh_workflow_list(  # type: ignore
                 # to the `PATH` (when inside the container) so we can just use
                 # them without specifying the full path.
                 helpers_root_dir = hgit.find_helpers_root()
-                file_path = (
-                    f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
-                )
+                file_path = f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
                 cmd = f"{file_path}/remove_escape_chars.py -i {log_file_name}"
                 hsystem.system(cmd)
                 print(f"# Log is in '{log_file_name}'")
@@ -492,9 +490,7 @@ def gh_issue_create(  # type: ignore
     # Extract the issue ID from the URL.
     # The URL format is: https://github.com/org/repo/issues/123
     match = re.search(r"/issues/(\d+)", output)
-    hdbg.dassert(
-        match, f"Could not extract issue ID from output: {output}"
-    )
+    hdbg.dassert(match, f"Could not extract issue ID from output: {output}")
     issue_id = int(match.group(1))
     _LOG.info("Created issue #%s", issue_id)
     return issue_id
@@ -840,9 +836,7 @@ def gh_get_overall_build_status_for_repo(
     return overall_status
 
 
-def gh_get_workflow_type_names(
-    repo_name: str, *, sort: bool = True
-) -> List[str]:
+def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str]:
     """
     Get a list of workflow names for a given repo.
 
@@ -965,11 +959,10 @@ def gh_get_org_team_names(org_name: str = "", *, sort: bool = True) -> List[str]
     return team_names
 
 
-def gh_get_team_member_names(
-    team_slug: str, org_name: str = ""
-) -> List[str]:
+def gh_get_team_member_names(team_slug: str, org_name: str = "") -> List[str]:
     """
-    Get a list of member usernames for a specific team in a GitHub organization.
+    Get a list of member usernames for a specific team in a GitHub
+    organization.
 
     :param team_slug: team slug (URL-friendly team name), e.g., "dev_system"
     :param org_name: organization name, e.g., "causify-ai". If empty,

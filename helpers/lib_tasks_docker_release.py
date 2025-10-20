@@ -5,7 +5,6 @@ import helpers.lib_tasks_docker_release as hltadore
 """
 
 import datetime
-import json
 import logging
 import os
 from operator import attrgetter
@@ -1699,10 +1698,7 @@ def docker_build_test_dev_image(  # type: ignore
     _LOG.info("Created issue #%s", issue_id)
     # 3) Create branch based on the issue.
     _LOG.info("Step 3: Creating branch from issue")
-    hlitagit.git_branch_create(
-        ctx,
-        issue_id=issue_id
-    )
+    hlitagit.git_branch_create(ctx, issue_id=issue_id)
     # 4) Build csfy image locally.
     _LOG.info("Step 4: Building local image with version %s", version)
     docker_build_local_image(
@@ -1715,7 +1711,6 @@ def docker_build_test_dev_image(  # type: ignore
     # 5) Run tests.
     _LOG.info("Step 5: Running tests")
     dev_version = _get_dev_version(version, container_dir_name)
-    stage = "local"
     # _run_tests(
     #     ctx,
     #     stage,
