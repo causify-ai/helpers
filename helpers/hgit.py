@@ -11,7 +11,7 @@ import os
 import random
 import re
 import string
-from typing import Any, List, Optional, Tuple, cast
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -69,7 +69,6 @@ def extract_gh_issue_number_from_branch(branch_name: str) -> Optional[int]:
     return None
 
 
-@functools.lru_cache()
 def get_branch_name(dir_name: str = ".") -> str:
     """
     Return the name of the Git branch including a certain dir.
