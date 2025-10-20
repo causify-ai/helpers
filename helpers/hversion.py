@@ -217,7 +217,7 @@ def _check_version(code_version: str, container_version: str) -> bool:
     return is_ok
 
 
-def bump_version(version: str, bump_type: str = "minor") -> str:
+def bump_version(version: str, *, bump_type: str = "minor") -> str:
     """
     Bump a semantic version number.
 
