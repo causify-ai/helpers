@@ -114,20 +114,20 @@ def _run_test(
     # TODO(heanh): Use hsystem.
     # We cannot use `hsystem.system` because it does not support passing of env
     # variables yet.
-    result = subprocess.run(
+    test_run_result = subprocess.run(
         f"invoke {command}", shell=True, env=env, cwd=runnable_dir
     )
     # Clean up the Docker image used in the test run if requested.
     if remove_docker_images:
         _LOG.info("Cleaning up Docker image")
         # Delete the Docker image (disk space reporting is now handled by the task itself).
-        result = subprocess.run(
+        _ = subprocess.run(
             f"invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir
         )
     # pytest returns:
     # - 0 if all tests passed
     # - 5 if no tests are collected
-    if result.returncode in [0, 5]:
+    if test_run_result.returncode in [0, 5]:
         return True
     return False
 
