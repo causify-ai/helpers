@@ -1,3 +1,9 @@
+"""
+Import as:
+
+import helpers.hcache_simple as hcacsimp
+"""
+
 import functools
 import glob
 import json
@@ -519,7 +525,10 @@ def simple_cache(
         func_name = getattr(func, "__name__", "unknown_function")
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
-        set_cache_property("system", func_name, "type", cache_type)
+        # Only set cache type if not already set (preserve existing setting).
+        existing_type = get_cache_property("system", func_name, "type")
+        if not existing_type:
+            set_cache_property("system", func_name, "type", cache_type)
 
         @functools.wraps(func)
         def wrapper(
