@@ -1698,16 +1698,18 @@ def docker_build_test_dev_image(  # type: ignore
     # 5) Run tests.
     _LOG.info("Step 5: Running tests")
     dev_version = _get_dev_version(version, container_dir_name)
-    # _run_tests(
-    #     ctx,
-    #     stage,
-    #     dev_version,
-    #     skip_tests=False,
-    #     fast_tests=True,
-    #     slow_tests=True,
-    #     superslow_tests=True,
-    #     qa_tests=False,
-    # )
+    stage = "dev"
+    _run_tests(
+        ctx,
+        stage,
+        dev_version,
+        skip_tests=False,
+        fast_tests=True,
+        # TODO(Vlad): Enable all tests before using this flow in production.
+        slow_tests=False,
+        superslow_tests=False,
+        qa_tests=False,
+    )
     # 6) Add changelog entry.
     _LOG.info("Step 6: Adding changelog entry")
     supermodule = True
@@ -1801,7 +1803,7 @@ def docker_tag_push_dev_image_from_ghcr(
     dry_run=False,
 ):
     """
-    Tag and push the dev image built in GHCI to the target registries.
+    Tag and push the dev image built in GHCR to the GHCR and AWS ECR.
 
     :param container_dir_name: directory where the Dockerfile is located        
     :param dry_run: if True, only print the commands without executing
