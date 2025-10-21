@@ -1657,19 +1657,6 @@ def docker_build_test_dev_image(  # type: ignore
     """
     Automate the complete dev image periodic release workflow.
 
-    This task performs:
-    1) Bump version (e.g., 2.2.0 -> 2.3.0)
-    2) Create GitHub issue for periodic release assigned to specified user
-    3) Create branch and PR based on the issue
-    4) Build csfy image locally with the bumped version number
-    5) Run tests (fast, slow, superslow)
-    6) Add changelog entry for the release
-    7) Stage poetry.lock and pip_list.txt files
-    8) Commit changes with versioned message
-    9) Push changes
-    10) Create PR
-    11) Tag and push image to GHCR
-
     :param ctx: invoke context
     :param assignee: GitHub username to assign the issue to (required)
     :param container_dir_name: directory where the Dockerfile is located
@@ -1805,3 +1792,51 @@ def docker_build_test_dev_image(  # type: ignore
     _LOG.info("Pushed versioned GHCR dev image: %s", ghcr_image_versioned)
     _LOG.info("==> SUCCESS <==")
     return issue_id
+
+
+@task
+def docker_tag_push_dev_image_from_ghcr(
+    ctx,
+    container_dir_name=".",
+    dry_run=False,
+):
+    """
+    Tag and push the dev image built in GHCI to the target registries.
+
+    :param container_dir_name: directory where the Dockerfile is located        
+    :param dry_run: if True, only print the commands without executing
+        them
+    """
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    # Pull the image.
+    # TODO(Vlad): Factor out common code with `docker_build_test_dev_image()`.
+    version = hversio.get_changelog_version(container_dir_name)
+    ghcr_base = hrecouti.get_repo_config().get_container_registry_url("ghcr")
+    ghcr_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    ghcr_base_image = f"{ghcr_base}/{ghcr_image_name}"
+    ghcr_image_versioned = f"{ghcr_base_image}:dev-{version}"
+    cmd = f"docker pull {ghcr_image_versioned}"
+    hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
+    # Tag and push the image to GHCR as latest dev image.
+    latest_version = None
+    image_ghcr_dev = hlitadoc.get_image(ghcr_base_image, "dev", latest_version)
+    cmd = f"docker tag {ghcr_image_versioned} {image_ghcr_dev}"
+    hlitauti.run(ctx, cmd, dry_run=dry_run)
+    cmd = f"docker push {image_ghcr_dev}"
+    hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
+    # Tag versioned dev image as AWS ECR versioned dev image.
+    base_image = ""
+    image_target_versioned_dev = hlitadoc.get_image(base_image, "dev", version)
+    cmd = f"docker tag {ghcr_image_versioned} {image_target_versioned_dev}"
+    hlitauti.run(ctx, cmd, dry_run=dry_run)
+    # Push versioned dev image to AWS ECR.
+    cmd = f"docker push {image_target_versioned_dev}"
+    hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
+    # Tag latest dev image.
+    latest_version = None
+    image_target_dev = hlitadoc.get_image(base_image, "dev", latest_version)
+    cmd = f"docker tag {ghcr_image_versioned} {image_target_dev}"
+    hlitauti.run(ctx, cmd, dry_run=dry_run)
+    # Push latest dev image to AWS ECR.
+    cmd = f"docker push {image_target_dev}"
+    hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
