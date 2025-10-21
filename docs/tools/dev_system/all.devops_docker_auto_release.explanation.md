@@ -58,7 +58,7 @@
   - Enhanced `gh_create_pr()`: Support for reviewer parameter
 
 - **Version Management** (`bump_version()` in
-  [`/helpers/hversion.py`](/helpers/hversion.py)): New semantic versioning
+  [`/helpers/hversion.py)`](/helpers/hversion.py)): New semantic versioning
   function
   - Bumps version numbers (major/minor/patch)
   - Default: minor bump (e.g., 2.2.0 → 2.3.0)
@@ -124,13 +124,13 @@ verification before production release.
    (`.github/workflows/periodic_dev_image_release.yml`) - Weekly scheduled
    workflow with manual trigger and PR event support
 2. **Invoke Target** (`docker_build_test_dev_image()` in
-   [`/helpers/lib_tasks_docker_release.py`](/helpers/lib_tasks_docker_release.py)) -
+   [`/helpers/lib_tasks_docker_release.py)`](/helpers/lib_tasks_docker_release.py)) -
    Orchestrates the complete build, test, and release pipeline
 3. **GitHub CLI Helpers** (`helpers/lib_tasks_gh.py`) - New team management
    functions (`gh_get_org_team_names()`, `gh_get_team_member_names()`) and
    enhanced `gh_create_pr()` with reviewer support
 4. **Version Management** (`bump_version()` in
-   [`/helpers/hversion.py`](/helpers/hversion.py)) - Semantic version bumping
+   [`/helpers/hversion.py)`](/helpers/hversion.py)) - Semantic version bumping
    (minor by default: 2.2.0 → 2.3.0)
 
 ## Phase 2: Manual Review
