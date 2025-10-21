@@ -520,6 +520,7 @@ def gh_create_pr(  # type: ignore
     repo_short_name="current",
     title="",
     reviewer="",
+    labels="",
 ):
     """
     Create a draft PR for the current branch in the corresponding
@@ -540,6 +541,7 @@ def gh_create_pr(  # type: ignore
         otherwise a `repo_short_name` (e.g., "amp")
     :param title: title of the PR or the branch name, if title is empty
     :param reviewer: GitHub username to request review from
+    :param labels: comma-separated list of labels to apply
     """
     hlitauti.report_task()
     # Login.
@@ -572,7 +574,7 @@ def gh_create_pr(  # type: ignore
         _LOG.debug(hprint.to_str("issue_id"))
         if issue_id and str(issue_id) not in body:
             body += f"\n\n#{issue_id}"
-            _LOG.info("Added issue id %s to the PR body", issue_id)
+            _LOG.info("Added issue id %s to the PR body", issue_id)      
         cmd = (
             "gh pr create"
             + f" --repo {repo_full_name_with_host}"
@@ -583,6 +585,9 @@ def gh_create_pr(  # type: ignore
         if reviewer:
             cmd += f" --reviewer {reviewer}"
             _LOG.info("Added reviewer %s to the PR", reviewer)
+        if labels:
+            cmd += f' --label "{labels}"'
+            _LOG.info("Added labels %s to the PR", labels)
         # TODO(gp): Use _to_single_line_cmd
         hlitauti.run(ctx, cmd)
     if auto_merge:

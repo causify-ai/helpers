@@ -30,6 +30,7 @@ import helpers.repo_config_utils as hrecouti
 
 _DEFAULT_TARGET_REGISTRY = "aws_ecr.ck"
 _LOG = logging.getLogger(__name__)
+_AUTO_RELEASE_LABEL = "Automated release"
 
 # pylint: disable=protected-access
 
@@ -1766,11 +1767,13 @@ def docker_build_test_dev_image(  # type: ignore
     # TODO(Vlad): Need to remove cache_clear after removing lru_cache from
     # get_branch_name.
     hgit.get_branch_name.cache_clear()
+    label = _AUTO_RELEASE_LABEL
     hlitagh.gh_create_pr(
         ctx,
         body=pr_body,
         draft=False,
         reviewer=assignee,
+        labels=label,
     )
     _LOG.info("Issue #%s created and PR submitted", issue_id)
     # 11) Tag and push to GHCR.
