@@ -1560,6 +1560,7 @@ def slide_format_figures() -> _PROMPT_OUT:
     post_container_transforms = ["format_figures"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
+
 # #############################################################################
 # Lesson script.
 # #############################################################################
@@ -1578,7 +1579,7 @@ def script_rewrite() -> _PROMPT_OUT:
       bullet points
     - Each sentence needs to be short and concise, not more than 30 words, in full
       and correct English, using you or we
-    - Make sure it's under 200 words
+    - Make sure it's under 150 words
     """
     pre_transforms: Set[str] = set()
     post_transforms = {
@@ -1675,6 +1676,45 @@ def text_rewrite() -> _PROMPT_OUT:
     }
     post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def text_reduce() -> _PROMPT_OUT:
+    """
+    Rephrase the text using text_rephrase.txt.
+    """
+    system = ""
+    system += r"""
+    You are an expert academic summarizer. 
+    
+    Your task is to read the following text and produce a concise, structured
+    summary in Markdown bullet format.
+
+    Guidelines:
+    - Capture the main concepts, definitions, and logical relationships precisely.
+    - Use concise bullet points, clear indentation, and minimal prose.
+    - Include mathematical expressions in LaTeX
+      - E.g., $$P(Y|X) > P(Y)$$)
+    - Group related points under clear section headers with asterisks or dashes,
+      example
+      * Concept A
+        - Definition or key idea
+        - Supporting detail or example
+
+      * Concept B
+        - Definition
+        - Mathematical formulation
+    - Preserve key examples and show what they illustrate.
+    - Avoid interpretation, commentary, or stylistic reformulation — stay close
+     to the text’s logical flow.
+    - Do not quote the original sentences directly; rephrase succinctly.
+
+    Produce the structured summary from the text below.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
 
 
 # #############################################################################

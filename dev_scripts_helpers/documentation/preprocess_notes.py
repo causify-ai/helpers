@@ -52,8 +52,8 @@ def _process_abbreviations(in_line: str) -> str:
         # TODO(gp): This collides with the arrow in graphviz commands. We
         # should skip this transformation if we are in a graphviz block.
         # (r"->", r"\rightarrow"),
-        (r"-^", r"\uparrow"),
-        (r"-v", r"\downarrow"),
+        #(r"-^", r"\uparrow"),
+        #(r"-v", r"\downarrow"),
     ]:
         line = re.sub(rf"(\s){re.escape(x)}(\s)", rf"\1${re.escape(y)}$\2", line)
     if line != in_line:
