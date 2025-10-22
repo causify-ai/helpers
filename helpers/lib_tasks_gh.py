@@ -1069,6 +1069,77 @@ def render_repo_workflow_status_table(
         )
 
 
+@task
+def gh_delete_workflow_runs(ctx, workflow_name):
+    """
+    Delete all workflow runs for a given workflow.
+
+    :param workflow_name: name of the workflow to delete runs for
+    """
+    hlitauti.report_task(txt=hprint.to_str("workflow_name"))
+    # Login.
+    gh_login(ctx)
+    #
+    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd("current")
+    _LOG.info(
+        "Deleting workflow runs for '%s' in %s",
+        workflow_name,
+        repo_full_name_with_host,
+    )
+    # Get workflow ID by name.
+    repo_path = repo_full_name_with_host.replace("github.com/", "")
+    workflows = gh_get_workflows(repo_path)
+    workflow_id = None
+    for workflow in workflows:
+        if workflow["name"] == workflow_name:
+            workflow_id = workflow["id"]
+            break
+    if not workflow_id:
+        available_workflows = [w["name"] for w in workflows]
+        raise ValueError(
+            f"Workflow '{workflow_name}' not found. "
+            f"Available workflows: {available_workflows}"
+        )
+    _LOG.info("Found workflow '%s' with ID: %s", workflow_name, workflow_id)
+    # Get all run IDs for this workflow.
+    cmd = (
+        f"gh api /repos/{repo_path}/actions/workflows/{workflow_id}/runs "
+        "--paginate -q '.workflow_runs[].id'"
+    )
+    _, run_ids_output = hsystem.system_to_string(cmd)
+    # Parse the GitHub API output which returns one run ID per line.
+    # Example output from `gh api`:
+    # "11758293857\n11758293856\n11758293855\n"
+    # We need to strip whitespace and filter out empty lines.
+    run_ids = [
+        run_id.strip()
+        for run_id in run_ids_output.strip().split('\n')
+        if run_id.strip()
+    ]
+    if not run_ids:
+        _LOG.info("No workflow runs found for '%s'", workflow_name)
+        return
+    _LOG.info("Found %d workflow runs to delete", len(run_ids))
+    # Delete each run.
+    deleted_count = 0
+    failed_count = 0
+    for run_id in run_ids:
+        try:
+            cmd = f"gh api -X DELETE /repos/{repo_path}/actions/runs/{run_id}"
+            _LOG.info("Deleting run %s", run_id)
+            hlitauti.run(ctx, cmd)
+            deleted_count += 1
+        except Exception as e:
+            _LOG.error("Failed to delete run %s: %s", run_id, str(e))
+            failed_count += 1
+    _LOG.info(
+        "Deletion complete: %d successful, %d failed out of %d total runs",
+        deleted_count,
+        failed_count,
+        len(run_ids)
+    )
+
+
 # #############################################################################
 
 # def gh_get_pr_title(pr_url: str) -> str:
