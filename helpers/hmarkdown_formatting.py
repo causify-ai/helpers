@@ -42,6 +42,23 @@ def remove_empty_lines(lines: List[str]) -> List[str]:
     return txt_out
 
 
+# def remove_gdoc_artifacts(lines: List[str]) -> List[str]:
+#     """
+#     Remove empty lines from the given text.
+
+#     :param lines: list of input lines to process
+#     :return: lines with empty lines removed
+#     """
+#     hdbg.dassert_isinstance(lines, list)
+#     # Remove “” and ….
+#     lines = re.sub(r"“", '"', lines)
+#     lines = re.sub(r"”", '"', lines)
+#     lines = re.sub(r"’", "'", lines)
+#     lines = re.sub(r"…", "", lines)
+#     hdbg.dassert_isinstance(lines, list)
+#     return lines
+
+
 # TODO(gp): Add tests.
 def remove_code_delimiters(lines: List[str]) -> List[str]:
     """
@@ -122,6 +139,8 @@ def md_clean_up(txt: str) -> str:
     txt = re.sub(r"”", r'"', txt)
     # ’
     txt = re.sub(r"’", r"'", txt)
+    # …
+    txt = re.sub(r"…", r"...", txt)
     # 2) Latex formatting.
     # Replace \( ... \) math syntax with $ ... $.
     txt = re.sub(r"\\\(\s*(.*?)\s*\\\)", r"$\1$", txt)

@@ -443,13 +443,10 @@ def read_file(file_name: str) -> List[str]:
     """
     if file_name == "-":
         _LOG.info("Reading from stdin")
-        f = sys.stdin
         # Read.
         txt = []
-        for line in f:
-            line = line.rstrip("\n")
-            txt.append(line)
-        f.close()
+        for line in sys.stdin:
+            txt.append(line.rstrip("\n"))
     else:
         txt = hio.from_file(file_name)
         txt = txt.split("\n")

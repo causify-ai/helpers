@@ -1678,9 +1678,9 @@ def text_rewrite() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def text_reduce() -> _PROMPT_OUT:
+def text_to_notes() -> _PROMPT_OUT:
     """
-    Rephrase the text using text_rephrase.txt.
+    Convert free form text into text notes.
     """
     system = ""
     system += r"""
@@ -1692,29 +1692,43 @@ def text_reduce() -> _PROMPT_OUT:
     Guidelines:
     - Capture the main concepts, definitions, and logical relationships precisely.
     - Use concise bullet points, clear indentation, and minimal prose.
+    - Each paragraph should be a single concept or idea
+    - Each paragraph must start with an asterisk, like
+      ```
+      * Concept A
+      ...
+      ```
+      have between 4 and 6 bullet points.
     - Include mathematical expressions in LaTeX
       - E.g., $$P(Y|X) > P(Y)$$)
-    - Group related points under clear section headers with asterisks or dashes,
-      example
-      * Concept A
-        - Definition or key idea
-        - Supporting detail or example
-
-      * Concept B
-        - Definition
-        - Mathematical formulation
     - Preserve key examples and show what they illustrate.
     - Avoid interpretation, commentary, or stylistic reformulation — stay close
      to the text’s logical flow.
     - Do not quote the original sentences directly; rephrase succinctly.
+    - The format of the output MUST follow the example below:
+      ```
+      * Concept A
+        - Definition or key idea
+        - Supporting detail or example
+        - ...
+        - ...
+
+      * Concept B
+        - Definition
+        - Mathematical formulation
+        - ...
+        - ...
+    ```
 
     Produce the structured summary from the text below.
     """
     pre_transforms: Set[str] = set()
-    post_transforms: Set[str] = set()
+    post_transforms: Set[str] = {
+        "remove_end_of_line_periods",
+        "md_clean_up",
+    }
     post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
-
 
 
 # #############################################################################
@@ -1961,6 +1975,10 @@ def run_prompt(
         lines = hmarkdo.remove_end_of_line_periods(lines)
     if to_run("remove_empty_lines", post_transforms):
         lines = hmarkdo.remove_empty_lines(lines)
+    if to_run("md_clean_up", post_transforms):
+        txt = "\n".join(lines)
+        lines = hmarkdo.md_clean_up(txt)
+        lines = lines.split("\n")
     txt_out = "\n".join(lines)
     if to_run("convert_to_vim_cfile", post_transforms):
         hdbg.dassert_ne(in_file_name, "")
