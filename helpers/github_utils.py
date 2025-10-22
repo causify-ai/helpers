@@ -6,7 +6,6 @@ import helpers.github_utils as hgitutil
 
 import datetime
 import functools
-import hashlib
 import itertools
 import json
 import logging
@@ -21,109 +20,63 @@ import pandas as pd
 import tqdm as td
 from tqdm import tqdm
 
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 
 _LOG = logging.getLogger(__name__)
 
 
-# #############################################################################
-# GitHubCache
-# #############################################################################
-
-
-class GitHubCache:
+def github_cached(cache_type: str = "json", write_through: bool = True):
     """
-    Custom cache that excludes the client object from cache keys.
+    Cache decorator specifically for GitHub API functions.
+
+    Automatically excludes the 'client' parameter (first positional arg)
+    from cache keys since client instances change across sessions.
+
+    :param cache_type: Type of cache ('json' or 'pickle')
+    :param write_through: If True, write to disk after each cache update
+    :return: Decorated function with caching
     """
 
-    def __init__(self, cache_dir: str = "."):
-        self.cache_dir = cache_dir
+    def decorator(func: Callable) -> Callable:
+        # Get function name for cache
+        func_name = func.__name__
+        if func_name.endswith("_intrinsic"):
+            func_name = func_name[: -len("_intrinsic")]
+        # SET CACHE TYPE PROPERTY (this was missing!)
+        existing_type = hcacsimp.get_cache_property("system", func_name, "type")
+        if not existing_type:
+            hcacsimp.set_cache_property("system", func_name, "type", cache_type)
 
-    def get(self, func_name: str, args: tuple) -> Any:
-        """
-        Get a value from cache.
+        # Create a cached version that only uses args after client.
+        @functools.wraps(func)
+        def wrapper(client, *args, **kwargs):
+            # Create cache key from everything EXCEPT client.
+            cache_key = json.dumps(
+                {"args": args, "kwargs": kwargs},
+                sort_keys=True,
+                default=str,
+            )
+            # Get cache.
+            cache = hcacsimp.get_cache(func_name)
+            # Check if we have cached value.
+            if cache_key in cache:
+                _LOG.debug("Cache hit for %s", func_name)
+                return cache[cache_key]
+            # Cache miss - call the actual function.
+            _LOG.debug("Cache miss for %s, fetching from API", func_name)
+            result = func(client, *args, **kwargs)
+            # Store in cache
+            cache[cache_key] = result
+            # Write to disk if enabled.
+            if write_through:
+                hcacsimp.flush_cache_to_disk(func_name)
+            return result
 
-        :param func_name: name of the function
-        :param args: function arguments
-        :return: cached value or None if not found
-        """
-        cache_path = self._get_cache_path(func_name)
-        # Check if cache file exists.
-        if not os.path.exists(cache_path):
-            return None
-        # Load cache file.
-        with open(cache_path, "r") as f:
-            cache_data = json.load(f)
-        # Generate key and look up value.
-        key = self._make_key(func_name, args)
-        return cache_data.get(key)
+        return wrapper
 
-    def set(self, func_name: str, args: tuple, value: Any) -> None:
-        """
-        Set a value in cache.
+    return decorator
 
-        :param func_name: name of the function
-        :param args: function arguments
-        :param value: value to cache
-        """
-        cache_path = self._get_cache_path(func_name)
-        # Load existing cache or create new.
-        if os.path.exists(cache_path):
-            with open(cache_path, "r") as f:
-                cache_data = json.load(f)
-        else:
-            cache_data = {}
-        # Add new entry.
-        key = self._make_key(func_name, args)
-        cache_data[key] = value
-        # Write back to file.
-        with open(cache_path, "w") as f:
-            json.dump(cache_data, f, indent=2)
-
-    def _make_key(
-        self, func_name: str, args: tuple, skip_first: bool = True
-    ) -> str:
-        """
-        Create a cache key from function name and arguments.
-
-        :param func_name: name of the function
-        :param args: function arguments
-        :param skip_first: Skip first argument (client) when building
-            key
-        :return: cache key string
-        """
-        # Skip the client argument when building the key.
-        cache_args = args[1:] if skip_first else args
-        # Convert arguments to a string representation.
-        key_parts = [func_name]
-        for arg in cache_args:
-            if isinstance(arg, (str, int, float, bool)):
-                key_parts.append(str(arg))
-            elif isinstance(arg, datetime.datetime):
-                key_parts.append(arg.isoformat())
-            elif isinstance(arg, tuple):
-                # Handle period tuples.
-                key_parts.append(f"{arg[0].isoformat()}_{arg[1].isoformat()}")
-            else:
-                # Hash complex objects.
-                key_parts.append(hashlib.md5(str(arg).encode()).hexdigest()[:8])
-        # Create a hash of the key for consistent length.
-        full_key = "_".join(key_parts)
-        res = hashlib.md5(full_key.encode()).hexdigest()
-        return res
-
-    def _get_cache_path(self, func_name: str) -> str:
-        """
-        Get the cache file path for a function.
-
-        :param func_name: name of the function
-        :return: path to the cache file
-        """
-        path = os.path.join(self.cache_dir, f"cache.{func_name}.json")
-        return path
-
-# Create global cache instance.
-_github_cache = GitHubCache()
 
 # #############################################################################
 # GitHubAPI
@@ -601,36 +554,7 @@ def days_between(
     return days
 
 
-def cached_github_function(func: Callable) -> Callable:
-    """
-    Decorator to cache GitHub API functions, excluding client from key.
-
-    The decorated function must have 'client' as the first parameter.
-    :param func: github API function to be cached
-    :return: wrapped function with caching
-    """
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        # Default result is None.
-        result = None
-        # Try to get from cache first.
-        cached_value = _github_cache.get(func.__name__, args)
-        if cached_value is not None:
-            _LOG.debug(f"Cache hit for {func.__name__}")
-            result = cached_value
-        else:
-            # Call the actual function if not cached.
-            _LOG.debug(f"Cache miss for {func.__name__}, fetching from API")
-            result = func(*args, **kwargs)
-            # Store in cache.
-            _github_cache.set(func.__name__, args, result)
-        return result
-
-    return wrapper
-
-
-@cached_github_function
+@github_cached(cache_type="json", write_through=True)
 def get_commit_datetimes_by_repo_period_intrinsic(
     client,
     org: str,
@@ -692,7 +616,7 @@ def get_commit_datetimes_by_repo_period_intrinsic(
     return timestamps
 
 
-@cached_github_function
+@github_cached(cache_type="json", write_through=True)
 def get_pr_datetimes_by_repo_period_intrinsic(
     client,
     org: str,
@@ -749,7 +673,7 @@ def get_pr_datetimes_by_repo_period_intrinsic(
     return timestamps
 
 
-@cached_github_function
+@github_cached(cache_type="json", write_through=True)
 def get_issue_datetimes_by_repo_intrinsic(
     client,
     org: str,
@@ -814,7 +738,7 @@ def get_issue_datetimes_by_repo_intrinsic(
     return result_dict
 
 
-@cached_github_function
+@github_cached(cache_type="json", write_through=True)
 def get_loc_stats_by_repo_period_intrinsic(
     client,
     org: str,
@@ -890,7 +814,7 @@ def get_loc_stats_by_repo_period_intrinsic(
     return stats_list
 
 
-@cached_github_function
+@github_cached(cache_type="json", write_through=True)
 def get_issue_comment_datetimes_by_repo_period_intrinsic(
     client,
     org: str,
@@ -962,7 +886,7 @@ def get_issue_comment_datetimes_by_repo_period_intrinsic(
     return timestamps
 
 
-@cached_github_function
+@github_cached(cache_type="json", write_through=True)
 def get_pr_review_datetimes_by_repo_period_intrinsic(
     client,
     org: str,
