@@ -1113,7 +1113,7 @@ def gh_delete_workflow_runs(ctx, workflow_name):
     # We need to strip whitespace and filter out empty lines.
     run_ids = [
         run_id.strip()
-        for run_id in run_ids_output.strip().split('\n')
+        for run_id in run_ids_output.strip().split("\n")
         if run_id.strip()
     ]
     if not run_ids:
@@ -1136,7 +1136,7 @@ def gh_delete_workflow_runs(ctx, workflow_name):
         "Deletion complete: %d successful, %d failed out of %d total runs",
         deleted_count,
         failed_count,
-        len(run_ids)
+        len(run_ids),
     )
 
 
