@@ -8,12 +8,11 @@
   * [Phase 1: Automated Build and Test (Implemented)](#phase-1-automated-build-and-test-implemented)
     + [Components](#components)
   * [Phase 2: Manual Review](#phase-2-manual-review)
-  * [Phase 3: Automated Release (Planned)](#phase-3-automated-release-planned)
+  * [Phase 3: Automated Release](#phase-3-automated-release)
     + [Team-Based Assignment](#team-based-assignment)
     + [PR Labeling](#pr-labeling)
-    + [Invoke Target `docker_release_dev_image_from_ghcr()`](#invoke-target-docker_release_dev_image_from_ghcr)
-    + [Release Workflow (`.github/workflows/release_dev_image.yml`)](#release-workflow-githubworkflowsrelease_dev_imageyml)
-  * [Resources](#resources)
+    + [Invoke Target `docker_tag_push_dev_image_from_ghcr()`](#invoke-target-docker_tag_push_dev_image_from_ghcr)
+    + [Release Workflow (`.github/workflows/dev_image_release.yml`)](#release-workflow-githubworkflowsdev_image_releaseyml)
 
 <!-- tocstop -->
 
@@ -143,9 +142,9 @@ changelog, no merge conflicts, valid sequential version number.
 
 ## Phase 3: Automated Release
 
-When the PR from Phase 1 is merged, an automated workflow 
-(`.github/workflows/dev_image_release.yml`) detects the merge event with the 
-"Automated release" label, pulls the verified image from GHCR, re-tags it for 
+When the PR from Phase 1 is merged, an automated workflow
+(`.github/workflows/dev_image_release.yml`) detects the merge event with the
+"Automated release" label, pulls the verified image from GHCR, re-tags it for
 production registries (AWS ECR, etc.), and pushes to all target registries.
 
 ### Team-Based Assignment
@@ -183,7 +182,7 @@ production registries (AWS ECR, etc.), and pushes to all target registries.
 **Implementation:**
 
 ```python
-# In gh_create_pr():
+# In Gh_Create_Pr():
 if is_automated_release:
     cmd += ' --label "Automated release"'
 ```
@@ -191,7 +190,7 @@ if is_automated_release:
 ### Invoke Target `docker_tag_push_dev_image_from_ghcr()`
 
 Gets the version from changelog, pulls the versioned dev image from GHCR,
-re-tags it for target registries (GHCR and AWS ECR), pushes to all configured 
+re-tags it for target registries (GHCR and AWS ECR), pushes to all configured
 registries, and verifies the images. Supports dry-run mode for testing.
 
 ### Release Workflow (`.github/workflows/dev_image_release.yml`)
