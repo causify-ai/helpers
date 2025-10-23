@@ -1652,14 +1652,16 @@ def docker_build_frontend_feature_image(
 @task
 def docker_build_test_dev_image(  # type: ignore
     ctx,
-    assignee,
+    assignee="",
     container_dir_name=".",
 ):
     """
-    Automate the complete dev image periodic release workflow.
+    Automate the complete periodic release workflow for the dev image.
 
     :param ctx: invoke context
-    :param assignee: GitHub username to assign the issue to (required)
+    :param assignee: GitHub username(s) to assign the created issue and request
+        PR review. If not specified, uses the release team members from GitHub
+        team configured in repo_config.yaml
     :param container_dir_name: directory where the Dockerfile is located
     :return: issue ID (integer) of the created issue
     """
@@ -1671,8 +1673,16 @@ def docker_build_test_dev_image(  # type: ignore
     _LOG.info("Current version: %s", current_version)
     version = hversio.bump_version(current_version, bump_type="minor")
     _LOG.info("Bumped version: %s -> %s", current_version, version)
-    # 2) Create GitHub issue.
-    _LOG.info("Step 2: Creating GitHub issue")
+    # 2) Get release team members.
+    _LOG.info("Step 2: Getting release team members")
+    if not assignee:
+        release_team_name = hrecouti.get_repo_config().get_release_team()
+        # Get team members from GitHub team.
+        team_members = hlitagh.gh_get_team_member_names(release_team_name)
+        assignee = ",".join(team_members)
+        _LOG.info("Release team '%s' members: %s", release_team_name, assignee)
+    # 3) Create GitHub issue.
+    _LOG.info("Step 3: Creating GitHub issue")
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     issue_title = f"Periodic release of `{image_name}` dev image: {version}"
     issue_body = "Automated periodic release of dev image"
@@ -1684,11 +1694,11 @@ def docker_build_test_dev_image(  # type: ignore
         assignees=assignee,
     )
     _LOG.info("Created issue #%s", issue_id)
-    # 3) Create branch based on the issue.
-    _LOG.info("Step 3: Creating branch from issue")
+    # 4) Create branch based on the issue.
+    _LOG.info("Step 4: Creating branch from issue")
     hlitagit.git_branch_create(ctx, issue_id=issue_id)
-    # 4) Build csfy image locally.
-    _LOG.info("Step 4: Building local image with version %s", version)
+    # 5) Build csfy image locally.
+    _LOG.info("Step 5: Building local image with version %s", version)
     docker_build_local_image(
         ctx,
         version=version,
@@ -1696,8 +1706,8 @@ def docker_build_test_dev_image(  # type: ignore
         poetry_mode="update",
         container_dir_name=container_dir_name,
     )
-    # 5) Run tests.
-    _LOG.info("Step 5: Running tests")
+    # 6) Run tests.
+    _LOG.info("Step 6: Running tests")
     dev_version = _get_dev_version(version, container_dir_name)
     stage = "dev"
     _run_tests(
@@ -1711,8 +1721,8 @@ def docker_build_test_dev_image(  # type: ignore
         superslow_tests=False,
         qa_tests=False,
     )
-    # 6) Add changelog entry.
-    _LOG.info("Step 6: Adding changelog entry")
+    # 7) Add changelog entry.
+    _LOG.info("Step 7: Adding changelog entry")
     supermodule = True
     root_dir = hversio._get_client_root(supermodule)
     changelog_file = os.path.join(root_dir, container_dir_name, "changelog.txt")
@@ -1731,8 +1741,8 @@ def docker_build_test_dev_image(  # type: ignore
     # Write back to file.
     hio.to_file(changelog_file, updated_changelog)
     _LOG.info("Added changelog entry for version %s", version)
-    # 7) Stage files.
-    _LOG.info("Step 7: Staging files")
+    # 8) Stage files.
+    _LOG.info("Step 8: Staging files")
     files_to_stage = [
         "devops/docker_build/poetry.lock",
         "devops/docker_build/pip_list.txt",
@@ -1746,23 +1756,23 @@ def docker_build_test_dev_image(  # type: ignore
             _LOG.info("Staged %s", full_path)
         else:
             _LOG.warning("File not found, skipping: %s", full_path)
-    # 8) Commit changes.
-    _LOG.info("Step 8: Committing changes")
+    # 9) Commit changes.
+    _LOG.info("Step 9: Committing changes")
     commit_message = f"Poetry output from the v{version} build"
     # --no-verify to skip pre-commit checks since the `poetry.lock` file is
     # too big and the `check_file_size` is failed.
     cmd = f'git commit -m "{commit_message}" --no-verify'
     hlitauti.run(ctx, cmd)
-    # 9) Push changes.
-    _LOG.info("Step 9: Pushing changes")
+    # 10) Push changes.
+    _LOG.info("Step 10: Pushing changes")
     # TODO(Vlad): Need to remove cache_clear after removing lru_cache from
     # get_branch_name.
     hgit.get_branch_name.cache_clear()
     branch_name = hgit.get_branch_name()
     cmd = f"git push origin {branch_name}"
     hlitauti.run(ctx, cmd)
-    # 10) Create PR.
-    _LOG.info("Step 10: Creating pull request")
+    # 11) Create PR.
+    _LOG.info("Step 11: Creating pull request")
     pr_body = f"#{issue_id}\n\n- Periodic release of {image_name} dev image version {version}"
     # TODO(Vlad): Need to remove cache_clear after removing lru_cache from
     # get_branch_name.
@@ -1776,8 +1786,8 @@ def docker_build_test_dev_image(  # type: ignore
         labels=label,
     )
     _LOG.info("Issue #%s created and PR submitted", issue_id)
-    # 11) Tag and push to GHCR.
-    _LOG.info("Step 11: Tagging and pushing image to GHCR")
+    # 12) Tag and push to GHCR.
+    _LOG.info("Step 12: Tagging and pushing image to GHCR")
     # Get GHCR base image path from repo config.
     ghcr_base = hrecouti.get_repo_config().get_container_registry_url("ghcr")
     ghcr_image_name = hrecouti.get_repo_config().get_docker_base_image_name()

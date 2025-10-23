@@ -964,7 +964,9 @@ def gh_get_org_team_names(org_name: str = "", *, sort: bool = True) -> List[str]
     return team_names
 
 
-def gh_get_team_member_names(team_slug: str, org_name: str = "") -> List[str]:
+def gh_get_team_member_names(
+    team_slug: str, *, org_name: str = ""
+) -> List[str]:
     """
     Get a list of member usernames for a specific team in a GitHub
     organization.
