@@ -150,6 +150,7 @@ class RepoConfig:
         ret.append(
             f"get_docker_base_image_name='{self.get_docker_base_image_name()}'"
         )
+        ret.append(f"get_release_team='{self.get_release_team()}'")
         txt = "\n".join(ret)
         return txt
 
@@ -259,6 +260,15 @@ class RepoConfig:
         E.g., `helpers`.
         """
         value = self._data["docker_info"]["docker_image_name"]
+        return value
+
+    def get_release_team(self) -> str:
+        """
+        Return the release team name for docker image.
+
+        E.g., `dev_system`.
+        """
+        value = self._data["docker_info"]["release_team"]
         return value
 
     # s3_bucket_info
