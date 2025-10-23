@@ -1765,18 +1765,12 @@ def docker_build_test_dev_image(  # type: ignore
     hlitauti.run(ctx, cmd)
     # 10) Push changes.
     _LOG.info("Step 10: Pushing changes")
-    # TODO(Vlad): Need to remove cache_clear after removing lru_cache from
-    # get_branch_name.
-    hgit.get_branch_name.cache_clear()
     branch_name = hgit.get_branch_name()
     cmd = f"git push origin {branch_name}"
     hlitauti.run(ctx, cmd)
     # 11) Create PR.
     _LOG.info("Step 11: Creating pull request")
     pr_body = f"#{issue_id}\n\n- Periodic release of {image_name} dev image version {version}"
-    # TODO(Vlad): Need to remove cache_clear after removing lru_cache from
-    # get_branch_name.
-    hgit.get_branch_name.cache_clear()
     label = _AUTO_RELEASE_LABEL
     hlitagh.gh_create_pr(
         ctx,
