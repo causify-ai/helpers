@@ -1192,3 +1192,110 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         self._check_docker_command_output(expected, self.mock_run.call_args_list)
         # Check whether task definition was rolled back.
         self.mock_aws.assert_called_with("test_task")
+
+
+# #############################################################################
+# Test_docker_tag_push_dev_image_from_ghcr1
+# #############################################################################
+
+
+class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
+    """
+    Test tagging and pushing dev image from GHCR to multiple registries.
+    """
+
+    def set_up_test(self) -> None:
+        """
+        Set up test environment with additional mocks for GHCR workflow.
+        """
+        super().set_up_test()
+        # Mock version retrieval from changelog.
+        self.changelog_version_patcher = umock.patch(
+            "helpers.hversion.get_changelog_version"
+        )
+        self.mock_changelog_version = self.changelog_version_patcher.start()
+        self.mock_changelog_version.return_value = self.test_version
+        # Mock repo config for GHCR registry URL and image name.
+        self.get_container_registry_url_patcher = umock.patch(
+            "helpers.repo_config_utils.RepoConfig.get_container_registry_url"
+        )
+        self.mock_get_container_registry_url = (
+            self.get_container_registry_url_patcher.start()
+        )
+        self.mock_get_container_registry_url.return_value = "ghcr.io/causify-ai"
+        # Add new patchers to cleanup list.
+        self.patchers.update({
+            "changelog_version": self.changelog_version_patcher,
+            "container_registry_url": self.get_container_registry_url_patcher,
+        })
+
+    def test_normal_execution1(self) -> None:
+        """
+        Test normal execution without dry_run.
+        
+        This test checks:
+        - GHCR image pulling 
+        - Tagging for GHCR and AWS ECR
+        - Pushing to both registries
+        - Versioned and latest image handling
+        """
+        # Call tested function.
+        hltadore.docker_tag_push_dev_image_from_ghcr(
+            self.mock_ctx,
+            container_dir_name=".",
+            dry_run=False,
+        )
+        # Verify expected Docker commands were executed.
+        expected = r"""
+        docker pull ghcr.io/causify-ai/test-image:dev-1.0.0
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev
+        docker push ghcr.io/causify-ai/test-image:dev
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev-1.0.0
+        docker push test.ecr.path/test-image:dev-1.0.0
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev
+        docker push test.ecr.path/test-image:dev
+        """
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+
+    def test_dry_run1(self) -> None:
+        """
+        Test dry_run mode execution.
+        
+        This test checks:
+        - No actual Docker commands are executed when dry_run=True
+        - All operations are simulated
+        - Function completes without errors
+        - Mock calls should include dry_run parameter
+        """
+        # Call tested function with dry_run enabled.
+        hltadore.docker_tag_push_dev_image_from_ghcr(
+            self.mock_ctx,
+            container_dir_name=".",
+            dry_run=True,
+        )
+        # Verify that run was called with dry_run=True for all commands.
+        # Extract all calls to mock_run and check dry_run parameter.
+        call_args_list = self.mock_run.call_args_list
+        # Verify we have the expected number of calls (7 Docker operations).
+        self.assertEqual(len(call_args_list), 7)
+        # Check that all calls include dry_run=True in kwargs.
+        for call in call_args_list:
+            args, kwargs = call
+            self.assertIn("dry_run", kwargs)
+            self.assertTrue(kwargs["dry_run"])
+        # Verify the commands that would be executed (for documentation).
+        expected_commands = [
+            "docker pull ghcr.io/causify-ai/test-image:dev-1.0.0",
+            "docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev",
+            "docker push ghcr.io/causify-ai/test-image:dev", 
+            "docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev-1.0.0",
+            "docker push test.ecr.path/test-image:dev-1.0.0",
+            "docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev",
+            "docker push test.ecr.path/test-image:dev",
+        ]
+        actual_commands = _extract_commands_from_call(call_args_list)
+        self.assertEqual(len(actual_commands), len(expected_commands))
+        # Verify each command matches expected (commands are still passed to run,
+        # but dry_run=True means they won't actually execute).
+        for actual, expected in zip(actual_commands, expected_commands):
+            self.assertEqual(actual, expected)
