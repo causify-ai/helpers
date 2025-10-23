@@ -26,9 +26,9 @@
 - The system automatically builds, tests, and releases Docker images on a
   periodic schedule
 - It consists of three phases:
-  - **Phase 1**: Automated build and test (implemented)
+  - **Phase 1**: Automated build and test
   - **Phase 2**: Manual review - Team member reviews and merges the PR
-  - **Phase 3**: Automated release to registries (planned)
+  - **Phase 3**: Automated release to registries
 - The system uses GitHub Actions, invoke tasks, and GitHub CLI helpers to
   orchestrate the entire workflow
 
@@ -47,8 +47,8 @@
   - Tags and pushes `dev-{version}` to GHCR
 
 - **GitHub Actions Workflow**
-  (`.github/workflows/periodic_dev_image_release.yml`): Orchestrates the entire
-  automated release process
+  (`.github/workflows/dev_image_build_and_test.yml`): Orchestrates the entire
+  automated build and test process
   - Triggered weekly by cron schedule or manually
   - Calls `invoke docker_build_test_dev_image --assignee=<username>`
 
@@ -98,12 +98,11 @@ graph TB
         S --> T[Merge PR]
     end
 
-    subgraph "Phase 3: Automated Release (Planned)"
-        T --> U[Detect Merge]
-        U --> V[Pull Image]
-        V --> W[Re-tag Image]
+    subgraph "Phase 3: Automated Release"
+        T --> U[Detect Merge + Label]
+        U --> V[Pull Image from GHCR]
+        V --> W[Re-tag for ECR & GHCR]
         W --> X[Push to Registries]
-        X --> Y[Notify Team]
     end
 
     A --> D
@@ -121,8 +120,8 @@ verification before production release.
 ### Components
 
 1. **GitHub Actions Workflow**
-   (`.github/workflows/periodic_dev_image_release.yml`) - Weekly scheduled
-   workflow with manual trigger and PR event support
+   (`.github/workflows/dev_image_build_and_test.yml`) - Weekly scheduled
+   workflow (Monday at 6 AM UTC) with manual trigger and assignee support
 2. **Invoke Target** (`docker_build_test_dev_image()` in
    [`/helpers/lib_tasks_docker_release.py)`](/helpers/lib_tasks_docker_release.py)) -
    Orchestrates the complete build, test, and release pipeline
@@ -142,12 +141,12 @@ and merges to master. The PR is automatically created as "Ready for review" with
 a reviewer assigned. Quality gates: all status checks pass, properly formatted
 changelog, no merge conflicts, valid sequential version number.
 
-## Phase 3: Automated Release (Planned)
+## Phase 3: Automated Release
 
-When the PR from Phase 1 is merged, an automated workflow detects the merge
-event, pulls the verified image from GHCR, re-tags it for production registries
-(AWS ECR, etc.), pushes to all target registries, and notifies the team via
-Slack.
+When the PR from Phase 1 is merged, an automated workflow 
+(`.github/workflows/dev_image_release.yml`) detects the merge event with the 
+"Automated release" label, pulls the verified image from GHCR, re-tags it for 
+production registries (AWS ECR, etc.), and pushes to all target registries.
 
 ### Team-Based Assignment
 
@@ -173,7 +172,7 @@ Slack.
 
 ### PR Labeling
 
-**Label name:** `automated-release` (or `periodic-dev-release`)
+**Label name:** `Automated release`
 
 **Purpose:**
 
@@ -184,36 +183,27 @@ Slack.
 **Implementation:**
 
 ```python
-# In Gh_Create_Pr():
+# In gh_create_pr():
 if is_automated_release:
-    cmd += ' --label "automated-release"'
+    cmd += ' --label "Automated release"'
 ```
 
-### Invoke Target `docker_release_dev_image_from_ghcr()`
+### Invoke Target `docker_tag_push_dev_image_from_ghcr()`
 
 Gets the version from changelog, pulls the versioned dev image from GHCR,
-re-tags it for target registries, pushes to all configured registries, and
-verifies the images.
+re-tags it for target registries (GHCR and AWS ECR), pushes to all configured 
+registries, and verifies the images. Supports dry-run mode for testing.
 
-### Release Workflow (`.github/workflows/release_dev_image.yml`)
+### Release Workflow (`.github/workflows/dev_image_release.yml`)
 
 **Trigger:**
 
 - Event: `pull_request`
 - Types: `[closed]`
 - Condition: `if: github.event.pull_request.merged == true`
-- Label filter: Check for `automated-release` label
+- Label filter: Check for `Automated release` label
+- Also supports manual `workflow_dispatch`
 
 **Steps:**
 
-- Execute `invoke docker_release_dev_image_from_ghcr`
-- Send Slack notification to team
-
-## Resources
-
-- [GitHub Actions documentation](https://docs.github.com/en/actions)
-- [GitHub CLI manual](https://cli.github.com/manual/)
-- [Semantic Versioning](https://semver.org/)
-- [Docker multi-stage builds]
-  ([https://docs.docker.com/build/building/multi-stage/](https://docs.docker.com/build/building/multi-stage/))
-- [PyInvoke documentation](https://www.pyinvoke.org/)
+- Execute `invoke docker_tag_push_dev_image_from_ghcr --dry-run`
