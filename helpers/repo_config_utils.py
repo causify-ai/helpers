@@ -268,7 +268,7 @@ class RepoConfig:
 
         E.g., `dev_system`.
         """
-        value = self._data["docker_info"]["release_team"]
+        value = self._data["docker_info"].get("release_team")
         return value
 
     # s3_bucket_info
