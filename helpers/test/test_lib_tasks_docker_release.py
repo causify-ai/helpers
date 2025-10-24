@@ -1205,7 +1205,7 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
     Test tagging and pushing dev image from GHCR to multiple registries.
     """
 
-    def set_up_test(self) -> None:
+    def set_up_test2(self) -> None:
         """
         Set up test environment with additional mocks for GHCR workflow.
         """
@@ -1231,6 +1231,21 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
                 "container_registry_url": self.get_container_registry_url_patcher,
             }
         )
+
+    def tear_down_test2(self) -> None:
+        """
+        Clean up test environment.
+        """
+        self.tear_down_test()
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        """
+        Set up and tear down test environment for each test.
+        """
+        self.set_up_test2()
+        yield
+        self.tear_down_test2()        
 
     def test_normal_execution1(self) -> None:
         """
@@ -1299,7 +1314,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
     Test the complete periodic dev image release workflow.
     """
 
-    def set_up_test(self) -> None:
+    def set_up_test2(self) -> None:
         """
         Set up test environment with additional mocks for the dev image
         workflow.
@@ -1409,6 +1424,21 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
                 "run_tests": self.run_tests_patcher,
             }
         )
+
+    def tear_down_test2(self) -> None:
+        """
+        Clean up test environment.
+        """
+        self.tear_down_test()    
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        """
+        Set up and tear down test environment for each test.
+        """
+        self.set_up_test2()
+        yield
+        self.tear_down_test2()            
 
     def test_complete_workflow1(self) -> None:
         """
