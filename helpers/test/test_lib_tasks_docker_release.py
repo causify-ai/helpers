@@ -1245,7 +1245,7 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
         """
         self.set_up_test2()
         yield
-        self.tear_down_test2()        
+        self.tear_down_test2()
 
     def test_normal_execution1(self) -> None:
         """
@@ -1429,7 +1429,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         """
         Clean up test environment.
         """
-        self.tear_down_test()    
+        self.tear_down_test()
 
     @pytest.fixture(autouse=True)
     def setup_teardown_test(self) -> Generator:
@@ -1438,7 +1438,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         """
         self.set_up_test2()
         yield
-        self.tear_down_test2()            
+        self.tear_down_test2()
 
     def test_complete_workflow1(self) -> None:
         """
@@ -1463,9 +1463,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         # Verify the returned issue ID.
         self.assertEqual(issue_id, 12345)
         # Verify version operations were called.
-        self.mock_bump_version.assert_called_once_with(
-            "2.3.0", bump_type="minor"
-        )
+        self.mock_bump_version.assert_called_once_with("2.3.0", bump_type="minor")
         # Verify GitHub team lookup was performed.
         self.mock_get_release_team.assert_called_once()
         self.mock_gh_get_team_member_names.assert_called_once_with("dev_system")
