@@ -1659,9 +1659,9 @@ def docker_build_test_dev_image(  # type: ignore
     Automate the complete periodic release workflow for the dev image.
 
     :param ctx: invoke context
-    :param assignee: GitHub username(s) to assign the created issue and request
-        PR review. If not specified, uses the release team members from GitHub
-        team configured in repo_config.yaml
+    :param assignee: GitHub username(s) to assign the created issue and
+        request PR review. If not specified, uses the release team
+        members from GitHub team configured in repo_config.yaml
     :param container_dir_name: directory where the Dockerfile is located
     :return: issue ID (integer) of the created issue
     """
@@ -1812,7 +1812,7 @@ def docker_tag_push_dev_image_from_ghcr(
     """
     Tag and push the dev image built in GHCR to the GHCR and AWS ECR.
 
-    :param container_dir_name: directory where the Dockerfile is located        
+    :param container_dir_name: directory where the Dockerfile is located
     :param dry_run: if True, only print the commands without executing
         them
     """

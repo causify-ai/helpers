@@ -1225,17 +1225,19 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
         )
         self.mock_get_container_registry_url.return_value = "ghcr.io/causify-ai"
         # Add new patchers to cleanup list.
-        self.patchers.update({
-            "changelog_version": self.changelog_version_patcher,
-            "container_registry_url": self.get_container_registry_url_patcher,
-        })
+        self.patchers.update(
+            {
+                "changelog_version": self.changelog_version_patcher,
+                "container_registry_url": self.get_container_registry_url_patcher,
+            }
+        )
 
     def test_normal_execution1(self) -> None:
         """
         Test normal execution without dry_run.
-        
+
         This test checks:
-        - GHCR image pulling 
+        - GHCR image pulling
         - Tagging for GHCR and AWS ECR
         - Pushing to both registries
         - Versioned and latest image handling
@@ -1261,7 +1263,7 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
     def test_dry_run1(self) -> None:
         """
         Test dry_run mode execution.
-        
+
         This test checks:
         - No actual Docker commands are executed when dry_run=True
         - All operations are simulated
@@ -1299,18 +1301,19 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
 
     def set_up_test(self) -> None:
         """
-        Set up test environment with additional mocks for the dev image workflow.
+        Set up test environment with additional mocks for the dev image
+        workflow.
         """
         super().set_up_test()
         # Mock version operations.
         self.get_changelog_version_patcher = umock.patch(
             "helpers.hversion.get_changelog_version"
         )
-        self.mock_get_changelog_version = self.get_changelog_version_patcher.start()
-        self.mock_get_changelog_version.return_value = "2.3.0"
-        self.bump_version_patcher = umock.patch(
-            "helpers.hversion.bump_version"
+        self.mock_get_changelog_version = (
+            self.get_changelog_version_patcher.start()
         )
+        self.mock_get_changelog_version.return_value = "2.3.0"
+        self.bump_version_patcher = umock.patch("helpers.hversion.bump_version")
         self.mock_bump_version = self.bump_version_patcher.start()
         self.mock_bump_version.return_value = "2.4.0"
         # Mock repo config methods.
@@ -1330,7 +1333,9 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         self.gh_get_team_member_names_patcher = umock.patch(
             "helpers.lib_tasks_gh.gh_get_team_member_names"
         )
-        self.mock_gh_get_team_member_names = self.gh_get_team_member_names_patcher.start()
+        self.mock_gh_get_team_member_names = (
+            self.gh_get_team_member_names_patcher.start()
+        )
         self.mock_gh_get_team_member_names.return_value = ["user1", "user2"]
         self.gh_issue_create_patcher = umock.patch(
             "helpers.lib_tasks_gh.gh_issue_create"
@@ -1346,9 +1351,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
             "helpers.lib_tasks_git.git_branch_create"
         )
         self.mock_git_branch_create = self.git_branch_create_patcher.start()
-        self.get_branch_name_patcher = umock.patch(
-            "helpers.hgit.get_branch_name"
-        )
+        self.get_branch_name_patcher = umock.patch("helpers.hgit.get_branch_name")
         self.mock_get_branch_name = self.get_branch_name_patcher.start()
         self.mock_get_branch_name.return_value = "CsfyTask12345_test_branch"
         # Mock file operations.
@@ -1357,69 +1360,63 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         )
         self.mock_get_client_root = self.get_client_root_patcher.start()
         self.mock_get_client_root.return_value = "/test/root"
-        self.from_file_patcher = umock.patch(
-            "helpers.hio.from_file"
-        )
+        self.from_file_patcher = umock.patch("helpers.hio.from_file")
         self.mock_from_file = self.from_file_patcher.start()
         self.mock_from_file.return_value = "# Existing changelog content\n"
-        self.to_file_patcher = umock.patch(
-            "helpers.hio.to_file"
-        )
+        self.to_file_patcher = umock.patch("helpers.hio.to_file")
         self.mock_to_file = self.to_file_patcher.start()
         # Mock file existence check for dassert_file_exists (changelog validation).
         self.file_exists_patcher = umock.patch("helpers.hdbg.dassert_file_exists")
         self.mock_file_exists = self.file_exists_patcher.start()
-        
         # Mock os.path.exists for file staging logic.
         self.path_exists_patcher = umock.patch("os.path.exists")
         self.mock_path_exists = self.path_exists_patcher.start()
         self.mock_path_exists.return_value = True
-        
         # Mock date operations.
-        self.date_patcher = umock.patch(
-            "datetime.date"
-        )
+        self.date_patcher = umock.patch("datetime.date")
         self.mock_date = self.date_patcher.start()
         self.mock_date.today.return_value.strftime.return_value = "2025-10-23"
         # Mock Docker image operations.
-        self.get_image_patcher = umock.patch(
-            "helpers.lib_tasks_docker.get_image"
-        )
+        self.get_image_patcher = umock.patch("helpers.lib_tasks_docker.get_image")
         self.mock_get_image = self.get_image_patcher.start()
-        self.mock_get_image.return_value = "test.ecr.path/test-image:local-testuser-2.4.0"
+        self.mock_get_image.return_value = (
+            "test.ecr.path/test-image:local-testuser-2.4.0"
+        )
         # Mock _run_tests to prevent actual test execution.
         self.run_tests_patcher = umock.patch(
             "helpers.lib_tasks_docker_release._run_tests"
         )
         self.mock_run_tests = self.run_tests_patcher.start()
         # Add all new patchers to cleanup list.
-        self.patchers.update({
-            "get_changelog_version": self.get_changelog_version_patcher,
-            "bump_version": self.bump_version_patcher,
-            "get_release_team": self.get_release_team_patcher,
-            "container_registry_url": self.get_container_registry_url_patcher,
-            "gh_get_team_member_names": self.gh_get_team_member_names_patcher,
-            "gh_issue_create": self.gh_issue_create_patcher,
-            "gh_create_pr": self.gh_create_pr_patcher,
-            "git_branch_create": self.git_branch_create_patcher,
-            "get_branch_name": self.get_branch_name_patcher,
-            "get_client_root": self.get_client_root_patcher,
-            "from_file": self.from_file_patcher,
-            "to_file": self.to_file_patcher,
-            "file_exists": self.file_exists_patcher,
-            "path_exists": self.path_exists_patcher,
-            "date": self.date_patcher,
-            "get_image": self.get_image_patcher,
-            "run_tests": self.run_tests_patcher,
-        })
+        self.patchers.update(
+            {
+                "get_changelog_version": self.get_changelog_version_patcher,
+                "bump_version": self.bump_version_patcher,
+                "get_release_team": self.get_release_team_patcher,
+                "container_registry_url": self.get_container_registry_url_patcher,
+                "gh_get_team_member_names": self.gh_get_team_member_names_patcher,
+                "gh_issue_create": self.gh_issue_create_patcher,
+                "gh_create_pr": self.gh_create_pr_patcher,
+                "git_branch_create": self.git_branch_create_patcher,
+                "get_branch_name": self.get_branch_name_patcher,
+                "get_client_root": self.get_client_root_patcher,
+                "from_file": self.from_file_patcher,
+                "to_file": self.to_file_patcher,
+                "file_exists": self.file_exists_patcher,
+                "path_exists": self.path_exists_patcher,
+                "date": self.date_patcher,
+                "get_image": self.get_image_patcher,
+                "run_tests": self.run_tests_patcher,
+            }
+        )
 
     def test_complete_workflow1(self) -> None:
         """
         Test the complete periodic dev image release workflow.
-        
+
         This test checks the entire automation process:
         - Version bumping from changelog
-        - GitHub team member lookup 
+        - GitHub team member lookup
         - Issue and branch creation
         - Docker image building and testing
         - Changelog entry creation
@@ -1440,10 +1437,9 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         # 1. Initially to get current version for bumping
         # 2. In _get_dev_version -> resolve_version_value for dev version calculation
         self.assertEqual(self.mock_get_changelog_version.call_count, 2)
-        self.mock_get_changelog_version.assert_has_calls([
-            umock.call("."),
-            umock.call(".")
-        ])
+        self.mock_get_changelog_version.assert_has_calls(
+            [umock.call("."), umock.call(".")]
+        )
         self.mock_bump_version.assert_called_once_with("2.3.0", bump_type="minor")
         # Verify GitHub team lookup was performed.
         self.mock_get_release_team.assert_called_once()
@@ -1490,7 +1486,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
     def test_with_existing_assignee1(self) -> None:
         """
         Test the workflow when assignee is already provided.
-        
+
         This test checks:
         - GitHub team lookup is skipped when assignee is provided
         - Provided assignee is used for issue and PR creation

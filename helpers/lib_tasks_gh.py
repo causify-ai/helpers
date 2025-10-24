@@ -574,7 +574,7 @@ def gh_create_pr(  # type: ignore
         _LOG.debug(hprint.to_str("issue_id"))
         if issue_id and str(issue_id) not in body:
             body += f"\n\n#{issue_id}"
-            _LOG.info("Added issue id %s to the PR body", issue_id)      
+            _LOG.info("Added issue id %s to the PR body", issue_id)
         cmd = (
             "gh pr create"
             + f" --repo {repo_full_name_with_host}"
@@ -964,9 +964,7 @@ def gh_get_org_team_names(org_name: str = "", *, sort: bool = True) -> List[str]
     return team_names
 
 
-def gh_get_team_member_names(
-    team_slug: str, *, org_name: str = ""
-) -> List[str]:
+def gh_get_team_member_names(team_slug: str, *, org_name: str = "") -> List[str]:
     """
     Get a list of member usernames for a specific team in a GitHub
     organization.
