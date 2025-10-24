@@ -1385,20 +1385,25 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         self.mock_file_exists = self.file_exists_patcher.start()
         # Mock os.path.exists selectively for file staging logic.
         import os
+
         # Store the original function before patching
         original_exists = os.path.exists
         # Define which files should exist for staging
         staged_files = {
             "/test/root/./devops/docker_build/poetry.lock",
-            "/test/root/./devops/docker_build/pip_list.txt", 
-            "/test/root/./changelog.txt"
+            "/test/root/./devops/docker_build/pip_list.txt",
+            "/test/root/./changelog.txt",
         }
+
         def selective_exists(path):
             # Return True for staged files, use original function for everything else
             if path in staged_files:
                 return True
             return original_exists(path)
-        self.path_exists_patcher = umock.patch("os.path.exists", side_effect=selective_exists)
+
+        self.path_exists_patcher = umock.patch(
+            "os.path.exists", side_effect=selective_exists
+        )
         self.mock_path_exists = self.path_exists_patcher.start()
         # Mock date operations.
         self.date_patcher = umock.patch("datetime.date")
