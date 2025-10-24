@@ -1314,7 +1314,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
     Test the complete periodic dev image release workflow.
     """
 
-    def set_up_test2(self) -> None:
+    def set_up_test(self) -> None:
         """
         Set up test environment with additional mocks for the dev image
         workflow.
@@ -1383,10 +1383,23 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         # Mock file existence check for dassert_file_exists (changelog validation).
         self.file_exists_patcher = umock.patch("helpers.hdbg.dassert_file_exists")
         self.mock_file_exists = self.file_exists_patcher.start()
-        # Mock os.path.exists for file staging logic.
-        self.path_exists_patcher = umock.patch("os.path.exists")
+        # Mock os.path.exists selectively for file staging logic.
+        import os
+        # Store the original function before patching
+        original_exists = os.path.exists
+        # Define which files should exist for staging
+        staged_files = {
+            "/test/root/./devops/docker_build/poetry.lock",
+            "/test/root/./devops/docker_build/pip_list.txt", 
+            "/test/root/./changelog.txt"
+        }
+        def selective_exists(path):
+            # Return True for staged files, use original function for everything else
+            if path in staged_files:
+                return True
+            return original_exists(path)
+        self.path_exists_patcher = umock.patch("os.path.exists", side_effect=selective_exists)
         self.mock_path_exists = self.path_exists_patcher.start()
-        self.mock_path_exists.return_value = True
         # Mock date operations.
         self.date_patcher = umock.patch("datetime.date")
         self.mock_date = self.date_patcher.start()
@@ -1425,20 +1438,12 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
             }
         )
 
-    def tear_down_test2(self) -> None:
+    def tear_down_test(self) -> None:
         """
-        Clean up test environment.
+        Clean up test environment by stopping all mocks after each test case,
+        including the additional patchers created in this class.
         """
-        self.tear_down_test()
-
-    @pytest.fixture(autouse=True)
-    def setup_teardown_test(self) -> Generator:
-        """
-        Set up and tear down test environment for each test.
-        """
-        self.set_up_test2()
-        yield
-        self.tear_down_test2()
+        super().tear_down_test()
 
     def test_complete_workflow1(self) -> None:
         """
