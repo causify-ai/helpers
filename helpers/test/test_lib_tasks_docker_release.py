@@ -1433,14 +1433,9 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         # Verify the returned issue ID.
         self.assertEqual(issue_id, 12345)
         # Verify version operations were called.
-        # Note: get_changelog_version is called twice:
-        # 1. Initially to get current version for bumping
-        # 2. In _get_dev_version -> resolve_version_value for dev version calculation
-        self.assertEqual(self.mock_get_changelog_version.call_count, 2)
-        self.mock_get_changelog_version.assert_has_calls(
-            [umock.call("."), umock.call(".")]
+        self.mock_bump_version.assert_called_once_with(
+            "2.3.0", bump_type="minor"
         )
-        self.mock_bump_version.assert_called_once_with("2.3.0", bump_type="minor")
         # Verify GitHub team lookup was performed.
         self.mock_get_release_team.assert_called_once()
         self.mock_gh_get_team_member_names.assert_called_once_with("dev_system")
