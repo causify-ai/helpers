@@ -504,6 +504,8 @@ def adapt_input_output_args_for_dockerized_scripts(
 # TODO(gp): These should go in hjoblib.py
 def add_parallel_processing_arg(
     parser: argparse.ArgumentParser,
+    *,
+    num_threads_default: Optional[str] = None,
 ) -> argparse.ArgumentParser:
     """
     Add parallel processing args.
@@ -540,17 +542,26 @@ def add_parallel_processing_arg(
         help="Confirm that one wants to remove the previous results. It works only together with --no_incremental",
     )
     #
-    parser.add_argument(
-        "--num_threads",
-        action="store",
-        help="""
-Number of threads to use:
-- '-1' to use all CPUs;
-- '1' to use one-thread at the time but using the parallel execution (mainly used
-  for debugging)
-- 'serial' to serialize the execution without using parallel execution""",
-        required=True,
-    )
+    help = """
+    Number of threads to use:
+    - '-1' to use all CPUs;
+    - '1' to use one-thread at the time but using the parallel execution (mainly used
+    for debugging)
+    - 'serial' to serialize the execution without using parallel execution"""
+    if num_threads_default is None:
+        parser.add_argument(
+            "--num_threads",
+            action="store",
+            help=help,
+            required=True,
+        )
+    else:
+        parser.add_argument(
+            "--num_threads",
+            action="store",
+            help=help,
+            default=num_threads_default,
+        )
     parser.add_argument("--no_keep_order", action="store_true", help="")
     parser.add_argument(
         "--num_func_per_task",

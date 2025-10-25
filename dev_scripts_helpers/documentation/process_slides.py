@@ -10,7 +10,8 @@ import process_slides
 
 import argparse
 import logging
-from typing import List, Optional, Tuple
+import os
+from typing import Any, List, Optional, Tuple
 
 import tqdm
 
@@ -18,6 +19,7 @@ import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hjoblib as hjoblib
 import helpers.hmarkdown_slides as hmarslid
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
@@ -61,6 +63,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Continue processing even if LLM transformation fails",
     )
     hparser.add_limit_range_arg(parser)
+    hparser.add_parallel_processing_arg(parser, num_threads_default="serial")
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -177,6 +180,48 @@ def _process_slide_with_llm_transform(
     return result
 
 
+def _workload_process_slide(
+    slide_title: str,
+    slide_content: str,
+    action: str,
+    use_llm_transform: bool,
+    no_abort_on_error: bool,
+    *,
+    incremental: bool,
+    num_attempts: int,
+) -> str:
+    """
+    Workload function to process a single slide.
+
+    This function is designed to be called by hjoblib.parallel_execute.
+
+    :param slide_title: title of the slide
+    :param slide_content: content of the slide to process
+    :param action: action to perform on the slide
+    :param use_llm_transform: if True, use llm_transform script
+    :param no_abort_on_error: if True, continue processing even if LLM
+        fails
+    :param incremental: passed by hjoblib for incremental processing
+    :param num_attempts: passed by hjoblib for retry logic
+    :return: formatted processed result for the slide
+    """
+    _ = incremental, num_attempts
+    _LOG.debug("Processing slide: %s", slide_title)
+    # Process the slide using LLM.
+    processed_content = _process_slide_with_llm(
+        slide_content,
+        action,
+        use_llm_transform=use_llm_transform,
+        no_abort_on_error=no_abort_on_error,
+    )
+    # Format the result.
+    if not processed_content.startswith(f"* {slide_title}"):
+        result_entry = f"* {slide_title}\n\n{processed_content}"
+    else:
+        result_entry = processed_content
+    return result_entry
+
+
 def _process_slides(
     slides: List[Tuple[str, str]],
     action: str,
@@ -184,6 +229,11 @@ def _process_slides(
     limit_range: Optional[Tuple[int, int]] = None,
     use_llm_transform: bool = False,
     no_abort_on_error: bool = False,
+    dry_run: bool = False,
+    num_threads: str = "serial",
+    incremental: bool = True,
+    abort_on_error: bool = True,
+    num_attempts: int = 1,
 ) -> List[str]:
     """
     Process all slides with the specified action.
@@ -194,27 +244,42 @@ def _process_slides(
     :param use_llm_transform: if True, use llm_transform script
     :param no_abort_on_error: if True, continue processing even if LLM
         fails
+    :param dry_run: if True, print workload without executing
+    :param num_threads: number of threads for parallel execution
+    :param incremental: if True, skip already processed slides
+    :param abort_on_error: if True, stop on first error
+    :param num_attempts: number of retry attempts for each slide
     :return: list of formatted processed results
     """
     # Apply limit range filtering.
     slides = hparser.apply_limit_range(slides, limit_range, item_name="slides")
-    # Process slides with progress bar.
-    processed_results: List[str] = []
-    for slide_title, slide_content in tqdm.tqdm(slides, desc="Processing slides"):
-        _LOG.debug("Processing slide: %s", slide_title)
-        # Process the slide using LLM.
-        processed_content = _process_slide_with_llm(
-            slide_content,
-            action,
-            use_llm_transform=use_llm_transform,
-            no_abort_on_error=no_abort_on_error,
-        )
-        # Format the result.
-        if not processed_content.startswith(f"* {slide_title}"):
-            result_entry = f"* {slide_title}\n\n{processed_content}"
-        else:
-            result_entry = processed_content
-        processed_results.append(result_entry)
+    # Create tasks for parallel execution.
+    tasks: List[hjoblib.Task] = []
+    for slide_title, slide_content in slides:
+        # Each task is a tuple of (args, kwargs).
+        args = (slide_title, slide_content, action, use_llm_transform, no_abort_on_error)
+        kwargs: dict = {}
+        task = (args, kwargs)
+        tasks.append(task)
+    # Create workload.
+    workload_func = _workload_process_slide
+    func_name = "_workload_process_slide"
+    workload = (workload_func, func_name, tasks)
+    # Setup log file.
+    log_file = os.path.join(".", "process_slides.parallel_execute.log")
+    # Execute workload in parallel.
+    processed_results = hjoblib.parallel_execute(
+        workload,
+        dry_run,
+        num_threads,
+        incremental,
+        abort_on_error,
+        num_attempts,
+        log_file,
+    )
+    # hjoblib.parallel_execute returns None in dry_run mode.
+    if processed_results is None:
+        processed_results = []
     return processed_results
 
 
@@ -228,6 +293,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.parse_verbosity_args(args)
     # Parse limit range.
     limit_range = hparser.parse_limit_range_args(args)
+    # Parse parallel processing arguments.
+    dry_run = args.dry_run
+    num_threads = args.num_threads
+    incremental = not args.no_incremental
+    abort_on_error = not args.skip_on_error
+    num_attempts = args.num_attempts
     # Validate input file exists.
     hdbg.dassert_file_exists(args.in_file)
     _LOG.info("Reading input file: %s", args.in_file)
@@ -243,6 +314,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
         limit_range=limit_range,
         use_llm_transform=args.use_llm_transform,
         no_abort_on_error=args.no_abort_on_error,
+        dry_run=dry_run,
+        num_threads=num_threads,
+        incremental=incremental,
+        abort_on_error=abort_on_error,
+        num_attempts=num_attempts,
     )
     # Write results to output file.
     output_content = "\n\n".join(processed_results)

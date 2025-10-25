@@ -1432,15 +1432,14 @@ def slide_improve() -> _PROMPT_OUT:
       text
     - Add bullet points to the text that are important or missing
     - Add examples to clarify the text and help intuition
-    - Do not bold or italicize the text
     - Fix the English grammar
-    - Fix any mistake
+    - Fix any mistake only if you are sure about the correction.
 
     Print only the markdown without any explanation.
     """
     pre_transforms: Set[str] = set()
     post_transforms: Set[str] = set()
-    post_container_transforms = ["format_markdown", "append_to_text"]
+    post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
@@ -1664,8 +1663,6 @@ def text_check() -> _PROMPT_OUT:
     post_transforms: Set[str] = set()
     post_container_transforms = ["format_markdown", "append_to_text"]
     return system, pre_transforms, post_transforms, post_container_transforms
-
-
 
 
 def text_idea() -> _PROMPT_OUT:
