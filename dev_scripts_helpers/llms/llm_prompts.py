@@ -15,6 +15,13 @@ import helpers.hprint as hprint
 _LOG = logging.getLogger(__name__)
 
 
+# 
+# - Try to make prompts general and reusable across different type of content
+#   (e.g., slides, text, markdown, etc.).
+# - The operations are 
+#
+
+
 # #############################################################################
 # get_prompt_tags()
 # #############################################################################
@@ -744,7 +751,8 @@ def md_rewrite() -> _PROMPT_OUT:
     """
     system = _MD_CONTEXT
     system += r"""
-    - Rewrite the text passed to increase clarity and readability.
+    - Do not change the content of the text, just rewrite it to increase clarity
+      and readability.
     - Maintain the structure of the text as much as possible, in terms of bullet
       points and their indentation.
     - Whenever possible use "you" instead of "I" or "we"
@@ -780,8 +788,8 @@ def md_expand() -> _PROMPT_OUT:
       text
     - Add bullet points to the text that are important or missing
     - Add examples to clarify the text and help intuition
+    - Add definitions to the text that are important or missing
     - Do not use bold or italicize the text
-    - Use `E.g.,` instead of `Example`
 
     Print only the markdown without any explanation.
     """
@@ -795,49 +803,49 @@ def md_expand() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-# TODO(gp): Move to template.
-def md_clean_up_how_to_guide() -> _PROMPT_OUT:
-    """
-    Format the text passed as a how-to guide.
-    """
-    system = _MD_CONTEXT
-    system += r"""
-    Format the text passed as a how-to guide.
+# # TODO(gp): Move to template.
+# def md_clean_up_how_to_guide() -> _PROMPT_OUT:
+#     """
+#     Format the text passed as a how-to guide.
+#     """
+#     system = _MD_CONTEXT
+#     system += r"""
+#     Format the text passed as a how-to guide.
 
-    An how-to-guide should explain how to solve a specific problem or achieve
-    a goal.
+#     An how-to-guide should explain how to solve a specific problem or achieve
+#     a goal.
 
-    Rewrite the markdown passed to make it a how-to guide and contain the
-    following sections:
-    - Goal / Use Case
-    - Assumptions / Requirements
-    - Step-by-Step Instructions
-    - Alternatives or Optional Steps
-    - Troubleshooting
+#     Rewrite the markdown passed to make it a how-to guide and contain the
+#     following sections:
+#     - Goal / Use Case
+#     - Assumptions / Requirements
+#     - Step-by-Step Instructions
+#     - Alternatives or Optional Steps
+#     - Troubleshooting
 
-    Do not lose any information, just rewrite the text to make it a how-to.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
+#     Do not lose any information, just rewrite the text to make it a how-to.
+#     """
+#     pre_transforms: Set[str] = set()
+#     post_transforms = {"remove_code_delimiters"}
+#     post_container_transforms = ["format_markdown"]
+#     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def md_convert_text_to_bullet_points() -> _PROMPT_OUT:
-    """
-    Convert the text passed to bullet points.
-    """
-    system = _MD_CONTEXT
-    system += r"""
-    - Convert the text passed to bullet points using multiple levels of bullets.
-    - Remove formatting (bold, italic, etc.) that is not needed.
+# def md_convert_text_to_bullet_points() -> _PROMPT_OUT:
+#     """
+#     Convert the text passed to bullet points.
+#     """
+#     system = _MD_CONTEXT
+#     system += r"""
+#     - Convert the text passed to bullet points using multiple levels of bullets.
+#     - Remove formatting (bold, italic, etc.) that is not needed.
 
-    Make sure to lose any information.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {"remove_code_delimiters"}
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
+#     Make sure to lose any information.
+#     """
+#     pre_transforms: Set[str] = set()
+#     post_transforms = {"remove_code_delimiters"}
+#     post_container_transforms = ["format_markdown"]
+#     return system, pre_transforms, post_transforms, post_container_transforms
 
 
 def md_convert_table_to_bullet_points() -> _PROMPT_OUT:
@@ -863,7 +871,7 @@ def md_format() -> _PROMPT_OUT:
     """
     system = _MD_CONTEXT
     system += r"""
-    - Replace `*` with `-` for bullet points
+    - Replace bullets with `*` into `-`
     - Do not use tables unless necessary
     """
     pre_transforms: Set[str] = set()
@@ -879,8 +887,8 @@ def md_remove_formatting() -> _PROMPT_OUT:
     system = _MD_CONTEXT
     system += r"""
     You will:
-    - Maintain the structure of the text and keep the content of the existing
-      text
+    - Maintain the structure of the text
+    - Keep the content of the existing text
     - Remove the formatting (e.g., bold, italic)
 
     Print only the markdown without any explanation.
@@ -891,25 +899,25 @@ def md_remove_formatting() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def md_create_bullets() -> _PROMPT_OUT:
-    """
-    Create bullet points from the markdown text.
-    """
-    system = _MD_CONTEXT
-    system += r"""
-    You will:
-    - Convert the following markdown text into bullet points
-    - Use multiple levels of bullets, if needed
-    - Not modify the text, just convert it into bullet points
+# def md_create_bullets() -> _PROMPT_OUT:
+#     """
+#     Create bullet points from the markdown text.
+#     """
+#     system = _MD_CONTEXT
+#     system += r"""
+#     You will:
+#     - Convert the following markdown text into bullet points
+#     - Use multiple levels of bullets, if needed
+#     - Not modify the text, just convert it into bullet points
 
-    Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_end_of_line_periods",
-    }
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
+#     Print only the markdown without any explanation.
+#     """
+#     pre_transforms: Set[str] = set()
+#     post_transforms = {
+#         "remove_end_of_line_periods",
+#     }
+#     post_container_transforms = ["format_markdown"]
+#     return system, pre_transforms, post_transforms, post_container_transforms
 
 
 # def md_summarize_short() -> _PROMPT_OUT:
@@ -1213,56 +1221,56 @@ _SLIDE_CONTEXT = r"""
     """
 
 
-def slide_to_bullet_points() -> _PROMPT_OUT:
-    """
-    Convert the markdown text into bullet points.
-    """
-    system = _SLIDE_CONTEXT
-    system += r"""
-    You will:
-    - Convert the following markdown text into bullet points
-    - Make sure that the text is clean and readable
+# def slide_to_bullet_points() -> _PROMPT_OUT:
+#     """
+#     Convert the markdown text into bullet points.
+#     """
+#     system = _SLIDE_CONTEXT
+#     system += r"""
+#     You will:
+#     - Convert the following markdown text into bullet points
+#     - Make sure that the text is clean and readable
 
-    Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_code_delimiters",
-        "remove_end_of_line_periods",
-        "remove_empty_lines",
-    }
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
+#     Print only the markdown without any explanation.
+#     """
+#     pre_transforms: Set[str] = set()
+#     post_transforms = {
+#         "remove_code_delimiters",
+#         "remove_end_of_line_periods",
+#         "remove_empty_lines",
+#     }
+#     post_container_transforms = ["format_markdown"]
+#     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def slide_expand() -> _PROMPT_OUT:
-    """
-    Expand the slide text by adding bullet points and examples.
-    """
-    system = _SLIDE_CONTEXT
-    system += r"""
-    You will:
-    - Maintain the structure of the text and keep the content of the existing
-      text
-    - Add bullet points to the text that are important or missing
-    - Add examples to clarify the text and help intuition
-    - Not bold or italicize the text
+# def slide_expand() -> _PROMPT_OUT:
+#     """
+#     Expand the slide text by adding bullet points and examples.
+#     """
+#     system = _SLIDE_CONTEXT
+#     system += r"""
+#     You will:
+#     - Maintain the structure of the text and keep the content of the existing
+#       text
+#     - Add bullet points to the text that are important or missing
+#     - Add examples to clarify the text and help intuition
+#     - Not bold or italicize the text
 
-    Print only the markdown without any explanation.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_code_delimiters",
-        "remove_end_of_line_periods",
-        "remove_empty_lines",
-    }
-    post_container_transforms = ["format_slide"]
-    return system, pre_transforms, post_transforms, post_container_transforms
+#     Print only the markdown without any explanation.
+#     """
+#     pre_transforms: Set[str] = set()
+#     post_transforms = {
+#         "remove_code_delimiters",
+#         "remove_end_of_line_periods",
+#         "remove_empty_lines",
+#     }
+#     post_container_transforms = ["format_slide"]
+#     return system, pre_transforms, post_transforms, post_container_transforms
 
 
 def slide_reduce() -> _PROMPT_OUT:
     """
-    Reduce the text in a slide.
+    Reduce the text in a slide to a maximum of 5-6 bullets per slide.
     """
     system = _SLIDE_CONTEXT
     system += r"""
@@ -1413,79 +1421,6 @@ def slide_bold() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-def slide_add_figure() -> _PROMPT_OUT:
-    """
-    Add a figure to the slide.
-    """
-    system = _SLIDE_CONTEXT
-    system += r"""
-    You will create a figure that illustrates the text using Graphviz dot.
-
-    - If you are sure about the meaning of the variables use
-        - Circles for variables
-        - Rounded boxes for states
-    - If you are not sure, use rounded boxes for every variable
-
-    - If you need to use subscripts use it in Latex format such as var_0
-
-    - Use pastel colors like
-        - Red: `#F4A6A6`, Orange: `#FFD1A6`, Green: `#B2E2B2`, Teal: `#A0D6D1`,
-        - Cyan: `#A6E7F4`, Blue: `#A6C8F4`, Violet: `#C6A6F4`, Brown: `#D2B48C`
-
-    - Use a template like:
-        ```graphviz
-        digraph BayesianFlow {
-            // rankdir=LR;
-            splines=true;
-            nodesep=1.0;
-            ranksep=0.75;
-            node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.7];
-
-            // Node styles.
-
-            // Force ranks.
-
-            // Edges.
-        }
-        ```
-
-    Do not print anything else than the graphviz code in a markdown format
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_code_delimiters",
-        "remove_end_of_line_periods",
-        "remove_empty_lines",
-    }
-    post_container_transforms = ["append_to_text"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def slide_check() -> _PROMPT_OUT:
-    """
-    Check the slide is clear and correct.
-    """
-    system = _SLIDE_CONTEXT
-    system += r"""
-    - Do not print or summarize the content of the slide, but only your comments:
-
-    - Is the content of the slide clear?
-      - Answer with "Yes" or "NO"
-
-    - Is the content of the slide correct?
-      - Answer with "Yes" or "NO"
-
-    - What can be clarified or improved?
-      - Respond with at most 3 short bullet points about what can be clarified
-        or improved.
-      - You MUST report only things that you are sure about.
-    """
-    pre_transforms: Set[str] = set()
-    post_transforms: Set[str] = set()
-    post_container_transforms = ["format_markdown", "append_to_text"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
 def slide_improve() -> _PROMPT_OUT:
     """
     Check the slide is clear and correct.
@@ -1610,46 +1545,27 @@ def script_reduce() -> _PROMPT_OUT:
     post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
+
 # #############################################################################
 # Text.
 # #############################################################################
 
 # Operate on pure text, not markdown.
 
-# def text_expand() -> _PROMPT_OUT:
-#    """
-#    """
-#    system = hio.from_file("text_expand2.txt")
-#    pre_transforms: Set[str] = set()
-#    post_transforms: Set[str] = set()
-#    post_container_transforms = ["format_markdown"]
-#    return system, pre_transforms, post_transforms, post_container_transforms
 
+def text_reduce() -> _PROMPT_OUT:
+    """
+    Reduce the text to a maximum of 200 words.
+    """
+    system = ""
+    system += r"""
+    You are an expert academic summarizer. 
+    
+    Your task is to read the following text and produce a concise, structured
+    summary of the text.
 
-def text_idea() -> _PROMPT_OUT:
+    Use maximum 200 words.
     """
-    Come up with suggestions and variations to make it interesting.
-    """
-    file = "text_idea.txt"
-    if os.path.exists(file):
-        system = hio.from_file(file)
-    else:
-        system = ""
-    pre_transforms: Set[str] = set()
-    post_transforms: Set[str] = set()
-    post_container_transforms = ["format_markdown"]
-    return system, pre_transforms, post_transforms, post_container_transforms
-
-
-def text_rephrase() -> _PROMPT_OUT:
-    """
-    Rephrase the text using text_rephrase.txt.
-    """
-    file = "text_rephrase.txt"
-    if os.path.exists(file):
-        system = hio.from_file(file)
-    else:
-        system = ""
     pre_transforms: Set[str] = set()
     post_transforms: Set[str] = set()
     post_container_transforms = ["format_markdown"]
@@ -1662,18 +1578,11 @@ def text_rewrite() -> _PROMPT_OUT:
     """
     system = ""
     system += r"""
-    - Create bullet lists of points
     - Rewrite the text passed to increase clarity and readability.
-    - Maintain the structure of the text as much as possible, in terms of bullet
-      points and their indentation
-    - Make sure it's under 200 words
+    - Maintain the structure of the text as much as possible
     """
     pre_transforms: Set[str] = set()
-    post_transforms = {
-        "remove_code_delimiters",
-        "remove_end_of_line_periods",
-        "remove_empty_lines",
-    }
+    post_transforms: Set[str] = set()
     post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
@@ -1731,9 +1640,115 @@ def text_to_notes() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def text_check() -> _PROMPT_OUT:
+    """
+    Check that the text is clear and correct.
+    """
+    system = ""
+    system += r"""
+    You are an expert college professor expert of machine learning and computer
+    science.
+
+    - Is the content of the text clear?
+      - Answer ONLY with "Yes" or "NO"
+
+    - Is the content of the text correct?
+      - Answer ONLY with "Yes" or "NO"
+
+    - Only when there is something not clear or not correct, provide a detailed
+      explanation and add 3 short bullet points about what can be clarified or
+      improved.
+      - You MUST report only things that you are sure about.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown", "append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+
+
+def text_idea() -> _PROMPT_OUT:
+    """
+    Come up with suggestions and variations to make it interesting.
+    """
+    file = "text_idea.txt"
+    if os.path.exists(file):
+        system = hio.from_file(file)
+    else:
+        system = ""
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def text_rephrase() -> _PROMPT_OUT:
+    """
+    Rephrase the text using text_rephrase.txt.
+    """
+    file = "text_rephrase.txt"
+    if os.path.exists(file):
+        system = hio.from_file(file)
+    else:
+        system = ""
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 # #############################################################################
 # Graphviz.
 # #############################################################################
+
+
+def dot_add_figure() -> _PROMPT_OUT:
+    """
+    Add a figure to the chunk of text.
+    """
+    system = _SLIDE_CONTEXT
+    system += r"""
+    You will create a figure that illustrates the text using Graphviz dot.
+
+    - If you are sure about the meaning of the variables use
+      - Circles for variables
+      - Rounded boxes for states
+    - If you are not sure, use rounded boxes for every variable
+
+    - If you need to use subscripts use it in Latex format such as var_0
+
+    - Use pastel colors like
+        - Red: `#F4A6A6`, Orange: `#FFD1A6`, Green: `#B2E2B2`, Teal: `#A0D6D1`,
+        - Cyan: `#A6E7F4`, Blue: `#A6C8F4`, Violet: `#C6A6F4`, Brown: `#D2B48C`
+
+    - Use a template like:
+        ```graphviz
+        digraph BayesianFlow {
+            // rankdir=LR;
+            splines=true;
+            nodesep=1.0;
+            ranksep=0.75;
+            node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.7];
+
+            // Node styles.
+
+            // Force ranks.
+
+            // Edges.
+        }
+        ```
+
+    Do not print anything else than the graphviz code in a markdown format
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
 
 
 def dot_format() -> _PROMPT_OUT:

@@ -20,7 +20,7 @@ Examples
 > llm_transform.py -i input.txt -o output.txt -p uppercase
 
 # List of transforms
-> llm_transform.py -i input.txt -o output.txt -p list
+> llm_transform.py -i input.txt -o output.txt -p list_prompts
 
 # Code review
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_review
@@ -243,7 +243,18 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hparser.init_logger_for_input_output_transform(args, verbose=False)
     #
-    if args.prompt == "list":
+    if args.prompt == "list_prompts":
+        print("# Available contexts:")
+        print("""
+        - code_*: Python code
+        - latex_*: latex
+        - md_*: markdown / txt notes (e.g., blog posts, documentation, etc.)
+        - review_*: review Python code
+        - scratch_*: misc and one-off transforms
+        - slide_*: markdown for slides
+        - text_*: free form text (e.g., notes, emails, etc.)
+
+        """)
         print("# Available prompt tags:")
         prompt_tags = dshlllpr.get_prompt_tags()
         print(dshlllpr.prompt_tags_to_str(prompt_tags))
