@@ -1078,7 +1078,8 @@ def get_workflow_run_ids(
 
     :param repo_path: repository path in format "org/repo"
     :param workflow_id: GitHub workflow ID
-    :param older_than_days: if specified, only return runs older than this many days
+    :param older_than_days: if specified, only return runs older than
+        this many days
     :return: list of run IDs
     """
     # See GitHub CLI API documentation: https://cli.github.com/manual/gh_api
@@ -1093,9 +1094,9 @@ def get_workflow_run_ids(
         #   Only runs where created_at timestamp < cutoff are selected
         cutoff_seconds = older_than_days * 86400
         # Log the cutoff date for debugging.
-        cutoff_date = datetime.datetime.now(
-            datetime.UTC
-        ) - datetime.timedelta(days=older_than_days)
+        cutoff_date = datetime.datetime.now(datetime.UTC) - datetime.timedelta(
+            days=older_than_days
+        )
         _LOG.debug("Filtering runs created before: %s", cutoff_date.isoformat())
         jq_filter = (
             f".workflow_runs[] | "
@@ -1137,12 +1138,13 @@ def gh_delete_workflow_runs(  # type: ignore
     Delete all workflow runs for a given workflow.
 
     :param workflow_name: name of the workflow to delete runs for
-    :param older_than_days: only delete runs older than this many days (optional).
-        If None, delete all runs. Example: older_than_days=30 deletes runs
-        created more than 30 days ago
-    :param dry_run: if True, show what would be deleted without actually deleting
-    :param confirmation: if True, prompt user for confirmation before deletion
-        (default: True)
+    :param older_than_days: only delete runs older than this many days
+        (optional). If None, delete all runs. Example:
+        older_than_days=30 deletes runs created more than 30 days ago
+    :param dry_run: if True, show what would be deleted without actually
+        deleting
+    :param confirmation: if True, prompt user for confirmation before
+        deletion (default: True)
     """
     hlitauti.report_task(
         txt=hprint.to_str("workflow_name older_than_days dry_run confirmation")
