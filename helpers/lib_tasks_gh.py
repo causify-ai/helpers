@@ -4,6 +4,7 @@ Import as:
 import helpers.lib_tasks_gh as hlitagh
 """
 
+import datetime
 import json
 import logging
 import os
@@ -1069,36 +1070,76 @@ def render_repo_workflow_status_table(
         )
 
 
+def _get_workflow_run_ids(
+    repo_path: str, workflow_id: str, older_than_days: Optional[int]
+) -> List[str]:
+    """
+    Get workflow run IDs, optionally filtering by age.
+
+    :param repo_path: repository path in format "org/repo"
+    :param workflow_id: GitHub workflow ID
+    :param older_than_days: if specified, only return runs older than this many days
+    :return: list of run IDs
+    """
+    if older_than_days is not None:
+        # Use jq to filter runs by age directly in the gh api command.
+        # jq date filtering breakdown:
+        # - `fromdateiso8601` converts ISO 8601 date to Unix timestamp (seconds since epoch)
+        # - `now` returns current Unix timestamp
+        # - Days are converted to seconds (days * 86400 seconds/day)
+        # - Example: if older_than_days=30, cutoff = now - (30 * 86400)
+        #   Only runs where created_at timestamp < cutoff are selected
+        cutoff_seconds = older_than_days * 86400
+        # Log the cutoff date for debugging.
+        cutoff_date = datetime.datetime.now(
+            datetime.UTC
+        ) - datetime.timedelta(days=older_than_days)
+        _LOG.debug("Filtering runs created before: %s", cutoff_date.isoformat())
+        jq_filter = (
+            f".workflow_runs[] | "
+            f"select((.created_at | fromdateiso8601) < (now - {cutoff_seconds})) | "
+            f".id"
+        )
+        cmd = (
+            f"gh api /repos/{repo_path}/actions/workflows/{workflow_id}/runs "
+            f"--paginate -q '{jq_filter}'"
+        )
+    else:
+        # Get all run IDs without date filtering.
+        # Example API output (one ID per line):
+        # 11758293857
+        # 11758293856
+        # 11758293855
+        cmd = (
+            f"gh api /repos/{repo_path}/actions/workflows/{workflow_id}/runs "
+            "--paginate -q '.workflow_runs[].id'"
+        )
+    # Execute command and parse output.
+    _, run_ids_output = hsystem.system_to_string(cmd)
+    run_ids = [
+        run_id.strip()
+        for run_id in run_ids_output.strip().split("\n")
+        if run_id.strip()
+    ]
+    return run_ids
+
+
 @task
-def gh_delete_workflow_runs(ctx, workflow_name, days=None, dry_run=False):
+def gh_delete_workflow_runs(ctx, workflow_name, older_than_days=None, dry_run=False):  # type: ignore
     """
     Delete all workflow runs for a given workflow.
 
     :param workflow_name: name of the workflow to delete runs for
-    :param days: only delete runs older than this many days (optional)
+    :param older_than_days: only delete runs older than this many days (optional).
+        If None, delete all runs. Example: older_than_days=30 deletes runs
+        created more than 30 days ago
     :param dry_run: if True, show what would be deleted without actually deleting
     """
-    hlitauti.report_task(txt=hprint.to_str("workflow_name days dry_run"))
+    hlitauti.report_task(txt=hprint.to_str("workflow_name older_than_days dry_run"))
     # Login.
     gh_login(ctx)
     #
     repo_full_name_with_host, _ = _get_repo_full_name_from_cmd("current")
-    dry_run_msg = " (DRY RUN - no actual deletion)" if dry_run else ""
-    if days is not None:
-        _LOG.info(
-            "Deleting workflow runs older than %d days for '%s' in %s%s",
-            days,
-            workflow_name,
-            repo_full_name_with_host,
-            dry_run_msg,
-        )
-    else:
-        _LOG.info(
-            "Deleting workflow runs for '%s' in %s%s",
-            workflow_name,
-            repo_full_name_with_host,
-            dry_run_msg,
-        )
     # Get workflow ID by name.
     repo_path = repo_full_name_with_host.replace("github.com/", "")
     workflows = gh_get_workflows(repo_path)
@@ -1115,64 +1156,19 @@ def gh_delete_workflow_runs(ctx, workflow_name, days=None, dry_run=False):
         )
     _LOG.info("Found workflow '%s' with ID: %s", workflow_name, workflow_id)
     # Get all run IDs for this workflow, optionally filtering by date.
-    if days is not None:
-        # Get runs with both ID and creation date for filtering.
-        cmd = (
-            f"gh api /repos/{repo_path}/actions/workflows/{workflow_id}/runs "
-            "--paginate -q '.workflow_runs[] | select(.created_at) | {id: .id, created_at: .created_at}'"
-        )
-        _, runs_output = hsystem.system_to_string(cmd)
-        # Parse JSON output to filter by date.
-        import json
-        from datetime import datetime, timedelta, timezone
-        
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=int(days))
-        run_ids = []
-        for line in runs_output.strip().split('\n'):
-            if line.strip():
-                try:
-                    run_data = json.loads(line.strip())
-                    created_at_str = run_data['created_at']
-                    # Parse ISO format datetime: 2024-01-15T10:30:45Z
-                    created_at = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
-                    if created_at < cutoff_date:
-                        run_ids.append(str(run_data['id']))
-                except (json.JSONDecodeError, KeyError, ValueError) as e:
-                    _LOG.warning("Failed to parse run data: %s, error: %s", line, e)
-                    continue
-    else:
-        # Get all run IDs without date filtering.
-        cmd = (
-            f"gh api /repos/{repo_path}/actions/workflows/{workflow_id}/runs "
-            "--paginate -q '.workflow_runs[].id'"
-        )
-        _, run_ids_output = hsystem.system_to_string(cmd)
-        # Parse the GitHub API output which returns one run ID per line.
-        # https://cli.github.com/manual/gh_api
-        # Example output from `gh api`:
-        # "11758293857\n11758293856\n11758293855\n"
-        # We need to strip whitespace and filter out empty lines.
-        run_ids = [
-            run_id.strip()
-            for run_id in run_ids_output.strip().split("\n")
-            if run_id.strip()
-        ]
+    run_ids = _get_workflow_run_ids(repo_path, workflow_id, older_than_days)
+    # Check if any runs were found.
+    age_filter_msg = (
+        f" older than {older_than_days} days"
+        if older_than_days is not None
+        else ""
+    )
     if not run_ids:
-        if days is not None:
-            _LOG.info("No workflow runs older than %d days found for '%s'", days, workflow_name)
-        else:
-            _LOG.info("No workflow runs found for '%s'", workflow_name)
+        _LOG.info(
+            "No workflow runs%s found for '%s'", age_filter_msg, workflow_name
+        )
         return
-    if days is not None:
-        _LOG.info("Found %d workflow runs older than %d days to delete", len(run_ids), days)
-    else:
-        _LOG.info("Found %d workflow runs to delete", len(run_ids))
-    if dry_run:
-        _LOG.info("DRY RUN: Would delete the following %d workflow runs:", len(run_ids))
-        for i, run_id in enumerate(run_ids, 1):
-            _LOG.info("  %d. Run ID: %s", i, run_id)
-        _LOG.info("DRY RUN complete: %d runs would be deleted", len(run_ids))
-        return
+    _LOG.info("Found %d workflow runs%s to delete", len(run_ids), age_filter_msg)
     # Delete each run.
     deleted_count = 0
     failed_count = 0
@@ -1180,7 +1176,7 @@ def gh_delete_workflow_runs(ctx, workflow_name, days=None, dry_run=False):
         try:
             cmd = f"gh api -X DELETE /repos/{repo_path}/actions/runs/{run_id}"
             _LOG.info("Deleting run %s", run_id)
-            hlitauti.run(ctx, cmd)
+            hlitauti.run(ctx, cmd, dry_run=dry_run)
             deleted_count += 1
         except Exception as e:
             _LOG.error("Failed to delete run %s: %s", run_id, str(e))
