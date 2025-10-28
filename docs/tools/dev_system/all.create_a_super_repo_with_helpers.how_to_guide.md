@@ -254,6 +254,19 @@
   and
   [`/docs/tools/dev_system/all.devops_docker.how_to_guide.md`](/docs/tools/dev_system/all.devops_docker.how_to_guide.md)
 
+- To customize OS package dependencies:
+  - The Docker build system uses a declarative approach for OS package
+    installation
+  - Edit
+    [`/devops/docker_build/os_packages/os_packages.txt`](/devops/docker_build/os_packages/os_packages.txt)
+    to control which packages will be installed during the container build
+    - **Disable** a package: add `#` at the beginning of the line
+    - **Enable** a package: remove the `#` from the beginning of the line
+  - See
+    [`/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation`](/docs/tools/dev_system/all.devops_docker.reference.md#declarative-os-package-installation)
+    for details on the declarative OS package installation system, including
+    important notes about dependencies between `helpers` modules and OS packages
+
 ## Create Symbolic Links
 
 - Check the difference between the super-repo and `helpers`

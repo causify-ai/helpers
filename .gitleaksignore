@@ -1,3 +1,71 @@
+################################################################################
+# Files:
+# - download.sh
+# - status.sh
+# Known leaks:
+# - Synthesia keys have been revoked
+################################################################################
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:aws-access-token:11
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:aws-access-token:12
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:aws-access-token:13
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule2:11
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule2:12
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule2:13
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule4:11
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule4:12
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule4:13
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule83:11
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule83:12
+d28f001d144fb19ab91652e4bb5230aac0015f07:download.sh:rule83:13
+18b68b3c26931770f92a1e9a7c8513a1207acb2e:download.sh:aws-access-token:1
+18b68b3c26931770f92a1e9a7c8513a1207acb2e:download.sh:rule2:1
+18b68b3c26931770f92a1e9a7c8513a1207acb2e:download.sh:rule4:1
+18b68b3c26931770f92a1e9a7c8513a1207acb2e:download.sh:rule83:1
+dca7e683f930ad456677c00620b2facbcae6a02b:download.sh:aws-access-token:1
+dca7e683f930ad456677c00620b2facbcae6a02b:download.sh:rule2:1
+dca7e683f930ad456677c00620b2facbcae6a02b:download.sh:rule4:1
+dca7e683f930ad456677c00620b2facbcae6a02b:download.sh:rule83:1
+232d47730683bd3ebbd58174596cf8a0d1063133:download.sh:aws-access-token:1
+232d47730683bd3ebbd58174596cf8a0d1063133:download.sh:rule2:1
+232d47730683bd3ebbd58174596cf8a0d1063133:download.sh:rule4:1
+232d47730683bd3ebbd58174596cf8a0d1063133:download.sh:rule83:1
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:5
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:11
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:12
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:13
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:14
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:15
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:aws-access-token:16
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:5
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:11
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:12
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:13
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:14
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:15
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule2:16
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:5
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:11
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:12
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:13
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:14
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:15
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule4:16
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:5
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:11
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:12
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:13
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:14
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:15
+ada62ed614c4558f65326365b8c3a4f15d92c23e:download.sh:rule83:16
+232d47730683bd3ebbd58174596cf8a0d1063133:status.sh:curl-auth-header:1
+################################################################################
+# Files:
+# - dev_scripts_helpers/github/set_secrets_and_variables.py
+# Known leaks:
+# - AWS creds have been revoked
+# - Github PATs have been revoked
+# - TG bots are deprecated since we have switched to Slack
+################################################################################
 0f9cd7d5c67561e42dbed16b976627199ad8d95d:dev_scripts_helpers/github/set_secrets_and_variables.py.log:aws-access-token:15
 0f9cd7d5c67561e42dbed16b976627199ad8d95d:dev_scripts_helpers/github/set_secrets_and_variables.py.log:aws-access-token:3
 0f9cd7d5c67561e42dbed16b976627199ad8d95d:dev_scripts_helpers/github/set_secrets_and_variables.py.log:github-pat:13
@@ -11,17 +79,6 @@
 0f9cd7d5c67561e42dbed16b976627199ad8d95d:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule808:7
 0f9cd7d5c67561e42dbed16b976627199ad8d95d:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule83:15
 0f9cd7d5c67561e42dbed16b976627199ad8d95d:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule83:3
-178609b864cec64e856a0cf4a50172d9a2b96357:docs/work_tools/all.visual_studio_code.how_to_guide.md:private-key:198
-178609b864cec64e856a0cf4a50172d9a2b96357:docs/work_tools/all.visual_studio_code.how_to_guide.md:rule622:198
-30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule300:93
-30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule403:94
-30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule622:97
-30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/work_tools/all.pycharm.how_to_guide.md:private-key:303
-30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/work_tools/all.pycharm.how_to_guide.md:rule622:303
-30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/work_tools/all.visual_studio_code.how_to_guide.md:private-key:32
-30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/work_tools/all.visual_studio_code.how_to_guide.md:rule622:32
-575ffead95512ece525939d1397a9c7b074cdb10:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule300:57
-575ffead95512ece525939d1397a9c7b074cdb10:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule403:58
 7c8e924eb83ebaf3c8ff2c2dba35ec1946a01bac:dev_scripts_helpers/github/set_secrets_and_variables.py.log:aws-access-token:15
 7c8e924eb83ebaf3c8ff2c2dba35ec1946a01bac:dev_scripts_helpers/github/set_secrets_and_variables.py.log:aws-access-token:3
 7c8e924eb83ebaf3c8ff2c2dba35ec1946a01bac:dev_scripts_helpers/github/set_secrets_and_variables.py.log:github-pat:13
@@ -35,17 +92,32 @@
 7c8e924eb83ebaf3c8ff2c2dba35ec1946a01bac:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule808:7
 7c8e924eb83ebaf3c8ff2c2dba35ec1946a01bac:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule83:15
 7c8e924eb83ebaf3c8ff2c2dba35ec1946a01bac:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule83:3
+ea394556d10f59737834952d72a233d7219298f6:dev_scripts_helpers/github/set_secrets_and_variables.py.log:aws-access-token:3
+ea394556d10f59737834952d72a233d7219298f6:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule2:3
+ea394556d10f59737834952d72a233d7219298f6:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule4:3
+ea394556d10f59737834952d72a233d7219298f6:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule808:7
+ea394556d10f59737834952d72a233d7219298f6:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule83:3
+################################################################################
+# Miscellaneous
+################################################################################
+520ff3941cdc8879ef8d42af8380329e3c97b1e7:blog/themes/hugo-book/.github/workflows/main.yml:rule1178:32
+178609b864cec64e856a0cf4a50172d9a2b96357:docs/work_tools/all.visual_studio_code.how_to_guide.md:private-key:198
+178609b864cec64e856a0cf4a50172d9a2b96357:docs/work_tools/all.visual_studio_code.how_to_guide.md:rule622:198
+30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule300:93
+30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule403:94
+30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule622:97
+30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/work_tools/all.pycharm.how_to_guide.md:private-key:303
+30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/work_tools/all.pycharm.how_to_guide.md:rule622:303
+30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/work_tools/all.visual_studio_code.how_to_guide.md:private-key:32
+30bcaa7d4429c12b5cb129ffca23a4574b95057a:docs/work_tools/all.visual_studio_code.how_to_guide.md:rule622:32
+575ffead95512ece525939d1397a9c7b074cdb10:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule300:57
+575ffead95512ece525939d1397a9c7b074cdb10:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule403:58
 b16d3b169de71a73d2848269b69d04a844c63c53:blog/themes/hugo-book/.github/workflows/main.yml:rule1178:32
 e037f372871ead0826f860df5f09a1f93ade6356:dev_scripts/lint/lint_json.sh:generic-api-key:14
 e037f372871ead0826f860df5f09a1f93ade6356:dev_scripts/old/create_conda/install/conda_envs/amp_develop.saggese.Linux.ip-172-31-16-23.txt:generic-api-key:86
 e037f372871ead0826f860df5f09a1f93ade6356:dev_scripts/old/create_conda/install/conda_envs/p1_develop.julia.Linux.vostro.txt:generic-api-key:86
 e037f372871ead0826f860df5f09a1f93ade6356:dev_scripts/old/create_conda/install/conda_envs/p1_develop.paul.Linux.ip-172-31-16-23.txt:generic-api-key:86
 e918546c1f3de8d488916c319398bd6901086f8e:htmlcov/class_index.html:rule645:9121
-ea394556d10f59737834952d72a233d7219298f6:dev_scripts_helpers/github/set_secrets_and_variables.py.log:aws-access-token:3
-ea394556d10f59737834952d72a233d7219298f6:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule2:3
-ea394556d10f59737834952d72a233d7219298f6:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule4:3
-ea394556d10f59737834952d72a233d7219298f6:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule808:7
-ea394556d10f59737834952d72a233d7219298f6:dev_scripts_helpers/github/set_secrets_and_variables.py.log:rule83:3
 f0cfce0e9fcf499b1355780a71eae5bc177dbdf5:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule300:93
 f0cfce0e9fcf499b1355780a71eae5bc177dbdf5:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule403:94
 f0cfce0e9fcf499b1355780a71eae5bc177dbdf5:docs/coding/all.gsheet_into_pandas.how_to_guide.md:rule622:97

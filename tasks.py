@@ -26,6 +26,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_build_local_image,
     docker_build_multi_arch_prod_image,
     docker_build_prod_image,
+    docker_build_test_dev_image,
     docker_cmd,
     docker_create_candidate_image,
     docker_build_frontend_feature_image,
@@ -42,6 +43,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     docker_push_prod_image,
     docker_release_dev_image,
     docker_release_prod_image,
+    docker_remove_image,
     docker_rollback_dev_image,  # TODO(gp): -> docker_release_rollback_dev_image
     docker_rollback_prod_image,
     docker_stats,
@@ -59,6 +61,7 @@ from helpers.lib_tasks import (  # isort: skip # noqa: F401  # pylint: disable=u
     find_test_decorator,
     fix_perms,
     gh_create_pr,
+    gh_issue_create,
     gh_issue_title,
     gh_login,
     gh_workflow_list,

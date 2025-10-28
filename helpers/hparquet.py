@@ -27,6 +27,7 @@ else:
 
     # Define a dummy class for type hints when S3FileSystem is not available.
     class PyArrowS3FileSystem:
+
         def __init__(self, *args, **kwargs):
             raise ImportError(
                 "S3FileSystem is not available in this version of pyarrow.fs"
@@ -46,6 +47,11 @@ import helpers.hserver as hserver
 import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# ParquetDataFrameGenerator
+# #############################################################################
 
 
 class ParquetDataFrameGenerator:
@@ -135,9 +141,7 @@ class ParquetDataFrameGenerator:
                 index=self._dataframe_index,
             )
             _LOG.debug(
-                hpandas.df_to_str(
-                    asset_df, print_shape_info=True, tag="asset_df"
-                )
+                hpandas.df_to_str(asset_df, print_shape_info=True, tag="asset_df")
             )
             df.append(asset_df)
         return df
@@ -1105,6 +1109,7 @@ def to_partitioned_parquet(
     dst_dir: str,
     *,
     aws_profile: hs3.AwsProfile = None,
+    basename_template: str = None,
 ) -> None:
     """
     Save the given dataframe as Parquet file partitioned along the given
@@ -1170,6 +1175,7 @@ def to_partitioned_parquet(
             dst_dir,
             partition_cols=partition_columns,
             filesystem=filesystem,
+            basename_template=basename_template,
         )
 
 

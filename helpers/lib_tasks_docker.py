@@ -62,6 +62,45 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
 
 
 @task
+def docker_remove_image(ctx, base_image="") -> None:  # type: ignore
+    """
+    Delete the current dev image to free up disk space.
+
+    :param base_image: base name of the image (e.g., `*****.dkr.ecr.us-
+        east-1.amazonaws.com/amp`)
+    """
+    # Display disk space before cleanup.
+    _LOG.info("Disk space before cleanup:")
+    hsystem.system("df -h", suppress_output=False)
+    # Handle the image.
+    stage = "dev"
+    version = ""
+    image = get_image(base_image, stage, version)
+    _LOG.info("Deleting Docker image: %s", image)
+    # Get Docker executable configuration.
+    use_sudo = hdocker.get_use_sudo()
+    docker_exec = hdocker.get_docker_executable(use_sudo)
+    # Delete the specific image.
+    cmd = f"{docker_exec} rmi -f {image}"
+    _LOG.info("Running: %s", cmd)
+    try:
+        result = hsystem.system(cmd, suppress_output=False)
+        if result != 0:
+            _LOG.warning(
+                "Docker image deletion failed with exit code %s for image: %s",
+                result,
+                image,
+            )
+        else:
+            _LOG.info("Successfully deleted Docker image: %s", image)
+    except Exception as e:
+        _LOG.error("Error during Docker image deletion: %s", e)
+    # Display disk space after cleanup.
+    _LOG.info("Disk space after cleanup:")
+    hsystem.system("df -h", suppress_output=False)
+
+
+@task
 def docker_ps(ctx, sudo=False):  # type: ignore
     # pylint: disable=line-too-long
     """
@@ -552,9 +591,7 @@ def _generate_docker_compose_file(
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
-    use_helpers_as_nested_module = (
-        0 if hgit.is_in_helpers_as_supermodule() else 1
-    )
+    use_helpers_as_nested_module = 0 if hgit.is_in_helpers_as_supermodule() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -1329,9 +1366,7 @@ def _docker_cmd(
         hs3.generate_aws_files()
     docker_pull(ctx, skip_pull=skip_pull)
     _LOG.debug("cmd=%s", docker_cmd_)
-    rc: Optional[int] = hlitauti.run(
-        ctx, docker_cmd_, pty=True, **ctx_run_kwargs
-    )
+    rc: Optional[int] = hlitauti.run(ctx, docker_cmd_, pty=True, **ctx_run_kwargs)
     return rc
 
 
