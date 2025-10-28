@@ -709,6 +709,27 @@ _MD_CONTEXT = r"""
     I will pass you a chunk of markdown code.
     """
 
+def md_reduce() -> _PROMPT_OUT:
+    """
+    Check the slide is clear and correct.
+    """
+    system = _MD_CONTEXT
+    system += r"""
+    You will:
+    - Maintain the structure of the text and keep the content of the existing
+      text
+    - Add bullet points to the text that are important or missing
+    - Add examples to clarify the text and help intuition
+    - Fix the English grammar
+    - Fix any mistake only if you are sure about the correction.
+
+    Print only the markdown without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
 
 def md_add_good_bad_examples() -> _PROMPT_OUT:
     """
@@ -1662,6 +1683,27 @@ def text_check() -> _PROMPT_OUT:
     pre_transforms: Set[str] = set()
     post_transforms: Set[str] = set()
     post_container_transforms = ["format_markdown", "append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def text_check_fix() -> _PROMPT_OUT:
+    """
+    Check that the text is clear and correct and then fix it.
+    """
+    system = ""
+    system += r"""
+    You are an expert college professor expert of machine learning and computer
+    science.
+
+    - If you are sure that there is a mistake or something unclear, correct
+      it making sure that the text is clear and correct, and without changing
+      the structure of the text.
+
+    Do not print anything else than the corrected text in a markdown format
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
 

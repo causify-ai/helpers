@@ -209,6 +209,7 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
         "md_clean_up",
         "md_bold_bullets",
         "slide_format_figures",
+        "slide_add_figure",
     ):
         # Read the input.
         _LOG.debug("Reading input file: %s", in_file_name)
@@ -230,6 +231,22 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
             lines = hmarkdo.format_figures(lines)
             txt = "\n".join(lines)
             # txt = hmarkdo.format_markdown(txt)
+        elif prompt == "slide_add_figure":
+            lines = txt.split("\n")
+            lines_out = []
+            lines_out.append(hprint.dedent("""
+            ::: columns
+            :::: {.column width=60%}
+            """))
+            lines_out.extend(lines)
+            lines_out.append(hprint.dedent("""
+            ::::
+            :::: {.column width=30%}
+            ::::
+            :::
+            """))
+            txt = "\n".join(lines_out)
+            txt = hmarkdo.format_markdown(txt)
         else:
             raise ValueError(f"Invalid prompt='{prompt}'")
         #
