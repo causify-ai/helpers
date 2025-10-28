@@ -40,3 +40,30 @@ class TestVersioning1(hunitest.TestCase):
         container_version = "amp-1.0.0"
         is_ok = hversio._check_version(code_version, container_version)
         self.assertTrue(is_ok)
+
+    def test_bump_version1(self) -> None:
+        """
+        Test major version bump.
+        """
+        version = "2.2.0"
+        result = hversio.bump_version(version, bump_type="major")
+        expected = "3.0.0"
+        self.assertEqual(result, expected)
+
+    def test_bump_version2(self) -> None:
+        """
+        Test minor version bump.
+        """
+        version = "2.2.0"
+        result = hversio.bump_version(version, bump_type="minor")
+        expected = "2.3.0"
+        self.assertEqual(result, expected)
+
+    def test_bump_version3(self) -> None:
+        """
+        Test patch version bump.
+        """
+        version = "2.2.0"
+        result = hversio.bump_version(version, bump_type="patch")
+        expected = "2.2.1"
+        self.assertEqual(result, expected)
