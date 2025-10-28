@@ -1,5 +1,5 @@
 import logging
-from unittest import mock
+import unittest.mock as umock
 
 import pytest
 
@@ -58,10 +58,10 @@ class TestGhOrgTeamFunctions(hunitest.TestCase):
     Test gh_get_org_team_names and gh_get_team_member_names with mocked data.
     """
 
-    @mock.patch.object(hlitagh, "_gh_run_and_get_json")
-    @mock.patch.object(hlitagh, "_get_org_name")
+    @umock.patch.object(hlitagh, "_gh_run_and_get_json")
+    @umock.patch.object(hlitagh, "_get_org_name")
     def test_gh_get_org_team_names1(
-        self, mock_get_org_name: mock.Mock, mock_gh_run: mock.Mock
+        self, mock_get_org_name: umock.Mock, mock_gh_run: umock.Mock
     ) -> None:
         """
         Test gh_get_org_team_names with sorted team names.
@@ -82,10 +82,10 @@ class TestGhOrgTeamFunctions(hunitest.TestCase):
         mock_get_org_name.assert_called_once_with("test-org")
         mock_gh_run.assert_called_once_with("gh api /orgs/test-org/teams --paginate")
 
-    @mock.patch.object(hlitagh, "_gh_run_and_get_json")
-    @mock.patch.object(hlitagh, "_get_org_name")
+    @umock.patch.object(hlitagh, "_gh_run_and_get_json")
+    @umock.patch.object(hlitagh, "_get_org_name")
     def test_gh_get_team_member_names1(
-        self, mock_get_org_name: mock.Mock, mock_gh_run: mock.Mock
+        self, mock_get_org_name: umock.Mock, mock_gh_run: umock.Mock
     ) -> None:
         """
         Test gh_get_team_member_names with member list.
