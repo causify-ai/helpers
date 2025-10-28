@@ -80,7 +80,9 @@ class TestGhOrgTeamFunctions(hunitest.TestCase):
         self.assertEqual(result, expected)
         # Verify mocks were called correctly.
         mock_get_org_name.assert_called_once_with("test-org")
-        mock_gh_run.assert_called_once_with("gh api /orgs/test-org/teams --paginate")
+        mock_gh_run.assert_called_once_with(
+            "gh api /orgs/test-org/teams --paginate"
+        )
 
     @umock.patch.object(hlitagh, "_gh_run_and_get_json")
     @umock.patch.object(hlitagh, "_get_org_name")

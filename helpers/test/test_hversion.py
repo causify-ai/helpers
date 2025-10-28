@@ -6,7 +6,13 @@ import helpers.hversion as hversio
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# TestVersioning1
+# #############################################################################
+
+
 class TestVersioning1(hunitest.TestCase):
+
     def test_get_changelog_version1(self) -> None:
         """
         Test `cmamp` version.
