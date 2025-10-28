@@ -1070,8 +1070,8 @@ def render_repo_workflow_status_table(
         )
 
 
-def _get_workflow_run_ids(
-    repo_path: str, workflow_id: str, older_than_days: Optional[int]
+def get_workflow_run_ids(
+    repo_path: str, workflow_id: str, *, older_than_days: Optional[int] = None
 ) -> List[str]:
     """
     Get workflow run IDs, optionally filtering by age.
@@ -1081,6 +1081,8 @@ def _get_workflow_run_ids(
     :param older_than_days: if specified, only return runs older than this many days
     :return: list of run IDs
     """
+    # See GitHub CLI API documentation: https://cli.github.com/manual/gh_api
+    # We use the -q/--jq option to filter results using jq syntax.
     if older_than_days is not None:
         # Use jq to filter runs by age directly in the gh api command.
         # jq date filtering breakdown:
@@ -1100,6 +1102,9 @@ def _get_workflow_run_ids(
             f"select((.created_at | fromdateiso8601) < (now - {cutoff_seconds})) | "
             f".id"
         )
+        # WARNING: Using --paginate to fetch all workflow runs can be slow
+        # for workflows with a large number of runs (e.g., 1000+ runs).
+        # The GitHub API paginates results, and jq filters each page.
         cmd = (
             f"gh api /repos/{repo_path}/actions/workflows/{workflow_id}/runs "
             f"--paginate -q '{jq_filter}'"
@@ -1125,7 +1130,9 @@ def _get_workflow_run_ids(
 
 
 @task
-def gh_delete_workflow_runs(ctx, workflow_name, older_than_days=None, dry_run=False):  # type: ignore
+def gh_delete_workflow_runs(  # type: ignore
+    ctx, workflow_name, older_than_days=None, dry_run=False, confirmation=True
+):
     """
     Delete all workflow runs for a given workflow.
 
@@ -1134,8 +1141,12 @@ def gh_delete_workflow_runs(ctx, workflow_name, older_than_days=None, dry_run=Fa
         If None, delete all runs. Example: older_than_days=30 deletes runs
         created more than 30 days ago
     :param dry_run: if True, show what would be deleted without actually deleting
+    :param confirmation: if True, prompt user for confirmation before deletion
+        (default: True)
     """
-    hlitauti.report_task(txt=hprint.to_str("workflow_name older_than_days dry_run"))
+    hlitauti.report_task(
+        txt=hprint.to_str("workflow_name older_than_days dry_run confirmation")
+    )
     # Login.
     gh_login(ctx)
     #
@@ -1156,7 +1167,9 @@ def gh_delete_workflow_runs(ctx, workflow_name, older_than_days=None, dry_run=Fa
         )
     _LOG.info("Found workflow '%s' with ID: %s", workflow_name, workflow_id)
     # Get all run IDs for this workflow, optionally filtering by date.
-    run_ids = _get_workflow_run_ids(repo_path, workflow_id, older_than_days)
+    run_ids = get_workflow_run_ids(
+        repo_path, workflow_id, older_than_days=older_than_days
+    )
     # Check if any runs were found.
     age_filter_msg = (
         f" older than {older_than_days} days"
@@ -1169,6 +1182,19 @@ def gh_delete_workflow_runs(ctx, workflow_name, older_than_days=None, dry_run=Fa
         )
         return
     _LOG.info("Found %d workflow runs%s to delete", len(run_ids), age_filter_msg)
+    # Prompt for confirmation if required.
+    if confirmation and not dry_run:
+        confirmation_msg = (
+            f"\nAre you sure you want to delete {len(run_ids)} workflow run(s)"
+            f"{age_filter_msg} for '{workflow_name}'?\n"
+            f"Repository: {repo_full_name_with_host}\n"
+            f"Type 'yes' or 'y' to confirm: "
+        )
+        user_input = input(confirmation_msg).strip().lower()
+        if user_input not in ("yes", "y"):
+            _LOG.info("Deletion cancelled by user")
+            return
+        _LOG.info("User confirmed deletion, proceeding...")
     # Delete each run.
     deleted_count = 0
     failed_count = 0
