@@ -25,12 +25,13 @@ import helpers.hversion as hversio
 
 def _format_release_message(changelog_entry: dict) -> str:
     """
-    Format the changelog entry for Slack.
+    Format the release message for Slack.
 
     :param changelog_entry: dict with 'version', 'date', and 'changes' keys
-    :return: formatted changelog entry
+    :return: formatted release message with header and changelog
     """
     message_parts = [
+        "🚀 *The new image has been released:*",
         f"*{changelog_entry['version']}* ({changelog_entry['date']})",
     ]
     # Add changes.
