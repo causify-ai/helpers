@@ -936,10 +936,15 @@ options:
 
 ### What It Does
 
-- Generate multiple images using OpenAI's DALL-E API from the same prompt.
-- This script generates images (default: 5) from a single prompt using OpenAI's image generation API.
+- Generate multiple images using OpenAI's DALL-E API from prompts.
+- This script generates images (default: 5) from one or more prompts using OpenAI's image generation API.
 - Supports both standard and HD quality modes.
 - Accepts prompts either from command line or from a file.
+- Supports two file formats:
+  - **Single description**: entire file content is treated as one prompt
+  - **Multiple descriptions**: numbered format with multiple prompts
+- Shows progress bar when generating multiple images.
+- Reports the number of descriptions found when processing multiple prompts.
 
 ### Examples
 
@@ -958,15 +963,57 @@ options:
   > generate_images.py "A cat wearing a hat" --dst_dir ./images --count 3
   ```
 
-- Generate images using prompt from file
+- Generate images using single description from file
   ```bash
   > generate_images.py --input descr.txt --dst_dir ./images
   ```
+
+  Where `descr.txt` contains:
+  ```
+  A beautiful sunset over mountains with vibrant colors
+  ```
+
+- Generate images from multiple descriptions in file
+  ```bash
+  > generate_images.py --input descriptions.txt --dst_dir ./images --count 2
+  ```
+
+  Where `descriptions.txt` contains:
+  ```
+  1. **Description of the image 1**
+     A digital painting illustrating a futuristic cityscape where data streams
+     flow like rivers through the streets.
+  2. **Description of the image 2**
+     An editorial illustration depicting a metaphorical "decision tree" growing
+     in a corporate office.
+  3. **Description of the image 3**
+     A minimalist flat design showing a set of scales balancing two concepts.
+  ```
+
+  This will:
+  - Detect 3 descriptions in the file
+  - Print "Found 3 descriptions in input file"
+  - Generate 2 images for each description (6 images total)
+  - Show progress bar for all 6 images
+  - Save images as `desc_01_image_01_hd.png`, `desc_01_image_02_hd.png`, etc.
 
 - Generate low-res images using prompt from file
   ```bash
   > generate_images.py --input descr.txt --dst_dir ./images --low_res
   ```
+
+- Dry run mode to preview what would be generated without making API calls
+  ```bash
+  > generate_images.py --input descriptions.txt --dst_dir ./images --count 2 --dry_run
+  ```
+
+  This will:
+  - Parse the input file and detect all descriptions
+  - Print all descriptions that would be processed
+  - Show which filenames would be generated
+  - Display settings (quality, size, count)
+  - Skip actual API calls and image downloads
+  - Useful for testing and validating input before spending API credits
 
 ### Interface
 
@@ -976,23 +1023,29 @@ options:
   - Positional argument (optional)
   - Text prompt for image generation
 - `--input`
-  - Path to file containing the image description prompt
+  - Path to file containing the image description prompt(s)
   - Alternative to providing prompt as positional argument
+  - Supports single description or multiple numbered descriptions
 - `--dst_dir`
   - Required
   - Destination directory for generated images
 - `--count`
   - Default: 5
-  - Number of images to generate
+  - Number of images to generate per description
 - `--low_res`
   - Flag to generate standard quality images (vs HD quality)
   - Default: HD quality
 - `--api_key`
   - OpenAI API key (if not set via OPENAI_API_KEY environment variable)
+- `--dry_run`
+  - Flag to print what would be done without executing API calls
+  - Shows descriptions, file names, and settings that would be used
+  - No API calls made, no images generated
+  - Useful for validating input and previewing output before execution
 
 **Note**: Either `prompt` or `--input` must be provided. The script requires an
 OpenAI API key, either via the `--api_key` parameter or the `OPENAI_API_KEY`
-environment variable.
+environment variable (not required for `--dry_run` mode).
 
 ## Useful Tools
 

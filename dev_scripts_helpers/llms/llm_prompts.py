@@ -1738,7 +1738,7 @@ def text_rephrase() -> _PROMPT_OUT:
 
 
 # #############################################################################
-# Graphviz.
+# dot
 # #############################################################################
 
 
@@ -1840,6 +1840,88 @@ def dot_format() -> _PROMPT_OUT:
     post_container_transforms = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
+
+# #############################################################################
+# figure
+# #############################################################################
+
+
+def figure_create_blog_figure() -> _PROMPT_OUT:
+    """
+    """
+    system = ""
+    system += r"""
+    Given the text of a blog post, generate 3 visual concepts that illustrate or
+    comment on its themes, ideas, or emotions.
+    
+    For each concept, create a precise DALL·E prompt suitable for generating the
+    image following the guidelines below.
+    - Each image prompt should be clear, vivid, and detailed enough for an image
+      generator such as DALL·E to produce a coherent result.
+	- Emphasize composition, style, and mood (e.g., “digital painting,”
+	  “editorial illustration,” “minimalist flat design,” etc.).
+	- Match the tone and message of the blog text (e.g., serious, playful,
+	  reflective).
+	- Avoid generic or literal depictions — aim for creative visual metaphors
+      that enrich the text.
+    - Avoid to suggest any text in the picture
+    
+    The format the output as follows:
+
+    1) Description of the image 1
+    2) Description of the image 2
+    2) Description of the image 3
+
+    Do not print anything else than the output in a markdown format
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def figure_create_blog_figure2() -> _PROMPT_OUT:
+    """
+    Causify style.
+    """
+    system = ""
+    system += r"""
+    Given the text of a blog post, generate 3 visual concepts that illustrate or
+    comment on its themes, ideas, or emotions.
+    
+    For each concept, create a precise DALL·E prompt suitable for generating the
+    image following the guidelines below.
+    - Each image prompt should be clear, vivid, and detailed enough for an image
+      generator such as DALL·E to produce a coherent result.
+	- Emphasize composition, style, and mood (e.g., “digital painting,”
+	  “editorial illustration,” “minimalist flat design,” etc.).
+	- Match the tone and message of the blog text (e.g., serious, playful,
+	  reflective).
+	- Avoid generic or literal depictions — aim for creative visual metaphors
+      that enrich the text.
+    - You MUST avoid to suggest any text in the picture
+    
+    Follow this template:
+    A conceptual digital illustration showing a scientist or data analyst
+    The environment is sleek and futuristic, representing AI-driven business
+    intelligence
+    
+    The format the output as follows:
+
+    1) Description of the image 1
+    2) Description of the image 2
+    2) Description of the image 3
+
+    Do not print anything else than the output in a markdown format
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
 
 # #############################################################################
 # Transforms.
