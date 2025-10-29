@@ -47,6 +47,26 @@ class TestLibTasks1(hunitest.TestCase):
         repo = "current"
         _ = hlitagh._get_gh_issue_title(issue_id, repo)
 
+    def test_get_org_name1(self) -> None:
+        """
+        Test _get_org_name when org_name is provided.
+        """
+        org_name = "test-org"
+        result = hlitagh._get_org_name(org_name)
+        expected = "test-org"
+        self.assertEqual(result, expected)
+
+    @umock.patch.object(hgit, "get_repo_full_name_from_dirname")
+    def test_get_org_name2(self, mock_get_repo: umock.Mock) -> None:
+        """
+        Test _get_org_name when org_name is empty (infers from repo).
+        """
+        mock_get_repo.return_value = "causify-ai/helpers"
+        result = hlitagh._get_org_name("")
+        expected = "causify-ai"
+        self.assertEqual(result, expected)
+        mock_get_repo.assert_called_once_with(".", include_host_name=False)
+
 
 # #############################################################################
 # TestGhOrgTeamFunctions
