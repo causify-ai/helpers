@@ -7,14 +7,11 @@ This script generates 5 images from a single prompt using OpenAI's image
 generation API.  It supports both standard and HD quality modes.
 
 Examples:
-# Generate standard quality images
-> dev_scripts_helpers/generate_images.py "A sunset over mountains" --dst_dir ./images --low_res
+# Generate images using prompt from file
+> generate_images.py --input descr.txt --dst_dir ./images
 
-# Generate HD quality images
-> dev_scripts_helpers/generate_images.py "A sunset over mountains" --dst_dir ./images
-
-# Generate with custom image count
-> dev_scripts_helpers/generate_images.py "A cat wearing a hat" --dst_dir ./images --count 3
+# Generate low-res images using prompt from file
+> generate_images.py --input descr.txt --dst_dir ./images --low_res
 """
 
 import argparse
@@ -43,6 +40,11 @@ def _parse() -> argparse.ArgumentParser:
         "prompt", nargs="?", help="Text prompt for image generation"
     )
     parser.add_argument(
+        "--input",
+        action="store",
+        help="Path to file containing the image description prompt",
+    )
+    parser.add_argument(
         "--dst_dir",
         action="store",
         required=True,
@@ -62,10 +64,6 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--api_key",
         help="OpenAI API key (if not set via OPENAI_API_KEY env var)",
-    )
-    parser.add_argument(
-        "--workload",
-        help="Workload type (MSLM610 generates images for predefined word sets)",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -135,39 +133,6 @@ def _generate_workload_images(
     Generate images for specific workload types.
     """
     random.seed()  # Seeds with current system time by default
-    if workload != "MSLM610":
-        raise ValueError(f"Unsupported workload: {workload}")
-    # MSLM610 workload data.
-    WORKLOAD_DATA = {
-        1: ["Compass", "Spark", "Roadmap"],
-        2: ["Toolbox", "Gears", "Flowchart"],
-        3: ["Graph", "Symbols", "Ontology Tree"],
-        4: ["Blueprint", "Layers", "Curve"],
-        5: ["Book", "Equation", "Lightbulb"],
-        6: ["Prior", "Posterior", "Update"],
-        7: ["Code", "Dice", "Distribution"],
-        8: ["Timeline", "Clock", "Arrows"],
-        9: ["Arrow", "Chain", "Intervention"],
-        10: ["Line Chart", "Calendar", "Horizon"],
-        11: ["Neural Net", "Layers", "Circuit"],
-        12: ["Agent", "Reward", "Maze"],
-        13: ["Brain", "Question Mark", "Galaxy"],
-    }
-    values = {
-        1: ["Cimabue", "Maestà", "c. 1280"],
-        2: ["Giotto di Bondone", "Lamentation", "c. 1305"],
-        3: ["Sandro Botticelli", "The Birth of Venus", "c. 1485"],
-        4: ["Leonardo da Vinci", "Mona Lisa", "c. 1503–1506"],
-        5: ["Rembrandt van Rijn", "The Night Watch", "1642"],
-        6: ["Vincent van Gogh", "The Starry Night", "1889"],
-        7: ["Pablo Picasso", "Guernica", 1937],
-        8: ["Jackson Pollock", "No. 5, 1948", 1948],
-        9: ["Mark Rothko", "Orange and Yellow", 1956],
-        10: ["Andy Warhol", "Marilyn Diptych", 1962],
-        11: ["Jean-Michel Basquiat", "Untitled", 1981],
-        12: ["Jenny Saville", "Propped", 1992],
-        13: ["Banksy", "Girl with Balloon", 2002],
-    }
     # Set up OpenAI client.
     if api_key:
         client = openai.OpenAI(api_key=api_key)
@@ -239,13 +204,34 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
     else:
         # Regular mode.
-        hdbg.dassert_is_not(args.prompt, None, "Prompt is required")
+        # Get prompt from command line or file.
+        prompt = None
+        if args.input:
+            # TODO(ai): Use dassert_file_exists
+            # Read prompt from file.
+            hdbg.dassert(
+                os.path.exists(args.input),
+                "Input file does not exist:",
+                args.input,
+            )
+            _LOG.info("Reading prompt from file: %s", args.input)
+            prompt = hio.from_file(args.input).strip()
+            _LOG.debug("Prompt from file: %s", prompt)
+        elif args.prompt:
+            # Use prompt from command line.
+            prompt = args.prompt
+        else:
+            # Neither input file nor prompt provided.
+            hdbg.dassert(
+                False,
+                "Either prompt or --input file is required",
+            )
         hdbg.dassert_lte(1, args.count, "Count must be at least 1")
         hdbg.dassert_lte(
             args.count, 10, "Count should not exceed 10 for practical reasons"
         )
         _generate_images(
-            prompt=args.prompt,
+            prompt=prompt,
             count=args.count,
             dst_dir=args.dst_dir,
             low_res=args.low_res,

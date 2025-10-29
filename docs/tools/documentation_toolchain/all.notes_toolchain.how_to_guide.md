@@ -53,6 +53,10 @@
     + [Interface](#interface-7)
   * [`Save_Screenshot.Py`](#save_screenshotpy)
     + [What It Does](#what-it-does-13)
+  * [`Generate_Images.Py`](#generate_imagespy)
+    + [What It Does](#what-it-does-14)
+    + [Examples](#examples-11)
+    + [Interface](#interface-8)
   * [Useful Tools](#useful-tools)
     + [Mermaid](#mermaid)
     + [Graphviz](#graphviz)
@@ -927,6 +931,68 @@ options:
 1. Prompts you to select a screen region (`⌘ + Ctrl + 4`).
 2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
 3. Prints and copies the Markdown embed `<img src="path/to/file.png">`.
+
+## `Generate_Images.Py`
+
+### What It Does
+
+- Generate multiple images using OpenAI's DALL-E API from the same prompt.
+- This script generates images (default: 5) from a single prompt using OpenAI's image generation API.
+- Supports both standard and HD quality modes.
+- Accepts prompts either from command line or from a file.
+
+### Examples
+
+- Generate standard quality images using command line prompt
+  ```bash
+  > generate_images.py "A sunset over mountains" --dst_dir ./images --low_res
+  ```
+
+- Generate HD quality images using command line prompt
+  ```bash
+  > generate_images.py "A sunset over mountains" --dst_dir ./images
+  ```
+
+- Generate with custom image count
+  ```bash
+  > generate_images.py "A cat wearing a hat" --dst_dir ./images --count 3
+  ```
+
+- Generate images using prompt from file
+  ```bash
+  > generate_images.py --input descr.txt --dst_dir ./images
+  ```
+
+- Generate low-res images using prompt from file
+  ```bash
+  > generate_images.py --input descr.txt --dst_dir ./images --low_res
+  ```
+
+### Interface
+
+- `-h, --help`
+  - Show help message and exit
+- `prompt`
+  - Positional argument (optional)
+  - Text prompt for image generation
+- `--input`
+  - Path to file containing the image description prompt
+  - Alternative to providing prompt as positional argument
+- `--dst_dir`
+  - Required
+  - Destination directory for generated images
+- `--count`
+  - Default: 5
+  - Number of images to generate
+- `--low_res`
+  - Flag to generate standard quality images (vs HD quality)
+  - Default: HD quality
+- `--api_key`
+  - OpenAI API key (if not set via OPENAI_API_KEY environment variable)
+
+**Note**: Either `prompt` or `--input` must be provided. The script requires an
+OpenAI API key, either via the `--api_key` parameter or the `OPENAI_API_KEY`
+environment variable.
 
 ## Useful Tools
 
