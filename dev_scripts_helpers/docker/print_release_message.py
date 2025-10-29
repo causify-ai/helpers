@@ -29,13 +29,12 @@ _LOG = logging.getLogger(__name__)
 
 def _format_release_message(changelog_entry: dict) -> str:
     """
-    Format the release message for Slack.
+    Format the changelog entry for Slack.
 
     :param changelog_entry: dict with 'version', 'date', and 'changes' keys
-    :return: formatted Slack message
+    :return: formatted changelog entry
     """
     message_parts = [
-        "🚀 *The new image was released:*",
         f"*{changelog_entry['version']}* ({changelog_entry['date']})",
     ]
     # Add changes.
