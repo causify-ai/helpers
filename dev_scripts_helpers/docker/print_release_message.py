@@ -35,9 +35,7 @@ def _format_release_message(changelog_entry: dict) -> str:
     :return: formatted Slack message
     """
     message_parts = [
-        "🚀 *The new image was released!*",
-        "",
-        "*Changelog:*",
+        "🚀 *The new image was released:*",
         f"*{changelog_entry['version']}* ({changelog_entry['date']})",
     ]
     # Add changes.
