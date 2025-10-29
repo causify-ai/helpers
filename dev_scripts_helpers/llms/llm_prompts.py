@@ -1432,7 +1432,9 @@ def slide_bold() -> _PROMPT_OUT:
     system += r"""
     You will:
     - Not change the text or the structure of the text
-    - Highlight in bold some important words and phrases only on the top level bullets
+    - Highlight in bold some important words and phrases
+      - Try to highlight the most important words and phrases in the top level
+      bullets
 
     Print only the markdown without any explanation.
     """
@@ -1660,6 +1662,98 @@ def text_to_notes() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def text_to_notes2() -> _PROMPT_OUT:
+    """
+    Convert free form text into text notes.
+    """
+    system = ""
+    system += r"""
+You are an expert academic summarizer. Your task is to read the following text
+and produce a concise, structured summary in Markdown bullet format.
+
+Your goal is to transform this text into a well-organized summary that captures
+the main concepts, definitions, and logical relationships precisely.
+
+Follow these formatting requirements:
+
+**Structure Requirements:**
+- Use concise bullet points with clear indentation
+- Each major concept should be a separate paragraph starting with an asterisk
+  (*)
+- Include 4-6 bullet points total
+- Use sub-bullets (dashes) under each major concept for supporting details
+
+**Content Guidelines:**
+- Capture main concepts, definitions, and logical relationships precisely
+- Use minimal prose - be concise and direct
+- Include mathematical expressions in LaTeX format (e.g., $$P(Y|X) > P(Y)$$)
+- Preserve key examples and clearly show what they illustrate
+- Rephrase content succinctly rather than quoting directly
+- Stay close to the text's logical flow without adding interpretation or commentary
+
+**Required Output Format:**
+1) Each concept should start with an asterisk and be followed by a single bullet point.
+2) Asterisk headers are separated by a blank line.
+3) Next bullet points are indented under the asterisk header.
+
+For example
+<example>
+* Concept A
+- Definition or key idea
+- Supporting detail or example
+- Additional relevant detail
+
+* Concept B
+- Definition or key formulation
+- Mathematical expression (if applicable)
+- Supporting example or application
+
+* Concept C
+- Core principle or mechanism
+- Practical implication or example
+- Related detail
+</example>
+
+**What to Avoid:**
+- Direct quotations from the original text
+- Personal interpretation or commentary
+- Stylistic reformulation that changes meaning
+- Overly verbose explanations
+
+Begin your summary now, following the exact format specified above.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = {
+        "remove_end_of_line_periods",
+        "md_clean_up",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+def text_to_one_bullet() -> _PROMPT_OUT:
+    """
+    Convert free form text into text notes.
+    """
+    system = ""
+    system += r"""
+    You are an expert academic summarizer. 
+    
+    Your task is to read the following text and produce a concise, structured
+    summary in Markdown bullet format with only one bullet point.
+    The bullet point should be a single concept or idea and a single sentence.
+    ```
+
+    Produce the structured summary from the text below.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = {
+        "remove_end_of_line_periods",
+        "md_clean_up",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 def text_check() -> _PROMPT_OUT:
     """
     Check that the text is clear and correct.
@@ -1742,7 +1836,7 @@ def text_rephrase() -> _PROMPT_OUT:
 # #############################################################################
 
 
-def dot_add_figure() -> _PROMPT_OUT:
+def dot_add() -> _PROMPT_OUT:
     """
     Add a figure to the chunk of text.
     """

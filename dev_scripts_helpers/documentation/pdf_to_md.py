@@ -283,6 +283,13 @@ def _pdf_to_markdown(
                 _LOG.debug("Inserted image at y=%.2f", y_pos)
     # Save markdown file.
     markdown_content = "\n\n".join(md_lines)
+    # Apply prettier formatting to the markdown.
+    _LOG.info("Applying prettier formatting to markdown")
+    markdown_content = hdockexec.prettier_on_str(
+        markdown_content,
+        file_type="md",
+        print_width=80,
+    )
     md_filename = pdf_path.stem + ".md"
     md_path = output_dir / md_filename
     md_path.write_text(markdown_content, encoding="utf-8")
