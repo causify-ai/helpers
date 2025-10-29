@@ -1,0 +1,108 @@
+#!/usr/bin/env python
+"""
+Print a formatted release message for Docker image releases.
+
+This script generates a Slack-formatted message containing the latest
+changelog entry from a specified container directory.
+
+Print release message for the root repo:
+```bash
+> dev_scripts_helpers/docker/print_release_message.py --container_dir_name .
+```
+
+Print release message for a submodule:
+```bash
+> dev_scripts_helpers/docker/print_release_message.py --container_dir_name amp
+```
+"""
+
+import argparse
+import logging
+import os
+
+import helpers.hdbg as hdbg
+import helpers.hparser as hparser
+import helpers.hversion as hversio
+
+_LOG = logging.getLogger(__name__)
+
+
+def _format_release_message(changelog_entry: dict) -> str:
+    """
+    Format the release message for Slack.
+
+    :param changelog_entry: dict with 'version', 'date', and 'changes' keys
+    :return: formatted Slack message
+    """
+    message_parts = [
+        "🚀 *The new image was released!*",
+        "",
+        "*Changelog:*",
+        f"*{changelog_entry['version']}* ({changelog_entry['date']})",
+    ]
+    # Add changes.
+    for change in changelog_entry["changes"]:
+        message_parts.append(change)
+    return "\n".join(message_parts)
+
+
+def _print_release_message(container_dir_name: str) -> None:
+    """
+    Print the release message for the specified container directory.
+
+    :param container_dir_name: directory where changelog.txt is located
+        (e.g., "." for root, "amp" for submodule)
+    """
+    _LOG.debug("Getting changelog from container_dir_name=%s", container_dir_name)
+    # Verify version can be extracted.
+    version = hversio.get_changelog_version(container_dir_name)
+    hdbg.dassert(
+        version,
+        msg=f"Could not extract version from changelog in {container_dir_name}",
+    )
+    _LOG.debug("Found version=%s", version)
+    # Get changelog path.
+    supermodule = True
+    root_dir = hversio._get_client_root(supermodule)
+    changelog_path = os.path.join(root_dir, container_dir_name, "changelog.txt")
+    hdbg.dassert_file_exists(
+        changelog_path,
+        msg=f"Changelog file not found at {changelog_path}",
+    )
+    # Get the latest changelog entry using the helper.
+    changelog_entry = hversio.get_latest_changelog_entry(changelog_path)
+    hdbg.dassert(
+        changelog_entry["version"],
+        msg="Could not extract version from changelog entry",
+    )
+    _LOG.info(
+        "Found changelog entry for version=%s date=%s",
+        changelog_entry["version"],
+        changelog_entry["date"],
+    )
+    # Format and print the message.
+    message = _format_release_message(changelog_entry)
+    print(message)
+
+
+def _parse() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--container_dir_name",
+        default=".",
+        help="Container directory name where changelog.txt is located (default: '.')",
+    )
+    hparser.add_verbosity_arg(parser)
+    return parser.parse_args()
+
+
+def _main(args: argparse.Namespace) -> None:
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    _print_release_message(args.container_dir_name)
+
+
+if __name__ == "__main__":
+    _main(_parse())

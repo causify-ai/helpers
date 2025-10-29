@@ -148,6 +148,45 @@ def get_changelog_version(
     return version
 
 
+def get_latest_changelog_entry(
+    changelog_path: str,
+) -> dict:
+    """
+    Parse the latest changelog entry from a changelog file.
+
+    :param changelog_path: path to the changelog.txt file
+    :return: dict with keys: 'version', 'date', 'changes' (list of change lines)
+    """
+    hdbg.dassert_file_exists(changelog_path)
+    changelog = hio.from_file(changelog_path)
+    lines = changelog.split("\n")
+    version = None
+    date = None
+    changes = []
+    in_entry = False
+    for line in lines:
+        line = line.rstrip()
+        # Check for version header (e.g., "# csfy-2.2.0").
+        version_match = re.match(r"^#\s+(.+)$", line)
+        if version_match:
+            if version is None:
+                # This is the first (latest) entry.
+                version = version_match.group(1)
+                in_entry = True
+            else:
+                # We've reached the next entry, stop.
+                break
+        elif in_entry:
+            # Check for date (e.g., "- 2025-10-06").
+            date_match = re.match(r"^-\s+(\d{4}-\d{2}-\d{2})$", line)
+            if date_match and date is None:
+                date = date_match.group(1)
+            # Collect change lines.
+            elif line.startswith("- ") and not date_match:
+                changes.append(line)
+    return {"version": version, "date": date, "changes": changes}
+
+
 def get_container_version() -> Optional[str]:
     """
     Return the container version.
