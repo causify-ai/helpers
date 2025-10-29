@@ -17,14 +17,10 @@ Print release message for a submodule:
 """
 
 import argparse
-import logging
 import os
 
 import helpers.hdbg as hdbg
-import helpers.hparser as hparser
 import helpers.hversion as hversio
-
-_LOG = logging.getLogger(__name__)
 
 
 def _format_release_message(changelog_entry: dict) -> str:
@@ -50,14 +46,12 @@ def _print_release_message(container_dir_name: str) -> None:
     :param container_dir_name: directory where changelog.txt is located
         (e.g., "." for root, "amp" for submodule)
     """
-    _LOG.debug("Getting changelog from container_dir_name=%s", container_dir_name)
     # Verify version can be extracted.
     version = hversio.get_changelog_version(container_dir_name)
     hdbg.dassert(
         version,
         msg=f"Could not extract version from changelog in {container_dir_name}",
     )
-    _LOG.debug("Found version=%s", version)
     # Get changelog path.
     supermodule = True
     root_dir = hversio._get_client_root(supermodule)
@@ -71,11 +65,6 @@ def _print_release_message(container_dir_name: str) -> None:
     hdbg.dassert(
         changelog_entry["version"],
         msg="Could not extract version from changelog entry",
-    )
-    _LOG.info(
-        "Found changelog entry for version=%s date=%s",
-        changelog_entry["version"],
-        changelog_entry["date"],
     )
     # Format and print the message.
     message = _format_release_message(changelog_entry)
@@ -92,12 +81,10 @@ def _parse() -> argparse.Namespace:
         default=".",
         help="Container directory name where changelog.txt is located (default: '.')",
     )
-    hparser.add_verbosity_arg(parser)
     return parser.parse_args()
 
 
 def _main(args: argparse.Namespace) -> None:
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _print_release_message(args.container_dir_name)
 
 
