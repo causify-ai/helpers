@@ -18,6 +18,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hs3 as hs3
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hversion as hversio
 import helpers.lib_tasks_aws as hlitaaws
@@ -1742,6 +1743,11 @@ def docker_build_test_dev_image(  # type: ignore
     _LOG.info("Added changelog entry for version %s", version)
     # 8) Stage files.
     _LOG.info("Step 8: Staging files")
+    # Fix git permissions in CI to avoid "insufficient permission" errors.
+    if hserver.is_inside_ci():
+        _LOG.info("Running in CI, fixing git permissions")
+        cmd = "sudo chmod -R 777 .git/objects/"
+        hlitauti.run(ctx, cmd)
     files_to_stage = [
         "devops/docker_build/poetry.lock",
         "devops/docker_build/pip_list.txt",
