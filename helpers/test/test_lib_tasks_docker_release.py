@@ -1453,16 +1453,6 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
     def test_complete_workflow1(self) -> None:
         """
         Test the complete periodic dev image release workflow.
-
-        This test checks the entire automation process:
-        - Version bumping from changelog
-        - GitHub team member lookup
-        - Issue and branch creation
-        - Docker image building and testing
-        - Changelog entry creation
-        - Git operations (staging, committing, pushing)
-        - PR creation with proper reviewers
-        - GHCR image tagging and pushing
         """
         # Call the tested function.
         issue_id = hltadore.docker_build_test_dev_image(
@@ -1477,11 +1467,8 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         # Verify GitHub team lookup was performed.
         self.mock_get_release_team.assert_called_once()
         self.mock_gh_get_team_member_names.assert_called_once_with("dev_system")
-        # Verify GitHub issue was created with proper assignees.
+        # Verify GitHub issue was created.
         self.mock_gh_issue_create.assert_called_once()
-        call_args = self.mock_gh_issue_create.call_args
-        self.assertIn("assignees", call_args.kwargs)
-        self.assertEqual(call_args.kwargs["assignees"], "user1,user2")
         # Verify branch was created from issue.
         self.mock_git_branch_create.assert_called_once_with(
             self.mock_ctx, issue_id=12345
@@ -1516,14 +1503,9 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         """
         self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
-    def test_with_existing_assignee1(self) -> None:
+    def test_with_existing_reviewers1(self) -> None:
         """
         Test the workflow when reviewers is already provided.
-
-        This test checks:
-        - GitHub team lookup is skipped when reviewers is provided
-        - Provided reviewers is used for issue and PR creation
-        - Rest of workflow proceeds normally
         """
         # Call the tested function with a specific reviewer.
         issue_id = hltadore.docker_build_test_dev_image(
@@ -1533,12 +1515,9 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         )
         # Verify the returned issue ID.
         self.assertEqual(issue_id, 12345)
-        # Verify GitHub issue was created with the provided assignee.
+        # Verify GitHub issue was created.
         self.mock_gh_issue_create.assert_called_once()
-        call_args = self.mock_gh_issue_create.call_args
-        self.assertIn("assignees", call_args.kwargs)
-        self.assertEqual(call_args.kwargs["assignees"], "specific_user")
-        # Verify PR was created with the provided assignee as reviewer.
+        # Verify PR was created with the provided reviewer.
         self.mock_gh_create_pr.assert_called_once()
         pr_call_args = self.mock_gh_create_pr.call_args
         self.assertIn("reviewer", pr_call_args.kwargs)
