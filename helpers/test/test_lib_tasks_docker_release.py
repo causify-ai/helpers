@@ -1467,7 +1467,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         # Call the tested function.
         issue_id = hltadore.docker_build_test_dev_image(
             self.mock_ctx,
-            assignee="",  # Empty to trigger team lookup
+            reviewers="",  # Empty to trigger team lookup
             container_dir_name=".",
         )
         # Verify the returned issue ID.
@@ -1518,17 +1518,17 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
 
     def test_with_existing_assignee1(self) -> None:
         """
-        Test the workflow when assignee is already provided.
+        Test the workflow when reviewers is already provided.
 
         This test checks:
-        - GitHub team lookup is skipped when assignee is provided
-        - Provided assignee is used for issue and PR creation
+        - GitHub team lookup is skipped when reviewers is provided
+        - Provided reviewers is used for issue and PR creation
         - Rest of workflow proceeds normally
         """
-        # Call the tested function with a specific assignee.
+        # Call the tested function with a specific reviewer.
         issue_id = hltadore.docker_build_test_dev_image(
             self.mock_ctx,
-            assignee="specific_user",
+            reviewers="specific_user",
             container_dir_name=".",
         )
         # Verify the returned issue ID.
