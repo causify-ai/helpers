@@ -1652,16 +1652,16 @@ def docker_build_frontend_feature_image(
 @task
 def docker_build_test_dev_image(  # type: ignore
     ctx,
-    assignee="",
+    reviewers="",
     container_dir_name=".",
 ):
     """
     Automate the complete periodic release workflow for the dev image.
 
     :param ctx: invoke context
-    :param assignee: GitHub username(s) to assign the created issue and
-        request PR review. If not specified, uses the release team
-        members from GitHub team configured in repo_config.yaml
+    :param reviewers: GitHub username(s) to request PR review. If not specified,
+        uses the release team members from GitHub team configured in
+        repo_config.yaml
     :param container_dir_name: directory where the Dockerfile is located
     :return: issue ID (integer) of the created issue
     """
@@ -1675,12 +1675,12 @@ def docker_build_test_dev_image(  # type: ignore
     _LOG.info("Bumped version: %s -> %s", current_version, version)
     # 2) Get release team members.
     _LOG.info("Step 2: Getting release team members")
-    if not assignee:
+    if not reviewers:
         release_team_name = hrecouti.get_repo_config().get_release_team()
         # Get team members from GitHub team.
         team_members = hlitagh.gh_get_team_member_names(release_team_name)
-        assignee = ",".join(team_members)
-        _LOG.info("Release team '%s' members: %s", release_team_name, assignee)
+        reviewers = ",".join(team_members)
+        _LOG.info("Release team '%s' members: %s", release_team_name, reviewers)
     # 3) Create GitHub issue.
     _LOG.info("Step 3: Creating GitHub issue")
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
@@ -1691,7 +1691,6 @@ def docker_build_test_dev_image(  # type: ignore
         ctx,
         title=issue_title,
         body=issue_body,
-        assignees=assignee,
     )
     _LOG.info("Created issue #%s", issue_id)
     # 4) Create branch based on the issue.
@@ -1776,7 +1775,7 @@ def docker_build_test_dev_image(  # type: ignore
         ctx,
         body=pr_body,
         draft=False,
-        reviewer=assignee,
+        reviewer=reviewers,
         labels=label,
     )
     _LOG.info("Issue #%s created and PR submitted", issue_id)
