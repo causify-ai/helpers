@@ -1420,6 +1420,11 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
             "helpers.lib_tasks_docker_release._run_tests"
         )
         self.mock_run_tests = self.run_tests_patcher.start()
+        # Mock is_inside_ci to control CI-specific behavior.
+        self.is_inside_ci_patcher = umock.patch("helpers.hserver.is_inside_ci")
+        self.mock_is_inside_ci = self.is_inside_ci_patcher.start()
+        # Default to True to simulate CI environment.
+        self.mock_is_inside_ci.return_value = True
         # Add all new patchers to cleanup list.
         self.patchers.update(
             {
@@ -1440,6 +1445,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
                 "date": self.date_patcher,
                 "get_image": self.get_image_patcher,
                 "run_tests": self.run_tests_patcher,
+                "is_inside_ci": self.is_inside_ci_patcher,
             }
         )
 
@@ -1493,6 +1499,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         cp -f poetry.lock.out ./devops/docker_build/poetry.lock
         cp -f pip_list.txt ./devops/docker_build/pip_list.txt
         docker image ls test.ecr.path/test-image:local-testuser-2.4.0
+        sudo chmod -R 777 .git/objects/
         git add /test/root/./devops/docker_build/poetry.lock
         git add /test/root/./devops/docker_build/pip_list.txt
         git add /test/root/./changelog.txt
