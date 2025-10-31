@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 
 """
-Preprocess markdown files for mkdocs.
-
 This script takes markdown files from an input directory and processes them
 for mkdocs by:
 1. Copying all files from input to output directory
 2. Running a series of markdown transformations
-    - Removing table of contents between <!-- toc --> and <!-- tocstop -->
-    - Dedenting Python code blocks so they are aligned
-    - Replacing 2 spaces indentation with 4 spaces
+   - Removing table of contents between <!-- toc --> and <!-- tocstop -->
+   - Dedenting Python code blocks so they are aligned
+   - Replacing 2 spaces indentation with 4 spaces
 
 Example usage:
 > preprocess_mkdocs.py --input_dir docs --output_dir tmp.mkdocs
