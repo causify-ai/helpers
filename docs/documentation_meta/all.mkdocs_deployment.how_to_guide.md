@@ -24,41 +24,45 @@
 
 - TODO(gp): Finish this and make sure the layout is always the same for all the
   publishing stuff
-
-```
-> tree blog --dirsfirst -n -F --charset unicode
-blog/
-|-- docs/
-|   |-- assets/
-|   |   |-- favicon.ico
-|   |   `-- logo.png
-|   |-- posts/
-|   |   |-- blog1.md
-|   |   |-- blog2.md
-|   |   `-- blog3.md
-|   |-- styles/
-|   |   `-- styles.css
-|   `-- index.md
-`-- mkdocs.yml
-```
+  ```
+  > tree blog --dirsfirst -n -F --charset unicode
+  blog/
+  |-- docs/
+  |   |-- assets/
+  |   |   |-- favicon.ico
+  |   |   `-- logo.png
+  |   |-- posts/
+  |   |   |-- blog1.md
+  |   |   |-- blog2.md
+  |   |   `-- blog3.md
+  |   |-- styles/
+  |   |   `-- styles.css
+  |   `-- index.md
+  `-- mkdocs.yml
+  ```
 
 ## To lint the markdown
 
 - Run the markdown:
-  ```
+  ```bash
   > lint_txt.py -i notes.startup_admin_guide/docs/tools.EOS.md --use_dockerized_prettier --use_dockerized_markdown_toc
+  ```
+
+- To use `prettier` directly:
+  ```bash
+  > prettier --write --print-width 80 --prose-wrap always
   ```
 
 ## Generate the `mkdocs` dir
 
 - Set the dir to render:
-  ```
+  ```bash
   > export SRC_DIR=docs
   > export DST_DIR=dev_scripts_helpers/documentation/mkdocs/tmp.mkdocs
   ```
 
 - To render the docs in the tutorials:
-  ```
+  ```bash
   > cd //tutorials1
   > export SRC_DIR=notes.startup_admin_guide
   > export DST_DIR=tmp.mkdocs

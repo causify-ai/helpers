@@ -1,5 +1,8 @@
 #!/bin/bash -xe
-./dev_scripts_helpers/documentation/mkdocs/preprocess_mkdocs.py --input_dir docs --output_dir dev_scripts_helpers/documentation/mkdocs/tmp.mkdocs
+#export SRC_DIR=blog/docs/posts
+export SRC_DIR=$1
+export DST_DIR=tmp.mkdocs
+./helpers_root/docs/mkdocs/preprocess_mkdocs.py --input $SRC_DIR --output_dir $DST_DIR
 
 source mkdocs.venv/bin/activate
 
