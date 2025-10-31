@@ -99,7 +99,7 @@ jobs:
         id: release_message
         run: |
           # Get release message from script
-          MESSAGE=$(python helpers_root/dev_scripts_helpers/docker/print_release_message.py \
+          MESSAGE=$(python dev_scripts_helpers/docker/print_release_message.py \
             --container_dir_name "${{ env.CSFY_CONTAINER_DIR_NAME }}")
           echo "message<<EOF" >> $GITHUB_OUTPUT
           echo "$MESSAGE" >> $GITHUB_OUTPUT
