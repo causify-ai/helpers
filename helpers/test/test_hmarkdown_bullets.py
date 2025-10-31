@@ -16,7 +16,8 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_bold_first_level_bullets1(hunitest.TestCase):
-    def _test_bold_first_level_bullets(self, text: str, expected: str) -> None:
+
+    def helper(self, text: str, expected: str) -> None:
         """
         Helper to test bold_first_level_bullets function.
         """
@@ -40,7 +41,7 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
           - Sub item
         - **Second item**
         """
-        self._test_bold_first_level_bullets(text, expected)
+        self.helper(text, expected)
 
     def test2(self) -> None:
         """
@@ -62,7 +63,7 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
           - Nested bullet
         Final text
         """
-        self._test_bold_first_level_bullets(text, expected)
+        self.helper(text, expected)
 
     def test3(self) -> None:
         """
@@ -82,7 +83,7 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
           - Back to second
         - **Another top**
         """
-        self._test_bold_first_level_bullets(text, expected)
+        self.helper(text, expected)
 
     def test4(self) -> None:
         """
@@ -104,7 +105,7 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
 
         - **Third item**
         """
-        self._test_bold_first_level_bullets(text, expected)
+        self.helper(text, expected)
 
     def test5(self) -> None:
         """
@@ -120,7 +121,7 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
           - Sub point
         - **Second point with emphasis**
         """
-        self._test_bold_first_level_bullets(text, expected)
+        self.helper(text, expected)
 
 
 # #############################################################################
@@ -129,12 +130,15 @@ class Test_bold_first_level_bullets1(hunitest.TestCase):
 
 
 class Test_colorize_bold_text1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test basic case with single bold text.
         """
         text = "This is **bold** text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(
+            text, color_sequence="equidistant", use_abbreviations=True
+        )
         expected = r"This is **\red{bold}** text"
         self.assert_equal(actual, expected)
 
@@ -143,7 +147,9 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         Test multiple bold sections get different colors.
         """
         text = "**First** normal **Second** text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(
+            text, color_sequence="equidistant", use_abbreviations=True
+        )
         expected = r"**\red{First}** normal **\teal{Second}** text"
         self.assert_equal(actual, expected)
 
@@ -152,7 +158,9 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         Test underscore style bold text.
         """
         text = "This is __bold__ text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(
+            text, color_sequence="equidistant", use_abbreviations=True
+        )
         expected = r"This is **\red{bold}** text"
         self.assert_equal(actual, expected)
 
@@ -161,7 +169,9 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         Test text with no bold sections returns unchanged.
         """
         text = "This is plain text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(
+            text, color_sequence="equidistant", use_abbreviations=True
+        )
         expected = "This is plain text"
         self.assert_equal(actual, expected)
 
@@ -170,7 +180,9 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         Test mixed bold styles in same text.
         """
         text = "**First** and __Second__ bold"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(
+            text, color_sequence="equidistant", use_abbreviations=True
+        )
         expected = r"**\red{First}** and **\teal{Second}** bold"
         self.assert_equal(actual, expected)
 
@@ -179,7 +191,9 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         Test with abbreviations=False uses full \textcolor syntax.
         """
         text = "This is **bold** text"
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=False)
+        actual = hmarkdo.colorize_bold_text(
+            text, color_sequence="equidistant", use_abbreviations=False
+        )
         expected = r"This is **\textcolor{red}{bold}** text"
         self.assert_equal(actual, expected)
 
@@ -196,7 +210,9 @@ class Test_colorize_bold_text1(hunitest.TestCase):
         - Another item
         - Final item
         """
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(
+            text, color_sequence="equidistant", use_abbreviations=True
+        )
         expected = r"""
         **\red{List 1:}**
         - First item
@@ -245,7 +261,9 @@ class Test_colorize_bold_text1(hunitest.TestCase):
             interaction
         """
         )
-        actual = hmarkdo.colorize_bold_text(text, use_abbreviations=True)
+        actual = hmarkdo.colorize_bold_text(
+            text, color_sequence="equidistant", use_abbreviations=True
+        )
         expected = hprint.dedent(
             r"""
         - **\red{Objective}**
@@ -282,6 +300,18 @@ class Test_colorize_bold_text1(hunitest.TestCase):
             interaction
         """
         )
+        self.assert_equal(actual, expected)
+
+    def test9(self) -> None:
+        """
+        Test basic case with single bold text.
+        """
+        text = "**First** normal **Second** text"
+        actual = hmarkdo.colorize_bold_text(
+            text, color_sequence="equidistant", use_abbreviations=True
+        )
+        expected = r"**\red{First}** normal **\teal{Second}** text"
+        expected = r"This is **\red{bold}** text"
         self.assert_equal(actual, expected)
 
 
@@ -539,9 +569,7 @@ class Test_process_lines1(hunitest.TestCase):
             _LOG.debug(hprint.to_str("line"))
             out.append(f"{i}:{line}")
         actual = "\n".join(out)
-        self.check_string(
-            actual, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        self.check_string(actual, dedent=True, remove_lead_trail_empty_lines=True)
 
 
 # #############################################################################
@@ -550,6 +578,7 @@ class Test_process_lines1(hunitest.TestCase):
 
 
 class Test_process_code_block1(hunitest.TestCase):
+
     def helper(self, txt: str) -> str:
         out: List[str] = []
         in_code_block = False
@@ -576,6 +605,4 @@ class Test_process_code_block1(hunitest.TestCase):
         # Run function.
         actual = self.helper(txt_in)
         # Check output.
-        self.check_string(
-            actual, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        self.check_string(actual, dedent=True, remove_lead_trail_empty_lines=True)

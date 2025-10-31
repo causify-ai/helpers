@@ -11,6 +11,110 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# Test_is_image_or_email
+# #############################################################################
+
+
+class Test_is_image_or_email(hunitest.TestCase):
+
+    def test_png_image(self) -> None:
+        """
+        Test that PNG image files are correctly identified.
+        """
+        # Prepare inputs.
+        url = "msml610/lectures_source/figures/UMD_Logo.png"
+        # Run test.
+        actual = dshdchli._is_image_or_email(url)
+        # Check outputs.
+        expected = True
+        self.assert_equal(str(actual), str(expected))
+
+    def test_jpg_image(self) -> None:
+        """
+        Test that JPG image files are correctly identified.
+        """
+        # Prepare inputs.
+        url = "data605/lectures_source/images/lecture_1/lec_1_slide_4_image_1.jpg"
+        # Run test.
+        actual = dshdchli._is_image_or_email(url)
+        # Check outputs.
+        expected = True
+        self.assert_equal(str(actual), str(expected))
+
+    def test_jpeg_image(self) -> None:
+        """
+        Test that JPEG image files are correctly identified.
+        """
+        # Prepare inputs.
+        url = "path/to/image.jpeg"
+        # Run test.
+        actual = dshdchli._is_image_or_email(url)
+        # Check outputs.
+        expected = True
+        self.assert_equal(str(actual), str(expected))
+
+    def test_uppercase_png_image(self) -> None:
+        """
+        Test that uppercase PNG extensions are correctly identified.
+        """
+        # Prepare inputs.
+        url = "path/to/IMAGE.PNG"
+        # Run test.
+        actual = dshdchli._is_image_or_email(url)
+        # Check outputs.
+        expected = True
+        self.assert_equal(str(actual), str(expected))
+
+    def test_email_address(self) -> None:
+        """
+        Test that email addresses are correctly identified.
+        """
+        # Prepare inputs.
+        url = "gsaggese@umd.edu"
+        # Run test.
+        actual = dshdchli._is_image_or_email(url)
+        # Check outputs.
+        expected = True
+        self.assert_equal(str(actual), str(expected))
+
+    def test_regular_url(self) -> None:
+        """
+        Test that regular URLs are not identified as images or emails.
+        """
+        # Prepare inputs.
+        url = "https://example.com"
+        # Run test.
+        actual = dshdchli._is_image_or_email(url)
+        # Check outputs.
+        expected = False
+        self.assert_equal(str(actual), str(expected))
+
+    def test_markdown_file(self) -> None:
+        """
+        Test that non-image files are not identified as images.
+        """
+        # Prepare inputs.
+        url = "README.md"
+        # Run test.
+        actual = dshdchli._is_image_or_email(url)
+        # Check outputs.
+        expected = False
+        self.assert_equal(str(actual), str(expected))
+
+    def test_url_with_at_symbol(self) -> None:
+        """
+        Test that URLs with @ symbol but starting with http are not emails.
+        """
+        # Prepare inputs.
+        url = "https://example.com/@username"
+        # Run test.
+        actual = dshdchli._is_image_or_email(url)
+        # Check outputs.
+        expected = False
+        self.assert_equal(str(actual), str(expected))
+
+
+# #############################################################################
 # Test_extract_urls_from_text
 # #############################################################################
 
@@ -163,12 +267,124 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         ]
         self.assert_equal(str(actual), str(expected))
 
+    def test_filter_png_images(self) -> None:
+        """
+        Test that PNG image files are filtered out from URL extraction.
+        """
+        # Prepare inputs.
+        text = """
+        Regular link: [GitHub](https://github.com)
+        Image link: ![](msml610/lectures_source/figures/UMD_Logo.png)
+        Another regular link: [Google](https://google.com)
+        """
+        text = hprint.dedent(text)
+        filtered_text = hmarkdo.remove_table_of_contents(text)
+        # Run test.
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
+                text, filtered_text
+            )
+        # Check outputs.
+        expected = [
+            ("https://github.com", 1),
+            ("https://google.com", 3),
+        ]
+        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+
+    def test_filter_jpg_images(self) -> None:
+        """
+        Test that JPG image files are filtered out from URL extraction.
+        """
+        # Prepare inputs.
+        text = """
+        Some text with regular link: [Example](https://example.com)
+        Image: ![](data605/lectures_source/images/lecture_1/lec_1_slide_4_image_1.jpg)
+        Another link: https://test.org
+        """
+        text = hprint.dedent(text)
+        filtered_text = hmarkdo.remove_table_of_contents(text)
+        # Run test.
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
+                text, filtered_text
+            )
+        # Check outputs.
+        expected = [
+            ("https://example.com", 1),
+            ("https://github.com/causify-ai/helpers/blob/HEAD//test.org", 3),
+            ("https://test.org", 3),
+        ]
+        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+
+    def test_filter_email_addresses(self) -> None:
+        """
+        Test that email addresses are filtered out from URL extraction.
+        """
+        # Prepare inputs.
+        text = """
+        Contact: [xyz](gsaggese@umd.edu)
+        Website: [Example](https://example.com)
+        Email: user@domain.com
+        """
+        text = hprint.dedent(text)
+        filtered_text = hmarkdo.remove_table_of_contents(text)
+        # Run test.
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
+                text, filtered_text
+            )
+        # Check outputs.
+        expected = [
+            ("https://example.com", 2),
+        ]
+        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+
+    def test_filter_mixed_images_and_emails(self) -> None:
+        """
+        Test filtering of mixed images and emails along with regular URLs.
+        """
+        # Prepare inputs.
+        text = """
+        [Link](https://example.com/page)
+        ![Image](path/to/image.png)
+        ![Photo](photo.jpeg)
+        [Contact](admin@site.org)
+        https://valid-url.com
+        """
+        text = hprint.dedent(text)
+        filtered_text = hmarkdo.remove_table_of_contents(text)
+        # Run test.
+        with mock.patch(
+            "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
+            return_value=("https://github.com/causify-ai/helpers", "HEAD"),
+        ):
+            actual = dshdchli._extract_urls_from_text_with_original_line_numbers(
+                text, filtered_text
+            )
+        # Check outputs.
+        expected = [
+            ("https://example.com/page", 1),
+            ("https://github.com/causify-ai/helpers/blob/HEAD//valid-url.com", 5),
+            ("https://valid-url.com", 5),
+        ]
+        self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+
 
 # #############################################################################
 # Test_check_url_reachable
 # #############################################################################
 
 
+# TODO(gp): Mock this.
 class Test_check_url_reachable(hunitest.TestCase):
 
     def test_reachable_url(self) -> None:

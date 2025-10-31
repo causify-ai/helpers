@@ -69,14 +69,10 @@ def _convert_local_path_to_url(
     """
     Convert a local file path to a GitHub URL.
 
-    :param file_path: local file path (e.g.,
-    "/tutorial_template/README.md") :param repo_url: repository URL
-    (e.g., "
-    https://github.com/user/repo")
-    :param file_path: local file path (e.g.,
-        "/tutorial_template/README.md")
-    :param repo_url: repository URL (e.g.,
-        "https://github.com/user/repo")
+    :param file_path: local file path (e.g., "/tutorial_template/README.md")
+    :param repo_url: repository URL (e.g., "https://github.com/user/repo")
+    :param file_path: local file path (e.g., "/tutorial_template/README.md")
+    :param repo_url: repository URL (e.g., "https://github.com/user/repo")
     :param branch_name: branch name (e.g., "master")
     :return: GitHub URL for the file
     """
@@ -84,6 +80,23 @@ def _convert_local_path_to_url(
     if file_path.startswith("/"):
         file_path = file_path[1:]
     return f"{repo_url}/blob/{branch_name}/{file_path}"
+
+
+def _is_image_or_email(url: str) -> bool:
+    """
+    Check if a URL is an image file (png, jpg, jpeg) or email address.
+
+    :param url: URL to check
+    :return: True if URL is an image file or email address, False otherwise
+    """
+    # Check for image file extensions.
+    lower_url = url.lower()
+    if any(lower_url.endswith(ext) for ext in [".png", ".jpg", ".jpeg"]):
+        return True
+    # Check for email addresses (simple pattern).
+    if "@" in url and not url.startswith("http"):
+        return True
+    return False
 
 
 def _extract_urls_from_text_with_original_line_numbers(
@@ -123,6 +136,10 @@ def _extract_urls_from_text_with_original_line_numbers(
         matches = re.findall(markdown_pattern, line)
         for _, url in matches:
             url = url.strip()
+            # Skip image files and email addresses.
+            if _is_image_or_email(url):
+                _LOG.debug("Skipping image/email: %s", url)
+                continue
             # Convert local file paths to GitHub URLs if in a git repo.
             if url.startswith("/") and repo_url and branch_name:
                 # Check if it looks like a file path (has file extension or common dirs).
@@ -139,6 +156,10 @@ def _extract_urls_from_text_with_original_line_numbers(
         matches = re.findall(url_pattern, line)
         for url in matches:
             url = url.strip()
+            # Skip image files.
+            if _is_image_or_email(url):
+                _LOG.debug("Skipping image/email: %s", url)
+                continue
             if url not in url_set:
                 urls.append((url, original_line_num))
                 url_set.add(url)
@@ -148,6 +169,10 @@ def _extract_urls_from_text_with_original_line_numbers(
             matches = re.findall(local_path_pattern, line)
             for match in matches:
                 file_path = match.strip()
+                # Skip image files.
+                if _is_image_or_email(file_path):
+                    _LOG.debug("Skipping image/email: %s", file_path)
+                    continue
                 if file_path not in url_set:
                     url = _convert_local_path_to_url(
                         file_path, repo_url, branch_name

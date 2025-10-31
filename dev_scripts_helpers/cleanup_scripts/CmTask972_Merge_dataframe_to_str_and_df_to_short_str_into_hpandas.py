@@ -63,7 +63,7 @@ def _run() -> None:
                 f"{df_to_short_str}(\n" in file_string,
             ]
         ):
-            _LOG.info(f"Multiline call found in `{file_name}`!")
+            _LOG.info("Multiline call found in `%s`!", file_name)
         for function_ in [dataframe_to_str, df_to_short_str]:
             # Find all possible patterns for function call.
             function_args = re.findall(f"{function_}\\((.*?)\\)", file_string)
