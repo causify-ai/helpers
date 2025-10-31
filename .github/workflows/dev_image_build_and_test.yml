@@ -5,7 +5,7 @@ on:
     # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
-      - master  
+      - master
   # Run weekly on Monday at 6 AM UTC.
   schedule:
     - cron: '0 6 * * 1'
@@ -23,7 +23,7 @@ permissions:
   # This is required for actions/checkout.
   contents: read
   # This is required for pulling the Docker image from GHCR.
-  packages: read  
+  packages: read
 jobs:
   periodic_dev_image_build_and_test:
     # We expect user to not execute manual run in a draft PR.
@@ -85,7 +85,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r .github/gh_requirements.txt
-          
+
       # Pull the latest Docker image to run the regressions on.
       # - name: Pull image from AWS ECR
       #   env:

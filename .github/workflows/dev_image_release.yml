@@ -17,16 +17,16 @@ permissions:
   # This is required for actions/checkout.
   contents: read
   # This is required for pulling the Docker image from GHCR.
-  packages: read  
+  packages: read
 jobs:
   periodic_dev_image_release:
     if: >
-        ${{ 
-        (github.event_name == 'pull_request' 
-        && github.event.pull_request.merged == true 
-        && contains(github.event.pull_request.labels.*.name, 'Automated release')) || 
-        github.event_name == 'workflow_dispatch' 
-        }}  
+        ${{
+        (github.event_name == 'pull_request'
+        && github.event.pull_request.merged == true
+        && contains(github.event.pull_request.labels.*.name, 'Automated release')) ||
+        github.event_name == 'workflow_dispatch'
+        }}
     runs-on: ubuntu-latest
 
     steps:
