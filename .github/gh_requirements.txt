@@ -2,5 +2,7 @@ boto3 >= 1.20.17
 coverage
 invoke
 junitparser
+# For helpers that read repo_config.yaml
+pyyaml
 s3fs
 tqdm
