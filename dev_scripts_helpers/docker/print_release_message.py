@@ -27,7 +27,8 @@ def _format_release_message(changelog_entry: dict) -> str:
     """
     Format the release message for Slack.
 
-    :param changelog_entry: dict with 'version', 'date', and 'changes' keys
+    :param changelog_entry: dict with 'version', 'date', and 'changes'
+        keys
     :return: formatted release message with header and changelog
     """
     message_parts = [

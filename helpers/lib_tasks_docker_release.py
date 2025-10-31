@@ -1660,9 +1660,9 @@ def docker_build_test_dev_image(  # type: ignore
     Automate the complete periodic release workflow for the dev image.
 
     :param ctx: invoke context
-    :param reviewers: GitHub username(s) to request PR review. If not specified,
-        uses the release team members from GitHub team configured in
-        repo_config.yaml
+    :param reviewers: GitHub username(s) to request PR review. If not
+        specified, uses the release team members from GitHub team
+        configured in repo_config.yaml
     :param container_dir_name: directory where the Dockerfile is located
     :return: issue ID (integer) of the created issue
     """
