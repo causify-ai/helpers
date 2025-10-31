@@ -155,7 +155,8 @@ def get_latest_changelog_entry(
     Parse the latest changelog entry from a changelog file.
 
     :param changelog_path: path to the changelog.txt file
-    :return: dict with keys: 'version', 'date', 'changes' (list of change lines)
+    :return: dict with keys: 'version', 'date', 'changes' (list of
+        change lines)
     """
     hdbg.dassert_file_exists(changelog_path)
     changelog = hio.from_file(changelog_path)
