@@ -6,7 +6,7 @@ import helpers.hmarkdown as hmarkdo
 
 import logging
 import re
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import helpers.hdbg as hdbg
 from helpers.hmarkdown_fenced_blocks import (
@@ -49,7 +49,14 @@ _MD_COLORS_LATEX_MAPPING = {
 }
 
 
-_MD_COLORS = {
+def get_md_colors_latex_mapping() -> Dict[str, str]:
+    """
+    Get the mapping of colors to LaTeX colors.
+    """
+    return dict(_MD_COLORS_LATEX_MAPPING)
+
+
+_MD_COLORS = [
     "red",
     "orange",
     # "yellow",
@@ -69,7 +76,14 @@ _MD_COLORS = {
     # "lightgray",
     "black",
     # "white",
-}
+]
+
+
+def get_md_colors() -> List[str]:
+    """
+    Get the list of colors.
+    """
+    return list(_MD_COLORS)
 
 
 def process_color_commands(in_line: str) -> str:
@@ -85,7 +99,7 @@ def process_color_commands(in_line: str) -> str:
     :param in_line: input line to process
     :return: line with color commands transformed
     """
-    for md_color, latex_color in _MD_COLORS_LATEX_MAPPING.items():
+    for md_color, latex_color in get_md_colors_latex_mapping().items():
         # This regex matches color commands like \red{content}, \blue{content},
         # etc.
         pattern = re.compile(
@@ -162,7 +176,9 @@ def colorize_bullet_points_in_slide(
     """
     hdbg.dassert_isinstance(txt, str)
     if all_md_colors is None:
-        all_md_colors = list(_MD_COLORS)
+        all_md_colors = list(get_md_colors())
+        #assert 0, all_md_colors
+        #assert 0, _MD_COLORS
     # Replace fenced code blocks with tags.
     lines = txt.split("\n")
     lines, fence_map = replace_fenced_blocks_with_tags(lines)
@@ -194,24 +210,19 @@ def colorize_bullet_points_in_slide(
         colors = list(all_md_colors)[::step][:num_bolds]
         return colors
 
-    if True:
-        if interpolate_colors:
-            colors = _interpolate_colors(num_bolds)
-        else:
-            if num_bolds == 1:
-                colors = ["red"]
-            elif num_bolds == 2:
-                colors = ["red", "blue"]
-            elif num_bolds == 3:
-                colors = ["red", "green", "blue"]
-            elif num_bolds == 4:
-                colors = ["red", "green", "blue", "violet"]
-            elif num_bolds == 5:
-                colors = ["red", "green", "blue", "teal", "violet"]
-            else:
-                colors = _interpolate_colors(num_bolds)
+    if interpolate_colors:
+        colors = _interpolate_colors(num_bolds)
     else:
-        colors = all_md_colors
+        if num_bolds == 1:
+            colors = ["red"]
+        elif num_bolds == 2:
+            colors = ["red", "blue"]
+        elif num_bolds == 3:
+            colors = ["red", "green", "blue"]
+        elif num_bolds == 4:
+            colors = ["red", "green", "blue", "violet"]
+        else:
+            colors = all_md_colors[:num_bolds]
     _LOG.debug("colors=%s", colors)
     hdbg.dassert_lte(num_bolds, len(colors))
     # Colorize the bold items.
@@ -227,8 +238,9 @@ def colorize_bullet_points_in_slide(
             text = match.group(1)
             hdbg.dassert_lte(color_idx, len(colors))
             color_to_use = colors[color_idx]
-            hdbg.dassert_in(color_to_use, _MD_COLORS_LATEX_MAPPING)
-            latex_color = _MD_COLORS_LATEX_MAPPING[color_to_use]
+            hdbg.dassert_in(color_to_use, get_md_colors_latex_mapping(),
+                "Duplicated color_to_use=%s", color_to_use)
+            latex_color = get_md_colors_latex_mapping()[color_to_use]
             color_idx += 1
             if use_abbreviations:
                 ret = f"**\\{color_to_use}{{{text}}}**"

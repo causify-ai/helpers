@@ -236,12 +236,12 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
             lines_out = []
             lines_out.append(hprint.dedent("""
             ::: columns
-            :::: {.column width=60%}
+            :::: {.column width=50%}
             """))
             lines_out.extend(lines)
             lines_out.append(hprint.dedent("""
             ::::
-            :::: {.column width=30%}
+            :::: {.column width=45%}
             ::::
             :::
             """))
