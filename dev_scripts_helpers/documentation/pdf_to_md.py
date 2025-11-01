@@ -24,6 +24,10 @@ Import as:
 import dev_scripts_helpers.documentation.pdf_to_md as dsdopema
 """
 
+# /// script
+# dependencies = ["pymupdf", "pyyaml"]
+# ///
+
 import argparse
 import logging
 from pathlib import Path
@@ -34,10 +38,6 @@ import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdockexec
 import helpers.hio as hio
 import helpers.hparser as hparser
-
-# /// script
-# dependencies = ["pymupdf", "pyyaml"]
-# ///
 
 _LOG = logging.getLogger(__name__)
 

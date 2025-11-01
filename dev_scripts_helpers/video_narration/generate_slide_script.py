@@ -12,6 +12,13 @@ Examples:
 > generate_slide_script.py --in_file slides.md --out_file script.md --slides_per_group 3
 """
 
+# /// script
+# dependencies = [
+#   "pandas>=2.0.0",
+#   "openai",
+# ]
+# ///
+
 import argparse
 import base64
 import logging
@@ -36,8 +43,9 @@ You are a college professor expert of machine learning and big data.
 Given the following slides in markdown format create a discussion of the slide
 to highlight the most important points of each slide
 - Use plain language and do not use fancy words
-- Create bullet points for the discussion following the same structure as the original slide
-- The discussion for each slide should contain around 250 words
+- Create bullet points for the discussion following the same structure as the
+  original slide
+- The discussion for each slide should contain around 150 words
 - Do not use bold or italicize the text
 - Create a short transitions in less than 20 words between slides when needed.
 
@@ -45,7 +53,9 @@ The output should have a format like:
 
 # <Title>
 
-<Discussion of the slide #i>
+- Bullet point 1
+- Bullet point 2
+- Bullet point ...
 """
 
 # #############################################################################
