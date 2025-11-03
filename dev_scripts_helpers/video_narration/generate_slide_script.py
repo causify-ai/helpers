@@ -45,7 +45,7 @@ to highlight the most important points of each slide
 - Use plain language and do not use fancy words
 - Create bullet points for the discussion following the same structure as the
   original slide
-- The discussion for each slide should contain around 150 words
+- The discussion for each slide should contain around 100 words
 - Do not use bold or italicize the text
 - Create a short transitions in less than 20 words between slides when needed.
 
@@ -53,10 +53,12 @@ The output should have a format like:
 
 # <Title>
 
-- Bullet point 1
-- Bullet point 2
-- Bullet point ...
+Description of the slide
 """
+
+# - Bullet point 1
+# - Bullet point 2
+# - Bullet point ...
 
 # #############################################################################
 

@@ -1789,9 +1789,9 @@ def text_check_fix() -> _PROMPT_OUT:
     You are an expert college professor expert of machine learning and computer
     science.
 
-    - If you are sure that there is a mistake or something unclear, correct
-      it making sure that the text is clear and correct, and without changing
-      the structure of the text.
+    - If you are sure that there is a mistake or something unclear in the text,
+      correct it making sure that the text is clear and correct
+    - Do not change the structure of the text.
 
     Do not print anything else than the corrected text in a markdown format
     """
