@@ -1659,6 +1659,19 @@ def docker_build_test_dev_image(  # type: ignore
     """
     Automate the complete periodic release workflow for the dev image.
 
+    This task performs:
+    1) Bump version (e.g., 2.2.0 -> 2.3.0)
+    2) Create GitHub issue for periodic release assigned to specified user
+    3) Create branch and PR based on the issue
+    4) Build csfy image locally with the bumped version number
+    5) Run tests (fast, slow, superslow)
+    6) Add changelog entry for the release
+    7) Stage poetry.lock and pip_list.txt files
+    8) Commit changes with versioned message
+    9) Push changes
+    10) Create PR
+    11) Tag and push image to GHCR
+
     :param ctx: invoke context
     :param reviewers: GitHub username(s) to request PR review. If not
         specified, uses the release team members from GitHub team
