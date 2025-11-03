@@ -55,9 +55,7 @@ def _print_release_message(container_dir_name: str) -> None:
         msg=f"Could not extract version from changelog in {container_dir_name}",
     )
     # Get changelog path.
-    supermodule = True
-    root_dir = hversio._get_client_root(supermodule)
-    changelog_path = os.path.join(root_dir, container_dir_name, "changelog.txt")
+    changelog_path = os.path.join(container_dir_name, "changelog.txt")
     hdbg.dassert_file_exists(
         changelog_path,
         msg=f"Changelog file not found at {changelog_path}",
