@@ -1653,6 +1653,7 @@ def docker_build_frontend_feature_image(
 @task
 def docker_build_test_dev_image(  # type: ignore
     ctx,
+    assignee="",
     reviewers="",
     container_dir_name=".",
 ):
@@ -1673,6 +1674,7 @@ def docker_build_test_dev_image(  # type: ignore
     11) Tag and push image to GHCR
 
     :param ctx: invoke context
+    :param assignee: GitHub username to assign the PR to
     :param reviewers: GitHub username(s) to request PR review. If not
         specified, uses the release team members from GitHub team
         configured in repo_config.yaml
@@ -1796,6 +1798,7 @@ def docker_build_test_dev_image(  # type: ignore
         draft=False,
         reviewer=reviewers,
         labels=label,
+        assignee=assignee,
     )
     _LOG.info("Issue #%s created and PR submitted", issue_id)
     # 12) Tag and push to GHCR.
