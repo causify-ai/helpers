@@ -1384,8 +1384,6 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         self.file_exists_patcher = umock.patch("helpers.hdbg.dassert_file_exists")
         self.mock_file_exists = self.file_exists_patcher.start()
         # Mock os.path.exists selectively for file staging logic.
-        import os
-
         # Store the original function before patching
         original_exists = os.path.exists
         # Define which files should exist for staging
