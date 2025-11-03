@@ -10,6 +10,9 @@
 
 <!-- tocstop -->
 
+# Summary
+- Describe the tools under `//helpers/docs/mkdocs`
+
 # Generate and deploy the documentation
 
 ## mkdocs
@@ -19,6 +22,23 @@
   - `MkDocs` has native support for markdown files in contrast with `ReadTheDocs`
 - The entrypoint for the documentation home page is
   [`/docs/README.md`](/docs/README.md)
+
+## Scripts
+
+```bash
+> ls -1 docs/mkdocs/docs/
+fix_markdown.sh
+fix_markdown2.sh
+preprocess_mkdocs.py
+render_local.sh
+set_mkdocs.sh
+```
+
+- `fix_markdown.sh`, `fix_markdown2.sh`: fix some small char issues in markdown
+- `preprocess_mkdocs.py`: pre-process markdown files from an input directory so
+   that they can be rendered by `mkdocs`
+- `render_local.sh`: 
+- `set_mkdocs.sh`:
 
 ## Layout of a publishable dir
 
@@ -45,12 +65,12 @@
 
 - Run the markdown:
   ```bash
-  > lint_txt.py -i notes.startup_admin_guide/docs/tools.EOS.md --use_dockerized_prettier --use_dockerized_markdown_toc
+  > lint_txt.py -i $FILE --use_dockerized_prettier --use_dockerized_markdown_toc
   ```
 
 - To use `prettier` directly:
   ```bash
-  > prettier --write --print-width 80 --prose-wrap always
+  > prettier --write --print-width 80 --prose-wrap always $FILE
   ```
 
 ## Generate the `mkdocs` dir
