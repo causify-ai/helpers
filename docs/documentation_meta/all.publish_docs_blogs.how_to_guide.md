@@ -18,15 +18,21 @@
 
 <!-- tocstop -->
 
-# Publishing Docs & Blogs with Mkdocs
+# Summary
 
-This covers both "documents/books" and blogs.
+This document covers how to publish documents, books, and blogs across different
+repos (e.g., `//helpers`, `//csfy`, `//tutorials`, and `//umd_classes`.
+
+# Publishing Docs & Blogs with Mkdocs
 
 ## Concepts at a Glance
 
-- Content lives in `docs/` (or `mkdocs/docs/` when we keep a `mkdocs/` wrapper).
-- We preprocess Markdown into `tmp.mkdocs/` using our helper script (cleans
-  ToCs, normalizes code fences, etc.).
+- The content to publish is organized under directories like
+  - `docs/`
+  - `blog/`
+  - `mkdocs/`
+- `preprocess.py` preprocesses Markdown into `tmp.mkdocs/` using our helper
+  script (cleans ToCs, normalizes code fences, etc.).
 - `mkdocs.yml` points `docs_dir: tmp.mkdocs` so builds use the preprocessed
   files.
 - Assets & CSS are symlinked (preferred) or copied from canonical files so all
@@ -38,7 +44,7 @@ This covers both "documents/books" and blogs.
 
 ## Directory Structure (Invariants)
 
-- Every site we publish must follow the same layout:
+- Every site we publish must follow the same dir / file layout:
   ```pgsql
   <site-root>/
     mkdocs.yml                # site config (docs_dir points to tmp.mkdocs)

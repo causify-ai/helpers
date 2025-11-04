@@ -9,11 +9,15 @@
   - Brevity
   - Visual structure
 
-- Think of the notes as a hybrid between a textbook and a student’s notebook
+3) Think of notes as a hybrid between a textbook and a student’s notebook
 
-- This document is written using the rules described in itself
+- This document is written using the rules described in this document itself
 
 ## Formatting Guidelines
+
+* Every document has a summary header
+- Every document should have a summary paragraph with a header `# Summary`
+  with a short paragraph containing what's the content of the document 
 
 * Headers and Paragraphs
 - Use headers and paragraphs
@@ -40,10 +44,12 @@
 * Use Only Text
 - Avoid emojis and icons
 - Avoid any decorative formatting
-  - **Bad**: a line separator like `---`
+  - Do not use line separator like `---`
 - Use only basic text
-  - **Good**: -> "
-  - **Bad**: → “ ”
+  - **Good**: A -> B
+  - **Bad**: A → B
+  - **Good**: "hello"
+  - **Bad**: “hello”
 
 * Use Bullets
 - Use bullet points inside a paragraph
@@ -65,6 +71,8 @@
     ```
 
 - Group bullets under clear paragraph headings
+
+- Do not end a bullet point with a period `.`
 
 * Use Nested Bullets
 - Use nested bullets to show:
@@ -95,7 +103,7 @@
 ## Writing Style
 
 * Writing Style
-- Use explicit references
+- Use explicit references instead of unclear ones
   - **Good**: "TCP protocol"
   - **Bad**: "it"
 
@@ -108,15 +116,36 @@
 * Avoid long prose
 - Prefer structured notes over narrative prose
 
-- Use a first-person, self-directed voice
+- Use a first-person, self-directed voice, e.g.,
   - **Good**: "Key thing to remember: entropy increases"
 
 * Use direct statements
-- Convert abstract principles into short, direct statements
-  - **Bad**: "Everyone takes responsibility, owns their projects, and blames no one
-    if something doesn't get finished."
+- Convert abstract principles into short, direct statements, e.g.,
   - **Good**: "Everyone takes responsibility: no blaming others if work isn't
     finished."
+  - **Bad**: "Everyone takes responsibility, owns their projects, and blames no one
+    if something doesn't get finished."
+
+* Try to use lists 
+
+- **Good**
+  ```
+  - This document covers how to publish:
+    - documents
+    - books
+    - blogs
+    across different repos, e.g.,
+    - `//helpers`
+    - `//csfy`
+    - `//tutorials`
+    - `//umd_classes`
+  ```
+- **Bad**
+  ```
+  This document covers how to publish documents, books, and blogs across
+  different repos (e.g., `//helpers`, `//csfy`, `//tutorials`, and
+  `//umd_classes`)
+  ```
 
 * Use Diagrams Over Text When Possible
 - Summarize systems or relationships using:
@@ -125,9 +154,9 @@
   - Tikz-style charts
 - Add annotation arrows and layered explanations
 
-## Example
+# Example
 
-- For this input text:
+- The input text should be transformed into:
   ```
   ## QUESTION 1: WHAT ARE YOUR CORE VALUES?
 

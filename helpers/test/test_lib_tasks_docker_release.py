@@ -1223,7 +1223,11 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
         self.mock_get_container_registry_url = (
             self.get_container_registry_url_patcher.start()
         )
-        self.mock_get_container_registry_url.return_value = "ghcr.io/causify-ai"
+        # Use side_effect to return different values based on registry.
+        self.mock_get_container_registry_url.side_effect = lambda registry: {
+            "ghcr": "ghcr.io/causify-ai",
+            "ecr": "test.ecr.path",
+        }.get(registry, "ghcr.io/causify-ai")
         # Add new patchers to cleanup list.
         self.patchers.update(
             {
@@ -1260,6 +1264,7 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
         # Call tested function.
         hltadore.docker_tag_push_dev_image_from_ghcr(
             self.mock_ctx,
+            target_registries="ghcr,ecr",
             container_dir_name=".",
             dry_run=False,
         )
@@ -1268,10 +1273,12 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
         docker pull ghcr.io/causify-ai/test-image:dev-1.0.0
         docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev
         docker push ghcr.io/causify-ai/test-image:dev
-        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev-1.0.0
-        docker push test.ecr.path/test-image:dev-1.0.0
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev-1.0.0
+        docker push ghcr.io/causify-ai/test-image:dev-1.0.0
         docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev
         docker push test.ecr.path/test-image:dev
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev-1.0.0
+        docker push test.ecr.path/test-image:dev-1.0.0
         """
         self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
@@ -1288,6 +1295,7 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
         # Call tested function with dry_run enabled.
         hltadore.docker_tag_push_dev_image_from_ghcr(
             self.mock_ctx,
+            target_registries="ghcr,ecr",
             container_dir_name=".",
             dry_run=True,
         )
@@ -1296,10 +1304,12 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
         docker pull ghcr.io/causify-ai/test-image:dev-1.0.0
         docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev
         docker push ghcr.io/causify-ai/test-image:dev
-        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev-1.0.0
-        docker push test.ecr.path/test-image:dev-1.0.0
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev-1.0.0
+        docker push ghcr.io/causify-ai/test-image:dev-1.0.0
         docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev
         docker push test.ecr.path/test-image:dev
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev-1.0.0
+        docker push test.ecr.path/test-image:dev-1.0.0
         """
         self._check_docker_command_output(expected, self.mock_run.call_args_list)
 
@@ -1384,8 +1394,6 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         self.file_exists_patcher = umock.patch("helpers.hdbg.dassert_file_exists")
         self.mock_file_exists = self.file_exists_patcher.start()
         # Mock os.path.exists selectively for file staging logic.
-        import os
-
         # Store the original function before patching
         original_exists = os.path.exists
         # Define which files should exist for staging
