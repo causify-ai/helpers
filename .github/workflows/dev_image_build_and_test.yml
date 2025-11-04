@@ -21,9 +21,12 @@ env:
 # Set up permissions for OIDC authentication.
 permissions:
   # This is required for actions/checkout.
-  contents: read
+  contents: write
   # This is required for pulling the Docker image from GHCR.
   packages: read
+  # This is required for GitHub App to create issues and PRs.
+  pull-requests: write
+  issues: write
 jobs:
   periodic_dev_image_build_and_test:
     # We expect user to not execute manual run in a draft PR.
@@ -48,8 +51,9 @@ jobs:
       #   uses: aws-actions/amazon-ecr-login@v1
 
       # This is needed to pull the Docker image.
+      # Use the built-in GITHUB_TOKEN for authentication.
       - name: Login to GHCR
-        run: docker login ghcr.io -u gpsaggese -p ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+        run: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
 
       # Make everything accessible by any user to avoid permission errors.
       - name: Cleanup
@@ -68,7 +72,7 @@ jobs:
           # make it a default behavior? For certain tests to pass, we need entire
           # commit history of the repo including sub-modules.
           fetch-depth: 0
-          token: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
           # Configure git for commits.
       - name: Configure git
@@ -98,9 +102,10 @@ jobs:
         run: docker pull ghcr.io/${{ github.repository }}:dev
 
       # Setup GitHub CLI authentication for creating issues and PRs.
+      # The GITHUB_TOKEN is automatically available and has the necessary permissions.
       - name: Setup GitHub CLI
         run: |
-          echo "${{ secrets.GH_ACTION_ACCESS_TOKEN }}" | gh auth login --with-token
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
       # Run the periodic dev image release workflow.
       - name: Run 'docker_build_test_dev_image' workflow
@@ -117,7 +122,7 @@ jobs:
           # either GHCR or ECR.
           CSFY_ECR_BASE_PATH: ghcr.io/${{ github.repository_owner }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ASSIGNEE="${{ github.event.inputs.reviewers || 'dremdem' }}"
           invoke docker_build_test_dev_image --reviewers="$ASSIGNEE"
