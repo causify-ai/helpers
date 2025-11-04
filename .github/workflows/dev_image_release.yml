@@ -7,6 +7,12 @@ on:
     types: [closed]
     branches:
         - master
+# Set up permissions for OIDC authentication.
+permissions:
+  # This is required for actions/checkout.
+  contents: read
+  # This is required for pulling the Docker image from GHCR.
+  packages: read
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

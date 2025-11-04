@@ -16,6 +16,15 @@ on:
         description: 'GitHub username to ask for reviewing the created PR.'
         required: false
         default: 'dremdem'
+# Set up permissions for OIDC authentication.
+permissions:
+  # This is required for actions/checkout and creating branches/commits.
+  contents: write
+  # This is required for pulling the Docker image from GHCR.
+  packages: read
+  # This is required for creating issues and PRs.
+  pull-requests: write
+  issues: write
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
