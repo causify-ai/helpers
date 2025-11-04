@@ -64,6 +64,17 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
 
+      # To access modules in `amp` and `helpers_root`, make sure PYTHONPATH includes
+      # them, just as it's set in `setenv.sh`.
+      - name: Update PYTHONPATH
+        run: |
+          PYTHONPATH="$(realpath .)"
+          # Add all submodule paths (recursively).
+          SUBMODULES_PATHS=$(git submodule foreach --quiet --recursive 'echo $(pwd)' | paste -sd:)
+          PYTHONPATH="$PYTHONPATH:$SUBMODULES_PATHS"
+          # Export final PYTHONPATH to the environment.
+          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+
       # To see the modules in `helpers_root`, PYTHONPATH needs to include
       # `helpers_root` in the same way we do in `setenv.sh`.
       # TODO(Grisha): re-use the approach from `dev_scripts_cmamp/thin_client/setenv.sh`.

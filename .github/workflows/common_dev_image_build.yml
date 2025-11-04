@@ -74,6 +74,17 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
 
+      # To access modules in `amp` and `helpers_root`, make sure PYTHONPATH includes
+      # them, just as it's set in `setenv.sh`.
+      - name: Update PYTHONPATH
+        run: |
+          PYTHONPATH="$(realpath .)"
+          # Add all submodule paths (recursively).
+          SUBMODULES_PATHS=$(git submodule foreach --quiet --recursive 'echo $(pwd)' | paste -sd:)
+          PYTHONPATH="$PYTHONPATH:$SUBMODULES_PATHS"
+          # Export final PYTHONPATH to the environment.
+          echo "PYTHONPATH=$PYTHONPATH" >> $GITHUB_ENV
+
       # Configure git for commits.
       - name: Configure git
         run: git config --global user.name 'CK Bot'
