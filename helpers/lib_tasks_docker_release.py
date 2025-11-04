@@ -1828,17 +1828,18 @@ def docker_build_test_dev_image(  # type: ignore
 @task
 def docker_tag_push_dev_image_from_ghcr(
     ctx,
-    target_registries,
+    target_registries="ghcr,ecr",
     container_dir_name=".",
     dry_run=False,
 ):
     """
-    Tag and push the dev image built in GHCR to the GHCR and AWS ECR.
+    Pulls a versioned dev image from GHCR, then tags and pushes
+    it to the specified target registries (both as versioned and latest).
 
     :param target_registries: comma separated list of target Docker
-        image registries to push the image to. E.g., "ecr,ghcr". 
+        image registries to push the image to. E.g., "ghcr,ecr".
         See the `helpers.repo_config_utils.RepoConfig.get_container_registry_url()`
-        for details
+        for supported registry names
     :param container_dir_name: directory where the Dockerfile is located
     :param dry_run: if True, only print the commands without executing
         them
@@ -1851,10 +1852,12 @@ def docker_tag_push_dev_image_from_ghcr(
     ghcr_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     ghcr_base_image = f"{ghcr_base}/{ghcr_image_name}"
     stage = "dev"
-    ghcr_image_versioned = hlitadoc.get_image(ghcr_base_image, stage, version)
-    cmd = f"docker pull {ghcr_image_versioned}"
+    ghcr_dev_image_versioned = hlitadoc.get_image(ghcr_base_image, stage, version)
+    cmd = f"docker pull {ghcr_dev_image_versioned}"
     hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
     for registry in target_registries.split(","):
+        # Strip whitespace from registry name.
+        registry = registry.strip()
         # Tag and push the image to the target registry as latest dev image.
         target_base = hrecouti.get_repo_config().get_container_registry_url(
             registry
@@ -1862,19 +1865,18 @@ def docker_tag_push_dev_image_from_ghcr(
         target_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
         target_base_image = f"{target_base}/{target_image_name}"
         latest_version = None
-        target_image_dev = hlitadoc.get_image(
+        target_dev_image_latest = hlitadoc.get_image(
             target_base_image, stage, latest_version
         )
-        cmd = f"docker tag {ghcr_image_versioned} {target_image_dev}"
+        cmd = f"docker tag {ghcr_dev_image_versioned} {target_dev_image_latest}"
         hlitauti.run(ctx, cmd, dry_run=dry_run)
-        cmd = f"docker push {target_image_dev}"
+        cmd = f"docker push {target_dev_image_latest}"
         hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
-        # Tag versioned dev image as target versioned dev image.
-        target_image_versioned_dev = hlitadoc.get_image(
+        # Tag and push versioned dev image to target registry.
+        target_dev_image_versioned = hlitadoc.get_image(
             target_base_image, stage, version
         )
-        cmd = f"docker tag {ghcr_image_versioned} {target_image_versioned_dev}"
+        cmd = f"docker tag {ghcr_dev_image_versioned} {target_dev_image_versioned}"
         hlitauti.run(ctx, cmd, dry_run=dry_run)
-        # Push versioned dev image to the target registry.
-        cmd = f"docker push {target_image_versioned_dev}"
+        cmd = f"docker push {target_dev_image_versioned}"
         hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
