@@ -1149,6 +1149,9 @@ def gh_delete_workflow_runs(  # type: ignore
     hlitauti.report_task(
         txt=hprint.to_str("workflow_name older_than_days dry_run confirmation")
     )
+    # Convert older_than_days to int if provided (invoke passes strings).
+    if older_than_days is not None:
+        older_than_days = int(older_than_days)
     # Login.
     gh_login(ctx)
     #
