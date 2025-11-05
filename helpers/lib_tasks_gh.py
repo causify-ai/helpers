@@ -11,6 +11,7 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
+import invoke.exceptions as invexc
 from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
@@ -1152,6 +1153,7 @@ def gh_delete_workflow_runs(  # type: ignore
     # Convert older_than_days to int if provided (invoke passes strings).
     if older_than_days is not None:
         older_than_days = int(older_than_days)
+        hdbg.dassert_lte(1, older_than_days)
     # Login.
     gh_login(ctx)
     #
@@ -1209,7 +1211,7 @@ def gh_delete_workflow_runs(  # type: ignore
             _LOG.info("Deleting run %s", run_id)
             hlitauti.run(ctx, cmd, dry_run=dry_run)
             deleted_count += 1
-        except Exception as e:
+        except (invexc.UnexpectedExit, RuntimeError) as e:
             _LOG.error("Failed to delete run %s: %s", run_id, str(e))
             failed_count += 1
     _LOG.info(
