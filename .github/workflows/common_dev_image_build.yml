@@ -89,12 +89,6 @@ jobs:
       - name: Configure git
         run: git config --global user.name 'CK Bot'
 
-      # To see the modules in `helpers_root`, PYTHONPATH needs to include
-      # `helpers_root` in the same way we do in `setenv.sh`.
-      # TODO(Grisha): re-use the approach from `dev_scripts_cmamp/thin_client/setenv.sh`.
-      - name: Update PYTHONPATH
-        run: echo "PYTHONPATH=.:helpers_root" >> $GITHUB_ENV
-
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
         run: |
