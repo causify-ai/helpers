@@ -1094,7 +1094,7 @@ def get_workflow_run_ids(
         #   Only runs where created_at timestamp < cutoff are selected
         cutoff_seconds = older_than_days * 86400
         # Log the cutoff date for debugging.
-        cutoff_date = datetime.datetime.now(datetime.UTC) - datetime.timedelta(
+        cutoff_date = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
             days=older_than_days
         )
         _LOG.debug("Filtering runs created before: %s", cutoff_date.isoformat())
