@@ -87,7 +87,9 @@ jobs:
 
       # Configure git for commits.
       - name: Configure git
-        run: git config --global user.name 'CK Bot'
+        run: |
+          git config --global user.name 'CK Bot'
+          git config --global user.email 'ckbot@noreply.github.com'
 
       # Install packages that are required to run the job via GH.
       - name: Install dependencies
