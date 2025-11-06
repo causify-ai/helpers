@@ -16,6 +16,7 @@ on:
   schedule:
     # Run this once a day even if there are no commits.
     - cron:  '0 0 */1 * *'
+# Set up permissions for OIDC authentication.    
 permissions:
   # This is required for requesting the OIDC JWT.
   id-token: write
