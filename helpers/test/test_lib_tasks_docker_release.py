@@ -1196,13 +1196,13 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
 
 
 # #############################################################################
-# Test_docker_tag_push_dev_image_from_ghcr1
+# Test_docker_tag_push_dev_image1
 # #############################################################################
 
 
-class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
+class Test_docker_tag_push_dev_image1(_DockerFlowTestHelper):
     """
-    Test tagging and pushing dev image from GHCR to multiple registries.
+    Test tagging and pushing dev image from a base registry to multiple registries.
     """
 
     def set_up_test2(self) -> None:
@@ -1262,7 +1262,7 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
         - Versioned and latest image handling
         """
         # Call tested function.
-        hltadore.docker_tag_push_dev_image_from_ghcr(
+        hltadore.docker_tag_push_dev_image(
             self.mock_ctx,
             target_registries="ghcr,ecr",
             container_dir_name=".",
@@ -1293,7 +1293,7 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
         - Mock calls should include dry_run parameter
         """
         # Call tested function with dry_run enabled.
-        hltadore.docker_tag_push_dev_image_from_ghcr(
+        hltadore.docker_tag_push_dev_image(
             self.mock_ctx,
             target_registries="ghcr,ecr",
             container_dir_name=".",
