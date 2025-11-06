@@ -82,7 +82,7 @@ jobs:
           pip install -r .github/gh_requirements.txt
 
       # Run the dev image release workflow.
-      - name: Run 'docker_tag_push_dev_image_from_ghcr' workflow
+      - name: Run 'docker_tag_push_dev_image' workflow
         env:
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
@@ -90,7 +90,7 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
-        run: invoke docker_tag_push_dev_image_from_ghcr --dry-run
+        run: invoke docker_tag_push_dev_image --dry-run
 
       # Generate release message.
       - name: Generate release message
