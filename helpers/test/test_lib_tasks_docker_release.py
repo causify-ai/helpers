@@ -1476,7 +1476,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         self.assertEqual(pr_call_args.kwargs["reviewer"], "user1,user2")
         # Verify expected Docker and Git commands were executed.
         expected = r"""
-        git checkout -b TestTask_20251023_Periodic_image_release
+        git checkout -b TestTask_Periodic_image_release_20251023
         cp -f devops/docker_build/dockerignore.dev /app/.dockerignore
         tar -czh . | DOCKER_BUILDKIT=0 \
         time \
@@ -1495,7 +1495,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         git add /test/root/./devops/docker_build/pip_list.txt
         git add /test/root/./changelog.txt
         git commit -m "Poetry output from the v2.4.0 build" --no-verify
-        git push origin TestTask_20251023_Periodic_image_release
+        git push origin TestTask_Periodic_image_release_20251023
         docker tag test.ecr.path/test-image:local-testuser-2.4.0 ghcr.io/causify-ai/test-image:dev-2.4.0
         docker push ghcr.io/causify-ai/test-image:dev-2.4.0
         """
