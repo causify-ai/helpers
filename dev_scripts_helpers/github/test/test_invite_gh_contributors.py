@@ -21,7 +21,7 @@ dshgdigco = pytest.importorskip(
 # #############################################################################
 
 
-@pytest.mark.slow(reason="Greater than 5s")
+@pytest.mark.superslow("~30 sec.")
 class Test_extract_usernames_from_gsheet(hunitest.TestCase):
     """
     Test that github usernames are correctly pulled.
@@ -54,7 +54,7 @@ class Test_extract_usernames_from_gsheet(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow(reason="Greater than 5s")
+@pytest.mark.superslow("~30 sec.")
 class Test_extract_usernames_from_csv(hunitest.TestCase):
     """
     Verify that GitHub usernames are correctly extracted from a CSV file.
@@ -96,7 +96,7 @@ class Test_extract_usernames_from_csv(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.slow(reason="Greater than 5s")
+@pytest.mark.superslow("~30 sec.")
 class Test_send_invitations(hunitest.TestCase):
     """
     Test that an invitation is sent once per user.
