@@ -1817,16 +1817,23 @@ def docker_build_test_dev_image(  # type: ignore
 
 
 @task
-def docker_tag_push_dev_image_from_ghcr(
+def docker_tag_push_dev_image(
     ctx,
+    version="",
+    base_image="",
     target_registries="ghcr,ecr",
     container_dir_name=".",
     dry_run=False,
 ):
     """
-    Pulls a versioned dev image from GHCR, then tags and pushes
+    Pulls a versioned dev image from a base registry, then tags and pushes
     it to the specified target registries (both as versioned and latest).
 
+    :param ctx: invoke context
+    :param version: version to tag the image and code with. If empty, reads
+        from changelog
+    :param base_image: base image path to pull from (e.g.,
+        ghcr.io/causify-ai/csfy). If empty, uses GHCR from repo config
     :param target_registries: comma separated list of target Docker
         image registries to push the image to. E.g., "ghcr,ecr".
         See the `helpers.repo_config_utils.RepoConfig.get_container_registry_url()`
@@ -1836,16 +1843,20 @@ def docker_tag_push_dev_image_from_ghcr(
         them
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
+    # Get version.
+    if not version:
+        version = hversio.get_changelog_version(container_dir_name)
+    # Get base image if not provided.
+    if not base_image:
+        ghcr_base = hrecouti.get_repo_config().get_container_registry_url("ghcr")
+        ghcr_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+        base_image = f"{ghcr_base}/{ghcr_image_name}"
     # Pull the image.
-    # TODO(Vlad): Factor out common code with `docker_build_test_dev_image()`.
-    version = hversio.get_changelog_version(container_dir_name)
-    ghcr_base = hrecouti.get_repo_config().get_container_registry_url("ghcr")
-    ghcr_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    ghcr_base_image = f"{ghcr_base}/{ghcr_image_name}"
     stage = "dev"
-    ghcr_dev_image_versioned = hlitadoc.get_image(ghcr_base_image, stage, version)
-    cmd = f"docker pull {ghcr_dev_image_versioned}"
+    source_dev_image_versioned = hlitadoc.get_image(base_image, stage, version)
+    cmd = f"docker pull {source_dev_image_versioned}"
     hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
+    # Tag and push to target registries.
     for registry in target_registries.split(","):
         # Strip whitespace from registry name.
         registry = registry.strip()
@@ -1859,7 +1870,7 @@ def docker_tag_push_dev_image_from_ghcr(
         target_dev_image_latest = hlitadoc.get_image(
             target_base_image, stage, latest_version
         )
-        cmd = f"docker tag {ghcr_dev_image_versioned} {target_dev_image_latest}"
+        cmd = f"docker tag {source_dev_image_versioned} {target_dev_image_latest}"
         hlitauti.run(ctx, cmd, dry_run=dry_run)
         cmd = f"docker push {target_dev_image_latest}"
         hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
@@ -1867,7 +1878,7 @@ def docker_tag_push_dev_image_from_ghcr(
         target_dev_image_versioned = hlitadoc.get_image(
             target_base_image, stage, version
         )
-        cmd = f"docker tag {ghcr_dev_image_versioned} {target_dev_image_versioned}"
+        cmd = f"docker tag {source_dev_image_versioned} {target_dev_image_versioned}"
         hlitauti.run(ctx, cmd, dry_run=dry_run)
         cmd = f"docker push {target_dev_image_versioned}"
         hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
