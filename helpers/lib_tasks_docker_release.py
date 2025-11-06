@@ -15,7 +15,6 @@ from invoke import task
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
-import helpers.hdatetime as hdateti
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hs3 as hs3
@@ -1701,7 +1700,7 @@ def docker_build_test_dev_image(  # type: ignore
     _LOG.info("Step 3: Creating branch with date-based name")
     issue_prefix = hrecouti.get_repo_config().get_issue_prefix()
     # Get current date in YYYYMMDD format.
-    today = hdateti.get_current_date_as_string("UTC")
+    today = datetime.date.today().strftime("%Y%m%d")
     branch_name = f"{issue_prefix}_{today}_Periodic_image_release"
     _LOG.info("Branch name: %s", branch_name)
     cmd = f"git checkout -b {branch_name}"
@@ -1740,9 +1739,7 @@ def docker_build_test_dev_image(  # type: ignore
     # Read the current changelog.
     changelog_content = hio.from_file(changelog_file)
     # Prepare new entry.
-    # Get current date in YYYYMMDD format and reformat to YYYY-MM-DD.
-    today_str = hdateti.get_current_date_as_string("UTC")
-    today = f"{today_str[:4]}-{today_str[4:6]}-{today_str[6:8]}"
+    today = datetime.date.today().strftime("%Y-%m-%d")
     new_entry = f"""# {image_name}-{version}
 - {today}
 - Periodic release: {today}
