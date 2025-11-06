@@ -1196,13 +1196,13 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
 
 
 # #############################################################################
-# Test_docker_tag_push_dev_image_from_ghcr1
+# Test_docker_tag_push_dev_image1
 # #############################################################################
 
 
-class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
+class Test_docker_tag_push_dev_image1(_DockerFlowTestHelper):
     """
-    Test tagging and pushing dev image from GHCR to multiple registries.
+    Test tagging and pushing dev image from a base registry to multiple registries.
     """
 
     def set_up_test2(self) -> None:
@@ -1262,7 +1262,7 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
         - Versioned and latest image handling
         """
         # Call tested function.
-        hltadore.docker_tag_push_dev_image_from_ghcr(
+        hltadore.docker_tag_push_dev_image(
             self.mock_ctx,
             target_registries="ghcr,ecr",
             container_dir_name=".",
@@ -1293,7 +1293,7 @@ class Test_docker_tag_push_dev_image_from_ghcr1(_DockerFlowTestHelper):
         - Mock calls should include dry_run parameter
         """
         # Call tested function with dry_run enabled.
-        hltadore.docker_tag_push_dev_image_from_ghcr(
+        hltadore.docker_tag_push_dev_image(
             self.mock_ctx,
             target_registries="ghcr,ecr",
             container_dir_name=".",
@@ -1347,6 +1347,11 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         )
         self.mock_get_release_team = self.get_release_team_patcher.start()
         self.mock_get_release_team.return_value = "dev_system"
+        self.get_issue_prefix_patcher = umock.patch(
+            "helpers.repo_config_utils.RepoConfig.get_issue_prefix"
+        )
+        self.mock_get_issue_prefix = self.get_issue_prefix_patcher.start()
+        self.mock_get_issue_prefix.return_value = "TestTask"
         self.get_container_registry_url_patcher = umock.patch(
             "helpers.repo_config_utils.RepoConfig.get_container_registry_url"
         )
@@ -1362,23 +1367,10 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
             self.gh_get_team_member_names_patcher.start()
         )
         self.mock_gh_get_team_member_names.return_value = ["user1", "user2"]
-        self.gh_issue_create_patcher = umock.patch(
-            "helpers.lib_tasks_gh.gh_issue_create"
-        )
-        self.mock_gh_issue_create = self.gh_issue_create_patcher.start()
-        self.mock_gh_issue_create.return_value = 12345
         self.gh_create_pr_patcher = umock.patch(
             "helpers.lib_tasks_gh.gh_create_pr"
         )
         self.mock_gh_create_pr = self.gh_create_pr_patcher.start()
-        # Mock git operations.
-        self.git_branch_create_patcher = umock.patch(
-            "helpers.lib_tasks_git.git_branch_create"
-        )
-        self.mock_git_branch_create = self.git_branch_create_patcher.start()
-        self.get_branch_name_patcher = umock.patch("helpers.hgit.get_branch_name")
-        self.mock_get_branch_name = self.get_branch_name_patcher.start()
-        self.mock_get_branch_name.return_value = "CsfyTask12345_test_branch"
         # Mock file operations.
         self.get_client_root_patcher = umock.patch(
             "helpers.hversion._get_client_root"
@@ -1416,7 +1408,12 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         # Mock date operations.
         self.date_patcher = umock.patch("datetime.date")
         self.mock_date = self.date_patcher.start()
-        self.mock_date.today.return_value.strftime.return_value = "2025-10-23"
+        # Set up strftime to return different formats based on the format string.
+        # Branch name uses %Y%m%d, changelog uses %Y-%m-%d
+        self.mock_date.today.return_value.strftime.side_effect = lambda fmt: {
+            "%Y%m%d": "20251023",
+            "%Y-%m-%d": "2025-10-23",
+        }.get(fmt, "2025-10-23")
         # Mock Docker image operations.
         self.get_image_patcher = umock.patch("helpers.lib_tasks_docker.get_image")
         self.mock_get_image = self.get_image_patcher.start()
@@ -1439,12 +1436,10 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
                 "get_changelog_version": self.get_changelog_version_patcher,
                 "bump_version": self.bump_version_patcher,
                 "get_release_team": self.get_release_team_patcher,
+                "get_issue_prefix": self.get_issue_prefix_patcher,
                 "container_registry_url": self.get_container_registry_url_patcher,
                 "gh_get_team_member_names": self.gh_get_team_member_names_patcher,
-                "gh_issue_create": self.gh_issue_create_patcher,
                 "gh_create_pr": self.gh_create_pr_patcher,
-                "git_branch_create": self.git_branch_create_patcher,
-                "get_branch_name": self.get_branch_name_patcher,
                 "get_client_root": self.get_client_root_patcher,
                 "from_file": self.from_file_patcher,
                 "to_file": self.to_file_patcher,
@@ -1462,24 +1457,18 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         Test the complete periodic dev image release workflow.
         """
         # Call the tested function.
-        issue_id = hltadore.docker_build_test_dev_image(
+        hltadore.docker_build_test_dev_image(
             self.mock_ctx,
             reviewers="",  # Empty to trigger team lookup
             container_dir_name=".",
         )
-        # Verify the returned issue ID.
-        self.assertEqual(issue_id, 12345)
         # Verify version operations were called.
         self.mock_bump_version.assert_called_once_with("2.3.0", bump_type="minor")
         # Verify GitHub team lookup was performed.
         self.mock_get_release_team.assert_called_once()
         self.mock_gh_get_team_member_names.assert_called_once_with("dev_system")
-        # Verify GitHub issue was created.
-        self.mock_gh_issue_create.assert_called_once()
-        # Verify branch was created from issue.
-        self.mock_git_branch_create.assert_called_once_with(
-            self.mock_ctx, issue_id=12345
-        )
+        # Verify issue prefix was fetched for branch creation.
+        self.mock_get_issue_prefix.assert_called()
         # Verify PR was created with team members as reviewers.
         self.mock_gh_create_pr.assert_called_once()
         pr_call_args = self.mock_gh_create_pr.call_args
@@ -1487,6 +1476,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         self.assertEqual(pr_call_args.kwargs["reviewer"], "user1,user2")
         # Verify expected Docker and Git commands were executed.
         expected = r"""
+        git checkout -b TestTask_Periodic_image_release_20251023
         cp -f devops/docker_build/dockerignore.dev /app/.dockerignore
         tar -czh . | DOCKER_BUILDKIT=0 \
         time \
@@ -1505,7 +1495,7 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         git add /test/root/./devops/docker_build/pip_list.txt
         git add /test/root/./changelog.txt
         git commit -m "Poetry output from the v2.4.0 build" --no-verify
-        git push origin CsfyTask12345_test_branch
+        git push origin TestTask_Periodic_image_release_20251023
         docker tag test.ecr.path/test-image:local-testuser-2.4.0 ghcr.io/causify-ai/test-image:dev-2.4.0
         docker push ghcr.io/causify-ai/test-image:dev-2.4.0
         """
@@ -1516,17 +1506,15 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         Test the workflow when reviewers is already provided.
         """
         # Call the tested function with a specific reviewer.
-        issue_id = hltadore.docker_build_test_dev_image(
+        hltadore.docker_build_test_dev_image(
             self.mock_ctx,
             reviewers="specific_user",
             container_dir_name=".",
         )
-        # Verify the returned issue ID.
-        self.assertEqual(issue_id, 12345)
-        # Verify GitHub issue was created.
-        self.mock_gh_issue_create.assert_called_once()
         # Verify PR was created with the provided reviewer.
         self.mock_gh_create_pr.assert_called_once()
         pr_call_args = self.mock_gh_create_pr.call_args
         self.assertIn("reviewer", pr_call_args.kwargs)
         self.assertEqual(pr_call_args.kwargs["reviewer"], "specific_user")
+        # Verify team lookup was NOT performed since reviewers was provided.
+        self.mock_gh_get_team_member_names.assert_not_called()

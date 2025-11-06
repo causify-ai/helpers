@@ -11,7 +11,7 @@
   * [Phase 3: Automated Release](#phase-3-automated-release)
     + [Team-Based Assignment](#team-based-assignment)
     + [PR Labeling](#pr-labeling)
-    + [Invoke Target `docker_tag_push_dev_image_from_ghcr()`](#invoke-target-docker_tag_push_dev_image_from_ghcr)
+    + [Invoke Target `docker_tag_push_dev_image()`](#invoke-target-docker_tag_push_dev_image)
     + [Release Workflow (`.github/workflows/dev_image_release.yml`)](#release-workflow-githubworkflowsdev_image_releaseyml)
 
 <!-- tocstop -->
@@ -186,9 +186,10 @@ if is_automated_release:
     cmd += ' --label "Automated release"'
 ```
 
-### Invoke Target `docker_tag_push_dev_image_from_ghcr()`
+### Invoke Target `docker_tag_push_dev_image()`
 
-Gets the version from changelog, pulls the versioned dev image from GHCR,
+Gets the version from changelog (or uses provided version), pulls the versioned
+dev image from a base registry (GHCR by default, or custom via `--base-image`),
 re-tags it for target registries (GHCR and AWS ECR), pushes to all configured
 registries, and verifies the images. Supports dry-run mode for testing.
 
@@ -204,4 +205,4 @@ registries, and verifies the images. Supports dry-run mode for testing.
 
 **Steps:**
 
-- Execute `invoke docker_tag_push_dev_image_from_ghcr --dry-run`
+- Execute `invoke docker_tag_push_dev_image --dry-run`

@@ -1662,9 +1662,9 @@ def docker_build_test_dev_image(  # type: ignore
 
     This task performs:
     1) Bump version (e.g., 2.2.0 -> 2.3.0)
-    2) Create GitHub issue for periodic release assigned to specified user
-    3) Create branch and PR based on the issue
-    4) Build csfy image locally with the bumped version number
+    2) Get release team members
+    3) Create branch with date-based name
+    4) Build image locally with the bumped version number
     5) Run tests (fast, slow, superslow)
     6) Add changelog entry for the release
     7) Stage poetry.lock and pip_list.txt files
@@ -1679,7 +1679,6 @@ def docker_build_test_dev_image(  # type: ignore
         specified, uses the release team members from GitHub team
         configured in repo_config.yaml
     :param container_dir_name: directory where the Dockerfile is located
-    :return: issue ID (integer) of the created issue
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
     # 1) Bump version.
@@ -1697,24 +1696,17 @@ def docker_build_test_dev_image(  # type: ignore
         team_members = hlitagh.gh_get_team_member_names(release_team_name)
         reviewers = ",".join(team_members)
         _LOG.info("Release team '%s' members: %s", release_team_name, reviewers)
-    # 3) Create GitHub issue.
-    _LOG.info("Step 3: Creating GitHub issue")
-    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    issue_title = f"Periodic release of `{image_name}` dev image: {version}"
-    issue_body = "Automated periodic release of dev image"
-    # Create the issue and get the issue ID.
-    issue_id = hlitagh.gh_issue_create(
-        ctx,
-        title=issue_title,
-        body=issue_body,
-        assignees=assignee
-    )
-    _LOG.info("Created issue #%s", issue_id)
-    # 4) Create branch based on the issue.
-    _LOG.info("Step 4: Creating branch from issue")
-    hlitagit.git_branch_create(ctx, issue_id=issue_id)
-    # 5) Build csfy image locally.
-    _LOG.info("Step 5: Building local image with version %s", version)
+    # 3) Create branch with date-based name.
+    _LOG.info("Step 3: Creating branch with date-based name")
+    issue_prefix = hrecouti.get_repo_config().get_issue_prefix()
+    # Get current date in YYYYMMDD format.
+    today = datetime.date.today().strftime("%Y%m%d")
+    branch_name = f"{issue_prefix}_Periodic_image_release_{today}"
+    _LOG.info("Branch name: %s", branch_name)
+    cmd = f"git checkout -b {branch_name}"
+    hlitauti.run(ctx, cmd)
+    # 4) Build image locally.
+    _LOG.info("Step 4: Building local image with version %s", version)
     docker_build_local_image(
         ctx,
         version=version,
@@ -1722,8 +1714,8 @@ def docker_build_test_dev_image(  # type: ignore
         poetry_mode="update",
         container_dir_name=container_dir_name,
     )
-    # 6) Run tests.
-    _LOG.info("Step 6: Running tests")
+    # 5) Run tests.
+    _LOG.info("Step 5: Running tests")
     dev_version = _get_dev_version(version, container_dir_name)
     stage = "dev"
     _run_tests(
@@ -1737,10 +1729,11 @@ def docker_build_test_dev_image(  # type: ignore
         superslow_tests=False,
         qa_tests=False,
     )
-    # 7) Add changelog entry.
-    _LOG.info("Step 7: Adding changelog entry")
+    # 6) Add changelog entry.
+    _LOG.info("Step 6: Adding changelog entry")
     supermodule = True
     root_dir = hversio._get_client_root(supermodule)
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     changelog_file = os.path.join(root_dir, container_dir_name, "changelog.txt")
     hdbg.dassert_file_exists(changelog_file)
     # Read the current changelog.
@@ -1757,8 +1750,8 @@ def docker_build_test_dev_image(  # type: ignore
     # Write back to file.
     hio.to_file(changelog_file, updated_changelog)
     _LOG.info("Added changelog entry for version %s", version)
-    # 8) Stage files.
-    _LOG.info("Step 8: Staging files")
+    # 7) Stage files.
+    _LOG.info("Step 7: Staging files")
     # Fix git permissions in CI to avoid "insufficient permission" errors.
     if hserver.is_inside_ci():
         _LOG.info("Running in CI, fixing git permissions")
@@ -1777,21 +1770,20 @@ def docker_build_test_dev_image(  # type: ignore
             _LOG.info("Staged %s", full_path)
         else:
             _LOG.warning("File not found, skipping: %s", full_path)
-    # 9) Commit changes.
-    _LOG.info("Step 9: Committing changes")
+    # 8) Commit changes.
+    _LOG.info("Step 8: Committing changes")
     commit_message = f"Poetry output from the v{version} build"
     # --no-verify to skip pre-commit checks since the `poetry.lock` file is
     # too big and the `check_file_size` is failed.
     cmd = f'git commit -m "{commit_message}" --no-verify'
     hlitauti.run(ctx, cmd)
-    # 10) Push changes.
-    _LOG.info("Step 10: Pushing changes")
-    branch_name = hgit.get_branch_name()
+    # 9) Push changes.
+    _LOG.info("Step 9: Pushing changes")
     cmd = f"git push origin {branch_name}"
     hlitauti.run(ctx, cmd)
-    # 11) Create PR.
-    _LOG.info("Step 11: Creating pull request")
-    pr_body = f"#{issue_id}\n\n- Periodic release of {image_name} dev image version {version}"
+    # 10) Create PR.
+    _LOG.info("Step 10: Creating pull request")
+    pr_body = f"- Periodic release of {image_name} dev image version {version}"
     label = _AUTO_RELEASE_LABEL
     hlitagh.gh_create_pr(
         ctx,
@@ -1801,9 +1793,9 @@ def docker_build_test_dev_image(  # type: ignore
         labels=label,
         assignee=assignee,
     )
-    _LOG.info("Issue #%s created and PR submitted", issue_id)
-    # 12) Tag and push to GHCR.
-    _LOG.info("Step 12: Tagging and pushing image to GHCR")
+    _LOG.info("PR submitted for branch %s", branch_name)
+    # 11) Tag and push to GHCR.
+    _LOG.info("Step 11: Tagging and pushing image to GHCR")
     # Get GHCR base image path from repo config.
     ghcr_base = hrecouti.get_repo_config().get_container_registry_url("ghcr")
     ghcr_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
@@ -1821,21 +1813,27 @@ def docker_build_test_dev_image(  # type: ignore
     cmd = f"docker push {ghcr_image_versioned}"
     hlitauti.run(ctx, cmd, pty=True)
     _LOG.info("Pushed versioned GHCR dev image: %s", ghcr_image_versioned)
-    _LOG.info("==> SUCCESS <==")
-    return issue_id
+    _LOG.info("==> SUCCESS <==" )
 
 
 @task
-def docker_tag_push_dev_image_from_ghcr(
+def docker_tag_push_dev_image(
     ctx,
+    version="",
+    base_image="",
     target_registries="ghcr,ecr",
     container_dir_name=".",
     dry_run=False,
 ):
     """
-    Pulls a versioned dev image from GHCR, then tags and pushes
+    Pulls a versioned dev image from a base registry, then tags and pushes
     it to the specified target registries (both as versioned and latest).
 
+    :param ctx: invoke context
+    :param version: version to tag the image and code with. If empty, reads
+        from changelog
+    :param base_image: base image path to pull from (e.g.,
+        ghcr.io/causify-ai/csfy). If empty, uses GHCR from repo config
     :param target_registries: comma separated list of target Docker
         image registries to push the image to. E.g., "ghcr,ecr".
         See the `helpers.repo_config_utils.RepoConfig.get_container_registry_url()`
@@ -1845,16 +1843,20 @@ def docker_tag_push_dev_image_from_ghcr(
         them
     """
     hlitauti.report_task(container_dir_name=container_dir_name)
+    # Get version.
+    if not version:
+        version = hversio.get_changelog_version(container_dir_name)
+    # Get base image if not provided.
+    if not base_image:
+        ghcr_base = hrecouti.get_repo_config().get_container_registry_url("ghcr")
+        ghcr_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+        base_image = f"{ghcr_base}/{ghcr_image_name}"
     # Pull the image.
-    # TODO(Vlad): Factor out common code with `docker_build_test_dev_image()`.
-    version = hversio.get_changelog_version(container_dir_name)
-    ghcr_base = hrecouti.get_repo_config().get_container_registry_url("ghcr")
-    ghcr_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    ghcr_base_image = f"{ghcr_base}/{ghcr_image_name}"
     stage = "dev"
-    ghcr_dev_image_versioned = hlitadoc.get_image(ghcr_base_image, stage, version)
-    cmd = f"docker pull {ghcr_dev_image_versioned}"
+    source_dev_image_versioned = hlitadoc.get_image(base_image, stage, version)
+    cmd = f"docker pull {source_dev_image_versioned}"
     hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
+    # Tag and push to target registries.
     for registry in target_registries.split(","):
         # Strip whitespace from registry name.
         registry = registry.strip()
@@ -1868,7 +1870,7 @@ def docker_tag_push_dev_image_from_ghcr(
         target_dev_image_latest = hlitadoc.get_image(
             target_base_image, stage, latest_version
         )
-        cmd = f"docker tag {ghcr_dev_image_versioned} {target_dev_image_latest}"
+        cmd = f"docker tag {source_dev_image_versioned} {target_dev_image_latest}"
         hlitauti.run(ctx, cmd, dry_run=dry_run)
         cmd = f"docker push {target_dev_image_latest}"
         hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
@@ -1876,7 +1878,7 @@ def docker_tag_push_dev_image_from_ghcr(
         target_dev_image_versioned = hlitadoc.get_image(
             target_base_image, stage, version
         )
-        cmd = f"docker tag {ghcr_dev_image_versioned} {target_dev_image_versioned}"
+        cmd = f"docker tag {source_dev_image_versioned} {target_dev_image_versioned}"
         hlitauti.run(ctx, cmd, dry_run=dry_run)
         cmd = f"docker push {target_dev_image_versioned}"
         hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
