@@ -90,7 +90,7 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
-        run: invoke docker_tag_push_dev_image --dry-run
+        run: invoke docker_tag_push_dev_image
 
       # Generate release message.
       - name: Generate release message
@@ -110,10 +110,7 @@ jobs:
         with:
           # You can pass in multiple channels to post to by providing a
           # comma-delimited list of channel IDs: 'CHANNEL_ID,ANOTHER_CHANNEL_ID'
-          # TODO(Vlad): This is test channel "test-release-notifications".
-          # Revert back before merging.
-          channel-id: "C09PCHCG59B"
-          # channel-id: ${{ vars.SLACK_BUILD_NOTIF_CHANNEL_ID }}
+          channel-id: ${{ vars.SLACK_BUILD_NOTIF_CHANNEL_ID }}
           slack-message: ${{ steps.release_message.outputs.message }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

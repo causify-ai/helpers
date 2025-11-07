@@ -1,12 +1,6 @@
 name: Common Dev Image Build
 on:
     workflow_call:
-        inputs:
-          reviewers:
-            description: 'GitHub username to ask for reviewing the created PR.'
-            required: false
-            type: string
-            default: 'dremdem'
 env:
   CSFY_CI: true
   # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
