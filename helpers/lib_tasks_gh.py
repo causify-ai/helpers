@@ -4,12 +4,14 @@ Import as:
 import helpers.lib_tasks_gh as hlitagh
 """
 
+import datetime
 import json
 import logging
 import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
+import invoke.exceptions as invexc
 from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
@@ -520,6 +522,8 @@ def gh_create_pr(  # type: ignore
     repo_short_name="current",
     title="",
     reviewer="",
+    labels="",
+    assignee="",
 ):
     """
     Create a draft PR for the current branch in the corresponding
@@ -540,6 +544,8 @@ def gh_create_pr(  # type: ignore
         otherwise a `repo_short_name` (e.g., "amp")
     :param title: title of the PR or the branch name, if title is empty
     :param reviewer: GitHub username to request review from
+    :param labels: comma-separated list of labels to apply
+    :param assignee: GitHub username to assign the PR to
     """
     hlitauti.report_task()
     # Login.
@@ -583,6 +589,11 @@ def gh_create_pr(  # type: ignore
         if reviewer:
             cmd += f" --reviewer {reviewer}"
             _LOG.info("Added reviewer %s to the PR", reviewer)
+        if labels:
+            cmd += f' --label "{labels}"'
+            _LOG.info("Added labels %s to the PR", labels)
+        if assignee:
+            cmd += f" --assignee {assignee}"
         # TODO(gp): Use _to_single_line_cmd
         hlitauti.run(ctx, cmd)
     if auto_merge:
@@ -959,7 +970,7 @@ def gh_get_org_team_names(org_name: str = "", *, sort: bool = True) -> List[str]
     return team_names
 
 
-def gh_get_team_member_names(team_slug: str, org_name: str = "") -> List[str]:
+def gh_get_team_member_names(team_slug: str, *, org_name: str = "") -> List[str]:
     """
     Get a list of member usernames for a specific team in a GitHub
     organization.
@@ -1067,6 +1078,157 @@ def render_repo_workflow_status_table(
                 subset=["conclusion"],
             )
         )
+
+
+def get_workflow_run_ids(
+    repo_path: str, workflow_id: str, *, older_than_days: Optional[int] = None
+) -> List[str]:
+    """
+    Get workflow run IDs, optionally filtering by age.
+
+    :param repo_path: repository path in format "org/repo"
+    :param workflow_id: GitHub workflow ID
+    :param older_than_days: if specified, only return runs older than
+        this many days
+    :return: list of run IDs
+    """
+    # See GitHub CLI API documentation: https://cli.github.com/manual/gh_api
+    # We use the -q/--jq option to filter results using jq syntax.
+    if older_than_days is not None:
+        # Use jq to filter runs by age directly in the gh api command.
+        # jq date filtering breakdown:
+        # - `fromdateiso8601` converts ISO 8601 date to Unix timestamp (seconds since epoch)
+        # - `now` returns current Unix timestamp
+        # - Days are converted to seconds (days * 86400 seconds/day)
+        # - Example: if older_than_days=30, cutoff = now - (30 * 86400)
+        #   Only runs where created_at timestamp < cutoff are selected
+        cutoff_seconds = older_than_days * 86400
+        # Log the cutoff date for debugging.
+        cutoff_date = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
+            days=older_than_days
+        )
+        _LOG.debug("Filtering runs created before: %s", cutoff_date.isoformat())
+        jq_filter = (
+            f".workflow_runs[] | "
+            f"select((.created_at | fromdateiso8601) < (now - {cutoff_seconds})) | "
+            f".id"
+        )
+        # WARNING: Using --paginate to fetch all workflow runs can be slow
+        # for workflows with a large number of runs (e.g., 1000+ runs).
+        # The GitHub API paginates results, and jq filters each page.
+        cmd = (
+            f"gh api /repos/{repo_path}/actions/workflows/{workflow_id}/runs "
+            f"--paginate -q '{jq_filter}'"
+        )
+    else:
+        # Get all run IDs without date filtering.
+        # Example API output (one ID per line):
+        # 11758293857
+        # 11758293856
+        # 11758293855
+        cmd = (
+            f"gh api /repos/{repo_path}/actions/workflows/{workflow_id}/runs "
+            "--paginate -q '.workflow_runs[].id'"
+        )
+    # Execute command and parse output.
+    _, run_ids_output = hsystem.system_to_string(cmd)
+    run_ids = [
+        run_id.strip()
+        for run_id in run_ids_output.strip().split("\n")
+        if run_id.strip()
+    ]
+    return run_ids
+
+
+@task
+def gh_delete_workflow_runs(  # type: ignore
+    ctx, workflow_name, older_than_days=None, dry_run=False, confirmation=True
+):
+    """
+    Delete all workflow runs for a given workflow.
+
+    :param workflow_name: name of the workflow to delete runs for
+    :param older_than_days: only delete runs older than this many days
+        (optional). If None, delete all runs. Example:
+        older_than_days=30 deletes runs created more than 30 days ago
+    :param dry_run: if True, show what would be deleted without actually
+        deleting
+    :param confirmation: if True, prompt user for confirmation before
+        deletion (default: True)
+    """
+    hlitauti.report_task(
+        txt=hprint.to_str("workflow_name older_than_days dry_run confirmation")
+    )
+    # Convert older_than_days to int if provided (invoke passes strings).
+    if older_than_days is not None:
+        older_than_days = int(older_than_days)
+        hdbg.dassert_lte(1, older_than_days)
+    # Login.
+    gh_login(ctx)
+    #
+    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd("current")
+    # Get workflow ID by name.
+    repo_path = repo_full_name_with_host.replace("github.com/", "")
+    workflows = gh_get_workflows(repo_path)
+    workflow_id = None
+    for workflow in workflows:
+        if workflow["name"] == workflow_name:
+            workflow_id = workflow["id"]
+            break
+    if not workflow_id:
+        available_workflows = [w["name"] for w in workflows]
+        raise ValueError(
+            f"Workflow '{workflow_name}' not found. "
+            f"Available workflows: {available_workflows}"
+        )
+    _LOG.info("Found workflow '%s' with ID: %s", workflow_name, workflow_id)
+    # Get all run IDs for this workflow, optionally filtering by date.
+    run_ids = get_workflow_run_ids(
+        repo_path, workflow_id, older_than_days=older_than_days
+    )
+    # Check if any runs were found.
+    age_filter_msg = (
+        f" older than {older_than_days} days"
+        if older_than_days is not None
+        else ""
+    )
+    if not run_ids:
+        _LOG.info(
+            "No workflow runs%s found for '%s'", age_filter_msg, workflow_name
+        )
+        return
+    _LOG.info("Found %d workflow runs%s to delete", len(run_ids), age_filter_msg)
+    # Prompt for confirmation if required.
+    if confirmation and not dry_run:
+        confirmation_msg = (
+            f"\nAre you sure you want to delete {len(run_ids)} workflow run(s)"
+            f"{age_filter_msg} for '{workflow_name}'?\n"
+            f"Repository: {repo_full_name_with_host}\n"
+            f"Type 'yes' or 'y' to confirm: "
+        )
+        user_input = input(confirmation_msg).strip().lower()
+        if user_input not in ("yes", "y"):
+            _LOG.info("Deletion cancelled by user")
+            return
+        _LOG.info("User confirmed deletion, proceeding...")
+    # Delete each run.
+    deleted_count = 0
+    failed_count = 0
+    for run_id in run_ids:
+        try:
+            cmd = f"gh api -X DELETE /repos/{repo_path}/actions/runs/{run_id}"
+            _LOG.info("Deleting run %s", run_id)
+            hlitauti.run(ctx, cmd, dry_run=dry_run)
+            deleted_count += 1
+        except (invexc.UnexpectedExit, RuntimeError) as e:
+            _LOG.error("Failed to delete run %s: %s", run_id, str(e))
+            failed_count += 1
+    _LOG.info(
+        "Deletion complete: %d successful, %d failed out of %d total runs",
+        deleted_count,
+        failed_count,
+        len(run_ids),
+    )
 
 
 # #############################################################################

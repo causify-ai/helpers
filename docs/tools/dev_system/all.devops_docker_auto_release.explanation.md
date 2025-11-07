@@ -11,7 +11,7 @@
   * [Phase 3: Automated Release](#phase-3-automated-release)
     + [Team-Based Assignment](#team-based-assignment)
     + [PR Labeling](#pr-labeling)
-    + [Invoke Target `docker_tag_push_dev_image_from_ghcr()`](#invoke-target-docker_tag_push_dev_image_from_ghcr)
+    + [Invoke Target `docker_tag_push_dev_image()`](#invoke-target-docker_tag_push_dev_image)
     + [Release Workflow (`.github/workflows/dev_image_release.yml`)](#release-workflow-githubworkflowsdev_image_releaseyml)
 
 <!-- tocstop -->
@@ -49,7 +49,7 @@
   (`.github/workflows/dev_image_build_and_test.yml`): Orchestrates the entire
   automated build and test process
   - Triggered weekly by cron schedule or manually
-  - Calls `invoke docker_build_test_dev_image --assignee=<username>`
+  - Calls `invoke docker_build_test_dev_image --reviewers <team members>`
 
 - **GitHub CLI Helpers**: New team management functions
   - `gh_get_org_team_names()`: Fetch organization teams
@@ -134,10 +134,10 @@ verification before production release.
 ## Phase 2: Manual Review
 
 This is the critical human gate between automated build and automated release.
-After Phase 1 completes, the assigned team member reviews the PR, validates the
-changes (changelog, version, poetry.lock), optionally tests the image from GHCR,
-and merges to master. The PR is automatically created as "Ready for review" with
-a reviewer assigned. Quality gates: all status checks pass, properly formatted
+After Phase 1 completes, the assigned team members review the PR, validate the
+changes (changelog, version, poetry.lock), optionally test the image from GHCR,
+and merge to master. The PR is automatically created as "Ready for review" with
+reviewers assigned. Quality gates: all status checks pass, properly formatted
 changelog, no merge conflicts, valid sequential version number.
 
 ## Phase 3: Automated Release
@@ -159,7 +159,6 @@ production registries (AWS ECR, etc.), and pushes to all target registries.
 **Implementation plan:**
 
 - Fetch team members using `gh_get_team_member_names()`
-- Assign issue to all team members (multi-assignee)
 - Request PR review from team (not individual)
 - Format: `--reviewer team:org/team-slug`
 
@@ -187,9 +186,10 @@ if is_automated_release:
     cmd += ' --label "Automated release"'
 ```
 
-### Invoke Target `docker_tag_push_dev_image_from_ghcr()`
+### Invoke Target `docker_tag_push_dev_image()`
 
-Gets the version from changelog, pulls the versioned dev image from GHCR,
+Gets the version from changelog (or uses provided version), pulls the versioned
+dev image from a base registry (GHCR by default, or custom via `--base-image`),
 re-tags it for target registries (GHCR and AWS ECR), pushes to all configured
 registries, and verifies the images. Supports dry-run mode for testing.
 
@@ -205,4 +205,4 @@ registries, and verifies the images. Supports dry-run mode for testing.
 
 **Steps:**
 
-- Execute `invoke docker_tag_push_dev_image_from_ghcr --dry-run`
+- Execute `invoke docker_tag_push_dev_image --dry-run`
