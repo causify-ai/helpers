@@ -2,11 +2,6 @@ name: Dev image release
 on:
   # Run manually.
   workflow_dispatch:
-  # Trigger when a PR targeting master is closed (we will check merged + label in the job).
-  pull_request:
-    types: [closed]
-    branches:
-        - master
 # Set up permissions for OIDC authentication.
 permissions:
   # This is required for actions/checkout.
