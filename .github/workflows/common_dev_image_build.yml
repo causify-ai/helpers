@@ -111,4 +111,4 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
-        run: invoke docker_build_test_dev_image --reviewers="${{ inputs.reviewers }}"
+        run: invoke docker_build_test_dev_image
