@@ -1722,11 +1722,10 @@ def docker_build_test_dev_image(  # type: ignore
         ctx,
         stage,
         dev_version,
-        # TODO(Vlad): Enable all tests before using this flow in production.
         skip_tests=False,
-        fast_tests=False,
-        slow_tests=False,
-        superslow_tests=False,
+        fast_tests=True,
+        slow_tests=True,
+        superslow_tests=True,
         qa_tests=False,
     )
     # 6) Add changelog entry.
