@@ -522,6 +522,8 @@ def gh_create_pr(  # type: ignore
     repo_short_name="current",
     title="",
     reviewer="",
+    labels="",
+    assignee="",
 ):
     """
     Create a draft PR for the current branch in the corresponding
@@ -542,6 +544,8 @@ def gh_create_pr(  # type: ignore
         otherwise a `repo_short_name` (e.g., "amp")
     :param title: title of the PR or the branch name, if title is empty
     :param reviewer: GitHub username to request review from
+    :param labels: comma-separated list of labels to apply
+    :param assignee: GitHub username to assign the PR to
     """
     hlitauti.report_task()
     # Login.
@@ -585,6 +589,11 @@ def gh_create_pr(  # type: ignore
         if reviewer:
             cmd += f" --reviewer {reviewer}"
             _LOG.info("Added reviewer %s to the PR", reviewer)
+        if labels:
+            cmd += f' --label "{labels}"'
+            _LOG.info("Added labels %s to the PR", labels)
+        if assignee:
+            cmd += f" --assignee {assignee}"
         # TODO(gp): Use _to_single_line_cmd
         hlitauti.run(ctx, cmd)
     if auto_merge:
@@ -961,7 +970,7 @@ def gh_get_org_team_names(org_name: str = "", *, sort: bool = True) -> List[str]
     return team_names
 
 
-def gh_get_team_member_names(team_slug: str, org_name: str = "") -> List[str]:
+def gh_get_team_member_names(team_slug: str, *, org_name: str = "") -> List[str]:
     """
     Get a list of member usernames for a specific team in a GitHub
     organization.
