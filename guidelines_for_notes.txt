@@ -127,7 +127,8 @@
 
 ## Example
 
-- For this input text:
+- According to the rules above the input text below should be transformed into:
+  <example_input>
   ```
   ## QUESTION 1: WHAT ARE YOUR CORE VALUES?
 
@@ -166,7 +167,7 @@
   a date, you hit it. You fully deliver and finish what you start—doing
   things half-assed or half-finished is unacceptable. Everyone takes
   responsibility, owns their projects, and blames no one if something
-  doesn’t get finished. Finally, in a "Do What You Say" culture, it is
+  doesn't get finished. Finally, in a "Do What You Say" culture, it is
   okay to say no—if you can’t do it, don’t commit.
 
   Your leadership team has worked very hard to discover what your
@@ -180,8 +181,10 @@
   environment is more fun. You will have a great organization and a strong
   culture.
   ```
+  </example_input>
 
 - The output should be:
+  <example_output>
   ```
   * Core values
   - Are a timeless set of guiding principles
@@ -209,3 +212,4 @@
     - If you can't do it, don't commit
   - Do the right thing
   ```
+  </example_output>
