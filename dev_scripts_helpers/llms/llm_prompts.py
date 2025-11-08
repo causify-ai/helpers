@@ -709,6 +709,7 @@ _MD_CONTEXT = r"""
     I will pass you a chunk of markdown code.
     """
 
+
 def md_reduce() -> _PROMPT_OUT:
     """
     Check the slide is clear and correct.
