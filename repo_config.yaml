@@ -16,6 +16,7 @@ docker_info:
   # Base name of the docker image, e.g., `helpers`.
   docker_image_name: helpers
   use_sibling_container_in_unit_tests: True
+  release_team: dev_system
 
 s3_bucket_info:
   unit_test_bucket_name: s3://cryptokaizen-unit-test

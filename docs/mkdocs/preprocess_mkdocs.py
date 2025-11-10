@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 """
-Preprocess markdown files for mkdocs.
-
 This script takes markdown files from an input directory and processes them
 for mkdocs by:
 1. Copying all files from input to output directory

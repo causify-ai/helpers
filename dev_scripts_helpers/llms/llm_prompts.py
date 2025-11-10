@@ -1382,6 +1382,302 @@ def slide_add_figure() -> _PROMPT_OUT:
     """
     system = _SLIDE_CONTEXT
     system += r"""
+    Given the markdown bullet points, create a title for the slide.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown", "append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def slide_format_figures() -> _PROMPT_OUT:
+    """
+    Format figures in markdown slides to use column layout.
+    """
+    system = _SLIDE_CONTEXT
+    system += r"""
+    You will format markdown slides with figures to use fenced div syntax with column layout.
+
+    Convert slides containing figures (![...]) to use a two-column layout:
+    - Left column (65% width): text content
+    - Right column (40% width): figures
+
+    Use this format:
+    ```
+    ::: columns
+    :::: {.column width=65%}
+    [text content goes here]
+    ::::
+    :::: {.column width=40%}
+
+    [figures go here]
+    ::::
+    :::
+    ```
+
+    Rules:
+    - If the slide already uses column format, return it unchanged
+    - If there are no figures, return the slide unchanged
+    - Separate all figures from text content
+    - Place figures in the right column with empty lines between them
+    - Remove trailing empty lines from text content before placing in left column
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_figures"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+# #############################################################################
+# Lesson script.
+# #############################################################################
+
+# Operate on pure text for a lecture script, not markdown.
+
+
+def script_rewrite() -> _PROMPT_OUT:
+    """
+    Rewrite the text to increase clarity and readability.
+    """
+    system = "You are a college professor expert of machine learning and big data, reading notes for a lecture."
+    system += r"""
+    - Rewrite the text passed to increase clarity and readability.
+    - Organize the text in a way that is easy to understand and follow, using
+      bullet points
+    - Each sentence needs to be short and concise, not more than 30 words, in full
+      and correct English, using you or we
+    - Make sure it's under 150 words
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def script_reduce() -> _PROMPT_OUT:
+    """
+    Rewrite the text to increase clarity and readability.
+    """
+    system = "You are a college professor expert of machine learning and big data, reading notes for a lecture."
+    system += r"""
+    - Rewrite the text passed to reduce the number of words
+    - Keep the structure of the text
+    - Make sure it's under 200 words
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = {
+        "remove_code_delimiters",
+        "remove_end_of_line_periods",
+        "remove_empty_lines",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+# #############################################################################
+# Text.
+# #############################################################################
+
+# Operate on pure text, not markdown.
+
+
+def text_reduce() -> _PROMPT_OUT:
+    """
+    Reduce the text to a maximum of 200 words.
+    """
+    system = ""
+    system += r"""
+    You are an expert academic summarizer. 
+    
+    Your task is to read the following text and produce a concise, structured
+    summary of the text.
+
+    Use maximum 200 words.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def text_rewrite() -> _PROMPT_OUT:
+    """
+    Rewrite the text to increase clarity and readability.
+    """
+    system = ""
+    system += r"""
+    - Rewrite the text passed to increase clarity and readability.
+    - Maintain the structure of the text as much as possible
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def text_to_notes() -> _PROMPT_OUT:
+    """
+    Convert free form text into text notes.
+    """
+    system = ""
+    system += r"""
+    You are an expert academic summarizer. 
+    
+    Your task is to read the following text and produce a concise, structured
+    summary in Markdown bullet format.
+
+    Guidelines:
+    - Capture the main concepts, definitions, and logical relationships precisely.
+    - Use concise bullet points, clear indentation, and minimal prose.
+    - Each paragraph should be a single concept or idea
+    - Each paragraph must start with an asterisk, like
+      ```
+      * Concept A
+      ...
+      ```
+      have between 4 and 6 bullet points.
+    - Include mathematical expressions in LaTeX
+      - E.g., $$P(Y|X) > P(Y)$$)
+    - Preserve key examples and show what they illustrate.
+    - Avoid interpretation, commentary, or stylistic reformulation — stay close
+     to the text’s logical flow.
+    - Do not quote the original sentences directly; rephrase succinctly.
+    - The format of the output MUST follow the example below:
+      ```
+      * Concept A
+        - Definition or key idea
+        - Supporting detail or example
+        - ...
+        - ...
+
+      * Concept B
+        - Definition
+        - Mathematical formulation
+        - ...
+        - ...
+    ```
+
+    Produce the structured summary from the text below.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = {
+        "remove_end_of_line_periods",
+        "md_clean_up",
+    }
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def text_check() -> _PROMPT_OUT:
+    """
+    Check that the text is clear and correct.
+    """
+    system = ""
+    system += r"""
+    You are an expert college professor expert of machine learning and computer
+    science.
+
+    - Is the content of the text clear?
+      - Answer ONLY with "Yes" or "NO"
+
+    - Is the content of the text correct?
+      - Answer ONLY with "Yes" or "NO"
+
+    - Only when there is something not clear or not correct, provide a detailed
+      explanation and add 3 short bullet points about what can be clarified or
+      improved.
+      - You MUST report only things that you are sure about.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown", "append_to_text"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def text_check_fix() -> _PROMPT_OUT:
+    """
+    Check that the text is clear and correct and then fix it.
+    """
+    system = ""
+    system += r"""
+    You are an expert college professor expert of machine learning and computer
+    science.
+
+    - If you are sure that there is a mistake or something unclear, correct
+      it making sure that the text is clear and correct, and without changing
+      the structure of the text.
+
+    Do not print anything else than the corrected text in a markdown format
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def text_idea() -> _PROMPT_OUT:
+    """
+    Come up with suggestions and variations to make it interesting.
+    """
+    file = "text_idea.txt"
+    if os.path.exists(file):
+        system = hio.from_file(file)
+    else:
+        system = ""
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def text_rephrase() -> _PROMPT_OUT:
+    """
+    Rephrase the text using text_rephrase.txt.
+    """
+    file = "text_rephrase.txt"
+    if os.path.exists(file):
+        system = hio.from_file(file)
+    else:
+        system = ""
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+# #############################################################################
+# From file.
+# #############################################################################
+
+
+def from_file() -> _PROMPT_OUT:
+    """
+    Rephrase the text using text_rephrase.txt.
+    """
+    file = "prompt.txt"
+    hdbg.dassert_file_exists(file)
+    system = hio.from_file(file)
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+# #############################################################################
+# Graphviz.
+# #############################################################################
+
+
+def dot_add_figure() -> _PROMPT_OUT:
+    """
+    Add a figure to the chunk of text.
+    """
+    system = _SLIDE_CONTEXT
+    system += r"""
     You will create a figure that illustrates the text using Graphviz dot.
 
     - If you are sure about the meaning of the variables use

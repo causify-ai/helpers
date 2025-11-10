@@ -130,6 +130,7 @@ class _DockerFlowTestHelper(hunitest.TestCase):
         """
         actual_cmds = _extract_commands_from_call(call_args_list)
         actual_cmds = "\n".join(actual_cmds)
+        _LOG.debug("Actual Docker commands:\n%s", actual_cmds)
         self.assert_equal(
             actual_cmds,
             expected,
@@ -1192,3 +1193,328 @@ class Test_docker_update_prod_task_definition1(_DockerFlowTestHelper):
         self._check_docker_command_output(expected, self.mock_run.call_args_list)
         # Check whether task definition was rolled back.
         self.mock_aws.assert_called_with("test_task")
+
+
+# #############################################################################
+# Test_docker_tag_push_dev_image1
+# #############################################################################
+
+
+class Test_docker_tag_push_dev_image1(_DockerFlowTestHelper):
+    """
+    Test tagging and pushing dev image from a base registry to multiple registries.
+    """
+
+    def set_up_test2(self) -> None:
+        """
+        Set up test environment with additional mocks for GHCR workflow.
+        """
+        super().set_up_test()
+        # Mock version retrieval from changelog.
+        self.changelog_version_patcher = umock.patch(
+            "helpers.hversion.get_changelog_version"
+        )
+        self.mock_changelog_version = self.changelog_version_patcher.start()
+        self.mock_changelog_version.return_value = self.test_version
+        # Mock repo config for GHCR registry URL and image name.
+        self.get_container_registry_url_patcher = umock.patch(
+            "helpers.repo_config_utils.RepoConfig.get_container_registry_url"
+        )
+        self.mock_get_container_registry_url = (
+            self.get_container_registry_url_patcher.start()
+        )
+        # Use side_effect to return different values based on registry.
+        self.mock_get_container_registry_url.side_effect = lambda registry: {
+            "ghcr": "ghcr.io/causify-ai",
+            "ecr": "test.ecr.path",
+        }.get(registry, "ghcr.io/causify-ai")
+        # Add new patchers to cleanup list.
+        self.patchers.update(
+            {
+                "changelog_version": self.changelog_version_patcher,
+                "container_registry_url": self.get_container_registry_url_patcher,
+            }
+        )
+
+    def tear_down_test2(self) -> None:
+        """
+        Clean up test environment.
+        """
+        self.tear_down_test()
+
+    @pytest.fixture(autouse=True)
+    def setup_teardown_test(self) -> Generator:
+        """
+        Set up and tear down test environment for each test.
+        """
+        self.set_up_test2()
+        yield
+        self.tear_down_test2()
+
+    def test_normal_execution1(self) -> None:
+        """
+        Test normal execution without dry_run.
+
+        This test checks:
+        - GHCR image pulling
+        - Tagging for GHCR and AWS ECR
+        - Pushing to both registries
+        - Versioned and latest image handling
+        """
+        # Call tested function.
+        hltadore.docker_tag_push_dev_image(
+            self.mock_ctx,
+            target_registries="ghcr,ecr",
+            container_dir_name=".",
+            dry_run=False,
+        )
+        # Verify expected Docker commands were executed.
+        expected = r"""
+        docker pull ghcr.io/causify-ai/test-image:dev-1.0.0
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev
+        docker push ghcr.io/causify-ai/test-image:dev
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev-1.0.0
+        docker push ghcr.io/causify-ai/test-image:dev-1.0.0
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev
+        docker push test.ecr.path/test-image:dev
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev-1.0.0
+        docker push test.ecr.path/test-image:dev-1.0.0
+        """
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+
+    def test_dry_run1(self) -> None:
+        """
+        Test dry_run mode execution.
+
+        This test checks:
+        - No actual Docker commands are executed when dry_run=True
+        - All operations are simulated
+        - Function completes without errors
+        - Mock calls should include dry_run parameter
+        """
+        # Call tested function with dry_run enabled.
+        hltadore.docker_tag_push_dev_image(
+            self.mock_ctx,
+            target_registries="ghcr,ecr",
+            container_dir_name=".",
+            dry_run=True,
+        )
+        # Verify expected Docker commands were executed.
+        expected = r"""
+        docker pull ghcr.io/causify-ai/test-image:dev-1.0.0
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev
+        docker push ghcr.io/causify-ai/test-image:dev
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 ghcr.io/causify-ai/test-image:dev-1.0.0
+        docker push ghcr.io/causify-ai/test-image:dev-1.0.0
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev
+        docker push test.ecr.path/test-image:dev
+        docker tag ghcr.io/causify-ai/test-image:dev-1.0.0 test.ecr.path/test-image:dev-1.0.0
+        docker push test.ecr.path/test-image:dev-1.0.0
+        """
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+
+
+# #############################################################################
+# Test_docker_build_test_dev_image1
+# #############################################################################
+
+
+class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
+    """
+    Test the complete periodic dev image release workflow.
+    """
+
+    def set_up_test(self) -> None:
+        """
+        Set up test environment with additional mocks for the dev image
+        workflow.
+        """
+        super().set_up_test()
+        # Mock version operations.
+        self.get_changelog_version_patcher = umock.patch(
+            "helpers.hversion.get_changelog_version"
+        )
+        self.mock_get_changelog_version = (
+            self.get_changelog_version_patcher.start()
+        )
+        self.mock_get_changelog_version.return_value = "2.3.0"
+        self.bump_version_patcher = umock.patch("helpers.hversion.bump_version")
+        self.mock_bump_version = self.bump_version_patcher.start()
+        self.mock_bump_version.return_value = "2.4.0"
+        # Mock repo config methods.
+        self.get_release_team_patcher = umock.patch(
+            "helpers.repo_config_utils.RepoConfig.get_release_team"
+        )
+        self.mock_get_release_team = self.get_release_team_patcher.start()
+        self.mock_get_release_team.return_value = "dev_system"
+        self.get_issue_prefix_patcher = umock.patch(
+            "helpers.repo_config_utils.RepoConfig.get_issue_prefix"
+        )
+        self.mock_get_issue_prefix = self.get_issue_prefix_patcher.start()
+        self.mock_get_issue_prefix.return_value = "TestTask"
+        self.get_container_registry_url_patcher = umock.patch(
+            "helpers.repo_config_utils.RepoConfig.get_container_registry_url"
+        )
+        self.mock_get_container_registry_url = (
+            self.get_container_registry_url_patcher.start()
+        )
+        self.mock_get_container_registry_url.return_value = "ghcr.io/causify-ai"
+        # Mock GitHub operations.
+        self.gh_get_team_member_names_patcher = umock.patch(
+            "helpers.lib_tasks_gh.gh_get_team_member_names"
+        )
+        self.mock_gh_get_team_member_names = (
+            self.gh_get_team_member_names_patcher.start()
+        )
+        self.mock_gh_get_team_member_names.return_value = ["user1", "user2"]
+        self.gh_create_pr_patcher = umock.patch(
+            "helpers.lib_tasks_gh.gh_create_pr"
+        )
+        self.mock_gh_create_pr = self.gh_create_pr_patcher.start()
+        # Mock file operations.
+        self.get_client_root_patcher = umock.patch(
+            "helpers.hversion._get_client_root"
+        )
+        self.mock_get_client_root = self.get_client_root_patcher.start()
+        self.mock_get_client_root.return_value = "/test/root"
+        self.from_file_patcher = umock.patch("helpers.hio.from_file")
+        self.mock_from_file = self.from_file_patcher.start()
+        self.mock_from_file.return_value = "# Existing changelog content\n"
+        self.to_file_patcher = umock.patch("helpers.hio.to_file")
+        self.mock_to_file = self.to_file_patcher.start()
+        # Mock file existence check for dassert_file_exists (changelog validation).
+        self.file_exists_patcher = umock.patch("helpers.hdbg.dassert_file_exists")
+        self.mock_file_exists = self.file_exists_patcher.start()
+        # Mock os.path.exists selectively for file staging logic.
+        # Store the original function before patching
+        original_exists = os.path.exists
+        # Define which files should exist for staging
+        staged_files = {
+            "/test/root/./devops/docker_build/poetry.lock",
+            "/test/root/./devops/docker_build/pip_list.txt",
+            "/test/root/./changelog.txt",
+        }
+
+        def selective_exists(path):
+            # Return True for staged files, use original function for everything else
+            if path in staged_files:
+                return True
+            return original_exists(path)
+
+        self.path_exists_patcher = umock.patch(
+            "os.path.exists", side_effect=selective_exists
+        )
+        self.mock_path_exists = self.path_exists_patcher.start()
+        # Mock date operations.
+        self.date_patcher = umock.patch("datetime.date")
+        self.mock_date = self.date_patcher.start()
+        # Set up strftime to return different formats based on the format string.
+        # Branch name uses %Y%m%d, changelog uses %Y-%m-%d
+        self.mock_date.today.return_value.strftime.side_effect = lambda fmt: {
+            "%Y%m%d": "20251023",
+            "%Y-%m-%d": "2025-10-23",
+        }.get(fmt, "2025-10-23")
+        # Mock Docker image operations.
+        self.get_image_patcher = umock.patch("helpers.lib_tasks_docker.get_image")
+        self.mock_get_image = self.get_image_patcher.start()
+        self.mock_get_image.return_value = (
+            "test.ecr.path/test-image:local-testuser-2.4.0"
+        )
+        # Mock _run_tests to prevent actual test execution.
+        self.run_tests_patcher = umock.patch(
+            "helpers.lib_tasks_docker_release._run_tests"
+        )
+        self.mock_run_tests = self.run_tests_patcher.start()
+        # Mock is_inside_ci to control CI-specific behavior.
+        self.is_inside_ci_patcher = umock.patch("helpers.hserver.is_inside_ci")
+        self.mock_is_inside_ci = self.is_inside_ci_patcher.start()
+        # Default to True to simulate CI environment.
+        self.mock_is_inside_ci.return_value = True
+        # Add all new patchers to cleanup list.
+        self.patchers.update(
+            {
+                "get_changelog_version": self.get_changelog_version_patcher,
+                "bump_version": self.bump_version_patcher,
+                "get_release_team": self.get_release_team_patcher,
+                "get_issue_prefix": self.get_issue_prefix_patcher,
+                "container_registry_url": self.get_container_registry_url_patcher,
+                "gh_get_team_member_names": self.gh_get_team_member_names_patcher,
+                "gh_create_pr": self.gh_create_pr_patcher,
+                "get_client_root": self.get_client_root_patcher,
+                "from_file": self.from_file_patcher,
+                "to_file": self.to_file_patcher,
+                "file_exists": self.file_exists_patcher,
+                "path_exists": self.path_exists_patcher,
+                "date": self.date_patcher,
+                "get_image": self.get_image_patcher,
+                "run_tests": self.run_tests_patcher,
+                "is_inside_ci": self.is_inside_ci_patcher,
+            }
+        )
+
+    def test_complete_workflow1(self) -> None:
+        """
+        Test the complete periodic dev image release workflow.
+        """
+        # Call the tested function.
+        hltadore.docker_build_test_dev_image(
+            self.mock_ctx,
+            reviewers="",  # Empty to trigger team lookup
+            container_dir_name=".",
+        )
+        # Verify version operations were called.
+        self.mock_bump_version.assert_called_once_with("2.3.0", bump_type="minor")
+        # Verify GitHub team lookup was performed.
+        self.mock_get_release_team.assert_called_once()
+        self.mock_gh_get_team_member_names.assert_called_once_with("dev_system")
+        # Verify issue prefix was fetched for branch creation.
+        self.mock_get_issue_prefix.assert_called()
+        # Verify PR was created with team members as reviewers.
+        self.mock_gh_create_pr.assert_called_once()
+        pr_call_args = self.mock_gh_create_pr.call_args
+        self.assertIn("reviewer", pr_call_args.kwargs)
+        self.assertEqual(pr_call_args.kwargs["reviewer"], "user1,user2")
+        # Verify expected Docker and Git commands were executed.
+        expected = r"""
+        git checkout -b TestTask_Periodic_image_release_20251023
+        cp -f devops/docker_build/dockerignore.dev /app/.dockerignore
+        tar -czh . | DOCKER_BUILDKIT=0 \
+        time \
+        docker build \
+             \
+            --build-arg AM_CONTAINER_VERSION=2.4.0 --build-arg INSTALL_DIND=True --build-arg POETRY_MODE=update --build-arg CLEAN_UP_INSTALLATION=True \
+            --tag test.ecr.path/test-image:local-testuser-2.4.0 \
+            --file devops/docker_build/dev.Dockerfile \
+            -
+        invoke docker_cmd --stage local --version 2.4.0 --cmd 'cp -f /install/poetry.lock.out /install/pip_list.txt .' --skip-pull
+        cp -f poetry.lock.out ./devops/docker_build/poetry.lock
+        cp -f pip_list.txt ./devops/docker_build/pip_list.txt
+        docker image ls test.ecr.path/test-image:local-testuser-2.4.0
+        sudo chmod -R 777 .git/objects/
+        git add /test/root/./devops/docker_build/poetry.lock
+        git add /test/root/./devops/docker_build/pip_list.txt
+        git add /test/root/./changelog.txt
+        git commit -m "Poetry output from the v2.4.0 build" --no-verify
+        git push origin TestTask_Periodic_image_release_20251023
+        docker tag test.ecr.path/test-image:local-testuser-2.4.0 ghcr.io/causify-ai/test-image:dev-2.4.0
+        docker push ghcr.io/causify-ai/test-image:dev-2.4.0
+        """
+        self._check_docker_command_output(expected, self.mock_run.call_args_list)
+
+    def test_with_existing_reviewers1(self) -> None:
+        """
+        Test the workflow when reviewers is already provided.
+        """
+        # Call the tested function with a specific reviewer.
+        hltadore.docker_build_test_dev_image(
+            self.mock_ctx,
+            reviewers="specific_user",
+            container_dir_name=".",
+        )
+        # Verify PR was created with the provided reviewer.
+        self.mock_gh_create_pr.assert_called_once()
+        pr_call_args = self.mock_gh_create_pr.call_args
+        self.assertIn("reviewer", pr_call_args.kwargs)
+        self.assertEqual(pr_call_args.kwargs["reviewer"], "specific_user")
+        # Verify team lookup was NOT performed since reviewers was provided.
+        self.mock_gh_get_team_member_names.assert_not_called()
