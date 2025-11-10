@@ -46,7 +46,7 @@ jobs:
       # This is needed to pull the Docker image.
       - name: Login to GHCR
         run: |
-          echo "${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}" \
+          echo "${{ secrets.GITHUB_TOKEN }}" \
             | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       # Make everything accessible by any user to avoid permission errors.
@@ -66,7 +66,7 @@ jobs:
           # make it a default behavior? For certain tests to pass, we need entire
           # commit history of the repo including sub-modules.
           fetch-depth: 0
-          token: ${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # To access modules in `amp` and `helpers_root`, make sure PYTHONPATH includes
       # them, just as it's set in `setenv.sh`.
@@ -99,7 +99,7 @@ jobs:
       # Setup GitHub CLI authentication for creating issues and PRs.
       - name: Setup GitHub CLI
         run: |
-          echo "${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}" \
+          echo "${{ secrets.GITHUB_TOKEN }}" \
             | gh auth login --with-token
 
       # Run the dev image build and test workflow.
@@ -110,5 +110,5 @@ jobs:
           CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: invoke docker_build_test_dev_image
