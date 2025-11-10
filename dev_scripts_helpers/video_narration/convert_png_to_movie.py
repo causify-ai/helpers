@@ -40,20 +40,20 @@ def _convert_png_to_movie(
     :param duration: duration in seconds to display the image
     """
     hdbg.dassert_file_exists(png_file)
-    _LOG.debug(f"Converting PNG file {png_file} to movie {out_file}")
+    _LOG.debug("Converting PNG file %s to movie %s", png_file, out_file)
     # Create movie clip from single image.
-    _LOG.debug(f"Creating movie with {duration} seconds duration")
+    _LOG.debug("Creating movie with %s seconds duration", duration)
     clip = ImageClip(png_file, duration=duration)
     # Ensure output directory exists.
     output_dir = os.path.dirname(out_file)
     if output_dir:
         hio.create_dir(output_dir, incremental=True)
     # Write the movie file.
-    _LOG.info(f"Writing movie to: {out_file}")
+    _LOG.info("Writing movie to: %s", out_file)
     clip.write_videofile(out_file, fps=24, codec="libx264")
-    _LOG.info(f"Movie created successfully: {out_file}")
+    _LOG.info("Movie created successfully: %s", out_file)
     # Log movie statistics.
-    _LOG.info(f"Movie statistics: {duration} seconds duration")
+    _LOG.info("Movie statistics: %s seconds duration", duration)
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -119,10 +119,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Check if any PNG files were found.
     if not png_files:
         hdbg.dfatal(f"No PNG files found in directory: {in_dir}")
-    _LOG.info(f"Found {len(png_files)} PNG files to convert")
-    _LOG.info(f"Input directory: {in_dir}")
-    _LOG.info(f"Output directory: {out_dir}")
-    _LOG.info(f"Duration per movie: {args.duration} seconds")
+    _LOG.info("Found %s PNG files to convert", len(png_files))
+    _LOG.info("Input directory: %s", in_dir)
+    _LOG.info("Output directory: %s", out_dir)
+    _LOG.info("Duration per movie: %s seconds", args.duration)
     # Convert each PNG file to a movie.
     for png_file in png_files:
         # Generate output file name.

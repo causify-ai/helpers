@@ -22,7 +22,6 @@ import logging
 import os
 
 import helpers.hdbg as hdbg
-import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmkdocs as hmkdocs
 import helpers.hparser as hparser
@@ -76,7 +75,7 @@ def _copy_directory(input_dir: str, output_dir: str) -> None:
     # Copy the entire directory tree.
     cmd = f"cp -rL {input_dir}/* {output_dir}"
     hsystem.system(cmd)
-    _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
+    _LOG.info("Copied directory from '%s' to '%s'", input_dir, output_dir)
 
 
 def _process_markdown_files(directory: str) -> None:
@@ -86,22 +85,22 @@ def _process_markdown_files(directory: str) -> None:
     :param directory: Directory to process
     """
     directories = sorted(os.walk(directory))
-    _LOG.info(f"Processing {len(directories)} markdown files")
+    _LOG.info("Processing %s markdown files", len(directories))
     for root, dirs, files in directories:
         _ = dirs
         files = sorted(files)
-        _LOG.info(f"Processing {len(files)} markdown files in '{root}'")
+        _LOG.info("Processing %s markdown files in '%s'", len(files), root)
         for file in files:
             if file.endswith(".md"):
                 file_path = os.path.join(root, file)
-                _LOG.info(f"Processing markdown file: {file_path}")
+                _LOG.info("Processing markdown file: %s", file_path)
                 # Read the file.
                 content = hio.from_file(file_path)
                 # Apply preprocessing.
                 processed_content = hmkdocs.preprocess_mkdocs_markdown(content)
                 # Write back to the same file.
                 hio.to_file(file_path, processed_content)
-                _LOG.debug(f"Successfully processed: {file_path}")
+                _LOG.debug("Successfully processed: %s", file_path)
 
 
 def _copy_assets_and_styles(input_dir: str, output_dir: str) -> None:
@@ -129,10 +128,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # we process the files in the output directory from previous runs.
     hdbg.dassert(
         not hio.is_subdir(output_dir, input_dir),
-            "Output directory '%s' can't be a subdirectory of input directory '%s'",
-            output_dir,
-            input_dir,
-        )
+        "Output directory '%s' can't be a subdirectory of input directory '%s'",
+        output_dir,
+        input_dir,
+    )
     # TODO(ai): Do not f-string.
     _LOG.info(
         f"Starting mkdocs preprocessing from '{input_dir}' to '{output_dir}'"
@@ -142,7 +141,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Process markdown files in place in the output directory.
     _process_markdown_files(output_dir)
     # Copy assets and styles.
-    #_copy_assets_and_styles(input_dir, output_dir)
+    # _copy_assets_and_styles(input_dir, output_dir)
     _LOG.info("Mkdocs preprocessing completed successfully")
 
 

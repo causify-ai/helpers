@@ -268,7 +268,7 @@ def _upload_to_gpt_no_set_id(path_from_root: str) -> str:
 
     This method will NOT set File ID to cache.
     """
-    _LOG.info(f"Uploading file {path_from_root} to chatgpt.")
+    _LOG.info("Uploading file %s to chatgpt", path_from_root)
     upload_file_response = client.files.create(
         # Must use 'rb' regardless of file type.
         file=open(os.path.join(prefix_to_root, path_from_root), "rb"),
@@ -482,7 +482,7 @@ def wait_for_run_result(thread_id: str, run_id: str, timeout: int = 180) -> List
     finished = False
     _LOG.info("Waiting for chatgpt response...")
     for i in range(math.ceil(timeout / 5)):
-        _LOG.info(f"{i * 5}/{timeout} seconds before timeout.")
+        _LOG.info("%s/%s seconds before timeout", i * 5, timeout)
         time.sleep(5)
         run = client.beta.threads.runs.retrieve(
             thread_id=thread_id, run_id=run_id
@@ -534,9 +534,7 @@ def e2e_assistant_runner(
         thread_id, user_input, input_file_names
     )
     if model:
-        run_id = run_thread_on_assistant_by_name(
-            assistant_name, thread_id, model
-        )
+        run_id = run_thread_on_assistant_by_name(assistant_name, thread_id, model)
     else:
         run_id = run_thread_on_assistant_by_name(assistant_name, thread_id)
     messages = wait_for_run_result(thread_id, run_id)

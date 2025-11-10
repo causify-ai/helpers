@@ -6,8 +6,8 @@ This script downloads completed videos from the Synthesia API using their
 download URLs and saves them with meaningful names.
 
 Usage:
-> python download_synthesia_video.py --ids "id1 id2 id3"
-> python download_synthesia_video.py --ids "id1 id2" --out_dir downloads
+> download_synthesia_video.py --ids "id1 id2 id3"
+> download_synthesia_video.py --ids "id1 id2" --out_dir downloads
 
 The videos will be saved with names like: slide1.id1.mp4, slide2.id2.mp4
 
@@ -93,8 +93,8 @@ def _download_file(url: str, file_path: str) -> bool:
                     downloaded += len(chunk)
                     if total_size > 0:
                         progress = (downloaded / total_size) * 100
-                        _LOG.debug(f"Download progress: {progress:.1f}%")
-        _LOG.info(f"Downloaded {downloaded} bytes to {file_path}")
+                        _LOG.debug("Download progress: %.1f%%", progress)
+        _LOG.info("Downloaded %s bytes to %s", downloaded, file_path)
         return True
 
 

@@ -18,7 +18,7 @@ The full list of transformations is:
 import argparse
 import logging
 import re
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -33,6 +33,13 @@ _NUM_SPACES = 2
 _TRACE = False
 
 
+_DEFAULT_ACTIONS = None
+_VALID_ACTIONS = [
+    "process_links",
+    "colorize_bullets",
+]
+
+
 def _process_abbreviations(in_line: str) -> str:
     r"""
     Transform some abbreviations into LaTeX.
@@ -45,8 +52,8 @@ def _process_abbreviations(in_line: str) -> str:
         # TODO(gp): This collides with the arrow in graphviz commands. We
         # should skip this transformation if we are in a graphviz block.
         # (r"->", r"\rightarrow"),
-        (r"-^", r"\uparrow"),
-        (r"-v", r"\downarrow"),
+        #(r"-^", r"\uparrow"),
+        #(r"-v", r"\downarrow"),
     ]:
         line = re.sub(rf"(\s){re.escape(x)}(\s)", rf"\1${re.escape(y)}$\2", line)
     if line != in_line:
@@ -103,7 +110,8 @@ def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str
 
 
 # TODO(gp): Use hmarkdown.process_lines().
-def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
+# TODO(gp): Add a way to control the list of transformations.
+def _transform_lines(lines: List[str], type_: str, is_qa: bool, *, actions: Optional[List[str]] = None) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
@@ -224,6 +232,51 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool) -> List[str]:
                     or next_line_is_verbatim
                 ):
                     out.append(" " * _NUM_SPACES + line)
+    #
+    if type_ == "slides":
+
+        # Colorize links.
+        to_execute, actions = hparser.mark_action("process_links", actions)
+        #to_execute = False
+        if to_execute:
+            out = hmarkdo.format_md_links_to_latex_format(out)
+
+        # Colorize bullets in the slides.
+
+        def _colorize_bullets(slide_text: List[str]) -> str:
+            """
+            Color bullet points in the slide.
+            """
+            slide_text = "\n".join(slide_text)
+            if not hmarkdo.has_color_command(slide_text):
+                text_out = hmarkdo.colorize_bullet_points_in_slide(
+                    slide_text, use_abbreviations=False
+                )
+            else:
+                text_out = slide_text
+            text_out = text_out.split("\n")
+            return text_out
+
+        out = "\n".join(out)
+        to_execute, actions = hparser.mark_action("colorize_bullets", actions)
+        if to_execute:
+            out = hmarkdo.process_slides(out, _colorize_bullets)
+        out = out.split("\n")
+
+        # Colorize verbatim.
+
+    # out = out.split("\n")
+    out_tmp = []
+    for line in out:
+        if type_ == "slides":
+            do_continue, line = _process_question_to_slides(line)
+        else:
+            do_continue, line = _process_question_to_markdown(line)
+        if do_continue:
+            out_tmp.append(line)
+            continue
+        out_tmp.append(line)
+    out = out_tmp
     # c) Clean up.
     _LOG.debug("Clean up")
     hdbg.dassert_isinstance(out, list)
@@ -293,14 +346,14 @@ def _add_navigation_slides(
 
 
 def _preprocess_lines(
-    lines: List[str], type_: str, toc_type: str, is_qa: bool
+    lines: List[str], type_: str, toc_type: str, is_qa: bool, *, actions: Optional[List[str]] = None
 ) -> List[str]:
     """
     Preprocess the lines of the notes.
     """
     hdbg.dassert_isinstance(lines, list)
     # Apply transformations.
-    out = _transform_lines(lines, type_, is_qa=is_qa)
+    out = _transform_lines(lines, type_, is_qa=is_qa, actions=actions)
     # Add TOC, if needed.
     if toc_type == "navigation":
         hdbg.dassert_eq(type_, "slides")
@@ -337,6 +390,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--qa", action="store_true", default=False, help="The input file is QA"
     )
+    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -345,11 +399,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", hdbg.get_command_line())
+    # Get the selected actions.
+    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    _LOG.info("Selected actions: %s", actions)
     # Read file.
     txt = hio.from_file(args.input)
     # Process.
     lines = txt.split("\n")
-    out = _preprocess_lines(lines, args.type, args.toc_type, args.qa)
+    out = _preprocess_lines(lines, args.type, args.toc_type, args.qa, actions=actions)
     out = "\n".join(out)
     # Save results.
     hio.to_file(args.output, out)

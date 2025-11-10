@@ -178,10 +178,11 @@ repos (e.g., `//helpers`, `//csfy`, `//tutorials`, and `//umd_classes`.
     -v INFO
 
   # Activate Env.
-  source "$HOME/src/venv/mkdocs/bin/activate"
+  > source "$HOME/src/venv/mkdocs/bin/activate"
 
   # Serve Locally.
-  mkdocs serve -f mkdocs.yml -a 127.0.0.1:8000
+  > mkdocs serve -f mkdocs.yml -a 127.0.0.1:8000
+
   # Visit Http://127.0.0.1:8000/
   ```
 

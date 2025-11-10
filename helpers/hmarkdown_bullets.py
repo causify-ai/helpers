@@ -42,7 +42,7 @@ _ALL_COLORS = [
 # TODO(gp): -> hmarkdown_color.py?
 # TODO(gp): This seems the same as `_colorize_bullet_points()`.
 def colorize_bold_text(
-    markdown_text: str, *, use_abbreviations: bool = True
+    markdown_text: str, color_sequence: bool, *, use_abbreviations: bool = True
 ) -> str:
     r"""
     Add colors to bold text in markdown using equidistant colors from an array.
@@ -52,6 +52,7 @@ def colorize_bold_text(
     unchanged.
 
     :param markdown_text: Input markdown text
+    :param color_sequence: Sequence of colors to use
     :param use_abbreviations: Use LaTeX abbreviations for colors,
         `\red{text}` instead of `\textcolor{red}{text}`
     :return: Markdown text with colored bold sections
@@ -73,7 +74,12 @@ def colorize_bold_text(
         return markdown_text
     result = markdown_text
     # Calculate color spacing to use equidistant colors.
-    color_step = len(_ALL_COLORS) / len(matches)
+    if color_sequence == "equidistant":
+        color_step = len(_ALL_COLORS) / len(matches)
+    elif color_sequence == "fixed":
+        color_step = 1
+    else:
+        raise ValueError(f"Invalid color sequence: {color_sequence}")
     # Process matches in reverse to not mess up string indices.
     for i, match in enumerate(reversed(matches)):
         # Get the matched bold text (either ** or __ format).

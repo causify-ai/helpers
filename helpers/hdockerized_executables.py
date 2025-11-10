@@ -22,6 +22,7 @@ import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hmarkdown as hmarkdo
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
@@ -557,6 +558,17 @@ def prettier(
             "--use-tabs false",
         ]
     )
+    # For markdown and text files, wrap div blocks with prettier-ignore.
+    if file_type in ("md", "txt"):
+        # Pre-process the file.
+        txt = hio.from_file(in_file_path)
+        lines = txt.split("\n")
+        lines = hmarkdo.add_prettier_ignore_to_div_blocks(lines)
+        txt = "\n".join(lines)
+        # Save to tmp file.
+        tmp_file_name = "tmp.prettier." + file_type
+        hio.to_file(tmp_file_name, txt)
+        in_file_path = tmp_file_name
     # Run prettier.
     if use_dockerized_prettier:
         # Run `prettier` in a Docker container.
@@ -584,6 +596,14 @@ def prettier(
         cmd_as_str = " ".join(cmd)
         _, output_tmp = hsystem.system_to_string(cmd_as_str, abort_on_error=True)
         _LOG.debug("output_tmp=%s", output_tmp)
+    # For markdown and text files, remove prettier-ignore comments in place.
+    if file_type in ("md", "txt"):
+        txt = hio.from_file(out_file_path)
+        lines = txt.split("\n")
+        lines = hmarkdo.remove_prettier_ignore_from_div_blocks(lines)
+        txt = "\n".join(lines)
+        #
+        txt = hio.to_file(out_file_path, txt)
 
 
 # TODO(gp): Convert this into a decorator to adapt operations that work on
@@ -610,7 +630,7 @@ def prettier_on_str(
     # Read result into a string.
     txt = hio.from_file(tmp_file_name)
     _LOG.debug("After prettier txt=\n%s", txt)
-    os.remove(tmp_file_name)
+    #os.remove(tmp_file_name)
     return txt  # type: ignore
 
 

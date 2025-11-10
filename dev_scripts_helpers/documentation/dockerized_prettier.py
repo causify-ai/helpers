@@ -63,11 +63,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("cmd_opts: %s", cmd_opts)
     # TODO(gp): This should be passed or inferred.
     file_type = "md"
-    hdocexec.run_dockerized_prettier(
+    hdocexec.prettier(
         in_file_name,
-        cmd_opts,
         out_file_name,
         file_type=file_type,
+        use_dockerized_prettier=True,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )
