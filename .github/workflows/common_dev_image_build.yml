@@ -19,7 +19,7 @@ permissions:
   # This is required for GitHub App to create issues and PRs.
   pull-requests: write
   issues: write
-  members: read
+  organization: read
 jobs:
   dev_image_build:
     # We expect user to not execute manual run in a draft PR.
