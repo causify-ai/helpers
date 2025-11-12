@@ -88,7 +88,7 @@ def _is_runnable_dir(runnable_dir: str) -> bool:
 
 
 def _run_test(
-    runnable_dir: str, command: str, remove_docker_images: bool = False
+    runnable_dir: str, command: str, remove_docker_images: bool = False, pytest_opts: str = ""
 ) -> bool:
     """
     Run test in for specified runnable directory.
@@ -111,29 +111,33 @@ def _run_test(
     env["PYTHONPATH"] = (
         f"{os.path.join(os.getcwd(), runnable_dir)}:{env['HELPERS_ROOT_DIR']}"
     )
+    # Build the invoke command with optional pytest_opts (TEMPORARY for testing).
+    invoke_cmd = command
+    if pytest_opts:
+        invoke_cmd += f' --pytest-opts="{pytest_opts}"'
     # TODO(heanh): Use hsystem.
     # We cannot use `hsystem.system` because it does not support passing of env
     # variables yet.
-    test_run_result = subprocess.run(
-        f"invoke {command}", shell=True, env=env, cwd=runnable_dir
+    result = subprocess.run(
+        f"invoke {invoke_cmd}", shell=True, env=env, cwd=runnable_dir
     )
     # Clean up the Docker image used in the test run if requested.
     if remove_docker_images:
         _LOG.info("Cleaning up Docker image")
         # Delete the Docker image (disk space reporting is now handled by the task itself).
-        _ = subprocess.run(
+        result = subprocess.run(
             f"invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir
         )
     # pytest returns:
     # - 0 if all tests passed
     # - 5 if no tests are collected
-    if test_run_result.returncode in [0, 5]:
+    if result.returncode in [0, 5]:
         return True
     return False
 
 
 def _run_tests(
-    runnable_dirs: List[str], command: str, remove_docker_images: bool = False
+    runnable_dirs: List[str], command: str, remove_docker_images: bool = False, pytest_opts: str = ""
 ) -> bool:
     """
     Run tests for all runnable directories.
@@ -142,11 +146,12 @@ def _run_tests(
     :param command: command to run tests (e.g. `run_fast_tests`,
         `run_slow_tests`, `run_superslow_tests`)
     :param remove_docker_images: whether to remove Docker images after each test
+    :param pytest_opts: additional pytest options (e.g., test file paths) - TEMPORARY for testing
     :return: True if all tests for all runnable directories passed, False otherwise
     """
     results = []
     for runnable_dir in runnable_dirs:
-        res = _run_test(runnable_dir, command, remove_docker_images)
+        res = _run_test(runnable_dir, command, remove_docker_images, pytest_opts)
         results.append(res)
     return all(results)
 
@@ -202,18 +207,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 runnable_dirs=runnable_dirs,
                 command=command,
                 remove_docker_images=remove_docker_images,
+                pytest_opts="",
             )
         elif command == "run_slow_tests":
             all_tests_passed = _run_tests(
                 runnable_dirs=runnable_dirs,
                 command=command,
                 remove_docker_images=remove_docker_images,
+                pytest_opts="",
             )
         elif command == "run_superslow_tests":
             all_tests_passed = _run_tests(
                 runnable_dirs=runnable_dirs,
                 command=command,
                 remove_docker_images=remove_docker_images,
+                pytest_opts="backend/test/test_model.py --dbg -s",
             )
         else:
             _LOG.error("Invalid command.")
