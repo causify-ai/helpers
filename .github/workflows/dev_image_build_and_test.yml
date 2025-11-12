@@ -1,5 +1,11 @@
 name: Dev image build and test
 on:
+  # TODO(Vlad): Just for test, not for merge. 
+  pull_request:
+    # https://github.community/t/dont-run-actions-on-draft-pull-requests/16817/19
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - master
   # Run weekly on Monday at 6 AM UTC.
   schedule:
     - cron: '0 6 * * 1'

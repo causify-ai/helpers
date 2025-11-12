@@ -1723,9 +1723,10 @@ def docker_build_test_dev_image(  # type: ignore
         stage,
         dev_version,
         skip_tests=False,
-        fast_tests=True,
-        slow_tests=True,
-        superslow_tests=True,
+        # TODO(Vlad): Just for test, not for merge.
+        fast_tests=False,
+        slow_tests=False,
+        superslow_tests=False,
         qa_tests=False,
     )
     # 6) Add changelog entry.
