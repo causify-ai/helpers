@@ -19,7 +19,6 @@ permissions:
   # This is required for GitHub App to create issues and PRs.
   pull-requests: write
   issues: write
-  organization: read
 jobs:
   dev_image_build:
     # We expect user to not execute manual run in a draft PR.
@@ -29,6 +28,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Generate GitHub App token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
       # Pass AWS credentials via GH secrets. This is needed to pull the Docker
       # image and in case the workflow needs to access AWS resources.
       - name: Configure AWS credentials
@@ -111,6 +118,5 @@ jobs:
           CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTION_ACCESS_TOKEN: ${{ steps.app-token.outputs.token }}
         run: invoke docker_build_test_dev_image
