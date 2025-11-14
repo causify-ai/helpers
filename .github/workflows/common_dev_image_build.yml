@@ -28,6 +28,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: ssh
+        uses: lhotari/action-upterm@v1
+        env:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
       - name: Generate GitHub App token
         uses: actions/create-github-app-token@v1
         id: app-token
