@@ -74,7 +74,7 @@ jobs:
           # make it a default behavior? For certain tests to pass, we need entire
           # commit history of the repo including sub-modules.
           fetch-depth: 0
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # To access modules in `amp` and `helpers_root`, make sure PYTHONPATH includes
       # them, just as it's set in `setenv.sh`.
@@ -107,7 +107,7 @@ jobs:
       # Setup GitHub CLI authentication for creating issues and PRs.
       - name: Setup GitHub CLI
         run: |
-          echo "${{ steps.app-token.outputs.token }}" \
+          echo "${{ secrets.GITHUB_TOKEN }}" \
             | gh auth login --with-token
 
       # Run the dev image build and test workflow.
