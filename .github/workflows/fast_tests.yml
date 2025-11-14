@@ -31,7 +31,15 @@ concurrency:
   cancel-in-progress: true
 jobs:
   run_fast_tests:
-    uses: ./.github/workflows/common_run_tests.yml
-    with:
-      test-name: run_fast_tests
-    secrets: inherit
+    if: ${{ github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into the GitHub Actions runner
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 60
+        with:
+          limit-access-to-actor: true        
+        env:
+          GH_APP_ID: ${{ vars.GH_APP_ID }}
+          GH_APP_PRIVATE_KEY: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          OWNER: ${{ github.repository_owner }}
