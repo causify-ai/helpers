@@ -54,7 +54,7 @@ jobs:
       # This is needed to pull the Docker image.
       - name: Login to GHCR
         run: |
-          echo "${{ steps.app-token.outputs.token }}" \
+          echo "${{ secrets.GITHUB_TOKEN }}" \
             | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       # Make everything accessible by any user to avoid permission errors.
