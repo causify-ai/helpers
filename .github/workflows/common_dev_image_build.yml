@@ -15,7 +15,7 @@ permissions:
   # This is required for actions/checkout.
   contents: write
   # This is required for pulling the Docker image from GHCR.
-  packages: read
+  packages: write
   # This is required for GitHub App to create issues and PRs.
   pull-requests: write
   issues: write
