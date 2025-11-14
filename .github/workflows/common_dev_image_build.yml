@@ -54,7 +54,7 @@ jobs:
       # This is needed to pull the Docker image.
       - name: Login to GHCR
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" \
+          echo "${{ steps.app-token.outputs.token }}" \
             | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       # Make everything accessible by any user to avoid permission errors.
@@ -74,7 +74,7 @@ jobs:
           # make it a default behavior? For certain tests to pass, we need entire
           # commit history of the repo including sub-modules.
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       # To access modules in `amp` and `helpers_root`, make sure PYTHONPATH includes
       # them, just as it's set in `setenv.sh`.
@@ -107,7 +107,7 @@ jobs:
       # Setup GitHub CLI authentication for creating issues and PRs.
       - name: Setup GitHub CLI
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" \
+          echo "${{ steps.app-token.outputs.token }}" \
             | gh auth login --with-token
 
       # Run the dev image build and test workflow.
