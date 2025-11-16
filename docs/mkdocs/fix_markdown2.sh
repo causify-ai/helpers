@@ -17,6 +17,12 @@ fi
 echo "Processing $file..."
 
 # Fix common malformed sequences first.
-perl -pi -e "s/’/'/g" "$file" 
-perl -pi -e 's/“/"/g' "$file"       
-perl -pi -e 's/”/"/g' "$file"       
+perl -pi -e "s/’/'/g" "$file"
+perl -pi -e 's/“/"/g' "$file"
+perl -pi -e 's/”/"/g' "$file"
+
+perl -ni -e 'print unless /^---\s*$/' $file
+
+perl -i -pe 's/\n{2,}/\n\n/g' $file
+
+lint_txt.py -i $file --use_dockerized_prettier --use_dockerized_markdown_toc --skip_action refresh_toc
