@@ -425,7 +425,7 @@ def build_container_image(
             for keyword in ["python", "pip", "python3"]
         ):
             coverage_dockerfile = hcovera.generate_coverage_dockerfile()
-            _LOG.debug("Coverage Dockerfile content:\n{coverage_dockerfile}")
+            _LOG.debug("Coverage Dockerfile content:\n%s", coverage_dockerfile)
             dockerfile = dockerfile.strip() + "\n" + coverage_dockerfile
             _LOG.debug("Coverage support added to Dockerfile")
         else:
@@ -544,8 +544,8 @@ def _dassert_is_path_included(file_path: str, including_path: str) -> None:
     """
     Assert that a file path is included within another path.
 
-    This function checks if the given file path starts with the specified
-    including path. If not, it raises an assertion error.
+    This function checks if the given file path starts with the
+    specified including path. If not, it raises an assertion error.
 
     :param file_path: The file path to check.
     :param including_path: The path that should include the file path.

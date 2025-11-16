@@ -1,0 +1,58 @@
+* Data Science
+- **Promises of data science** (DS)
+  - Give a competitive advantages
+  - Make better strategic and tactical business decisions
+  - Optimize business processes
+- **Data science is not new**, it was called:
+  - Operation research (~1970-80s)
+  - Decision support, Business intelligence (~1990s)
+  - Predictive analytics (Early 2010s)
+- ...
+- **What has changed**
+  - Now learning and applying DS is **easy**
+    - No need for hiring a consulting company
+  - Tools are open-source
+    - E.g., Python + pydata stack (numpy, scipy, Pandas, sklearn)
+  - Large data sets available
+  - Cheap computing (e.g., AWS, Google Cloud)
+
+* Motivation: Data Overload
+- **"Data science is the number one catalyst for economic growth**"
+  - McKinsey, 2013
+- **Explosion of data in every domain**
+  - Sensing devices/networks monitor processes 24/7
+    - E.g., temperature of your room, your vital signs, pollution in the air
+  - Sophisticated smart-phones (80% of the world population)
+  - Internet and social networks make it easy to publish data
+  - Internet of Things (IoT): everything is connected to the internet
+    - E.g., power supply, toasters
+  - Datafication: turn all aspects of life into data
+    - E.g., what you like/enjoy turned into a stream of your "likes"
+- **Challenges**
+  - How to handle the increasing amount data?
+  - How to extract actionable insights and scientific knowledge from data?
+
+* Scale of Data Size
+- **Megabyte** = 210 approx 106 bytes
+  - Typical English book
+- **Gigabyte** = 109 bytes = 1000 MB
+  - 1/2 hour of video
+  - Wikipedia (compressed, without media) is 22GB
+- **Terabyte** = 1M MB
+  - Human genome: ~1TB
+  - 100,000 photos
+  - LHC generates 100TB of data per day
+  - 50 to buy 1TB HDD, 23/mo on AWS S3
+- **Petabyte** = 1000 TB
+  - 13 years of HD video
+  - 250k (USD) /year on AWS S3
+- **Exabyte** = 1M TB
+  - Global yearly Internet traffic in 2004
+- **Zetabyte** = 1B TB = 1021 bytes
+  - Global yearly Internet traffic in 2016
+- **Yottabytes** = 1024 bytes
+  - Yottabyte costs (USD) 100T
+- **Brontobytes** = 1027 bytes
+
+* Scale of Data Size
+  ![](data605/lectures_source/images/lecture_1/lec_1_slide_13_image_1.png)

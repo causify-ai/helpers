@@ -1,9 +1,10 @@
 import logging
 import os
+
 import pytest
 
 import helpers.hio as hio
-import helpers.hmarkdown as hmarkdo
+import helpers.hmarkdown_formatting as hmarform
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
@@ -17,13 +18,14 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
+
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         input_text = hprint.dedent(input_text).strip()
         expected_text = hprint.dedent(expected_text).strip()
         lines = input_text.split("\n")
         # Run test.
-        actual_lines = hmarkdo.remove_end_of_line_periods(lines)
+        actual_lines = hmarform.remove_end_of_line_periods(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         self.assertEqual(actual, expected_text)
@@ -92,6 +94,7 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
 
 
 class Test_md_clean_up1(hunitest.TestCase):
+
     def test1(self) -> None:
         # Prepare inputs.
         txt = r"""
@@ -122,7 +125,7 @@ class Test_md_clean_up1(hunitest.TestCase):
         \]
         """
         txt = hprint.dedent(txt)
-        actual = hmarkdo.md_clean_up(txt)
+        actual = hmarform.md_clean_up(txt)
         actual = hprint.dedent(actual)
         expected = r"""
         **States**:
@@ -159,6 +162,7 @@ class Test_md_clean_up1(hunitest.TestCase):
 
 
 class Test_remove_code_delimiters1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test a basic example.
@@ -173,7 +177,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = hprint.dedent(content)
         lines = content.split("\n")
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
@@ -192,7 +196,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = hio.from_file(input_file_path)
         lines = content.split("\n")
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
@@ -236,7 +240,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = hprint.dedent(content)
         lines = content.split("\n")
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
@@ -279,7 +283,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = hprint.dedent(content)
         lines = content.split("\n")
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         self.check_string(actual, dedent=True)
@@ -292,7 +296,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = ""
         lines = content.split("\n") if content else []
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         expected = ""
@@ -308,7 +312,7 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
         content = hio.from_file(input_file_path)
         lines = content.split("\n")
         # Call function.
-        actual_lines = hmarkdo.remove_code_delimiters(lines)
+        actual_lines = hmarform.remove_code_delimiters(lines)
         actual = "\n".join(actual_lines)
         # Check output.
         expected = r"""
@@ -333,11 +337,12 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_format_markdown_slide(hunitest.TestCase):
+
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
-        actual = hmarkdo.format_markdown_slide(lines)
+        actual = hmarform.format_markdown_slide(lines)
         actual = "\n".join(actual)
         # Check outputs.
         expected = hprint.dedent(expected_text).strip()
@@ -597,3 +602,810 @@ class Test_format_markdown_slide(hunitest.TestCase):
         \small _Incremental vs Iterative_ :::: :::
         """
         self.helper(input_text, expected_text)
+
+
+# #############################################################################
+# Test_format_figures
+# #############################################################################
+
+
+class Test_format_figures(hunitest.TestCase):
+
+    def helper(self, input_text: str, expected_text: str) -> None:
+        # Prepare inputs.
+        lines = hprint.dedent(input_text).strip().split("\n")
+        # Run test.
+        actual_lines = hmarform.format_figures(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        expected = hprint.dedent(expected_text).strip()
+        self.assert_equal(actual, expected)
+
+    def test_basic_text_with_figures(self) -> None:
+        """
+        Test converting basic text with figures to column format.
+        """
+        input_text = """
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+          - Read / write small amounts of data frequently
+        - **Columnar DBs**
+          - E.g., Amazon Redshift, Snowflake
+          - Read / write large amounts of data infrequently
+          - Analytics requires a few columns
+          - Better data compression
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_1.png)
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_2.png)
+        """
+        expected_text = """
+        ::: columns
+        :::: {.column width=65%}
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+          - Read / write small amounts of data frequently
+        - **Columnar DBs**
+          - E.g., Amazon Redshift, Snowflake
+          - Read / write large amounts of data infrequently
+          - Analytics requires a few columns
+          - Better data compression
+        ::::
+        :::: {.column width=40%}
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_1.png)
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_2.png)
+        ::::
+        :::
+        """
+        self.helper(input_text, expected_text)
+
+    def test_no_figures_no_change(self) -> None:
+        """
+        Test that text without figures remains unchanged.
+        """
+        input_text = """
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+        - **Columnar DBs**
+          - E.g., Amazon Redshift, Snowflake
+          - Better data compression
+        """
+        expected_text = """
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+        - **Columnar DBs**
+          - E.g., Amazon Redshift, Snowflake
+          - Better data compression
+        """
+        self.helper(input_text, expected_text)
+
+    def test_already_in_columns_format_no_change(self) -> None:
+        """
+        Test that text already in columns format remains unchanged.
+        """
+        input_text = """
+        ::: columns
+        :::: {.column width=65%}
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+        ::::
+        :::: {.column width=40%}
+        ![](some_image.png)
+        ::::
+        :::
+        """
+        expected_text = """
+        ::: columns
+        :::: {.column width=65%}
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+        ::::
+        :::: {.column width=40%}
+        ![](some_image.png)
+        ::::
+        :::
+        """
+        self.helper(input_text, expected_text)
+
+    def test_single_figure(self) -> None:
+        """
+        Test converting text with a single figure.
+        """
+        input_text = """
+        - **Important concept**
+          - This is the main point
+          - Supporting detail
+
+        ![](path/to/image.png)
+        """
+        expected_text = """
+        ::: columns
+        :::: {.column width=65%}
+        - **Important concept**
+          - This is the main point
+          - Supporting detail
+        ::::
+        :::: {.column width=40%}
+
+        ![](path/to/image.png)
+        ::::
+        :::
+        """
+        self.helper(input_text, expected_text)
+
+    def test_mixed_content_with_figures(self) -> None:
+        """
+        Test converting mixed content including text and figures.
+        """
+        input_text = """
+        ## Section header
+
+        Some introductory text here.
+
+        - **Point one**
+          - Detail A
+          - Detail B
+        - **Point two**
+          - Detail X
+          - Detail Y
+
+        ![](image1.png)
+
+        Additional text between figures.
+
+        ![](image2.png)
+        """
+        expected_text = """
+        ::: columns
+        :::: {.column width=65%}
+        ## Section header
+
+        Some introductory text here.
+
+        - **Point one**
+          - Detail A
+          - Detail B
+        - **Point two**
+          - Detail X
+          - Detail Y
+        ::::
+        :::: {.column width=40%}
+
+        ![](image1.png)
+
+        Additional text between figures.
+
+        ![](image2.png)
+        ::::
+        :::
+        """
+        self.helper(input_text, expected_text)
+
+    def test_empty_input(self) -> None:
+        """
+        Test that empty input returns empty output.
+        """
+        input_text = ""
+        expected_text = ""
+        self.helper(input_text, expected_text)
+
+    def test_with_slide_title(self) -> None:
+        """
+        Test that slide title is left unchanged.
+        """
+        input_text = """
+        * VCS: How to Track Data
+
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+          - Read / write small amounts of data frequently
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_1.png)
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_2.png)
+        """
+        expected_text = """
+        * VCS: How to Track Data
+        ::: columns
+        :::: {.column width=65%}
+        - **Row-based DBs**
+          - E.g., MySQL, Postgres
+          - Optimized for reading / writing rows
+          - Read / write small amounts of data frequently
+        ::::
+        :::: {.column width=40%}
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_1.png)
+
+        ![](data605/lectures_source/images/lecture_2/lec_2_slide_47_image_2.png)
+        ::::
+        :::
+        """
+        self.helper(input_text, expected_text)
+
+
+# #############################################################################
+# Test_format_md_links_to_latex_format
+# #############################################################################
+
+
+class Test_format_md_links_to_latex_format(hunitest.TestCase):
+
+    def helper(self, input_text: str, expected_text: str) -> None:
+        # Prepare inputs.
+        lines = hprint.dedent(input_text).strip().split("\n")
+        # Run test.
+        actual_lines = hmarform.format_md_links_to_latex_format(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        expected = hprint.dedent(expected_text).strip()
+        self.assert_equal(actual, expected)
+
+    # =========================================================================
+    # Edge cases.
+    # =========================================================================
+
+    def test_empty_input(self) -> None:
+        """
+        Test empty input.
+        """
+        # Prepare inputs.
+        input_text = ""
+        expected_text = ""
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_no_links(self) -> None:
+        """
+        Test content without any links.
+        """
+        # Prepare inputs.
+        input_text = """
+        # Important Notes
+
+        - This is regular text
+        - No links here
+        - Just plain content
+        """
+        expected_text = """
+        # Important Notes
+
+        - This is regular text
+        - No links here
+        - Just plain content
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Plain URL conversion: http://... or https://...
+    # =========================================================================
+
+    def test_plain_http_url(self) -> None:
+        """
+        Test converting single plain HTTP URL.
+        """
+        # Prepare inputs.
+        input_text = """
+        Visit http://example.com
+        """
+        expected_text = r"""
+        Visit [\textcolor{blue}{\underline{http://example.com}}](http://example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_plain_https_url(self) -> None:
+        """
+        Test converting single plain HTTPS URL.
+        """
+        # Prepare inputs.
+        input_text = """
+        Visit https://example.com
+        """
+        expected_text = r"""
+        Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_plain_url_with_path(self) -> None:
+        """
+        Test converting plain URLs with paths.
+        """
+        # Prepare inputs.
+        input_text = """
+        Check out https://ubuntu.com/tutorials/command-line-for-beginners
+        """
+        expected_text = r"""
+        Check out [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_plain_url_with_query_parameters(self) -> None:
+        """
+        Test converting plain URL with query parameters.
+        """
+        # Prepare inputs.
+        input_text = """
+        Search: https://example.com/search?q=python&page=1
+        """
+        expected_text = r"""
+        Search: [\textcolor{blue}{\underline{https://example.com/search?q=python&page=1}}](https://example.com/search?q=python&page=1)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_plain_url_with_fragment(self) -> None:
+        """
+        Test converting plain URL with fragment.
+        """
+        # Prepare inputs.
+        input_text = """
+        Docs: https://docs.python.org/3/tutorial/index.html#tutorial-index
+        """
+        expected_text = r"""
+        Docs: [\textcolor{blue}{\underline{https://docs.python.org/3/tutorial/index.html#tutorial-index}}](https://docs.python.org/3/tutorial/index.html#tutorial-index)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_plain_url_at_line_start(self) -> None:
+        """
+        Test plain URL at beginning of line.
+        """
+        # Prepare inputs.
+        input_text = """
+        https://example.com is a good site
+        """
+        expected_text = r"""
+        [\textcolor{blue}{\underline{https://example.com}}](https://example.com) is a good site
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_plain_url_at_line_end(self) -> None:
+        """
+        Test plain URL at end of line.
+        """
+        # Prepare inputs.
+        input_text = """
+        Check this link https://example.com
+        """
+        expected_text = r"""
+        Check this link [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # URL in backticks conversion: `http://...` or `https://...`
+    # =========================================================================
+
+    def test_backtick_url(self) -> None:
+        """
+        Test converting single URL in backticks.
+        """
+        # Prepare inputs.
+        input_text = """
+        Visit `https://example.com` for details
+        """
+        expected_text = r"""
+        Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com) for details
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Markdown link conversion: [Text](URL)
+    # =========================================================================
+
+    def test_markdown_link_simple(self) -> None:
+        """
+        Test converting simple markdown link [Text](URL).
+        """
+        # Prepare inputs.
+        input_text = """
+        Check out [this tutorial](https://example.com/tutorial)
+        """
+        expected_text = r"""
+        Check out [\textcolor{blue}{\underline{this tutorial}}](https://example.com/tutorial)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_markdown_link_preserves_text(self) -> None:
+        """
+        Test that markdown link preserves the display text.
+        """
+        # Prepare inputs.
+        input_text = """
+        See [documentation](https://docs.example.com) here
+        """
+        expected_text = r"""
+        See [\textcolor{blue}{\underline{documentation}}](https://docs.example.com) here
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Email link conversion: [email@domain.com](email@domain.com)
+    # =========================================================================
+
+    def test_email_link_simple1(self) -> None:
+        """
+        Test converting simple email link.
+        """
+        # Prepare inputs.
+        input_text = """
+        Contact: [support@example.com](support@example.com)
+        """
+        expected_text = r"""
+        Contact: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_email_link_simple2(self) -> None:
+        """
+        Test converting simple email link.
+        """
+        # Prepare inputs.
+        input_text = """
+        Contact: [](support@example.com)
+        """
+        expected_text = r"""
+        Contact: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Multiple URLs.
+    # =========================================================================
+
+    def test_multiple_urls_same_line(self) -> None:
+        """
+        Test converting multiple URLs on same line.
+        """
+        # Prepare inputs.
+        input_text = """
+        Visit https://example.com and https://another.com
+        """
+        expected_text = r"""
+        Visit [\textcolor{blue}{\underline{https://example.com}}](https://example.com) and [\textcolor{blue}{\underline{https://another.com}}](https://another.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_multiple_urls_different_lines(self) -> None:
+        """
+        Test converting multiple URLs on different lines.
+        """
+        # Prepare inputs.
+        input_text = """
+        Tutorial: https://ubuntu.com/tutorials/command-line-for-beginners
+
+        Documentation: https://docs.python.org/3/
+        """
+        expected_text = r"""
+        Tutorial: [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
+
+        Documentation: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Mixed link types.
+    # =========================================================================
+
+    def test_mixed_plain_and_backtick_urls(self) -> None:
+        """
+        Test handling mixed plain and backtick URLs.
+        """
+        # Prepare inputs.
+        input_text = """
+        Plain: https://example.com
+        Backtick: `https://docs.example.com`
+        """
+        expected_text = r"""
+        Plain: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        Backtick: [\textcolor{blue}{\underline{https://docs.example.com}}](https://docs.example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_mixed_plain_and_markdown_links(self) -> None:
+        """
+        Test handling mixed plain URLs and markdown links.
+        """
+        # Prepare inputs.
+        input_text = """
+        Plain: https://example.com
+        Markdown: [Click here](https://docs.example.com)
+        """
+        expected_text = r"""
+        Plain: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        Markdown: [\textcolor{blue}{\underline{Click here}}](https://docs.example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_mixed_all_types(self) -> None:
+        """
+        Test handling all link types in same content.
+        """
+        # Prepare inputs.
+        input_text = r"""
+        ## Resources
+
+        - Plain URL: https://ubuntu.com/tutorials/command-line-for-beginners
+        - Backtick URL: `https://docs.python.org/3/`
+        - Markdown link: [Click here](https://github.com)
+        - Email: [support@example.com](support@example.com)
+        - Already formatted: [\textcolor{blue}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
+        """
+        expected_text = r"""
+        ## Resources
+
+        - Plain URL: [\textcolor{blue}{\underline{https://ubuntu.com/tutorials/command-line-for-beginners}}](https://ubuntu.com/tutorials/command-line-for-beginners)
+        - Backtick URL: [\textcolor{blue}{\underline{https://docs.python.org/3/}}](https://docs.python.org/3/)
+        - Markdown link: [\textcolor{blue}{\underline{Click here}}](https://github.com)
+        - Email: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        - Already formatted: [\textcolor{blue}{\underline{https://stackoverflow.com}}](https://stackoverflow.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Complex scenarios.
+    # =========================================================================
+
+    def test_url_with_file_extension(self) -> None:
+        """
+        Test URL pointing to file with extension.
+        """
+        # Prepare inputs.
+        input_text = """
+        Download: https://cdn.example.com/files/document.pdf
+        """
+        expected_text = r"""
+        Download: [\textcolor{blue}{\underline{https://cdn.example.com/files/document.pdf}}](https://cdn.example.com/files/document.pdf)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_already_formatted_link_preserved(self) -> None:
+        """
+        Test that already formatted links are preserved.
+        """
+        # Prepare inputs.
+        input_text = r"""
+        Link: [\textcolor{blue}{\underline{Example Site}}](https://example.com)
+        """
+        expected_text = r"""
+        Link: [\textcolor{blue}{\underline{Example Site}}](https://example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    # =========================================================================
+    # Image/picture links should be left untouched.
+    # =========================================================================
+
+    def test_filter_image_simple(self) -> None:
+        """
+        Test that simple image links are left untouched.
+        """
+        # Prepare inputs.
+        input_text = """
+        Check this image: ![](path/to/image.png)
+        """
+        expected_text = """
+        Check this image: ![](path/to/image.png)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_filter_jpg_images(self) -> None:
+        """
+        Test that JPG image links are left untouched.
+        """
+        # Prepare inputs.
+        input_text = """
+        ![](lectures_source/images/lec_4_1_slide_5_image_1.jpg)
+        """
+        expected_text = """
+        ![](lectures_source/images/lec_4_1_slide_5_image_1.jpg)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_filter_mixed_images_and_emails(self) -> None:
+        """
+        Test that image links are not processed while email links are.
+        """
+        # Prepare inputs.
+        input_text = """
+        Contact: [](support@example.com)
+        Image: ![](path/to/image.png)
+        Link: https://example.com
+        """
+        expected_text = r"""
+        Contact: [\textcolor{blue}{\underline{support@example.com}}](support@example.com)
+        Image: ![](path/to/image.png)
+        Link: [\textcolor{blue}{\underline{https://example.com}}](https://example.com)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_filter_image_with_alt_text(self) -> None:
+        """
+        Test that image links with alt text are left untouched.
+        """
+        # Prepare inputs.
+        input_text = """
+        ![Alt text](path/to/image.png)
+        """
+        expected_text = """
+        ![Alt text](path/to/image.png)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_filter_multiple_images(self) -> None:
+        """
+        Test that multiple image links are left untouched.
+        """
+        # Prepare inputs.
+        input_text = """
+        ![](image1.png)
+        ![](image2.jpg)
+        ![](image3.gif)
+        """
+        expected_text = """
+        ![](image1.png)
+        ![](image2.jpg)
+        ![](image3.gif)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+    def test_markdown_link_with_escaped_underscores(self) -> None:
+        """
+        Test markdown link with escaped underscores in the text.
+        """
+        # Prepare inputs.
+        input_text = r"""
+        [tutorial\_docker\_compose](https://github.com/gpsaggese/umd_classes/tree/main/data605/tutorials/tutorial_docker_compose)
+        """
+        expected_text = r"""
+        [\textcolor{blue}{\underline{tutorial\_docker\_compose}}](https://github.com/gpsaggese/umd_classes/tree/main/data605/tutorials/tutorial_docker_compose)
+        """
+        # Run test.
+        self.helper(input_text, expected_text)
+
+
+# #############################################################################
+# Test_add_prettier_ignore_to_div_blocks
+# #############################################################################
+
+
+class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
+    """
+    Test the function to add prettier-ignore comments around div blocks.
+    """
+
+    def test_simple_div_block(self) -> None:
+        """
+        Test a simple div block with two colons.
+        """
+        # Prepare inputs.
+        txt = """
+        ::::
+        :::
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        # Run test.
+        actual_lines = hmarform.add_prettier_ignore_to_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        self.check_string(actual)
+
+    def test_multiple_div_blocks(self) -> None:
+        """
+        Test multiple div blocks in the same content.
+        """
+        # Prepare inputs.
+        txt = """
+        Some text before
+
+        ::::
+        ::::{.column width=40%}
+
+        Middle text
+
+        :::columns
+        ::::{.column width=60%}
+
+        Some text after
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        # Run test.
+        actual_lines = hmarform.add_prettier_ignore_to_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        self.check_string(actual)
+
+
+# #############################################################################
+# Test_remove_prettier_ignore_from_div_blocks
+# #############################################################################
+
+
+class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
+    """
+    Test the function to remove prettier-ignore comments from div blocks.
+    """
+
+    def test_remove_simple_block(self) -> None:
+        """
+        Test removing prettier-ignore from a simple div block.
+        """
+        # Prepare inputs.
+        txt = """
+
+        <!-- prettier-ignore-start -->
+        ::::
+        :::
+        <!-- prettier-ignore-end -->
+
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        # Run test.
+        actual_lines = hmarform.remove_prettier_ignore_from_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        self.check_string(actual)
+
+    def test_remove_multiple_blocks(self) -> None:
+        """
+        Test removing prettier-ignore from multiple div blocks.
+        """
+        # Prepare inputs.
+        txt = """
+        Text before
+
+        <!-- prettier-ignore-start -->
+        ::::
+        ::::{.column width=40%}
+        <!-- prettier-ignore-end -->
+
+        Middle text
+
+        <!-- prettier-ignore-start -->
+        :::columns
+        ::::{.column width=60%}
+        <!-- prettier-ignore-end -->
+
+        Text after
+        """
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        # Run test.
+        actual_lines = hmarform.remove_prettier_ignore_from_div_blocks(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        self.check_string(actual)

@@ -171,6 +171,14 @@ def add_action_arg(
     valid_actions: List[str],
     default_actions: Optional[List[str]],
 ) -> argparse.ArgumentParser:
+    """
+    Add a command line option to select actions to execute or skip.
+
+    :param parser: parser to add the option to
+    :param valid_actions: list of valid actions
+    :param default_actions: list of default actions to execute
+    :return: parser with the option added
+    """
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "--action",
@@ -197,6 +205,14 @@ def add_action_arg(
 def actions_to_string(
     actions: List[str], valid_actions: List[str], add_frame: bool
 ) -> str:
+    """
+    Convert a list of actions to a string.
+
+    :param actions: list of actions to convert
+    :param valid_actions: list of valid actions
+    :param add_frame: if `True`, add a frame around the actions
+    :return: string of the actions
+    """
     space = max(len(a) for a in valid_actions) + 2
     format_ = "%" + str(space) + "s: %s"
     actions = [
@@ -216,6 +232,14 @@ def select_actions(
     valid_actions: List[str],
     default_actions: List[str],
 ) -> List[str]:
+    """
+    Select actions based on the command line arguments.
+
+    :param args: command line arguments
+    :param valid_actions: list of valid actions
+    :param default_actions: list of default actions to execute
+    :return: list of selected actions
+    """
     hdbg.dassert(
         not (args.action and args.all),
         "You can't specify together --action and --all",
@@ -251,6 +275,13 @@ def select_actions(
 
 
 def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
+    """
+    Mark an action as to be executed or skipped.
+
+    :param action: action to mark
+    :param actions: list of actions
+    :return: tuple of (to_execute, actions)
+    """
     to_execute = action in actions
     _LOG.debug("\n%s", hprint.frame(f"action={action}"))
     if to_execute:
@@ -412,13 +443,10 @@ def read_file(file_name: str) -> List[str]:
     """
     if file_name == "-":
         _LOG.info("Reading from stdin")
-        f = sys.stdin
         # Read.
         txt = []
-        for line in f:
-            line = line.rstrip("\n")
-            txt.append(line)
-        f.close()
+        for line in sys.stdin:
+            txt.append(line.rstrip("\n"))
     else:
         txt = hio.from_file(file_name)
         txt = txt.split("\n")
@@ -476,6 +504,8 @@ def adapt_input_output_args_for_dockerized_scripts(
 # TODO(gp): These should go in hjoblib.py
 def add_parallel_processing_arg(
     parser: argparse.ArgumentParser,
+    *,
+    num_threads_default: Optional[str] = None,
 ) -> argparse.ArgumentParser:
     """
     Add parallel processing args.
@@ -512,17 +542,26 @@ def add_parallel_processing_arg(
         help="Confirm that one wants to remove the previous results. It works only together with --no_incremental",
     )
     #
-    parser.add_argument(
-        "--num_threads",
-        action="store",
-        help="""
-Number of threads to use:
-- '-1' to use all CPUs;
-- '1' to use one-thread at the time but using the parallel execution (mainly used
-  for debugging)
-- 'serial' to serialize the execution without using parallel execution""",
-        required=True,
-    )
+    help = """
+    Number of threads to use:
+    - '-1' to use all CPUs;
+    - '1' to use one-thread at the time but using the parallel execution (mainly used
+    for debugging)
+    - 'serial' to serialize the execution without using parallel execution"""
+    if num_threads_default is None:
+        parser.add_argument(
+            "--num_threads",
+            action="store",
+            help=help,
+            required=True,
+        )
+    else:
+        parser.add_argument(
+            "--num_threads",
+            action="store",
+            help=help,
+            default=num_threads_default,
+        )
     parser.add_argument("--no_keep_order", action="store_true", help="")
     parser.add_argument(
         "--num_func_per_task",
@@ -732,7 +771,7 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
 
     :param limit_str: string in format "X:Y" where X and Y are 0-indexed
         integers
-    :return: tuple of (start_index, end_index)
+    :return: tuple in [start_index, end_index]
     """
     hdbg.dassert(":" in limit_str, "Limit format must be X:Y, got: %s", limit_str)
     parts = limit_str.split(":")
@@ -742,8 +781,8 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
         end = int(parts[1])
     except ValueError as e:
         hdbg.dfatal("Invalid limit format, must be integers: %s" % str(e))
-    hdbg.dassert_lt(0, start, "Start index must be >= 0, got: %s", start)
-    hdbg.dassert_lt(0, end, "End index must be >= 0, got: %s", end)
+    hdbg.dassert_lte(0, start, "Start index must be >= 0, got: %s", start)
+    hdbg.dassert_lte(0, end, "End index must be >= 0, got: %s", end)
     hdbg.dassert_lte(
         start, end, "Start index must be <= end index, got: %s:%s", start, end
     )
@@ -813,7 +852,7 @@ def apply_limit_range(
     else:
         _LOG.info("Found %s %s to process", len(items), item_name)
     # Print the items that will be processed.
-    _LOG.info("Items to process:")
+    _LOG.debug("Items to process:")
     for i, item in enumerate(items):
-        _LOG.info("  [%s]: %s", i, item)
+        _LOG.debug("  [%s]: %s", i, item)
     return items
