@@ -760,7 +760,7 @@ def add_limit_range_arg(
     parser.add_argument(
         "--limit",
         action="store",
-        help="Limit processing to item range X:Y (0-indexed, inclusive)",
+        help="Limit processing to item range X:Y (integers >= 1, inclusive)",
     )
     return parser
 
@@ -769,8 +769,7 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
     """
     Parse limit string in format "X:Y" and return tuple (start, end).
 
-    :param limit_str: string in format "X:Y" where X and Y are 0-indexed
-        integers
+    :param limit_str: string in format "X:Y" where X and Y are integers >= 1
     :return: tuple in [start_index, end_index]
     """
     hdbg.dassert(":" in limit_str, "Limit format must be X:Y, got: %s", limit_str)
@@ -781,8 +780,8 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
         end = int(parts[1])
     except ValueError as e:
         hdbg.dfatal("Invalid limit format, must be integers: %s" % str(e))
-    hdbg.dassert_lte(0, start, "Start index must be >= 0, got: %s", start)
-    hdbg.dassert_lte(0, end, "End index must be >= 0, got: %s", end)
+    hdbg.dassert_lte(1, start, "Start index must be >= 1, got: %s", start)
+    hdbg.dassert_lte(1, end, "End index must be >= 1, got: %s", end)
     hdbg.dassert_lte(
         start, end, "Start index must be <= end index, got: %s:%s", start, end
     )
