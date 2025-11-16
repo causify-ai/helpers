@@ -311,7 +311,6 @@ class Test_colorize_bold_text1(hunitest.TestCase):
             text, color_sequence="equidistant", use_abbreviations=True
         )
         expected = r"**\red{First}** normal **\teal{Second}** text"
-        expected = r"This is **\red{bold}** text"
         self.assert_equal(actual, expected)
 
 
