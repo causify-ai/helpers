@@ -87,7 +87,7 @@ def _copy_directory(input_dir: str, output_dir: str) -> None:
     # Copy the entire directory tree and make files writable.
     cmd = f"cp -rL {input_dir}/* {output_dir} && chmod -R u+w {output_dir}"
     hsystem.system(cmd)
-    _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
+    _LOG.info("Copied directory from '%s' to '%s'", input_dir, output_dir)
 
 
 def _render_images_in_file(
@@ -149,15 +149,15 @@ def _process_markdown_files(
         "all.architecture_diagrams.explanation.md",
     ]
     directories = sorted(os.walk(directory))
-    _LOG.info(f"Processing {len(directories)} directories")
+    _LOG.info("Processing %s markdown files", len(directories))
     for root, dirs, files in directories:
         _ = dirs
         files = sorted(files)
-        _LOG.info(f"Processing {len(files)} files in '{root}'")
+        _LOG.info("Processing %s markdown files in '%s'", len(files), root)
         for file in files:
             if file.endswith(".md"):
                 file_path = os.path.join(root, file)
-                _LOG.info(f"Processing markdown file: {file_path}")
+                _LOG.info("Processing markdown file: %s", file_path)
                 # Read the file.
                 content = hio.from_file(file_path)
                 # Apply preprocessing.
@@ -205,6 +205,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         output_dir,
         input_dir,
     )
+    # TODO(ai): Do not f-string.
     _LOG.info(
         f"Starting mkdocs preprocessing from '{input_dir}' to '{output_dir}'"
     )
@@ -217,6 +218,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         use_github_hosting=args.use_github_hosting,
     )
     # Copy assets and styles.
+    # _copy_assets_and_styles(input_dir, output_dir)
     _LOG.info("Mkdocs preprocessing completed successfully")
 
 

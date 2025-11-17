@@ -1,0 +1,84 @@
+# Scene 1: Business decisions
+
+visuals=
+A busy boardroom with executives debating a decision (launching a product, investing in a new market).
+
+narration=
+Every business decision carries uncertainty. Should we expand into this market? Will our new product succeed? What risks do we face?
+
+duration_in_secs=4
+
+image_file=/Users/saggese/Desktop/Style.png
+
+# Scene 2: The Flawed Certainty
+
+visuals=
+An overconfident manager slams a report labeled “Uncertain decisions”.
+
+narration=
+Too often, decisions are made as if the future is certain, based on a single forecast or assumption. Reality is rarely so simple.
+
+duration_in_secs=4
+
+image_file=/Users/saggese/Desktop/Style.png
+
+# Scene 3: Enter Probability
+
+visuals=
+Dice rolling across the table, morphing into probability distributions (bell curves, histograms).
+
+narration=
+Probability gives us a language to express uncertainty. Instead of asking, ‘Will this succeed?’ we ask, ‘How likely is success—and under what conditions?’
+
+duration_in_secs=4
+
+image_file=/Users/saggese/Desktop/Style.png
+
+# Scene 4: The Bayesian Approach
+
+visuals=
+A decision-maker using Causify updates forecasts as new data arrives (market trends, customer feedback), and the probability distribution shifts in real-time.
+
+narration=
+Bayesian reasoning takes this further. As new evidence arrives, it updates our beliefs—refining predictions, quantifying confidence, and ensuring we never fly blind.
+
+duration_in_secs=4
+
+image_file=/Users/saggese/Desktop/Style.png
+
+# Scene 5: Real-World Scenarios
+
+visuals=
+A trader evaluating market moves with confidence intervals.
+An energy company adjusting forecasts with incoming sensor data.
+
+narration=
+From finance to energy to operations, Causify Bayesian thinking helps leaders make informed choices—balancing risk, reward, and uncertainty.
+
+duration_in_secs=4
+
+image_file=/Users/saggese/Desktop/Style.png
+
+# Scene 6: The Payoff
+
+visuals=
+The executive team revisits their decision—this time with a Bayesian dashboard showing probabilities and confidence bands. They nod with confidence and move forward.
+
+narration=
+By embracing probability and Bayesian frameworks, businesses stop guessing and start navigating uncertainty with clarity.
+
+duration_in_secs=4
+
+image_file=/Users/saggese/Desktop/Style.png
+
+# Scene 7: Closing
+
+visuals=
+Causify logo and tagline appears over a calm horizon.
+
+narration=
+In a world of uncertainty, probability is power. Bayesian thinking makes it actionable.
+
+duration_in_secs=4
+
+image_file=/Users/saggese/Desktop/Style.png

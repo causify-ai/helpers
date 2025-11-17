@@ -1,6 +1,6 @@
+import glob
 import logging
 import os
-import glob
 
 import pytest
 
@@ -8,7 +8,6 @@ import dev_scripts_helpers.documentation.preprocess_notes as dshdprno
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -73,7 +72,7 @@ class Test_process_question1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_preprocess_notes3
+# Test_preprocess_notes_end_to_end1
 # #############################################################################
 
 
@@ -101,6 +100,7 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
                         return value == int(value)
                     except:
                         return False
+
 
                 for v in values:
                     if _is_integer(v):
@@ -133,6 +133,7 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
                     except:
                         return False
 
+
                 for v in values:
                     if _is_integer(v):
                         print(v)
@@ -159,6 +160,7 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
     > vimdiff dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2.test_run_all1/{input,output}/Lesson01-Intro.txt
     """
 
+    @pytest.mark.skip(reason="Requires external input files to be manually copied")
     def test_run_all1(self) -> None:
         input_dir = self.get_input_dir()
         _LOG.debug("input_dir=%s", input_dir)
@@ -188,11 +190,11 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_preprocess_notes_end_to_end2
+# Test_preprocess_notes_end_to_end3
 # #############################################################################
 
 
-class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
+class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
     """
     Test `preprocess_notes.py` by calling the library function directly.
 
@@ -204,6 +206,7 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
     > vimdiff dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2.test_run_all1/{input,output}/Lesson01-Intro.txt
     """
 
+    @pytest.mark.skip(reason="Requires external input files to be manually copied")
     def test_run_all1(self) -> None:
         input_dir = self.get_input_dir()
         _LOG.debug("input_dir=%s", input_dir)
@@ -233,7 +236,7 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_preprocess_notes1
+# Test_preprocess_notes_executable1
 # #############################################################################
 
 
@@ -249,8 +252,8 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
     @staticmethod
     def helper(in_file: str, out_file: str, type_: str) -> str:
         """
-        Execute the end-to-end flow for `preprocess_notes.py` returning the output
-        as string.
+        Execute the end-to-end flow for `preprocess_notes.py` returning the
+        output as string.
         """
         hdbg.dassert_path_exists(in_file)
         # Find executable.

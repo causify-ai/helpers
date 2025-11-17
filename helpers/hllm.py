@@ -11,7 +11,6 @@ import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import openai
-import pandas as pd
 import requests
 import tqdm
 
@@ -175,27 +174,46 @@ class LLMClient:
         self.client = client
 
     def build_messages(
-        self, system_prompt: str, user_prompt: str
-    ) -> List[Dict[str, str]]:
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        *,
+        images_as_base64: Optional[List[str]] = None,
+    ) -> List[Dict[str, Any]]:
         """
         Construct the standard messages payload for the chat API.
 
         :param system_prompt: system prompt
         :param user_prompt: user prompt
+        :param images_as_base64: optional list of base64-encoded images
         :return: messages in the format expected by the API
         """
         hdbg.dassert_isinstance(system_prompt, str)
         hdbg.dassert_isinstance(user_prompt, str)
-        ret = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ]
+        ret = [{"role": "system", "content": system_prompt}]
+        # Build user message content.
+        if images_as_base64:
+            # Multi-modal message with text and images
+            user_content = [{"type": "text", "text": user_prompt}]
+            for image_b64 in images_as_base64:
+                user_content.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{image_b64}"
+                        },
+                    }
+                )
+            ret.append({"role": "user", "content": user_content})
+        else:
+            # Text-only message.
+            ret.append({"role": "user", "content": user_prompt})
         return ret
 
     def call_llm(
         self,
         cache_mode: str,
-        messages: List[Dict[str, str]],
+        messages: List[Dict[str, Any]],
         temperature: float,
         *,
         cost_tracker: Optional["LLMCostTracker"] = None,
@@ -244,10 +262,12 @@ def _get_models_info_file() -> str:
     return file_path
 
 
-def _retrieve_openrouter_model_info() -> pd.DataFrame:
+def _retrieve_openrouter_model_info() -> "pd.DataFrame":
     """
     Retrieve OpenRouter models info from the OpenRouter API.
     """
+    import pandas as pd
+
     response = requests.get("https://openrouter.ai/api/v1/models")
     # {'architecture': {'input_modalities': ['text', 'image'],
     #                   'instruct_type': None,
@@ -292,9 +312,9 @@ def _retrieve_openrouter_model_info() -> pd.DataFrame:
 
 
 def _save_models_info_to_csv(
-    model_info_df: pd.DataFrame,
+    model_info_df: "pd.DataFrame",
     file_name: str,
-) -> pd.DataFrame:
+) -> "pd.DataFrame":
     """
     Save models info to a CSV file.
     """
@@ -375,6 +395,8 @@ class LLMCostTracker:
         :param model: The model used for the completion
         :return: The calculated cost in dollars
         """
+        import pandas as pd
+
         prompt_tokens = completion.usage.prompt_tokens
         completion_tokens = completion.usage.completion_tokens
         provider_name, model = _get_llm_provider_and_model(model)
@@ -435,7 +457,7 @@ def _call_api_sync(
     # This is needed to support caching.
     cache_mode: str,
     client: openai.OpenAI,
-    messages: List[Dict[str, str]],
+    messages: List[Dict[str, Any]],
     temperature: float,
     model: str,
     cost_tracker: Optional[LLMCostTracker] = None,
@@ -481,6 +503,7 @@ def get_completion(
     print_cost: bool = False,
     cache_mode: str = "DISABLE_CACHE",
     temperature: float = 0.1,
+    images_as_base64: Optional[List[str]] = None,
     cost_tracker: Optional["LLMCostTracker"] = None,
     **create_kwargs,
 ) -> str:
@@ -501,6 +524,9 @@ def get_completion(
     :param temperature: adjust an LLM's sampling diversity: lower values make it
         more deterministic, while higher values foster creative variation.
         0 < temperature <= 2, 0.1 is default value in OpenAI models.
+    :param images_as_base64: optional list of base64-encoded images to include
+        in the user message
+    :param cost_tracker: LLMCostTracker instance to track costs
     :param create_kwargs: additional params for the API call
     :return: completion text
     """
@@ -514,8 +540,10 @@ def get_completion(
     llm_client = LLMClient(model=model)
     llm_client.create_client()
     # Construct messages in OpenAI API request format.
-    messages = llm_client.build_messages(system_prompt, user_prompt)
-    print("LLM API call ... ")
+    messages = llm_client.build_messages(
+        system_prompt, user_prompt, images_as_base64=images_as_base64
+    )
+    _LOG.info("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
         completion = llm_client.call_llm(
@@ -547,9 +575,9 @@ def get_completion(
         response = "".join(collected_messages)
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
-    print(msg)
+    _LOG.info(msg)
     if print_cost:
-        print(f"cost=${completion['cost']:.6f}")
+        _LOG.info("cost=%.6f", completion["cost"])
     response = completion["choices"][0]["message"]["content"]
     return response
 

@@ -1,0 +1,19 @@
+Some text before
+
+
+<!-- prettier-ignore-start -->
+::::
+::::{.column width=40%}
+<!-- prettier-ignore-end -->
+
+
+Middle text
+
+
+<!-- prettier-ignore-start -->
+:::columns
+::::{.column width=60%}
+<!-- prettier-ignore-end -->
+
+
+Some text after
