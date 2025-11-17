@@ -112,6 +112,7 @@ jobs:
 
       # Run the dev image build and test workflow.
       - name: Run 'docker_build_test_dev_image' workflow
+        uses: lhotari/action-upterm@v1
         env:
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
@@ -120,4 +121,4 @@ jobs:
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           GH_ACTION_ACCESS_TOKEN: ${{ steps.app-token.outputs.token }}
         # TODO(Vlad): Reviewer for testing puprose, remove before merge.
-        run: invoke docker_build_test_dev_image --reviewers=dremdem
+        # run: invoke docker_build_test_dev_image --reviewers=dremdem
