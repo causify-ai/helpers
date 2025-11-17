@@ -274,18 +274,23 @@ def select_actions(
     return actions
 
 
-def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
+def mark_action(action: str, actions: Optional[List[str]]) -> Tuple[bool, Optional[List[str]]]:
     """
     Mark an action as to be executed or skipped.
 
     :param action: action to mark
-    :param actions: list of actions
+    :param actions: list of actions, or None to execute all actions
     :return: tuple of (to_execute, actions)
     """
-    to_execute = action in actions
+    if actions is None:
+        # If actions is None, execute all actions.
+        to_execute = True
+    else:
+        to_execute = action in actions
     _LOG.debug("\n%s", hprint.frame(f"action={action}"))
     if to_execute:
-        actions = [a for a in actions if a != action]
+        if actions is not None:
+            actions = [a for a in actions if a != action]
     else:
         _LOG.warning("Skip action='%s'", action)
     return to_execute, actions
