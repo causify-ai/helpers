@@ -206,7 +206,7 @@ class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
     > vimdiff dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2.test_run_all1/{input,output}/Lesson01-Intro.txt
     """
 
-    #@pytest.mark.skip(reason="Requires external input files to be manually copied")
+    @pytest.mark.skip(reason="Requires external input files to be manually copied")
     def test_run_all1(self) -> None:
         input_dir = self.get_input_dir()
         _LOG.debug("input_dir=%s", input_dir)

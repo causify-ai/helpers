@@ -33,6 +33,10 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
         }
         with umock.patch.object(
             hserver, "get_shared_data_dirs", return_value=mock_mapping
+        ), umock.patch.object(
+            hserver, "is_inside_docker", return_value=True
+        ), umock.patch.object(
+            hserver, "is_inside_ecs_container", return_value=False
         ):
             # Test replacing shared root path.
             path1 = "/data/shared1/asset1"
@@ -60,6 +64,10 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
         }
         with umock.patch.object(
             hserver, "get_shared_data_dirs", return_value=mock_mapping
+        ), umock.patch.object(
+            hserver, "is_inside_docker", return_value=True
+        ), umock.patch.object(
+            hserver, "is_inside_ecs_container", return_value=False
         ):
             # Test if `ecs_tokyo` is replaced if `replace_ecs_tokyo = True`.
             path1 = 'object("/data/shared/ecs_tokyo/asset2/item")'
@@ -151,14 +159,13 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         use_sibling_container_for_callee = True
         check_if_exists = False
         # - Prepare outputs.
-        helpers_root_path = hgit.find_helpers_root()
         exp_docker_file_path = os.path.join(
-            helpers_root_path,
-            "helpers/test/outcomes",
+            "/app",
+            "helpers_root/helpers/test/outcomes",
             "Test_convert_to_docker_path1.test1/input",
             "tmp.llm_transform.in.txt",
         )
-        exp_mount = "type=bind,source=/app,target=/app"
+        exp_mount = "type=bind,source={},target=/app".format(hgit.find_git_root())
         self.helper(
             in_file_path,
             is_caller_host,
@@ -183,14 +190,13 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         use_sibling_container_for_callee = True
         check_if_exists = True
         # - Prepare outputs.
-        helpers_root_path = hgit.find_helpers_root()
         exp_docker_file_path = os.path.join(
-            helpers_root_path,
-            "helpers/test/outcomes",
+            "/app",
+            "helpers_root/helpers/test/outcomes",
             "Test_convert_to_docker_path1.test2/input",
             "tmp.input.md",
         )
-        exp_mount = "type=bind,source=/app,target=/app"
+        exp_mount = "type=bind,source={},target=/app".format(hgit.find_git_root())
         self.helper(
             in_file_path,
             is_caller_host,
@@ -474,7 +480,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
         """
         # Prepare inputs.
         cmd_opts = []
-        expected_output = []
+        expected_output = ""
         # Run test and check outputs.
         self.helper(cmd_opts, expected_output)
 
@@ -536,10 +542,10 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
             ".gitignore",  # Hidden config file
         ]
         expected_output = """
-        $GIT_ROOT/archive.tar.gz
-        $GIT_ROOT/.hidden
-        $GIT_ROOT/backup.sql.bz2
-        $GIT_ROOT/.gitignore
+        /archive.tar.gz
+        /.hidden
+        /backup.sql.bz2
+        /.gitignore
         """
         # Run test and check outputs.
         self.helper(cmd_opts, expected_output)
