@@ -114,21 +114,21 @@ class Test_colorize_bullet_points_in_slide1(hunitest.TestCase):
         - **\red{VC Theory}**
             - Measures model
 
-        - **\yellow{Bias-Variance Decomposition}**
+        - **\orange{Bias-Variance Decomposition}**
             - Prediction error
-                - **\green{Bias}**
-                - **\cyan{Variance}**
+                - **\yellow{Bias}**
+                - **\lime{Variance}**
 
-        - **\purple{Computation Complexity}**
+        - **\green{Computation Complexity}**
             - Balances model
             - Related to
             - E.g., Minimum
 
-        - **\magenta{Bayesian Approach}**
+        - **\teal{Bayesian Approach}**
             - Treats ML as probability
             - Combines prior knowledge with observed data to update belief about a model
 
-        - **\brown{Problem in ML Theory:}**
+        - **\cyan{Problem in ML Theory:}**
             - Assumptions may not align with practical problems
         """
         self.assert_equal(actual, expected)

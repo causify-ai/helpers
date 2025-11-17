@@ -8,6 +8,7 @@ import helpers.hdocker as hdocker
 import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hmarkdown_formatting as hmarform
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
