@@ -120,5 +120,6 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           GH_ACTION_ACCESS_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # TODO(Vlad): Reviewer for testing puprose, remove before merge.
         # run: invoke docker_build_test_dev_image --reviewers=dremdem
