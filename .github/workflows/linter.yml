@@ -1,7 +1,7 @@
 name: Check if the Linter was run
 on:
   pull_request:
-    types: [ opened, synchronize, reopened, ready_for_review ]
+    types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - master
   workflow_dispatch:
