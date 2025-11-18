@@ -12,3 +12,12 @@ The interface is like:
    - Report some examples of how to use the tool
    - Describe the architecture
 
+4) Always follow the steps
+  - Describe the goal
+  - List the main steps
+  - Mention any edge cases
+  - Stop and ask: "Should I proceed with this plan?"
+  - Write the plan in claude.plan.md
+  - Wait for my response. Do not run or finalize code until I say yes.
+
+- Add a `# TODO(ai_gp): xyz` in the code with a short description of what needs to be done

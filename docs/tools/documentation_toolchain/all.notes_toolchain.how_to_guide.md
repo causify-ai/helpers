@@ -1,71 +1,3 @@
-<!-- toc -->
-
-- [Documentation Toolchain](#documentation-toolchain)
-  * [List of Tools](#list-of-tools)
-  * [`Notes_To_Pdf.Py`](#notes_to_pdfpy)
-    + [What It Does](#what-it-does)
-    + [Examples](#examples)
-  * [`Render_Images.Py`](#render_imagespy)
-    + [What It Does](#what-it-does-1)
-    + [Examples](#examples-1)
-    + [Interface](#interface)
-  * [`Lint_Notes.Py`](#lint_txtpy)
-    + [What It Does](#what-it-does-2)
-    + [Examples](#examples-2)
-    + [Interface](#interface-1)
-  * [`Extract_Notebook_Images.Py`](#extract_notebook_imagespy)
-    + [What It Does](#what-it-does-3)
-    + [Example](#example)
-    + [Interface](#interface-2)
-  * [`Llm_Transform.Py`](#llm_transformpy)
-    + [What It Does](#what-it-does-4)
-    + [Examples](#examples-3)
-    + [Interface](#interface-3)
-  * [`Run_Pandoc.Py`](#run_pandocpy)
-    + [What It Does](#what-it-does-5)
-    + [Example](#example-1)
-    + [Interface](#interface-4)
-  * [`Transform_Notes.Py`](#transform_notespy)
-    + [What It Does](#what-it-does-6)
-    + [Examples](#examples-4)
-    + [Interface](#interface-5)
-  * [`Extract_Headers_From_Markdown.Py`](#extract_headers_from_markdownpy)
-    + [What It Does](#what-it-does-7)
-    + [Examples](#examples-5)
-  * [`Dockerized_Tikz_To_Bitmap.Py`](#dockerized_tikz_to_bitmappy)
-    + [Examples](#examples-6)
-  * [`Dockerized_Graphviz.Py`](#dockerized_graphvizpy)
-    + [What It Does](#what-it-does-8)
-    + [Interface](#interface-6)
-    + [Examples](#examples-7)
-  * [`Dockerized_Latex.Py`](#dockerized_latexpy)
-    + [What It Does](#what-it-does-9)
-    + [Examples](#examples-8)
-  * [`Dockerized_Mermaid.Py`](#dockerized_mermaidpy)
-    + [What It Does](#what-it-does-10)
-    + [Examples](#examples-9)
-  * [`Dockerized_Pandoc.Py`](#dockerized_pandocpy)
-    + [What It Does](#what-it-does-11)
-    + [Example](#example-2)
-  * [`Dockerized_Prettier.Py`](#dockerized_prettierpy)
-    + [What It Does](#what-it-does-12)
-    + [Examples](#examples-10)
-    + [Interface](#interface-7)
-  * [`Save_Screenshot.Py`](#save_screenshotpy)
-    + [What It Does](#what-it-does-13)
-  * [`Generate_Images.Py`](#generate_imagespy)
-    + [What It Does](#what-it-does-14)
-    + [Examples](#examples-11)
-    + [Interface](#interface-8)
-  * [Useful Tools](#useful-tools)
-    + [Mermaid](#mermaid)
-    + [Graphviz](#graphviz)
-    + [Markdown](#markdown)
-    + [Pandoc](#pandoc)
-    + [Tikz](#tikz)
-
-<!-- tocstop -->
-
 # Documentation Toolchain
 
 - This is a high‑level guide to the workflows that turn raw notes, slides, Latex
@@ -194,69 +126,6 @@ transform_notes.py
   > notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
   ```
 
-- The interface is:
-  ```
-  > notes_to_pdf.py -h
-  usage: notes_to_pdf.py [-h] -i INPUT -o OUTPUT --type {pdf,html,slides}
-                         [--filter_by_header FILTER_BY_HEADER]
-                         [--filter_by_lines FILTER_BY_LINES] [--script SCRIPT]
-                         [--preview_actions]
-                         [--toc_type {none,pandoc_native,navigation}]
-                         [--no_run_latex_again] [--debug_on_error]
-                         [--gdrive_dir GDRIVE_DIR] [--use_host_tools]
-                         [--action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after} | --skip_action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}]
-                         [--all] [--dockerized_force_rebuild]
-                         [--dockerized_use_sudo]
-                         [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-
-  Convert a txt file into a PDF / HTML / slides using `pandoc`.
-
-  # From scratch with TOC:
-  > notes_to_pdf.py -a pdf --input ...
-
-  # For interactive mode:
-  > notes_to_pdf.py -a pdf --no_cleanup_before --no_cleanup --input ...
-
-  # Check that can be compiled:
-  > notes_to_pdf.py -a pdf --no_toc --no_open_pdf --input ...
-
-  > notes_to_pdf.py     --input notes/IN_PROGRESS/math.The_hundred_page_ML_book.Burkov.2019.txt     -t pdf     --no_cleanup --no_cleanup_before --no_run_latex_again --no_open
-
-  options:
-    -h, --help            show this help message and exit
-    -i INPUT, --input INPUT
-    -o OUTPUT, --output OUTPUT
-                          Output file
-    --type {pdf,html,slides}
-                          Type of output to generate
-    --filter_by_header FILTER_BY_HEADER
-                          Filter by header
-    --filter_by_lines FILTER_BY_LINES
-                          Filter by lines (e.g., `0:10`, `1:None`, `None:10`)
-    --script SCRIPT       Bash script to generate with all the executed sub-
-                          commands
-    --preview_actions     Print the actions and exit
-    --toc_type {none,pandoc_native,navigation}
-    --no_run_latex_again
-    --debug_on_error
-    --gdrive_dir GDRIVE_DIR
-                          Directory where to save the output to share on Google
-                          Drive
-    --use_host_tools      Use the host tools instead of the dockerized ones
-    --action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
-                          Actions to execute
-    --skip_action {cleanup_before,preprocess_notes,render_images,run_pandoc,copy_to_gdrive,open,cleanup_after}
-                          Actions to skip
-    --all                 Run all the actions (cleanup_before preprocess_notes
-                          render_images run_pandoc open cleanup_after)
-    --dockerized_force_rebuild
-                          Force to rebuild the Docker container
-    --dockerized_use_sudo
-                          Use sudo inside the container
-    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
-                          Set the logging level
-  ```
-
 ### Examples
 
 - Compile to **Beamer slides**
@@ -365,55 +234,30 @@ The supported File types and code blocks are:
   > render_images.py -i lesson.md -o /tmp/out.md --dry_run
   ```
 
-### Interface
-
-- The interface
+- Render multiple files using comma-separated list
 
   ```bash
-  > render_images.py -h
-  usage: render_images.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
-                          [--action {open,render} | --skip_action {open,render}]
-                          [--all] [--dry_run] [--dockerized_force_rebuild]
-                          [--dockerized_use_sudo]
-                          [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+  > render_images.py --files="file1.md,file2.md,file3.md" --action render
+  ```
 
-  Replace sections of image code with rendered images, commenting out the
-  original code, if needed.
+- Render multiple files from a file list
 
-  See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
+  ```bash
+  > render_images.py --from_files="files_to_render.txt" --action render
+  ```
 
-  Usage:
+  Where `files_to_render.txt` contains:
+  ```
+  # List of files to render
+  docs/chapter1.md
+  docs/chapter2.md
+  docs/chapter3.md
+  ```
 
-  # Create a new Markdown file with rendered images:
-  > render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
+- Render multiple files using repeated argument
 
-  # Render images in place in the original Markdown file:
-  > render_images.py -i ABC.md --action render --run_dockerized
-
-  # Render images in place in the original LaTeX file:
-  > render_images.py -i ABC.tex --action render --run_dockerized
-
-  # Open rendered images from a Markdown file in HTML to preview:
-  > render_images.py -i ABC.md --action open --run_dockerized
-
-  options:
-    -h, --help            show this help message and exit
-    -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
-                          Path to the input file
-    -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
-                          Path to the output file
-    --action {open,render}
-                          Actions to execute
-    --skip_action {open,render}
-                          Actions to skip
-    --all                 Run all the actions ()
-    --dry_run             Update the file but do not render images
-    --dockerized_force_rebuild
-                          Force to rebuild the Docker container
-    --dockerized_use_sudo
-                          Use sudo inside the container
-    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
-                          Set the logging level
+  ```bash
+  > render_images.py --file_name file1.md --file_name file2.md --file_name file3.md --action render
   ```
 
 ## `Lint_Notes.Py`
@@ -473,51 +317,6 @@ The supported File types and code blocks are:
   :%!lint_txt.py
   ```
 
-### Interface
-
-```text
-> lint_txt.py -h
-usage: lint_txt.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME] [--type TYPE] [-w PRINT_WIDTH] [--use_dockerized_prettier] [--use_dockerized_markdown_toc]
-                     [--action {preprocess,prettier,postprocess,frame_chapters,refresh_toc} | --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}] [--all]
-                     [--dockerized_force_rebuild] [--dockerized_use_sudo] [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-
-See instructions at docs/tools/documentation_toolchain/all.notes_toolchain.how_to_guide.md
-
-Lint "notes" files.
-
-> lint_txt.py -i foo.md -o bar.md     --use_dockerized_prettier     --use_dockerized_markdown_toc
-
-- It can be used in vim to prettify a part of the text using stdin / stdout.
-```
-
-:%!lint_txt.py
-```
-
-options:
-  -h, --help            show this help message and exit
-  -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
-                        Input file or `-` for stdin
-  -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
-                        Output file or `-` for stdout
-  --type TYPE
-  -w PRINT_WIDTH, --print-width PRINT_WIDTH
-  --use_dockerized_prettier
-  --use_dockerized_markdown_toc
-  --action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
-                        Actions to execute
-  --skip_action {preprocess,prettier,postprocess,frame_chapters,refresh_toc}
-                        Actions to skip
-  --all                 Run all the actions (preprocess prettier postprocess frame_chapters refresh_toc)
-  --dockerized_force_rebuild
-                        Force to rebuild the Docker container
-  --dockerized_use_sudo
-                        Use sudo inside the container
-  -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
-                        Set the logging level
-```
-
-// TODO
-
 ## `Extract_Notebook_Images.Py`
 
 ### What It Does
@@ -535,10 +334,6 @@ options:
       --in_notebook_filename notebooks/Lesson8.ipynb \
       --out_image_dir notebooks/screenshots
   ```
-
-### Interface
-
-// TODO
 
 ## `Llm_Transform.Py`
 
@@ -582,10 +377,6 @@ options:
   :'<,'>!llm_transform.py -p summarize -i - -o -
   ```
 
-### Interface
-
-// TODO
-
 ## `Run_Pandoc.Py`
 
 ### What It Does
@@ -611,21 +402,6 @@ options:
 
 - **Tip:** pass `-v CRITICAL` to silence helper logging when piping into
   editors.
-
-### Interface
-
-- `-i / --input`
-  - Default: `-`
-  - Meaning: Source file or `-` for STDIN
-- `-o / --output`
-  - Default: `-`
-  - Meaning: Destination file or `-` for STDOUT
-- `--action`
-  - Default: `convert_md_to_latex`
-  - Meaning: Transformation to apply. Future-proofed for more actions
-- `-v / --log_level`
-  - Default: `INFO`
-  - Meaning: Standard helper-library verbosity
 
 ## `Transform_Notes.Py`
 
@@ -670,8 +446,6 @@ options:
   ```
   :'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
   ```
-
-### Interface
 
 ## `Extract_Headers_From_Markdown.Py`
 
@@ -728,8 +502,6 @@ options:
 
 - This script serves as a thin wrapper around Dockerized Graphviz for consistent
   rendering across systems.
-
-### Interface
 
 ### Examples
 
@@ -877,53 +649,6 @@ options:
   dockerized_prettier.py --parser markdown --tab-width 4 --prose-wrap always --write test.md
   ```
 
-### Interface
-
-- Interface
-  ```
-  > dockerized_prettier.py -h
-  usage: dockerized_prettier.py [-h] -i IN_FILE_NAME [-o OUT_FILE_NAME]
-                                [--dockerized_force_rebuild]
-                                [--dockerized_use_sudo]
-                                [-v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-
-  Run `prettier` inside a Docker container to ensure consistent formatting across
-  different environments.
-
-  This script builds the container dynamically if necessary and formats the
-  specified file using the provided `prettier` options.
-
-  Examples
-  # Basic usage:
-  > dockerized_prettier.py --parser markdown --prose-wrap always --write     --tab-width 2 test.md
-
-  # Use sudo for Docker commands:
-  > dockerized_prettier.py --use_sudo --parser markdown --prose-wrap always     --write --tab-width 2 test.md
-
-  # Set logging verbosity:
-  > dockerized_prettier.py -v DEBUG --parser markdown --prose-wrap always     --write --tab-width 2 test.md </pre>
-
-  # Process a file:
-  > cat test.md
-  - a
-    - b
-          - c
-  > dockerized_prettier.py --parser markdown --prose-wrap always     --write --tab-width 2 test.md
-
-  options:
-    -h, --help            show this help message and exit
-    -i IN_FILE_NAME, --in_file_name IN_FILE_NAME
-                          Input file or `-` for stdin
-    -o OUT_FILE_NAME, --out_file_name OUT_FILE_NAME
-                          Output file or `-` for stdout
-    --dockerized_force_rebuild
-                          Force to rebuild the Docker container
-    --dockerized_use_sudo
-                          Use sudo inside the container
-    -v {TRACE,DEBUG,INFO,WARNING,ERROR,CRITICAL}
-                          Set the logging level
-  ```
-
 ## `Save_Screenshot.Py`
 
 ### What It Does
@@ -1014,38 +739,6 @@ options:
   - Display settings (quality, size, count)
   - Skip actual API calls and image downloads
   - Useful for testing and validating input before spending API credits
-
-### Interface
-
-- `-h, --help`
-  - Show help message and exit
-- `prompt`
-  - Positional argument (optional)
-  - Text prompt for image generation
-- `--input`
-  - Path to file containing the image description prompt(s)
-  - Alternative to providing prompt as positional argument
-  - Supports single description or multiple numbered descriptions
-- `--dst_dir`
-  - Required
-  - Destination directory for generated images
-- `--count`
-  - Default: 5
-  - Number of images to generate per description
-- `--low_res`
-  - Flag to generate standard quality images (vs HD quality)
-  - Default: HD quality
-- `--api_key`
-  - OpenAI API key (if not set via OPENAI_API_KEY environment variable)
-- `--dry_run`
-  - Flag to print what would be done without executing API calls
-  - Shows descriptions, file names, and settings that would be used
-  - No API calls made, no images generated
-  - Useful for validating input and previewing output before execution
-
-**Note**: Either `prompt` or `--input` must be provided. The script requires an
-OpenAI API key, either via the `--api_key` parameter or the `OPENAI_API_KEY`
-environment variable (not required for `--dry_run` mode).
 
 ## Useful Tools
 

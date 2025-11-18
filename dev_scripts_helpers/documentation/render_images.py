@@ -28,6 +28,8 @@ import re
 import tempfile
 from typing import List, Tuple
 
+from tqdm import tqdm
+
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
@@ -515,7 +517,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "-i",
         "--in_file_name",
-        required=True,
+        required=False,
         type=str,
         help="Path to the input file",
     )
@@ -526,6 +528,8 @@ def _parse() -> argparse.ArgumentParser:
         default=None,
         help="Path to the output file",
     )
+    # Add multi-file arguments.
+    hparser.add_multi_file_args(parser)
     # Add actions arguments.
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
@@ -544,11 +548,28 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
-    # Get the paths to the input and output files.
-    in_file, out_file = hparser.parse_input_output_args(args)
+def _process_single_file(
+    in_file: str,
+    out_file: str,
+    actions: List[str],
+    *,
+    force_rebuild: bool,
+    use_sudo: bool,
+    dry_run: bool,
+    use_github_hosting: bool,
+) -> None:
+    """
+    Process a single file for image rendering.
+
+    :param in_file: input file path
+    :param out_file: output file path
+    :param actions: list of actions to execute
+    :param force_rebuild: rebuild the Docker image before rendering
+    :param use_sudo: run Docker with sudo
+    :param dry_run: if True, the rendering command is not executed
+    :param use_github_hosting: if True, insert rendered image links using
+        absolute GitHub-hosted URLs
+    """
     # Verify that the input and output file types are valid and equal.
     hdbg.dassert_file_extension(in_file, ["md", "tex", "txt"])
     hdbg.dassert_eq(
@@ -556,9 +577,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         os.path.splitext(out_file)[1],
         msg="Input and output files should have the same extension.",
     )
-    # Get the selected actions.
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    _LOG.info("Selected actions: %s", actions)
     # Set the extension for the rendered images.
     dst_ext = "png"
     if actions == [_ACTION_OPEN]:
@@ -574,16 +592,66 @@ def _main(parser: argparse.ArgumentParser) -> None:
         in_lines,
         out_file,
         dst_ext,
-        force_rebuild=args.dockerized_force_rebuild,
-        use_sudo=args.dockerized_use_sudo,
-        dry_run=args.dry_run,
-        use_github_hosting=args.use_github_hosting,
+        force_rebuild=force_rebuild,
+        use_sudo=use_sudo,
+        dry_run=dry_run,
+        use_github_hosting=use_github_hosting,
     )
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))
     # Open if needed.
     if _ACTION_OPEN in actions:
         _open_html(out_file)
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    hparser.init_logger_for_input_output_transform(args)
+    # Get list of input files using multi-file parsing.
+    in_files = hparser.parse_multi_file_args(args)
+    # Get the selected actions.
+    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    _LOG.info("Selected actions: %s", actions)
+    # Handle output file for multi-file mode.
+    if len(in_files) > 1:
+        # Multi-file mode.
+        hdbg.dassert_eq(args.out_file_name, None,
+                "You can't specify output file with multiple input files"
+            )
+        # Process each file with progress bar.
+        _LOG.info("Processing %s files", len(in_files))
+        for in_file in tqdm(in_files, desc="Processing files"):
+            _LOG.info("Processing file: %s", in_file)
+            # For multi-file mode, always render in-place.
+            out_file = in_file
+            _process_single_file(
+                in_file,
+                out_file,
+                actions,
+                force_rebuild=args.dockerized_force_rebuild,
+                use_sudo=args.dockerized_use_sudo,
+                dry_run=args.dry_run,
+                use_github_hosting=args.use_github_hosting,
+            )
+    else:
+        # Single file mode (backward compatibility).
+        in_file = in_files[0]
+        # Get output file name.
+        if args.out_file_name:
+            out_file = args.out_file_name
+        else:
+            # Render in-place.
+            out_file = in_file
+        _LOG.info("Processing single file: %s", in_file)
+        _process_single_file(
+            in_file,
+            out_file,
+            actions,
+            force_rebuild=args.dockerized_force_rebuild,
+            use_sudo=args.dockerized_use_sudo,
+            dry_run=args.dry_run,
+            use_github_hosting=args.use_github_hosting,
+        )
 
 
 if __name__ == "__main__":

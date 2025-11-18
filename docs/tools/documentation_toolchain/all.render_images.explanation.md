@@ -35,3 +35,45 @@
 
 3. If you want to use `open` action, make sure that your machine is able to open
    `.html` files in the browser.
+
+### Processing Multiple Files
+
+The tool supports three ways to process multiple files:
+
+1. **Comma-separated list**: Use `--files="file1.md,file2.md,file3.md"` to specify
+   multiple files separated by commas.
+
+   ```bash
+   > render_images.py --files="file1.md,file2.md,file3.md" --action render
+   ```
+
+2. **File containing list**: Use `--from_files="list.txt"` where `list.txt`
+   contains one file path per line. Empty lines and lines starting with `#` are
+   ignored.
+
+   Example `list.txt`:
+   ```
+   # Files to render
+   docs/chapter1.md
+   docs/chapter2.md
+
+   # More files
+   docs/chapter3.md
+   ```
+
+   ```bash
+   > render_images.py --from_files="list.txt" --action render
+   ```
+
+3. **Repeated argument**: Use `--file_name` multiple times to specify each file.
+
+   ```bash
+   > render_images.py --file_name file1.md --file_name file2.md --file_name file3.md --action render
+   ```
+
+**Notes**:
+- When processing multiple files, rendering is always done in-place
+  - The `-o` option causes an error when used together with multiple files
+- The tool shows a progress bar when processing multiple files.
+- All three methods are mutually exclusive: you can only use one at a time.
+- The single `-i` option works for processing one file.
