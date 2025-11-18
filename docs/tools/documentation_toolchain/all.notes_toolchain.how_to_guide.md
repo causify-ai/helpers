@@ -115,7 +115,7 @@ test
 transform_notes.py
 ```
 
-## `Notes_To_Pdf.Py`
+## `notes_to_pdf.py`
 
 ### What It Does
 
@@ -178,7 +178,7 @@ transform_notes.py
   > notes_to_pdf.py -i book_notes.txt -o book_notes.pdf --type pdf
   ```
 
-## `Render_Images.Py`
+## `render_images.py`
 
 ### What It Does
 
@@ -260,7 +260,7 @@ The supported File types and code blocks are:
   > render_images.py --file_name file1.md --file_name file2.md --file_name file3.md --action render
   ```
 
-## `Lint_Notes.Py`
+## `lint_notes.py`
 
 ### What It Does
 
@@ -317,7 +317,7 @@ The supported File types and code blocks are:
   :%!lint_txt.py
   ```
 
-## `Extract_Notebook_Images.Py`
+## `extract_notebook_images.py`
 
 ### What It Does
 
@@ -335,7 +335,7 @@ The supported File types and code blocks are:
       --out_image_dir notebooks/screenshots
   ```
 
-## `Llm_Transform.Py`
+## `llm_transform.py`
 
 ### What It Does
 
@@ -377,7 +377,7 @@ The supported File types and code blocks are:
   :'<,'>!llm_transform.py -p summarize -i - -o -
   ```
 
-## `Run_Pandoc.Py`
+## `run_pandoc.py`
 
 ### What It Does
 
@@ -403,7 +403,7 @@ The supported File types and code blocks are:
 - **Tip:** pass `-v CRITICAL` to silence helper logging when piping into
   editors.
 
-## `Transform_Notes.Py`
+## `transform_notes.py`
 
 ### What It Does
 
@@ -447,7 +447,7 @@ The supported File types and code blocks are:
   :'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
   ```
 
-## `Extract_Headers_From_Markdown.Py`
+## `extract_headers_from_markdown.py`
 
 ### What It Does
 
@@ -471,7 +471,7 @@ The supported File types and code blocks are:
   > vim -c "cfile headers.cfile"
   ```
 
-## `Dockerized_Tikz_To_Bitmap.Py`
+## `dockerized_tikz_to_bitmap.py`
 
 - Convert a `.tex` file containing TikZ code into a `.png` image using a Dockerized toolchain consisting of pdflatex and ImageMagick.
 
@@ -489,7 +489,7 @@ The supported File types and code blocks are:
   ```
   - Any extra tokens after `--` are passed verbatim to `convert`
 
-## `Dockerized_Graphviz.Py`
+## `dockerized_graphviz.py`
 
 ### What It Does
 
@@ -518,7 +518,7 @@ The supported File types and code blocks are:
   > graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_use_sudo
   ```
 
-## `Dockerized_Latex.Py`
+## `dockerized_latex.py`
 
 ### What It Does
 
@@ -550,7 +550,7 @@ The supported File types and code blocks are:
   > latex_wrapper.py -i paper.tex -o paper.pdf --run_latex_again
   ```
 
-## `Dockerized_Mermaid.Py`
+## `dockerized_mermaid.py`
 
 ### What It Does
 
@@ -584,7 +584,7 @@ The supported File types and code blocks are:
   > mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_use_sudo
   ```
 
-## `Dockerized_Pandoc.Py`
+## `dockerized_pandoc.py`
 
 ### What It Does
 
@@ -617,7 +617,7 @@ The supported File types and code blocks are:
   > pandoc_wrapper.py --input notes.md --output notes.pdf --dockerized_use_sudo
   ```
 
-## `Dockerized_Prettier.Py`
+## `dockerized_prettier.py`
 
 ### What It Does
 
@@ -649,7 +649,7 @@ The supported File types and code blocks are:
   dockerized_prettier.py --parser markdown --tab-width 4 --prose-wrap always --write test.md
   ```
 
-## `Save_Screenshot.Py`
+## `save_screenshot.py`
 
 ### What It Does
 
@@ -657,7 +657,7 @@ The supported File types and code blocks are:
 2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
 3. Prints and copies the Markdown embed `<img src="path/to/file.png">`.
 
-## `Generate_Images.Py`
+## `generate_images.py`
 
 ### What It Does
 
