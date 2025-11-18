@@ -33,7 +33,7 @@
   - Good hsystem.system("which llm", suppress_output=True)
 
 ## Coding style
-- Use the coding style in code_template.py
+- Use the coding style in `ai/code_template.py`
 - Use REST comments in docstrings
 - Do not use empty lines within functions but use comments to separate chunks of
   code

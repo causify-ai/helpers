@@ -145,6 +145,10 @@ import config_root.config.config_ as crococon
 ### Code Conventions
 
 - For writing any Python code you MUST follow instructions in
-  ai.coding_instructions.md
+  `ai/ai.coding_instructions.md` and `ai/code_template.py`
 - For writing unit tests you MUST follow instructions in
-  ai.unit_test_instructions.md
+  `ai/ai.unit_test_instructions.md` and `ai/unit_test_template.py`
+- For writing any documentation you MUST follow instructions in
+  `ai.notes_instructions.txt`
+- For writing a notebook you MUST follow the template in
+  `notebook_template.ipynb`
