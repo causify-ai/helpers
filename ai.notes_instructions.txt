@@ -122,6 +122,10 @@
 - For libraries, executables, scripts use verbatim
   - E.g., `notes_to_pdf.py`, `python`, `pandas`
 
+* Use and do not use &
+- **Bad**: Extraction & Conversion Tools
+- **Good**: Extraction and Conversion Tools
+
 ## Writing Style
 
 * Writing Style

@@ -367,7 +367,7 @@ The supported File types and code blocks are:
 - You can then publish or reuse the static plots/diagrams already rendered in a
   Jupyter notebook.
 
-### Example
+### Examples
 
 - Minimal call:
   ```bash
@@ -387,23 +387,29 @@ The supported File types and code blocks are:
 
 ### Examples
 
-- TODO
+- Basic transformation on a text file
 
   ```bash
-  llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer
+  > llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer
   ```
 
-- Finding available prompts
+- List all available prompts
 
   ```bash
-  llm_transform.py -p list -i - -o -
+  > llm_transform.py -p list_prompts -i - -o -
   ```
 
-- Turn a code file into a review checklist
+- Turn a code file into a review checklist (outputs vim cfile format)
 
   ```bash
   > llm_transform.py -i foo.py -o cfile -p code_review
-  vim cfile
+  > vim cfile
+  ```
+
+- Propose refactoring for a Python file
+
+  ```bash
+  > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
   ```
 
 - Color‑accent the bold bullets for slides
@@ -418,6 +424,12 @@ The supported File types and code blocks are:
   :'<,'>!llm_transform.py -p summarize -i - -o -
   ```
 
+- Compare original and transformed text side-by-side
+
+  ```bash
+  > llm_transform.py -i notes.txt -o result.txt -p improve_clarity --compare
+  ```
+
 ## `run_pandoc.py`
 
 ### What It Does
@@ -426,10 +438,10 @@ The supported File types and code blocks are:
 - Dispatches to a named **action** (currently only `convert_md_to_latex`).
 - Pushes the Pandoc output to _stdout_ or the `--output` file.
 
-### Example
+### Examples
 
 - Convert a Markdown file to LaTeX
-  ```
+  ```bash
   > run_pandoc.py -i note.md -o note.tex
   ```
 - Same, but stream from `stdin` to `stdout`
@@ -537,9 +549,9 @@ The supported File types and code blocks are:
 - Converts a Graphviz `.dot` file into a `.png` image using a Dockerized
   container.
 
-  > ```bash
-  > graphviz_wrapper.py --input input.dot --output output.png
-  > ```
+  ```bash
+  > dockerized_graphviz.py --input input.dot --output output.png
+  ```
 
 - This script serves as a thin wrapper around Dockerized Graphviz for consistent
   rendering across systems.
@@ -547,16 +559,16 @@ The supported File types and code blocks are:
 ### Examples
 
 - Convert DOT to PNG
-  ```
-  > graphviz_wrapper.py -i diagram.dot -o diagram.png
+  ```bash
+  > dockerized_graphviz.py -i diagram.dot -o diagram.png
   ```
 - Rebuild Docker image
-  ```
-  > graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_force_rebuild
+  ```bash
+  > dockerized_graphviz.py -i diagram.dot -o diagram.png --dockerized_force_rebuild
   ```
 - Use `sudo` for Docker
   ```bash
-  > graphviz_wrapper.py -i diagram.dot -o diagram.png --dockerized_use_sudo
+  > dockerized_graphviz.py -i diagram.dot -o diagram.png --dockerized_use_sudo
   ```
 
 ## `dockerized_latex.py`
@@ -569,26 +581,26 @@ The supported File types and code blocks are:
 - Supports optional rerun of LaTeX for proper references or table of contents
   generation
   ```bash
-  > latex_wrapper.py --input doc.tex --output doc.pdf
+  > dockerized_latex.py --input doc.tex --output doc.pdf
   ```
 
 ### Examples
 
 - Compile `.tex` to `.pdf`
-  ```
-  > latex_wrapper.py -i report.tex -o report.pdf
+  ```bash
+  > dockerized_latex.py -i report.tex -o report.pdf
   ```
 - Rebuild Docker image
-  ```
-  > latex_wrapper.py -i report.tex -o report.pdf --dockerized_force_rebuild
+  ```bash
+  > dockerized_latex.py -i report.tex -o report.pdf --dockerized_force_rebuild
   ```
 - Use `sudo` for Docker
-  ```
-  > latex_wrapper.py -i report.tex -o report.pdf --dockerized_use_sudo
+  ```bash
+  > dockerized_latex.py -i report.tex -o report.pdf --dockerized_use_sudo
   ```
 - Run LaTeX twice
-  ```
-  > latex_wrapper.py -i paper.tex -o paper.pdf --run_latex_again
+  ```bash
+  > dockerized_latex.py -i paper.tex -o paper.pdf --run_latex_again
   ```
 
 ## `dockerized_mermaid.py`
@@ -597,32 +609,34 @@ The supported File types and code blocks are:
 
 - Renders Mermaid `.mmd` or `.md` diagrams into image files using a Dockerized
   container.
+- Automatically sets output to match input name if `--output` is omitted
 
 ### Examples
 
-- TODO
+- Basic Mermaid diagram rendering
 
   ```bash
-  > mermaid_wrapper.py --input flowchart.mmd --output flowchart.png
+  > dockerized_mermaid.py --input flowchart.mmd --output flowchart.png
   ```
 
-- Automatically sets output to match input name if `--output` is omitted
+- Short form with input and output
+  ```bash
+  > dockerized_mermaid.py -i diagram.mmd -o diagram.png
+  ```
 
-- Mermaid diagram
+- Use input filename as output (default behavior)
+  ```bash
+  > dockerized_mermaid.py -i diagram.mmd
   ```
-  > mermaid_wrapper.py -i diagram.mmd -o diagram.png
+
+- Rebuild container image before rendering
+  ```bash
+  > dockerized_mermaid.py -i diagram.mmd -o diagram.png --dockerized_force_rebuild
   ```
-- Use input as output (default)
-  ```
-  > mermaid_wrapper.py -i diagram.mmd
-  ```
-- Rebuild container
-  ```
-  > mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_force_rebuild
-  ```
-- Use `sudo` for Docker
-  ```
-  > mermaid_wrapper.py -i diagram.mmd -o diagram.png --dockerized_use_sudo
+
+- Use `sudo` for Docker execution
+  ```bash
+  > dockerized_mermaid.py -i diagram.mmd -o diagram.png --dockerized_use_sudo
   ```
 
 ## `dockerized_pandoc.py`
@@ -633,29 +647,29 @@ The supported File types and code blocks are:
 - Supports output to Beamer slides, PDFs, and more with custom CLI flags.
 
 ```bash
-> pandoc_wrapper.py --input notes.md --output slides.pdf -- docker_args...
+> dockerized_pandoc.py --input notes.md --output slides.pdf -- docker_args...
 ```
 
 - Internally builds a Docker container and passes the full `pandoc` command
   string.
 
-### Example
+### Examples
 
 - Convert Markdown to PDF
-  ```
-  > pandoc_wrapper.py --input notes.md --output notes.pdf --container_type pandoc_latex
+  ```bash
+  > dockerized_pandoc.py --input notes.md --output notes.pdf --container_type pandoc_latex
   ```
 - Convert to Beamer slides
-  ```
-  > pandoc_wrapper.py --input slides.md --output slides.pdf --container_type pandoc_latex -- -t beamer
+  ```bash
+  > dockerized_pandoc.py --input slides.md --output slides.pdf --container_type pandoc_latex -- -t beamer
   ```
 - Rebuild Docker image
-  ```
-  > pandoc_wrapper.py --input notes.md --output notes.pdf --dockerized_force_rebuild
+  ```bash
+  > dockerized_pandoc.py --input notes.md --output notes.pdf --dockerized_force_rebuild
   ```
 - Run with sudo
-  ```
-  > pandoc_wrapper.py --input notes.md --output notes.pdf --dockerized_use_sudo
+  ```bash
+  > dockerized_pandoc.py --input notes.md --output notes.pdf --dockerized_use_sudo
   ```
 
 ## `dockerized_prettier.py`
@@ -1198,16 +1212,16 @@ The supported File types and code blocks are:
   - `generate_perl1()`, `generate_perl2()`, `generate_perl3()`: Generate Perl conversion scripts
   - `generate_mathcal()`: Generates mathcal notation macros
 
-## Useful Tools
+# Useful Tools
 
-### Mermaid
+## Mermaid
 
 - To render on-line: [https://mermaid.live](https://mermaid.live)
 
 - Resources:
   - [https://mermaid.js.org/syntax/examples.html](https://mermaid.js.org/syntax/examples.html)
 
-### Graphviz
+## Graphviz
 
 - To render on-line:
   [https://dreampuf.github.io/GraphvizOnline](https://dreampuf.github.io/GraphvizOnline)
@@ -1215,23 +1229,23 @@ The supported File types and code blocks are:
 - Resources:
   - [https://graphviz.org/gallery/](https://graphviz.org/gallery/)
 
-### Markdown
+## Markdown
 
 - To render on-line:
   [https://markdownlivepreview.com/](https://markdownlivepreview.com/)
 
-### Pandoc
+## Pandoc
 
 - To render on-line: [https://pandoc.org/try/](https://pandoc.org/try/)
 
-### Tikz
+## Tikz
 
 - To render on-line use Overleaf
 
-### Resources
-  - [https://www.overleaf.com/learn/latex/TikZ_package](https://www.overleaf.com/learn/latex/TikZ_package)
-  - [https://texample.net/](https://texample.net/)
-  - [https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php](https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php)
-  - [https://tikz.pablopie.xyz/](https://tikz.pablopie.xyz/)
-  - [https://tikzit.github.io/](https://tikzit.github.io/)
-  - [https://latexdraw.com/](https://latexdraw.com/)
+## Resources
+- [https://www.overleaf.com/learn/latex/TikZ_package](https://www.overleaf.com/learn/latex/TikZ_package)
+- [https://texample.net/](https://texample.net/)
+- [https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php](https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php)
+- [https://tikz.pablopie.xyz/](https://tikz.pablopie.xyz/)
+- [https://tikzit.github.io/](https://tikzit.github.io/)
+- [https://latexdraw.com/](https://latexdraw.com/)
