@@ -100,6 +100,28 @@
     - Examples
     - Implications
 
+* List of Items
+
+- In lists of items
+  - Bold the item whenever possible
+  - Use verbatim when the item is a script
+  - Use `:` to separate file and description instead of `-`
+
+  - **Bad**:
+    ```
+    - notes_to_pdf.py - Main tool for converting notes to PDF/HTML/slides
+    - render_images.py - Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
+    ```
+  - **Good**:
+    ```
+    - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides
+    - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
+    ```
+
+* Use verbatim for programs
+- For libraries, executables, scripts use verbatim
+  - E.g., `notes_to_pdf.py`, `python`, `pandas`
+
 ## Writing Style
 
 * Writing Style

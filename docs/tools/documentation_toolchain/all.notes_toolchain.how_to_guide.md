@@ -41,7 +41,7 @@
       ```
   - **jupyter books**
 
-### Causify Extended Markdown
+## Causify Extended Markdown
 
 - We refer to it to "Causify markdown" as some extension we use on top of
   `Pandoc` markdown
@@ -81,39 +81,81 @@
 
 ## List of Tools
 
-- TODO(gp): Use the invoke to describe the list
-```
-> ls -1 dev_scripts_helpers/documentation/
-convert_docx_to_markdown.py
-dockerized_graphviz.py
-dockerized_latex.py
-dockerized_mermaid.py
-dockerized_pandoc.py
-dockerized_prettier.py
-dockerized_tikz_to_bitmap.py
-extract_headers_from_markdown.py
-generate_latex_sty.py
-generate_readme_index.py
-generate_script_catalog.py
-latex_abbrevs.sty
-latexdockercmd.sh
-lint_txt.py
-mkdocs
-notes_to_pdf.py
-OLD
-open_md_in_browser.sh
-open_md_on_github.sh
-pandoc.latex
-preprocess_notes.py
-publish_notes.py
-render_images.py
-replace_latex.py
-replace_latex.sh
-run_latex.sh
-run_pandoc.py
-test
-transform_notes.py
-```
+- The tools available are
+  ```bash
+  > ls -1 dev_scripts_helpers/documentation/
+  convert_docx_to_markdown.py
+  dockerized_graphviz.py
+  dockerized_latex.py
+  dockerized_mermaid.py
+  dockerized_pandoc.py
+  dockerized_prettier.py
+  dockerized_tikz_to_bitmap.py
+  extract_headers_from_markdown.py
+  generate_latex_sty.py
+  generate_readme_index.py
+  generate_script_catalog.py
+  latex_abbrevs.sty
+  latexdockercmd.sh
+  lint_txt.py
+  mkdocs
+  notes_to_pdf.py
+  OLD
+  open_md_in_browser.sh
+  open_md_on_github.sh
+  pandoc.latex
+  preprocess_notes.py
+  publish_notes.py
+  render_images.py
+  replace_latex.py
+  replace_latex.sh
+  run_latex.sh
+  run_pandoc.py
+  test
+  transform_notes.py
+  ```
+
+- Short Classification of Tools
+
+  - Core Documentation Tools
+    - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides  
+    - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)  
+    - `lint_txt.py`: Lints and formats Markdown/LaTeX/txt notes  
+    - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown  
+    - `transform_notes.py`: Applies transformations (TOC, headers, lists)
+
+  - Extraction and Conversion Tools
+    - `convert_docx_to_markdown.py`: Converts DOCX to Markdown  
+    - `pdf_to_md.py`: Converts PDF to Markdown  
+    - `extract_headers_from_markdown.py`: Extracts headers for navigation  
+    - `extract_notebook_images.py`: Extracts images from Jupyter notebooks  
+    - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
+
+  - Dockerized Tools
+    - `dockerized_tikz_to_bitmap.py`: TikZ to PNG conversion  
+    - `dockerized_graphviz.py`: Graphviz DOT to PNG  
+    - `dockerized_latex.py`: LaTeX compilation  
+    - `dockerized_mermaid.py`: Mermaid diagram rendering  
+    - `dockerized_pandoc.py`: Pandoc conversions  
+    - `dockerized_prettier.py`: Prettier formatting
+
+  - Utility and Processing Tools
+    - `run_pandoc.py`: Runs Pandoc conversions  
+    - `replace_latex.py`: Batch LaTeX transformations  
+    - `check_links.py`: Validates URL reachability  
+    - `process_slides.py`: Processes slides with LLM
+
+  - Generation and Publishing Tools
+    - `generate_readme_index.py`: Generates README index  
+    - `generate_script_catalog.py`: Creates script catalog  
+    - `generate_latex_sty.py`: Generates LaTeX style files  
+    - `generate_images.py`: Generates images with DALL-E  
+    - `save_screenshot.py`: Screenshot capture utility  
+    - `publish_notes.py`: Publishes notes to remote server  
+    - `create_google_drive_map.py`: Creates directory structure summaries  
+    - `llm_transform.py`: LLM-based text transformations  
+
+# Description of tools
 
 ## `notes_to_pdf.py`
 
@@ -276,8 +318,7 @@ The supported File types and code blocks are:
   - Running Prettier
   - Fixing bullet/heading quirks
 
-###
-
+- The actions are:
     "preprocess",
     "prettier",
     "postprocess",
@@ -740,6 +781,423 @@ The supported File types and code blocks are:
   - Skip actual API calls and image downloads
   - Useful for testing and validating input before spending API credits
 
+## `convert_docx_to_markdown.py`
+
+### What It Does
+
+- Convert Microsoft Word `.docx` files to Markdown using Dockerized Pandoc
+- Extracts embedded media (images) from the document into a separate folder
+- Applies cleanup transformations to fix common Google Docs artifacts, e.g.,
+  - Removes escaped characters like `\#`, `\*`, `\_`
+  - Fixes heading formats
+  - Normalizes bullet points and quotation marks
+  - Converts HTML entities to markdown equivalents
+
+### Examples
+
+- Basic conversion from DOCX to Markdown
+  ```bash
+  > IN_FILE="/Users/saggese/Downloads/Document.docx"
+  > OUT_FILE="paper/paper.md"
+  > convert_docx_to_markdown.py --docx_file $IN_FILE --md_file $OUT_FILE
+  ```
+- The script will:
+  - Create a `paper_figs/` directory for extracted images
+  - Convert the document to Markdown
+  - Extract and organize all embedded images
+  - Apply cleanup transformations
+
+## `check_links.py`
+
+### What It Does
+
+- Check if all URL links in a file are reachable via HTTP/HTTPS
+- Extracts URLs from Markdown files in various formats:
+  - `[text](https://example.com)` (Markdown links)
+  - `https://example.com` (standalone URLs)
+  - `/path/to/file.md` (local repository paths, converted to GitHub URLs)
+- Validates each URL by making HTTP requests
+- Generates a vim cfile with broken URLs for easy navigation
+- Skips image files (`.png`, `.jpg`, `.jpeg`) and email addresses
+
+### Examples
+
+- Check links in a Markdown file
+  ```bash
+  > check_links.py --in_file README.md
+  ```
+
+- Check links with verbose output
+  ```bash
+  > check_links.py --in_file docs.txt -v DEBUG
+  ```
+
+- Check links and save broken URLs to custom cfile
+  ```bash
+  > check_links.py --in_file README.md --cfile broken_links.txt
+  ```
+
+- The script will:
+  - Extract all URLs from the file
+  - Check each URL for reachability
+  - Report summary with counts of reachable and broken URLs
+  - Generate vim cfile for quick navigation to broken links
+
+## `generate_readme_index.py`
+
+### What It Does
+
+- Generate or refresh a Markdown index in a README file
+- Scans a directory for all Markdown files and creates an organized index
+- Generates two-line summaries for each file using LLM or placeholders
+- Supports two modes:
+  - `generate`: Create index from scratch
+  - `refresh`: Update index, keeping existing summaries and adding new files
+- Each entry includes file name, relative path, and summary
+
+### Examples
+
+- Generate new README index with placeholder summaries
+  ```bash
+  > generate_readme_index.py --index_mode generate --dir_path /path/to/docs
+  ```
+
+- Refresh existing README index (keep summaries for existing files)
+  ```bash
+  > generate_readme_index.py --index_mode refresh --dir_path /path/to/docs
+  ```
+
+- Generate index with AI-generated summaries
+  ```bash
+  > generate_readme_index.py --index_mode generate --dir_path /path/to/docs --model gpt-4o-mini
+  ```
+
+- Generate index for Git repository root
+  ```bash
+  > generate_readme_index.py --index_mode generate --model gpt-4o-mini
+  ```
+
+## `generate_script_catalog.py`
+
+### What It Does
+
+- Generate a Markdown catalog of all executable scripts in a repository
+- Extracts docstrings from Python scripts and shell scripts
+- Organizes scripts by directory
+- Creates a formatted reference document showing:
+  - Script location
+  - Script purpose (from docstring)
+  - Usage examples (from docstring)
+
+### Examples
+
+- Generate catalog for current directory
+  ```bash
+  > generate_script_catalog.py
+  ```
+
+- Generate catalog for specific directory
+  ```bash
+  > generate_script_catalog.py --src_dir dev_scripts/
+  ```
+
+- Generate catalog with custom output location
+  ```bash
+  > generate_script_catalog.py --src_dir . --dst_file docs/scripts.md
+  ```
+
+- Generate catalog for single script
+  ```bash
+  > generate_script_catalog.py --src_file path/to/script.py
+  ```
+
+## `publish_notes.py`
+
+### What It Does
+
+- Publish notes to a remote documentation server via SSH
+- Converts notes to PDF or HTML format using `notes_to_pdf.py`
+- Uploads generated files to a remote server
+- Supports batch processing of multiple note files
+- Manages remote documentation directory (list, clean, publish)
+
+### Examples
+
+- Publish all notes
+  ```bash
+  > publish_notes.py publish
+  ```
+
+- Clean and republish all notes from scratch
+  ```bash
+  > publish_notes.py rm publish
+  ```
+
+- List files on remote documentation server
+  ```bash
+  > publish_notes.py ls
+  ```
+
+- Custom temporary directory for artifacts
+  ```bash
+  > publish_notes.py publish --tmp_dir /tmp/notes_build
+  ```
+
+## `replace_latex.py`
+
+### What It Does
+
+- One-off script for batch LaTeX text transformations
+- Applies standard cleanup rules to LaTeX/Markdown files:
+  - Normalize terminology (e.g., "gaussian" → "Gaussian", "iid" → "IID")
+  - Expand contractions (e.g., "doesn't" → "does not")
+  - Convert "iff" to LaTeX symbol `$\iff$`
+  - Format textit commands to Markdown italics
+- Can run Pandoc before and after transformations to verify changes
+- Supports aggressive mode for more transformations
+
+### Examples
+
+- Apply replacements to a file
+  ```bash
+  > replace_latex.py -a replace --file notes/finance.portfolio_theory.txt
+  ```
+
+- Check transformations with Pandoc before and after
+  ```bash
+  > replace_latex.py -a pandoc_before -a replace -a pandoc_after --file notes/finance.txt
+  ```
+
+- Apply aggressive transformations
+  ```bash
+  > replace_latex.py -a replace --file notes/finance.txt --aggressive
+  ```
+
+- Reset file to git version and apply replacements
+  ```bash
+  > replace_latex.py -a checkout -a replace --file notes/finance.txt
+  ```
+
+## `extract_gdoc_map.py`
+
+### What It Does
+
+- Extract Google Doc links from `.gdoc` files in a directory
+- `.gdoc` files are JSON files containing Google Doc IDs
+- Scans directory recursively for all `.gdoc` files
+- Generates Markdown-formatted links to the actual Google Docs
+- Supports two output styles:
+  - `default`: Directory path as main bullet, filename as sub-bullet with link
+  - `full_path`: Full path in link text
+
+### Examples
+
+- Extract links from directory with default style
+  ```bash
+  > extract_gdoc_map.py --input_dir "/path/to/google/drive"
+  ```
+
+- Extract links and save to file
+  ```bash
+  > extract_gdoc_map.py --input_dir "/path/to/docs" --output_file "doc_links.md"
+  ```
+
+- Use full path style for link text
+  ```bash
+  > extract_gdoc_map.py --input_dir "/path/to/docs" --output_file "links.md" --style full_path
+  ```
+
+- The script will:
+  - Find all `.gdoc` files recursively
+  - Parse JSON to extract Google Doc IDs
+  - Generate clickable links to `https://docs.google.com/document/d/{doc_id}`
+  - Format as Markdown list
+
+## `pdf_to_md.py`
+
+### What It Does
+
+- Convert PDF files to Markdown using PyMuPDF (fitz)
+- Extracts text with formatting information to identify headers
+- Extracts embedded images and vector graphics
+- Analyzes font sizes to determine heading levels (H1, H2, H3)
+- Preserves document structure with proper Markdown formatting
+- Applies Prettier formatting to final Markdown output
+- Requires `uv` for dependency management (automatically installs PyMuPDF)
+
+### Examples
+
+- Convert PDF to Markdown with images
+  ```bash
+  > uv run pdf_to_md.py --input document.pdf --output output_dir
+  ```
+
+- With verbose logging
+  ```bash
+  > uv run pdf_to_md.py --input paper.pdf --output paper_md -v DEBUG
+  ```
+
+- The script will:
+  - Create `output_dir/` and `output_dir/images/` directories
+  - Extract all images to `images/` folder
+  - Generate `document.md` with embedded image references
+  - Format output using Prettier
+
+## `preprocess_notes.py`
+
+### What It Does
+
+- Convert Causify-extended notes format into standard Pandoc Markdown
+- Prepares notes for conversion with `notes_to_pdf.py`
+- Applies comprehensive transformations:
+  - Handle comment blocks and single-line comments
+  - Process abbreviations (e.g., `=>` → `$\implies$`)
+  - Convert question format (`* foo` → `- **foo**` or `#### foo` for slides)
+  - Add TOC navigation slides (for presentation mode)
+  - Colorize bullet points in slides
+  - Process color commands
+- Supports three output types: `pdf`, `html`, `slides`
+- Optional Q&A formatting mode
+
+### Examples
+
+- Preprocess notes for PDF generation
+  ```bash
+  > preprocess_notes.py --input notes.txt --output notes_processed.md --type pdf
+  ```
+
+- Preprocess for slides with navigation TOC
+  ```bash
+  > preprocess_notes.py --input lecture.txt --output lecture.md --type slides --toc_type navigation
+  ```
+
+- Preprocess for HTML output
+  ```bash
+  > preprocess_notes.py --input document.txt --output document.md --type html
+  ```
+
+- Preprocess Q&A formatted notes
+  ```bash
+  > preprocess_notes.py --input qa.txt --output qa.md --type pdf --qa
+  ```
+
+## `process_slides.py`
+
+### What It Does
+
+- Process Markdown slides using LLM prompts for enhancement or critique
+- Extracts individual slides from Markdown documents
+- Applies LLM transformations to each slide independently
+- Supports parallel processing for batch operations
+- Can use either direct LLM API calls or `llm_transform` script
+- Provides progress tracking and error handling options
+
+### Examples
+
+- Process slides with LLM action
+  ```bash
+  > process_slides.py --in_file slides.md --action slide_format --out_file processed.md
+  ```
+
+- Process with llm_transform script
+  ```bash
+  > process_slides.py --in_file lecture.md --action slide_critique --out_file critique.md --use_llm_transform
+  ```
+
+- Process specific slide range with parallel execution
+  ```bash
+  > process_slides.py --in_file slides.md --action format --out_file out.md --limit 10:20 --num_threads 4
+  ```
+
+- Continue on errors (don't abort)
+  ```bash
+  > process_slides.py --in_file slides.md --action enhance --out_file enhanced.md --no_abort_on_error
+  ```
+
+## `create_google_drive_map.py`
+
+### What It Does
+
+- Generate directory structure summaries using `tree` command and LLM analysis
+- Creates comprehensive documentation of Google Drive or filesystem hierarchies
+- Workflow:
+  - Runs `tree` on each directory
+  - Summarizes content with LLM (gpt-4o-mini)
+  - Optionally combines all summaries into single Markdown file
+  - Optionally creates a metadata table with owner/department information
+- Supports selective action execution and range limiting
+- Can process directories in parallel
+
+### Examples
+
+- Basic usage - run tree and LLM on all directories
+  ```bash
+  > create_google_drive_map.py --in_dir /path/to/google_drive
+  ```
+
+- Run only tree collection
+  ```bash
+  > create_google_drive_map.py --in_dir /path/to/folders --action tree
+  ```
+
+- Run only LLM summarization (requires existing tree files)
+  ```bash
+  > create_google_drive_map.py --in_dir /path/to/folders --action llm
+  ```
+
+- Combine existing summaries into single file
+  ```bash
+  > create_google_drive_map.py --in_dir /path/to/folders --action combine
+  ```
+
+- Create directory metadata table
+  ```bash
+  > create_google_drive_map.py --in_dir /path/to/folders --action table
+  ```
+
+- Process only first 5 directories
+  ```bash
+  > create_google_drive_map.py --in_dir /path/to/folders --limit 1:5
+  ```
+
+- Full workflow with custom output directory
+  ```bash
+  > create_google_drive_map.py --in_dir /projects/code --out_dir analysis --all
+  ```
+
+- Start fresh by deleting existing output
+  ```bash
+  > create_google_drive_map.py --in_dir /path/to/folders --from_scratch
+  ```
+
+## `generate_latex_sty.py`
+
+### What It Does
+
+- One-off utility script for generating LaTeX style abbreviations
+- Creates LaTeX `\newcommand` macros for:
+  - Vector notation (e.g., `\va` → `\vv{a}`, `\vvv` → `\vv{v}`)
+  - Matrix notation (e.g., `\mA` → `\mat{A}`, `\mSigma` → `\mat{\Sigma}`)
+  - Mathcal notation (e.g., `\calA` → `\mathcal{A}`)
+- Generates Perl scripts for converting between abbreviation styles
+- Creates vim spell-check files for LaTeX abbreviations
+- Primarily used for initial setup and style file generation
+
+### Examples
+
+- Generate LaTeX abbreviation style file
+  ```python
+  python generate_latex_sty.py
+  ```
+  - Output: `latex_abbrevs.tmp.sty`
+  - Uncomment desired function in `__main__` block to generate different outputs
+
+- The script provides these generation functions:
+  - `generate_latex()`: Creates LaTeX style file with abbreviations
+  - `generate_vim_spell_check()`: Creates vim spell-check file
+  - `generate_perl1()`, `generate_perl2()`, `generate_perl3()`: Generate Perl conversion scripts
+  - `generate_mathcal()`: Generates mathcal notation macros
+
 ## Useful Tools
 
 ### Mermaid
@@ -770,7 +1228,7 @@ The supported File types and code blocks are:
 
 - To render on-line use Overleaf
 
-- Resources
+### Resources
   - [https://www.overleaf.com/learn/latex/TikZ_package](https://www.overleaf.com/learn/latex/TikZ_package)
   - [https://texample.net/](https://texample.net/)
   - [https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php](https://www.integral-domain.org/lwilliams/Resources/tikzsnippets.php)
