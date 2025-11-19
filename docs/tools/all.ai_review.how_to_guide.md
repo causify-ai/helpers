@@ -41,8 +41,8 @@
 
 - We use templates for code and documentation to show and describe how a document
   or code should look like, e.g.,
-  - `ai/code_template.py` shows our coding style
-  - `ai/unit_test_template.py` shows how our unit tests look like
+  - `docs/ai_coding/code_template.py` shows our coding style
+  - `docs/ai_coding/unit_test_template.py` shows how our unit tests look like
   - `all.how_to_guide_template_doc.md` shows how a Diataxis how to guide should
     be structured and look like (same for `explanation`, `tutorial`, `reference`)
 

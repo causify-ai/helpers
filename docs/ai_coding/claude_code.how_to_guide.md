@@ -30,9 +30,9 @@ You can use Claude Code in two ways:
 
 3. I like to use a `instr.md` file with the instructions to `claude`
    so that
-   - E.g., see the template `ai/ai.instruction_template.md`
+   - E.g., see the template `docs/ai_coding/ai.instruction_template.md`
    ```bash
-   > cp ai/ai.instruction_template.md instr.md
+   > cp docs/ai_coding/ai.instruction_template.md instr.md
    # Customize instr.md with detailed instructions
    claude> execute instr.md
    ```
@@ -130,31 +130,31 @@ This documentation provides comprehensive guidelines for:
 
 ## Interesting files
 
-- `ai/code_template.py` shows our coding style
-- `ai/unit_test_template.py` shows how our unit tests look like
+- `docs/ai_coding/code_template.py` shows our coding style
+- `docs/ai_coding/unit_test_template.py` shows how our unit tests look like
 
 - `CLAUDE.md`: Project architecture overview and development conventions for
   Claude Code working with the `helpers` repository
-- `ai/ai.instruction_template.md`: Workflow template for creating Python scripts with
+- `docs/ai_coding/ai.instruction_template.md`: Workflow template for creating Python scripts with
   tests, documentation, planning steps, and AI todos
-- `ai/ai.coding_instructions.md`: Python coding standards including hdbg assertions,
+- `docs/ai_coding/ai.coding_instructions.md`: Python coding standards including hdbg assertions,
   hsystem usage, logging patterns, and script templates
-- `ai/ai.unit_test_instructions.md`: Unit testing conventions including
+- `docs/ai_coding/ai.unit_test_instructions.md`: Unit testing conventions including
   test structure, naming patterns, and golden file testing
 
-- `ai/ai.blog_instructions.md`: Markdown formatting guidelines for writing blog
+- `docs/ai_coding/ai.blog_instructions.md`: Markdown formatting guidelines for writing blog
   posts with proper structure, code blocks, and metadata
 
-- `ai/ai.notes_instructions.txt`: Style guide for writing structured bullet-point
+- `docs/ai_coding/ai.notes_instructions.txt`: Style guide for writing structured bullet-point
   notes optimized for clarity and AI/human readability
 
 ## AI Development Workflow Template
 
 When creating a Python script:
 
-1. **Write a Python script** following the instructions in `ai/ai.coding_instructions.md`
+1. **Write a Python script** following the instructions in `docs/ai_coding/ai.coding_instructions.md`
 
-2. **Generate unit tests** for the code following the instructions in `ai/ai.unit_test_instructions.md`
+2. **Generate unit tests** for the code following the instructions in `docs/ai_coding/ai.unit_test_instructions.md`
 
 3. **Generate a short description** of how to use the script in a file close to the script with extension `.md`
 
