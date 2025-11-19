@@ -458,7 +458,19 @@ def _render_images(
                 _LOG.debug(" -> state=%s", state)
             else:
                 # Record the line from inside the image code block.
-                image_code_lines.append(line)
+                # Strip comment prefix if this is a commented code block.
+                code_line = line
+                if state == "found_commented_image_code":
+                    # Remove the comment prefix from the line before adding to code.
+                    # E.g., "% digraph {" -> "digraph {"
+                    if line.lstrip().startswith(comment_prefix):
+                        # Strip leading whitespace, remove comment prefix, restore whitespace.
+                        leading_space = line[:len(line) - len(line.lstrip())]
+                        stripped = line.lstrip()[len(comment_prefix):].lstrip()
+                        code_line = leading_space + stripped
+                    else:
+                        code_line = line
+                image_code_lines.append(code_line)
                 # Comment out the inside of the image code.
                 out_lines.append(
                     _comment_if_needed(

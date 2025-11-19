@@ -208,3 +208,9 @@ The same templates have multiple applications:
   - Third level represents instructions for an LLM vs Linter
 - `inject_todos.py`: Injects TODOs from a `cfile` into source files.
 - `apply_todos.py`: Automatically applies TODOs from a `cfile` using an LLM.
+
+# Planning mode
+
+> claude --permission-mode plan
+
+Create a plan without coding

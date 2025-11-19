@@ -1108,6 +1108,52 @@ def get_modified_files_in_branch(
     return files
 
 
+def get_modified_and_untracked_files(repo_path: str = ".") -> List[str]:
+    """
+    Get list of modified and untracked files in a git repository.
+
+    Excludes files from submodules and deleted files.
+
+    This includes:
+    - Modified files (both staged and unstaged)
+    - Untracked files
+    - Cached/staged files
+
+    The function uses `git status --porcelain -u` which shows all changes
+    including cached (staged) files.
+
+    :param repo_path: Path to the git repository
+    :return: List of file paths relative to repo_path
+    """
+    hdbg.dassert_dir_exists(repo_path)
+    # Get modified and untracked files, excluding submodules.
+    # The command uses:
+    # - git status --porcelain -u: Get status in machine-readable format with untracked files
+    #   This includes both cached (staged) and modified files
+    # - cut -c4-: Remove the first 3 characters (status flags and space)
+    # - grep -vFf: Filter out submodule paths from .gitmodules
+    cmd = (
+        f"cd {repo_path} && "
+        "git status --porcelain -u | cut -c4- | "
+        "grep -vFf <(git config -f .gitmodules --get-regexp path | awk '{print $2}' 2>/dev/null || true) 2>/dev/null || true"
+    )
+    _, output = hsystem.system_to_string(cmd, abort_on_error=False)
+    # Parse output.
+    files = []
+    for line in output.strip().split("\n"):
+        line = line.strip()
+        if line:
+            # Check if file exists (exclude deleted files).
+            file_path = os.path.join(repo_path, line)
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                files.append(line)
+            else:
+                _LOG.debug(
+                    "Skipping non-existent or non-file: %s", file_path
+                )
+    return files
+
+
 def get_summary_files_in_branch(
     dst_branch: str,
     *,
