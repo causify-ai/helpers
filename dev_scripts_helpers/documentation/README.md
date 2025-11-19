@@ -1,3 +1,11 @@
+# Summary
+
+- This document provides a comprehensive guide to the documentation toolchain that converts raw notes, slides, and LaTeX into polished PDFs, slide decks, and HTML
+- The toolchain supports multiple documentation workflows including standard LaTeX, Causify markdown extensions, notes format, slides, books, and Jupyter books
+- The document catalogs over 30 specialized tools organized into categories: core documentation tools, extraction and conversion tools, dockerized tools, utility and processing tools, and generation and publishing tools
+- Each tool is documented with its purpose, usage examples, and integration with the broader documentation ecosystem
+- The toolchain emphasizes automation, consistency, and ease of use through command-line interfaces and editor integration
+
 # Documentation Toolchain
 
 - This is a high‑level guide to the workflows that turn raw notes, slides, Latex
@@ -118,11 +126,12 @@
 - Short Classification of Tools
 
   - Core Documentation Tools
-    - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides  
-    - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)  
-    - `lint_txt.py`: Lints and formats Markdown/LaTeX/txt notes  
-    - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown  
+    - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides
+    - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
+    - `lint_txt.py`: Lints and formats Markdown/LaTeX/txt notes
+    - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown
     - `transform_notes.py`: Applies transformations (TOC, headers, lists)
+    - `summarize_md.py`: Generates and updates Summary sections in markdown files using LLM
 
   - Extraction and Conversion Tools
     - `convert_docx_to_markdown.py`: Converts DOCX to Markdown  
@@ -498,6 +507,38 @@ The supported File types and code blocks are:
 - Tidy ChatGPT‑generated Markdown (visual mode in Vim)
   ```
   :'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
+  ```
+
+## `summarize_md.py`
+
+### What It Does
+
+- Generate a summary of a markdown file using LLM and update the `# Summary` section
+- Reads the content of a markdown file
+- Uses the `llm` CLI tool to generate a 3-5 bullet point summary
+- Automatically finds and replaces existing `# Summary` section or adds one at the beginning
+- Supports multiple LLM models (default: `gpt-4o-mini`)
+
+### Examples
+
+- Summarize a markdown file using default model
+  ```bash
+  > summarize_md.py --input file.md
+  ```
+
+- Summarize using a specific model
+  ```bash
+  > summarize_md.py --input file.md --model gpt-4o
+  ```
+
+- Dry run to preview changes without modifying the file
+  ```bash
+  > summarize_md.py --input file.md --dry_run
+  ```
+
+- Summarize README with verbose logging
+  ```bash
+  > summarize_md.py --input README.md -v DEBUG
   ```
 
 ## `extract_headers_from_markdown.py`

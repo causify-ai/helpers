@@ -114,11 +114,8 @@ To get better results:
 
 # Workflows
 
-
-
-
-
-This document consolidates all AI development workflows, coding conventions, and tools used in the Causify/helpers ecosystem.
+This document consolidates all AI development workflows, coding conventions, and
+tools used in the Causify/helpers ecosystem.
 
 ## Overview
 
