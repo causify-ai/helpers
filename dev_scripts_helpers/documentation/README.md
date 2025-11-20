@@ -132,6 +132,7 @@
     - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown
     - `transform_notes.py`: Applies transformations (TOC, headers, lists)
     - `summarize_md.py`: Generates and updates Summary sections in markdown files using LLM
+    - `update_md.py`: Applies documentation formatting rules to markdown files using LLM
 
   - Extraction and Conversion Tools
     - `convert_docx_to_markdown.py`: Converts DOCX to Markdown  
@@ -543,6 +544,44 @@ The supported File types and code blocks are:
 - Summarize README with verbose logging
   ```bash
   > summarize_md.py --input README.md -v DEBUG
+  ```
+
+## `update_md.py`
+
+### What It Does
+
+- Apply documentation formatting rules to markdown files using LLMs
+- Reads a markdown file and applies the formatting rules from `docs/ai_coding/ai.notes_instructions.txt`
+- Uses an LLM to transform the content following the structured note-taking principles
+- Supports in-place updates or writing to a new file
+- Automatically finds the repository root to locate the instructions file
+- Supports multiple LLM models and both CLI executable and Python library modes
+
+### Examples
+
+- Update a file in place using default model
+  ```bash
+  > update_md.py --input notes.md
+  ```
+
+- Update a file and save to a different location
+  ```bash
+  > update_md.py --input notes.md --output formatted_notes.md
+  ```
+
+- Use a specific LLM model
+  ```bash
+  > update_md.py --input notes.md --model gpt-4
+  ```
+
+- Use the llm CLI executable instead of Python library
+  ```bash
+  > update_md.py --input notes.md --use_llm_executable
+  ```
+
+- Update with verbose logging
+  ```bash
+  > update_md.py --input notes.md -v DEBUG
   ```
 
 ## `extract_headers_from_markdown.py`
