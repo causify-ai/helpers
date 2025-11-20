@@ -6,25 +6,38 @@
   * [Listing All the Tasks](#listing-all-the-tasks)
   * [Getting Help for a Specific Workflow](#getting-help-for-a-specific-workflow)
   * [Implementation Details](#implementation-details)
-- [Git](#git)
-  * [Merge Master in the Current Branch](#merge-master-in-the-current-branch)
-- [Github](#github)
-  * [Create a PR](#create-a-pr)
-  * [Extract a PR From a Larger One](#extract-a-pr-from-a-larger-one)
-  * [Systematic Code Transformation](#systematic-code-transformation)
-  * [Generate a Local `amp` Docker Image](#generate-a-local-amp-docker-image)
-- [Update the dev `amp` Docker image](#update-the-dev-amp-docker-image)
-- [Experiment in a local image](#experiment-in-a-local-image)
-- [Github Actions (CI)](#github-actions-ci)
-- [Pytest](#pytest)
-  * [Run with Coverage](#run-with-coverage)
-  * [Capture Output of a Pytest](#capture-output-of-a-pytest)
-  * [Run Only One Test Based on Its Name](#run-only-one-test-based-on-its-name)
-  * [Iterate on Stacktrace of Failing Test](#iterate-on-stacktrace-of-failing-test)
-  * [Iterating on a Failing Regression Test](#iterating-on-a-failing-regression-test)
-  * [Detect Mismatches with Golden Test Outcomes](#detect-mismatches-with-golden-test-outcomes)
-- [Lint](#lint)
-  * [Lint Everything](#lint-everything)
+- [Task Categories](#task-categories)
+  * [AWS/ECS Task Definitions](#awsecs-task-definitions)
+  * [Bash Utilities](#bash-utilities)
+  * [Docker Tasks](#docker-tasks)
+  * [Find Utilities](#find-utilities)
+  * [GitHub Integration](#github-integration)
+  * [Git Operations](#git-operations)
+  * [Integration Workflows](#integration-workflows)
+  * [Linting and Code Quality](#linting-and-code-quality)
+  * [Pytest - Test Management](#pytest---test-management)
+  * [Running Tests](#running-tests)
+- [Common Workflows](#common-workflows)
+  * [Git Workflows](#git-workflows)
+    + [Merge Master in the Current Branch](#merge-master-in-the-current-branch)
+  * [Github Workflows](#github-workflows)
+    + [Create a PR](#create-a-pr)
+    + [Extract a PR From a Larger One](#extract-a-pr-from-a-larger-one)
+    + [Systematic Code Transformation](#systematic-code-transformation)
+  * [Docker Workflows](#docker-workflows)
+    + [Generate a Local `amp` Docker Image](#generate-a-local-amp-docker-image)
+    + [Update the dev `amp` Docker image](#update-the-dev-amp-docker-image)
+    + [Experiment in a local image](#experiment-in-a-local-image)
+  * [Github Actions (CI)](#github-actions-ci)
+  * [Pytest Workflows](#pytest-workflows)
+    + [Run with Coverage](#run-with-coverage)
+    + [Capture Output of a Pytest](#capture-output-of-a-pytest)
+    + [Run Only One Test Based on Its Name](#run-only-one-test-based-on-its-name)
+    + [Iterate on Stacktrace of Failing Test](#iterate-on-stacktrace-of-failing-test)
+    + [Iterating on a Failing Regression Test](#iterating-on-a-failing-regression-test)
+    + [Detect Mismatches with Golden Test Outcomes](#detect-mismatches-with-golden-test-outcomes)
+  * [Lint Workflows](#lint-workflows)
+    + [Lint Everything](#lint-everything)
 
 <!-- tocstop -->
 
@@ -83,115 +96,11 @@
 
 - New commands are always being added, but a list of valid tasks is below
 
-  ````bash
+  ```bash
   > invoke --list
   INFO: > cmd='/Users/saggese/src/venv/amp.client_venv/bin/invoke --list'
   Available tasks:
-  copy_ecs_task_definition_image_url                    Copy image URL from one task definition to another.
-
-  docker_bash                                           Start a bash shell inside the container corresponding to a stage.
-  docker_build_local_image                              Build a local image, i.e., a release candidate "dev" image.
-  docker_build_prod_image                               Build a prod image from a dev image.
-  docker_cmd                                            Execute the command `cmd` inside a container corresponding to a stage.
-  docker_create_candidate_image                         Create new prod candidate image and update the specified ECS task
-  docker_images_ls_repo                                 List images in the logged in repo_short_name.
-  docker_jupyter                                        Run Jupyter notebook server.
-  docker_kill                                           Kill the last Docker container started.
-  docker_login                                          Log in the target registry and skip if we are in kaizenflow.
-  docker_ps                                             List all the running containers.
-  docker_pull                                           Pull latest dev image corresponding to the current repo from the registry.
-  docker_pull_helpers                                   Pull latest prod image of `helpers` from the registry.
-  docker_push_dev_image                                 Push the "dev" image to ECR.
-  docker_push_prod_candidate_image                      (ONLY CI/CD) Push the "prod" candidate image to ECR.
-  docker_push_prod_image                                Push the "prod" image to ECR.
-  docker_release_dev_image                              Build, test, and release to ECR the latest "dev" image.
-  docker_release_multi_build_dev_image                  Build, test, and release the latest multi-arch "dev" image.
-  docker_release_prod_image                             Build, test, and release to ECR the prod image.
-  docker_rollback_dev_image                             Rollback the version of the dev image.
-  docker_rollback_prod_image                            Rollback the version of the prod image.
-  docker_stats                                          Report last started Docker container stats, e.g., CPU, RAM.
-  docker_tag_local_image_as_dev                         Mark the "local" image as "dev".
-  docker_tag_push_multi_build_local_image_as_dev        Mark the multi-arch "local" image as "dev" and push it.
-  docker_update_prod_task_definition                    Update image in prod task definition to the desired version.
-
-  find                                                  Find symbols, imports, test classes and so on.
-  find_check_string_output                              Find output of `check_string()` in the test running
-  find_dependency                                       E.g., ```
-  find_test_class                                       Report test files containing `class_name` in a format compatible with
-  find_test_decorator                                   Report test files containing `class_name` in pytest format.
-
-  fix_perms                                             :param action:
-
-  gh_create_pr                                          Create a draft PR for the current branch in the corresponding
-  gh_issue_title                                        Print the title that corresponds to the given issue and repo_short_name.
-  gh_login
-  gh_publish_buildmeister_dashboard_to_s3               Run the buildmeister dashboard notebook and publish it to S3.
-  gh_workflow_list                                      Report the status of the GH workflows.
-  gh_workflow_run                                       Run GH workflows in a branch.
-
-  git_add_all_untracked                                 Add all untracked files to Git.
-  git_branch_copy                                       Create a new branch with the same content of the current branch.
-  git_branch_create                                     Create and push upstream branch `branch_name` or the one corresponding to
-  git_branch_delete_merged                              Remove (both local and remote) branches that have been merged into master.
-  git_branch_diff_with                                  Diff files of the current branch with master at the branching point.
-  git_branch_files                                      Report which files were added, changed, and modified in the current branch
-  git_branch_next_name                                  Return a name derived from the current branch so that the branch doesn't
-  git_branch_rename                                     Rename current branch both locally and remotely.
-  git_clean                                             Clean the repo_short_name and its submodules from artifacts.
-  git_fetch_master                                      Pull master without changing branch.
-  git_files                                             Report which files are changed in the current branch with respect to
-  git_last_commit_files                                 Print the status of the files in the previous commit.
-  git_merge_master                                      Merge `origin/master` into the current branch.
-  git_patch_create                                      Create a patch file for the entire repo_short_name client from the base
-  git_pull                                              Pull all the repos.
-  git_roll_amp_forward                                  Roll amp forward.
-
-  integrate_create_branch                               Create the branch for integration of `dir_basename` (e.g., amp1) in the
-  integrate_diff_dirs                                   Integrate repos from dirs `src_dir_basename` to `dst_dir_basename` by diffing
-  integrate_diff_overlapping_files                      Find the files modified in both branches `src_dir_basename` and
-  integrate_file                                        Diff corresponding files in two different repos.
-  integrate_files                                       Find and copy the files that are touched only in one branch or in both.
-  integrate_find_files                                  Find the files that are touched in the current branch since last
-  integrate_find_files_touched_since_last_integration   Print the list of files modified since the last integration for this dir.
-  integrate_rsync                                       Use `rsync` to bring two dirs to sync.
-
-  lint                                                  Lint files.
-  lint_check_if_it_was_run                              Check if Linter was run in the current branch.
-  lint_check_python_files                               Compile and execute Python files checking for errors.
-  lint_check_python_files_in_docker                     Compile and execute Python files checking for errors.
-  lint_create_branch                                    Create the branch for linting in the current dir.
-  lint_detect_cycles                                    Detect cyclic imports in the directory files.
-
-  print_env                                             Print the repo configuration.
-  print_setup                                           Print some configuration variables.
-  print_tasks                                           Print all the available tasks in `lib_tasks.py`.
-
-  pytest_add_untracked_golden_outcomes                  Add the golden outcomes files that are not tracked under git.
-  pytest_buildmeister                                   Run the regression tests.
-  pytest_buildmeister_check                             :param print_output: print content of the file with the output of the
-  pytest_clean                                          Clean pytest artifacts.
-  pytest_collect_only
-  pytest_compare_logs                                   Diff two log files removing the irrelevant parts (e.g., timestamps, object
-  pytest_find_unused_goldens                            Detect mismatches between tests and their golden outcome files.
-  pytest_rename_test                                    Rename the test and move its golden outcome.
-  pytest_repro                                          Generate commands to reproduce the failed tests after a `pytest` run.
-
-  release_dags_to_airflow                               Copy the DAGs to the shared Airflow directory.
-
-  run_blank_tests                                       (ONLY CI/CD) Test that pytest in the container works.
-  run_coverage_report                                   Compute test coverage stats.
-  run_coverage_subprocess                               Run comprehensive coverage using subprocess mode with hcoverage injection and direct
-                                                        coverage run.
-  run_fast_slow_superslow_tests                         Run fast, slow, superslow tests back-to-back.
-  run_fast_slow_tests                                   Run fast and slow tests back-to-back.
-  run_fast_tests                                        Run fast tests. check `gh auth status` before invoking to avoid auth
-  run_qa_tests                                          Run QA tests independently.
-  run_slow_tests                                        Run slow tests.
-  run_superslow_tests                                   Run superslow tests.
-  run_tests                                             :param test_lists: comma separated list with test lists to run (e.g., `fast_test,slow_tests`)
-
-  traceback                                             Parse the traceback from Pytest and navigate it with vim.
-  ````
+  ```
 
 ### Getting Help for a Specific Workflow
 
@@ -250,15 +159,100 @@
     - In other words one should do `cd cmamp/optimizer` before doing
       `i invoke_task2 ...`
 
-## Git
+## Task Categories
 
-### Merge Master in the Current Branch
+The invoke tasks are organized into the following categories:
+
+### AWS/ECS Task Definitions
+
+Tasks for managing AWS ECS task definitions across different environments (test, preprod, prod).
+- Creating task definitions for different environments
+- Copying image URLs between task definitions
+
+### Bash Utilities
+
+Simple bash utility commands for printing paths and directory trees.
+
+### Docker Tasks
+
+Comprehensive Docker workflow automation including:
+- **Container Operations**: Starting bash shells, running commands, Jupyter notebooks
+- **Image Building**: Building local, dev, prod, and multi-arch images
+- **Image Management**: Listing, pulling, pushing, and removing images
+- **Release Workflows**: Complete release pipelines for dev and prod images
+- **Tagging**: Managing image tags across registries
+
+### Find Utilities
+
+Code search and discovery tools:
+- Finding symbols, imports, and dependencies
+- Locating test classes and decorators
+- Finding `check_string()` output in tests
+
+### GitHub Integration
+
+GitHub operations via `gh` CLI integration:
+- Creating and managing pull requests
+- Managing GitHub issues
+- Running and monitoring GitHub Actions workflows
+- Publishing dashboards to S3
+
+### Git Operations
+
+Git workflow automation:
+- Branch management (create, copy, rename, delete)
+- Branch analysis (files changed, diffs, merge status)
+- Merging and pulling changes
+- Creating patches and backups
+- Repository integration
+
+### Integration Workflows
+
+Tools for integrating code between different repository directories:
+- Creating integration branches
+- Finding and comparing modified files
+- Syncing directories with rsync
+- Managing cross-repo integrations
+
+### Linting and Code Quality
+
+Code quality and linting tools:
+- Running linters on modified files
+- Checking Python file compilation
+- Detecting cyclic imports
+- Creating lint branches
+- Syncing linting code
+
+### Pytest - Test Management
+
+Test management utilities:
+- Managing golden outcome files
+- Running regression tests (buildmeister)
+- Cleaning pytest artifacts
+- Comparing test logs
+- Renaming tests and their outcomes
+- Reproducing failed tests
+
+### Running Tests
+
+Test execution tasks for different test suites:
+- Fast tests (quick unit tests)
+- Slow tests (integration tests)
+- Superslow tests (end-to-end tests)
+- Test coverage reporting
+- QA tests
+
+## Common Workflows
+
+### Git Workflows
+
+#### Merge Master in the Current Branch
 
 ```bash
 > i git_merge_master
 ```
 
-## Github
+### Github Workflows
 
 - Get the official branch name corresponding to an Issue
 
@@ -271,22 +265,24 @@
   https://github.com/alphamatic/amp/pull/256
   ```
 
-### Create a PR
+#### Create a PR
 
 TODO(gp): Describe
 
-### Extract a PR From a Larger One
+#### Extract a PR From a Larger One
 
 - For splitting large PRs, use the dedicated workflow `git_branch_copy'
 - See detailed guide in
   [all.invoke_git_branch_copy.how_to_guide.md](/docs/tools/all.invoke_git_branch_copy.how_to_guide.md)
 
-### Systematic Code Transformation
+#### Systematic Code Transformation
 
 - Can be done with the help of
   `dev_scripts_helpers/system_tools/replace_text.py`
 
-### Generate a Local `amp` Docker Image
+### Docker Workflows
+
+#### Generate a Local `amp` Docker Image
 
 - This is a manual flow used to test and debug images before releasing them to
   the team.
@@ -317,7 +313,7 @@ TODO(gp): Describe
   > i docker_push_dev_image
   ```
 
-  ## Update the dev `amp` Docker image
+#### Update the dev `amp` Docker image
 
 - To implement the entire Docker QA process of a dev image
 
@@ -335,7 +331,7 @@ TODO(gp): Describe
   > i docker_release_dev_image
   ```
 
-  ## Experiment in a local image
+#### Experiment in a local image
 
 - To install packages in an image, do `i docker_bash`
 
@@ -371,7 +367,7 @@ TODO(gp): Describe
 - If you are running inside a notebook using `i docker_jupyter` you can install
   packages using a one liner `! sudo su -; source ...; `
 
-## Github Actions (CI)
+### Github Actions (CI)
 
 - To run a single test in GH Action
   - Create a branch
@@ -382,7 +378,7 @@ TODO(gp): Describe
     -s --dbg"
     ```
 
-## Pytest
+### Pytest Workflows
 
 - From
   [https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a](https://gist.github.com/kwmiebach/3fd49612ef7a52b5ce3a)
@@ -390,13 +386,13 @@ TODO(gp): Describe
 - More details on running unit tests with `invoke` is
   [/docs/coding/all.run_unit_tests.how_to_guide.md](/docs/coding/all.run_unit_tests.how_to_guide.md)
 
-### Run with Coverage
+#### Run with Coverage
 
 ```bash
 > i run_fast_tests --pytest-opts="core/test/test_finance.py" --coverage
 ```
 
-### Capture Output of a Pytest
+#### Capture Output of a Pytest
 
 - Inside the `dev` container (i.e., docker bash)
 
@@ -414,7 +410,7 @@ TODO(gp): Describe
   ...
   ```
 
-### Run Only One Test Based on Its Name
+#### Run Only One Test Based on Its Name
 
 - Outside the `dev` container
 
@@ -428,7 +424,7 @@ TODO(gp): Describe
   ./helpers/test/test_hobject.py::Test_obj_to_str1
   ```
 
-### Iterate on Stacktrace of Failing Test
+#### Iterate on Stacktrace of Failing Test
 
 - Inside docker bash
   ```bash
@@ -461,7 +457,7 @@ TODO(gp): Describe
 
 - The short form is `it`
 
-### Iterating on a Failing Regression Test
+#### Iterating on a Failing Regression Test
 
 - The workflow is:
 
@@ -474,7 +470,7 @@ TODO(gp): Describe
   > invoke pytest_repro
   ```
 
-### Detect Mismatches with Golden Test Outcomes
+#### Detect Mismatches with Golden Test Outcomes
 
 - The command is
 
@@ -502,9 +498,9 @@ TODO(gp): Describe
 - For more details see
   [CmTask528](https://github.com/cryptokaizen/cmamp/issues/528).
 
-## Lint
+### Lint Workflows
 
-### Lint Everything
+#### Lint Everything
 
 ```bash
 > i lint --phases="amp_isort amp_class_method_order amp_normalize_import

@@ -1,0 +1,3 @@
+#!/bin/bash -xe
+
+claude --dangerously-skip-permissions --output text -p "$*"

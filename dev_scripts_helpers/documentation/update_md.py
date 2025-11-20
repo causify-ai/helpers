@@ -16,6 +16,7 @@ Note: At least one action must be specified using --action.
 
 Examples:
 ```bash
+# Single file examples
 # Summarize a markdown file
 > update_md.py --input file.md --action summarize
 
@@ -36,6 +37,19 @@ Examples:
 
 # Skip linting after actions
 > update_md.py --input file.md --action summarize --skip_lint
+
+# Multiple files examples
+# Process multiple files using comma-separated list
+> update_md.py --files="file1.md,file2.md,file3.md" --action summarize
+
+# Process multiple files using repeated --input argument
+> update_md.py --input file1.md --input file2.md --input file3.md --action summarize
+
+# Process multiple files from a file list (one file per line)
+> update_md.py --from_files="files.txt" --action summarize
+
+# Process multiple files with multiple actions and progress bar
+> update_md.py --files="file1.md,file2.md,file3.md" --action summarize,apply_style
 ```
 
 Import as:
@@ -447,13 +461,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument(
-        "-i", "--input",
-        action="store",
-        required=True,
-        dest="input",
-        help="Path to input markdown file",
-    )
+    hparser.add_multi_file_args(parser)
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
         "-m", "--model",
@@ -487,38 +495,52 @@ def _main(parser: argparse.ArgumentParser) -> None:
         len(actions) > 0,
         "At least one action must be specified using --action",
     )
-    _LOG.info("Input file: %s", args.input)
+    # Parse input files.
+    input_files = hparser.parse_multi_file_args(args)
+    _LOG.info("Number of files to process: %d", len(input_files))
     _LOG.info("Actions to perform: %s", ", ".join(actions))
     if args.skip_lint:
         _LOG.info("Linting disabled (--skip_lint)")
-    # Execute each action.
-    for action in actions:
-        if action == "summarize":
-            _action_summarize(
-                args.input,
-                model=args.model,
-                use_llm_executable=args.use_llm_executable,
-                skip_lint=args.skip_lint,
-            )
-        elif action == "update_content":
-            _action_update_content(
-                args.input,
-                model=args.model,
-                use_llm_executable=args.use_llm_executable,
-                skip_lint=args.skip_lint,
-            )
-        elif action == "apply_style":
-            _action_apply_style(
-                args.input,
-                model=args.model,
-                use_llm_executable=args.use_llm_executable,
-                skip_lint=args.skip_lint,
-            )
-        elif action == "lint":
-            _action_lint(args.input)
-        else:
-            hdbg.dfatal("Invalid action: %s", action)
-    _LOG.info("All actions completed successfully")
+    # Process each file.
+    if len(input_files) > 1:
+        # Use progress bar for multiple files.
+        from tqdm.autonotebook import tqdm
+        import helpers.htqdm as htqdm
+        tqdm_out = htqdm.TqdmToLogger(_LOG, level=logging.INFO)
+        file_iterator = tqdm(input_files, desc="Processing files", file=tqdm_out)
+    else:
+        # No progress bar for single file.
+        file_iterator = input_files
+    for input_file in file_iterator:
+        _LOG.info("Processing file: %s", input_file)
+        # Execute each action for the current file.
+        for action in actions:
+            if action == "summarize":
+                _action_summarize(
+                    input_file,
+                    model=args.model,
+                    use_llm_executable=args.use_llm_executable,
+                    skip_lint=args.skip_lint,
+                )
+            elif action == "update_content":
+                _action_update_content(
+                    input_file,
+                    model=args.model,
+                    use_llm_executable=args.use_llm_executable,
+                    skip_lint=args.skip_lint,
+                )
+            elif action == "apply_style":
+                _action_apply_style(
+                    input_file,
+                    model=args.model,
+                    use_llm_executable=args.use_llm_executable,
+                    skip_lint=args.skip_lint,
+                )
+            elif action == "lint":
+                _action_lint(input_file)
+            else:
+                hdbg.dfatal("Invalid action: %s", action)
+    _LOG.info("All actions completed successfully for all files")
 
 
 if __name__ == "__main__":
