@@ -145,7 +145,7 @@ This documentation provides comprehensive guidelines for:
 - `docs/ai_coding/ai.blog_instructions.md`: Markdown formatting guidelines for writing blog
   posts with proper structure, code blocks, and metadata
 
-- `docs/ai_coding/ai.notes_instructions.txt`: Style guide for writing structured bullet-point
+- `docs/ai_coding/ai.md_instructions.md`: Style guide for writing structured bullet-point
   notes optimized for clarity and AI/human readability
 
 ## AI Development Workflow Template
@@ -206,8 +206,15 @@ The same templates have multiple applications:
 - `inject_todos.py`: Injects TODOs from a `cfile` into source files.
 - `apply_todos.py`: Automatically applies TODOs from a `cfile` using an LLM.
 
-# Planning mode
+# 
+- Planning mode
 
 > claude --permission-mode plan
 
 Create a plan without coding
+
+- Cheap-o mode
+
+> claude --model haiku
+
+> claude --output-format text -p "Fix update_md.py -i docs/datapull/all.add_new_data_source.how_to_guide.md -a summarize -a apply_style" --dangerously-skip-permissions
