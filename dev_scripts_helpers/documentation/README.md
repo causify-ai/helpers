@@ -516,7 +516,10 @@ The supported File types and code blocks are:
 - Generate a summary of a markdown file using LLM and update the `# Summary` section
 - Reads the content of a markdown file
 - Uses the `llm` CLI tool to generate a 3-5 bullet point summary
-- Automatically finds and replaces existing `# Summary` section or adds one at the beginning
+- Intelligently places the summary:
+  - After `<!-- tocstop -->` tag if present (ideal for files with table of contents)
+  - Otherwise, replaces existing `# Summary` section if found
+  - Otherwise, adds at the beginning of the file
 - Supports multiple LLM models (default: `gpt-4o-mini`)
 
 ### Examples

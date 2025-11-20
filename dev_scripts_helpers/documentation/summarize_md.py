@@ -4,7 +4,10 @@
 Summarize a markdown file using LLM and update its Summary section.
 
 This script reads a markdown file, generates a summary using the llm CLI tool,
-and updates or adds a `# Summary` section at the beginning of the file.
+and intelligently places the summary:
+- After `<!-- tocstop -->` tag if present (ideal for files with TOC)
+- Otherwise, replaces existing `# Summary` section if found
+- Otherwise, adds at the beginning of the file
 
 Examples:
 ```bash
@@ -146,11 +149,38 @@ def _find_summary_section(content: str) -> tuple:
     return start_pos, end_pos
 
 
+def _find_tocstop_position(content: str) -> int:
+    """
+    Find the position right after the <!-- tocstop --> tag.
+
+    :param content: markdown content
+    :return: position after tocstop tag, or None if not found
+    """
+    _LOG.debug("Searching for <!-- tocstop --> tag")
+    pattern = r"<!-- tocstop -->"
+    match = re.search(pattern, content, re.IGNORECASE)
+    if not match:
+        _LOG.debug("No <!-- tocstop --> tag found")
+        return None
+    # Return position after the tag and any following newlines.
+    end_pos = match.end()
+    # Skip any trailing whitespace/newlines after the tag.
+    while end_pos < len(content) and content[end_pos] in ("\n", "\r", " "):
+        end_pos += 1
+    _LOG.debug("Found <!-- tocstop --> at position %d", end_pos)
+    return end_pos
+
+
 def _update_summary_section(
     content: str, summary: str, *, dry_run: bool
 ) -> str:
     """
     Update or add the Summary section in the content.
+
+    Places the summary:
+    1. After <!-- tocstop --> tag if it exists
+    2. Otherwise, replaces existing # Summary section if found
+    3. Otherwise, adds at the beginning of the file
 
     :param content: original markdown content
     :param summary: generated summary text
@@ -160,16 +190,51 @@ def _update_summary_section(
     _LOG.debug("Updating Summary section")
     # Create the new summary section.
     new_summary_section = f"# Summary\n\n{summary}\n\n"
+    # Check if tocstop exists.
+    tocstop_pos = _find_tocstop_position(content)
     # Check if Summary section exists.
-    start_pos, end_pos = _find_summary_section(content)
-    if start_pos is not None:
-        # Replace existing summary.
+    summary_start, summary_end = _find_summary_section(content)
+    if tocstop_pos is not None:
+        # Place summary after tocstop tag.
+        _LOG.info("Placing Summary section after <!-- tocstop --> tag")
+        # If there's an existing summary section, remove it first.
+        if summary_start is not None:
+            # Special handling: if summary is before tocstop, we need to be careful
+            # not to remove the TOC section itself.
+            if summary_start < tocstop_pos:
+                # Find where the summary content actually ends (before TOC or next header).
+                # Look for either <!-- toc --> or the next # header.
+                toc_start_pattern = r"<!-- toc -->"
+                toc_match = re.search(
+                    toc_start_pattern, content[summary_start:], re.IGNORECASE
+                )
+                if toc_match and (summary_start + toc_match.start()) < summary_end:
+                    # The TOC starts within what we detected as the summary section.
+                    # Only remove up to the TOC start.
+                    actual_summary_end = summary_start + toc_match.start()
+                else:
+                    actual_summary_end = summary_end
+                # Remove the old summary section.
+                content = content[:summary_start] + content[actual_summary_end:]
+                # Adjust tocstop_pos.
+                tocstop_pos -= actual_summary_end - summary_start
+                # Re-find tocstop position in case content changed.
+                tocstop_pos = _find_tocstop_position(content)
+            else:
+                # Summary is after tocstop, just remove it normally.
+                content = content[:summary_start] + content[summary_end:]
+        # Insert summary after tocstop.
+        new_content = (
+            content[:tocstop_pos] + new_summary_section + content[tocstop_pos:]
+        )
+    elif summary_start is not None:
+        # Replace existing summary (no tocstop).
         _LOG.info("Replacing existing Summary section")
         new_content = (
-            content[:start_pos] + new_summary_section + content[end_pos:]
+            content[:summary_start] + new_summary_section + content[summary_end:]
         )
     else:
-        # Add summary at the beginning.
+        # Add summary at the beginning (no tocstop, no existing summary).
         _LOG.info("Adding new Summary section at the beginning")
         new_content = new_summary_section + content
     return new_content
