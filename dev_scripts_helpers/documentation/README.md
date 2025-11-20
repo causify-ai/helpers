@@ -131,8 +131,7 @@
     - `lint_txt.py`: Lints and formats Markdown/LaTeX/txt notes
     - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown
     - `transform_notes.py`: Applies transformations (TOC, headers, lists)
-    - `summarize_md.py`: Generates and updates Summary sections in markdown files using LLM
-    - `update_md.py`: Applies documentation formatting rules to markdown files using LLM
+    - `update_md.py`: Multi-action LLM tool for markdown files (summarize, update content, apply style)
 
   - Extraction and Conversion Tools
     - `convert_docx_to_markdown.py`: Converts DOCX to Markdown  
@@ -510,78 +509,58 @@ The supported File types and code blocks are:
   :'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
   ```
 
-## `summarize_md.py`
-
-### What It Does
-
-- Generate a summary of a markdown file using LLM and update the `# Summary` section
-- Reads the content of a markdown file
-- Uses the `llm` CLI tool to generate a 3-5 bullet point summary
-- Intelligently places the summary:
-  - After `<!-- tocstop -->` tag if present (ideal for files with table of contents)
-  - Otherwise, replaces existing `# Summary` section if found
-  - Otherwise, adds at the beginning of the file
-- Automatically runs `lint_txt.py` on the resulting file for proper formatting
-- Supports multiple LLM models (default: `gpt-4o-mini`)
-
-### Examples
-
-- Summarize a markdown file using default model
-  ```bash
-  > summarize_md.py --input file.md
-  ```
-
-- Summarize using a specific model
-  ```bash
-  > summarize_md.py --input file.md --model gpt-4o
-  ```
-
-- Dry run to preview changes without modifying the file
-  ```bash
-  > summarize_md.py --input file.md --dry_run
-  ```
-
-- Summarize README with verbose logging
-  ```bash
-  > summarize_md.py --input README.md -v DEBUG
-  ```
-
 ## `update_md.py`
 
 ### What It Does
 
-- Apply documentation formatting rules to markdown files using LLMs
-- Reads a markdown file and applies the formatting rules from `docs/ai_coding/ai.notes_instructions.txt`
-- Uses an LLM to transform the content following the structured note-taking principles
-- Supports in-place updates or writing to a new file
-- Automatically finds the repository root to locate the instructions file
-- Supports multiple LLM models and both CLI executable and Python library modes
+- Multi-action LLM tool for processing markdown files with three main actions:
+  - **summarize**: Generate and add/update a `# Summary` section with 3-5 bullet points
+  - **update_content**: Refresh content to match current code using LLM analysis
+  - **apply_style**: Apply formatting rules from `docs/ai_coding/ai.notes_instructions.txt`
+- Intelligently places summaries:
+  - After `<!-- tocstop -->` tag if present (ideal for files with table of contents)
+  - Otherwise, replaces existing `# Summary` section if found
+  - Otherwise, adds at the beginning of the file
+- Automatically runs `lint_txt.py` after summarization for proper formatting
+- Supports multiple actions in a single run
+- Works with multiple LLM models (default: `gpt-4o-mini`)
+- Supports both Python library and CLI executable modes
 
 ### Examples
 
-- Update a file in place using default model
+- Summarize a markdown file
   ```bash
-  > update_md.py --input notes.md
+  > update_md.py --input file.md --action summarize
   ```
 
-- Update a file and save to a different location
+- Summarize using a specific model
   ```bash
-  > update_md.py --input notes.md --output formatted_notes.md
+  > update_md.py --input file.md --action summarize --model gpt-4o
   ```
 
-- Use a specific LLM model
+- Update content to match current code
   ```bash
-  > update_md.py --input notes.md --model gpt-4
+  > update_md.py --input README.md --action update_content
+  ```
+
+- Apply style guidelines from ai.notes_instructions.txt
+  ```bash
+  > update_md.py --input notes.md --action apply_style
+  ```
+
+- Perform multiple actions in sequence
+  ```bash
+  > update_md.py --input document.md --action summarize,apply_style
   ```
 
 - Use the llm CLI executable instead of Python library
   ```bash
-  > update_md.py --input notes.md --use_llm_executable
+  > update_md.py --input notes.md --action summarize --use_llm_executable
   ```
 
 - Update with verbose logging
   ```bash
-  > update_md.py --input notes.md -v DEBUG
+  > update_md.py --input notes.md --action update_content -v DEBUG
   ```
 
 ## `extract_headers_from_markdown.py`

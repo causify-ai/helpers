@@ -179,11 +179,10 @@ def apply_llm(
     # Route to appropriate implementation.
     if use_llm_executable:
         # Check that llm executable exists.
-        # TODO(gp_ai): use a dassert(_check_llm
-        if not _check_llm_executable():
-            hdbg.dfatal(
-                "llm executable not found. Install it using: pip install llm"
-            )
+        hdbg.dassert(
+            _check_llm_executable(),
+            "llm executable not found. Install it using: pip install llm",
+        )
         response = _apply_llm_via_executable(
             input_str,
             system_prompt=system_prompt,

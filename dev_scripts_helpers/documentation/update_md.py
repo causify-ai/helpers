@@ -1,0 +1,498 @@
+#!/usr/bin/env python
+
+"""
+Update markdown files with LLM-based actions.
+
+This script provides multiple actions for processing markdown files:
+- summarize: Generate and add/update a Summary section
+- update_content: Refresh content to match current code
+- apply_style: Apply formatting rules from ai.notes_instructions.txt
+
+Note: At least one action must be specified using --action.
+
+Examples:
+```bash
+# Summarize a markdown file
+> update_md.py --input file.md --action summarize
+
+# Update content to match code
+> update_md.py --input file.md --action update_content
+
+# Apply style guidelines
+> update_md.py --input file.md --action apply_style
+
+# Perform multiple actions
+> update_md.py --input file.md --action summarize,apply_style
+
+# Use a specific model
+> update_md.py --input file.md --action summarize --model gpt-4o
+```
+
+Import as:
+
+import dev_scripts_helpers.documentation.update_md as dsdoupmd
+"""
+
+import argparse
+import logging
+import os
+import re
+from typing import Optional, Tuple
+
+import helpers.hdbg as hdbg
+import helpers.hgit as hgit
+import helpers.hio as hio
+import helpers.hllm_cli as hllmcli
+import helpers.hparser as hparser
+import helpers.hsystem as hsystem
+
+_LOG = logging.getLogger(__name__)
+
+# Valid actions for the script.
+_VALID_ACTIONS = ["summarize", "update_content", "apply_style"]
+_DEFAULT_ACTIONS = []
+
+
+# #############################################################################
+# Helper functions
+# #############################################################################
+
+
+def _find_repo_root() -> str:
+    """
+    Find the repository root by looking for repo_config.yaml.
+
+    :return: absolute path to repository root
+    """
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Walk up the directory tree looking for repo_config.yaml.
+    while current_dir != "/":
+        repo_config_path = os.path.join(current_dir, "repo_config.yaml")
+        if os.path.exists(repo_config_path):
+            _LOG.debug("Found repository root: %s", current_dir)
+            return current_dir
+        current_dir = os.path.dirname(current_dir)
+    hdbg.dfatal("Could not find repository root with repo_config.yaml")
+
+
+def _read_file(file_path: str) -> str:
+    """
+    Read the content of the markdown file.
+
+    :param file_path: path to the markdown file
+    :return: content of the file
+    """
+    hdbg.dassert_file_exists(file_path)
+    _LOG.debug("Reading file: %s", file_path)
+    content = hio.from_file(file_path)
+    return content
+
+
+def _write_file(file_path: str, content: str) -> None:
+    """
+    Write the content to the markdown file.
+
+    :param file_path: path to the markdown file
+    :param content: content to write
+    """
+    _LOG.debug("Writing file: %s", file_path)
+    hio.to_file(file_path, content)
+    _LOG.info("File updated successfully: %s", file_path)
+
+
+def _lint_file(file_path: str) -> None:
+    """
+    Run lint_txt.py on the file to ensure proper formatting.
+
+    :param file_path: path to the markdown file to lint
+    """
+    _LOG.info("Linting file: %s", file_path)
+    lint_script = hgit.find_file_in_git_tree("lint_txt.py", super_module=True)
+    # Run lint_txt.py.
+    cmd = f"{lint_script} -i {file_path} -v CRITICAL"
+    _LOG.debug("Running command: %s", cmd)
+    hsystem.system(cmd, suppress_output=True)
+    _LOG.info("File linted successfully: %s", file_path)
+
+
+# #############################################################################
+# Action: summarize
+# #############################################################################
+
+
+def _generate_summary(content: str, *, model: str, use_llm_executable: bool) -> str:
+    """
+    Generate a summary of the content using the llm library or executable.
+
+    :param content: text content to summarize
+    :param model: LLM model to use
+    :param use_llm_executable: whether to use llm CLI executable or Python library
+    :return: generated summary
+    """
+    _LOG.info("Generating summary using model: %s", model)
+    # Prepare the system prompt.
+    system_prompt = """
+    Summarize the content of the text in 3 to 5 bullet points, each of maximum
+    20 words
+    """
+    # Call apply_llm from hllm_cli.
+    summary = hllmcli.apply_llm(
+        content,
+        system_prompt=system_prompt,
+        model=model,
+        use_llm_executable=use_llm_executable,
+    )
+    # Clean up summary.
+    summary = summary.strip()
+    _LOG.debug("Generated summary:\n%s", summary)
+    return summary
+
+
+def _find_summary_section(content: str) -> Tuple[Optional[int], Optional[int]]:
+    """
+    Find the Summary section in the content.
+
+    :param content: markdown content
+    :return: tuple of (start_pos, end_pos) or (None, None) if not found
+    """
+    _LOG.debug("Searching for existing Summary section")
+    # Look for "# Summary" header.
+    pattern = r"^# Summary\s*$"
+    match = re.search(pattern, content, re.MULTILINE)
+    if not match:
+        _LOG.debug("No Summary section found")
+        return None, None
+    # Find the start of the summary section.
+    start_pos = match.start()
+    # Find the end of the summary section (next # header or end of file).
+    next_header_pattern = r"\n# [^#]"
+    next_match = re.search(next_header_pattern, content[start_pos + 1 :])
+    if next_match:
+        end_pos = start_pos + 1 + next_match.start()
+    else:
+        end_pos = len(content)
+    _LOG.debug("Found Summary section from pos %d to %d", start_pos, end_pos)
+    return start_pos, end_pos
+
+
+def _find_tocstop_position(content: str) -> Optional[int]:
+    """
+    Find the position right after the <!-- tocstop --> tag.
+
+    :param content: markdown content
+    :return: position after tocstop tag, or None if not found
+    """
+    _LOG.debug("Searching for <!-- tocstop --> tag")
+    pattern = r"<!-- tocstop -->"
+    match = re.search(pattern, content, re.IGNORECASE)
+    if not match:
+        _LOG.debug("No <!-- tocstop --> tag found")
+        return None
+    # Return position after the tag and any following newlines.
+    end_pos = match.end()
+    # Skip any trailing whitespace/newlines after the tag.
+    while end_pos < len(content) and content[end_pos] in ("\n", "\r", " "):
+        end_pos += 1
+    _LOG.debug("Found <!-- tocstop --> at position %d", end_pos)
+    return end_pos
+
+
+def _update_summary_section(content: str, summary: str) -> str:
+    """
+    Update or add the Summary section in the content.
+
+    Places the summary:
+    1. After <!-- tocstop --> tag if it exists
+    2. Otherwise, replaces existing # Summary section if found
+    3. Otherwise, adds at the beginning of the file
+
+    :param content: original markdown content
+    :param summary: generated summary text
+    :return: updated content
+    """
+    _LOG.debug("Updating Summary section")
+    # Create the new summary section.
+    new_summary_section = f"# Summary\n\n{summary}\n\n"
+    # Check if tocstop exists.
+    tocstop_pos = _find_tocstop_position(content)
+    # Check if Summary section exists.
+    summary_start, summary_end = _find_summary_section(content)
+    if tocstop_pos is not None:
+        # Place summary after tocstop tag.
+        _LOG.info("Placing Summary section after <!-- tocstop --> tag")
+        # If there's an existing summary section, remove it first.
+        if summary_start is not None:
+            # Special handling: if summary is before tocstop, we need to be careful
+            # not to remove the TOC section itself.
+            if summary_start < tocstop_pos:
+                # Find where the summary content actually ends (before TOC or next header).
+                # Look for either <!-- toc --> or the next # header.
+                toc_start_pattern = r"<!-- toc -->"
+                toc_match = re.search(
+                    toc_start_pattern, content[summary_start:], re.IGNORECASE
+                )
+                if toc_match and (summary_start + toc_match.start()) < summary_end:
+                    # The TOC starts within what we detected as the summary section.
+                    # Only remove up to the TOC start.
+                    actual_summary_end = summary_start + toc_match.start()
+                else:
+                    actual_summary_end = summary_end
+                # Remove the old summary section.
+                content = content[:summary_start] + content[actual_summary_end:]
+                # Adjust tocstop_pos.
+                tocstop_pos -= actual_summary_end - summary_start
+                # Re-find tocstop position in case content changed.
+                tocstop_pos = _find_tocstop_position(content)
+            else:
+                # Summary is after tocstop, just remove it normally.
+                content = content[:summary_start] + content[summary_end:]
+        # Insert summary after tocstop.
+        new_content = (
+            content[:tocstop_pos] + new_summary_section + content[tocstop_pos:]
+        )
+    elif summary_start is not None:
+        # Replace existing summary (no tocstop).
+        _LOG.info("Replacing existing Summary section")
+        new_content = (
+            content[:summary_start] + new_summary_section + content[summary_end:]
+        )
+    else:
+        # Add summary at the beginning (no tocstop, no existing summary).
+        _LOG.info("Adding new Summary section at the beginning")
+        new_content = new_summary_section + content
+    return new_content
+
+
+def _action_summarize(
+    input_file: str,
+    *,
+    model: str,
+    use_llm_executable: bool,
+) -> None:
+    """
+    Generate and add/update a Summary section in the markdown file.
+
+    :param input_file: path to input markdown file
+    :param model: LLM model to use
+    :param use_llm_executable: whether to use llm CLI executable
+    """
+    _LOG.info("Action: summarize")
+    # Read the input file.
+    content = _read_file(input_file)
+    # Generate summary.
+    summary = _generate_summary(
+        content, model=model, use_llm_executable=use_llm_executable
+    )
+    # Update the summary section.
+    new_content = _update_summary_section(content, summary)
+    # Write the updated content.
+    _write_file(input_file, new_content)
+    # Lint the file for proper formatting.
+    _lint_file(input_file)
+
+
+# #############################################################################
+# Action: update_content
+# #############################################################################
+
+
+def _action_update_content(
+    input_file: str,
+    *,
+    model: str,
+    use_llm_executable: bool,
+) -> None:
+    """
+    Update the content of the file to match current code.
+
+    :param input_file: path to input markdown file
+    :param model: LLM model to use
+    :param use_llm_executable: whether to use llm CLI executable
+    """
+    _LOG.info("Action: update_content")
+    # Read input file.
+    _LOG.debug("Reading input file: %s", input_file)
+    input_content = _read_file(input_file)
+    input_size = len(input_content)
+    _LOG.info("Input file size: %d characters", input_size)
+    # Prepare the system prompt.
+    system_prompt = """
+    Update the content of the file to make sure it matches the code.
+
+    Important:
+    - Return ONLY the updated markdown text
+    - Do not add explanations or comments
+    - Preserve all technical content and code blocks
+    - Update any outdated information to match current code
+    """
+    # Estimate expected output size (assume similar size to input).
+    expected_num_chars = int(input_size * 1.2)
+    # Apply LLM to update the content.
+    _LOG.info("Applying LLM to update markdown content")
+    updated_content = hllmcli.apply_llm(
+        input_content,
+        system_prompt=system_prompt,
+        model=model,
+        use_llm_executable=use_llm_executable,
+        expected_num_chars=expected_num_chars,
+    )
+    # Write output file.
+    _write_file(input_file, updated_content)
+    output_size = len(updated_content)
+    _LOG.info("Output file size: %d characters", output_size)
+
+
+# #############################################################################
+# Action: apply_style
+# #############################################################################
+
+
+def _get_style_system_prompt(repo_root: str) -> str:
+    """
+    Get the system prompt from the ai.notes_instructions.txt file.
+
+    :param repo_root: root directory of the repository
+    :return: content of the notes instructions file
+    """
+    # Build path to the instructions file.
+    instructions_path = os.path.join(
+        repo_root, "docs", "ai_coding", "ai.notes_instructions.txt"
+    )
+    _LOG.debug("Reading instructions from: %s", instructions_path)
+    hdbg.dassert(
+        os.path.exists(instructions_path),
+        "Instructions file does not exist:",
+        instructions_path,
+    )
+    # Read the instructions.
+    instructions = hio.from_file(instructions_path)
+    _LOG.debug(
+        "Read %d characters from instructions file", len(instructions)
+    )
+    # Create the system prompt.
+    system_prompt = f"""Apply the rules of the following document to the input text:
+
+{instructions}
+
+Important:
+- Return ONLY the formatted markdown text
+- Do not add explanations or comments
+- Preserve all technical content and code blocks
+- Apply the formatting rules strictly"""
+    return system_prompt
+
+
+def _action_apply_style(
+    input_file: str,
+    *,
+    model: str,
+    use_llm_executable: bool,
+) -> None:
+    """
+    Apply documentation formatting rules to the markdown file.
+
+    :param input_file: path to input markdown file
+    :param model: LLM model to use
+    :param use_llm_executable: whether to use llm CLI executable
+    """
+    _LOG.info("Action: apply_style")
+    hdbg.dassert(
+        os.path.exists(input_file), "Input file does not exist:", input_file
+    )
+    # Get the system prompt.
+    repo_root = _find_repo_root()
+    system_prompt = _get_style_system_prompt(repo_root)
+    # Read input file.
+    _LOG.debug("Reading input file: %s", input_file)
+    input_content = _read_file(input_file)
+    input_size = len(input_content)
+    _LOG.info("Input file size: %d characters", input_size)
+    # Estimate expected output size (assume similar size to input).
+    expected_num_chars = int(input_size * 1.2)
+    # Apply LLM to format the content.
+    _LOG.info("Applying LLM to format markdown content")
+    formatted_content = hllmcli.apply_llm(
+        input_content,
+        system_prompt=system_prompt,
+        model=model,
+        use_llm_executable=use_llm_executable,
+        expected_num_chars=expected_num_chars,
+    )
+    # Write output file.
+    _write_file(input_file, formatted_content)
+    output_size = len(formatted_content)
+    _LOG.info("Output file size: %d characters", output_size)
+
+
+# #############################################################################
+# Main
+# #############################################################################
+
+
+def _parse() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--input",
+        action="store",
+        required=True,
+        help="Path to input markdown file",
+    )
+    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    parser.add_argument(
+        "--model",
+        action="store",
+        default="gpt-4o-mini",
+        help="LLM model to use (default: gpt-4o-mini)",
+    )
+    parser.add_argument(
+        "--use_llm_executable",
+        action="store_true",
+        default=False,
+        help="Use llm CLI executable instead of Python library (default: False)",
+    )
+    hparser.add_verbosity_arg(parser)
+    return parser
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Get selected actions.
+    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    # Ensure at least one action is specified.
+    hdbg.dassert(
+        len(actions) > 0,
+        "At least one action must be specified using --action",
+    )
+    _LOG.info("Input file: %s", args.input)
+    _LOG.info("Actions to perform: %s", ", ".join(actions))
+    # Execute each action.
+    for action in actions:
+        if action == "summarize":
+            _action_summarize(
+                args.input,
+                model=args.model,
+                use_llm_executable=args.use_llm_executable,
+            )
+        elif action == "update_content":
+            _action_update_content(
+                args.input,
+                model=args.model,
+                use_llm_executable=args.use_llm_executable,
+            )
+        elif action == "apply_style":
+            _action_apply_style(
+                args.input,
+                model=args.model,
+                use_llm_executable=args.use_llm_executable,
+            )
+        else:
+            hdbg.dfatal("Invalid action: %s", action)
+    _LOG.info("All actions completed successfully")
+
+
+if __name__ == "__main__":
+    _main(_parse())
