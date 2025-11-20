@@ -149,6 +149,6 @@ import config_root.config.config_ as crococon
 - For writing unit tests you MUST follow instructions in
   `docs/ai_coding/ai.unit_test_instructions.md` and `docs/ai_coding/unit_test_template.py`
 - For writing any documentation you MUST follow instructions in
-  `docs/ai_coding/ai.notes_instructions.txt`
+  `docs/ai_coding/ai.md_instructions.md`
 - For writing a notebook you MUST follow the template in
   `docs/ai_coding/notebook_template.ipynb`

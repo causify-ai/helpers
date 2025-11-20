@@ -6,7 +6,11 @@ Update markdown files with LLM-based actions.
 This script provides multiple actions for processing markdown files:
 - summarize: Generate and add/update a Summary section
 - update_content: Refresh content to match current code
-- apply_style: Apply formatting rules from ai.notes_instructions.txt
+- apply_style: Apply formatting rules from ai.md_instructions.md
+- lint: Run lint_txt.py to format the file
+
+After each action (except lint), the file is automatically linted using
+lint_txt.py unless --skip_lint is specified.
 
 Note: At least one action must be specified using --action.
 
@@ -21,11 +25,17 @@ Examples:
 # Apply style guidelines
 > update_md.py --input file.md --action apply_style
 
+# Only lint the file
+> update_md.py --input file.md --action lint
+
 # Perform multiple actions
 > update_md.py --input file.md --action summarize,apply_style
 
 # Use a specific model
 > update_md.py --input file.md --action summarize --model gpt-4o
+
+# Skip linting after actions
+> update_md.py --input file.md --action summarize --skip_lint
 ```
 
 Import as:
@@ -35,7 +45,6 @@ import dev_scripts_helpers.documentation.update_md as dsdoupmd
 
 import argparse
 import logging
-import os
 import re
 from typing import Optional, Tuple
 
@@ -49,30 +58,13 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 # Valid actions for the script.
-_VALID_ACTIONS = ["summarize", "update_content", "apply_style"]
+_VALID_ACTIONS = ["summarize", "update_content", "apply_style", "lint"]
 _DEFAULT_ACTIONS = []
 
 
 # #############################################################################
 # Helper functions
 # #############################################################################
-
-
-def _find_repo_root() -> str:
-    """
-    Find the repository root by looking for repo_config.yaml.
-
-    :return: absolute path to repository root
-    """
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    # Walk up the directory tree looking for repo_config.yaml.
-    while current_dir != "/":
-        repo_config_path = os.path.join(current_dir, "repo_config.yaml")
-        if os.path.exists(repo_config_path):
-            _LOG.debug("Found repository root: %s", current_dir)
-            return current_dir
-        current_dir = os.path.dirname(current_dir)
-    hdbg.dfatal("Could not find repository root with repo_config.yaml")
 
 
 def _read_file(file_path: str) -> str:
@@ -268,6 +260,7 @@ def _action_summarize(
     *,
     model: str,
     use_llm_executable: bool,
+    skip_lint: bool,
 ) -> None:
     """
     Generate and add/update a Summary section in the markdown file.
@@ -275,6 +268,7 @@ def _action_summarize(
     :param input_file: path to input markdown file
     :param model: LLM model to use
     :param use_llm_executable: whether to use llm CLI executable
+    :param skip_lint: if True, skip linting the file
     """
     _LOG.info("Action: summarize")
     # Read the input file.
@@ -288,7 +282,8 @@ def _action_summarize(
     # Write the updated content.
     _write_file(input_file, new_content)
     # Lint the file for proper formatting.
-    _lint_file(input_file)
+    if not skip_lint:
+        _lint_file(input_file)
 
 
 # #############################################################################
@@ -301,6 +296,7 @@ def _action_update_content(
     *,
     model: str,
     use_llm_executable: bool,
+    skip_lint: bool,
 ) -> None:
     """
     Update the content of the file to match current code.
@@ -308,6 +304,7 @@ def _action_update_content(
     :param input_file: path to input markdown file
     :param model: LLM model to use
     :param use_llm_executable: whether to use llm CLI executable
+    :param skip_lint: if True, skip linting the file
     """
     _LOG.info("Action: update_content")
     # Read input file.
@@ -340,6 +337,9 @@ def _action_update_content(
     _write_file(input_file, updated_content)
     output_size = len(updated_content)
     _LOG.info("Output file size: %d characters", output_size)
+    # Lint the file for proper formatting.
+    if not skip_lint:
+        _lint_file(input_file)
 
 
 # #############################################################################
@@ -347,23 +347,18 @@ def _action_update_content(
 # #############################################################################
 
 
-def _get_style_system_prompt(repo_root: str) -> str:
+def _get_style_system_prompt() -> str:
     """
-    Get the system prompt from the ai.notes_instructions.txt file.
+    Get the system prompt from the ai.md_instructions.md file.
 
-    :param repo_root: root directory of the repository
     :return: content of the notes instructions file
     """
     # Build path to the instructions file.
-    instructions_path = os.path.join(
-        repo_root, "docs", "ai_coding", "ai.notes_instructions.txt"
+    instructions_path = hgit.find_file_in_git_tree(
+        "ai.md_instructions.md", super_module=True
     )
     _LOG.debug("Reading instructions from: %s", instructions_path)
-    hdbg.dassert(
-        os.path.exists(instructions_path),
-        "Instructions file does not exist:",
-        instructions_path,
-    )
+    hdbg.dassert_file_exists(instructions_path)
     # Read the instructions.
     instructions = hio.from_file(instructions_path)
     _LOG.debug(
@@ -387,6 +382,7 @@ def _action_apply_style(
     *,
     model: str,
     use_llm_executable: bool,
+    skip_lint: bool,
 ) -> None:
     """
     Apply documentation formatting rules to the markdown file.
@@ -394,14 +390,12 @@ def _action_apply_style(
     :param input_file: path to input markdown file
     :param model: LLM model to use
     :param use_llm_executable: whether to use llm CLI executable
+    :param skip_lint: if True, skip linting the file
     """
     _LOG.info("Action: apply_style")
-    hdbg.dassert(
-        os.path.exists(input_file), "Input file does not exist:", input_file
-    )
+    hdbg.dassert_file_exists(input_file)
     # Get the system prompt.
-    repo_root = _find_repo_root()
-    system_prompt = _get_style_system_prompt(repo_root)
+    system_prompt = _get_style_system_prompt()
     # Read input file.
     _LOG.debug("Reading input file: %s", input_file)
     input_content = _read_file(input_file)
@@ -422,6 +416,25 @@ def _action_apply_style(
     _write_file(input_file, formatted_content)
     output_size = len(formatted_content)
     _LOG.info("Output file size: %d characters", output_size)
+    # Lint the file for proper formatting.
+    if not skip_lint:
+        _lint_file(input_file)
+
+
+# #############################################################################
+# Action: lint
+# #############################################################################
+
+
+def _action_lint(input_file: str) -> None:
+    """
+    Run lint_txt.py on the markdown file.
+
+    :param input_file: path to input markdown file
+    """
+    _LOG.info("Action: lint")
+    # Lint the file for proper formatting.
+    _lint_file(input_file)
 
 
 # #############################################################################
@@ -453,6 +466,12 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Use llm CLI executable instead of Python library (default: False)",
     )
+    parser.add_argument(
+        "--skip_lint",
+        action="store_true",
+        default=False,
+        help="Skip running lint_txt.py after each action (default: False)",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -469,6 +488,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Input file: %s", args.input)
     _LOG.info("Actions to perform: %s", ", ".join(actions))
+    if args.skip_lint:
+        _LOG.info("Linting disabled (--skip_lint)")
     # Execute each action.
     for action in actions:
         if action == "summarize":
@@ -476,19 +497,24 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 args.input,
                 model=args.model,
                 use_llm_executable=args.use_llm_executable,
+                skip_lint=args.skip_lint,
             )
         elif action == "update_content":
             _action_update_content(
                 args.input,
                 model=args.model,
                 use_llm_executable=args.use_llm_executable,
+                skip_lint=args.skip_lint,
             )
         elif action == "apply_style":
             _action_apply_style(
                 args.input,
                 model=args.model,
                 use_llm_executable=args.use_llm_executable,
+                skip_lint=args.skip_lint,
             )
+        elif action == "lint":
+            _action_lint(args.input)
         else:
             hdbg.dfatal("Invalid action: %s", action)
     _LOG.info("All actions completed successfully")

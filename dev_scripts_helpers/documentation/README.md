@@ -513,15 +513,17 @@ The supported File types and code blocks are:
 
 ### What It Does
 
-- Multi-action LLM tool for processing markdown files with three main actions:
+- Multi-action LLM tool for processing markdown files with four main actions:
   - **summarize**: Generate and add/update a `# Summary` section with 3-5 bullet points
   - **update_content**: Refresh content to match current code using LLM analysis
-  - **apply_style**: Apply formatting rules from `docs/ai_coding/ai.notes_instructions.txt`
+  - **apply_style**: Apply formatting rules from `docs/ai_coding/ai.md_instructions.md`
+  - **lint**: Run lint_txt.py to format the file
 - Intelligently places summaries:
   - After `<!-- tocstop -->` tag if present (ideal for files with table of contents)
   - Otherwise, replaces existing `# Summary` section if found
   - Otherwise, adds at the beginning of the file
-- Automatically runs `lint_txt.py` after summarization for proper formatting
+- Automatically runs `lint_txt.py` after each action for proper formatting
+  - Can be disabled with `--skip_lint` flag
 - Supports multiple actions in a single run
 - Works with multiple LLM models (default: `gpt-4o-mini`)
 - Supports both Python library and CLI executable modes
@@ -543,9 +545,14 @@ The supported File types and code blocks are:
   > update_md.py --input README.md --action update_content
   ```
 
-- Apply style guidelines from ai.notes_instructions.txt
+- Apply style guidelines from `ai.md_instructions.md`
   ```bash
   > update_md.py --input notes.md --action apply_style
+  ```
+
+- Only lint the file
+  ```bash
+  > update_md.py --input notes.md --action lint
   ```
 
 - Perform multiple actions in sequence
@@ -561,6 +568,11 @@ The supported File types and code blocks are:
 - Update with verbose logging
   ```bash
   > update_md.py --input notes.md --action update_content -v DEBUG
+  ```
+
+- Skip linting after actions
+  ```bash
+  > update_md.py --input notes.md --action summarize --skip_lint
   ```
 
 ## `extract_headers_from_markdown.py`

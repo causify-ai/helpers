@@ -145,7 +145,7 @@ This documentation provides comprehensive guidelines for:
 - `docs/ai_coding/ai.blog_instructions.md`: Markdown formatting guidelines for writing blog
   posts with proper structure, code blocks, and metadata
 
-- `docs/ai_coding/ai.notes_instructions.txt`: Style guide for writing structured bullet-point
+- `docs/ai_coding/ai.md_instructions.md`: Style guide for writing structured bullet-point
   notes optimized for clarity and AI/human readability
 
 ## AI Development Workflow Template
