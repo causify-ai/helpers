@@ -1,5 +1,3 @@
-# Invoke Workflows
-
 <!-- toc -->
 
 - [Introduction](#introduction)
@@ -7,16 +5,6 @@
   * [Getting Help for a Specific Workflow](#getting-help-for-a-specific-workflow)
   * [Implementation Details](#implementation-details)
 - [Task Categories](#task-categories)
-  * [AWS/ECS Task Definitions](#awsecs-task-definitions)
-  * [Bash Utilities](#bash-utilities)
-  * [Docker Tasks](#docker-tasks)
-  * [Find Utilities](#find-utilities)
-  * [GitHub Integration](#github-integration)
-  * [Git Operations](#git-operations)
-  * [Integration Workflows](#integration-workflows)
-  * [Linting and Code Quality](#linting-and-code-quality)
-  * [Pytest - Test Management](#pytest---test-management)
-  * [Running Tests](#running-tests)
 - [Common Workflows](#common-workflows)
   * [Git Workflows](#git-workflows)
     + [Merge Master in the Current Branch](#merge-master-in-the-current-branch)
@@ -40,6 +28,8 @@
     + [Lint Everything](#lint-everything)
 
 <!-- tocstop -->
+
+# Invoke Workflows
 
 ## Introduction
 
@@ -163,84 +153,75 @@
 
 The invoke tasks are organized into the following categories:
 
-### AWS/ECS Task Definitions
+- AWS/ECS Task Definitions
+  - Tasks for managing AWS ECS task definitions across different environments
+    (test, preprod, prod).
+    - Creating task definitions for different environments
+    - Copying image URLs between task definitions
 
-Tasks for managing AWS ECS task definitions across different environments (test, preprod, prod).
-- Creating task definitions for different environments
-- Copying image URLs between task definitions
+- Bash Utilities
+  - Simple bash utility commands for printing paths and directory trees.
 
-### Bash Utilities
+- Docker Tasks
+  - Comprehensive Docker workflow automation including:
+    - **Container Operations**: Starting bash shells, running commands, Jupyter notebooks
+    - **Image Building**: Building local, dev, prod, and multi-arch images
+    - **Image Management**: Listing, pulling, pushing, and removing images
+    - **Release Workflows**: Complete release pipelines for dev and prod images
+    - **Tagging**: Managing image tags across registries
 
-Simple bash utility commands for printing paths and directory trees.
+- Find Utilities
+  - Code search and discovery tools:
+    - Finding symbols, imports, and dependencies
+    - Locating test classes and decorators
+    - Finding `check_string()` output in tests
 
-### Docker Tasks
+- GitHub Integration
+  - GitHub operations via `gh` CLI integration:
+    - Creating and managing pull requests
+    - Managing GitHub issues
+    - Running and monitoring GitHub Actions workflows
+    - Publishing dashboards to S3
 
-Comprehensive Docker workflow automation including:
-- **Container Operations**: Starting bash shells, running commands, Jupyter notebooks
-- **Image Building**: Building local, dev, prod, and multi-arch images
-- **Image Management**: Listing, pulling, pushing, and removing images
-- **Release Workflows**: Complete release pipelines for dev and prod images
-- **Tagging**: Managing image tags across registries
+- Git Operations
+  - Git workflow automation:
+    - Branch management (create, copy, rename, delete)
+    - Branch analysis (files changed, diffs, merge status)
+    - Merging and pulling changes
+    - Creating patches and backups
+    - Repository integration
 
-### Find Utilities
+- Integration Workflows
+  - Tools for integrating code between different repository directories:
+    - Creating integration branches
+    - Finding and comparing modified files
+    - Syncing directories with rsync
+    - Managing cross-repo integrations
 
-Code search and discovery tools:
-- Finding symbols, imports, and dependencies
-- Locating test classes and decorators
-- Finding `check_string()` output in tests
+  - Linting and Code Quality
+    - Code quality and linting tools:
+      - Running linters on modified files
+      - Checking Python file compilation
+      - Detecting cyclic imports
+      - Creating lint branches
+      - Syncing linting code
 
-### GitHub Integration
+  - Pytest
+    - Test management utilities:
+      - Managing golden outcome files
+      - Running regression tests (buildmeister)
+      - Cleaning pytest artifacts
+      - Comparing test logs
+      - Renaming tests and their outcomes
+      - Reproducing failed tests
 
-GitHub operations via `gh` CLI integration:
-- Creating and managing pull requests
-- Managing GitHub issues
-- Running and monitoring GitHub Actions workflows
-- Publishing dashboards to S3
-
-### Git Operations
-
-Git workflow automation:
-- Branch management (create, copy, rename, delete)
-- Branch analysis (files changed, diffs, merge status)
-- Merging and pulling changes
-- Creating patches and backups
-- Repository integration
-
-### Integration Workflows
-
-Tools for integrating code between different repository directories:
-- Creating integration branches
-- Finding and comparing modified files
-- Syncing directories with rsync
-- Managing cross-repo integrations
-
-### Linting and Code Quality
-
-Code quality and linting tools:
-- Running linters on modified files
-- Checking Python file compilation
-- Detecting cyclic imports
-- Creating lint branches
-- Syncing linting code
-
-### Pytest - Test Management
-
-Test management utilities:
-- Managing golden outcome files
-- Running regression tests (buildmeister)
-- Cleaning pytest artifacts
-- Comparing test logs
-- Renaming tests and their outcomes
-- Reproducing failed tests
-
-### Running Tests
-
-Test execution tasks for different test suites:
-- Fast tests (quick unit tests)
-- Slow tests (integration tests)
-- Superslow tests (end-to-end tests)
-- Test coverage reporting
-- QA tests
+  - Running Tests
+    - Test execution tasks for different test suites:
+      - Fast tests (quick unit tests)
+      - Slow tests (integration tests)
+      - Superslow tests (end-to-end tests)
+      - Test coverage reporting
+      - QA tests
 
 ## Common Workflows
 

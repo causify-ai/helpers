@@ -338,7 +338,6 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         default=True,
     )
-
     parser.add_argument(
         "--no_use_dockerized_markdown_toc",
         dest="use_dockerized_markdown_toc",
