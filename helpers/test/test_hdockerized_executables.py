@@ -605,7 +605,7 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
             expected = expected[:-1]
         lines = txt.split("\n")
         # Run test.
-        actual_lines = hdocexec._add_prettier_ignore_to_div_blocks(lines)
+        actual_lines = hmarform.add_prettier_ignore_to_div_blocks(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         self.assert_equal(actual, expected)
@@ -746,7 +746,7 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
             expected = expected[:-1]
         lines = txt.split("\n")
         # Run test.
-        actual_lines = hdocexec._remove_prettier_ignore_from_div_blocks(lines)
+        actual_lines = hmarform.remove_prettier_ignore_from_div_blocks(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         self.assert_equal(actual, expected)
@@ -856,9 +856,9 @@ class Test_add_remove_prettier_ignore_roundtrip(hunitest.TestCase):
         lines = txt.split("\n")
         # Run test.
         # Add prettier-ignore comments.
-        lines_with_comments = hdocexec._add_prettier_ignore_to_div_blocks(lines)
+        lines_with_comments = hmarform.add_prettier_ignore_to_div_blocks(lines)
         # Remove prettier-ignore comments.
-        lines_restored = hdocexec._remove_prettier_ignore_from_div_blocks(
+        lines_restored = hmarform.remove_prettier_ignore_from_div_blocks(
             lines_with_comments
         )
         actual = "\n".join(lines_restored)

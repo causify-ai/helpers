@@ -557,16 +557,3 @@ class Test_render_images2(hunitest.TestCase):
         Test running on a full LaTeX file with mermaid code.
         """
         self.helper("sample_file_mermaid.tex")
-
-
-# #############################################################################
-# Test_render_images_multi_files
-# #############################################################################
-
-# TODO(ai): Add test class Test_render_images_multi_files with test methods:
-#  - test_multi_files_comma_separated: Test processing multiple files via --files
-#  - test_multi_files_from_file: Test processing via --from_files
-#  - test_multi_files_file_name_arg: Test processing via --file_name (multiple)
-#  - test_backward_compatibility: Test single file mode still works
-#  - test_output_warning_with_multi_files: Test warning when -o is used with multi-files
-#  Create temporary test markdown files in scratch space and verify they are processed correctly.
