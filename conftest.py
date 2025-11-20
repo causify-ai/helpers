@@ -151,6 +151,18 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             # Exclude this directory.
             return True
 
+    # Force skipped tests to be executed when --runxfail is used.
+    def pytest_collection_modifyitems(config, items):
+        if config.getoption("--runxfail"):
+            for item in items:
+                # Remove `skip` mark applied to unittest.TestCase methods
+                skip_mark = item.get_closest_marker("skip")
+                if skip_mark:
+                    # Remove the skip marker so pytest won't skip it
+                    item.own_markers = [
+                        mark for mark in item.iter_markers() if mark.name != "skip"
+                    ]
+
     if "PYANNOTATE" in os.environ:
         print("\nWARNING: Collecting information about types through pyannotate")
         # From https://github.com/dropbox/pyannotate/blob/master/example/example_conftest.py
