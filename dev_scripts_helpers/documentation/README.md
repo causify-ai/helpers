@@ -520,6 +520,7 @@ The supported File types and code blocks are:
   - After `<!-- tocstop -->` tag if present (ideal for files with table of contents)
   - Otherwise, replaces existing `# Summary` section if found
   - Otherwise, adds at the beginning of the file
+- Automatically runs `lint_txt.py` on the resulting file for proper formatting
 - Supports multiple LLM models (default: `gpt-4o-mini`)
 
 ### Examples

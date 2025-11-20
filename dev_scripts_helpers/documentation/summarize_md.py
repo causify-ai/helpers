@@ -9,6 +9,9 @@ and intelligently places the summary:
 - Otherwise, replaces existing `# Summary` section if found
 - Otherwise, adds at the beginning of the file
 
+After writing the summary, the script automatically runs lint_txt.py to ensure
+proper formatting of the entire file.
+
 Examples:
 ```bash
 # Summarize a markdown file using default model
@@ -16,9 +19,6 @@ Examples:
 
 # Summarize using a specific model
 > summarize_md.py --input file.md --model gpt-4o
-
-# Dry run to see what would be done
-> summarize_md.py --input file.md --dry_run
 ```
 
 Import as:
@@ -31,8 +31,10 @@ import logging
 import os
 import re
 import tempfile
+from typing import Optional, Tuple
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
@@ -59,11 +61,6 @@ def _parse() -> argparse.ArgumentParser:
         default="gpt-4o-mini",
         help="LLM model to use for summarization (default: gpt-4o-mini)",
     )
-    parser.add_argument(
-        "--dry_run",
-        action="store_true",
-        help="Print what would be done without modifying the file",
-    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -83,7 +80,7 @@ def _read_file(file_path: str) -> str:
     :param file_path: path to the markdown file
     :return: content of the file
     """
-    hdbg.dassert(os.path.isfile(file_path), "File does not exist:", file_path)
+    hdbg.dassert_file_exists(file_path)
     _LOG.debug("Reading file: %s", file_path)
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
@@ -98,7 +95,7 @@ def _generate_summary(content: str, *, model: str) -> str:
     :param model: LLM model to use
     :return: generated summary
     """
-    _LOG.debug("Generating summary using model: %s", model)
+    _LOG.info("Generating summary using model: %s", model)
     # Create a temporary file with the content.
     with tempfile.NamedTemporaryFile(
         mode="w",
@@ -110,7 +107,10 @@ def _generate_summary(content: str, *, model: str) -> str:
         tmp_file_path = tmp_file.name
     _LOG.debug("Temporary input file: %s", tmp_file_path)
     # Prepare the prompt.
-    prompt = "Summarize the content of the text in 3 to 5 bullet points."
+    prompt = """
+    Summarize the content of the text in 3 to 5 bullet points, each of maximum
+    20 words
+    """
     # Call llm CLI.
     cmd = f"cat {tmp_file_path} | llm -m {model} '{prompt}'"
     _LOG.debug("Running command: %s", cmd)
@@ -122,7 +122,7 @@ def _generate_summary(content: str, *, model: str) -> str:
     return summary
 
 
-def _find_summary_section(content: str) -> tuple:
+def _find_summary_section(content: str) -> Tuple[Optional[int], Optional[int]]:
     """
     Find the Summary section in the content.
 
@@ -149,7 +149,7 @@ def _find_summary_section(content: str) -> tuple:
     return start_pos, end_pos
 
 
-def _find_tocstop_position(content: str) -> int:
+def _find_tocstop_position(content: str) -> Optional[int]:
     """
     Find the position right after the <!-- tocstop --> tag.
 
@@ -171,9 +171,7 @@ def _find_tocstop_position(content: str) -> int:
     return end_pos
 
 
-def _update_summary_section(
-    content: str, summary: str, *, dry_run: bool
-) -> str:
+def _update_summary_section(content: str, summary: str) -> str:
     """
     Update or add the Summary section in the content.
 
@@ -184,7 +182,6 @@ def _update_summary_section(
 
     :param content: original markdown content
     :param summary: generated summary text
-    :param dry_run: if True, only return the new content without writing
     :return: updated content
     """
     _LOG.debug("Updating Summary section")
@@ -253,6 +250,21 @@ def _write_file(file_path: str, content: str) -> None:
     _LOG.info("File updated successfully: %s", file_path)
 
 
+def _lint_file(file_path: str) -> None:
+    """
+    Run lint_txt.py on the file to ensure proper formatting.
+
+    :param file_path: path to the markdown file to lint
+    """
+    _LOG.info("Linting file: %s", file_path)
+    lint_script = hgit.find_file_in_git_tree("lint_txt.py", super_module=True)
+    # Run lint_txt.py.
+    cmd = f"{lint_script} -i {file_path} -v CRITICAL"
+    _LOG.debug("Running command: %s", cmd)
+    hsystem.system(cmd, suppress_output=True)
+    _LOG.info("File linted successfully: %s", file_path)
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
@@ -264,15 +276,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Generate summary.
     summary = _generate_summary(content, model=args.model)
     # Update the summary section.
-    new_content = _update_summary_section(
-        content, summary, dry_run=args.dry_run
-    )
+    new_content = _update_summary_section(content, summary)
     # Write the updated content.
-    if args.dry_run:
-        _LOG.info("Dry run mode: not writing to file")
-        _LOG.info("Updated content would be:\n%s", new_content[:500])
-    else:
-        _write_file(input_file, new_content)
+    _write_file(input_file, new_content)
+    # Lint the file for proper formatting.
+    _lint_file(input_file)
 
 
 if __name__ == "__main__":
