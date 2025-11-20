@@ -1,0 +1,54 @@
+## Overview
+
+- Claude Code is a CLI tool that lets you work with Claude directly
+  inside your project directory
+
+- It acts as a coding assistant that can plan and execute tasks,
+  generate code, run commands, test, debug, and iterate on your code
+  end-to-end
+
+- The following are some useful resources to get you started
+
+  - [Quickstart](https://code.claude.com/docs/en/quickstart)
+
+  - [Common
+    workflows](https://code.claude.com/docs/en/common-workflows)
+
+  - [Best practices for agentic
+    coding](https://www.anthropic.com/engineering/claude-code-best-practices)
+
+  - [Claude Code in
+    Action](https://anthropic.skilljar.com/claude-code-in-action)
+
+## How to start developing on the dev servers
+
+### Start a Claude session in your project dir
+
+> heanhs@dev2:~/src/csfy1$ claude
+
+### Log in to your Claude account
+
+- Choose Option 2 for pay-per-use API usage
+
+<img
+src="/app/helpers_root/docs/ai_coding/ai.claude_code.how_to_guide_figs/image3.png"
+style="width:5.52604in;height:3.25179in" />
+
+- Open the provided link in your browser, choose the Causify.AI
+  organization, authorize Claude Code to create a key, and paste the
+  token back into the terminal
+
+<img
+src="/app/helpers_root/docs/ai_coding/ai.claude_code.how_to_guide_figs/image2.png"
+style="width:5.33333in;height:2.92708in" />
+
+### Using Claude Code
+
+- Once everything is set up, you can begin using Claude Code in your
+  project
+
+- To exit, just type /exit
+
+<img
+src="/app/helpers_root/docs/ai_coding/ai.claude_code.how_to_guide_figs/image1.png"
+style="width:6.5in;height:2.23611in" />
