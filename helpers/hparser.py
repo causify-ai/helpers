@@ -860,3 +860,103 @@ def apply_limit_range(
     for i, item in enumerate(items):
         _LOG.debug("  [%s]: %s", i, item)
     return items
+
+
+# #############################################################################
+# Command line options for multiple file input.
+# #############################################################################
+
+
+def add_multi_file_args(
+    parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
+    """
+    Add command line options for specifying multiple input files.
+
+    Three mutually exclusive methods are supported:
+    - `--files="file1,file2,..."` - comma-separated list of files
+    - `--from_files="file.txt"` - file containing one file per line
+    - `--file_name file1 --file_name file2` - repeated argument
+
+    These options work alongside the existing `-i/--in_file_name` for backward
+    compatibility.
+
+    :param parser: parser to add the options to
+    :return: parser with the options added
+    """
+    group = parser.add_mutually_exclusive_group(required=False)
+    group.add_argument(
+        "--files",
+        type=str,
+        help="Comma-separated list of files to process (e.g., 'file1.txt,file2.txt,file3.txt')",
+    )
+    group.add_argument(
+        "--from_files",
+        type=str,
+        help="Path to file containing one file path per line",
+    )
+    group.add_argument(
+        "--file_name",
+        action="append",
+        help="File to process (can be specified multiple times)",
+    )
+    return parser
+
+
+def parse_multi_file_args(
+    args: argparse.Namespace,
+) -> List[str]:
+    """
+    Parse multi-file command line arguments and return list of file paths.
+
+    Handles three input methods:
+    - `--files="file1,file2,..."` - comma-separated list
+    - `--from_files="file.txt"` - file containing one file per line
+    - `--file_name file1 --file_name file2` - repeated argument
+
+    If none of the multi-file options are specified, falls back to the single
+    `-i/--in_file_name` argument for backward compatibility.
+
+    :param args: parsed command line arguments
+    :return: list of file paths to process
+    """
+    file_list: List[str] = []
+    # Check which multi-file option was specified.
+    if hasattr(args, "files") and args.files:
+        # Parse comma-separated list.
+        _LOG.debug("Using --files option")
+        file_list = [f.strip() for f in args.files.split(",")]
+        # Remove empty strings.
+        file_list = [f for f in file_list if f]
+    elif hasattr(args, "from_files") and args.from_files:
+        # Read file containing list of files.
+        _LOG.debug("Using --from_files option")
+        hdbg.dassert_path_exists(args.from_files)
+        content = hio.from_file(args.from_files)
+        lines = content.split("\n")
+        for line in lines:
+            # Strip whitespace.
+            line = line.strip()
+            # Skip empty lines and comments.
+            if line and not line.startswith("#"):
+                file_list.append(line)
+    elif hasattr(args, "file_name") and args.file_name:
+        # Use repeated argument.
+        _LOG.debug("Using --file_name option")
+        file_list = args.file_name
+    elif hasattr(args, "in_file_name") and args.in_file_name:
+        # Fall back to single file for backward compatibility.
+        _LOG.debug("Using single -i/--in_file_name option")
+        file_list = [args.in_file_name]
+    else:
+        # No file specified.
+        hdbg.dfatal("No input files specified")
+    # Validate that we have at least one file.
+    hdbg.dassert_lt(
+        0, len(file_list), "No input files specified after parsing arguments"
+    )
+    # Validate that all files exist.
+    for file_path in file_list:
+        hdbg.dassert_path_exists(file_path)
+    _LOG.info("Found %s file(s) to process", len(file_list))
+    return file_list
