@@ -277,14 +277,14 @@ def _main(parser: argparse.ArgumentParser) -> None:
         print(dshlllpr.prompt_tags_to_str(prompt_tags))
         return
     # Process targets that don't require LLMs.
-    done = process_transform(args.prompt, args.in_file_name, args.out_file_name)
+    done = process_transform(args.prompt, args.input, args.output)
     if done:
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     tag = "llm_transform"
     tmp_in_file_name, tmp_out_file_name = (
-        hparser.adapt_input_output_args_for_dockerized_scripts(args.in_file_name, tag)
+        hparser.adapt_input_output_args_for_dockerized_scripts(args.input, tag)
     )
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]

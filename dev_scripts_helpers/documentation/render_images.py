@@ -528,14 +528,14 @@ def _parse() -> argparse.ArgumentParser:
     # Add input and output file arguments.
     parser.add_argument(
         "-i",
-        "--in_file_name",
+        "--input",
         required=False,
         type=str,
         help="Path to the input file",
     )
     parser.add_argument(
         "-o",
-        "--out_file_name",
+        "--output",
         type=str,
         default=None,
         help="Path to the output file",
@@ -627,7 +627,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Handle output file for multi-file mode.
     if len(in_files) > 1:
         # Multi-file mode.
-        hdbg.dassert_eq(args.out_file_name, None,
+        hdbg.dassert_eq(args.output, None,
                 "You can't specify output file with multiple input files"
             )
         # Process each file with progress bar.
@@ -649,8 +649,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Single file mode (backward compatibility).
         in_file = in_files[0]
         # Get output file name.
-        if args.out_file_name:
-            out_file = args.out_file_name
+        if args.output:
+            out_file = args.output
         else:
             # Render in-place.
             out_file = in_file
