@@ -7,7 +7,7 @@
 
 - Modify `instr.md`
 ```
-1) Write a Python script dev_scripts_helpers/documentation/summarize_md.py that
+1) Write a Python script `dev_scripts_helpers/documentation/summarize_md.py` that
 reads a markdown file --input file.md
 
 - Read the content of the file
@@ -21,10 +21,10 @@ reads a markdown file --input file.md
   summary of the file
 
 - For all the code you must follow the instructions in
-  docs/ai_coding/ai.coding_instructions.md
+  `docs/ai_coding/ai.coding_instructions.md`
 
 2) Update the documentation in dev_scripts_helpers/documentation/README.md using
-   the instructions in docs/ai_coding/ai.notes_instructions.txt
+   the instructions in `docs/ai_coding/ai.md_instructions.md`
 ```
 
 - Run Claude Code

@@ -181,14 +181,16 @@ def add_action_arg(
     """
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
-        "--action",
+        "-a", "--action",
         action="append",
+        dest="action",
         choices=valid_actions,
         help="Actions to execute",
     )
     group.add_argument(
-        "--skip_action",
+        "-sa", "--skip_action",
         action="append",
+        dest="skip_action",
         choices=valid_actions,
         help="Actions to skip",
     )

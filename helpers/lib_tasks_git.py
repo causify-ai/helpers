@@ -62,7 +62,8 @@ def git_merge_master(
     ctx,
     abort_if_not_ff=False,
     abort_if_not_clean=True,
-    skip_fetch=False,  # type: ignore
+    skip_fetch=False,
+    auto_merge=False,  # type: ignore
 ):
     """
     Merge `origin/master` into the current branch.
@@ -70,6 +71,7 @@ def git_merge_master(
     :param abort_if_not_ff: abort if fast-forward is not possible
     :param abort_if_not_clean: abort if the client is not clean
     :param skip_fetch: skip fetching master
+    :param auto_merge: automatically commit and push if merge is successful
     """
     hlitauti.report_task()
     # Check that the Git client is clean.
@@ -82,6 +84,11 @@ def git_merge_master(
     if abort_if_not_ff:
         cmd += " --ff-only"
     hlitauti.run(ctx, cmd)
+    # Auto-commit and push if requested and merge was successful.
+    if auto_merge:
+        _LOG.info("Auto-merge enabled: committing and pushing changes")
+        cmd = 'git commit -am "Merge master" && git push'
+        hlitauti.run(ctx, cmd)
 
 
 @task

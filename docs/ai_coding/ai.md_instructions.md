@@ -1,4 +1,4 @@
-# Principles for Note-Optimized Text
+# Conventions for Writing Markdown Files
 
 ## Goals and Philosophy
 
@@ -15,11 +15,11 @@
 
 ## Formatting Guidelines
 
-* Every document has a summary header
+#### Every document has a summary header
 - Every document should have a summary paragraph with a header `# Summary`
   with a short paragraph containing what's the content of the document 
 
-* Headers and Paragraphs
+#### Headers and Paragraphs
 - Use headers and paragraphs
   ```
   # Header 1
@@ -27,21 +27,11 @@
   ## Header 2
   ```
 
-- A paragraph starts with `*`
-  ```
-  * Paragraph
-  - Bullet 1
-    - Sub-bullet 1.1
-    - Sub-bullet 1.2
-      - Sub-bullet 1.2.1
-    ...
-  ```
-
 - Use title case for section and paragraph headers
   - **Good**: Use Only Text
   - **Bad**: Use only text
 
-* Use Only Text
+#### Use Only Text
 - Avoid emojis and icons
 - Avoid any decorative formatting
   - Do not use line separator like `---`
@@ -51,7 +41,7 @@
   - **Good**: "hello"
   - **Bad**: “hello”
 
-* Use Bullets
+#### Use Bullets
 - Use bullet points inside a paragraph
 
 - Each bullet should express one complete atomic idea
@@ -74,7 +64,7 @@
 
 - Do not end a bullet point with a period `.`
 
-* Use Nested Bullets
+#### Use Nested Bullets
 - Use nested bullets to show:
   - Dependencies and relationships
     - E.g., cause -> effect
@@ -100,7 +90,7 @@
     - Examples
     - Implications
 
-* List of Items
+#### List of Items
 
 - In lists of items
   - Bold the item whenever possible
@@ -118,17 +108,17 @@
     - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
     ```
 
-* Use verbatim for programs
+#### Use verbatim for programs
 - For libraries, executables, scripts use verbatim
   - E.g., `notes_to_pdf.py`, `python`, `pandas`
 
-* Use and do not use &
+#### Use and do not use &
 - **Bad**: Extraction & Conversion Tools
 - **Good**: Extraction and Conversion Tools
 
 ## Writing Style
 
-* Writing Style
+#### Writing Style
 - Use explicit references instead of unclear ones
   - **Good**: "TCP protocol"
   - **Bad**: "it"
@@ -139,20 +129,20 @@
 
 - Prefer plain language over academic jargon
 
-* Avoid long prose
+#### Avoid long prose
 - Prefer structured notes over narrative prose
 
 - Use a first-person, self-directed voice, e.g.,
   - **Good**: "Key thing to remember: entropy increases"
 
-* Use direct statements
+#### Use direct statements
 - Convert abstract principles into short, direct statements, e.g.,
   - **Good**: "Everyone takes responsibility: no blaming others if work isn't
     finished."
   - **Bad**: "Everyone takes responsibility, owns their projects, and blames no one
     if something doesn't get finished."
 
-* Try to use lists 
+#### Try to use lists 
 
 - **Good**
   ```
@@ -173,94 +163,9 @@
   `//umd_classes`)
   ```
 
-* Use Diagrams Over Text When Possible
+#### Use Diagrams Over Text When Possible
 - Summarize systems or relationships using:
   - Graphviz
   - Mermaid
   - Tikz-style charts
 - Add annotation arrows and layered explanations
-
-# Example
-
-- The input text should be transformed into:
-  ```
-  ## QUESTION 1: WHAT ARE YOUR CORE VALUES?
-
-  Core Values are a timeless set of guiding principles. There are
-  typically just a few—3 to 7 is the rule of thumb. They define the
-  behaviors you expect from each other. They define your culture and who
-  fits and who doesn’t. They define what makes your company different and
-  unique.
-
-  A famous business guru, Peter Drucker, is attributed with the saying,
-  "Culture eats strategy for breakfast." History has shown that culture
-  wins in the long run, not strategy. For a company to be great, it must
-  first know who it is. Then focus on strategy. Who you are as a company
-  is defined by your Core Values.
-
-  Every company has different Core Values because, well, every company is
-  different. To help build a strong culture, your company will use your
-  Core Values to hire, fire, and review everyone (how this happens will be
-  detailed in [Chapter 8](#Top_of_Chapter08_html)).
-
-  Here is an example of the EOS Worldwide Core Values (keep in mind yours
-  will be different):
-
-  **1.**Humbly Confident
-
-  **2.**Grow or Die
-
-  **3.**Help First
-
-  **4.**Do What You Say
-
-  **5.**Do the Right Thing
-
-  Let’s take one of those, "Do What You Say," as an example. In a "Do What
-  You Say" culture, everyone delivers on time. That means if you commit to
-  a date, you hit it. You fully deliver and finish what you start—doing
-  things half-assed or half-finished is unacceptable. Everyone takes
-  responsibility, owns their projects, and blames no one if something
-  doesn’t get finished. Finally, in a "Do What You Say" culture, it is
-  okay to say no—if you can’t do it, don’t commit.
-
-  Your leadership team has worked very hard to discover what your
-  company’s Core Values are in order to build an amazing culture. Once
-  these Values are shared, we urge you to ask questions in order to fully
-  understand them. Ultimately you have to ask yourself, "Do I share these
-  Core Values?"
-
-  You’ll find that when you work with people who share the same Core
-  Values, communication is easier, things get done faster, and the work
-  environment is more fun. You will have a great organization and a strong
-  culture.
-  ```
-
-- The output should be:
-  ```
-  * Core values
-  - Are a timeless set of guiding principles
-  - Define the culture, who fits and who doesn't
-  - Define what makes the Company different and unique
-
-  * Culture > strategy
-  - In a Company, culture wins in the long term
-  - A Company
-    - Needs to know who it is
-    - Is defined by the Core Values
-
-  * Uses of Core Values
-  - Hire
-  - Fire
-  - Review everyone
-
-  * Core values: EOS Worldwide example
-  - Be humble but confident
-  - Grow or die
-  - Help first
-  - Do what you say
-    - E.g., if you commit to a date, you hit it
-    - You fully deliver and finish what you start: no half-assed things
-    - If you can't do it, don't commit
-  - Do the right thing
-  ```

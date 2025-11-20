@@ -323,11 +323,25 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--use_dockerized_prettier",
+        dest="use_dockerized_prettier",
         action="store_true",
+        default=True,
+    )
+    parser.add_argument(
+        "--no_use_dockerized_prettier",
+        dest="use_dockerized_prettier",
+        action="store_false",
     )
     parser.add_argument(
         "--use_dockerized_markdown_toc",
+        dest="use_dockerized_markdown_toc",
         action="store_true",
+        default=True,
+    )
+    parser.add_argument(
+        "--no_use_dockerized_markdown_toc",
+        dest="use_dockerized_markdown_toc",
+        action="store_false",
     )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_dockerized_script_arg(parser)

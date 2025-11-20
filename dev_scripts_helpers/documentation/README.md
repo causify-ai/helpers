@@ -131,7 +131,7 @@
     - `lint_txt.py`: Lints and formats Markdown/LaTeX/txt notes
     - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown
     - `transform_notes.py`: Applies transformations (TOC, headers, lists)
-    - `summarize_md.py`: Generates and updates Summary sections in markdown files using LLM
+    - `update_md.py`: Multi-action LLM tool for markdown files (summarize, update content, apply style)
 
   - Extraction and Conversion Tools
     - `convert_docx_to_markdown.py`: Converts DOCX to Markdown  
@@ -509,36 +509,70 @@ The supported File types and code blocks are:
   :'<,'>!transform_notes.py -i - -o - -a md_fix_chatgpt_output
   ```
 
-## `summarize_md.py`
+## `update_md.py`
 
 ### What It Does
 
-- Generate a summary of a markdown file using LLM and update the `# Summary` section
-- Reads the content of a markdown file
-- Uses the `llm` CLI tool to generate a 3-5 bullet point summary
-- Automatically finds and replaces existing `# Summary` section or adds one at the beginning
-- Supports multiple LLM models (default: `gpt-4o-mini`)
+- Multi-action LLM tool for processing markdown files with four main actions:
+  - **summarize**: Generate and add/update a `# Summary` section with 3-5 bullet points
+  - **update_content**: Refresh content to match current code using LLM analysis
+  - **apply_style**: Apply formatting rules from `docs/ai_coding/ai.md_instructions.md`
+  - **lint**: Run lint_txt.py to format the file
+- Intelligently places summaries:
+  - After `<!-- tocstop -->` tag if present (ideal for files with table of contents)
+  - Otherwise, replaces existing `# Summary` section if found
+  - Otherwise, adds at the beginning of the file
+- Automatically runs `lint_txt.py` after each action for proper formatting
+  - Can be disabled with `--skip_lint` flag
+- Supports multiple actions in a single run
+- Works with multiple LLM models (default: `gpt-4o-mini`)
+- Supports both Python library and CLI executable modes
 
 ### Examples
 
-- Summarize a markdown file using default model
+- Summarize a markdown file
   ```bash
-  > summarize_md.py --input file.md
+  > update_md.py --input file.md --action summarize
   ```
 
 - Summarize using a specific model
   ```bash
-  > summarize_md.py --input file.md --model gpt-4o
+  > update_md.py --input file.md --action summarize --model gpt-4o
   ```
 
-- Dry run to preview changes without modifying the file
+- Update content to match current code
   ```bash
-  > summarize_md.py --input file.md --dry_run
+  > update_md.py --input README.md --action update_content
   ```
 
-- Summarize README with verbose logging
+- Apply style guidelines from `ai.md_instructions.md`
   ```bash
-  > summarize_md.py --input README.md -v DEBUG
+  > update_md.py --input notes.md --action apply_style
+  ```
+
+- Only lint the file
+  ```bash
+  > update_md.py --input notes.md --action lint
+  ```
+
+- Perform multiple actions in sequence
+  ```bash
+  > update_md.py --input document.md --action summarize,apply_style
+  ```
+
+- Use the llm CLI executable instead of Python library
+  ```bash
+  > update_md.py --input notes.md --action summarize --use_llm_executable
+  ```
+
+- Update with verbose logging
+  ```bash
+  > update_md.py --input notes.md --action update_content -v DEBUG
+  ```
+
+- Skip linting after actions
+  ```bash
+  > update_md.py --input notes.md --action summarize --skip_lint
   ```
 
 ## `extract_headers_from_markdown.py`
