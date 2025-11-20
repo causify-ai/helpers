@@ -4,10 +4,14 @@
 Summarize a markdown file using LLM and update its Summary section.
 
 This script reads a markdown file, generates a summary using the llm CLI tool,
+<<<<<<< HEAD
 and intelligently places the summary:
 - After `<!-- tocstop -->` tag if present (ideal for files with TOC)
 - Otherwise, replaces existing `# Summary` section if found
 - Otherwise, adds at the beginning of the file
+=======
+and updates or adds a `# Summary` section at the beginning of the file.
+>>>>>>> master
 
 Examples:
 ```bash
@@ -149,6 +153,7 @@ def _find_summary_section(content: str) -> tuple:
     return start_pos, end_pos
 
 
+<<<<<<< HEAD
 def _find_tocstop_position(content: str) -> int:
     """
     Find the position right after the <!-- tocstop --> tag.
@@ -171,17 +176,22 @@ def _find_tocstop_position(content: str) -> int:
     return end_pos
 
 
+=======
+>>>>>>> master
 def _update_summary_section(
     content: str, summary: str, *, dry_run: bool
 ) -> str:
     """
     Update or add the Summary section in the content.
 
+<<<<<<< HEAD
     Places the summary:
     1. After <!-- tocstop --> tag if it exists
     2. Otherwise, replaces existing # Summary section if found
     3. Otherwise, adds at the beginning of the file
 
+=======
+>>>>>>> master
     :param content: original markdown content
     :param summary: generated summary text
     :param dry_run: if True, only return the new content without writing
@@ -190,6 +200,7 @@ def _update_summary_section(
     _LOG.debug("Updating Summary section")
     # Create the new summary section.
     new_summary_section = f"# Summary\n\n{summary}\n\n"
+<<<<<<< HEAD
     # Check if tocstop exists.
     tocstop_pos = _find_tocstop_position(content)
     # Check if Summary section exists.
@@ -235,6 +246,18 @@ def _update_summary_section(
         )
     else:
         # Add summary at the beginning (no tocstop, no existing summary).
+=======
+    # Check if Summary section exists.
+    start_pos, end_pos = _find_summary_section(content)
+    if start_pos is not None:
+        # Replace existing summary.
+        _LOG.info("Replacing existing Summary section")
+        new_content = (
+            content[:start_pos] + new_summary_section + content[end_pos:]
+        )
+    else:
+        # Add summary at the beginning.
+>>>>>>> master
         _LOG.info("Adding new Summary section at the beginning")
         new_content = new_summary_section + content
     return new_content
