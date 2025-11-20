@@ -24,31 +24,27 @@
 
 ### Start a Claude session in your project dir
 
+```bash
 > heanhs@dev2:~/src/csfy1$ claude
+```
 
 ### Log in to your Claude account
 
 - Choose Option 2 for pay-per-use API usage
 
-<img
-src="/app/helpers_root/docs/ai_coding/ai.claude_code.how_to_guide_figs/image3.png"
-style="width:5.52604in;height:3.25179in" />
+  [](docs/ai_coding/ai.claude_code.how_to_guide_figs/image3.png)
 
 - Open the provided link in your browser, choose the Causify.AI
   organization, authorize Claude Code to create a key, and paste the
   token back into the terminal
 
-<img
-src="/app/helpers_root/docs/ai_coding/ai.claude_code.how_to_guide_figs/image2.png"
-style="width:5.33333in;height:2.92708in" />
+  [](docs/ai_coding/ai.claude_code.how_to_guide_figs/image2.png)
 
 ### Using Claude Code
 
 - Once everything is set up, you can begin using Claude Code in your
   project
 
-- To exit, just type /exit
+- To exit, just type `/exit`
 
-<img
-src="/app/helpers_root/docs/ai_coding/ai.claude_code.how_to_guide_figs/image1.png"
-style="width:6.5in;height:2.23611in" />
+  [](docs/ai_coding/ai.claude_code.how_to_guide_figs/image1.png)
