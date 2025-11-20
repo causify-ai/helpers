@@ -308,7 +308,7 @@ The supported File types and code blocks are:
 - Render multiple files using repeated argument
 
   ```bash
-  > render_images.py --file_name file1.md --file_name file2.md --file_name file3.md --action render
+  > render_images.py --input file1.md --input file2.md --input file3.md --action render
   ```
 
 ## `lint_notes.py`

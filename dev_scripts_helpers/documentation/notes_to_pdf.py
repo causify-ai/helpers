@@ -138,7 +138,7 @@ def _render_images(file_name: str, prefix: str) -> str:
     exec_file = hgit.find_file("render_images.py")
     file1 = file_name
     file2 = f"{prefix}.render_image.txt"
-    cmd = f"{exec_file} --in_file_name {file1} --out_file_name {file2}"
+    cmd = f"{exec_file} --input {file1} --output {file2}"
     _ = _system(cmd)
     # Remove the commented code introduced by `render_image.py`.
     txt = hio.from_file(file2)

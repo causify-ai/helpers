@@ -65,10 +65,10 @@ The tool supports three ways to process multiple files:
    > render_images.py --from_files="list.txt" --action render
    ```
 
-3. **Repeated argument**: Use `--file_name` multiple times to specify each file.
+3. **Repeated argument**: Use `--input` multiple times to specify each file.
 
    ```bash
-   > render_images.py --file_name file1.md --file_name file2.md --file_name file3.md --action render
+   > render_images.py --input file1.md --input file2.md --input file3.md --action render
    ```
 
 **Notes**:
