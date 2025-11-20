@@ -206,8 +206,15 @@ The same templates have multiple applications:
 - `inject_todos.py`: Injects TODOs from a `cfile` into source files.
 - `apply_todos.py`: Automatically applies TODOs from a `cfile` using an LLM.
 
-# Planning mode
+# 
+- Planning mode
 
 > claude --permission-mode plan
 
 Create a plan without coding
+
+- Cheap-o mode
+
+> claude --model haiku
+
+> claude --output-format text -p "Fix update_md.py -i docs/datapull/all.add_new_data_source.how_to_guide.md -a summarize -a apply_style" --dangerously-skip-permissions

@@ -448,14 +448,15 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--input",
+        "-i", "--input",
         action="store",
         required=True,
+        dest="input",
         help="Path to input markdown file",
     )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
-        "--model",
+        "-m", "--model",
         action="store",
         default="gpt-4o-mini",
         help="LLM model to use (default: gpt-4o-mini)",
