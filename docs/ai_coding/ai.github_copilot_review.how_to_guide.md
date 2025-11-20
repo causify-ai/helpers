@@ -11,10 +11,10 @@
 ## How to use Copilot code review
 
 - Request review for PRs from Copilot
-  [](/docs/ai_coding/ai.github_copilot_review.how_to_guide_figs/image1.png)
+  ![](/docs/ai_coding/ai.github_copilot_review.how_to_guide_figs/image1.png)
 
 - Review summary and feedback from Copilot
-  [](/docs/ai_coding/ai.github_copilot_review.how_to_guide_figs/image2.png)
+  ![](/docs/ai_coding/ai.github_copilot_review.how_to_guide_figs/image2.png)
 
 - Review comments from Copilot
-  [](/docs/ai_coding/ai.github_copilot_review.how_to_guide_figs/image3.png)
+  ![](/docs/ai_coding/ai.github_copilot_review.how_to_guide_figs/image3.png)
