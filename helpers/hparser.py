@@ -367,7 +367,8 @@ def add_input_output_args(
     """
     parser.add_argument(
         "-i",
-        "--in_file_name",
+        "--input",
+        dest="input",
         required=in_required,
         type=str,
         default=in_default,
@@ -375,7 +376,8 @@ def add_input_output_args(
     )
     parser.add_argument(
         "-o",
-        "--out_file_name",
+        "--output",
+        dest="output",
         required=out_required,
         type=str,
         default=out_default,
@@ -392,8 +394,8 @@ def parse_input_output_args(
 
     :return input and output file name.
     """
-    in_file_name = args.in_file_name
-    out_file_name = args.out_file_name
+    in_file_name = args.input
+    out_file_name = args.output
     if out_file_name is None:
         # If the output file is not specified, use the input file name, i.e.,
         # in place.
@@ -433,7 +435,7 @@ def init_logger_for_input_output_transform(
     else:
         # If the input is stdin, we don't want to print the command line or any
         # other log messages, unless the user specified a more verbose log level.
-        if args.in_file_name == "-":
+        if args.input == "-":
             if args.log_level == "INFO":
                 verbosity = "CRITICAL"
         else:
@@ -874,11 +876,11 @@ def add_multi_file_args(
     Add command line options for specifying multiple input files.
 
     Three mutually exclusive methods are supported:
-    - `--files="file1,file2,..."` - comma-separated list of files
-    - `--from_files="file.txt"` - file containing one file per line
-    - `--file_name file1 --file_name file2` - repeated argument
+    - `--files="file1,file2,..."`: comma-separated list of files
+    - `--from_files="file.txt"`: file containing one file per line
+    - `--input file1 --input file2`: repeated argument
 
-    These options work alongside the existing `-i/--in_file_name` for backward
+    These options work alongside the existing `-i/--input` for backward
     compatibility.
 
     :param parser: parser to add the options to
@@ -896,7 +898,7 @@ def add_multi_file_args(
         help="Path to file containing one file path per line",
     )
     group.add_argument(
-        "--file_name",
+        "--input",
         action="append",
         help="File to process (can be specified multiple times)",
     )
@@ -910,12 +912,12 @@ def parse_multi_file_args(
     Parse multi-file command line arguments and return list of file paths.
 
     Handles three input methods:
-    - `--files="file1,file2,..."` - comma-separated list
-    - `--from_files="file.txt"` - file containing one file per line
-    - `--file_name file1 --file_name file2` - repeated argument
+    - `--files="file1,file2,..."`: comma-separated list
+    - `--from_files="file.txt"`: file containing one file per line
+    - `--input file1 --input file2`: repeated argument
 
     If none of the multi-file options are specified, falls back to the single
-    `-i/--in_file_name` argument for backward compatibility.
+    `-i/--input` argument for backward compatibility.
 
     :param args: parsed command line arguments
     :return: list of file paths to process
@@ -940,18 +942,21 @@ def parse_multi_file_args(
             # Skip empty lines and comments.
             if line and not line.startswith("#"):
                 file_list.append(line)
-    elif hasattr(args, "file_name") and args.file_name:
-        # Use repeated argument.
-        _LOG.debug("Using --file_name option")
-        file_list = args.file_name
-    elif hasattr(args, "in_file_name") and args.in_file_name:
-        # Fall back to single file for backward compatibility.
-        _LOG.debug("Using single -i/--in_file_name option")
-        file_list = [args.in_file_name]
+    elif hasattr(args, "input") and args.input:
+        # Check if args.input is a list (from --input repeated argument) or a string (from -i/--input single file).
+        if isinstance(args.input, list):
+            # Use repeated argument from add_multi_file_args.
+            _LOG.debug("Using --input option (repeated argument)")
+            file_list = args.input
+        else:
+            # Backward compatibility: support single file via -i/--input from add_input_output_args.
+            _LOG.debug("Using -i/--input option (single file, backward compatibility)")
+            file_list = [args.input]
     else:
         # No file specified.
         hdbg.dfatal("No input files specified")
     # Validate that we have at least one file.
+    hdbg.dassert_isinstance(file_list, list)
     hdbg.dassert_lt(
         0, len(file_list), "No input files specified after parsing arguments"
     )
