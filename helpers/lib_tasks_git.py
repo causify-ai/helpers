@@ -1058,8 +1058,105 @@ def git_branch_is_merged(ctx):  # type: ignore
     ctx.run(cmd, pty=True)
 
 
+@task
+def git_backup(ctx, dry_run=False):  # type: ignore
+    """
+    Create a zip file with all modified and untracked files from the current
+    repository and its submodules.
+
+    The zip file is created with a timestamp-based name in the current
+    directory. Example: `modified_files.helpers_root.20251119_130034.zip`
+
+    :param dry_run: if True, only print the files that would be included
+        without creating the zip
+    """
+    hlitauti.report_task(txt=hprint.to_str("dry_run"))
+    _ = ctx
+    # Get current repo root.
+    super_module = False
+    git_client_root = hgit.get_client_root(super_module)
+    # Get timestamp for zip file name.
+    timestamp = hlitauti.get_ET_timestamp()
+    repo_name = os.path.basename(git_client_root)
+    zip_file_name = f"modified_files.{repo_name}.{timestamp}.zip"
+    # Collect all files from current repo.
+    _LOG.info("Collecting modified/untracked files from main repository...")
+    main_repo_files = hgit.get_modified_and_untracked_files(".")
+    _LOG.info("Found %d files in main repository", len(main_repo_files))
+    all_files = []
+    for file_path in main_repo_files:
+        all_files.append((".", file_path))
+    # Collect files from submodules.
+    submodule_paths = _get_submodule_paths()
+    if submodule_paths:
+        _LOG.info(
+            "Found %d submodule(s), collecting files...", len(submodule_paths)
+        )
+        for submodule_path in submodule_paths:
+            hdbg.dassert_dir_exists(
+                submodule_path,
+                msg=f"Submodule path does not exist: {submodule_path}",
+            )
+            _LOG.info("Checking submodule: %s", submodule_path)
+            submodule_files = hgit.get_modified_and_untracked_files(submodule_path)
+            _LOG.info(
+                "Found %d files in submodule %s",
+                len(submodule_files),
+                submodule_path,
+            )
+            for file_path in submodule_files:
+                all_files.append((submodule_path, file_path))
+    else:
+        _LOG.info("No submodules found")
+    # Check if there are any files to zip.
+    if not all_files:
+        _LOG.warning("No modified or untracked files found. Nothing to zip.")
+        return
+    # Print summary.
+    _LOG.info(
+        "\n%s\nFound %d total files to include:\n%s",
+        hprint.frame("Files to include in zip"),
+        len(all_files),
+        hprint.indent(
+            "\n".join(
+                [
+                    os.path.join(repo_path, file_path)
+                    if repo_path != "."
+                    else file_path
+                    for repo_path, file_path in all_files
+                ]
+            )
+        ),
+    )
+    if dry_run:
+        _LOG.warning("Dry-run mode: not creating zip file")
+        return
+    # Create the zip file.
+    _LOG.info("Creating zip file: %s", zip_file_name)
+    import zipfile
+    with zipfile.ZipFile(
+        zip_file_name, "w", zipfile.ZIP_DEFLATED
+    ) as zipf:
+        for repo_path, file_path in all_files:
+            full_path = os.path.join(repo_path, file_path)
+            # Preserve directory structure in zip.
+            arcname = (
+                os.path.join(repo_path, file_path)
+                if repo_path != "."
+                else file_path
+            )
+            try:
+                zipf.write(full_path, arcname=arcname)
+                _LOG.debug("Added to zip: %s", arcname)
+            except Exception as e:
+                _LOG.warning("Failed to add %s to zip: %s", full_path, e)
+    _LOG.info("Successfully created zip file: %s", zip_file_name)
+    # Print absolute path for easy access.
+    abs_zip_path = os.path.abspath(zip_file_name)
+    print(f"\nZip file created at: {abs_zip_path}")
+
+
 # TODO(gp): Add the following scripts:
-# dev_scripts/git/git_backup.sh
 # dev_scripts/git/gcl
 # dev_scripts/git/git_branch.sh
 # dev_scripts/git/git_branch_point.sh
