@@ -1,5 +1,3 @@
-# Invoke Workflows
-
 <!-- toc -->
 
 - [Introduction](#introduction)
@@ -30,6 +28,8 @@
     + [Lint Everything](#lint-everything)
 
 <!-- tocstop -->
+
+# Invoke Workflows
 
 ## Introduction
 
