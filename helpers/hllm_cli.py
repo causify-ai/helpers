@@ -5,6 +5,7 @@ import helpers.hllm_cli as hllmcli
 """
 
 import logging
+import shlex
 import subprocess
 from typing import Optional
 
@@ -60,9 +61,6 @@ def _apply_llm_via_executable(
         cmd.extend(["--system", system_prompt])
     if model:
         cmd.extend(["--model", model])
-    # Add progress bar if expected_num_chars is provided.
-    if expected_num_chars:
-        cmd.append("--stream")
     # Add the user prompt.
     cmd.append(input_str)
     _LOG.debug("Running command: %s", " ".join(cmd))
@@ -85,16 +83,13 @@ def _apply_llm_via_executable(
         if proc.returncode != 0:
             error_msg = proc.stderr.read() if proc.stderr else ""
             hdbg.dfatal(
-                "llm command failed with return code:",
-                proc.returncode,
-                "error:",
-                error_msg,
+                f"llm command failed with return code: {proc.returncode} error: {error_msg}"
             )
         response = "".join(response_parts)
     else:
         # Run without progress bar.
-        cmd_str = " ".join(cmd)
-        response = hsystem.system_to_string(cmd_str)
+        cmd_str = " ".join(shlex.quote(arg) for arg in cmd)
+        _, response = hsystem.system_to_string(cmd_str)
     return response
 
 

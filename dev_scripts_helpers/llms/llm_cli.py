@@ -35,6 +35,7 @@ import logging
 import helpers.hdbg as hdbg
 import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
+import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
 
@@ -103,6 +104,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("Use LLM executable: %s", args.use_llm_executable)
     _LOG.debug("Expected num chars: %s", args.expected_num_chars)
     # Process the file.
+    _LOG.info("Processing with LLM...")
+    memento = htimer.dtimer_start(logging.INFO, "LLM processing")
     hllmcli.apply_llm_with_files(
         input_file=args.input_file,
         output_file=args.output_file,
@@ -111,9 +114,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         use_llm_executable=args.use_llm_executable,
         expected_num_chars=args.expected_num_chars,
     )
-    _LOG.debug("LLM CLI processing completed successfully")
-    # TOOD(ai_gp): Print the name of the output file.
-    # TODO(ai_gp): Report the elapsed time to call the LLM using htimer.py
+    msg, elapsed_time = htimer.dtimer_stop(memento)
+    _LOG.info(msg)
+    _LOG.info("LLM CLI processing completed successfully")
+    _LOG.info("Output written to: %s", args.output_file)
 
 
 if __name__ == "__main__":
