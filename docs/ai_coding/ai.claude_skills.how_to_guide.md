@@ -1,3 +1,21 @@
+<!-- toc -->
+
+- [Claude Skills](#claude-skills)
+  * [What Are Skills?](#what-are-skills)
+  * [How Skills Work: Progressive Disclosure](#how-skills-work-progressive-disclosure)
+  * [Key Advantages Over Alternatives](#key-advantages-over-alternatives)
+    + [Compared to Openai'S Gpts](#compared-to-openais-gpts)
+    + [Compared to Custom Instructions](#compared-to-custom-instructions)
+    + [Token Efficiency vs MCP](#token-efficiency-vs-mcp)
+  * [Real-World Applications](#real-world-applications)
+  * [Platform Availability](#platform-availability)
+  * [Creating Your First Skill: Example](#creating-your-first-skill-example)
+  * [Getting Started](#getting-started)
+    + [**Getting Started**](#getting-started)
+    + [**Going Deeper**](#going-deeper)
+
+<!-- tocstop -->
+
 # Claude Skills
 
 - Claude Skills

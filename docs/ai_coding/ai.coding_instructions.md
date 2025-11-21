@@ -1,6 +1,7 @@
 - Assume the script needs to run only on Linux
 
-## Use assertions from helpers/hdbg.py
+## Use Assertions From `helpers/hdbg.py`
+
 - Use one of the `hdbg.dassert` functions in `helpers/hdbg.py` to check for
   invariants
   - Pass parameters using lazing formatting
@@ -19,7 +20,8 @@
         )
       ```
 
-## Use hsystem
+## Use `hsystem`
+
 - Use code in `helpers/hsystem.py` to call commands
 - Do not try to catching error, but let the exception propagate
   - Bad
@@ -35,7 +37,8 @@
     hsystem.system("which llm", suppress_output=True)
     ```
 
-## Coding style
+## Coding Style
+
 - Use the coding style in `docs/ai_coding/code_template.py`
 - Use REST comments in docstrings
 - Do not use empty lines within functions but use comments to separate chunks of
@@ -53,10 +56,11 @@
 
 - Use `*` for default parameters in functions
 
-- If you create a new function which it is used only in this file make it private
-  by starting the name with `_`
+- If you create a new function which it is used only in this file make it
+  private by starting the name with `_`
 
-## Use script template
+## Use Script Template
+
 - When creating scripts use the template
   `dev_scripts_helpers/coding_tools/script_template.py`
   - Create a parser function
@@ -67,6 +71,7 @@
     ```
 
 - When using `--action`
+
   ```python
   actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
   hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
@@ -80,5 +85,5 @@
   files
   - No need to clean up files
 
-- When there are expensive for loop, use a progress bar using `tqdm` to track the
-  progress
+- When there are expensive for loop, use a progress bar using `tqdm` to track
+  the progress

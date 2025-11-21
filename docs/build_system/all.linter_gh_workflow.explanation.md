@@ -5,9 +5,9 @@
 <!-- toc -->
 
 - [Overview](#overview)
-- [How it works](#how-it-works)
-  * [Fetch master branch](#fetch-master-branch)
-  * [Run the linter and check the linter results](#run-the-linter-and-check-the-linter-results)
+- [How It Works](#how-it-works)
+  * [Fetch Master Branch](#fetch-master-branch)
+  * [Run the Linter and Check the Linter Results](#run-the-linter-and-check-the-linter-results)
 
 <!-- tocstop -->
 
@@ -21,9 +21,9 @@
   did not run before.
 - In this case, the workflow will fail, and will not allow the PR to be merged
 
-## How it works
+## How It Works
 
-### Fetch master branch
+### Fetch Master Branch
 
 In order to compare the changed files in the PR with the latest master branch,
 fetch the latest master, e.g.,
@@ -32,7 +32,7 @@ fetch the latest master, e.g.,
 invoke git_fetch_master
 ```
 
-### Run the linter and check the linter results
+### Run the Linter and Check the Linter Results
 
 - Run the linter against the changed files in the PR branch
 

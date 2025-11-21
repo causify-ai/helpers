@@ -2,24 +2,26 @@
 
 ## Goals and Philosophy
 
-1) Make the text easy to consume for both humans and AI
+- Make the text easy to consume for both humans and AI
 
-2) Focus on:
+- Focus on:
   - Clarity
   - Brevity
   - Visual structure
 
-3) Think of notes as a hybrid between a textbook and a student’s notebook
+- Think of notes as a hybrid between a textbook and a student’s notebook
 
 - This document is written using the rules described in this document itself
 
 ## Formatting Guidelines
 
-#### Every document has a summary header
-- Every document should have a summary paragraph with a header `# Summary`
-  with a short paragraph containing what's the content of the document 
+#### Every Document Has a Summary Header
+
+- Every document should have a summary paragraph with a header `# Summary` with
+  a short paragraph containing what's the content of the document
 
 #### Headers and Paragraphs
+
 - Use headers and paragraphs
   ```
   # Header 1
@@ -27,11 +29,8 @@
   ## Header 2
   ```
 
-- Use title case for section and paragraph headers
-  - **Good**: Use Only Text
-  - **Bad**: Use only text
-
 #### Use Only Text
+
 - Avoid emojis and icons
 - Avoid any decorative formatting
   - Do not use line separator like `---`
@@ -42,6 +41,7 @@
   - **Bad**: “hello”
 
 #### Use Bullets
+
 - Use bullet points inside a paragraph
 
 - Each bullet should express one complete atomic idea
@@ -65,6 +65,7 @@
 - Do not end a bullet point with a period `.`
 
 #### Use Nested Bullets
+
 - Use nested bullets to show:
   - Dependencies and relationships
     - E.g., cause -> effect
@@ -96,7 +97,6 @@
   - Bold the item whenever possible
   - Use verbatim when the item is a script
   - Use `:` to separate file and description instead of `-`
-
   - **Bad**:
     ```
     - notes_to_pdf.py - Main tool for converting notes to PDF/HTML/slides
@@ -108,17 +108,20 @@
     - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
     ```
 
-#### Use verbatim for programs
+#### Use Verbatim for Programs
+
 - For libraries, executables, scripts use verbatim
   - E.g., `notes_to_pdf.py`, `python`, `pandas`
 
-#### Use and do not use &
+#### Use and Do Not Use &
+
 - **Bad**: Extraction & Conversion Tools
 - **Good**: Extraction and Conversion Tools
 
 ## Writing Style
 
 #### Writing Style
+
 - Use explicit references instead of unclear ones
   - **Good**: "TCP protocol"
   - **Bad**: "it"
@@ -129,20 +132,22 @@
 
 - Prefer plain language over academic jargon
 
-#### Avoid long prose
+#### Avoid Long Prose
+
 - Prefer structured notes over narrative prose
 
 - Use a first-person, self-directed voice, e.g.,
   - **Good**: "Key thing to remember: entropy increases"
 
-#### Use direct statements
+#### Use Direct Statements
+
 - Convert abstract principles into short, direct statements, e.g.,
   - **Good**: "Everyone takes responsibility: no blaming others if work isn't
     finished."
-  - **Bad**: "Everyone takes responsibility, owns their projects, and blames no one
-    if something doesn't get finished."
+  - **Bad**: "Everyone takes responsibility, owns their projects, and blames no
+    one if something doesn't get finished."
 
-#### Try to use lists 
+#### Try to Use Lists
 
 - **Good**
   ```
@@ -164,6 +169,7 @@
   ```
 
 #### Use Diagrams Over Text When Possible
+
 - Summarize systems or relationships using:
   - Graphviz
   - Mermaid

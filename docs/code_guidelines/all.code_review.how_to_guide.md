@@ -1,45 +1,45 @@
 # Code Review
 
-## Code review
+## Code Review
 
 <!-- toc -->
 
-- [General rules about code review](#general-rules-about-code-review)
-  * [Read the Google code review best practices](#read-the-google-code-review-best-practices)
-- [Code review workflows](#code-review-workflows)
-  * [Pull request](#pull-request)
-- [From the code author point of view](#from-the-code-author-point-of-view)
-  * [Why we review code](#why-we-review-code)
-  * [PR checklist](#pr-checklist)
-  * [The golden rule of code review](#the-golden-rule-of-code-review)
-  * [Be clear in the PR request about what you want](#be-clear-in-the-pr-request-about-what-you-want)
-  * [Do not mix changes and refactoring / shuffling code](#do-not-mix-changes-and-refactoring--shuffling-code)
-  * [Double check before sending a PR](#double-check-before-sending-a-pr)
-  * [Reviewing other people's code is usually not fun](#reviewing-other-peoples-code-is-usually-not-fun)
-  * [The first reviews are painful](#the-first-reviews-are-painful)
-  * [Apply review comments everywhere](#apply-review-comments-everywhere)
-  * [Look at the code top-to-bottom](#look-at-the-code-top-to-bottom)
-  * [Answering comments after a review](#answering-comments-after-a-review)
-  * [Apply changes to a review quickly](#apply-changes-to-a-review-quickly)
-  * [Ask for another review](#ask-for-another-review)
-  * [Workflow of a review in terms of GH labels](#workflow-of-a-review-in-terms-of-gh-labels)
-  * [Link PR to GH issue](#link-pr-to-gh-issue)
-  * [Fix later](#fix-later)
-- [From the code reviewer point of view](#from-the-code-reviewer-point-of-view)
-  * [Post-commit review](#post-commit-review)
-  * [Code walk-through](#code-walk-through)
-  * [Close the PR and delete the branch](#close-the-pr-and-delete-the-branch)
-  * [Give priority to code review](#give-priority-to-code-review)
-  * [Multiple reviewers problem](#multiple-reviewers-problem)
+- [General Rules About Code Review](#general-rules-about-code-review)
+  * [Read the Google Code Review Best Practices](#read-the-google-code-review-best-practices)
+- [Code Review Workflows](#code-review-workflows)
+  * [Pull Request](#pull-request)
+- [From the Code Author Point of View](#from-the-code-author-point-of-view)
+  * [Why We Review Code](#why-we-review-code)
+  * [PR Checklist](#pr-checklist)
+  * [The Golden Rule of Code Review](#the-golden-rule-of-code-review)
+  * [Be Clear in the PR Request About What You Want](#be-clear-in-the-pr-request-about-what-you-want)
+  * [Do Not Mix Changes and Refactoring / Shuffling Code](#do-not-mix-changes-and-refactoring--shuffling-code)
+  * [Double Check Before Sending a PR](#double-check-before-sending-a-pr)
+  * [Reviewing Other People'S Code Is Usually Not Fun](#reviewing-other-peoples-code-is-usually-not-fun)
+  * [The First Reviews Are Painful](#the-first-reviews-are-painful)
+  * [Apply Review Comments Everywhere](#apply-review-comments-everywhere)
+  * [Look at the Code Top-To-Bottom](#look-at-the-code-top-to-bottom)
+  * [Answering Comments After a Review](#answering-comments-after-a-review)
+  * [Apply Changes to a Review Quickly](#apply-changes-to-a-review-quickly)
+  * [Ask for Another Review](#ask-for-another-review)
+  * [Workflow of a Review in Terms of GH Labels](#workflow-of-a-review-in-terms-of-gh-labels)
+  * [Link PR to GH Issue](#link-pr-to-gh-issue)
+  * [Fix Later](#fix-later)
+- [From the Code Reviewer Point of View](#from-the-code-reviewer-point-of-view)
+  * [Post-Commit Review](#post-commit-review)
+  * [Code Walk-Through](#code-walk-through)
+  * [Close the PR and Delete the Branch](#close-the-pr-and-delete-the-branch)
+  * [Give Priority to Code Review](#give-priority-to-code-review)
+  * [Multiple Reviewers Problem](#multiple-reviewers-problem)
   * [Remember "small steps ahead"](#remember-small-steps-ahead)
-  * [Nothing is too small](#nothing-is-too-small)
-  * [Final GH comment](#final-gh-comment)
+  * [Nothing Is Too Small](#nothing-is-too-small)
+  * [Final GH Comment](#final-gh-comment)
 
 <!-- tocstop -->
 
-## General rules about code review
+## General Rules About Code Review
 
-### Read the Google code review best practices
+### Read the Google Code Review Best Practices
 
 - From the
   [developer\'s perspective](https://google.github.io/eng-practices/review/developer)
@@ -55,9 +55,9 @@
 
 - Understand the rationale
 
-## Code review workflows
+## Code Review Workflows
 
-### Pull request
+### Pull Request
 
 - Our usual review process is to work in a branch and create a pull request (PR)
   - See our [Git](/docs/tools/git/all.git.how_to_guide.md) doc for details
@@ -66,16 +66,16 @@
     is generally generated automatically, e.g.,
     `PTask2704 make exchange contracts get contracts applicable to series`.
 
-## From the code author point of view
+## From the Code Author Point of View
 
-### Why we review code
+### Why We Review Code
 
 - We spend time reviewing each other code so that we can:
   - Build a better product, by letting other people look for bugs
   - Propagate knowledge of the code base through the team
   - Learn from each other
 
-### PR checklist
+### PR Checklist
 
 - From
   [Google reviewer checklist](https://google.github.io/eng-practices/review/reviewer/looking-for.html):
@@ -93,7 +93,7 @@
   - Code is appropriately documented.
   - The code conforms to our style guides.
 
-### The golden rule of code review
+### The Golden Rule of Code Review
 
 - Make life easy for the reviewers
   - Aka "Do not upset the reviewers, otherwise they won't let you merge your
@@ -105,7 +105,7 @@
 - If you are in doubt "it's probably clear, although I am not 100% sure", err on
   giving more information and answer potential questions
 
-### Be clear in the PR request about what you want
+### Be Clear in the PR Request About What You Want
 
 - Summarize what was done in the PR
   - Refer to the GH task, but the task alone might not be sufficient
@@ -124,7 +124,7 @@
     carefully
   - If it\'s blocking a ping on Slack is a good idea
 
-### Do not mix changes and refactoring / shuffling code
+### Do Not Mix Changes and Refactoring / Shuffling Code
 
 - The job of the reviewers become frustrating when the author mixes:
   - Refactoring / moving code; and
@@ -155,14 +155,14 @@
   - Merge `TaskXYZ_do_this_and_that` to master
   - Merge `master` back into `gp_scratch` and keep moving
 
-### Double check before sending a PR
+### Double Check Before Sending a PR
 
 - After creating a PR take a look at it to make sure things look good, e.g.,
   - Are there merge problems?
   - Did you forget some file?
   - Skim through the PR to make sure that people can understand what you changed
 
-### Reviewing other people's code is usually not fun
+### Reviewing Other People'S Code Is Usually Not Fun
 
 - Reviewing code is time-consuming and tedious
   - So do everything you can to make the reviewer's job easier
@@ -174,7 +174,7 @@
   - Readability is paramount
   - You should abhor write-only code
 
-### The first reviews are painful
+### The First Reviews Are Painful
 
 - One needs to work on the same code over and over
   - Just think about the fact that the reviewer is also reading (still crappy)
@@ -183,7 +183,7 @@
 - Unfortunately it is needed pain to get to the quality of code we need to make
   progress as a team
 
-### Apply review comments everywhere
+### Apply Review Comments Everywhere
 
 - Apply a review comment everywhere, not just where the reviewer pointed out the
   issue
@@ -198,11 +198,11 @@
     - Of course don't start modifying the old code in this review, but open a
       clean-up bug, if you need a reminder
 
-### Look at the code top-to-bottom
+### Look at the Code Top-To-Bottom
 
 - E.g., if you do a search & replace, make sure everything is fine
 
-### Answering comments after a review
+### Answering Comments After a Review
 
 - It's better to answer comments in chunks so we don't get an email per comment
   - Use "start a review" (not in conversation)
@@ -210,7 +210,7 @@
   send it as single comment
 - When you answer a comment, mark it as resolved
 
-### Apply changes to a review quickly
+### Apply Changes to a Review Quickly
 
 - In the same way the reviewers are expected to review PRs within 24 hours, the
   author of a PR is expected to apply the requested changes quickly, ideally in
@@ -228,39 +228,39 @@
     fix the problems and then open a PR with new code
   - Other people that rely on your code are blocked
 
-### Ask for another review
+### Ask for Another Review
 
 - Once you are done with resolving all the comments ask for another review
 
-### Workflow of a review in terms of GH labels
+### Workflow of a Review in Terms of GH Labels
 
 - The current meaning of the labels are:
   - See GitHub workflows
     [doc](/docs/work_organization/all.use_github.how_to_guide.md#pr-labels)
 
-### Link PR to GH issue
+### Link PR to GH Issue
 
 - Mention the corresponding issue in the PR description to ease the navigation
   E.g., see an
   [example](https://github.com/kaizen-ai/kaizenflow/pull/288#issue-1729654983)
 
-### Fix later
+### Fix Later
 
 - It's ok for an author to file a follow up Issue (e.g., with a clean up), by
   pointing the new Issue to the comments to address, and move on with merge
 
 - The Issue needs to be addressed immediately after
 
-## From the code reviewer point of view
+## From the Code Reviewer Point of View
 
-### Post-commit review
+### Post-Commit Review
 
 - You can comment on a PR already merged
 
 - You can comment on the relevant lines in a commit straight to `master` (this
   is the exception)
 
-### Code walk-through
+### Code Walk-Through
 
 - It is best to create a branch with the files you want to review
   - Add TODOs in the code (so that the PR will pick up those sections)
@@ -268,7 +268,7 @@
 
 - Try to get a top to bottom review of a component once every N weeks (N = 2, 3)
 
-### Close the PR and delete the branch
+### Close the PR and Delete the Branch
 
 - When code is merged into master by one of the reviewers through the UI, one
   can select the "delete branch" option (usually it is done automatically)
@@ -276,13 +276,13 @@
 - Otherwise you can delete the branch using the procedure in
   [Git](/docs/tools/git/all.git.how_to_guide.md#deleting-a-branch)
 
-### Give priority to code review
+### Give Priority to Code Review
 
 - We target to give feedback on a PR within 24hr so that the author is not
   blocked for too long
   - Usually we respond in a few hours
 
-### Multiple reviewers problem
+### Multiple Reviewers Problem
 
 - When there are multiple reviewers for the same PR there can be some problems
 
@@ -297,7 +297,7 @@
 
 - Follow the Google approach of merging a PR that is a strict improvement
 
-### Nothing is too small
+### Nothing Is Too Small
 
 - Each reviewer reviews the code pointing out everything that can be a problem
 
@@ -308,7 +308,7 @@
   their own stylistic preference, this should not be pointed out, unless it's a
   matter of consistency or the choice is left to the author
 
-### Final GH comment
+### Final GH Comment
 
 - Once you are done with the detailed review of the code, you need to
   - Write a short comment

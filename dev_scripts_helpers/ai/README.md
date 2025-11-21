@@ -1,11 +1,11 @@
-# AI Development Scripts
+# Summary
 
 This directory contains convenience wrapper scripts for Claude AI CLI tools used in
 the development workflow.
 
-## Scripts
+# Description of executables
 
-- cc
+- `cc`
   - Launches Claude Code in interactive mode
   - Skips permission prompts for faster iteration
   - **Use case**: Interactive coding sessions where you want real-time assistance

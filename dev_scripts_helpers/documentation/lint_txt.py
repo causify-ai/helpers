@@ -354,7 +354,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.init_logger_for_input_output_transform(args)
     #
     in_file_name, out_file_name = hparser.parse_input_output_args(
-        args, clear_screen=True
+        args, clear_screen=False
     )
     # If the input is stdin, then user needs to specify the type.
     if in_file_name == "-":
