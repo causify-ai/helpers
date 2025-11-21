@@ -43,6 +43,10 @@ Examples:
 # With progress bar and explicit output size.
 > llm_cli.py -i input.txt -o output.txt --expected_num_chars 5000
 
+# Apply linting to output file after processing.
+> llm_cli.py -i input.txt -o output.txt --lint
+> llm_cli.py -i input.txt --lint  # In-place editing with linting
+
 Import as:
 
 import dev_scripts_helpers.llms.llm_cli as dshllcli
@@ -53,6 +57,7 @@ import logging
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
+import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
 import helpers.htimer as htimer
@@ -133,6 +138,12 @@ def _parse() -> argparse.ArgumentParser:
         default=None,
         help="Expected number of characters in output (enables progress bar with explicit size)",
     )
+    parser.add_argument(
+        "--lint",
+        action="store_true",
+        default=False,
+        help="Apply lint_txt.py to the output file after processing",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -155,12 +166,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Determine output destination.
     if args.output is None:
         # In-place editing: only allowed with input file.
-        # TODO(ai_gp): Use a dassert
-        if input_file is None:
-            hdbg.dfatal(
-                "Output must be specified when using --input_text. "
-                "In-place editing only works with --input"
-            )
+        hdbg.dassert(
+            input_file is not None,
+            "Output must be specified when using --input_text. "
+            "In-place editing only works with --input",
+        )
         output_file = input_file
         print_only = False
         _LOG.info("No output specified, writing in-place to: %s", output_file)
@@ -251,6 +261,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("LLM CLI processing completed successfully")
     if not print_only:
         _LOG.info("Output written to: %s", output_file)
+        # Apply linting if requested.
+        if args.lint:
+            _LOG.info("Applying lint to output file: %s", output_file)
+            hlint.lint_file(output_file)
+            _LOG.info("Linting completed")
 
 
 if __name__ == "__main__":

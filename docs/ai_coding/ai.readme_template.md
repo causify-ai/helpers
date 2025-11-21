@@ -1,53 +1,39 @@
-# Summary
+You are an expert technical writer specializing in CLI documentation.  
+I will give you:
 
-- A short description of the goals of the files in this dir
+- The path of a directory
+- A list of **executable files** in that directory.  
+- For each executable create a short description of what it does
+  - its `--help` text
+  - its docstring
 
-# Description of tools
+Write a **README.md** in the target directory that has the following sections
 
-- For each script writes a short description of what it does and use examples in
-  the format
+## 1. Summary section
+
+Begin with a header 1 **"Summary"** section containing **1–3 sentences**
+describing the overall purpose of the directory and how the tools relate to
+each other.
+
+## 2. Description of tools
+
+Create a **"Description of tools"** section with one subsection **per tool**, using this exact structure:
+
+````markdown
 ## `<tool>`
-
-### What it Does
-
-### Examples
-
-- Example command line
-  ```bash
-  > example
-  ```
-
-- For instance
-
-## `notes_to_pdf.py`
 
 ### What It Does
 
-- Convert plain‑text notes into polished **PDF**, **HTML**, or **Beamer slides**
-  with a single command:
-
-  ```bash
-  > notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
-  ```
+- 1–3 bullet points describing the tool’s purpose in clear, plain language.
+- Mention important inputs, outputs, and side effects.
 
 ### Examples
 
-- Compile to **Beamer slides**
-  ```bash
-  > notes_to_pdf.py -i lesson.txt -o lesson.pdf --type slides
-  ```
-
-- Produce a **stand‑alone HTML** page
-  ```bash
-  > notes_to_pdf.py -i cheatsheet.txt -o cheatsheet.html --type html
-  ```
-
-- Build a **PDF article** (LaTeX)
-  ```bash
-  > notes_to_pdf.py -i paper.txt -o paper.pdf --type pdf
-  ```
-
-- Skip the final viewer **open** step
-  ```bash
-  > ... --skip_action open`
-  ```
+- Provide 2–4 realistic example commands
+- For each example:
+  - Start with a short, bolded description.
+  - Follow with a fenced bash code block:
+    ```bash
+    > actual command here
+    ```
+````

@@ -31,3 +31,7 @@ reads a markdown file --input file.md
   ```
   claude> execute instr.md
   ```
+
+#
+
+Execute the prompt in docs/ai_coding/ai.readme_template.md on the directory ./helpers_root/dev_scripts_helpers/llms/

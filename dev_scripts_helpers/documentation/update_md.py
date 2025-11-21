@@ -65,6 +65,7 @@ from typing import Optional, Tuple
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
@@ -104,22 +105,6 @@ def _write_file(file_path: str, content: str) -> None:
     _LOG.debug("Writing file: %s", file_path)
     hio.to_file(file_path, content)
     _LOG.info("File updated successfully: %s", file_path)
-
-
-# TODO(ai_gp): Move this to helpers/hmarkdown.py and make it public
-def _lint_file(file_path: str) -> None:
-    """
-    Run lint_txt.py on the file to ensure proper formatting.
-
-    :param file_path: path to the markdown file to lint
-    """
-    _LOG.info("Linting file: %s", file_path)
-    lint_script = hgit.find_file_in_git_tree("lint_txt.py", super_module=True)
-    # Run lint_txt.py.
-    cmd = f"{lint_script} -i {file_path} -v CRITICAL"
-    _LOG.debug("Running command: %s", cmd)
-    hsystem.system(cmd, suppress_output=True)
-    _LOG.info("File linted successfully: %s", file_path)
 
 
 # #############################################################################
@@ -298,7 +283,7 @@ def _action_summarize(
     _write_file(input_file, new_content)
     # Lint the file for proper formatting.
     if not skip_lint:
-        _lint_file(input_file)
+        hlint.lint_file(input_file)
 
 
 # #############################################################################
@@ -354,7 +339,7 @@ def _action_update_content(
     _LOG.info("Output file size: %d characters", output_size)
     # Lint the file for proper formatting.
     if not skip_lint:
-        _lint_file(input_file)
+        hlint.lint_file(input_file)
 
 
 # #############################################################################
@@ -433,7 +418,7 @@ def _action_apply_style(
     _LOG.info("Output file size: %d characters", output_size)
     # Lint the file for proper formatting.
     if not skip_lint:
-        _lint_file(input_file)
+        hlint.lint_file(input_file)
 
 
 # #############################################################################
@@ -449,7 +434,7 @@ def _action_lint(input_file: str) -> None:
     """
     _LOG.info("Action: lint")
     # Lint the file for proper formatting.
-    _lint_file(input_file)
+    hlint.lint_file(input_file)
 
 
 # #############################################################################
