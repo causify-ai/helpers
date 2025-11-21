@@ -1,7 +1,7 @@
 <!-- toc -->
 
 - [Summary](#summary)
-- [Description of Tools](#description-of-tools)
+- [Description of Executables](#description-of-executables)
   * [`llm_cli.py`](#llm_clipy)
     + [What It Does](#what-it-does)
     + [Examples](#examples)
@@ -32,7 +32,7 @@ This directory contains a suite of CLI tools for applying Large Language Model
 refactoring, text transformation, and automated TODO injection, with
 Docker-based execution to handle dependencies and API credentials.
 
-# Description of Tools
+# Description of Executables
 
 ## `llm_cli.py`
 

@@ -1,4 +1,11 @@
-# Create a script from scratch
+<!-- toc -->
+
+- [Create a Script From Scratch](#create-a-script-from-scratch)
+- [Create a Readme.Md](#create-a-readmemd)
+
+<!-- tocstop -->
+
+# Create a Script From Scratch
 
 - Use the template in `ai.instruction_template.md`
   ```
@@ -61,4 +68,3 @@ Read and execute papers/DataFlow_white_paper/system_prompt.md
 Read papers/DataFlow_white_paper/paper.tex and all the files included
 
 move papers/DataFlow_white_paper/system_prompt.md to docs/
-
