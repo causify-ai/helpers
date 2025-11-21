@@ -12,7 +12,7 @@
   > cp docs/ai_coding/ai.instruction_template.md instr.md
   ```
 
-- Modify `instr.md`
+- Modify `instr.md` like below
 ```
 1) Write a Python script `dev_scripts_helpers/documentation/summarize_md.py` that
 reads a markdown file --input file.md
@@ -42,6 +42,10 @@ reads a markdown file --input file.md
 # Create a README.md
 
 claude> Execute the prompt in docs/ai_coding/ai.readme_template.md on the directory ./helpers_root/dev_scripts_helpers/llms/
+
+> ccp Execute the prompt in docs/ai_coding/ai.create_readme.prompt.md on the directory ./docs/ai_coding/README.md
+
+> echo "Execute the prompt in docs/ai_coding/ai.create_readme.prompt.md on the > directory ./docs/ai_coding/README.md" | claude --dangerously-skip-permissions
 
 # 
 
