@@ -27,10 +27,6 @@
   ## Header 2
   ```
 
-- Use title case for section and paragraph headers
-  - **Good**: Use Only Text
-  - **Bad**: Use only text
-
 #### Use Only Text
 - Avoid emojis and icons
 - Avoid any decorative formatting
