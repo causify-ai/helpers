@@ -1,6 +1,6 @@
 - **Introduction**  
-  Begin with a short paragraph introducing the topic.  
-  Avoid using bullet points or lists in the introduction.
+  - Begin with a short paragraph introducing the topic.  
+  - Avoid using bullet points or lists in the introduction.
 
 - **Section Headings**  
   Use level 2 headings for main sections:  
@@ -31,7 +31,7 @@
   Images: `![alt text](image URL)`
 
 - **Emphasis**
-  Use `*text*` for emphasis and `**text**` for strong emphasis.
+  Use `_text_` for emphasis and `**text**` for strong emphasis.
 
 - **Math (optional)**
   Inline: `$E = mc^2$`
@@ -42,7 +42,7 @@
 
 - **Metadata (optional)**
   At the top, include front matter in YAML format if needed:
-  ```
+  ```markdown
   ---
   title: "Blog Title"
   date: "2025-10-30"
@@ -53,3 +53,10 @@
 
 - **General Style**
   Maintain consistent spacing and indentation.
+
+- Add a spicy TLDR
+  ```bash
+  > ccp Create 3 catchy and controversial TLDR of less than 20 words without emdash for blog/docs/posts/Your_data_isnt_as_ready_as_your_slide_says.md
+  ```
+
+- llm_cli.py -i ../blog/docs/posts/Data_is_dumb.md -pf docs/ai_coding/ai.gp_blog_prompt.md -o ../blog/docs/posts/Data_is_dumb.md --lint

@@ -106,6 +106,7 @@ def _write_file(file_path: str, content: str) -> None:
     _LOG.info("File updated successfully: %s", file_path)
 
 
+# TODO(ai_gp): Move this to helpers/hmarkdown.py and make it public
 def _lint_file(file_path: str) -> None:
     """
     Run lint_txt.py on the file to ensure proper formatting.
