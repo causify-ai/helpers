@@ -103,14 +103,14 @@ Docker-based execution to handle dependencies and API credentials.
   ```
 
 - Propose refactoring (generates cfile):
-```bash
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
-```
+  ```bash
+  > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
+  ```
 
 - Compare original and transformed text:
-```bash
-> llm_transform.py -i input.txt -o output.txt -p my_transform --compare
-```
+  ```bash
+  > llm_transform.py -i input.txt -o output.txt -p my_transform --compare
+  ```
 
 ## `llm_review.py`
 
@@ -124,35 +124,30 @@ Docker-based execution to handle dependencies and API credentials.
 
 ### Examples
 
-Review specific files:
+- Review specific files:
+  ```bash
+  > llm_review.py --files="dir1/file1.py dir2/file2.md dir3/file3.ipynb"
+  ```
 
-```bash
-> llm_review.py --files="dir1/file1.py dir2/file2.md dir3/file3.ipynb"
-```
+- Review all modified files in git:
+  ```bash
+  > llm_review.py --modified
+  ```
 
-Review all modified files in git:
+- Review files from last commit:
+  ```bash
+  > llm_review.py --last_commit
+  ```
 
-```bash
-> llm_review.py --modified
-```
+- Review branch changes with custom guidelines:
+  ```bash
+  > llm_review.py --branch --guidelines_doc_filename custom_guidelines.md
+  ```
 
-Review files from last commit:
-
-```bash
-> llm_review.py --last_commit
-```
-
-Review branch changes with custom guidelines:
-
-```bash
-> llm_review.py --branch --guidelines_doc_filename custom_guidelines.md
-```
-
-Review directory excluding specific files:
-
-```bash
-> llm_review.py --dir_name src/ --skip_files test_*.py
-```
+- Review directory excluding specific files:
+  ```bash
+  > llm_review.py --dir_name src/ --skip_files test_*.py
+  ```
 
 ## `llm_apply_cfile.py`
 
@@ -165,29 +160,25 @@ Review directory excluding specific files:
 
 ### Examples
 
-Basic usage:
+- Basic usage:
+  ```bash
+  > llm_apply_cfile.py --cfile cfile.txt
+  ```
 
-```bash
-> llm_apply_cfile.py --cfile cfile.txt
-```
+- With debug output:
+  ```bash
+  > llm_apply_cfile.py --cfile cfile.txt --debug
+  ```
 
-With debug output:
+- With custom prompt and fast model:
+  ```bash
+  > llm_apply_cfile.py --cfile cfile.txt --prompt "Fix the issue" --fast_model
+  ```
 
-```bash
-> llm_apply_cfile.py --cfile cfile.txt --debug
-```
-
-With custom prompt and fast model:
-
-```bash
-> llm_apply_cfile.py --cfile cfile.txt --prompt "Fix the issue" --fast_model
-```
-
-Force rebuild Docker container:
-
-```bash
-> llm_apply_cfile.py --cfile cfile.txt --dockerized_force_rebuild
-```
+- Force rebuild Docker container:
+  ```bash
+  > llm_apply_cfile.py --cfile cfile.txt --dockerized_force_rebuild
+  ```
 
 ## `inject_todos.py`
 
@@ -201,17 +192,15 @@ Force rebuild Docker container:
 
 ### Examples
 
-Inject TODOs from cfile:
+- Inject TODOs from cfile:
+  ```bash
+  > inject_todos.py --cfile todos.txt --todo_target username
+  ```
 
-```bash
-> inject_todos.py --cfile todos.txt --todo_target username
-```
-
-With verbose logging:
-
-```bash
-> inject_todos.py --cfile todos.txt --todo_target username -v DEBUG
-```
+- With verbose logging:
+  ```bash
+  > inject_todos.py --cfile todos.txt --todo_target username -v DEBUG
+  ```
 
 ## `ai_review.py`
 
@@ -226,28 +215,24 @@ With verbose logging:
 ### Examples
 
 - Review from file:
-
-```bash
-> ai_review.py -i input.py -o output.py --prompt "Review for bugs"
-```
+  ```bash
+  > ai_review.py -i input.py -o output.py --prompt "Review for bugs"
+  ```
 
 - Review from stdin to stdout:
-
-```bash
-> cat file.py | ai_review.py -i - -o - --prompt "Review code quality"
-```
+  ```bash
+  > cat file.py | ai_review.py -i - -o - --prompt "Review code quality"
+  ```
 
 - Fast model with debug output:
-
-```bash
-> ai_review.py -i input.py -o output.py --prompt "Check style" --fast_model --debug
-```
+  ```bash
+  > ai_review.py -i input.py -o output.py --prompt "Check style" --fast_model --debug
+  ```
 
 - Skip post-transforms:
-
-```bash
-> ai_review.py -i input.py -o output.py --prompt "Review" --skip-post-transforms
-```
+  ```bash
+  > ai_review.py -i input.py -o output.py --prompt "Review" --skip-post-transforms
+  ```
 
 ## Dockerized Variants
 

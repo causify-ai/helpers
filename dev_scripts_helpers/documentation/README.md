@@ -1,10 +1,18 @@
 # Summary
 
-- This document provides a comprehensive guide to the documentation toolchain that converts raw notes, slides, and LaTeX into polished PDFs, slide decks, and HTML
-- The toolchain supports multiple documentation workflows including standard LaTeX, Causify markdown extensions, notes format, slides, books, and Jupyter books
-- The document catalogs over 30 specialized tools organized into categories: core documentation tools, extraction and conversion tools, dockerized tools, utility and processing tools, and generation and publishing tools
-- Each tool is documented with its purpose, usage examples, and integration with the broader documentation ecosystem
-- The toolchain emphasizes automation, consistency, and ease of use through command-line interfaces and editor integration
+- This document provides a comprehensive guide to the documentation toolchain
+  that converts raw notes, slides, and LaTeX into polished PDFs, slide decks, and
+  HTML
+- The toolchain supports multiple documentation workflows including standard
+  LaTeX, Causify markdown extensions, notes format, slides, books, and Jupyter
+  books
+- The document catalogs over 30 specialized tools organized into categories: core
+  documentation tools, extraction and conversion tools, dockerized tools, utility
+  and processing tools, and generation and publishing tools
+- Each tool is documented with its purpose, usage examples, and integration with
+  the broader documentation ecosystem
+- The toolchain emphasizes automation, consistency, and ease of use through
+  command-line interfaces and editor integration
 
 # Documentation Toolchain
 
@@ -89,40 +97,6 @@
 
 ## List of Tools
 
-- The tools available are
-  ```bash
-  > ls -1 dev_scripts_helpers/documentation/
-  convert_docx_to_markdown.py
-  dockerized_graphviz.py
-  dockerized_latex.py
-  dockerized_mermaid.py
-  dockerized_pandoc.py
-  dockerized_prettier.py
-  dockerized_tikz_to_bitmap.py
-  extract_headers_from_markdown.py
-  generate_latex_sty.py
-  generate_readme_index.py
-  generate_script_catalog.py
-  latex_abbrevs.sty
-  latexdockercmd.sh
-  lint_txt.py
-  mkdocs
-  notes_to_pdf.py
-  OLD
-  open_md_in_browser.sh
-  open_md_on_github.sh
-  pandoc.latex
-  preprocess_notes.py
-  publish_notes.py
-  render_images.py
-  replace_latex.py
-  replace_latex.sh
-  run_latex.sh
-  run_pandoc.py
-  test
-  transform_notes.py
-  ```
-
 - Short Classification of Tools
 
   - Core Documentation Tools
@@ -164,7 +138,7 @@
     - `create_google_drive_map.py`: Creates directory structure summaries  
     - `llm_transform.py`: LLM-based text transformations  
 
-# Description of tools
+# Description of executables
 
 ## `notes_to_pdf.py`
 
@@ -1219,7 +1193,7 @@ The supported File types and code blocks are:
 
 ### Examples
 
-- Basic usage - run tree and LLM on all directories
+- Basic usage: run tree and LLM on all directories
   ```bash
   > create_google_drive_map.py --in_dir /path/to/google_drive
   ```
