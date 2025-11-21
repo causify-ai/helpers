@@ -1,27 +1,27 @@
-- **Introduction**  
-  - Begin with a short paragraph introducing the topic.  
+- **Introduction**
+  - Begin with a short paragraph introducing the topic.
   - Avoid using bullet points or lists in the introduction.
 
-- **Section Headings**  
-  - Use level 2 headings for main sections:  
+- **Section Headings**
+  - Use level 2 headings for main sections:
     ```markdown
     ## Section Title
     ```
-  - Use level 3 headings for subsections:  
+  - Use level 3 headings for subsections:
     ```markdown
     ### Subsection Title
     ```
 
-- **Paragraphs**  
-  - Write clear, concise paragraphs.  
+- **Paragraphs**
+  - Write clear, concise paragraphs.
   - Separate paragraphs with a single blank line.
 
-- **Lists**  
-  - For unordered lists, use `-` or `*`.  
+- **Lists**
+  - For unordered lists, use `-` or `*`.
   - For ordered lists, use `1.`, `2.`, etc.
 
-- **Code Blocks**  
-  - Use triple backticks for code examples:  
+- **Code Blocks**
+  - Use triple backticks for code examples:
     ```
     code here
     ```

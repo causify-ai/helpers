@@ -1,9 +1,9 @@
-You are an expert technical writer specializing in software documentation.  
+You are an expert technical writer specializing in software documentation.
 
 I will give you the path of a directory <DIR> and you will write a **README.md**
 in the target directory that has the following sections
 
-# Structure of the dir
+# Structure of the Dir
 
 - Find all the dirs under <DIR>
 - For each directory write a short comment on its content
@@ -17,7 +17,7 @@ in the target directory that has the following sections
       - Screenshots demonstrating GitHub Copilot review workflow
     ```
 
-# Description of files
+# Description of Files
 
 - For each file Python and markdown file write a one line description of what it
   contains in fewer than 20 words, in the format
@@ -30,14 +30,15 @@ in the target directory that has the following sections
       golden file testing
   ```
 
-# Description of executables
+# Description of Executables
 
 - Find a list of **executable files** in that directory
 - For each executable create a short description of what it does
-  - its `--help` text
-  - its docstring
+  - Its `--help` text
+  - Its docstring
 
-Create a **"Description of executables"** section with one subsection **per tool**, using this exact structure:
+Create a **"Description of executables"** section with one subsection **per
+tool**, using this exact structure:
 
 ````markdown
 ## `<tool>`
@@ -59,5 +60,5 @@ Create a **"Description of executables"** section with one subsection **per tool
 ````
 
 - Examples of this file are:
-  - dev_scripts_helpers/documentation/README.md
-  - dev_scripts_helpers/llms/README.md
+  - `dev_scripts_helpers/documentation/README.md`
+  - `dev_scripts_helpers/llms/README.md`

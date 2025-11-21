@@ -1,4 +1,5 @@
-FILES=$(find docs -name "*.md" | sort | head -5)
+#!/bin/bash -e
+FILES=$(find docs -name "*.md" | sort)
 
 for FILE in $FILES; do
     echo $FILE

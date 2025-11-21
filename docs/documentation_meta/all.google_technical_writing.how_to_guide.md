@@ -2,38 +2,38 @@
 
 <!-- toc -->
 
-- [Google's technical writing: Part 1](#googles-technical-writing-part-1)
-  * [Define new or unfamiliar](#define-new-or-unfamiliar)
-  * [Use terms consistently](#use-terms-consistently)
-  * [Use acronyms properly](#use-acronyms-properly)
-  * [Use strong verbs](#use-strong-verbs)
-  * [Use short sentences](#use-short-sentences)
-  * [Remove fillers](#remove-fillers)
-  * [Focus each paragraph on a single topic](#focus-each-paragraph-on-a-single-topic)
-  * [Avoid wall-of-text](#avoid-wall-of-text)
-  * [Answer what, why, and how](#answer-what-why-and-how)
-  * [Know your audience](#know-your-audience)
-  * [State document's scope](#state-documents-scope)
-  * [Summarize the key points at the start](#summarize-the-key-points-at-the-start)
-- [Google's technical writing: Part 2](#googles-technical-writing-part-2)
-  * [Adopt a style guide](#adopt-a-style-guide)
-  * [Think like your audience](#think-like-your-audience)
-  * [Come back to it later](#come-back-to-it-later)
-  * [Organizing large docs](#organizing-large-docs)
+- [Google'S Technical Writing: Part 1](#googles-technical-writing-part-1)
+  * [Define New or Unfamiliar](#define-new-or-unfamiliar)
+  * [Use Terms Consistently](#use-terms-consistently)
+  * [Use Acronyms Properly](#use-acronyms-properly)
+  * [Use Strong Verbs](#use-strong-verbs)
+  * [Use Short Sentences](#use-short-sentences)
+  * [Remove Fillers](#remove-fillers)
+  * [Focus Each Paragraph on a Single Topic](#focus-each-paragraph-on-a-single-topic)
+  * [Avoid Wall-Of-Text](#avoid-wall-of-text)
+  * [Answer What, Why, and How](#answer-what-why-and-how)
+  * [Know Your Audience](#know-your-audience)
+  * [State Document'S Scope](#state-documents-scope)
+  * [Summarize the Key Points at the Start](#summarize-the-key-points-at-the-start)
+- [Google'S Technical Writing: Part 2](#googles-technical-writing-part-2)
+  * [Adopt a Style Guide](#adopt-a-style-guide)
+  * [Think Like Your Audience](#think-like-your-audience)
+  * [Come Back to It Later](#come-back-to-it-later)
+  * [Organizing Large Docs](#organizing-large-docs)
 - [Resources](#resources)
 
 <!-- tocstop -->
 
 // From https://developers.google.com/tech-writing/one/
 
-## Google's technical writing: Part 1
+## Google'S Technical Writing: Part 1
 
-### Define new or unfamiliar
+### Define New or Unfamiliar
 
 - If your document introduces a term, define the term
 - If the term already exists, link to a good existing explanation
 
-### Use terms consistently
+### Use Terms Consistently
 
 - Don't change the name of something while talking about it
   - E.g., `Protocol Buffers` vs `protobufs`
@@ -42,7 +42,7 @@
   Protocol Buffers (or protobufs for short)
   ```
 
-### Use acronyms properly
+### Use Acronyms Properly
 
 - On the initial use of an unfamiliar acronym spell out the full term
 - E.g., `Telekinetic Tactile Network (TTN) ...`
@@ -51,7 +51,7 @@
 - An acronym should be significantly shorter than the full term
 - Don't define acronyms that will be used only a few times
 
-### Use strong verbs
+### Use Strong Verbs
 
 - Choose precise, strong, and specific verbs
   - Weak verbs are "be", "occur", "happen"
@@ -66,14 +66,14 @@ Dividing by zero raises the exception.
 The exception occurs when dividing by zero.
 ```
 
-### Use short sentences
+### Use Short Sentences
 
 - Each sentence should convey a single idea, thought, concept
   - Break long sentences into single-idea sentences
 - Convert long sentences into bulleted list
   - E.g., "and", "or" suggest to refactor into a bulleted list
 
-### Remove fillers
+### Remove Fillers
 
 **Good**
 ```
@@ -85,17 +85,17 @@ This design document describes Project Frambus.
 This design document provides a detailed description of Project Frambus.
 ```
 
-### Focus each paragraph on a single topic
+### Focus Each Paragraph on a Single Topic
 
 - A paragraph is an independent unit of logic
 - Ruthlessly delete sentence that doesn't relate to the current topic
 
-### Avoid wall-of-text
+### Avoid Wall-Of-Text
 
 - Readers often ignore long paragraphs
 - Paragraphs should contain 3 to 5 sentences
 
-### Answer what, why, and how
+### Answer What, Why, and How
 
 - Good paragraphs answer the following questions
   - What: what are you trying to tell your reader?
@@ -113,7 +113,7 @@ This design document provides a detailed description of Project Frambus.
     `garp()` value suggests that the mean is more meaningful than when the
     `garp()` value is relatively high.
 
-### Know your audience
+### Know Your Audience
 
 - Your document needs to provide information that your audience needs but
   doesn't already have
@@ -133,7 +133,7 @@ This design document provides a detailed description of Project Frambus.
     - Avoid the "curse of knowledge": experts forget that novices don't know
       what you already know
 
-### State document's scope
+### State Document'S Scope
 
 - A good document begins by defining its scope and its non-scope, e.g.,
   ```
@@ -141,7 +141,7 @@ This design document provides a detailed description of Project Frambus.
   technology Froobus.
   ```
 
-### Summarize the key points at the start
+### Summarize the Key Points at the Start
 
 - Ensure that the start of your document answers your readers' essential
   questions
@@ -149,24 +149,24 @@ This design document provides a detailed description of Project Frambus.
 
 // From https://developers.google.com/tech-writing/two
 
-## Google's technical writing: Part 2
+## Google'S Technical Writing: Part 2
 
-### Adopt a style guide
+### Adopt a Style Guide
 
 - Many companies and large open source projects adopt a style guide for
   documentation
   - E.g., https://developers.google.com/style
 
-### Think like your audience
+### Think Like Your Audience
 
 - Step back and try to read your draft from the point of view of your audience
 
-### Come back to it later
+### Come Back to It Later
 
 - After you write your first (or second or third) draft, set it aside
 - Come back later and read it with fresh eyes to find things you can improve
 
-### Organizing large docs
+### Organizing Large Docs
 
 - You can organize a collection of information into
   - A longer standalone document; or

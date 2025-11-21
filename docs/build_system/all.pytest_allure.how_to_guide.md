@@ -1,19 +1,17 @@
-# Pytest Allure
-
-## Pytest Allure How to Guide
-
 <!-- toc -->
 
-- [How to run the flow end-to-end via GH actions](#how-to-run-the-flow-end-to-end-via-gh-actions)
-- [How to generate allure-pytest results](#how-to-generate-allure-pytest-results)
-- [How to backup the Allure results](#how-to-backup-the-allure-results)
-- [How to generate Allure HTML-report](#how-to-generate-allure-html-report)
-  * [Keep the history of test runs](#keep-the-history-of-test-runs)
-- [How to publish the Allure-HTML report](#how-to-publish-the-allure-html-report)
+- [How to Run the Flow End-To-End Via GH Actions](#how-to-run-the-flow-end-to-end-via-gh-actions)
+- [How to Generate Allure-Pytest Results](#how-to-generate-allure-pytest-results)
+- [How to Backup the Allure Results](#how-to-backup-the-allure-results)
+- [How to Generate Allure Html-Report](#how-to-generate-allure-html-report)
+  * [Keep the History of Test Runs](#keep-the-history-of-test-runs)
+- [How to Publish the Allure-Html Report](#how-to-publish-the-allure-html-report)
 
 <!-- tocstop -->
 
-## How to run the flow end-to-end via GH actions
+# Pytest Allure
+
+## How to Run the Flow End-To-End Via GH Actions
 
 Considering that we run the tests on the `cmamp` repo with the fast `tests`
 group
@@ -25,7 +23,7 @@ step.
 Here is the link to the
 [GitHub action file](../.github/workflows/DISABLED.allure.fast_test.yml).
 
-## How to generate allure-pytest results
+## How to Generate Allure-Pytest Results
 
 To save Allure results after a test run, append `--allure-dir` parameter to a
 `pytest` cmd, e.g.,
@@ -36,7 +34,7 @@ i run_fast_tests ... --allure-dir ./allure_results
 
 where `allure-dir` is the directory where the Allure results will be stored.
 
-## How to backup the Allure results
+## How to Backup the Allure Results
 
 To backup the Allure results, copy the `allure_results` directory to a AWS S3
 bucket, e.g.,
@@ -52,7 +50,7 @@ where:
 - `cmamp` is the name of the GitHub repo
 - `fast` is the name of the tests group
 
-## How to generate Allure HTML-report
+## How to Generate Allure Html-Report
 
 - Whenever Allure generates a test report in a specified directory i.e.
   `allure-report` (refer to the
@@ -78,7 +76,7 @@ where:
 
 TODO(Vlad): Come up with a clean-up strategy for the S3 bucket.
 
-### Keep the history of test runs
+### Keep the History of Test Runs
 
 - To activate the features related to history, copy the history subdirectory
   from the previous report into the latest test results directory before
@@ -98,7 +96,7 @@ To copy the history subdirectory from the previous run to the `allure_results`:
 aws s3 cp s3://cryptokaizen-html/allure_reports/cmamp/fast/report.20231120_102030/history allure_results/history --recursive
 ```
 
-## How to publish the Allure-HTML report
+## How to Publish the Allure-Html Report
 
 To publish the Allure report, copy the `allure_report` directory to a AWS S3
 bucket, e.g.,
