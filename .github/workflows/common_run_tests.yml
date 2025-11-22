@@ -95,10 +95,6 @@ jobs:
         run: invoke docker_pull
 
       - name: Run tests
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 60
-        with:
-          limit-access-to-actor: true
         env:
           CSFY_AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
           CSFY_AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
@@ -106,7 +102,7 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
-        # run: invoke ${{ inputs.test-name }}
+        run: invoke ${{ inputs.test-name }}
 
       # In case of manual run, this workflow step will not be skipped and
       # info in the step will be in format as seen in `with` statement.
