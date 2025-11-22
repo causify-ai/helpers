@@ -28,7 +28,7 @@ reads a markdown file --input file.md
   summary of the file
 
 - For all the code you must follow the instructions in
-  `docs/ai_coding/ai.coding_instructions.md`
+  `docs/ai_coding/ai.coding.prompt.md`
 
 2) Update the documentation in dev_scripts_helpers/documentation/README.md using
    the instructions in `docs/ai_coding/ai.md_instructions.md`

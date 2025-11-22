@@ -22,10 +22,10 @@ in the target directory that has the following sections
 - For each file Python and markdown file write a one line description of what it
   contains in fewer than 20 words, in the format
   ```
-  - `ai.coding_instructions.md`
+  - `ai.coding.prompt.md`
     - Python coding standards including assertions, logging patterns, and script
       templates
-  - `ai.unit_test_instructions.md`
+  - `ai.unit_test.prompt.md`
     - Unit testing conventions including test structure, naming patterns, and
       golden file testing
   ```

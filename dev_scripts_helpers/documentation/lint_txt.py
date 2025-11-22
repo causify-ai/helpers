@@ -242,6 +242,10 @@ def _perform_actions(
     hdbg.dassert_isinstance(lines, list)
     # Get the file type.
     is_md_file = in_file_name.endswith(".md")
+    is_tex_file = in_file_name.endswith(".tex")
+    is_txt_file = in_file_name.endswith(".txt")
+    hdbg.dassert_eq(is_md_file + is_tex_file + is_txt_file, 1, msg="Invalid file type")
+    #
     extension = os.path.splitext(in_file_name)[1]
     # Remove the . from the extenstion (e.g., ".txt").
     hdbg.dassert(extension.startswith("."), "Invalid extension='%s'", extension)
@@ -265,8 +269,10 @@ def _perform_actions(
     if _to_execute_action(action, actions):
         # For markdown files, we don't use the frame since it's not rendered
         # correctly.
-        if not is_md_file:
+        if is_txt_file:
             lines = hmarkdo.frame_chapters(lines)
+        elif is_tex_file:
+            assert 0
     # Improve header and slide titles.
     action = "capitalize_header"
     if _to_execute_action(action, actions):

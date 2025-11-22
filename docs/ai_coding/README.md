@@ -28,19 +28,19 @@ documentation guidelines, and guides for various AI coding tools.
 
 ## Instructions and Guidelines
 
-- `ai.coding_instructions.md`
+- `ai.coding.prompt.md`
   - Python coding standards including assertions, logging patterns, and script
     templates
-- `ai.unit_test_instructions.md`
+- `ai.unit_test.prompt.md`
   - Unit testing conventions including test structure, naming patterns, and
     golden file testing
 - `ai.md_instructions.md`
   - Style guide for writing structured bullet-point notes optimized for AI and
     human readability
-- `ai.blog_instructions.md`
+- `ai.blog.prompt.md`
   - Markdown formatting guidelines for writing blog posts with proper structure
     and metadata
-- `ai.paper_instructions.md`
+- `ai.paper.prompt.md`
   - Academic writing guidelines for formal, objective computer science papers
 - `ai.instruction_template.md`
   - Workflow template for creating Python scripts with tests, documentation, and

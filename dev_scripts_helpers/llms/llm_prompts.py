@@ -767,6 +767,21 @@ def md_add_good_bad_examples() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def md_convert_to_latex() -> _PROMPT_OUT:
+    """
+    Check the Latex code is correct and doesn't have errors.
+    """
+    system = _LATEX_CONTEXT
+    system += r"""
+    Given the markdown text passed, convert it to Latex code.
+    Do not print any explanation, just the Latex code without the ```latex delimiters.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = set()
+    post_container_transforms = []
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
 def md_rewrite() -> _PROMPT_OUT:
     """
     Rewrite the markdown text to increase clarity and readability.

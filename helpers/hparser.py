@@ -900,6 +900,7 @@ def add_multi_file_args(
         help="Path to file containing one file path per line",
     )
     group.add_argument(
+        "-i",
         "--input",
         action="append",
         help="File to process (can be specified multiple times)",

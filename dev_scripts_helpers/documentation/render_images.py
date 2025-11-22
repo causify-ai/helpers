@@ -525,14 +525,6 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # Add input and output file arguments.
-    parser.add_argument(
-        "-i",
-        "--input",
-        required=False,
-        type=str,
-        help="Path to the input file",
-    )
     parser.add_argument(
         "-o",
         "--output",
