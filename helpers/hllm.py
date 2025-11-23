@@ -579,7 +579,8 @@ def get_completion(
     if print_cost:
         _LOG.info("cost=%.6f", completion["cost"])
     response = completion["choices"][0]["message"]["content"]
-    return response
+    model = llm_client.model
+    return response, model 
 
 
 # # #############################################################################
