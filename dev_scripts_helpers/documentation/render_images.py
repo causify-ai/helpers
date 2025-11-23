@@ -318,18 +318,19 @@ def _insert_image_code(
     # Add the code to insert the image in the file.
     if extension in (".md", ".txt"):
         # Use the Markdown syntax.
-        txt += f"![]({rel_img_path})"
+        txt += rf"![]({rel_img_path})"
         # Add the size, if specified.
         if user_img_size:
             # E.g., "![](path/to/image.png){ height=100% }"
             txt += "{ " + user_img_size + " }"
+        txt += "\n"
     elif extension == ".tex":
         # Use the LaTeX syntax with tagged markers to make it easier to do a
         # replacement.
         txt += (
-            r"\begin{figure}\n" +
-            r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}\n" +
-            r"\end{figure}"
+            r"\begin{figure}" + "\n" +
+            r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}" + "\n" +
+            r"\end{figure}" + "\n"
         )
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
@@ -494,9 +495,9 @@ def _render_images(
                         state, line, comment_prefix, comment_postfix
                     )
                 )
-                out_lines.append(
-                    _insert_image_code(extension, rel_img_path, user_img_size)
-                )
+                # Split the image code into separate lines and add them.
+                image_code = _insert_image_code(extension, rel_img_path, user_img_size)
+                out_lines.extend(image_code.rstrip('\n').split('\n'))
                 user_img_size = ""
                 # Set the parser to search for a new image code block.
                 if state == "found_image_code":

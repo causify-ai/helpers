@@ -79,8 +79,8 @@ https://c4model.com/.
 [//]: # ( @enduml)
 [//]: # ( ```)
 [//]: # ( render_image:begin )
-![](figs/im_architecture.1.png)[//]: # ( render_image:end )
-
+![](figs/im_architecture.1.png)
+[//]: # ( render_image:end )
 
 ## Container Diagram
 
@@ -157,8 +157,8 @@ https://c4model.com/.
 [//]: # ( @enduml)
 [//]: # ( ```)
 [//]: # ( render_image:begin )
-![](figs/im_architecture.2.png)[//]: # ( render_image:end )
-
+![](figs/im_architecture.2.png)
+[//]: # ( render_image:end )
 
 ### Questions
 
@@ -292,8 +292,8 @@ single step.
 [//]: # ( })
 [//]: # ( ```)
 [//]: # ( render_image:begin )
-![](figs/im_architecture.3.png)[//]: # ( render_image:end )
-
+![](figs/im_architecture.3.png)
+[//]: # ( render_image:end )
 
 ## Notes
 
