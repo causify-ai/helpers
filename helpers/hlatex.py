@@ -149,9 +149,9 @@ def frame_sections(lines: List[str]) -> List[str]:
     txt_new: List[str] = []
     # Define the section patterns and their corresponding separators.
     section_patterns = [
-        (r"^\\section\{", "% " + "#" * (80 - 2)),
-        (r"^\\subsection\{", "% " + "=" * (80 - 2)),
-        (r"^\\subsubsection\{", "% " + "-" * (80 - 2)),
+        (r"^\\section\{", "  % " + "#" * (80 - 2)),
+        (r"^\\subsection\{", "  % " + "=" * (80 - 2)),
+        (r"^\\subsubsection\{", "  % " + "-" * (80 - 2)),
     ]
     for i, line in enumerate(txt_tmp2):
         _LOG.debug("line=%d:%s", i, line)

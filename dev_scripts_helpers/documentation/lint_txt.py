@@ -268,14 +268,16 @@ def _perform_actions(
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
-        # For markdown files, we don't use the frame since it's not rendered
-        # correctly.
         if is_txt_file:
             lines = hmarkdo.frame_chapters(lines)
         elif is_tex_file:
             lines = hlatex.frame_sections(lines)
+        elif is_md_file:
+            # For markdown files, we don't use the frame since it's not rendered
+            # correctly.
+            pass
         else:
-            assert 0
+            raise ValueError("Invalid format")
     # Improve header and slide titles.
     action = "capitalize_header"
     if _to_execute_action(action, actions):
