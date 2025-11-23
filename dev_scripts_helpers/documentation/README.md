@@ -110,7 +110,7 @@
   - Extraction and Conversion Tools
     - `convert_docx_to_markdown.py`: Converts DOCX to Markdown  
     - `pdf_to_md.py`: Converts PDF to Markdown  
-    - `extract_headers_from_markdown.py`: Extracts headers for navigation  
+    - `extract_toc_from_txt.py`: Extracts headers for navigation  
     - `extract_notebook_images.py`: Extracts images from Jupyter notebooks  
     - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
 
@@ -549,7 +549,7 @@ The supported File types and code blocks are:
   > update_md.py --input notes.md --action summarize --skip_lint
   ```
 
-## `extract_headers_from_markdown.py`
+## `extract_toc_from_txt.py`
 
 ### What It Does
 
@@ -564,12 +564,12 @@ The supported File types and code blocks are:
 - Human‑readable map (levels 1‑3) to `stdout`
 
   ```bash
-  > extract_headers_from_markdown.py -i README.md -o - --mode list --max-level 3
+  > extract_toc_from_txt.py -i README.md -o - --mode list --max-level 3
   ```
 
 - Build a quick‑fix file and open Vim on it
   ```bash
-  > extract_headers_from_markdown.py -i README.md -o headers.cfile --mode cfile
+  > extract_toc_from_txt.py -i README.md -o headers.cfile --mode cfile
   > vim -c "cfile headers.cfile"
   ```
 

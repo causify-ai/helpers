@@ -1,6 +1,6 @@
 import logging
 
-import dev_scripts_helpers.documentation.extract_headers_from_markdown as dshdehfma
+import dev_scripts_helpers.documentation.extract_toc_from_txt as dshdetoftr
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
@@ -9,11 +9,11 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_extract_headers_from_markdown1
+# Test_extract_toc_from_txt1
 # #############################################################################
 
 
-class Test_extract_headers_from_markdown1(hunitest.TestCase):
+class Test_extract_toc_from_txt1(hunitest.TestCase):
     def test1(self) -> None:
         # Prepare inputs.
         content = r"""
@@ -28,7 +28,7 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         max_level = 3
         output_file = self.get_scratch_space() + "/output.md"
         # Call tested function.
-        dshdehfma._extract_headers_from_markdown(
+        dshdetoftr._extract_headers_from_markdown(
             input_file_name, content, mode, max_level, output_file
         )
         # Check output.

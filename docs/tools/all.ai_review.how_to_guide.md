@@ -112,7 +112,7 @@
   ./docs/code_guidelines/all.coding_style_guidelines.reference.md
 - This file has a special structure:
   ```bash
-  > extract_headers_from_markdown.py -i ./docs/code_guidelines/all.coding_style_guidelines.reference.md --max_level 2
+  > extract_toc_from_txt.py -i ./docs/code_guidelines/all.coding_style_guidelines.reference.md --max_level 2
   - All Style Guide
     - Summary
   - General

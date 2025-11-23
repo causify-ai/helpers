@@ -1,15 +1,25 @@
 # Rename files
 
-1) Rename the files in docs/ai_coding/ that have instructions.md
+1) Rename the files in docs/ai_coding/ that contain the string `_instructions.md`
 
-docs/ai_coding/ai.blog.prompt.md
-docs/ai_coding/ai.coding.prompt.md
-docs/ai_coding/ai.paper.prompt.md
-docs/ai_coding/ai.unit_test.prompt.md
+docs/ai_coding/ai.blog_instructions.md
+docs/ai_coding/ai.coding_instructions.md
+docs/ai_coding/ai.paper_instructions.md
+docs/ai_coding/ai.unit_test_instructions.md
 
 replacing _instructions.md with .prompt.md
 
 2) Make sure that all the files in the repo are updated
+
+# Rename script
+
+- Rename the script
+  ./dev_scripts_helpers/documentation/extract_headers_from_markdown.py
+  to
+  ./dev_scripts_helpers/documentation/extract_toc_from_txt.py
+
+- If there are tests, rename the file containing the tests
+- Update all the references to those files in the repo
 
 # Implement script
 

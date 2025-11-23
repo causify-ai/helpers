@@ -11,10 +11,10 @@ The script:
   feature.
 
 # Extract headers up to level 3 from a Markdown file and save to an output file:
-> extract_headers_from_markdown.py -i input.md -o cfile --mode cfile --max-level 3
+> extract_toc_from_txt.py -i input.md -o cfile --mode cfile --max-level 3
 
 # Extract headers up to level 2 and print to stdout:
-> extract_headers_from_markdown.py -i input.md -o - --mode headers
+> extract_toc_from_txt.py -i input.md -o - --mode headers
 
 # To use the generated cfile in Vim:
 - Open Vim and run `:cfile output.cfile`
