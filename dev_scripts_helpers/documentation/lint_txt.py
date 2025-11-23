@@ -16,6 +16,7 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
+import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -272,6 +273,8 @@ def _perform_actions(
         if is_txt_file:
             lines = hmarkdo.frame_chapters(lines)
         elif is_tex_file:
+            lines = hlatex.frame_sections(lines)
+        else:
             assert 0
     # Improve header and slide titles.
     action = "capitalize_header"

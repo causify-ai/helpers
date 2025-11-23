@@ -21,6 +21,9 @@ that
 The interface is like:
 ...
 
+- If the task is not perfectly clear, you MUST not perform it, but ask for
+  clarifications
+
 - For all the code you must follow the instructions in
   `docs/ai_coding/ai.coding.prompt.md`
 
@@ -30,6 +33,10 @@ The interface is like:
 
 3) Generate unit tests for the code following the instructions in
   `docs/ai_coding/ai.unit_test.prompt.md`
+  - Write test class and methods
+  - Do not implement code
+  - Preview unit tests that need to be written by creating input and expected
+    outputs
 
 # Implement function
 
@@ -40,6 +47,9 @@ The interface is like:
 - For all the code you must follow the instructions in
   `docs/ai_coding/ai.coding.prompt.md`
 
+- If the task is not perfectly clear, you MUST not perform it, but ask for
+  clarifications
+
 2) Update the file README.md in the same directory of the
    script following the instructions in 
    `in docs/ai_coding/ai.create_readme.prompt.md`
@@ -48,6 +58,7 @@ The interface is like:
   `docs/ai_coding/ai.unit_test.prompt.md`
 
 # Implement an invoke target
+
 - Add an invoke target in helpers/lib_tasks_git.py to create a zip file with
   all the files that are modified or untracked for both the current repo, using
 
@@ -60,12 +71,10 @@ The interface is like:
 # Implement code with preview
 
 ## Step 1)
-  - Always follow the steps
-  - Describe the goal
-  - List the main steps
+  - Describe the goal, listing the main steps
   - Mention any edge cases
   - Write the plan in a file `claude.plan.md`
-  - Wait for my response
+  - Wait for my response before executing the plan
 
 ## Step 2)
   - Add a `# TODO(ai_gp): xyz` in all the places that need to be modified in the
@@ -84,9 +93,9 @@ The interface is like:
   - If it's a new script, find where the documentation of this change should go
   - Generate a short description of how to use the script in a file close to the
     script with extension .md
-   - Explain the goal of the script
-   - Report some examples of how to use the script
-   - Describe the architecture
+  - Explain the goal of the script
+  - Report some examples of how to use the script
+  - Describe the architecture
 
 ## Step 6)
   - Implement the code
