@@ -12,10 +12,9 @@ import helpers.hdockerized_executables as hdockexec
 
 import argparse
 import logging
-import os
 import re
 import shlex
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -520,7 +519,7 @@ def prettier(
     out_file_path: str,
     file_type: str,
     *,
-    print_width: int = 80,
+    print_width: Optional[int] = None,
     use_dockerized_prettier: bool = True,
     # TODO(gp): Remove this.
     **kwargs: Any,
@@ -539,6 +538,15 @@ def prettier(
     """
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_in(file_type, ["md", "tex", "txt"])
+    if print_width is None:
+        if file_type == "tex":
+            print_width = 72
+        elif file_type == "md":
+            print_width = 80
+        elif file_type == "txt":
+            print_width = 80
+        else:
+            raise ValueError(f"Invalid file type: {file_type}")
     # Build command options.
     cmd_opts: List[str] = []
     tab_width = 2
