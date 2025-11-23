@@ -76,9 +76,8 @@ def run_post_transforms(
         out_txt = hmarkdo.format_markdown(out_txt)
     #
     if dshlllpr.to_run("format_latex", post_container_transforms):
-        # Same as `prettier_markdown`.
         out_txt = hmarkdo.md_clean_up(out_txt)
-        out_txt = hmarkdo.format_markdown(out_txt)
+        out_txt = hmarkdo.format_latex(out_txt)
     #
     if dshlllpr.to_run("format_slide", post_container_transforms):
         # Same as `prettier_markdown`.

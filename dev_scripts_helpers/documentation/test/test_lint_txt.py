@@ -335,7 +335,6 @@ class Test_lint_txt2(hunitest.TestCase):
         expected = r"""
         * Python Formatting
         - Python has several built-in ways of formatting strings
-
           1. `%` format operator
           2. `format` and `str.format`
 
@@ -441,7 +440,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
 
     def test_md1(self) -> None:
         """
-        Run lint_to_txt.py on a markdown file.
+        Run lint_to_txt.py on a markdown file by calling the function directly.
         """
         # Prepare inputs.
         in_file = os.path.join(self.get_input_dir(), "text.md")
@@ -449,16 +448,31 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         use_script = False
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, cmd_opts)
+        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check.
         self.check_string(output_txt)
 
-    # TODO(ai_gp): Add test_md1 that uses the same file as test_md1
-    # and the check_string uses the same output
+    def test_md2(self) -> None:
+        """
+        Run lint_to_txt.py on a markdown file using the command-line script.
+
+        This test uses the same input file as test_md1 and should produce
+        the same output. It uses test_method_name to reuse the golden
+        outcome from test_md1.
+        """
+        # Prepare inputs.
+        in_file = os.path.join(self.get_input_dir(), "text.md")
+        type_ = "md"
+        use_script = True
+        cmd_opts = ""
+        # Run the script.
+        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        # Check using the same golden outcome as test_md1.
+        self.check_string(output_txt, test_method_name="test_md1")
 
     def test_tex1(self) -> None:
         """
-        Run lint_to_txt.py on a latex file.
+        Run lint_to_txt.py on a latex file by calling the function directly.
         """
         # Prepare inputs.
         in_file = os.path.join(self.get_input_dir(), "text.tex")
@@ -466,6 +480,24 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         use_script = False
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, cmd_opts)
+        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check.
         self.check_string(output_txt)
+
+    def test_tex2(self) -> None:
+        """
+        Run lint_to_txt.py on a latex file using the command-line script.
+
+        This test uses the same input file as test_tex1 and should produce
+        the same output. It uses test_method_name to reuse the golden
+        outcome from test_tex1.
+        """
+        # Prepare inputs.
+        in_file = os.path.join(self.get_input_dir(), "text.tex")
+        type_ = "tex"
+        use_script = True
+        cmd_opts = ""
+        # Run the script.
+        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        # Check using the same golden outcome as test_tex1.
+        self.check_string(output_txt, test_method_name="test_tex1")

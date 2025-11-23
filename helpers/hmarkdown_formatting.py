@@ -520,7 +520,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     return lines
 
 
-# TODO(gp): Not the right place to put this.
+# TODO(ai_gp): Move to hlatex.py
 def format_latex(txt: str) -> str:
     """
     Format LaTeX text using `prettier`.

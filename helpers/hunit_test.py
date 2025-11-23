@@ -1045,16 +1045,22 @@ class TestCase(unittest.TestCase):
         dir_name = os.path.join(dir_name, "input")
         return dir_name
 
-    def get_output_dir(self, *, test_class_name: Optional[str] = None) -> str:
+    def get_output_dir(
+        self,
+        *,
+        test_class_name: Optional[str] = None,
+        test_method_name: Optional[str] = None,
+    ) -> str:
         """
         Return the path of the directory storing output data for this test
         class.
 
+        :param test_class_name: override the current test class name
+        :param test_method_name: override the current test method name
         :return: dir name
         """
         # The output dir is specific of this dir.
         use_only_test_class = False
-        test_method_name = None
         use_absolute_path = True
         dir_name = self._get_current_path(
             use_only_test_class,
@@ -1277,7 +1283,6 @@ class TestCase(unittest.TestCase):
         abort_on_error: bool = True,
         action_on_missing_golden: str = _ACTION_ON_MISSING_GOLDEN,
         test_class_name: Optional[str] = None,
-        # TODO(ai_gp): Implement this.
         test_method_name: Optional[str] = None,
     ) -> Tuple[bool, bool, Optional[bool]]:
         """
@@ -1302,7 +1307,8 @@ class TestCase(unittest.TestCase):
             different from the golden outcome
         :param action_on_missing_golden: what to do (e.g., "assert" or "update"
             when the golden outcome is missing)
-        :param test_class_name: name of the test class
+        :param test_class_name: override the current test class name
+        :param test_method_name: override the current test method name
         :return: outcome_updated, file_exists, is_equal
         :raises: `RuntimeError` if there is a mismatch. If `abort_on_error` is False
             (which should be used only for unit testing) return the result but do not
@@ -1312,13 +1318,16 @@ class TestCase(unittest.TestCase):
             hprint.to_str(
                 "remove_lead_trail_empty_lines dedent purify_text fuzzy_match "
                 "ignore_line_breaks split_max_len sort use_gzip tag "
-                "abort_on_error action_on_missing_golden test_class_name"
+                "abort_on_error action_on_missing_golden test_class_name "
+                "test_method_name"
             )
         )
         hdbg.dassert_in(type(actual), (bytes, str), "actual='%s'", actual)
         #
         dir_name, file_name = self._get_golden_outcome_file_name(
-            tag, test_class_name=test_class_name
+            tag,
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
         )
         if use_gzip:
             file_name += ".gz"
@@ -1761,18 +1770,22 @@ class TestCase(unittest.TestCase):
     # ///////////////////////////////////////////////////////////////////////
 
     def _get_golden_outcome_file_name(
-        self, tag: str, *, test_class_name: Optional[str] = None
+        self,
+        tag: str,
+        *,
+        test_class_name: Optional[str] = None,
+        test_method_name: Optional[str] = None,
     ) -> Tuple[str, str]:
         """
         Get the directory and file name for the golden outcome file.
 
         :param tag: identifier tag for the golden outcome file
         :param test_class_name: override the current test class name
+        :param test_method_name: override the current test method name
         :return: tuple of (directory_path, file_path)
         """
         # Get the current dir name.
         use_only_test_class = False
-        test_method_name = None
         use_absolute_path = True
         dir_name = self._get_current_path(
             use_only_test_class,
@@ -1785,7 +1798,11 @@ class TestCase(unittest.TestCase):
         hdbg.dassert_path_exists(dir_name)
         # Get the expected outcome.
         file_name = (
-            self.get_output_dir(test_class_name=test_class_name) + f"/{tag}.txt"
+            self.get_output_dir(
+                test_class_name=test_class_name,
+                test_method_name=test_method_name,
+            )
+            + f"/{tag}.txt"
         )
         return dir_name, file_name
 
