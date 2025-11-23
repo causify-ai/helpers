@@ -461,7 +461,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         outcome from test_md1.
         """
         # Prepare inputs.
-        in_file = os.path.join(self.get_input_dir(test_method_name="test_md1"), "text.md")
+        in_file = os.path.join(self.get_input_dir(), "text.md")
         type_ = "md"
         use_script = True
         cmd_opts = ""
@@ -493,7 +493,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         outcome from test_tex1.
         """
         # Prepare inputs.
-        in_file = os.path.join(self.get_input_dir(test_method_name="test_tex1"), "text.tex")
+        in_file = os.path.join(self.get_input_dir(), "text.tex")
         type_ = "tex"
         use_script = True
         cmd_opts = ""
