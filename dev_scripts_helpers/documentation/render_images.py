@@ -318,7 +318,7 @@ def _insert_image_code(
     # Add the code to insert the image in the file.
     if extension in (".md", ".txt"):
         # Use the Markdown syntax.
-        txt += f"![]({rel_img_path})"
+        txt += f"![]({rel_img_path})" + "\n"
         # Add the size, if specified.
         if user_img_size:
             # E.g., "![](path/to/image.png){ height=100% }"
