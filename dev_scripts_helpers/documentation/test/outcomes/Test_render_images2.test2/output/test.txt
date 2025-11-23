@@ -114,7 +114,8 @@
 [//]: # (   style helpers_sub_repo_3 fill:transparent, stroke-dasharray: 5 5)
 [//]: # ( ```)
 [//]: # ( render_image:begin )
-![](figs/runnable_repo.1.png)[//]: # ( render_image:end )
+![](figs/runnable_repo.1.png)
+[//]: # ( render_image:end )
 
 
 ## Runnable dir
@@ -142,7 +143,8 @@
 [//]: # (   style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5)
 [//]: # ( ```)
 [//]: # ( render_image:begin )
-![](figs/runnable_repo.2.png)[//]: # ( render_image:end )
+![](figs/runnable_repo.2.png)
+[//]: # ( render_image:end )
 
 
 ## Thin environment
@@ -185,7 +187,8 @@
 [//]: # (   repo_2_runnable_dir -.-> thin_env)
 [//]: # ( ```)
 [//]: # ( render_image:begin )
-![](figs/runnable_repo.3.png)[//]: # ( render_image:end )
+![](figs/runnable_repo.3.png)
+[//]: # ( render_image:end )
 
 
 ## Building a Docker container
@@ -239,7 +242,8 @@
 [//]: # (   end)
 [//]: # ( ```)
 [//]: # ( render_image:begin )
-![](figs/runnable_repo.4.png)[//]: # ( render_image:end )
+![](figs/runnable_repo.4.png)
+[//]: # ( render_image:end )
 
 
 ## Recursive pytest
@@ -282,7 +286,8 @@
 [//]: # (     end)
 [//]: # ( ```)
 [//]: # ( render_image:begin )
-![](figs/runnable_repo.5.png)[//]: # ( render_image:end )
+![](figs/runnable_repo.5.png)
+[//]: # ( render_image:end )
 
 
 ## Support for docker-in-docker and sibling-containers
@@ -306,7 +311,8 @@
 [//]: # (     container_1 --> container_1b)
 [//]: # ( ```)
 [//]: # ( render_image:begin )
-![](figs/runnable_repo.6.png)[//]: # ( render_image:end )
+![](figs/runnable_repo.6.png)
+[//]: # ( render_image:end )
 
 
 # Examples
