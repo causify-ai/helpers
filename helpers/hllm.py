@@ -149,13 +149,22 @@ class LLMClient:
         """
         hdbg.dassert_isinstance(model, str)
         if model == "":
-            provider_name = "openai"
-            model = self._get_default_model(provider_name)
+            provider_name, model = self.get_default_model()
         else:
             provider_name, model = _get_llm_provider_and_model(model)
 
         self.provider_name = provider_name
         self.model = model
+
+    def get_default_model(self) -> Tuple[str, str]:
+        """
+        Get the default provider and model for the client.
+
+        :return: default provider and model used in the client
+        """
+        provider_name = "openai"
+        model = self._get_default_model(provider_name)
+        return provider_name, model
 
     def create_client(self) -> None:
         """
