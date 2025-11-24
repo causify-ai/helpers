@@ -27,7 +27,14 @@ class Test_remove_latex_formatting1(hunitest.TestCase):
     Test the remove_latex_formatting function.
     """
 
+    """
+    Test the remove_latex_formatting function.
+    """
+
     def test1(self) -> None:
+        """
+        Test removal of textcolor commands from LaTeX text.
+        """
         """
         Test removal of textcolor commands from LaTeX text.
         """
