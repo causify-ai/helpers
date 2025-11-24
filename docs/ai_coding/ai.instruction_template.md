@@ -1,25 +1,15 @@
 # Rename files
 
-1) Rename the files in docs/ai_coding/ that contain the string `_instructions.md`
+1) Rename the files in docs/ai_coding/ that have instructions.md
 
-docs/ai_coding/ai.blog_instructions.md
-docs/ai_coding/ai.coding_instructions.md
-docs/ai_coding/ai.paper_instructions.md
-docs/ai_coding/ai.unit_test_instructions.md
+docs/ai_coding/ai.blog.prompt.md
+docs/ai_coding/ai.coding.prompt.md
+docs/ai_coding/ai.paper.prompt.md
+docs/ai_coding/ai.unit_test.prompt.md
 
 replacing _instructions.md with .prompt.md
 
 2) Make sure that all the files in the repo are updated
-
-# Rename script
-
-- Rename the script
-  ./dev_scripts_helpers/documentation/extract_headers_from_markdown.py
-  to
-  ./dev_scripts_helpers/documentation/extract_toc_from_txt.py
-
-- If there are tests, rename the file containing the tests
-- Update all the references to those files in the repo
 
 # Implement script
 
@@ -83,21 +73,24 @@ The interface is like:
 ## Step 1)
   - Describe the goal, listing the main steps
   - Mention any edge cases
+  - If the task is not perfectly clear, you MUST not perform it, but ask for
+    clarifications
   - Write the plan in a file `claude.plan.md`
   - Wait for my response before executing the plan
 
 ## Step 2)
-  - Add a `# TODO(ai_gp): xyz` in all the places that need to be modified in the
-    code with a short description of what needs to be done
-    - Try to use bullet points
+  - Add a `# TODO(ai_gp): xyz` in all the places of the code base that need to be
+    modified in the code with a short description of what needs to be done
   - Wait for my response
 
 ## Step 3)
-  - Write the interfaces and the docstrings, but do not implement the code
+  - Write the interfaces and the docstrings of the needed code
+  - Do not implement the code
   - Wait for my response
 
 ## Step 4)
-  - Implement unit tests following the instructions in ai.unit_test.prompt.md
+  - Implement unit tests following the instructions in 
+    `docs/ai_coding/ai.unit_test.prompt.md`
 
 ## Step 5)
   - If it's a new script, find where the documentation of this change should go
@@ -105,7 +98,10 @@ The interface is like:
     script with extension .md
   - Explain the goal of the script
   - Report some examples of how to use the script
-  - Describe the architecture
 
 ## Step 6)
+  - Update the file README.md in the same directory of the script following the
+    instructions in `in docs/ai_coding/ai.create_readme.prompt.md`
+
+## Step 7)
   - Implement the code
