@@ -79,13 +79,10 @@ The interface is like:
   - Wait for my response before executing the plan
 
 ## Step 2)
-  - Add a `# TODO(ai_gp): xyz` in all the places of the code base that need to be
-    modified in the code with a short description of what needs to be done
-  - Wait for my response
-
-## Step 3)
-  - Write the interfaces and the docstrings of the needed code
-  - Do not implement the code
+  - Write the interfaces and the docstrings of the needed code in the places of
+    the code base
+  - Add comment explaining what functions should do
+  - Do not implement the body of the code
   - Wait for my response
 
 ## Step 4)
@@ -104,4 +101,5 @@ The interface is like:
     instructions in `in docs/ai_coding/ai.create_readme.prompt.md`
 
 ## Step 7)
-  - Implement the code
+  - Implement the code following the instructions in
+    `docs/ai_coding/ai.coding.prompt.md`

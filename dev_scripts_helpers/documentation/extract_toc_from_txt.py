@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
 """
-Extract headers from a Markdown file and generate a Vim cfile.
+Extract headers from Markdown or LaTeX files and generate a Vim cfile.
 
 The script:
-- processes the input Markdown file
+- processes the input Markdown `.md` or LaTeX `.tex` file
 - extracts headers up to a specified maximum level
+  - Markdown: # (level 1), ## (level 2), ### (level 3), etc.
+  - LaTeX: \section{} (level 1), \subsection{} (level 2), \subsubsection{} (level 3)
 - prints a human-readable header map
 - generates an output file in a format that can be used with Vim's quickfix
   feature.
@@ -13,8 +15,8 @@ The script:
 # Extract headers up to level 3 from a Markdown file and save to an output file:
 > extract_toc_from_txt.py -i input.md -o cfile --mode cfile --max-level 3
 
-# Extract headers up to level 2 and print to stdout:
-> extract_toc_from_txt.py -i input.md -o - --mode headers
+# Extract headers up to level 2 from a LaTeX file and print to stdout:
+> extract_toc_from_txt.py -i document.tex -o - --mode headers --max-level 2
 
 # To use the generated cfile in Vim:
 - Open Vim and run `:cfile output.cfile`
@@ -26,9 +28,11 @@ The script:
 
 import argparse
 import logging
+import os
 from typing import List
 
 import helpers.hdbg as hdbg
+import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 
@@ -68,6 +72,49 @@ def _extract_headers_from_markdown(
     hmarkdo.sanity_check_header_list(header_list)
 
 
+def _extract_headers_from_latex(
+    input_file_name: str,
+    lines: List[str],
+    mode: str,
+    max_level: int,
+    out_file_name: str,
+) -> None:
+    """
+    Extract headers from a LaTeX file.
+
+    This function processes a LaTeX file to extract section headers
+    (\section{}, \subsection{}, \subsubsection{}) and generates output
+    in the requested format (cfile, headers, or list). It follows the
+    same pattern as _extract_headers_from_markdown() to ensure consistent
+    behavior across file types.
+
+    :param input_file_name: path to the input LaTeX file
+    :param lines: list of lines in the input LaTeX file
+    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for
+        Markdown headers, 'list' for indented list)
+    :param max_level: maximum header levels to parse (1-3 for LaTeX)
+    :param out_file_name: path to the output file
+    """
+    hdbg.dassert_isinstance(lines, list)
+    # We don't want to sanity check since we want to show the headers, even
+    # if malformed.
+    sanity_check = False
+    header_list = hlatex.extract_headers_from_latex(
+        lines, max_level=max_level, sanity_check=sanity_check
+    )
+    # Print the headers.
+    if mode == "cfile":
+        output_content = hmarkdo.header_list_to_vim_cfile(input_file_name, header_list)
+    else:
+        output_content = hmarkdo.header_list_to_markdown(header_list, mode)
+    hparser.write_file(output_content, out_file_name)
+    # Sanity check the headers.
+    hmarkdo.sanity_check_header_list(header_list)
+
+
+# #############################################################################
+
+
 # TODO(gp): _parse() -> _build_parser() everywhere.
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -102,9 +149,18 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     #
     input_content = hparser.read_file(in_file_name)
-    _extract_headers_from_markdown(
-        in_file_name, input_content, args.mode, args.max_level, out_file_name
-    )
+    # Detect file type and dispatch to appropriate extraction function.
+    _, ext = os.path.splitext(file_name)
+    if ext == "md":
+        _extract_headers_from_markdown(
+            in_file_name, input_content, args.mode, args.max_level, out_file_name
+        )
+    elif ext == "tex":
+        _extract_headers_from_latex(
+            in_file_name, input_content, args.mode, args.max_level, out_file_name
+        )
+    else:
+        raise ValueError(f"Unsupported file type: {file_name}")
 
 
 if __name__ == "__main__":

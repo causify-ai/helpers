@@ -13,29 +13,16 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(ai_gp): Implement the testing functions.
 class Test_extract_toc_from_txt1(hunitest.TestCase):
-    def test1(self) -> None:
-        # Prepare inputs.
-        content = r"""
-        # Header1
-        ## Header2
-        # Header3
-        """
-        input_file_name = "dummy"
-        content = hprint.dedent(content)
-        content = content.split("\n")
-        mode = "headers"
-        max_level = 3
-        output_file = self.get_scratch_space() + "/output.md"
-        # Call tested function.
-        dshdetoftr._extract_headers_from_markdown(
-            input_file_name, content, mode, max_level, output_file
-        )
-        # Check output.
-        actual = hio.from_file(output_file)
-        expected = r"""
-        # Header1
-        ## Header2
-        # Header3
-        """
-        self.assert_equal(actual, expected, dedent=True)
+    def test_md1(self) -> None:
+        # Read a file using self.get_input() + "/input.md"
+        # Call the script
+        # Read the output
+        # Use check_string to verify the output is correct
+
+    def test_tex1(self) -> None:
+        # Read a file using self.get_input() + "/input.tex"
+        # Call the script
+        # Read the output
+        # Use check_string to verify the output is correct

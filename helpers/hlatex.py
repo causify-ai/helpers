@@ -1,10 +1,11 @@
 import logging
 import re
-from typing import List
+from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
+import helpers.hmarkdown_headers as hmarkdo
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -80,6 +81,12 @@ def remove_latex_formatting(latex_string: str) -> str:
     return cleaned_string
 
 
+# #############################################################################
+# Frame Latex sections
+# #############################################################################
+
+
+# TODO(ai_gp): Make it private if it's not used anywhere else than here.
 def is_latex_line_separator(line: str, *, min_repeats: int = 5) -> bool:
     """
     Check if the given line is a LaTeX comment separator.
@@ -170,3 +177,168 @@ def frame_sections(lines: List[str]) -> List[str]:
             txt_new.append(line)
     hdbg.dassert_isinstance(txt_new, list)
     return txt_new
+
+
+# #############################################################################
+# LaTeX Header Extraction
+# #############################################################################
+
+
+# TODO(ai_gp): Make it private if it's not used anywhere else than here.
+def is_latex_comment(line: str) -> bool:
+    """
+    Check if a line is a LaTeX comment.
+
+    A LaTeX comment line starts with the `%` character. This function
+    handles the edge case where `%` is escaped (e.g., `\%`), which should
+    not be treated as a comment.
+
+    :param line: line of text to check
+    :return: True if the line is a comment, False otherwise
+    """
+    hdbg.dassert_isinstance(line, str)
+    # Strip leading whitespace to check the first non-whitespace character.
+    stripped_line = line.lstrip()
+    # Check if line starts with %.
+    if not stripped_line.startswith("%"):
+        return False
+    # Check if the % is escaped by looking at the character before it in the
+    # original line.
+    # Find the position of % in the original line.
+    percent_pos = line.find("%")
+    # If there's a character before %, check if it's a backslash.
+    if percent_pos > 0 and line[percent_pos - 1] == "\\":
+        # Check if the backslash itself is escaped.
+        if percent_pos > 1 and line[percent_pos - 2] == "\\":
+            # Double backslash before %, so % is not escaped.
+            return True
+        # Single backslash before %, so % is escaped.
+        return False
+    # % is at the beginning or has no backslash before it.
+    return True
+
+
+# TODO(ai_gp): Make it private if it's not used anywhere else than here.
+# TODO(ai_gp): Return a HeaderInfo object instead of a tuple.
+def extract_latex_section(line: str) -> Tuple[bool, int, str]:
+    r"""
+    Parse a LaTeX section command and extract section information.
+
+    This function identifies LaTeX section commands (\section{}, \subsection{},
+    \subsubsection{}) and extracts the section title. It handles several edge
+    cases including:
+    - Nested braces: `\section{Title with \textbf{bold}}`
+    - Optional arguments: `\section[Short]{Long Title}` (extracts "Long Title")
+    - Escaped characters: `\section{Cost: \$100}`
+    - Multi-line section titles (future enhancement)
+
+    :param line: line of text to parse
+    :return: tuple containing:
+        - boolean indicating if the line contains a section command
+        - level of the section (1 for \section, 2 for \subsection,
+          3 for \subsubsection, 0 if not a section)
+        - title of the section (empty string if not a section)
+    """
+    hdbg.dassert_isinstance(line, str)
+    # Define section patterns with their corresponding levels.
+    section_patterns = [
+        (r"\\section\b", 1),
+        (r"\\subsection\b", 2),
+        (r"\\subsubsection\b", 3),
+    ]
+    # Try to match each section pattern.
+    for pattern, level in section_patterns:
+        match = re.search(pattern, line.strip())
+        if match:
+            # Found a section command, now extract the title.
+            # First skip optional argument in square brackets if present.
+            rest_of_line = line[match.end() :]
+            # Skip whitespace.
+            rest_of_line = rest_of_line.lstrip()
+            # Skip optional argument [short title] if present.
+            if rest_of_line.startswith("["):
+                # Find the closing bracket, handling nested brackets.
+                bracket_count = 0
+                i = 0
+                for i, char in enumerate(rest_of_line):
+                    if char == "[":
+                        bracket_count += 1
+                    elif char == "]":
+                        bracket_count -= 1
+                        if bracket_count == 0:
+                            break
+                # Skip past the closing bracket.
+                rest_of_line = rest_of_line[i + 1 :].lstrip()
+            # Now extract content within curly braces.
+            if rest_of_line.startswith("{"):
+                # Extract content handling nested braces.
+                brace_count = 0
+                title_chars = []
+                for char in rest_of_line:
+                    if char == "{":
+                        brace_count += 1
+                        # Don't include the opening brace.
+                        if brace_count > 1:
+                            title_chars.append(char)
+                    elif char == "}":
+                        brace_count -= 1
+                        # If we've closed all braces, we're done.
+                        if brace_count == 0:
+                            break
+                        # Include closing braces for nested commands.
+                        title_chars.append(char)
+                    elif brace_count > 0:
+                        title_chars.append(char)
+                title = "".join(title_chars)
+                return (True, level, title)
+    # No section command found.
+    return (False, 0, "")
+
+
+def extract_headers_from_latex(
+    lines: List[str], max_level: int, *, sanity_check: bool = True
+) -> hmarkdo.HeaderList:
+    """
+    Extract headers from a LaTeX file and return a HeaderList.
+
+    This function processes a LaTeX file line by line, identifies section
+    commands (\section, \subsection, \subsubsection), and creates a list
+    of HeaderInfo objects. It skips commented-out lines (lines starting
+    with %) and only includes headers up to the specified maximum level.
+
+    :param lines: content of the input LaTeX file as list of strings
+    :param max_level: maximum header levels to parse (e.g., '3' parses
+        \section, \subsection, and \subsubsection, but not deeper levels)
+    :param sanity_check: whether to check that the header list is valid
+        using the same validation as Markdown headers
+    :return: list of HeaderInfo objects, each containing (level, title,
+        line_number), e.g.:
+        ```
+        [
+            HeaderInfo(1, "Introduction", 5),
+            HeaderInfo(2, "Background", 10),
+            ...
+        ]
+        ```
+    """
+    hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_lte(1, max_level)
+    header_list: hmarkdo.HeaderList = []
+    # Process the input file to extract headers.
+    for line_number, line in enumerate(lines, start=1):
+        # Skip LaTeX comment lines.
+        if is_latex_comment(line):
+            continue
+        # Check if this line contains a section command.
+        is_section, level, title = extract_latex_section(line)
+        if is_section and level <= max_level:
+            # Create HeaderInfo object and add to list.
+            header_info = hmarkdo.HeaderInfo(level, title, line_number)
+            header_list.append(header_info)
+    # Check the header list.
+    if sanity_check:
+        hmarkdo.sanity_check_header_list(header_list)
+    else:
+        _LOG.debug("Skipping sanity check")
+    hdbg.dassert_isinstance(header_list, list)
+    return header_list

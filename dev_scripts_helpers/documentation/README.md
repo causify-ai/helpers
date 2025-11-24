@@ -108,10 +108,10 @@
     - `update_md.py`: Multi-action LLM tool for markdown files (summarize, update content, apply style)
 
   - Extraction and Conversion Tools
-    - `convert_docx_to_markdown.py`: Converts DOCX to Markdown  
-    - `pdf_to_md.py`: Converts PDF to Markdown  
-    - `extract_toc_from_txt.py`: Extracts headers for navigation  
-    - `extract_notebook_images.py`: Extracts images from Jupyter notebooks  
+    - `convert_docx_to_markdown.py`: Converts DOCX to Markdown
+    - `pdf_to_md.py`: Converts PDF to Markdown
+    - `extract_toc_from_txt.py`: Extracts headers from Markdown and LaTeX files for navigation
+    - `extract_notebook_images.py`: Extracts images from Jupyter notebooks
     - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
 
   - Dockerized Tools
@@ -553,24 +553,32 @@ The supported File types and code blocks are:
 
 ### What It Does
 
-- Turn a Markdown document into either:
+- Extract headers from **Markdown** `.md`, or **LaTeX** `.tex` documents and
+  generate:
   - A **plain list** of headers
   - A **nested header map**
-  - A \*_Vim_ quick‑fix\*\* (`cfile`) that lets you jump between sections with
-    `:cnext`.
+  - A **Vim quick‑fix** (`cfile`) that lets you jump between sections with `:cnext`
+- Automatically detects file type based on extension
+- For Markdown: extracts `#`, `##`, `###` headers
+- For LaTeX: extracts `\section{}`, `\subsection{}`, `\subsubsection{}` commands
 
 ### Examples
 
-- Human‑readable map (levels 1‑3) to `stdout`
+- Extract headers from Markdown file (levels 1‑3) to `stdout`
 
   ```bash
   > extract_toc_from_txt.py -i README.md -o - --mode list --max-level 3
   ```
 
-- Build a quick‑fix file and open Vim on it
+- Extract headers from LaTeX file and generate Vim quickfix file
   ```bash
-  > extract_toc_from_txt.py -i README.md -o headers.cfile --mode cfile
+  > extract_toc_from_txt.py -i paper.tex -o headers.cfile --mode cfile
   > vim -c "cfile headers.cfile"
+  ```
+
+- Extract LaTeX headers up to level 2 (section and subsection only)
+  ```bash
+  > extract_toc_from_txt.py -i document.tex -o - --mode headers --max-level 2
   ```
 
 ## `dockerized_tikz_to_bitmap.py`
