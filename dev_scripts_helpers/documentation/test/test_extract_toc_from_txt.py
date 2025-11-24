@@ -1,10 +1,9 @@
 import logging
+import os
 
-import dev_scripts_helpers.documentation.extract_toc_from_txt as dshdetoftr
+import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hlatex as hlatex
-import helpers.hmarkdown_headers as hmarkdo
-import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -16,23 +15,32 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_extract_toc_from_txt1(hunitest.TestCase):
+
+    def helper(self, file: str) -> None:
+        """
+        Test extraction of headers from a Markdown file.
+        """
+        # Prepare inputs.
+        in_file = os.path.join(self.get_input_dir(), file)
+        # Build command to call the script.
+        script_path = hgit.find_file_in_git_tree("extract_toc_from_txt.py")
+        out_file = os.path.join(self.get_scratch_space(), "output.txt")
+        cmd = f"{script_path} --input {in_file} --output {out_file} --mode list --max_level 3"
+        # Run the script.
+        hsystem.system(cmd)
+        # Read the output.
+        actual = hio.from_file(out_file)
+        # Verify the output is correct.
+        self.check_string(actual)
+
     def test_md1(self) -> None:
         """
         Test extraction of headers from a Markdown file.
         """
-        # TODO(ai_gp): Implement the testing functions.
-        # Read a file using self.get_input() + "/input.md"
-        # Call the script extract_toc_from_txt.py using a hsystem
-        # Read the output of the script
-        # Use check_string to verify the output is correct
-
+        self.helper("input.md")
 
     def test_tex1(self) -> None:
         """
         Test extraction of headers from a LaTeX file.
         """
-        # TODO(ai_gp): Implement the testing functions.
-        # Read a file using self.get_input() + "/input.md"
-        # Call the script extract_toc_from_txt.py using a hsystem
-        # Read the output of the script
-        # Use check_string to verify the output is correct
+        self.helper("input.tex")

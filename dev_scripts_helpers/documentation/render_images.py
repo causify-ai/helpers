@@ -280,8 +280,8 @@ def _remove_image_code(
     """
     Remove all rendered image code blocks from the file.
 
-    This function removes blocks between `render_image:begin` and
-    `render_image:end` markers to allow re-rendering images without
+    This function removes blocks between `render_images:begin` and
+    `render_images:end` markers to allow re-rendering images without
     accumulating old rendered blocks.
 
     :param in_lines: lines of the input file
@@ -293,11 +293,11 @@ def _remove_image_code(
     in_render_block = False
     for line in in_lines:
         # Check for begin marker.
-        if "render_image:begin" in line:
+        if "render_images:begin" in line:
             in_render_block = True
             continue
         # Check for end marker.
-        if "render_image:end" in line:
+        if "render_images:end" in line:
             in_render_block = False
             continue
         # Only keep lines outside render blocks.
@@ -314,7 +314,7 @@ def _insert_image_code(
     """
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     txt = ""
-    txt += comment_prefix + " render_image:begin " + comment_postfix + "\n"
+    txt += comment_prefix + " render_images:begin " + comment_postfix + "\n"
     # Add the code to insert the image in the file.
     if extension in (".md", ".txt"):
         # Use the Markdown syntax.
@@ -327,13 +327,13 @@ def _insert_image_code(
         # Use the LaTeX syntax with tagged markers to make it easier to do a
         # replacement.
         txt += (
-            r"\begin{figure}\n" +
+            r"\begin{figure}" + "\n" +
             r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}\n" +
-            r"\end{figure}"
+            r"\end{figure}" + "\n"
         )
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
-    txt += comment_prefix + " render_image:end " + comment_postfix + "\n"
+    txt += comment_prefix + " render_images:end " + comment_postfix + "\n"
     return txt
 
 
