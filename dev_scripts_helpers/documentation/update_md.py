@@ -17,6 +17,7 @@ Note: At least one action must be specified using --action.
 Examples:
 ```bash
 # Single file examples
+
 # Summarize a markdown file
 > update_md.py --input file.md --action summarize
 
@@ -39,6 +40,7 @@ Examples:
 > update_md.py --input file.md --action summarize --skip_lint
 
 # Multiple files examples
+
 # Process multiple files using comma-separated list
 > update_md.py --files="file1.md,file2.md,file3.md" --action summarize
 

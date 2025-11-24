@@ -402,14 +402,13 @@ def _render_images(
     # - "search_image_code": Looking for the start of an image code block
     # - "found_image_code": Inside an uncommented image code block
     # - "found_commented_image_code": Inside a commented image code block
-    # - "replace_image_code": Replacing the old rendered image with a new one
     state = "search_image_code"
     # The code should look like:
     # ```plantuml
     #    ...
     # ```
     comment = re.escape(comment_prefix)
-    start_regex = re.compile(
+    start_image_regex = re.compile(
         rf"""
         ^\s*                # Start of the line and any leading whitespace
         ({comment}\s*)?     # Optional comment prefix
@@ -421,7 +420,7 @@ def _render_images(
         """,
         re.VERBOSE,
     )
-    end_regex = re.compile(
+    end_image_regex = re.compile(
         rf"""
         ^\s*                # Start of the line and any leading whitespace
         ({comment}\s*)?     # Optional comment prefix
@@ -432,7 +431,7 @@ def _render_images(
     )
     for i, line in enumerate(in_lines):
         _LOG.debug("%d %s: '%s'", i, state, line)
-        m = start_regex.search(line)
+        m = start_image_regex.search(line)
         if m:
             # Found the beginning of an image code block.
             hdbg.dassert_eq(state, "search_image_code")
@@ -469,7 +468,7 @@ def _render_images(
                 _comment_if_needed(state, line, comment_prefix, comment_postfix)
             )
         elif state in ("found_image_code", "found_commented_image_code"):
-            m = end_regex.search(line)
+            m = end_image_regex.search(line)
             if m:
                 # Found the end of an image code block.
                 image_code_txt = "\n".join(image_code_lines)
@@ -499,10 +498,7 @@ def _render_images(
                 )
                 user_img_size = ""
                 # Set the parser to search for a new image code block.
-                if state == "found_image_code":
-                    state = "search_image_code"
-                else:
-                    state = "replace_image_code"
+                state = "search_image_code"
                 _LOG.debug(" -> state=%s", state)
             else:
                 # Record the line from inside the image code block.
@@ -525,13 +521,6 @@ def _render_images(
                         state, line, comment_prefix, comment_postfix
                     )
                 )
-        elif state == "replace_image_code":
-            # Replace the line with the image code, which should be the next
-            # line.
-            if line.rstrip().lstrip() != "":
-                # Replace the line.
-                state = "search_image_code"
-                _LOG.debug(" -> state=%s", state)
         else:
             # Keep a regular line.
             out_lines.append(line)

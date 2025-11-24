@@ -528,7 +528,10 @@ class Test_render_images1(hunitest.TestCase):
         // ```mermaid(hello_world2.png)
         // flowchart TD;
         // ```
-        ![](hello_world.png)
+        // render_images:begin
+        ![](WRONG.png)
+        // render_images:end
+
         B
         """
         file_ext = "txt"
@@ -540,6 +543,7 @@ class Test_render_images1(hunitest.TestCase):
         // render_images:begin
         ![](hello_world2.png)
         // render_images:end
+
 
         B
         """

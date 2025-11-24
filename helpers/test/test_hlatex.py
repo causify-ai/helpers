@@ -12,6 +12,7 @@ This module tests LaTeX text processing utilities including:
 import logging
 
 import helpers.hlatex as hlatex
+import helpers.hmarkdown_headers as hmarkdo
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -466,22 +467,24 @@ class Test_extract_latex_section(hunitest.TestCase):
 
 
 class Test_extract_headers_from_latex(hunitest.TestCase):
-    def helper(self, lines: str, expected: str) -> None:
+    def helper(
+        self, lines: str, expected: str, *, max_level: int = 3
+    ) -> None:
         """
         Helper method to test header extraction from LaTeX documents.
 
         :param lines: LaTeX document content as a string
         :param expected: expected string representation of header list
+        :param max_level: maximum header level to extract (default: 3)
         """
         lines_list = hprint.dedent(lines).split("\n")
-        max_level = 3
         # Run test.
         actual = hlatex.extract_headers_from_latex(
             lines_list, max_level, sanity_check=False
         )
-        # TODO(ai_gp): Use hmarkdown_header.header_list_to_str
-        actual_str = str(actual)
+        actual_str = hmarkdo.header_list_to_str(actual)
         # Check outputs.
+        expected = hprint.dedent(expected)
         self.assert_equal(actual_str, expected)
 
     def test_basic_document(self) -> None:
@@ -499,11 +502,13 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \section{Methods}
         Methods description.
         """
-        expected = "[HeaderInfo(1, 'Introduction', 1), HeaderInfo(2, 'Background', 4), HeaderInfo(1, 'Methods', 7)]"
+        expected = """
+        HeaderInfo(1, 'Introduction', 1)
+        HeaderInfo(2, 'Background', 4)
+        HeaderInfo(1, 'Methods', 7)"""
         # Check.
         self.helper(lines, expected)
 
-    # TODO(ai_gp): Use self.helper()
     def test_with_comments(self) -> None:
         """
         Test that commented-out sections are skipped.
@@ -515,19 +520,12 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \subsection{Current Subsection}
         % \subsection{Old Subsection}
         """
-        lines = hprint.dedent(lines)
-        lines = lines.split("\n")
-        max_level = 3
-        # Run test.
-        actual = hlatex.extract_headers_from_latex(
-            lines, max_level, sanity_check=False
-        )
-        # Check outputs.
-        self.assert_equal(str(len(actual)), str(2))
-        self.assert_equal(actual[0].description, "Introduction")
-        self.assert_equal(actual[1].description, "Current Subsection")
+        expected = """
+        HeaderInfo(1, 'Introduction', 1)
+        HeaderInfo(2, 'Current Subsection', 3)"""
+        # Check.
+        self.helper(lines, expected)
 
-    # TODO(ai_gp): Use self.helper()
     def test_max_level_filtering(self) -> None:
         """
         Test that only headers up to max_level are extracted.
@@ -538,19 +536,13 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \subsection{Section 1.1}
         \subsubsection{Section 1.1.1}
         """
-        lines_list = hprint.dedent(lines).split("\n")
-        max_level = 2
-        # Run test.
-        actual = hlatex.extract_headers_from_latex(
-            lines_list, max_level, sanity_check=False
-        )
-        # Check outputs.
         # Should only get section and subsection, not subsubsection.
-        self.assert_equal(str(len(actual)), str(2))
-        self.assert_equal(actual[0].description, "Chapter 1")
-        self.assert_equal(actual[1].description, "Section 1.1")
+        expected = """
+        HeaderInfo(1, 'Chapter 1', 1)
+        HeaderInfo(2, 'Section 1.1', 2)"""
+        # Check.
+        self.helper(lines, expected, max_level=2)
 
-    # TODO(ai_gp): Use self.helper()
     def test_with_nested_braces(self) -> None:
         """
         Test extraction with nested LaTeX commands in titles.
@@ -560,11 +552,12 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \section{Introduction to \textbf{ML}}
         \subsection{Using \emph{Neural Networks}}
         """
-        expected = r"[HeaderInfo(1, 'Introduction to \textbf{ML}', 1), HeaderInfo(2, 'Using \emph{Neural Networks}', 2)]"
+        expected = r"""
+        HeaderInfo(1, 'Introduction to \textbf{ML}', 1)
+        HeaderInfo(2, 'Using \emph{Neural Networks}', 2)"""
         # Check.
         self.helper(lines, expected)
 
-    # TODO(ai_gp): Use self.helper()
     def test_line_numbers(self) -> None:
         """
         Test that line numbers are correctly recorded.
@@ -579,16 +572,12 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \subsection{First Subsection}
         Even more text.
         """
-        lines_list = hprint.dedent(lines).split("\n")
-        max_level = 3
-        # Run test.
-        actual = hlatex.extract_headers_from_latex(
-            lines_list, max_level, sanity_check=False
-        )
-        # Check outputs.
         # Line numbers should be 3 and 6 (1-indexed).
-        self.assert_equal(str(actual[0].line_number), str(3))
-        self.assert_equal(str(actual[1].line_number), str(6))
+        expected = """
+        HeaderInfo(1, 'First Section', 3)
+        HeaderInfo(2, 'First Subsection', 6)"""
+        # Check.
+        self.helper(lines, expected)
 
     def test_empty_document(self) -> None:
         """
@@ -599,7 +588,7 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         This is just regular text.
         No sections here.
         """
-        expected = "[]"
+        expected = ""
         # Check.
         self.helper(lines, expected)
 
@@ -624,6 +613,11 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \section{Chapter 2}
         Second chapter.
         """
-        expected = "[HeaderInfo(1, 'Chapter 1', 1), HeaderInfo(2, 'Section 1.1', 4), HeaderInfo(3, 'Subsection 1.1.1', 7), HeaderInfo(2, 'Section 1.2', 10), HeaderInfo(1, 'Chapter 2', 13)]"
+        expected = """
+        HeaderInfo(1, 'Chapter 1', 1)
+        HeaderInfo(2, 'Section 1.1', 4)
+        HeaderInfo(3, 'Subsection 1.1.1', 7)
+        HeaderInfo(2, 'Section 1.2', 10)
+        HeaderInfo(1, 'Chapter 2', 13)"""
         # Check.
         self.helper(lines, expected)

@@ -167,10 +167,11 @@ def frame_sections(lines: List[str]) -> List[str]:
     txt_new: List[str] = []
     # Define the section patterns and their corresponding separators.
     # Total line length is 78 characters, "% " is 2 characters, so 76 separator chars.
+    prefix = "  % "
     section_patterns = [
-        (r"^\\section\{", "% " + "#" * 76),
-        (r"^\\subsection\{", "% " + "=" * 76),
-        (r"^\\subsubsection\{", "% " + "-" * 76),
+        (r"^\\section\{", prefix + "#" * 76),
+        (r"^\\subsection\{", prefix + "=" * 76),
+        (r"^\\subsubsection\{", prefix + "-" * 76),
     ]
     for i, line in enumerate(txt_tmp2):
         _LOG.debug("line=%d:%s", i, line)
@@ -249,7 +250,8 @@ def _extract_latex_section(
     hdbg.dassert_isinstance(line, str)
     hdbg.dassert_isinstance(line_number, int)
     # Define section patterns with their corresponding levels.
-    regex = r'\{(.*)\}'
+    # Pattern supports optional [short title] before {long title}.
+    regex = r'(?:\[.*?\])?\{(.*)\}'
     section_patterns = [
         (r"\\section" + regex, 1),
         (r"\\subsection" + regex, 2),
@@ -259,8 +261,15 @@ def _extract_latex_section(
     # Try to match each section pattern.
     for pattern, level in section_patterns:
         # Check if line starts with the section command.
-        match = re.match(pattern + r"\b", line_stripped)
-        # TODO(ai_gp): Implement this.
+        match = re.match(pattern, line_stripped)
+        if match:
+            # Extract the title from the first capture group.
+            title = match.group(1)
+            # Skip sections with empty titles.
+            if not title:
+                return None
+            # Return HeaderInfo with level, title, and line number.
+            return hmarkdo.HeaderInfo(level, title, line_number)
     # No section command found.
     return None
 
