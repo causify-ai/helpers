@@ -1,10 +1,18 @@
 # Summary
 
-- This document provides a comprehensive guide to the documentation toolchain that converts raw notes, slides, and LaTeX into polished PDFs, slide decks, and HTML
-- The toolchain supports multiple documentation workflows including standard LaTeX, Causify markdown extensions, notes format, slides, books, and Jupyter books
-- The document catalogs over 30 specialized tools organized into categories: core documentation tools, extraction and conversion tools, dockerized tools, utility and processing tools, and generation and publishing tools
-- Each tool is documented with its purpose, usage examples, and integration with the broader documentation ecosystem
-- The toolchain emphasizes automation, consistency, and ease of use through command-line interfaces and editor integration
+- This document provides a comprehensive guide to the documentation toolchain
+  that converts raw notes, slides, and LaTeX into polished PDFs, slide decks, and
+  HTML
+- The toolchain supports multiple documentation workflows including standard
+  LaTeX, Causify markdown extensions, notes format, slides, books, and Jupyter
+  books
+- The document catalogs over 30 specialized tools organized into categories: core
+  documentation tools, extraction and conversion tools, dockerized tools, utility
+  and processing tools, and generation and publishing tools
+- Each tool is documented with its purpose, usage examples, and integration with
+  the broader documentation ecosystem
+- The toolchain emphasizes automation, consistency, and ease of use through
+  command-line interfaces and editor integration
 
 # Documentation Toolchain
 
@@ -89,40 +97,6 @@
 
 ## List of Tools
 
-- The tools available are
-  ```bash
-  > ls -1 dev_scripts_helpers/documentation/
-  convert_docx_to_markdown.py
-  dockerized_graphviz.py
-  dockerized_latex.py
-  dockerized_mermaid.py
-  dockerized_pandoc.py
-  dockerized_prettier.py
-  dockerized_tikz_to_bitmap.py
-  extract_headers_from_markdown.py
-  generate_latex_sty.py
-  generate_readme_index.py
-  generate_script_catalog.py
-  latex_abbrevs.sty
-  latexdockercmd.sh
-  lint_txt.py
-  mkdocs
-  notes_to_pdf.py
-  OLD
-  open_md_in_browser.sh
-  open_md_on_github.sh
-  pandoc.latex
-  preprocess_notes.py
-  publish_notes.py
-  render_images.py
-  replace_latex.py
-  replace_latex.sh
-  run_latex.sh
-  run_pandoc.py
-  test
-  transform_notes.py
-  ```
-
 - Short Classification of Tools
 
   - Core Documentation Tools
@@ -134,10 +108,10 @@
     - `update_md.py`: Multi-action LLM tool for markdown files (summarize, update content, apply style)
 
   - Extraction and Conversion Tools
-    - `convert_docx_to_markdown.py`: Converts DOCX to Markdown  
-    - `pdf_to_md.py`: Converts PDF to Markdown  
-    - `extract_headers_from_markdown.py`: Extracts headers for navigation  
-    - `extract_notebook_images.py`: Extracts images from Jupyter notebooks  
+    - `convert_docx_to_markdown.py`: Converts DOCX to Markdown
+    - `pdf_to_md.py`: Converts PDF to Markdown
+    - `extract_toc_from_txt.py`: Extracts headers from Markdown and LaTeX files for navigation
+    - `extract_notebook_images.py`: Extracts images from Jupyter notebooks
     - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
 
   - Dockerized Tools
@@ -164,7 +138,7 @@
     - `create_google_drive_map.py`: Creates directory structure summaries  
     - `llm_transform.py`: LLM-based text transformations  
 
-# Description of tools
+# Description of executables
 
 ## `notes_to_pdf.py`
 
@@ -575,28 +549,36 @@ The supported File types and code blocks are:
   > update_md.py --input notes.md --action summarize --skip_lint
   ```
 
-## `extract_headers_from_markdown.py`
+## `extract_toc_from_txt.py`
 
 ### What It Does
 
-- Turn a Markdown document into either:
+- Extract headers from **Markdown** `.md`, or **LaTeX** `.tex` documents and
+  generate:
   - A **plain list** of headers
   - A **nested header map**
-  - A \*_Vim_ quick‑fix\*\* (`cfile`) that lets you jump between sections with
-    `:cnext`.
+  - A **Vim quick‑fix** (`cfile`) that lets you jump between sections with `:cnext`
+- Automatically detects file type based on extension
+- For Markdown: extracts `#`, `##`, `###` headers
+- For LaTeX: extracts `\section{}`, `\subsection{}`, `\subsubsection{}` commands
 
 ### Examples
 
-- Human‑readable map (levels 1‑3) to `stdout`
+- Extract headers from Markdown file (levels 1‑3) to `stdout`
 
   ```bash
-  > extract_headers_from_markdown.py -i README.md -o - --mode list --max-level 3
+  > extract_toc_from_txt.py -i README.md -o - --mode list --max-level 3
   ```
 
-- Build a quick‑fix file and open Vim on it
+- Extract headers from LaTeX file and generate Vim quickfix file
   ```bash
-  > extract_headers_from_markdown.py -i README.md -o headers.cfile --mode cfile
+  > extract_toc_from_txt.py -i paper.tex -o headers.cfile --mode cfile
   > vim -c "cfile headers.cfile"
+  ```
+
+- Extract LaTeX headers up to level 2 (section and subsection only)
+  ```bash
+  > extract_toc_from_txt.py -i document.tex -o - --mode headers --max-level 2
   ```
 
 ## `dockerized_tikz_to_bitmap.py`
@@ -1219,7 +1201,7 @@ The supported File types and code blocks are:
 
 ### Examples
 
-- Basic usage - run tree and LLM on all directories
+- Basic usage: run tree and LLM on all directories
   ```bash
   > create_google_drive_map.py --in_dir /path/to/google_drive
   ```

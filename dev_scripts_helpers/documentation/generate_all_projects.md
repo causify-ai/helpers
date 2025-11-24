@@ -15,7 +15,7 @@ create_markdown_summary.py --in_file input_file.md --action XYZ --out_file outpu
 ## Action summarize
 
 1) Read the markdown file `input_file` using the library in helpers/hmarkdown*.py
-  like we do in extract_headers_from_markdown.py
+  like we do in extract_toc_from_txt.py
 
 2) Make sure using functions in helpers/hmarkdown_headers.py that every header of
 level 1 has headers up to level passed through --max_level inside

@@ -229,7 +229,9 @@ class Test_render_images1(hunitest.TestCase):
         [//]: # ( ```plantuml)
         [//]: # ( Alice --> Bob)
         [//]: # ( ```)
+        [//]: # ( render_images:begin )
         ![](figs/out.1.png)
+        [//]: # ( render_images:end )
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -250,7 +252,10 @@ class Test_render_images1(hunitest.TestCase):
         [//]: # ( ```plantuml)
         [//]: # ( Alice --> Bob)
         [//]: # ( ```)
+        [//]: # ( render_images:begin )
         ![](figs/out.1.png)
+        [//]: # ( render_images:end )
+
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -274,7 +279,9 @@ class Test_render_images1(hunitest.TestCase):
         [//]: # ( Alice --> Bob)
         [//]: # ( @enduml)
         [//]: # ( ```)
+        [//]: # ( render_images:begin )
         ![](figs/out.1.png)
+        [//]: # ( render_images:end )
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -292,7 +299,11 @@ class Test_render_images1(hunitest.TestCase):
         % ```plantuml
         % Alice --> Bob
         % ```
-        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        % render_images:end
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -313,7 +324,12 @@ class Test_render_images1(hunitest.TestCase):
         % ```plantuml
         % Alice --> Bob
         % ```
-        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        % render_images:end
+
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -337,7 +353,11 @@ class Test_render_images1(hunitest.TestCase):
         % Alice --> Bob
         % @enduml
         % ```
-        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        % render_images:end
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -359,7 +379,9 @@ class Test_render_images1(hunitest.TestCase):
         [//]: # ( flowchart TD;)
         [//]: # (   A[Start] --> B[End];)
         [//]: # ( ```)
+        [//]: # ( render_images:begin )
         ![](figs/out.1.png)
+        [//]: # ( render_images:end )
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -382,7 +404,10 @@ class Test_render_images1(hunitest.TestCase):
         [//]: # ( flowchart TD;)
         [//]: # (   A[Start] --> B[End];)
         [//]: # ( ```)
+        [//]: # ( render_images:begin )
         ![](figs/out.1.png)
+        [//]: # ( render_images:end )
+
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -403,7 +428,11 @@ class Test_render_images1(hunitest.TestCase):
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
-        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        % render_images:end
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -426,7 +455,12 @@ class Test_render_images1(hunitest.TestCase):
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
-        \begin{figure} \includegraphics[width=\linewidth]{figs/out.1.png} \end{figure}
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        % render_images:end
+
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -450,7 +484,10 @@ class Test_render_images1(hunitest.TestCase):
         // flowchart TD;
         //   A[Start] --> B[End];
         // ```
+        // render_images:begin
         ![](figs/out.1.png)
+        // render_images:end
+
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -474,7 +511,10 @@ class Test_render_images1(hunitest.TestCase):
         // flowchart TD;
         //   A[Start] --> B[End];
         // ```
+        // render_images:begin
         ![](hello_world.png)
+        // render_images:end
+
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -497,7 +537,10 @@ class Test_render_images1(hunitest.TestCase):
         // ```mermaid(hello_world2.png)
         // flowchart TD;
         // ```
+        // render_images:begin
         ![](hello_world2.png)
+        // render_images:end
+
         B
         """
         self.helper(in_lines, file_ext, expected)

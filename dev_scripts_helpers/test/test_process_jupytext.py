@@ -6,6 +6,8 @@ import pytest
 
 import dev_scripts_helpers.notebooks.process_jupytext as dshnprju
 import helpers.hio as hio
+import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -17,6 +19,10 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+@pytest.mark.skipif(
+    not hserver.is_inside_docker(),
+    reason="jupytext is only inside Docker dev environment",
+)
 class Test_process_jupytext(hunitest.TestCase):
     @pytest.mark.slow("~7 seconds.")
     def test_end_to_end(self) -> None:
@@ -69,18 +75,19 @@ class Test_process_jupytext(hunitest.TestCase):
         Test jupytext version comparison: when the versions are different.
         """
         txt = """
---- expected
-+++ actual
-@@ -5,7 +5,7 @@
- #       extension: .py
- #       format_name: percent
- #       format_version: '1.3'
--#       jupytext_version: 1.3.3
-+#       jupytext_version: 1.3.0
- #   kernelspec:
- #     display_name: Python [conda env:.conda-amp_develop] *
- #     language: python
-"""
+        --- expected
+        +++ actual
+        @@ -5,7 +5,7 @@
+        #       extension: .py
+        #       format_name: percent
+        #       format_version: '1.3'
+        -#       jupytext_version: 1.3.3
+        +#       jupytext_version: 1.3.0
+        #   kernelspec:
+        #     display_name: Python [conda env:.conda-amp_develop] *
+        #     language: python
+        """
+        txt = hprint.dedent(txt)
         self.assertTrue(dshnprju._is_jupytext_version_different(txt))
 
     def test_is_jupytext_version_different_false(self) -> None:
@@ -88,16 +95,17 @@ class Test_process_jupytext(hunitest.TestCase):
         Test jupytext version comparison: when the versions are not different.
         """
         txt = """
---- expected
-+++ actual
-@@ -5,7 +5,7 @@
- #       extension: .py
--#       format_name: percent
-+#       format_name: plus
- #       format_version: '1.3'
- #       jupytext_version: 1.3.3
- #   kernelspec:
- #     display_name: Python [conda env:.conda-amp_develop] *
- #     language: python
-"""
+        --- expected
+        +++ actual
+        @@ -5,7 +5,7 @@
+        #       extension: .py
+        -#       format_name: percent
+        +#       format_name: plus
+        #       format_version: '1.3'
+        #       jupytext_version: 1.3.3
+        #   kernelspec:
+        #     display_name: Python [conda env:.conda-amp_develop] *
+        #     language: python
+        """
+        txt = hprint.dedent(txt)
         self.assertFalse(dshnprju._is_jupytext_version_different(txt))

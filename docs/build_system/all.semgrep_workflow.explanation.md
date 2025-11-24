@@ -1,7 +1,3 @@
-# Semgrep Integration in GitHub Actions
-
-## Table of Contents
-
 <!-- toc -->
 
 - [Overview](#overview)
@@ -16,6 +12,8 @@
 - [Conclusion](#conclusion)
 
 <!-- tocstop -->
+
+# Semgrep Integration in GitHub Actions
 
 ## Overview
 
