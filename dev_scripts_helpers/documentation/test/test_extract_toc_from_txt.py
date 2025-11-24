@@ -16,7 +16,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test_extract_toc_from_txt1(hunitest.TestCase):
 
-    def helper(self, file: string) -> None:
+    def helper(self, file: str) -> None:
         """
         Test extraction of headers from a Markdown file.
         """

@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
