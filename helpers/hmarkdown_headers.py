@@ -317,6 +317,16 @@ class HeaderInfo:
 HeaderList = List[HeaderInfo]
 
 
+def header_list_to_str(header_list: HeaderList) -> str:
+    """
+    Convert a list of headers into a string.
+
+    :param header_list: list of headers
+    :return: string representation of the header list
+    """
+    return "\n".join([str(header) for header in header_list])
+
+
 def sanity_check_header_list(header_list: HeaderList) -> None:
     """
     Check that the header list is valid.

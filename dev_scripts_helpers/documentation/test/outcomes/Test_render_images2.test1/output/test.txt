@@ -78,9 +78,9 @@ https://c4model.com/.
 [//]: # ( imaster <-- models: fetches processed data from)
 [//]: # ( @enduml)
 [//]: # ( ```)
-[//]: # ( render_image:begin )
+[//]: # ( render_images:begin )
 ![](figs/im_architecture.1.png)
-[//]: # ( render_image:end )
+[//]: # ( render_images:end )
 
 
 ## Container Diagram
@@ -157,9 +157,9 @@ https://c4model.com/.
 [//]: # ( loader <-up- models: fetches data from)
 [//]: # ( @enduml)
 [//]: # ( ```)
-[//]: # ( render_image:begin )
+[//]: # ( render_images:begin )
 ![](figs/im_architecture.2.png)
-[//]: # ( render_image:end )
+[//]: # ( render_images:end )
 
 
 ### Questions
@@ -293,9 +293,9 @@ single step.
 [//]: # (    AggregateTickData -left-> data.TickData)
 [//]: # ( })
 [//]: # ( ```)
-[//]: # ( render_image:begin )
+[//]: # ( render_images:begin )
 ![](figs/im_architecture.3.png)
-[//]: # ( render_image:end )
+[//]: # ( render_images:end )
 
 
 ## Notes
