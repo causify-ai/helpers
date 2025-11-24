@@ -83,8 +83,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
         # Run test.
         actual = hlatex._is_latex_line_separator(line)
         # Check outputs.
-        # TODO(ai_gp): Use assertTrue / assertFalse instead of this.
-        self.assert_equal(str(actual), str(True))
+        self.assertTrue(actual)
 
     def test_dash_separator(self) -> None:
         """
@@ -95,8 +94,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
         # Run test.
         actual = hlatex._is_latex_line_separator(line)
         # Check outputs.
-        # TODO(ai_gp): Use assertTrue / assertFalse instead of this.
-        self.assert_equal(str(actual), str(True))
+        self.assertTrue(actual)
 
     def test_not_enough_repeats(self) -> None:
         """
@@ -118,8 +116,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
         # Run test.
         actual = hlatex._is_latex_line_separator(line)
         # Check outputs.
-        # TODO(ai_gp): Use assertTrue / assertFalse instead of this.
-        self.assert_equal(str(actual), str(False))
+        self.assertFalse(actual)
 
 
 # #############################################################################
@@ -322,8 +319,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Run test.
         actual = hlatex._is_latex_comment(line)
         # Check outputs.
-        # TODO(ai_gp): Use assertTrue / assertFalse instead of this.
-        self.assert_equal(str(actual), str(True))
+        self.assertTrue(actual)
 
     def test_not_a_comment(self) -> None:
         """
@@ -334,8 +330,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Run test.
         actual = hlatex._is_latex_comment(line)
         # Check outputs.
-        # TODO(ai_gp): Use assertTrue / assertFalse instead of this.
-        self.assert_equal(str(actual), str(False))
+        self.assertFalse(actual)
 
     def test_escaped_percent(self) -> None:
         """
@@ -346,8 +341,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Run test.
         actual = hlatex._is_latex_comment(line)
         # Check outputs.
-        # TODO(ai_gp): Use assertTrue / assertFalse instead of this.
-        self.assert_equal(str(actual), str(False))
+        self.assertFalse(actual)
 
     def test_percent_in_middle(self) -> None:
         """
@@ -358,8 +352,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Run test.
         actual = hlatex._is_latex_comment(line)
         # Check outputs.
-        # TODO(ai_gp): Use assertTrue / assertFalse instead of this.
-        self.assert_equal(str(actual), str(False))
+        self.assertFalse(actual)
 
     def test_empty_comment(self) -> None:
         """
@@ -370,8 +363,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Run test.
         actual = hlatex._is_latex_comment(line)
         # Check outputs.
-        # TODO(ai_gp): Use assertTrue / assertFalse instead of this.
-        self.assert_equal(str(actual), str(True))
+        self.assertTrue(actual)
 
 
 # #############################################################################
@@ -380,144 +372,92 @@ class Test_is_latex_comment(hunitest.TestCase):
 
 
 class Test_extract_latex_section(hunitest.TestCase):
-    def helper(self, line, expected) -> None:
+    def helper(self, line: str, expected_level: int, expected_title: str) -> None:
         """
-        Test extraction of basic section command.
-        """
-        # Prepare inputs.
-        line = r"\section{Introduction}"
-        # Run test.
-        header_info = hlatex._extract_latex_section(line)
-        # Check outputs.
-        actual = header_info_to_str(header_info)
-        self.assert_equal(actual, expected)
+        Helper method to test extraction of LaTeX section commands.
 
-    # TODO(ai_gp): Use self.helper()
+        :param line: LaTeX line to parse
+        :param expected_level: expected section level (0 if no section)
+        :param expected_title: expected title (empty string if no section)
+        """
+        # Prepare inputs - line_number is arbitrary for testing.
+        line_number = 1
+        # Run test.
+        header_info = hlatex._extract_latex_section(line, line_number)
+        # Check outputs.
+        if expected_level == 0:
+            # No section expected.
+            self.assertIsNone(header_info)
+        else:
+            # Section expected.
+            self.assertIsNotNone(header_info)
+            self.assert_equal(str(header_info.level), str(expected_level))
+            self.assert_equal(header_info.description, expected_title)
+
     def test_section_basic(self) -> None:
         """
         Test extraction of basic section command.
         """
-        # Prepare inputs.
         line = r"\section{Introduction}"
-        # Run test.
-        is_section, level, title = hlatex._extract_latex_section(line)
-        # Check outputs.
-        self.assert_equal(str(is_section), str(True))
-        self.assert_equal(str(level), str(1))
-        self.assert_equal(title, "Introduction")
+        self.helper(line, 1, "Introduction")
 
-    # TODO(ai_gp): Use self.helper()
     def test_subsection_basic(self) -> None:
         """
         Test extraction of basic subsection command.
         """
-        # Prepare inputs.
         line = r"\subsection{Background}"
-        # Run test.
-        is_section, level, title = hlatex._extract_latex_section(line)
-        # Check outputs.
-        self.assert_equal(str(is_section), str(True))
-        self.assert_equal(str(level), str(2))
-        self.assert_equal(title, "Background")
+        self.helper(line, 2, "Background")
 
-    # TODO(ai_gp): Use self.helper()
     def test_subsubsection_basic(self) -> None:
         """
         Test extraction of basic subsubsection command.
         """
-        # Prepare inputs.
         line = r"\subsubsection{Details}"
-        # Run test.
-        is_section, level, title = hlatex._extract_latex_section(line)
-        # Check outputs.
-        self.assert_equal(str(is_section), str(True))
-        self.assert_equal(str(level), str(3))
-        self.assert_equal(title, "Details")
+        self.helper(line, 3, "Details")
 
-    # TODO(ai_gp): Use self.helper()
     def test_section_with_nested_braces(self) -> None:
         """
         Test extraction of section with nested LaTeX commands.
         """
-        # Prepare inputs.
         line = r"\section{Introduction to \textbf{Machine Learning}}"
-        # Run test.
-        is_section, level, title = hlatex._extract_latex_section(line)
-        # Check outputs.
-        self.assert_equal(str(is_section), str(True))
-        self.assert_equal(str(level), str(1))
-        self.assert_equal(title, r"Introduction to \textbf{Machine Learning}")
+        self.helper(line, 1, r"Introduction to \textbf{Machine Learning}")
 
-    # TODO(ai_gp): Use self.helper()
     def test_section_with_optional_argument(self) -> None:
         """
         Test extraction of section with optional short title.
         """
-        # Prepare inputs.
         line = r"\section[Short Title]{Long Title for Table of Contents}"
-        # Run test.
-        is_section, level, title = hlatex._extract_latex_section(line)
-        # Check outputs.
-        self.assert_equal(str(is_section), str(True))
-        self.assert_equal(str(level), str(1))
-        # Should extract the long title (in curly braces)
-        self.assert_equal(title, "Long Title for Table of Contents")
+        # Should extract the long title (in curly braces).
+        self.helper(line, 1, "Long Title for Table of Contents")
 
-    # TODO(ai_gp): Use self.helper()
     def test_section_with_escaped_characters(self) -> None:
         """
         Test extraction of section with escaped special characters.
         """
-        # Prepare inputs.
         line = r"\section{Cost Analysis: \$100 \& More}"
-        # Run test.
-        is_section, level, title = hlatex._extract_latex_section(line)
-        # Check outputs.
-        self.assert_equal(str(is_section), str(True))
-        self.assert_equal(str(level), str(1))
-        self.assert_equal(title, r"Cost Analysis: \$100 \& More")
+        self.helper(line, 1, r"Cost Analysis: \$100 \& More")
 
-    # TODO(ai_gp): Use self.helper()
     def test_section_with_leading_whitespace(self) -> None:
         """
         Test extraction of section with leading whitespace.
         """
-        # Prepare inputs.
         line = r"   \section{Methods}"
-        # Run test.
-        is_section, level, title = hlatex._extract_latex_section(line)
-        # Check outputs.
-        self.assert_equal(str(is_section), str(True))
-        self.assert_equal(str(level), str(1))
-        self.assert_equal(title, "Methods")
+        self.helper(line, 1, "Methods")
 
-    # TODO(ai_gp): Use self.helper()
     def test_not_a_section(self) -> None:
         """
         Test that a regular line is not recognized as a section.
         """
-        # Prepare inputs.
         line = "This is regular text"
-        # Run test.
-        is_section, level, title = hlatex._extract_latex_section(line)
-        # Check outputs.
-        self.assert_equal(str(is_section), str(False))
-        self.assert_equal(str(level), str(0))
-        self.assert_equal(title, "")
+        self.helper(line, 0, "")
 
-    # TODO(ai_gp): Use self.helper()
     def test_section_empty_title(self) -> None:
         """
-        Test extraction of section with empty title.
+        Test that section with empty title is not extracted.
         """
-        # Prepare inputs.
         line = r"\section{}"
-        # Run test.
-        is_section, level, title = hlatex._extract_latex_section(line)
-        # Check outputs.
-        self.assert_equal(str(is_section), str(True))
-        self.assert_equal(str(level), str(1))
-        self.assert_equal(title, "")
+        # Sections with empty titles should not be extracted.
+        self.helper(line, 0, "")
 
 
 # #############################################################################
@@ -526,23 +466,25 @@ class Test_extract_latex_section(hunitest.TestCase):
 
 
 class Test_extract_headers_from_latex(hunitest.TestCase):
-    def helper(self, lines, expected) -> None:
+    def helper(self, lines: str, expected: str) -> None:
         """
-        Test extraction from a basic LaTeX document with multiple section levels.
+        Helper method to test header extraction from LaTeX documents.
+
+        :param lines: LaTeX document content as a string
+        :param expected: expected string representation of header list
         """
-        lines = hprint.dedent(lines)
-        lines = lines.split("\n")
+        lines_list = hprint.dedent(lines).split("\n")
         max_level = 3
         # Run test.
         actual = hlatex.extract_headers_from_latex(
-            lines, max_level, sanity_check=False
+            lines_list, max_level, sanity_check=False
         )
+        # TODO(ai_gp): Use hmarkdown_header.header_list_to_str
         actual_str = str(actual)
         # Check outputs.
         self.assert_equal(actual_str, expected)
 
-    # TODO(ai_gp): Use self.helper()
-    def test_basic_document(self, lines, expected) -> None:
+    def test_basic_document(self) -> None:
         """
         Test extraction from a basic LaTeX document with multiple section levels.
         """
@@ -557,17 +499,11 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \section{Methods}
         Methods description.
         """
-        lines = hprint.dedent(lines)
-        lines = lines.split("\n")
-        max_level = 3
-        # Run test.
-        actual = hlatex.extract_headers_from_latex(
-            lines, max_level, sanity_check=False
-        )
-        actual_str = str(actual)
-        # Check outputs.
-        self.assert_equal(actual_str, expected)
+        expected = "[HeaderInfo(1, 'Introduction', 1), HeaderInfo(2, 'Background', 4), HeaderInfo(1, 'Methods', 7)]"
+        # Check.
+        self.helper(lines, expected)
 
+    # TODO(ai_gp): Use self.helper()
     def test_with_comments(self) -> None:
         """
         Test that commented-out sections are skipped.
@@ -602,15 +538,14 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \subsection{Section 1.1}
         \subsubsection{Section 1.1.1}
         """
-        lines = hprint.dedent(lines)
-        lines = lines.split("\n")
+        lines_list = hprint.dedent(lines).split("\n")
         max_level = 2
         # Run test.
         actual = hlatex.extract_headers_from_latex(
-            lines, max_level, sanity_check=False
+            lines_list, max_level, sanity_check=False
         )
         # Check outputs.
-        # Should only get section and subsection, not subsubsection
+        # Should only get section and subsection, not subsubsection.
         self.assert_equal(str(len(actual)), str(2))
         self.assert_equal(actual[0].description, "Chapter 1")
         self.assert_equal(actual[1].description, "Section 1.1")
@@ -625,17 +560,9 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \section{Introduction to \textbf{ML}}
         \subsection{Using \emph{Neural Networks}}
         """
-        lines = hprint.dedent(lines)
-        lines = lines.split("\n")
-        max_level = 3
-        # Run test.
-        actual = hlatex.extract_headers_from_latex(
-            lines, max_level, sanity_check=False
-        )
-        # Check outputs.
-        self.assert_equal(str(len(actual)), str(2))
-        self.assert_equal(actual[0].description, r"Introduction to \textbf{ML}")
-        self.assert_equal(actual[1].description, r"Using \emph{Neural Networks}")
+        expected = r"[HeaderInfo(1, 'Introduction to \textbf{ML}', 1), HeaderInfo(2, 'Using \emph{Neural Networks}', 2)]"
+        # Check.
+        self.helper(lines, expected)
 
     # TODO(ai_gp): Use self.helper()
     def test_line_numbers(self) -> None:
@@ -652,19 +579,17 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \subsection{First Subsection}
         Even more text.
         """
-        lines = hprint.dedent(lines)
-        lines = lines.split("\n")
+        lines_list = hprint.dedent(lines).split("\n")
         max_level = 3
         # Run test.
         actual = hlatex.extract_headers_from_latex(
-            lines, max_level, sanity_check=False
+            lines_list, max_level, sanity_check=False
         )
         # Check outputs.
-        # Line numbers should be 3 and 6 (1-indexed)
+        # Line numbers should be 3 and 6 (1-indexed).
         self.assert_equal(str(actual[0].line_number), str(3))
         self.assert_equal(str(actual[1].line_number), str(6))
 
-    # TODO(ai_gp): Use self.helper()
     def test_empty_document(self) -> None:
         """
         Test extraction from document with no sections.
@@ -674,17 +599,10 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         This is just regular text.
         No sections here.
         """
-        lines = hprint.dedent(lines)
-        lines = lines.split("\n")
-        max_level = 3
-        # Run test.
-        actual = hlatex.extract_headers_from_latex(
-            lines, max_level, sanity_check=False
-        )
-        # Check outputs.
-        self.assert_equal(str(len(actual)), str(0))
+        expected = "[]"
+        # Check.
+        self.helper(lines, expected)
 
-    # TODO(ai_gp): Use self.helper()
     def test_all_levels(self) -> None:
         """
         Test extraction with all three section levels.
@@ -706,23 +624,6 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \section{Chapter 2}
         Second chapter.
         """
-        lines = hprint.dedent(lines)
-        lines = lines.split("\n")
-        max_level = 3
-        # Run test.
-        actual = hlatex.extract_headers_from_latex(
-            lines, max_level, sanity_check=False
-        )
-        # Check outputs.
-        self.assert_equal(str(len(actual)), str(5))
-        # Check structure
-        self.assert_equal(str(actual[0].level), str(1))
-        self.assert_equal(actual[0].description, "Chapter 1")
-        self.assert_equal(str(actual[1].level), str(2))
-        self.assert_equal(actual[1].description, "Section 1.1")
-        self.assert_equal(str(actual[2].level), str(3))
-        self.assert_equal(actual[2].description, "Subsection 1.1.1")
-        self.assert_equal(str(actual[3].level), str(2))
-        self.assert_equal(actual[3].description, "Section 1.2")
-        self.assert_equal(str(actual[4].level), str(1))
-        self.assert_equal(actual[4].description, "Chapter 2")
+        expected = "[HeaderInfo(1, 'Chapter 1', 1), HeaderInfo(2, 'Section 1.1', 4), HeaderInfo(3, 'Subsection 1.1.1', 7), HeaderInfo(2, 'Section 1.2', 10), HeaderInfo(1, 'Chapter 2', 13)]"
+        # Check.
+        self.helper(lines, expected)

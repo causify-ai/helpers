@@ -150,17 +150,17 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #
     input_content = hparser.read_file(in_file_name)
     # Detect file type and dispatch to appropriate extraction function.
-    _, ext = os.path.splitext(file_name)
-    if ext == "md":
+    _, ext = os.path.splitext(in_file_name)
+    if ext == ".md":
         _extract_headers_from_markdown(
             in_file_name, input_content, args.mode, args.max_level, out_file_name
         )
-    elif ext == "tex":
+    elif ext == ".tex":
         _extract_headers_from_latex(
             in_file_name, input_content, args.mode, args.max_level, out_file_name
         )
     else:
-        raise ValueError(f"Unsupported file type: {file_name}")
+        raise ValueError(f"Unsupported file type: {in_file_name}")
 
 
 if __name__ == "__main__":

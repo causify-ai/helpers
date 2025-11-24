@@ -229,32 +229,40 @@ def _is_latex_comment(line: str) -> bool:
     return True
 
 
-# TODO(ai_gp): Return a HeaderInfo object instead of a tuple.
-def _extract_latex_section(line: str, line_number: int) -> hmarkdo.HeaderInfo:
+def _extract_latex_section(
+    line: str, line_number: int
+) -> Optional[hmarkdo.HeaderInfo]:
     r"""
     Parse a LaTeX section command and extract section information.
 
     This function identifies LaTeX section commands (\section{}, \subsection{},
     \subsubsection{}) and extracts the section title. It handles several edge
     cases including:
-    - Use a regex to parse `\section[Short]{Long Title}` (extracts "Long Title")
-    - Do not handle multi-line section titles
+    - Regex parsing of `\section[Short]{Long Title}` (extracts "Long Title")
+    - Handles nested braces within titles (e.g., `\section{Intro to \textbf{ML}}`)
+    - Does not handle multi-line section titles
 
     :param line: line of text to parse
-    :return: HeaderInfo
+    :param line_number: line number in the original file
+    :return: HeaderInfo object if section found, None otherwise
     """
     hdbg.dassert_isinstance(line, str)
-    # TODO(ai_gp): Use a regex to parse `\section[Short]{Long Title}` (extracts "Long Title")
+    hdbg.dassert_isinstance(line_number, int)
+    # Define section patterns with their corresponding levels.
+    regex = r'\{(.*)\}'
     section_patterns = [
-        (r"\\section\b", 1),
-        (r"\\subsection\b", 2),
-        (r"\\subsubsection\b", 3),
+        (r"\\section" + regex, 1),
+        (r"\\subsection" + regex, 2),
+        (r"\\subsubsection" + regex, 3),
     ]
+    line_stripped = line.strip()
     # Try to match each section pattern.
     for pattern, level in section_patterns:
-        match = re.search(pattern, line.strip())
+        # Check if line starts with the section command.
+        match = re.match(pattern + r"\b", line_stripped)
+        # TODO(ai_gp): Implement this.
     # No section command found.
-    return (False, 0, "")
+    return None
 
 
 def extract_headers_from_latex(
@@ -292,10 +300,9 @@ def extract_headers_from_latex(
         if _is_latex_comment(line):
             continue
         # Check if this line contains a section command.
-        is_section, level, title = _extract_latex_section(line, line_number)
-        if is_section and level <= max_level:
-            # Create HeaderInfo object and add to list.
-            header_info = hmarkdo.HeaderInfo(level, title, line_number)
+        header_info = _extract_latex_section(line, line_number)
+        if header_info and header_info.level <= max_level:
+            # Add HeaderInfo to list.
             header_list.append(header_info)
     # Check the header list.
     if sanity_check:

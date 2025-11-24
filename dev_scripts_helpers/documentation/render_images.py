@@ -329,10 +329,11 @@ def _insert_image_code(
         txt += (
             r"\begin{figure}\n" +
             r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}\n" +
-            r"\end{figure}"
+            r"\end{figure}\n"
         )
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
+    # TODO(ai_gp): Rename render_image: -> render_images:
     txt += comment_prefix + " render_image:end " + comment_postfix + "\n"
     return txt
 
