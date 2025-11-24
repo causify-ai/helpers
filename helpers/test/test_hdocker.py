@@ -454,7 +454,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
         # Prepare inputs.
         cmd_opts = [
             "script.py",  # Path-like (extension) but doesn't exist
-            "../config.json",  # Path-like (relative) but doesn't exist
+            "./config.json",  # Path-like (relative) but doesn't exist
             # "/usr/bin/tool",  # Path-like (absolute) but doesn't exist
             "plain_word",  # Not path-like and doesn't exist
         ]
@@ -475,6 +475,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
         # Prepare inputs.
         cmd_opts = []
         expected_output = []
+        expected_output = "\n".join(expected_output)
         # Run test and check outputs.
         self.helper(cmd_opts, expected_output)
 
@@ -511,7 +512,7 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
             "./config.yaml",
             # "/var/log/app.log",
             "data/",
-            "../output.json",
+            "./output.json",
         ]
         expected_output = [
             "/app/input.txt",

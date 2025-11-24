@@ -49,7 +49,8 @@ Here is the beginning.
 % @enduml
 % ```
 % render_images:begin 
-\begin{figure}\n  \includegraphics[width=\linewidth]{figs/sample_file_plantuml.1.png}
+\begin{figure}
+  \includegraphics[width=\linewidth]{figs/sample_file_plantuml.1.png}
 \end{figure}
 % render_images:end 
 
@@ -127,7 +128,8 @@ Another one:
 % loader <-up- models: fetches data from
 % ```
 % render_images:begin 
-\begin{figure}\n  \includegraphics[width=\linewidth]{figs/sample_file_plantuml.2.png}
+\begin{figure}
+  \includegraphics[width=\linewidth]{figs/sample_file_plantuml.2.png}
 \end{figure}
 % render_images:end 
 

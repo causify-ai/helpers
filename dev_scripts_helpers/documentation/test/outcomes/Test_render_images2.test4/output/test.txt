@@ -38,7 +38,8 @@ Here is the beginning.
 %   style helpers_sub_repo_3 fill:transparent, stroke-dasharray: 5 5
 % ```
 % render_images:begin 
-\begin{figure}\n  \includegraphics[width=\linewidth]{figs/sample_file_mermaid.1.png}
+\begin{figure}
+  \includegraphics[width=\linewidth]{figs/sample_file_mermaid.1.png}
 \end{figure}
 % render_images:end 
 
@@ -62,7 +63,8 @@ Another one:
 %   style helpers_sub_repo fill:transparent, stroke-dasharray: 5 5
 % ```
 % render_images:begin 
-\begin{figure}\n  \includegraphics[width=\linewidth]{figs/sample_file_mermaid.2.png}
+\begin{figure}
+  \includegraphics[width=\linewidth]{figs/sample_file_mermaid.2.png}
 \end{figure}
 % render_images:end 
 

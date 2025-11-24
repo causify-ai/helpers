@@ -327,9 +327,9 @@ def _insert_image_code(
         # Use the LaTeX syntax with tagged markers to make it easier to do a
         # replacement.
         txt += (
-            r"\begin{figure}\n" +
+            r"\begin{figure}" + "\n" +
             r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}\n" +
-            r"\end{figure}\n"
+            r"\end{figure}" + "\n"
         )
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
