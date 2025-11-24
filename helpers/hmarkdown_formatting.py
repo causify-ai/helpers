@@ -10,6 +10,7 @@ from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
+import helpers.hlatex as hlatex
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_slides as hmarform
 
@@ -518,19 +519,6 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     #
     lines = hmarhead.capitalize_header(lines)
     return lines
-
-
-# TODO(ai_gp): Move to hlatex.py
-def format_latex(txt: str) -> str:
-    """
-    Format LaTeX text using `prettier`.
-
-    :param txt: input LaTeX text to format
-    :return: formatted LaTeX text
-    """
-    file_type = "tex"
-    txt = hdocexec.prettier_on_str(txt, file_type)
-    return txt
 
 
 # #############################################################################

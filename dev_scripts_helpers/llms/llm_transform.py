@@ -217,7 +217,7 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
         txt = "\n".join(txt)
         if prompt == "md_to_latex":
             txt = hlatex.convert_pandoc_md_to_latex(txt)
-            txt = hmarkdo.format_latex(txt)
+            txt = hlatex.format_latex(txt)
         elif prompt == "md_clean_up":
             txt = hmarkdo.md_clean_up(txt)
             txt = hmarkdo.format_markdown(txt)

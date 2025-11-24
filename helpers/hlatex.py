@@ -81,13 +81,24 @@ def remove_latex_formatting(latex_string: str) -> str:
     return cleaned_string
 
 
+def format_latex(txt: str) -> str:
+    """
+    Format LaTeX text using `prettier`.
+
+    :param txt: input LaTeX text to format
+    :return: formatted LaTeX text
+    """
+    file_type = "tex"
+    txt = hdocexec.prettier_on_str(txt, file_type)
+    return txt
+
+
 # #############################################################################
 # Frame Latex sections
 # #############################################################################
 
 
-# TODO(ai_gp): Make it private if it's not used anywhere else than here.
-def is_latex_line_separator(line: str, *, min_repeats: int = 5) -> bool:
+def _is_latex_line_separator(line: str, *, min_repeats: int = 5) -> bool:
     """
     Check if the given line is a LaTeX comment separator.
 
@@ -138,7 +149,7 @@ def frame_sections(lines: List[str]) -> List[str]:
     # Loop 1: Remove existing latex separators.
     txt_tmp: List[str] = []
     for line in lines:
-        if not is_latex_line_separator(line):
+        if not _is_latex_line_separator(line):
             txt_tmp.append(line)
     # Loop 2: Remove consecutive empty lines, leaving only one.
     txt_tmp2: List[str] = []
@@ -155,10 +166,11 @@ def frame_sections(lines: List[str]) -> List[str]:
     # Loop 3: Add correct LaTeX separator based on section commands.
     txt_new: List[str] = []
     # Define the section patterns and their corresponding separators.
+    # Total line length is 78 characters, "% " is 2 characters, so 76 separator chars.
     section_patterns = [
-        (r"^\\section\{", "  % " + "#" * (80 - 2)),
-        (r"^\\subsection\{", "  % " + "=" * (80 - 2)),
-        (r"^\\subsubsection\{", "  % " + "-" * (80 - 2)),
+        (r"^\\section\{", "% " + "#" * 76),
+        (r"^\\subsection\{", "% " + "=" * 76),
+        (r"^\\subsubsection\{", "% " + "-" * 76),
     ]
     for i, line in enumerate(txt_tmp2):
         _LOG.debug("line=%d:%s", i, line)
@@ -184,8 +196,7 @@ def frame_sections(lines: List[str]) -> List[str]:
 # #############################################################################
 
 
-# TODO(ai_gp): Make it private if it's not used anywhere else than here.
-def is_latex_comment(line: str) -> bool:
+def _is_latex_comment(line: str) -> bool:
     """
     Check if a line is a LaTeX comment.
 
@@ -218,29 +229,22 @@ def is_latex_comment(line: str) -> bool:
     return True
 
 
-# TODO(ai_gp): Make it private if it's not used anywhere else than here.
 # TODO(ai_gp): Return a HeaderInfo object instead of a tuple.
-def extract_latex_section(line: str) -> Tuple[bool, int, str]:
+def _extract_latex_section(line: str, line_number: int) -> hmarkdo.HeaderInfo:
     r"""
     Parse a LaTeX section command and extract section information.
 
     This function identifies LaTeX section commands (\section{}, \subsection{},
     \subsubsection{}) and extracts the section title. It handles several edge
     cases including:
-    - Nested braces: `\section{Title with \textbf{bold}}`
-    - Optional arguments: `\section[Short]{Long Title}` (extracts "Long Title")
-    - Escaped characters: `\section{Cost: \$100}`
-    - Multi-line section titles (future enhancement)
+    - Use a regex to parse `\section[Short]{Long Title}` (extracts "Long Title")
+    - Do not handle multi-line section titles
 
     :param line: line of text to parse
-    :return: tuple containing:
-        - boolean indicating if the line contains a section command
-        - level of the section (1 for \section, 2 for \subsection,
-          3 for \subsubsection, 0 if not a section)
-        - title of the section (empty string if not a section)
+    :return: HeaderInfo
     """
     hdbg.dassert_isinstance(line, str)
-    # Define section patterns with their corresponding levels.
+    # TODO(ai_gp): Use a regex to parse `\section[Short]{Long Title}` (extracts "Long Title")
     section_patterns = [
         (r"\\section\b", 1),
         (r"\\subsection\b", 2),
@@ -249,48 +253,6 @@ def extract_latex_section(line: str) -> Tuple[bool, int, str]:
     # Try to match each section pattern.
     for pattern, level in section_patterns:
         match = re.search(pattern, line.strip())
-        if match:
-            # Found a section command, now extract the title.
-            # First skip optional argument in square brackets if present.
-            rest_of_line = line[match.end() :]
-            # Skip whitespace.
-            rest_of_line = rest_of_line.lstrip()
-            # Skip optional argument [short title] if present.
-            if rest_of_line.startswith("["):
-                # Find the closing bracket, handling nested brackets.
-                bracket_count = 0
-                i = 0
-                for i, char in enumerate(rest_of_line):
-                    if char == "[":
-                        bracket_count += 1
-                    elif char == "]":
-                        bracket_count -= 1
-                        if bracket_count == 0:
-                            break
-                # Skip past the closing bracket.
-                rest_of_line = rest_of_line[i + 1 :].lstrip()
-            # Now extract content within curly braces.
-            if rest_of_line.startswith("{"):
-                # Extract content handling nested braces.
-                brace_count = 0
-                title_chars = []
-                for char in rest_of_line:
-                    if char == "{":
-                        brace_count += 1
-                        # Don't include the opening brace.
-                        if brace_count > 1:
-                            title_chars.append(char)
-                    elif char == "}":
-                        brace_count -= 1
-                        # If we've closed all braces, we're done.
-                        if brace_count == 0:
-                            break
-                        # Include closing braces for nested commands.
-                        title_chars.append(char)
-                    elif brace_count > 0:
-                        title_chars.append(char)
-                title = "".join(title_chars)
-                return (True, level, title)
     # No section command found.
     return (False, 0, "")
 
@@ -327,10 +289,10 @@ def extract_headers_from_latex(
     # Process the input file to extract headers.
     for line_number, line in enumerate(lines, start=1):
         # Skip LaTeX comment lines.
-        if is_latex_comment(line):
+        if _is_latex_comment(line):
             continue
         # Check if this line contains a section command.
-        is_section, level, title = extract_latex_section(line)
+        is_section, level, title = _extract_latex_section(line, line_number)
         if is_section and level <= max_level:
             # Create HeaderInfo object and add to list.
             header_info = hmarkdo.HeaderInfo(level, title, line_number)
