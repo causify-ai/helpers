@@ -300,8 +300,10 @@ class Test_render_images1(hunitest.TestCase):
         % Alice --> Bob
         % ```
         % render_images:begin
-        \begin{figure}\n  \includegraphics[width=\linewidth]{figs/out.1.png}
-        \end{figure}% render_images:end
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        % render_images:end
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -323,7 +325,8 @@ class Test_render_images1(hunitest.TestCase):
         % Alice --> Bob
         % ```
         % render_images:begin
-        \begin{figure}\n  \includegraphics[width=\linewidth]{figs/out.1.png}
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
 
@@ -351,7 +354,8 @@ class Test_render_images1(hunitest.TestCase):
         % @enduml
         % ```
         % render_images:begin
-        \begin{figure}\n  \includegraphics[width=\linewidth]{figs/out.1.png}
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
         """
@@ -452,7 +456,8 @@ class Test_render_images1(hunitest.TestCase):
         %   A[Start] --> B[End];
         % ```
         % render_images:begin
-        \begin{figure}\n  \includegraphics[width=\linewidth]{figs/out.1.png}
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
 
