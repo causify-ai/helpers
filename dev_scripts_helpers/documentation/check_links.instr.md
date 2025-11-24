@@ -12,9 +12,9 @@ https://github.com/gpsaggese/umd_classes/blob/master/class_project/DATA605/Sprin
 - Output a list of all the URLs that were found and whether they are reachable or
   not
 - Print the number of URLs that are broken
-- For all the code you must follow the instructions in ai.coding_instructions.md
+- For all the code you must follow the instructions in `ai.coding.prompt.md`
 
-2) Generate unit tests for the code following the instructions in ai.unit_test_instructions.md
+2) Generate unit tests for the code following the instructions in ai.unit_test.prompt.md
 
 3) Generate a short description of how to use the script in a file close to the
    script with extension .md

@@ -18,8 +18,7 @@ _LOG = logging.getLogger(__name__)
 _TRACE = False
 
 
-# TODO(ai): Add a * before min_repeats.
-def is_markdown_line_separator(line: str, min_repeats: int = 5) -> bool:
+def is_markdown_line_separator(line: str, *, min_repeats: int = 5) -> bool:
     """
     Check if the given line is a Markdown separator.
 
@@ -316,6 +315,16 @@ class HeaderInfo:
 
 
 HeaderList = List[HeaderInfo]
+
+
+def header_list_to_str(header_list: HeaderList) -> str:
+    """
+    Convert a list of headers into a string.
+
+    :param header_list: list of headers
+    :return: string representation of the header list
+    """
+    return "\n".join([str(header) for header in header_list])
 
 
 def sanity_check_header_list(header_list: HeaderList) -> None:

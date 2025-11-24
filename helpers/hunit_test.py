@@ -1,4 +1,13 @@
 """
+Enhanced unit testing framework built on top of unittest and pytest.
+
+This module provides:
+- TestCase base class with golden file testing capabilities
+- Utilities for comparing strings, dataframes, and other outputs
+- Test outcome management with update and incremental modes
+- Directory management for input, output, and scratch space
+- Integration with Git for managing test outcomes
+
 Import as:
 
 import helpers.hunit_test as hunitest
@@ -79,11 +88,21 @@ _UPDATE_TESTS = False
 
 # TODO(gp): -> ..._update_outcomes.
 def set_update_tests(val: bool) -> None:
+    """
+    Set the global flag for updating test outcomes.
+
+    :param val: True to enable updating test outcomes, False otherwise
+    """
     global _UPDATE_TESTS
     _UPDATE_TESTS = val
 
 
 def get_update_tests() -> bool:
+    """
+    Get the current state of the update tests flag.
+
+    :return: True if test outcomes should be updated, False otherwise
+    """
     return _UPDATE_TESTS
 
 
@@ -97,11 +116,21 @@ _INCREMENTAL_TESTS = False
 
 
 def set_incremental_tests(val: bool) -> None:
+    """
+    Set the global flag for incremental test mode.
+
+    :param val: True to enable incremental mode, False otherwise
+    """
     global _INCREMENTAL_TESTS
     _INCREMENTAL_TESTS = val
 
 
 def get_incremental_tests() -> bool:
+    """
+    Get the current state of the incremental tests flag.
+
+    :return: True if incremental mode is enabled, False otherwise
+    """
     return _INCREMENTAL_TESTS
 
 
@@ -183,6 +212,12 @@ def convert_info_to_string(info: Mapping) -> str:
 
 # TODO(gp): This seems the python3.9 version of `to_str`. Remove if possible.
 def to_string(var: str) -> str:
+    """
+    Generate an f-string expression for debugging variable values.
+
+    :param var: the variable name to create an f-string for
+    :return: an f-string expression that will print the variable name and value
+    """
     return f"""f"{var}={{{var}}}"""
 
 
@@ -497,6 +532,11 @@ def diff_df_monotonic(
 
 # pylint: disable=protected-access
 def get_pd_default_values() -> "pd._config.config.DictWrapper":
+    """
+    Get a deep copy of the current pandas default options.
+
+    :return: a copy of pandas configuration options
+    """
     import copy
 
     vals = copy.deepcopy(pd.options)
@@ -504,6 +544,11 @@ def get_pd_default_values() -> "pd._config.config.DictWrapper":
 
 
 def set_pd_default_values() -> None:
+    """
+    Set pandas display options to standard default values for testing.
+
+    This ensures consistent output across different test environments.
+    """
     # 'display':
     default_pd_values = {
         "chop_threshold": None,
@@ -608,6 +653,12 @@ def _fuzzy_clean(txt: str) -> str:
 
 
 def _ignore_line_breaks(txt: str) -> str:
+    """
+    Replace all line breaks with spaces for loose comparison.
+
+    :param txt: the input text
+    :return: text with line breaks replaced by spaces
+    """
     # Ignore line breaks.
     txt = txt.replace("\n", " ")
     return txt
@@ -633,6 +684,14 @@ def _save_diff(
     tag: str,
     test_dir: str,
 ) -> None:
+    """
+    Save actual and expected strings to temporary files for comparison.
+
+    :param actual: the actual test output
+    :param expected: the expected test output
+    :param tag: identifier tag for the files
+    :param test_dir: directory to save files in
+    """
     if tag != "":
         tag += "."
     # Save expected strings to dir.
@@ -882,6 +941,11 @@ class TestCase(unittest.TestCase):
         self._timer = htimer.Timer()
 
     def tearDown(self) -> None:
+        """
+        Execute after each test method completes.
+
+        Handles cleanup, timing, and restoration of default settings.
+        """
         # Stop the timer to measure the execution time of the test.
         self._timer.stop()
         pytest_print("(%.2f s) " % self._timer.get_total_elapsed())
@@ -981,16 +1045,22 @@ class TestCase(unittest.TestCase):
         dir_name = os.path.join(dir_name, "input")
         return dir_name
 
-    def get_output_dir(self, *, test_class_name: Optional[str] = None) -> str:
+    def get_output_dir(
+        self,
+        *,
+        test_class_name: Optional[str] = None,
+        test_method_name: Optional[str] = None,
+    ) -> str:
         """
         Return the path of the directory storing output data for this test
         class.
 
+        :param test_class_name: override the current test class name
+        :param test_method_name: override the current test method name
         :return: dir name
         """
         # The output dir is specific of this dir.
         use_only_test_class = False
-        test_method_name = None
         use_absolute_path = True
         dir_name = self._get_current_path(
             use_only_test_class,
@@ -1078,6 +1148,15 @@ class TestCase(unittest.TestCase):
         test_method_name: Optional[str] = None,
         use_absolute_path: bool = False,
     ) -> str:
+        """
+        Return the S3 path for storing input data for this test.
+
+        :param use_only_test_class: use only the test class name, not method
+        :param test_class_name: override the current test class name
+        :param test_method_name: override the current test method name
+        :param use_absolute_path: use the path from the file containing the test
+        :return: S3 path for test input data
+        """
         s3_bucket = hrecouti.get_repo_config().get_unit_test_bucket_path()
         hdbg.dassert_isinstance(s3_bucket, str)
         # Make the path unique for the test.
@@ -1204,6 +1283,7 @@ class TestCase(unittest.TestCase):
         abort_on_error: bool = True,
         action_on_missing_golden: str = _ACTION_ON_MISSING_GOLDEN,
         test_class_name: Optional[str] = None,
+        test_method_name: Optional[str] = None,
     ) -> Tuple[bool, bool, Optional[bool]]:
         """
         Check the actual outcome of a test against the expected outcome
@@ -1227,7 +1307,8 @@ class TestCase(unittest.TestCase):
             different from the golden outcome
         :param action_on_missing_golden: what to do (e.g., "assert" or "update"
             when the golden outcome is missing)
-        :param test_class_name: name of the test class
+        :param test_class_name: override the current test class name
+        :param test_method_name: override the current test method name
         :return: outcome_updated, file_exists, is_equal
         :raises: `RuntimeError` if there is a mismatch. If `abort_on_error` is False
             (which should be used only for unit testing) return the result but do not
@@ -1237,13 +1318,16 @@ class TestCase(unittest.TestCase):
             hprint.to_str(
                 "remove_lead_trail_empty_lines dedent purify_text fuzzy_match "
                 "ignore_line_breaks split_max_len sort use_gzip tag "
-                "abort_on_error action_on_missing_golden test_class_name"
+                "abort_on_error action_on_missing_golden test_class_name "
+                "test_method_name"
             )
         )
         hdbg.dassert_in(type(actual), (bytes, str), "actual='%s'", actual)
         #
         dir_name, file_name = self._get_golden_outcome_file_name(
-            tag, test_class_name=test_class_name
+            tag,
+            test_class_name=test_class_name,
+            test_method_name=test_method_name,
         )
         if use_gzip:
             file_name += ".gz"
@@ -1582,6 +1666,13 @@ class TestCase(unittest.TestCase):
     def _check_string_update_outcome(
         self, file_name: str, actual: str, use_gzip: bool
     ) -> None:
+        """
+        Update the golden outcome file with actual test output.
+
+        :param file_name: path to the golden outcome file
+        :param actual: the actual test output to save
+        :param use_gzip: whether to compress the file with gzip
+        """
         _LOG.debug(hprint.to_str("file_name"))
         hio.to_file(file_name, actual, use_gzip=use_gzip)
         # Add to git repo.
@@ -1594,6 +1685,12 @@ class TestCase(unittest.TestCase):
         file_name: str,
         actual: "pd.DataFrame",
     ) -> None:
+        """
+        Update the golden outcome file with actual dataframe output.
+
+        :param file_name: path to the golden outcome file
+        :param actual: the actual dataframe to save
+        """
         _LOG.debug(hprint.to_str("file_name"))
         hio.create_enclosing_dir(file_name)
         actual.to_csv(file_name)
@@ -1604,6 +1701,14 @@ class TestCase(unittest.TestCase):
     def _check_df_compare_outcome(
         self, file_name: str, actual: "pd.DataFrame", err_threshold: float
     ) -> Tuple[bool, "pd.DataFrame"]:
+        """
+        Compare actual dataframe with golden outcome from file.
+
+        :param file_name: path to the golden outcome file
+        :param actual: the actual dataframe to compare
+        :param err_threshold: relative error threshold for numerical comparison
+        :return: tuple of (is_equal, expected_dataframe)
+        """
         _LOG.debug(hprint.to_str("file_name"))
         _LOG.debug("actual_=\n%s", actual)
         hdbg.dassert_lte(0, err_threshold)
@@ -1665,11 +1770,22 @@ class TestCase(unittest.TestCase):
     # ///////////////////////////////////////////////////////////////////////
 
     def _get_golden_outcome_file_name(
-        self, tag: str, *, test_class_name: Optional[str] = None
+        self,
+        tag: str,
+        *,
+        test_class_name: Optional[str] = None,
+        test_method_name: Optional[str] = None,
     ) -> Tuple[str, str]:
+        """
+        Get the directory and file name for the golden outcome file.
+
+        :param tag: identifier tag for the golden outcome file
+        :param test_class_name: override the current test class name
+        :param test_method_name: override the current test method name
+        :return: tuple of (directory_path, file_path)
+        """
         # Get the current dir name.
         use_only_test_class = False
-        test_method_name = None
         use_absolute_path = True
         dir_name = self._get_current_path(
             use_only_test_class,
@@ -1682,7 +1798,11 @@ class TestCase(unittest.TestCase):
         hdbg.dassert_path_exists(dir_name)
         # Get the expected outcome.
         file_name = (
-            self.get_output_dir(test_class_name=test_class_name) + f"/{tag}.txt"
+            self.get_output_dir(
+                test_class_name=test_class_name,
+                test_method_name=test_method_name,
+            )
+            + f"/{tag}.txt"
         )
         return dir_name, file_name
 
@@ -1728,6 +1848,11 @@ class TestCase(unittest.TestCase):
         return dir_name
 
     def _to_error(self, msg: str) -> None:
+        """
+        Append error message to the accumulated error log.
+
+        :param msg: error message to log and accumulate
+        """
         self._error_msg += msg + "\n"
         _LOG.error(msg)
 

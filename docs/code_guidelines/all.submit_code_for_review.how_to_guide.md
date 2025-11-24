@@ -4,21 +4,21 @@
 
 - [Read Python Style Guide](#read-python-style-guide)
 - [Run Linter](#run-linter)
-- [Compare your code to example code](#compare-your-code-to-example-code)
-- [Edit code/text written by AI](#edit-codetext-written-by-ai)
-- [Save Reviewer time](#save-reviewer-time)
-  * [Make sure checks are green](#make-sure-checks-are-green)
-  * [Review your own PR](#review-your-own-pr)
+- [Compare Your Code to Example Code](#compare-your-code-to-example-code)
+- [Edit Code/Text Written by AI](#edit-codetext-written-by-ai)
+- [Save Reviewer Time](#save-reviewer-time)
+  * [Make Sure Checks Are Green](#make-sure-checks-are-green)
+  * [Review Your Own PR](#review-your-own-pr)
   * [Assign Reviewers](#assign-reviewers)
-  * [Mention the issue](#mention-the-issue)
-  * [Resolve conversations](#resolve-conversations)
-  * [Merge master into your branch](#merge-master-into-your-branch)
-  * [Ask for reviews](#ask-for-reviews)
-  * [Do not use screenshots](#do-not-use-screenshots)
-  * [Report bugs correctly](#report-bugs-correctly)
-  * [Stick to smaller PRs](#stick-to-smaller-prs)
-- [Talk through code and not GitHub](#talk-through-code-and-not-github)
-- [Look at examples of first reviews](#look-at-examples-of-first-reviews)
+  * [Mention the Issue](#mention-the-issue)
+  * [Resolve Conversations](#resolve-conversations)
+  * [Merge Master Into Your Branch](#merge-master-into-your-branch)
+  * [Ask for Reviews](#ask-for-reviews)
+  * [Do Not Use Screenshots](#do-not-use-screenshots)
+  * [Report Bugs Correctly](#report-bugs-correctly)
+  * [Stick to Smaller Prs](#stick-to-smaller-prs)
+- [Talk Through Code and Not Github](#talk-through-code-and-not-github)
+- [Look at Examples of First Reviews](#look-at-examples-of-first-reviews)
 - [Checklist](#checklist)
 
 <!-- tocstop -->
@@ -71,7 +71,7 @@ some helpful tips and resources to guide you through your first review.
   the diff, a new pull request should be created exclusively for the Linter
   changes, based on the branch of the original PR.
 
-## Compare your code to example code
+## Compare Your Code to Example Code
 
 - To get an idea of what well-formatted and well-organized code looks like, we
   suggest taking a look at some examples of code that adheres to our standards.
@@ -91,7 +91,7 @@ some helpful tips and resources to guide you through your first review.
     - [`/linters/test/test_amp_fix_md_links.py`](/linters/test/test_amp_fix_md_links.py)
     - [`/helpers/test/test_lib_tasks_lint.py`](/helpers/test/test_lib_tasks_lint.py)
 
-## Edit code/text written by AI
+## Edit Code/Text Written by AI
 
 - We do not mind if the AI writes the first version of the code or text for you
 - We do mind if you simply copy-and-paste its output and submit if for our
@@ -100,12 +100,12 @@ some helpful tips and resources to guide you through your first review.
   make sure it's readable and relevant, adjust it to fit our specific
   conventions
 
-## Save Reviewer time
+## Save Reviewer Time
 
 - Follow the instructions given in
   [`PR workflows`](/docs/work_organization/all.use_github.how_to_guide.md#pr-workflows)
 
-### Make sure checks are green
+### Make Sure Checks Are Green
 
 - Before requesting review, make sure that all the checks performed by GitHub
   Actions pass
@@ -124,7 +124,7 @@ some helpful tips and resources to guide you through your first review.
     - Check if this bug is already tracked in an issue, and if not, open a new
       issue to report it
 
-### Review your own PR
+### Review Your Own PR
 
 - Before requesting review, take a final look at the "Files changed" tab
 - Make sure there are
@@ -145,20 +145,20 @@ some helpful tips and resources to guide you through your first review.
   - If you want to keep someone notified about changes in the PR but do not want
     to make him/her a Reviewer, type `FYI @github_name` in the comment section
 
-### Mention the issue
+### Mention the Issue
 
 - Mention the corresponding issue in the PR description to ease navigation
   - E.g., see an
     [example](https://github.com/kaizen-ai/kaizenflow/pull/288#issue-1729654983)
     - <img width="505" alt="" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/69fbabec-300c-4f7c-94fc-45c5da5a6817">
 
-### Resolve conversations
+### Resolve Conversations
 
 - When you've addressed a comment from a Reviewer, press `Resolve conversation`
   button so the Reviewer knows that you actually took care of it
   - <img width="328" alt="" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/a4c79d73-62bd-419b-b3cf-e8011621ba3c">
 
-### Merge master into your branch
+### Merge Master Into Your Branch
 
 - Before any PR review request do `i git_merge_master` in order to keep the code
   updated
@@ -175,7 +175,7 @@ some helpful tips and resources to guide you through your first review.
   - You need to merge master branch into your branch - not vice verca!
   - This is a strictly Team Leaders' and Integrators' responsibility
 
-### Ask for reviews
+### Ask for Reviews
 
 - When you've addressed all the comments and need another round of review:
   - Press the circling arrows sign next to the Reviewer for the ping
@@ -185,7 +185,7 @@ some helpful tips and resources to guide you through your first review.
     the description of available labels)
     - <img width="271" alt="" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/3580bf34-dcba-431b-af5c-5ae65f7597c3">
 
-### Do not use screenshots
+### Do Not Use Screenshots
 
 - Stack traces and logs are much more convenient to use for debugging
 - Screenshots are often too small to capture both input and return logs while
@@ -225,7 +225,7 @@ some helpful tips and resources to guide you through your first review.
     NameError: name 'ddcrsede' is not defined
     ```
 
-### Report bugs correctly
+### Report Bugs Correctly
 
 - Whenever you face any errors, put as much information about the problem as
   possible, e.g.,:
@@ -251,12 +251,12 @@ some helpful tips and resources to guide you through your first review.
   - E.g. on how to report any issues
     - [https://github.com/kaizen-ai/kaizenflow/issues/370#issue-1782574355](https://github.com/kaizen-ai/kaizenflow/issues/370#issue-1782574355)
 
-### Stick to smaller PRs
+### Stick to Smaller Prs
 
 - It's better to push frequently and ask for feedback early to avoid large
   refactoring
 
-## Talk through code and not GitHub
+## Talk Through Code and Not Github
 
 - PR authors should, as a rule, talk to reviewers not through GitHub but through
   code
@@ -267,7 +267,7 @@ some helpful tips and resources to guide you through your first review.
     to go inside the code or the documentation
 - Of course it's ok to respond to questions on GitHub
 
-## Look at examples of first reviews
+## Look at Examples of First Reviews
 
 - It can be helpful to review some examples of previous first reviews to get an
   idea of what common issues are and how to address them.

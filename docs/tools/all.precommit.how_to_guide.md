@@ -68,6 +68,7 @@
   - Supports over 700 linting rules from popular tools
   - Is meant to be a single replacement for multiple tools (e.g., flake8,
     pylint, isort, pyupgrade)
+
 ```
 > ruff -h
 ...

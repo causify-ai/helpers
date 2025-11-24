@@ -84,6 +84,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         out_file = os.path.join(out_dir, f"output.{type_}")
         cmd.append(f"--output {out_file}")
         cmd.append(cmd_opts)
+        #cmd.append("--skip_action copy_to_gdrive")
+        cmd.append("--skip_action open")
         # The command line looks like:
         # /app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py \
         #   --input /app/helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_notes_to_pdf1.test2/tmp.scratch/input.md \

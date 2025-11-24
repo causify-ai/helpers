@@ -15,11 +15,11 @@ import helpers.hprint as hprint
 _LOG = logging.getLogger(__name__)
 
 
-# 
+# This module defines a collection of LLM prompts for various code and text
+# transformations.
 # - Try to make prompts general and reusable across different type of content
 #   (e.g., slides, text, markdown, etc.).
-# - The operations are 
-#
+# - The operations are defined as functions that return prompt configurations.
 
 
 # #############################################################################
@@ -31,11 +31,16 @@ _LOG = logging.getLogger(__name__)
 def get_prompt_tags() -> List[Tuple[str, str]]:
     """
     Return the list of prompt functions in this file and their docstrings.
+
+    This function parses the current file and extracts all functions that match
+    the prompt signature (no arguments, returns _PROMPT_OUT type).
+
+    :return: list of tuples containing (function_name, docstring)
     """
-    # Read current file.
+    # Read the current file.
     curr_path = os.path.abspath(__file__)
     file_content = hio.from_file(curr_path)
-    #
+    # Parse the file to extract prompt functions.
     functions = []
     # Parse the file content into an AST.
     tree = ast.parse(file_content)
@@ -67,6 +72,9 @@ def get_prompt_tags() -> List[Tuple[str, str]]:
 def prompt_tags_to_str(prompt_tags: List[Tuple[str, str]]) -> str:
     """
     Return a string representation of the prompt tags.
+
+    :param prompt_tags: list of tuples containing (tag_name, docstring)
+    :return: formatted string with aligned prompt tags and docstrings
     """
     # Find the longest tag length.
     max_tag_len = max(len(tag) for tag, _ in prompt_tags)
@@ -90,7 +98,10 @@ def get_post_container_transforms(
     transform_name: str,
 ) -> List[str]:
     """
-    Return the transformations for `transform_name`.
+    Return the post-container transformations for the specified transform name.
+
+    :param transform_name: name of the transform to get transformations for
+    :return: list of transformation names to apply after container processing
     """
     global _POST_CONTAINER_TRANSFORMS
     # Initialize the dictionary, on the first call.
@@ -122,6 +133,9 @@ _CODING_CONTEXT = r"""
 def test() -> _PROMPT_OUT:
     """
     Placeholder to test the flow.
+
+    :return: tuple of (system_prompt, pre_transforms, post_transforms,
+        post_container_transforms)
     """
     system = ""
     pre_transforms: Set[str] = set()
@@ -135,12 +149,15 @@ def test() -> _PROMPT_OUT:
 # #############################################################################
 
 
-# Apply_cfile.
+# Apply cfile transformations.
 
 
 def code_apply_cfile() -> _PROMPT_OUT:
     """
-    Apply a cfile to the code.
+    Apply a cfile to the code by converting from imports to regular imports.
+
+    :return: tuple of (system_prompt, pre_transforms, post_transforms,
+        post_container_transforms)
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -153,7 +170,7 @@ def code_apply_cfile() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-# Fix
+# Fix code issues.
 
 
 # TODO(gp): The code fixes are superseded by the llm_review.py approach using
@@ -202,7 +219,7 @@ def code_fix_star_before_optional_parameters() -> _PROMPT_OUT:
 
 def code_fix_function_type_hints() -> _PROMPT_OUT:
     """
-    Add type hints to the function definitions, if they are missing.
+    Add type hints to the function definitions if they are missing.
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -508,7 +525,9 @@ def code_fix_by_using_perc_strings() -> _PROMPT_OUT:
 
 
 def code_fix_unit_test() -> _PROMPT_OUT:
-    """ """
+    """
+    Fix unit test code to conform to coding standards.
+    """
     system = _CODING_CONTEXT
     system += r"""
     """
@@ -554,7 +573,7 @@ def code_fix_code() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-# Transform code.
+# Transform code operations.
 
 
 def code_transform_remove_redundancy() -> _PROMPT_OUT:
@@ -620,11 +639,17 @@ def code_transform_apply_linter_instructions() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
-# Unit tests.
+# Unit test generation.
 
 
 # TODO(gp): Probably obsolete since Cursor can do it.
 def _get_code_unit_test_prompt(num_tests: int) -> str:
+    """
+    Generate a prompt for writing unit tests.
+
+    :param num_tests: number of unit tests to generate
+    :return: system prompt string for unit test generation
+    """
     system = _CODING_CONTEXT
     system += rf"""
     - You will write a unit test suite for the function passed.
@@ -639,6 +664,9 @@ def _get_code_unit_test_prompt(num_tests: int) -> str:
 
 
 def code_write_unit_test() -> _PROMPT_OUT:
+    """
+    Write unit tests for the provided code.
+    """
     system = _get_code_unit_test_prompt(5)
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -647,6 +675,9 @@ def code_write_unit_test() -> _PROMPT_OUT:
 
 
 def code_write_1_unit_test() -> _PROMPT_OUT:
+    """
+    Write a single unit test for the provided code.
+    """
     system = _get_code_unit_test_prompt(1)
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
@@ -678,8 +709,7 @@ def latex_rewrite() -> _PROMPT_OUT:
     """
     pre_transforms: Set[str] = set()
     post_transforms = {"remove_code_delimiters"}
-    # post_container_transforms = ["format_latex"]
-    post_container_transforms = []
+    post_container_transforms = ["format_latex"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
@@ -699,6 +729,24 @@ def latex_check() -> _PROMPT_OUT:
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
+def latex_reduce() -> _PROMPT_OUT:
+    """
+    Reduce and make the Latex text more concise.
+    """
+    system = _LATEX_CONTEXT
+    system += r"""
+    You will:
+    - Maintain the structure of the Latex text
+    - Keep the content of the existing text but make it more concise
+    - Fix the English grammar
+
+    Print only the Latex code without any explanation.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms: Set[str] = set()
+    post_container_transforms = ["format_latex"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
 # #############################################################################
 # Markdown.
 # #############################################################################
@@ -712,7 +760,7 @@ _MD_CONTEXT = r"""
 
 def md_reduce() -> _PROMPT_OUT:
     """
-    Check the slide is clear and correct.
+    Reduce the markdown text while maintaining clarity.
     """
     system = _MD_CONTEXT
     system += r"""
@@ -764,6 +812,21 @@ def md_add_good_bad_examples() -> _PROMPT_OUT:
         "remove_empty_lines",
     }
     post_container_transforms = ["format_markdown"]
+    return system, pre_transforms, post_transforms, post_container_transforms
+
+
+def md_convert_to_latex() -> _PROMPT_OUT:
+    """
+    Convert markdown text to LaTeX code.
+    """
+    system = _LATEX_CONTEXT
+    system += r"""
+    Given the markdown text passed, convert it to Latex code.
+    Do not print any explanation, just the Latex code without the ```latex delimiters.
+    """
+    pre_transforms: Set[str] = set()
+    post_transforms = set()
+    post_container_transforms = []
     return system, pre_transforms, post_transforms, post_container_transforms
 
 
@@ -967,6 +1030,9 @@ def md_remove_formatting() -> _PROMPT_OUT:
 
 
 def misc_categorize_topics() -> _PROMPT_OUT:
+    """
+    Categorize article topics into predefined categories.
+    """
     system = r"""
     For each of the following title of article, find the best topic among the
     following ones:
@@ -999,7 +1065,9 @@ def misc_categorize_topics() -> _PROMPT_OUT:
 
 def _review_from_file(file: str) -> _PROMPT_OUT:
     """
-    Review the code for refactoring opportunities.
+    Review the code using rules from a reference file.
+
+    :param file: path to the reference file containing coding rules
     """
     system = _CODING_CONTEXT
     # Load the reference file.
@@ -1007,7 +1075,7 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
     lines = reference_txt.split("\n")
     numbered_lines = hmarkdo.add_line_numbers(lines)
     reference_txt = "\n".join(numbered_lines)
-    # TODO(gp): Remove table of contents between <!-- toc --> and <!-- tocstop -->.
+    # TODO(gp): Remove the table of contents between <!-- toc --> and <!-- tocstop -->.
     # system += rf"""
     # You will review the code and make sure it follows the rules described in the
     # markdown below:
@@ -1098,13 +1166,15 @@ def _review_from_file(file: str) -> _PROMPT_OUT:
 # def _review_from_file(file: str) -> _PROMPT_OUT:
 def _review_from_file_new(file: str) -> _PROMPT_OUT:
     """
-    Apply the rules from a reference file to the code.
+    Apply the rules from a reference file to the code with enhanced processing.
+
+    :param file: path to the reference file containing coding rules
     """
     system = _CODING_CONTEXT
     # Load the reference file.
     reference_txt = hio.from_file(file)
     reference_txt = hmarkdo.remove_table_of_contents(reference_txt)
-    #
+    # Extract headers from the markdown.
     max_level = 4
     header_list = hmarkdo.extract_headers_from_markdown(reference_txt, max_level)
     # reference_txt = hmarkdo.add_line_numbers(header_list)
@@ -1551,7 +1621,7 @@ def script_rewrite() -> _PROMPT_OUT:
 
 def script_reduce() -> _PROMPT_OUT:
     """
-    Rewrite the text to increase clarity and readability.
+    Reduce the text while maintaining clarity and readability.
     """
     system = "You are a college professor expert of machine learning and big data, reading notes for a lecture."
     system += r"""
@@ -1576,9 +1646,9 @@ def script_reduce() -> _PROMPT_OUT:
 # Operate on pure text, not markdown.
 
 
-def text_reduce() -> _PROMPT_OUT:
+def text_summarize() -> _PROMPT_OUT:
     """
-    Reduce the text to a maximum of 200 words.
+    Summarize the text to a maximum of 200 words.
     """
     system = ""
     system += r"""
@@ -1598,6 +1668,9 @@ def text_reduce() -> _PROMPT_OUT:
 def text_rewrite() -> _PROMPT_OUT:
     """
     Rewrite the text to increase clarity and readability.
+
+    :return: tuple of (system_prompt, pre_transforms, post_transforms,
+        post_container_transforms)
     """
     system = ""
     system += r"""
@@ -1612,7 +1685,7 @@ def text_rewrite() -> _PROMPT_OUT:
 
 def text_to_notes() -> _PROMPT_OUT:
     """
-    Convert free form text into text notes.
+    Convert free form text into structured markdown notes.
     """
     system = ""
     system += r"""
@@ -1665,7 +1738,8 @@ def text_to_notes() -> _PROMPT_OUT:
 
 def text_to_notes2() -> _PROMPT_OUT:
     """
-    Convert free form text into text notes.
+    Convert free form text into structured markdown notes with detailed
+    formatting.
     """
     system = ""
     system += r"""
@@ -1733,7 +1807,7 @@ Begin your summary now, following the exact format specified above.
 
 def text_to_one_bullet() -> _PROMPT_OUT:
     """
-    Convert free form text into text notes.
+    Convert free form text into a single bullet point summary.
     """
     system = ""
     system += r"""
@@ -1804,7 +1878,7 @@ def text_check_fix() -> _PROMPT_OUT:
 
 def text_idea() -> _PROMPT_OUT:
     """
-    Come up with suggestions and variations to make it interesting.
+    Generate suggestions and variations to make the text more interesting.
     """
     file = "text_idea.txt"
     if os.path.exists(file):
@@ -1819,7 +1893,7 @@ def text_idea() -> _PROMPT_OUT:
 
 def text_rephrase() -> _PROMPT_OUT:
     """
-    Rephrase the text using text_rephrase.txt.
+    Rephrase the text using instructions from text_rephrase.txt file.
     """
     file = "text_rephrase.txt"
     if os.path.exists(file):
@@ -1839,7 +1913,7 @@ def text_rephrase() -> _PROMPT_OUT:
 
 def from_file() -> _PROMPT_OUT:
     """
-    Rephrase the text using text_rephrase.txt.
+    Load and apply prompt from prompt.txt file.
     """
     file = "prompt.txt"
     if os.path.exists(file):
@@ -1859,7 +1933,7 @@ def from_file() -> _PROMPT_OUT:
 
 def dot_add_figure() -> _PROMPT_OUT:
     """
-    Add a figure to the chunk of text.
+    Create a Graphviz figure to illustrate the text.
     """
     system = _SLIDE_CONTEXT
     system += r"""
@@ -1907,7 +1981,7 @@ def dot_add_figure() -> _PROMPT_OUT:
 
 def dot_format() -> _PROMPT_OUT:
     """
-    Format a Graphviz graph to match our style.
+    Format a Graphviz graph to match the project style.
     """
     system = ""
     system += r"""
@@ -1963,6 +2037,7 @@ def dot_format() -> _PROMPT_OUT:
 
 def figure_create_blog_figure() -> _PROMPT_OUT:
     """
+    Generate visual concepts and DALL-E prompts for blog post illustrations.
     """
     system = ""
     system += r"""
@@ -1999,7 +2074,7 @@ def figure_create_blog_figure() -> _PROMPT_OUT:
 
 def figure_create_blog_figure2() -> _PROMPT_OUT:
     """
-    Causify style.
+    Generate visual concepts and DALL-E prompts for blog post using Causify style.
     """
     system = ""
     system += r"""
@@ -2045,6 +2120,12 @@ def figure_create_blog_figure2() -> _PROMPT_OUT:
 
 
 def _extract_vim_cfile_lines(txt: str) -> List[Tuple[int, str]]:
+    """
+    Extract line numbers and descriptions from vim cfile format text.
+
+    :param txt: text in vim cfile format
+    :return: list of tuples containing (line_number, description)
+    """
     ret_out: List[Tuple[int, str]] = []
     for line in txt.split("\n"):
         _LOG.debug(hprint.to_str("line"))
@@ -2092,11 +2173,12 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
     """
     Convert the text passed to a string representing a vim cfile.
 
-    E.g.,
-    become:
+    :param txt: text to convert
+    :param in_file_name: path to the file being converted
+    :return: vim cfile formatted string
     """
     ret_out = _extract_vim_cfile_lines(txt)
-    # Append the file name to the description.
+    # Append the file name to each line description.
     ret_out2 = []
     for line_number, description in ret_out:
         ret_out2.append(f"{in_file_name}:{line_number}: {description}")
@@ -2112,14 +2194,17 @@ def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> st
     This is used to convert the results of the LLM into something that vim can
     use to open the files and jump to the correct lines.
 
-    in_file_name: path to the file to convert to a vim cfile (e.g.,
+    :param txt: text to convert
+    :param in_file_name: path to the file to convert to a vim cfile (e.g.,
         `/app/helpers_root/tmp.llm_transform.in.txt`)
+    :param out_file_name: path to the output cfile
+    :return: vim cfile formatted string
     """
     _LOG.debug(hprint.to_str("txt in_file_name out_file_name"))
     hdbg.dassert_file_exists(in_file_name)
-    #
+    # Convert the text to vim cfile format.
     txt_out = _convert_to_vim_cfile_str(txt, in_file_name)
-    #
+    # Validate the output file name.
     if "cfile" not in out_file_name:
         _LOG.warning("Invalid out_file_name '%s', using 'cfile'", out_file_name)
     return txt_out
@@ -2133,6 +2218,10 @@ def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> st
 def to_run(action: str, transforms: Union[Set[str], List[str]]) -> bool:
     """
     Return True if the action should be run.
+
+    :param action: action name to check
+    :param transforms: set or list of transforms to check against
+    :return: True if action is in transforms (and removes it), False otherwise
     """
     if action in transforms:
         transforms.remove(action)
@@ -2202,7 +2291,7 @@ def run_prompt(
     )
     # 2) Run the prompt.
     if prompt_tag == "test":
-        # Compute the hash of the text.
+        # For test mode, compute the hash of the text.
         txt = "\n".join(txt)
         txt_out = hashlib.sha256(txt.encode("utf-8")).hexdigest()
     else:
