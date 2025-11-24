@@ -16,6 +16,7 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
+import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -242,6 +243,10 @@ def _perform_actions(
     hdbg.dassert_isinstance(lines, list)
     # Get the file type.
     is_md_file = in_file_name.endswith(".md")
+    is_tex_file = in_file_name.endswith(".tex")
+    is_txt_file = in_file_name.endswith(".txt")
+    hdbg.dassert_eq(is_md_file + is_tex_file + is_txt_file, 1, msg="Invalid file type")
+    #
     extension = os.path.splitext(in_file_name)[1]
     # Remove the . from the extenstion (e.g., ".txt").
     hdbg.dassert(extension.startswith("."), "Invalid extension='%s'", extension)
@@ -263,10 +268,16 @@ def _perform_actions(
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
-        # For markdown files, we don't use the frame since it's not rendered
-        # correctly.
-        if not is_md_file:
+        if is_txt_file:
             lines = hmarkdo.frame_chapters(lines)
+        elif is_tex_file:
+            lines = hlatex.frame_sections(lines)
+        elif is_md_file:
+            # For markdown files, we don't use the frame since it's not rendered
+            # correctly.
+            pass
+        else:
+            raise ValueError("Invalid format")
     # Improve header and slide titles.
     action = "capitalize_header"
     if _to_execute_action(action, actions):
@@ -354,7 +365,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.init_logger_for_input_output_transform(args)
     #
     in_file_name, out_file_name = hparser.parse_input_output_args(
-        args, clear_screen=True
+        args, clear_screen=False
     )
     # If the input is stdin, then user needs to specify the type.
     if in_file_name == "-":

@@ -256,7 +256,9 @@ def _render_image_code(
 
 
 def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
-    # Define the character that comments out a line depending on the file type.
+    """
+    Define the character that comments out a line depending on the file type.
+    """
     if extension == ".md":
         comment_prefix = "[//]: # ("
         comment_postfix = ")"
@@ -271,27 +273,67 @@ def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     return comment_prefix, comment_postfix
 
 
+def _remove_image_code(
+    in_lines: List[str],
+    extension: str,
+) -> List[str]:
+    """
+    Remove all rendered image code blocks from the file.
+
+    This function removes blocks between `render_image:begin` and
+    `render_image:end` markers to allow re-rendering images without
+    accumulating old rendered blocks.
+
+    :param in_lines: lines of the input file
+    :param extension: file extension (e.g., ".md", ".tex", ".txt")
+    :return: lines with rendered image blocks removed
+    """
+    comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
+    out_lines: List[str] = []
+    in_render_block = False
+    for line in in_lines:
+        # Check for begin marker.
+        if "render_image:begin" in line:
+            in_render_block = True
+            continue
+        # Check for end marker.
+        if "render_image:end" in line:
+            in_render_block = False
+            continue
+        # Only keep lines outside render blocks.
+        if not in_render_block:
+            out_lines.append(line)
+    return out_lines
+
+
 def _insert_image_code(
     extension: str, rel_img_path: str, user_img_size: str
 ) -> str:
     """
     Insert the code to display the image in the output file.
     """
+    comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
+    txt = ""
+    txt += comment_prefix + " render_image:begin " + comment_postfix + "\n"
     # Add the code to insert the image in the file.
     if extension in (".md", ".txt"):
         # Use the Markdown syntax.
-        txt = f"![]({rel_img_path})"
+        txt += f"![]({rel_img_path})" + "\n"
         # Add the size, if specified.
         if user_img_size:
             # E.g., "![](path/to/image.png){ height=100% }"
             txt += "{ " + user_img_size + " }"
     elif extension == ".tex":
-        # Use the LaTeX syntax.
-        # We need to leave it on a single line to make it easy to find and
-        # replace it.
-        txt = rf"""\begin{{figure}} \includegraphics[width=\linewidth]{{{rel_img_path}}} \end{{figure}}"""
+        # Use the LaTeX syntax with tagged markers to make it easier to do a
+        # replacement.
+        txt += (
+            r"\begin{figure}\n" +
+            r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}\n" +
+            r"\end{figure}"
+        )
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
+    txt += comment_prefix + " render_image:end " + comment_postfix + "\n"
     return txt
 
 
@@ -342,7 +384,8 @@ def _render_images(
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
     # Get the extension of the output file.
     extension = os.path.splitext(out_file)[1]
-    #
+    # Remove all the previously rendered image code blocks from the file.
+    in_lines = _remove_image_code(in_lines, extension)
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     # Store the output of the code
     out_lines: List[str] = []
@@ -355,6 +398,11 @@ def _render_images(
     # Image size explicitly set by the user with `plantuml[...]` syntax.
     user_img_size = ""
     # Store the state of the parser.
+    # Parser states:
+    # - "search_image_code": Looking for the start of an image code block
+    # - "found_image_code": Inside an uncommented image code block
+    # - "found_commented_image_code": Inside a commented image code block
+    # - "replace_image_code": Replacing the old rendered image with a new one
     state = "search_image_code"
     # The code should look like:
     # ```plantuml
@@ -524,14 +572,6 @@ def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    # Add input and output file arguments.
-    parser.add_argument(
-        "-i",
-        "--input",
-        required=False,
-        type=str,
-        help="Path to the input file",
     )
     parser.add_argument(
         "-o",

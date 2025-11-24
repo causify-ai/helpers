@@ -3,28 +3,28 @@
 <!-- toc -->
 
 - [Design Philosophy](#design-philosophy)
-  * [Measure seven times, cut once (Russian proverb)](#measure-seven-times-cut-once-russian-proverb)
-  * [Hacker laws](#hacker-laws)
-  * [Keep it simple](#keep-it-simple)
-  * [Tips from a pro](#tips-from-a-pro)
-    + [Designing software systems is tricky](#designing-software-systems-is-tricky)
+  * [Measure Seven Times, Cut Once (Russian Proverb)](#measure-seven-times-cut-once-russian-proverb)
+  * [Hacker Laws](#hacker-laws)
+  * [Keep It Simple](#keep-it-simple)
+  * [Tips From a Pro](#tips-from-a-pro)
+    + [Designing Software Systems Is Tricky](#designing-software-systems-is-tricky)
     + [Get Advice Early!](#get-advice-early)
     + [Interfaces](#interfaces)
 - [Architecture](#architecture)
-  * [Use design patterns](#use-design-patterns)
+  * [Use Design Patterns](#use-design-patterns)
 - [Functions](#functions)
-  * [Avoid modifying the function input](#avoid-modifying-the-function-input)
-  * [Prefer pure functions by default](#prefer-pure-functions-by-default)
+  * [Avoid Modifying the Function Input](#avoid-modifying-the-function-input)
+  * [Prefer Pure Functions by Default](#prefer-pure-functions-by-default)
 - [Invariants](#invariants)
-  * [Our approach to doing things](#our-approach-to-doing-things)
-    + [Roles and responsibilities](#roles-and-responsibilities)
-    + [Good practices](#good-practices)
+  * [Our Approach to Doing Things](#our-approach-to-doing-things)
+    + [Roles and Responsibilities](#roles-and-responsibilities)
+    + [Good Practices](#good-practices)
 
 <!-- tocstop -->
 
 ## Design Philosophy
 
-### Measure seven times, cut once (Russian proverb)
+### Measure Seven Times, Cut Once (Russian Proverb)
 
 - Before doing any work, sit down and plan
   - Describe somewhere _in writing_ your high-level plan. Put it in a Google doc
@@ -76,13 +76,13 @@
   - Do not disappear for one week and come back with something that makes sense
     only to you, or that you didn't get buy-in from others on
 
-### Hacker laws
+### Hacker Laws
 
 - A list of interesting "laws" (some are more rule of thumbs / heuristics)
   related to computing:
   - [hacker-laws](https://github.com/dwmkerr/hacker-laws)
 
-### Keep it simple
+### Keep It Simple
 
 - Follow the [KISS principle](https://en.wikipedia.org/wiki/KISS_principle).
 - Pursue simple, elegant solutions. Some things are inherently complex, but even
@@ -92,7 +92,7 @@
   - Modify
   - Debug
 
-### Tips from a pro
+### Tips From a Pro
 
 - Adapted from
   [these slides](https://www.slideshare.net/adrianionel/software-engineering-advice-from-googles-jeff-dean-for-big-distributed-systems)
@@ -100,7 +100,7 @@
   [Jeff Dean](<https://en.wikipedia.org/wiki/Jeff_Dean_(computer_scientist)>)
   (the Chuck Norris of SWE)
 
-#### Designing software systems is tricky
+#### Designing Software Systems Is Tricky
 
 - Need to balance:
   - Simplicity [note that this comes first!]
@@ -131,7 +131,7 @@
 
 ## Architecture
 
-### Use design patterns
+### Use Design Patterns
 
 - [Design patterns](https://en.wikipedia.org/wiki/Software_design_pattern) are
   idioms or recipes for solving problems that commonly appear in software
@@ -154,7 +154,7 @@
 
 ## Functions
 
-### Avoid modifying the function input
+### Avoid Modifying the Function Input
 
 - If, for example, a function `f` accepts a dataframe `df` as its (sole)
   argument, then, ideally, `f(df)` will not modify `df`. If modifications are
@@ -179,7 +179,7 @@
   code in a notebook that will return the same results when re-executed out of
   order.
 
-### Prefer pure functions by default
+### Prefer Pure Functions by Default
 
 - [Pure functions](https://en.wikipedia.org/wiki/Pure_function) have two key
   properties:
@@ -235,9 +235,9 @@ Invariants and conventions
 
 - The Optimizer only thinks in terms of dollar
 
-### Our approach to doing things
+### Our Approach to Doing Things
 
-#### Roles and responsibilities
+#### Roles and Responsibilities
 
 - How to communicate
   - Slack for urgent stuff or interactive things (ideally on a small group chat)
@@ -265,7 +265,7 @@ Invariants and conventions
     - E.g., `i gh_create_pr`
   - We like draft PRs to discuss architecture before unit testing
 
-#### Good practices
+#### Good Practices
 
 - Good Issue reports
   - What are you trying to achieve
