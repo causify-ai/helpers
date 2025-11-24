@@ -1,9 +1,13 @@
+import logging
 import re
+from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hprint as hprint
+
+_LOG = logging.getLogger(__name__)
 
 # TODO(gp): Consider using `pypandoc` instead of calling `pandoc` directly.
 # https://boisgera.github.io/pandoc
@@ -74,3 +78,15 @@ def remove_latex_formatting(latex_string: str) -> str:
         r"\\textcolor\{[^}]*\}\{([^}]*)\}", r"\1", latex_string
     )
     return cleaned_string
+
+
+def format_latex(txt: str) -> str:
+    """
+    Format LaTeX text using `prettier`.
+
+    :param txt: input LaTeX text to format
+    :return: formatted LaTeX text
+    """
+    file_type = "tex"
+    txt = hdocexec.prettier_on_str(txt, file_type)
+    return txt

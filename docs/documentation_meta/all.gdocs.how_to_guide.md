@@ -1,13 +1,13 @@
 <!-- toc -->
 
-- [Gdoc Markdown conversion](#gdoc--markdown-conversion)
+- [Gdoc Markdown Conversion](#gdoc--markdown-conversion)
   * [Converting Gdocs to Markdown](#converting-gdocs-to-markdown)
-    + [Other approaches](#other-approaches)
+    + [Other Approaches](#other-approaches)
   * [Converting Markdown to Gdoc](#converting-markdown-to-gdoc)
 
 <!-- tocstop -->
 
-# Gdoc <-> Markdown conversion
+# Gdoc <-> Markdown Conversion
 
 ## Converting Gdocs to Markdown
 
@@ -50,7 +50,7 @@
     slightly differ from the preview in your local markdown editor
 - When a gdoc becomes obsolete, delete it
 
-### Other approaches
+### Other Approaches
 
 - Best for a large document
 - Approach 1 - Chrome Docs to Markdown extension:

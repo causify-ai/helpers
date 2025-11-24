@@ -2,22 +2,22 @@
 
 <!-- toc -->
 
-- [Reading other people code](#reading-other-people-code)
-- [What not to do](#what-not-to-do)
-  * [Rewrite coding](#rewrite-coding)
-  * [Incremental renovation](#incremental-renovation)
-  * [It's harder to read code than to write it](#its-harder-to-read-code-than-to-write-it)
-  * [Respect old code!](#respect-old-code)
-  * [What makes code a mess?](#what-makes-code-a-mess)
-- [What to do](#what-to-do)
-  * [Get into the right attitude](#get-into-the-right-attitude)
-  * [Reading other people code is painful](#reading-other-people-code-is-painful)
-  * [Suggestions on how to read code](#suggestions-on-how-to-read-code)
+- [Reading Other People Code](#reading-other-people-code)
+- [What Not to Do](#what-not-to-do)
+  * [Rewrite Coding](#rewrite-coding)
+  * [Incremental Renovation](#incremental-renovation)
+  * [It'S Harder to Read Code Than to Write It](#its-harder-to-read-code-than-to-write-it)
+  * [Respect Old Code!](#respect-old-code)
+  * [What Makes Code a Mess?](#what-makes-code-a-mess)
+- [What to Do](#what-to-do)
+  * [Get Into the Right Attitude](#get-into-the-right-attitude)
+  * [Reading Other People Code Is Painful](#reading-other-people-code-is-painful)
+  * [Suggestions on How to Read Code](#suggestions-on-how-to-read-code)
 - [Refs](#refs)
 
 <!-- tocstop -->
 
-## Reading other people code
+## Reading Other People Code
 
 - People don't like reading other people's code
   - Still reading existing code needs to be done
@@ -27,9 +27,9 @@
   actually learn and improve as a coder
   - E.g., writers read and study other writers' book to improve
 
-## What not to do
+## What Not to Do
 
-### Rewrite coding
+### Rewrite Coding
 
 - You think "This code is a complete ugly mess. It needs to be rewritten"
   - The answer is: ABSOLUTELY NO!
@@ -42,7 +42,7 @@
 - In other terms, there is no reason to believe that you are going to do a
   better job than others did
 
-### Incremental renovation
+### Incremental Renovation
 
 - The first thing that programmers want to do is to bulldoze the place flat and
   build something great
@@ -54,7 +54,7 @@
   - Adding unit tests
 - In reality, 99.9% of work is incremental
 
-### It's harder to read code than to write it
+### It'S Harder to Read Code Than to Write It
 
 - For this reason code reuse is hard
 - For this reason, everybody on the team has the same function to do the same
@@ -62,7 +62,7 @@
 - It's easier and more fun to write new code than figuring out how the old code
   works
 
-### Respect old code!
+### Respect Old Code!
 
 - When you think "the old code is a mess", you are probably wrong
 
@@ -78,7 +78,7 @@
 - When you throw away code and start from scratch, you are throwing away all the
   knowledge, all the bug fixes, all the hard thinking
 
-### What makes code a mess?
+### What Makes Code a Mess?
 
 - What makes the code a "mess" (at least according to your expert opinion as
   world-class coder):
@@ -99,9 +99,9 @@
 
 - All these problems can be easily fixed in 100x less time than rewriting
 
-## What to do
+## What to Do
 
-### Get into the right attitude
+### Get Into the Right Attitude
 
 1. Assume that whoever wrote the code knew what he/she was doing
    - If that's not the case, he/she would have already been fired from the team
@@ -115,7 +115,7 @@
    - There is no reason to believe that you can write the code in a simpler way
    - The complexity is almost always needed to solve the complex problem we have
 
-### Reading other people code is painful
+### Reading Other People Code Is Painful
 
 - The problem is that code reflects the thought process of the person who wrote
   the code
@@ -134,7 +134,7 @@
 - Maybe a hack solution needed to be added to ship and get the \$1m from the
   customers
 
-### Suggestions on how to read code
+### Suggestions on How to Read Code
 
 - Use `git blame` to understand who wrote the code and over what period of time
   - Knowing the author can help you ask him/her questions directly

@@ -48,7 +48,10 @@ Here is the beginning.
 % imaster <-- models: fetches processed data from
 % @enduml
 % ```
-\begin{figure} \includegraphics[width=\linewidth]{figs/sample_file_plantuml.1.png} \end{figure}
+% render_image:begin 
+\begin{figure}\n  \includegraphics[width=\linewidth]{figs/sample_file_plantuml.1.png}
+\end{figure}% render_image:end 
+
 
 Another one:
 
@@ -122,7 +125,10 @@ Another one:
 % vendors <-- vextractor: fetches data from
 % loader <-up- models: fetches data from
 % ```
-\begin{figure} \includegraphics[width=\linewidth]{figs/sample_file_plantuml.2.png} \end{figure}
+% render_image:begin 
+\begin{figure}\n  \includegraphics[width=\linewidth]{figs/sample_file_plantuml.2.png}
+\end{figure}% render_image:end 
+
 
 Not a diagram:
 

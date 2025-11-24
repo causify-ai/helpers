@@ -189,6 +189,7 @@
         - `list`: indents headers to create a nested list
         - `headers`: uses Markdown header syntax (e.g., '#', '##', '###'`)
     ```
+
 - The docstring must use imperative form, whenever possible
   - Good: "Calculate the sum of two numbers and return the result."
   - Bad: "Calculates the sum of two numbers and returns the result."
