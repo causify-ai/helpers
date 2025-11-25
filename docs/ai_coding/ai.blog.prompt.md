@@ -1,6 +1,11 @@
+Format the text of the blog using the following rules.
+
 - **Introduction**
   - Begin with a short paragraph introducing the topic.
   - Avoid using bullet points or lists in the introduction.
+
+- **General Style**
+  - Maintain consistent spacing and indentation.
 
 - **Section Headings**
   - Use level 2 headings for main sections:
@@ -45,12 +50,3 @@
     E = mc^2
     $$
     ```
-
-- **General Style**
-  - Maintain consistent spacing and indentation.
-
-- Add a spicy TLDR, if needed
-  ```bash
-  > ccp Create 3 catchy and controversial TLDR of less than 20 words without emdash for blog/docs/posts/Your_data_isnt_as_ready_as_your_slide_says.md
-  > llm_cli.py -i ../blog/docs/posts/Data_is_dumb.md -pf docs/ai_coding/ai.gp_blog_prompt.md -o ../blog/docs/posts/Data_is_dumb.md --lint
-  ```

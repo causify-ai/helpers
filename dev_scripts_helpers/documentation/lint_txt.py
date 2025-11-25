@@ -49,7 +49,25 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     txt = "\n".join(lines)
     txt = re.sub(r"“", '"', txt)
     txt = re.sub(r"”", '"', txt)
+    txt = re.sub(r"’", "'", txt)
+    # Convert
+    #   ## **How We Ask for Feedback at Causify**
+    # to
+    #   ## How We Ask for Feedback at Causify
+    txt = re.sub(r"^(#+)\s+\*\*(.*?)\*\*\s*$", r"\1 \2", txt, flags=re.MULTILINE)
+    # Remove lines with ---.
+    #txt = re.sub(r"^---\s*$", "", txt, flags=re.MULTILINE)
+    # Collapse repeated lines.
+    txt = re.sub(r"\n{2,}", "\n", txt)
+    # Replace … with ...
     txt = re.sub(r"…", "...", txt)
+    # Replace \t with 2 spaces
+    txt = re.sub(r"\t", "  ", txt)
+    # Replace \n with \n\n
+    txt = re.sub(r"\n", "\n\n", txt)
+    # Replace \n\n with \n\n\n
+    txt = re.sub(r"\n\n", "\n\n\n", txt)
+    # Replace \n\n\n with \n\n\n\n
     txt_new: List[str] = []
     for line in txt.split("\n"):
         # 2) Skip frames for all the type formats.
