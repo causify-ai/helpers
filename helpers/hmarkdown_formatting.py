@@ -1,18 +1,17 @@
 """
 Import as:
 
-import helpers.hmarkdown_formatting as hmarkdo
+import helpers.hmarkdown_formatting as hmarform
 """
 
 import logging
 import re
-from typing import List
+from typing import List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
-import helpers.hlatex as hlatex
 import helpers.hmarkdown_headers as hmarhead
-import helpers.hmarkdown_slides as hmarform
+import helpers.hmarkdown_slides as hmarslid
 
 _LOG = logging.getLogger(__name__)
 
@@ -245,8 +244,8 @@ def format_figures(lines: List[str]) -> List[str]:
     Convert markdown slides with figures to use fenced div syntax with column
     layout.
 
-    If the input already uses column format or contains no figures, returns
-    unchanged.
+    If the input already uses column format or contains no figures,
+    returns unchanged.
 
     :param lines: list of input markdown lines
     :return: formatted markdown lines with figures in column layout
@@ -352,11 +351,16 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         processed_line = line
         # Store image links temporarily to avoid processing them.
         image_placeholders = []
+
         def store_image_link(match):
             placeholder = f"__IMAGE_LINK_{len(image_placeholders)}__"
             image_placeholders.append(match.group(0))
             return placeholder
-        processed_line = re.sub(image_link_pattern, store_image_link, processed_line)
+
+        processed_line = re.sub(
+            image_link_pattern, store_image_link, processed_line
+        )
+
         # Convert empty bracket links [](URL) or [](email).
         def convert_empty_bracket_link(match):
             target = match.group(1)
@@ -365,6 +369,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         processed_line = re.sub(
             empty_bracket_pattern, convert_empty_bracket_link, processed_line
         )
+
         # Convert URLs in backticks.
         def convert_backtick_url(match):
             url = match.group(1)
@@ -373,6 +378,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         processed_line = re.sub(
             backtick_url_pattern, convert_backtick_url, processed_line
         )
+
         # Normalize existing formatted links to keep existing display text.
         def normalize_formatted_link(match):
             text = match.group(1)
@@ -382,6 +388,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         processed_line = re.sub(
             formatted_link_pattern, normalize_formatted_link, processed_line
         )
+
         # Convert markdown links [Text](URL) to formatted links.
         def convert_markdown_link(match):
             text = match.group(1)
@@ -391,6 +398,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         processed_line = re.sub(
             markdown_link_pattern, convert_markdown_link, processed_line
         )
+
         # Convert email links [email@domain.com](email@domain.com) to formatted links.
         def convert_email_link(match):
             email = match.group(2)
@@ -417,6 +425,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         temp_line = re.sub(
             correct_formatted_link_pattern, store_formatted_link, processed_line
         )
+
         # Convert remaining plain URLs.
         def convert_plain_url(match):
             url = match.group(0)
@@ -505,7 +514,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     # Format the markdown slides.
     # TODO(gp): Maybe the conversion should be done inside `prettier_on_str`
     # passing a marker to indicate that the text is a slide.
-    lines = hmarform.convert_slide_to_markdown(lines)
+    lines = hmarslid.convert_slide_to_markdown(lines)
     # lines = format_column_blocks()
     #
     file_type = "md"
@@ -513,7 +522,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     txt = hdocexec.prettier_on_str(txt, file_type)
     #
     lines = txt.split("\n")
-    lines = hmarform.markdown_to_slide(lines)
+    lines = hmarslid.markdown_to_slide(lines)
     # Format the first level bullets.
     lines = format_first_level_bullets(lines)
     #
@@ -528,7 +537,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
 
 def _split_lines_into_chunks(
     lines: List[str],
-) -> List[tuple[bool, List[str]]]:
+) -> List[Tuple[bool, List[str]]]:
     """
     Split lines into chunks of div blocks and non-div blocks.
 
