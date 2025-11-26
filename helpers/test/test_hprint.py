@@ -471,6 +471,23 @@ class Test_remove_lead_trail_empty_lines1(hunitest.TestCase):
 
 
 class Test_remove_empty_lines(hunitest.TestCase):
+    # TODO(ai_gp): Use helper in all the test methods, without changing the
+    # interface of helper.
+    def helper(self, lines: str, max_consecutive_empty_lines: int, expected: str) -> None:
+        """
+        Test with an empty list.
+        """
+        hdbg.dassert_isinstance(lines, list)
+        # Prepare inputs.
+        lines = hprint.dedent(lines)
+        lines = lines.split("\n")
+        # Run test.
+        actual = hprint.remove_empty_lines(lines)
+        # Check outputs.
+        expected = hprint.dedent(expected)
+        expected = expected.split("\n")
+        self.assert_equal(str(actual), str(expected))
+
     def test_empty_list(self) -> None:
         """
         Test with an empty list.
@@ -663,4 +680,122 @@ class Test_remove_empty_lines(hunitest.TestCase):
         actual = hprint.remove_empty_lines(lines)
         # Check outputs.
         expected = ["single line"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_max_consecutive_empty_lines_param_1(self) -> None:
+        """
+        Test with max_consecutive_empty_lines=1 and 2 consecutive empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+
+        line2
+        """
+        lines = hprint.dedent(lines)
+        lines = lines.split("\n")
+        # Run test.
+        actual = hprint.remove_empty_lines(lines, max_consecutive_empty_lines=1)
+        # Check outputs.
+        # With max_consecutive_empty_lines=1, only empty lines exceeding count of 1 are kept.
+        # So 2 consecutive empty lines result in 1 empty line kept (the 2nd one).
+        expected = ["line1", "", "line2"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_max_consecutive_empty_lines_boundary_equal(self) -> None:
+        """
+        Test boundary case where consecutive empty lines equals max_consecutive_empty_lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+
+        line2
+        """
+        lines = hprint.dedent(lines)
+        lines = lines.split("\n")
+        # Run test.
+        actual = hprint.remove_empty_lines(lines, max_consecutive_empty_lines=2)
+        # Check outputs.
+        # With exactly 2 consecutive empty lines and max_consecutive_empty_lines=2,
+        # no empty lines should be kept (2 > 2 is False).
+        expected = ["line1", "line2"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_max_consecutive_empty_lines_multiple_groups(self) -> None:
+        """
+        Test multiple groups of consecutive empty lines with max_consecutive_empty_lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+
+
+        line2
+
+
+        line3
+        """
+        lines = hprint.dedent(lines)
+        lines = lines.split("\n")
+        # Run test.
+        actual = hprint.remove_empty_lines(lines, max_consecutive_empty_lines=2)
+        # Check outputs.
+        # First group: 3 consecutive empty lines -> 1 kept (the 3rd one).
+        # Second group: 2 consecutive empty lines -> 0 kept (2 > 2 is False).
+        expected = ["line1", "", "line2", "line3"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_max_consecutive_empty_lines_zero_default(self) -> None:
+        """
+        Test that default max_consecutive_empty_lines=0 removes all empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+
+        line2
+
+
+        line3
+        """
+        lines = hprint.dedent(lines)
+        lines = lines.split("\n")
+        # Run test.
+        actual = hprint.remove_empty_lines(lines)
+        # Check outputs.
+        # With max_consecutive_empty_lines=0 (default), all empty lines are removed.
+        expected = ["line1", "line2", "line3"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_max_consecutive_empty_lines_with_whitespace_only_lines(self) -> None:
+        """
+        Test max_consecutive_empty_lines with lines containing only whitespace.
+        """
+        # Prepare inputs.
+        lines = ["line1", "  ", "\t", "   ", "line2"]
+        # Run test.
+        actual = hprint.remove_empty_lines(lines, max_consecutive_empty_lines=1)
+        # Check outputs.
+        # With max_consecutive_empty_lines=1, 3 consecutive whitespace-only lines
+        # should result in 2 being kept (the 2nd and 3rd ones).
+        expected = ["line1", "\t", "   ", "line2"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_max_consecutive_empty_lines_at_start_and_end(self) -> None:
+        """
+        Test max_consecutive_empty_lines with empty lines at start and end.
+        """
+        # Prepare inputs.
+        lines = ["", "", "", "line1", "line2", "", "", ""]
+        # Run test.
+        actual = hprint.remove_empty_lines(lines, max_consecutive_empty_lines=1)
+        # Check outputs.
+        # Leading 3 empty lines -> 2 kept (the 2nd and 3rd).
+        # Trailing 3 empty lines -> 2 kept (the 2nd and 3rd).
+        expected = ["", "", "line1", "line2", "", ""]
         self.assert_equal(str(actual), str(expected))
