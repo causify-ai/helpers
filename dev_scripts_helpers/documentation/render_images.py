@@ -638,7 +638,7 @@ def _process_single_file(
         use_github_hosting=use_github_hosting,
     )
     # Remove empty consecutive lines.
-    out_lines = hprint.remove_empty_lines(out_lines, max_consecutive_empty_lines=1)
+    out_lines = hprint.remove_empty_lines(out_lines, mode="no_consecutive_empty_lines")
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))
     # Open if needed.

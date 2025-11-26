@@ -107,7 +107,7 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     _LOG.debug("txt_new_as_str=%s", txt_new_as_str)
     txt = txt_new_as_str.split("\n")
     # 6) Remove more than 2 consecutive empty lines.
-    hprint.remove_empty_lines(txt_new, 
+    hprint.remove_empty_lines(txt_new, mode="no_consecutive_empty_lines")
     hdbg.dassert_isinstance(txt_new, list)
     return txt_new
 
