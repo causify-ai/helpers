@@ -343,8 +343,8 @@ def _parser() -> argparse.ArgumentParser:
         "--print-width",
         action="store",
         type=int,
-        default=80,
-        help="The maximum line width for the formatted text. If None, 80 is used",
+        default=None,
+        help="The maximum line width for the formatted text.",
     )
     parser.add_argument(
         "--use_dockerized_prettier",

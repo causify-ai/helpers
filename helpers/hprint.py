@@ -355,17 +355,16 @@ def remove_empty_lines(lines: List[str], *, mode: str = "no_empty_lines") -> Lis
     if mode == "no_empty_lines":
         lines_out = [line for line in lines if line.rstrip().lstrip() != ""]
     elif mode == "no_consecutive_empty_lines":
-        # If there are more than 1 consecutive empty lines, remove all but the
-        # last one.
+        # If there are two or more consecutive empty lines, remove all but the last one.
         lines_out = []
-        empty_count = 0
+        prev_empty = False
         for line in lines:
             if re.search(r"^\s*$", line):
-                empty_count += 1
-                if empty_count > 1:
+                if prev_empty:
                     continue
+                prev_empty = True
             else:
-                empty_count = 0
+                prev_empty = False
             lines_out.append(line)
     else:
         raise ValueError(f"Invalid mode='{mode}'")
