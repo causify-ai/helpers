@@ -15,9 +15,11 @@ echo $msg
 
 if [[ 0 == 0 ]]; then
     if [[ "$(uname)" == "Darwin" ]]; then
-        cmd='display notification "'$msg'" with title "DONE!" subtitle "Script finished" sound name "blow"'
-        echo $cmd
-        osascript -e "$cmd"
+        # brew install terminal-notifier
+        # cmd='Display notification "'$msg'" with title "DONE!" subtitle "Script finished" sound name "blow"'
+        # echo $cmd
+        # osascript -e "$cmd"
+        terminal-notifier -title "DONE" -message "Script finished" -sound "Blow"
     fi;
 
     if [ -n "$TMUX" ]; then
@@ -25,9 +27,6 @@ if [[ 0 == 0 ]]; then
         if [[ 0 == 1 ]]; then
             for i in {1..5}; do
                 tmux display-message "$msg"
-                sleep 2
-                #tmux set -g status-bg black 
-                #sleep 0.2
             done
         fi;
     fi;
