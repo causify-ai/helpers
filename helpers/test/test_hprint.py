@@ -463,3 +463,204 @@ class Test_remove_lead_trail_empty_lines1(hunitest.TestCase):
         input_str: str = "line1\n\n!@#$%^&*()\n\nline2"
         expected_output = ["line1", "", "!@#$%^&*()", "", "line2"]
         self.helper(input_str, expected_output)
+
+
+# #############################################################################
+# Test_remove_empty_lines
+# #############################################################################
+
+
+class Test_remove_empty_lines(hunitest.TestCase):
+    def test_empty_list(self) -> None:
+        """
+        Test with an empty list.
+        """
+        # Prepare inputs.
+        lines = []
+        # Run test.
+        actual = hprint.remove_empty_lines(lines)
+        # Check outputs.
+        expected = []
+        self.assert_equal(str(actual), str(expected))
+
+    def test_no_empty_lines(self) -> None:
+        """
+        Test with no empty lines in the input.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+        line2
+        line3
+        """
+        lines = hprint.dedent(lines)
+        lines = lines.split("\n")
+        # Run test.
+        actual = hprint.remove_empty_lines(lines)
+        # Check outputs.
+        expected = ["line1", "line2", "line3"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_all_empty_lines(self) -> None:
+        """
+        Test with all lines being empty.
+        """
+        # Prepare inputs.
+        lines = ["", "", ""]
+        # Run test.
+        actual = hprint.remove_empty_lines(lines)
+        # Check outputs.
+        expected = []
+        self.assert_equal(str(actual), str(expected))
+
+    def test_single_empty_line_between_content(self) -> None:
+        """
+        Test with a single empty line between content lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+        line2
+        """
+        lines = hprint.dedent(lines)
+        lines = lines.split("\n")
+        # Run test.
+        actual = hprint.remove_empty_lines(lines)
+        # Check outputs.
+        expected = ["line1", "line2"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_multiple_consecutive_empty_lines(self) -> None:
+        """
+        Test with multiple consecutive empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+
+        line2
+        """
+        lines = hprint.dedent(lines)
+        lines = lines.split("\n")
+        # Run test.
+        actual = hprint.remove_empty_lines(lines)
+        # Check outputs.
+        expected = ["line1", "line2"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_empty_lines_with_whitespace(self) -> None:
+        """
+        Test with lines containing only whitespace (spaces/tabs).
+        """
+        # Prepare inputs.
+        lines = ["line1", "   ", "\t", "line2"]
+        # Run test.
+        actual = hprint.remove_empty_lines(lines)
+        # Check outputs.
+        expected = ["line1", "line2"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_leading_and_trailing_empty_lines(self) -> None:
+        """
+        Test with leading and trailing empty lines.
+        """
+        # Prepare inputs.
+        lines = ["", "", "line1", "line2", "", ""]
+        # Run test.
+        actual = hprint.remove_empty_lines(lines)
+        # Check outputs.
+        expected = ["line1", "line2"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_max_consecutive_empty_lines_param_2(self) -> None:
+        """
+        Test with max_consecutive_empty_lines=2 and 3 consecutive empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+
+
+        line2
+        """
+        lines = hprint.dedent(lines)
+        lines = lines.split("\n")
+        # Run test.
+        actual = hprint.remove_empty_lines(lines, max_consecutive_empty_lines=2)
+        # Check outputs.
+        # With max_consecutive_empty_lines=2, only empty lines exceeding count of 2 are kept.
+        # So 3 consecutive empty lines result in 1 empty line kept (the 3rd one).
+        expected = ["line1", "", "line2"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_max_consecutive_empty_lines_param_3(self) -> None:
+        """
+        Test with max_consecutive_empty_lines=3 and 6 consecutive empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+
+
+
+
+
+        line2
+        """
+        lines = hprint.dedent(lines)
+        lines = lines.split("\n")
+        # Run test.
+        actual = hprint.remove_empty_lines(lines, max_consecutive_empty_lines=3)
+        # Check outputs.
+        # With max_consecutive_empty_lines=3, only empty lines exceeding count of 3 are kept.
+        # So 6 consecutive empty lines result in 3 empty lines kept (the 4th, 5th, and 6th ones).
+        expected = ["line1", "", "", "", "line2"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_max_consecutive_empty_lines_with_single_empty(self) -> None:
+        """
+        Test with max_consecutive_empty_lines=2 but only single empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+        line2
+
+        line3
+        """
+        lines = hprint.dedent(lines)
+        lines = lines.split("\n")
+        # Run test.
+        actual = hprint.remove_empty_lines(lines, max_consecutive_empty_lines=2)
+        # Check outputs.
+        expected = ["line1", "line2", "line3"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_mixed_content_with_whitespace_lines(self) -> None:
+        """
+        Test with mixed content including lines with only whitespace.
+        """
+        # Prepare inputs.
+        lines = ["line1", "  ", "", "line2", "\t\t", "line3"]
+        # Run test.
+        actual = hprint.remove_empty_lines(lines)
+        # Check outputs.
+        expected = ["line1", "line2", "line3"]
+        self.assert_equal(str(actual), str(expected))
+
+    def test_single_line_no_empty(self) -> None:
+        """
+        Test with a single non-empty line.
+        """
+        # Prepare inputs.
+        lines = ["single line"]
+        # Run test.
+        actual = hprint.remove_empty_lines(lines)
+        # Check outputs.
+        expected = ["single line"]
+        self.assert_equal(str(actual), str(expected))

@@ -104,11 +104,12 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     #    using `*` instead of `-`.
     txt_new_as_str = "\n".join(txt_new)
     txt_new_as_str = re.sub(r"\n\s*\n", "\n\n", txt_new_as_str)
-    #
     _LOG.debug("txt_new_as_str=%s", txt_new_as_str)
-    ret = txt_new_as_str.split("\n")
-    hdbg.dassert_isinstance(ret, list)
-    return ret
+    txt = txt_new_as_str.split("\n")
+    # 6) Remove more than 2 consecutive empty lines.
+    hprint.remove_empty_lines(txt_new, 
+    hdbg.dassert_isinstance(txt_new, list)
+    return txt_new
 
 
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:

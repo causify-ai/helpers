@@ -288,7 +288,6 @@ def _remove_image_code(
     :param extension: file extension (e.g., ".md", ".tex", ".txt")
     :return: lines with rendered image blocks removed
     """
-    comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     out_lines: List[str] = []
     in_render_block = False
     for line in in_lines:
@@ -638,6 +637,8 @@ def _process_single_file(
         dry_run=dry_run,
         use_github_hosting=use_github_hosting,
     )
+    # Remove empty consecutive lines.
+    out_lines = hprint.remove_empty_lines(out_lines, max_consecutive_empty_lines=1)
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))
     # Open if needed.
