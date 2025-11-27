@@ -1007,30 +1007,30 @@ class Test_render_images2(hunitest.TestCase):
 
 # TODO(AI_GP): Add a unit test for this input.
 
-%   ```graphviz[width=50%]
-%   digraph ProcessFlow {
-%     splines=true;
-%     nodesep=0.5;
-%     ranksep=0.5
-%     rankdir=LR;
-%
-%     // Global font
-%     graph [fontname="Helvetica"];
-%     node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
-%     edge  [fontname="Helvetica", fontsize=12];
-%
-%     // Node styles
-%     Sensors          [label="Sensors",          fillcolor="#A6E7F4"];
-%     PredictiveModel  [label="Predictive Model", fillcolor="#A6C8F4"];
-%     Maintenance      [label="Maintenance",      fillcolor="#B2E2B2"];
-%
-%     // Edges with labels
-%     Sensors -> PredictiveModel   [label="Raw\ndata"];
-%     PredictiveModel -> Maintenance [label="Alert"];
-%   }
-%   ```
-%   caption=High-level overview of the failure prediction system: sensors provide raw data to the predictive model, which generates alerts for maintenance actions.
-%   label=fig:system_overview
+#   ```graphviz[width=50#]
+#   digraph ProcessFlow {
+#     splines=true;
+#     nodesep=0.5;
+#     ranksep=0.5
+#     rankdir=LR;
+#
+#     // Global font
+#     graph [fontname="Helvetica"];
+#     node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
+#     edge  [fontname="Helvetica", fontsize=12];
+#
+#     // Node styles
+#     Sensors          [label="Sensors",          fillcolor="#A6E7F4"];
+#     PredictiveModel  [label="Predictive Model", fillcolor="#A6C8F4"];
+#     Maintenance      [label="Maintenance",      fillcolor="#B2E2B2"];
+#
+#     // Edges with labels
+#     Sensors -> PredictiveModel   [label="Raw\ndata"];
+#     PredictiveModel -> Maintenance [label="Alert"];
+#   }
+#   ```
+#   caption=High-level overview of the failure prediction system: sensors provide raw data to the predictive model, which generates alerts for maintenance actions.
+#   label=fig:system_overview
 
 
 
@@ -1052,7 +1052,10 @@ class Test_render_images_script1(hunitest.TestCase):
         Test that the script can display help without errors.
         """
         # Run the script with --help.
-        cmd = "python dev_scripts_helpers/documentation/render_images.py --help"
+        exec_path = hgit.find_file_in_git_repo(
+            "render_images.py", super_module=True
+        )
+        cmd = f"{exec_path} --help"
         rc = hsystem.system(cmd)
         # Check that it succeeded.
         self.assertEqual(rc, 0)
@@ -1074,10 +1077,11 @@ class Test_render_images_script1(hunitest.TestCase):
         test_content = hprint.dedent(test_content)
         hio.to_file(test_file, test_content)
         # Run the script with dry_run.
-        executable = hgit.find_
+        exec_path = hgit.find_file_in_git_repo(
+            "render_images.py", super_module=True
+        )
         cmd = (
-            f"python dev_scripts_helpers/documentation/render_images.py "
-            f"-i {test_file} --action render --dry_run"
+            f"{exec_path} -i {test_file} --action render --dry_run"
         )
         rc = hsystem.system(cmd)
         # Check that it succeeded.
