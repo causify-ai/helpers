@@ -41,13 +41,6 @@ _LOG = logging.getLogger(__name__)
 _VALID_ACTIONS = ["detect", "fix"]
 _DEFAULT_ACTIONS = ["detect"]
 
-# TODO(ai_gp): Move close to the only use.
-# API endpoints.
-_DETECT_ENDPOINT = "https://ai-detect.undetectable.ai/detect"
-_QUERY_ENDPOINT = "https://ai-detect.undetectable.ai/query"
-_HUMANIZE_SUBMIT_ENDPOINT = "https://humanize.undetectable.ai/submit"
-_HUMANIZE_DOCUMENT_ENDPOINT = "https://humanize.undetectable.ai/document"
-
 # #############################################################################
 
 
@@ -59,8 +52,8 @@ def _get_api_key() -> str:
     """
     key = "API_UNDETECTABLE"
     hdbg.dassert_in(
-            key,
-            os.keys(),
+        key,
+        os.environ,
         "Environment variable API_UNDETECTABLE is not set",
     )
     api_key = os.getenv(key)
@@ -84,11 +77,12 @@ def _detect_ai_content(text: str, api_key: str) -> Dict[str, Any]:
     _LOG.info("Submitting text for AI detection")
     _LOG.debug("Text length: %s characters", len(text))
     # Prepare the request.
+    detect_endpoint = "https://ai-detect.undetectable.ai/detect"
     payload = {"text": text, "key": api_key, "model": "xlm_ud_detector"}
     headers = {"Content-Type": "application/json"}
     # Submit for detection.
     response = requests.post(
-        _DETECT_ENDPOINT, json=payload, headers=headers, timeout=30
+        detect_endpoint, json=payload, headers=headers, timeout=30
     )
     response.raise_for_status()
     result = response.json()
@@ -113,12 +107,13 @@ def _poll_detection_result(
     :param delay_secs: seconds to wait between polling attempts
     :return: detection results once complete
     """
+    query_endpoint = "https://ai-detect.undetectable.ai/query"
     payload = {"id": doc_id, "key": api_key}
     headers = {"Content-Type": "application/json"}
     for attempt in range(max_attempts):
         _LOG.debug("Polling attempt %s/%s", attempt + 1, max_attempts)
         response = requests.post(
-            _QUERY_ENDPOINT, json=payload, headers=headers, timeout=30
+            query_endpoint, json=payload, headers=headers, timeout=30
         )
         response.raise_for_status()
         result = response.json()
@@ -169,10 +164,9 @@ def _format_detection_result(result: Dict[str, Any]) -> str:
     return "\n".join(output_lines)
 
 
-# TODO(ai_gp): Rename detect_ai_content_from_file()
-def _run_detect_action(input_file: str, api_key: str) -> None:
+def _detect_ai_content_from_file(input_file: str, api_key: str) -> None:
     """
-    Run the detect action to analyze text for AI content.
+    Detect AI content from a file.
 
     :param input_file: path to input file
     :param api_key: Undetectable.ai API key
@@ -221,6 +215,7 @@ def _humanize_text(
     _LOG.debug("Text length: %s characters", len(text))
     _LOG.debug("Settings: readability: %s, purpose: %s, strength: %s", readability, purpose, strength)
     # Prepare the request.
+    humanize_submit_endpoint = "https://humanize.undetectable.ai/submit"
     payload = {
         "content": text,
         "readability": readability,
@@ -230,7 +225,7 @@ def _humanize_text(
     headers = {"Content-Type": "application/json", "apikey": api_key}
     # Submit for humanization.
     response = requests.post(
-        _HUMANIZE_SUBMIT_ENDPOINT, json=payload, headers=headers, timeout=30
+        humanize_submit_endpoint, json=payload, headers=headers, timeout=30
     )
     response.raise_for_status()
     result = response.json()
@@ -259,12 +254,13 @@ def _poll_humanization_result(
     :param delay_secs: seconds to wait between polling attempts
     :return: humanization results once complete
     """
+    humanize_document_endpoint = "https://humanize.undetectable.ai/document"
     payload = {"id": doc_id}
     headers = {"Content-Type": "application/json", "apikey": api_key}
     for attempt in range(max_attempts):
         _LOG.debug("Polling attempt %s/%s", attempt + 1, max_attempts)
         response = requests.post(
-            _HUMANIZE_DOCUMENT_ENDPOINT, json=payload, headers=headers, timeout=30
+            humanize_document_endpoint, json=payload, headers=headers, timeout=30
         )
         response.raise_for_status()
         result = response.json()
@@ -280,8 +276,7 @@ def _poll_humanization_result(
     )
 
 
-# TODO(ai_gp): Rename humanize_from_file()
-def _run_fix_action(
+def _humanize_from_file(
     input_file: str,
     output_file: str,
     api_key: str,
@@ -291,7 +286,7 @@ def _run_fix_action(
     strength: str,
 ) -> None:
     """
-    Run the fix action to humanize AI-generated text.
+    Humanize AI-generated text from a file.
 
     :param input_file: path to input file
     :param output_file: path to output file
@@ -380,9 +375,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Run actions.
     for action in actions:
         if action == "detect":
-            _run_detect_action(input_file, api_key)
+            _detect_ai_content_from_file(input_file, api_key)
         elif action == "fix":
-            _run_fix_action(
+            _humanize_from_file(
                 input_file,
                 output_file,
                 api_key,
