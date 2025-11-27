@@ -9,6 +9,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
+import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -417,10 +418,7 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    # TODO(AI_GP): Rename all the tests based on the file_ext and the figure type
-
-    # TODO(AI_GP): Rename to test_tex1
-    def test1(self) -> None:
+    def test_tex1(self) -> None:
         """
         Check text without image code in a LaTeX file.
         """
@@ -434,8 +432,7 @@ class Test_render_images1(hunitest.TestCase):
         # Run.
         self.helper(in_lines, file_ext, expected)
 
-    # TODO(AI_GP): Rename to test_md1
-    def test2(self) -> None:
+    def test_md1(self) -> None:
         """
         Check text without image code in a Markdown file.
         """
@@ -452,8 +449,7 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    # TODO(AI_GP): Rename to test_md_plantum1
-    def test_plantuml1(self) -> None:
+    def test_md_plantuml1(self) -> None:
         """
         Check bare plantUML code in a Markdown file.
         """
@@ -473,8 +469,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    # TODO(AI_GP): Rename to test_md_plantum1
-    def test_plantuml2(self) -> None:
+    def test_md_plantuml2(self) -> None:
         """
         Check plantUML code within other text in a Markdown file.
         """
@@ -499,7 +494,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_plantuml3(self) -> None:
+    def test_md_plantuml3(self) -> None:
         """
         Check plantUML code that is already correctly formatted in a Markdown
         file.
@@ -524,7 +519,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_plantuml4(self) -> None:
+    def test_tex_plantuml1(self) -> None:
         """
         Check bare plantUML code in a LaTeX file.
         """
@@ -546,7 +541,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_plantuml5(self) -> None:
+    def test_tex_plantuml2(self) -> None:
         """
         Check plantUML code within other text in a LaTeX file.
         """
@@ -573,7 +568,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_plantuml6(self) -> None:
+    def test_tex_plantuml3(self) -> None:
         """
         Check plantUML code that is already correctly formatted in a LaTeX
         file.
@@ -602,8 +597,7 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    # TODO(AI_GP): Rename test_md_mermaid1
-    def test_mermaid1(self) -> None:
+    def test_md_mermaid1(self) -> None:
         """
         Check bare mermaid code in a Markdown file.
         """
@@ -625,7 +619,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_mermaid2(self) -> None:
+    def test_md_mermaid2(self) -> None:
         """
         Check mermaid code within other text in a Markdown file.
         """
@@ -652,7 +646,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_mermaid3(self) -> None:
+    def test_tex_mermaid1(self) -> None:
         """
         Check bare mermaid code in a LaTeX file.
         """
@@ -676,7 +670,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_mermaid4(self) -> None:
+    def test_tex_mermaid2(self) -> None:
         """
         Check mermaid code within other text in a LaTeX file.
         """
@@ -705,9 +699,9 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_mermaid5(self) -> None:
+    def test_txt_mermaid1(self) -> None:
         """
-        Check mermaid code within other text in a md file.
+        Check mermaid code within other text in a txt file.
         """
         in_lines = r"""
         A
@@ -1011,4 +1005,80 @@ class Test_render_images2(hunitest.TestCase):
         self.helper("sample_file_mermaid.tex")
 
 
-# TODO(AI_GP): Add some light end-to-end test for the script render_images.py
+# TODO(AI_GP): Add a unit test for this input.
+
+%   ```graphviz[width=50%]
+%   digraph ProcessFlow {
+%     splines=true;
+%     nodesep=0.5;
+%     ranksep=0.5
+%     rankdir=LR;
+%
+%     // Global font
+%     graph [fontname="Helvetica"];
+%     node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
+%     edge  [fontname="Helvetica", fontsize=12];
+%
+%     // Node styles
+%     Sensors          [label="Sensors",          fillcolor="#A6E7F4"];
+%     PredictiveModel  [label="Predictive Model", fillcolor="#A6C8F4"];
+%     Maintenance      [label="Maintenance",      fillcolor="#B2E2B2"];
+%
+%     // Edges with labels
+%     Sensors -> PredictiveModel   [label="Raw\ndata"];
+%     PredictiveModel -> Maintenance [label="Alert"];
+%   }
+%   ```
+%   caption=High-level overview of the failure prediction system: sensors provide raw data to the predictive model, which generates alerts for maintenance actions.
+%   label=fig:system_overview
+
+
+
+# #############################################################################
+# Test_render_images_script_e2e1
+# #############################################################################
+
+
+class Test_render_images_script1(hunitest.TestCase):
+    """
+    Light end-to-end tests for the render_images.py script.
+
+    These tests verify the script can be invoked successfully with different
+    arguments and produces expected behavior.
+    """
+
+    def test_script_help(self) -> None:
+        """
+        Test that the script can display help without errors.
+        """
+        # Run the script with --help.
+        cmd = "python dev_scripts_helpers/documentation/render_images.py --help"
+        rc = hsystem.system(cmd)
+        # Check that it succeeded.
+        self.assertEqual(rc, 0)
+
+    def test_script_dry_run_md(self) -> None:
+        """
+        Test script with dry run on a simple Markdown file.
+        """
+        # Create a test file in scratch space.
+        scratch_space = self.get_scratch_space()
+        test_file = os.path.join(scratch_space, "test_input.md")
+        test_content = """
+        # Test Document
+
+        ```plantuml
+        Alice -> Bob: Hello
+        ```
+        """
+        test_content = hprint.dedent(test_content)
+        hio.to_file(test_file, test_content)
+        # Run the script with dry_run.
+        executable = hgit.find_
+        cmd = (
+            f"python dev_scripts_helpers/documentation/render_images.py "
+            f"-i {test_file} --action render --dry_run"
+        )
+        rc = hsystem.system(cmd)
+        # Check that it succeeded.
+        self.assertEqual(rc, 0)
