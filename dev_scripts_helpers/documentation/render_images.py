@@ -598,8 +598,11 @@ def _render_images(
                 # End of metadata section, insert the image code with metadata.
                 out_lines.append(
                     _insert_image_code(
-                        extension, rel_img_path, user_img_size,
-                        metadata_label, metadata_caption
+                        extension,
+                        rel_img_path,
+                        user_img_size,
+                        label=metadata_label,
+                        caption=metadata_caption,
                     )
                 )
                 user_img_size = ""
@@ -618,8 +621,11 @@ def _render_images(
         # Insert the image code with whatever metadata was collected.
         out_lines.append(
             _insert_image_code(
-                extension, rel_img_path, user_img_size,
-                metadata_label, metadata_caption
+                extension,
+                rel_img_path,
+                user_img_size,
+                label=metadata_label,
+                caption=metadata_caption,
             )
         )
     return out_lines

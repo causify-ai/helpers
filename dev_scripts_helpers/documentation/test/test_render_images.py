@@ -149,14 +149,238 @@ class Test_render_image_code1(hunitest.TestCase):
         self.assertEqual(rel_img_path, "figs/test2.1.svg")
 
 
-# AI_GP: Add unit tests for _insert_image_code
+# #############################################################################
+# Test_insert_image_code1
+# #############################################################################
+
+
+class Test_insert_image_code1(hunitest.TestCase):
+    """
+    Test _insert_image_code() for markdown files.
+    """
+
+    def test_md_no_metadata(self) -> None:
+        """
+        Test markdown output without label or caption.
+        """
+        # Prepare inputs.
+        extension = ".md"
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = ""
+        # Run.
+        actual = dshdreim._insert_image_code(
+            extension, rel_img_path, user_img_size, label=label, caption=caption
+        )
+        # Check output.
+        expected = """
+        [//]: # ( render_images:begin )
+        ![](figs/test.1.png)
+        [//]: # ( render_images:end )
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test_md_label_only(self) -> None:
+        """
+        Test markdown output with label only.
+        """
+        # Prepare inputs.
+        extension = ".md"
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = "fig:test_diagram"
+        caption = ""
+        # Run.
+        actual = dshdreim._insert_image_code(
+            extension, rel_img_path, user_img_size, label=label, caption=caption
+        )
+        # Check output.
+        expected = """
+        [//]: # ( render_images:begin )
+        ![](figs/test.1.png){#fig:test_diagram}
+        [//]: # ( render_images:end )
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test_md_caption_only(self) -> None:
+        """
+        Test markdown output with caption only.
+        """
+        # Prepare inputs.
+        extension = ".md"
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = "Test diagram caption"
+        # Run.
+        actual = dshdreim._insert_image_code(
+            extension, rel_img_path, user_img_size, label=label, caption=caption
+        )
+        # Check output.
+        expected = """
+        [//]: # ( render_images:begin )
+        ![Test diagram caption](figs/test.1.png)
+        [//]: # ( render_images:end )
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test_md_label_and_caption(self) -> None:
+        """
+        Test markdown output with both label and caption.
+        """
+        # Prepare inputs.
+        extension = ".md"
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = "fig:test_diagram"
+        caption = "Test diagram caption"
+        # Run.
+        actual = dshdreim._insert_image_code(
+            extension, rel_img_path, user_img_size, label=label, caption=caption
+        )
+        # Check output.
+        expected = """
+        [//]: # ( render_images:begin )
+        ![Test diagram caption](figs/test.1.png){#fig:test_diagram}
+        [//]: # ( render_images:end )
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test_md_with_user_size(self) -> None:
+        """
+        Test markdown output with user-specified size.
+        """
+        # Prepare inputs.
+        extension = ".md"
+        rel_img_path = "figs/test.1.png"
+        user_img_size = "height=100%"
+        label = "fig:test_diagram"
+        caption = "Test diagram"
+        # Run.
+        actual = dshdreim._insert_image_code(
+            extension, rel_img_path, user_img_size, label=label, caption=caption
+        )
+        # Check output.
+        expected = """
+        [//]: # ( render_images:begin )
+        ![Test diagram](figs/test.1.png){#fig:test_diagram height=100%}
+        [//]: # ( render_images:end )
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+
+class Test_insert_image_code2(hunitest.TestCase):
+    """
+    Test _insert_image_code() for LaTeX files.
+    """
+
+    def test_tex_no_metadata(self) -> None:
+        """
+        Test LaTeX output without label or caption.
+        """
+        # Prepare inputs.
+        extension = ".tex"
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = ""
+        # Run.
+        actual = dshdreim._insert_image_code(
+            extension, rel_img_path, user_img_size, label=label, caption=caption
+        )
+        # Check output.
+        expected = r"""
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/test.1.png}
+        \end{figure}
+        % render_images:end
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test_tex_label_only(self) -> None:
+        """
+        Test LaTeX output with label only.
+        """
+        # Prepare inputs.
+        extension = ".tex"
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = "fig:test_diagram"
+        caption = ""
+        # Run.
+        actual = dshdreim._insert_image_code(
+            extension, rel_img_path, user_img_size, label=label, caption=caption
+        )
+        # Check output.
+        expected = r"""
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/test.1.png}
+          \label{fig:test_diagram}
+        \end{figure}
+        % render_images:end
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test_tex_caption_only(self) -> None:
+        """
+        Test LaTeX output with caption only.
+        """
+        # Prepare inputs.
+        extension = ".tex"
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = "Test diagram caption"
+        # Run.
+        actual = dshdreim._insert_image_code(
+            extension, rel_img_path, user_img_size, label=label, caption=caption
+        )
+        # Check output.
+        expected = r"""
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/test.1.png}
+          \caption{Test diagram caption}
+        \end{figure}
+        % render_images:end
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
+    def test_tex_label_and_caption(self) -> None:
+        """
+        Test LaTeX output with both label and caption.
+        """
+        # Prepare inputs.
+        extension = ".tex"
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = "fig:test_diagram"
+        caption = "Test diagram caption"
+        # Run.
+        actual = dshdreim._insert_image_code(
+            extension, rel_img_path, user_img_size, label=label, caption=caption
+        )
+        # Check output.
+        expected = r"""
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/test.1.png}
+          \caption{Test diagram caption}
+          \label{fig:test_diagram}
+        \end{figure}
+        % render_images:end
+        """
+        self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
+
 
 # #############################################################################
 # Test_render_images1
 # #############################################################################
 
 
-# AI_GP: Extend unit tests to cover the metadata.
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
@@ -193,9 +417,9 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    # AI_GP: Rename all the tests based on the file_ext and the figure type
+    # TODO(AI_GP): Rename all the tests based on the file_ext and the figure type
 
-    # AI_GP: Rename to test_tex1
+    # TODO(AI_GP): Rename to test_tex1
     def test1(self) -> None:
         """
         Check text without image code in a LaTeX file.
@@ -210,7 +434,7 @@ class Test_render_images1(hunitest.TestCase):
         # Run.
         self.helper(in_lines, file_ext, expected)
 
-    # AI_GP: Rename to test_md1
+    # TODO(AI_GP): Rename to test_md1
     def test2(self) -> None:
         """
         Check text without image code in a Markdown file.
@@ -228,7 +452,7 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    # AI_GP: Rename to test_md_plantum1
+    # TODO(AI_GP): Rename to test_md_plantum1
     def test_plantuml1(self) -> None:
         """
         Check bare plantUML code in a Markdown file.
@@ -249,7 +473,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    # AI_GP: Rename to test_md_plantum1
+    # TODO(AI_GP): Rename to test_md_plantum1
     def test_plantuml2(self) -> None:
         """
         Check plantUML code within other text in a Markdown file.
@@ -378,7 +602,7 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    # AI_GP: Rename test_md_mermaid1
+    # TODO(AI_GP): Rename test_md_mermaid1
     def test_mermaid1(self) -> None:
         """
         Check bare mermaid code in a Markdown file.
@@ -565,6 +789,171 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
+    # ///////////////////////////////////////////////////////////////////////////
+    # Metadata tests
+
+    def test_md_plantuml_with_label(self) -> None:
+        """
+        Check plantUML code with label metadata in a Markdown file.
+        """
+        in_lines = r"""
+        ```plantuml
+        Alice --> Bob
+        ```
+        label=fig:test_diagram
+        """
+        file_ext = "md"
+        expected = r"""
+        [//]: # ( ```plantuml)
+        [//]: # ( Alice --> Bob)
+        [//]: # ( ```)
+        [//]: # ( render_images:begin )
+        ![](figs/out.1.png){#fig:test_diagram}
+        [//]: # ( render_images:end )
+        """
+        self.helper(in_lines, file_ext, expected)
+
+    def test_md_plantuml_with_caption(self) -> None:
+        """
+        Check plantUML code with caption metadata in a Markdown file.
+        """
+        in_lines = r"""
+        ```plantuml
+        Alice --> Bob
+        ```
+        caption=Test diagram showing communication
+        """
+        file_ext = "md"
+        expected = r"""
+        [//]: # ( ```plantuml)
+        [//]: # ( Alice --> Bob)
+        [//]: # ( ```)
+        [//]: # ( render_images:begin )
+        ![Test diagram showing communication](figs/out.1.png)
+        [//]: # ( render_images:end )
+        """
+        self.helper(in_lines, file_ext, expected)
+
+    def test_md_plantuml_with_label_and_caption(self) -> None:
+        """
+        Check plantUML code with both label and caption in a Markdown file.
+        """
+        in_lines = r"""
+        ```plantuml
+        Alice --> Bob
+        ```
+        label=fig:test_diagram
+        caption=Test diagram showing communication
+        """
+        file_ext = "md"
+        expected = r"""
+        [//]: # ( ```plantuml)
+        [//]: # ( Alice --> Bob)
+        [//]: # ( ```)
+        [//]: # ( render_images:begin )
+        ![Test diagram showing communication](figs/out.1.png){#fig:test_diagram}
+        [//]: # ( render_images:end )
+        """
+        self.helper(in_lines, file_ext, expected)
+
+    def test_md_plantuml_with_multiline_caption(self) -> None:
+        """
+        Check plantUML code with multi-line caption in a Markdown file.
+        """
+        in_lines = r"""
+        ```plantuml
+        Alice --> Bob
+        ```
+        label=fig:test_diagram
+        caption=This is a caption
+          that spans multiple lines
+          to test continuation
+        """
+        file_ext = "md"
+        expected = r"""
+        [//]: # ( ```plantuml)
+        [//]: # ( Alice --> Bob)
+        [//]: # ( ```)
+        [//]: # ( render_images:begin )
+        ![This is a caption that spans multiple lines to test continuation](figs/out.1.png){#fig:test_diagram}
+        [//]: # ( render_images:end )
+        """
+        self.helper(in_lines, file_ext, expected)
+
+    def test_tex_plantuml_with_label(self) -> None:
+        """
+        Check plantUML code with label metadata in a LaTeX file.
+        """
+        in_lines = r"""
+        ```plantuml
+        Alice --> Bob
+        ```
+        label=fig:test_diagram
+        """
+        file_ext = "tex"
+        expected = r"""
+        % ```plantuml
+        % Alice --> Bob
+        % ```
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+          \label{fig:test_diagram}
+        \end{figure}
+        % render_images:end
+        """
+        self.helper(in_lines, file_ext, expected)
+
+    def test_tex_plantuml_with_caption(self) -> None:
+        """
+        Check plantUML code with caption metadata in a LaTeX file.
+        """
+        in_lines = r"""
+        ```plantuml
+        Alice --> Bob
+        ```
+        caption=Test diagram showing communication
+        """
+        file_ext = "tex"
+        expected = r"""
+        % ```plantuml
+        % Alice --> Bob
+        % ```
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+          \caption{Test diagram showing communication}
+        \end{figure}
+        % render_images:end
+        """
+        self.helper(in_lines, file_ext, expected)
+
+    def test_tex_plantuml_with_label_and_caption(self) -> None:
+        """
+        Check plantUML code with both label and caption in a LaTeX file.
+        """
+        in_lines = r"""
+        ```plantuml
+        Alice --> Bob
+        ```
+        label=fig:test_diagram
+        caption=Test diagram showing communication
+        """
+        file_ext = "tex"
+        expected = r"""
+        % ```plantuml
+        % Alice --> Bob
+        % ```
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+          \caption{Test diagram showing communication}
+          \label{fig:test_diagram}
+        \end{figure}
+        % render_images:end
+        """
+        self.helper(in_lines, file_ext, expected)
+
 
 # #############################################################################
 # Test_render_images2
@@ -622,4 +1011,4 @@ class Test_render_images2(hunitest.TestCase):
         self.helper("sample_file_mermaid.tex")
 
 
-# AI_GP: Add some light end-to-end test for the script render_images.py
+# TODO(AI_GP): Add some light end-to-end test for the script render_images.py
