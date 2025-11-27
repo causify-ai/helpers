@@ -726,7 +726,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_mermaid6(self) -> None:
+    def test_txt_mermaid2(self) -> None:
         """
         Check mermaid code within other text in a md file.
         """
@@ -753,7 +753,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_mermaid7(self) -> None:
+    def test_txt_mermaid3(self) -> None:
         """
         Check commented mermaid code with an updated output file.
         """
@@ -786,7 +786,10 @@ class Test_render_images1(hunitest.TestCase):
     # ///////////////////////////////////////////////////////////////////////////
     # Metadata tests
 
-    def test_md_plantuml_with_label(self) -> None:
+# TODO(AI_GP): Convert these tests to use graphviz code instead of plantuml.
+# Change the names of the tests to test_md_graphviz_with_metadata1, etc.
+
+    def test_md_plantuml_with_metadata1(self) -> None:
         """
         Check plantUML code with label metadata in a Markdown file.
         """
@@ -807,7 +810,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_plantuml_with_caption(self) -> None:
+    def test_md_plantuml_with_metadata2(self) -> None:
         """
         Check plantUML code with caption metadata in a Markdown file.
         """
@@ -828,7 +831,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_plantuml_with_label_and_caption(self) -> None:
+    def test_md_plantuml_with_metadata3(self) -> None:
         """
         Check plantUML code with both label and caption in a Markdown file.
         """
@@ -850,7 +853,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_plantuml_with_multiline_caption(self) -> None:
+    def test_md_plantuml_with_metadata4(self) -> None:
         """
         Check plantUML code with multi-line caption in a Markdown file.
         """
@@ -874,7 +877,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_plantuml_with_label(self) -> None:
+    def test_tex_plantuml_with_metadata1(self) -> None:
         """
         Check plantUML code with label metadata in a LaTeX file.
         """
@@ -922,7 +925,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_plantuml_with_label_and_caption(self) -> None:
+    def test_tex_plantuml_with_metadata2(self) -> None:
         """
         Check plantUML code with both label and caption in a LaTeX file.
         """
@@ -947,6 +950,33 @@ class Test_render_images1(hunitest.TestCase):
         % render_images:end
         """
         self.helper(in_lines, file_ext, expected)
+
+# TODO(AI_GP): Add a unit test for this input
+
+#   ```graphviz[width=50#]
+#   digraph ProcessFlow {
+#     splines=true;
+#     nodesep=0.5;
+#     ranksep=0.5
+#     rankdir=LR;
+#
+#     // Global font
+#     graph [fontname="Helvetica"];
+#     node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
+#     edge  [fontname="Helvetica", fontsize=12];
+#
+#     // Node styles
+#     Sensors          [label="Sensors",          fillcolor="#A6E7F4"];
+#     PredictiveModel  [label="Predictive Model", fillcolor="#A6C8F4"];
+#     Maintenance      [label="Maintenance",      fillcolor="#B2E2B2"];
+#
+#     // Edges with labels
+#     Sensors -> PredictiveModel   [label="Raw\ndata"];
+#     PredictiveModel -> Maintenance [label="Alert"];
+#   }
+#   ```
+#   caption=High-level overview of the failure prediction system: sensors provide raw data to the predictive model, which generates alerts for maintenance actions.
+#   label=fig:system_overview
 
 
 # #############################################################################
@@ -1005,32 +1035,11 @@ class Test_render_images2(hunitest.TestCase):
         self.helper("sample_file_mermaid.tex")
 
 
-# TODO(AI_GP): Add a unit test for this input.
+# #############################################################################
+# Test_render_images3
+# #############################################################################
 
-#   ```graphviz[width=50#]
-#   digraph ProcessFlow {
-#     splines=true;
-#     nodesep=0.5;
-#     ranksep=0.5
-#     rankdir=LR;
-#
-#     // Global font
-#     graph [fontname="Helvetica"];
-#     node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
-#     edge  [fontname="Helvetica", fontsize=12];
-#
-#     // Node styles
-#     Sensors          [label="Sensors",          fillcolor="#A6E7F4"];
-#     PredictiveModel  [label="Predictive Model", fillcolor="#A6C8F4"];
-#     Maintenance      [label="Maintenance",      fillcolor="#B2E2B2"];
-#
-#     // Edges with labels
-#     Sensors -> PredictiveModel   [label="Raw\ndata"];
-#     PredictiveModel -> Maintenance [label="Alert"];
-#   }
-#   ```
-#   caption=High-level overview of the failure prediction system: sensors provide raw data to the predictive model, which generates alerts for maintenance actions.
-#   label=fig:system_overview
+
 
 
 
