@@ -786,23 +786,20 @@ class Test_render_images1(hunitest.TestCase):
     # ///////////////////////////////////////////////////////////////////////////
     # Metadata tests
 
-# TODO(AI_GP): Convert these tests to use graphviz code instead of plantuml.
-# Change the names of the tests to test_md_graphviz_with_metadata1, etc.
-
-    def test_md_plantuml_with_metadata1(self) -> None:
+    def test_md_graphviz_with_metadata1(self) -> None:
         """
-        Check plantUML code with label metadata in a Markdown file.
+        Check graphviz code with label metadata in a Markdown file.
         """
         in_lines = r"""
-        ```plantuml
-        Alice --> Bob
+        ```graphviz
+        digraph { A -> B }
         ```
         label=fig:test_diagram
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( ```plantuml)
-        [//]: # ( Alice --> Bob)
+        [//]: # ( ```graphviz)
+        [//]: # ( digraph { A -> B })
         [//]: # ( ```)
         [//]: # ( render_images:begin )
         ![](figs/out.1.png){#fig:test_diagram}
@@ -810,20 +807,20 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_plantuml_with_metadata2(self) -> None:
+    def test_md_graphviz_with_metadata2(self) -> None:
         """
-        Check plantUML code with caption metadata in a Markdown file.
+        Check graphviz code with caption metadata in a Markdown file.
         """
         in_lines = r"""
-        ```plantuml
-        Alice --> Bob
+        ```graphviz
+        digraph { A -> B }
         ```
         caption=Test diagram showing communication
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( ```plantuml)
-        [//]: # ( Alice --> Bob)
+        [//]: # ( ```graphviz)
+        [//]: # ( digraph { A -> B })
         [//]: # ( ```)
         [//]: # ( render_images:begin )
         ![Test diagram showing communication](figs/out.1.png)
@@ -831,21 +828,21 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_plantuml_with_metadata3(self) -> None:
+    def test_md_graphviz_with_metadata3(self) -> None:
         """
-        Check plantUML code with both label and caption in a Markdown file.
+        Check graphviz code with both label and caption in a Markdown file.
         """
         in_lines = r"""
-        ```plantuml
-        Alice --> Bob
+        ```graphviz
+        digraph { A -> B }
         ```
         label=fig:test_diagram
         caption=Test diagram showing communication
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( ```plantuml)
-        [//]: # ( Alice --> Bob)
+        [//]: # ( ```graphviz)
+        [//]: # ( digraph { A -> B })
         [//]: # ( ```)
         [//]: # ( render_images:begin )
         ![Test diagram showing communication](figs/out.1.png){#fig:test_diagram}
@@ -853,13 +850,13 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_md_plantuml_with_metadata4(self) -> None:
+    def test_md_graphviz_with_metadata4(self) -> None:
         """
-        Check plantUML code with multi-line caption in a Markdown file.
+        Check graphviz code with multi-line caption in a Markdown file.
         """
         in_lines = r"""
-        ```plantuml
-        Alice --> Bob
+        ```graphviz
+        digraph { A -> B }
         ```
         label=fig:test_diagram
         caption=This is a caption
@@ -868,8 +865,8 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( ```plantuml)
-        [//]: # ( Alice --> Bob)
+        [//]: # ( ```graphviz)
+        [//]: # ( digraph { A -> B })
         [//]: # ( ```)
         [//]: # ( render_images:begin )
         ![This is a caption that spans multiple lines to test continuation](figs/out.1.png){#fig:test_diagram}
@@ -877,20 +874,20 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_plantuml_with_metadata1(self) -> None:
+    def test_tex_graphviz_with_metadata1(self) -> None:
         """
-        Check plantUML code with label metadata in a LaTeX file.
+        Check graphviz code with label metadata in a LaTeX file.
         """
         in_lines = r"""
-        ```plantuml
-        Alice --> Bob
+        ```graphviz
+        digraph { A -> B }
         ```
         label=fig:test_diagram
         """
         file_ext = "tex"
         expected = r"""
-        % ```plantuml
-        % Alice --> Bob
+        % ```graphviz
+        % digraph { A -> B }
         % ```
         % render_images:begin
         \begin{figure}
@@ -901,20 +898,20 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_plantuml_with_caption(self) -> None:
+    def test_tex_graphviz_with_metadata2(self) -> None:
         """
-        Check plantUML code with caption metadata in a LaTeX file.
+        Check graphviz code with caption metadata in a LaTeX file.
         """
         in_lines = r"""
-        ```plantuml
-        Alice --> Bob
+        ```graphviz
+        digraph { A -> B }
         ```
         caption=Test diagram showing communication
         """
         file_ext = "tex"
         expected = r"""
-        % ```plantuml
-        % Alice --> Bob
+        % ```graphviz
+        % digraph { A -> B }
         % ```
         % render_images:begin
         \begin{figure}
@@ -925,21 +922,21 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_plantuml_with_metadata2(self) -> None:
+    def test_tex_graphviz_with_metadata3(self) -> None:
         """
-        Check plantUML code with both label and caption in a LaTeX file.
+        Check graphviz code with both label and caption in a LaTeX file.
         """
         in_lines = r"""
-        ```plantuml
-        Alice --> Bob
+        ```graphviz
+        digraph { A -> B }
         ```
         label=fig:test_diagram
         caption=Test diagram showing communication
         """
         file_ext = "tex"
         expected = r"""
-        % ```plantuml
-        % Alice --> Bob
+        % ```graphviz
+        % digraph { A -> B }
         % ```
         % render_images:begin
         \begin{figure}
@@ -951,32 +948,22 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-# TODO(AI_GP): Add a unit test for this input
-
-#   ```graphviz[width=50#]
-#   digraph ProcessFlow {
-#     splines=true;
-#     nodesep=0.5;
-#     ranksep=0.5
-#     rankdir=LR;
-#
-#     // Global font
-#     graph [fontname="Helvetica"];
-#     node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
-#     edge  [fontname="Helvetica", fontsize=12];
-#
-#     // Node styles
-#     Sensors          [label="Sensors",          fillcolor="#A6E7F4"];
-#     PredictiveModel  [label="Predictive Model", fillcolor="#A6C8F4"];
-#     Maintenance      [label="Maintenance",      fillcolor="#B2E2B2"];
-#
-#     // Edges with labels
-#     Sensors -> PredictiveModel   [label="Raw\ndata"];
-#     PredictiveModel -> Maintenance [label="Alert"];
-#   }
-#   ```
-#   caption=High-level overview of the failure prediction system: sensors provide raw data to the predictive model, which generates alerts for maintenance actions.
-#   label=fig:system_overview
+    def test_tex_graphviz_with_metadata1(self) -> None:
+        """
+        Check complex graphviz code with label, caption, and user size.
+        """
+        in_lines = r"""
+        ```graphviz[width=50%]
+        digraph { A -> B }
+        }
+        ```
+        caption=High-level overview
+        label=fig:system_overview
+        """
+        file_ext = "tex"
+        expected = r"""
+        """
+        self.helper(in_lines, file_ext, expected)
 
 
 # #############################################################################

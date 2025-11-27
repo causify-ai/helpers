@@ -574,6 +574,12 @@ def _render_images(
                     )
                 )
         elif state == "parse_metadata":
+            # TODO(AI_GP): We should use to make sure that the metadata is commented out
+            # together with the rest of the image
+
+                    # _comment_if_needed(
+                    #     state, line, comment_prefix, comment_postfix
+                    # )
             # Check if this line starts a new metadata field (label= or caption=).
             m_metadata = metadata_start_regex.search(line)
             if m_metadata:
