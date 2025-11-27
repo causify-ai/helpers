@@ -76,6 +76,10 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_render_image_code1(hunitest.TestCase):
+    """
+    Test `_render_image_code()`.
+    """
+
     def test1(self) -> None:
         """
         Check rendering of an image code in a Markdown file.
@@ -145,11 +149,14 @@ class Test_render_image_code1(hunitest.TestCase):
         self.assertEqual(rel_img_path, "figs/test2.1.svg")
 
 
+# AI_GP: Add unit tests for _insert_image_code
+
 # #############################################################################
 # Test_render_images1
 # #############################################################################
 
 
+# AI_GP: Extend unit tests to cover the metadata.
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
@@ -186,18 +193,24 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
+    # AI_GP: Rename all the tests based on the file_ext and the figure type
+
+    # AI_GP: Rename to test_tex1
     def test1(self) -> None:
         """
         Check text without image code in a LaTeX file.
         """
+        # Input.
         in_lines = r"""
         A
         B
         """
         file_ext = "tex"
         expected = in_lines
+        # Run.
         self.helper(in_lines, file_ext, expected)
 
+    # AI_GP: Rename to test_md1
     def test2(self) -> None:
         """
         Check text without image code in a Markdown file.
@@ -215,6 +228,7 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
+    # AI_GP: Rename to test_md_plantum1
     def test_plantuml1(self) -> None:
         """
         Check bare plantUML code in a Markdown file.
@@ -235,6 +249,7 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
+    # AI_GP: Rename to test_md_plantum1
     def test_plantuml2(self) -> None:
         """
         Check plantUML code within other text in a Markdown file.
@@ -363,6 +378,7 @@ class Test_render_images1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
+    # AI_GP: Rename test_md_mermaid1
     def test_mermaid1(self) -> None:
         """
         Check bare mermaid code in a Markdown file.
@@ -564,13 +580,13 @@ class Test_render_images2(hunitest.TestCase):
         """
         Helper function to test rendering images from a file.
         """
-        # Define input variables.
+        # Prepare inputs.
         in_file = os.path.join(self.get_input_dir(), file_name)
         in_lines = hio.from_file(in_file).split("\n")
         out_file = os.path.join(self.get_scratch_space(), file_name)
         dst_ext = "png"
         dry_run = True
-        # Call function to test.
+        # Run function.
         out_lines = dshdreim._render_images(
             in_lines,
             out_file,
@@ -604,3 +620,6 @@ class Test_render_images2(hunitest.TestCase):
         Test running on a full LaTeX file with mermaid code.
         """
         self.helper("sample_file_mermaid.tex")
+
+
+# AI_GP: Add some light end-to-end test for the script render_images.py

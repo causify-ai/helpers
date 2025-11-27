@@ -306,30 +306,51 @@ def _remove_image_code(
 
 
 def _insert_image_code(
-    extension: str, rel_img_path: str, user_img_size: str
+    extension: str,
+    rel_img_path: str,
+    user_img_size: str,
+    *,
+    label: str = "",
+    caption: str = "",
 ) -> str:
     """
     Insert the code to display the image in the output file.
+
+    :param extension: file extension (e.g., ".md", ".tex")
+    :param rel_img_path: relative path to the image
+    :param user_img_size: optional user-specified image size
+    :param label: optional label for the image (e.g., "fig:my_label")
+    :param caption: optional caption for the image
+    :return: formatted image code as a string
     """
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     txt = ""
     txt += comment_prefix + " render_images:begin " + comment_postfix + "\n"
     # Add the code to insert the image in the file.
     if extension in (".md", ".txt"):
-        # Use the Markdown syntax.
-        txt += f"![]({rel_img_path})" + "\n"
-        # Add the size, if specified.
+        # Use the Markdown/Pandoc syntax.
+        # Format: ![Caption](image.png){#fig:Label}
+        caption_text = caption if caption else ""
+        txt += f"![{caption_text}]({rel_img_path})"
+        # Add label and/or size if specified.
+        attributes = []
+        if label:
+            attributes.append(f"#{label}")
         if user_img_size:
-            # E.g., "![](path/to/image.png){ height=100% }"
-            txt += "{ " + user_img_size + " }"
+            attributes.append(user_img_size)
+        if attributes:
+            txt += "{" + " ".join(attributes) + "}"
+        txt += "\n"
     elif extension == ".tex":
         # Use the LaTeX syntax with tagged markers to make it easier to do a
         # replacement.
-        txt += (
-            r"\begin{figure}" + "\n" +
-            r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}\n" +
-            r"\end{figure}" + "\n"
-        )
+        txt += r"\begin{figure}" + "\n"
+        txt += r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}\n"
+        if caption:
+            txt += r"  \caption{" + caption + "}\n"
+        if label:
+            txt += r"  \label{" + label + "}\n"
+        txt += r"\end{figure}" + "\n"
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
     txt += comment_prefix + " render_images:end " + comment_postfix + "\n"
@@ -368,7 +389,17 @@ def _render_images(
     This method:
     - comments out the image code if it is not already commented out
     - renders the image code into an image file
+    - parses optional metadata (label, caption) after the image code block
     - inserts the include for the rendered image after the image code block
+      with optional label and caption
+
+    The parsed text format should look like:
+    ```plantuml
+       ... image code ...
+    ```
+    label=fig:my_label
+    caption=This is a caption
+    that can span multiple lines
 
     :param in_lines: lines of the input file
     :param out_file: path to the output file
@@ -401,7 +432,13 @@ def _render_images(
     # - "search_image_code": Looking for the start of an image code block
     # - "found_image_code": Inside an uncommented image code block
     # - "found_commented_image_code": Inside a commented image code block
+    # - "parse_metadata": After closing ```, parsing optional label/caption
     state = "search_image_code"
+    # Store parsed metadata.
+    metadata_label = ""
+    metadata_caption = ""
+    # Store the current metadata field being parsed (for multi-line values).
+    current_metadata_field = ""
     # The code should look like:
     # ```plantuml
     #    ...
@@ -428,6 +465,22 @@ def _render_images(
         """,
         re.VERBOSE,
     )
+    # Regex for metadata lines (label=... or caption=...).
+    metadata_start_regex = re.compile(
+        r"""
+        ^\s*                # Start of the line and any leading whitespace
+        (label|caption)     # Metadata field name
+        \s*=\s*             # Equals sign with optional whitespace
+        (.*)$               # Value (rest of the line)
+        """,
+        re.VERBOSE,
+    )
+    # Regex to detect continuation lines for multi-line metadata values.
+    # A line is a continuation if it starts with whitespace and doesn't start
+    # a new metadata field or image code block.
+    metadata_continuation_regex = re.compile(r"^\s+\S")
+    # Regex to detect end of metadata section (empty line or start of new content).
+    metadata_end_regex = re.compile(r"^\s*$")
     for i, line in enumerate(in_lines):
         _LOG.debug("%d %s: '%s'", i, state, line)
         m = start_image_regex.search(line)
@@ -492,12 +545,12 @@ def _render_images(
                         state, line, comment_prefix, comment_postfix
                     )
                 )
-                out_lines.append(
-                    _insert_image_code(extension, rel_img_path, user_img_size)
-                )
-                user_img_size = ""
-                # Set the parser to search for a new image code block.
-                state = "search_image_code"
+                # Reset metadata for this image.
+                metadata_label = ""
+                metadata_caption = ""
+                current_metadata_field = ""
+                # Transition to parse_metadata state to check for optional metadata.
+                state = "parse_metadata"
                 _LOG.debug(" -> state=%s", state)
             else:
                 # Record the line from inside the image code block.
@@ -520,9 +573,55 @@ def _render_images(
                         state, line, comment_prefix, comment_postfix
                     )
                 )
+        elif state == "parse_metadata":
+            # Check if this line starts a new metadata field (label= or caption=).
+            m_metadata = metadata_start_regex.search(line)
+            if m_metadata:
+                # Found a metadata field.
+                field_name = m_metadata.group(1)
+                field_value = m_metadata.group(2).strip()
+                current_metadata_field = field_name
+                if field_name == "label":
+                    metadata_label = field_value
+                elif field_name == "caption":
+                    metadata_caption = field_value
+                # Don't add metadata lines to output (they are consumed).
+            elif current_metadata_field and metadata_continuation_regex.search(line):
+                # This is a continuation line for the current metadata field.
+                continuation_value = line.strip()
+                if current_metadata_field == "label":
+                    metadata_label += " " + continuation_value
+                elif current_metadata_field == "caption":
+                    metadata_caption += " " + continuation_value
+                # Don't add continuation lines to output.
+            else:
+                # End of metadata section, insert the image code with metadata.
+                out_lines.append(
+                    _insert_image_code(
+                        extension, rel_img_path, user_img_size,
+                        metadata_label, metadata_caption
+                    )
+                )
+                user_img_size = ""
+                # Reset current field.
+                current_metadata_field = ""
+                # Transition back to search state.
+                state = "search_image_code"
+                _LOG.debug(" -> state=%s", state)
+                # Process the current line as a regular line.
+                out_lines.append(line)
         else:
             # Keep a regular line.
             out_lines.append(line)
+    # Handle end of file while in parse_metadata state.
+    if state == "parse_metadata":
+        # Insert the image code with whatever metadata was collected.
+        out_lines.append(
+            _insert_image_code(
+                extension, rel_img_path, user_img_size,
+                metadata_label, metadata_caption
+            )
+        )
     return out_lines
 
 
