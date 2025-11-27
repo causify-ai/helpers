@@ -801,6 +801,7 @@ class Test_render_images1(hunitest.TestCase):
         [//]: # ( ```graphviz)
         [//]: # ( digraph { A -> B })
         [//]: # ( ```)
+        [//]: # ( label=fig:test_diagram)
         [//]: # ( render_images:begin )
         ![](figs/out.1.png){#fig:test_diagram}
         [//]: # ( render_images:end )
@@ -822,6 +823,7 @@ class Test_render_images1(hunitest.TestCase):
         [//]: # ( ```graphviz)
         [//]: # ( digraph { A -> B })
         [//]: # ( ```)
+        [//]: # ( caption=Test diagram showing communication)
         [//]: # ( render_images:begin )
         ![Test diagram showing communication](figs/out.1.png)
         [//]: # ( render_images:end )
@@ -844,6 +846,8 @@ class Test_render_images1(hunitest.TestCase):
         [//]: # ( ```graphviz)
         [//]: # ( digraph { A -> B })
         [//]: # ( ```)
+        [//]: # ( label=fig:test_diagram)
+        [//]: # ( caption=Test diagram showing communication)
         [//]: # ( render_images:begin )
         ![Test diagram showing communication](figs/out.1.png){#fig:test_diagram}
         [//]: # ( render_images:end )
@@ -868,6 +872,10 @@ class Test_render_images1(hunitest.TestCase):
         [//]: # ( ```graphviz)
         [//]: # ( digraph { A -> B })
         [//]: # ( ```)
+        [//]: # ( label=fig:test_diagram)
+        [//]: # ( caption=This is a caption)
+        [//]: # (   that spans multiple lines)
+        [//]: # (   to test continuation)
         [//]: # ( render_images:begin )
         ![This is a caption that spans multiple lines to test continuation](figs/out.1.png){#fig:test_diagram}
         [//]: # ( render_images:end )
@@ -889,6 +897,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```graphviz
         % digraph { A -> B }
         % ```
+        % label=fig:test_diagram
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
@@ -913,6 +922,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```graphviz
         % digraph { A -> B }
         % ```
+        % caption=Test diagram showing communication
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
@@ -938,6 +948,8 @@ class Test_render_images1(hunitest.TestCase):
         % ```graphviz
         % digraph { A -> B }
         % ```
+        % label=fig:test_diagram
+        % caption=Test diagram showing communication
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
@@ -948,23 +960,68 @@ class Test_render_images1(hunitest.TestCase):
         """
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_graphviz_with_metadata1(self) -> None:
+    def test_tex_graphviz_with_metadata4(self) -> None:
         """
-        Check complex graphviz code with label, caption, and user size.
+        Check graphviz code with both label and caption in a LaTeX file.
         """
         in_lines = r"""
-        ```graphviz[width=50%]
-        digraph { A -> B }
-        }
-        ```
-        caption=High-level overview
-        label=fig:system_overview
+        ```graphviz
+        % digraph { A -> B }
+        % ```
+        % label=fig:test_diagram
+        % caption=Test diagram showing communication
         """
         file_ext = "tex"
         expected = r"""
+        % ```graphviz
+        % digraph { A -> B }
+        % ```
+        % label=fig:test_diagram
+        % caption=Test diagram showing communication
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+          \caption{Test diagram showing communication}
+          \label{fig:test_diagram}
+        \end{figure}
+        % render_images:end
         """
         self.helper(in_lines, file_ext, expected)
 
+    def test_tex_graphviz_with_metadata5(self) -> None:
+        """
+        Check graphviz code with both label and caption in a LaTeX file.
+        """
+        in_lines = r"""
+        ```graphviz
+        % digraph { A -> B }
+        % ```
+        % label=fig:test_diagram2
+        % caption=Test diagram2
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+          \caption{Test diagram showing communication}
+          \label{fig:test_diagram}
+        \end{figure}
+        % render_images:end
+        """
+        file_ext = "tex"
+        expected = r"""
+        % ```graphviz
+        % digraph { A -> B }
+        % ```
+        % label=fig:test_diagram
+        % caption=Test diagram showing communication
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+          \caption{Test diagram2}
+          \label{fig:test_diagram2}
+        \end{figure}
+        % render_images:end
+        """
+        self.helper(in_lines, file_ext, expected)
 
 # #############################################################################
 # Test_render_images2

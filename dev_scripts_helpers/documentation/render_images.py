@@ -574,12 +574,6 @@ def _render_images(
                     )
                 )
         elif state == "parse_metadata":
-            # TODO(AI_GP): We should use to make sure that the metadata is commented out
-            # together with the rest of the image
-
-                    # _comment_if_needed(
-                    #     state, line, comment_prefix, comment_postfix
-                    # )
             # Check if this line starts a new metadata field (label= or caption=).
             m_metadata = metadata_start_regex.search(line)
             if m_metadata:
@@ -591,7 +585,10 @@ def _render_images(
                     metadata_label = field_value
                 elif field_name == "caption":
                     metadata_caption = field_value
-                # Don't add metadata lines to output (they are consumed).
+                # Comment out the metadata line.
+                out_lines.append(
+                    f"{comment_prefix} {line}{comment_postfix}"
+                )
             elif current_metadata_field and metadata_continuation_regex.search(line):
                 # This is a continuation line for the current metadata field.
                 continuation_value = line.strip()
@@ -599,7 +596,10 @@ def _render_images(
                     metadata_label += " " + continuation_value
                 elif current_metadata_field == "caption":
                     metadata_caption += " " + continuation_value
-                # Don't add continuation lines to output.
+                # Comment out the continuation line.
+                out_lines.append(
+                    f"{comment_prefix} {line}{comment_postfix}"
+                )
             else:
                 # End of metadata section, insert the image code with metadata.
                 out_lines.append(
