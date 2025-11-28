@@ -698,9 +698,11 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( ```plantuml)
-        [//]: # ( Alice --> Bob)
-        [//]: # ( ```)
+        [//]: # ( rendered_images:begin )
+        [//]: # ( ```plantuml )
+        [//]: # ( Alice --> Bob )
+        [//]: # ( ``` )
+        [//]: # ( rendered_images:end )
         [//]: # ( render_images:begin )
         ![](figs/out.1.png)
         [//]: # ( render_images:end )
@@ -847,10 +849,12 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( ```mermaid)
-        [//]: # ( flowchart TD;)
-        [//]: # (   A[Start] --> B[End];)
-        [//]: # ( ```)
+        [//]: # ( rendered_images:begin )
+        [//]: # ( ```mermaid )
+        [//]: # ( flowchart TD; )
+        [//]: # (   A[Start] --> B[End]; )
+        [//]: # ( ``` )
+        [//]: # ( rendered_images:end )
         [//]: # ( render_images:begin )
         ![](figs/out.1.png)
         [//]: # ( render_images:end )
@@ -872,14 +876,15 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "md"
         expected = r"""
         A
-        [//]: # ( ```mermaid)
-        [//]: # ( flowchart TD;)
-        [//]: # (   A[Start] --> B[End];)
-        [//]: # ( ```)
+        [//]: # ( rendered_images:begin )
+        [//]: # ( ```mermaid )
+        [//]: # ( flowchart TD; )
+        [//]: # (   A[Start] --> B[End]; )
+        [//]: # ( ``` )
+        [//]: # ( rendered_images:end )
         [//]: # ( render_images:begin )
         ![](figs/out.1.png)
         [//]: # ( render_images:end )
-
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -1036,10 +1041,12 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( ```graphviz)
-        [//]: # ( digraph { A -> B })
-        [//]: # ( ```)
-        [//]: # ( label=fig:test_diagram)
+        [//]: # ( rendered_images:begin )
+        [//]: # ( ```graphviz )
+        [//]: # ( digraph { A -> B } )
+        [//]: # ( ``` )
+        [//]: # ( label=fig:test_diagram )
+        [//]: # ( rendered_images:end )
         [//]: # ( render_images:begin )
         ![](figs/out.1.png){#fig:test_diagram}
         [//]: # ( render_images:end )
@@ -1058,10 +1065,12 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( ```graphviz)
-        [//]: # ( digraph { A -> B })
-        [//]: # ( ```)
-        [//]: # ( caption=Test diagram showing communication)
+        [//]: # ( rendered_images:begin )
+        [//]: # ( ```graphviz )
+        [//]: # ( digraph { A -> B } )
+        [//]: # ( ``` )
+        [//]: # ( caption=Test diagram showing communication )
+        [//]: # ( rendered_images:end )
         [//]: # ( render_images:begin )
         ![Test diagram showing communication](figs/out.1.png)
         [//]: # ( render_images:end )
@@ -1081,11 +1090,13 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( ```graphviz)
-        [//]: # ( digraph { A -> B })
-        [//]: # ( ```)
-        [//]: # ( label=fig:test_diagram)
-        [//]: # ( caption=Test diagram showing communication)
+        [//]: # ( rendered_images:begin )
+        [//]: # ( ```graphviz )
+        [//]: # ( digraph { A -> B } )
+        [//]: # ( ``` )
+        [//]: # ( label=fig:test_diagram )
+        [//]: # ( caption=Test diagram showing communication )
+        [//]: # ( rendered_images:end )
         [//]: # ( render_images:begin )
         ![Test diagram showing communication](figs/out.1.png){#fig:test_diagram}
         [//]: # ( render_images:end )
@@ -1107,13 +1118,15 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( ```graphviz)
-        [//]: # ( digraph { A -> B })
-        [//]: # ( ```)
-        [//]: # ( label=fig:test_diagram)
-        [//]: # ( caption=This is a caption)
-        [//]: # (   that spans multiple lines)
-        [//]: # (   to test continuation)
+        [//]: # ( rendered_images:begin )
+        [//]: # ( ```graphviz )
+        [//]: # ( digraph { A -> B } )
+        [//]: # ( ``` )
+        [//]: # ( label=fig:test_diagram )
+        [//]: # ( caption=This is a caption )
+        [//]: # (   that spans multiple lines )
+        [//]: # (   to test continuation )
+        [//]: # ( rendered_images:end )
         [//]: # ( render_images:begin )
         ![This is a caption that spans multiple lines to test continuation](figs/out.1.png){#fig:test_diagram}
         [//]: # ( render_images:end )

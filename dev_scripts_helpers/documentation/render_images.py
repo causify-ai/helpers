@@ -266,7 +266,7 @@ def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     """
     if extension == ".md":
         comment_prefix = "[//]: # ("
-        comment_postfix = ")"
+        comment_postfix = " )"
     elif extension == ".tex":
         comment_prefix = "%"
         comment_postfix = ""
@@ -283,7 +283,8 @@ def _comment_line(
     extension: str,
 ) -> str:
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
-    # TODO(ai_gp): The line should not start with the comment.
+    # The line should not start with the comment.
+    hdbg.dassert_not_in(comment_prefix, line)
     ret = f"{comment_prefix} {line}{comment_postfix}"
     return ret
 
@@ -378,14 +379,14 @@ def _insert_image_code(
     :param caption: optional caption for the image
     :return: formatted image code as a string
     """
-    txt = ""
-    txt += _comment_line("render_images:begin", extension)
+    out_lines: List[str] = []
+    out_lines.append(_comment_line("render_images:begin", extension))
     # Add the code to insert the image in the file.
     if extension in (".md", ".txt"):
         # Use the Markdown/Pandoc syntax.
         # Format: ![Caption](image.png){#fig:Label}
         caption_text = caption if caption else ""
-        txt += f"![{caption_text}]({rel_img_path})"
+        txt = f"![{caption_text}]({rel_img_path})"
         # Add label and/or size if specified.
         attributes = []
         if label:
@@ -394,20 +395,21 @@ def _insert_image_code(
             attributes.append(user_img_size)
         if attributes:
             txt += "{" + " ".join(attributes) + "}"
-        txt += "\n"
+        out_lines.append(txt)
     elif extension == ".tex":
         # Use the LaTeX syntax with tagged markers to make it easier to do a
         # replacement.
-        txt += r"\begin{figure}" + "\n"
-        txt += r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}\n"
+        out_lines.append(r"\begin{figure}")
+        out_lines.append(r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}")
         if caption:
-            txt += r"  \caption{" + caption + "}\n"
+            out_lines.append(r"  \caption{" + caption + "}")
         if label:
-            txt += r"  \label{" + label + "}\n"
-        txt += r"\end{figure}" + "\n"
+            out_lines.append(r"  \label{" + label + "}")
+        out_lines.append(r"\end{figure}")
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
-    txt += _comment_line("render_images:end", extension)
+    out_lines.append(_comment_line("render_images:end", extension))
+    txt = "\n".join(out_lines)
     return txt
 
 
