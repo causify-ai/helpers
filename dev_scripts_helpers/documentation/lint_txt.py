@@ -58,7 +58,7 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     # Remove lines with ---.
     txt = re.sub(r"^---\s*$", "", txt, flags=re.MULTILINE)
     # Collapse repeated lines.
-    #txt = re.sub(r"\n{2,}", "\n", txt)
+    # txt = re.sub(r"\n{2,}", "\n", txt)
     # Replace … with ...
     txt = re.sub(r"…", "...", txt)
     # Replace \t with 2 spaces
@@ -259,7 +259,9 @@ def _perform_actions(
     is_md_file = in_file_name.endswith(".md")
     is_tex_file = in_file_name.endswith(".tex")
     is_txt_file = in_file_name.endswith(".txt")
-    hdbg.dassert_eq(is_md_file + is_tex_file + is_txt_file, 1, msg="Invalid file type")
+    hdbg.dassert_eq(
+        is_md_file + is_tex_file + is_txt_file, 1, msg="Invalid file type"
+    )
     #
     extension = os.path.splitext(in_file_name)[1]
     # Remove the . from the extenstion (e.g., ".txt").

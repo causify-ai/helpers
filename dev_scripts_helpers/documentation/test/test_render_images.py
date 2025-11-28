@@ -1323,9 +1323,7 @@ class Test_render_images_script1(hunitest.TestCase):
         exec_path = hgit.find_file_in_git_repo(
             "render_images.py", super_module=True
         )
-        cmd = (
-            f"{exec_path} -i {test_file} --action render --dry_run"
-        )
+        cmd = f"{exec_path} -i {test_file} --action render --dry_run"
         rc = hsystem.system(cmd)
         # Check that it succeeded.
         self.assertEqual(rc, 0)

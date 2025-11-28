@@ -85,7 +85,9 @@ def _poll_detection_result(
         if result.get("status") == "done":
             _LOG.info("Detection complete")
             return result
-        _LOG.debug("Status: %s, waiting %s seconds...", result.get("status"), delay_secs)
+        _LOG.debug(
+            "Status: %s, waiting %s seconds...", result.get("status"), delay_secs
+        )
         time.sleep(delay_secs)
     hdbg.dfatal(
         "Detection timed out after %s attempts",
@@ -242,12 +244,17 @@ def _humanize_text(
     """
     hdbg.dassert_isinstance(text, str)
     hdbg.dassert_lte(
-            0,
+        0,
         len(text),
     )
     _LOG.info("Submitting text for humanization")
     _LOG.debug("Text length: %s characters", len(text))
-    _LOG.debug("Settings: readability: %s, purpose: %s, strength: %s", readability, purpose, strength)
+    _LOG.debug(
+        "Settings: readability: %s, purpose: %s, strength: %s",
+        readability,
+        purpose,
+        strength,
+    )
     # Prepare the request.
     humanize_submit_endpoint = "https://humanize.undetectable.ai/submit"
     payload = {
@@ -270,7 +277,9 @@ def _humanize_text(
     _LOG.info("Humanization in progress, polling for results...")
     humanized_result = _poll_humanization_result(doc_id, api_key)
     # Extract humanized text.
-    hdbg.dassert_in("output", humanized_result, "Response missing humanized output")
+    hdbg.dassert_in(
+        "output", humanized_result, "Response missing humanized output"
+    )
     humanized_text = humanized_result["output"]
     _LOG.info("Humanization complete")
     return humanized_text
@@ -319,9 +328,7 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(
-        parser, in_required=True, out_required=False
-    )
+    hparser.add_input_output_args(parser, in_required=True, out_required=False)
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     # Humanization options.
     parser.add_argument(

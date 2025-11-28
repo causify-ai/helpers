@@ -380,7 +380,9 @@ class Test_is_latex_comment(hunitest.TestCase):
 
 
 class Test_extract_latex_section(hunitest.TestCase):
-    def helper(self, line: str, expected_level: int, expected_title: str) -> None:
+    def helper(
+        self, line: str, expected_level: int, expected_title: str
+    ) -> None:
         """
         Helper method to test extraction of LaTeX section commands.
 
@@ -474,9 +476,7 @@ class Test_extract_latex_section(hunitest.TestCase):
 
 
 class Test_extract_headers_from_latex(hunitest.TestCase):
-    def helper(
-        self, lines: str, expected: str, *, max_level: int = 3
-    ) -> None:
+    def helper(self, lines: str, expected: str, *, max_level: int = 3) -> None:
         """
         Helper method to test header extraction from LaTeX documents.
 

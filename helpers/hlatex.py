@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
@@ -251,7 +251,7 @@ def _extract_latex_section(
     hdbg.dassert_isinstance(line_number, int)
     # Define section patterns with their corresponding levels.
     # Pattern supports optional [short title] before {long title}.
-    regex = r'(?:\[.*?\])?\{(.*)\}'
+    regex = r"(?:\[.*?\])?\{(.*)\}"
     section_patterns = [
         (r"\\section" + regex, 1),
         (r"\\subsection" + regex, 2),

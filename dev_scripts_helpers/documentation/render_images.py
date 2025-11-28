@@ -90,7 +90,9 @@ def _get_rendered_file_paths(
     # Use GitHub absolute reference when specified.
     if use_github_hosting:
         repo_name = hgit.get_repo_full_name_from_client(super_module=True)
-        github_abs_path = f"https://raw.githubusercontent.com/{repo_name}/master/"
+        github_abs_path = (
+            f"https://raw.githubusercontent.com/{repo_name}/master/"
+        )
         rel_img_path = os.path.join(github_abs_path, rel_img_path)
     # Get the path to a temporary file with the image code, e.g., "readme.1.txt".
     dir_name = "tmp.render_images"
@@ -277,7 +279,8 @@ def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
 
 
 def _comment_line(
-        line: str, extension: str,
+    line: str,
+    extension: str,
 ) -> str:
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     # TODO(ai_gp): The line should not start with the comment.
@@ -286,15 +289,16 @@ def _comment_line(
 
 
 def _uncomment_line(
-    line: str, extension: str,
+    line: str,
+    extension: str,
 ) -> str:
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     # Remove the comment prefix and postfix, and the space after the prefix.
     ret = line.lstrip()
     if ret.startswith(comment_prefix):
-        ret = ret[len(comment_prefix):].lstrip()
+        ret = ret[len(comment_prefix) :].lstrip()
     if comment_postfix and ret.endswith(comment_postfix):
-        ret = ret[:-len(comment_postfix)].rstrip()
+        ret = ret[: -len(comment_postfix)].rstrip()
     return ret
 
 
@@ -564,11 +568,9 @@ def _render_images(
                 user_img_size = m.group(6)
                 _LOG.debug(hprint.to_str("user_img_size"))
             # Add
-            out_lines.append(
-                    _comment_line("rendered_images:begin", extension))
+            out_lines.append(_comment_line("rendered_images:begin", extension))
             # Comment out the beginning of the image code.
-            out_lines.append(
-                    _comment_line(line, extension))
+            out_lines.append(_comment_line(line, extension))
         elif state == "found_image_code":
             m = end_image_regex.search(line)
             if m:
@@ -590,9 +592,7 @@ def _render_images(
                     rel_img_path = user_rel_img_path
                     user_rel_img_path = ""
                 # Comment out the end of the image code, if needed.
-                out_lines.append(
-                    _comment_line(line, extension)
-                )
+                out_lines.append(_comment_line(line, extension))
                 # Reset metadata for this image.
                 metadata_label = ""
                 metadata_caption = ""
@@ -604,9 +604,7 @@ def _render_images(
                 # Record the line from inside the image code block.
                 image_code_lines.append(line)
                 # Comment out the inside of the image code.
-                out_lines.append(
-                    _comment_line(line, extension)
-                )
+                out_lines.append(_comment_line(line, extension))
         elif state == "parse_metadata":
             # Check if this line starts a new metadata field (label= or caption=).
             m_metadata = metadata_start_regex.search(line)
@@ -620,10 +618,10 @@ def _render_images(
                 elif field_name == "caption":
                     metadata_caption = field_value
                 # Comment out the metadata line.
-                out_lines.append(
-                        _comment_line(line, extension)
-                )
-            elif current_metadata_field and metadata_continuation_regex.search(line):
+                out_lines.append(_comment_line(line, extension))
+            elif current_metadata_field and metadata_continuation_regex.search(
+                line
+            ):
                 # This is a continuation line for the current metadata field.
                 continuation_value = line.strip()
                 if current_metadata_field == "label":
@@ -631,9 +629,7 @@ def _render_images(
                 elif current_metadata_field == "caption":
                     metadata_caption += " " + continuation_value
                 # Comment out the continuation line.
-                out_lines.append(
-                        _comment_line(line, extension)
-                )
+                out_lines.append(_comment_line(line, extension))
             else:
                 # Add marker.
                 out_lines.append(_comment_line("rendered_images:end", extension))
@@ -787,7 +783,9 @@ def _process_single_file(
         use_github_hosting=use_github_hosting,
     )
     # Remove empty consecutive lines.
-    out_lines = hprint.remove_empty_lines(out_lines, mode="no_consecutive_empty_lines")
+    out_lines = hprint.remove_empty_lines(
+        out_lines, mode="no_consecutive_empty_lines"
+    )
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))
     # Open if needed.
@@ -806,9 +804,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Handle output file for multi-file mode.
     if len(in_files) > 1:
         # Multi-file mode.
-        hdbg.dassert_eq(args.output, None,
-                "You can't specify output file with multiple input files"
-            )
+        hdbg.dassert_eq(
+            args.output,
+            None,
+            "You can't specify output file with multiple input files",
+        )
     else:
         # Get output file name.
         if args.output:

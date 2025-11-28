@@ -1,8 +1,7 @@
 import logging
 import pprint
-from typing import List, Union
+from typing import List
 
-import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 

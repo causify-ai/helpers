@@ -341,7 +341,9 @@ def align_on_left(lines: List[str]) -> List[str]:
 
 
 @split_lines
-def remove_empty_lines(lines: List[str], *, mode: str = "no_empty_lines") -> List[str]:
+def remove_empty_lines(
+    lines: List[str], *, mode: str = "no_empty_lines"
+) -> List[str]:
     """
     Remove empty lines from a multi-line string.
 
