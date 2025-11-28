@@ -307,13 +307,15 @@ def _remove_image_code(
 ) -> List[str]:
     """
     Remove all rendered image code blocks from the file.
+    This is the opposite of `_insert_image_code()` in that it removes the
+    comments and the rendered image code blocks.
 
     This function:
     - uncomments blocks between `rendered_images:begin` and
       `rendered_images:end`
     - removes blocks between `render_images:begin` and
-    `render_images:end` markers to allow re-rendering images without
-    accumulating old rendered blocks.
+      `render_images:end` markers to allow re-rendering images without
+      accumulating old rendered blocks.
 
     :param in_lines: lines of the input file
     :param extension: file extension (e.g., ".md", ".tex", ".txt")
@@ -372,9 +374,8 @@ def _insert_image_code(
     :param caption: optional caption for the image
     :return: formatted image code as a string
     """
-    comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     txt = ""
-    txt += comment_prefix + " render_images:begin " + comment_postfix + "\n"
+    txt += _comment_line("render_images:begin", extension)
     # Add the code to insert the image in the file.
     if extension in (".md", ".txt"):
         # Use the Markdown/Pandoc syntax.
@@ -402,7 +403,7 @@ def _insert_image_code(
         txt += r"\end{figure}" + "\n"
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
-    txt += comment_prefix + " render_images:end " + comment_postfix + "\n"
+    txt += _comment_line("render_images:end", extension)
     return txt
 
 
@@ -492,10 +493,6 @@ def _render_images(
     metadata_caption = ""
     # Store the current metadata field being parsed (for multi-line values).
     current_metadata_field = ""
-    # The code should look like:
-    # ```plantuml
-    #    ...
-    # ```
     comment = re.escape(comment_prefix)
     start_image_regex = re.compile(
         rf"""
@@ -569,7 +566,6 @@ def _render_images(
             # Add
             out_lines.append(
                     _comment_line("rendered_images:begin", extension))
-
             # Comment out the beginning of the image code.
             out_lines.append(
                     _comment_line(line, extension))

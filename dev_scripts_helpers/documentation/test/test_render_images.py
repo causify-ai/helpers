@@ -79,7 +79,7 @@ class Test_remove_image_code1(hunitest.TestCase):
 
     def helper(self, in_text: str, extension: str, expected: str) -> None:
         """
-        Helper function to test _remove_image_code().
+        Helper function to test `_remove_image_code()`.
 
         :param in_text: input text as a single string
         :param extension: file extension (e.g., ".md", ".tex")
@@ -99,13 +99,13 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         Test with text that has no render markers.
         """
-        in_text = """
+        in_text = r"""
         A
         B
         C
         """
         extension = ".md"
-        expected = """
+        expected = r"""
         A
         B
         C
@@ -116,7 +116,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         Test removing a render_images block.
         """
-        in_text = """
+        in_text = r"""
         Before
         % render_images:begin
         ![](figs/test.1.png)
@@ -124,9 +124,56 @@ class Test_remove_image_code1(hunitest.TestCase):
         After
         """
         extension = ".md"
-        expected = """
+        expected = r"""
         Before
         After
+        """
+        self.helper(in_text, extension, expected)
+
+    def test_md4(self) -> None:
+        """
+        Test removing multiple render_images blocks.
+        """
+        in_text = r"""
+        Text1
+        % render_images:begin
+        ![](figs/test.1.png)
+        % render_images:end
+        Text2
+        % render_images:begin
+        ![](figs/test.2.png)
+        % render_images:end
+        Text3
+        """
+        extension = ".md"
+        expected = r"""
+        Text1
+        Text2
+        Text3
+        """
+        self.helper(in_text, extension, expected)
+
+    def test_md5(self) -> None:
+        """
+        Test with empty input.
+        """
+        in_text = """
+        """
+        extension = ".md"
+        expected = """
+        """
+        self.helper(in_text, extension, expected)
+
+    def test_md6(self) -> None:
+        """
+        Test with only markers and no content between them.
+        """
+        in_text = r"""
+        % render_images:begin
+        % render_images:end
+        """
+        extension = ".md"
+        expected = r"""
         """
         self.helper(in_text, extension, expected)
 
@@ -134,7 +181,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         Test uncommenting a rendered_images block.
         """
-        in_text = """
+        in_text = r"""
         Before
         % rendered_images:begin
         % ```plantuml
@@ -144,7 +191,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         After
         """
         extension = ".tex"
-        expected = """
+        expected = r"""
         Before
         ```plantuml
         Alice -> Bob
@@ -181,30 +228,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_md4(self) -> None:
-        """
-        Test removing multiple render_images blocks.
-        """
-        in_text = """
-        Text1
-        % render_images:begin
-        ![](figs/test.1.png)
-        % render_images:end
-        Text2
-        % render_images:begin
-        ![](figs/test.2.png)
-        % render_images:end
-        Text3
-        """
-        extension = ".md"
-        expected = """
-        Text1
-        Text2
-        Text3
-        """
-        self.helper(in_text, extension, expected)
-
-    def test_tex_extension(self) -> None:
+    def test_tex3(self) -> None:
         """
         Test with LaTeX file extension.
         """
@@ -223,7 +247,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         After
         """
         extension = ".tex"
-        expected = """
+        expected = r"""
         Before
         ```graphviz
         digraph { A -> B }
@@ -232,11 +256,11 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_txt_extension(self) -> None:
+    def test_tex4(self) -> None:
         """
         Test with txt file extension.
         """
-        in_text = """
+        in_text = r"""
         Before
         // rendered_images:begin
         // ```mermaid
@@ -249,7 +273,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         After
         """
         extension = ".txt"
-        expected = """
+        expected = r"""
         Before
         ```mermaid
         flowchart TD;
@@ -258,7 +282,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
-    def test_nested_content_in_render_block(self) -> None:
+    def test_tex5(self) -> None:
         """
         Test removing render block with complex nested content.
         """
@@ -274,33 +298,9 @@ class Test_remove_image_code1(hunitest.TestCase):
         After
         """
         extension = ".tex"
-        expected = """
+        expected = r"""
         Before
         After
-        """
-        self.helper(in_text, extension, expected)
-
-    def test_empty_input(self) -> None:
-        """
-        Test with empty input.
-        """
-        in_text = """
-        """
-        extension = ".md"
-        expected = """
-        """
-        self.helper(in_text, extension, expected)
-
-    def test_only_markers(self) -> None:
-        """
-        Test with only markers and no content between them.
-        """
-        in_text = """
-        % render_images:begin
-        % render_images:end
-        """
-        extension = ".md"
-        expected = """
         """
         self.helper(in_text, extension, expected)
 
@@ -319,7 +319,7 @@ class Test_render_image_code1(hunitest.TestCase):
     Test `_render_image_code()`.
     """
 
-    def test1(self) -> None:
+    def test_md1(self) -> None:
         """
         Check rendering of an image code in a Markdown file.
         """
@@ -340,7 +340,7 @@ class Test_render_image_code1(hunitest.TestCase):
         # Check output.
         self.assertEqual(rel_img_path, "figs/test.1.png")
 
-    def test2(self) -> None:
+    def test_md2(self) -> None:
         """
         Check rendering of an image code in a Markdown file with a different
         image code type.
@@ -365,7 +365,7 @@ class Test_render_image_code1(hunitest.TestCase):
         # Check output.
         self.assertEqual(rel_img_path, "figs/test.1.png")
 
-    def test3(self) -> None:
+    def test_md3(self) -> None:
         """
         Check rendering of an image code in a Markdown file with a different
         output file and extension.
@@ -398,7 +398,7 @@ class Test_insert_image_code1(hunitest.TestCase):
     Test _insert_image_code() for markdown files.
     """
 
-    def test_md_no_metadata(self) -> None:
+    def test_md1(self) -> None:
         """
         Test markdown output without label or caption.
         """
@@ -420,7 +420,7 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
-    def test_md_label_only(self) -> None:
+    def test_md2(self) -> None:
         """
         Test markdown output with label only.
         """
@@ -442,7 +442,7 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
-    def test_md_caption_only(self) -> None:
+    def test_md3(self) -> None:
         """
         Test markdown output with caption only.
         """
@@ -464,7 +464,7 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
-    def test_md_label_and_caption(self) -> None:
+    def test_md4(self) -> None:
         """
         Test markdown output with both label and caption.
         """
@@ -486,7 +486,7 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
-    def test_md_with_user_size(self) -> None:
+    def test_md5(self) -> None:
         """
         Test markdown output with user-specified size.
         """
@@ -514,7 +514,7 @@ class Test_insert_image_code2(hunitest.TestCase):
     Test _insert_image_code() for LaTeX files.
     """
 
-    def test_tex_no_metadata(self) -> None:
+    def test_tex1(self) -> None:
         """
         Test LaTeX output without label or caption.
         """
@@ -538,7 +538,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
-    def test_tex_label_only(self) -> None:
+    def test_tex2(self) -> None:
         """
         Test LaTeX output with label only.
         """
@@ -563,7 +563,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
-    def test_tex_caption_only(self) -> None:
+    def test_tex3(self) -> None:
         """
         Test LaTeX output with caption only.
         """
@@ -588,7 +588,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
-    def test_tex_label_and_caption(self) -> None:
+    def test_tex4(self) -> None:
         """
         Test LaTeX output with both label and caption.
         """
