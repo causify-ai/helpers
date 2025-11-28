@@ -212,7 +212,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
         ![](figs/test.1.png)
         \end{figure}
         % render_images:end
@@ -240,7 +240,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
@@ -289,7 +289,7 @@ class Test_remove_image_code1(hunitest.TestCase):
         in_text = r"""
         Before
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/test.png}
           \caption{Test caption}
           \label{fig:test}
@@ -531,7 +531,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         # Check output.
         expected = r"""
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/test.1.png}
         \end{figure}
         % render_images:end
@@ -555,7 +555,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         # Check output.
         expected = r"""
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/test.1.png}
           \label{fig:test_diagram}
         \end{figure}
@@ -580,7 +580,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         # Check output.
         expected = r"""
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/test.1.png}
           \caption{Test diagram caption}
         \end{figure}
@@ -605,7 +605,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         # Check output.
         expected = r"""
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/test.1.png}
           \caption{Test diagram caption}
           \label{fig:test_diagram}
@@ -779,7 +779,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
@@ -806,7 +806,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
@@ -836,7 +836,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
@@ -916,7 +916,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
@@ -945,7 +945,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
@@ -1016,10 +1016,10 @@ class Test_render_images1(hunitest.TestCase):
         in_lines = r"""
         A
         // rendered_images:begin
-        // ```mermaid(hello_world.png)
-        // flowchart TD;
-        // A[Start] --> B[End];
-        // ```
+        //     ```mermaid(hello_world.png)
+        //     flowchart TD;
+        //       A[Start] --> B[End];
+        //     ```
         // rendered_images:end
         // render_images:begin
         ![](hello_world.png)
@@ -1156,7 +1156,7 @@ class Test_render_images1(hunitest.TestCase):
         % label=fig:test_diagram
         % rendered_images:end
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/out.1.png}
           \label{fig:test_diagram}
         \end{figure}
@@ -1183,7 +1183,7 @@ class Test_render_images1(hunitest.TestCase):
         % caption=Test diagram showing communication
         % rendered_images:end
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/out.1.png}
           \caption{Test diagram showing communication}
         \end{figure}
@@ -1212,7 +1212,7 @@ class Test_render_images1(hunitest.TestCase):
         % caption=Test diagram showing communication
         % rendered_images:end
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/out.1.png}
           \caption{Test diagram showing communication}
           \label{fig:test_diagram}
@@ -1227,14 +1227,14 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         % rendered_images:begin
-        % ```graphviz
-        % digraph { A -> B }
-        % ```
-        % label=fig:test_diagram
-        % caption=Test diagram showing communication
+        %     ```graphviz
+        %     digraph { A -> B }
+        %     ```
+        %     label=fig:test_diagram
+        %     caption=Test diagram showing communication
         % rendered_images:end
         % render_images:begin
-        \begin{figure}
+        \begin{figure}[h]
           \includegraphics[width=\linewidth]{figs/out.1.png}
           \caption{Test diagram showing communication}
           \label{fig:test_diagram}

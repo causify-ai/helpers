@@ -51,7 +51,7 @@ Here is the beginning.
 % ```
 % rendered_images:end
 % render_images:begin
-\begin{figure}
+\begin{figure}[h]
   \includegraphics[width=\linewidth]{figs/sample_file_plantuml.1.png}
 \end{figure}
 % render_images:end
@@ -131,7 +131,7 @@ Another one:
 % ```
 % rendered_images:end
 % render_images:begin
-\begin{figure}
+\begin{figure}[h]
   \includegraphics[width=\linewidth]{figs/sample_file_plantuml.2.png}
 \end{figure}
 % render_images:end

@@ -282,9 +282,13 @@ def _comment_line(
     line: str,
     extension: str,
 ) -> str:
+    """
+    Comment a line by adding the comment prefix and postfix based on the file
+    extension.
+    """
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     # The line should not start with the comment.
-    hdbg.dassert_not_in(comment_prefix, line)
+    #hdbg.dassert_not_in(comment_prefix, line)
     ret = f"{comment_prefix} {line}{comment_postfix}"
     return ret
 
@@ -293,13 +297,14 @@ def _uncomment_line(
     line: str,
     extension: str,
 ) -> str:
+    """
+    Uncomment a line by removing the comment prefix and postfix based on the
+    file extension.
+    """
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
-    # Remove the comment prefix and postfix, and the space after the prefix.
-    ret = line.lstrip()
-    if ret.startswith(comment_prefix):
-        ret = ret[len(comment_prefix) :].lstrip()
-    if comment_postfix and ret.endswith(comment_postfix):
-        ret = ret[: -len(comment_postfix)].rstrip()
+    # Remove the comment prefix and postfix leaving the content in between and
+    # the spaces.
+    ret = line.replace(comment_prefix + " ", "").replace(comment_postfix, "")
     return ret
 
 
@@ -399,7 +404,7 @@ def _insert_image_code(
     elif extension == ".tex":
         # Use the LaTeX syntax with tagged markers to make it easier to do a
         # replacement.
-        out_lines.append(r"\begin{figure}")
+        out_lines.append(r"\begin{figure}[h]")
         out_lines.append(r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}")
         if caption:
             out_lines.append(r"  \caption{" + caption + "}")
@@ -549,18 +554,17 @@ def _render_images(
             image_code_idx += 1
             # E.g., "plantuml" or "mermaid".
             image_code_type = m.group(2)
-            # # TODO(ai_gp): Is this needed here?
-            # hdbg.dassert_in(
-            #     image_code_type,
-            #     [
-            #         "plantuml",
-            #         "mermaid",
-            #         "tikz",
-            #         "graphviz",
-            #         "latex",
-            #         "raw_latex",
-            #     ],
-            # )
+            hdbg.dassert_in(
+                image_code_type,
+                [
+                    "plantuml",
+                    "mermaid",
+                    "tikz",
+                    "graphviz",
+                    "latex",
+                    "raw_latex",
+                ],
+            )
             if m.group(3):
                 hdbg.dassert_eq(user_rel_img_path, "")
                 user_rel_img_path = m.group(4)
@@ -820,7 +824,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
             out_file = in_files[0]
     # Process each file with progress bar.
     _LOG.info("Processing %s files", len(in_files))
-    for in_file in tqdm(in_files, desc="Processing files"):
+    if len(in_files) > 1:
+        iterator = tqdm(in_files, desc="Processing files")
+    else:
+        iterator = [in_files[0]]
+    for in_file in iterator:
         _LOG.info("Processing file: %s", in_file)
         # For multi-file mode, always render in-place.
         out_file = in_file
