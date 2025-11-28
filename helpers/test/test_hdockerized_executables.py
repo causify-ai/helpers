@@ -8,7 +8,7 @@ import helpers.hdocker as hdocker
 import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hmarkdown_formatting as hmarform
+import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -107,6 +107,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
 
 
 class Test_parse_pandoc_arguments1(hunitest.TestCase):
+
     def test1(self) -> None:
         # Prepare inputs.
         cmd = r"""
@@ -285,6 +286,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_run_markdown_toc1(hunitest.TestCase):
+
     def run_markdown_toc(self, txt: str, expected: str) -> None:
         """
         Test running the `markdown-toc` command in a Docker container.
@@ -352,6 +354,7 @@ class Test_run_markdown_toc1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_dockerized_latex1(hunitest.TestCase):
+
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         \documentclass{article}
@@ -448,6 +451,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
+
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         \documentclass[tikz, border=10pt]{standalone}
@@ -527,6 +531,7 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_dockerized_graphviz1(hunitest.TestCase):
+
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         digraph {
@@ -599,13 +604,13 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
         # Process expected: dedent but keep internal empty lines, remove only
         # outer newlines from triple-quote.
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
-        if expected.startswith('\n'):
+        if expected.startswith("\n"):
             expected = expected[1:]
-        if expected.endswith('\n'):
+        if expected.endswith("\n"):
             expected = expected[:-1]
         lines = txt.split("\n")
         # Run test.
-        actual_lines = hmarform.add_prettier_ignore_to_div_blocks(lines)
+        actual_lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         self.assert_equal(actual, expected)
@@ -740,13 +745,13 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
         # Process expected: dedent but keep internal empty lines, remove only
         # outer newlines from triple-quote.
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
-        if expected.startswith('\n'):
+        if expected.startswith("\n"):
             expected = expected[1:]
-        if expected.endswith('\n'):
+        if expected.endswith("\n"):
             expected = expected[:-1]
         lines = txt.split("\n")
         # Run test.
-        actual_lines = hmarform.remove_prettier_ignore_from_div_blocks(lines)
+        actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         self.assert_equal(actual, expected)
@@ -856,9 +861,9 @@ class Test_add_remove_prettier_ignore_roundtrip(hunitest.TestCase):
         lines = txt.split("\n")
         # Run test.
         # Add prettier-ignore comments.
-        lines_with_comments = hmarform.add_prettier_ignore_to_div_blocks(lines)
+        lines_with_comments = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
         # Remove prettier-ignore comments.
-        lines_restored = hmarform.remove_prettier_ignore_from_div_blocks(
+        lines_restored = hmadiblo.remove_prettier_ignore_from_div_blocks(
             lines_with_comments
         )
         actual = "\n".join(lines_restored)
