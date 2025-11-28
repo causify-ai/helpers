@@ -60,6 +60,39 @@ def _get_api_key() -> str:
     return api_key
 
 
+def _poll_detection_result(
+    doc_id: str, api_key: str, *, max_attempts: int = 30, delay_secs: int = 2
+) -> Dict[str, Any]:
+    """
+    Poll the detection API for results using document ID.
+
+    :param doc_id: document ID from initial detection submission
+    :param api_key: Undetectable.ai API key
+    :param max_attempts: maximum number of polling attempts
+    :param delay_secs: seconds to wait between polling attempts
+    :return: detection results once complete
+    """
+    query_endpoint = "https://ai-detect.undetectable.ai/query"
+    payload = {"id": doc_id, "key": api_key}
+    headers = {"Content-Type": "application/json"}
+    for attempt in range(max_attempts):
+        _LOG.debug("Polling attempt %s/%s", attempt + 1, max_attempts)
+        response = requests.post(
+            query_endpoint, json=payload, headers=headers, timeout=30
+        )
+        response.raise_for_status()
+        result = response.json()
+        if result.get("status") == "done":
+            _LOG.info("Detection complete")
+            return result
+        _LOG.debug("Status: %s, waiting %s seconds...", result.get("status"), delay_secs)
+        time.sleep(delay_secs)
+    hdbg.dfatal(
+        "Detection timed out after %s attempts",
+        max_attempts,
+    )
+
+
 def _detect_ai_content(text: str, api_key: str) -> Dict[str, Any]:
     """
     Detect if text is AI-generated.
@@ -93,39 +126,6 @@ def _detect_ai_content(text: str, api_key: str) -> Dict[str, Any]:
         _LOG.info("Detection in progress, polling for results...")
         result = _poll_detection_result(doc_id, api_key)
     return result
-
-
-def _poll_detection_result(
-    doc_id: str, api_key: str, *, max_attempts: int = 30, delay_secs: int = 2
-) -> Dict[str, Any]:
-    """
-    Poll the detection API for results using document ID.
-
-    :param doc_id: document ID from initial detection submission
-    :param api_key: Undetectable.ai API key
-    :param max_attempts: maximum number of polling attempts
-    :param delay_secs: seconds to wait between polling attempts
-    :return: detection results once complete
-    """
-    query_endpoint = "https://ai-detect.undetectable.ai/query"
-    payload = {"id": doc_id, "key": api_key}
-    headers = {"Content-Type": "application/json"}
-    for attempt in range(max_attempts):
-        _LOG.debug("Polling attempt %s/%s", attempt + 1, max_attempts)
-        response = requests.post(
-            query_endpoint, json=payload, headers=headers, timeout=30
-        )
-        response.raise_for_status()
-        result = response.json()
-        if result.get("status") == "done":
-            _LOG.info("Detection complete")
-            return result
-        _LOG.debug("Status: %s, waiting %s seconds...", result.get("status"), delay_secs)
-        time.sleep(delay_secs)
-    hdbg.dfatal(
-        "Detection timed out after %s attempts",
-        max_attempts,
-    )
 
 
 def _format_detection_result(result: Dict[str, Any]) -> str:
@@ -185,6 +185,40 @@ def _detect_ai_content_from_file(input_file: str, api_key: str) -> None:
     _LOG.debug("Raw detection result saved to: %s", tmp_file)
 
 
+def _poll_humanization_result(
+    doc_id: str, api_key: str, *, max_attempts: int = 60, delay_secs: int = 3
+) -> Dict[str, Any]:
+    """
+    Poll the humanization API for results using document ID.
+
+    :param doc_id: document ID from humanization submission
+    :param api_key: Undetectable.ai API key
+    :param max_attempts: maximum number of polling attempts
+    :param delay_secs: seconds to wait between polling attempts
+    :return: humanization results once complete
+    """
+    humanize_document_endpoint = "https://humanize.undetectable.ai/document"
+    payload = {"id": doc_id}
+    headers = {"Content-Type": "application/json", "apikey": api_key}
+    for attempt in range(max_attempts):
+        _LOG.debug("Polling attempt %s/%s", attempt + 1, max_attempts)
+        response = requests.post(
+            humanize_document_endpoint, json=payload, headers=headers, timeout=30
+        )
+        response.raise_for_status()
+        result = response.json()
+        # Check if output is available.
+        if "output" in result and result["output"]:
+            _LOG.info("Humanization complete")
+            return result
+        _LOG.debug("Waiting %s seconds...", delay_secs)
+        time.sleep(delay_secs)
+    hdbg.dfatal(
+        "Humanization timed out after %s attempts",
+        max_attempts,
+    )
+
+
 # #############################################################################
 
 
@@ -240,40 +274,6 @@ def _humanize_text(
     humanized_text = humanized_result["output"]
     _LOG.info("Humanization complete")
     return humanized_text
-
-
-def _poll_humanization_result(
-    doc_id: str, api_key: str, *, max_attempts: int = 60, delay_secs: int = 3
-) -> Dict[str, Any]:
-    """
-    Poll the humanization API for results using document ID.
-
-    :param doc_id: document ID from humanization submission
-    :param api_key: Undetectable.ai API key
-    :param max_attempts: maximum number of polling attempts
-    :param delay_secs: seconds to wait between polling attempts
-    :return: humanization results once complete
-    """
-    humanize_document_endpoint = "https://humanize.undetectable.ai/document"
-    payload = {"id": doc_id}
-    headers = {"Content-Type": "application/json", "apikey": api_key}
-    for attempt in range(max_attempts):
-        _LOG.debug("Polling attempt %s/%s", attempt + 1, max_attempts)
-        response = requests.post(
-            humanize_document_endpoint, json=payload, headers=headers, timeout=30
-        )
-        response.raise_for_status()
-        result = response.json()
-        # Check if output is available.
-        if "output" in result and result["output"]:
-            _LOG.info("Humanization complete")
-            return result
-        _LOG.debug("Waiting %s seconds...", delay_secs)
-        time.sleep(delay_secs)
-    hdbg.dfatal(
-        "Humanization timed out after %s attempts",
-        max_attempts,
-    )
 
 
 def _humanize_from_file(
