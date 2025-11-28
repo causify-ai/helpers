@@ -14,12 +14,11 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(ai_gp2): Rename to Test_extract_toc_from_txt_script1
+# TODO(ai_gp2): Add unit test for test_txt1
 class Test_extract_toc_from_txt1(hunitest.TestCase):
 
     def helper(self, file: str) -> None:
-        """
-        Test extraction of headers from a Markdown file.
-        """
         # Prepare inputs.
         in_file = os.path.join(self.get_input_dir(), file)
         # Build command to call the script.
