@@ -761,6 +761,7 @@ def _process_single_file(
     :param use_github_hosting: if True, insert rendered image links using
         absolute GitHub-hosted URLs
     """
+    _LOG.info(hprint.func_signature_to_str())
     # Verify that the input and output file types are valid and equal.
     hdbg.dassert_file_extension(in_file, ["md", "tex", "txt"])
     hdbg.dassert_eq(
@@ -829,9 +830,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         iterator = [in_files[0]]
     for in_file in iterator:
-        _LOG.info("Processing file: %s", in_file)
+        _LOG.info("Processing file '%s' to '%s'", in_file, out_file)
         # For multi-file mode, always render in-place.
-        out_file = in_file
+        if len(in_files) > 1:
+            out_file = in_file
         _process_single_file(
             in_file,
             out_file,
@@ -841,7 +843,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
             dry_run=args.dry_run,
             use_github_hosting=args.use_github_hosting,
         )
-
+    if len(in_files) > 1:
+        _LOG.info("%s Files saved in place", len(in_files))
+    else:
+        _LOG.info("Result saved in '%s'", out_file)
 
 if __name__ == "__main__":
     _main(_parse())
