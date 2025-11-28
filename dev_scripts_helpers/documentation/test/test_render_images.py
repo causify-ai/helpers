@@ -723,13 +723,14 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "md"
         expected = r"""
         A
-        [//]: # ( ```plantuml)
-        [//]: # ( Alice --> Bob)
-        [//]: # ( ```)
+        [//]: # ( rendered_images:begin )
+        [//]: # ( ```plantuml )
+        [//]: # ( Alice --> Bob )
+        [//]: # ( ``` )
+        [//]: # ( rendered_images:end )
         [//]: # ( render_images:begin )
         ![](figs/out.1.png)
         [//]: # ( render_images:end )
-
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -748,11 +749,13 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( ```plantuml)
-        [//]: # ( @startuml)
-        [//]: # ( Alice --> Bob)
-        [//]: # ( @enduml)
-        [//]: # ( ```)
+        [//]: # ( rendered_images:begin )
+        [//]: # ( ```plantuml )
+        [//]: # ( @startuml )
+        [//]: # ( Alice --> Bob )
+        [//]: # ( @enduml )
+        [//]: # ( ``` )
+        [//]: # ( rendered_images:end )
         [//]: # ( render_images:begin )
         ![](figs/out.1.png)
         [//]: # ( render_images:end )
@@ -770,9 +773,11 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "tex"
         expected = r"""
+        % rendered_images:begin
         % ```plantuml
         % Alice --> Bob
         % ```
+        % rendered_images:end
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
@@ -795,15 +800,16 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "tex"
         expected = r"""
         A
+        % rendered_images:begin
         % ```plantuml
         % Alice --> Bob
         % ```
+        % rendered_images:end
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
-
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -822,11 +828,13 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "tex"
         expected = r"""
+        % rendered_images:begin
         % ```plantuml
         % @startuml
         % Alice --> Bob
         % @enduml
         % ```
+        % rendered_images:end
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
@@ -901,10 +909,12 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "tex"
         expected = r"""
+        % rendered_images:begin
         % ```mermaid
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
+        % rendered_images:end
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
@@ -928,16 +938,17 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "tex"
         expected = r"""
         A
+        % rendered_images:begin
         % ```mermaid
         % flowchart TD;
         %   A[Start] --> B[End];
         % ```
+        % rendered_images:end
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
-
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -957,14 +968,15 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "txt"
         expected = r"""
         A
+        // rendered_images:begin
         // ```mermaid
         // flowchart TD;
         //   A[Start] --> B[End];
         // ```
+        // rendered_images:end
         // render_images:begin
         ![](figs/out.1.png)
         // render_images:end
-
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -984,14 +996,15 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "txt"
         expected = r"""
         A
+        // rendered_images:begin
         // ```mermaid(hello_world.png)
         // flowchart TD;
         //   A[Start] --> B[End];
         // ```
+        // rendered_images:end
         // render_images:begin
         ![](hello_world.png)
         // render_images:end
-
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -1002,28 +1015,19 @@ class Test_render_images1(hunitest.TestCase):
         """
         in_lines = r"""
         A
-        // ```mermaid(hello_world2.png)
+        // rendered_images:begin
+        // ```mermaid(hello_world.png)
         // flowchart TD;
+        // A[Start] --> B[End];
         // ```
+        // rendered_images:end
         // render_images:begin
-        ![](WRONG.png)
+        ![](hello_world.png)
         // render_images:end
-
         B
         """
         file_ext = "txt"
-        expected = r"""
-        A
-        // ```mermaid(hello_world2.png)
-        // flowchart TD;
-        // ```
-        // render_images:begin
-        ![](hello_world2.png)
-        // render_images:end
-
-
-        B
-        """
+        expected = in_lines
         self.helper(in_lines, file_ext, expected)
 
     # ///////////////////////////////////////////////////////////////////////////
@@ -1145,10 +1149,12 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "tex"
         expected = r"""
+        % rendered_images:begin
         % ```graphviz
         % digraph { A -> B }
         % ```
         % label=fig:test_diagram
+        % rendered_images:end
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
@@ -1170,10 +1176,12 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "tex"
         expected = r"""
+        % rendered_images:begin
         % ```graphviz
         % digraph { A -> B }
         % ```
         % caption=Test diagram showing communication
+        % rendered_images:end
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
@@ -1196,11 +1204,13 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "tex"
         expected = r"""
+        % rendered_images:begin
         % ```graphviz
         % digraph { A -> B }
         % ```
         % label=fig:test_diagram
         % caption=Test diagram showing communication
+        % rendered_images:end
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
@@ -1213,14 +1223,16 @@ class Test_render_images1(hunitest.TestCase):
 
     def test_tex_graphviz_with_metadata4(self) -> None:
         """
-        Check graphviz code with both label and caption in a LaTeX file.
+        Check that already-rendered graphviz code with metadata remains unchanged.
         """
         in_lines = r"""
+        % rendered_images:begin
         % ```graphviz
         % digraph { A -> B }
         % ```
         % label=fig:test_diagram
         % caption=Test diagram showing communication
+        % rendered_images:end
         % render_images:begin
         \begin{figure}
           \includegraphics[width=\linewidth]{figs/out.1.png}
@@ -1308,7 +1320,7 @@ class Test_render_images_script1(hunitest.TestCase):
         Test that the script can display help without errors.
         """
         # Run the script with --help.
-        exec_path = hgit.find_file_in_git_repo(
+        exec_path = hgit.find_file_in_git_tree(
             "render_images.py", super_module=True
         )
         cmd = f"{exec_path} --help"
@@ -1333,7 +1345,7 @@ class Test_render_images_script1(hunitest.TestCase):
         test_content = hprint.dedent(test_content)
         hio.to_file(test_file, test_content)
         # Run the script with dry_run.
-        exec_path = hgit.find_file_in_git_repo(
+        exec_path = hgit.find_file_in_git_tree(
             "render_images.py", super_module=True
         )
         cmd = f"{exec_path} -i {test_file} --action render --dry_run"

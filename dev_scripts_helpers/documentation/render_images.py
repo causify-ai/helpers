@@ -817,7 +817,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             out_file = args.output
         else:
             # Render in-place.
-            out_file = in_file
+            out_file = in_files[0]
     # Process each file with progress bar.
     _LOG.info("Processing %s files", len(in_files))
     for in_file in tqdm(in_files, desc="Processing files"):
