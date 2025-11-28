@@ -49,7 +49,20 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     txt = "\n".join(lines)
     txt = re.sub(r"“", '"', txt)
     txt = re.sub(r"”", '"', txt)
+    txt = re.sub(r"’", "'", txt)
+    # Convert
+    #   ## **How We Ask for Feedback at Causify**
+    # to
+    #   ## How We Ask for Feedback at Causify
+    txt = re.sub(r"^(#+)\s+\*\*(.*?)\*\*\s*$", r"\1 \2", txt, flags=re.MULTILINE)
+    # Remove lines with ---.
+    txt = re.sub(r"^---\s*$", "", txt, flags=re.MULTILINE)
+    # Collapse repeated lines.
+    # txt = re.sub(r"\n{2,}", "\n", txt)
+    # Replace … with ...
     txt = re.sub(r"…", "...", txt)
+    # Replace \t with 2 spaces
+    txt = re.sub(r"\t", "  ", txt)
     txt_new: List[str] = []
     for line in txt.split("\n"):
         # 2) Skip frames for all the type formats.
@@ -91,11 +104,12 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     #    using `*` instead of `-`.
     txt_new_as_str = "\n".join(txt_new)
     txt_new_as_str = re.sub(r"\n\s*\n", "\n\n", txt_new_as_str)
-    #
     _LOG.debug("txt_new_as_str=%s", txt_new_as_str)
-    ret = txt_new_as_str.split("\n")
-    hdbg.dassert_isinstance(ret, list)
-    return ret
+    txt = txt_new_as_str.split("\n")
+    # 6) Remove more than 2 consecutive empty lines.
+    hprint.remove_empty_lines(txt_new, mode="no_consecutive_empty_lines")
+    hdbg.dassert_isinstance(txt_new, list)
+    return txt_new
 
 
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
@@ -245,7 +259,9 @@ def _perform_actions(
     is_md_file = in_file_name.endswith(".md")
     is_tex_file = in_file_name.endswith(".tex")
     is_txt_file = in_file_name.endswith(".txt")
-    hdbg.dassert_eq(is_md_file + is_tex_file + is_txt_file, 1, msg="Invalid file type")
+    hdbg.dassert_eq(
+        is_md_file + is_tex_file + is_txt_file, 1, msg="Invalid file type"
+    )
     #
     extension = os.path.splitext(in_file_name)[1]
     # Remove the . from the extenstion (e.g., ".txt").
@@ -329,8 +345,8 @@ def _parser() -> argparse.ArgumentParser:
         "--print-width",
         action="store",
         type=int,
-        default=80,
-        help="The maximum line width for the formatted text. If None, 80 is used",
+        default=None,
+        help="The maximum line width for the formatted text.",
     )
     parser.add_argument(
         "--use_dockerized_prettier",

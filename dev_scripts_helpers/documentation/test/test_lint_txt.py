@@ -496,7 +496,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         in_file = os.path.join(self.get_input_dir(test_method_name="test_tex1"), "text.tex")
         type_ = "tex"
         use_script = True
-        cmd_opts = ""
+        cmd_opts = "--print-width 80"
         # Run the script.
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test_tex1.

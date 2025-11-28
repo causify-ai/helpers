@@ -116,8 +116,8 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--model",
         type=str,
-        default=None,
-        help="Optional model name to use (e.g., 'gpt-4', 'claude-3-opus'). Default: gpt-4o-mini",
+        default="gpt-4o-mini",
+        help="Optional model name to use (e.g., 'gpt-4', 'claude-3-opus').",
     )
     parser.add_argument(
         "--use_llm_executable",
@@ -130,7 +130,7 @@ def _parse() -> argparse.ArgumentParser:
         "--progress_bar",
         action="store_true",
         default=False,
-        help="Enable progress bar with automatic estimation (input length * 1.2)",
+        help="Enable progress bar with automatic estimation (input length * 1.0)",
     )
     parser.add_argument(
         "--expected_num_chars",
@@ -204,7 +204,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         else:
             input_content = input_text
         input_length = len(input_content)
-        expected_num_chars = int(input_length * 1.2)
+        expected_num_chars = int(input_length * 1.0)
         _LOG.info(
             "Progress bar enabled: estimated output %d chars (input: %d chars)",
             expected_num_chars,
@@ -224,7 +224,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("Progress bar: %s", args.progress_bar)
     _LOG.debug("Expected num chars: %s", expected_num_chars)
     # Process the file.
-    _LOG.info("Processing with LLM...")
+    _LOG.info("Processing with LLM '%s'...", args.model)
     memento = htimer.dtimer_start(logging.INFO, "LLM processing")
     # If using input_text or print_only, call apply_llm directly.
     if input_text is not None or print_only:

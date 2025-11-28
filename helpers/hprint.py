@@ -341,12 +341,35 @@ def align_on_left(lines: List[str]) -> List[str]:
 
 
 @split_lines
-def remove_empty_lines(lines: List[str]) -> List[str]:
+def remove_empty_lines(
+    lines: List[str], *, mode: str = "no_empty_lines"
+) -> List[str]:
     """
     Remove empty lines from a multi-line string.
+
+    :param lines: list of input lines to process
+    :param mode:
+        - no_empty_lines: remove all empty lines
+        - no_consecutive_empty_lines: remove consecutive empty lines
+    :return: lines with empty lines removed
     """
     hdbg.dassert_isinstance(lines, list)
-    lines_out = [line for line in lines if line.rstrip().lstrip()]
+    if mode == "no_empty_lines":
+        lines_out = [line for line in lines if line.rstrip().lstrip() != ""]
+    elif mode == "no_consecutive_empty_lines":
+        # If there are two or more consecutive empty lines, remove all but the last one.
+        lines_out = []
+        prev_empty = False
+        for line in lines:
+            if re.search(r"^\s*$", line):
+                if prev_empty:
+                    continue
+                prev_empty = True
+            else:
+                prev_empty = False
+            lines_out.append(line)
+    else:
+        raise ValueError(f"Invalid mode='{mode}'")
     hdbg.dassert_isinstance(lines_out, list)
     return lines_out
 
