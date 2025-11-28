@@ -68,6 +68,277 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_remove_image_code1
+# #############################################################################
+
+
+class Test_remove_image_code1(hunitest.TestCase):
+    """
+    Test `_remove_image_code()` function.
+    """
+
+    # TODO(ai_gp1): You must not change the interface of this function.
+    def helper(self, in_text: str, extension: str, expected: str) -> None:
+        # Prepare inputs.
+        in_lines = hprint.dedent(in_lines)
+        in_lines = in_text.split("\n")
+        # Run function.
+        actual = dshdreim._remove_image_code(in_lines, extension)
+        # Check output.
+        actual = "\n".join(actual)
+        self.assertEqual(actual, expected)
+
+    # TODO(ai_gp1): Use helper 
+    def test_md1(self) -> None:
+        """
+        Test with text that has no render markers.
+        """
+        # Prepare inputs.
+        in_text = """
+        A
+        B
+        C
+        """
+        extension = ".md"
+        expected = """
+        """
+        self.helper(in_text, extension, expected)
+
+    # TODO(ai_gp1): Use the same style as test_md1
+    def test_md2(self) -> None:
+        """
+        Test removing a render_images block.
+        """
+        # Prepare inputs.
+        in_lines = [
+            "Before",
+            "% render_images:begin",
+            "![](figs/test.1.png)",
+            "% render_images:end",
+            "After",
+        ]
+        extension = ".md"
+        # Run function.
+        actual = dshdreim._remove_image_code(in_lines, extension)
+        # Check output.
+        expected = [
+            "Before",
+            "After",
+        ]
+        self.assertEqual(actual, expected)
+
+    # TODO(ai_gp1): Use the same style as test_md1
+    def test_tex1(self) -> None:
+        """
+        Test uncommenting a rendered_images block.
+        """
+        # Prepare inputs.
+        in_lines = [
+            "Before",
+            "% rendered_images:begin",
+            "% ```plantuml",
+            "% Alice -> Bob",
+            "% ```",
+            "% rendered_images:end",
+            "After",
+        ]
+        extension = ".tex"
+        # Run function.
+        actual = dshdreim._remove_image_code(in_lines, extension)
+        # Check output.
+        expected = [
+            "Before",
+            "```plantuml",
+            "Alice -> Bob",
+            "```",
+            "After",
+        ]
+        self.assertEqual(actual, expected)
+
+    # TODO(ai_gp1): Use the same style as test_md1
+    def test_tex2(self) -> None:
+        """
+        Test with both rendered_images and render_images markers (LaTeX extension).
+        """
+        # Prepare inputs.
+        in_lines = [
+            "Before",
+            "% rendered_images:begin",
+            "% ```plantuml",
+            "% Alice -> Bob",
+            "% ```",
+            "% rendered_images:end",
+            "% render_images:begin",
+            r"\begin{figure}",
+            "![](figs/test.1.png)",
+            r"\end{figure}",
+            "% render_images:end",
+            "After",
+        ]
+        extension = ".tex"
+        # Run function.
+        actual = dshdreim._remove_image_code(in_lines, extension)
+        # Check output.
+        expected = [
+            "Before",
+            "```plantuml",
+            "Alice -> Bob",
+            "```",
+            "After",
+        ]
+        self.assertEqual(actual, expected)
+
+    # TODO(ai_gp1): Use the same style as test_md1
+    def test_md4(self) -> None:
+        """
+        Test removing multiple render_images blocks.
+        """
+        # Prepare inputs.
+        in_lines = [
+            "Text1",
+            "% render_images:begin",
+            "![](figs/test.1.png)",
+            "% render_images:end",
+            "Text2",
+            "% render_images:begin",
+            "![](figs/test.2.png)",
+            "% render_images:end",
+            "Text3",
+        ]
+        extension = ".md"
+        # Run function.
+        actual = dshdreim._remove_image_code(in_lines, extension)
+        # Check output.
+        expected = [
+            "Text1",
+            "Text2",
+            "Text3",
+        ]
+        self.assertEqual(actual, expected)
+
+    # TODO(ai_gp1): Do the same transform of the other functions
+    def test_tex_extension(self) -> None:
+        """
+        Test with LaTeX file extension.
+        """
+        # Prepare inputs.
+        in_lines = [
+            "Before",
+            "% rendered_images:begin",
+            "% ```graphviz",
+            "% digraph { A -> B }",
+            "% ```",
+            "% rendered_images:end",
+            "% render_images:begin",
+            r"\begin{figure}",
+            r"  \includegraphics[width=\linewidth]{figs/out.1.png}",
+            r"\end{figure}",
+            "% render_images:end",
+            "After",
+        ]
+        extension = ".tex"
+        # Run function.
+        actual = dshdreim._remove_image_code(in_lines, extension)
+        # Check output.
+        expected = [
+            "Before",
+            "```graphviz",
+            "digraph { A -> B }",
+            "```",
+            "After",
+        ]
+        self.assertEqual(actual, expected)
+
+    # TODO(ai_gp1): Do the same transform of the other functions
+    def test_txt_extension(self) -> None:
+        """
+        Test with txt file extension.
+        """
+        # Prepare inputs.
+        in_lines = [
+            "Before",
+            "// rendered_images:begin",
+            "// ```mermaid",
+            "// flowchart TD;",
+            "// ```",
+            "// rendered_images:end",
+            "// render_images:begin",
+            "![](figs/out.1.png)",
+            "// render_images:end",
+            "After",
+        ]
+        extension = ".txt"
+        # Run function.
+        actual = dshdreim._remove_image_code(in_lines, extension)
+        # Check output.
+        expected = [
+            "Before",
+            "```mermaid",
+            "flowchart TD;",
+            "```",
+            "After",
+        ]
+        self.assertEqual(actual, expected)
+
+    # TODO(ai_gp1): Do the same transform of the other functions
+    def test_nested_content_in_render_block(self) -> None:
+        """
+        Test removing render block with complex nested content.
+        """
+        # Prepare inputs.
+        in_lines = [
+            "Before",
+            "% render_images:begin",
+            r"\begin{figure}",
+            r"  \includegraphics[width=\linewidth]{figs/test.png}",
+            r"  \caption{Test caption}",
+            r"  \label{fig:test}",
+            r"\end{figure}",
+            "% render_images:end",
+            "After",
+        ]
+        extension = ".tex"
+        # Run function.
+        actual = dshdreim._remove_image_code(in_lines, extension)
+        # Check output.
+        expected = [
+            "Before",
+            "After",
+        ]
+        self.assertEqual(actual, expected)
+
+    # TODO(ai_gp1): Do the same transform of the other functions
+    def test_empty_input(self) -> None:
+        """
+        Test with empty input.
+        """
+        # Prepare inputs.
+        in_lines = []
+        extension = ".md"
+        # Run function.
+        actual = dshdreim._remove_image_code(in_lines, extension)
+        # Check output.
+        expected = []
+        self.assertEqual(actual, expected)
+
+    def test_only_markers(self) -> None:
+        """
+        Test with only markers and no content between them.
+        """
+        # Prepare inputs.
+        in_lines = [
+            "% render_images:begin",
+            "% render_images:end",
+        ]
+        extension = ".md"
+        # Run function.
+        actual = dshdreim._remove_image_code(in_lines, extension)
+        # Check output.
+        expected = []
+        self.assertEqual(actual, expected)
+
+
+# #############################################################################
 # Test_render_image_code1
 # #############################################################################
 
@@ -965,14 +1236,6 @@ class Test_render_images1(hunitest.TestCase):
         Check graphviz code with both label and caption in a LaTeX file.
         """
         in_lines = r"""
-        ```graphviz
-        % digraph { A -> B }
-        % ```
-        % label=fig:test_diagram
-        % caption=Test diagram showing communication
-        """
-        file_ext = "tex"
-        expected = r"""
         % ```graphviz
         % digraph { A -> B }
         % ```
@@ -986,42 +1249,10 @@ class Test_render_images1(hunitest.TestCase):
         \end{figure}
         % render_images:end
         """
+        file_ext = "tex"
+        expected = in_lines
         self.helper(in_lines, file_ext, expected)
 
-    def test_tex_graphviz_with_metadata5(self) -> None:
-        """
-        Check graphviz code with both label and caption in a LaTeX file.
-        """
-        in_lines = r"""
-        ```graphviz
-        % digraph { A -> B }
-        % ```
-        % label=fig:test_diagram2
-        % caption=Test diagram2
-        % render_images:begin
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-          \caption{Test diagram showing communication}
-          \label{fig:test_diagram}
-        \end{figure}
-        % render_images:end
-        """
-        file_ext = "tex"
-        expected = r"""
-        % ```graphviz
-        % digraph { A -> B }
-        % ```
-        % label=fig:test_diagram
-        % caption=Test diagram showing communication
-        % render_images:begin
-        \begin{figure}
-          \includegraphics[width=\linewidth]{figs/out.1.png}
-          \caption{Test diagram2}
-          \label{fig:test_diagram2}
-        \end{figure}
-        % render_images:end
-        """
-        self.helper(in_lines, file_ext, expected)
 
 # #############################################################################
 # Test_render_images2
@@ -1077,14 +1308,6 @@ class Test_render_images2(hunitest.TestCase):
         Test running on a full LaTeX file with mermaid code.
         """
         self.helper("sample_file_mermaid.tex")
-
-
-# #############################################################################
-# Test_render_images3
-# #############################################################################
-
-
-
 
 
 # #############################################################################

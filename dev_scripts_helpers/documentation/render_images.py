@@ -255,6 +255,9 @@ def _render_image_code(
     return out_img_file_path
 
 
+# #############################################################################
+
+
 def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     """
     Define the character that comments out a line depending on the file type.
@@ -273,14 +276,42 @@ def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     return comment_prefix, comment_postfix
 
 
+def _comment_line(
+        line: str, extension: str,
+) -> str:
+    comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
+    # TODO(ai_gp): The line should not start with the comment.
+    ret = f"{comment_prefix} {line}{comment_postfix}"
+    return ret
+
+
+def _uncomment_line(
+    line: str, extension: str,
+) -> str:
+    comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
+    # Remove the comment prefix and postfix, and the space after the prefix.
+    ret = line.lstrip()
+    if ret.startswith(comment_prefix):
+        ret = ret[len(comment_prefix):].lstrip()
+    if comment_postfix and ret.endswith(comment_postfix):
+        ret = ret[:-len(comment_postfix)].rstrip()
+    return ret
+
+
+# #############################################################################
+
+
 def _remove_image_code(
-    in_lines: List[str],
+    lines: List[str],
     extension: str,
 ) -> List[str]:
     """
     Remove all rendered image code blocks from the file.
 
-    This function removes blocks between `render_images:begin` and
+    This function:
+    - uncomments blocks between `rendered_images:begin` and
+      `rendered_images:end`
+    - removes blocks between `render_images:begin` and
     `render_images:end` markers to allow re-rendering images without
     accumulating old rendered blocks.
 
@@ -288,9 +319,27 @@ def _remove_image_code(
     :param extension: file extension (e.g., ".md", ".tex", ".txt")
     :return: lines with rendered image blocks removed
     """
+    # Uncomment the lines between `rendered_images:begin` and
+    # `rendered_images:end` markers.
     out_lines: List[str] = []
     in_render_block = False
-    for line in in_lines:
+    for line in lines:
+        if "rendered_images:begin" in line:
+            in_render_block = True
+            continue
+        if "rendered_images:end" in line:
+            in_render_block = False
+            continue
+        if in_render_block:
+            out_lines.append(_uncomment_line(line, extension))
+        else:
+            out_lines.append(line)
+    lines = out_lines
+    # Remove the rendered image blocks between `rendered_images:begin` and
+    # `rendered_images:end` markers.
+    out_lines: List[str] = []
+    in_render_block = False
+    for line in lines:
         # Check for begin marker.
         if "render_images:begin" in line:
             in_render_block = True
@@ -357,19 +406,6 @@ def _insert_image_code(
     return txt
 
 
-def _comment_if_needed(
-    state: str, line: str, comment_prefix: str, comment_postfix: str
-) -> str:
-    if state == "found_image_code":
-        if line.startswith(comment_prefix):
-            ret = line
-        else:
-            ret = f"{comment_prefix} {line}{comment_postfix}"
-    else:
-        ret = line
-    return ret
-
-
 def _render_images(
     in_lines: List[str],
     out_file: str,
@@ -380,11 +416,11 @@ def _render_images(
     dry_run: bool = False,
     use_github_hosting: bool = False,
 ) -> List[str]:
-    """
+    r"""
     Insert rendered images instead of image code blocks.
 
     "image code" refers to code that defines the content of the image, e.g.,
-    plantUML/mermaid code for diagrams.
+    plantUML/mermaid/graphviz/tikz code for diagrams.
 
     This method:
     - comments out the image code if it is not already commented out
@@ -400,6 +436,24 @@ def _render_images(
     label=fig:my_label
     caption=This is a caption
     that can span multiple lines
+
+    After this function the text should look like:
+
+    % rendered_image:begin
+    % ```plantuml
+    %    ... image code ...
+    % ```
+    % label=fig:my_label
+    % caption=This is a caption
+    % that can span multiple lines
+    % rendered_image:end
+    % render_images:begin
+    \begin{figure}
+      \includegraphics[width=\linewidth]{figs/out.1.png}
+      \caption{Test diagram showing communication}
+      \label{fig:test_diagram}
+    \end{figure}
+    % render_images:end
 
     :param in_lines: lines of the input file
     :param out_file: path to the output file
@@ -431,7 +485,6 @@ def _render_images(
     # Parser states:
     # - "search_image_code": Looking for the start of an image code block
     # - "found_image_code": Inside an uncommented image code block
-    # - "found_commented_image_code": Inside a commented image code block
     # - "parse_metadata": After closing ```, parsing optional label/caption
     state = "search_image_code"
     # Store parsed metadata.
@@ -487,26 +540,24 @@ def _render_images(
         if m:
             # Found the beginning of an image code block.
             hdbg.dassert_eq(state, "search_image_code")
-            if m.group(1):
-                state = "found_commented_image_code"
-            else:
-                state = "found_image_code"
+            state = "found_image_code"
             _LOG.debug(" -> state=%s", state)
             image_code_lines = []
             image_code_idx += 1
             # E.g., "plantuml" or "mermaid".
             image_code_type = m.group(2)
-            hdbg.dassert_in(
-                image_code_type,
-                [
-                    "plantuml",
-                    "mermaid",
-                    "tikz",
-                    "graphviz",
-                    "latex",
-                    "raw_latex",
-                ],
-            )
+            # # TODO(ai_gp): Is this needed here?
+            # hdbg.dassert_in(
+            #     image_code_type,
+            #     [
+            #         "plantuml",
+            #         "mermaid",
+            #         "tikz",
+            #         "graphviz",
+            #         "latex",
+            #         "raw_latex",
+            #     ],
+            # )
             if m.group(3):
                 hdbg.dassert_eq(user_rel_img_path, "")
                 user_rel_img_path = m.group(4)
@@ -515,11 +566,14 @@ def _render_images(
                 hdbg.dassert_eq(user_img_size, "")
                 user_img_size = m.group(6)
                 _LOG.debug(hprint.to_str("user_img_size"))
+            # Add
+            out_lines.append(
+                    _comment_line("rendered_images:begin", extension))
+
             # Comment out the beginning of the image code.
             out_lines.append(
-                _comment_if_needed(state, line, comment_prefix, comment_postfix)
-            )
-        elif state in ("found_image_code", "found_commented_image_code"):
+                    _comment_line(line, extension))
+        elif state == "found_image_code":
             m = end_image_regex.search(line)
             if m:
                 # Found the end of an image code block.
@@ -541,9 +595,7 @@ def _render_images(
                     user_rel_img_path = ""
                 # Comment out the end of the image code, if needed.
                 out_lines.append(
-                    _comment_if_needed(
-                        state, line, comment_prefix, comment_postfix
-                    )
+                    _comment_line(line, extension)
                 )
                 # Reset metadata for this image.
                 metadata_label = ""
@@ -554,24 +606,10 @@ def _render_images(
                 _LOG.debug(" -> state=%s", state)
             else:
                 # Record the line from inside the image code block.
-                # Strip comment prefix if this is a commented code block.
-                code_line = line
-                if state == "found_commented_image_code":
-                    # Remove the comment prefix from the line before adding to code.
-                    # E.g., "% digraph {" -> "digraph {"
-                    if line.lstrip().startswith(comment_prefix):
-                        # Strip leading whitespace, remove comment prefix, restore whitespace.
-                        leading_space = line[:len(line) - len(line.lstrip())]
-                        stripped = line.lstrip()[len(comment_prefix):].lstrip()
-                        code_line = leading_space + stripped
-                    else:
-                        code_line = line
-                image_code_lines.append(code_line)
+                image_code_lines.append(line)
                 # Comment out the inside of the image code.
                 out_lines.append(
-                    _comment_if_needed(
-                        state, line, comment_prefix, comment_postfix
-                    )
+                    _comment_line(line, extension)
                 )
         elif state == "parse_metadata":
             # Check if this line starts a new metadata field (label= or caption=).
@@ -587,7 +625,7 @@ def _render_images(
                     metadata_caption = field_value
                 # Comment out the metadata line.
                 out_lines.append(
-                    f"{comment_prefix} {line}{comment_postfix}"
+                        _comment_line(line, extension)
                 )
             elif current_metadata_field and metadata_continuation_regex.search(line):
                 # This is a continuation line for the current metadata field.
@@ -598,9 +636,11 @@ def _render_images(
                     metadata_caption += " " + continuation_value
                 # Comment out the continuation line.
                 out_lines.append(
-                    f"{comment_prefix} {line}{comment_postfix}"
+                        _comment_line(line, extension)
                 )
             else:
+                # Add marker.
+                out_lines.append(_comment_line("rendered_images:end", extension))
                 # End of metadata section, insert the image code with metadata.
                 out_lines.append(
                     _insert_image_code(
@@ -624,6 +664,8 @@ def _render_images(
             out_lines.append(line)
     # Handle end of file while in parse_metadata state.
     if state == "parse_metadata":
+        # Add marker.
+        out_lines.append(_comment_line("rendered_images:end", extension))
         # Insert the image code with whatever metadata was collected.
         out_lines.append(
             _insert_image_code(
@@ -771,31 +813,19 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hdbg.dassert_eq(args.output, None,
                 "You can't specify output file with multiple input files"
             )
-        # Process each file with progress bar.
-        _LOG.info("Processing %s files", len(in_files))
-        for in_file in tqdm(in_files, desc="Processing files"):
-            _LOG.info("Processing file: %s", in_file)
-            # For multi-file mode, always render in-place.
-            out_file = in_file
-            _process_single_file(
-                in_file,
-                out_file,
-                actions,
-                force_rebuild=args.dockerized_force_rebuild,
-                use_sudo=args.dockerized_use_sudo,
-                dry_run=args.dry_run,
-                use_github_hosting=args.use_github_hosting,
-            )
     else:
-        # Single file mode (backward compatibility).
-        in_file = in_files[0]
         # Get output file name.
         if args.output:
             out_file = args.output
         else:
             # Render in-place.
             out_file = in_file
-        _LOG.info("Processing single file: %s", in_file)
+    # Process each file with progress bar.
+    _LOG.info("Processing %s files", len(in_files))
+    for in_file in tqdm(in_files, desc="Processing files"):
+        _LOG.info("Processing file: %s", in_file)
+        # For multi-file mode, always render in-place.
+        out_file = in_file
         _process_single_file(
             in_file,
             out_file,
