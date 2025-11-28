@@ -77,23 +77,28 @@ class Test_remove_image_code1(hunitest.TestCase):
     Test `_remove_image_code()` function.
     """
 
-    # TODO(ai_gp1): You must not change the interface of this function.
     def helper(self, in_text: str, extension: str, expected: str) -> None:
+        """
+        Helper function to test _remove_image_code().
+
+        :param in_text: input text as a single string
+        :param extension: file extension (e.g., ".md", ".tex")
+        :param expected: expected output as a single string
+        """
         # Prepare inputs.
-        in_lines = hprint.dedent(in_lines)
+        in_text = hprint.dedent(in_text, remove_lead_trail_empty_lines_=True)
         in_lines = in_text.split("\n")
         # Run function.
         actual = dshdreim._remove_image_code(in_lines, extension)
         # Check output.
         actual = "\n".join(actual)
-        self.assertEqual(actual, expected)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
 
-    # TODO(ai_gp1): Use helper 
     def test_md1(self) -> None:
         """
         Test with text that has no render markers.
         """
-        # Prepare inputs.
         in_text = """
         A
         B
@@ -101,241 +106,203 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         extension = ".md"
         expected = """
+        A
+        B
+        C
         """
         self.helper(in_text, extension, expected)
 
-    # TODO(ai_gp1): Use the same style as test_md1
     def test_md2(self) -> None:
         """
         Test removing a render_images block.
         """
-        # Prepare inputs.
-        in_lines = [
-            "Before",
-            "% render_images:begin",
-            "![](figs/test.1.png)",
-            "% render_images:end",
-            "After",
-        ]
+        in_text = """
+        Before
+        % render_images:begin
+        ![](figs/test.1.png)
+        % render_images:end
+        After
+        """
         extension = ".md"
-        # Run function.
-        actual = dshdreim._remove_image_code(in_lines, extension)
-        # Check output.
-        expected = [
-            "Before",
-            "After",
-        ]
-        self.assertEqual(actual, expected)
+        expected = """
+        Before
+        After
+        """
+        self.helper(in_text, extension, expected)
 
-    # TODO(ai_gp1): Use the same style as test_md1
     def test_tex1(self) -> None:
         """
         Test uncommenting a rendered_images block.
         """
-        # Prepare inputs.
-        in_lines = [
-            "Before",
-            "% rendered_images:begin",
-            "% ```plantuml",
-            "% Alice -> Bob",
-            "% ```",
-            "% rendered_images:end",
-            "After",
-        ]
+        in_text = """
+        Before
+        % rendered_images:begin
+        % ```plantuml
+        % Alice -> Bob
+        % ```
+        % rendered_images:end
+        After
+        """
         extension = ".tex"
-        # Run function.
-        actual = dshdreim._remove_image_code(in_lines, extension)
-        # Check output.
-        expected = [
-            "Before",
-            "```plantuml",
-            "Alice -> Bob",
-            "```",
-            "After",
-        ]
-        self.assertEqual(actual, expected)
+        expected = """
+        Before
+        ```plantuml
+        Alice -> Bob
+        ```
+        After
+        """
+        self.helper(in_text, extension, expected)
 
-    # TODO(ai_gp1): Use the same style as test_md1
     def test_tex2(self) -> None:
         """
         Test with both rendered_images and render_images markers (LaTeX extension).
         """
-        # Prepare inputs.
-        in_lines = [
-            "Before",
-            "% rendered_images:begin",
-            "% ```plantuml",
-            "% Alice -> Bob",
-            "% ```",
-            "% rendered_images:end",
-            "% render_images:begin",
-            r"\begin{figure}",
-            "![](figs/test.1.png)",
-            r"\end{figure}",
-            "% render_images:end",
-            "After",
-        ]
+        in_text = r"""
+        Before
+        % rendered_images:begin
+        % ```plantuml
+        % Alice -> Bob
+        % ```
+        % rendered_images:end
+        % render_images:begin
+        \begin{figure}
+        ![](figs/test.1.png)
+        \end{figure}
+        % render_images:end
+        After
+        """
         extension = ".tex"
-        # Run function.
-        actual = dshdreim._remove_image_code(in_lines, extension)
-        # Check output.
-        expected = [
-            "Before",
-            "```plantuml",
-            "Alice -> Bob",
-            "```",
-            "After",
-        ]
-        self.assertEqual(actual, expected)
+        expected = """
+        Before
+        ```plantuml
+        Alice -> Bob
+        ```
+        After
+        """
+        self.helper(in_text, extension, expected)
 
-    # TODO(ai_gp1): Use the same style as test_md1
     def test_md4(self) -> None:
         """
         Test removing multiple render_images blocks.
         """
-        # Prepare inputs.
-        in_lines = [
-            "Text1",
-            "% render_images:begin",
-            "![](figs/test.1.png)",
-            "% render_images:end",
-            "Text2",
-            "% render_images:begin",
-            "![](figs/test.2.png)",
-            "% render_images:end",
-            "Text3",
-        ]
+        in_text = """
+        Text1
+        % render_images:begin
+        ![](figs/test.1.png)
+        % render_images:end
+        Text2
+        % render_images:begin
+        ![](figs/test.2.png)
+        % render_images:end
+        Text3
+        """
         extension = ".md"
-        # Run function.
-        actual = dshdreim._remove_image_code(in_lines, extension)
-        # Check output.
-        expected = [
-            "Text1",
-            "Text2",
-            "Text3",
-        ]
-        self.assertEqual(actual, expected)
+        expected = """
+        Text1
+        Text2
+        Text3
+        """
+        self.helper(in_text, extension, expected)
 
-    # TODO(ai_gp1): Do the same transform of the other functions
     def test_tex_extension(self) -> None:
         """
         Test with LaTeX file extension.
         """
-        # Prepare inputs.
-        in_lines = [
-            "Before",
-            "% rendered_images:begin",
-            "% ```graphviz",
-            "% digraph { A -> B }",
-            "% ```",
-            "% rendered_images:end",
-            "% render_images:begin",
-            r"\begin{figure}",
-            r"  \includegraphics[width=\linewidth]{figs/out.1.png}",
-            r"\end{figure}",
-            "% render_images:end",
-            "After",
-        ]
+        in_text = r"""
+        Before
+        % rendered_images:begin
+        % ```graphviz
+        % digraph { A -> B }
+        % ```
+        % rendered_images:end
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/out.1.png}
+        \end{figure}
+        % render_images:end
+        After
+        """
         extension = ".tex"
-        # Run function.
-        actual = dshdreim._remove_image_code(in_lines, extension)
-        # Check output.
-        expected = [
-            "Before",
-            "```graphviz",
-            "digraph { A -> B }",
-            "```",
-            "After",
-        ]
-        self.assertEqual(actual, expected)
+        expected = """
+        Before
+        ```graphviz
+        digraph { A -> B }
+        ```
+        After
+        """
+        self.helper(in_text, extension, expected)
 
-    # TODO(ai_gp1): Do the same transform of the other functions
     def test_txt_extension(self) -> None:
         """
         Test with txt file extension.
         """
-        # Prepare inputs.
-        in_lines = [
-            "Before",
-            "// rendered_images:begin",
-            "// ```mermaid",
-            "// flowchart TD;",
-            "// ```",
-            "// rendered_images:end",
-            "// render_images:begin",
-            "![](figs/out.1.png)",
-            "// render_images:end",
-            "After",
-        ]
+        in_text = """
+        Before
+        // rendered_images:begin
+        // ```mermaid
+        // flowchart TD;
+        // ```
+        // rendered_images:end
+        // render_images:begin
+        ![](figs/out.1.png)
+        // render_images:end
+        After
+        """
         extension = ".txt"
-        # Run function.
-        actual = dshdreim._remove_image_code(in_lines, extension)
-        # Check output.
-        expected = [
-            "Before",
-            "```mermaid",
-            "flowchart TD;",
-            "```",
-            "After",
-        ]
-        self.assertEqual(actual, expected)
+        expected = """
+        Before
+        ```mermaid
+        flowchart TD;
+        ```
+        After
+        """
+        self.helper(in_text, extension, expected)
 
-    # TODO(ai_gp1): Do the same transform of the other functions
     def test_nested_content_in_render_block(self) -> None:
         """
         Test removing render block with complex nested content.
         """
-        # Prepare inputs.
-        in_lines = [
-            "Before",
-            "% render_images:begin",
-            r"\begin{figure}",
-            r"  \includegraphics[width=\linewidth]{figs/test.png}",
-            r"  \caption{Test caption}",
-            r"  \label{fig:test}",
-            r"\end{figure}",
-            "% render_images:end",
-            "After",
-        ]
+        in_text = r"""
+        Before
+        % render_images:begin
+        \begin{figure}
+          \includegraphics[width=\linewidth]{figs/test.png}
+          \caption{Test caption}
+          \label{fig:test}
+        \end{figure}
+        % render_images:end
+        After
+        """
         extension = ".tex"
-        # Run function.
-        actual = dshdreim._remove_image_code(in_lines, extension)
-        # Check output.
-        expected = [
-            "Before",
-            "After",
-        ]
-        self.assertEqual(actual, expected)
+        expected = """
+        Before
+        After
+        """
+        self.helper(in_text, extension, expected)
 
-    # TODO(ai_gp1): Do the same transform of the other functions
     def test_empty_input(self) -> None:
         """
         Test with empty input.
         """
-        # Prepare inputs.
-        in_lines = []
+        in_text = """
+        """
         extension = ".md"
-        # Run function.
-        actual = dshdreim._remove_image_code(in_lines, extension)
-        # Check output.
-        expected = []
-        self.assertEqual(actual, expected)
+        expected = """
+        """
+        self.helper(in_text, extension, expected)
 
     def test_only_markers(self) -> None:
         """
         Test with only markers and no content between them.
         """
-        # Prepare inputs.
-        in_lines = [
-            "% render_images:begin",
-            "% render_images:end",
-        ]
+        in_text = """
+        % render_images:begin
+        % render_images:end
+        """
         extension = ".md"
-        # Run function.
-        actual = dshdreim._remove_image_code(in_lines, extension)
-        # Check output.
-        expected = []
-        self.assertEqual(actual, expected)
+        expected = """
+        """
+        self.helper(in_text, extension, expected)
 
 
 # #############################################################################

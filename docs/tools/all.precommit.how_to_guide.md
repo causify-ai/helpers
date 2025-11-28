@@ -287,6 +287,13 @@ Commands:
   docker> pyrefly check --color=never --output-format=min-text --project-excludes '**/outcomes/**' --project-excludes '**/import_check/example/**' --project-excludes '**/mkdocs.venv/**'
   ```
 
+### `ssort`
+
+- Reorder in place
+  ```bash
+  > uvx ssort file
+  ```
+
 ## Call graph and dependencies
 
 ### PyCG (Practical Call Graph Generator)
