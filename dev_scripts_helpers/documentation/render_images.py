@@ -404,7 +404,7 @@ def _insert_image_code(
     elif extension == ".tex":
         # Use the LaTeX syntax with tagged markers to make it easier to do a
         # replacement.
-        out_lines.append(r"\begin{figure}[h]")
+        out_lines.append(r"\begin{figure}[!ht]")
         out_lines.append(r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}")
         if caption:
             out_lines.append(r"  \caption{" + caption + "}")
@@ -540,8 +540,6 @@ def _render_images(
     # A line is a continuation if it starts with whitespace and doesn't start
     # a new metadata field or image code block.
     metadata_continuation_regex = re.compile(r"^\s+\S")
-    # Regex to detect end of metadata section (empty line or start of new content).
-    metadata_end_regex = re.compile(r"^\s*$")
     for i, line in enumerate(in_lines):
         _LOG.debug("%d %s: '%s'", i, state, line)
         m = start_image_regex.search(line)
