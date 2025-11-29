@@ -305,6 +305,7 @@ def _uncomment_line(
     # Remove the comment prefix and postfix leaving the content in between and
     # the spaces.
     ret = line.replace(comment_prefix + " ", "").replace(comment_postfix, "")
+    ret = ret.replace(comment_prefix, "")
     return ret
 
 
