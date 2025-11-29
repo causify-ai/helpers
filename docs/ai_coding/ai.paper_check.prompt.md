@@ -6,8 +6,8 @@ you are writing an academic paper
   files included in the Latex file
 
 # Check references
-- Make sure every picture has a label and caption and it's referenced in the
-  text
+- Make sure every picture and table has a label and caption and it's referenced
+  in the text
 
 # Writing style
 When writing a paper follow the following suggestions
