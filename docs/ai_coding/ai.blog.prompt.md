@@ -1,52 +1,141 @@
 Format the text of the blog using the following rules.
 
-- **Introduction**
-  - Begin with a short paragraph introducing the topic.
-  - Avoid using bullet points or lists in the introduction.
+## Front Matter (YAML)
 
-- **General Style**
-  - Maintain consistent spacing and indentation.
+Every blog post must start with YAML front matter enclosed in `---`:
+
+```markdown
+---
+title: "Your Blog Post Title"
+authors:
+  - gpsaggese
+date: YYYY-MM-DD
+description:
+categories:
+  - Category Name
+---
+```
+
+- **title**: Use double quotes, capitalize major words
+- **authors**: List format with username(s)
+- **date**: Use YYYY-MM-DD format
+- **description**: Usually left empty or contains a brief description
+- **categories**: Common categories include:
+  - Business
+  - Causal AI
+  - Startup
+  - Causal News
+  - Causal ELI5
+
+## TL;DR Section
+
+Immediately after the front matter, add a TL;DR (or TLDR):
+
+```markdown
+TL;DR Your punchy one-liner summary that captures the essence of the post.
+
+<!-- more -->
+```
+
+- Keep it very short and impactful (one sentence)
+- Use a colon after TL;DR or TLDR
+- Always follow with `<!-- more -->` tag on a new line with a blank line before it
+
+## Introduction
+
+- Begin with one or more paragraphs introducing the topic
+- Write in prose format - avoid bullet points in the introduction
+- Set up the context and the problem being addressed
+- Use a direct, conversational tone
+- Keep paragraphs short and punchy
+
+## Body Structure
 
 - **Section Headings**
-  - Use level 2 headings for main sections:
-    ```markdown
-    ## Section Title
-    ```
-  - Use level 3 headings for subsections:
-    ```markdown
-    ### Subsection Title
-    ```
+  - Use `##` for main sections with clear, descriptive titles
+  - Use `###` for subsections
+  - Capitalize major words in headings
 
-- **Paragraphs**
-  - Write clear, concise paragraphs.
-  - Separate paragraphs with a single blank line.
+- **Content Style**
+  - Write in a direct, conversational tone
+  - Keep paragraphs short (2-4 sentences typically)
+  - Separate paragraphs with a single blank line
+  - Use frequent examples to illustrate points
 
-- **Lists**
-  - For unordered lists, use `-` or `*`.
-  - For ordered lists, use `1.`, `2.`, etc.
+## Lists
 
-- **Code Blocks**
-  - Use triple backticks for code examples:
-    ```
-    code here
-    ```
-  - For inline code, use single backticks: `inline code`
+- Use `-` (dash) consistently for unordered lists
+- Indent sub-items with two spaces
+- Use ordered lists (`1.`, `2.`, etc.) when sequence matters
+- Lists often follow a brief introductory sentence ending with a colon
 
-- **Quotes**
-  - Use `>` for blockquotes.
+Example:
+```markdown
+The main advantages are:
 
-- **Links and Images**
-  - Links: `[text](URL)`
-  - Images: `![alt text](image URL)`
+- **First advantage**: Description here
+- **Second advantage**: Description here
+  - Sub-point with details
+  - Another sub-point
+```
 
-- **Emphasis**
-  - Use `_text_` for emphasis and `**text**` for strong emphasis.
+## Emphasis and Formatting
 
-- **Math (optional)**
-  - Inline: `$E = mc^2$`
-  - Block:
-    ```markdown
-    $$
-    E = mc^2
-    $$
-    ```
+- **Bold text** (`**text**`):
+  - Use for key terms and important concepts
+  - Use at the start of list items for headers/labels
+  - Use for strong emphasis
+
+- *Italic text* (`_text_`):
+  - Use for questions and hypothetical scenarios
+  - Use for terms being defined or emphasized
+  - Use for "what if" scenarios
+
+- **Inline code** (`` `code` ``):
+  - Use for technical terms, variable names, or code snippets
+
+## Tables
+
+Use standard Markdown tables for comparisons:
+
+```markdown
+| Column 1 | Column 2 | Column 3 |
+| :------- | :------- | :------- |
+| Data 1   | Data 2   | Data 3   |
+```
+
+- Use left-aligned columns (`:-------`)
+- Keep column headers bold where appropriate
+
+## Links
+
+- Use standard Markdown format: `[text](URL)`
+- Link to external references and sources
+- Use descriptive link text
+
+## Mathematical Notation
+
+When mathematical formulas are needed:
+
+- Inline math: `$E = mc^2$`
+- Block math:
+  ```markdown
+  $$
+  E = mc^2
+  $$
+  ```
+
+## Conclusion
+
+- Often ends with a call to action or summary
+- May reference Causify and invite engagement
+- Keep it actionable and forward-looking
+
+## General Style Guidelines
+
+- Maintain consistent spacing between sections
+- Use blank lines to separate different content blocks
+- Keep the tone professional but conversational
+- Be direct and avoid unnecessary jargon
+- Use concrete examples to illustrate abstract concepts
+- Aim for clarity and brevity
