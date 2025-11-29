@@ -10,13 +10,11 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_extract_toc_from_txt1
+# Test_extract_toc_from_txt_script1
 # #############################################################################
 
 
-# TODO(ai_gp2): Rename to Test_extract_toc_from_txt_script1
-# TODO(ai_gp2): Add unit test for test_txt1
-class Test_extract_toc_from_txt1(hunitest.TestCase):
+class Test_extract_toc_from_txt_script1(hunitest.TestCase):
 
     def helper(self, file: str) -> None:
         # Prepare inputs.
@@ -43,3 +41,9 @@ class Test_extract_toc_from_txt1(hunitest.TestCase):
         Test extraction of headers from a LaTeX file.
         """
         self.helper("input.tex")
+
+    def test_txt1(self) -> None:
+        """
+        Test extraction of headers from a txt slide file.
+        """
+        self.helper("input.txt")

@@ -39,13 +39,39 @@ import helpers.hdbg as hdbg
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
-import helpers.htxtslides as htxtsli
 
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(ai_gp2): Remove repeated code from _extract_headers_from_markdown,
-# _extract_headers_from_latex, and _extract_headers_from_txtslides.
+def _extract_and_write_headers(
+    input_file_name: str,
+    header_list: List,
+    mode: str,
+    out_file_name: str,
+) -> None:
+    """
+    Write extracted headers to output file in the specified format.
+
+    This function handles the common logic of writing headers to an output file
+    in either cfile (Vim quickfix) format or markdown format (headers/list).
+    It also performs sanity checking on the header list.
+
+    :param input_file_name: path to the input file
+    :param header_list: list of extracted headers
+    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for
+        Markdown headers, 'list' for indented list)
+    :param out_file_name: path to the output file
+    """
+    # Print the headers.
+    if mode == "cfile":
+        output_content = hmarkdo.header_list_to_vim_cfile(input_file_name, header_list)
+    else:
+        output_content = hmarkdo.header_list_to_markdown(header_list, mode)
+    hparser.write_file(output_content, out_file_name)
+    # Sanity check the headers.
+    hmarkdo.sanity_check_header_list(header_list)
+
+
 def _extract_headers_from_markdown(
     input_file_name: str,
     lines: List[str],
@@ -69,14 +95,7 @@ def _extract_headers_from_markdown(
     header_list = hmarkdo.extract_headers_from_markdown(
         lines, max_level=max_level, sanity_check=sanity_check
     )
-    # Print the headers.
-    if mode == "cfile":
-        output_content = hmarkdo.header_list_to_vim_cfile(input_file_name, header_list)
-    else:
-        output_content = hmarkdo.header_list_to_markdown(header_list, mode)
-    hparser.write_file(output_content, out_file_name)
-    # Sanity check the headers.
-    hmarkdo.sanity_check_header_list(header_list)
+    _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
 
 
 def _extract_headers_from_latex(
@@ -109,14 +128,7 @@ def _extract_headers_from_latex(
     header_list = hlatex.extract_headers_from_latex(
         lines, max_level=max_level, sanity_check=sanity_check
     )
-    # Print the headers.
-    if mode == "cfile":
-        output_content = hmarkdo.header_list_to_vim_cfile(input_file_name, header_list)
-    else:
-        output_content = hmarkdo.header_list_to_markdown(header_list, mode)
-    hparser.write_file(output_content, out_file_name)
-    # Sanity check the headers.
-    hmarkdo.sanity_check_header_list(header_list)
+    _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
 
 
 def _extract_headers_from_txtslides(
@@ -152,14 +164,7 @@ def _extract_headers_from_txtslides(
     header_list = hmarkdo.extract_headers_from_markdown(
         lines, max_level=max_level, sanity_check=sanity_check
     )
-    # Print the headers.
-    if mode == "cfile":
-        output_content = hmarkdo.header_list_to_vim_cfile(input_file_name, header_list)
-    else:
-        output_content = hmarkdo.header_list_to_markdown(header_list, mode)
-    hparser.write_file(output_content, out_file_name)
-    # Sanity check the headers.
-    hmarkdo.sanity_check_header_list(header_list)
+    _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
 
 
 # #############################################################################

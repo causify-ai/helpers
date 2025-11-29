@@ -141,7 +141,6 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
 # Slides conversion to markdown and back
 # #############################################################################
 
-# TODO(ai_gp): Update unit tests.
 def convert_slide_to_markdown(lines: List[str], *, level: int = 5) -> List[str]:
     """
     Convert slide to standard markdown.
@@ -164,9 +163,7 @@ def convert_slide_to_markdown(lines: List[str], *, level: int = 5) -> List[str]:
     return converted_lines
 
 
-# TODO(ai_gp): Rename to convert_markdown_to_slide
-# TODO(ai_gp): Update unit tests.
-def markdown_to_slide(lines: List[str], *, level: int = 5) -> List[str]:
+def convert_markdown_to_slide(lines: List[str], *, level: int = 5) -> List[str]:
     """
     Convert standard markdown back to slide.
 

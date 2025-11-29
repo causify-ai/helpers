@@ -254,11 +254,11 @@ class Test_convert_slide_to_markdown(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_markdown_to_slide
+# Test_convert_markdown_to_slide
 # #############################################################################
 
 
-class Test_markdown_to_slide(hunitest.TestCase):
+class Test_convert_markdown_to_slide(hunitest.TestCase):
     def helper(self, input_text: str, expected_text: str) -> None:
         """
         Test converting markdown headers to slide bullets.
@@ -266,7 +266,7 @@ class Test_markdown_to_slide(hunitest.TestCase):
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
-        actual = hmarkdo.markdown_to_slide(lines)
+        actual = hmarkdo.convert_markdown_to_slide(lines)
         actual = "\n".join(actual)
         # Check outputs.
         expected = hprint.dedent(expected_text).strip()
@@ -364,6 +364,6 @@ class Test_markdown_to_slide(hunitest.TestCase):
         original_lines = hprint.dedent(input_text).strip().split("\n")
         # Run test.
         markdown_lines = hmarkdo.convert_slide_to_markdown(original_lines)
-        roundtrip_lines = hmarkdo.markdown_to_slide(markdown_lines)
+        roundtrip_lines = hmarkdo.convert_markdown_to_slide(markdown_lines)
         # Check outputs.
         self.assert_equal(str(roundtrip_lines), str(original_lines))
