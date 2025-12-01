@@ -17,6 +17,7 @@ Note: At least one action must be specified using --action.
 Examples:
 ```bash
 # Single file examples
+
 # Summarize a markdown file
 > update_md.py --input file.md --action summarize
 
@@ -39,6 +40,7 @@ Examples:
 > update_md.py --input file.md --action summarize --skip_lint
 
 # Multiple files examples
+
 # Process multiple files using comma-separated list
 > update_md.py --files="file1.md,file2.md,file3.md" --action summarize
 
@@ -68,7 +70,6 @@ import helpers.hio as hio
 import helpers.hlint as hlint
 import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -112,7 +113,9 @@ def _write_file(file_path: str, content: str) -> None:
 # #############################################################################
 
 
-def _generate_summary(content: str, *, model: str, use_llm_executable: bool) -> str:
+def _generate_summary(
+    content: str, *, model: str, use_llm_executable: bool
+) -> str:
     """
     Generate a summary of the content using the llm library or executable.
 
@@ -223,7 +226,10 @@ def _update_summary_section(content: str, summary: str) -> str:
                 toc_match = re.search(
                     toc_start_pattern, content[summary_start:], re.IGNORECASE
                 )
-                if toc_match and (summary_start + toc_match.start()) < summary_end:
+                if (
+                    toc_match
+                    and (summary_start + toc_match.start()) < summary_end
+                ):
                     # The TOC starts within what we detected as the summary section.
                     # Only remove up to the TOC start.
                     actual_summary_end = summary_start + toc_match.start()
@@ -361,9 +367,7 @@ def _get_style_system_prompt() -> str:
     hdbg.dassert_file_exists(instructions_path)
     # Read the instructions.
     instructions = hio.from_file(instructions_path)
-    _LOG.debug(
-        "Read %d characters from instructions file", len(instructions)
-    )
+    _LOG.debug("Read %d characters from instructions file", len(instructions))
     # Create the system prompt.
     system_prompt = f"""Apply the rules of the following document to the input text:
 
@@ -450,7 +454,8 @@ def _parse() -> argparse.ArgumentParser:
     hparser.add_multi_file_args(parser)
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     parser.add_argument(
-        "-m", "--model",
+        "-m",
+        "--model",
         action="store",
         default="gpt-4o-mini",
         help="LLM model to use (default: gpt-4o-mini)",
@@ -492,6 +497,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Use progress bar for multiple files.
         from tqdm.autonotebook import tqdm
         import helpers.htqdm as htqdm
+
         tqdm_out = htqdm.TqdmToLogger(_LOG, level=logging.INFO)
         file_iterator = tqdm(input_files, desc="Processing files", file=tqdm_out)
     else:

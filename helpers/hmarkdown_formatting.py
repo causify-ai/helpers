@@ -522,7 +522,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     txt = hdocexec.prettier_on_str(txt, file_type)
     #
     lines = txt.split("\n")
-    lines = hmarslid.markdown_to_slide(lines)
+    lines = hmarform.convert_markdown_to_slide(lines)
     # Format the first level bullets.
     lines = format_first_level_bullets(lines)
     #

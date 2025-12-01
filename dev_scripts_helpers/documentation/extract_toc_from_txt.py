@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
 """
-Extract headers from Markdown or LaTeX files and generate a Vim cfile.
+Extract headers from Markdown, LaTeX, or txt slide files and generate a Vim cfile.
 
 The script:
-- processes the input Markdown `.md` or LaTeX `.tex` file
-- extracts headers up to a specified maximum level
+- Processes the input Markdown `.md`, LaTeX `.tex`, or txt slide `.txt` file
+- Extracts headers up to a specified maximum level
   - Markdown: # (level 1), ## (level 2), ### (level 3), etc.
   - LaTeX: \section{} (level 1), \subsection{} (level 2), \subsubsection{} (level 3)
-- prints a human-readable header map
-- generates an output file in a format that can be used with Vim's quickfix
+  - Txt slides: # (level 1), ## (level 2), * (level 3)
+- Prints a human-readable header map
+- Generates an output file in a format that can be used with Vim's quickfix
   feature.
 
 # Extract headers up to level 3 from a Markdown file and save to an output file:
@@ -17,6 +18,9 @@ The script:
 
 # Extract headers up to level 2 from a LaTeX file and print to stdout:
 > extract_toc_from_txt.py -i document.tex -o - --mode headers --max-level 2
+
+# Extract headers up to level 3 from a txt slide file and print to stdout:
+> extract_toc_from_txt.py -i slides.txt -o - --mode headers --max-level 3
 
 # To use the generated cfile in Vim:
 - Open Vim and run `:cfile output.cfile`
@@ -37,6 +41,35 @@ import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
+
+
+def _extract_and_write_headers(
+    input_file_name: str,
+    header_list: List,
+    mode: str,
+    out_file_name: str,
+) -> None:
+    """
+    Write extracted headers to output file in the specified format.
+
+    This function handles the common logic of writing headers to an output file
+    in either cfile (Vim quickfix) format or markdown format (headers/list).
+    It also performs sanity checking on the header list.
+
+    :param input_file_name: path to the input file
+    :param header_list: list of extracted headers
+    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for
+        Markdown headers, 'list' for indented list)
+    :param out_file_name: path to the output file
+    """
+    # Print the headers.
+    if mode == "cfile":
+        output_content = hmarkdo.header_list_to_vim_cfile(input_file_name, header_list)
+    else:
+        output_content = hmarkdo.header_list_to_markdown(header_list, mode)
+    hparser.write_file(output_content, out_file_name)
+    # Sanity check the headers.
+    hmarkdo.sanity_check_header_list(header_list)
 
 
 def _extract_headers_from_markdown(
@@ -62,14 +95,7 @@ def _extract_headers_from_markdown(
     header_list = hmarkdo.extract_headers_from_markdown(
         lines, max_level=max_level, sanity_check=sanity_check
     )
-    # Print the headers.
-    if mode == "cfile":
-        output_content = hmarkdo.header_list_to_vim_cfile(input_file_name, header_list)
-    else:
-        output_content = hmarkdo.header_list_to_markdown(header_list, mode)
-    hparser.write_file(output_content, out_file_name)
-    # Sanity check the headers.
-    hmarkdo.sanity_check_header_list(header_list)
+    _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
 
 
 def _extract_headers_from_latex(
@@ -102,14 +128,43 @@ def _extract_headers_from_latex(
     header_list = hlatex.extract_headers_from_latex(
         lines, max_level=max_level, sanity_check=sanity_check
     )
-    # Print the headers.
-    if mode == "cfile":
-        output_content = hmarkdo.header_list_to_vim_cfile(input_file_name, header_list)
-    else:
-        output_content = hmarkdo.header_list_to_markdown(header_list, mode)
-    hparser.write_file(output_content, out_file_name)
-    # Sanity check the headers.
-    hmarkdo.sanity_check_header_list(header_list)
+    _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
+
+
+def _extract_headers_from_txtslides(
+    input_file_name: str,
+    lines: List[str],
+    mode: str,
+    max_level: int,
+    out_file_name: str,
+) -> None:
+    """
+    Extract headers from a txt slide file.
+
+    This function processes a txt slide file to extract headers
+    (# for level 1, ## for level 2, * for level 3) and generates output
+    in the requested format (cfile, headers, or list). It follows the
+    same pattern as _extract_headers_from_markdown() to ensure consistent
+    behavior across file types.
+
+    :param input_file_name: path to the input txt slide file
+    :param lines: list of lines in the input txt slide file
+    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for
+        Markdown headers, 'list' for indented list)
+    :param max_level: maximum header levels to parse (1-3 for txt slides)
+    :param out_file_name: path to the output file
+    """
+    hdbg.dassert_isinstance(lines, list)
+    # Use convert_slide_to_markdown to convert txt slide format to standard markdown format.
+    lines = hmarkdo.convert_slide_to_markdown(lines, level=3)
+    # Use standard markdown header extraction.
+    # We don't want to sanity check since we want to show the headers, even
+    # if malformed.
+    sanity_check = False
+    header_list = hmarkdo.extract_headers_from_markdown(
+        lines, max_level=max_level, sanity_check=sanity_check
+    )
+    _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
 
 
 # #############################################################################
@@ -157,6 +212,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
     elif ext == ".tex":
         _extract_headers_from_latex(
+            in_file_name, input_content, args.mode, args.max_level, out_file_name
+        )
+    elif ext == ".txt":
+        _extract_headers_from_txtslides(
             in_file_name, input_content, args.mode, args.max_level, out_file_name
         )
     else:
