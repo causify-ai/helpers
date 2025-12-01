@@ -1,0 +1,9 @@
+- Introduction
+  - Background
+    - Detailed Point 1
+    - Detailed Point 2
+  - Motivation
+- Methods
+  - Data Collection
+    - Sampling Strategy
+- Results
