@@ -166,12 +166,12 @@ def frame_sections(lines: List[str]) -> List[str]:
     # Loop 3: Add correct LaTeX separator based on section commands.
     txt_new: List[str] = []
     # Define the section patterns and their corresponding separators.
-    # Total line length is 78 characters, "% " is 2 characters, so 76 separator chars.
-    prefix = "  % "
+    # Total line length is 80 characters, "% " is 2 characters, so 78 separator chars.
+    prefix = "% "
     section_patterns = [
-        (r"^\\section\{", prefix + "#" * 76),
-        (r"^\\subsection\{", prefix + "=" * 76),
-        (r"^\\subsubsection\{", prefix + "-" * 76),
+        (r"^\\section\{", prefix + "#" * 78),
+        (r"^\\subsection\{", prefix + "=" * 78),
+        (r"^\\subsubsection\{", prefix + "-" * 78),
     ]
     for i, line in enumerate(txt_tmp2):
         _LOG.debug("line=%d:%s", i, line)
