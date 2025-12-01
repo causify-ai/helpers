@@ -46,4 +46,4 @@ class Test_extract_toc_from_txt_script1(hunitest.TestCase):
         """
         Test extraction of headers from a txt slide file.
         """
-        self.helper("input.txt")
+        self.helper("input.tex")
