@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hmarkdown_formatting as hmarkdo
+import helpers.hmarkdown_formatting as hmarform
 """
 
 import logging
@@ -10,9 +10,8 @@ from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
-import helpers.hlatex as hlatex
 import helpers.hmarkdown_headers as hmarhead
-import helpers.hmarkdown_slides as hmarform
+import helpers.hmarkdown_slides as hmarslid
 
 _LOG = logging.getLogger(__name__)
 
@@ -245,8 +244,8 @@ def format_figures(lines: List[str]) -> List[str]:
     Convert markdown slides with figures to use fenced div syntax with column
     layout.
 
-    If the input already uses column format or contains no figures, returns
-    unchanged.
+    If the input already uses column format or contains no figures,
+    returns unchanged.
 
     :param lines: list of input markdown lines
     :return: formatted markdown lines with figures in column layout
@@ -352,11 +351,16 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         processed_line = line
         # Store image links temporarily to avoid processing them.
         image_placeholders = []
+
         def store_image_link(match):
             placeholder = f"__IMAGE_LINK_{len(image_placeholders)}__"
             image_placeholders.append(match.group(0))
             return placeholder
-        processed_line = re.sub(image_link_pattern, store_image_link, processed_line)
+
+        processed_line = re.sub(
+            image_link_pattern, store_image_link, processed_line
+        )
+
         # Convert empty bracket links [](URL) or [](email).
         def convert_empty_bracket_link(match):
             target = match.group(1)
@@ -365,6 +369,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         processed_line = re.sub(
             empty_bracket_pattern, convert_empty_bracket_link, processed_line
         )
+
         # Convert URLs in backticks.
         def convert_backtick_url(match):
             url = match.group(1)
@@ -373,6 +378,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         processed_line = re.sub(
             backtick_url_pattern, convert_backtick_url, processed_line
         )
+
         # Normalize existing formatted links to keep existing display text.
         def normalize_formatted_link(match):
             text = match.group(1)
@@ -382,6 +388,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         processed_line = re.sub(
             formatted_link_pattern, normalize_formatted_link, processed_line
         )
+
         # Convert markdown links [Text](URL) to formatted links.
         def convert_markdown_link(match):
             text = match.group(1)
@@ -391,6 +398,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         processed_line = re.sub(
             markdown_link_pattern, convert_markdown_link, processed_line
         )
+
         # Convert email links [email@domain.com](email@domain.com) to formatted links.
         def convert_email_link(match):
             email = match.group(2)
@@ -417,6 +425,7 @@ def format_md_links_to_latex_format(lines: List[str]) -> List[str]:
         temp_line = re.sub(
             correct_formatted_link_pattern, store_formatted_link, processed_line
         )
+
         # Convert remaining plain URLs.
         def convert_plain_url(match):
             url = match.group(0)
@@ -505,7 +514,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     # Format the markdown slides.
     # TODO(gp): Maybe the conversion should be done inside `prettier_on_str`
     # passing a marker to indicate that the text is a slide.
-    lines = hmarform.convert_slide_to_markdown(lines)
+    lines = hmarslid.convert_slide_to_markdown(lines)
     # lines = format_column_blocks()
     #
     file_type = "md"
@@ -519,128 +528,3 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     #
     lines = hmarhead.capitalize_header(lines)
     return lines
-
-
-# #############################################################################
-# Prettier-ignore handling for div blocks.
-# #############################################################################
-
-
-def _split_lines_into_chunks(
-    lines: List[str],
-) -> List[tuple[bool, List[str]]]:
-    """
-    Split lines into chunks of div blocks and non-div blocks.
-
-    A div block starts with a line containing ::: and ends with another
-    line containing :::.
-
-    :param lines: List of strings representing lines in a markdown file.
-    :return: List of tuples (is_div_block, chunk_lines) where is_div_block
-        indicates if the chunk is a div block.
-    """
-    chunks = []
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        # Check if this line starts a div block.
-        if line.strip().startswith(":::"):
-            # Look ahead to find the closing div block.
-            j = i + 1
-            while j < len(lines):
-                if lines[j].strip().startswith(":::"):
-                    # Found the end of the div block.
-                    chunk_lines = lines[i : j + 1]
-                    chunks.append((True, chunk_lines))
-                    i = j + 1
-                    break
-                j += 1
-            else:
-                # No closing div block found, treat as regular line.
-                chunks.append((False, [line]))
-                i += 1
-        else:
-            # Start a non-div block chunk.
-            chunk_lines = [line]
-            i += 1
-            # Continue collecting non-div lines.
-            while i < len(lines) and not lines[i].strip().startswith(":::"):
-                chunk_lines.append(lines[i])
-                i += 1
-            chunks.append((False, chunk_lines))
-    return chunks
-
-
-def add_prettier_ignore_to_div_blocks(lines: List[str]) -> List[str]:
-    """
-    Add prettier-ignore comments around div blocks.
-
-    A div block starts with a line containing ::: and has another line
-    with ::: following it.
-
-    Examples of div blocks:
-    - ::::
-      ::::{.column width=40%}
-    - :::columns
-      ::::{.column width=60%}
-    - ::::
-      :::
-
-    :param lines: List of strings representing lines in a markdown file.
-    :return: List of strings with prettier-ignore comments added.
-    """
-    # Step 1: Split into chunks.
-    chunks = _split_lines_into_chunks(lines)
-    # Step 2: Process chunks and add prettier-ignore comments.
-    result = []
-    for is_div_block, chunk_lines in chunks:
-        if is_div_block:
-            # Add prettier-ignore comments around div blocks.
-            result.append("")
-            result.append("<!-- prettier-ignore-start -->")
-            result.extend(chunk_lines)
-            result.append("<!-- prettier-ignore-end -->")
-            result.append("")
-        else:
-            # Add non-div block lines as-is.
-            result.extend(chunk_lines)
-    return result
-
-
-def remove_prettier_ignore_from_div_blocks(lines: List[str]) -> List[str]:
-    """
-    Remove all prettier-ignore comments from lines.
-
-    This function removes:
-    - <!-- prettier-ignore-start --> lines
-    - <!-- prettier-ignore-end --> lines
-    - Empty lines before prettier-ignore-start
-    - Empty lines after prettier-ignore-end
-
-    :param lines: List of strings representing lines in a markdown file.
-    :return: List of strings with prettier-ignore comments removed.
-    """
-    result = []
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        # Check if this is a prettier-ignore-start comment.
-        if line.strip() == "<!-- prettier-ignore-start -->":
-            # Remove empty line before prettier-ignore-start if present.
-            if result and result[-1] == "":
-                result.pop()
-            # Skip the prettier-ignore-start line.
-            i += 1
-            continue
-        # Check if this is a prettier-ignore-end comment.
-        if line.strip() == "<!-- prettier-ignore-end -->":
-            # Skip the prettier-ignore-end line.
-            i += 1
-            # Skip empty line after prettier-ignore-end if present.
-            if i < len(lines) and lines[i] == "":
-                i += 1
-            continue
-        # Add all other lines.
-        result.append(line)
-        i += 1
-    return result

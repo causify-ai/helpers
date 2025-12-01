@@ -7,7 +7,7 @@ allow running these tools in isolated Docker containers.
 
 Import as:
 
-import helpers.hdockerized_executables as hdockexec
+import helpers.hdockerized_executables as hdocexec
 """
 
 import argparse
@@ -21,8 +21,8 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hprint as hprint
-import helpers.hmarkdown as hmarkdo
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
@@ -572,7 +572,7 @@ def prettier(
         # Pre-process the file.
         txt = hio.from_file(in_file_path)
         lines = txt.split("\n")
-        lines = hmarkdo.add_prettier_ignore_to_div_blocks(lines)
+        lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
         txt = "\n".join(lines)
         # Save to tmp file.
         tmp_file_name = "tmp.prettier." + file_type
@@ -609,7 +609,7 @@ def prettier(
     if file_type in ("md", "txt"):
         txt = hio.from_file(out_file_path)
         lines = txt.split("\n")
-        lines = hmarkdo.remove_prettier_ignore_from_div_blocks(lines)
+        lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
         txt = "\n".join(lines)
         #
         txt = hio.to_file(out_file_path, txt)
@@ -639,7 +639,7 @@ def prettier_on_str(
     # Read result into a string.
     txt = hio.from_file(tmp_file_name)
     _LOG.debug("After prettier txt=\n%s", txt)
-    #os.remove(tmp_file_name)
+    # os.remove(tmp_file_name)
     return txt  # type: ignore
 
 
