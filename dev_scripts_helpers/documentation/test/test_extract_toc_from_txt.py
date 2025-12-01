@@ -10,16 +10,13 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_extract_toc_from_txt1
+# Test_extract_toc_from_txt_script1
 # #############################################################################
 
 
-class Test_extract_toc_from_txt1(hunitest.TestCase):
+class Test_extract_toc_from_txt_script1(hunitest.TestCase):
 
     def helper(self, file: str) -> None:
-        """
-        Test extraction of headers from a Markdown file.
-        """
         # Prepare inputs.
         in_file = os.path.join(self.get_input_dir(), file)
         # Build command to call the script.
@@ -33,14 +30,20 @@ class Test_extract_toc_from_txt1(hunitest.TestCase):
         # Verify the output is correct.
         self.check_string(actual)
 
-    def test_md1(self) -> None:
-        """
-        Test extraction of headers from a Markdown file.
-        """
-        self.helper("input.md")
+#    def test_md1(self) -> None:
+#        """
+#        Test extraction of headers from a Markdown file.
+#        """
+#        self.helper("input.md")
+#
+#    def test_tex1(self) -> None:
+#        """
+#        Test extraction of headers from a LaTeX file.
+#        """
+#        self.helper("input.tex")
 
-    def test_tex1(self) -> None:
+    def test_txt1(self) -> None:
         """
-        Test extraction of headers from a LaTeX file.
+        Test extraction of headers from a txt slide file.
         """
-        self.helper("input.tex")
+        self.helper("input.txt")

@@ -1,6 +1,6 @@
 # Rename files
 
-1) Rename the files in docs/ai_coding/ that have instructions.md
+Step 1) Rename the files in docs/ai_coding/ that have instructions.md
 
 docs/ai_coding/ai.blog.prompt.md
 docs/ai_coding/ai.coding.prompt.md
@@ -9,11 +9,11 @@ docs/ai_coding/ai.unit_test.prompt.md
 
 replacing _instructions.md with .prompt.md
 
-2) Make sure that all the files in the repo are updated
+Step 2) Make sure that all the files in the repo are updated
 
 # Implement script
 
-1) Write a Python script in 
+Step 1) Write a Python script in 
 ...
 that
 ...
@@ -27,11 +27,11 @@ The interface is like:
 - For all the code you must follow the instructions in
   `docs/ai_coding/ai.coding.prompt.md`
 
-2) Update the file README.md in the same directory of the
+Step 2) Update the file README.md in the same directory of the
    script following the instructions in 
    `in docs/ai_coding/ai.create_readme.prompt.md`
 
-3) Generate unit tests for the code following the instructions in
+Step 3) Generate unit tests for the code following the instructions in
   `docs/ai_coding/ai.unit_test.prompt.md`
   - Write test class and methods
   - Do not implement code
@@ -40,7 +40,7 @@ The interface is like:
 
 # Implement function
 
-1) Write a Python function XYZ that ...
+Step 1) Write a Python function XYZ that ...
 
 The interface is like:
 
@@ -50,11 +50,11 @@ The interface is like:
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
 
-2) Update the file README.md in the same directory of the
+Step 2) Update the file README.md in the same directory of the
    script following the instructions in 
    `in docs/ai_coding/ai.create_readme.prompt.md`
 
-3) Generate unit tests for the code following the instructions in
+Step 3) Generate unit tests for the code following the instructions in
   `docs/ai_coding/ai.unit_test.prompt.md`
 
 # Implement an invoke target

@@ -33,11 +33,11 @@ def _extract_sheet(
     Fetch Google Sheet using OAuth service account, retrieve it and store it in
     the provided CSV file name.
 
-    Args:
-        sheet_url (str): Google Sheet URL
-        tab_name (str): Tab Name inside Google Sheet
-        output_csv_name (str): Output CSV Name
-        service_key_path (str): ~/.config/gspread_pandas/google_secret.json
+    :params:
+    - sheet_url: Google Sheet URL
+    - tab_name: Tab Name inside Google Sheet
+    - output_csv_name: Output CSV Name
+    - service_key_path: ~/.config/gspread_pandas/google_secret.json
     """
     credentials = hgodrapi.get_credentials(service_key_path=service_key_path)
     _LOG.info("Using credentials from: %s", service_key_path)
