@@ -167,7 +167,7 @@ def frame_sections(lines: List[str]) -> List[str]:
     txt_new: List[str] = []
     # Define the section patterns and their corresponding separators.
     # Total line length is 80 characters, "% " is 2 characters, so 78 separator chars.
-    prefix = "% "
+    prefix = "  % "
     section_patterns = [
         (r"^\\section\{", prefix + "#" * 78),
         (r"^\\subsection\{", prefix + "=" * 78),

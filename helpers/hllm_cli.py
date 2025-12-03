@@ -174,7 +174,7 @@ def apply_llm(
     if expected_num_chars is not None:
         hdbg.dassert_isinstance(expected_num_chars, int)
         hdbg.dassert_lt(0, expected_num_chars)
-    _LOG.info("Applying LLM to input text")
+    _LOG.debug("Applying LLM to input text")
     _LOG.debug("use_llm_executable=%s", use_llm_executable)
     # Route to appropriate implementation.
     if use_llm_executable:
@@ -196,7 +196,7 @@ def apply_llm(
             model=model,
             expected_num_chars=expected_num_chars,
         )
-    _LOG.info("LLM processing completed")
+    _LOG.debug("LLM processing completed")
     return response
 
 
