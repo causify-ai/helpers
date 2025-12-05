@@ -18,6 +18,7 @@ import argparse
 import logging
 import os
 import re
+import urllib.request
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
@@ -84,17 +85,6 @@ def _parse_descriptions(content: str) -> List[str]:
 # #############################################################################
 
 
-# TODO(ai_gp): Inline this
-def _download_image(url: str, filepath: str) -> None:
-    """
-    Download an image from URL to local file.
-    """
-    import urllib.request
-
-    _LOG.info("Downloading image to %s", filepath)
-    urllib.request.urlretrieve(url, filepath)
-
-
 def _generate_images(
     prompt: str,
     count: int,
@@ -103,7 +93,6 @@ def _generate_images(
     low_res: bool = False,
     api_key: Optional[str] = None,
     progress_bar: Optional[tqdm] = None,
-    desc_idx: Optional[int] = None,
     dry_run: bool = False,
 ) -> None:
     """
@@ -115,7 +104,6 @@ def _generate_images(
     :param low_res: generate standard quality vs HD quality
     :param api_key: OpenAI API key
     :param progress_bar: optional tqdm progress bar for tracking
-    :param desc_idx: optional description index for filename prefix
     :param dry_run: if True, print actions without executing API calls
     """
     # Set image parameters.
@@ -132,10 +120,7 @@ def _generate_images(
         _LOG.info("[DRY RUN] Size: %s", size)
         for i in range(count):
             resolution_suffix = "standard" if low_res else "hd"
-            if desc_idx is not None:
-                filename = f"desc_{desc_idx:02d}_image_{i + 1:02d}_{resolution_suffix}.png"
-            else:
-                filename = f"image_{i + 1:02d}_{resolution_suffix}.png"
+            filename = f"image_{i + 1:02d}_{resolution_suffix}.png"
             filepath = os.path.join(dst_dir, filename)
             _LOG.info("[DRY RUN] Would save image %s/%s to: %s", i + 1, count, filepath)
             # Update progress bar if provided.
@@ -163,13 +148,11 @@ def _generate_images(
         image_url = response.data[0].url
         # Create filename.
         resolution_suffix = "standard" if low_res else "hd"
-        if desc_idx is not None:
-            filename = f"desc_{desc_idx:02d}_image_{i + 1:02d}_{resolution_suffix}.png"
-        else:
-            filename = f"image_{i + 1:02d}_{resolution_suffix}.png"
+        filename = f"image_{i + 1:02d}_{resolution_suffix}.png"
         filepath = os.path.join(dst_dir, filename)
-        # Download the image.
-        _download_image(image_url, filepath)
+        # Download the image directly.
+        _LOG.info("Downloading image to %s", filepath)
+        urllib.request.urlretrieve(image_url, filepath)
         _LOG.info("Saved image to: %s", filepath)
         # Update progress bar if provided.
         if progress_bar is not None:
@@ -271,12 +254,11 @@ def _generate_images_from_file(
                 low_res=low_res,
                 api_key=api_key,
                 progress_bar=pbar,
-                desc_idx=desc_idx if len(descriptions) > 1 else None,
                 dry_run=dry_run,
             )
 
 
-# #############################################################################
+# #################################################################
 
 
 def _parse() -> argparse.ArgumentParser:
