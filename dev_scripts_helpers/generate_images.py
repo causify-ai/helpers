@@ -4,7 +4,7 @@
 Generate multiple images using OpenAI's DALL-E API from the same prompt.
 
 This script generates several images from a single prompt using OpenAI's image
-generation API.  It supports both standard and HD quality modes.
+generation API. It supports both standard and HD quality modes.
 
 Examples:
 # Generate images using prompt from file
@@ -29,113 +29,62 @@ from tqdm import tqdm
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
-
-
-def _parse() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "prompt", nargs="?", help="Text prompt for image generation"
-    )
-    parser.add_argument(
-        "--input",
-        action="store",
-        help="Path to file containing the image description prompt",
-    )
-    parser.add_argument(
-        "--dst_dir",
-        action="store",
-        required=True,
-        help="Destination directory for generated images",
-    )
-    parser.add_argument(
-        "--count",
-        type=int,
-        default=3,
-        help="Number of images to generate (default: 5)",
-    )
-    parser.add_argument(
-        "--low_res",
-        action="store_true",
-        help="Generate standard quality images (vs HD quality)",
-    )
-    parser.add_argument(
-        "--api_key",
-        help="OpenAI API key (if not set via OPENAI_API_KEY env var)",
-    )
-    parser.add_argument(
-        "--workload",
-        help="Workload type for specialized image generation (optional)",
-    )
-    parser.add_argument(
-        "--dry_run",
-        action="store_true",
-        help="Print what would be done without executing API calls",
-    )
-    parser.add_argument(
-        "--from_scratch",
-        action="store_true",
-        help="Create destination directory from scratch (delete if exists)",
-    )
-    hparser.add_verbosity_arg(parser)
-    return parser
 
 
 def _parse_descriptions(content: str) -> List[str]:
     """
-    Parse descriptions from input file content.
+    Extract prompts from formatted text content.
 
-    Supports two formats:
-    1. Single description: entire content is treated as one prompt
-    2. Multiple descriptions in numbered format:
-       1. **Description of the image 1**
-          Text...
-       2. **Description of the image 2**
-          Text...
+    The format is:
+    ```
+    # prompt_name
+    text...
+    more text...
 
-    :param content: raw file content
-    :return: list of description strings
+    # another_prompt_name
+    more text...
+    ```
+
+    Each prompt starts with '# prompt_name' followed by text on subsequent
+    lines. Prompts are separated by one or more blank lines or by the next
+    prompt header.
+
+    :param content: text content containing multiple prompts
+    :return: list of extracted prompt texts (without the header lines)
     """
-    # Try to match numbered format.
-    # Pattern: number followed by period, optional space, then description.
-    pattern = r"^\s*\d+\.\s+\*\*.*?\*\*\s*$"
-    lines = content.split("\n")
-    # Check if file contains numbered descriptions.
-    has_numbered_format = any(re.match(pattern, line) for line in lines)
-    if not has_numbered_format:
-        # Single description: return entire content as one item.
-        _LOG.debug("Detected single description format")
-        return [content.strip()]
-    # Parse multiple numbered descriptions.
-    _LOG.debug("Detected multiple description format")
     descriptions = []
-    current_desc = []
+    lines = content.split("\n")
+    current_description = []
     in_description = False
     for line in lines:
-        if re.match(pattern, line):
-            # Start of new description.
-            if current_desc:
-                # Save previous description.
-                desc_text = "\n".join(current_desc).strip()
+        # Check if this is a header line (starts with '# ' followed by a word).
+        if re.match(r"^#\s+\w+", line):
+            # Save previous description if it exists.
+            if current_description:
+                # Join lines and strip whitespace.
+                desc_text = "\n".join(current_description).strip()
                 if desc_text:
                     descriptions.append(desc_text)
-            # Start collecting new description.
-            current_desc = [line]
+                current_description = []
             in_description = True
-        elif in_description:
-            # Continue collecting current description.
-            current_desc.append(line)
-    # Add last description.
-    if current_desc:
-        desc_text = "\n".join(current_desc).strip()
+            continue
+        # If we're in a description, collect lines.
+        if in_description:
+            current_description.append(line)
+    # Add the last description if it exists.
+    if current_description:
+        desc_text = "\n".join(current_description).strip()
         if desc_text:
             descriptions.append(desc_text)
     return descriptions
 
 
+# #############################################################################
+
+
+# TODO(ai_gp): Inline this
 def _download_image(url: str, filepath: str) -> None:
     """
     Download an image from URL to local file.
@@ -228,60 +177,82 @@ def _generate_images(
     _LOG.info("Image generation complete. Images saved to: %s", dst_dir)
 
 
+# #############################################################################
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Validate arguments.
-    hdbg.dassert_is_not(args.dst_dir, None, "Destination directory is required")
-    # Regular mode.
+def _generate_images_from_file(
+    prompt: Optional[str],
+    input_file: Optional[str],
+    dst_dir: str,
+    count: int,
+    *,
+    low_res: bool = False,
+    api_key: Optional[str] = None,
+    dry_run: bool = False,
+    from_scratch: bool = False,
+) -> None:
+    """
+    Generate images from prompts (command line or file) and save to directory.
+
+    :param prompt: optional text prompt for image generation
+    :param input_file: optional path to file containing prompts
+    :param dst_dir: destination directory for generated images
+    :param count: number of images to generate per prompt
+    :param low_res: generate standard quality vs HD quality
+    :param api_key: OpenAI API key
+    :param dry_run: if True, print actions without executing API calls
+    :param from_scratch: if True, create destination directory from scratch
+    """
     # Get descriptions from command line or file.
     descriptions = []
-    if args.input:
+    if input_file:
         # Read descriptions from file.
-        hdbg.dassert(
-            os.path.exists(args.input),
-            "Input file does not exist:",
-            args.input,
-        )
-        _LOG.info("Reading descriptions from file: %s", args.input)
-        content = hio.from_file(args.input)
+        hdbg.dassert_path_exists(input_file)
+        _LOG.info("Reading descriptions from file: %s", input_file)
+        content = hio.from_file(input_file)
         descriptions = _parse_descriptions(content)
         # Print number of descriptions if multiple.
         if len(descriptions) > 1:
             _LOG.info("Found %s descriptions in input file", len(descriptions))
-    elif args.prompt:
+            # Debug: print first description to verify extraction.
+            _LOG.debug("First description preview: %s", descriptions[0][:100])
+    elif prompt:
         # Use prompt from command line.
-        descriptions = [args.prompt]
+        descriptions = [prompt]
     else:
         # Neither input file nor prompt provided.
         hdbg.dassert(
             False,
             "Either prompt or --input file is required",
         )
-    hdbg.dassert_lte(1, args.count, "Count must be at least 1")
-    hdbg.dassert_lte(
-        args.count, 10, "Count should not exceed 10 for practical reasons"
-    )
+    hdbg.dassert_lte(1, count, "Count must be at least 1")
+    hdbg.dassert_lte(count, 10, "Count should not exceed 10 for practical reasons")
     # Calculate total number of images to generate.
-    total_images = len(descriptions) * args.count
-    if args.dry_run:
-        _LOG.info("[DRY RUN] Would generate %s images (%s descriptions x %s images each)", total_images, len(descriptions), args.count)
+    total_images = len(descriptions) * count
+    if dry_run:
+        _LOG.info(
+            "[DRY RUN] Would generate %s images (%s descriptions x %s images each)",
+            total_images,
+            len(descriptions),
+            count,
+        )
     else:
         _LOG.info(
             "Generating %s images (%s descriptions x %s images each)",
             total_images,
             len(descriptions),
-            args.count,
+            count,
         )
     # Handle destination directory creation.
-    if args.from_scratch:
-        if args.dry_run:
-            _LOG.info("[DRY RUN] Would create destination directory from scratch: %s", args.dst_dir)
+    if from_scratch:
+        if dry_run:
+            _LOG.info(
+                "[DRY RUN] Would create destination directory from scratch: %s",
+                dst_dir,
+            )
         else:
-            _LOG.info("Creating destination directory from scratch: %s", args.dst_dir)
-            hio.create_dir(args.dst_dir, incremental=False)
+            _LOG.info("Creating destination directory from scratch: %s", dst_dir)
+            hio.create_dir(dst_dir, incremental=False)
     else:
         # Ensure directory exists (will be created by _generate_images if needed).
         pass
@@ -295,14 +266,87 @@ def _main(parser: argparse.ArgumentParser) -> None:
             # Generate images for this description.
             _generate_images(
                 prompt=description,
-                count=args.count,
-                dst_dir=args.dst_dir,
-                low_res=args.low_res,
-                api_key=args.api_key,
+                count=count,
+                dst_dir=dst_dir,
+                low_res=low_res,
+                api_key=api_key,
                 progress_bar=pbar,
                 desc_idx=desc_idx if len(descriptions) > 1 else None,
-                dry_run=args.dry_run,
+                dry_run=dry_run,
             )
+
+
+# #############################################################################
+
+
+def _parse() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "prompt", nargs="?", help="Text prompt for image generation"
+    )
+    parser.add_argument(
+        "--input",
+        action="store",
+        help="Path to file containing the image description prompt",
+    )
+    parser.add_argument(
+        "--dst_dir",
+        action="store",
+        required=True,
+        help="Destination directory for generated images",
+    )
+    parser.add_argument(
+        "--count",
+        type=int,
+        default=3,
+        help="Number of images to generate (default: 5)",
+    )
+    parser.add_argument(
+        "--low_res",
+        action="store_true",
+        help="Generate standard quality images (vs HD quality)",
+    )
+    parser.add_argument(
+        "--api_key",
+        help="OpenAI API key (if not set via OPENAI_API_KEY env var)",
+    )
+    parser.add_argument(
+        "--workload",
+        help="Workload type for specialized image generation (optional)",
+    )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Print what would be done without executing API calls",
+    )
+    parser.add_argument(
+        "--from_scratch",
+        action="store_true",
+        help="Create destination directory from scratch (delete if exists)",
+    )
+    hparser.add_verbosity_arg(parser)
+    return parser
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Validate arguments.
+    hdbg.dassert_is_not(args.dst_dir, None, "Destination directory is required")
+    # Generate images from command line or file.
+    _generate_images_from_file(
+        prompt=args.prompt,
+        input_file=args.input,
+        dst_dir=args.dst_dir,
+        count=args.count,
+        low_res=args.low_res,
+        api_key=args.api_key,
+        dry_run=args.dry_run,
+        from_scratch=args.from_scratch,
+    )
 
 
 if __name__ == "__main__":
