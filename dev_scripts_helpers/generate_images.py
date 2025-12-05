@@ -35,32 +35,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _parse_descriptions(content: str) -> List[str]:
-    """
-    Extract prompts from formatted text content.
-
-    The format is:
-    ```
-    # prompt_name
-    text...
-    more text...
-
-    # another_prompt_name
-    more text...
-    ```
-
-    Each prompt starts with '# prompt_name' followed by text on subsequent
-    lines. Prompts are separated by one or more blank lines or by the next
-    prompt header.
-
-    :param content: text content containing multiple prompts
-    :return: list of extracted prompt texts (without the header lines)
-    """
-    # Parse descriptions with names and extract only the text.
-    descriptions_with_names = _parse_descriptions_with_names(content)
-    return [desc_text for _, desc_text in descriptions_with_names]
-
-
 def _parse_descriptions_with_names(content: str) -> List[tuple]:
     """
     Extract prompts with their names from formatted text content.
@@ -128,30 +102,14 @@ def _parse_descriptions_with_names(content: str) -> List[tuple]:
 # #############################################################################
 
 
-def _encode_image_to_base64(image_path: str) -> str:
-    """
-    Encode an image file to base64 string.
-
-    :param image_path: path to the image file
-    :return: base64 encoded string of the image
-    """
-    hdbg.dassert_path_exists(image_path)
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
-
-
-# #############################################################################
-
-
 def _generate_images(
+    prompt_name: str,
     prompt: str,
     count: int,
     dst_dir: str,
     *,
     low_res: bool = False,
-    api_key: Optional[str] = None,
     progress_bar: Optional[tqdm] = None,
-    prompt_name: Optional[str] = None,
     reference_image: Optional[str] = None,
     dry_run: bool = False,
 ) -> None:
@@ -162,7 +120,6 @@ def _generate_images(
     :param count: number of images to generate
     :param dst_dir: destination directory for generated images
     :param low_res: generate standard quality vs HD quality
-    :param api_key: OpenAI API key
     :param progress_bar: optional tqdm progress bar for tracking
     :param prompt_name: optional prompt name for filename
     :param reference_image: optional reference image path for DALL-E 2 editing
@@ -186,6 +143,7 @@ def _generate_images(
     if dry_run:
         _LOG.info("[DRY RUN] Would generate images with the following settings:")
         _LOG.info("[DRY RUN] Model: %s", model)
+        _LOG.info("[DRY RUN] Prompt name: %s", prompt_name)
         _LOG.info("[DRY RUN] Prompt: %s", prompt)
         _LOG.info("[DRY RUN] Count: %s", count)
         _LOG.info("[DRY RUN] Destination directory: %s", dst_dir)
@@ -207,11 +165,7 @@ def _generate_images(
                 progress_bar.update(1)
         return
     # Set up OpenAI client.
-    if api_key:
-        client = openai.OpenAI(api_key=api_key)
-    else:
-        # Will use OPENAI_API_KEY environment variable.
-        client = openai.OpenAI()
+    client = openai.OpenAI()
     # Ensure destination directory exists.
     hio.create_dir(dst_dir, incremental=True)
     for i in range(count):
@@ -238,11 +192,8 @@ def _generate_images(
         # Get the image URL.
         image_url = response.data[0].url
         # Create filename using new format.
-        resolution_suffix = "standard" if low_res else "hd"
-        if prompt_name:
-            filename = f"image.{prompt_name}.{i + 1:02d}.{resolution_suffix}.png"
-        else:
-            filename = f"image_{i + 1:02d}_{resolution_suffix}.png"
+        resolution_suffix = "low_res" if low_res else "high_res"
+        filename = f"image.{prompt_name}.{i + 1:02d}.{resolution_suffix}.png"
         filepath = os.path.join(dst_dir, filename)
         # Download the image directly.
         _LOG.info("Downloading image to %s", filepath)
@@ -264,7 +215,6 @@ def _generate_images_from_file(
     count: int,
     *,
     low_res: bool = False,
-    api_key: Optional[str] = None,
     reference_image: Optional[str] = None,
     dry_run: bool = False,
     from_scratch: bool = False,
@@ -277,7 +227,6 @@ def _generate_images_from_file(
     :param dst_dir: destination directory for generated images
     :param count: number of images to generate per prompt
     :param low_res: generate standard quality vs HD quality
-    :param api_key: OpenAI API key
     :param reference_image: optional reference image path for DALL-E 2 editing
     :param dry_run: if True, print actions without executing API calls
     :param from_scratch: if True, create destination directory from scratch
@@ -344,13 +293,12 @@ def _generate_images_from_file(
             _LOG.debug("Description: %s", description[:200])
             # Generate images for this description.
             _generate_images(
-                prompt=description,
-                count=count,
-                dst_dir=dst_dir,
+                prompt_name,
+                description,
+                count,
+                dst_dir,
                 low_res=low_res,
-                api_key=api_key,
                 progress_bar=pbar,
-                prompt_name=prompt_name,
                 reference_image=reference_image,
                 dry_run=dry_run,
             )
@@ -390,10 +338,6 @@ def _parse() -> argparse.ArgumentParser:
         help="Generate standard quality images (vs HD quality)",
     )
     parser.add_argument(
-        "--api_key",
-        help="OpenAI API key (if not set via OPENAI_API_KEY env var)",
-    )
-    parser.add_argument(
         "--reference_image",
         help="Path to reference image for DALL-E 2 editing (optional)",
     )
@@ -427,7 +371,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         dst_dir=args.dst_dir,
         count=args.count,
         low_res=args.low_res,
-        api_key=args.api_key,
         reference_image=args.reference_image,
         dry_run=args.dry_run,
         from_scratch=args.from_scratch,
