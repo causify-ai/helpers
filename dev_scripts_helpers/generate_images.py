@@ -137,21 +137,18 @@ def _generate_images(
         size = "1024x1024"  # DALL-E 3 only supports 1024x1024, 1024x1792, 1792x1024.
         quality = "standard" if low_res else "hd"
     _LOG.info("Generating %s images with prompt: '%s'", count, prompt[:100])
-    _LOG.info("Model: %s, Size: %s", model, size)
+    _LOG.info("Model: %s", model)
+    _LOG.info("Prompt name: %s", prompt_name)
+    _LOG.info("Prompt: %s", prompt)
+    _LOG.info("Count: %s", count)
+    _LOG.info("Destination directory: %s", dst_dir)
     if not use_reference:
         _LOG.info("Quality: %s", quality)
+    if use_reference:
+        _LOG.info("Reference image: %s", reference_image)
+    _LOG.info("Size: %s", size)
+
     if dry_run:
-        _LOG.info("[DRY RUN] Would generate images with the following settings:")
-        _LOG.info("[DRY RUN] Model: %s", model)
-        _LOG.info("[DRY RUN] Prompt name: %s", prompt_name)
-        _LOG.info("[DRY RUN] Prompt: %s", prompt)
-        _LOG.info("[DRY RUN] Count: %s", count)
-        _LOG.info("[DRY RUN] Destination directory: %s", dst_dir)
-        if not use_reference:
-            _LOG.info("[DRY RUN] Quality: %s", quality)
-        _LOG.info("[DRY RUN] Size: %s", size)
-        if use_reference:
-            _LOG.info("[DRY RUN] Reference image: %s", reference_image)
         for i in range(count):
             resolution_suffix = "standard" if low_res else "hd"
             if prompt_name:
