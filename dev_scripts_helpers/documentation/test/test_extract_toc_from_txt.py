@@ -30,17 +30,17 @@ class Test_extract_toc_from_txt_script1(hunitest.TestCase):
         # Verify the output is correct.
         self.check_string(actual)
 
-#    def test_md1(self) -> None:
-#        """
-#        Test extraction of headers from a Markdown file.
-#        """
-#        self.helper("input.md")
-#
-#    def test_tex1(self) -> None:
-#        """
-#        Test extraction of headers from a LaTeX file.
-#        """
-#        self.helper("input.tex")
+    def test_md1(self) -> None:
+        """
+        Test extraction of headers from a Markdown file.
+        """
+        self.helper("input.md")
+
+    def test_tex1(self) -> None:
+        """
+        Test extraction of headers from a LaTeX file.
+        """
+        self.helper("input.tex")
 
     def test_txt1(self) -> None:
         """

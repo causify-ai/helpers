@@ -69,28 +69,28 @@
   - Is meant to be a single replacement for multiple tools (e.g., flake8,
     pylint, isort, pyupgrade)
 
-- Help
-  ```text
-  > ruff -h
-  ...
-  Commands:
-    check    Run Ruff on the given files or directories
-    rule     Explain a rule (or all rules)
-    config   List or describe the available configuration options
-    linter   List all supported upstream linters
-    clean    Clear any caches in the current directory and any subdirectories
-    format   Run the Ruff formatter on the given files or directories
-    server   Run the language server
-    analyze  Run analysis over Python source code
-    version  Display Ruff's version
-    help     Print this message or the help of the given subcommand(s)
-  ...
-  ```
+```
+> ruff -h
+...
+Commands:
+  check    Run Ruff on the given files or directories
+  rule     Explain a rule (or all rules)
+  config   List or describe the available configuration options
+  linter   List all supported upstream linters
+  clean    Clear any caches in the current directory and any subdirectories
+  format   Run the Ruff formatter on the given files or directories
+  server   Run the language server
+  analyze  Run analysis over Python source code
+  version  Display Ruff's version
+  help     Print this message or the help of the given subcommand(s)
+...
+```
 
 ### Config
 
 - Often we want to exclude certain files in the repos, e.g., files under
   `outcomes`:
+
   ```bash
   > ruff ... --exclude  '**/outcomes/**' --exclude '**/import_check/example/**'
   ```
@@ -137,6 +137,7 @@
 ### `ruff analyze`
 
 - Can analyze the code base
+
   ```text
   > ruff analyze graph -h
   Generate a map of Python file dependencies or dependents
@@ -284,13 +285,6 @@
 
   ```bash
   docker> pyrefly check --color=never --output-format=min-text --project-excludes '**/outcomes/**' --project-excludes '**/import_check/example/**' --project-excludes '**/mkdocs.venv/**'
-  ```
-
-### `ssort`
-
-- Reorder in place
-  ```bash
-  > uvx ssort file
   ```
 
 ## Call graph and dependencies
