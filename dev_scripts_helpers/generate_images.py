@@ -4,7 +4,8 @@
 Generate multiple images using OpenAI's DALL-E API from the same prompt.
 
 This script generates several images from a single prompt using OpenAI's image
-generation API. It supports both standard and HD quality modes.
+generation API. It supports both standard and HD quality modes, and multiple
+models including DALL-E 2, DALL-E 3, and gpt-image-1.
 
 Examples:
 # Generate images using prompt from file
@@ -12,6 +13,9 @@ Examples:
 
 # Generate low-res images using prompt from file
 > generate_images.py --input descr.txt --dst_dir ./images --low_res
+
+# Generate images using gpt-image-1 model
+> generate_images.py --input descr.txt --dst_dir ./images --model gpt-image-1
 """
 
 import argparse
@@ -112,6 +116,7 @@ def _generate_images(
     progress_bar: Optional[tqdm] = None,
     reference_image: Optional[str] = None,
     dry_run: bool = False,
+    model_name: Optional[str] = None,
 ) -> None:
     """
     Generate images using OpenAI API and save to destination directory.
@@ -124,25 +129,40 @@ def _generate_images(
     :param prompt_name: optional prompt name for filename
     :param reference_image: optional reference image path for DALL-E 2 editing
     :param dry_run: if True, print actions without executing API calls
+    :param model_name: model to use (dall-e-2, dall-e-3, gpt-image-1)
     """
-    # Set image parameters based on reference image.
+    # Set image parameters based on reference image and model selection.
     use_reference = reference_image is not None
-    if use_reference:
+    if model_name:
+        # Use explicitly specified model.
+        model = model_name
+        _LOG.info("Using explicitly specified model: %s", model)
+    elif use_reference:
+        # Reference image requires DALL-E 2.
         hdbg.dassert_path_exists(reference_image)
         model = "dall-e-2"
-        size = "1024x1024"  # DALL-E 2 supports 256x256, 512x512, 1024x1024.
-        _LOG.info("Using DALL-E 2 with reference image: %s", reference_image)
+        _LOG.warning("Using DALL-E 2 with reference image: %s", reference_image)
     else:
+        # Default to DALL-E 3.
         model = "dall-e-3"
+    # Set size and quality based on model.
+    if model == "dall-e-2":
+        size = "1024x1024"  # DALL-E 2 supports 256x256, 512x512, 1024x1024.
+    elif model == "dall-e-3":
         size = "1024x1024"  # DALL-E 3 only supports 1024x1024, 1024x1792, 1792x1024.
         quality = "standard" if low_res else "hd"
+    elif model == "gpt-image-1":
+        size = "1024x1024"  # gpt-image-1 default size.
+        quality = "medium" if low_res else "high"  # gpt-image-1 uses low/medium/high/auto.
+    else:
+        hdbg.dfatal("Unsupported model: %s", model)
     _LOG.info("Generating %s images with prompt: '%s'", count, prompt[:100])
     _LOG.info("Model: %s", model)
     _LOG.info("Prompt name: %s", prompt_name)
     _LOG.info("Prompt: %s", prompt)
     _LOG.info("Count: %s", count)
     _LOG.info("Destination directory: %s", dst_dir)
-    if not use_reference:
+    if model in ["dall-e-3", "gpt-image-1"]:
         _LOG.info("Quality: %s", quality)
     if use_reference:
         _LOG.info("Reference image: %s", reference_image)
@@ -178,23 +198,37 @@ def _generate_images(
                     n=1,
                 )
         else:
-            # Use DALL-E 3 generate endpoint.
+            # Use generate endpoint for DALL-E 3 and gpt-image-1.
             response = client.images.generate(
                 model=model,
                 prompt=prompt,
                 size=size,
                 quality=quality,
-                n=1,  # DALL-E 3 only supports n=1.
+                n=1,
             )
-        # Get the image URL.
-        image_url = response.data[0].url
         # Create filename using new format.
         resolution_suffix = "low_res" if low_res else "high_res"
         filename = f"image.{prompt_name}.{i + 1:02d}.{resolution_suffix}.png"
         filepath = os.path.join(dst_dir, filename)
-        # Download the image directly.
-        _LOG.info("Downloading image to %s", filepath)
-        urllib.request.urlretrieve(image_url, filepath)
+        # Get the image data - could be URL or base64 encoded.
+        image_data = response.data[0]
+        if hasattr(image_data, 'url') and image_data.url:
+            # Download from URL.
+            image_url = image_data.url
+            _LOG.info("Downloading image from URL to %s", filepath)
+            urllib.request.urlretrieve(image_url, filepath)
+        elif hasattr(image_data, 'b64_json') and image_data.b64_json:
+            # Decode base64 image.
+            _LOG.info("Decoding base64 image to %s", filepath)
+            image_bytes = base64.b64decode(image_data.b64_json)
+            with open(filepath, 'wb') as f:
+                f.write(image_bytes)
+        else:
+            hdbg.dfatal(
+                "Image response does not contain 'url' or 'b64_json'. "
+                "Response data: %s",
+                image_data
+            )
         _LOG.info("Saved image to: %s", filepath)
         # Update progress bar if provided.
         if progress_bar is not None:
@@ -215,6 +249,7 @@ def _generate_images_from_file(
     reference_image: Optional[str] = None,
     dry_run: bool = False,
     from_scratch: bool = False,
+    model_name: Optional[str] = None,
 ) -> None:
     """
     Generate images from prompts (command line or file) and save to directory.
@@ -227,6 +262,7 @@ def _generate_images_from_file(
     :param reference_image: optional reference image path for DALL-E 2 editing
     :param dry_run: if True, print actions without executing API calls
     :param from_scratch: if True, create destination directory from scratch
+    :param model_name: model to use (dall-e-2, dall-e-3, gpt-image-1)
     """
     # Get descriptions from command line or file.
     descriptions_with_names = []
@@ -298,6 +334,7 @@ def _generate_images_from_file(
                 progress_bar=pbar,
                 reference_image=reference_image,
                 dry_run=dry_run,
+                model_name=model_name,
             )
 
 
@@ -339,6 +376,11 @@ def _parse() -> argparse.ArgumentParser:
         help="Path to reference image for DALL-E 2 editing (optional)",
     )
     parser.add_argument(
+        "--model",
+        choices=["dall-e-2", "dall-e-3", "gpt-image-1"],
+        help="Model to use for image generation (default: dall-e-3)",
+    )
+    parser.add_argument(
         "--workload",
         help="Workload type for specialized image generation (optional)",
     )
@@ -371,6 +413,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         reference_image=args.reference_image,
         dry_run=args.dry_run,
         from_scratch=args.from_scratch,
+        model_name=args.model,
     )
 
 
