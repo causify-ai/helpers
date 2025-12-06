@@ -29,6 +29,7 @@ from typing import List, Optional
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 import openai
 from tqdm import tqdm
@@ -100,6 +101,7 @@ def _parse_descriptions_with_names(content: str) -> List[tuple]:
             "Found lines that were not processed:\n%s",
             unprocessed_text,
         )
+    _LOG.debug("Found %s descriptions", len(descriptions))
     return descriptions
 
 
@@ -121,12 +123,12 @@ def _generate_images(
     """
     Generate images using OpenAI API and save to destination directory.
 
+    :param prompt_name: optional prompt name for filename
     :param prompt: text prompt for image generation
     :param count: number of images to generate
     :param dst_dir: destination directory for generated images
     :param low_res: generate standard quality vs HD quality
     :param progress_bar: optional tqdm progress bar for tracking
-    :param prompt_name: optional prompt name for filename
     :param reference_image: optional reference image path for DALL-E 2 editing
     :param dry_run: if True, print actions without executing API calls
     :param model_name: model to use (dall-e-2, dall-e-3, gpt-image-1)
@@ -136,7 +138,7 @@ def _generate_images(
     if model_name:
         # Use explicitly specified model.
         model = model_name
-        _LOG.info("Using explicitly specified model: %s", model)
+        _LOG.debug("Using explicitly specified model: %s", model)
     elif use_reference:
         # Reference image requires DALL-E 2.
         hdbg.dassert_path_exists(reference_image)
@@ -156,18 +158,17 @@ def _generate_images(
         quality = "medium" if low_res else "high"  # gpt-image-1 uses low/medium/high/auto.
     else:
         hdbg.dfatal("Unsupported model: %s", model)
-    _LOG.info("Generating %s images with prompt: '%s'", count, prompt[:100])
-    _LOG.info("Model: %s", model)
-    _LOG.info("Prompt name: %s", prompt_name)
-    _LOG.info("Prompt: %s", prompt)
-    _LOG.info("Count: %s", count)
-    _LOG.info("Destination directory: %s", dst_dir)
+    _LOG.debug("Generating %s images with prompt: '%s'", count, prompt[:100])
+    _LOG.debug("Model: %s", model)
+    _LOG.debug("Prompt name: %s", prompt_name)
+    _LOG.debug("Prompt: %s", prompt)
+    _LOG.debug("Count: %s", count)
+    _LOG.debug("Destination directory: %s", dst_dir)
     if model in ["dall-e-3", "gpt-image-1"]:
-        _LOG.info("Quality: %s", quality)
+        _LOG.debug("Quality: %s", quality)
     if use_reference:
-        _LOG.info("Reference image: %s", reference_image)
-    _LOG.info("Size: %s", size)
-
+        _LOG.debug("Reference image: %s", reference_image)
+    _LOG.debug("Size: %s", size)
     if dry_run:
         for i in range(count):
             resolution_suffix = "standard" if low_res else "hd"
@@ -176,17 +177,15 @@ def _generate_images(
             else:
                 filename = f"image_{i + 1:02d}_{resolution_suffix}.png"
             filepath = os.path.join(dst_dir, filename)
-            _LOG.info("[DRY RUN] Would save image %s/%s to: %s", i + 1, count, filepath)
+            _LOG.debug("[DRY RUN] Would save image %s/%s to: %s", i + 1, count, filepath)
             # Update progress bar if provided.
             if progress_bar is not None:
                 progress_bar.update(1)
         return
     # Set up OpenAI client.
     client = openai.OpenAI()
-    # Ensure destination directory exists.
-    hio.create_dir(dst_dir, incremental=True)
     for i in range(count):
-        _LOG.info("Generating image %s/%s", i + 1, count)
+        _LOG.debug("Generating image %s/%s", i + 1, count)
         if use_reference:
             # Use DALL-E 2 edit endpoint with reference image.
             with open(reference_image, "rb") as image_file:
@@ -215,11 +214,11 @@ def _generate_images(
         if hasattr(image_data, 'url') and image_data.url:
             # Download from URL.
             image_url = image_data.url
-            _LOG.info("Downloading image from URL to %s", filepath)
+            _LOG.debug("Downloading image from URL to %s", filepath)
             urllib.request.urlretrieve(image_url, filepath)
         elif hasattr(image_data, 'b64_json') and image_data.b64_json:
             # Decode base64 image.
-            _LOG.info("Decoding base64 image to %s", filepath)
+            _LOG.debug("Decoding base64 image to %s", filepath)
             image_bytes = base64.b64decode(image_data.b64_json)
             with open(filepath, 'wb') as f:
                 f.write(image_bytes)
@@ -229,7 +228,7 @@ def _generate_images(
                 "Response data: %s",
                 image_data
             )
-        _LOG.info("Saved image to: %s", filepath)
+        _LOG.debug("Saved image to: %s", filepath)
         # Update progress bar if provided.
         if progress_bar is not None:
             progress_bar.update(1)
@@ -242,6 +241,7 @@ def _generate_images(
 def _generate_images_from_file(
     prompt: Optional[str],
     input_file: Optional[str],
+    style: str,
     dst_dir: str,
     count: int,
     *,
@@ -256,6 +256,7 @@ def _generate_images_from_file(
 
     :param prompt: optional text prompt for image generation
     :param input_file: optional path to file containing prompts
+    :param style: style to use for image generation (optional)
     :param dst_dir: destination directory for generated images
     :param count: number of images to generate per prompt
     :param low_res: generate standard quality vs HD quality
@@ -288,39 +289,47 @@ def _generate_images_from_file(
         )
     hdbg.dassert_lte(1, count, "Count must be at least 1")
     hdbg.dassert_lte(count, 10, "Count should not exceed 10 for practical reasons")
+    #
+    if style != "":
+        _LOG.info("Adding style: %s", style)
+        if style == "style1":
+            style = """
+            Use a unified minimalist flat-illustration style: clean vector lines, uniform
+            stroke weight, simple geometric shapes, muted blue-gray color palette, no
+            gradients, no shadows, no textures, no writings, centered composition, generous
+            white space.
+            """
+        elif style == "style2":
+            style = """
+            Use a unified minimalist flat-illustration style: clean vector lines, 
+            simple geometric shapes, muted blue-gray color palette, no
+            gradients, no shadows, no textures, no writings, centered composition
+            """
+        elif style == "style3":
+            style = """
+            Use a minimalist flat-illustration style: clean vector lines, 
+            simple geometric shapes, no gradients, no shadows, no textures, no
+            writings, centered composition. Background should be transparent.
+            """
+        else:
+            raise ValueError("Invalid style: %s" % style)
+        style = hprint.dedent(style)
+        descriptions_with_names = [(tag, style + "\n" + description) for tag, description in descriptions_with_names]
     # Calculate total number of images to generate.
     total_images = len(descriptions_with_names) * count
-    if dry_run:
-        _LOG.info(
-            "[DRY RUN] Would generate %s images (%s descriptions x %s images each)",
-            total_images,
-            len(descriptions_with_names),
-            count,
-        )
-    else:
-        _LOG.info(
-            "Generating %s images (%s descriptions x %s images each)",
-            total_images,
-            len(descriptions_with_names),
-            count,
-        )
-    # Handle destination directory creation.
-    if from_scratch:
-        if dry_run:
-            _LOG.info(
-                "[DRY RUN] Would create destination directory from scratch: %s",
-                dst_dir,
-            )
-        else:
-            _LOG.info("Creating destination directory from scratch: %s", dst_dir)
-            hio.create_dir(dst_dir, incremental=False)
-    else:
-        # Ensure directory exists (will be created by _generate_images if needed).
-        pass
+    _LOG.debug(
+        "Generating %s images (%s descriptions x %s images each)",
+        total_images,
+        len(descriptions_with_names),
+        count,
+    )
+    # Ensure destination directory exists.
+    hio.backup_file_or_dir_if_exists(dst_dir)
+    hio.create_dir(dst_dir, incremental=True)
     # Create progress bar for total image generation.
     with tqdm(total=total_images, desc="Generating images") as pbar:
         for desc_idx, (prompt_name, description) in enumerate(descriptions_with_names, start=1):
-            _LOG.info(
+            _LOG.debug(
                 "Processing description %s/%s", desc_idx, len(descriptions_with_names)
             )
             _LOG.debug("Description: %s", description[:200])
@@ -353,6 +362,11 @@ def _parse() -> argparse.ArgumentParser:
         "--input",
         action="store",
         help="Path to file containing the image description prompt",
+    )
+    parser.add_argument(
+        "--style",
+        help="Style to use for image generation (optional)",
+        default="",
     )
     parser.add_argument(
         "--dst_dir",
@@ -405,10 +419,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert_is_not(args.dst_dir, None, "Destination directory is required")
     # Generate images from command line or file.
     _generate_images_from_file(
-        prompt=args.prompt,
-        input_file=args.input,
-        dst_dir=args.dst_dir,
-        count=args.count,
+        args.prompt,
+        args.input,
+        args.style,
+        args.dst_dir,
+        args.count,
         low_res=args.low_res,
         reference_image=args.reference_image,
         dry_run=args.dry_run,
