@@ -655,7 +655,7 @@ def get_completion(
     else:
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.
-        # Stream the response to show progress.
+        # Stream the output to show progress.
         collected_messages = []
         if not use_responses_api:
             # Stream Chat Completions API.
@@ -685,7 +685,9 @@ def get_completion(
                 stream=True,
                 **create_kwargs,
             )
-            for event in stream:
+            for event in tqdm.tqdm(
+                stream, desc="Generating response", unit=" events"
+            ):
                 if event.type == "response.output_text.delta":
                     collected_messages.append(event.delta.value)
         response = "".join(collected_messages)
