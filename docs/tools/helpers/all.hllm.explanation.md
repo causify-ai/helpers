@@ -136,7 +136,7 @@ This section summarizes how `get_completion()` operates internally.
 1. **Input Handling**
    - Accepts `user_prompt`, `system_prompt`, `model`, `cache_mode`, and other
      parameters.
-   - Builds OpenAI-compatible `messages` list.
+   - Builds OpenAI-compatible input according to the API specifications.
 
 2. **Cache Key Creation**
    - Calls `_CompletionCache.hash_key_generator()` using model, prompts, and
@@ -157,7 +157,7 @@ This section summarizes how `get_completion()` operates internally.
 
 4. **API Call Execution**
    - Calls OpenAI API synchronously (with or without streaming).
-   - Collects the completion output and underlying response object.
+   - Collects the LLM output and underlying response object.
 
 5. **Cost Estimation**
    - Uses `_calculate_cost()` to compute token usage cost.
@@ -231,17 +231,26 @@ This section summarizes how `get_completion()` operates internally.
   def _call_api_sync_cached(
       cache_mode: str,
       client: openai.OpenAI,
-      messages: List[Dict[str, str]],
-      model: str,
+      user_prompt: str,
+      system_prompt: str,
       temperature: float,
+      model: str,
+      *,
+      images_as_base64: Optional[Tuple[str, ...]] = None,
+      cost_tracker: Optional[LLMCostTracker] = None,
+      use_responses_api: bool = False,
       **create_kwargs,
   ) -> Dict[str, Any]:
       hdbg.dassert_in(cache_mode, ("REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"))
       return _call_api_sync(
           client=client,
-          messages=messages,
-          model=model,
+          user_prompt=user_prompt,
+          system_prompt=system_prompt,
           temperature=temperature,
+          model=model,
+          images_as_base64=images_as_base64,
+          cost_tracker=cost_tracker,
+          use_responses_api=use_responses_api,
           **create_kwargs,
       )
   ```

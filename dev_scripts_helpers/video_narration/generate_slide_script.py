@@ -178,7 +178,7 @@ def _process_slides_group(
         model=model,
         cache_mode="NORMAL",
         temperature=0.1,
-        #images_as_base64=images_as_base64 if images_as_base64 else None,
+        #images_as_base64=tuple(images_as_base64) if images_as_base64 else None,
     )
     return response
 
