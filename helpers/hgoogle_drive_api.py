@@ -83,7 +83,7 @@ def get_sheets_service(credentials: goasea.Credentials) -> godisc.Resource:
     :return: Google Sheets service instance.
     """
     # Ensure credentials are provided.
-    hdbg.dassert(not credentials, "The 'credentials' parameter must be provided.")
+    hdbg.dassert(credentials, "The 'credentials' parameter must be provided")
     # Build the Sheets service.
     sheets_service = godisc.build(
         "sheets", "v4", credentials=credentials, cache_discovery=False
@@ -284,19 +284,11 @@ def read_google_file(
     if tab_name is None:
         worksheet = spreadsheet.get_worksheet(0)
     else:
-        try:
-            worksheet = spreadsheet.worksheet(tab_name)
-        except gspread.SpreadsheetNotFound:
-            _LOG.error(
-                "Tab with name '%s' not found in the spreadsheet.", tab_name
-            )
-            raise RuntimeError(
-                f"Tab with name '{tab_name}' not found in the spreadsheet."
-            )
+        worksheet = spreadsheet.worksheet(tab_name)
     data = worksheet.get_all_records()
-    hdbg.dassert(not data, "The sheet '%s' is empty", tab_name)
+    hdbg.dassert(data, "The sheet '%s' is empty", tab_name)
     df = pd.DataFrame(data)
-    _LOG.debug("Data fetched....")
+    _LOG.debug("Data fetched")
     return df
 
 
@@ -309,28 +301,30 @@ def write_to_google_sheet(
     """
     Write data to a specified Google Sheet and tab.
 
-    :param credentials: google credentials object
-    :param df: data to be written
-    :param url: url of the Google Sheet
-    :param tab_name: name of the tab where the data will be written
+    :param credentials: Google credentials object.
+    :param df: Data to be written.
+    :param url: URL of the Google Sheet.
+    :param tab_name: Name of the tab where the data will be written.
     """
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(url)
+    # Try to get existing worksheet or create new one.
     try:
         worksheet = spreadsheet.worksheet(tab_name)
     except gspread.exceptions.WorksheetNotFound:
-        _LOG.warning(
+        _LOG.debug(
             "Tab '%s' not found, creating a new tab with that name",
             tab_name,
         )
         worksheet = spreadsheet.add_worksheet(
             title=tab_name, rows="100", cols="20"
         )
+    # Clear and write data.
     worksheet.clear()
     values = [df.columns.values.tolist()] + df.values.tolist()
     worksheet.update("A1", values)
     _LOG.debug(
-        "Data successfully written to the tab '%s' of the Google Sheet.",
+        "Data successfully written to the tab '%s' of the Google Sheet",
         tab_name,
     )
 
@@ -348,7 +342,7 @@ def get_gdrive_service(credentials: goasea.Credentials) -> godisc.Resource:
     :return: Google Drive service instance.
     """
     # Ensure credentials are provided.
-    hdbg.dassert(not credentials, "The 'credentials' parameter must be provided.")
+    hdbg.dassert(credentials, "The 'credentials' parameter must be provided")
     # Build the drive service.
     gdrive_service = godisc.build(
         "drive", "v3", credentials=credentials, cache_discovery=False
@@ -461,7 +455,7 @@ def create_empty_google_file(
         )
     else:
         raise ValueError(f"Invalid gfile_type={gfile_type}")
-    _LOG.debug("Created a new Google %s '%s'.", gfile_type, gfile_name)
+    _LOG.debug("Created a new Google %s '%s'", gfile_type, gfile_name)
     # Move the Google file to the specified folder.
     if gdrive_folder_id:
         move_gfile_to_dir(credentials, gfile_id, gdrive_folder_id)
@@ -509,8 +503,8 @@ def create_google_drive_folder(
     # Create the folder in Google Drive.
     folder = service.files().create(body=file_metadata, fields="id").execute()
     # Log and return the folder ID.
-    _LOG.debug("Created a new Google Drive folder '%s'.", folder_name)
-    _LOG.debug("The new folder id is '%s'.", folder.get("id"))
+    _LOG.debug("Created a new Google Drive folder '%s'", folder_name)
+    _LOG.debug("The new folder id is '%s'", folder.get("id"))
     return folder.get("id")
 
 
@@ -525,7 +519,6 @@ def _get_folders_in_gdrive(*, credentials: goasea.Credentials) -> list:
     service = godisc.build(
         "drive", "v3", credentials=credentials, cache_discovery=False
     )
-
     # Make the API request to list folders.
     response = (
         service.files()
@@ -549,12 +542,12 @@ def get_folder_id_by_name(
     Get the folder id by the folder name.
 
     :param credentials: Google credentials object.
-    :param name: str, the name of the folder.
-    :return: list, the list of the folder id and folder name.
+    :param name: The name of the folder.
+    :return: Dictionary with folder id and name.
     """
     folders = _get_folders_in_gdrive(credentials=credentials)
     folder_list = []
-    #
+    # Find all folders matching the name.
     for folder in folders:
         if folder.get("name") == name:
             folder_list.append(folder)
@@ -607,7 +600,7 @@ def share_google_file(
         "The new permission ID of the document is: '%s'",
         new_permission.get("id"),
     )
-    _LOG.info("The Google file is shared with '%s'.", user)
+    _LOG.debug("The Google file is shared with '%s'", user)
 
 
 def create_or_overwrite_with_timestamp(
@@ -617,7 +610,7 @@ def create_or_overwrite_with_timestamp(
     *,
     file_type: str = "sheets",
     overwrite: bool = False,
-) -> None:
+) -> str:
     """
     Create or overwrite a Google Sheet or Google Doc with a timestamp in a
     specific Google Drive folder.
@@ -629,6 +622,7 @@ def create_or_overwrite_with_timestamp(
     :param file_type: Type of file to create ('sheets' or 'docs').
     :param overwrite: If True, overwrite an existing file. Otherwise,
         create a new file.
+    :return: The ID of the created or overwritten file.
     """
     # Authenticate with Google APIs using the provided credentials.
     drive_service = godisc.build("drive", "v3", credentials=credentials)
@@ -653,10 +647,12 @@ def create_or_overwrite_with_timestamp(
         .execute()
     )
     files = response.get("files", [])
+    # Check if overwriting or creating new file.
     if files and overwrite:
         file_id = files[0]["id"]
-        _LOG.info("Overwriting existing file '%s'.", files[0]["name"])
+        _LOG.debug("Overwriting existing file '%s'", files[0]["name"])
     else:
+        # Create new file with timestamp.
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         new_file_name = f"{file_name}_{timestamp}"
         file_metadata = {
@@ -671,7 +667,7 @@ def create_or_overwrite_with_timestamp(
         )
         file_id = file.get("id")
         _LOG.debug(
-            "New file '%s' created successfully in folder '%s'.",
+            "New file '%s' created successfully in folder '%s'",
             new_file_name,
             folder_id,
         )
