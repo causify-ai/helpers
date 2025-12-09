@@ -109,7 +109,7 @@ def _copy_directory(input_dir: str, output_dir: str) -> None:
     hsystem.system(cmd)
     # Copy the entire directory tree and make files writable.
     # Use '/.' to include hidden files (like .authors.yml)
-    cmd = f"cp -rL {input_dir}/. {output_dir}/ && chmod -R u+w {output_dir}"
+    cmd = f"cp -rL {input_dir}/. {output_dir}/docs && chmod -R u+w {output_dir}"
     hsystem.system(cmd)
     _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
 
@@ -328,7 +328,7 @@ def _move_misplaced_images(output_dir: str, is_blog: bool) -> None:
         _LOG.debug("No misplaced figs directory found")
         return
     # Target location for blog images.
-    target_figs_dir = os.path.join(output_dir, "posts", "figs")
+    target_figs_dir = os.path.join(output_dir, "docs", "posts", "figs")
     hio.create_dir(target_figs_dir, incremental=True)
     # Move all PNG files from root figs to blog figs.
     cmd = f"cp -r {root_figs_dir}/* {target_figs_dir}/ 2>/dev/null || true"
@@ -345,9 +345,9 @@ def _copy_assets_and_styles(input_dir: str, output_dir: str) -> None:
     :param output_dir: destination directory path
     """
     # Find the assets and styles directories.
-    mkdocs_html_dir = "mkdocs"
+    mkdocs_html_dir = "docs_mkdocs"
     hdbg.dassert_dir_exists(mkdocs_html_dir)
-    cmd = f"cp -r {mkdocs_html_dir}/* {output_dir}"
+    cmd = f"cp -r {mkdocs_html_dir}/docs/* {output_dir}/docs"
     hsystem.system(cmd)
     # Copy the mkdocs.yml file.
     mkdocs_yml_file = os.path.join(mkdocs_html_dir, "mkdocs.yml")

@@ -23,8 +23,7 @@ jobs:
       - name: Update PYTHONPATH
         run: echo "PYTHONPATH=${{ github.workspace }}:${{ github.workspace }}/helpers" >> $GITHUB_ENV
       - name: Preprocess MkDocs
-        working-directory: ./docs/mkdocs
         run: |
-          python preprocess_mkdocs.py --input_dir docs --output_dir tmp.mkdocs
+          ./docs_mkdocs/preprocess_mkdocs.py --input_dir docs --output_dir tmp.mkdocs
       - run: mkdocs gh-deploy --force
-        working-directory: ./docs/mkdocs
+        working-directory: ./tmp.mkdocs
