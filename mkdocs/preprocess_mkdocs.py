@@ -345,12 +345,12 @@ def _copy_assets_and_styles(input_dir: str, output_dir: str) -> None:
     :param output_dir: destination directory path
     """
     # Find the assets and styles directories.
-    mkdocs_html_dir = os.path.join(input_dir, "mkdocs_html")
+    mkdocs_html_dir = "mkdocs"
     hdbg.dassert_dir_exists(mkdocs_html_dir)
     cmd = f"cp -r {mkdocs_html_dir}/* {output_dir}"
     hsystem.system(cmd)
     # Copy the mkdocs.yml file.
-    mkdocs_yml_file = os.path.join(input_dir, "mkdocs.yml")
+    mkdocs_yml_file = os.path.join(mkdocs_html_dir, "mkdocs.yml")
     hdbg.dassert_file_exists(mkdocs_yml_file)
     cmd = f"cp {mkdocs_yml_file} {output_dir}"
     hsystem.system(cmd)
