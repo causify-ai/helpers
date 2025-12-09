@@ -4,9 +4,12 @@
 
 ### What It Does
 
-- Generates multiple images using OpenAI's DALL-E 3 (default) or DALL-E 2 (with reference image) from text prompts
-- Supports reading prompts from command line or formatted text files with multiple prompts
-- Creates HD or standard quality images (1024x1024 resolution) and saves them to a specified directory
+- Generates multiple images using OpenAI's DALL-E 3 (default) or DALL-E 2 (with
+  reference image) from text prompts
+- Supports reading prompts from command line or formatted text files with
+  multiple prompts
+- Creates HD or standard quality images (1024x1024 resolution) and saves them to
+  a specified directory
 - Supports reference images for image editing using DALL-E 2 edit endpoint
 - Includes dry-run mode to preview operations without making API calls
 
@@ -26,7 +29,8 @@ more text for another image...
 - Each prompt starts with `# prompt_name` (header line with a single word)
 - Following lines contain the prompt text (can be multi-line)
 - Prompts are separated by blank lines or by the next header
-- All non-empty content must be part of a prompt (content before first header will cause an error)
+- All non-empty content must be part of a prompt (content before first header
+  will cause an error)
 
 ### Examples
 
@@ -80,6 +84,8 @@ more text for another image...
 
 ### API Model Selection
 
-- **DALL-E 3** (default): Used when no reference image is provided. Supports HD and standard quality modes.
-- **DALL-E 2**: Automatically selected when `--reference_image` is specified. Uses the image edit endpoint to generate variations based on the reference image and prompt.
-
+- **DALL-E 3** (default): Used when no reference image is provided. Supports HD
+  and standard quality modes.
+- **DALL-E 2**: Automatically selected when `--reference_image` is specified.
+  Uses the image edit endpoint to generate variations based on the reference
+  image and prompt.
