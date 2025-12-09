@@ -2,6 +2,10 @@ import base64
 import logging
 import os
 
+import pytest
+
+pytest.importorskip("openai")
+
 import dev_scripts_helpers.generate_images as dscgenima
 import helpers.hio as hio
 import helpers.hprint as hprint
