@@ -302,14 +302,10 @@ def _generate_images_from_file(
         elif style == "style2":
             style = """
             Use a unified minimalist flat-illustration style: clean vector lines, 
-            simple geometric shapes, muted blue-gray color palette, no
+            simple geometric shapes, muted blue-white color palette, no
             gradients, no shadows, no textures, no writings, centered composition
-            """
-        elif style == "style3":
-            style = """
-            Use a minimalist flat-illustration style: clean vector lines, 
-            simple geometric shapes, no gradients, no shadows, no textures, no
-            writings, centered composition. Background should be transparent.
+
+            Use transparent background.
             """
         else:
             raise ValueError("Invalid style: %s" % style)
