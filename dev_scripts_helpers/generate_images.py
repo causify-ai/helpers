@@ -4,7 +4,8 @@
 Generate multiple images using OpenAI's DALL-E API from the same prompt.
 
 This script generates several images from a single prompt using OpenAI's image
-generation API.  It supports both standard and HD quality modes.
+generation API. It supports both standard and HD quality modes, and multiple
+models including DALL-E 2, DALL-E 3, and gpt-image-1.
 
 Examples:
 # Generate images using prompt from file
@@ -12,24 +13,337 @@ Examples:
 
 # Generate low-res images using prompt from file
 > generate_images.py --input descr.txt --dst_dir ./images --low_res
+
+# Generate images using gpt-image-1 model
+> generate_images.py --input descr.txt --dst_dir ./images --model gpt-image-1
 """
 
 import argparse
+import base64
 import logging
 import os
 import re
+import urllib.request
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 
 import openai
 from tqdm import tqdm
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
+
+
+def _parse_descriptions_with_names(content: str) -> List[tuple]:
+    """
+    Extract prompts with their names from formatted text content.
+
+    The format is:
+    ```
+    # prompt_name
+    text...
+    more text...
+
+    # another_prompt_name
+    more text...
+    ```
+
+    Each prompt starts with '# prompt_name' followed by text on subsequent
+    lines. Prompts are separated by one or more blank lines or by the next
+    prompt header.
+
+    :param content: text content containing multiple prompts
+    :return: list of tuples (prompt_name, prompt_text)
+    """
+    descriptions = []
+    lines = content.split("\n")
+    current_description = []
+    current_name = None
+    in_description = False
+    unprocessed_lines = []
+    for line in lines:
+        # Check if this is a header line (starts with '# ' followed by a word).
+        match = re.match(r"^#\s+(\w+)", line)
+        if match:
+            # Save previous description if it exists.
+            if current_description:
+                # Join lines and strip whitespace.
+                desc_text = "\n".join(current_description).strip()
+                if desc_text:
+                    descriptions.append((current_name, desc_text))
+                current_description = []
+            # Extract the prompt name.
+            current_name = match.group(1)
+            in_description = True
+            continue
+        # If we're in a description, collect lines.
+        if in_description:
+            current_description.append(line)
+        elif line.strip():
+            # Non-empty line outside of a description.
+            unprocessed_lines.append(line)
+    # Add the last description if it exists.
+    if current_description:
+        desc_text = "\n".join(current_description).strip()
+        if desc_text:
+            descriptions.append((current_name, desc_text))
+    # Check for unprocessed lines.
+    if unprocessed_lines:
+        unprocessed_text = "\n".join(unprocessed_lines)
+        hdbg.dassert(
+            False,
+            "Found lines that were not processed:\n%s",
+            unprocessed_text,
+        )
+    _LOG.debug("Found %s descriptions", len(descriptions))
+    return descriptions
+
+
+# #############################################################################
+
+
+def _generate_images(
+    prompt_name: str,
+    prompt: str,
+    count: int,
+    dst_dir: str,
+    *,
+    low_res: bool = False,
+    progress_bar: Optional[tqdm] = None,
+    reference_image: Optional[str] = None,
+    dry_run: bool = False,
+    model_name: Optional[str] = None,
+) -> None:
+    """
+    Generate images using OpenAI API and save to destination directory.
+
+    :param prompt_name: optional prompt name for filename
+    :param prompt: text prompt for image generation
+    :param count: number of images to generate
+    :param dst_dir: destination directory for generated images
+    :param low_res: generate standard quality vs HD quality
+    :param progress_bar: optional tqdm progress bar for tracking
+    :param reference_image: optional reference image path for DALL-E 2 editing
+    :param dry_run: if True, print actions without executing API calls
+    :param model_name: model to use (dall-e-2, dall-e-3, gpt-image-1)
+    """
+    # Set image parameters based on reference image and model selection.
+    use_reference = reference_image is not None
+    if model_name:
+        # Use explicitly specified model.
+        model = model_name
+        _LOG.debug("Using explicitly specified model: %s", model)
+    elif use_reference:
+        # Reference image requires DALL-E 2.
+        hdbg.dassert_path_exists(reference_image)
+        model = "dall-e-2"
+        _LOG.warning("Using DALL-E 2 with reference image: %s", reference_image)
+    else:
+        # Default to DALL-E 3.
+        model = "dall-e-3"
+    # Set size and quality based on model.
+    if model == "dall-e-2":
+        size = "1024x1024"  # DALL-E 2 supports 256x256, 512x512, 1024x1024.
+    elif model == "dall-e-3":
+        size = "1024x1024"  # DALL-E 3 only supports 1024x1024, 1024x1792, 1792x1024.
+        quality = "standard" if low_res else "hd"
+    elif model == "gpt-image-1":
+        size = "1024x1024"  # gpt-image-1 default size.
+        quality = "medium" if low_res else "high"  # gpt-image-1 uses low/medium/high/auto.
+    else:
+        hdbg.dfatal("Unsupported model: %s", model)
+    _LOG.debug("Generating %s images with prompt: '%s'", count, prompt[:100])
+    _LOG.debug("Model: %s", model)
+    _LOG.debug("Prompt name: %s", prompt_name)
+    _LOG.debug("Prompt: %s", prompt)
+    _LOG.debug("Count: %s", count)
+    _LOG.debug("Destination directory: %s", dst_dir)
+    if model in ["dall-e-3", "gpt-image-1"]:
+        _LOG.debug("Quality: %s", quality)
+    if use_reference:
+        _LOG.debug("Reference image: %s", reference_image)
+    _LOG.debug("Size: %s", size)
+    if dry_run:
+        for i in range(count):
+            resolution_suffix = "standard" if low_res else "hd"
+            if prompt_name:
+                filename = f"image.{prompt_name}.{i + 1:02d}.{resolution_suffix}.png"
+            else:
+                filename = f"image_{i + 1:02d}_{resolution_suffix}.png"
+            filepath = os.path.join(dst_dir, filename)
+            _LOG.debug("[DRY RUN] Would save image %s/%s to: %s", i + 1, count, filepath)
+            # Update progress bar if provided.
+            if progress_bar is not None:
+                progress_bar.update(1)
+        return
+    # Set up OpenAI client.
+    client = openai.OpenAI()
+    for i in range(count):
+        _LOG.debug("Generating image %s/%s", i + 1, count)
+        if use_reference:
+            # Use DALL-E 2 edit endpoint with reference image.
+            with open(reference_image, "rb") as image_file:
+                response = client.images.edit(
+                    model=model,
+                    image=image_file,
+                    prompt=prompt,
+                    size=size,
+                    n=1,
+                )
+        else:
+            # Use generate endpoint for DALL-E 3 and gpt-image-1.
+            response = client.images.generate(
+                model=model,
+                prompt=prompt,
+                size=size,
+                quality=quality,
+                n=1,
+            )
+        # Create filename using new format.
+        resolution_suffix = "low_res" if low_res else "high_res"
+        filename = f"image.{prompt_name}.{i + 1:02d}.{resolution_suffix}.png"
+        filepath = os.path.join(dst_dir, filename)
+        # Get the image data - could be URL or base64 encoded.
+        image_data = response.data[0]
+        if hasattr(image_data, 'url') and image_data.url:
+            # Download from URL.
+            image_url = image_data.url
+            _LOG.debug("Downloading image from URL to %s", filepath)
+            urllib.request.urlretrieve(image_url, filepath)
+        elif hasattr(image_data, 'b64_json') and image_data.b64_json:
+            # Decode base64 image.
+            _LOG.debug("Decoding base64 image to %s", filepath)
+            image_bytes = base64.b64decode(image_data.b64_json)
+            with open(filepath, 'wb') as f:
+                f.write(image_bytes)
+        else:
+            hdbg.dfatal(
+                "Image response does not contain 'url' or 'b64_json'. "
+                "Response data: %s",
+                image_data
+            )
+        _LOG.debug("Saved image to: %s", filepath)
+        # Update progress bar if provided.
+        if progress_bar is not None:
+            progress_bar.update(1)
+    _LOG.info("Image generation complete. Images saved to: %s", dst_dir)
+
+
+# #############################################################################
+
+
+def _generate_images_from_file(
+    prompt: Optional[str],
+    input_file: Optional[str],
+    style: str,
+    dst_dir: str,
+    count: int,
+    *,
+    low_res: bool = False,
+    reference_image: Optional[str] = None,
+    dry_run: bool = False,
+    from_scratch: bool = False,
+    model_name: Optional[str] = None,
+) -> None:
+    """
+    Generate images from prompts (command line or file) and save to directory.
+
+    :param prompt: optional text prompt for image generation
+    :param input_file: optional path to file containing prompts
+    :param style: style to use for image generation (optional)
+    :param dst_dir: destination directory for generated images
+    :param count: number of images to generate per prompt
+    :param low_res: generate standard quality vs HD quality
+    :param reference_image: optional reference image path for DALL-E 2 editing
+    :param dry_run: if True, print actions without executing API calls
+    :param from_scratch: if True, create destination directory from scratch
+    :param model_name: model to use (dall-e-2, dall-e-3, gpt-image-1)
+    """
+    # Get descriptions from command line or file.
+    descriptions_with_names = []
+    if input_file:
+        # Read descriptions from file.
+        hdbg.dassert_path_exists(input_file)
+        _LOG.info("Reading descriptions from file: %s", input_file)
+        content = hio.from_file(input_file)
+        descriptions_with_names = _parse_descriptions_with_names(content)
+        # Print number of descriptions if multiple.
+        if len(descriptions_with_names) > 1:
+            _LOG.info("Found %s descriptions in input file", len(descriptions_with_names))
+            # Debug: print first description to verify extraction.
+            _LOG.debug("First description preview: %s", descriptions_with_names[0][1][:100])
+    elif prompt:
+        # Use prompt from command line.
+        descriptions_with_names = [(None, prompt)]
+    else:
+        # Neither input file nor prompt provided.
+        hdbg.dassert(
+            False,
+            "Either prompt or --input file is required",
+        )
+    hdbg.dassert_lte(1, count, "Count must be at least 1")
+    hdbg.dassert_lte(count, 10, "Count should not exceed 10 for practical reasons")
+    #
+    if style != "":
+        _LOG.info("Adding style: %s", style)
+        if style == "style1":
+            style = """
+            Use a unified minimalist flat-illustration style: clean vector lines, uniform
+            stroke weight, simple geometric shapes, muted blue-gray color palette, no
+            gradients, no shadows, no textures, no writings, centered composition, generous
+            white space.
+            """
+        elif style == "style2":
+            style = """
+            Use a unified minimalist flat-illustration style: clean vector lines, 
+            simple geometric shapes, muted blue-white color palette, no
+            gradients, no shadows, no textures, no writings, centered composition
+
+            Use transparent background.
+            """
+        else:
+            raise ValueError("Invalid style: %s" % style)
+        style = hprint.dedent(style)
+        descriptions_with_names = [(tag, style + "\n" + description) for tag, description in descriptions_with_names]
+    # Calculate total number of images to generate.
+    total_images = len(descriptions_with_names) * count
+    _LOG.debug(
+        "Generating %s images (%s descriptions x %s images each)",
+        total_images,
+        len(descriptions_with_names),
+        count,
+    )
+    # Ensure destination directory exists.
+    hio.backup_file_or_dir_if_exists(dst_dir)
+    hio.create_dir(dst_dir, incremental=True)
+    # Create progress bar for total image generation.
+    with tqdm(total=total_images, desc="Generating images") as pbar:
+        for desc_idx, (prompt_name, description) in enumerate(descriptions_with_names, start=1):
+            _LOG.debug(
+                "Processing description %s/%s", desc_idx, len(descriptions_with_names)
+            )
+            _LOG.debug("Description: %s", description[:200])
+            # Generate images for this description.
+            _generate_images(
+                prompt_name,
+                description,
+                count,
+                dst_dir,
+                low_res=low_res,
+                progress_bar=pbar,
+                reference_image=reference_image,
+                dry_run=dry_run,
+                model_name=model_name,
+            )
+
+
+# #################################################################
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -44,6 +358,11 @@ def _parse() -> argparse.ArgumentParser:
         "--input",
         action="store",
         help="Path to file containing the image description prompt",
+    )
+    parser.add_argument(
+        "--style",
+        help="Style to use for image generation (optional)",
+        default="",
     )
     parser.add_argument(
         "--dst_dir",
@@ -63,8 +382,13 @@ def _parse() -> argparse.ArgumentParser:
         help="Generate standard quality images (vs HD quality)",
     )
     parser.add_argument(
-        "--api_key",
-        help="OpenAI API key (if not set via OPENAI_API_KEY env var)",
+        "--reference_image",
+        help="Path to reference image for DALL-E 2 editing (optional)",
+    )
+    parser.add_argument(
+        "--model",
+        choices=["dall-e-2", "dall-e-3", "gpt-image-1"],
+        help="Model to use for image generation (default: dall-e-3)",
     )
     parser.add_argument(
         "--workload",
@@ -84,225 +408,24 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-def _parse_descriptions(content: str) -> List[str]:
-    """
-    Parse descriptions from input file content.
-
-    Supports two formats:
-    1. Single description: entire content is treated as one prompt
-    2. Multiple descriptions in numbered format:
-       1. **Description of the image 1**
-          Text...
-       2. **Description of the image 2**
-          Text...
-
-    :param content: raw file content
-    :return: list of description strings
-    """
-    # Try to match numbered format.
-    # Pattern: number followed by period, optional space, then description.
-    pattern = r"^\s*\d+\.\s+\*\*.*?\*\*\s*$"
-    lines = content.split("\n")
-    # Check if file contains numbered descriptions.
-    has_numbered_format = any(re.match(pattern, line) for line in lines)
-    if not has_numbered_format:
-        # Single description: return entire content as one item.
-        _LOG.debug("Detected single description format")
-        return [content.strip()]
-    # Parse multiple numbered descriptions.
-    _LOG.debug("Detected multiple description format")
-    descriptions = []
-    current_desc = []
-    in_description = False
-    for line in lines:
-        if re.match(pattern, line):
-            # Start of new description.
-            if current_desc:
-                # Save previous description.
-                desc_text = "\n".join(current_desc).strip()
-                if desc_text:
-                    descriptions.append(desc_text)
-            # Start collecting new description.
-            current_desc = [line]
-            in_description = True
-        elif in_description:
-            # Continue collecting current description.
-            current_desc.append(line)
-    # Add last description.
-    if current_desc:
-        desc_text = "\n".join(current_desc).strip()
-        if desc_text:
-            descriptions.append(desc_text)
-    return descriptions
-
-
-def _download_image(url: str, filepath: str) -> None:
-    """
-    Download an image from URL to local file.
-    """
-    import urllib.request
-
-    _LOG.info("Downloading image to %s", filepath)
-    urllib.request.urlretrieve(url, filepath)
-
-
-def _generate_images(
-    prompt: str,
-    count: int,
-    dst_dir: str,
-    *,
-    low_res: bool = False,
-    api_key: Optional[str] = None,
-    progress_bar: Optional[tqdm] = None,
-    desc_idx: Optional[int] = None,
-    dry_run: bool = False,
-) -> None:
-    """
-    Generate images using OpenAI API and save to destination directory.
-
-    :param prompt: text prompt for image generation
-    :param count: number of images to generate
-    :param dst_dir: destination directory for generated images
-    :param low_res: generate standard quality vs HD quality
-    :param api_key: OpenAI API key
-    :param progress_bar: optional tqdm progress bar for tracking
-    :param desc_idx: optional description index for filename prefix
-    :param dry_run: if True, print actions without executing API calls
-    """
-    # Set image parameters.
-    size = "1024x1024"  # DALL-E 3 only supports 1024x1024, 1024x1792, 1792x1024
-    quality = "standard" if low_res else "hd"
-    _LOG.info("Generating %s images with prompt: '%s'", count, prompt[:100])
-    _LOG.info("Resolution: %s, Quality: %s", size, quality)
-    if dry_run:
-        _LOG.info("[DRY RUN] Would generate images with the following settings:")
-        _LOG.info("[DRY RUN] Prompt: %s", prompt)
-        _LOG.info("[DRY RUN] Count: %s", count)
-        _LOG.info("[DRY RUN] Destination directory: %s", dst_dir)
-        _LOG.info("[DRY RUN] Quality: %s", quality)
-        _LOG.info("[DRY RUN] Size: %s", size)
-        for i in range(count):
-            resolution_suffix = "standard" if low_res else "hd"
-            if desc_idx is not None:
-                filename = f"desc_{desc_idx:02d}_image_{i + 1:02d}_{resolution_suffix}.png"
-            else:
-                filename = f"image_{i + 1:02d}_{resolution_suffix}.png"
-            filepath = os.path.join(dst_dir, filename)
-            _LOG.info("[DRY RUN] Would save image %s/%s to: %s", i + 1, count, filepath)
-            # Update progress bar if provided.
-            if progress_bar is not None:
-                progress_bar.update(1)
-        return
-    # Set up OpenAI client.
-    if api_key:
-        client = openai.OpenAI(api_key=api_key)
-    else:
-        # Will use OPENAI_API_KEY environment variable.
-        client = openai.OpenAI()
-    # Ensure destination directory exists.
-    hio.create_dir(dst_dir, incremental=True)
-    for i in range(count):
-        _LOG.info("Generating image %s/%s", i + 1, count)
-        response = client.images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            size=size,
-            quality=quality,
-            n=1,  # DALL-E 3 only supports n=1.
-        )
-        # Get the image URL.
-        image_url = response.data[0].url
-        # Create filename.
-        resolution_suffix = "standard" if low_res else "hd"
-        if desc_idx is not None:
-            filename = f"desc_{desc_idx:02d}_image_{i + 1:02d}_{resolution_suffix}.png"
-        else:
-            filename = f"image_{i + 1:02d}_{resolution_suffix}.png"
-        filepath = os.path.join(dst_dir, filename)
-        # Download the image.
-        _download_image(image_url, filepath)
-        _LOG.info("Saved image to: %s", filepath)
-        # Update progress bar if provided.
-        if progress_bar is not None:
-            progress_bar.update(1)
-    _LOG.info("Image generation complete. Images saved to: %s", dst_dir)
-
-
-
-
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Validate arguments.
     hdbg.dassert_is_not(args.dst_dir, None, "Destination directory is required")
-    # Regular mode.
-    # Get descriptions from command line or file.
-    descriptions = []
-    if args.input:
-        # Read descriptions from file.
-        hdbg.dassert(
-            os.path.exists(args.input),
-            "Input file does not exist:",
-            args.input,
-        )
-        _LOG.info("Reading descriptions from file: %s", args.input)
-        content = hio.from_file(args.input)
-        descriptions = _parse_descriptions(content)
-        # Print number of descriptions if multiple.
-        if len(descriptions) > 1:
-            _LOG.info("Found %s descriptions in input file", len(descriptions))
-    elif args.prompt:
-        # Use prompt from command line.
-        descriptions = [args.prompt]
-    else:
-        # Neither input file nor prompt provided.
-        hdbg.dassert(
-            False,
-            "Either prompt or --input file is required",
-        )
-    hdbg.dassert_lte(1, args.count, "Count must be at least 1")
-    hdbg.dassert_lte(
-        args.count, 10, "Count should not exceed 10 for practical reasons"
+    # Generate images from command line or file.
+    _generate_images_from_file(
+        args.prompt,
+        args.input,
+        args.style,
+        args.dst_dir,
+        args.count,
+        low_res=args.low_res,
+        reference_image=args.reference_image,
+        dry_run=args.dry_run,
+        from_scratch=args.from_scratch,
+        model_name=args.model,
     )
-    # Calculate total number of images to generate.
-    total_images = len(descriptions) * args.count
-    if args.dry_run:
-        _LOG.info("[DRY RUN] Would generate %s images (%s descriptions x %s images each)", total_images, len(descriptions), args.count)
-    else:
-        _LOG.info(
-            "Generating %s images (%s descriptions x %s images each)",
-            total_images,
-            len(descriptions),
-            args.count,
-        )
-    # Handle destination directory creation.
-    if args.from_scratch:
-        if args.dry_run:
-            _LOG.info("[DRY RUN] Would create destination directory from scratch: %s", args.dst_dir)
-        else:
-            _LOG.info("Creating destination directory from scratch: %s", args.dst_dir)
-            hio.create_dir(args.dst_dir, incremental=False)
-    else:
-        # Ensure directory exists (will be created by _generate_images if needed).
-        pass
-    # Create progress bar for total image generation.
-    with tqdm(total=total_images, desc="Generating images") as pbar:
-        for desc_idx, description in enumerate(descriptions, start=1):
-            _LOG.info(
-                "Processing description %s/%s", desc_idx, len(descriptions)
-            )
-            _LOG.debug("Description: %s", description[:200])
-            # Generate images for this description.
-            _generate_images(
-                prompt=description,
-                count=args.count,
-                dst_dir=args.dst_dir,
-                low_res=args.low_res,
-                api_key=args.api_key,
-                progress_bar=pbar,
-                desc_idx=desc_idx if len(descriptions) > 1 else None,
-                dry_run=args.dry_run,
-            )
 
 
 if __name__ == "__main__":

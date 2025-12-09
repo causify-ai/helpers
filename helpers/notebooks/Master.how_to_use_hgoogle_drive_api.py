@@ -32,7 +32,7 @@ google_creds = hgodrapi.get_credentials()
 print(google_creds)
 
 # %%
-service = hgodrapi.get_sheets_service(credentials=google_creds)
+service = hgodrapi.get_sheets_service(google_creds)
 print(service)
 
 # %% [markdown]
@@ -52,10 +52,10 @@ credentials = google_creds
 # %%
 row_indices = [0, 1, 2]
 hgodrapi.freeze_rows(
+    credentials,
     sheet_id=sheet_id,
     row_indices=row_indices,
     sheet_name=sheet_name,
-    credentials=credentials,
 )
 
 # %% [markdown]
@@ -64,12 +64,12 @@ hgodrapi.freeze_rows(
 
 # %%
 hgodrapi.set_row_height(
+    google_creds,
     sheet_id=sheet_id,
     height=20,
     start_index=0,
     end_index=2,
     sheet_name=sheet_name,
-    credentials=google_creds,
 )
 
 # %% [markdown]
@@ -77,7 +77,7 @@ hgodrapi.set_row_height(
 # ## Read some nice data
 
 # %%
-nice_data = hgodrapi.read_google_file(url, sheet_name, credentials=google_creds)
+nice_data = hgodrapi.read_google_file(google_creds, url, sheet_name)
 
 # %%
 nice_data.head()
@@ -91,5 +91,5 @@ nice_data.shape
 
 # %%
 hgodrapi.write_to_google_sheet(
-    nice_data, url, "testing_tab", credentials=google_creds
+    google_creds, nice_data, url, "testing_tab"
 )

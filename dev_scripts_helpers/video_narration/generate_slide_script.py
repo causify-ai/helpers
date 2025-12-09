@@ -48,6 +48,7 @@ to highlight the most important points of each slide
 - The discussion for each slide should contain around 100 words
 - Do not use bold or italicize the text
 - Create a short transitions in less than 20 words between slides when needed.
+- Use "we" and "let's" instead of saying "This slide says"
 
 The output should have a format like:
 
