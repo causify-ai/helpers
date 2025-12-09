@@ -10,6 +10,7 @@ from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
+import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_slides as hmarslid
 
@@ -522,7 +523,7 @@ def format_markdown_slide(lines: List[str]) -> List[str]:
     txt = hdocexec.prettier_on_str(txt, file_type)
     #
     lines = txt.split("\n")
-    lines = hmarform.convert_markdown_to_slide(lines)
+    lines = hmarkdo.convert_markdown_to_slide(lines)
     # Format the first level bullets.
     lines = format_first_level_bullets(lines)
     #
