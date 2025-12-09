@@ -77,7 +77,7 @@ hgodrapi.set_row_height(
 # ## Read some nice data
 
 # %%
-nice_data = hgodrapi.read_google_file(google_creds, url, sheet_name)
+nice_data = hgodrapi.read_google_sheet(google_creds, url, sheet_name)
 
 # %%
 nice_data.head()

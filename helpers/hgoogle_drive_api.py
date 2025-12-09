@@ -264,14 +264,13 @@ def get_sheet_name_from_url(
     return sheet_name
 
 
-# TODO(ai_gp): read_google_sheet
-def read_google_file(
+def read_google_sheet(
     credentials: goasea.Credentials,
     url: str,
     tab_name: Optional[str] = None,
 ) -> pd.DataFrame:
     """
-    Read data from a Google Sheets file.
+    Read data from a Google Sheet.
 
     :param credentials: Google credentials object.
     :param url: URL of the Google Sheets file.
@@ -533,11 +532,10 @@ def _get_folders_in_gdrive(*, credentials: goasea.Credentials) -> list:
     return response.get("files", [])
 
 
-# TODO(ai_gp): Fix the output type.
 def get_folder_id_by_name(
     credentials: goasea.Credentials,
     name: str,
-) -> list:
+) -> dict:
     """
     Get the folder id by the folder name.
 

@@ -34,7 +34,7 @@ class Test_extract_usernames_from_gsheet(hunitest.TestCase):
                 f"{MODULE_PATH}.hgodrapi.get_credentials", return_value="creds"
             ),
             mock.patch(
-                f"{MODULE_PATH}.hgodrapi.read_google_file",
+                f"{MODULE_PATH}.hgodrapi.read_google_sheet",
                 return_value=pd.DataFrame(
                     {"GitHub user": ["alice", "bob", None, ""]}
                 ),

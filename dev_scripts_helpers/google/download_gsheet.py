@@ -46,7 +46,7 @@ def _extract_sheet(
     """
     credentials = hgodrapi.get_credentials(service_key_path=service_key_path)
     _LOG.info("Using credentials from: %s", service_key_path)
-    df = hgodrapi.read_google_file(
+    df = hgodrapi.read_google_sheet(
         credentials, sheet_url, tab_name=tab_name
     )
     df.to_csv(output_csv_name, index=False)
