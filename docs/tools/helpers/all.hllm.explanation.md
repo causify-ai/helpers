@@ -37,7 +37,7 @@
   )
   ```
 
-- The parameter used are:
+- The parameters used in the example are:
   - `user_prompt`: User's message to the LLM.
   - `system_prompt`: Context-setting instruction for the assistant.
   - `model`: OpenAI or OpenRouter model to use.
@@ -157,7 +157,7 @@ This section summarizes how `get_completion()` operates internally.
 
 4. **API Call Execution**
    - Calls OpenAI API synchronously (with or without streaming).
-   - Collects the LLM output and underlying response object.
+   - Collects the full LLM output and underlying text response.
 
 5. **Cost Estimation**
    - Uses `_calculate_cost()` to compute token usage cost.
@@ -169,7 +169,9 @@ This section summarizes how `get_completion()` operates internally.
    - Cost and response metadata are saved in JSON.
 
 7. **Return**
-   - Returns only the final text content from the model.
+   - Returns either the full LLM output including metadata, or only its text 
+     contents.
+   - The type of returned value is controlled by the `return_raw` flag.
 
 - All caching operations are handled by the `_CompletionCache` class.
 

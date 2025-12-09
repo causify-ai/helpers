@@ -8,7 +8,7 @@ import functools
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import openai
 import requests
@@ -102,6 +102,17 @@ def response_to_txt(response: Any) -> str:
         ret = response.content[0].text.value
     elif isinstance(response, str):
         ret = response
+    elif isinstance(response, dict):
+        # Handle Chat Completions dict form.
+        if "choices" in response and "message" in response["choices"][0]:
+            ret = response["choices"][0]["message"]["content"]
+        # Handle Responses API dict form.
+        elif "output_text" in response:
+            ret = response["output_text"]
+        else:
+            raise ValueError(
+                f"Unknown dict structure in response: {response.keys()}"
+            )
     else:
         raise ValueError(f"Unknown response type: {type(response)}")
     hdbg.dassert_isinstance(ret, str)
@@ -263,7 +274,7 @@ class LLMClient:
         cost_tracker: Optional["LLMCostTracker"] = None,
         use_responses_api: bool = False,
         **create_kwargs,
-    ) -> dict[Any, Any]:
+    ) -> Dict[Any, Any]:
         """
         Call the LLM API.
 
@@ -531,7 +542,7 @@ def _call_api_sync(
     cost_tracker: Optional[LLMCostTracker] = None,
     use_responses_api: bool = False,
     **create_kwargs,
-) -> dict[Any, Any]:
+) -> Dict[Any, Any]:
     """
     Make a non-streaming API call.
 
@@ -595,8 +606,9 @@ def get_completion(
     images_as_base64: Optional[Tuple[str, ...]] = None,
     cost_tracker: Optional["LLMCostTracker"] = None,
     use_responses_api: bool = False,
+    return_raw: bool = False,
     **create_kwargs,
-) -> str:
+) -> Union[str, Dict[Any, Any]]:
     """
     Generate a completion using OpenAI's API.
 
@@ -618,8 +630,10 @@ def get_completion(
     :param cost_tracker: LLMCostTracker instance to track costs
     :param use_responses_api: whether to use the Responses API instead of Chat
         Completions
+    :param return_raw: whether to return the raw API response instead of
+        extracting the text content
     :param create_kwargs: additional params for the API call
-    :return: completion text
+    :return: API response or its text content
     """
     hdbg.dassert_in(
         cache_mode,
@@ -633,6 +647,10 @@ def get_completion(
     if use_responses_api and llm_client.provider_name != "openai":
         raise ValueError(
             "Responses API is only supported for the 'openai' provider."
+        )
+    if report_progress and return_raw:
+        raise ValueError(
+            "Streaming mode is only supported while returning text content."
         )
     # Construct messages in OpenAI API request format.
     _LOG.info("LLM API call ... ")
@@ -649,9 +667,9 @@ def get_completion(
             **create_kwargs,
         )
         if not use_responses_api:
-            response = completion["choices"][0]["message"]["content"]
+            txt_response = completion["choices"][0]["message"]["content"]
         else:
-            response = completion["output_text"]
+            txt_response = completion["output_text"]
     else:
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.
@@ -678,7 +696,7 @@ def get_completion(
             user_input = build_responses_input(
                 user_prompt, images_as_base64=images_as_base64
             )
-            stream = llm_client.client.responses.create(
+            completion = llm_client.client.responses.create(
                 model=model,
                 instructions=system_prompt,
                 input=user_input,
@@ -686,17 +704,20 @@ def get_completion(
                 **create_kwargs,
             )
             for event in tqdm.tqdm(
-                stream, desc="Generating response", unit=" events"
+                completion, desc="Generating response", unit=" events"
             ):
                 if event.type == "response.output_text.delta":
                     collected_messages.append(event.delta.value)
-        response = "".join(collected_messages)
+        txt_response = "".join(collected_messages)
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     _LOG.info(msg)
     if print_cost:
         _LOG.info("cost=%.6f", completion["cost"])
-    return response
+    if return_raw:
+        # Return the full completion/response object.
+        return completion
+    return txt_response
 
 
 # # #############################################################################
