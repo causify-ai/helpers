@@ -8,7 +8,7 @@ import functools
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import openai
 import requests
@@ -94,12 +94,25 @@ def response_to_txt(response: Any) -> str:
     """
     if isinstance(response, openai.types.chat.chat_completion.ChatCompletion):
         ret = response.choices[0].message.content
+    elif isinstance(response, openai.types.responses.Response):
+        ret = response.output_text
     # elif isinstance(response, openai.pagination.SyncCursorPage):
     #     ret = response.data[0].content[0].text.value
     elif isinstance(response, openai.types.beta.threads.message.Message):
         ret = response.content[0].text.value
     elif isinstance(response, str):
         ret = response
+    elif isinstance(response, dict):
+        # Handle Chat Completions dict form.
+        if "choices" in response and "message" in response["choices"][0]:
+            ret = response["choices"][0]["message"]["content"]
+        # Handle Responses API dict form.
+        elif "output_text" in response:
+            ret = response["output_text"]
+        else:
+            raise ValueError(
+                f"Unknown dict structure in response: {response.keys()}"
+            )
     else:
         raise ValueError(f"Unknown response type: {type(response)}")
     hdbg.dassert_isinstance(ret, str)
@@ -121,6 +134,74 @@ def _extract(
         if hasattr(file, attr):
             obj_tmp[attr] = getattr(file, attr)
     return obj_tmp
+
+
+def build_chat_completion_messages(
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    images_as_base64: Optional[Tuple[str, ...]] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Construct the standard messages payload for the Chat Completions API.
+
+    :param system_prompt: system prompt
+    :param user_prompt: user prompt
+    :param images_as_base64: base64-encoded images
+    :return: messages in the format expected by the Chat Completions API
+    """
+    hdbg.dassert_isinstance(system_prompt, str)
+    hdbg.dassert_isinstance(user_prompt, str)
+    ret = [{"role": "system", "content": system_prompt}]
+    # Build user message content.
+    if images_as_base64:
+        # Multi-modal message with text and images
+        user_content = [{"type": "text", "text": user_prompt}]
+        for image_b64 in images_as_base64:
+            user_content.append(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"},
+                }
+            )
+        ret.append({"role": "user", "content": user_content})
+    else:
+        # Text-only message.
+        ret.append({"role": "user", "content": user_prompt})
+    return ret
+
+
+def build_responses_input(
+    user_prompt: str,
+    *,
+    images_as_base64: Optional[Tuple[str, ...]] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Construct the user input payload for the Responses API.
+
+    :param user_prompt: user prompt
+    :param images_as_base64: base64-encoded images
+    :return: input in the format expected by the Responses API
+    """
+    hdbg.dassert_isinstance(user_prompt, str)
+    # Build user message content.
+    content_blocks = [{"type": "input_text", "text": user_prompt}]
+    if images_as_base64:
+        # Add image input.
+        for image_b64 in images_as_base64:
+            content_blocks.append(
+                {
+                    "type": "input_image",
+                    "image_url": f"data:image/jpeg;base64,{image_b64}",
+                }
+            )
+    responses_input = [
+        {
+            "role": "user",
+            "content": content_blocks,
+        }
+    ]
+    return responses_input
 
 
 # #############################################################################
@@ -182,52 +263,18 @@ class LLMClient:
         client = openai.OpenAI(base_url=base_url, api_key=api_key)
         self.client = client
 
-    def build_messages(
-        self,
-        system_prompt: str,
-        user_prompt: str,
-        *,
-        images_as_base64: Optional[List[str]] = None,
-    ) -> List[Dict[str, Any]]:
-        """
-        Construct the standard messages payload for the chat API.
-
-        :param system_prompt: system prompt
-        :param user_prompt: user prompt
-        :param images_as_base64: optional list of base64-encoded images
-        :return: messages in the format expected by the API
-        """
-        hdbg.dassert_isinstance(system_prompt, str)
-        hdbg.dassert_isinstance(user_prompt, str)
-        ret = [{"role": "system", "content": system_prompt}]
-        # Build user message content.
-        if images_as_base64:
-            # Multi-modal message with text and images
-            user_content = [{"type": "text", "text": user_prompt}]
-            for image_b64 in images_as_base64:
-                user_content.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{image_b64}"
-                        },
-                    }
-                )
-            ret.append({"role": "user", "content": user_content})
-        else:
-            # Text-only message.
-            ret.append({"role": "user", "content": user_prompt})
-        return ret
-
     def call_llm(
         self,
         cache_mode: str,
-        messages: List[Dict[str, Any]],
+        user_prompt: str,
+        system_prompt: str,
         temperature: float,
         *,
+        images_as_base64: Optional[Tuple[str, ...]] = None,
         cost_tracker: Optional["LLMCostTracker"] = None,
+        use_responses_api: bool = False,
         **create_kwargs,
-    ) -> dict[Any, Any]:
+    ) -> Dict[Any, Any]:
         """
         Call the LLM API.
 
@@ -236,10 +283,13 @@ class LLMClient:
         return _call_api_sync(
             cache_mode=cache_mode,
             client=self.client,
-            messages=messages,
+            user_prompt=user_prompt,
+            system_prompt=system_prompt,
             temperature=temperature,
             model=self.model,
+            images_as_base64=images_as_base64,
             cost_tracker=cost_tracker,
+            use_responses_api=use_responses_api,
             **create_kwargs,
         )
 
@@ -392,7 +442,7 @@ class LLMCostTracker:
 
     def calculate_cost(
         self,
-        completion: openai.types.chat.chat_completion.ChatCompletion,
+        completion: Any,
         model: str,
         *,
         models_info_file: str = "",
@@ -400,14 +450,31 @@ class LLMCostTracker:
         """
         Calculate the cost of an API call, based on the provider.
 
-        :param completion: The completion response from API from both
-        :param model: The model used for the completion
-        :return: The calculated cost in dollars
+        :param completion: the completion response from API
+        :param model: the model used for the completion
+        :return: the calculated cost in dollars
         """
         import pandas as pd
 
-        prompt_tokens = completion.usage.prompt_tokens
-        completion_tokens = completion.usage.completion_tokens
+        # Get the number of input and output tokens.
+        usage = getattr(completion, "usage", None)
+        hdbg.dassert(
+            usage is not None,
+            "Completion/response object has no 'usage' attribute",
+        )
+        if hasattr(usage, "prompt_tokens") and hasattr(
+            usage, "completion_tokens"
+        ):
+            prompt_tokens = usage.prompt_tokens
+            completion_tokens = usage.completion_tokens
+        elif hasattr(usage, "input_tokens") and hasattr(usage, "output_tokens"):
+            prompt_tokens = usage.input_tokens
+            completion_tokens = usage.output_tokens
+        else:
+            raise ValueError(
+                f"Unknown usage structure on completion object: {usage}"
+            )
+        # Get the provider and model details.
         provider_name, model = _get_llm_provider_and_model(model)
         if provider_name == "openai":
             # Get the pricing for the selected model.
@@ -466,28 +533,52 @@ def _call_api_sync(
     # This is needed to support caching.
     cache_mode: str,
     client: openai.OpenAI,
-    messages: List[Dict[str, Any]],
+    user_prompt: str,
+    system_prompt: str,
     temperature: float,
     model: str,
+    *,
+    images_as_base64: Optional[Tuple[str, ...]] = None,
     cost_tracker: Optional[LLMCostTracker] = None,
+    use_responses_api: bool = False,
     **create_kwargs,
-) -> dict[Any, Any]:
+) -> Dict[Any, Any]:
     """
     Make a non-streaming API call.
 
+    See `get_completion()` for other parameter descriptions.
+
     :param client: LLM client
-    :param messages: list of messages to send to the API
-    :param cost_tracker: LLMCostTracker instance to track costs Check
-        `get_completion()` params for other param details.
-    :return: OpenAI chat completion object as a dictionary
+    :param cost_tracker: LLMCostTracker instance to track costs
+    :param use_responses_api: whether to use the Responses API instead
+        of Chat Completions
+    :return: OpenAI API result as a dictionary
     """
-    completion = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        temperature=temperature,
-        **create_kwargs,
-    )
+    if not use_responses_api:
+        messages = build_chat_completion_messages(
+            system_prompt, user_prompt, images_as_base64=images_as_base64
+        )
+        completion = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            **create_kwargs,
+        )
+    else:
+        user_input = build_responses_input(
+            user_prompt, images_as_base64=images_as_base64
+        )
+        completion = client.responses.create(
+            model=model,
+            instructions=system_prompt,
+            input=user_input,
+            temperature=temperature,
+            **create_kwargs,
+        )
     completion_obj = completion.to_dict()
+    if isinstance(completion, openai.types.responses.Response):
+        # Store the output of the Responses API.
+        completion_obj["output_text"] = completion.output_text
     if cost_tracker is None:
         cost_tracker = _LLM_COST_Tracker
     # Calculate the cost of the completion.
@@ -512,12 +603,14 @@ def get_completion(
     print_cost: bool = False,
     cache_mode: str = "DISABLE_CACHE",
     temperature: float = 0.1,
-    images_as_base64: Optional[List[str]] = None,
+    images_as_base64: Optional[Tuple[str, ...]] = None,
     cost_tracker: Optional["LLMCostTracker"] = None,
+    use_responses_api: bool = False,
+    return_raw: bool = False,
     **create_kwargs,
-) -> str:
+) -> Union[str, Dict[Any, Any]]:
     """
-    Generate a completion using OpenAI's chat API.
+    Generate a completion using OpenAI's API.
 
     :param user_prompt: user input message
     :param system_prompt: system instruction
@@ -529,15 +622,18 @@ def get_completion(
         - "REFRESH_CACHE": Make API calls and save responses to cache
         - "HIT_CACHE_OR_ABORT": Use cached responses, fail if not in cache
         - "NORMAL": Use cached responses if available, otherwise make API call
-    :param cache_file: file to save/load completioncache
+    :param cache_file: file to save/load completion cache
     :param temperature: adjust an LLM's sampling diversity: lower values make it
         more deterministic, while higher values foster creative variation.
         0 < temperature <= 2, 0.1 is default value in OpenAI models.
-    :param images_as_base64: optional list of base64-encoded images to include
-        in the user message
+    :param images_as_base64: base64-encoded images to include in the user message
     :param cost_tracker: LLMCostTracker instance to track costs
+    :param use_responses_api: whether to use the Responses API instead of Chat
+        Completions
+    :param return_raw: whether to return the raw API response instead of
+        extracting the text content
     :param create_kwargs: additional params for the API call
-    :return: completion text
+    :return: API response or its text content
     """
     hdbg.dassert_in(
         cache_mode,
@@ -548,47 +644,80 @@ def get_completion(
         cache_mode = "REFRESH_CACHE"
     llm_client = LLMClient(model=model)
     llm_client.create_client()
+    if use_responses_api and llm_client.provider_name != "openai":
+        raise ValueError(
+            "Responses API is only supported for the 'openai' provider."
+        )
+    if report_progress and return_raw:
+        raise ValueError(
+            "Streaming mode is only supported while returning text content."
+        )
     # Construct messages in OpenAI API request format.
-    messages = llm_client.build_messages(
-        system_prompt, user_prompt, images_as_base64=images_as_base64
-    )
     _LOG.info("LLM API call ... ")
     memento = htimer.dtimer_start(logging.DEBUG, "LLM API call")
     if not report_progress:
         completion = llm_client.call_llm(
             cache_mode=cache_mode,
-            messages=messages,
+            user_prompt=user_prompt,
+            system_prompt=system_prompt,
             temperature=temperature,
+            images_as_base64=images_as_base64,
             cost_tracker=cost_tracker,
+            use_responses_api=use_responses_api,
             **create_kwargs,
         )
+        if not use_responses_api:
+            txt_response = completion["choices"][0]["message"]["content"]
+        else:
+            txt_response = completion["output_text"]
     else:
         # TODO(gp): This is not working. It doesn't show the progress and it
         # doesn't show the cost.
-        # Create a stream to show progress.
-        completion = llm_client.client.chat.completions.create(
-            model=model,
-            messages=messages,
-            stream=True,  # Enable streaming
-            **create_kwargs,
-        )
-        # Initialize response storage
+        # Stream the output to show progress.
         collected_messages = []
-        # Process the stream with progress bar
-        for chunk in tqdm.tqdm(
-            completion, desc="Generating completion", unit=" chunks"
-        ):
-            if chunk.choices[0].delta.content is not None:
-                collected_messages.append(chunk.choices[0].delta.content)
-        # Combine chunks into final completion
-        response = "".join(collected_messages)
+        if not use_responses_api:
+            # Stream Chat Completions API.
+            messages = build_chat_completion_messages(
+                system_prompt, user_prompt, images_as_base64=images_as_base64
+            )
+            completion = llm_client.client.chat.completions.create(
+                model=model,
+                messages=messages,
+                stream=True,
+                **create_kwargs,
+            )
+            for chunk in tqdm.tqdm(
+                completion, desc="Generating completion", unit=" chunks"
+            ):
+                if chunk.choices[0].delta.content is not None:
+                    collected_messages.append(chunk.choices[0].delta.content)
+        else:
+            # Stream Responses API.
+            user_input = build_responses_input(
+                user_prompt, images_as_base64=images_as_base64
+            )
+            completion = llm_client.client.responses.create(
+                model=model,
+                instructions=system_prompt,
+                input=user_input,
+                stream=True,
+                **create_kwargs,
+            )
+            for event in tqdm.tqdm(
+                completion, desc="Generating response", unit=" events"
+            ):
+                if event.type == "response.output_text.delta":
+                    collected_messages.append(event.delta.value)
+        txt_response = "".join(collected_messages)
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     _LOG.info(msg)
     if print_cost:
         _LOG.info("cost=%.6f", completion["cost"])
-    response = completion["choices"][0]["message"]["content"]
-    return response
+    if return_raw:
+        # Return the full completion/response object.
+        return completion
+    return txt_response
 
 
 # # #############################################################################
