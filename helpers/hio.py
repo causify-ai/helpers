@@ -236,6 +236,29 @@ def delete_dir(
                 raise e
 
 
+def backup_file_or_dir_if_exists(path: str) -> None:
+    """
+    Create a timestamped backup of a file or directory if it exists.
+
+    If the path exists, it is moved to a new location with a timestamp
+    appended to the name (e.g., path.20231003_080000.backup).
+
+    :param path: path to the file or directory to back up
+    """
+    if not os.path.exists(path):
+        # Nothing to back up.
+        return
+    _LOG.warning("Path '%s' already exists: making a backup", path)
+    # Get current timestamp.
+    timestamp = datetime.datetime.now()
+    timestamp_str = timestamp.strftime("%Y%m%d_%H%M%S")
+    # Build backup path.
+    backup_path = f"{path}.{timestamp_str}.backup"
+    # Move the file or directory to backup.
+    shutil.move(path, backup_path)
+    _LOG.info("Backed up '%s' -> '%s'", path, backup_path)
+
+
 def create_dir(
     dir_name: str,
     incremental: bool,
@@ -271,7 +294,9 @@ def create_dir(
             dir_timestamp = os.path.getmtime(dir_name)
             dir_datetime = datetime.datetime.fromtimestamp(dir_timestamp)
             # Build new dir name with timestamp.
-            dir_name_new = dir_name + "." + dir_datetime.strftime("%Y%m%d_%H%M%S")
+            dir_name_new = (
+                dir_name + "." + dir_datetime.strftime("%Y%m%d_%H%M%S")
+            )
             # Rename dir.
             if not os.path.exists(dir_name_new):
                 _LOG.warning("Renaming dir '%s' -> '%s'", dir_name, dir_name_new)
