@@ -3,8 +3,8 @@ site_url: https://causify-ai.github.io/helpers/
 theme:
   name: material
   palette:
-    primary: cyan
-    accent: black
+    primary: black
+    accent: cyan
   logo: assets/logo.png
   favicon: assets/favicon.ico
   features:
