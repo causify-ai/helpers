@@ -19,12 +19,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - run: pip install mkdocs mkdocs-material
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+      - name: Install MkDocs
+        run: pip install mkdocs mkdocs-material mkdocs-graphviz
       - name: Update PYTHONPATH
         run: echo "PYTHONPATH=${{ github.workspace }}:${{ github.workspace }}/helpers" >> $GITHUB_ENV
       - name: Preprocess MkDocs
-        working-directory: ./docs/mkdocs
         run: |
-          python preprocess_mkdocs.py --input_dir docs --output_dir tmp.mkdocs
+          ./docs_mkdocs/preprocess_mkdocs.py --input_dir docs --output_dir tmp.mkdocs
       - run: mkdocs gh-deploy --force
-        working-directory: ./docs/mkdocs
+        working-directory: ./tmp.mkdocs
