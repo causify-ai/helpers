@@ -112,7 +112,9 @@ def _copy_directory(input_dir: str, output_dir: str, is_blog: bool) -> None:
     if is_blog:
         cmd = f"cp -rL {input_dir}/. {output_dir} && chmod -R u+w {output_dir}"
     else:
-        cmd = f"cp -rL {input_dir}/. {output_dir}/docs && chmod -R u+w {output_dir}"
+        cmd = (
+            f"cp -rL {input_dir}/. {output_dir}/docs && chmod -R u+w {output_dir}"
+        )
     hsystem.system(cmd)
     _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
 
@@ -274,9 +276,7 @@ def _process_markdown_files(
                         validation_errors.append(str(e))
                         _LOG.error(f"Validation failed for {file_path}")
                         continue  # Skip further processing if validation fails.
-                processed_content = hmkdocs.preprocess_mkdocs_markdown(
-                    content
-                )
+                processed_content = hmkdocs.preprocess_mkdocs_markdown(content)
                 # Write back to the same file.
                 hio.to_file(file_path, processed_content)
                 # Render images (for both blogs and docs).
