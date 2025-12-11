@@ -20,8 +20,8 @@ Example usage:
 > preprocess_mkdocs.py --input_dir docs --output_dir tmp.mkdocs --render_images
 
 # For blogs:
-> preprocess_mkdocs.py --blog --input_dir blog/docs --output_dir blog/tmp.docs
-> preprocess_mkdocs.py --blog --input_dir blog/docs --output_dir blog/tmp.docs --render_images
+> preprocess_mkdocs.py --blog --input_dir blog --output_dir tmp.mkblogs
+> preprocess_mkdocs.py --blog --input_dir blog --output_dir tmp.mkblogs --render_images
 
 Import as:
 
@@ -89,7 +89,7 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-def _copy_directory(input_dir: str, output_dir: str) -> None:
+def _copy_directory(input_dir: str, output_dir: str, is_blog: bool) -> None:
     """
     Copy all files from input directory to output directory.
 
@@ -109,7 +109,12 @@ def _copy_directory(input_dir: str, output_dir: str) -> None:
     hsystem.system(cmd)
     # Copy the entire directory tree and make files writable.
     # Use '/.' to include hidden files (like .authors.yml)
-    cmd = f"cp -rL {input_dir}/. {output_dir}/docs && chmod -R u+w {output_dir}"
+    if is_blog:
+        cmd = f"cp -rL {input_dir}/. {output_dir} && chmod -R u+w {output_dir}"
+    else:
+        cmd = (
+            f"cp -rL {input_dir}/. {output_dir}/docs && chmod -R u+w {output_dir}"
+        )
     hsystem.system(cmd)
     _LOG.info(f"Copied directory from '{input_dir}' to '{output_dir}'")
 
@@ -244,7 +249,7 @@ def _process_markdown_files(
     ]
     # For blogs, only process the posts directory.
     if is_blog:
-        posts_dir = os.path.join(directory, "posts")
+        posts_dir = os.path.join(directory, "docs", "posts")
         if not os.path.exists(posts_dir):
             _LOG.warning(f"Posts directory not found: {posts_dir}")
             return
@@ -271,13 +276,9 @@ def _process_markdown_files(
                         validation_errors.append(str(e))
                         _LOG.error(f"Validation failed for {file_path}")
                         continue  # Skip further processing if validation fails.
-                # For documentation: apply preprocessing transformations.
-                if not is_blog:
-                    processed_content = hmkdocs.preprocess_mkdocs_markdown(
-                        content
-                    )
-                    # Write back to the same file.
-                    hio.to_file(file_path, processed_content)
+                processed_content = hmkdocs.preprocess_mkdocs_markdown(content)
+                # Write back to the same file.
+                hio.to_file(file_path, processed_content)
                 # Render images (for both blogs and docs).
                 if render_images and file not in skip_image_rendering:
                     _LOG.info(f"Rendering images in: {file_path}")
@@ -336,7 +337,7 @@ def _move_misplaced_images(output_dir: str, is_blog: bool) -> None:
     _LOG.info(f"Moved images from '{root_figs_dir}' to '{target_figs_dir}'")
 
 
-def _copy_assets_and_styles(input_dir: str, output_dir: str) -> None:
+def _copy_assets_and_styles(output_dir: str) -> None:
     """
     Copy assets and styles from the input directory to the output directory.
     Only used for documentation (not blogs).
@@ -373,7 +374,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         f"Starting mkdocs preprocessing ({mode}) from '{input_dir}' to '{output_dir}'"
     )
     # Copy all files from input to output directory.
-    _copy_directory(input_dir, output_dir)
+    _copy_directory(input_dir, output_dir, is_blog)
     # Process markdown files in place in the output directory.
     _process_markdown_files(
         output_dir,
@@ -388,7 +389,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _move_misplaced_images(output_dir, is_blog)
     # Copy assets and styles (only for documentation, not blogs).
     if not is_blog:
-        _copy_assets_and_styles(input_dir, output_dir)
+        _copy_assets_and_styles(output_dir)
     _LOG.info(f"Mkdocs preprocessing ({mode}) completed successfully")
 
 
