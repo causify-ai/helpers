@@ -8,11 +8,12 @@ import functools
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
 
 import openai
 import requests
 import tqdm
+from pydantic import BaseModel
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
@@ -25,6 +26,8 @@ _LOG = logging.getLogger(__name__)
 
 # _LOG.debug = _LOG.info
 
+# Create a generic type variable.
+T = TypeVar("T", bound=BaseModel)
 
 # #############################################################################
 # Update LLM cache
@@ -718,6 +721,60 @@ def get_completion(
         # Return the full completion/response object.
         return completion
     return txt_response
+
+
+# TODO(*): Add caching, similar to `get_completion()`.
+def get_structured_completion(
+    user_prompt: str,
+    response_format: type[T],
+    *,
+    system_prompt: str = "",
+    model: str = "",
+    temperature: float = 0.1,
+    images_as_base64: Optional[Tuple[str, ...]] = None,
+    cost_tracker: Optional["LLMCostTracker"] = None,
+    print_cost: bool = False,
+    **create_kwargs,
+) -> T:
+    """
+    Generate a Structured Output using OpenAI's API.
+
+    See `get_completion()` for other parameter descriptions.
+
+    :param response_format: expected structured output format
+    :return: output parsed into the specified format
+    """
+    # Initialize LLM client.
+    llm_client = LLMClient(model=model)
+    llm_client.create_client()
+    if llm_client.provider_name != "openai":
+        raise ValueError(
+            "`get_structured_completion()` currently only supports the "
+            "'openai' provider (Responses API + Structured Outputs). "
+            f"Got provider_name='{llm_client.provider_name}'."
+        )
+    # Retrieve a structured response.
+    user_input = build_responses_input(
+        user_prompt, images_as_base64=images_as_base64
+    )
+    response = llm_client.client.responses.parse(
+        model=llm_client.model,
+        instructions=system_prompt,
+        input=user_input,
+        temperature=temperature,
+        text_format=response_format,
+        **create_kwargs,
+    )
+    parsed_output: T = response.output_parsed
+    # Track costs.
+    if cost_tracker is None:
+        cost_tracker = _LLM_COST_Tracker
+    hdbg.dassert_isinstance(cost_tracker, LLMCostTracker)
+    cost = cost_tracker.calculate_cost(response, llm_client.model)
+    cost_tracker.accumulate_cost(cost)
+    if print_cost:
+        _LOG.info("cost=%.6f", cost)
+    return parsed_output
 
 
 # # #############################################################################
