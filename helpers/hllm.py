@@ -488,7 +488,10 @@ class LLMCostTracker:
             pricing = {
                 "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
                 "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
-                "gpt-4o": {"prompt": 5, "completion": 15},
+                "gpt-4o": {"prompt": 2.5, "completion": 10},
+                "gpt-5.2": {"prompt": 1.75, "completion": 14.0},
+                "gpt-5.1": {"prompt": 1.25, "completion": 10.0},
+                "gpt-5-mini": {"prompt": 0.25, "completion": 2.00},
             }
             hdbg.dassert_in(model, pricing)
             model_pricing = pricing[model]
