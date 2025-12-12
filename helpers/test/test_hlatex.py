@@ -320,8 +320,7 @@ class Test_is_latex_comment(hunitest.TestCase):
     Test the _is_latex_comment function.
     """
 
-    # TODO(ai_gp): -> test1, test2, ...
-    def test_basic_comment(self) -> None:
+    def test1(self) -> None:
         """
         Test that a line starting with % is recognized as a comment.
         """
@@ -332,7 +331,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Check outputs.
         self.assertTrue(actual)
 
-    def test_comment_with_leading_whitespace(self) -> None:
+    def test2(self) -> None:
         """
         Test that a line with leading whitespace and % is a comment.
         """
@@ -343,7 +342,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Check outputs.
         self.assertTrue(actual)
 
-    def test_not_a_comment(self) -> None:
+    def test3(self) -> None:
         """
         Test that a regular line is not recognized as a comment.
         """
@@ -354,7 +353,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Check outputs.
         self.assertFalse(actual)
 
-    def test_escaped_percent(self) -> None:
+    def test4(self) -> None:
         """
         Test that a line with escaped % character is not a comment.
         """
@@ -365,7 +364,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Check outputs.
         self.assertFalse(actual)
 
-    def test_percent_in_middle(self) -> None:
+    def test5(self) -> None:
         """
         Test that a line with % in the middle is not a comment.
         """
@@ -376,7 +375,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Check outputs.
         self.assertFalse(actual)
 
-    def test_empty_comment(self) -> None:
+    def test6(self) -> None:
         """
         Test that a line with only % is a comment.
         """
@@ -422,36 +421,35 @@ class Test_extract_latex_section(hunitest.TestCase):
             self.assert_equal(str(header_info.level), str(expected_level))
             self.assert_equal(header_info.description, expected_title)
 
-    # TODO(ai_gp): -> test1, test2, ...
-    def test_section_basic(self) -> None:
+    def test1(self) -> None:
         """
         Test extraction of basic section command.
         """
         line = r"\section{Introduction}"
         self.helper(line, 1, "Introduction")
 
-    def test_subsection_basic(self) -> None:
+    def test2(self) -> None:
         """
         Test extraction of basic subsection command.
         """
         line = r"\subsection{Background}"
         self.helper(line, 2, "Background")
 
-    def test_subsubsection_basic(self) -> None:
+    def test3(self) -> None:
         """
         Test extraction of basic subsubsection command.
         """
         line = r"\subsubsection{Details}"
         self.helper(line, 3, "Details")
 
-    def test_section_with_nested_braces(self) -> None:
+    def test4(self) -> None:
         """
         Test extraction of section with nested LaTeX commands.
         """
         line = r"\section{Introduction to \textbf{Machine Learning}}"
         self.helper(line, 1, r"Introduction to \textbf{Machine Learning}")
 
-    def test_section_with_optional_argument(self) -> None:
+    def test5(self) -> None:
         """
         Test extraction of section with optional short title.
         """
@@ -459,28 +457,28 @@ class Test_extract_latex_section(hunitest.TestCase):
         # Should extract the long title (in curly braces).
         self.helper(line, 1, "Long Title for Table of Contents")
 
-    def test_section_with_escaped_characters(self) -> None:
+    def test6(self) -> None:
         """
         Test extraction of section with escaped special characters.
         """
         line = r"\section{Cost Analysis: \$100 \& More}"
         self.helper(line, 1, r"Cost Analysis: \$100 \& More")
 
-    def test_section_with_leading_whitespace(self) -> None:
+    def test7(self) -> None:
         """
         Test extraction of section with leading whitespace.
         """
         line = r"   \section{Methods}"
         self.helper(line, 1, "Methods")
 
-    def test_not_a_section(self) -> None:
+    def test8(self) -> None:
         """
         Test that a regular line is not recognized as a section.
         """
         line = "This is regular text"
         self.helper(line, 0, "")
 
-    def test_section_empty_title(self) -> None:
+    def test9(self) -> None:
         """
         Test that section with empty title is not extracted.
         """
@@ -519,8 +517,7 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual_str, expected)
 
-    # TODO(ai_gp): -> test1, test2, ...
-    def test_basic_document(self) -> None:
+    def test1(self) -> None:
         """
         Test extraction from a basic LaTeX document with multiple section levels.
         """
@@ -543,7 +540,7 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         # Run test.
         self.helper(lines, expected)
 
-    def test_with_comments(self) -> None:
+    def test2(self) -> None:
         """
         Test that commented-out sections are skipped.
         """
@@ -561,7 +558,7 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         # Run test.
         self.helper(lines, expected)
 
-    def test_max_level_filtering(self) -> None:
+    def test3(self) -> None:
         """
         Test that only headers up to max_level are extracted.
         """
@@ -579,7 +576,7 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         # Run test.
         self.helper(lines, expected, max_level=2)
 
-    def test_with_nested_braces(self) -> None:
+    def test4(self) -> None:
         """
         Test extraction with nested LaTeX commands in titles.
         """
@@ -595,7 +592,7 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         # Run test.
         self.helper(lines, expected)
 
-    def test_line_numbers(self) -> None:
+    def test5(self) -> None:
         """
         Test that line numbers are correctly recorded.
         """
@@ -617,7 +614,7 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         # Run test.
         self.helper(lines, expected)
 
-    def test_empty_document(self) -> None:
+    def test6(self) -> None:
         """
         Test extraction from document with no sections.
         """
@@ -631,7 +628,7 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         # Run test.
         self.helper(lines, expected)
 
-    def test_all_levels(self) -> None:
+    def test7(self) -> None:
         """
         Test extraction with all three section levels.
         """
