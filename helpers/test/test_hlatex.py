@@ -74,8 +74,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
     Test the _is_latex_line_separator function.
     """
 
-    # TODO(ai_gp): -> test1, test2, ...
-    def test_hash_separator(self) -> None:
+    def test1(self) -> None:
         """
         Test that a line with repeated # characters is recognized as separator.
         """
@@ -86,7 +85,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
         # Check outputs.
         self.assertTrue(actual)
 
-    def test_equals_separator(self) -> None:
+    def test2(self) -> None:
         """
         Test that a line with repeated = characters is recognized as separator.
         """
@@ -97,7 +96,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
         # Check outputs.
         self.assertTrue(actual)
 
-    def test_dash_separator(self) -> None:
+    def test3(self) -> None:
         """
         Test that a line with repeated - characters is recognized as separator.
         """
@@ -108,7 +107,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
         # Check outputs.
         self.assertTrue(actual)
 
-    def test_not_enough_repeats(self) -> None:
+    def test4(self) -> None:
         """
         Test that a line with too few repeated characters is not a separator.
         """
@@ -119,7 +118,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
         # Check outputs.
         self.assertFalse(actual)
 
-    def test_regular_comment(self) -> None:
+    def test5(self) -> None:
         """
         Test that a regular comment is not recognized as separator.
         """
@@ -159,8 +158,7 @@ class Test_frame_sections1(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual, expected)
 
-    # TODO(ai_gp): -> test1, test2, ...
-    def test_basic_section(self) -> None:
+    def test1(self) -> None:
         """
         Test adding separator before a single section command.
         """
@@ -178,7 +176,7 @@ class Test_frame_sections1(hunitest.TestCase):
         # Run test.
         self.helper(input_txt, expected)
 
-    def test_all_section_types(self) -> None:
+    def test2(self) -> None:
         """
         Test adding separators before section, subsection, and subsubsection.
         """
@@ -204,7 +202,7 @@ class Test_frame_sections1(hunitest.TestCase):
         # Run test.
         self.helper(input_txt, expected)
 
-    def test_existing_separators_removed(self) -> None:
+    def test3(self) -> None:
         """
         Test that existing separators are removed and replaced with correct ones.
         """
@@ -227,7 +225,7 @@ class Test_frame_sections1(hunitest.TestCase):
         # Run test.
         self.helper(input_txt, expected)
 
-    def test_consecutive_empty_lines_reduced(self) -> None:
+    def test4(self) -> None:
         """
         Test that multiple consecutive empty lines are reduced to one.
         """
@@ -249,7 +247,7 @@ class Test_frame_sections1(hunitest.TestCase):
         # Run test.
         self.helper(input_txt, expected)
 
-    def test_mixed_content(self) -> None:
+    def test5(self) -> None:
         """
         Test with mixed content including text, sections, and empty lines.
         """
@@ -292,7 +290,7 @@ class Test_frame_sections1(hunitest.TestCase):
         # Run test.
         self.helper(input_txt, expected)
 
-    def test_no_sections(self) -> None:
+    def test6(self) -> None:
         """
         Test that lines without section commands are left unchanged.
         """
