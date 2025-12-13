@@ -480,7 +480,7 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
     """
     if interactive and not func_name:
         hsystem.query_yes_no(
-            "Are you sure you want to reset the disk cache? This will delete all cache "
+            "Are you sure you want to reset the disk cache? This will delete all cache files."
         )
     if func_name == "":
         cache_files = glob.glob("cache.*")
@@ -494,7 +494,7 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
         os.remove(file_name)
 
 
-def reset_cache(func_name: str = "", interactive=True) -> None:
+def reset_cache(func_name: str = "", interactive: bool = True) -> None:
     reset_mem_cache(func_name)
     reset_disk_cache(func_name, interactive=interactive)
 
@@ -507,7 +507,7 @@ def reset_cache(func_name: str = "", interactive=True) -> None:
 def simple_cache(
     cache_type: str = "json",
     write_through: bool = False,
-    exclude_keys: List[str] = [],
+    exclude_keys: List[str] = None,
 ) -> Callable[..., Any]:
     """
     Decorate a function to cache its results.
@@ -529,6 +529,10 @@ def simple_cache(
         existing_type = get_cache_property("system", func_name, "type")
         if not existing_type:
             set_cache_property("system", func_name, "type", cache_type)
+        # Handle mutable default argument.
+        nonlocal exclude_keys
+        if exclude_keys is None:
+            exclude_keys = []
 
         @functools.wraps(func)
         def wrapper(

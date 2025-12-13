@@ -27,17 +27,11 @@ class Test_remove_latex_formatting1(hunitest.TestCase):
     Test the remove_latex_formatting function.
     """
 
-    """
-    Test the remove_latex_formatting function.
-    """
-
     def test1(self) -> None:
         """
         Test removal of textcolor commands from LaTeX text.
         """
-        """
-        Test removal of textcolor commands from LaTeX text.
-        """
+        # Prepare inputs.
         txt = r"""
         - If there is \textcolor{red}{no pattern}, we can try learning:
           - Measure if \textcolor{blue}{learning works}.
@@ -51,6 +45,7 @@ class Test_remove_latex_formatting1(hunitest.TestCase):
           \textcolor{violet}{data is all that matters}.
         """
         txt = hprint.dedent(txt)
+        # Prepare outputs.
         expected = r"""
         - If there is no pattern, we can try learning:
           - Measure if learning works.
@@ -63,15 +58,23 @@ class Test_remove_latex_formatting1(hunitest.TestCase):
         - Without data, we cannot do anything:
           data is all that matters."""
         expected = hprint.dedent(expected)
+        # Run test.
         actual = hlatex.remove_latex_formatting(txt)
+        # Check outputs.
         self.assert_equal(actual, expected)
 
 
 # #############################################################################
+# Test_is_latex_line_separator1
+# #############################################################################
 
 
 class Test_is_latex_line_separator1(hunitest.TestCase):
-    def test_hash_separator(self) -> None:
+    """
+    Test the _is_latex_line_separator function.
+    """
+
+    def test1(self) -> None:
         """
         Test that a line with repeated # characters is recognized as separator.
         """
@@ -82,7 +85,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
         # Check outputs.
         self.assertTrue(actual)
 
-    def test_equals_separator(self) -> None:
+    def test2(self) -> None:
         """
         Test that a line with repeated = characters is recognized as separator.
         """
@@ -93,7 +96,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
         # Check outputs.
         self.assertTrue(actual)
 
-    def test_dash_separator(self) -> None:
+    def test3(self) -> None:
         """
         Test that a line with repeated - characters is recognized as separator.
         """
@@ -104,7 +107,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
         # Check outputs.
         self.assertTrue(actual)
 
-    def test_not_enough_repeats(self) -> None:
+    def test4(self) -> None:
         """
         Test that a line with too few repeated characters is not a separator.
         """
@@ -115,7 +118,7 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
         # Check outputs.
         self.assertFalse(actual)
 
-    def test_regular_comment(self) -> None:
+    def test5(self) -> None:
         """
         Test that a regular comment is not recognized as separator.
         """
@@ -128,15 +131,21 @@ class Test_is_latex_line_separator1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_frame_sections1
+# #############################################################################
 
 
 class Test_frame_sections1(hunitest.TestCase):
+    """
+    Test the frame_sections function.
+    """
+
     def helper(self, input_txt: str, expected: str) -> None:
         """
         Helper method to test frame_sections function.
 
-        :param input_txt: input LaTeX text
-        :param expected: expected output after processing
+        :param input_txt: Input LaTeX text
+        :param expected: Expected output after processing
         """
         # Prepare inputs.
         lines = hprint.dedent(input_txt)
@@ -144,12 +153,12 @@ class Test_frame_sections1(hunitest.TestCase):
         # Run test.
         actual = hlatex.frame_sections(lines)
         actual = "\n".join(actual)
-        # Prepare expected.
+        # Prepare outputs.
         expected = hprint.dedent(expected)
         # Check outputs.
         self.assert_equal(actual, expected)
 
-    def test_basic_section(self) -> None:
+    def test1(self) -> None:
         """
         Test adding separator before a single section command.
         """
@@ -158,16 +167,16 @@ class Test_frame_sections1(hunitest.TestCase):
         \section{Introduction}
         This is the introduction.
         """
-        # Prepare expected outputs.
+        # Prepare outputs.
         expected = r"""
         % ##############################################################################
         \section{Introduction}
         This is the introduction.
         """
-        # Check.
+        # Run test.
         self.helper(input_txt, expected)
 
-    def test_all_section_types(self) -> None:
+    def test2(self) -> None:
         """
         Test adding separators before section, subsection, and subsubsection.
         """
@@ -179,7 +188,7 @@ class Test_frame_sections1(hunitest.TestCase):
 
         \subsubsection{Detailed Analysis}
         """
-        # Prepare expected outputs.
+        # Prepare outputs.
         expected = r"""
         % ##############################################################################
         \section{Proposed framework}
@@ -190,10 +199,10 @@ class Test_frame_sections1(hunitest.TestCase):
         % ------------------------------------------------------------------------------
         \subsubsection{Detailed Analysis}
         """
-        # Check.
+        # Run test.
         self.helper(input_txt, expected)
 
-    def test_existing_separators_removed(self) -> None:
+    def test3(self) -> None:
         """
         Test that existing separators are removed and replaced with correct ones.
         """
@@ -205,7 +214,7 @@ class Test_frame_sections1(hunitest.TestCase):
         % ##############
         \subsection{Background}
         """
-        # Prepare expected outputs.
+        # Prepare outputs.
         expected = r"""
         % ##############################################################################
         \section{Introduction}
@@ -213,10 +222,10 @@ class Test_frame_sections1(hunitest.TestCase):
         % ==============================================================================
         \subsection{Background}
         """
-        # Check.
+        # Run test.
         self.helper(input_txt, expected)
 
-    def test_consecutive_empty_lines_reduced(self) -> None:
+    def test4(self) -> None:
         """
         Test that multiple consecutive empty lines are reduced to one.
         """
@@ -228,17 +237,17 @@ class Test_frame_sections1(hunitest.TestCase):
 
         This is text after multiple empty lines.
         """
-        # Prepare expected outputs.
+        # Prepare outputs.
         expected = r"""
         % ##############################################################################
         \section{Introduction}
 
         This is text after multiple empty lines.
         """
-        # Check.
+        # Run test.
         self.helper(input_txt, expected)
 
-    def test_mixed_content(self) -> None:
+    def test5(self) -> None:
         """
         Test with mixed content including text, sections, and empty lines.
         """
@@ -259,7 +268,7 @@ class Test_frame_sections1(hunitest.TestCase):
 
         Sampling details here.
         """
-        # Prepare expected outputs.
+        # Prepare outputs.
         expected = r"""
         This is some introductory text.
 
@@ -278,10 +287,10 @@ class Test_frame_sections1(hunitest.TestCase):
 
         Sampling details here.
         """
-        # Check.
+        # Run test.
         self.helper(input_txt, expected)
 
-    def test_no_sections(self) -> None:
+    def test6(self) -> None:
         """
         Test that lines without section commands are left unchanged.
         """
@@ -291,13 +300,13 @@ class Test_frame_sections1(hunitest.TestCase):
         No sections here.
         Just content.
         """
-        # Prepare expected outputs.
+        # Prepare outputs.
         expected = r"""
         This is regular text.
         No sections here.
         Just content.
         """
-        # Check.
+        # Run test.
         self.helper(input_txt, expected)
 
 
@@ -307,7 +316,11 @@ class Test_frame_sections1(hunitest.TestCase):
 
 
 class Test_is_latex_comment(hunitest.TestCase):
-    def test_basic_comment(self) -> None:
+    """
+    Test the _is_latex_comment function.
+    """
+
+    def test1(self) -> None:
         """
         Test that a line starting with % is recognized as a comment.
         """
@@ -318,7 +331,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Check outputs.
         self.assertTrue(actual)
 
-    def test_comment_with_leading_whitespace(self) -> None:
+    def test2(self) -> None:
         """
         Test that a line with leading whitespace and % is a comment.
         """
@@ -329,7 +342,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Check outputs.
         self.assertTrue(actual)
 
-    def test_not_a_comment(self) -> None:
+    def test3(self) -> None:
         """
         Test that a regular line is not recognized as a comment.
         """
@@ -340,7 +353,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Check outputs.
         self.assertFalse(actual)
 
-    def test_escaped_percent(self) -> None:
+    def test4(self) -> None:
         """
         Test that a line with escaped % character is not a comment.
         """
@@ -351,7 +364,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Check outputs.
         self.assertFalse(actual)
 
-    def test_percent_in_middle(self) -> None:
+    def test5(self) -> None:
         """
         Test that a line with % in the middle is not a comment.
         """
@@ -362,7 +375,7 @@ class Test_is_latex_comment(hunitest.TestCase):
         # Check outputs.
         self.assertFalse(actual)
 
-    def test_empty_comment(self) -> None:
+    def test6(self) -> None:
         """
         Test that a line with only % is a comment.
         """
@@ -380,6 +393,10 @@ class Test_is_latex_comment(hunitest.TestCase):
 
 
 class Test_extract_latex_section(hunitest.TestCase):
+    """
+    Test the _extract_latex_section function.
+    """
+
     def helper(
         self, line: str, expected_level: int, expected_title: str
     ) -> None:
@@ -387,8 +404,8 @@ class Test_extract_latex_section(hunitest.TestCase):
         Helper method to test extraction of LaTeX section commands.
 
         :param line: LaTeX line to parse
-        :param expected_level: expected section level (0 if no section)
-        :param expected_title: expected title (empty string if no section)
+        :param expected_level: Expected section level (0 if no section)
+        :param expected_title: Expected title (empty string if no section)
         """
         # Prepare inputs - line_number is arbitrary for testing.
         line_number = 1
@@ -404,35 +421,35 @@ class Test_extract_latex_section(hunitest.TestCase):
             self.assert_equal(str(header_info.level), str(expected_level))
             self.assert_equal(header_info.description, expected_title)
 
-    def test_section_basic(self) -> None:
+    def test1(self) -> None:
         """
         Test extraction of basic section command.
         """
         line = r"\section{Introduction}"
         self.helper(line, 1, "Introduction")
 
-    def test_subsection_basic(self) -> None:
+    def test2(self) -> None:
         """
         Test extraction of basic subsection command.
         """
         line = r"\subsection{Background}"
         self.helper(line, 2, "Background")
 
-    def test_subsubsection_basic(self) -> None:
+    def test3(self) -> None:
         """
         Test extraction of basic subsubsection command.
         """
         line = r"\subsubsection{Details}"
         self.helper(line, 3, "Details")
 
-    def test_section_with_nested_braces(self) -> None:
+    def test4(self) -> None:
         """
         Test extraction of section with nested LaTeX commands.
         """
         line = r"\section{Introduction to \textbf{Machine Learning}}"
         self.helper(line, 1, r"Introduction to \textbf{Machine Learning}")
 
-    def test_section_with_optional_argument(self) -> None:
+    def test5(self) -> None:
         """
         Test extraction of section with optional short title.
         """
@@ -440,28 +457,28 @@ class Test_extract_latex_section(hunitest.TestCase):
         # Should extract the long title (in curly braces).
         self.helper(line, 1, "Long Title for Table of Contents")
 
-    def test_section_with_escaped_characters(self) -> None:
+    def test6(self) -> None:
         """
         Test extraction of section with escaped special characters.
         """
         line = r"\section{Cost Analysis: \$100 \& More}"
         self.helper(line, 1, r"Cost Analysis: \$100 \& More")
 
-    def test_section_with_leading_whitespace(self) -> None:
+    def test7(self) -> None:
         """
         Test extraction of section with leading whitespace.
         """
         line = r"   \section{Methods}"
         self.helper(line, 1, "Methods")
 
-    def test_not_a_section(self) -> None:
+    def test8(self) -> None:
         """
         Test that a regular line is not recognized as a section.
         """
         line = "This is regular text"
         self.helper(line, 0, "")
 
-    def test_section_empty_title(self) -> None:
+    def test9(self) -> None:
         """
         Test that section with empty title is not extracted.
         """
@@ -476,25 +493,31 @@ class Test_extract_latex_section(hunitest.TestCase):
 
 
 class Test_extract_headers_from_latex(hunitest.TestCase):
+    """
+    Test the extract_headers_from_latex function.
+    """
+
     def helper(self, lines: str, expected: str, *, max_level: int = 3) -> None:
         """
         Helper method to test header extraction from LaTeX documents.
 
         :param lines: LaTeX document content as a string
-        :param expected: expected string representation of header list
-        :param max_level: maximum header level to extract (default: 3)
+        :param expected: Expected string representation of header list
+        :param max_level: Maximum header level to extract (default: 3)
         """
+        # Prepare inputs.
         lines_list = hprint.dedent(lines).split("\n")
         # Run test.
         actual = hlatex.extract_headers_from_latex(
             lines_list, max_level, sanity_check=False
         )
         actual_str = hmarkdo.header_list_to_str(actual)
-        # Check outputs.
+        # Prepare outputs.
         expected = hprint.dedent(expected)
+        # Check outputs.
         self.assert_equal(actual_str, expected)
 
-    def test_basic_document(self) -> None:
+    def test1(self) -> None:
         """
         Test extraction from a basic LaTeX document with multiple section levels.
         """
@@ -509,14 +532,15 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \section{Methods}
         Methods description.
         """
+        # Prepare outputs.
         expected = """
         HeaderInfo(1, 'Introduction', 1)
         HeaderInfo(2, 'Background', 4)
         HeaderInfo(1, 'Methods', 7)"""
-        # Check.
+        # Run test.
         self.helper(lines, expected)
 
-    def test_with_comments(self) -> None:
+    def test2(self) -> None:
         """
         Test that commented-out sections are skipped.
         """
@@ -527,13 +551,14 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \subsection{Current Subsection}
         % \subsection{Old Subsection}
         """
+        # Prepare outputs.
         expected = """
         HeaderInfo(1, 'Introduction', 1)
         HeaderInfo(2, 'Current Subsection', 3)"""
-        # Check.
+        # Run test.
         self.helper(lines, expected)
 
-    def test_max_level_filtering(self) -> None:
+    def test3(self) -> None:
         """
         Test that only headers up to max_level are extracted.
         """
@@ -543,14 +568,15 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \subsection{Section 1.1}
         \subsubsection{Section 1.1.1}
         """
+        # Prepare outputs.
         # Should only get section and subsection, not subsubsection.
         expected = """
         HeaderInfo(1, 'Chapter 1', 1)
         HeaderInfo(2, 'Section 1.1', 2)"""
-        # Check.
+        # Run test.
         self.helper(lines, expected, max_level=2)
 
-    def test_with_nested_braces(self) -> None:
+    def test4(self) -> None:
         """
         Test extraction with nested LaTeX commands in titles.
         """
@@ -559,13 +585,14 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \section{Introduction to \textbf{ML}}
         \subsection{Using \emph{Neural Networks}}
         """
+        # Prepare outputs.
         expected = r"""
         HeaderInfo(1, 'Introduction to \textbf{ML}', 1)
         HeaderInfo(2, 'Using \emph{Neural Networks}', 2)"""
-        # Check.
+        # Run test.
         self.helper(lines, expected)
 
-    def test_line_numbers(self) -> None:
+    def test5(self) -> None:
         """
         Test that line numbers are correctly recorded.
         """
@@ -579,14 +606,15 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \subsection{First Subsection}
         Even more text.
         """
+        # Prepare outputs.
         # Line numbers should be 3 and 6 (1-indexed).
         expected = """
         HeaderInfo(1, 'First Section', 3)
         HeaderInfo(2, 'First Subsection', 6)"""
-        # Check.
+        # Run test.
         self.helper(lines, expected)
 
-    def test_empty_document(self) -> None:
+    def test6(self) -> None:
         """
         Test extraction from document with no sections.
         """
@@ -595,11 +623,12 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         This is just regular text.
         No sections here.
         """
+        # Prepare outputs.
         expected = ""
-        # Check.
+        # Run test.
         self.helper(lines, expected)
 
-    def test_all_levels(self) -> None:
+    def test7(self) -> None:
         """
         Test extraction with all three section levels.
         """
@@ -620,11 +649,12 @@ class Test_extract_headers_from_latex(hunitest.TestCase):
         \section{Chapter 2}
         Second chapter.
         """
+        # Prepare outputs.
         expected = """
         HeaderInfo(1, 'Chapter 1', 1)
         HeaderInfo(2, 'Section 1.1', 4)
         HeaderInfo(3, 'Subsection 1.1.1', 7)
         HeaderInfo(2, 'Section 1.2', 10)
         HeaderInfo(1, 'Chapter 2', 13)"""
-        # Check.
+        # Run test.
         self.helper(lines, expected)
