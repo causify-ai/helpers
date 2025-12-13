@@ -77,7 +77,7 @@ hgodrapi.set_row_height(
 # ## Read some nice data
 
 # %%
-nice_data = hgodrapi.read_google_sheet(google_creds, url, sheet_name)
+nice_data = hgodrapi.from_gsheet(google_creds, url, gsheet_name=sheet_name)
 
 # %%
 nice_data.head()
@@ -90,6 +90,6 @@ nice_data.shape
 # ## Write this nice data
 
 # %%
-hgodrapi.write_to_google_sheet(
-    google_creds, nice_data, url, "testing_tab"
+hgodrapi.to_gsheet(
+    google_creds, nice_data, url, tab_name="testing_tab"
 )

@@ -9,7 +9,7 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import linters2.amp_normalize_import as lamnoimp
+import linters2.normalize_import as lamnoimp
 import linters2.linter_utils as liutils
 
 _LOG = logging.getLogger(__name__)

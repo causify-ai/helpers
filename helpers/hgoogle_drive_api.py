@@ -91,8 +91,7 @@ def get_sheets_service(credentials: goasea.Credentials) -> godisc.Resource:
     return sheets_service
 
 
-# TODO(ai_gp): -> get_gsheet_id()
-def get_sheet_id(
+def get_gsheet_id(
     credentials: goasea.Credentials,
     sheet_id: str,
     *,
@@ -124,8 +123,7 @@ def get_sheet_id(
     return first_sheet_id
 
 
-# TODO(ai_gp): -> get_gsheet_name_from_url()
-def get_sheet_name_from_url(
+def get_gsheet_name_from_url(
     credentials: goasea.Credentials,
     url: str,
 ) -> str:
@@ -160,7 +158,7 @@ def freeze_rows_in_gsheet(
         Defaults to the first tab if not provided.
     """
     hdbg.dassert_lt(0, num_rows_to_freeze)
-    tab_id = get_sheet_id(
+    tab_id = get_gsheet_id(
         credentials, sheet_id=sheet_id, sheet_name=sheet_name
     )
     sheets_service = get_sheets_service(credentials)
@@ -207,7 +205,7 @@ def set_row_height_in_gsheet(
     :param sheet_name: Name of the sheet (tab) to set row height in.
         Defaults to the first tab if not provided.
     """
-    tab_id = get_sheet_id(
+    tab_id = get_gsheet_id(
         credentials, sheet_id=sheet_id, sheet_name=sheet_name
     )
     sheets_service = get_sheets_service(credentials)
@@ -265,37 +263,35 @@ def set_row_height_in_gsheet(
     _LOG.debug("response: %s", response)
 
 
-# TODO(ai_gp): -> from_gsheet()
-def read_google_sheet(
+def from_gsheet(
     credentials: goasea.Credentials,
     url: str,
     *,
-    tab_name: Optional[str] = None,
+    gsheet_name: Optional[str] = None,
 ) -> pd.DataFrame:
     """
     Read data from a Google Sheet.
 
     :param credentials: Google credentials object.
     :param url: URL of the Google Sheets file.
-    :param tab_name: Name of the tab to read (default: first sheet if
+    :param gsheet_name: Name of the tab to read (default: first sheet if
         not specified).
     :return: pandas DataFrame with the sheet data.
     """
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(url)
-    if tab_name is None:
+    if gsheet_name is None:
         worksheet = spreadsheet.get_worksheet(0)
     else:
-        worksheet = spreadsheet.worksheet(tab_name)
+        worksheet = spreadsheet.worksheet(gsheet_name)
     data = worksheet.get_all_records()
-    hdbg.dassert(data, "The sheet '%s' is empty", tab_name)
+    hdbg.dassert(data, "The sheet '%s' is empty", gsheet_name)
     df = pd.DataFrame(data)
     _LOG.debug("Data fetched")
     return df
 
 
-# TODO(ai_gp): -> to_gsheet()
-def write_to_google_sheet(
+def to_gsheet(
     credentials: goasea.Credentials,
     df: pd.DataFrame,
     url: str,
