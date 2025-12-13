@@ -151,8 +151,4 @@ class Test_parse_descriptions_with_names(hunitest.TestCase):
             ("Prompt_B", "Another prompt."),
         ]
         # Run test.
-<<<<<<< HEAD
         self.helper(content, expected)
-=======
-        self.helper(content, expected)
->>>>>>> master
