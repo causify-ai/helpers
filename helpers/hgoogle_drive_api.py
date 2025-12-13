@@ -91,6 +91,7 @@ def get_sheets_service(credentials: goasea.Credentials) -> godisc.Resource:
     return sheets_service
 
 
+# TODO(ai_gp): -> get_gsheet_id()
 def get_sheet_id(
     credentials: goasea.Credentials,
     sheet_id: str,
@@ -123,6 +124,7 @@ def get_sheet_id(
     return first_sheet_id
 
 
+# TODO(ai_gp): -> get_gsheet_name_from_url()
 def get_sheet_name_from_url(
     credentials: goasea.Credentials,
     url: str,
@@ -263,9 +265,11 @@ def set_row_height_in_gsheet(
     _LOG.debug("response: %s", response)
 
 
+# TODO(ai_gp): -> from_gsheet()
 def read_google_sheet(
     credentials: goasea.Credentials,
     url: str,
+    *,
     tab_name: Optional[str] = None,
 ) -> pd.DataFrame:
     """
@@ -290,6 +294,7 @@ def read_google_sheet(
     return df
 
 
+# TODO(ai_gp): -> to_gsheet()
 def write_to_google_sheet(
     credentials: goasea.Credentials,
     df: pd.DataFrame,
