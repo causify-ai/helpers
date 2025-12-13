@@ -27,10 +27,16 @@ from typing import List, Optional
 # )
 # ```
 
+# Try to import optional Google API dependencies.
+try:
+    import google.oauth2.service_account as goasea
+    import googleapiclient.discovery as godisc
+    import gspread
+    _GOOGLE_API_AVAILABLE = True
+except ImportError:
+    # If Google API packages are not installed, set placeholders.
+    _GOOGLE_API_AVAILABLE = False
 
-import google.oauth2.service_account as goasea
-import googleapiclient.discovery as godisc
-import gspread
 import pandas as pd
 
 import helpers.hdbg as hdbg
@@ -41,7 +47,7 @@ _LOG = logging.getLogger(__name__)
 def get_credentials(
     *,
     service_key_path: Optional[str] = None,
-) -> goasea.Credentials:
+) -> "goasea.Credentials":
     """
     Get credentials for Google API with service account key.
 
@@ -75,7 +81,7 @@ def get_credentials(
 # #############################################################################
 
 
-def get_sheets_service(credentials: goasea.Credentials) -> godisc.Resource:
+def get_sheets_service(credentials: "goasea.Credentials") -> "godisc.Resource":
     """
     Get Google Sheets service with provided credentials.
 
@@ -92,7 +98,7 @@ def get_sheets_service(credentials: goasea.Credentials) -> godisc.Resource:
 
 
 def get_gsheet_id(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     sheet_id: str,
     *,
     sheet_name: Optional[str] = None,
@@ -124,7 +130,7 @@ def get_gsheet_id(
 
 
 def get_gsheet_name_from_url(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     url: str,
 ) -> str:
     """
@@ -142,7 +148,7 @@ def get_gsheet_name_from_url(
 
 
 def freeze_rows_in_gsheet(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     sheet_id: str,
     num_rows_to_freeze: int,
     *,
@@ -184,7 +190,7 @@ def freeze_rows_in_gsheet(
 
 
 def set_row_height_in_gsheet(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     sheet_id: str,
     height: int,
     *,
@@ -264,7 +270,7 @@ def set_row_height_in_gsheet(
 
 
 def from_gsheet(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     url: str,
     *,
     gsheet_name: Optional[str] = None,
@@ -292,7 +298,7 @@ def from_gsheet(
 
 
 def to_gsheet(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     df: pd.DataFrame,
     url: str,
     *,
@@ -351,7 +357,7 @@ def to_gsheet(
 # #############################################################################
 
 
-def get_gdrive_service(credentials: goasea.Credentials) -> godisc.Resource:
+def get_gdrive_service(credentials: "goasea.Credentials") -> "godisc.Resource":
     """
     Get Google Drive service with provided credentials.
 
@@ -368,7 +374,7 @@ def get_gdrive_service(credentials: goasea.Credentials) -> godisc.Resource:
 
 
 def _create_new_google_document(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     doc_name: str,
     doc_type: str,
 ) -> str:
@@ -409,7 +415,7 @@ def _create_new_google_document(
 
 
 def move_gfile_to_dir(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     gfile_id: str,
     folder_id: str,
 ) -> dict:
@@ -439,7 +445,7 @@ def move_gfile_to_dir(
 
 
 def create_empty_google_file(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     gfile_type: str,
     gfile_name: str,
     gdrive_folder_id: str,
@@ -490,7 +496,7 @@ def create_empty_google_file(
 
 
 def create_or_overwrite_with_timestamp(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     file_name: str,
     folder_id: str,
     *,
@@ -566,7 +572,7 @@ def create_or_overwrite_with_timestamp(
 
 
 def create_google_drive_folder(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     folder_name: str,
     parent_folder_id: str,
 ) -> str:
@@ -596,7 +602,7 @@ def create_google_drive_folder(
     return folder.get("id")
 
 
-def _get_folders_in_gdrive(*, credentials: goasea.Credentials) -> list:
+def _get_folders_in_gdrive(*, credentials: "goasea.Credentials") -> list:
     """
     Get a list of folders in Google Drive.
 
@@ -622,7 +628,7 @@ def _get_folders_in_gdrive(*, credentials: goasea.Credentials) -> list:
 
 
 def get_folder_id_by_name(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     name: str,
 ) -> dict:
     """
@@ -663,7 +669,7 @@ def get_folder_id_by_name(
 
 
 def share_google_file(
-    credentials: goasea.Credentials,
+    credentials: "goasea.Credentials",
     gfile_id: str,
     user: str,
 ) -> None:
