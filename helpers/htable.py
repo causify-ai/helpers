@@ -129,6 +129,28 @@ class Table:
         vals = sorted(list(set(vals)))
         return vals
 
+    def remove_column(self, column_name: str) -> "Table":
+        """
+        Return a new Table with the specified column removed.
+
+        :param column_name: name of the column to remove
+        :return: new Table without the specified column
+        """
+        hdbg.dassert_in(column_name, self._column_names)
+        # Find the index of the column to remove.
+        column_idx = self._col_to_idx[column_name]
+        # Create new column names list without the removed column.
+        new_column_names = [
+            col for col in self._column_names if col != column_name
+        ]
+        # Create new table rows without the removed column.
+        new_table = [
+            [val for idx, val in enumerate(row) if idx != column_idx]
+            for row in self._table
+        ]
+        # Build and return the new table.
+        return Table(new_table, new_column_names)
+
     @staticmethod
     def _check_table(table: TableType, column_names: List[str]) -> None:
         """
