@@ -26,7 +26,7 @@ _LOG = logging.getLogger(__name__)
 # Basic type for caching data: func_name -> key -> value properties.
 _CacheType = Dict[str, Dict[str, Any]]
 
-# Memory cache.
+# Create memory cache.
 if "_CACHE" not in globals():
     _LOG.debug("Creating _CACHE")
     _CACHE: _CacheType = {}
@@ -544,7 +544,8 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
     """
     if interactive and not func_name:
         hsystem.query_yes_no(
-            "Are you sure you want to reset the disk cache? This will delete all cache files."
+            "Are you sure you want to reset the disk cache? " +
+            "This will delete all cache files."
         )
     if func_name == "":
         cache_files = glob.glob("cache.*")
@@ -617,14 +618,13 @@ def simple_cache(
             Cache the results of the decorated function.
 
             :param args: Positional arguments for the function.
-            :param force_refresh: If True, the cache is refreshed
-                  regardless of whether the key exists in the cache.
-            :param abort_on_cache_miss: If True, an exception is raised
-                  if the key is not found in the cache.
-            :param report_on_cache_miss: If True, a message is logged if
-                  the key is not found in the cache, and the function
-                  returns "_cache_miss_" instead of accessing the real
-                  value.
+            :param force_refresh: If True, the cache is refreshed regardless of
+                whether the key exists in the cache.
+            :param abort_on_cache_miss: If True, an exception is raised if the
+                key is not found in the cache.
+            :param report_on_cache_miss: If True, a message is logged if the key
+                is not found in the cache, and the function returns
+                "_cache_miss_" instead of accessing the real value.
             :param kwargs: Keyword arguments for the function.
             :return: The cached value or the result of the function.
             """
@@ -654,7 +654,6 @@ def simple_cache(
                     _LOG.debug("Disabling cache")
                     value = func(*args, **kwargs)
                     return value
-
             # Get the key.
             key = json.dumps(
                 {"args": args, "kwargs": kwargs_for_cache_key},
