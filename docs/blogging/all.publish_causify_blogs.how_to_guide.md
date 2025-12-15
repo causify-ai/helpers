@@ -12,6 +12,10 @@
   * [Blog Post Structure and Conventions](#blog-post-structure-and-conventions)
     + [Required Frontmatter](#required-frontmatter)
     + [Blog Post Template](#blog-post-template)
+    + [Naming Convention](#naming-convention)
+    + [Using the Excerpt Separator](#using-the-excerpt-separator)
+  * [Working with Assets and Images](#working-with-assets-and-images)
+    + [Image Location](#image-location)
     + [Using Diagrams (Graphviz, Mermaid, Plantuml)](#using-diagrams-graphviz-mermaid-plantuml)
   * [Available Categories](#available-categories)
   * [Publishing Workflow Details](#publishing-workflow-details)
@@ -228,7 +232,6 @@ Every blog post must include YAML frontmatter at the beginning of the file. Here
 are the required fields:
 
 ```yaml
----
 title: Your Blog Post Title
 authors:
   - author_id_1
@@ -238,7 +241,6 @@ description: Brief description of the blog post
 categories:
   - Category1
   - Category2 # Optional: multiple categories.
----
 ```
 
 **Field descriptions:**
@@ -258,18 +260,12 @@ before publishing.
 Here's a complete template for a new blog post:
 
 ```markdown
----
-title: Your Compelling Blog Title
-authors:
-  - your_author_id
-date: 2025-01-15
-description:
-  A brief, engaging description that will appear in blog previews and search
-  results
-categories:
-  - Business
-  - Startup
----
+title: Your Compelling Blog Title authors:
+
+- your_author_id date: 2025-01-15 description: A brief, engaging description
+  that will appear in blog previews and search results categories:
+- Business
+- Startup
 
 Your opening paragraph goes here. This should hook the reader and provide
 context for what they're about to read.
@@ -322,12 +318,6 @@ The `<!-- more -->` separator is crucial for blog post previews:
 - Ensure the preview content is compelling enough to make readers want to click
 - Don't place it too early (at least one paragraph) or too late (not more than
   3-4 paragraphs)
-
-## The Problem with Correlation
-
-Traditional machine learning models are exceptional at finding patterns...
-
-[Rest of the detailed post]
 
 ## Working with Assets and Images
 
