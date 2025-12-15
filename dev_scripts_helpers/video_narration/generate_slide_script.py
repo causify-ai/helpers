@@ -48,6 +48,7 @@ to highlight the most important points of each slide
 - The discussion for each slide should contain around 100 words
 - Do not use bold or italicize the text
 - Create a short transitions in less than 20 words between slides when needed.
+- Use "we" and "let's" instead of saying "This slide says"
 
 The output should have a format like:
 
@@ -178,7 +179,7 @@ def _process_slides_group(
         model=model,
         cache_mode="NORMAL",
         temperature=0.1,
-        #images_as_base64=images_as_base64 if images_as_base64 else None,
+        #images_as_base64=tuple(images_as_base64) if images_as_base64 else None,
     )
     return response
 

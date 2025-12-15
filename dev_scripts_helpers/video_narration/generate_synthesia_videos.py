@@ -24,12 +24,10 @@ import logging
 import os
 import pprint
 import re
-import shutil
 from typing import Any, Dict, List, Tuple
 
 import requests
 
-import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
@@ -135,7 +133,9 @@ def create_video(
     )
     # Check the response.
     if resp.status_code != 201:
-        raise ValueError(f"Create video failed ({resp.status_code}): {resp.text}")
+        raise ValueError(
+            f"Create video failed ({resp.status_code}): {resp.text}"
+        )
     data = resp.json()
     # Extract the video ID.
     video_id = data.get("id") or data.get("videoId")
@@ -259,21 +259,6 @@ def _process_slides(
             _LOG.info("Creating video: id=%s", video_id)
 
 
-# TODO(gp): Move to hio.py
-def _make_backup_if_needed(file_path: str) -> None:
-    """
-    Make a backup of the file or dir if it exists.
-    """
-    if os.path.exists(file_path):
-        _LOG.warning(
-            f"File or directory {file_path} already exists. Making a backup."
-        )
-        # Make a backup of the file or directory.
-        timestamp = hdateti.get_current_timestamp_as_string()
-        file_path_backup = file_path + "." + timestamp + ".backup"
-        shutil.move(file_path, file_path_backup)
-
-
 def _main(args: argparse.Namespace) -> None:
     """
     Main function to create Synthesia videos.
@@ -292,7 +277,7 @@ def _main(args: argparse.Namespace) -> None:
         hdbg.dassert_dir_exists(in_dir)
         #
         if args.no_incremental:
-            _make_backup_if_needed(args.out_dir)
+            hio.backup_file_or_dir_if_exists(args.out_dir)
         hio.create_dir(args.out_dir, incremental=True)
         # Discover all text files in the directory.
         discovered_slides = _discover_text_files(in_dir)
@@ -314,15 +299,19 @@ def _main(args: argparse.Namespace) -> None:
             out_file = f"slide{slide_num}"
             slides_info.append((slide_num, file_path, out_file))
         # Process slides.
-        _process_slides(args, slides_info, avatar, background, aspect, resolution)
+        _process_slides(
+            args, slides_info, avatar, background, aspect, resolution
+        )
     elif args.in_file:
         hdbg.dassert_file_exists(args.in_file)
-        _make_backup_if_needed(args.out_file)
+        hio.backup_file_or_dir_if_exists(args.out_file)
         hio.create_enclosing_dir(args.out_file, incremental=True)
         # Prepare workload.
         slides_info = [(0, args.in_file, args.out_file)]
         # Process slides.
-        _process_slides(args, slides_info, avatar, background, aspect, resolution)
+        _process_slides(
+            args, slides_info, avatar, background, aspect, resolution
+        )
     else:
         raise ValueError("Either --in_dir or --in_file must be provided")
 

@@ -1,6 +1,6 @@
-# README for `test/outcomes/Test_generate_readme_index.test2/tmp.scratch`
+# README for `dev_scripts_helpers/documentation/test/outcomes/Test_generate_readme_index.test2/tmp.scratch`
 
-Below is a list of all Markdown files found under `test/outcomes/Test_generate_readme_index.test2/tmp.scratch`.
+Below is a list of all Markdown files found under `dev_scripts_helpers/documentation/test/outcomes/Test_generate_readme_index.test2/tmp.scratch`.
 
 ## Markdown Index
 

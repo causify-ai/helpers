@@ -4,6 +4,7 @@ import os
 import pytest
 
 import helpers.hio as hio
+import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hmarkdown_formatting as hmarform
 import helpers.hprint as hprint
 import helpers.hserver as hserver
@@ -1317,7 +1318,7 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         lines = txt.split("\n")
         # Run test.
-        actual_lines = hmarform.add_prettier_ignore_to_div_blocks(lines)
+        actual_lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         self.check_string(actual)
@@ -1343,7 +1344,7 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         lines = txt.split("\n")
         # Run test.
-        actual_lines = hmarform.add_prettier_ignore_to_div_blocks(lines)
+        actual_lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         self.check_string(actual)
@@ -1375,7 +1376,7 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         lines = txt.split("\n")
         # Run test.
-        actual_lines = hmarform.remove_prettier_ignore_from_div_blocks(lines)
+        actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         self.check_string(actual)
@@ -1405,7 +1406,7 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         lines = txt.split("\n")
         # Run test.
-        actual_lines = hmarform.remove_prettier_ignore_from_div_blocks(lines)
+        actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
         actual = "\n".join(actual_lines)
         # Check outputs.
         self.check_string(actual)

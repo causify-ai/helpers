@@ -5,28 +5,28 @@
 <!-- toc -->
 
 - [Summary](#summary)
-- [Brief introduction to C4](#brief-introduction-to-c4)
-  * [Different levels of detail](#different-levels-of-detail)
+- [Brief Introduction to C4](#brief-introduction-to-c4)
+  * [Different Levels of Detail](#different-levels-of-detail)
     + [(System) Context (Level 1)](#system-context-level-1)
     + [Container (Level 2)](#container-level-2)
-    + [Component (level 3)](#component-level-3)
-    + [Code (level 4)](#code-level-4)
-- [Our conventions for C4 diagrams](#our-conventions-for-c4-diagrams)
-  * [Mapping C4 and code structure](#mapping-c4-and-code-structure)
+    + [Component (Level 3)](#component-level-3)
+    + [Code (Level 4)](#code-level-4)
+- [Our Conventions for C4 Diagrams](#our-conventions-for-c4-diagrams)
+  * [Mapping C4 and Code Structure](#mapping-c4-and-code-structure)
     + [(System) Context (Level 1)](#system-context-level-1-1)
     + [Container (Level 2)](#container-level-2-1)
-    + [Component (Level 3)](#component-level-3)
+    + [Component (Level 3)](#component-level-3-1)
     + [Component (Level 4)](#component-level-4)
-  * [Use classes!](#use-classes)
-  * [Generating class diagram](#generating-class-diagram)
+  * [Use Classes!](#use-classes)
+  * [Generating Class Diagram](#generating-class-diagram)
 - [Mermaid](#mermaid)
-  * [Class diagram](#class-diagram)
+  * [Class Diagram](#class-diagram)
   * [Support for C4](#support-for-c4)
-  * [Render on-line](#render-on-line)
-- [PlantUML](#plantuml)
-  * [PlantUML is Markdown](#plantuml-is-markdown)
-    + [Our conventions](#our-conventions)
-  * [Plotting online](#plotting-online)
+  * [Render On-Line](#render-on-line)
+- [Plantuml](#plantuml)
+  * [Plantuml Is Markdown](#plantuml-is-markdown)
+    + [Our Conventions](#our-conventions)
+  * [Plotting Online](#plotting-online)
 - [UML - Unified Modeling Language](#uml---unified-modeling-language)
   * [UML Class Diagrams](#uml-class-diagrams)
     + [Class Notation](#class-notation)
@@ -45,7 +45,7 @@
 - Mermaid is preferred since it can be rendered natively by GitHub
 - PlantUML can be rendered through some of our scripts in regular markdown
 
-## Brief introduction to C4
+## Brief Introduction to C4
 
 - A detailed description of C4 is https://C4model.com
 
@@ -55,7 +55,7 @@
   - It maps code at various level of detail
   - It is useful for both software architects and developers
 
-### Different levels of detail
+### Different Levels of Detail
 
 - The 4 levels of detail are:
   1. (System) Context system
@@ -119,7 +119,7 @@
   - Technical people
   - Inside and outside of the software development team
 
-#### Component (level 3)
+#### Component (Level 3)
 
 - Component is a group of related functionality encapsulated behind a
   well-defined interface
@@ -131,7 +131,7 @@
 - Audience
   - Software architects and developers
 
-#### Code (level 4)
+#### Code (Level 4)
 
 - Code is the implementation of the software system
   - Each component can represented in terms of UML class diagrams, entity
@@ -141,9 +141,9 @@
 - Audience
   - Software architects and developers
 
-## Our conventions for C4 diagrams
+## Our Conventions for C4 Diagrams
 
-### Mapping C4 and code structure
+### Mapping C4 and Code Structure
 
 - To simplify, we map the 4 levels of C4 in the code structure
 
@@ -188,7 +188,7 @@
   - `match_targets.py`
   - `normalize_table.py`
 
-### Use classes!
+### Use Classes!
 
 - In order to be able to describe the system with C4 it is best to use classes
   to separate responsibilities and package code
@@ -211,7 +211,7 @@
     o(some argument).f(other arguments)
     ```
 
-### Generating class diagram
+### Generating Class Diagram
 
 - To generate a class diagram (level 4 of C4), you can run
   ```bash
@@ -220,7 +220,7 @@
 
 ## Mermaid
 
-### Class diagram
+### Class Diagram
 
 - See https://mermaid.js.org/syntax/classDiagram.html
 
@@ -229,7 +229,7 @@
 - Mermaid supports most features of C4
   - See https://mermaid.js.org/syntax/c4.html
 
-### Render on-line
+### Render On-Line
 
 - See https://mermaid.live/edit
 
@@ -273,7 +273,7 @@
   ```
   ````
 
-#### Our conventions
+#### Our Conventions
 
 - Names
   - Each name in mappings should be exactly the same (maybe without some invalid
@@ -379,7 +379,7 @@
   You can find the correspondent `architecture.md` file
   [here](https://github.com/.../.../blob/master/edgar/forms8/architecture.md).
 
-### Plotting online
+### Plotting Online
 
 - [Plantuml on-line](https://plantuml-editor.kkeisuke.com/)
 

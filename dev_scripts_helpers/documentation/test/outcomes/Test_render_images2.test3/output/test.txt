@@ -13,6 +13,7 @@
 
 Here is the beginning.
 
+% rendered_images:begin
 % ```plantuml
 % @startuml
 % title System Context Diagram
@@ -48,10 +49,16 @@ Here is the beginning.
 % imaster <-- models: fetches processed data from
 % @enduml
 % ```
-\begin{figure} \includegraphics[width=\linewidth]{figs/sample_file_plantuml.1.png} \end{figure}
+% rendered_images:end
+% render_images:begin
+\begin{figure}[!ht]
+  \includegraphics[width=\linewidth]{figs/sample_file_plantuml.1.png}
+\end{figure}
+% render_images:end
 
 Another one:
 
+% rendered_images:begin
 % ```plantuml
 % title Container Diagram
 % 
@@ -122,7 +129,12 @@ Another one:
 % vendors <-- vextractor: fetches data from
 % loader <-up- models: fetches data from
 % ```
-\begin{figure} \includegraphics[width=\linewidth]{figs/sample_file_plantuml.2.png} \end{figure}
+% rendered_images:end
+% render_images:begin
+\begin{figure}[!ht]
+  \includegraphics[width=\linewidth]{figs/sample_file_plantuml.2.png}
+\end{figure}
+% render_images:end
 
 Not a diagram:
 

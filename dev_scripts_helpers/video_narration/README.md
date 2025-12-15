@@ -1,4 +1,3 @@
-<<<<<<< HEAD:dev_scripts_helpers/video_narration/README.md
 <!-- toc -->
 
 - [Video Narration Tools](#video-narration-tools)

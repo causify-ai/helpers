@@ -125,6 +125,17 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             sys.argv.append("-o log_cli=true")
         # TODO(gp): redirect also the stderr to file.
         dbg.init_logger(level, in_pytest=True, log_filename="tmp.pytest.log")
+        # Force skipped tests to be executed when --runxfail is used.
+        if config.getoption("--runxfail"):
+            for item in items:
+                # Remove `skip` mark applied to unittest.TestCase methods
+                skip_mark = item.get_closest_marker("skip")
+                if skip_mark:
+                    # Remove the skip marker so pytest won't skip it
+                    item.own_markers = [
+                        mark for mark in item.iter_markers() if mark.name != "skip"
+                    ]
+
 
     def pytest_ignore_collect(
         collection_path: pathlib.Path, path: Any, config: Any

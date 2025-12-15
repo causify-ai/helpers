@@ -16,6 +16,7 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
+import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -48,7 +49,20 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     txt = "\n".join(lines)
     txt = re.sub(r"“", '"', txt)
     txt = re.sub(r"”", '"', txt)
+    txt = re.sub(r"’", "'", txt)
+    # Convert
+    #   ## **How We Ask for Feedback at Causify**
+    # to
+    #   ## How We Ask for Feedback at Causify
+    txt = re.sub(r"^(#+)\s+\*\*(.*?)\*\*\s*$", r"\1 \2", txt, flags=re.MULTILINE)
+    # Remove lines with ---.
+    txt = re.sub(r"^---\s*$", "", txt, flags=re.MULTILINE)
+    # Collapse repeated lines.
+    # txt = re.sub(r"\n{2,}", "\n", txt)
+    # Replace … with ...
     txt = re.sub(r"…", "...", txt)
+    # Replace \t with 2 spaces
+    txt = re.sub(r"\t", "  ", txt)
     txt_new: List[str] = []
     for line in txt.split("\n"):
         # 2) Skip frames for all the type formats.
@@ -90,11 +104,12 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     #    using `*` instead of `-`.
     txt_new_as_str = "\n".join(txt_new)
     txt_new_as_str = re.sub(r"\n\s*\n", "\n\n", txt_new_as_str)
-    #
     _LOG.debug("txt_new_as_str=%s", txt_new_as_str)
-    ret = txt_new_as_str.split("\n")
-    hdbg.dassert_isinstance(ret, list)
-    return ret
+    txt = txt_new_as_str.split("\n")
+    # 6) Remove more than 2 consecutive empty lines.
+    hprint.remove_empty_lines(txt_new, mode="no_consecutive_empty_lines")
+    hdbg.dassert_isinstance(txt_new, list)
+    return txt_new
 
 
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
@@ -242,6 +257,12 @@ def _perform_actions(
     hdbg.dassert_isinstance(lines, list)
     # Get the file type.
     is_md_file = in_file_name.endswith(".md")
+    is_tex_file = in_file_name.endswith(".tex")
+    is_txt_file = in_file_name.endswith(".txt")
+    hdbg.dassert_eq(
+        is_md_file + is_tex_file + is_txt_file, 1, msg="Invalid file type"
+    )
+    #
     extension = os.path.splitext(in_file_name)[1]
     # Remove the . from the extenstion (e.g., ".txt").
     hdbg.dassert(extension.startswith("."), "Invalid extension='%s'", extension)
@@ -263,10 +284,16 @@ def _perform_actions(
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
-        # For markdown files, we don't use the frame since it's not rendered
-        # correctly.
-        if not is_md_file:
+        if is_txt_file:
             lines = hmarkdo.frame_chapters(lines)
+        elif is_tex_file:
+            lines = hlatex.frame_sections(lines)
+        elif is_md_file:
+            # For markdown files, we don't use the frame since it's not rendered
+            # correctly.
+            pass
+        else:
+            raise ValueError("Invalid format")
     # Improve header and slide titles.
     action = "capitalize_header"
     if _to_execute_action(action, actions):
@@ -318,16 +345,30 @@ def _parser() -> argparse.ArgumentParser:
         "--print-width",
         action="store",
         type=int,
-        default=80,
-        help="The maximum line width for the formatted text. If None, 80 is used",
+        default=None,
+        help="The maximum line width for the formatted text.",
     )
     parser.add_argument(
         "--use_dockerized_prettier",
+        dest="use_dockerized_prettier",
         action="store_true",
+        default=True,
+    )
+    parser.add_argument(
+        "--no_use_dockerized_prettier",
+        dest="use_dockerized_prettier",
+        action="store_false",
     )
     parser.add_argument(
         "--use_dockerized_markdown_toc",
+        dest="use_dockerized_markdown_toc",
         action="store_true",
+        default=True,
+    )
+    parser.add_argument(
+        "--no_use_dockerized_markdown_toc",
+        dest="use_dockerized_markdown_toc",
+        action="store_false",
     )
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_dockerized_script_arg(parser)
@@ -340,7 +381,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.init_logger_for_input_output_transform(args)
     #
     in_file_name, out_file_name = hparser.parse_input_output_args(
-        args, clear_screen=True
+        args, clear_screen=False
     )
     # If the input is stdin, then user needs to specify the type.
     if in_file_name == "-":

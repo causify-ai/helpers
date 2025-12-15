@@ -18,6 +18,9 @@ _LOG = logging.getLogger(__name__)
 
 
 def _get_text1() -> str:
+    """
+    Get sample text containing mathematical equations in LaTeX format.
+    """
     txt = r"""
     * Gradient descent for logistic regression
     - The typical implementations of gradient descent (basic or advanced) need
@@ -55,7 +58,17 @@ def _get_text1() -> str:
     reason="Disabled because of CmampTask10710",
 )
 class Test_lint_txt1(hunitest.TestCase):
+    """
+    Test the text preprocessing functionality.
+    """
+
     def helper(self, txt: str, expected: str) -> None:
+        """
+        Process text with `_preprocess_txt()` and compare with expected output.
+
+        :param txt: Input text to preprocess
+        :param expected: Expected output after preprocessing
+        """
         # Prepare inputs.
         txt = txt.split("\n")
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
@@ -322,7 +335,6 @@ class Test_lint_txt2(hunitest.TestCase):
         expected = r"""
         * Python Formatting
         - Python has several built-in ways of formatting strings
-
           1. `%` format operator
           2. `format` and `str.format`
 
@@ -367,113 +379,125 @@ class Test_lint_txt2(hunitest.TestCase):
     reason="Disabled because of CmampTask10710",
 )
 class Test_lint_txt_cmd_line1(hunitest.TestCase):
-    def create_md_input_file(self) -> str:
-        txt = """
-        # Header1
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-        """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        in_file = os.path.join(self.get_scratch_space(), "input.md")
-        hio.to_file(in_file, txt)
-        return in_file
+    """
+    Test the lint_txt.py command-line script with different file types.
+    """
 
-    def create_tex_input_file(self) -> str:
-        txt = r"""
-            \documentclass{article}
-
-        \title{Simple \LaTeX{} Example}
-        \author{Your Name}
-                \date{\today}
-
-        \begin{document}
-
-        \maketitle
-
-        \section{Introduction}
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-        \section{Math Example}
-        Here is an inline equation: \( E = mc^2 \).\\
-        And a displayed equation:
-                \[
-        \int_{0}^{\infty} e^{-x^2} \, dx = \frac{\sqrt{\pi}}{2}
-        \]
-
-            \section{Lists}
-        \begin{itemize}
-        \item Item 1
-                \item Item 2
-            \item Item 3
-        \end{itemize}
-
-        \end{document}
-        """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        in_file = os.path.join(self.get_scratch_space(), "input.tex")
-        hio.to_file(in_file, txt)
-        return in_file
-
-    # TODO(gp): Run this calling directly the code and not executing the script.
     def run_lint_txt(
-        self, in_file: str, type_: str, cmd_opts: str
+        self, in_file: str, type_: str, use_script: bool, cmd_opts: str,
     ) -> Optional[str]:
         """
-        Run the `lint_txt.py` script with the specified options.
+        Run lint_txt processing directly by calling the code.
 
         :param in_file: Path to the input file containing the notes.
         :param type_: The output format, either 'md' or 'tex'.
+        :param use_script
         :param cmd_opts: Additional command-line options to pass to the
             script.
-        :return: A tuple containing the script content and the output
-            content.
+        :return: The processed text content.
         """
-        # lint_txt.py \
-        #  -i papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex \
-        #  --use_dockerized_prettier \
-        cmd = []
-        exec_path = hgit.find_file_in_git_tree("lint_txt.py")
-        hdbg.dassert_path_exists(exec_path)
-        cmd.append(exec_path)
-        cmd.append(f"--in_file_name {in_file}")
-        cmd.append("--use_dockerized_prettier")
-        # Save a script file to store the commands.
-        hdbg.dassert_in(type_, ["md", "tex"])
-        out_dir = self.get_scratch_space()
-        out_file = os.path.join(out_dir, f"output.{type_}")
-        cmd.append(f"--out_file_name {out_file}")
-        cmd.append(cmd_opts)
-        cmd = " ".join(cmd)
-        hsystem.system(cmd)
-        # Check the content of the file, if needed.
-        output_txt: Optional[str] = None
-        if os.path.exists(out_file):
-            output_txt = hio.from_file(out_file)
+        if use_script:
+            # lint_txt.py \
+            #  -i papers/DataFlow_stream_computing_framework/DataFlow_stream_computing_framework.tex \
+            #  --use_dockerized_prettier \
+            cmd = []
+            exec_path = hgit.find_file_in_git_tree("lint_txt.py")
+            hdbg.dassert_path_exists(exec_path)
+            cmd.append(exec_path)
+            cmd.append(f"--input {in_file}")
+            cmd.append("--use_dockerized_prettier")
+            # Save a script file to store the commands.
+            hdbg.dassert_in(type_, ["md", "tex"])
+            out_dir = self.get_scratch_space()
+            out_file = os.path.join(out_dir, f"output.{type_}")
+            cmd.append(f"--output {out_file}")
+            cmd.append(cmd_opts)
+            cmd = " ".join(cmd)
+            hsystem.system(cmd)
+            # Check the content of the file, if needed.
+            output_txt: Optional[str] = None
+            if os.path.exists(out_file):
+                output_txt = hio.from_file(out_file)
+        else:
+            hdbg.dassert_in(type_, ["md", "tex"])
+            # Read input file.
+            txt = hio.from_file(in_file)
+            lines = txt.split("\n")
+            # Process the content directly.
+            out_lines = dshdlino._perform_actions(
+                lines,
+                in_file,
+                actions=None,
+                print_width=80,
+                use_dockerized_prettier=True,
+                use_dockerized_markdown_toc=True,
+            )
+            # Return the processed text.
+            output_txt = "\n".join(out_lines)
         return output_txt
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    def test1(self) -> None:
+    def test_md1(self) -> None:
         """
-        Run lint_to_notes.py on a markdown file.
+        Run lint_to_txt.py on a markdown file by calling the function directly.
         """
         # Prepare inputs.
-        in_file = self.create_md_input_file()
+        in_file = os.path.join(self.get_input_dir(), "text.md")
         type_ = "md"
+        use_script = False
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, cmd_opts)
+        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check.
         self.check_string(output_txt)
 
-    def test2(self) -> None:
+    def test_md2(self) -> None:
         """
-        Run lint_to_notes.py on a latex file.
+        Run lint_to_txt.py on a markdown file using the command-line script.
+
+        This test uses the same input file as test_md1 and should produce
+        the same output. It uses test_method_name to reuse the golden
+        outcome from test_md1.
         """
         # Prepare inputs.
-        in_file = self.create_tex_input_file()
-        type_ = "tex"
+        in_file = os.path.join(self.get_input_dir(test_method_name="test_md1"), "text.md")
+        type_ = "md"
+        use_script = True
         cmd_opts = ""
         # Run the script.
-        output_txt = self.run_lint_txt(in_file, type_, cmd_opts)
+        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        # Check using the same golden outcome as test_md1.
+        self.check_string(output_txt, test_method_name="test_md1")
+
+    def test_tex1(self) -> None:
+        """
+        Run lint_to_txt.py on a latex file by calling the function directly.
+        """
+        # Prepare inputs.
+        in_file = os.path.join(self.get_input_dir(), "text.tex")
+        type_ = "tex"
+        use_script = False
+        cmd_opts = ""
+        # Run the script.
+        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check.
         self.check_string(output_txt)
+
+    def test_tex2(self) -> None:
+        """
+        Run lint_to_txt.py on a latex file using the command-line script.
+
+        This test uses the same input file as test_tex1 and should produce
+        the same output. It uses test_method_name to reuse the golden
+        outcome from test_tex1.
+        """
+        # Prepare inputs.
+        in_file = os.path.join(self.get_input_dir(test_method_name="test_tex1"), "text.tex")
+        type_ = "tex"
+        use_script = True
+        cmd_opts = "--print-width 80"
+        # Run the script.
+        output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+        # Check using the same golden outcome as test_tex1.
+        self.check_string(output_txt, test_method_name="test_tex1")

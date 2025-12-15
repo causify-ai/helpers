@@ -137,34 +137,47 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
     return result
 
 
-def convert_slide_to_markdown(lines: List[str]) -> List[str]:
+# #############################################################################
+# Slides conversion to markdown and back
+# #############################################################################
+
+
+def convert_slide_to_markdown(lines: List[str], *, level: int = 5) -> List[str]:
     """
     Convert slide to standard markdown.
 
-    - Handle *
+    - Handle * bullets to markdown headers level 5
+
+    :param lines: list of lines to convert
+    :param level: level of the markdown headers to convert to
+    :return: list of converted lines
     """
     hdbg.dassert_isinstance(lines, list)
     converted_lines = []
     for line in lines:
         if line.startswith("* "):
             # Convert slide bullet to markdown header level 5.
-            converted_line = "##### " + line[2:]
+            converted_line = "#" * level + " " + line[2:]
             converted_lines.append(converted_line)
         else:
             converted_lines.append(line)
     return converted_lines
 
 
-def markdown_to_slide(lines: List[str]) -> List[str]:
+def convert_markdown_to_slide(lines: List[str], *, level: int = 5) -> List[str]:
     """
     Convert standard markdown back to slide.
 
-    - Handle *
+    - Handle markdown headers level 5 to * bullets
+
+    :param lines: list of lines to convert
+    :param level: level of the markdown headers to convert to
+    :return: list of converted lines
     """
     hdbg.dassert_isinstance(lines, list)
     converted_lines = []
     for line in lines:
-        if line.startswith("##### "):
+        if line.startswith("#" * level + " "):
             # Convert markdown header level 5 back to slide bullet.
             converted_line = "* " + line[6:]
             converted_lines.append(converted_line)
