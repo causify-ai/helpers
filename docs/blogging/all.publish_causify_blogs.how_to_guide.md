@@ -96,8 +96,8 @@ This environment already has all the necessary dependencies (`mkdocs`,
 ```bash
    python helpers_root/docs/mkdocs/preprocess_mkdocs.py \
      --blog \
-     --input_dir blog/docs \
-     --output_dir blog/tmp.docs \
+     --input_dir blog \
+     --output_dir tmp.mkblogs \
      --render_images \
      --force_rebuild \
      -v INFO
@@ -107,7 +107,7 @@ This environment already has all the necessary dependencies (`mkdocs`,
 
 - Validates frontmatter in all blog posts
 - Renders Graphviz/Mermaid/PlantUML diagrams to PNG images
-- Copies all files from `blog/docs/` to `blog/tmp.docs/`
+- Copies all files from `blog/` to `tmp.mkblogs/`
 - Includes hidden files like `.authors.yml`
 - Moves generated images to correct location
 
@@ -257,7 +257,7 @@ before publishing.
 
 Here's a complete template for a new blog post:
 
-````markdown
+```markdown
 ---
 title: Your Compelling Blog Title
 authors:
@@ -284,6 +284,7 @@ After the `<!-- more -->` separator, you can include the full content of your
 blog post.
 
 ## Conclusion
+```
 
 ### Naming Convention
 
@@ -337,7 +338,6 @@ All blog images and assets should be stored in:
 ```text
 //csfy/blog/docs/assets/
 ```
-````
 
 **Directory structure:**
 
@@ -469,8 +469,8 @@ The preprocessing step is crucial for blog publishing:
 ```bash
 python helpers_root/docs/mkdocs/preprocess_mkdocs.py \
   --blog \
-  --input_dir blog/docs \
-  --output_dir blog/tmp.docs \
+  --input_dir blog \
+  --output_dir tmp.mkblogs \
   --render_images \
   --force_rebuild \
   -v INFO
