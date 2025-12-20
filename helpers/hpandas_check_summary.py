@@ -9,20 +9,31 @@ from typing import List, Optional
 
 import pandas as pd
 
-# Avoid the following dependency from other `helpers` modules to prevent import
-# cycles:
-# import helpers.hs3 as hs3
-# import helpers.hsql as hsql
-# import helpers.hunit_test as hunitest
-
 
 _LOG = hlogging.getLogger(__name__)
 
 
-RowsValues = List[List[str]]
+# #############################################################################
+# _SummaryRow
+# #############################################################################
+
+
+@dataclasses.dataclass
+class _SummaryRow:
+    """
+    Output of a check corresponding to a row of the summary df.
+    """
+
+    # Description of the check.
+    description: str
+    # Description of the output.
+    comment: str
+    # Whether the check was successful or not.
+    is_ok: bool
+
 
 # #############################################################################
-# Functions
+# CheckSummary
 # #############################################################################
 
 
@@ -97,6 +108,3 @@ class CheckSummary:
         if notebook_output:
             result = None
         return result
-
-
-# #############################################################################

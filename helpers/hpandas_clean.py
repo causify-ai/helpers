@@ -16,7 +16,6 @@ import helpers.hprint as hprint
 
 _LOG = hlogging.getLogger(__name__)
 
-RowsValues = List[List[str]]
 
 def drop_duplicates(
     data: Union[pd.Series, pd.DataFrame],
