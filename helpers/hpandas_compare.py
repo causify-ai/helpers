@@ -194,7 +194,10 @@ def compare_dfs(
     elif diff_mode == "pct_change":
         # Compare NaN values in dataframes.
         nan_diff_df = compare_nans_in_dataframes(df1, df2)
-        _LOG.debug("Dataframe with NaN differences=\n%s", hpandas_utils.df_to_str(nan_diff_df))
+        _LOG.debug(
+            "Dataframe with NaN differences=\n%s",
+            hpandas_utils.df_to_str(nan_diff_df),
+        )
         msg = "There are NaN values in one of the dataframes that are not in the other one."
         hdbg.dassert_eq(
             0, nan_diff_df.shape[0], msg=msg, only_warning=only_warning

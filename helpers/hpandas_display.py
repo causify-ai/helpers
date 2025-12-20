@@ -98,5 +98,3 @@ def convert_df_to_json_string(
     # Join shape and dataframe to single string.
     output_str = "\n".join([shape, "Head:", head_json, "Tail:", tail_json])
     return output_str
-
-

@@ -186,7 +186,10 @@ def drop_duplicated(
     # Report the result of the operation.
     if duplicated.sum() > 0:
         num_rows_before = df.shape[0]
-        _LOG.debug("Removing duplicates df=\n%s", hpandas_utils.df_to_str(df.loc[duplicated]))
+        _LOG.debug(
+            "Removing duplicates df=\n%s",
+            hpandas_utils.df_to_str(df.loc[duplicated]),
+        )
         df = df.loc[~duplicated]
         num_rows_after = df.shape[0]
         _LOG.warning(

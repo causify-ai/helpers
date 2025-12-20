@@ -71,10 +71,12 @@ def multiindex_df_info(
         f"shape={len(columns_level0)} x {len(columns_level1)} x {len(rows)}"
     )
     ret.append(
-        "columns_level0=" + hprint.list_to_str2(columns_level0, **list_to_str_kwargs)
+        "columns_level0="
+        + hprint.list_to_str2(columns_level0, **list_to_str_kwargs)
     )
     ret.append(
-        "columns_level1=" + hprint.list_to_str2(columns_level1, **list_to_str_kwargs)
+        "columns_level1="
+        + hprint.list_to_str2(columns_level1, **list_to_str_kwargs)
     )
     ret.append("rows=" + hprint.list_to_str2(rows, **list_to_str_kwargs))
     if isinstance(df.index, pd.DatetimeIndex):
@@ -176,7 +178,9 @@ def compare_multiindex_dfs(
     # Compare dfs.
     if compare_dfs_kwargs is None:
         compare_dfs_kwargs = {}
-    diff_df = hpandas_compare.compare_dfs(subset_df1, subset_df2, **compare_dfs_kwargs)
+    diff_df = hpandas_compare.compare_dfs(
+        subset_df1, subset_df2, **compare_dfs_kwargs
+    )
     return diff_df
 
 

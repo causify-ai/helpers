@@ -42,7 +42,9 @@ def resample_index(index: pd.DatetimeIndex, frequency: str) -> pd.DatetimeIndex:
     """
     _LOG.debug(hprint.to_str("index frequency"))
     hdbg.dassert_isinstance(index, pd.DatetimeIndex)
-    hpandas_dassert.dassert_unique_index(index, msg="Index must have only unique values")
+    hpandas_dassert.dassert_unique_index(
+        index, msg="Index must have only unique values"
+    )
     min_date = index.min()
     max_date = index.max()
     _LOG.debug("min_date=%s max_date=%s", min_date, max_date)
@@ -291,7 +293,9 @@ def trim_df(
     """
     if _TRACE:
         _LOG.trace(
-            hpandas_utils.df_to_str(df, print_dtypes=True, print_shape_info=True, tag="df")
+            hpandas_utils.df_to_str(
+                df, print_dtypes=True, print_shape_info=True, tag="df"
+            )
         )
     _LOG.debug(
         hprint.to_str("ts_col_name start_ts end_ts left_close right_close")
@@ -372,6 +376,55 @@ def trim_df(
     return df
 
 
+def _assemble_df_rows(rows_values: RowsValues) -> RowsValues:
+    """
+    Organize dataframe values into a column-row structure.
+
+    - Indentation artifacts are removed
+    - The index placement is handled, i.e.
+      - if the index is named, the name is located and moved to the same
+        row as the column names
+      - if the index is not named, the row with the column names receives
+        a placeholder empty value in its place
+    - Empty columns are dropped
+
+    :param rows_values: row values extracted from a string df representation
+    :return: row values assembled into a valid column-row structure
+    """
+    # Clean up indentation artifacts.
+    if all(row[0] == "" for row in rows_values):
+        # Remove the first empty cell in each row.
+        for row in rows_values:
+            del row[0]
+    # If the index is named, its name is located in the second row,
+    # with an optional extra empty value cell value next to it.
+    if len(rows_values[1]) == 1 or (
+        len(rows_values[1]) == 2 and rows_values[1][1] == ""
+    ):
+        # Move the index name to the row with all the column names.
+        if rows_values[0][0] == "":
+            rows_values[0][0] = rows_values[1][0]
+        else:
+            rows_values[0].insert(0, rows_values[1][0])
+        # Drop the former index name row.
+        del rows_values[1]
+    else:
+        # Add an empty cell for the absent index name.
+        rows_values[0].insert(0, "")
+    # Identify and remove empty columns.
+    min_len_row = min(len(row) for row in rows_values)
+    idxs_to_delete = []
+    for i in range(min_len_row):
+        if all(row[i] == "" for row in rows_values):
+            idxs_to_delete.append(i)
+    for idx in idxs_to_delete:
+        for row in rows_values:
+            del row[idx]
+    # Confirm that all the rows have the same number of values.
+    hdbg.dassert_eq(len({len(row) for row in rows_values}), 1)
+    return rows_values
+
+
 # TODO(Nina): Add `filter_data_mode`.
 
 
@@ -441,55 +494,6 @@ def str_to_df(
         else:
             df = df.rename(columns={col: col_name_type(col)})
     return df
-
-
-def _assemble_df_rows(rows_values: RowsValues) -> RowsValues:
-    """
-    Organize dataframe values into a column-row structure.
-
-    - Indentation artifacts are removed
-    - The index placement is handled, i.e.
-      - if the index is named, the name is located and moved to the same
-        row as the column names
-      - if the index is not named, the row with the column names receives
-        a placeholder empty value in its place
-    - Empty columns are dropped
-
-    :param rows_values: row values extracted from a string df representation
-    :return: row values assembled into a valid column-row structure
-    """
-    # Clean up indentation artifacts.
-    if all(row[0] == "" for row in rows_values):
-        # Remove the first empty cell in each row.
-        for row in rows_values:
-            del row[0]
-    # If the index is named, its name is located in the second row,
-    # with an optional extra empty value cell value next to it.
-    if len(rows_values[1]) == 1 or (
-        len(rows_values[1]) == 2 and rows_values[1][1] == ""
-    ):
-        # Move the index name to the row with all the column names.
-        if rows_values[0][0] == "":
-            rows_values[0][0] = rows_values[1][0]
-        else:
-            rows_values[0].insert(0, rows_values[1][0])
-        # Drop the former index name row.
-        del rows_values[1]
-    else:
-        # Add an empty cell for the absent index name.
-        rows_values[0].insert(0, "")
-    # Identify and remove empty columns.
-    min_len_row = min(len(row) for row in rows_values)
-    idxs_to_delete = []
-    for i in range(min_len_row):
-        if all(row[i] == "" for row in rows_values):
-            idxs_to_delete.append(i)
-    for idx in idxs_to_delete:
-        for row in rows_values:
-            del row[idx]
-    # Confirm that all the rows have the same number of values.
-    hdbg.dassert_eq(len({len(row) for row in rows_values}), 1)
-    return rows_values
 
 
 # #############################################################################
