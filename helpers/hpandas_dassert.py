@@ -73,7 +73,8 @@ def dassert_unique_index(
     if not index.is_unique:
         dup_indices = index.duplicated(keep=False)
         df_dup = obj[dup_indices]
-        dup_msg = f"Duplicated rows are:\n{df_to_str(df_dup)}\n"
+        df_dup_as_str = hpandas_utils.df_to_str(df_dup)
+        dup_msg = f"Duplicated rows are:\n{df_dup_as_str}\n"
         if msg is None:
             msg = dup_msg
         else:
@@ -113,7 +114,8 @@ def dassert_increasing_index(
         mask_shift[len(mask) - 1] = False
         #
         mask = mask | mask_shift
-        dup_msg = f"Not increasing indices are:\n{df_to_str(obj[mask])}\n"
+        df_dup_as_str = hpandas_utils.df_to_str(obj[mask])
+        dup_msg = f"Not increasing indices are:\n{df_dup_as_str}\n"
         if msg is None:
             msg = dup_msg
         else:

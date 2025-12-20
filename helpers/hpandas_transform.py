@@ -8,13 +8,16 @@ import csv
 import helpers.hlogging as hlogging
 import random
 import re
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import pandas as pd
 
 
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
+import helpers.hpandas_conversion as hpandas_conversion
+import helpers.hpandas_dassert as hpandas_dassert
+import helpers.hpandas_utils as hpandas_utils
 import helpers.hprint as hprint
 
 _LOG = hlogging.getLogger(__name__)
@@ -39,7 +42,7 @@ def resample_index(index: pd.DatetimeIndex, frequency: str) -> pd.DatetimeIndex:
     """
     _LOG.debug(hprint.to_str("index frequency"))
     hdbg.dassert_isinstance(index, pd.DatetimeIndex)
-    dassert_unique_index(index, msg="Index must have only unique values")
+    hpandas_dassert.dassert_unique_index(index, msg="Index must have only unique values")
     min_date = index.min()
     max_date = index.max()
     _LOG.debug("min_date=%s max_date=%s", min_date, max_date)
@@ -195,7 +198,7 @@ def apply_index_mode(
     df1_copy = df1.copy()
     df2_copy = df2.copy()
     if mode == "assert_equal":
-        dassert_indices_equal(df1_copy, df2_copy)
+        hpandas_dassert.dassert_indices_equal(df1_copy, df2_copy)
     elif mode == "intersect":
         # TODO(Grisha): Add sorting on demand.
         common_index = df1_copy.index.intersection(df2_copy.index)
@@ -239,15 +242,15 @@ def apply_columns_mode(
     df2_copy = df2.copy()
     if mode == "assert_equal":
         # Check if columns are equal or not.
-        dassert_columns_equal(df1_copy, df2_copy)
+        hpandas_dassert.dassert_columns_equal(df1_copy, df2_copy)
     elif mode == "intersect":
         # Filter dataframes based on its common columns.
         common_columns = df1_copy.columns.intersection(df2_copy.columns)
         df1_copy = df1_copy[common_columns]
         df2_copy = df2_copy[common_columns]
         # Log the string representation of 2 dfs.
-        _LOG.debug("df1 after filtering=\n%s", df_to_str(df1))
-        _LOG.debug("df2 after filtering=\n%s", df_to_str(df2))
+        _LOG.debug("df1 after filtering=\n%s", hpandas_utils.df_to_str(df1))
+        _LOG.debug("df2 after filtering=\n%s", hpandas_utils.df_to_str(df2))
     elif mode == "leave_unchanged":
         # Ignore mismatch.
         _LOG.debug(
@@ -288,13 +291,13 @@ def trim_df(
     """
     if _TRACE:
         _LOG.trace(
-            df_to_str(df, print_dtypes=True, print_shape_info=True, tag="df")
+            hpandas_utils.df_to_str(df, print_dtypes=True, print_shape_info=True, tag="df")
         )
     _LOG.debug(
         hprint.to_str("ts_col_name start_ts end_ts left_close right_close")
     )
     if _TRACE:
-        _LOG.trace("df=\n%s", df_to_str(df))
+        _LOG.trace("df=\n%s", hpandas_utils.df_to_str(df))
     if df.empty:
         # If the df is empty, there is nothing to trim.
         return df
@@ -428,9 +431,9 @@ def str_to_df(
     # Cast the columns into appropriate types.
     for col, col_type in col_to_type.items():
         if col == "__index__":
-            df.index = cast_series_to_type(df.index, col_type)
+            df.index = hpandas_conversion.cast_series_to_type(df.index, col_type)
         else:
-            df[col] = cast_series_to_type(df[col], col_type)
+            df[col] = hpandas_conversion.cast_series_to_type(df[col], col_type)
     # Cast the column names into appropriate types.
     for col, col_name_type in col_to_name_type.items():
         if col == "__index__":
@@ -536,41 +539,6 @@ def check_and_filter_matching_columns(
         msg="Received columns do not match required columns.",
     )
     return df
-
-
-def _resolve_column_names(
-    column_set: ColumnSet,
-    columns: Union[List[str], pd.Index],
-    *,
-    keep_order: bool = False,
-) -> List[str]:
-    """
-    Change format of the columns and perform some sanity checks.
-
-    :param column_set: columns to proceed
-    :param columns: all columns available
-    :param keep_order: preserve the original order or allow sorting
-    """
-    # Ensure that `columns` is well-formed.
-    if isinstance(columns, pd.Index):
-        columns = columns.to_list()
-    hdbg.dassert_isinstance(columns, list)
-    hdbg.dassert_lte(1, len(columns))
-    #
-    if column_set is None:
-        # Columns were not specified, thus use the list of all the columns.
-        column_set = columns
-    else:
-        if isinstance(column_set, str):
-            column_set = [column_set]
-        hdbg.dassert_isinstance(column_set, list)
-        hdbg.dassert_lte(1, len(column_set))
-        hdbg.dassert_is_subset(column_set, columns)
-        if keep_order:
-            # Keep the selected columns in the same order as in the original
-            # `columns`.
-            column_set = [c for c in columns if c in column_set]
-    return column_set
 
 
 # TODO(Grisha): finish the function.

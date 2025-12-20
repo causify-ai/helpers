@@ -13,6 +13,7 @@ import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hlogging as hlogging
 import helpers.hpandas_dassert as hpandas_dassert
+import helpers.hpandas_transform as hpandas_transform
 import helpers.hprint as hprint
 
 _LOG = hlogging.getLogger(__name__)
@@ -74,7 +75,7 @@ def compute_duration_df(
         # The end of the intersection will be the min value amongt all end dates.
         intersection_end_date = data_stats[max_col].min()
         for tag in tag_to_df_updated.keys():
-            df = trim_df(
+            df = hpandas_transform.trim_df(
                 tag_to_df_updated[tag],
                 ts_col_name=None,
                 start_ts=intersection_start_date,
@@ -120,7 +121,7 @@ def compute_weighted_sum(
         hdbg.dassert_isinstance(key, str)
         hdbg.dassert_isinstance(value, pd.DataFrame)
         # The reference df is not modified.
-        _, value = apply_index_mode(df, value, index_mode)
+        _, value = hpandas_transform.apply_index_mode(df, value, index_mode)
         hdbg.dassert(
             value.columns.equals(cols),
             "Column equality fails for keys=%s, %s",

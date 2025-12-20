@@ -14,3 +14,4 @@ from helpers.hpandas_io import *              # isort:skip  # noqa: F401,F403 # 
 from helpers.hpandas_multiindex import *      # isort:skip  # noqa: F401,F403 # pylint: disable=unused-import,unused-wildcard-import,wildcard-import
 from helpers.hpandas_stats import *           # isort:skip  # noqa: F401,F403 # pylint: disable=unused-import,unused-wildcard-import,wildcard-import
 from helpers.hpandas_transform import *       # isort:skip  # noqa: F401,F403 # pylint: disable=unused-import,unused-wildcard-import,wildcard-import
+from helpers.hpandas_utils import *       # isort:skip  # noqa: F401,F403 # pylint: disable=unused-import,unused-wildcard-import,wildcard-import

@@ -339,4 +339,39 @@ def df_to_str(
         txt = "\n".join(out)
     return txt
 
+# #############################################################################
 
+
+def resolve_column_names(
+    column_set: ColumnSet,
+    columns: Union[List[str], pd.Index],
+    *,
+    keep_order: bool = False,
+) -> List[str]:
+    """
+    Change format of the columns and perform some sanity checks.
+
+    :param column_set: columns to proceed
+    :param columns: all columns available
+    :param keep_order: preserve the original order or allow sorting
+    """
+    # Ensure that `columns` is well-formed.
+    if isinstance(columns, pd.Index):
+        columns = columns.to_list()
+    hdbg.dassert_isinstance(columns, list)
+    hdbg.dassert_lte(1, len(columns))
+    #
+    if column_set is None:
+        # Columns were not specified, thus use the list of all the columns.
+        column_set = columns
+    else:
+        if isinstance(column_set, str):
+            column_set = [column_set]
+        hdbg.dassert_isinstance(column_set, list)
+        hdbg.dassert_lte(1, len(column_set))
+        hdbg.dassert_is_subset(column_set, columns)
+        if keep_order:
+            # Keep the selected columns in the same order as in the original
+            # `columns`.
+            column_set = [c for c in columns if c in column_set]
+    return column_set

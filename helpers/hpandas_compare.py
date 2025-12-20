@@ -77,7 +77,7 @@ def compare_nans_in_dataframes(
     :return: dataframe that shows the differences stacked side by side, see
         `pandas.DataFrame.compare()` for an example
     """
-    dassert_axes_equal(df1, df2)
+    hpandas_dassert.dassert_axes_equal(df1, df2)
     # Keep rows where df1's value is NaN and df2's value is not NaN and vice versa.
     mask1 = df1.isna() & ~df2.isna()
     mask2 = ~df1.isna() & df2.isna()
@@ -141,7 +141,7 @@ def compare_dfs(
     # TODO(gp): Factor out this logic and use it for both compare_visually_dfs
     #  and
     if row_mode == "equal":
-        dassert_indices_equal(df1, df2)
+        hpandas_dassert.dassert_indices_equal(df1, df2)
     elif row_mode == "inner":
         # TODO(gp): Add sorting on demand, otherwise keep the columns in order.
         same_rows = list((set(df1.index)).intersection(set(df2.index)))
@@ -183,8 +183,8 @@ def compare_dfs(
             hdbg._dfatal(
                 _,
                 "df1=\n%s\n and df2=\n%s\n are not equal.",
-                df_to_str(df1, log_level=log_level),
-                df_to_str(df2, log_level=log_level),
+                hpandas_utils.df_to_str(df1, log_level=log_level),
+                hpandas_utils.df_to_str(df2, log_level=log_level),
                 only_warning=only_warning,
             )
         # Calculate the difference.
@@ -194,7 +194,7 @@ def compare_dfs(
     elif diff_mode == "pct_change":
         # Compare NaN values in dataframes.
         nan_diff_df = compare_nans_in_dataframes(df1, df2)
-        _LOG.debug("Dataframe with NaN differences=\n%s", df_to_str(nan_diff_df))
+        _LOG.debug("Dataframe with NaN differences=\n%s", hpandas_utils.df_to_str(nan_diff_df))
         msg = "There are NaN values in one of the dataframes that are not in the other one."
         hdbg.dassert_eq(
             0, nan_diff_df.shape[0], msg=msg, only_warning=only_warning
@@ -234,8 +234,8 @@ def compare_dfs(
                 hdbg._dfatal(
                     _,
                     "df1=\n%s\n and df2=\n%s\n have pct_change more than `assert_diff_threshold`.",
-                    df_to_str(df1, log_level=log_level),
-                    df_to_str(df2, log_level=log_level),
+                    hpandas_utils.df_to_str(df1, log_level=log_level),
+                    hpandas_utils.df_to_str(df2, log_level=log_level),
                     only_warning=only_warning,
                 )
         # Report max diff.

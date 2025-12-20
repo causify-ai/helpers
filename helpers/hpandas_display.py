@@ -5,7 +5,7 @@ import helpers.hpandas as hpandas
 """
 
 import helpers.hlogging as hlogging
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import pandas as pd
 
