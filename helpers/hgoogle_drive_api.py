@@ -313,7 +313,6 @@ def to_gsheet(
     :param url: URL of the Google Sheet.
     :param tab_name: Name of the tab where the data will be written.
     """
-
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(url)
     # Try to get existing worksheet or create new one.
@@ -346,10 +345,9 @@ def to_gsheet(
     worksheet.clear()
     values = [df.columns.values.tolist()] + df.values.tolist()
     worksheet.update("A1", values)
-    _LOG.debug(
-        "Data successfully written to the tab '%s' of the Google Sheet",
-        tab_name,
-    )
+    _LOG.info(
+        "Data written to the tab '%s' of the Google Sheet '%s",
+        tab_name, url)
 
 
 # #############################################################################
