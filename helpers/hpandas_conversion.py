@@ -4,14 +4,14 @@ Import as:
 import helpers.hpandas as hpandas
 """
 
-import helpers.hlogging as hlogging
 from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
 
-
 import helpers.hdbg as hdbg
+import helpers.hlogging as hlogging
+import helpers.hpandas_dassert as hpandas_dassert
 
 _LOG = hlogging.getLogger(__name__)
 
@@ -154,7 +154,7 @@ def convert_col_to_int(
     # Attempt the conversion.
     df[col] = df[col].astype("int64")
     # Trust, but verify.
-    dassert_series_type_is(df[col], np.int64)
+    hpandas_dassert.dassert_series_type_is(df[col], np.int64)
     return df
 
 

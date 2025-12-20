@@ -4,24 +4,18 @@ Import as:
 import helpers.hpandas as hpandas
 """
 
-import helpers.hlogging as hlogging
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 
-
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
+import helpers.hlogging as hlogging
+import helpers.hpandas_dassert as hpandas_dassert
 import helpers.hprint as hprint
 
 _LOG = hlogging.getLogger(__name__)
-
-RowsValues = List[List[str]]
-
-# #############################################################################
-# Functions
-# #############################################################################
 
 
 def compute_duration_df(
@@ -57,7 +51,7 @@ def compute_duration_df(
     for tag in tag_to_df.keys():
         # Check that the passed timestamp has timezone info.
         hdateti.dassert_has_tz(tag_to_df[tag].index[0])
-        dassert_index_is_datetime(tag_to_df[tag])
+        hpandas_dassert.dassert_index_is_datetime(tag_to_df[tag])
         # Compute timestamp stats.
         data_stats.loc[tag, min_col] = tag_to_df[tag].index.min()
         data_stats.loc[tag, max_col] = tag_to_df[tag].index.max()
@@ -194,12 +188,6 @@ def get_random_df(
 
 
 # #############################################################################
-
-# TODO(gp): -> AxisNameSet
-ColumnSet = Optional[Union[str, List[str]]]
-
-
-# TODO(gp): -> _resolve_axis_names
 
 
 def heatmap_df(df: pd.DataFrame, *, axis: Any = None) -> pd.DataFrame:

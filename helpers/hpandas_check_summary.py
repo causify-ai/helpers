@@ -4,10 +4,12 @@ Import as:
 import helpers.hpandas as hpandas
 """
 
-import helpers.hlogging as hlogging
+import dataclasses
 from typing import List, Optional
 
 import pandas as pd
+
+import helpers.hlogging as hlogging
 
 
 _LOG = hlogging.getLogger(__name__)
