@@ -101,84 +101,14 @@ The script executes in six logical stages:
   - Append to target file in order specified by map
   - Add blank line after each function
 
-```text [Map File] → Parse Structure → [File Mapping Dict] ↓ [Source File] →
-Extract Functions → [Function Boundaries Dict] ↓ ← Combine Information ← ↓
-[Target Files] ← Generate with Header + Sections + Functions ```
+## Prompt
 
-## Design Rationale
+test/test_hpandas.py needs to be split in different files
 
-**Goals:**
-- **Exact Preservation**: Maintain source code exactly as written, including all
-  formatting, comments, and docstrings
-- **Declarative Specification**: Use simple, human-readable markdown format for
-  reorganization maps
-- **Simplicity**: Avoid complex AST parsing in favor of reliable text-based
-  pattern matching
-- **Reproducibility**: Same map file always produces same output structure
+Create a file file_map.md to map how test files should be organized so that the
+file test/test_XYZ.py tests only functions of the file XYZ.py
 
-**Constraints:**
-- **Text-Based Only**: Must not parse Python AST to avoid issues with:
-  - Syntax errors in partially-written code
-  - Complex parsing edge cases
-  - Potential formatting changes from AST round-tripping
+The format should be the same as
+dev_scripts_helpers/coding_tools/reorder_python_code.map_example.md
 
-- **Top-Level Only**: Only handles top-level functions and classes, not nested
-  definitions
-  - Simplifies boundary detection logic
-  - Matches common use case of splitting utility modules
-
-- **Manual Map Creation**: Requires human to create reorganization map
-  - Ensures logical, intentional organization decisions
-  - Allows semantic grouping that automated tools cannot determine
-
-**What would go wrong with alternate approaches?**
-- **AST-based parsing**: Could fail on syntactically invalid code during
-  refactoring, introduce subtle formatting changes, require complex AST
-  manipulation
-- **Automated splitting**: Without human guidance, automated tools cannot
-  determine semantic relationships or logical groupings
-- **Direct file editing**: Manual copy-paste is error-prone, time-consuming, and
-  difficult to reproduce or modify
-
-## Tradeoffs And Alternatives
-
-### Current Approach
-
-**Advantages:**
-- Robust handling of any valid Python syntax without parsing complexity
-- Preserves exact formatting, whitespace, and comment placement
-- Simple, transparent operation that's easy to debug and understand
-- Map file serves as documentation of reorganization structure
-- Works with incomplete or temporarily invalid Python code
-
-**Drawbacks:**
-- Requires manual creation of map file (cannot auto-generate organization)
-- Only handles top-level definitions (nested functions/classes stay with parent)
-- Cannot automatically detect or update cross-file dependencies
-- Does not handle import statement optimization (may leave unused imports)
-- Text-based regex matching could theoretically have edge cases with unusual
-  formatting
-
-### Alternative Approach
-
-**AST-Based Code Reorganization:**
-
-**Advantages:**
-- Could automatically analyze dependencies and suggest groupings
-- More "correct" understanding of Python code structure
-- Could handle nested definitions properly
-- Could automatically update imports and remove unused ones
-
-**Drawbacks:**
-- Significantly more complex implementation
-- Fails on syntactically invalid code (common during refactoring)
-- May introduce formatting changes during AST round-trip
-- Harder to debug when issues occur
-- Cannot preserve exact original formatting
-- Much larger dependency on Python's `ast` module internals
-
-**Decision Rationale:** The text-based approach was chosen because it prioritizes
-reliability and simplicity for the common case of reorganizing well-formed
-utility modules. The trade-off of requiring manual map creation is acceptable
-given the tool's purpose is intentional, human-guided refactoring rather than
-automated analysis.
+The file should be usable by reorder_python_code.py to split files
