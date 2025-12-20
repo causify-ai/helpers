@@ -2,6 +2,9 @@ Create a Python script that performs the following operations
 
 > dev_scripts_helpers/coding_tools/reorder_python_code.py --input_file input_file.py --map_file map_file.md
 
+- If the task is not perfectly clear, you MUST not perform it, but ask for
+  clarifications
+
 - For all the code you must follow the instructions in
   `docs/ai_coding/ai.coding.prompt.md`
 
