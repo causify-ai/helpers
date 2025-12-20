@@ -12,6 +12,11 @@ import pandas as pd
 
 
 import helpers.hdbg as hdbg
+import helpers.hpandas_compare as hpandas_compare
+import helpers.hpandas_dassert as hpandas_dassert
+import helpers.hpandas_display as hpandas_display
+import helpers.hpandas_transform as hpandas_transform
+import helpers.hpandas_utils as hpandas_utils
 
 
 _LOG = hlogging.getLogger(__name__)
@@ -66,12 +71,12 @@ def multiindex_df_info(
         f"shape={len(columns_level0)} x {len(columns_level1)} x {len(rows)}"
     )
     ret.append(
-        "columns_level0=" + list_to_str(columns_level0, **list_to_str_kwargs)
+        "columns_level0=" + hprint.list_to_str2(columns_level0, **list_to_str_kwargs)
     )
     ret.append(
-        "columns_level1=" + list_to_str(columns_level1, **list_to_str_kwargs)
+        "columns_level1=" + hprint.list_to_str2(columns_level1, **list_to_str_kwargs)
     )
-    ret.append("rows=" + list_to_str(rows, **list_to_str_kwargs))
+    ret.append("rows=" + hprint.list_to_str2(rows, **list_to_str_kwargs))
     if isinstance(df.index, pd.DatetimeIndex):
         # Display timestamp info.
         start_timestamp = df.index.min()

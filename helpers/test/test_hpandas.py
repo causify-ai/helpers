@@ -4456,6 +4456,7 @@ class Test_compute_weighted_sum(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Move to test_hprint.py
 class Test_list_to_str(hunitest.TestCase):
     def test1(self) -> None:
         """
@@ -4464,7 +4465,7 @@ class Test_list_to_str(hunitest.TestCase):
         # Prepare inputs.
         input = [1, "two", 3, 4, "five"]
         # Run.
-        actual = hpandas.list_to_str(input, enclose_str_char="|", sep_char=" ; ")
+        actual = hprint.list_to_str2(input, enclose_str_char="|", sep_char=" ; ")
         # Check.
         expected = "5 [|1| ; |two| ; |3| ; |4| ; |five|]"
         self.assert_equal(actual, expected)
@@ -4476,7 +4477,7 @@ class Test_list_to_str(hunitest.TestCase):
         # Prepare inputs.
         input = list(range(15))
         # Run.
-        actual = hpandas.list_to_str(input, enclose_str_char="", sep_char=" - ")
+        actual = hprint.list_to_str2(input, enclose_str_char="", sep_char=" - ")
         # Check.
         expected = "15 [0 - 1 - 2 - 3 - 4 - ... - 10 - 11 - 12 - 13 - 14]"
         self.assert_equal(actual, expected)
@@ -4489,7 +4490,7 @@ class Test_list_to_str(hunitest.TestCase):
         # Prepare inputs.
         input = [1, 2, 3, 4, "five"]
         # Run.
-        actual = hpandas.list_to_str(input)
+        actual = hprint.list_to_str2(input)
         # Check.
         expected = "5 ['1', '2', '3', '4', 'five']"
         self.assert_equal(actual, expected)

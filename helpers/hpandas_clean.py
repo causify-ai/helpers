@@ -12,6 +12,8 @@ import pandas as pd
 
 
 import helpers.hdbg as hdbg
+import helpers.hpandas_transform as hpandas_transform
+import helpers.hpandas_utils as hpandas_utils
 import helpers.hprint as hprint
 
 _LOG = hlogging.getLogger(__name__)

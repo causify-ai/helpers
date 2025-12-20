@@ -13,6 +13,8 @@ import pandas as pd
 
 
 import helpers.hdbg as hdbg
+import helpers.hpandas_dassert as hpandas_dassert
+import helpers.hpandas_utils as hpandas_utils
 
 _LOG = hlogging.getLogger(__name__)
 
