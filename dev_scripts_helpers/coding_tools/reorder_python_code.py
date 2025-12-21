@@ -278,6 +278,64 @@ def _find_module_header_end(lines: List[str]) -> int:
 # #############################################################################
 
 
+def _remove_trailing_section_headers(lines: List[str]) -> List[str]:
+    """
+    Remove trailing section headers and excessive blank lines from extracted code.
+
+    Section headers follow the pattern:
+    # #############################################################################
+    # Section Name
+    # #############################################################################
+
+    :param lines: list of code lines
+    :return: cleaned list of lines
+    """
+    if not lines:
+        return lines
+    # Pattern to match section header border (77 or more #).
+    header_border_pattern = re.compile(r"^#\s*#{77,}\s*$")
+    # Work backwards to find where actual code ends.
+    end_idx = len(lines)
+    i = len(lines) - 1
+    while i >= 0:
+        line = lines[i].rstrip()
+        # Skip trailing blank lines.
+        if not line:
+            i -= 1
+            continue
+        # Check if this is a section header border.
+        if header_border_pattern.match(line):
+            # This might be the end of a section header block.
+            # Check if we have a 3-line section header pattern.
+            if i >= 2:
+                line_minus_1 = lines[i - 1].strip()
+                line_minus_2 = lines[i - 2].rstrip()
+                # Check if lines i-2 and i are borders and i-1 is a comment.
+                if (
+                    header_border_pattern.match(line_minus_2)
+                    and line_minus_1.startswith("#")
+                    and not header_border_pattern.match(line_minus_1)
+                ):
+                    # Found a section header, remove it.
+                    i -= 3
+                    continue
+        # Found non-header, non-blank line - this is the end of actual code.
+        end_idx = i + 1
+        break
+    # Return lines up to end_idx, preserving at most 2 trailing blank lines.
+    result = lines[:end_idx]
+    # Add back up to 2 trailing blank lines if they existed.
+    blank_count = 0
+    for i in range(end_idx, len(lines)):
+        if not lines[i].strip():
+            blank_count += 1
+            if blank_count <= 2:
+                result.append(lines[i])
+        else:
+            break
+    return result
+
+
 def _create_section_comment(section_name: str) -> str:
     """
     Create a formatted section comment block.
@@ -332,6 +390,8 @@ def _create_target_file(
             start_line, end_line = source_functions[func_name]
             # Extract function code (convert to 0-indexed).
             func_lines = lines[start_line - 1 : end_line]
+            # Remove trailing section headers from the original file.
+            func_lines = _remove_trailing_section_headers(func_lines)
             # Add function to output.
             output_lines.extend(func_lines)
             output_lines.append("")  # Add blank line after function.
