@@ -13,6 +13,7 @@ import pandas as pd
 import pytest
 
 import helpers.hpandas as hpandas
+import helpers.hpandas_transform as hpandas_transform
 import helpers.hprint as hprint
 import helpers.hs3 as hs3
 import helpers.hunit_test as hunitest
@@ -1274,6 +1275,7 @@ class Test_df_to_str(hunitest.TestCase):
         2  0.0  0  3  5.1"""
         self.assert_equal(actual, expected, fuzzy_match=True)
 
+
     def test_df_to_str10(self) -> None:
         """
         Test common call to `df_to_str` with `print_memory_usage = True`.
@@ -1308,7 +1310,7 @@ class Test_assemble_df_rows(hunitest.TestCase):
     """
 
     @staticmethod
-    def get_rows_values_example(df_as_str: str) -> hpandas.RowsValues:
+    def get_rows_values_example(df_as_str: str) -> hpandas_transform.RowsValues:
         """
         Prepare the input.
         """
@@ -1331,7 +1333,7 @@ class Test_assemble_df_rows(hunitest.TestCase):
         1   0.2  0.2    0.2   0.2"""
         rows_values = self.get_rows_values_example(df_as_str)
         # Run.
-        actual = hpandas._assemble_df_rows(rows_values)
+        actual = hpandas_transform._assemble_df_rows(rows_values)
         # Check.
         expected = [
             ["", "col1", "col2", "col3", "col4"],
@@ -1351,7 +1353,7 @@ class Test_assemble_df_rows(hunitest.TestCase):
         1   0.123456789123456789123456789  0.123456789123456789123456789  0.123456789123456789123456789   0.123456789123456789123456789  0.123456789123456789123456789"""
         rows_values = self.get_rows_values_example(df_as_str)
         # Run.
-        actual = hpandas._assemble_df_rows(rows_values)
+        actual = hpandas_transform._assemble_df_rows(rows_values)
         # Check.
         expected = [
             [
@@ -1393,7 +1395,7 @@ class Test_assemble_df_rows(hunitest.TestCase):
         1   0.2  0.2    0.2   0.2"""
         rows_values = self.get_rows_values_example(df_as_str)
         # Run.
-        actual = hpandas._assemble_df_rows(rows_values)
+        actual = hpandas_transform._assemble_df_rows(rows_values)
         # Check.
         expected = [
             ["idx", "col1", "col2", "col3", "col4"],
@@ -1414,7 +1416,7 @@ class Test_assemble_df_rows(hunitest.TestCase):
         1   0.123456789123456789123456789  0.123456789123456789123456789  0.123456789123456789123456789   0.123456789123456789123456789  0.123456789123456789123456789"""
         rows_values = self.get_rows_values_example(df_as_str)
         # Run.
-        actual = hpandas._assemble_df_rows(rows_values)
+        actual = hpandas_transform._assemble_df_rows(rows_values)
         # Check.
         expected = [
             [
@@ -4456,6 +4458,7 @@ class Test_compute_weighted_sum(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Move to test_hprint.py
 class Test_list_to_str(hunitest.TestCase):
     def test1(self) -> None:
         """
@@ -4464,7 +4467,7 @@ class Test_list_to_str(hunitest.TestCase):
         # Prepare inputs.
         input = [1, "two", 3, 4, "five"]
         # Run.
-        actual = hpandas.list_to_str(input, enclose_str_char="|", sep_char=" ; ")
+        actual = hprint.list_to_str2(input, enclose_str_char="|", sep_char=" ; ")
         # Check.
         expected = "5 [|1| ; |two| ; |3| ; |4| ; |five|]"
         self.assert_equal(actual, expected)
@@ -4476,7 +4479,7 @@ class Test_list_to_str(hunitest.TestCase):
         # Prepare inputs.
         input = list(range(15))
         # Run.
-        actual = hpandas.list_to_str(input, enclose_str_char="", sep_char=" - ")
+        actual = hprint.list_to_str2(input, enclose_str_char="", sep_char=" - ")
         # Check.
         expected = "15 [0 - 1 - 2 - 3 - 4 - ... - 10 - 11 - 12 - 13 - 14]"
         self.assert_equal(actual, expected)
@@ -4489,7 +4492,7 @@ class Test_list_to_str(hunitest.TestCase):
         # Prepare inputs.
         input = [1, 2, 3, 4, "five"]
         # Run.
-        actual = hpandas.list_to_str(input)
+        actual = hprint.list_to_str2(input)
         # Check.
         expected = "5 ['1', '2', '3', '4', 'five']"
         self.assert_equal(actual, expected)
