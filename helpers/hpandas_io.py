@@ -4,12 +4,12 @@ Import as:
 import helpers.hpandas as hpandas
 """
 
-import helpers.hlogging as hlogging
 from typing import Any, Union
 
 import pandas as pd
 
 import helpers.hdbg as hdbg
+import helpers.hlogging as hlogging
 import helpers.hprint as hprint
 
 # Handle different versions of s3fs where core module may be at different

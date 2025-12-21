@@ -4,13 +4,13 @@ Import as:
 import helpers.hpandas as hpandas
 """
 
-import helpers.hlogging as hlogging
 from typing import Any, List, Optional, Union
 
 import numpy as np
 import pandas as pd
 
 import helpers.hdbg as hdbg
+import helpers.hlogging as hlogging
 import helpers.hpandas_utils as hpandas_utils
 import helpers.hprint as hprint
 

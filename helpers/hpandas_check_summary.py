@@ -58,7 +58,7 @@ class CheckSummary:
 
     def is_ok(self) -> bool:
         """
-        Compute whether all the checks were succesfull or not.
+        Compute whether all the checks were successful or not.
         """
         is_ok = all(sr.is_ok for sr in self._array)
         return is_ok

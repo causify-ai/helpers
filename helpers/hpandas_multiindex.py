@@ -5,12 +5,12 @@ import helpers.hpandas as hpandas
 """
 
 import logging
-import helpers.hlogging as hlogging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import pandas as pd
 
 import helpers.hdbg as hdbg
+import helpers.hlogging as hlogging
 import helpers.hpandas_compare as hpandas_compare
 import helpers.hpandas_dassert as hpandas_dassert
 import helpers.hpandas_transform as hpandas_transform
