@@ -212,7 +212,7 @@ def convert_df(
             invalid_mask = series.notna() & converted.isna()
             if invalid_mask.any():
                 invalid = series[invalid_mask].tolist()
-                print(f"Column {col} dropped invalid values: {invalid}")
+                _LOG.info("Column %s dropped invalid values: %s", col, invalid)
         df_out[col] = converted
     return df_out
 

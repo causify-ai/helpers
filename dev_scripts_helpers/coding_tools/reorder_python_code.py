@@ -143,7 +143,10 @@ def _parse_map_file(
 
 
 def _find_function_boundaries(
-    lines: List[str], function_name: str, start_search_idx: int = 0
+    lines: List[str],
+    function_name: str,
+    *,
+    start_search_idx: int = 0,
 ) -> Tuple[int, int]:
     """
     Find the start and end line indices for a function or class definition.

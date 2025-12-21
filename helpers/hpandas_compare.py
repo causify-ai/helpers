@@ -148,7 +148,7 @@ def compare_dfs(
         df2 = df2[df2.index.isin(same_rows)]
     else:
         raise ValueError(f"Invalid row_mode='{row_mode}'")
-    #
+    # Handle column comparison mode.
     if column_mode == "equal":
         hdbg.dassert_eq(sorted(df1.columns), sorted(df2.columns))
     elif column_mode == "inner":

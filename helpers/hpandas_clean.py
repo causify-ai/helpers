@@ -52,9 +52,9 @@ def drop_duplicates(
         hdbg.dassert_not_in(index_col_name, data.columns.tolist())
         column_subset.insert(0, index_col_name)
         data[index_col_name] = data.index
-    #
+    # Drop duplicates based on the column subset.
     data_no_dups = data.drop_duplicates(subset=column_subset, *args, **kwargs)
-    #
+    # Clean up the temporary index column if it was added.
     if use_index:
         # Remove dummy index column.
         data_no_dups = data_no_dups.drop([index_col_name], axis=1)
@@ -218,13 +218,13 @@ def remove_outliers(
     upper_quantile: Optional[float] = None,
 ) -> pd.DataFrame:
     hdbg.dassert_eq(len(df.shape), 2, "Multi-index dfs not supported")
-    #
+    # Validate quantile parameters.
     hdbg.dassert_lte(0.0, lower_quantile)
     if upper_quantile is None:
         upper_quantile = 1.0 - lower_quantile
     hdbg.dassert_lte(lower_quantile, upper_quantile)
     hdbg.dassert_lte(upper_quantile, 1.0)
-    #
+    # Create a copy of the dataframe to avoid modifying the original.
     df = df.copy()
     if axis == 0:
         all_columns = df.columns

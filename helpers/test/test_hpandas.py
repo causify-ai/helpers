@@ -3508,7 +3508,7 @@ class Test_compute_duration_df(hunitest.TestCase):
         self.assertTrue(start_equal)
         # Check that start intersection is correct.
         required_start_intersection = expected_start_timestamp
-        self.assertEqual(start_timestamps[0], required_start_intersection)
+        self.assert_equal(start_timestamps[0], required_start_intersection)
         # Collect all end timestamps.
         end_timestamps = [tag_dfs[tag].index.max() for tag in tag_dfs]
         # Check that all end timestamps are equal.
@@ -3518,7 +3518,7 @@ class Test_compute_duration_df(hunitest.TestCase):
         self.assertTrue(end_equal)
         # Check that end intersection is correct.
         required_end_intersection = expected_end_timestamp
-        self.assertEqual(end_timestamps[0], required_end_intersection)
+        self.assert_equal(end_timestamps[0], required_end_intersection)
 
     def test1(self) -> None:
         """
@@ -4140,13 +4140,13 @@ class Test_cast_series_to_type(hunitest.TestCase):
         series = pd.Series(["1", "2", "3"])
         series_type = int
         actual = hpandas.cast_series_to_type(series, series_type)
-        self.assertEqual(actual.dtype.type, np.int64)
+        self.assert_equal(actual.dtype.type, np.int64)
 
     def test2(self) -> None:
         series = pd.Series(["0.1", "0.2", "0.3"])
         series_type = float
         actual = hpandas.cast_series_to_type(series, series_type)
-        self.assertEqual(actual.dtype.type, np.float64)
+        self.assert_equal(actual.dtype.type, np.float64)
 
     def test3(self) -> None:
         series = pd.Series(["None", "None", "None"])
@@ -4159,14 +4159,14 @@ class Test_cast_series_to_type(hunitest.TestCase):
         series = pd.Series(["2020-01-01", "2020-02-02", "2020-03-03"])
         series_type = pd.Timestamp
         actual = hpandas.cast_series_to_type(series, series_type)
-        self.assertEqual(actual.dtype.type, np.datetime64)
+        self.assert_equal(actual.dtype.type, np.datetime64)
 
     def test5(self) -> None:
         series = pd.Series(["{}", "{1: 2, 3: 4}", "{'a': 'b'}"])
         series_type = dict
         actual = hpandas.cast_series_to_type(series, series_type)
         for i in range(len(actual)):
-            self.assertEqual(type(actual.iloc[i]), dict)
+            self.assert_equal(type(actual.iloc[i]), dict)
 
 
 # #############################################################################
