@@ -17,6 +17,8 @@ import helpers.hpandas_utils as hpanutil
 _LOG = hloggin.getLogger(__name__)
 
 
+RowsValues = List[List[str]]
+
 # #############################################################################
 # Index/Axis Validation & Assertions
 # #############################################################################
@@ -339,6 +341,9 @@ def dassert_approx_eq(
         hdbg._dfatal(txt, msg, *args, only_warning=only_warning)  # type: ignore
 
 
+# #############################################################################
+
+
 def dassert_is_days(
     timedelta: pd.Timedelta, *, min_num_days: Optional[int] = None
 ) -> None:
@@ -349,3 +354,6 @@ def dassert_is_days(
     )
     if min_num_days is not None:
         hdbg.dassert_lte(1, timedelta.days)
+
+
+# #############################################################################

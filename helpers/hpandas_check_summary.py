@@ -45,7 +45,7 @@ class CheckSummary:
 
     def __init__(self, *, title: Optional[str] = ""):
         self.title = title
-        #
+        # Initialize the array for storing summary rows.
         self._array: List[_SummaryRow] = []
 
     def add(self, description: str, comment: str, is_ok: bool) -> None:

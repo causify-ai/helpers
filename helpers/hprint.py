@@ -312,7 +312,7 @@ def dedent(
         if min_num_spaces is None or curr_num_spaces < min_num_spaces:
             min_num_spaces = curr_num_spaces
     _LOG.debug("min_num_spaces=%s", min_num_spaces)
-    #
+    # Process each line and remove the minimum indentation.
     txt_out = []
     for curr_line in lines:
         _LOG.debug("curr_line='%s'", curr_line)
@@ -451,7 +451,7 @@ def perc(
     else:
         a_str = str(a)
         b_str = str(b)
-    #
+    # Validate and format the percentage.
     hdbg.dassert_lte(0, num_digits)
     if only_perc:
         fmt = "%." + str(num_digits) + "f"
@@ -874,7 +874,7 @@ def list_to_str2(
         vals_as_str = [
             enclose_str_char + v + enclose_str_char for v in vals_as_str
         ]
-    #
+    # Build the output string with optional truncation.
     ret = f"{len(vals)} ["
     if max_num is not None and len(vals) > max_num:
         hdbg.dassert_lt(1, max_num)
@@ -958,7 +958,7 @@ def set_diff_to_str(
     res.append(f"* {obj2_name}-{obj1_name}=({len(diff)}) {_to_string(diff)}")
     if add_space:
         res.append("")
-    #
+    # Join all result lines.
     result = "\n".join(res)
     return result
 

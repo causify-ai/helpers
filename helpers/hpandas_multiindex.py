@@ -5,7 +5,7 @@ import helpers.hpandas as hpandas
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -18,6 +18,12 @@ import helpers.hpandas_utils as hpanutil
 import helpers.hprint as hprint
 
 _LOG = hloggin.getLogger(__name__)
+
+RowsValues = List[List[str]]
+
+# #############################################################################
+# Functions
+# #############################################################################
 
 
 def add_multiindex_col(
@@ -172,3 +178,6 @@ def compare_multiindex_dfs(
         compare_dfs_kwargs = {}
     diff_df = hpancomp.compare_dfs(subset_df1, subset_df2, **compare_dfs_kwargs)
     return diff_df
+
+
+# #############################################################################

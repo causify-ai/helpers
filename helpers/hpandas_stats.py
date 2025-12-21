@@ -30,7 +30,7 @@ def compute_duration_df(
 
     E.g.,
     ```
-            min_index   max_index   min_valid_index   max_valid_index
+                   min_index   max_index   min_valid_index   max_valid_index
     tag1
     tag2
     ```
@@ -88,6 +88,9 @@ def compute_duration_df(
 
 
 # #############################################################################
+
+
+# TODO(gp): Remove this since it's in Google API.
 
 
 def compute_weighted_sum(

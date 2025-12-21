@@ -19,6 +19,10 @@ _LOG = hloggin.getLogger(__name__)
 
 RowsValues = List[List[str]]
 
+# #############################################################################
+# Functions
+# #############################################################################
+
 
 def compare_dataframe_rows(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     """
@@ -83,6 +87,8 @@ def compare_nans_in_dataframes(
 
 
 # TODO(Grisha): -> `compare_dataframes()`?
+
+
 def compare_dfs(
     df1: pd.DataFrame,
     df2: pd.DataFrame,
@@ -142,7 +148,7 @@ def compare_dfs(
         df2 = df2[df2.index.isin(same_rows)]
     else:
         raise ValueError(f"Invalid row_mode='{row_mode}'")
-    #
+    # Handle column comparison mode.
     if column_mode == "equal":
         hdbg.dassert_eq(sorted(df1.columns), sorted(df2.columns))
     elif column_mode == "inner":
@@ -245,3 +251,11 @@ def compare_dfs(
         raise ValueError(f"diff_mode={diff_mode}")
     df_diff = df_diff.add_suffix(f".{diff_mode}")
     return df_diff
+
+
+# #############################################################################
+# Multi-index dfs
+# #############################################################################
+
+
+# TODO(Grisha): should be a more elegant way to add a column.
