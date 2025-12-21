@@ -68,13 +68,13 @@ class Test_cast_series_to_type(hunitest.TestCase):
         series = pd.Series(["1", "2", "3"])
         series_type = int
         actual = hpandas.cast_series_to_type(series, series_type)
-        self.assert_equal(actual.dtype.type, np.int64)
+        self.assertEqual(actual.dtype.type, np.int64)
 
     def test2(self) -> None:
         series = pd.Series(["0.1", "0.2", "0.3"])
         series_type = float
         actual = hpandas.cast_series_to_type(series, series_type)
-        self.assert_equal(actual.dtype.type, np.float64)
+        self.assertEqual(actual.dtype.type, np.float64)
 
     def test3(self) -> None:
         series = pd.Series(["None", "None", "None"])
@@ -87,14 +87,14 @@ class Test_cast_series_to_type(hunitest.TestCase):
         series = pd.Series(["2020-01-01", "2020-02-02", "2020-03-03"])
         series_type = pd.Timestamp
         actual = hpandas.cast_series_to_type(series, series_type)
-        self.assert_equal(actual.dtype.type, np.datetime64)
+        self.assertEqual(actual.dtype.type, np.datetime64)
 
     def test5(self) -> None:
         series = pd.Series(["{}", "{1: 2, 3: 4}", "{'a': 'b'}"])
         series_type = dict
         actual = hpandas.cast_series_to_type(series, series_type)
         for i in range(len(actual)):
-            self.assert_equal(type(actual.iloc[i]), dict)
+            self.assertEqual(type(actual.iloc[i]), dict)
 
 
 # #############################################################################
