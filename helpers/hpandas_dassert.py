@@ -11,10 +11,10 @@ import pandas as pd
 
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
-import helpers.hlogging as hlogging
-import helpers.hpandas_utils as hpandas_utils
+import helpers.hlogging as hloggin
+import helpers.hpandas_utils as hpanutil
 
-_LOG = hlogging.getLogger(__name__)
+_LOG = hloggin.getLogger(__name__)
 
 
 # #############################################################################
@@ -71,7 +71,7 @@ def dassert_unique_index(
     if not index.is_unique:
         dup_indices = index.duplicated(keep=False)
         df_dup = obj[dup_indices]
-        df_dup_as_str = hpandas_utils.df_to_str(df_dup)
+        df_dup_as_str = hpanutil.df_to_str(df_dup)
         dup_msg = f"Duplicated rows are:\n{df_dup_as_str}\n"
         if msg is None:
             msg = dup_msg
@@ -112,7 +112,7 @@ def dassert_increasing_index(
         mask_shift[len(mask) - 1] = False
         #
         mask = mask | mask_shift
-        df_dup_as_str = hpandas_utils.df_to_str(obj[mask])
+        df_dup_as_str = hpanutil.df_to_str(obj[mask])
         dup_msg = f"Not increasing indices are:\n{df_dup_as_str}\n"
         if msg is None:
             msg = dup_msg

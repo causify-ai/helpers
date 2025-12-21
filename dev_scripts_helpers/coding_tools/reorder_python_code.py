@@ -86,7 +86,9 @@ def _parse_map_file(map_file_path: str) -> Dict[str, List[Tuple[str, List[str]]]
                 if current_file not in file_mapping:
                     file_mapping[current_file] = []
                 # Use filename as default section name.
-                file_mapping[current_file].append(("Functions", current_functions))
+                file_mapping[current_file].append(
+                    ("Functions", current_functions)
+                )
                 current_functions = []
             # Extract filename.
             current_file = line[2:].strip()
@@ -106,7 +108,9 @@ def _parse_map_file(map_file_path: str) -> Dict[str, List[Tuple[str, List[str]]]
             elif current_file and current_functions:
                 if current_file not in file_mapping:
                     file_mapping[current_file] = []
-                file_mapping[current_file].append(("Functions", current_functions))
+                file_mapping[current_file].append(
+                    ("Functions", current_functions)
+                )
                 current_functions = []
             # Extract section name.
             current_section = line[3:].strip()
@@ -195,12 +199,13 @@ def _extract_functions_from_source(
     """
     Extract function definitions and their line ranges from source file.
 
-    Uses text-based parsing with regular expressions to find function and
-    class definitions. Only extracts top-level functions and classes, not
-    nested ones.
+    Uses text-based parsing with regular expressions to find function
+    and class definitions. Only extracts top-level functions and
+    classes, not nested ones.
 
     :param source_file_path: path to the Python source file
-    :return: dictionary mapping function names to (start_line, end_line) tuples
+    :return: dictionary mapping function names to (start_line, end_line)
+        tuples
     """
     hdbg.dassert(
         os.path.exists(source_file_path),
@@ -301,7 +306,8 @@ def _create_target_file(
     :param source_file_path: path to source Python file
     :param target_file_path: path to target Python file
     :param sections: list of (section_name, function_names) tuples
-    :param source_functions: dictionary mapping function names to line ranges
+    :param source_functions: dictionary mapping function names to line
+        ranges
     """
     _LOG.info("Creating target file: %s", target_file_path)
     # Read source file.
@@ -364,7 +370,9 @@ def _reorder_python_code(*, input_file: str, map_file: str) -> None:
         target_file_path = os.path.join(input_dir, target_filename)
         _LOG.info("Processing target file: %s", target_file_path)
         # Create the target file.
-        _create_target_file(input_file, target_file_path, sections, source_functions)
+        _create_target_file(
+            input_file, target_file_path, sections, source_functions
+        )
     _LOG.info("Code reorganization completed")
 
 

@@ -11,11 +11,11 @@ import numpy as np
 import pandas as pd
 
 import helpers.hdbg as hdbg
-import helpers.hlogging as hlogging
-import helpers.hpandas_dassert as hpandas_dassert
-import helpers.hpandas_utils as hpandas_utils
+import helpers.hlogging as hloggin
+import helpers.hpandas_dassert as hpandass
+import helpers.hpandas_utils as hpanutil
 
-_LOG = hlogging.getLogger(__name__)
+_LOG = hloggin.getLogger(__name__)
 
 RowsValues = List[List[str]]
 
@@ -72,7 +72,7 @@ def compare_nans_in_dataframes(
     :return: dataframe that shows the differences stacked side by side, see
         `pandas.DataFrame.compare()` for an example
     """
-    hpandas_dassert.dassert_axes_equal(df1, df2)
+    hpandass.dassert_axes_equal(df1, df2)
     # Keep rows where df1's value is NaN and df2's value is not NaN and vice versa.
     mask1 = df1.isna() & ~df2.isna()
     mask2 = ~df1.isna() & df2.isna()
@@ -134,7 +134,7 @@ def compare_dfs(
     # TODO(gp): Factor out this logic and use it for both compare_visually_dfs
     #  and
     if row_mode == "equal":
-        hpandas_dassert.dassert_indices_equal(df1, df2)
+        hpandass.dassert_indices_equal(df1, df2)
     elif row_mode == "inner":
         # TODO(gp): Add sorting on demand, otherwise keep the columns in order.
         same_rows = list((set(df1.index)).intersection(set(df2.index)))
@@ -154,12 +154,8 @@ def compare_dfs(
         raise ValueError(f"Invalid column_mode='{column_mode}'")
     # Round small numbers to 0 to exclude them from the diff computation.
     close_to_zero_threshold_mask = lambda x: abs(x) < close_to_zero_threshold
-    df1[close_to_zero_threshold_mask] = df1[close_to_zero_threshold_mask].round(
-        0
-    )
-    df2[close_to_zero_threshold_mask] = df2[close_to_zero_threshold_mask].round(
-        0
-    )
+    df1[close_to_zero_threshold_mask] = df1[close_to_zero_threshold_mask].round(0)
+    df2[close_to_zero_threshold_mask] = df2[close_to_zero_threshold_mask].round(0)
     # Compute the difference df.
     if diff_mode == "diff":
         # Test and convert the assertion into a boolean.
@@ -176,8 +172,8 @@ def compare_dfs(
             hdbg._dfatal(
                 _,
                 "df1=\n%s\n and df2=\n%s\n are not equal.",
-                hpandas_utils.df_to_str(df1, log_level=log_level),
-                hpandas_utils.df_to_str(df2, log_level=log_level),
+                hpanutil.df_to_str(df1, log_level=log_level),
+                hpanutil.df_to_str(df2, log_level=log_level),
                 only_warning=only_warning,
             )
         # Calculate the difference.
@@ -189,7 +185,7 @@ def compare_dfs(
         nan_diff_df = compare_nans_in_dataframes(df1, df2)
         _LOG.debug(
             "Dataframe with NaN differences=\n%s",
-            hpandas_utils.df_to_str(nan_diff_df),
+            hpanutil.df_to_str(nan_diff_df),
         )
         msg = "There are NaN values in one of the dataframes that are not in the other one."
         hdbg.dassert_eq(
@@ -208,9 +204,7 @@ def compare_dfs(
         # Check if `df_diff` values are less than `assert_diff_threshold`.
         if assert_diff_threshold is not None:
             nan_mask = df_diff.isna()
-            within_threshold = (
-                df_diff.abs() <= assert_diff_threshold
-            ) | nan_mask
+            within_threshold = (df_diff.abs() <= assert_diff_threshold) | nan_mask
             expected = pd.DataFrame(
                 True,
                 index=within_threshold.index,
@@ -230,8 +224,8 @@ def compare_dfs(
                 hdbg._dfatal(
                     _,
                     "df1=\n%s\n and df2=\n%s\n have pct_change more than `assert_diff_threshold`.",
-                    hpandas_utils.df_to_str(df1, log_level=log_level),
-                    hpandas_utils.df_to_str(df2, log_level=log_level),
+                    hpanutil.df_to_str(df1, log_level=log_level),
+                    hpanutil.df_to_str(df2, log_level=log_level),
                     only_warning=only_warning,
                 )
         # Report max diff.

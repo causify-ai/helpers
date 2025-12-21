@@ -9,9 +9,9 @@ from typing import List, Optional
 import pandas as pd
 
 import helpers.hdbg as hdbg
-import helpers.hlogging as hlogging
+import helpers.hlogging as hloggin
 
-_LOG = hlogging.getLogger(__name__)
+_LOG = hloggin.getLogger(__name__)
 
 
 def get_df_signature(df: pd.DataFrame, num_rows: int = 6) -> str:

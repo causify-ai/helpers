@@ -10,11 +10,11 @@ import numpy as np
 import pandas as pd
 
 import helpers.hdbg as hdbg
-import helpers.hlogging as hlogging
-import helpers.hpandas_utils as hpandas_utils
+import helpers.hlogging as hloggin
+import helpers.hpandas_utils as hpanutil
 import helpers.hprint as hprint
 
-_LOG = hlogging.getLogger(__name__)
+_LOG = hloggin.getLogger(__name__)
 
 
 def drop_duplicates(
@@ -170,7 +170,7 @@ def drop_duplicated(
     """
     Implement `df.duplicated` but considering also the index and ignoring nans.
     """
-    _LOG.debug("before df=\n%s", hpandas_utils.df_to_str(df))
+    _LOG.debug("before df=\n%s", hpanutil.df_to_str(df))
     # Move the index to the df.
     old_index_name = df.index.name
     new_index_name = "_index.tmp"
@@ -187,7 +187,7 @@ def drop_duplicated(
         num_rows_before = df.shape[0]
         _LOG.debug(
             "Removing duplicates df=\n%s",
-            hpandas_utils.df_to_str(df.loc[duplicated]),
+            hpanutil.df_to_str(df.loc[duplicated]),
         )
         df = df.loc[~duplicated]
         num_rows_after = df.shape[0]
@@ -195,11 +195,11 @@ def drop_duplicated(
             "Removed repeated rows num_rows=%s",
             hprint.perc(num_rows_before - num_rows_after, num_rows_before),
         )
-    _LOG.debug("after removing duplicates df=\n%s", hpandas_utils.df_to_str(df))
+    _LOG.debug("after removing duplicates df=\n%s", hpanutil.df_to_str(df))
     # Set the index back.
     df.set_index(new_index_name, inplace=True)
     df.index.name = old_index_name
-    _LOG.debug("after df=\n%s", hpandas_utils.df_to_str(df))
+    _LOG.debug("after df=\n%s", hpanutil.df_to_str(df))
     return df
 
 
@@ -210,7 +210,7 @@ def remove_outliers(
     df: pd.DataFrame,
     lower_quantile: float,
     *,
-    column_set: hpandas_utils.ColumnSet,
+    column_set: hpanutil.ColumnSet,
     # TODO(Grisha): the params are not used.
     fill_value: float = np.nan,
     mode: str = "remove_outliers",
@@ -228,16 +228,14 @@ def remove_outliers(
     df = df.copy()
     if axis == 0:
         all_columns = df.columns
-        columns = hpandas_utils.resolve_column_names(column_set, all_columns)
+        columns = hpanutil.resolve_column_names(column_set, all_columns)
         hdbg.dassert_is_subset(columns, df.columns)
         for column in all_columns:
             if column in columns:
-                df[column] = df[column].quantile(
-                    [lower_quantile, upper_quantile]
-                )
+                df[column] = df[column].quantile([lower_quantile, upper_quantile])
     elif axis == 1:
         all_rows = df.rows
-        rows = hpandas_utils.resolve_column_names(column_set, all_rows)
+        rows = hpanutil.resolve_column_names(column_set, all_rows)
         hdbg.dassert_is_subset(rows, df.rows)
         for row in all_rows:
             if row in rows:

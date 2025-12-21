@@ -10,10 +10,10 @@ import numpy as np
 import pandas as pd
 
 import helpers.hdbg as hdbg
-import helpers.hlogging as hlogging
-import helpers.hpandas_dassert as hpandas_dassert
+import helpers.hlogging as hloggin
+import helpers.hpandas_dassert as hpandass
 
-_LOG = hlogging.getLogger(__name__)
+_LOG = hloggin.getLogger(__name__)
 
 RowsValues = List[List[str]]
 
@@ -64,12 +64,12 @@ def infer_column_types(col: pd.Series):
     """
     Determine which data type is most prevalent in a column.
 
-    Examine the values in the given pandas Series and decides whether the
-    majority of entries are strings, numeric values, or booleans.
+    Examine the values in the given pandas Series and decides whether
+    the majority of entries are strings, numeric values, or booleans.
 
     :param col: The column to inspect.
-    :return: One of `"is_string"`, `"is_numeric"`, or `"is_bool"`, representing
-        the predominant type.
+    :return: One of `"is_string"`, `"is_numeric"`, or `"is_bool"`,
+        representing the predominant type.
     """
     vals = {
         "is_numeric": pd.to_numeric(col, errors="coerce").notna(),
@@ -122,9 +122,7 @@ def convert_to_type(col: pd.Series, type_: str) -> pd.Series:
             lambda x: (
                 True
                 if x in ["True", 1, "1", "true", True]
-                else False
-                if x in [0, "0", "False", False, "false"]
-                else None
+                else False if x in [0, "0", "False", False, "false"] else None
             )
         )
     elif type_ == "is_int":
@@ -154,7 +152,7 @@ def convert_col_to_int(
     # Attempt the conversion.
     df[col] = df[col].astype("int64")
     # Trust, but verify.
-    hpandas_dassert.dassert_series_type_is(df[col], np.int64)
+    hpandass.dassert_series_type_is(df[col], np.int64)
     return df
 
 

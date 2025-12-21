@@ -11,11 +11,11 @@ import numpy as np
 import pandas as pd
 
 import helpers.hdbg as hdbg
-import helpers.hlogging as hlogging
+import helpers.hlogging as hloggin
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
-_LOG = hlogging.getLogger(__name__)
+_LOG = hloggin.getLogger(__name__)
 
 
 # TODO(gp): -> AxisNameSet
@@ -44,10 +44,7 @@ def _display(log_level: int, df: pd.DataFrame) -> None:
     """
     from IPython.display import display
 
-    if (
-        hsystem.is_running_in_ipynb()
-        and log_level >= hdbg.get_logger_verbosity()
-    ):
+    if hsystem.is_running_in_ipynb() and log_level >= hdbg.get_logger_verbosity():
         display(df)
 
 

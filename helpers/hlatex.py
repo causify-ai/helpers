@@ -123,7 +123,7 @@ def _is_latex_line_separator(line: str, *, min_repeats: int = 5) -> bool:
 
 
 def frame_sections(lines: List[str]) -> List[str]:
-    """
+    r"""
     Add line separators before LaTeX section commands.
 
     This function adds comment separators before \section, \subsection, and
@@ -198,7 +198,7 @@ def frame_sections(lines: List[str]) -> List[str]:
 
 
 def _is_latex_comment(line: str) -> bool:
-    """
+    r"""
     Check if a line is a LaTeX comment.
 
     A LaTeX comment line starts with the `%` character. This function
@@ -277,7 +277,7 @@ def _extract_latex_section(
 def extract_headers_from_latex(
     lines: List[str], max_level: int, *, sanity_check: bool = True
 ) -> hmarkdo.HeaderList:
-    """
+    r"""
     Extract headers from a LaTeX file and return a HeaderList.
 
     This function processes a LaTeX file line by line, identifies section
