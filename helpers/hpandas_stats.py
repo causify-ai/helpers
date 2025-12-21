@@ -11,12 +11,12 @@ import pandas as pd
 
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
-import helpers.hlogging as hlogging
-import helpers.hpandas_dassert as hpandas_dassert
-import helpers.hpandas_transform as hpandas_transform
+import helpers.hlogging as hloggin
+import helpers.hpandas_dassert as hpandass
+import helpers.hpandas_transform as hpantran
 import helpers.hprint as hprint
 
-_LOG = hlogging.getLogger(__name__)
+_LOG = hloggin.getLogger(__name__)
 
 
 def compute_duration_df(
@@ -52,7 +52,7 @@ def compute_duration_df(
     for tag in tag_to_df.keys():
         # Check that the passed timestamp has timezone info.
         hdateti.dassert_has_tz(tag_to_df[tag].index[0])
-        hpandas_dassert.dassert_index_is_datetime(tag_to_df[tag])
+        hpandass.dassert_index_is_datetime(tag_to_df[tag])
         # Compute timestamp stats.
         data_stats.loc[tag, min_col] = tag_to_df[tag].index.min()
         data_stats.loc[tag, max_col] = tag_to_df[tag].index.max()
@@ -75,7 +75,7 @@ def compute_duration_df(
         # The end of the intersection will be the min value amongt all end dates.
         intersection_end_date = data_stats[max_col].min()
         for tag in tag_to_df_updated.keys():
-            df = hpandas_transform.trim_df(
+            df = hpantran.trim_df(
                 tag_to_df_updated[tag],
                 ts_col_name=None,
                 start_ts=intersection_start_date,
@@ -121,7 +121,7 @@ def compute_weighted_sum(
         hdbg.dassert_isinstance(key, str)
         hdbg.dassert_isinstance(value, pd.DataFrame)
         # The reference df is not modified.
-        _, value = hpandas_transform.apply_index_mode(df, value, index_mode)
+        _, value = hpantran.apply_index_mode(df, value, index_mode)
         hdbg.dassert(
             value.columns.equals(cols),
             "Column equality fails for keys=%s, %s",

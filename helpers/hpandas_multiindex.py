@@ -5,21 +5,19 @@ import helpers.hpandas as hpandas
 """
 
 import logging
-import helpers.hlogging as hlogging
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-
 import helpers.hdbg as hdbg
-import helpers.hpandas_compare as hpandas_compare
-import helpers.hpandas_dassert as hpandas_dassert
-import helpers.hpandas_transform as hpandas_transform
-import helpers.hpandas_utils as hpandas_utils
+import helpers.hlogging as hloggin
+import helpers.hpandas_compare as hpancomp
+import helpers.hpandas_dassert as hpandass
+import helpers.hpandas_transform as hpantran
+import helpers.hpandas_utils as hpanutil
 import helpers.hprint as hprint
 
-
-_LOG = hlogging.getLogger(__name__)
+_LOG = hloggin.getLogger(__name__)
 
 RowsValues = List[List[str]]
 
@@ -101,8 +99,8 @@ def subset_multiindex_df(
     # TODO(gp): Consider passing trim_df_kwargs as kwargs.
     start_timestamp: Optional[pd.Timestamp] = None,
     end_timestamp: Optional[pd.Timestamp] = None,
-    columns_level0: hpandas_utils.ColumnSet = None,
-    columns_level1: hpandas_utils.ColumnSet = None,
+    columns_level0: hpanutil.ColumnSet = None,
+    columns_level1: hpanutil.ColumnSet = None,
     keep_order: bool = False,
 ) -> pd.DataFrame:
     """
@@ -122,8 +120,8 @@ def subset_multiindex_df(
     # Filter by timestamp.
     allow_empty = False
     strictly_increasing = False
-    hpandas_dassert.dassert_time_indexed_df(df, allow_empty, strictly_increasing)
-    df = hpandas_transform.trim_df(
+    hpandass.dassert_time_indexed_df(df, allow_empty, strictly_increasing)
+    df = hpantran.trim_df(
         df,
         ts_col_name=None,
         start_ts=start_timestamp,
@@ -134,7 +132,7 @@ def subset_multiindex_df(
     # Filter level 0.
     hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     all_columns_level0 = df.columns.levels[0]
-    columns_level0 = hpandas_utils.resolve_column_names(
+    columns_level0 = hpanutil.resolve_column_names(
         columns_level0, all_columns_level0, keep_order=keep_order
     )
     hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
@@ -143,7 +141,7 @@ def subset_multiindex_df(
     # Filter level 1.
     hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
     all_columns_level1 = df.columns.levels[1]
-    columns_level1 = hpandas_utils.resolve_column_names(
+    columns_level1 = hpanutil.resolve_column_names(
         columns_level1, all_columns_level1, keep_order=keep_order
     )
     hdbg.dassert_isinstance(df.columns, pd.MultiIndex)
@@ -178,9 +176,7 @@ def compare_multiindex_dfs(
     # Compare dfs.
     if compare_dfs_kwargs is None:
         compare_dfs_kwargs = {}
-    diff_df = hpandas_compare.compare_dfs(
-        subset_df1, subset_df2, **compare_dfs_kwargs
-    )
+    diff_df = hpancomp.compare_dfs(subset_df1, subset_df2, **compare_dfs_kwargs)
     return diff_df
 
 

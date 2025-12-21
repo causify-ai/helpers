@@ -10,8 +10,9 @@ _LOG = logging.getLogger(__name__)
 
 _AWS_PROFILE = "ck"
 
+
 # #############################################################################
-# Statistical Functions Tests
+# Test_compute_duration_df
 # #############################################################################
 
 
@@ -148,6 +149,11 @@ class Test_compute_duration_df(hunitest.TestCase):
         self.intersection_helper(
             valid_intersect, expected_start_timestamp, expected_end_timestamp
         )
+
+
+# #############################################################################
+# Test_compute_weighted_sum
+# #############################################################################
 
 
 class Test_compute_weighted_sum(hunitest.TestCase):

@@ -1,4 +1,31 @@
-# test_hpandas_dassert.py
+<!-- toc -->
+
+- [Test_Hpandas_Dassert.Py](#test_hpandas_dassertpy)
+  * [Assertion and Validation Tests](#assertion-and-validation-tests)
+- [Test_Hpandas_Conversion.Py](#test_hpandas_conversionpy)
+  * [Type Conversion Tests](#type-conversion-tests)
+- [Test_Hpandas_Transform.Py](#test_hpandas_transformpy)
+  * [Data Transformation Tests](#data-transformation-tests)
+- [Test_Hpandas_Compare.Py](#test_hpandas_comparepy)
+  * [Dataframe Comparison Tests](#dataframe-comparison-tests)
+- [Test_Hpandas_Clean.Py](#test_hpandas_cleanpy)
+  * [Data Cleaning Tests](#data-cleaning-tests)
+- [Test_Hpandas_Display.Py](#test_hpandas_displaypy)
+  * [Display and Formatting Tests](#display-and-formatting-tests)
+- [Test_Hpandas_Io.Py](#test_hpandas_iopy)
+  * [Input/Output Tests](#inputoutput-tests)
+- [Test_Hpandas_Multiindex.Py](#test_hpandas_multiindexpy)
+  * [Multiindex Dataframe Tests](#multiindex-dataframe-tests)
+- [Test_Hpandas_Stats.Py](#test_hpandas_statspy)
+  * [Statistical Functions Tests](#statistical-functions-tests)
+- [Test_Hpandas_Check_Summary.Py](#test_hpandas_check_summarypy)
+  * [Summary and Reporting Tests](#summary-and-reporting-tests)
+- [Test_Hpandas_Utils.Py](#test_hpandas_utilspy)
+  * [Utility Functions Tests](#utility-functions-tests)
+
+<!-- tocstop -->
+
+# Test_Hpandas_Dassert.Py
 
 ## Assertion and Validation Tests
 
@@ -9,7 +36,7 @@
 - Test_dassert_index_is_datetime
 - Test_dassert_approx_eq1
 
-# test_hpandas_conversion.py
+# Test_Hpandas_Conversion.Py
 
 ## Type Conversion Tests
 
@@ -19,7 +46,7 @@
 - Test_infer_column_types
 - Test_convert_df
 
-# test_hpandas_transform.py
+# Test_Hpandas_Transform.Py
 
 ## Data Transformation Tests
 
@@ -35,15 +62,15 @@
 - Test_apply_column_mode
 - Test_get_df_from_iterator
 
-# test_hpandas_compare.py
+# Test_Hpandas_Compare.Py
 
-## DataFrame Comparison Tests
+## Dataframe Comparison Tests
 
 - TestCompareDataframeRows
 - Test_compare_dfs
 - Test_compare_nans_in_dataframes
 
-# test_hpandas_clean.py
+# Test_Hpandas_Clean.Py
 
 ## Data Cleaning Tests
 
@@ -51,41 +78,41 @@
 - TestDropAxisWithAllNans
 - TestDropDuplicates
 
-# test_hpandas_display.py
+# Test_Hpandas_Display.Py
 
 ## Display and Formatting Tests
 
 - TestDataframeToJson
 - Test_list_to_str
 
-# test_hpandas_io.py
+# Test_Hpandas_Io.Py
 
 ## Input/Output Tests
 
 - TestReadDataFromS3
 
-# test_hpandas_multiindex.py
+# Test_Hpandas_Multiindex.Py
 
-## MultiIndex DataFrame Tests
+## Multiindex Dataframe Tests
 
 - Test_subset_multiindex_df
 - Test_compare_multiindex_dfs
 - Test_multiindex_df_info1
 
-# test_hpandas_stats.py
+# Test_Hpandas_Stats.Py
 
 ## Statistical Functions Tests
 
 - Test_compute_duration_df
 - Test_compute_weighted_sum
 
-# test_hpandas_check_summary.py
+# Test_Hpandas_Check_Summary.Py
 
 ## Summary and Reporting Tests
 
 - Test_CheckSummary
 
-# test_hpandas_utils.py
+# Test_Hpandas_Utils.Py
 
 ## Utility Functions Tests
 

@@ -11,8 +11,9 @@ _LOG = logging.getLogger(__name__)
 
 _AWS_PROFILE = "ck"
 
+
 # #############################################################################
-# Type Conversion Tests
+# Test_to_series1
 # #############################################################################
 
 
@@ -53,6 +54,11 @@ class Test_to_series1(hunitest.TestCase):
         self.helper(n, expected)
 
 
+# #############################################################################
+# Test_cast_series_to_type
+# #############################################################################
+
+
 class Test_cast_series_to_type(hunitest.TestCase):
     """
     Test converting a series into a given type.
@@ -89,6 +95,11 @@ class Test_cast_series_to_type(hunitest.TestCase):
         actual = hpandas.cast_series_to_type(series, series_type)
         for i in range(len(actual)):
             self.assertEqual(type(actual.iloc[i]), dict)
+
+
+# #############################################################################
+# Test_convert_to_type
+# #############################################################################
 
 
 class Test_convert_to_type(hunitest.TestCase):
@@ -136,6 +147,11 @@ class Test_convert_to_type(hunitest.TestCase):
         with pytest.raises(ValueError) as exc:
             hpandas.convert_to_type(series, "invalid_type")
         self.assertIn("Unknown column type: invalid_type", str(exc.value))
+
+
+# #############################################################################
+# Test_infer_column_types
+# #############################################################################
 
 
 class Test_infer_column_types(hunitest.TestCase):
@@ -190,6 +206,11 @@ class Test_infer_column_types(hunitest.TestCase):
         )
         # bool < numeric < string ⇒ type is string
         self.assert_equal(vals["type"], "is_string")
+
+
+# #############################################################################
+# Test_convert_df
+# #############################################################################
 
 
 class Test_convert_df(hunitest.TestCase):

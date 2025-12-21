@@ -12,8 +12,9 @@ _LOG = logging.getLogger(__name__)
 
 _AWS_PROFILE = "ck"
 
+
 # #############################################################################
-# DataFrame Comparison Tests
+# TestCompareDataframeRows
 # #############################################################################
 
 
@@ -76,7 +77,7 @@ class TestCompareDataframeRows(hunitest.TestCase):
 
 
 # #############################################################################
-# TestReadDataFromS3
+# Test_compare_dfs
 # #############################################################################
 
 
@@ -612,6 +613,11 @@ class Test_compare_dfs(hunitest.TestCase):
                 column_mode="equal",
                 diff_mode="pct_change",
             )
+
+
+# #############################################################################
+# Test_compare_nans_in_dataframes
+# #############################################################################
 
 
 class Test_compare_nans_in_dataframes(hunitest.TestCase):

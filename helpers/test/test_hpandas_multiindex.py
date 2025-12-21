@@ -10,8 +10,9 @@ _LOG = logging.getLogger(__name__)
 
 _AWS_PROFILE = "ck"
 
+
 # #############################################################################
-# MultiIndex DataFrame Tests
+# Test_subset_multiindex_df
 # #############################################################################
 
 
@@ -249,6 +250,11 @@ class Test_subset_multiindex_df(hunitest.TestCase):
                 df,
                 columns_level1=["invalid_input"],
             )
+
+
+# #############################################################################
+# Test_compare_multiindex_dfs
+# #############################################################################
 
 
 class Test_compare_multiindex_dfs(hunitest.TestCase):
@@ -532,6 +538,11 @@ class Test_compare_multiindex_dfs(hunitest.TestCase):
             expected_column_unique_values,
             expected_signature,
         )
+
+
+# #############################################################################
+# Test_multiindex_df_info1
+# #############################################################################
 
 
 class Test_multiindex_df_info1(hunitest.TestCase):

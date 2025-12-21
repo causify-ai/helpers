@@ -9,10 +9,9 @@ from typing import List, Optional
 
 import pandas as pd
 
-import helpers.hlogging as hlogging
+import helpers.hlogging as hloggin
 
-
-_LOG = hlogging.getLogger(__name__)
+_LOG = hloggin.getLogger(__name__)
 
 
 # #############################################################################

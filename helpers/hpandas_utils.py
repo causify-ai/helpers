@@ -5,18 +5,17 @@ import helpers.hpandas as hpandas
 """
 
 import logging
-import helpers.hlogging as hlogging
 from typing import Any, List, Optional, Union
 
 import numpy as np
 import pandas as pd
 
-
 import helpers.hdbg as hdbg
+import helpers.hlogging as hloggin
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
-_LOG = hlogging.getLogger(__name__)
+_LOG = hloggin.getLogger(__name__)
 
 
 # TODO(gp): -> AxisNameSet
@@ -338,6 +337,7 @@ def df_to_str(
         out.append(df_as_str)
         txt = "\n".join(out)
     return txt
+
 
 # #############################################################################
 

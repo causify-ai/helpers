@@ -10,8 +10,9 @@ _LOG = logging.getLogger(__name__)
 
 _AWS_PROFILE = "ck"
 
+
 # #############################################################################
-# Data Cleaning Tests
+# TestDropNa
 # #############################################################################
 
 
@@ -71,6 +72,11 @@ class TestDropNa(hunitest.TestCase):
         expected = expected.set_index(pd.Index([1, 3, 4]))
         # Check.
         hunitest.compare_df(actual, expected)
+
+
+# #############################################################################
+# TestDropAxisWithAllNans
+# #############################################################################
 
 
 class TestDropAxisWithAllNans(hunitest.TestCase):
@@ -174,6 +180,11 @@ class TestDropAxisWithAllNans(hunitest.TestCase):
         expected = pd.DataFrame(data=expected)
         # Check.
         hunitest.compare_df(actual, expected)
+
+
+# #############################################################################
+# TestDropDuplicates
+# #############################################################################
 
 
 class TestDropDuplicates(hunitest.TestCase):

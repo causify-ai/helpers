@@ -1,28 +1,27 @@
 <!-- toc -->
 
-- [Introduction / Motivation](#introduction--motivation)
-- [Core Concepts](#core-concepts)
-- [How It Works](#how-it-works)
-- [Design Rationale](#design-rationale)
-- [Tradeoffs And Alternatives](#tradeoffs-and-alternatives)
-  * [Current Approach](#current-approach)
-  * [Alternative Approach](#alternative-approach)
+- [Explanation: Reorder_Python_Code.Py](#explanation-reorder_python_codepy)
+  * [Introduction / Motivation](#introduction--motivation)
+  * [Core Concepts](#core-concepts)
+- [Section Name](#section-name)
+  * [How It Works](#how-it-works)
+  * [Prompt](#prompt)
 
 <!-- tocstop -->
 
-# Explanation: reorder_python_code.py
+# Explanation: Reorder_Python_Code.Py
 
 ## Introduction / Motivation
 
 - **What is this about?**
   - A tool for reorganizing Python code from a single monolithic file into
     multiple smaller, logically-organized files
-  - Enables splitting large Python modules by extracting and reordering functions
-    based on a declarative markdown map
+  - Enables splitting large Python modules by extracting and reordering
+    functions based on a declarative markdown map
 
 - **What problem does it solve?**
-  - Large Python files (e.g., `helpers/hpandas.py` with 100+ functions) become
-    difficult to maintain and navigate
+  - Large Python files (e.g., [`/helpers/hpandas.py`](/helpers/hpandas.py) with
+    100+ functions) become difficult to maintain and navigate
   - Manual code reorganization is error-prone and time-consuming
   - Need to preserve function implementations exactly while reorganizing them
     across multiple files
@@ -33,12 +32,13 @@
   - Developers refactoring large Python modules into smaller, more maintainable
     components
   - Teams performing codebase restructuring or modularization initiatives
-  - Anyone needing to split monolithic utility libraries into focused sub-modules
+  - Anyone needing to split monolithic utility libraries into focused
+    sub-modules
 
 ## Core Concepts
 
-- **Markdown Map File**: A declarative specification that defines how to organize
-  functions from a source file
+- **Markdown Map File**: A declarative specification that defines how to
+  organize functions from a source file
   - Level 1 headers (`# filename.py`) specify target output files
   - Level 2 headers (`## Section Name`) define logical groupings with formatted
     comment separators
@@ -59,9 +59,10 @@
 
 - **Section Separators**: Formatted comment blocks that visually organize
   functions within files ```python
-  # #############################################################################
+  #
   # Section Name
-  # #############################################################################
+  #
+  ```
   ```
 
 ## How It Works
@@ -69,11 +70,13 @@
 The script executes in six logical stages:
 
 **Step 1: Parse Map File**
+
 - Read markdown map file and extract file structure
 - Build dictionary mapping target filenames to sections and function lists
 - Each section contains section name and list of function names
 
 **Step 2: Extract Function Boundaries**
+
 - Scan source file to identify all top-level functions and classes
 - Use regex patterns to find function/class definitions
 - Calculate line ranges for each function by finding next definition at same
@@ -81,20 +84,24 @@ The script executes in six logical stages:
 - Store mapping of function names to (start_line, end_line) tuples
 
 **Step 3: Identify Module Header**
+
 - Locate end of module header (docstring, imports, module-level constants)
 - Find first top-level function/class definition
 - Everything before first definition becomes reusable header
 
 **Step 4: Create Target Files**
+
 - For each target file specified in map:
   - Start with copy of module header
   - Process sections in order
 
 **Step 5: Add Section Separators**
+
 - Insert formatted comment blocks between sections
 - Create visual separation matching level 2 headers from map file
 
 **Step 6: Extract and Reorder Functions**
+
 - For each function in section:
   - Look up line range from function boundaries mapping
   - Extract exact text of function from source

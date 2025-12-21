@@ -40,7 +40,9 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _parse_map_file(map_file_path: str) -> Dict[str, List[Tuple[str, List[str]]]]:
+def _parse_map_file(
+    map_file_path: str,
+) -> Dict[str, List[Tuple[str, List[str]]]]:
     """
     Parse the markdown map file to extract file structure.
 
@@ -86,7 +88,9 @@ def _parse_map_file(map_file_path: str) -> Dict[str, List[Tuple[str, List[str]]]
                 if current_file not in file_mapping:
                     file_mapping[current_file] = []
                 # Use filename as default section name.
-                file_mapping[current_file].append(("Functions", current_functions))
+                file_mapping[current_file].append(
+                    ("Functions", current_functions)
+                )
                 current_functions = []
             # Extract filename.
             current_file = line[2:].strip()
@@ -106,7 +110,9 @@ def _parse_map_file(map_file_path: str) -> Dict[str, List[Tuple[str, List[str]]]
             elif current_file and current_functions:
                 if current_file not in file_mapping:
                     file_mapping[current_file] = []
-                file_mapping[current_file].append(("Functions", current_functions))
+                file_mapping[current_file].append(
+                    ("Functions", current_functions)
+                )
                 current_functions = []
             # Extract section name.
             current_section = line[3:].strip()
@@ -195,12 +201,13 @@ def _extract_functions_from_source(
     """
     Extract function definitions and their line ranges from source file.
 
-    Uses text-based parsing with regular expressions to find function and
-    class definitions. Only extracts top-level functions and classes, not
-    nested ones.
+    Uses text-based parsing with regular expressions to find function
+    and class definitions. Only extracts top-level functions and
+    classes, not nested ones.
 
     :param source_file_path: path to the Python source file
-    :return: dictionary mapping function names to (start_line, end_line) tuples
+    :return: dictionary mapping function names to (start_line, end_line)
+        tuples
     """
     hdbg.dassert(
         os.path.exists(source_file_path),
@@ -228,7 +235,10 @@ def _extract_functions_from_source(
         start_line, end_line = _find_function_boundaries(
             lines, func_name, search_idx
         )
-        functions[func_name] = (start_line + 1, end_line)  # Convert to 1-indexed.
+        functions[func_name] = (
+            start_line + 1,
+            end_line,
+        )  # Convert to 1-indexed.
         search_idx = end_line
     _LOG.info("Extracted %d functions/classes from source", len(functions))
     return functions
@@ -280,7 +290,8 @@ def _find_module_header_end(lines: List[str]) -> int:
 
 def _remove_trailing_section_headers(lines: List[str]) -> List[str]:
     """
-    Remove trailing section headers and excessive blank lines from extracted code.
+    Remove trailing section headers and excessive blank lines from extracted
+    code.
 
     Section headers follow the pattern:
     # #############################################################################
@@ -359,7 +370,8 @@ def _create_target_file(
     :param source_file_path: path to source Python file
     :param target_file_path: path to target Python file
     :param sections: list of (section_name, function_names) tuples
-    :param source_functions: dictionary mapping function names to line ranges
+    :param source_functions: dictionary mapping function names to line
+        ranges
     """
     _LOG.info("Creating target file: %s", target_file_path)
     # Read source file.
@@ -395,7 +407,9 @@ def _create_target_file(
             # Add function to output.
             output_lines.extend(func_lines)
             output_lines.append("")  # Add blank line after function.
-            _LOG.debug("Added function %s (%d lines)", func_name, len(func_lines))
+            _LOG.debug(
+                "Added function %s (%d lines)", func_name, len(func_lines)
+            )
     # Write output file.
     output_content = "\n".join(output_lines)
     hio.to_file(target_file_path, output_content)
@@ -424,7 +438,9 @@ def _reorder_python_code(*, input_file: str, map_file: str) -> None:
         target_file_path = os.path.join(input_dir, target_filename)
         _LOG.info("Processing target file: %s", target_file_path)
         # Create the target file.
-        _create_target_file(input_file, target_file_path, sections, source_functions)
+        _create_target_file(
+            input_file, target_file_path, sections, source_functions
+        )
     _LOG.info("Code reorganization completed")
 
 

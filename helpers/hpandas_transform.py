@@ -5,22 +5,21 @@ import helpers.hpandas as hpandas
 """
 
 import csv
-import helpers.hlogging as hlogging
 import random
 import re
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 import pandas as pd
 
-
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
-import helpers.hpandas_conversion as hpandas_conversion
-import helpers.hpandas_dassert as hpandas_dassert
-import helpers.hpandas_utils as hpandas_utils
+import helpers.hlogging as hloggin
+import helpers.hpandas_conversion as hpanconv
+import helpers.hpandas_dassert as hpandass
+import helpers.hpandas_utils as hpanutil
 import helpers.hprint as hprint
 
-_LOG = hlogging.getLogger(__name__)
+_LOG = hloggin.getLogger(__name__)
 
 # Enable extra verbose debugging. Do not commit.
 _TRACE = False
@@ -42,7 +41,7 @@ def resample_index(index: pd.DatetimeIndex, frequency: str) -> pd.DatetimeIndex:
     """
     _LOG.debug(hprint.to_str("index frequency"))
     hdbg.dassert_isinstance(index, pd.DatetimeIndex)
-    hpandas_dassert.dassert_unique_index(
+    hpandass.dassert_unique_index(
         index, msg="Index must have only unique values"
     )
     min_date = index.min()
@@ -200,7 +199,7 @@ def apply_index_mode(
     df1_copy = df1.copy()
     df2_copy = df2.copy()
     if mode == "assert_equal":
-        hpandas_dassert.dassert_indices_equal(df1_copy, df2_copy)
+        hpandass.dassert_indices_equal(df1_copy, df2_copy)
     elif mode == "intersect":
         # TODO(Grisha): Add sorting on demand.
         common_index = df1_copy.index.intersection(df2_copy.index)
@@ -244,15 +243,15 @@ def apply_columns_mode(
     df2_copy = df2.copy()
     if mode == "assert_equal":
         # Check if columns are equal or not.
-        hpandas_dassert.dassert_columns_equal(df1_copy, df2_copy)
+        hpandass.dassert_columns_equal(df1_copy, df2_copy)
     elif mode == "intersect":
         # Filter dataframes based on its common columns.
         common_columns = df1_copy.columns.intersection(df2_copy.columns)
         df1_copy = df1_copy[common_columns]
         df2_copy = df2_copy[common_columns]
         # Log the string representation of 2 dfs.
-        _LOG.debug("df1 after filtering=\n%s", hpandas_utils.df_to_str(df1))
-        _LOG.debug("df2 after filtering=\n%s", hpandas_utils.df_to_str(df2))
+        _LOG.debug("df1 after filtering=\n%s", hpanutil.df_to_str(df1))
+        _LOG.debug("df2 after filtering=\n%s", hpanutil.df_to_str(df2))
     elif mode == "leave_unchanged":
         # Ignore mismatch.
         _LOG.debug(
@@ -293,7 +292,7 @@ def trim_df(
     """
     if _TRACE:
         _LOG.trace(
-            hpandas_utils.df_to_str(
+            hpanutil.df_to_str(
                 df, print_dtypes=True, print_shape_info=True, tag="df"
             )
         )
@@ -301,7 +300,7 @@ def trim_df(
         hprint.to_str("ts_col_name start_ts end_ts left_close right_close")
     )
     if _TRACE:
-        _LOG.trace("df=\n%s", hpandas_utils.df_to_str(df))
+        _LOG.trace("df=\n%s", hpanutil.df_to_str(df))
     if df.empty:
         # If the df is empty, there is nothing to trim.
         return df
@@ -484,9 +483,9 @@ def str_to_df(
     # Cast the columns into appropriate types.
     for col, col_type in col_to_type.items():
         if col == "__index__":
-            df.index = hpandas_conversion.cast_series_to_type(df.index, col_type)
+            df.index = hpanconv.cast_series_to_type(df.index, col_type)
         else:
-            df[col] = hpandas_conversion.cast_series_to_type(df[col], col_type)
+            df[col] = hpanconv.cast_series_to_type(df[col], col_type)
     # Cast the column names into appropriate types.
     for col, col_name_type in col_to_name_type.items():
         if col == "__index__":
