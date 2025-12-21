@@ -41,7 +41,9 @@ def resample_index(index: pd.DatetimeIndex, frequency: str) -> pd.DatetimeIndex:
     """
     _LOG.debug(hprint.to_str("index frequency"))
     hdbg.dassert_isinstance(index, pd.DatetimeIndex)
-    hpandass.dassert_unique_index(index, msg="Index must have only unique values")
+    hpandass.dassert_unique_index(
+        index, msg="Index must have only unique values"
+    )
     min_date = index.min()
     max_date = index.max()
     _LOG.debug("min_date=%s max_date=%s", min_date, max_date)

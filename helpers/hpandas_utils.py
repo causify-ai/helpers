@@ -44,7 +44,10 @@ def _display(log_level: int, df: pd.DataFrame) -> None:
     """
     from IPython.display import display
 
-    if hsystem.is_running_in_ipynb() and log_level >= hdbg.get_logger_verbosity():
+    if (
+        hsystem.is_running_in_ipynb()
+        and log_level >= hdbg.get_logger_verbosity()
+    ):
         display(df)
 
 

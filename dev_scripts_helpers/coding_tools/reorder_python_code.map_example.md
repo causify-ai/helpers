@@ -1,122 +1,145 @@
-# hpandas_dassert.py
+<!-- toc -->
+
+- [Hpandas_Dassert.Py](#hpandas_dassertpy)
+  * [Index/Axis Validation & Assertions](#indexaxis-validation--assertions)
+- [Hpandas_Conversion.Py](#hpandas_conversionpy)
+  * [Dataframe/Series Conversion](#dataframeseries-conversion)
+  * [Infer Type](#infer-type)
+- [Hpandas_Transform.Py](#hpandas_transformpy)
+  * [Resampling & Time Series Operations](#resampling--time-series-operations)
+  * [Dataframe Transformation](#dataframe-transformation)
+  * [Column Operations](#column-operations)
+  * [Merge](#merge)
+  * [Filter](#filter)
+- [Hpandas_Compare.Py](#hpandas_comparepy)
+- [Hpandas_Clean.Py](#hpandas_cleanpy)
+- [Hpandas_Display.Py](#hpandas_displaypy)
+- [Hpandas_Io.Py](#hpandas_iopy)
+- [Hpandas_Multiindex.Py](#hpandas_multiindexpy)
+- [Hpandas_Stats.Py](#hpandas_statspy)
+- [Hpandas_Check_Summary.Py](#hpandas_check_summarypy)
+
+<!-- tocstop -->
+
+# Hpandas_Dassert.Py
 
 ## Index/Axis Validation & Assertions
 
-- _get_index()
-- dassert_index_is_datetime()
-- dassert_unique_index()
-- dassert_increasing_index()
-- dassert_strictly_increasing_index()
-- dassert_monotonic_index()
-- dassert_time_indexed_df()
-- dassert_indices_equal()
-- dassert_columns_equal()
-- dassert_axes_equal()
+- \_get_index()
+- Dassert_index_is_datetime()
+- Dassert_unique_index()
+- Dassert_increasing_index()
+- Dassert_strictly_increasing_index()
+- Dassert_monotonic_index()
+- Dassert_time_indexed_df()
+- Dassert_indices_equal()
+- Dassert_columns_equal()
+- Dassert_axes_equal()
 
-- dassert_series_type_is()
-- dassert_series_type_in()
-- dassert_valid_remap()
-- dassert_approx_eq()
-- dassert_is_days()
+- Dassert_series_type_is()
+- Dassert_series_type_in()
+- Dassert_valid_remap()
+- Dassert_approx_eq()
+- Dassert_is_days()
 
-# hpandas_conversion.py
+# Hpandas_Conversion.Py
 
-## DataFrame/Series Conversion
+## Dataframe/Series Conversion
 
-- to_series()
-- as_series()
+- To_series()
+- As_series()
 
-## Infer type
+## Infer Type
 
-- infer_column_types()
-- infer_column_types_df()
-- convert_to_type()
-- convert_col_to_int()
-- cast_series_to_type()
-- convert_df()
+- Infer_column_types()
+- Infer_column_types_df()
+- Convert_to_type()
+- Convert_col_to_int()
+- Cast_series_to_type()
+- Convert_df()
 
-# hpandas_transform.py
+# Hpandas_Transform.Py
 
 ## Resampling & Time Series Operations
 
-- resample_index()
-- resample_df()
-- reindex_on_unix_epoch()
-- find_gaps_in_dataframes()
-- find_gaps_in_time_series()
+- Resample_index()
+- Resample_df()
+- Reindex_on_unix_epoch()
+- Find_gaps_in_dataframes()
+- Find_gaps_in_time_series()
 
-## DataFrame Transformation
+## Dataframe Transformation
 
-- apply_index_mode()
-- apply_columns_mode()
-- trim_df()
+- Apply_index_mode()
+- Apply_columns_mode()
+- Trim_df()
 
-- str_to_df()
-- _assemble_df_rows()
+- Str_to_df()
+- \_assemble_df_rows()
 
 ## Column Operations
 
-- check_and_filter_matching_columns()
-- _resolve_column_names()
+- Check_and_filter_matching_columns()
+- \_resolve_column_names()
 
 ## Merge
 
-- merge_dfs()
-- get_df_from_iterator()
+- Merge_dfs()
+- Get_df_from_iterator()
 
 ## Filter
 
-- subset_df()
-- filter_df()
+- Subset_df()
+- Filter_df()
 
-# hpandas_compare.py
+# Hpandas_Compare.Py
 
-- compare_dataframe_rows()
-- compare_nans_in_dataframes()
-- compare_dfs()
+- Compare_dataframe_rows()
+- Compare_nans_in_dataframes()
+- Compare_dfs()
 
-# hpandas_clean.py
+# Hpandas_Clean.Py
 
-- drop_duplicates()
-- dropna()
-- drop_axis_with_all_nans()
-- drop_duplicated()
-- remove_outliers()
+- Drop_duplicates()
+- Dropna()
+- Drop_axis_with_all_nans()
+- Drop_duplicated()
+- Remove_outliers()
 
-# hpandas_display.py
+# Hpandas_Display.Py
 
-- df_to_str()
-- _df_to_str()
-- _display()
-- get_df_signature()
-- convert_df_to_json_string()
-- list_to_str()
+- Df_to_str()
+- \_df_to_str()
+- \_display()
+- Get_df_signature()
+- Convert_df_to_json_string()
+- List_to_str()
 
-# hpandas_io.py
+# Hpandas_Io.Py
 
-- read_csv_to_df()
-- read_parquet_to_df()
-- to_gsheet()
+- Read_csv_to_df()
+- Read_parquet_to_df()
+- To_gsheet()
 
-# hpandas_multiindex.py
+# Hpandas_Multiindex.Py
 
-- add_multiindex_col()
-- multiindex_df_info()
-- subset_multiindex_df()
-- compare_multiindex_dfs()
+- Add_multiindex_col()
+- Multiindex_df_info()
+- Subset_multiindex_df()
+- Compare_multiindex_dfs()
 
-# hpandas_stats.py
+# Hpandas_Stats.Py
 
-- compute_duration_df()
+- Compute_duration_df()
 
-- compute_weighted_sum()
+- Compute_weighted_sum()
 
-- remap_obj()
-- get_random_df()
-- heatmap_df()
-- to_perc()
-- add_end_download_timestamp()
+- Remap_obj()
+- Get_random_df()
+- Heatmap_df()
+- To_perc()
+- Add_end_download_timestamp()
 
-# hpandas_check_summary.py
+# Hpandas_Check_Summary.Py
 
 - CheckSummary

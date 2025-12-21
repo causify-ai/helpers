@@ -40,7 +40,9 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _parse_map_file(map_file_path: str) -> Dict[str, List[Tuple[str, List[str]]]]:
+def _parse_map_file(
+    map_file_path: str,
+) -> Dict[str, List[Tuple[str, List[str]]]]:
     """
     Parse the markdown map file to extract file structure.
 
@@ -233,7 +235,10 @@ def _extract_functions_from_source(
         start_line, end_line = _find_function_boundaries(
             lines, func_name, search_idx
         )
-        functions[func_name] = (start_line + 1, end_line)  # Convert to 1-indexed.
+        functions[func_name] = (
+            start_line + 1,
+            end_line,
+        )  # Convert to 1-indexed.
         search_idx = end_line
     _LOG.info("Extracted %d functions/classes from source", len(functions))
     return functions
@@ -341,7 +346,9 @@ def _create_target_file(
             # Add function to output.
             output_lines.extend(func_lines)
             output_lines.append("")  # Add blank line after function.
-            _LOG.debug("Added function %s (%d lines)", func_name, len(func_lines))
+            _LOG.debug(
+                "Added function %s (%d lines)", func_name, len(func_lines)
+            )
     # Write output file.
     output_content = "\n".join(output_lines)
     hio.to_file(target_file_path, output_content)

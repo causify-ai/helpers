@@ -232,7 +232,9 @@ def remove_outliers(
         hdbg.dassert_is_subset(columns, df.columns)
         for column in all_columns:
             if column in columns:
-                df[column] = df[column].quantile([lower_quantile, upper_quantile])
+                df[column] = df[column].quantile(
+                    [lower_quantile, upper_quantile]
+                )
     elif axis == 1:
         all_rows = df.rows
         rows = hpanutil.resolve_column_names(column_set, all_rows)

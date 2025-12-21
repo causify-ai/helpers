@@ -5,7 +5,7 @@ from typing import List, Optional
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
-import helpers.hmarkdown_headers as hmarkdo
+import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
@@ -102,9 +102,9 @@ def _is_latex_line_separator(line: str, *, min_repeats: int = 5) -> bool:
     """
     Check if the given line is a LaTeX comment separator.
 
-    This function determines if a line consists of a comment character `%`
-    followed by repeated characters (`#`, `=`, `-`) that would indicate
-    a section separator.
+    This function determines if a line consists of a comment character
+    `%` followed by repeated characters (`#`, `=`, `-`) that would
+    indicate a section separator.
 
     :param line: current line of text being processed
     :param min_repeats: minimum number of times the characters have to
@@ -202,8 +202,8 @@ def _is_latex_comment(line: str) -> bool:
     Check if a line is a LaTeX comment.
 
     A LaTeX comment line starts with the `%` character. This function
-    handles the edge case where `%` is escaped (e.g., `\%`), which should
-    not be treated as a comment.
+    handles the edge case where `%` is escaped (e.g., `\%`), which
+    should not be treated as a comment.
 
     :param line: line of text to check
     :return: True if the line is a comment, False otherwise
@@ -232,7 +232,7 @@ def _is_latex_comment(line: str) -> bool:
 
 def _extract_latex_section(
     line: str, line_number: int
-) -> Optional[hmarkdo.HeaderInfo]:
+) -> Optional[hmarhead.HeaderInfo]:
     r"""
     Parse a LaTeX section command and extract section information.
 
@@ -269,14 +269,14 @@ def _extract_latex_section(
             if not title:
                 return None
             # Return HeaderInfo with level, title, and line number.
-            return hmarkdo.HeaderInfo(level, title, line_number)
+            return hmarhead.HeaderInfo(level, title, line_number)
     # No section command found.
     return None
 
 
 def extract_headers_from_latex(
     lines: List[str], max_level: int, *, sanity_check: bool = True
-) -> hmarkdo.HeaderList:
+) -> hmarhead.HeaderList:
     r"""
     Extract headers from a LaTeX file and return a HeaderList.
 
@@ -302,7 +302,7 @@ def extract_headers_from_latex(
     """
     hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_lte(1, max_level)
-    header_list: hmarkdo.HeaderList = []
+    header_list: hmarhead.HeaderList = []
     # Process the input file to extract headers.
     for line_number, line in enumerate(lines, start=1):
         # Skip LaTeX comment lines.
@@ -315,7 +315,7 @@ def extract_headers_from_latex(
             header_list.append(header_info)
     # Check the header list.
     if sanity_check:
-        hmarkdo.sanity_check_header_list(header_list)
+        hmarhead.sanity_check_header_list(header_list)
     else:
         _LOG.debug("Skipping sanity check")
     hdbg.dassert_isinstance(header_list, list)

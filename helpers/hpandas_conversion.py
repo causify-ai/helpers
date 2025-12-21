@@ -122,7 +122,9 @@ def convert_to_type(col: pd.Series, type_: str) -> pd.Series:
             lambda x: (
                 True
                 if x in ["True", 1, "1", "true", True]
-                else False if x in [0, "0", "False", False, "false"] else None
+                else False
+                if x in [0, "0", "False", False, "false"]
+                else None
             )
         )
     elif type_ == "is_int":
