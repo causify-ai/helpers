@@ -89,7 +89,7 @@ def read_parquet_to_df(
 def to_gsheet(
     df: pd.DataFrame,
     tab_name: str,
-    gsheet_sheet_name: str,
+    gsheet_tab_name: str,
     overwrite: bool,
 ) -> None:
     """
@@ -99,7 +99,7 @@ def to_gsheet(
     :param tab_name: the name of the Google sheet to save the df
         into; the Google sheet with this name must already exist on the
         Google Drive
-    :param gsheet_sheet_name: the name of the sheet in the Google sheet
+    :param gsheet_tab_name: the name of the sheet in the Google sheet
     :param overwrite: if True, the contents of the sheet are erased
         before saving the dataframe into it; if False, the dataframe is
         appended to the contents of the sheet
@@ -107,7 +107,7 @@ def to_gsheet(
     import gspread_pandas
 
     spread = gspread_pandas.Spread(
-        tab_name, sheet=gsheet_sheet_name, create_sheet=True
+        tab_name, sheet=gsheet_tab_name, create_sheet=True
     )
     if overwrite:
         spread.clear_sheet()

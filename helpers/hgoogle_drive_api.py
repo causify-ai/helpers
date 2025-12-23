@@ -45,12 +45,12 @@ import helpers.henv as henv
 _LOG = logging.getLogger(__name__)
 
 
-def install_deps_if_needed() -> None:
-    henv.install_module_if_not_present("google", import_name="google",
+def install_needed_modules() -> None:
+    henv.install_module_if_not_present("google", package_name="google-api-python-client",
         use_activate=True)
-    henv.install_module_if_not_present("googleapiclient", import_name="googleapiclient",
+    henv.install_module_if_not_present("googleapiclient", package_name="googleapiclient",
         use_activate=True)
-    henv.install_module_if_not_present("gspread", import_name="gspread",
+    henv.install_module_if_not_present("gspread", package_name="gspread",
         use_activate=True)
 
 
@@ -111,15 +111,15 @@ def get_gsheet_id(
     credentials: "goasea.Credentials",
     sheet_id: str,
     *,
-    # TODO(ai_gp): Use tab_name instead of sheet_name.
-    sheet_name: Optional[str] = None,
+    # TODO(ai_gp): Use tab_name instead of tab_name.
+    tab_name: Optional[str] = None,
 ) -> str:
     """
     Get the sheet ID from the sheet name in a Google Sheets document.
 
     :param credentials: Google credentials object.
     :param sheet_id: ID of the Google Sheet document.
-    :param sheet_name: Name of the sheet (tab) in the Google Sheets
+    :param tab_name: Name of the sheet (tab) in the Google Sheets
         document.
     :return: Sheet ID of the sheet with the given name or the first
         sheet if the name is not provided.
@@ -129,12 +129,12 @@ def get_gsheet_id(
         sheets_service.spreadsheets().get(spreadsheetId=sheet_id).execute()
     )
     sheets = sheet_metadata.get("sheets", [])
-    if sheet_name:
+    if tab_name:
         for sheet in sheets:
             properties = sheet.get("properties", {})
-            if properties.get("title") == sheet_name:
+            if properties.get("title") == tab_name:
                 return properties.get("sheetId")
-        raise ValueError(f"Sheet with name '{sheet_name}' not found.")
+        raise ValueError(f"Sheet with name '{tab_name}' not found.")
     # Return the ID of the first sheet if no sheet name is provided.
     first_sheet_id = sheets[0].get("properties", {}).get("sheetId")
     return first_sheet_id
@@ -154,9 +154,9 @@ def get_tab_name_from_url(
     # TODO(ai): Should we use the Sheets API instead?
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(url)
-    sheet_name = spreadsheet.title
-    _LOG.debug("Retrieved sheet name: '%s'", sheet_name)
-    return sheet_name
+    tab_name = spreadsheet.title
+    _LOG.debug("Retrieved sheet name: '%s'", tab_name)
+    return tab_name
 
 
 def get_tabs_from_gsheet(
@@ -180,7 +180,7 @@ def freeze_rows_in_gsheet(
     sheet_id: str,
     num_rows_to_freeze: int,
     *,
-    sheet_name: Optional[str] = None,
+    tab_name: Optional[str] = None,
 ) -> None:
     """
     Freeze specified rows in the given sheet.
@@ -188,12 +188,12 @@ def freeze_rows_in_gsheet(
     :param credentials: Google credentials object.
     :param sheet_id: ID of the Google Sheet (spreadsheet ID).
     :param row_indices: Row indices to freeze (zero-based index).
-    :param sheet_name: Name of the sheet (tab) to freeze rows in.
+    :param tab_name: Name of the sheet (tab) to freeze rows in.
         Defaults to the first tab if not provided.
     """
     hdbg.dassert_lt(0, num_rows_to_freeze)
     tab_id = get_gsheet_id(
-        credentials, sheet_id=sheet_id, sheet_name=sheet_name
+        credentials, sheet_id=sheet_id, tab_name=tab_name
     )
     sheets_service = get_sheets_service(credentials)
     freeze_request = {
@@ -224,7 +224,7 @@ def set_row_height_in_gsheet(
     *,
     start_index: Optional[int] = None,
     end_index: Optional[int] = None,
-    sheet_name: Optional[str] = None,
+    tab_name: Optional[str] = None,
 ) -> None:
     """
     Set the height for rows in the given Google sheet.
@@ -236,11 +236,11 @@ def set_row_height_in_gsheet(
         None, applies to all rows.
     :param end_index: Ending index of the rows (zero-based). If None,
         applies to all rows.
-    :param sheet_name: Name of the sheet (tab) to set row height in.
+    :param tab_name: Name of the sheet (tab) to set row height in.
         Defaults to the first tab if not provided.
     """
     tab_id = get_gsheet_id(
-        credentials, sheet_id=sheet_id, sheet_name=sheet_name
+        credentials, sheet_id=sheet_id, tab_name=tab_name
     )
     sheets_service = get_sheets_service(credentials)
     if start_index is None and end_index is None:
@@ -361,14 +361,14 @@ def to_gsheet(
             credentials,
             spreadsheet.id,
             num_rows_to_freeze=1,
-            sheet_name=tab_name,
+            tab_name=tab_name,
         )
         #
         set_row_height_in_gsheet(
             credentials,
             spreadsheet.id,
             height=20,
-            sheet_name=tab_name,
+            tab_name=tab_name,
         )
     # Clear and write data.
     worksheet.clear()
