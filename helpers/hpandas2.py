@@ -62,29 +62,3 @@ def get_value_counts_stats_df(
     if num_rows > 0:
         stats_df = stats_df.head(num_rows)
     return stats_df
-
-
-def head(
-    df: pd.DataFrame, *, seed: Union[int, None] = None, num_rows: int = 2
-) -> None:
-    """
-    Display a sample of rows from a DataFrame.
-
-    By default shows the first `num_rows` rows. When a seed is provided,
-    randomly samples `num_rows` rows instead.
-
-    :param df: The DataFrame to sample from.
-    :param seed: Optional random seed for reproducible sampling. If None, shows
-        first rows.
-    :param num_rows: Number of rows to display.
-    """
-    print("columns=", df.columns.tolist())
-    print("shape=", df.shape)
-    if seed is not None:
-        np.random.seed(seed)
-        index = np.random.choice(df.index, num_rows, replace=False)
-        index = sorted(index)
-        df = df.loc[index]
-    else:
-        df = df.head(num_rows)
-    display(df)

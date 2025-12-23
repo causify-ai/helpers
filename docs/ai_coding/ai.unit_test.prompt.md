@@ -9,7 +9,8 @@ Follow these rules exactly when writing test code.
 - **ALWAYS** add type hint `-> None:` to test methods
 - **ALWAYS** add a docstring to every test method describing what is tested
 - **ALWAYS** use three-section structure: Prepare inputs → Run test → Check outputs
-- **ALWAYS** use `self.assert_equal()` instead of `self.assertEqual()`
+- **ALWAYS** use `self.assert_equal()` instead of `self.assertEqual()` if the
+  inputs are all strings
 - **NEVER** use `hdbg.dassert()` in tests
 - **NEVER** use mock objects
 - **NEVER** test external library functions (focus on our code logic only)
