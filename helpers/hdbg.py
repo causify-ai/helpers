@@ -550,8 +550,15 @@ def dassert_not_intersection(
 
 
 def dassert_no_duplicates(
-    val1: Any, msg: Optional[str] = None, *args: Any, only_warning: bool = False
+    val1: Iterable[Any],
+    msg: Optional[str] = None,
+    *args: Any,
+    only_warning: bool = False
 ) -> None:
+    """
+    Check that `val1` has no duplicates, raise otherwise.
+    """
+    dassert_is_iterable(val1)
     cond = len(set(val1)) == len(val1)
     if not cond:
         # Count the occurrences of each element of the seq.
@@ -572,6 +579,9 @@ def dassert_is_sorted(
     *args: Any,
     only_warning: bool = False,
 ) -> None:
+    """
+    Check that `val` is sorted, raise otherwise.
+    """
     # TODO(gp): Extend for pd.Series using the proper method.
     dassert_isinstance(val1, (list, tuple))
     sort_kwargs = {} if sort_kwargs is None else sort_kwargs
@@ -585,14 +595,34 @@ def dassert_is_sorted(
         _dfatal(txt, msg, *args, only_warning=only_warning)
 
 
-def dassert_eq_all(
-    val1: Any,
-    val2: Any,
+def dassert_is_iterable(
+    val: Any,
     msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
+    """
+    Check that `val` is an iterable (excluding strings, bytes), raise otherwise.
+    """
+    cond = isinstance(val, Iterable) and not isinstance(val, (str, bytes, bytearray))
+    if not cond:
+        txt = f"Val '{val}' of type '{type(val)}' is not an iterable"
+        _dfatal(txt, msg, *args, only_warning=only_warning)
+
+
+def dassert_eq_all(
+    val1: Iterable[Any],
+    val2: Iterable[Any],
+    msg: Optional[str] = None,
+    *args: Any,
+    only_warning: bool = False,
+) -> None:
+    """
+    Check that two iterables `val1` and `val2` are equal, raise otherwise.
+    """
+    dassert_is_iterable(val1)
     val1 = list(val1)
+    dassert_is_iterable(val2)
     val2 = list(val2)
     cond = val1 == val2
     if not cond:

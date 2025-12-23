@@ -40,9 +40,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _parse_map_file(
-    map_file_path: str,
-) -> Dict[str, List[Tuple[str, List[str]]]]:
+def _parse_map_file(map_file_path: str) -> Dict[str, List[Tuple[str, List[str]]]]:
     """
     Parse the markdown map file to extract file structure.
 
@@ -88,9 +86,7 @@ def _parse_map_file(
                 if current_file not in file_mapping:
                     file_mapping[current_file] = []
                 # Use filename as default section name.
-                file_mapping[current_file].append(
-                    ("Functions", current_functions)
-                )
+                file_mapping[current_file].append(("Functions", current_functions))
                 current_functions = []
             # Extract filename.
             current_file = line[2:].strip()
@@ -110,9 +106,7 @@ def _parse_map_file(
             elif current_file and current_functions:
                 if current_file not in file_mapping:
                     file_mapping[current_file] = []
-                file_mapping[current_file].append(
-                    ("Functions", current_functions)
-                )
+                file_mapping[current_file].append(("Functions", current_functions))
                 current_functions = []
             # Extract section name.
             current_section = line[3:].strip()
@@ -143,10 +137,7 @@ def _parse_map_file(
 
 
 def _find_function_boundaries(
-    lines: List[str],
-    function_name: str,
-    *,
-    start_search_idx: int = 0,
+    lines: List[str], function_name: str, start_search_idx: int = 0
 ) -> Tuple[int, int]:
     """
     Find the start and end line indices for a function or class definition.
@@ -204,13 +195,12 @@ def _extract_functions_from_source(
     """
     Extract function definitions and their line ranges from source file.
 
-    Uses text-based parsing with regular expressions to find function
-    and class definitions. Only extracts top-level functions and
-    classes, not nested ones.
+    Uses text-based parsing with regular expressions to find function and
+    class definitions. Only extracts top-level functions and classes, not
+    nested ones.
 
     :param source_file_path: path to the Python source file
-    :return: dictionary mapping function names to (start_line, end_line)
-        tuples
+    :return: dictionary mapping function names to (start_line, end_line) tuples
     """
     hdbg.dassert(
         os.path.exists(source_file_path),
@@ -238,10 +228,7 @@ def _extract_functions_from_source(
         start_line, end_line = _find_function_boundaries(
             lines, func_name, search_idx
         )
-        functions[func_name] = (
-            start_line + 1,
-            end_line,
-        )  # Convert to 1-indexed.
+        functions[func_name] = (start_line + 1, end_line)  # Convert to 1-indexed.
         search_idx = end_line
     _LOG.info("Extracted %d functions/classes from source", len(functions))
     return functions
@@ -291,65 +278,6 @@ def _find_module_header_end(lines: List[str]) -> int:
 # #############################################################################
 
 
-def _remove_trailing_section_headers(lines: List[str]) -> List[str]:
-    """
-    Remove trailing section headers and excessive blank lines from extracted
-    code.
-
-    Section headers follow the pattern:
-    # #############################################################################
-    # Section Name
-    # #############################################################################
-
-    :param lines: list of code lines
-    :return: cleaned list of lines
-    """
-    if not lines:
-        return lines
-    # Pattern to match section header border (77 or more #).
-    header_border_pattern = re.compile(r"^#\s*#{77,}\s*$")
-    # Work backwards to find where actual code ends.
-    end_idx = len(lines)
-    i = len(lines) - 1
-    while i >= 0:
-        line = lines[i].rstrip()
-        # Skip trailing blank lines.
-        if not line:
-            i -= 1
-            continue
-        # Check if this is a section header border.
-        if header_border_pattern.match(line):
-            # This might be the end of a section header block.
-            # Check if we have a 3-line section header pattern.
-            if i >= 2:
-                line_minus_1 = lines[i - 1].strip()
-                line_minus_2 = lines[i - 2].rstrip()
-                # Check if lines i-2 and i are borders and i-1 is a comment.
-                if (
-                    header_border_pattern.match(line_minus_2)
-                    and line_minus_1.startswith("#")
-                    and not header_border_pattern.match(line_minus_1)
-                ):
-                    # Found a section header, remove it.
-                    i -= 3
-                    continue
-        # Found non-header, non-blank line - this is the end of actual code.
-        end_idx = i + 1
-        break
-    # Return lines up to end_idx, preserving at most 2 trailing blank lines.
-    result = lines[:end_idx]
-    # Add back up to 2 trailing blank lines if they existed.
-    blank_count = 0
-    for i in range(end_idx, len(lines)):
-        if not lines[i].strip():
-            blank_count += 1
-            if blank_count <= 2:
-                result.append(lines[i])
-        else:
-            break
-    return result
-
-
 def _create_section_comment(section_name: str) -> str:
     """
     Create a formatted section comment block.
@@ -373,8 +301,7 @@ def _create_target_file(
     :param source_file_path: path to source Python file
     :param target_file_path: path to target Python file
     :param sections: list of (section_name, function_names) tuples
-    :param source_functions: dictionary mapping function names to line
-        ranges
+    :param source_functions: dictionary mapping function names to line ranges
     """
     _LOG.info("Creating target file: %s", target_file_path)
     # Read source file.
@@ -405,14 +332,10 @@ def _create_target_file(
             start_line, end_line = source_functions[func_name]
             # Extract function code (convert to 0-indexed).
             func_lines = lines[start_line - 1 : end_line]
-            # Remove trailing section headers from the original file.
-            func_lines = _remove_trailing_section_headers(func_lines)
             # Add function to output.
             output_lines.extend(func_lines)
             output_lines.append("")  # Add blank line after function.
-            _LOG.debug(
-                "Added function %s (%d lines)", func_name, len(func_lines)
-            )
+            _LOG.debug("Added function %s (%d lines)", func_name, len(func_lines))
     # Write output file.
     output_content = "\n".join(output_lines)
     hio.to_file(target_file_path, output_content)
@@ -441,9 +364,7 @@ def _reorder_python_code(*, input_file: str, map_file: str) -> None:
         target_file_path = os.path.join(input_dir, target_filename)
         _LOG.info("Processing target file: %s", target_file_path)
         # Create the target file.
-        _create_target_file(
-            input_file, target_file_path, sections, source_functions
-        )
+        _create_target_file(input_file, target_file_path, sections, source_functions)
     _LOG.info("Code reorganization completed")
 
 

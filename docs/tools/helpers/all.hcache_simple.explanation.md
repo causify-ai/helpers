@@ -6,6 +6,7 @@
   * [Memory Cache](#memory-cache)
   * [Disk Cache](#disk-cache)
   * [Cache Performance Monitoring](#cache-performance-monitoring)
+  * [Cache Inspection and Statistics](#cache-inspection-and-statistics)
   * [Cache Properties: User and System](#cache-properties-user-and-system)
   * [Decorator](#decorator)
   * [Common Misunderstandings](#common-misunderstandings)
@@ -15,18 +16,15 @@
 
 # Cache Simple
 
-- This document explains the design and flow of a caching system implemented in
+- This document explains the design and flow of the caching system implemented in
   [`/helpers/hcache_simple.py`](/helpers/hcache_simple.py).
 
 - `hcache_simple` is a lightweight, decorator-based module designed for
   individual function caching, offering basic in‑memory and disk storage (via
-  JSON or pickle) with manual management and simple performance tracking.
+  JSON or pickle) with manual management and performance tracking.
 - In contrast to `hcache` which is a robust, global caching solution that
   supports tagged caches, automatic invalidation, and shared cache directories
   across multiple functions and users, using advanced tools
-- Use `hcache` for robust, global caching in complex projects, and
-  `hcache_simple` for lightweight, function-specific caching in simpler
-  applications or notebooks.
 
 ## Overview
 
@@ -94,10 +92,14 @@
       cached results from disk
 
 - Interface:
-  - `flush_cache_to_disk` writes the current memory cache to the disk file
-  - `force_cache_from_disk` loads the disk cache and updates the in-memory cache
-  - `reset_disk_cache` is intended to remove disk cache files
-    - It is marked with an `assert 0` to disable this functionality
+  - `flush_cache_to_disk(func_name)` writes the current memory cache to the disk
+    file
+  - `force_cache_from_disk(func_name)` loads the disk cache and updates the
+    in-memory cache
+  - `reset_disk_cache(func_name, interactive)` removes disk cache files
+    - If `func_name` is empty, it resets all disk cache files
+    - If `interactive=True`, prompts for confirmation before resetting all caches
+  - `reset_cache(func_name, interactive)` resets both memory and disk cache
 
 ## Cache Performance Monitoring
 
@@ -125,6 +127,34 @@
   - `disable_cache_perf`: to disable the cache performance
   - `get_cache_perf_stats` prints performance metrics
 
+## Cache Inspection and Statistics
+
+- The system provides several utility functions for inspecting and debugging the
+  cache state:
+
+- `cache_stats_to_str(func_name)`: Returns a pandas DataFrame showing cache
+  statistics
+  - If `func_name` is empty, returns stats for all cached functions
+  - Shows both memory and disk cache sizes for each function
+  - Example output:
+    ```
+                memory  disk
+    find_email      -  1044
+    verify_email    -  2322
+    ```
+
+- `get_cache_func_names(type_)`: Retrieves list of cached function names
+  - `type_='all'`: Returns all functions with either memory or disk cache
+  - `type_='mem'`: Returns only functions with memory cache
+  - `type_='disk'`: Returns only functions with disk cache files
+
+- `cache_property_to_str(type_, func_name)`: Converts cache properties to string
+  - If `func_name` is empty, returns properties for all cached functions
+  - Shows all configured properties for the specified type ('user' or 'system')
+
+- `get_mem_cache(func_name)`: Directly retrieves the memory cache dictionary for
+  a function
+
 ## Cache Properties: User and System
 
 - There are two types of properties:
@@ -133,6 +163,8 @@
     - `abort_on_cache_miss`: Whether to raise an error if a cache miss occurs
     - `report_on_cache_miss`: Whether to return a special value ("_cache_miss_")
       on a cache miss
+    - `enable_perf`: Whether to enable performance statistics tracking (hits,
+      misses, total calls)
     - `force_refresh`: Whether to bypass the cache and refresh the value
   - `System Properties`: These include internal settings such as the cache type
     (e.g., "json" or "pickle")
@@ -161,6 +193,19 @@
   - The decorator simplifies caching by wrapping any function so that its
     results are automatically stored and retrieved from cache
 
+- Decorator parameters:
+  - `cache_type`: The type of cache storage to use (`"json"` or `"pickle"`)
+    - Default: `"json"`
+    - JSON is human-readable but limited to basic types
+    - Pickle supports any Python object but is not human-readable
+  - `write_through`: If True, flush cache to disk immediately after each update
+    - Default: `False`
+    - Useful for ensuring persistence but may impact performance
+  - `exclude_keys`: List of keyword argument names to exclude from cache key
+    - Default: `None` (empty list)
+    - Useful for excluding session-specific objects (e.g., clients,
+      connections)
+
 - Decorator flow:
   - Initialization:
     - When the function is decorated with, for example,
@@ -183,6 +228,19 @@
     - Cache update:
       - After computing the value, the result is stored in the memory cache (and
         optionally written through to disk if `write_through` is set)
+
+- Runtime parameters:
+  - Decorated functions accept special keyword arguments to control caching
+    behavior:
+    - `force_refresh=True`: Bypass cache and recompute the result
+    - `abort_on_cache_miss=True`: Raise an exception if cache miss occurs
+    - `report_on_cache_miss=True`: Return "_cache_miss_" instead of computing on
+      cache miss
+    - `cache_mode`: Alternative way to control caching with predefined modes:
+      - `"REFRESH_CACHE"`: Force cache refresh (same as `force_refresh=True`)
+      - `"HIT_CACHE_OR_ABORT"`: Abort on cache miss (same as
+        `abort_on_cache_miss=True`)
+      - `"DISABLE_CACHE"`: Completely disable caching for this call
 
 - Flow Example:
   - Suppose we have a function defined as follows:
@@ -208,6 +266,18 @@
   - Set Force Refresh:
     - With this property set, each call to `multiply_by_two(4)` will recompute
       the result and update the cache.
+  - Using runtime parameters:
+    - Force a single cache refresh without changing global properties:
+      ```python
+      result = multiply_by_two(4, force_refresh=True)
+      ```
+    - Use cache_mode to control behavior:
+      ```python
+      # Disable cache for this specific call
+      result = multiply_by_two(4, cache_mode="DISABLE_CACHE")
+      # Ensure cache is hit or abort
+      result = multiply_by_two(4, cache_mode="HIT_CACHE_OR_ABORT")
+      ```
   - Enable `write_through`:
     - When using `@simple_cache(write_through=True)`, the decorator will flush
       the memory cache to disk immediately after updating.
