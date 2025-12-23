@@ -62,6 +62,20 @@ def _df_to_str(
     use_tabulate: bool,
     log_level: int,
 ) -> str:
+    """
+    Convert a DataFrame to a string representation.
+
+    :param df: The DataFrame to convert to a string.
+    :param num_rows: The number of rows to display.
+    :param max_columns: The maximum number of columns to display.
+    :param max_colwidth: The maximum width of each column.
+    :param max_rows: The maximum number of rows to display.
+    :param precision: The precision of the numbers.
+    :param display_width: The width of the display.
+    :param use_tabulate: Whether to use the tabulate library to format the DataFrame.
+    :param log_level: The log level to use.
+    :return: A string representation of the DataFrame.
+    """
     is_in_ipynb = hsystem.is_running_in_ipynb()
     out = []
     # Set dataframe print options.
@@ -125,6 +139,29 @@ def _df_to_str(
     return txt
 
 
+def _report_srs_stats(srs: pd.Series) -> List[Any]:
+    """
+    Report dtype, the first element, and its type of series.
+
+    :param srs: The series to report the stats of.
+    :return: A list of the stats.
+    """
+    row: List[Any] = []
+    first_elem = srs.values[0]
+    num_unique = srs.nunique()
+    num_nans = srs.isna().sum()
+    row.extend(
+        [
+            srs.dtype,
+            hprint.perc(num_unique, len(srs)),
+            hprint.perc(num_nans, len(srs)),
+            first_elem,
+            type(first_elem),
+        ]
+    )
+    return row
+
+
 def df_to_str(
     df: Union[pd.DataFrame, pd.Series, pd.Index],
     *,
@@ -155,7 +192,6 @@ def df_to_str(
     which the dataframe is displayed is `logging.DEBUG`.
 
     In this case to get the correct behavior one should do:
-
     ```
     log_level = ...
     _LOG.log(log_level, hpandas.df_to_str(df, num_rows=3, log_level=log_level))
@@ -177,8 +213,7 @@ def df_to_str(
     elif isinstance(df, pd.Index):
         df = df.to_frame(index=False)
     hdbg.dassert_isinstance(df, pd.DataFrame)
-    # For some reason there are so-called "negative zeros", but we consider
-    # them equal to `0.0`.
+    # Convert "negative zeros" to `0.0`.
     df = df.copy()
     if handle_signed_zeros:
         for col_name in df.select_dtypes(include=[np.float64, float]).columns:
@@ -203,28 +238,7 @@ def df_to_str(
         # Print information about the types.
         if print_dtypes:
             out.append("* type=")
-
             table = []
-
-            def _report_srs_stats(srs: pd.Series) -> List[Any]:
-                """
-                Report dtype, the first element, and its type of series.
-                """
-                row: List[Any] = []
-                first_elem = srs.values[0]
-                num_unique = srs.nunique()
-                num_nans = srs.isna().sum()
-                row.extend(
-                    [
-                        srs.dtype,
-                        hprint.perc(num_unique, len(srs)),
-                        hprint.perc(num_nans, len(srs)),
-                        first_elem,
-                        type(first_elem),
-                    ]
-                )
-                return row
-
             row = []
             col_name = "index"
             row.append(col_name)
@@ -336,6 +350,48 @@ def df_to_str(
     if not hsystem.is_running_in_ipynb():
         out.append(df_as_str)
         txt = "\n".join(out)
+    return txt
+
+
+# #############################################################################
+
+
+def head(
+    df: pd.DataFrame,
+    *,
+    print_columns: bool = False,
+    num_rows: int = 2,
+    seed: Union[int, None] = None
+) -> str:
+    """
+    Display a sample of rows from a DataFrame.
+
+    By default shows the first `num_rows` rows. When a seed is provided,
+    randomly samples `num_rows` rows instead.
+
+    :param df: The DataFrame to sample from.
+    :param num_rows: Number of rows to display.
+    :param seed: Optional random seed for reproducible sampling. If None, shows
+        first rows.
+    """
+    txt = ""
+    if print_columns:
+        txt += "columns=%s\n" % ",".join(df.columns.tolist())
+    txt += "shape=%s\n" % str(df.shape)
+    #
+    if seed is not None:
+        np.random.seed(seed)
+        index = np.random.choice(df.index, num_rows, replace=False)
+        index = sorted(index)
+        df = df.loc[index]
+    else:
+        df = df.head(num_rows)
+    with pd.option_context(
+        "display.width", 200,
+        "display.max_columns", None,
+        "display.max_colwidth", None,
+    ):
+        txt += "\n" + str(df)
     return txt
 
 
