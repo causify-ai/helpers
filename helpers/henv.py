@@ -60,25 +60,42 @@ def has_module(module: str) -> bool:
 
 
 def install_module_if_not_present(
-    import_name: str, package_name: Optional[str] = None
+    import_name: str,
+    *,
+    package_name: Optional[str] = None,
+    use_activate: bool = False,
+    quiet: bool = True,
 ) -> None:
     """
     Install a Python module if it is not already installed.
 
-    :param import_name: name used to import the module
+    :param import_name: name used to import the module (e.g., "openai")
     :param package_name: name of the package on PyPI (if different from `import_name`)
+    :param use_activate: whether to use the activate script to install the module
+        (e.g., "source /venv/bin/activate; pip install --quiet --upgrade openai")
+    :param quiet: whether to install the module quietly
     """
     _has_module = has_module(import_name)
     if _has_module:
         print(f"Module '{import_name}' is already installed.")
         return
     # Sometime the package name is different from the import name.
-    # e.g., we import using `import dash_bootstrap_components`
-    # but the package name is `dash-bootstrap-components`.
-    package_name = package_name or import_name
-    _, output = hsystem.system_to_string(
-        f"sudo /venv/bin/pip install {package_name}"
-    )
+    # E.g., we import using `import dash_bootstrap_components` but the package
+    # name is `dash-bootstrap-components`.
+    if package_name is None:
+        package_name = import_name
+    # Sometime the package name is different from the import name.
+    # E.g., we import using `import dash_bootstrap_components` but the package
+    # name is `dash-bootstrap-components`.
+    if quiet:
+        quiet_flag = "--quiet"
+    else:
+        quiet_flag = ""
+    if use_activate:
+        cmd = f'sudo /bin/bash -c "(source /venv/bin/activate; pip install {quiet_flag} --upgrade {package_name})"'
+    else:
+        cmd = f"sudo /venv/bin/pip install {quiet_flag} {package_name}"
+    _, output = hsystem.system_to_string(cmd)
     print(output)
 
 

@@ -40,8 +40,18 @@ except ImportError:
 import pandas as pd
 
 import helpers.hdbg as hdbg
+import helpers.henv as henv
 
 _LOG = logging.getLogger(__name__)
+
+
+def install_deps_if_needed() -> None:
+    henv.install_module_if_not_present("google", import_name="google",
+        use_activate=True)
+    henv.install_module_if_not_present("googleapiclient", import_name="googleapiclient",
+        use_activate=True)
+    henv.install_module_if_not_present("gspread", import_name="gspread",
+        use_activate=True)
 
 
 def get_credentials(
@@ -101,6 +111,7 @@ def get_gsheet_id(
     credentials: "goasea.Credentials",
     sheet_id: str,
     *,
+    # TODO(ai_gp): Use tab_name instead of sheet_name.
     sheet_name: Optional[str] = None,
 ) -> str:
     """
@@ -129,7 +140,7 @@ def get_gsheet_id(
     return first_sheet_id
 
 
-def get_gsheet_name_from_url(
+def get_tab_name_from_url(
     credentials: "goasea.Credentials",
     url: str,
 ) -> str:
@@ -140,11 +151,28 @@ def get_gsheet_name_from_url(
     :param url: URL of the Google Sheets file.
     :return: Name of the Google Sheet (spreadsheet title).
     """
+    # TODO(ai): Should we use the Sheets API instead?
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(url)
     sheet_name = spreadsheet.title
     _LOG.debug("Retrieved sheet name: '%s'", sheet_name)
     return sheet_name
+
+
+def get_tabs_from_gsheet(
+    credentials: "goasea.Credentials",
+    url: str,
+) -> List[str]:
+    """
+    Get all the tabs (worksheets) from a Google Sheet.
+
+    :param credentials: Google credentials object.
+    :param url: URL of the Google Sheet.
+    :return: List of tab names.
+    """
+    client = gspread.authorize(credentials)
+    spreadsheet = client.open_by_url(url)
+    return [sheet.title for sheet in spreadsheet.worksheets()]
 
 
 def freeze_rows_in_gsheet(
@@ -273,25 +301,26 @@ def from_gsheet(
     credentials: "goasea.Credentials",
     url: str,
     *,
-    gsheet_name: Optional[str] = None,
+    # TODO(ai_gp): Use tab_name instead of tab_name.
+    tab_name: Optional[str] = None,
 ) -> pd.DataFrame:
     """
     Read data from a Google Sheet.
 
     :param credentials: Google credentials object.
     :param url: URL of the Google Sheets file.
-    :param gsheet_name: Name of the tab to read (default: first sheet if
+    :param tab_name: Name of the tab to read (default: first sheet if
         not specified).
     :return: pandas DataFrame with the sheet data.
     """
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(url)
-    if gsheet_name is None:
+    if tab_name is None:
         worksheet = spreadsheet.get_worksheet(0)
     else:
-        worksheet = spreadsheet.worksheet(gsheet_name)
+        worksheet = spreadsheet.worksheet(tab_name)
     data = worksheet.get_all_records()
-    hdbg.dassert(data, "The sheet '%s' is empty", gsheet_name)
+    hdbg.dassert(data, "The sheet '%s' is empty", tab_name)
     df = pd.DataFrame(data)
     _LOG.debug("Data fetched")
     return df
