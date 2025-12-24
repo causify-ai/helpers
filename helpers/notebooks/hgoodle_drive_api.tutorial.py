@@ -40,7 +40,7 @@ print(service)
 # ## Get Tab/Sheet id of a particular google sheet
 
 # %%
-sheet_name = "cleaned_profiles_1"
+tab_name = "cleaned_profiles_1"
 url = "https://docs.google.com/spreadsheets/d/1VRJQZ4kSoqAeOr9MkWcYbIcArNRyglTREaMg1WlZHGA/edit?gid=1687996260#gid=1687996260"
 sheet_id = "1VRJQZ4kSoqAeOr9MkWcYbIcArNRyglTREaMg1WlZHGA"
 credentials = google_creds
@@ -55,7 +55,7 @@ hgodrapi.freeze_rows(
     credentials,
     sheet_id=sheet_id,
     row_indices=row_indices,
-    sheet_name=sheet_name,
+    tab_name=tab_name,
 )
 
 # %% [markdown]
@@ -69,7 +69,7 @@ hgodrapi.set_row_height(
     height=20,
     start_index=0,
     end_index=2,
-    sheet_name=sheet_name,
+    tab_name=tab_name,
 )
 
 # %% [markdown]
@@ -77,7 +77,7 @@ hgodrapi.set_row_height(
 # ## Read some nice data
 
 # %%
-nice_data = hgodrapi.from_gsheet(google_creds, url, gsheet_name=sheet_name)
+nice_data = hgodrapi.from_gsheet(google_creds, url, tab_name=tab_name)
 
 # %%
 nice_data.head()

@@ -234,3 +234,31 @@ def add_end_download_timestamp(
     # Set value of end_download_timestamp.
     obj["end_download_timestamp"] = current_ts
     return obj
+
+
+def get_value_counts_stats_df(
+    df: pd.DataFrame, col_name: str, *, num_rows: int = 10
+) -> pd.DataFrame:
+    """
+    Get the value counts of `col_name` in `df`.
+
+    :param df: The DataFrame to get the value counts of `col_name` from.
+    :param col_name: The column name to get the value counts of.
+    :param num_rows: The number of rows to return.
+    :return: A DataFrame with the value counts of `col_name` in `df`. E.g.,
+    ```
+                                count  pct [%]
+    Venture Fund                        1004   25.100
+    Financial Services                   274    6.850
+    Venture Capital & Private Equity     176    4.400
+    Computer Software                    163    4.075
+    Higher Education                     133    3.325
+    Information Technology & Services     73    1.825
+    ```
+    """
+    hdbg.dassert_in(col_name, df.columns)
+    stats_df = df[col_name].value_counts().to_frame()
+    stats_df["pct [%]"] = stats_df["count"] / len(df) * 100
+    if num_rows > 0:
+        stats_df = stats_df.head(num_rows)
+    return stats_df
