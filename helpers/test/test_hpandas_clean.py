@@ -323,7 +323,7 @@ class Test_impute_nans(hunitest.TestCase):
             }
         )
         # Call function to test.
-        result_df = hpandas2.impute_nans(df, "col1", "")
+        result_df = hpandas.impute_nans(df, "col1", "")
         # Check output.
         self.assertEqual(result_df["col1"].tolist(), ["value1", "", "value3"])
         self.assertEqual(result_df["col2"].tolist(), ["a", "b", "c"])
@@ -340,7 +340,7 @@ class Test_impute_nans(hunitest.TestCase):
             }
         )
         # Call function to test.
-        result_df = hpandas2.impute_nans(df, "col2", "MISSING")
+        result_df = hpandas.impute_nans(df, "col2", "MISSING")
         # Check output.
         self.assertEqual(result_df["col1"].tolist(), ["value1", "nan", "value3"])
         self.assertEqual(result_df["col2"].tolist(), ["a", "MISSING", "c"])
@@ -357,6 +357,6 @@ class Test_impute_nans(hunitest.TestCase):
             }
         )
         # Call function to test.
-        result_df = hpandas2.impute_nans(df, "col1", "")
+        result_df = hpandas.impute_nans(df, "col1", "")
         # Check output - should be unchanged.
         self.assertEqual(result_df["col1"].tolist(), ["value1", "value2", "value3"])

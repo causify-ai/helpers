@@ -290,7 +290,7 @@ class Test_get_value_counts_stats_df(hunitest.TestCase):
             }
         )
         # Call function to test.
-        result_df = hpandas2.get_value_counts_stats_df(df, "category", num_rows=10)
+        result_df = hpandas.get_value_counts_stats_df(df, "category", num_rows=10)
         # Check output.
         self.assertEqual(result_df.index.tolist(), ["A", "B", "C", "D"])
         self.assertEqual(result_df["count"].tolist(), [5, 2, 2, 1])
@@ -323,7 +323,7 @@ class Test_get_value_counts_stats_df(hunitest.TestCase):
             }
         )
         # Call function to test.
-        result_df = hpandas2.get_value_counts_stats_df(df, "category", num_rows=2)
+        result_df = hpandas.get_value_counts_stats_df(df, "category", num_rows=2)
         # Check output - should only return top 2.
         self.assertEqual(result_df.shape[0], 2)
         self.assertEqual(result_df.index.tolist(), ["A", "B"])
@@ -335,6 +335,6 @@ class Test_get_value_counts_stats_df(hunitest.TestCase):
         # Prepare input.
         df = pd.DataFrame({"category": ["A", "B", "A", "C", "A", "B"]})
         # Call function to test.
-        result_df = hpandas2.get_value_counts_stats_df(df, "category", num_rows=0)
+        result_df = hpandas.get_value_counts_stats_df(df, "category", num_rows=0)
         # Check output - should return all unique values.
         self.assertEqual(result_df.shape[0], 3)

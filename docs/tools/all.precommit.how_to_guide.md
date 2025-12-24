@@ -443,3 +443,9 @@
 	```
 
 - It doesn't seem to work
+
+# Linter2
+
+find ck_marketing/workflows/ -name "*.py" -o -name "*.ipynb" | grep -v ipynb_checkpoints | sort | tee tmp
+
+helpers_root/linters2/normalize_import.py $(cat tmp)
