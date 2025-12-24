@@ -29,8 +29,11 @@ from typing import List, Optional
 
 # Try to import optional Google API dependencies.
 try:
+    # Authentication for Google API to produce credentials.
     import google.oauth2.service_account as goasea
+    # Google API client for service objects (e.g., Drive, Sheets, etc.)
     import googleapiclient.discovery as godisc
+    # Built on top of Google API to simplify interactions with Google Sheets.
     import gspread
     _GOOGLE_API_AVAILABLE = True
 except ImportError:
@@ -52,6 +55,11 @@ def install_needed_modules() -> None:
         use_activate=True)
     henv.install_module_if_not_present("gspread", package_name="gspread",
         use_activate=True)
+
+
+# #############################################################################
+# Credentials
+# #############################################################################
 
 
 def get_credentials(
@@ -140,12 +148,16 @@ def get_gsheet_id(
     return first_sheet_id
 
 
+# TODO(gp): -> get_gsheet_name
 def get_tab_name_from_url(
     credentials: "goasea.Credentials",
     url: str,
 ) -> str:
     """
     Get the name of a Google Sheet from its URL.
+
+    E.g., https://docs.google.com/spreadsheets/d/1GnnmtGTrHDwMP77VylEK0bSF_RLUV5BWf1iGmxuBQpI
+    -> pitchbook.Outreach_AI_companies
 
     :param credentials: Google credentials object.
     :param url: URL of the Google Sheets file.
