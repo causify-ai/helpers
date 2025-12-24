@@ -846,3 +846,10 @@ def get_google_path_from_url(
     path_list = _get_folder_path_list(service, file_id)
     _LOG.debug("Retrieved folder path for URL '%s': %s", url, path_list)
     return path_list
+
+
+def print_info_about_google_url(credentials: "goasea.Credentials", url: str) -> None:
+    print("url: '%s'" % url)
+    print("file name: '%s'" % get_tab_name_from_url(credentials, url))
+    print("tab names: '%s'" % get_tabs_from_gsheet(credentials, url))
+    print("folder path: '%s'" % "/".join(get_google_path_from_url(credentials, url)))
