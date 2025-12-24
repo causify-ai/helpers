@@ -260,3 +260,81 @@ class Test_compute_weighted_sum(hunitest.TestCase):
             dictionary of dfs must be nonempty
             """
         self.assert_equal(actual_signature, expected_signature, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_get_value_counts_stats_df
+# #############################################################################
+
+
+class Test_get_value_counts_stats_df(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test basic value counts with default parameters.
+        """
+        # Prepare input.
+        df = pd.DataFrame(
+            {
+                "category": [
+                    "A",
+                    "B",
+                    "A",
+                    "C",
+                    "A",
+                    "B",
+                    "D",
+                    "A",
+                    "C",
+                    "A",
+                ]
+            }
+        )
+        # Call function to test.
+        result_df = hpandas2.get_value_counts_stats_df(df, "category", num_rows=10)
+        # Check output.
+        self.assertEqual(result_df.index.tolist(), ["A", "B", "C", "D"])
+        self.assertEqual(result_df["count"].tolist(), [5, 2, 2, 1])
+        expected_pcts = [50.0, 20.0, 20.0, 10.0]
+        actual_pcts = result_df["pct [%]"].tolist()
+        self.assertAlmostEqual(actual_pcts[0], expected_pcts[0])
+        self.assertAlmostEqual(actual_pcts[1], expected_pcts[1])
+        self.assertAlmostEqual(actual_pcts[2], expected_pcts[2])
+        self.assertAlmostEqual(actual_pcts[3], expected_pcts[3])
+
+    def test2(self) -> None:
+        """
+        Test limiting the number of rows returned.
+        """
+        # Prepare input.
+        df = pd.DataFrame(
+            {
+                "category": [
+                    "A",
+                    "B",
+                    "A",
+                    "C",
+                    "A",
+                    "B",
+                    "D",
+                    "A",
+                    "C",
+                    "A",
+                ]
+            }
+        )
+        # Call function to test.
+        result_df = hpandas2.get_value_counts_stats_df(df, "category", num_rows=2)
+        # Check output - should only return top 2.
+        self.assertEqual(result_df.shape[0], 2)
+        self.assertEqual(result_df.index.tolist(), ["A", "B"])
+
+    def test3(self) -> None:
+        """
+        Test with num_rows=0 to return all rows.
+        """
+        # Prepare input.
+        df = pd.DataFrame({"category": ["A", "B", "A", "C", "A", "B"]})
+        # Call function to test.
+        result_df = hpandas2.get_value_counts_stats_df(df, "category", num_rows=0)
+        # Check output - should return all unique values.
+        self.assertEqual(result_df.shape[0], 3)
