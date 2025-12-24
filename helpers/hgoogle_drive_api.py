@@ -9,6 +9,7 @@ import helpers.hgoogle_drive_api as hgodrapi
 
 import logging
 import os.path
+import re
 from datetime import datetime
 from typing import List, Optional
 
@@ -48,14 +49,28 @@ import helpers.henv as henv
 _LOG = logging.getLogger(__name__)
 
 
-def install_needed_modules() -> None:
-    henv.install_module_if_not_present("google", package_name="google-api-python-client",
-        use_activate=True)
-    henv.install_module_if_not_present("googleapiclient", package_name="googleapiclient",
-        use_activate=True)
-    henv.install_module_if_not_present("gspread", package_name="gspread",
-        use_activate=True)
+def install_needed_modules(*, use_sudo: bool = True, venv_path: Optional[str] = None) -> None:
+    """
+    Install needed modules for Google Drive API.
 
+    :param use_sudo: whether to use sudo to install the module
+    :param venv_path: path to the virtual environment
+        E.g., /Users/saggese/src/venv/client_venv.helpers
+    """
+    henv.install_module_if_not_present("google", package_name="google-auth",
+        use_sudo=use_sudo, use_activate=True, venv_path=venv_path, quiet=False)
+    henv.install_module_if_not_present("googleapiclient", package_name="google-api-python-client",
+        use_sudo=use_sudo, use_activate=True, venv_path=venv_path, quiet=False)
+    henv.install_module_if_not_present("gspread", package_name="gspread",
+        use_sudo=use_sudo, use_activate=True, venv_path=venv_path, quiet=False)
+    # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
+    import importlib
+    import sys
+
+    # Reload this module (hgoogle_drive_api) if already imported
+    this_module_name = __name__
+    if this_module_name in sys.modules:
+        importlib.reload(sys.modules[this_module_name])
 
 # #############################################################################
 # Credentials
@@ -99,6 +114,7 @@ def get_credentials(
 # #############################################################################
 
 
+# TODO(gp): Extend this to work with v3, v4, etc.
 def get_sheets_service(credentials: "goasea.Credentials") -> "godisc.Resource":
     """
     Get Google Sheets service with provided credentials.
@@ -466,6 +482,7 @@ def move_gfile_to_dir(
     :param folder_id: The ID of the folder.
     :return: The response from the API after moving the file.
     """
+    # TODO(gp): -> get_gdrive_service
     service = godisc.build(
         "drive", "v3", credentials=credentials, cache_discovery=False
     )
@@ -556,6 +573,7 @@ def create_or_overwrite_with_timestamp(
     :return: The ID of the created or overwritten file.
     """
     # Authenticate with Google APIs using the provided credentials.
+    # TODO(gp): -> get_gdrive_service
     drive_service = godisc.build("drive", "v3", credentials=credentials)
     if file_type == "sheets":
         mime_type = "application/vnd.google-apps.spreadsheet"
@@ -624,6 +642,7 @@ def create_google_drive_folder(
     :return: the ID of the created Google Drive folder.
     """
     # Build the Google Drive service using the provided credentials.
+    # TODO(gp): -> get_gdrive_service
     service = godisc.build(
         "drive", "v3", credentials=credentials, cache_discovery=False
     )
@@ -649,6 +668,7 @@ def _get_folders_in_gdrive(*, credentials: "goasea.Credentials") -> list:
     :return: A list of folders (each containing an ID and name).
     """
     # Build the Google Drive service using the provided credentials.
+    # TODO(gp): -> get_gdrive_service
     service = godisc.build(
         "drive", "v3", credentials=credentials, cache_discovery=False
     )
@@ -720,6 +740,7 @@ def share_google_file(
     :param user: The email address of the user.
     """
     # Build the Google Drive service using the provided credentials.
+    # TODO(gp): -> get_gdrive_service
     service = godisc.build(
         "drive", "v3", credentials=credentials, cache_discovery=False
     )
@@ -734,3 +755,94 @@ def share_google_file(
     )
     _LOG.debug("The Google file is shared with '%s'", user)
 
+
+# #############################################################################
+
+
+def _extract_file_id_from_url(url: str) -> str:
+    """
+    Extract the file ID from a Google Docs/Sheets/Drive URL.
+
+    E.g.,
+    https://docs.google.com/spreadsheets/d/FILE_ID/...
+    https://docs.google.com/document/d/FILE_ID/...
+    https://drive.google.com/file/d/FILE_ID/...
+
+    :param url: URL of the Google Docs/Sheets/Drive file.
+    :return: File ID extracted from the URL.
+    """
+    # Handle URLs like:
+    # https://docs.google.com/spreadsheets/d/FILE_ID/...
+    # https://docs.google.com/document/d/FILE_ID/...
+    # https://drive.google.com/file/d/FILE_ID/...
+    pattern = r'/d/([a-zA-Z0-9-_]+)'
+    match = re.search(pattern, url)
+    hdbg.dassert(match, "Invalid URL format: %s", url)
+    file_id = match.group(1)
+    _LOG.debug("Extracted file ID: '%s' from URL: '%s'", file_id, url)
+    return file_id
+
+
+def _get_folder_path_list(
+    service: "godisc.Resource",
+    file_id: str,
+) -> List[str]:
+    """
+    Get the full folder path as a list of folder names.
+
+    :param service: Google Drive service instance.
+    :param file_id: The ID of the file.
+    :return: List of folder names from root to immediate parent folder.
+        Returns empty list if file is at root level.
+    """
+    # Get file metadata with parents.
+    file_metadata = service.files().get(
+        fileId=file_id,
+        fields="parents",
+        supportsAllDrives=True,
+    ).execute()
+    parents = file_metadata.get("parents", [])
+    # If no parents, file is at root level.
+    if not parents:
+        _LOG.debug("File is at root level")
+        return []
+    # Build the path by traversing up the folder hierarchy.
+    path_list = []
+    current_id = parents[0]  # Files typically have one parent in Google Drive.
+    while current_id:
+        folder_metadata = service.files().get(
+            fileId=current_id,
+            fields="name,parents",
+            supportsAllDrives=True,
+        ).execute()
+        folder_name = folder_metadata.get("name")
+        path_list.insert(0, folder_name)
+        parents = folder_metadata.get("parents", [])
+        current_id = parents[0] if parents else None
+    _LOG.debug("Folder path: %s", path_list)
+    return path_list
+
+
+def get_google_path_from_url(
+    credentials: "goasea.Credentials",
+    url: str,
+) -> List[str]:
+    """
+    Get the full folder path from a Google Docs/Sheets/Drive URL.
+
+    E.g., https://docs.google.com/spreadsheets/d/1GnnmtGTrHDwMP77VylEK0bSF_RLUV5BWf1iGmxuBQpI
+    -> ['My Drive', 'Folder1', 'Folder2']
+
+    :param credentials: Google credentials object.
+    :param url: URL of the Google Docs/Sheets/Drive file.
+    :return: List of folder names from root to immediate parent folder.
+        Returns empty list if file is at root level.
+    """
+    # Extract file ID from URL.
+    file_id = _extract_file_id_from_url(url)
+    # Get Google Drive service.
+    service = get_gdrive_service(credentials)
+    # Get folder path as list.
+    path_list = _get_folder_path_list(service, file_id)
+    _LOG.debug("Retrieved folder path for URL '%s': %s", url, path_list)
+    return path_list
