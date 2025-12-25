@@ -1,9 +1,9 @@
-# dev_scripts_helpers/slides
+# Summary
 
 This directory contains tools for processing lecture slides and generating images
 using AI services.
 
-## Description of Files
+# Description of Files
 
 - `generate_class_images.py`
   - Generates multiple images using OpenAI's DALL-E API from text prompts with
@@ -15,7 +15,7 @@ using AI services.
   - Processes markdown slides using LLM prompts for transformation and quality
     checks
 
-## Description of Executables
+# Description of Executables
 
 ## `generate_class_images.py`
 

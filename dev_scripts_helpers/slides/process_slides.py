@@ -27,47 +27,6 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-def _parse() -> argparse.ArgumentParser:
-    """
-    Parse command line arguments.
-    """
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
-    )
-    parser.add_argument(
-        "--in_file",
-        action="store",
-        required=True,
-        help="Input markdown file containing slides",
-    )
-    parser.add_argument(
-        "--action",
-        action="store",
-        required=True,
-        help="Action to perform on each slide",
-    )
-    parser.add_argument(
-        "--out_file",
-        action="store",
-        required=True,
-        help="Output file to write processed results",
-    )
-    parser.add_argument(
-        "--use_llm_transform",
-        action="store_true",
-        help="Use llm_transform script with slide_format_figures prompt",
-    )
-    parser.add_argument(
-        "--no_abort_on_error",
-        action="store_true",
-        help="Continue processing even if LLM transformation fails",
-    )
-    hparser.add_limit_range_arg(parser)
-    hparser.add_parallel_processing_arg(parser, num_threads_default="serial")
-    hparser.add_verbosity_arg(parser)
-    return parser
-
-
 def _extract_slides_from_markdown(txt: str) -> List[Tuple[str, str]]:
     """
     Extract slides from markdown text.
@@ -83,7 +42,8 @@ def _extract_slides_from_markdown(txt: str) -> List[Tuple[str, str]]:
     for i, header_info in enumerate(header_list):
         _LOG.debug("header_info=%s", header_info)
         slide_title = header_info.description
-        start_line = header_info.line_number - 1  # Convert to 0-indexed.
+        # Convert to 0-indexed.
+        start_line = header_info.line_number - 1
         # Determine end line for this slide.
         if i + 1 < len(header_list):
             end_line = header_list[i + 1].line_number - 1
@@ -281,6 +241,50 @@ def _process_slides(
     if processed_results is None:
         processed_results = []
     return processed_results
+
+
+# #############################################################################
+
+
+def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        "--in_file",
+        action="store",
+        required=True,
+        help="Input markdown file containing slides",
+    )
+    parser.add_argument(
+        "--action",
+        action="store",
+        required=True,
+        help="Action to perform on each slide",
+    )
+    parser.add_argument(
+        "--out_file",
+        action="store",
+        required=True,
+        help="Output file to write processed results",
+    )
+    parser.add_argument(
+        "--use_llm_transform",
+        action="store_true",
+        help="Use llm_transform script with slide_format_figures prompt",
+    )
+    parser.add_argument(
+        "--no_abort_on_error",
+        action="store_true",
+        help="Continue processing even if LLM transformation fails",
+    )
+    hparser.add_limit_range_arg(parser)
+    hparser.add_parallel_processing_arg(parser, num_threads_default="serial")
+    hparser.add_verbosity_arg(parser)
+    return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
