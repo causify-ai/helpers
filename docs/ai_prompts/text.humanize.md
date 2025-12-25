@@ -1,9 +1,3 @@
-<!-- toc -->
-
-- [Rules to Avoid "AI-Style" Writing](#rules-to-avoid-ai-style-writing)
-
-<!-- tocstop -->
-
 # Rules to Avoid "AI-Style" Writing
 
 - **Avoid grandiose or inflated language**

@@ -58,11 +58,11 @@ def install_needed_modules(*, use_sudo: bool = True, venv_path: Optional[str] = 
         E.g., /Users/saggese/src/venv/client_venv.helpers
     """
     henv.install_module_if_not_present("google", package_name="google-auth",
-        use_sudo=use_sudo, use_activate=True, venv_path=venv_path, quiet=False)
+        use_sudo=use_sudo, use_activate=True, venv_path=venv_path)
     henv.install_module_if_not_present("googleapiclient", package_name="google-api-python-client",
-        use_sudo=use_sudo, use_activate=True, venv_path=venv_path, quiet=False)
+        use_sudo=use_sudo, use_activate=True, venv_path=venv_path)
     henv.install_module_if_not_present("gspread", package_name="gspread",
-        use_sudo=use_sudo, use_activate=True, venv_path=venv_path, quiet=False)
+        use_sudo=use_sudo, use_activate=True, venv_path=venv_path)
     # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
     import importlib
     import sys
