@@ -20,20 +20,16 @@ Examples:
 # ///
 
 import argparse
-import base64
 import logging
-import os
-import re
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hllm as hllm
-import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
-import dev_scripts_helpers.slides.slides_utils as sldutils
+import dev_scripts_helpers.slides.slides_utils as dshsslut
 
 _LOG = logging.getLogger(__name__)
 
@@ -75,7 +71,9 @@ def _process_slides_group(
     hdbg.dassert_isinstance(slides_group, list)
     hdbg.dassert_lt(0, len(slides_group))
     # Process images from slides.
-    processed_slides, images_as_base64 = sldutils.process_slide_images(slides_group)
+    processed_slides, images_as_base64 = dshsslut.process_slide_images(
+        slides_group
+    )
     # Combine slides into user prompt.
     user_prompt = "\n\n".join(processed_slides)
     _LOG.debug("Processing %d slides with LLM", len(processed_slides))
@@ -88,7 +86,7 @@ def _process_slides_group(
         model=model,
         cache_mode="NORMAL",
         temperature=0.1,
-        #images_as_base64=tuple(images_as_base64) if images_as_base64 else None,
+        # images_as_base64=tuple(images_as_base64) if images_as_base64 else None,
     )
     return response
 
@@ -111,7 +109,7 @@ def _generate_slide_script(
         processed
     """
     _LOG.info("Reading slides from: %s", in_file)
-    slides = sldutils.extract_slides_from_file(in_file)
+    slides = dshsslut.extract_slides_from_file(in_file)
     _LOG.info("Found %d slides total", len(slides))
     # Apply limit range if specified.
     if limit_range is not None:

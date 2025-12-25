@@ -21,7 +21,13 @@ _LOG = logging.getLogger(__name__)
 
 # #############################################################################
 
-_VALID_ACTIONS = ["pdf", "script", "slide_reduce", "slide_check", "slide_improve"]
+_VALID_ACTIONS = [
+    "pdf",
+    "script",
+    "slide_reduce",
+    "slide_check",
+    "slide_improve",
+]
 _DEFAULT_ACTIONS = ["pdf"]
 
 # #############################################################################
@@ -100,7 +106,11 @@ def _find_lecture_files(
         lectures_source_dir,
     )
     # Find all matching files.
-    _LOG.debug("Finding lecture files for lecture_source_dir='%s' and patterns='%s'", lectures_source_dir, patterns)
+    _LOG.debug(
+        "Finding lecture files for lecture_source_dir='%s' and patterns='%s'",
+        lectures_source_dir,
+        patterns,
+    )
     all_files = []
     for pattern in patterns:
         pattern_path = os.path.join(lectures_source_dir, f"Lesson{pattern}*")
@@ -144,10 +154,10 @@ def _generate_pdf(
         "notes_to_pdf.py",
         f"--input {source_path}",
         f"--output {output_path}",
-        f"--type slides",
-        f"--toc_type navigation",
+        "--type slides",
+        "--toc_type navigation",
         f"--skip_action {skip_action}",
-        f"--debug_on_error",
+        "--debug_on_error",
     ]
     if limit:
         cmd.extend([f"--limit {limit}"])
@@ -157,7 +167,13 @@ def _generate_pdf(
     hsystem.system(cmd_str, suppress_output=False)
 
 
-def _generate_script(class_dir: str, source_path: str, source_name: str, *, limit: Optional[str] = None) -> None:
+def _generate_script(
+    class_dir: str,
+    source_path: str,
+    source_name: str,
+    *,
+    limit: Optional[str] = None,
+) -> None:
     """
     Generate script from a lecture source file.
 
@@ -181,7 +197,7 @@ def _generate_script(class_dir: str, source_path: str, source_name: str, *, limi
         "generate_slide_script.py",
         f"--in_file {source_path}",
         f"--out_file {output_path}",
-        f"--slides_per_group 3",
+        "--slides_per_group 3",
     ]
     if limit:
         cmd.extend([f"--limit {limit}"])
@@ -198,7 +214,9 @@ def _generate_script(class_dir: str, source_path: str, source_name: str, *, limi
     hsystem.system(cmd_str, suppress_output=False)
 
 
-def _slide_reduce(source_path: str, source_name: str, *, limit: Optional[str] = None) -> None:
+def _slide_reduce(
+    source_path: str, source_name: str, *, limit: Optional[str] = None
+) -> None:
     """
     Reduce slides by applying LLM transformation.
 
@@ -211,7 +229,7 @@ def _slide_reduce(source_path: str, source_name: str, *, limit: Optional[str] = 
     cmd = [
         "process_slides.py",
         f"--in_file {source_path}",
-        f"--action slide_reduce",
+        "--action slide_reduce",
         "--use_llm_transform",
     ]
     if limit:
@@ -221,7 +239,9 @@ def _slide_reduce(source_path: str, source_name: str, *, limit: Optional[str] = 
     hsystem.system(cmd_str, suppress_output=False)
 
 
-def _slide_check(source_path: str, source_name: str, *, limit: str = None) -> None:
+def _slide_check(
+    source_path: str, source_name: str, *, limit: str = None
+) -> None:
     """
     Check slides by applying LLM transformation.
 
@@ -236,9 +256,9 @@ def _slide_check(source_path: str, source_name: str, *, limit: str = None) -> No
     cmd = [
         "process_slides.py",
         f"--in_file {source_path}",
-        f"--action text_check",
+        "--action text_check",
         f"--out_file {output_path}",
-        f"--use_llm_transform",
+        "--use_llm_transform",
     ]
     if limit:
         cmd.extend([f"--limit {limit}"])
@@ -299,13 +319,19 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Selected actions: %s", actions)
     # Find matching lecture files.
     files = _find_lecture_files(args.class_name, patterns)
-    hdbg.dassert_lt(0, len(files), "No lecture files found for patterns: %s", patterns)
+    hdbg.dassert_lt(
+        0, len(files), "No lecture files found for patterns: %s", patterns
+    )
     # Validate if --limit is specified.
     if args.limit:
-        hdbg.dassert_eq(len(files), 1, "Need exactly one file when using --limit")
+        hdbg.dassert_eq(
+            len(files), 1, "Need exactly one file when using --limit"
+        )
     # Print the commands that would be executed without running them.
     if args.dry_run:
-        _LOG.info("Dry run mode enabled. Will print the commands that would be executed without running them.")
+        _LOG.info(
+            "Dry run mode enabled. Will print the commands that would be executed without running them."
+        )
         for source_path, source_name in files:
             _LOG.info("Processing file: %s", source_path)
         return

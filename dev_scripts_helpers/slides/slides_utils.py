@@ -1,19 +1,15 @@
 #!/usr/bin/env python
 
-import argparse
 import base64
 import logging
 import os
 import re
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
-import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hllm as hllm
 import helpers.hmarkdown as hmarkdo
-import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
 
@@ -130,6 +126,3 @@ def extract_slides_from_file(file_path: str) -> List[str]:
         slide_content = "\n".join(slide_lines)
         slides.append(slide_content)
     return slides
-
-
-

@@ -11,9 +11,8 @@ import process_slides
 import argparse
 import logging
 import os
-from typing import Any, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
-import tqdm
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
@@ -54,6 +53,45 @@ def _extract_slides_from_markdown(txt: str) -> List[Tuple[str, str]]:
         slide_content = "\n".join(slide_lines)
         slides.append((slide_title, slide_content))
     return slides
+
+
+def _process_slide_with_llm_transform(
+    slide_content: str,
+    action: str,
+    *,
+    no_abort_on_error: bool = False,
+) -> str:
+    """
+    Process a slide using the `llm_transform` script.
+
+    :param slide_content: content of the slide to process
+    :param no_abort_on_error: if True, continue processing even if LLM
+        fails
+    :return: processed slide content
+    """
+    # Create temporary files for input and output.
+    tmp_in_path = "tmp.process_slide_with_llm_transform.input.txt"
+    tmp_out_path = "tmp.process_slide_with_llm_transform.output.txt"
+    # Write slide content to temporary input file.
+    hio.to_file(tmp_in_path, slide_content)
+    # Build the llm_transform command.
+    # TODO(ai): Use
+    llm_transform_script = hgit.find_file_in_git_tree("llm_transform.py")
+    cmd = [
+        llm_transform_script,
+        "-i",
+        tmp_in_path,
+        "-o",
+        tmp_out_path,
+        "-p",
+        action,
+    ]
+    # Execute the command.
+    hsystem.system(" ".join(cmd), suppress_output=False)
+    # Read the output.
+    hdbg.dassert_file_exists(tmp_out_path)
+    result = hio.from_file(tmp_out_path)
+    return result
 
 
 def _process_slide_with_llm(
@@ -99,45 +137,6 @@ def _process_slide_with_llm(
             else:
                 hdbg.dfatal("LLM processing failed for slide")
         return result
-
-
-def _process_slide_with_llm_transform(
-    slide_content: str,
-    action: str,
-    *,
-    no_abort_on_error: bool = False,
-) -> str:
-    """
-    Process a slide using the `llm_transform` script.
-
-    :param slide_content: content of the slide to process
-    :param no_abort_on_error: if True, continue processing even if LLM
-        fails
-    :return: processed slide content
-    """
-    # Create temporary files for input and output.
-    tmp_in_path = "tmp.process_slide_with_llm_transform.input.txt"
-    tmp_out_path = "tmp.process_slide_with_llm_transform.output.txt"
-    # Write slide content to temporary input file.
-    hio.to_file(tmp_in_path, slide_content)
-    # Build the llm_transform command.
-    # TODO(ai): Use
-    llm_transform_script = hgit.find_file_in_git_tree("llm_transform.py")
-    cmd = [
-        llm_transform_script,
-        "-i",
-        tmp_in_path,
-        "-o",
-        tmp_out_path,
-        "-p",
-        action,
-    ]
-    # Execute the command.
-    hsystem.system(" ".join(cmd), suppress_output=False)
-    # Read the output.
-    hdbg.dassert_file_exists(tmp_out_path)
-    result = hio.from_file(tmp_out_path)
-    return result
 
 
 def _workload_process_slide(
@@ -217,7 +216,13 @@ def _process_slides(
     tasks: List[hjoblib.Task] = []
     for slide_title, slide_content in slides:
         # Each task is a tuple of (args, kwargs).
-        args = (slide_title, slide_content, action, use_llm_transform, no_abort_on_error)
+        args = (
+            slide_title,
+            slide_content,
+            action,
+            use_llm_transform,
+            no_abort_on_error,
+        )
         kwargs: dict = {}
         task = (args, kwargs)
         tasks.append(task)
