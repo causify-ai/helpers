@@ -52,7 +52,7 @@ tool**, using this exact structure:
 
 - Provide 2–4 realistic example commands
 - For each example:
-  - Start with a short, bolded description.
+  - Start with a short description
   - Follow with a fenced bash code block:
     ```bash
     > actual command here
