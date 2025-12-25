@@ -135,7 +135,6 @@ def get_gsheet_id(
     credentials: "goasea.Credentials",
     sheet_id: str,
     *,
-    # TODO(ai_gp): Use tab_name instead of tab_name.
     tab_name: Optional[str] = None,
 ) -> str:
     """
