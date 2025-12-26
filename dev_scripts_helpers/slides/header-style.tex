@@ -1,0 +1,55 @@
+% --- Packages ---
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+% --- Section header styles ---
+% Header 1: bigger + centered + blue
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{blue}\centering}{\thesection}{1em}{}
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+
+% --- Header / Footer ---
+\pagestyle{fancy}
+\fancyhf{} % clear defaults
+
+% Header line
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Header title pulled from Pandoc's title metadata, with fallback if empty
+% Wrapped in AtBeginDocument to ensure title is set by Pandoc before accessing it
+\makeatletter
+\AtBeginDocument{
+  \ifx\@title\@empty
+    \fancyhead[C]{\textbf{ }} % fallback if no title
+  \else
+    \fancyhead[C]{\textbf{\@title}}
+  \fi
+}
+\makeatother
+
+% Footer: page X / Y
+\fancyfoot[C]{\thepage\ /\ \pageref{LastPage}}
+\renewcommand{\footrulewidth}{0pt}
+
+% Prevent fancyhdr warning about headheight
+\setlength{\headheight}{14.5pt}
+
+\makeatletter
+\AtBeginDocument{
+  \let\oldmaketitle\maketitle
+  \renewcommand{\maketitle}{
+    \oldmaketitle
+    \thispagestyle{fancy}
+  }
+}
+\makeatother

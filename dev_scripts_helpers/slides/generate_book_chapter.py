@@ -36,6 +36,7 @@ Examples:
 import argparse
 import logging
 import os
+import re
 from typing import List, Optional
 
 import pdf2image
@@ -61,13 +62,38 @@ that explains the content and context of the slide.
 - Create bullet points for the discussion following the same structure as the
   original slide
 - The discussion for each slide should contain around 100-150 words
-- Do not use bold or italicize the text
-- Use "we" and "let's" instead of saying "This slide says"
+- Use bold only for items and use italic sparingly to highlight only important
+  points
 - Focus on explaining the concepts, providing context, and highlighting
   important points
 
 The output should be in markdown format without a heading.
 """
+
+
+def _extract_title_from_markdown(input_file: str) -> Optional[str]:
+    """
+    Extract title from markdown file.
+
+    Looks for patterns like:
+    \text{\blue{Lesson 2.1: Git}}
+
+    :param input_file: path to input markdown file
+    :return: extracted title or None if not found
+    """
+    hdbg.dassert_file_exists(input_file)
+    content = hio.from_file(input_file)
+    # Pattern to match \text{\blue{...}} or \text{...} or similar LaTeX constructs.
+    pattern = r"\\text\{(?:\\blue\{)?([^}]+)\}?"
+    match = re.search(pattern, content)
+    if match:
+        title = match.group(1)
+        # Clean up the title.
+        title = title.strip()
+        _LOG.info("Extracted title: %s", title)
+        return title
+    _LOG.warning("Could not extract title from markdown file")
+    return None
 
 
 def _extract_png_from_pdf(
@@ -211,6 +237,8 @@ def _generate_book_chapter(
     else:
         hdbg.dassert_dir_exists(input_png_dir)
     _LOG.info("Reading slides from: %s", input_file)
+    # Extract title from markdown file for YAML preamble.
+    title = _extract_title_from_markdown(input_file)
     # Extract slides from markdown file.
     slides, titles = dshsslut.extract_slides_from_file(input_file)
     num_slides = len(slides)
@@ -230,13 +258,21 @@ def _generate_book_chapter(
     )
     # Generate commentary for each slide.
     output_parts = []
+    # Add YAML preamble with title if available.
+    if title:
+        yaml_preamble = f'---\ntitle: "{title}"\n---\n'
+        output_parts.append(yaml_preamble)
     # First, handle the title slide (first PNG, no content).
     _LOG.info("Processing title slide (1/%d)", num_slides + 1)
     slide_output = []
     slide_output.append("\\newpage")
     slide_output.append("")
     # Add centered image with specified width and empty alt text.
+    slide_output.append("<center>")
+    slide_output.append("")
     slide_output.append(f"![]({png_files[0]}){{width={image_width}}}")
+    slide_output.append("")
+    slide_output.append("</center>")
     slide_output.append("")
     output_parts.append("\n".join(slide_output))
     # Then process content slides (slides from markdown with corresponding PNGs).
@@ -256,11 +292,19 @@ def _generate_book_chapter(
         slide_output.append("\\newpage")
         slide_output.append("")
         # Add title, image, and commentary.
-        # Use original slide title from input markdown.
-        slide_output.append(f"# {slide_title}")
+        # Use original slide title from input markdown with idx/tot format.
+        slide_output.append("<center>")
+        slide_output.append("")
+        slide_output.append(f"# {idx} / {num_slides + 1}: {slide_title}")
+        slide_output.append("")
+        slide_output.append("</center>")
         slide_output.append("")
         # Add centered image with specified width and empty alt text.
+        slide_output.append("<center>")
+        slide_output.append("")
         slide_output.append(f"![]({png_path}){{width={image_width}}}")
+        slide_output.append("")
+        slide_output.append("</center>")
         slide_output.append("")
         # Generate commentary for this slide.
         commentary = _generate_slide_commentary(

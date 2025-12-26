@@ -3,14 +3,21 @@
 This directory contains tools for processing lecture slides and generating images
 using AI services.
 
+# Structure of the Dir
+
+- No subdirectories in this directory
+
 # Description of Files
 
 - `extract_png_from_pdf.py`
   - Extracts PNG images from PDF files with one image per page using sequential
     numbering
 - `generate_book_chapter.py`
-  - Generates book chapter from markdown slides with PNG directory or PDF file
-    using LLM commentary
+  - Generates book chapter from markdown with PNG or PDF, YAML preamble with
+    title, and centered headers
+- `header-style.tex`
+  - LaTeX header customization file for pandoc PDF conversion with styled
+    section headers
 - `generate_class_images.py`
   - Generates multiple images using OpenAI's DALL-E API from text prompts with
     quality options
@@ -65,6 +72,8 @@ using AI services.
 
 - Processes markdown slides with PNG images or PDF file to create book chapter
   format
+- Extracts title from markdown file (e.g., from `\text{\blue{Lesson 2.1:
+  Git}}`) and adds YAML preamble for pandoc metadata
 - Extracts PNG images from PDF automatically when --input_pdf_file is provided
 - Validates that the number of slides in markdown matches the number of PNG
   files (expects num_slides + 1 = num_pngs to account for title slide)
@@ -72,8 +81,8 @@ using AI services.
   to ensure header, slide image, and commentary are synchronized
 - First slide (PNG 1) is treated as title slide with only the image (no title
   or commentary)
-- Content slides (PNG 2+) are paired with corresponding markdown slides,
-  preserving original slide titles and generating LLM-based commentary
+- Content slides (PNG 2+) are paired with corresponding markdown slides, with
+  centered headers formatted as "idx / tot: title" and LLM-based commentary
 - Creates pandoc-friendly markdown with page breaks before slides, centered
   images, and configurable image width
 - Formats output with prettier for consistent markdown formatting
@@ -105,6 +114,21 @@ using AI services.
 - Process slides with verbose logging:
   ```bash
   > ./generate_book_chapter.py --input_file lecture.txt --input_png_dir ./png_slides/ --output_dir ./book_chapters/ -v DEBUG
+  ```
+
+### Converting to PDF with pandoc
+
+After generating the book chapter markdown, convert it to PDF using pandoc with
+custom header styling:
+
+- Convert markdown to PDF with styled headers:
+  ```bash
+  > pandoc test/Lesson01.1-Intro.book_chapter.txt -o output.pdf --include-in-header=header-style.tex
+  ```
+
+- Convert with additional pandoc options:
+  ```bash
+  > pandoc test/Lesson01.1-Intro.book_chapter.txt -o output.pdf --include-in-header=header-style.tex --pdf-engine=xelatex
   ```
 
 ## `generate_class_images.py`
