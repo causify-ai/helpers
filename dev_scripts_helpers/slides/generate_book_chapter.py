@@ -43,7 +43,7 @@ import tqdm
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdockexe
+import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hllm as hllm
 import helpers.hparser as hparser
@@ -276,7 +276,7 @@ def _generate_book_chapter(
     full_output = "\n".join(output_parts)
     # Format output with prettier.
     _LOG.info("Formatting output with prettier")
-    full_output = hdockexe.prettier_on_str(full_output, "md")
+    full_output = hdocexec.prettier_on_str(full_output, "md")
     # Write output file.
     output_file = os.path.join(output_dir, f"{base_name}.book_chapter.txt")
     _LOG.info("Writing output to: %s", output_file)

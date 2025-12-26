@@ -29,7 +29,6 @@ import logging
 import os
 
 import pdf2image
-import PIL
 import tqdm
 
 import helpers.hdbg as hdbg
@@ -54,7 +53,9 @@ def _extract_png_from_pdf(
     :param dpi: DPI resolution for output images (higher = better quality)
     :param from_scratch: if True, create output directory from scratch
     """
-    hdbg.dassert_file_exists(input_file, "Input file does not exist:", input_file)
+    hdbg.dassert_file_exists(
+        input_file, "Input file does not exist:", input_file
+    )
     _LOG.info("Processing PDF file: %s", input_file)
     # Create output directory.
     incremental = not from_scratch
@@ -67,14 +68,18 @@ def _extract_png_from_pdf(
     hdbg.dassert_lt(0, num_pages, "No pages found in PDF file:", input_file)
     _LOG.info("Found %d pages in PDF", num_pages)
     # Save each page as a PNG file.
-    for page_num, image in enumerate(tqdm.tqdm(images, desc="Extracting pages"), start=1):
+    for page_num, image in enumerate(
+        tqdm.tqdm(images, desc="Extracting pages"), start=1
+    ):
         # Format filename with zero-padded page number.
         output_filename = f"slides{page_num:03d}.png"
         output_path = os.path.join(output_dir, output_filename)
         # Save image as PNG.
         image.save(output_path, "PNG")
         _LOG.debug("Saved: %s", output_filename)
-    _LOG.info("Successfully extracted %d PNG images to %s", num_pages, output_dir)
+    _LOG.info(
+        "Successfully extracted %d PNG images to %s", num_pages, output_dir
+    )
 
 
 # #############################################################################
