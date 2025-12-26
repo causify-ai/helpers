@@ -9,8 +9,8 @@ using AI services.
   - Extracts PNG images from PDF files with one image per page using sequential
     numbering
 - `generate_book_chapter.py`
-  - Generates book chapter from markdown slides and PNG directory with
-    LLM-generated commentary
+  - Generates book chapter from markdown slides with PNG directory or PDF file
+    using LLM commentary
 - `generate_class_images.py`
   - Generates multiple images using OpenAI's DALL-E API from text prompts with
     quality options
@@ -63,11 +63,20 @@ using AI services.
 
 ### What It Does
 
-- Processes markdown slides and corresponding PNG images to create book chapter
+- Processes markdown slides with PNG images or PDF file to create book chapter
   format
+- Extracts PNG images from PDF automatically when --input_pdf_file is provided
 - Validates that the number of slides in markdown matches the number of PNG
-  files
-- Generates LLM-based commentary for each slide explaining content and context
+  files (expects num_slides + 1 = num_pngs to account for title slide)
+- Properly aligns title slide (first PNG) with content slides (remaining PNGs)
+  to ensure header, slide image, and commentary are synchronized
+- First slide (PNG 1) is treated as title slide with only the image (no title
+  or commentary)
+- Content slides (PNG 2+) are paired with corresponding markdown slides,
+  preserving original slide titles and generating LLM-based commentary
+- Creates pandoc-friendly markdown with page breaks before slides, centered
+  images, and configurable image width
+- Formats output with prettier for consistent markdown formatting
 - Creates markdown output with PNG references and detailed commentary for each
   slide
 
@@ -78,14 +87,24 @@ using AI services.
   > ./generate_book_chapter.py --input_file data605/lectures_source/Lesson01.1-Intro.txt --input_png_dir output --output_dir test
   ```
 
+- Generate book chapter from markdown and PDF file:
+  ```bash
+  > ./generate_book_chapter.py --input_file data605/lectures_source/Lesson01.1-Intro.txt --input_pdf_file data605/lectures/Lesson01.1-Intro.pdf --output_dir test
+  ```
+
+- Process with custom image width:
+  ```bash
+  > ./generate_book_chapter.py --input_file lecture.txt --input_pdf_file lecture.pdf --output_dir ./book_chapters/ --image_width 50%
+  ```
+
+- Process with custom DPI for PDF extraction:
+  ```bash
+  > ./generate_book_chapter.py --input_file lecture.txt --input_pdf_file lecture.pdf --output_dir ./book_chapters/ --dpi 300
+  ```
+
 - Process slides with verbose logging:
   ```bash
   > ./generate_book_chapter.py --input_file lecture.txt --input_png_dir ./png_slides/ --output_dir ./book_chapters/ -v DEBUG
-  ```
-
-- Generate book chapter for different lesson:
-  ```bash
-  > ./generate_book_chapter.py --input_file data605/lectures_source/Lesson02.1-Git.txt --input_png_dir slides_png --output_dir output
   ```
 
 ## `generate_class_images.py`

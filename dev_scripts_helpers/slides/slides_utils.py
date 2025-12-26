@@ -98,12 +98,12 @@ def process_slide_images(slides_group: List[str]) -> Tuple[List[str], List[str]]
 # ########
 
 
-def extract_slides_from_file(file_path: str) -> List[str]:
+def extract_slides_from_file(file_path: str) -> Tuple[List[str], List[str]]:
     """
     Extract slides from markdown file.
 
     :param file_path: path to input markdown file
-    :return: list of slide contents as strings
+    :return: tuple of (list of slide contents as strings, list of slide titles)
     """
     hdbg.dassert_file_exists(file_path)
     # Read the file.
@@ -112,8 +112,9 @@ def extract_slides_from_file(file_path: str) -> List[str]:
     # Extract slides using the markdown parsing functionality.
     header_list, _ = hmarkdo.extract_slides_from_markdown(lines)
     _LOG.debug("Found %d slides", len(header_list))
-    # Extract slide content.
+    # Extract slide content and titles.
     slides = []
+    titles = []
     for i, header_info in enumerate(header_list):
         # Get start and end line numbers.
         start_line = header_info.line_number - 1  # Convert to 0-based indexing.
@@ -125,4 +126,6 @@ def extract_slides_from_file(file_path: str) -> List[str]:
         slide_lines = lines[start_line:end_line]
         slide_content = "\n".join(slide_lines)
         slides.append(slide_content)
-    return slides
+        # Extract slide title from header.
+        titles.append(header_info.description)
+    return slides, titles
