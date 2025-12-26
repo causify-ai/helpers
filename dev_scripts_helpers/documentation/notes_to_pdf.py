@@ -680,7 +680,7 @@ def _parse() -> argparse.ArgumentParser:
         "--toc_type",
         action="store",
         default="none",
-        choices=["none", "pandoc_native", "navigation"],
+        choices=["none", "pandoc_native", "navigation", "remove_headers"],
     )
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False

@@ -73,6 +73,121 @@ class Test_process_question1(hunitest.TestCase):
 
 
 # #############################################################################
+# Test_remove_headers1
+# #############################################################################
+
+class Test_remove_headers1(hunitest.TestCase):
+    """
+    Test the `_remove_headers()` function.
+    """
+
+    def helper(self, lines_in: list, expected: list, max_level: int = 999) -> None:
+        """
+        Helper method to test the _remove_headers function.
+
+        :param lines_in: input lines
+        :param expected: expected output lines
+        :param max_level: maximum level of headers to consider (default: 999 to remove all headers)
+        """
+        actual = dshdprno._remove_headers(lines_in, max_level)
+        # Convert lists to strings for comparison.
+        actual_str = "\n".join(actual)
+        expected_str = "\n".join(expected)
+        self.assert_equal(actual_str, expected_str)
+
+    def test1(self) -> None:
+        """
+        Test removing a single level 1 header.
+        """
+        lines_in = ["# Chapter 1", "Some content here"]
+        expected = ["Some content here"]
+        self.helper(lines_in, expected)
+
+    def test2(self) -> None:
+        """
+        Test removing headers of various levels.
+        """
+        lines_in = [
+            "# Chapter 1",
+            "Content line 1",
+            "## Section 1.1",
+            "Content line 2",
+            "### Subsection",
+            "Content line 3",
+            "#### Sub-subsection",
+            "Content line 4",
+        ]
+        expected = [
+            "Content line 1",
+            "Content line 2",
+            "Content line 3",
+            "Content line 4",
+        ]
+        self.helper(lines_in, expected)
+
+    def test3(self) -> None:
+        """
+        Test headers mixed with regular text and bullet points.
+        """
+        lines_in = [
+            "# Header",
+            "- Bullet point 1",
+            "- Bullet point 2",
+            "## Subheader",
+            "Regular text",
+        ]
+        expected = [
+            "- Bullet point 1",
+            "- Bullet point 2",
+            "Regular text",
+        ]
+        self.helper(lines_in, expected)
+
+    def test4(self) -> None:
+        """
+        Test input with no headers (should return unchanged).
+        """
+        lines_in = [
+            "This is some text",
+            "- Bullet point",
+            "More text",
+        ]
+        expected = lines_in
+        self.helper(lines_in, expected)
+
+    def test5(self) -> None:
+        """
+        Test input with only headers (should return empty list).
+        """
+        lines_in = [
+            "# Header 1",
+            "## Header 2",
+            "### Header 3",
+        ]
+        expected = []
+        self.helper(lines_in, expected)
+
+    def test6(self) -> None:
+        """
+        Test that empty lines around headers are preserved.
+        """
+        lines_in = [
+            "",
+            "# Header",
+            "",
+            "Content",
+            "",
+        ]
+        expected = [
+            "",
+            "",
+            "Content",
+            "",
+        ]
+        self.helper(lines_in, expected)
+
+
+# #############################################################################
 # Test_preprocess_notes_end_to_end1
 # #############################################################################
 
@@ -305,3 +420,64 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         act = self.helper(in_file, out_file, type_)
         # Check.
         self.check_string(act)
+
+
+
+# #############################################################################
+# Test_preprocess_notes_remove_headers1
+# #############################################################################
+
+class Test_preprocess_notes_remove_headers1(hunitest.TestCase):
+    """
+    Test `preprocess_notes.py` with `--toc_type remove_headers`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test the full preprocessing flow with header removal.
+        """
+        # Prepare inputs.
+        txt_in = r"""
+        # Chapter 1: Introduction
+        This is some introductory content.
+
+        ## Section 1.1: Background
+        More content here with some details.
+
+        * What is the main concept?
+        The main concept is to understand how preprocessing works.
+
+        ### Subsection 1.1.1
+        - Bullet point 1
+        - Bullet point 2
+        - Bullet point 3
+
+        Some regular text after bullets.
+
+        ## Section 1.2: Examples
+
+        Here is a code block:
+        ```python
+        def foo():
+            # This is a comment with # symbol
+            pass
+        ```
+
+        # Chapter 2: Advanced Topics
+
+        More advanced content goes here.
+
+        * Another question?
+        Answer to the question.
+        """
+        txt_in = txt_in.split("\n")
+        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        # Execute function.
+        type_ = "pdf"
+        toc_type = "remove_headers"
+        actual = dshdprno._preprocess_lines(
+            txt_in, type_, toc_type, is_qa=False
+        )
+        actual = "\n".join(actual)
+        # Check.
+        self.check_string(actual)

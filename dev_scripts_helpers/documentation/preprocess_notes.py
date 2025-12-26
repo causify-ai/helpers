@@ -382,6 +382,26 @@ def _add_navigation_slides(
     return out
 
 
+def _remove_headers(lines: List[str], max_level: int) -> List[str]:
+    """
+    Remove all markdown headers from the lines that are smaller than level 3.
+
+    :param lines: list of lines to process
+    :param max_level: maximum level of headers to consider (default: 3)
+    :return: list of lines with relevant headers removed
+    """
+    _LOG.debug("\n%s", hprint.frame("Remove headers smaller than level 3"))
+    hdbg.dassert_isinstance(lines, list)
+    out: List[str] = []
+    for line in lines:
+        is_header_line, level, _ = hmarkdo.is_header(line)
+        # Exclude header lines with level 1 or 2 (i.e., smaller than level 3).
+        if not (is_header_line and level < max_level):
+            out.append(line)
+    hdbg.dassert_isinstance(out, list)
+    return out
+
+
 def _preprocess_lines(
     lines: List[str],
     type_: str,
@@ -408,6 +428,9 @@ def _preprocess_lines(
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
         out = _add_navigation_slides(out, max_level, sanity_check=True)
+    elif toc_type == "remove_headers":
+        # Remove headers smaller than level 4 so that we leave only the `*`.
+        out = _remove_headers(out, max_level=4)
     hdbg.dassert_isinstance(out, list)
     return out
 
@@ -438,7 +461,7 @@ def _parse() -> argparse.ArgumentParser:
         "--toc_type",
         action="store",
         default="none",
-        choices=["none", "pandoc_native", "navigation"],
+        choices=["none", "pandoc_native", "navigation", "remove_headers"],
     )
     # TODO(gp): Unclear what it does.
     parser.add_argument(
