@@ -15,10 +15,10 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+
 # #############################################################################
 # Test_notes_to_pdf1
 # #############################################################################
-
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
@@ -84,7 +84,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         out_file = os.path.join(out_dir, f"output.{type_}")
         cmd.append(f"--output {out_file}")
         cmd.append(cmd_opts)
-        #cmd.append("--skip_action copy_to_gdrive")
+        # cmd.append("--skip_action copy_to_gdrive")
         cmd.append("--skip_action open")
         # The command line looks like:
         # /app/helpers_root/dev_scripts_helpers/documentation/notes_to_pdf.py \

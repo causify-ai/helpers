@@ -52,8 +52,8 @@ def _process_abbreviations(in_line: str) -> str:
         # TODO(gp): This collides with the arrow in graphviz commands. We
         # should skip this transformation if we are in a graphviz block.
         # (r"->", r"\rightarrow"),
-        #(r"-^", r"\uparrow"),
-        #(r"-v", r"\downarrow"),
+        # (r"-^", r"\uparrow"),
+        # (r"-v", r"\downarrow"),
     ]:
         line = re.sub(rf"(\s){re.escape(x)}(\s)", rf"\1${re.escape(y)}$\2", line)
     if line != in_line:
@@ -93,7 +93,9 @@ def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
     return do_continue, line
 
 
-def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str]:
+def _process_question_to_slides(
+    line: str, *, level: int = 4
+) -> Tuple[bool, str]:
     """
     Transform `* foo bar` into `#### foo bar`.
     """
@@ -111,7 +113,13 @@ def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str
 
 # TODO(gp): Use hmarkdown.process_lines().
 # TODO(gp): Add a way to control the list of transformations.
-def _transform_lines(lines: List[str], type_: str, is_qa: bool, *, actions: Optional[List[str]] = None) -> List[str]:
+def _transform_lines(
+    lines: List[str],
+    type_: str,
+    is_qa: bool,
+    *,
+    actions: Optional[List[str]] = None,
+) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
@@ -210,9 +218,9 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool, *, actions: Opti
                     out.append(" " * _NUM_SPACES + line)
             else:
                 # Empty line.
-                prev_line_is_verbatim = ((i - 1) > 0) and lines[i - 1].startswith(
-                    "```"
-                )
+                prev_line_is_verbatim = ((i - 1) > 0) and lines[
+                    i - 1
+                ].startswith("```")
                 next_line_is_verbatim = ((i + 1) < len(lines)) and (
                     lines[i + 1].startswith("```")
                 )
@@ -234,10 +242,9 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool, *, actions: Opti
                     out.append(" " * _NUM_SPACES + line)
     #
     if type_ == "slides":
-
         # Colorize links.
         to_execute, actions = hparser.mark_action("process_links", actions)
-        #to_execute = False
+        # to_execute = False
         if to_execute:
             out = hmarkdo.format_md_links_to_latex_format(out)
 
@@ -346,7 +353,12 @@ def _add_navigation_slides(
 
 
 def _preprocess_lines(
-    lines: List[str], type_: str, toc_type: str, is_qa: bool, *, actions: Optional[List[str]] = None
+    lines: List[str],
+    type_: str,
+    toc_type: str,
+    is_qa: bool,
+    *,
+    actions: Optional[List[str]] = None,
 ) -> List[str]:
     """
     Preprocess the lines of the notes.
@@ -406,7 +418,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     txt = hio.from_file(args.input)
     # Process.
     lines = txt.split("\n")
-    out = _preprocess_lines(lines, args.type, args.toc_type, args.qa, actions=actions)
+    out = _preprocess_lines(
+        lines, args.type, args.toc_type, args.qa, actions=actions
+    )
     out = "\n".join(out)
     # Save results.
     hio.to_file(args.output, out)

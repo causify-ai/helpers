@@ -198,7 +198,11 @@ def _create_directory_table(directories: List[str], out_dir: str) -> None:
             "department": "Sales",
             "content": "",
         },
-        "Causify Products": {"owner": "", "department": "Product", "content": ""},
+        "Causify Products": {
+            "owner": "",
+            "department": "Product",
+            "content": "",
+        },
         "Compliance": {
             "owner": "Denis",
             "department": "Compliance",
