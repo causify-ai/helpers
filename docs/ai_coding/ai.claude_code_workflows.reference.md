@@ -43,9 +43,9 @@ reads a markdown file --input file.md
 
 claude> Execute the prompt in docs/ai_coding/ai.readme_template.md on the directory ./helpers_root/dev_scripts_helpers/llms/
 
-> ccp Execute the prompt in docs/ai_coding/ai.create_readme.prompt.md on the directory ./docs/ai_coding/README.md
+> ccp Execute the prompt in docs/ai_prompts/readme.create.md on the directory ./docs/ai_coding/README.md
 
-> echo "Execute the prompt in docs/ai_coding/ai.create_readme.prompt.md on the > directory ./docs/ai_coding/README.md" | claude --dangerously-skip-permissions
+> echo "Execute the prompt in docs/ai_prompts/readme.create.md on the directory ./docs/ai_coding/README.md" | claude --dangerously-skip-permissions
 
 # 
 

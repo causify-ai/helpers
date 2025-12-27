@@ -193,6 +193,7 @@ def _generate_book_chapter(
     input_pdf_file: Optional[str] = None,
     dpi: int = 200,
     image_width: str = "80%",
+    add_new_page: bool = False,
 ) -> None:
     """
     Generate book chapter from markdown slides and PNG directory or PDF file.
@@ -203,6 +204,7 @@ def _generate_book_chapter(
     :param input_pdf_file: PDF file to extract PNG images from
     :param dpi: DPI resolution for PDF extraction
     :param image_width: width of images in output (e.g., "80%", "50%")
+    :param add_new_page: if True, add \\newpage commands before each slide
     """
     hdbg.dassert_file_exists(input_file)
     # Validate that exactly one of input_png_dir or input_pdf_file is provided.
@@ -265,8 +267,9 @@ def _generate_book_chapter(
     # First, handle the title slide (first PNG, no content).
     _LOG.info("Processing title slide (1/%d)", num_slides + 1)
     slide_output = []
-    slide_output.append("\\newpage")
-    slide_output.append("")
+    if add_new_page:
+        slide_output.append("\\newpage")
+        slide_output.append("")
     # Add centered image with specified width and empty alt text.
     slide_output.append("<center>")
     slide_output.append("")
@@ -289,8 +292,9 @@ def _generate_book_chapter(
         # Create output for this slide.
         slide_output = []
         # Add page break before slide.
-        slide_output.append("\\newpage")
-        slide_output.append("")
+        if add_new_page:
+            slide_output.append("\\newpage")
+            slide_output.append("")
         # Add title, image, and commentary.
         # Use original slide title from input markdown with idx/tot format.
         slide_output.append("<center>")
@@ -374,6 +378,12 @@ def _parse() -> argparse.ArgumentParser:
         default="80%",
         help="Width of images in output markdown (e.g., 80%%, 50%%) (default: 80%%)",
     )
+    parser.add_argument(
+        "--add_new_page",
+        action="store_true",
+        default=False,
+        help="Add \\newpage commands before each slide (default: False)",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -389,6 +399,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         input_pdf_file=args.input_pdf_file,
         dpi=args.dpi,
         image_width=args.image_width,
+        add_new_page=args.add_new_page,
     )
 
 

@@ -29,7 +29,7 @@ The interface is like:
 
 Step 2) Update the file README.md in the same directory of the
    script following the instructions in 
-   `in docs/ai_coding/ai.create_readme.prompt.md`
+   in `docs/ai_prompts/readme.create.md`
 
 Step 3) Generate unit tests for the code following the instructions in
   `docs/ai_prompts/coding.format_unit_tests.md`
@@ -51,11 +51,10 @@ The interface is like:
   clarifications
 
 Step 2) Update the file README.md in the same directory of the
-   script following the instructions in 
-   `in docs/ai_coding/ai.create_readme.prompt.md`
+ script following the instructions in `docs/ai_prompts/readme.create.md`
 
 Step 3) Generate unit tests for the code following the instructions in
-  `docs/ai_prompts/coding.format_unit_tests.md`
+`docs/ai_prompts/coding.format_unit_tests.md`
 
 # Implement an invoke target
 
@@ -98,7 +97,7 @@ Step 3) Generate unit tests for the code following the instructions in
 
 ## Step 6)
   - Update the file README.md in the same directory of the script following the
-    instructions in `in docs/ai_coding/ai.create_readme.prompt.md`
+    instructions in `docs/ai_prompts/readme.create.md`
 
 ## Step 7)
   - Implement the code following the instructions in
