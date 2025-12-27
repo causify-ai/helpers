@@ -328,7 +328,6 @@ def from_gsheet(
     credentials: "goasea.Credentials",
     url: str,
     *,
-    # TODO(ai_gp): Use tab_name instead of tab_name.
     tab_name: Optional[str] = None,
 ) -> pd.DataFrame:
     """
@@ -343,8 +342,10 @@ def from_gsheet(
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(url)
     if tab_name is None:
+        # Read the first sheet.
         worksheet = spreadsheet.get_worksheet(0)
     else:
+        # Read the specified sheet.
         worksheet = spreadsheet.worksheet(tab_name)
     data = worksheet.get_all_records()
     hdbg.dassert(data, "The sheet '%s' is empty", tab_name)

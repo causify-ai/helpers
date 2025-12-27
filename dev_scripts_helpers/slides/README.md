@@ -83,6 +83,8 @@ using AI services.
   or commentary)
 - Content slides (PNG 2+) are paired with corresponding markdown slides, with
   centered headers formatted as "idx / tot: title" and LLM-based commentary
+- Supports optional page breaks via --add_new_page flag to insert `\newpage`
+  commands before each slide (disabled by default)
 - Creates pandoc-friendly markdown with page breaks before slides, centered
   images, and configurable image width
 - Formats output with prettier for consistent markdown formatting
@@ -114,6 +116,11 @@ using AI services.
 - Process slides with verbose logging:
   ```bash
   > ./generate_book_chapter.py --input_file lecture.txt --input_png_dir ./png_slides/ --output_dir ./book_chapters/ -v DEBUG
+  ```
+
+- Generate with page breaks before each slide:
+  ```bash
+  > ./generate_book_chapter.py --input_file lecture.txt --input_pdf_file lecture.pdf --output_dir ./book_chapters/ --add_new_page
   ```
 
 ### Converting to PDF with pandoc
