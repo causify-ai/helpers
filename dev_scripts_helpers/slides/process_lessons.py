@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
 """
-Generate PDF slides and/or a reading scripts for lecture materials.
+Process lecture source files to generate PDF slides, scripts, and book chapters.
 
-Check process_lessons.md for more details.
+Orchestrates the generation of multiple outputs from lecture source files including
+PDF slides, instructor scripts, LLM-based transformations, and book chapters.
+Supports batch processing via pattern matching and slide range limiting.
+
+For detailed usage, examples, and documentation, see README.md in this directory.
 """
 
 import argparse
@@ -18,58 +22,6 @@ import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
-
-# #############################################################################
-
-_VALID_ACTIONS = [
-    "pdf",
-    "script",
-    "slide_reduce",
-    "slide_check",
-    "slide_improve",
-]
-_DEFAULT_ACTIONS = ["pdf"]
-
-# #############################################################################
-
-
-def _parse() -> argparse.ArgumentParser:
-    """
-    Parse command line arguments.
-
-    :return: configured argument parser
-    """
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "--lectures",
-        action="store",
-        required=True,
-        help="Lecture pattern(s) to process (e.g., '01*', '01.1', '01*:03*')",
-    )
-    parser.add_argument(
-        "--limit",
-        action="store",
-        help="Slide range to process when single lecture specified (e.g., '1:3')",
-    )
-    parser.add_argument(
-        "--class",
-        dest="class_name",
-        action="store",
-        required=True,
-        choices=["data605", "msml610"],
-        help="Class directory name",
-    )
-    parser.add_argument(
-        "--dry_run",
-        action="store_true",
-        help="Print the commands that would be executed without running them",
-    )
-    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    hparser.add_verbosity_arg(parser)
-    return parser
 
 
 def _parse_lecture_patterns(lectures_arg: str) -> List[str]:
@@ -121,6 +73,9 @@ def _find_lecture_files(
     result = [(f, os.path.basename(f)) for f in all_files]
     _LOG.info("Found %d lecture files", len(result))
     return result
+
+
+# #############################################################################
 
 
 def _generate_pdf(
@@ -267,6 +222,45 @@ def _slide_check(
     hsystem.system(cmd_str, suppress_output=False)
 
 
+def _generate_book_chapter(
+    class_dir: str,
+    source_path: str,
+    source_name: str,
+) -> None:
+    """
+    Generate book chapter from a lecture source file.
+
+    Calls gen_book_chapter.sh which:
+    1. Generates a PDF from the lecture source
+    2. Creates book chapter using generate_book_chapter.py
+    3. Converts to PDF using pandoc
+    4. Opens the resulting PDF
+
+    :param class_dir: class directory (data605 or msml610)
+    :param source_path: path to source .txt file
+    :param source_name: name of source file
+    """
+    # Extract lesson number from source name (e.g., Lesson01.1-Intro.txt -> 01.1)
+    import re
+    match = re.match(r"Lesson([\d.]+)", source_name)
+    if not match:
+        hdbg.dfatal(f"Could not extract lesson number from {source_name}")
+    lesson_number = match.group(1)
+    # Find gen_book_chapter.sh script.
+    # Look for it in classes/ directory relative to repo root.
+    script_path = os.path.join("classes", "gen_book_chapter.sh")
+    if not os.path.isfile(script_path):
+        hdbg.dfatal(
+            f"gen_book_chapter.sh not found at {script_path}. "
+            "Please ensure the script exists in the classes directory."
+        )
+    # Build command.
+    _LOG.info("Generating book chapter for %s (lesson %s)", source_name, lesson_number)
+    cmd_str = f"{script_path} {class_dir} {lesson_number}"
+    _LOG.info("Executing: %s", cmd_str)
+    hsystem.system(cmd_str, suppress_output=False)
+
+
 def _process_lecture_file(
     class_dir: str,
     source_path: str,
@@ -282,7 +276,7 @@ def _process_lecture_file(
     :param source_path: path to source .txt file
     :param source_name: name of source file
     :param actions: list of actions to execute ('pdf', 'script',
-        'slide_reduce', 'slide_check')
+        'slide_reduce', 'slide_check', 'book_chapter')
     :param limit: optional slide range to process
     """
     _LOG.info("Processing file: %s", source_path)
@@ -296,8 +290,64 @@ def _process_lecture_file(
             _slide_reduce(source_path, source_name, limit=limit)
         elif action == "slide_check":
             _slide_check(source_path, source_name, limit=limit)
+        elif action == "book_chapter":
+            _generate_book_chapter(class_dir, source_path, source_name)
         else:
             hdbg.dfatal("Unknown action: %s" % action)
+
+
+# #############################################################################
+
+_VALID_ACTIONS = [
+    "pdf",
+    "script",
+    "slide_reduce",
+    "slide_check",
+    "slide_improve",
+    "book_chapter",
+]
+_DEFAULT_ACTIONS = ["pdf"]
+
+# #############################################################################
+
+
+def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command line arguments.
+
+    :return: configured argument parser
+    """
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--lectures",
+        action="store",
+        required=True,
+        help="Lecture pattern(s) to process (e.g., '01*', '01.1', '01*:03*')",
+    )
+    parser.add_argument(
+        "--limit",
+        action="store",
+        help="Slide range to process when single lecture specified (e.g., '1:3')",
+    )
+    parser.add_argument(
+        "--class",
+        dest="class_name",
+        action="store",
+        required=True,
+        choices=["data605", "msml610"],
+        help="Class directory name",
+    )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Print the commands that would be executed without running them",
+    )
+    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    hparser.add_verbosity_arg(parser)
+    return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
