@@ -126,6 +126,7 @@
     - `replace_latex.py`: Batch LaTeX transformations
     - `check_links.py`: Validates URL reachability
     - `check_ai_slop.py`: Detects and fixes AI-generated content using Undetectable.ai API
+    - `concatenate_pdfs.py`: Merges multiple PDF files into a single PDF
 
   - Generation and Publishing Tools
     - `generate_readme_index.py`: Generates README index
@@ -376,6 +377,44 @@ The supported File types and code blocks are:
 - Check and fix in one command
   ```bash
   > check_ai_slop.py -i input.txt -o output.txt --action detect,fix
+  ```
+
+## `concatenate_pdfs.py`
+
+### What It Does
+
+- Merges multiple PDF files into a single output PDF file
+- Accepts file paths or glob patterns (e.g., `*.pdf`, `Lesson*.pdf`)
+- Automatically sorts input files alphabetically before concatenation
+- Supports dry-run mode to preview which files will be merged without actually merging them
+- Creates output directory if it doesn't exist
+- Reports file sizes and number of pages processed
+
+### Examples
+
+- Concatenate all PDF files in current directory
+  ```bash
+  > concatenate_pdfs.py --input_files "*.pdf" --output_file combined.pdf
+  ```
+
+- Concatenate specific lesson PDFs in sorted order
+  ```bash
+  > concatenate_pdfs.py --input_files "data605/book/Lesson*.pdf" --output_file data605_lessons.pdf
+  ```
+
+- Dry run to see which files will be concatenated
+  ```bash
+  > concatenate_pdfs.py --input_files "*.pdf" --output_file combined.pdf --dry_run
+  ```
+
+- Concatenate specific files
+  ```bash
+  > concatenate_pdfs.py --input_files "file1.pdf file2.pdf file3.pdf" --output_file output.pdf
+  ```
+
+- Concatenate PDFs with verbose logging
+  ```bash
+  > concatenate_pdfs.py --input_files "chapter*.pdf" --output_file book.pdf -v DEBUG
   ```
 
 ## `run_pandoc.py`
