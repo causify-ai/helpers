@@ -203,3 +203,49 @@ class Test_df_to_str(hunitest.TestCase):
         2              3             C              0
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_head
+# #############################################################################
+
+
+class Test_head(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test basic head functionality without seed.
+        """
+        # Prepare input.
+        df = pd.DataFrame(
+            {
+                "col1": [1, 2, 3, 4, 5],
+                "col2": ["a", "b", "c", "d", "e"],
+            }
+        )
+        hpandas.head(df, num_rows=2)
+
+    def test2(self) -> None:
+        """
+        Test head with a seed for reproducible sampling.
+        """
+        # Prepare input.
+        df = pd.DataFrame(
+            {
+                "col1": list(range(10)),
+                "col2": list("abcdefghij"),
+            }
+        )
+        hpandas.head(df, seed=42, num_rows=3)
+
+    def test3(self) -> None:
+        """
+        Test head with different num_rows parameter.
+        """
+        # Prepare input.
+        df = pd.DataFrame(
+            {
+                "col1": list(range(5)),
+                "col2": list("abcde"),
+            }
+        )
+        hpandas.head(df, num_rows=4)

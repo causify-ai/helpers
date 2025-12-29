@@ -133,7 +133,7 @@ def _get_workflow_table() -> htable.TableType:
         "completed",
         # E.g., success, failure.
         "status",
-        # Aka title.
+        # Aka title: parse but don't use.
         "name",
         "workflow",
         "branch",
@@ -146,6 +146,8 @@ def _get_workflow_table() -> htable.TableType:
     # Build the table.
     table = htable.Table.from_text(cols, txt, delimiter="\t")
     _LOG.debug(hprint.to_str("table"))
+    # Remove the "name" column as it's redundant with "workflow".
+    table = table.remove_column("name")
     return table
 
 
@@ -269,9 +271,9 @@ def gh_workflow_list(  # type: ignore
                     # #########################################################
                     # Superslow tests
                     # #########################################################
-                    # completed   | status | name            | workflow        | branch | event             | id         | elapsed | age |
-                    # ----------- | ------ | --------------- | --------------- | ------ | ----------------- | ---------- | ------- | --- |
-                    # in_progress |        | Superslow tests | Superslow tests | master | workflow_dispatch | 5421740561 | 13m25s  | 13m |
+                    # completed   | status | workflow        | branch | event             | id         | elapsed | age |
+                    # ----------- | ------ | --------------- | ------ | ----------------- | ---------- | ------- | --- |
+                    # in_progress |        | Superslow tests | master | workflow_dispatch | 5421740561 | 13m25s  | 13m |
                     _LOG.warning(
                         "No failed/successful run found for workflow=%s for branch=%s, all runs are in progress, exiting.",
                         workflow,

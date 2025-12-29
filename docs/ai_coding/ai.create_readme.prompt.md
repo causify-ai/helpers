@@ -45,7 +45,7 @@ tool**, using this exact structure:
 
 ### What It Does
 
-- 1–3 bullet points describing the tool’s purpose in clear, plain language.
+- 1–3 bullet points describing the tool's purpose in clear, plain language.
 - Mention important inputs, outputs, and side effects.
 
 ### Examples

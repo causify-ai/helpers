@@ -303,3 +303,60 @@ class TestDropDuplicates(hunitest.TestCase):
         """
         # Check.
         self.assert_equal(no_duplicates_df, expected_signature, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_impute_nans
+# #############################################################################
+
+
+class Test_impute_nans(hunitest.TestCase):
+    def test1(self) -> None:
+        """
+        Test basic imputation of "nan" strings with empty string.
+        """
+        # Prepare input.
+        df = pd.DataFrame(
+            {
+                "col1": ["value1", "nan", "value3"],
+                "col2": ["a", "b", "c"],
+            }
+        )
+        # Call function to test.
+        result_df = hpandas.impute_nans(df, "col1", "")
+        # Check output.
+        self.assertEqual(result_df["col1"].tolist(), ["value1", "", "value3"])
+        self.assertEqual(result_df["col2"].tolist(), ["a", "b", "c"])
+
+    def test2(self) -> None:
+        """
+        Test imputation with a custom value.
+        """
+        # Prepare input.
+        df = pd.DataFrame(
+            {
+                "col1": ["value1", "nan", "value3"],
+                "col2": ["a", "nan", "c"],
+            }
+        )
+        # Call function to test.
+        result_df = hpandas.impute_nans(df, "col2", "MISSING")
+        # Check output.
+        self.assertEqual(result_df["col1"].tolist(), ["value1", "nan", "value3"])
+        self.assertEqual(result_df["col2"].tolist(), ["a", "MISSING", "c"])
+
+    def test3(self) -> None:
+        """
+        Test with no "nan" values present.
+        """
+        # Prepare input.
+        df = pd.DataFrame(
+            {
+                "col1": ["value1", "value2", "value3"],
+                "col2": ["a", "b", "c"],
+            }
+        )
+        # Call function to test.
+        result_df = hpandas.impute_nans(df, "col1", "")
+        # Check output - should be unchanged.
+        self.assertEqual(result_df["col1"].tolist(), ["value1", "value2", "value3"])

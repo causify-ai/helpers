@@ -203,6 +203,26 @@ def drop_duplicated(
     return df
 
 
+def impute_nans(df: pd.DataFrame, column: str, value: Any) -> pd.DataFrame:
+    """
+    Assign `value` to the `column` of `df` where the value is "nan".
+
+    :param df: The DataFrame to modify.
+    :param column: The column in which to replace "nan" values.
+    :param value: The value to assign to "nan" entries.
+    :return: The DataFrame with the "nan" values assigned.
+    """
+    df[column] = df[column].astype(str)
+    mask = df[column] == "nan"
+    # Assign the new value or keep the original value.
+    df[column] = np.where(mask, value, df[column])
+    # There should be no more nans.
+    mask = df[column] == "nan"
+    hdbg.dassert_eq(mask.sum(), 0)
+    #
+    return df
+
+
 # #############################################################################
 
 
