@@ -22,7 +22,7 @@ from typing import Optional, Union
 import nbformat
 
 import config_root.config as cconfig
-import dataflow.backtest.dataflow_backtest_utils as dtfbdtfbaut
+import dataflow_amp.core.backtest.dataflow_backtest_utils as dtfbdtfbaut
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
