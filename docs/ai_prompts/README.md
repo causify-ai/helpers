@@ -49,7 +49,7 @@ the root level.
 
 ## Academic Papers
 
-- `paper.check.md`
+- `paper.use_style.md`
   - Academic writing guidelines for formal, objective computer science papers
     with reference checking
 - `paper.improve_bibliography.md`
