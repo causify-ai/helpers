@@ -40,6 +40,9 @@
     + [`parallel_script_template.py`](#parallel_script_templatepy)
       - [What It Does](#what-it-does-11)
       - [Examples](#examples-11)
+    + [`split_in_files.py`](#split_in_filespy)
+      - [What It Does](#what-it-does-12)
+      - [Examples](#examples-12)
 
 <!-- tocstop -->
 
@@ -98,6 +101,9 @@ refactoring.
 - `script_template.py`
   - Template for creating new Python scripts with standard argument parsing and
     logging
+- `split_in_files.py`
+  - Splits file with special tags into separate output files with optional
+    common section
 - `toml_merge.py`
   - Merges multiple pyproject.toml files handling dependencies and
     dev-dependencies
@@ -451,4 +457,52 @@ refactoring.
 
 ```bash
 > ./parallel_script_template.py --workload success --num_threads 2 --randomize --seed 42
+```
+
+### `split_in_files.py`
+
+#### What It Does
+
+- Reads a file containing special tags and splits it into separate output files
+- Supports optional common section that is copied to all output files
+- Modifies input file after splitting: removes content between tags, keeps tags and untagged content
+- Verifies that all content from input file is saved in output files (can be disabled)
+- Provides dry run mode to preview operations without writing files
+
+#### Examples
+
+**Split a file with tags into separate files in the same directory**
+
+```bash
+> ./split_in_files.py --input_file input.txt
+```
+
+**Split with custom output directory**
+
+```bash
+> ./split_in_files.py --input_file input.txt --output_dir ./output
+```
+
+**Preview what would be done without writing files (dry run)**
+
+```bash
+> ./split_in_files.py --input_file input.txt --dry_run
+```
+
+**Keep the input file unchanged after splitting**
+
+```bash
+> ./split_in_files.py --input_file input.txt --preserve_input
+```
+
+**Skip content verification for faster processing**
+
+```bash
+> ./split_in_files.py --input_file input.txt --skip_verify
+```
+
+**Split with verbose logging**
+
+```bash
+> ./split_in_files.py --input_file input.txt --output_dir ./output -v DEBUG
 ```
