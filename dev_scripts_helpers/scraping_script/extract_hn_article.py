@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
 """
-Extract article title and URL from Hacker News discussion pages.
+Extract article title and URL from Hacker News submissions using the HN API.
 
-This script processes Hacker News item URLs and extracts:
-- The submission title (discussion title)
+This script processes Hacker News item URLs and uses the Firebase API to extract:
+- The submission title
 - The original article URL that the submission links to
 
+The script uses the official HN API: https://hacker-news.firebaseio.com/v0/
+
 Examples:
-> ./extract_hn_article.py --hn_url "https://news.ycombinator.com/item?id=45619537"
-Claude Skills are awesome, maybe a bigger deal than MCP
-https://simonwillison.net/2025/Oct/16/claude-skills/
+> ./extract_hn_article.py --hn_url "https://news.ycombinator.com/item?id=45148180"
+A Software Development Methodology for Disciplined LLM Collaboration
+https://github.com/...
 
 > ./extract_hn_article.py --input_file input.csv --output_file output.csv
 
@@ -21,15 +23,14 @@ import dev_scripts_helpers.scraping_script.extract_hn_article as dsscehar
 
 import argparse
 import logging
+import os
+import re
 from typing import Optional, Tuple
 
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
 
-import helpers.hcsv as hcsv
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -48,9 +49,25 @@ def _is_hackernews_url(url: str) -> bool:
     return "news.ycombinator.com/item?id=" in url
 
 
+def _extract_item_id(hn_url: str) -> Optional[str]:
+    """
+    Extract the item ID from a Hacker News URL.
+
+    :param hn_url: Hacker News item URL
+    :return: Item ID or None if not found
+    """
+    # Match pattern: item?id=12345
+    match = re.search(r"item\?id=(\d+)", hn_url)
+    if match:
+        return match.group(1)
+    return None
+
+
 def _extract_article_info(hn_url: str) -> Tuple[Optional[str], Optional[str]]:
     """
-    Extract article title and URL from a Hacker News discussion page.
+    Extract article title and URL from a Hacker News submission using the API.
+
+    Uses the HN Firebase API: https://hacker-news.firebaseio.com/v0/
 
     :param hn_url: Hacker News item URL
     :return: Tuple of (article_title, article_url)
@@ -58,31 +75,33 @@ def _extract_article_info(hn_url: str) -> Tuple[Optional[str], Optional[str]]:
     if not _is_hackernews_url(hn_url):
         _LOG.warning("Not a Hacker News URL: %s", hn_url)
         return None, None
+    # Extract item ID from URL.
+    item_id = _extract_item_id(hn_url)
+    if not item_id:
+        _LOG.warning("Could not extract item ID from: %s", hn_url)
+        return None, None
     try:
-        # Fetch the HN page.
-        _LOG.debug("Fetching URL: %s", hn_url)
-        response = requests.get(hn_url, timeout=10)
+        # Fetch data from HN API.
+        api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
+        _LOG.debug("Fetching from API: %s", api_url)
+        response = requests.get(api_url, timeout=10)
         response.raise_for_status()
-        # Parse the HTML.
-        soup = BeautifulSoup(response.text, "html.parser")
-        # Find the submission title - it's in a span with class "titleline".
-        titleline = soup.find("span", class_="titleline")
-        if not titleline:
-            _LOG.warning("Could not find titleline in: %s", hn_url)
-            return None, None
-        # The link is inside the titleline span.
-        link = titleline.find("a")
-        if not link:
-            _LOG.warning("Could not find link in titleline: %s", hn_url)
+        # Parse JSON response.
+        data = response.json()
+        if not data:
+            _LOG.warning("No data returned for item: %s", item_id)
             return None, None
         # Extract title and URL.
-        article_title = link.get_text().strip()
-        article_url = link.get("href")
+        article_title = data.get("title")
+        article_url = data.get("url")
+        if not article_title:
+            _LOG.warning("No title found for item: %s", item_id)
+            return None, None
         _LOG.debug("Extracted title: %s", article_title)
         _LOG.debug("Extracted URL: %s", article_url)
         return article_title, article_url
     except requests.RequestException as e:
-        _LOG.warning("Request failed for %s: %s", hn_url, e)
+        _LOG.warning("API request failed for %s: %s", hn_url, e)
         return None, None
     except Exception as e:
         _LOG.warning("Error processing %s: %s", hn_url, e)
@@ -110,7 +129,7 @@ def _process_csv_file(input_file: str, output_file: str) -> None:
     :param input_file: Path to input CSV file with 'url' column
     :param output_file: Path to output CSV file
     """
-    hdbg.dassert(hio.file_exists(input_file), "Input file does not exist:", input_file)
+    hdbg.dassert(os.path.exists(input_file), "Input file does not exist:", input_file)
     # Read the CSV file.
     _LOG.info("Reading input file: %s", input_file)
     df = pd.read_csv(input_file)
@@ -131,7 +150,7 @@ def _process_csv_file(input_file: str, output_file: str) -> None:
     df.insert(url_col_idx + 2, "Article_url", article_urls)
     # Write output file.
     _LOG.info("Writing output file: %s", output_file)
-    hcsv.to_csv(df, output_file)
+    df.to_csv(output_file, index=False)
     _LOG.info("Done processing %d URLs", len(df))
 
 
