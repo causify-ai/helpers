@@ -29,9 +29,11 @@ from typing import Optional, Tuple
 
 import pandas as pd
 import requests
+from tqdm import tqdm
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
+import helpers.hcache_simple as hcacsimp
 
 _LOG = logging.getLogger(__name__)
 
@@ -63,6 +65,7 @@ def _extract_item_id(hn_url: str) -> Optional[str]:
     return None
 
 
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _extract_article_info(hn_url: str) -> Tuple[Optional[str], Optional[str]]:
     """
     Extract article title and URL from a Hacker News submission using the API.
@@ -139,7 +142,7 @@ def _process_csv_file(input_file: str, output_file: str) -> None:
     _LOG.info("Processing %d URLs", len(df))
     article_titles = []
     article_urls = []
-    for idx, url in enumerate(df["url"]):
+    for idx, url in enumerate(tqdm(df["url"], desc="Processing URLs")):
         _LOG.debug("Processing row %d: %s", idx, url)
         article_title, article_url = _extract_article_info(url)
         article_titles.append(article_title if article_title else "")

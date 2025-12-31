@@ -22,6 +22,7 @@ This directory contains only scripts and notebooks with no subdirectories.
 - Extracts submission title and original article URL from Hacker News items using the official HN Firebase API
 - Uses the programmatic API (https://hacker-news.firebaseio.com/v0/) instead of web scraping for reliability
 - Supports single URL processing or batch CSV processing with automatic column insertion
+- Displays progress bar when processing multiple URLs in CSV mode for better visibility
 - Handles non-HN URLs gracefully with warnings and empty result columns
 
 #### Examples
