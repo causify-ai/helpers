@@ -7,11 +7,12 @@ import helpers.hllm_cli as hllmcli
 import logging
 import shlex
 import subprocess
-from typing import Optional
+from typing import List, Optional
 
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hsystem as hsystem
 
@@ -140,6 +141,7 @@ def _apply_llm_via_library(
 # #############################################################################
 
 
+@hcacsimp.simple_cache(cache_type="json")
 def apply_llm(
     input_str: str,
     *,
@@ -245,3 +247,57 @@ def apply_llm_with_files(
     _LOG.debug("Writing output to file: %s", output_file)
     hio.to_file(output_file, response)
     _LOG.debug("Wrote %d characters to output file", len(response))
+
+
+def apply_llm_batch(
+    prompt: str,
+    input_list: List[str],
+    *,
+    model: Optional[str] = None,
+) -> List[str]:
+    """
+    Apply an LLM to process a batch of input texts using the same system prompt.
+
+    This function provides a unified interface to call LLMs on multiple inputs,
+    processing each input sequentially with the same system prompt and model
+    configuration. A progress bar tracks progress through the batch.
+
+    :param prompt: system prompt to guide the LLM's behavior
+    :param input_list: list of input texts to process with the LLM
+    :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
+    :return: list of LLM responses as strings, in the same order as inputs
+    """
+    hdbg.dassert_isinstance(prompt, str)
+    hdbg.dassert_isinstance(input_list, list)
+    hdbg.dassert_lt(0, len(input_list), "Input list cannot be empty")
+    for idx, input_str in enumerate(input_list):
+        hdbg.dassert_isinstance(
+            input_str,
+            str,
+            "Input at index %d must be a string",
+            idx,
+        )
+        hdbg.dassert_ne(
+            input_str,
+            "",
+            "Input at index %d cannot be empty",
+            idx,
+        )
+    if model is not None:
+        hdbg.dassert_isinstance(model, str)
+        hdbg.dassert_ne(model, "", "Model cannot be empty string")
+    _LOG.debug("Processing batch of %d inputs", len(input_list))
+    # Process each input sequentially with progress bar.
+    responses = []
+    use_llm_executable = False
+    _LOG.debug("use_llm_executable=%s", use_llm_executable)
+    for input_str in tqdm(input_list, desc="Processing batch", unit="input"):
+        response = apply_llm(
+            input_str,
+            system_prompt=prompt,
+            model=model,
+            use_llm_executable=use_llm_executable,
+        )
+        responses.append(response)
+    _LOG.debug("Batch processing completed")
+    return responses

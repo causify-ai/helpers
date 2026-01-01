@@ -3,18 +3,19 @@
 """
 Extract article title and URL from Hacker News submissions using the HN API.
 
-This script processes Hacker News item URLs and uses the Firebase API to extract:
+This script processes Hacker News item URLs from CSV files and uses the Firebase API to extract:
 - The submission title
 - The original article URL that the submission links to
+- Optionally, classify articles into categories using LLM
 
 The script uses the official HN API: https://hacker-news.firebaseio.com/v0/
 
 Examples:
-> ./extract_hn_article.py --hn_url "https://news.ycombinator.com/item?id=45148180"
-A Software Development Methodology for Disciplined LLM Collaboration
-https://github.com/...
-
 > ./extract_hn_article.py --input_file input.csv --output_file output.csv
+
+> ./extract_hn_article.py --input_file input.csv --output_file output.csv --tag_articles
+
+> ./extract_hn_article.py --input_file input.csv --output_file output.csv --tag_articles --batch_size 5
 
 Import as:
 
@@ -25,17 +26,62 @@ import argparse
 import logging
 import os
 import re
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import pandas as pd
 import requests
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
 import helpers.hcache_simple as hcacsimp
 
 _LOG = logging.getLogger(__name__)
+
+# Classification prompt for article tagging.
+_CLASSIFICATION_PROMPT = """
+Given the title of an article emit the tag among the ones below that represent
+the article best
+
+AI Agents & Tool-Using Systems
+Automated Theorem Proving
+Causal Inference
+Diffusion Models
+Knowledge Graphs
+LLM Reasoning
+Multi-Agent Systems
+Probabilistic Programming
+Prompt Engineering
+Self-Supervised Learning
+Uncertainty & Belief Modeling
+AI Infrastructure
+Data Engineering & Pipelines
+High-Performance Computing
+Developer Tools
+Git and GitHub
+Open Source
+Python Ecosystem
+Rust and C++
+Quant Finance
+Trading Strategies
+Complex Systems & Network Dynamics
+Mathematical Concepts
+Simulation & Agent-Based Modeling
+Time Series
+Unconventional Computing
+Careers & Professional Growth
+Marketing and Sales
+Organizational Behavior & Incentives
+Psychology & Well-Being
+Cybersecurity & Privacy
+Risk Management & Compliance
+Code Refactoring
+Dev Productivity
+Software Architecture
+Software Project Management
+System Reliability & Fault Tolerance
+"""
 
 
 # #############################################################################
@@ -48,6 +94,8 @@ def _is_hackernews_url(url: str) -> bool:
     :param url: URL to check
     :return: True if URL is a HN item URL
     """
+    if not isinstance(url, str):
+        return False
     return "news.ycombinator.com/item?id=" in url
 
 
@@ -75,6 +123,10 @@ def _extract_article_info(hn_url: str) -> Tuple[Optional[str], Optional[str]]:
     :param hn_url: Hacker News item URL
     :return: Tuple of (article_title, article_url)
     """
+    # Handle non-string inputs (e.g., NaN from pandas).
+    if not isinstance(hn_url, str):
+        _LOG.warning("Invalid URL type: %s (type: %s)", hn_url, type(hn_url))
+        return None, None
     if not _is_hackernews_url(hn_url):
         _LOG.warning("Not a Hacker News URL: %s", hn_url)
         return None, None
@@ -111,26 +163,70 @@ def _extract_article_info(hn_url: str) -> Tuple[Optional[str], Optional[str]]:
         return None, None
 
 
-def _process_single_url(hn_url: str) -> None:
+def _tag_articles_with_llm(
+    article_titles: List[str],
+    *,
+    batch_size: int = 10,
+    model: Optional[str] = None,
+) -> List[str]:
     """
-    Process a single HN URL and print results.
+    Tag articles using LLM classification.
 
-    :param hn_url: Hacker News URL to process
+    :param article_titles: List of article titles to tag
+    :param batch_size: Number of titles to process in each batch
+    :param model: Optional LLM model name to use
+    :return: List of tags corresponding to each article title
     """
-    article_title, article_url = _extract_article_info(hn_url)
-    if article_title and article_url:
-        _LOG.info("Title: %s", article_title)
-        _LOG.info("URL: %s", article_url)
-    else:
-        _LOG.warning("Could not extract article info from: %s", hn_url)
+    hdbg.dassert_isinstance(article_titles, list)
+    hdbg.dassert_lt(0, len(article_titles), "Article titles list cannot be empty")
+    hdbg.dassert_lt(0, batch_size)
+    _LOG.info("Tagging %d articles using LLM in batches of %d", len(article_titles), batch_size)
+    # Filter out empty titles.
+    valid_titles = [title for title in article_titles if title]
+    if not valid_titles:
+        _LOG.warning("No valid titles to tag")
+        return [""] * len(article_titles)
+    # Process titles in batches.
+    all_tags = []
+    for i in range(0, len(valid_titles), batch_size):
+        batch_titles = valid_titles[i : i + batch_size]
+        _LOG.debug("Processing batch %d-%d", i, i + len(batch_titles))
+        # Call LLM for this batch.
+        batch_tags = hllmcli.apply_llm_batch(
+            prompt=_CLASSIFICATION_PROMPT,
+            input_list=batch_titles,
+            model=model,
+        )
+        all_tags.extend(batch_tags)
+    # Reconstruct full list with empty tags for empty titles.
+    result_tags = []
+    valid_idx = 0
+    for title in article_titles:
+        if title:
+            result_tags.append(all_tags[valid_idx].strip())
+            valid_idx += 1
+        else:
+            result_tags.append("")
+    _LOG.info("Finished tagging %d articles", len(article_titles))
+    return result_tags
 
 
-def _process_csv_file(input_file: str, output_file: str) -> None:
+def _process_csv_file(
+    input_file: str,
+    output_file: str,
+    *,
+    tag_articles: bool = False,
+    batch_size: int = 10,
+    model: Optional[str] = None,
+) -> None:
     """
     Process CSV file with HN URLs and add article info columns.
 
     :param input_file: Path to input CSV file with 'url' column
     :param output_file: Path to output CSV file
+    :param tag_articles: Whether to tag articles using LLM classification
+    :param batch_size: Batch size for LLM processing (used when tag_articles=True)
+    :param model: Optional LLM model name to use for tagging
     """
     hdbg.dassert(os.path.exists(input_file), "Input file does not exist:", input_file)
     # Read the CSV file.
@@ -151,6 +247,15 @@ def _process_csv_file(input_file: str, output_file: str) -> None:
     url_col_idx = df.columns.get_loc("url")
     df.insert(url_col_idx + 1, "Article_title", article_titles)
     df.insert(url_col_idx + 2, "Article_url", article_urls)
+    # Optionally tag articles with LLM.
+    if tag_articles:
+        _LOG.info("Tagging articles using LLM")
+        article_tags = _tag_articles_with_llm(
+            article_titles,
+            batch_size=batch_size,
+            model=model,
+        )
+        df.insert(url_col_idx + 3, "Article_tag", article_tags)
     # Write output file.
     _LOG.info("Writing output file: %s", output_file)
     df.to_csv(output_file, index=False)
@@ -162,22 +267,36 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # Single URL mode.
-    parser.add_argument(
-        "--hn_url",
-        action="store",
-        help="Single Hacker News URL to process",
-    )
-    # Batch CSV mode.
+    # CSV mode.
     parser.add_argument(
         "--input_file",
         action="store",
+        required=True,
         help="Input CSV file with 'url' column",
     )
     parser.add_argument(
         "--output_file",
         action="store",
+        required=True,
         help="Output CSV file with Article_title and Article_url columns",
+    )
+    # LLM tagging options.
+    parser.add_argument(
+        "--tag_articles",
+        action="store_true",
+        help="Tag articles using LLM classification",
+    )
+    parser.add_argument(
+        "--batch_size",
+        action="store",
+        type=int,
+        default=10,
+        help="Batch size for LLM processing (default: 10)",
+    )
+    parser.add_argument(
+        "--model",
+        action="store",
+        help="LLM model name to use for tagging (e.g., gpt-4, claude-3-opus)",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -186,31 +305,14 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Validate arguments.
-    if args.hn_url:
-        # Single URL mode.
-        hdbg.dassert_is(
-            args.input_file,
-            None,
-            "Cannot specify both --hn_url and --input_file",
-        )
-        hdbg.dassert_is(
-            args.output_file,
-            None,
-            "Cannot specify both --hn_url and --output_file",
-        )
-        _process_single_url(args.hn_url)
-    elif args.input_file:
-        # Batch CSV mode.
-        hdbg.dassert_is_not(
-            args.output_file,
-            None,
-            "Must specify --output_file when using --input_file",
-        )
-        _process_csv_file(args.input_file, args.output_file)
-    else:
-        parser.print_help()
-        hdbg.dfatal("Must specify either --hn_url or --input_file")
+    # Process CSV file.
+    _process_csv_file(
+        args.input_file,
+        args.output_file,
+        tag_articles=args.tag_articles,
+        batch_size=args.batch_size,
+        model=args.model,
+    )
 
 
 if __name__ == "__main__":

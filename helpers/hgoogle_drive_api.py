@@ -87,8 +87,14 @@ def get_credentials(
     :param service_key_path: service account key file path.
     :return: Google credentials.
     """
+    # service_key_path = "/home/.config/gspread_pandas/google_secret.json"
     if not service_key_path:
-        service_key_path = "/home/.config/gspread_pandas/google_secret.json"
+        service_key_path = os.path.join(
+            os.path.expanduser("~"),
+            ".config",
+            "gspread_pandas",
+            "google_secret.json"
+        )
     service_key_path = os.path.join(os.path.dirname(__file__), service_key_path)
     # Download service.json from Google API, then save it as
     # /home/.config/gspread_pandas/google_secret.json
@@ -400,7 +406,9 @@ def to_gsheet(
         )
     # Clear and write data.
     worksheet.clear()
-    values = [df.columns.values.tolist()] + df.values.tolist()
+    # Replace NaN/inf values with empty strings for JSON compatibility.
+    df_clean = df.fillna("").replace([float("inf"), float("-inf")], "")
+    values = [df_clean.columns.values.tolist()] + df_clean.values.tolist()
     worksheet.update("A1", values)
     _LOG.info(
         "Data written to the tab '%s' of the Google Sheet '%s",
