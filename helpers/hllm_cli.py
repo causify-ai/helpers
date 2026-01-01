@@ -141,7 +141,7 @@ def _apply_llm_via_library(
 # #############################################################################
 
 
-@hcacsimp.simple_cache(cache_type="json")
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def apply_llm(
     input_str: str,
     *,

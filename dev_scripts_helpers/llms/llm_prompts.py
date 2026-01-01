@@ -1911,13 +1911,12 @@ def text_rephrase() -> _PROMPT_OUT:
 # #############################################################################
 
 
-def from_file() -> _PROMPT_OUT:
+def from_file(file_name: str) -> _PROMPT_OUT:
     """
     Load and apply prompt from prompt.txt file.
     """
-    file = "prompt.txt"
-    if os.path.exists(file):
-        system = hio.from_file(file)
+    if os.path.exists(file_name):
+        system = hio.from_file(file_name)
     else:
         system = ""
     pre_transforms: Set[str] = set()
@@ -2254,14 +2253,19 @@ def run_prompt(
     _LOG.debug(hprint.func_signature_to_str())
     # Get the info corresponding to the prompt tag.
     prompt_tags = list(zip(*get_prompt_tags()))[0]
-    hdbg.dassert_in(prompt_tag, prompt_tags)
-    python_cmd = f"{prompt_tag}()"
-    (
-        system_prompt,
-        pre_transforms,
-        post_transforms,
-        post_container_transforms,
-    ) = eval(python_cmd)
+    if prompt_tag.startswith("from_file:"):
+        file_name = prompt_tag[len("from_file:"):]
+        hdbg.dassert_file_exists(file_name)
+        system_prompt, pre_transforms, post_transforms, post_container_transforms = from_file(file_name)
+    else:
+        hdbg.dassert_in(prompt_tag, prompt_tags)
+        python_cmd = f"{prompt_tag}()"
+        (
+            system_prompt,
+            pre_transforms,
+            post_transforms,
+            post_container_transforms,
+        ) = eval(python_cmd)
     # Check return types.
     hdbg.dassert_isinstance(system_prompt, str)
     hdbg.dassert_isinstance(pre_transforms, set)
