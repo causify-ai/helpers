@@ -13,6 +13,8 @@ The script uses the official HN API: https://hacker-news.firebaseio.com/v0/
 Examples:
 > ./extract_hn_article.py --input_file input.csv --output_file output.csv
 
+> ./extract_hn_article.py --input_file input.csv --output_file output.csv --url_batch_size 5
+
 > ./extract_hn_article.py --input_file input.csv --output_file output.csv --tag_articles
 
 > ./extract_hn_article.py --input_file input.csv --output_file output.csv --tag_articles --batch_size 5
@@ -225,6 +227,7 @@ def _process_csv_file(
     output_file: str,
     *,
     tag_articles: bool = False,
+    url_batch_size: int = 10,
     batch_size: int = 10,
     model: Optional[str] = None,
 ) -> None:
@@ -234,31 +237,45 @@ def _process_csv_file(
     :param input_file: Path to input CSV file with 'url' column
     :param output_file: Path to output CSV file
     :param tag_articles: Whether to tag articles using LLM classification
+    :param url_batch_size: Batch size for URL extraction (default: 10)
     :param batch_size: Batch size for LLM processing (used when tag_articles=True)
     :param model: Optional LLM model name to use for tagging
     """
     hdbg.dassert(os.path.exists(input_file), "Input file does not exist:", input_file)
+    hdbg.dassert_lt(0, url_batch_size)
+    hdbg.dassert_lt(0, batch_size)
     # Read the CSV file.
     _LOG.info("Reading input file: %s", input_file)
     df = pd.read_csv(input_file)
     # Check that url column exists.
     hdbg.dassert_in("url", df.columns, "CSV must have 'url' column")
-    # Process each URL.
-    _LOG.info("Processing %d URLs", len(df))
-    article_titles = []
-    article_urls = []
-    for idx, url in enumerate(tqdm(df["url"], desc="Processing URLs")):
-        _LOG.debug("Processing row %d: %s", idx, url)
-        article_title, article_url = _extract_article_info(url)
-        article_titles.append(article_title if article_title else "")
-        article_urls.append(article_url if article_url else "")
-    # Add new columns after url column.
+    # Get url column index for inserting new columns.
     url_col_idx = df.columns.get_loc("url")
-    df.insert(url_col_idx + 1, "Article_title", article_titles)
-    df.insert(url_col_idx + 2, "Article_url", article_urls)
-    # Write output file with article info.
-    _LOG.info("Writing output file: %s", output_file)
-    df.to_csv(output_file, index=False)
+    # Initialize Article_title and Article_url columns if they don't exist.
+    if "Article_title" not in df.columns:
+        df.insert(url_col_idx + 1, "Article_title", "")
+    if "Article_url" not in df.columns:
+        df.insert(url_col_idx + 2, "Article_url", "")
+    # Process URLs in batches with progress bar for entire workload.
+    num_urls = len(df)
+    num_batches = (num_urls + url_batch_size - 1) // url_batch_size
+    _LOG.info("Processing %d URLs in %d batches of size %d", num_urls, num_batches, url_batch_size)
+    for batch_num in tqdm(range(num_batches), desc="Extracting articles"):
+        # Get batch indices.
+        start_idx = batch_num * url_batch_size
+        end_idx = min(start_idx + url_batch_size, num_urls)
+        _LOG.debug("Processing batch %d/%d (rows %d-%d)", batch_num + 1, num_batches, start_idx, end_idx - 1)
+        # Process URLs in this batch.
+        for idx in range(start_idx, end_idx):
+            url = df.at[idx, "url"]
+            _LOG.debug("Processing row %d: %s", idx, url)
+            article_title, article_url = _extract_article_info(url)
+            df.at[idx, "Article_title"] = article_title if article_title else ""
+            df.at[idx, "Article_url"] = article_url if article_url else ""
+        # Update output file after each batch.
+        _LOG.debug("Updating output file: %s", output_file)
+        df.to_csv(output_file, index=False)
+    _LOG.info("Finished extracting %d articles", num_urls)
     # Optionally tag articles with LLM.
     if tag_articles:
         _LOG.info("Tagging articles using LLM")
@@ -290,6 +307,14 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Output CSV file with Article_title and Article_url columns",
     )
+    # URL extraction options.
+    parser.add_argument(
+        "--url_batch_size",
+        action="store",
+        type=int,
+        default=10,
+        help="Batch size for URL extraction (default: 10)",
+    )
     # LLM tagging options.
     parser.add_argument(
         "--tag_articles",
@@ -320,6 +345,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         args.input_file,
         args.output_file,
         tag_articles=args.tag_articles,
+        url_batch_size=args.url_batch_size,
         batch_size=args.batch_size,
         model=args.model,
     )
