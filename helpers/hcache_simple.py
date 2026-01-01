@@ -577,8 +577,9 @@ def reset_cache(func_name: str = "", interactive: bool = True) -> None:
 
 
 def simple_cache(
+    *,
     cache_type: str = "json",
-    write_through: bool = False,
+    write_through: bool = True,
     exclude_keys: List[str] = None,
 ) -> Callable[..., Any]:
     """
