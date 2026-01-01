@@ -23,7 +23,8 @@ This directory contains only scripts and notebooks with no subdirectories.
 - Uses the programmatic API (https://hacker-news.firebaseio.com/v0/) instead of web scraping for reliability
 - Processes CSV files with HN URLs and adds Article_title and Article_url columns
 - Optionally classifies articles into categories using LLM with configurable batch processing
-- Displays progress bar when processing URLs for better visibility
+- Updates output CSV file incrementally after each batch during LLM tagging for fault tolerance
+- Displays progress bars for both URL extraction and entire LLM tagging workload
 - Handles non-HN URLs gracefully with warnings and empty result columns
 
 #### Examples
@@ -43,7 +44,7 @@ This directory contains only scripts and notebooks with no subdirectories.
   ```bash
   > ./extract_hn_article.py --input_file input.csv --output_file output.csv --tag_articles
   ```
-  Adds Article_tag column with LLM-generated category tags
+  Adds Article_tag column with LLM-generated category tags. The output file is updated after each batch, allowing recovery from interruptions.
 
 - Process with custom batch size for LLM tagging:
   ```bash

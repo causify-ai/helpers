@@ -164,51 +164,60 @@ def _extract_article_info(hn_url: str) -> Tuple[Optional[str], Optional[str]]:
 
 
 def _tag_articles_with_llm(
-    article_titles: List[str],
+    df: pd.DataFrame,
+    output_file: str,
+    url_col_idx: int,
     *,
     batch_size: int = 10,
     model: Optional[str] = None,
-) -> List[str]:
+) -> None:
     """
-    Tag articles using LLM classification.
+    Tag articles using LLM classification and update output file after each batch.
 
-    :param article_titles: List of article titles to tag
+    :param df: DataFrame containing Article_title column
+    :param output_file: Path to output CSV file
+    :param url_col_idx: Index of url column (for inserting Article_tag column)
     :param batch_size: Number of titles to process in each batch
     :param model: Optional LLM model name to use
-    :return: List of tags corresponding to each article title
     """
-    hdbg.dassert_isinstance(article_titles, list)
-    hdbg.dassert_lt(0, len(article_titles), "Article titles list cannot be empty")
+    hdbg.dassert_isinstance(df, pd.DataFrame)
+    hdbg.dassert_in("Article_title", df.columns)
     hdbg.dassert_lt(0, batch_size)
+    # Get article titles from dataframe.
+    article_titles = df["Article_title"].tolist()
     _LOG.info("Tagging %d articles using LLM in batches of %d", len(article_titles), batch_size)
-    # Filter out empty titles.
-    valid_titles = [title for title in article_titles if title]
+    # Filter out empty titles and track their indices.
+    valid_indices = [i for i, title in enumerate(article_titles) if title]
+    valid_titles = [article_titles[i] for i in valid_indices]
     if not valid_titles:
         _LOG.warning("No valid titles to tag")
-        return [""] * len(article_titles)
-    # Process titles in batches.
-    all_tags = []
-    for i in range(0, len(valid_titles), batch_size):
-        batch_titles = valid_titles[i : i + batch_size]
-        _LOG.debug("Processing batch %d-%d", i, i + len(batch_titles))
+        return
+    # Initialize Article_tag column if it doesn't exist.
+    if "Article_tag" not in df.columns:
+        df.insert(url_col_idx + 3, "Article_tag", "")
+    # Process titles in batches with progress bar for entire workload.
+    num_batches = (len(valid_titles) + batch_size - 1) // batch_size
+    _LOG.info("Processing %d titles in %d batches", len(valid_titles), num_batches)
+    for batch_num in tqdm(range(num_batches), desc="Tagging articles"):
+        # Get batch indices.
+        start_idx = batch_num * batch_size
+        end_idx = min(start_idx + batch_size, len(valid_titles))
+        batch_titles = valid_titles[start_idx:end_idx]
+        batch_indices = valid_indices[start_idx:end_idx]
+        _LOG.debug("Processing batch %d/%d (%d titles)", batch_num + 1, num_batches, len(batch_titles))
         # Call LLM for this batch.
         batch_tags = hllmcli.apply_llm_batch(
             prompt=_CLASSIFICATION_PROMPT,
             input_list=batch_titles,
             model=model,
         )
-        all_tags.extend(batch_tags)
-    # Reconstruct full list with empty tags for empty titles.
-    result_tags = []
-    valid_idx = 0
-    for title in article_titles:
-        if title:
-            result_tags.append(all_tags[valid_idx].strip())
-            valid_idx += 1
-        else:
-            result_tags.append("")
-    _LOG.info("Finished tagging %d articles", len(article_titles))
-    return result_tags
+        # Update dataframe with batch results.
+        for idx, tag in zip(batch_indices, batch_tags):
+            df.at[idx, "Article_tag"] = tag.strip()
+        # Update output file after each batch.
+        _LOG.debug("Updating output file: %s", output_file)
+        df.to_csv(output_file, index=False)
+    _LOG.info("Finished tagging %d articles", len(valid_titles))
 
 
 def _process_csv_file(
@@ -247,18 +256,19 @@ def _process_csv_file(
     url_col_idx = df.columns.get_loc("url")
     df.insert(url_col_idx + 1, "Article_title", article_titles)
     df.insert(url_col_idx + 2, "Article_url", article_urls)
+    # Write output file with article info.
+    _LOG.info("Writing output file: %s", output_file)
+    df.to_csv(output_file, index=False)
     # Optionally tag articles with LLM.
     if tag_articles:
         _LOG.info("Tagging articles using LLM")
-        article_tags = _tag_articles_with_llm(
-            article_titles,
+        _tag_articles_with_llm(
+            df,
+            output_file,
+            url_col_idx,
             batch_size=batch_size,
             model=model,
         )
-        df.insert(url_col_idx + 3, "Article_tag", article_tags)
-    # Write output file.
-    _LOG.info("Writing output file: %s", output_file)
-    df.to_csv(output_file, index=False)
     _LOG.info("Done processing %d URLs", len(df))
 
 
