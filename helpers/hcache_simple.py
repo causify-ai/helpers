@@ -27,7 +27,7 @@ _LOG = logging.getLogger(__name__)
 # Memory cache.
 # #############################################################################
 
-# Basic type for caching data: func_name -> key -> value properties. E.g., 
+# Basic type for caching data: func_name -> key -> value properties. E.g.,
 # ```
 # {
 #     "slow_square": {
@@ -51,7 +51,7 @@ if "_CACHE" not in globals():
 # - By passing keyword arguments to the decorated function.
 #   - E.g., `type_`
 # - By setting cache properties
-#   - E.g., 
+#   - E.g.,
 # - By using a special keyword argument (`force_refresh`, `abort_on_cache_miss`,
 #   `report_on_cache_miss`) cache_mode`) when calling the decorated function.
 
@@ -133,9 +133,7 @@ def _check_valid_cache_property(property_name: str) -> None:
     hdbg.dassert_in(property_name, valid_properties)
 
 
-def set_cache_property(
-    func_name: str, property_name: str, val: Any
-) -> None:
+def set_cache_property(func_name: str, property_name: str, val: Any) -> None:
     """
     Set a property for the cache of a given function name.
 
@@ -160,7 +158,11 @@ def set_cache_property(
     # Make sure the dict is well-formed.
     for func_name_tmp in cache_property:
         hdbg.dassert_isinstance(func_name_tmp, str)
-        _LOG.debug("func_name_tmp='%s' -> %s", func_name_tmp, cache_property[func_name_tmp])
+        _LOG.debug(
+            "func_name_tmp='%s' -> %s",
+            func_name_tmp,
+            cache_property[func_name_tmp],
+        )
     with open(file_name, "wb") as file:
         pickle.dump(cache_property, file)
 
@@ -206,6 +208,42 @@ def reset_cache_property() -> None:
     _LOG.debug("Updating %s", file_name)
     with open(file_name, "wb") as file:
         pickle.dump(cache_property, file)
+
+
+# #############################################################################
+# Get cache.
+# #############################################################################
+
+# Functions to retrieve cache (both memory and disk).
+
+
+def get_cache_func_names(type_: str) -> List[str]:
+    """
+    Retrieve the cache function names based on the specified type.
+
+    :param type_: The type of cache to retrieve ('all', 'mem', or
+        'disk').
+    :return: A list of function names corresponding to the specified
+        cache type.
+    """
+    if type_ == "all":
+        mem_func_names = get_cache_func_names("mem")
+        disk_func_names = get_cache_func_names("disk")
+        val = sorted(set(mem_func_names + disk_func_names))
+    elif type_ == "mem":
+        mem_func_names = sorted(list(_CACHE.keys()))
+        val = mem_func_names
+    elif type_ == "disk":
+        disk_func_names = glob.glob("cache.*")
+        disk_func_names = [
+            re.sub(r"cache\.(.*)\.(json|pkl)", r"\1", cache)
+            for cache in disk_func_names
+        ]
+        disk_func_names = sorted(disk_func_names)
+        val = disk_func_names
+    else:
+        raise ValueError(f"Invalid type '{type_}'")
+    return val
 
 
 def cache_property_to_str(func_name: str = "") -> str:
@@ -261,8 +299,8 @@ def enable_cache_perf(func_name: str) -> None:
 
 def disable_cache_perf(func_name: str = "") -> None:
     """
-    Disable cache performance statistics for a given function. 
-    
+    Disable cache performance statistics for a given function.
+
     If `func_name` is empty, disable cache performance statistics for all
     functions.
     """
@@ -393,122 +431,6 @@ def get_disk_cache(func_name: str) -> Dict:
     return data
 
 
-def force_cache_from_disk(func_name: str = "") -> None:
-    """
-    Force loading the cache from disk and update the memory cache.
-
-    :param func_name: The name of the function. If empty, apply to all
-        cached functions.
-    """
-    if func_name == "":
-        _LOG.info("Before:\n%s", cache_stats_to_str())
-        for func_name_tmp in get_cache_func_names("all"):
-            force_cache_from_disk(func_name_tmp)
-        _LOG.info("After:\n%s", cache_stats_to_str())
-        return
-    _LOG.debug("func_name='%s'", func_name)
-    # Get disk cache.
-    disk_cache = get_disk_cache(func_name)
-    _LOG.debug("disk_cache=%s", len(disk_cache))
-    # Update the memory cache.
-    global _CACHE
-    _CACHE[func_name] = disk_cache
-
-
-def flush_cache_to_disk(func_name: str = "") -> None:
-    """
-    Flush the memory cache to disk and update the memory cache.
-
-    :param func_name: The name of the function. If empty, apply to all
-        cached functions.
-    """
-    if func_name == "":
-        _LOG.info("Before:\n%s", cache_stats_to_str())
-        for func_name_tmp in get_cache_func_names("all"):
-            flush_cache_to_disk(func_name_tmp)
-        _LOG.info("After:\n%s", cache_stats_to_str())
-        return
-    _LOG.debug("func_name='%s'", func_name)
-    # Get memory cache.
-    mem_cache = get_mem_cache(func_name)
-    _LOG.debug("mem_cache=%s", len(mem_cache))
-    # Get disk cache.
-    disk_cache = get_disk_cache(func_name)
-    _LOG.debug("disk_cache=%s", len(disk_cache))
-    # Merge disk cache with memory cache.
-    disk_cache.update(mem_cache)
-    # Save merged cache to disk.
-    _save_cache_dict_to_disk(func_name, disk_cache)
-    # Update the memory cache.
-    global _CACHE
-    _CACHE[func_name] = disk_cache
-
-
-# #############################################################################
-# Get cache.
-# #############################################################################
-
-# Functions to retrieve cache (both memory and disk).
-
-def get_cache_func_names(type_: str) -> List[str]:
-    """
-    Retrieve the cache function names based on the specified type.
-
-    :param type_: The type of cache to retrieve ('all', 'mem', or
-        'disk').
-    :return: A list of function names corresponding to the specified
-        cache type.
-    """
-    if type_ == "all":
-        mem_func_names = get_cache_func_names("mem")
-        disk_func_names = get_cache_func_names("disk")
-        val = sorted(set(mem_func_names + disk_func_names))
-    elif type_ == "mem":
-        mem_func_names = sorted(list(_CACHE.keys()))
-        val = mem_func_names
-    elif type_ == "disk":
-        disk_func_names = glob.glob("cache.*")
-        disk_func_names = [
-            re.sub(r"cache\.(.*)\.(json|pkl)", r"\1", cache)
-            for cache in disk_func_names
-        ]
-        disk_func_names = sorted(disk_func_names)
-        val = disk_func_names
-    else:
-        raise ValueError(f"Invalid type '{type_}'")
-    return val
-
-
-def get_mem_cache(func_name: str) -> _CacheType:
-    """
-    Retrieve the memory cache for a given function.
-
-    :param func_name: The name of the function.
-    :return: A dictionary containing the memory cache data.
-    """
-    mem_cache = _CACHE.get(func_name, {})
-    return mem_cache
-
-
-def get_cache(func_name: str) -> _CacheType:
-    """
-    Retrieve the cache for a given function name.
-
-    :param func_name: The name of the function whose cache is to be
-        retrieved.
-    :return: A dictionary containing the cache data.
-    """
-    global _CACHE
-    if func_name in _CACHE:
-        _LOG.debug("Loading mem cache for '%s'", func_name)
-        cache = get_mem_cache(func_name)
-    else:
-        _LOG.debug("Loading disk cache for '%s'", func_name)
-        cache = get_disk_cache(func_name)
-        _CACHE[func_name] = cache
-    return cache
-
-
 # #############################################################################
 # Stats.
 # #############################################################################
@@ -558,6 +480,87 @@ def cache_stats_to_str(func_name: str = "") -> Optional["pd.DataFrame"]:  # noqa
     result = pd.Series(result).to_frame().T
     result.index = [func_name]
     return result
+
+
+def force_cache_from_disk(func_name: str = "") -> None:
+    """
+    Force loading the cache from disk and update the memory cache.
+
+    :param func_name: The name of the function. If empty, apply to all
+        cached functions.
+    """
+    if func_name == "":
+        _LOG.info("Before:\n%s", cache_stats_to_str())
+        for func_name_tmp in get_cache_func_names("all"):
+            force_cache_from_disk(func_name_tmp)
+        _LOG.info("After:\n%s", cache_stats_to_str())
+        return
+    _LOG.debug("func_name='%s'", func_name)
+    # Get disk cache.
+    disk_cache = get_disk_cache(func_name)
+    _LOG.debug("disk_cache=%s", len(disk_cache))
+    # Update the memory cache.
+    global _CACHE
+    _CACHE[func_name] = disk_cache
+
+
+def get_mem_cache(func_name: str) -> _CacheType:
+    """
+    Retrieve the memory cache for a given function.
+
+    :param func_name: The name of the function.
+    :return: A dictionary containing the memory cache data.
+    """
+    mem_cache = _CACHE.get(func_name, {})
+    return mem_cache
+
+
+def flush_cache_to_disk(func_name: str = "") -> None:
+    """
+    Flush the memory cache to disk and update the memory cache.
+
+    :param func_name: The name of the function. If empty, apply to all
+        cached functions.
+    """
+    if func_name == "":
+        _LOG.info("Before:\n%s", cache_stats_to_str())
+        for func_name_tmp in get_cache_func_names("all"):
+            flush_cache_to_disk(func_name_tmp)
+        _LOG.info("After:\n%s", cache_stats_to_str())
+        return
+    _LOG.debug("func_name='%s'", func_name)
+    # Get memory cache.
+    mem_cache = get_mem_cache(func_name)
+    _LOG.debug("mem_cache=%s", len(mem_cache))
+    # Get disk cache.
+    disk_cache = get_disk_cache(func_name)
+    _LOG.debug("disk_cache=%s", len(disk_cache))
+    # Merge disk cache with memory cache.
+    disk_cache.update(mem_cache)
+    # Save merged cache to disk.
+    _save_cache_dict_to_disk(func_name, disk_cache)
+    # Update the memory cache.
+    global _CACHE
+    _CACHE[func_name] = disk_cache
+
+
+def get_cache(func_name: str) -> _CacheType:
+    """
+    Retrieve the cache for a given function name.
+
+    :param func_name: The name of the function whose cache is to be
+        retrieved.
+    :return: A dictionary containing the cache data.
+    """
+    global _CACHE
+    if func_name in _CACHE:
+        _LOG.debug("Loading mem cache for '%s'", func_name)
+        cache = get_mem_cache(func_name)
+    else:
+        _LOG.debug("Loading disk cache for '%s'", func_name)
+        cache = get_disk_cache(func_name)
+        _CACHE[func_name] = cache
+    return cache
 
 
 # #############################################################################
@@ -654,7 +657,7 @@ def reset_cache(func_name: str = "", interactive: bool = True) -> None:
 def simple_cache(
     *,
     cache_type: str = "json",
-    #write_through: bool = True,
+    # write_through: bool = True,
     write_through: bool = False,
     exclude_keys: List[str] = None,
 ) -> Callable[..., Any]:
@@ -751,12 +754,11 @@ def simple_cache(
                 hdbg.dassert_in("tot", cache_perf)
                 cache_perf["tot"] += 1
             # Handle a forced refresh.
-            force_refresh = (
-                force_refresh or
-                get_cache_property(func_name, "force_refresh")
+            force_refresh = force_refresh or get_cache_property(
+                func_name, "force_refresh"
             )
             _LOG.debug("force_refresh=%s", force_refresh)
-            #if key in cache and not force_refresh:
+            # if key in cache and not force_refresh:
             if not force_refresh and key in cache:
                 _LOG.debug("Cache hit for key='%s'", key)
                 # Update the performance stats.
@@ -770,16 +772,16 @@ def simple_cache(
                 if cache_perf:
                     cache_perf["misses"] += 1
                 # Abort on cache miss.
-                abort_on_cache_miss = (
-                    abort_on_cache_miss or
-                    get_cache_property(func_name, "abort_on_cache_miss")
+                abort_on_cache_miss = abort_on_cache_miss or get_cache_property(
+                    func_name, "abort_on_cache_miss"
                 )
                 _LOG.debug("abort_on_cache_miss=%s", abort_on_cache_miss)
                 if abort_on_cache_miss:
                     raise ValueError(f"Cache miss for key='{key}'")
                 # Report on cache miss.
-                report_on_cache_miss = report_on_cache_miss or get_cache_property(
-                    func_name, "report_on_cache_miss"
+                report_on_cache_miss = (
+                    report_on_cache_miss
+                    or get_cache_property(func_name, "report_on_cache_miss")
                 )
                 _LOG.debug("report_on_cache_miss=%s", report_on_cache_miss)
                 if report_on_cache_miss:

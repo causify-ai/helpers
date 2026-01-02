@@ -64,7 +64,9 @@ def _expand_and_sort_files(input_files: str) -> List[str]:
         if not matched_files:
             _LOG.warning("Pattern '%s' matched no files", pattern)
         else:
-            _LOG.debug("Pattern '%s' matched %d files", pattern, len(matched_files))
+            _LOG.debug(
+                "Pattern '%s' matched %d files", pattern, len(matched_files)
+            )
         all_files.extend(matched_files)
     # Remove duplicates while preserving order, then sort.
     unique_files = list(dict.fromkeys(all_files))

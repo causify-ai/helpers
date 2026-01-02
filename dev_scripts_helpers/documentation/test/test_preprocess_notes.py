@@ -81,7 +81,9 @@ class Test_remove_headers1(hunitest.TestCase):
     Test the `_remove_headers()` function.
     """
 
-    def helper(self, lines_in: list, expected: list, max_level: int = 999) -> None:
+    def helper(
+        self, lines_in: list, expected: list, max_level: int = 999
+    ) -> None:
         """
         Helper method to test the _remove_headers function.
 
@@ -185,6 +187,7 @@ class Test_remove_headers1(hunitest.TestCase):
             "",
         ]
         self.helper(lines_in, expected)
+
 
 
 # #############################################################################
@@ -475,9 +478,7 @@ class Test_preprocess_notes_remove_headers1(hunitest.TestCase):
         # Execute function.
         type_ = "pdf"
         toc_type = "remove_headers"
-        actual = dshdprno._preprocess_lines(
-            txt_in, type_, toc_type, is_qa=False
-        )
+        actual = dshdprno._preprocess_lines(txt_in, type_, toc_type, is_qa=False)
         actual = "\n".join(actual)
         # Check.
         self.check_string(actual)

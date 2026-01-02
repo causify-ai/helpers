@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_stats as hpanstat
 """
 
 from typing import Any, Dict, List, Optional, Tuple, Union

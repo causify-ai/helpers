@@ -242,6 +242,7 @@ def _generate_book_chapter(
     """
     # Extract lesson number from source name (e.g., Lesson01.1-Intro.txt -> 01.1)
     import re
+
     match = re.match(r"Lesson([\d.]+)", source_name)
     if not match:
         hdbg.dfatal(f"Could not extract lesson number from {source_name}")
@@ -255,7 +256,9 @@ def _generate_book_chapter(
             "Please ensure the script exists in the classes directory."
         )
     # Build command.
-    _LOG.info("Generating book chapter for %s (lesson %s)", source_name, lesson_number)
+    _LOG.info(
+        "Generating book chapter for %s (lesson %s)", source_name, lesson_number
+    )
     cmd_str = f"{script_path} {class_dir} {lesson_number}"
     _LOG.info("Executing: %s", cmd_str)
     hsystem.system(cmd_str, suppress_output=False)

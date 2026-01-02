@@ -172,10 +172,10 @@ def update_class_frames(file_content: str) -> List[str]:
     return updated_lines
 
 
+
 # #############################################################################
 # _ClassFramer
 # #############################################################################
-
 
 class _ClassFramer(liaction.Action):
     def check_if_possible(self) -> bool:

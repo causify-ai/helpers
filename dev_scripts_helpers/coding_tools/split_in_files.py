@@ -203,7 +203,9 @@ def _remove_content_from_input_file(input_file: str, content: str) -> None:
     new_content = "".join(new_content_parts)
     # Write back to input file.
     hio.to_file(input_file, new_content)
-    _LOG.info("Removed content from input file, keeping tags and untagged sections")
+    _LOG.info(
+        "Removed content from input file, keeping tags and untagged sections"
+    )
 
 
 def _split_file(
@@ -232,8 +234,8 @@ def _split_file(
     # Read the input file.
     content = hio.from_file(input_file)
     # Parse the content.
-    common_section, sections, line_ranges, common_line_range = _parse_file_content(
-        content
+    common_section, sections, line_ranges, common_line_range = (
+        _parse_file_content(content)
     )
     # If dry run, display what would be done and return.
     if dry_run:

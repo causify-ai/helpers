@@ -27,14 +27,14 @@ import dev_scripts_helpers.llms.print_daily_cost as dslprdc
 """
 
 # For OpenAI:
-# 
+#
 # You need one of:
 # 1. Organization admin key - Create one in your OpenAI organization settings
 # 2. Service account key with billing read permissions
 # 3. Or use the OpenAI web dashboard at https://platform.openai.com/usage for cost data
-# 
+#
 # For Anthropic:
-# 
+#
 # You need:
 # 1. Admin API key - Available in the Anthropic Console under organization settings
 # 2. Must have admin role in your organization

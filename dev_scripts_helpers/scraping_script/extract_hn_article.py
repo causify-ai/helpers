@@ -35,7 +35,7 @@ import datetime
 import logging
 import os
 import re
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 import pandas as pd
 import requests
@@ -111,7 +111,9 @@ def _convert_timestamp_to_date(timestamp_val) -> Optional[str]:
             return timestamp_val
         # Try to parse ISO 8601 datetime string (e.g., '2025-10-17T21:53:18.487Z').
         try:
-            dt = datetime.datetime.fromisoformat(timestamp_val.replace("Z", "+00:00"))
+            dt = datetime.datetime.fromisoformat(
+                timestamp_val.replace("Z", "+00:00")
+            )
             return dt.strftime("%Y-%m-%d")
         except ValueError:
             pass
@@ -124,7 +126,9 @@ def _convert_timestamp_to_date(timestamp_val) -> Optional[str]:
     # Try to convert numeric timestamp.
     try:
         timestamp_unix = float(timestamp_val)
-        dt = datetime.datetime.fromtimestamp(timestamp_unix, tz=datetime.timezone.utc)
+        dt = datetime.datetime.fromtimestamp(
+            timestamp_unix, tz=datetime.timezone.utc
+        )
         return dt.strftime("%Y-%m-%d")
     except (ValueError, OSError) as e:
         _LOG.warning("Could not convert timestamp %s: %s", timestamp_val, e)
@@ -158,7 +162,9 @@ def _extract_item_id(hn_url: str) -> Optional[str]:
 
 
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
-def _extract_article_info(hn_url: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+def _extract_article_info(
+    hn_url: str,
+) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """
     Extract article title, URL, and timestamp from a Hacker News submission using the API.
 
@@ -200,9 +206,15 @@ def _extract_article_info(hn_url: str) -> Tuple[Optional[str], Optional[str], Op
         # Convert Unix timestamp to date string (YYYY-MM-DD in UTC).
         timestamp_date = None
         if timestamp_unix:
-            dt = datetime.datetime.fromtimestamp(timestamp_unix, tz=datetime.timezone.utc)
+            dt = datetime.datetime.fromtimestamp(
+                timestamp_unix, tz=datetime.timezone.utc
+            )
             timestamp_date = dt.strftime("%Y-%m-%d")
-            _LOG.debug("Converted timestamp %s to date: %s", timestamp_unix, timestamp_date)
+            _LOG.debug(
+                "Converted timestamp %s to date: %s",
+                timestamp_unix,
+                timestamp_date,
+            )
         _LOG.debug("Extracted title: %s", article_title)
         _LOG.debug("Extracted URL: %s", article_url)
         _LOG.debug("Extracted date: %s", timestamp_date)
@@ -240,7 +252,9 @@ def _tag_articles_with_llm(
     has_article_title = "Article_title" in df.columns
     has_title = "title" in df.columns
     if not has_article_title and not has_title:
-        _LOG.warning("Neither Article_title nor title column found, skipping tagging")
+        _LOG.warning(
+            "Neither Article_title nor title column found, skipping tagging"
+        )
         return
     # Build list of items (title + URL) for classification.
     valid_indices = []
@@ -248,7 +262,11 @@ def _tag_articles_with_llm(
     for idx, row in df.iterrows():
         # Get title from Article_title or fall back to title column.
         title = ""
-        if has_article_title and pd.notna(row["Article_title"]) and row["Article_title"]:
+        if (
+            has_article_title
+            and pd.notna(row["Article_title"])
+            and row["Article_title"]
+        ):
             title = row["Article_title"]
         elif has_title and pd.notna(row["title"]) and row["title"]:
             title = row["title"]
@@ -260,7 +278,11 @@ def _tag_articles_with_llm(
         item_text = f"Title: {title}\nURL: {url}" if url else f"Title: {title}"
         valid_indices.append(idx)
         valid_items.append(item_text)
-    _LOG.info("Tagging %d articles using LLM in batches of %d", len(valid_items), batch_size)
+    _LOG.info(
+        "Tagging %d articles using LLM in batches of %d",
+        len(valid_items),
+        batch_size,
+    )
     if not valid_items:
         _LOG.warning("No valid items to tag")
         return
@@ -276,7 +298,12 @@ def _tag_articles_with_llm(
         end_idx = min(start_idx + batch_size, len(valid_items))
         batch_items = valid_items[start_idx:end_idx]
         batch_indices = valid_indices[start_idx:end_idx]
-        _LOG.debug("Processing batch %d/%d (%d items)", batch_num + 1, num_batches, len(batch_items))
+        _LOG.debug(
+            "Processing batch %d/%d (%d items)",
+            batch_num + 1,
+            num_batches,
+            len(batch_items),
+        )
         # Call LLM for this batch.
         batch_tags = hllmcli.apply_llm_batch(
             prompt=_CLASSIFICATION_PROMPT,
@@ -319,12 +346,16 @@ def _process_csv_file(
     :param batch_size: Batch size for LLM processing (used when tag_articles=True)
     :param model: Optional LLM model name to use for tagging
     """
-    hdbg.dassert(os.path.exists(input_file), "Input file does not exist:", input_file)
+    hdbg.dassert(
+        os.path.exists(input_file), "Input file does not exist:", input_file
+    )
     hdbg.dassert_lt(0, url_batch_size)
     hdbg.dassert_lt(0, batch_size)
     # Log info if tagging without title extraction.
     if tag_articles and not extract_title:
-        _LOG.info("--tag_articles enabled without --extract_title, will use existing title column if available")
+        _LOG.info(
+            "--tag_articles enabled without --extract_title, will use existing title column if available"
+        )
     # Read the CSV file.
     _LOG.info("Reading input file: %s", input_file)
     df = pd.read_csv(input_file)
@@ -337,7 +368,9 @@ def _process_csv_file(
     # Check if any extraction is requested.
     extract_any = extract_title or extract_url or extract_timestamp
     if not extract_any and not tag_articles:
-        _LOG.warning("No extraction options enabled, output will be same as input")
+        _LOG.warning(
+            "No extraction options enabled, output will be same as input"
+        )
         df.to_csv(output_file, index=False)
         return
     # Get url column index for inserting new columns.
@@ -356,20 +389,35 @@ def _process_csv_file(
     # Process URLs in batches with progress bar for entire workload.
     num_urls = len(df)
     num_batches = (num_urls + url_batch_size - 1) // url_batch_size
-    _LOG.info("Processing %d URLs in %d batches of size %d", num_urls, num_batches, url_batch_size)
+    _LOG.info(
+        "Processing %d URLs in %d batches of size %d",
+        num_urls,
+        num_batches,
+        url_batch_size,
+    )
     for batch_num in tqdm(range(num_batches), desc="Extracting articles"):
         # Get batch indices.
         start_idx = batch_num * url_batch_size
         end_idx = min(start_idx + url_batch_size, num_urls)
-        _LOG.debug("Processing batch %d/%d (rows %d-%d)", batch_num + 1, num_batches, start_idx, end_idx - 1)
+        _LOG.debug(
+            "Processing batch %d/%d (rows %d-%d)",
+            batch_num + 1,
+            num_batches,
+            start_idx,
+            end_idx - 1,
+        )
         # Process URLs in this batch.
         for idx in range(start_idx, end_idx):
             url = df.at[idx, "url"]
             _LOG.debug("Processing row %d: %s", idx, url)
-            article_title, article_url, timestamp_date = _extract_article_info(url)
+            article_title, article_url, timestamp_date = _extract_article_info(
+                url
+            )
             # Update columns based on extraction flags.
             if extract_title:
-                df.at[idx, "Article_title"] = article_title if article_title else ""
+                df.at[idx, "Article_title"] = (
+                    article_title if article_title else ""
+                )
             if extract_url:
                 df.at[idx, "Article_url"] = article_url if article_url else ""
             if extract_timestamp and timestamp_date:

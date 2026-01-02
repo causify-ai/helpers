@@ -21,7 +21,9 @@ import helpers.henv as henv
 _LOG = logging.getLogger(__name__)
 
 
-def install_needed_modules(*, use_sudo: bool = True, venv_path: Optional[str] = None) -> None:
+def install_needed_modules(
+    *, use_sudo: bool = True, venv_path: Optional[str] = None
+) -> None:
     """
     Install needed modules for LLM CLI.
 
@@ -29,8 +31,13 @@ def install_needed_modules(*, use_sudo: bool = True, venv_path: Optional[str] = 
     :param venv_path: path to the virtual environment
         E.g., /Users/saggese/src/venv/client_venv.helpers
     """
-    henv.install_module_if_not_present("llm", package_name="llm",
-        use_sudo=use_sudo, use_activate=True, venv_path=venv_path)
+    henv.install_module_if_not_present(
+        "llm",
+        package_name="llm",
+        use_sudo=use_sudo,
+        use_activate=True,
+        venv_path=venv_path,
+    )
     # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
     import importlib
     import sys
@@ -146,6 +153,7 @@ def _apply_llm_via_library(
     :return: LLM response as string
     """
     import llm
+
     # Get the model.
     if model:
         llm_model = llm.get_model(model)
@@ -395,13 +403,16 @@ def apply_llm_prompt_to_df(
 
         if get_ipython() is not None:
             from tqdm.notebook import tqdm as notebook_tqdm
+
             tqdm_progress = notebook_tqdm
         else:
             tqdm_progress = tqdm
     except ImportError:
         tqdm_progress = tqdm
 
-    for batch_num in tqdm_progress(range(num_batches), desc="Processing batches"):
+    for batch_num in tqdm_progress(
+        range(num_batches), desc="Processing batches"
+    ):
         # Get batch rows.
         start_idx = batch_num * batch_size
         end_idx = min(start_idx + batch_size, len(df))
@@ -447,5 +458,9 @@ def apply_llm_prompt_to_df(
         if dump_every_batch is not None:
             _LOG.debug("Dumping dataframe to file: %s", dump_every_batch)
             df.to_csv(dump_every_batch, index=False)
-    _LOG.info("Processing completed (%d items processed, %d skipped)", len(df) - num_skipped, num_skipped)
+    _LOG.info(
+        "Processing completed (%d items processed, %d skipped)",
+        len(df) - num_skipped,
+        num_skipped,
+    )
     return df

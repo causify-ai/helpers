@@ -29,7 +29,6 @@ import pandas as pd
 
 import helpers.hdbg as hdbg
 import helpers.hgoogle_drive_api as hgodrapi
-import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)

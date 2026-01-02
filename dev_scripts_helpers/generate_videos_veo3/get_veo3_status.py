@@ -30,10 +30,10 @@ _LOG = logging.getLogger(__name__)
 TIMEOUT = 30  # seconds per HTTP request
 
 
+
 # #############################################################################
 # Veo3Error
 # #############################################################################
-
 
 class Veo3Error(RuntimeError):
     pass
@@ -207,7 +207,10 @@ def _parse() -> argparse.Namespace:
         help="Maximum number of operations to retrieve (default: 20)",
     )
     parser.add_argument(
-        "--offset", type=int, default=0, help="Offset for pagination (default: 0)"
+        "--offset",
+        type=int,
+        default=0,
+        help="Offset for pagination (default: 0)",
     )
     parser.add_argument(
         "--operation-ids",

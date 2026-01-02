@@ -30,10 +30,10 @@ API_BASE = "https://api.synthesia.io/v2"
 TIMEOUT = 30  # seconds per HTTP request
 
 
+
 # #############################################################################
 # SynthesiaError
 # #############################################################################
-
 
 class SynthesiaError(RuntimeError):
     pass

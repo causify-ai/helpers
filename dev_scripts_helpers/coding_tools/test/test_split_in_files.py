@@ -1,23 +1,24 @@
 import logging
 import os
 
-import dev_scripts_helpers.coding_tools.split_in_files as splinfi
+import dev_scripts_helpers.coding_tools.split_in_files as dshctsifi
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
 
+
 # #############################################################################
 # Test_parse_file_content
 # #############################################################################
-
 
 class Test_parse_file_content(hunitest.TestCase):
     """
     Test parsing file content and extracting sections based on tags.
     """
 
+    # TODO(ai_gp): Rename to test1, test2, ...
     def test_parse_file_content_with_common_section(self) -> None:
         """
         Test parsing file with <start_common> and multiple file sections.
@@ -49,7 +50,7 @@ Content for file2
 """
         # Run test.
         common_section, sections, line_ranges, common_line_range = (
-            splinfi._parse_file_content(content)
+            dshctsifi._parse_file_content(content)
         )
         # Check outputs.
         expected_common = "\nCommon header\n"
@@ -89,7 +90,7 @@ Content for file2
 """
         # Run test.
         common_section, sections, line_ranges, common_line_range = (
-            splinfi._parse_file_content(content)
+            dshctsifi._parse_file_content(content)
         )
         # Check outputs.
         self.assert_equal(common_section, "")
@@ -121,7 +122,7 @@ Single file content
 """
         # Run test.
         common_section, sections, line_ranges, common_line_range = (
-            splinfi._parse_file_content(content)
+            dshctsifi._parse_file_content(content)
         )
         # Check outputs.
         self.assert_equal(common_section, "")
@@ -145,7 +146,7 @@ Single file content
         content = "Just plain text without any tags\n"
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            splinfi._parse_file_content(content)
+            dshctsifi._parse_file_content(content)
 
     def test_parse_file_content_only_common_tag_raises_error(self) -> None:
         """
@@ -165,7 +166,7 @@ Common content only
 """
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            splinfi._parse_file_content(content)
+            dshctsifi._parse_file_content(content)
 
 
 # #############################################################################
@@ -177,10 +178,10 @@ Common content only
 # been planned but was not implemented in the current version of the code.
 
 
+
 # #############################################################################
 # Test_split_file
 # #############################################################################
-
 
 class Test_split_file(hunitest.TestCase):
     """
@@ -214,7 +215,7 @@ Content for output2
 """
         hio.to_file(input_file, content)
         # Run test.
-        splinfi._split_file(
+        dshctsifi._split_file(
             input_file,
             output_dir=scratch_dir,
             dry_run=False,
@@ -262,7 +263,7 @@ Content 2
 """
         hio.to_file(input_file, content)
         # Run test.
-        splinfi._split_file(
+        dshctsifi._split_file(
             input_file,
             output_dir=scratch_dir,
             dry_run=False,
@@ -300,7 +301,7 @@ Test content
 """
         hio.to_file(input_file, content)
         # Run test.
-        splinfi._split_file(
+        dshctsifi._split_file(
             input_file,
             output_dir=output_dir,
             dry_run=False,
@@ -326,7 +327,7 @@ Test content
         nonexistent_file = os.path.join(scratch_dir, "nonexistent.txt")
         # Run test and check output.
         with self.assertRaises(AssertionError):
-            splinfi._split_file(
+            dshctsifi._split_file(
                 nonexistent_file,
                 output_dir=scratch_dir,
                 dry_run=False,
@@ -357,7 +358,7 @@ Content with    spaces
 """
         hio.to_file(input_file, content)
         # Run test.
-        splinfi._split_file(
+        dshctsifi._split_file(
             input_file,
             output_dir=scratch_dir,
             dry_run=False,
@@ -371,10 +372,10 @@ Content with    spaces
         self.assert_equal(output_content, expected)
 
 
-# #############################################################################
-# Integration Tests
-# #############################################################################
 
+# #############################################################################
+# TestSplitFileIntegration
+# #############################################################################
 
 class TestSplitFileIntegration(hunitest.TestCase):
     """
@@ -405,7 +406,7 @@ This is a readme file.
 """
         hio.to_file(input_file, content)
         # Run test.
-        splinfi._split_file(
+        dshctsifi._split_file(
             input_file,
             output_dir=scratch_dir,
             dry_run=False,
@@ -458,7 +459,7 @@ def func3():
 """
         hio.to_file(input_file, content)
         # Run test.
-        splinfi._split_file(
+        dshctsifi._split_file(
             input_file,
             output_dir=scratch_dir,
             dry_run=False,
@@ -507,7 +508,7 @@ def func3():
         content = "".join(sections)
         hio.to_file(input_file, content)
         # Run test.
-        splinfi._split_file(
+        dshctsifi._split_file(
             input_file,
             output_dir=scratch_dir,
             dry_run=False,

@@ -405,7 +405,7 @@ def _insert_image_code(
     elif extension == ".tex":
         # Use the LaTeX syntax with tagged markers to make it easier to do a
         # replacement.
-        #out_lines.append(r"\begin{figure}[!ht]")
+        # out_lines.append(r"\begin{figure}[!ht]")
         out_lines.append(r"\begin{figure}[H]")
         out_lines.append(
             r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}"

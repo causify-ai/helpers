@@ -294,9 +294,7 @@ def _generate_video_for_scene(
         )
     config = genai_types.GenerateVideosConfig(**config_kwargs)
     # Create output filename.
-    output_filename = (
-        f"scene_{scene_index:03d}_{title.replace(' ', '_').replace('/', '_')}.mp4"
-    )
+    output_filename = f"scene_{scene_index:03d}_{title.replace(' ', '_').replace('/', '_')}.mp4"
     _LOG.info("output filename='%s", output_filename)
     # Start video generation operation.
     _LOG.info("Create video with parameters:\n%s", pprint.pformat(config_kwargs))

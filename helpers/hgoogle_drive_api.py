@@ -32,10 +32,13 @@ from typing import List, Optional
 try:
     # Authentication for Google API to produce credentials.
     import google.oauth2.service_account as goasea
+
     # Google API client for service objects (e.g., Drive, Sheets, etc.)
     import googleapiclient.discovery as godisc
+
     # Built on top of Google API to simplify interactions with Google Sheets.
     import gspread
+
     _GOOGLE_API_AVAILABLE = True
 except ImportError:
     # If Google API packages are not installed, set placeholders.
@@ -49,7 +52,9 @@ import helpers.henv as henv
 _LOG = logging.getLogger(__name__)
 
 
-def install_needed_modules(*, use_sudo: bool = True, venv_path: Optional[str] = None) -> None:
+def install_needed_modules(
+    *, use_sudo: bool = True, venv_path: Optional[str] = None
+) -> None:
     """
     Install needed modules for Google Drive API.
 
@@ -57,12 +62,27 @@ def install_needed_modules(*, use_sudo: bool = True, venv_path: Optional[str] = 
     :param venv_path: path to the virtual environment
         E.g., /Users/saggese/src/venv/client_venv.helpers
     """
-    henv.install_module_if_not_present("google", package_name="google-auth",
-        use_sudo=use_sudo, use_activate=True, venv_path=venv_path)
-    henv.install_module_if_not_present("googleapiclient", package_name="google-api-python-client",
-        use_sudo=use_sudo, use_activate=True, venv_path=venv_path)
-    henv.install_module_if_not_present("gspread", package_name="gspread",
-        use_sudo=use_sudo, use_activate=True, venv_path=venv_path)
+    henv.install_module_if_not_present(
+        "google",
+        package_name="google-auth",
+        use_sudo=use_sudo,
+        use_activate=True,
+        venv_path=venv_path,
+    )
+    henv.install_module_if_not_present(
+        "googleapiclient",
+        package_name="google-api-python-client",
+        use_sudo=use_sudo,
+        use_activate=True,
+        venv_path=venv_path,
+    )
+    henv.install_module_if_not_present(
+        "gspread",
+        package_name="gspread",
+        use_sudo=use_sudo,
+        use_activate=True,
+        venv_path=venv_path,
+    )
     # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
     import importlib
     import sys
@@ -71,6 +91,7 @@ def install_needed_modules(*, use_sudo: bool = True, venv_path: Optional[str] = 
     this_module_name = __name__
     if this_module_name in sys.modules:
         importlib.reload(sys.modules[this_module_name])
+
 
 # #############################################################################
 # Credentials
@@ -93,7 +114,7 @@ def get_credentials(
             os.path.expanduser("~"),
             ".config",
             "gspread_pandas",
-            "google_secret.json"
+            "google_secret.json",
         )
     service_key_path = os.path.join(os.path.dirname(__file__), service_key_path)
     # Download service.json from Google API, then save it as
@@ -225,9 +246,7 @@ def freeze_rows_in_gsheet(
         Defaults to the first tab if not provided.
     """
     hdbg.dassert_lt(0, num_rows_to_freeze)
-    tab_id = get_gsheet_id(
-        credentials, sheet_id=sheet_id, tab_name=tab_name
-    )
+    tab_id = get_gsheet_id(credentials, sheet_id=sheet_id, tab_name=tab_name)
     sheets_service = get_sheets_service(credentials)
     freeze_request = {
         "requests": [
@@ -272,9 +291,7 @@ def set_row_height_in_gsheet(
     :param tab_name: Name of the sheet (tab) to set row height in.
         Defaults to the first tab if not provided.
     """
-    tab_id = get_gsheet_id(
-        credentials, sheet_id=sheet_id, tab_name=tab_name
-    )
+    tab_id = get_gsheet_id(credentials, sheet_id=sheet_id, tab_name=tab_name)
     sheets_service = get_sheets_service(credentials)
     if start_index is None and end_index is None:
         sheet_metadata = (
@@ -411,8 +428,8 @@ def to_gsheet(
     values = [df_clean.columns.values.tolist()] + df_clean.values.tolist()
     worksheet.update("A1", values)
     _LOG.info(
-        "Data written to the tab '%s' of the Google Sheet '%s",
-        tab_name, url)
+        "Data written to the tab '%s' of the Google Sheet '%s", tab_name, url
+    )
 
 
 # #############################################################################
@@ -506,6 +523,35 @@ def move_gfile_to_dir(
         .execute()
     )
     return res
+
+
+def share_google_file(
+    credentials: "goasea.Credentials",
+    gfile_id: str,
+    user: str,
+) -> None:
+    """
+    Share a Google file with a user.
+
+    :param credentials: Google credentials object.
+    :param gfile_id: The ID of the Google file.
+    :param user: The email address of the user.
+    """
+    # Build the Google Drive service using the provided credentials.
+    # TODO(gp): -> get_gdrive_service
+    service = godisc.build(
+        "drive", "v3", credentials=credentials, cache_discovery=False
+    )
+    # Create the permission.
+    parameters = {"role": "reader", "type": "user", "emailAddress": user}
+    new_permission = (
+        service.permissions().create(fileId=gfile_id, body=parameters).execute()
+    )
+    _LOG.debug(
+        "The new permission ID of the document is: '%s'",
+        new_permission.get("id"),
+    )
+    _LOG.debug("The Google file is shared with '%s'", user)
 
 
 def create_empty_google_file(
@@ -735,35 +781,6 @@ def get_folder_id_by_name(
     return folder_list[0]
 
 
-def share_google_file(
-    credentials: "goasea.Credentials",
-    gfile_id: str,
-    user: str,
-) -> None:
-    """
-    Share a Google file with a user.
-
-    :param credentials: Google credentials object.
-    :param gfile_id: The ID of the Google file.
-    :param user: The email address of the user.
-    """
-    # Build the Google Drive service using the provided credentials.
-    # TODO(gp): -> get_gdrive_service
-    service = godisc.build(
-        "drive", "v3", credentials=credentials, cache_discovery=False
-    )
-    # Create the permission.
-    parameters = {"role": "reader", "type": "user", "emailAddress": user}
-    new_permission = (
-        service.permissions().create(fileId=gfile_id, body=parameters).execute()
-    )
-    _LOG.debug(
-        "The new permission ID of the document is: '%s'",
-        new_permission.get("id"),
-    )
-    _LOG.debug("The Google file is shared with '%s'", user)
-
-
 # #############################################################################
 
 
@@ -783,7 +800,7 @@ def _extract_file_id_from_url(url: str) -> str:
     # https://docs.google.com/spreadsheets/d/FILE_ID/...
     # https://docs.google.com/document/d/FILE_ID/...
     # https://drive.google.com/file/d/FILE_ID/...
-    pattern = r'/d/([a-zA-Z0-9-_]+)'
+    pattern = r"/d/([a-zA-Z0-9-_]+)"
     match = re.search(pattern, url)
     hdbg.dassert(match, "Invalid URL format: %s", url)
     file_id = match.group(1)
@@ -804,11 +821,15 @@ def _get_folder_path_list(
         Returns empty list if file is at root level.
     """
     # Get file metadata with parents.
-    file_metadata = service.files().get(
-        fileId=file_id,
-        fields="parents",
-        supportsAllDrives=True,
-    ).execute()
+    file_metadata = (
+        service.files()
+        .get(
+            fileId=file_id,
+            fields="parents",
+            supportsAllDrives=True,
+        )
+        .execute()
+    )
     parents = file_metadata.get("parents", [])
     # If no parents, file is at root level.
     if not parents:
@@ -818,11 +839,15 @@ def _get_folder_path_list(
     path_list = []
     current_id = parents[0]  # Files typically have one parent in Google Drive.
     while current_id:
-        folder_metadata = service.files().get(
-            fileId=current_id,
-            fields="name,parents",
-            supportsAllDrives=True,
-        ).execute()
+        folder_metadata = (
+            service.files()
+            .get(
+                fileId=current_id,
+                fields="name,parents",
+                supportsAllDrives=True,
+            )
+            .execute()
+        )
         folder_name = folder_metadata.get("name")
         path_list.insert(0, folder_name)
         parents = folder_metadata.get("parents", [])
@@ -856,8 +881,13 @@ def get_google_path_from_url(
     return path_list
 
 
-def print_info_about_google_url(credentials: "goasea.Credentials", url: str) -> None:
+def print_info_about_google_url(
+    credentials: "goasea.Credentials", url: str
+) -> None:
     print("url: '%s'" % url)
     print("file name: '%s'" % get_tab_name_from_url(credentials, url))
     print("tab names: '%s'" % get_tabs_from_gsheet(credentials, url))
-    print("folder path: '%s'" % "/".join(get_google_path_from_url(credentials, url)))
+    print(
+        "folder path: '%s'"
+        % "/".join(get_google_path_from_url(credentials, url))
+    )

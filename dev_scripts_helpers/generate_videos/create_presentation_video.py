@@ -63,10 +63,10 @@ import helpers.hparser as hparser
 _LOG = logging.getLogger(__name__)
 
 
+
 # #############################################################################
 # OverlayConfig
 # #############################################################################
-
 
 # Data structures for plan configuration.
 class OverlayConfig:
@@ -82,10 +82,10 @@ class OverlayConfig:
         self.duration = duration  # "fill" or "normal"
 
 
+
 # #############################################################################
 # SlideConfig
 # #############################################################################
-
 
 class SlideConfig:
     """
@@ -471,47 +471,6 @@ def _extend_video_with_freeze(
     return extended_clip
 
 
-def _slow_video_to_duration(
-    video_clip: VideoFileClip, target_duration: float, file_path: str = "unknown"
-) -> VideoFileClip:
-    """
-    Slow down video to match target duration.
-
-    :param video_clip: video clip to slow down
-    :param target_duration: target duration in seconds
-    :param file_path: path to the video file for logging
-    :return: slowed video clip
-    """
-    if video_clip.duration >= target_duration:
-        return video_clip.with_duration(target_duration)
-
-    # Calculate the slowdown factor for logging
-    slowdown_factor = target_duration / video_clip.duration
-
-    # Log the slowdown information.
-    _LOG.info(
-        f"Slowing down {file_path}: {video_clip.duration:.2f}s -> {target_duration:.2f}s (factor: {slowdown_factor:.2f}x)"
-    )
-
-    # Use MoviePy's with_speed_scaled method to properly slow down the video
-    # We can specify the final_duration directly, which is more accurate
-    slowed_clip = video_clip.with_speed_scaled(final_duration=target_duration)
-
-    # Verify the actual duration after speed change
-    actual_duration = slowed_clip.duration
-    _LOG.info(
-        f"Actual slowed duration for {file_path}: {actual_duration:.2f}s (target: {target_duration:.2f}s)"
-    )
-
-    # Verify the slowdown was successful
-    if not _verify_video_slowdown(
-        video_clip, slowed_clip, target_duration, file_path
-    ):
-        _LOG.error("Video slowdown verification failed for %s", file_path)
-
-    return slowed_clip
-
-
 def _verify_video_slowdown(
     original_clip: VideoFileClip,
     slowed_clip: VideoFileClip,
@@ -556,6 +515,47 @@ def _verify_video_slowdown(
     _LOG.info("  Actual speed factor: %.3fx", actual_speed_factor)
 
     return True
+
+
+def _slow_video_to_duration(
+    video_clip: VideoFileClip, target_duration: float, file_path: str = "unknown"
+) -> VideoFileClip:
+    """
+    Slow down video to match target duration.
+
+    :param video_clip: video clip to slow down
+    :param target_duration: target duration in seconds
+    :param file_path: path to the video file for logging
+    :return: slowed video clip
+    """
+    if video_clip.duration >= target_duration:
+        return video_clip.with_duration(target_duration)
+
+    # Calculate the slowdown factor for logging
+    slowdown_factor = target_duration / video_clip.duration
+
+    # Log the slowdown information.
+    _LOG.info(
+        f"Slowing down {file_path}: {video_clip.duration:.2f}s -> {target_duration:.2f}s (factor: {slowdown_factor:.2f}x)"
+    )
+
+    # Use MoviePy's with_speed_scaled method to properly slow down the video
+    # We can specify the final_duration directly, which is more accurate
+    slowed_clip = video_clip.with_speed_scaled(final_duration=target_duration)
+
+    # Verify the actual duration after speed change
+    actual_duration = slowed_clip.duration
+    _LOG.info(
+        f"Actual slowed duration for {file_path}: {actual_duration:.2f}s (target: {target_duration:.2f}s)"
+    )
+
+    # Verify the slowdown was successful
+    if not _verify_video_slowdown(
+        video_clip, slowed_clip, target_duration, file_path
+    ):
+        _LOG.error("Video slowdown verification failed for %s", file_path)
+
+    return slowed_clip
 
 
 def _adjust_video_duration(
@@ -767,7 +767,10 @@ def _create_slide_segment(
             # Use plan configuration.
             comment_duration_mode = slide_config.comment.duration
             comment_clip = _adjust_video_duration(
-                comment_clip, target_duration, comment_duration_mode, comment_path
+                comment_clip,
+                target_duration,
+                comment_duration_mode,
+                comment_path,
             )
             comment_overlay = _create_custom_overlay(
                 comment_clip,
@@ -899,7 +902,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 f"No matching slide files found for plan entries in: {args.plan}"
             )
         elif args.slides:
-            hdbg.dfatal(f"No matching slide files found for range: {args.slides}")
+            hdbg.dfatal(
+                f"No matching slide files found for range: {args.slides}"
+            )
         else:
             hdbg.dfatal(f"No XXX_slide.mp4 files found in directory: {in_dir}")
     _LOG.info("Found %s slides to process", len(slides))
