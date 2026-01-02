@@ -324,7 +324,7 @@ def apply_llm_batch(
     responses = []
     use_llm_executable = False
     _LOG.debug("use_llm_executable=%s", use_llm_executable)
-    for input_str in tqdm(input_list, desc="Processing batch", unit="input"):
+    for input_str in input_list:
         response = apply_llm(
             input_str,
             system_prompt=prompt,
@@ -336,6 +336,10 @@ def apply_llm_batch(
     return responses
 
 
+# TODO(gp): Add unit tests.
+# TODO(gp): Add tag for progress bar.
+# TODO(gp): Pass progress bar to accumulate.
+# TODO(gp): Skip values that already have a value in the target column.
 def apply_llm_prompt_to_df(
     prompt: str,
     df: pd.DataFrame,
@@ -384,6 +388,7 @@ def apply_llm_prompt_to_df(
     _LOG.info("Processing %d items in %d batches", len(df), num_batches)
     num_skipped = 0
     # Use appropriate tqdm for notebook or terminal
+    # TODO(gp): Factor this out somewhere.
     try:
         from IPython import get_ipython
 

@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+import IPython.display
 
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
@@ -247,7 +248,7 @@ def get_value_counts_stats_df(
     :param num_rows: The number of rows to return.
     :return: A DataFrame with the value counts of `col_name` in `df`. E.g.,
     ```
-                                count  pct [%]
+                                        count  pct [%]
     Venture Fund                        1004   25.100
     Financial Services                   274    6.850
     Venture Capital & Private Equity     176    4.400
@@ -262,3 +263,16 @@ def get_value_counts_stats_df(
     if num_rows > 0:
         stats_df = stats_df.head(num_rows)
     return stats_df
+
+
+def display_value_counts_stats_df(
+    df: pd.DataFrame, col_names: Union[str, List[str]], *, num_rows: int = 10
+) -> None:
+    if isinstance(col_names, list):
+        for col_name in col_names:
+            display_value_counts_stats_df(df, col_name, num_rows=num_rows)
+        return
+    hdbg.dassert_isinstance(col_names, str)
+    _LOG.info("# %s", col_names)
+    stats_df = get_value_counts_stats_df(df, col_names, num_rows=num_rows)
+    IPython.display.display(stats_df)
