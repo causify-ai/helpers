@@ -770,7 +770,8 @@ def simple_cache(
                 get_cache_property("user", func_name, "force_refresh")
             )
             _LOG.debug("force_refresh=%s", force_refresh)
-            if key in cache and not force_refresh:
+            #if key in cache and not force_refresh:
+            if not force_refresh and key in cache:
                 _LOG.debug("Cache hit for key='%s'", key)
                 # Update the performance stats.
                 if cache_perf:
