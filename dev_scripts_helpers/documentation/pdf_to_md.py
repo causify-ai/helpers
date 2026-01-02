@@ -35,7 +35,7 @@ from pathlib import Path
 import fitz
 
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdockexec
+import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hparser as hparser
 
@@ -60,7 +60,9 @@ def _extract_images_from_page(
     """
     image_items = []
     image_list = page.get_images(full=True)
-    _LOG.info("Page %d: Found %d images via get_images()", page_num, len(image_list))
+    _LOG.info(
+        "Page %d: Found %d images via get_images()", page_num, len(image_list)
+    )
     # Track which xrefs we've already processed to avoid duplicates.
     processed_xrefs = set()
     for img_index, img in enumerate(image_list, start=1):
@@ -82,21 +84,34 @@ def _extract_images_from_page(
                 _LOG.debug("Image xref %d positioned at y=%.2f", xref, y_pos)
             else:
                 # If no position found, place at end of page.
-                y_pos = float('inf')
-                _LOG.warning("Page %d: No position found for image xref %d", page_num, xref)
+                y_pos = float("inf")
+                _LOG.warning(
+                    "Page %d: No position found for image xref %d",
+                    page_num,
+                    xref,
+                )
             # Generate filename.
             image_filename = f"page_{page_num}_img_{img_index}.{image_ext}"
             image_path = images_dir / image_filename
             # Save image.
             image_path.write_bytes(image_bytes)
-            _LOG.info("Page %d: Saved image %s (xref=%d, size=%d bytes)",
-                     page_num, image_filename, xref, len(image_bytes))
+            _LOG.info(
+                "Page %d: Saved image %s (xref=%d, size=%d bytes)",
+                page_num,
+                image_filename,
+                xref,
+                len(image_bytes),
+            )
             # Create markdown reference.
             img_markdown = f"![Figure](images/{image_filename})"
             image_items.append((y_pos, image_filename, img_markdown))
         except Exception as e:
-            _LOG.warning("Page %d: Failed to extract image xref %d: %s",
-                        page_num, xref, str(e))
+            _LOG.warning(
+                "Page %d: Failed to extract image xref %d: %s",
+                page_num,
+                xref,
+                str(e),
+            )
     # Try to extract vector graphics as images.
     drawings = page.get_drawings()
     _LOG.info("Page %d: Found %d vector drawings", page_num, len(drawings))
@@ -104,7 +119,9 @@ def _extract_images_from_page(
         # Render the entire page as an image to capture vector graphics.
         # We'll do this only if there are drawings and few raster images.
         if len(image_list) < 3:
-            _LOG.info("Page %d: Rendering page to capture vector graphics", page_num)
+            _LOG.info(
+                "Page %d: Rendering page to capture vector graphics", page_num
+            )
             # Get page dimensions.
             rect = page.rect
             # Render page at 2x resolution for better quality.
@@ -114,7 +131,9 @@ def _extract_images_from_page(
             image_filename = f"page_{page_num}_rendered_{img_index}.png"
             image_path = images_dir / image_filename
             pix.save(str(image_path))
-            _LOG.info("Page %d: Saved rendered page as %s", page_num, image_filename)
+            _LOG.info(
+                "Page %d: Saved rendered page as %s", page_num, image_filename
+            )
             # Position at page center.
             y_pos = rect.height / 2
             img_markdown = f"![Figure (rendered)](images/{image_filename})"
@@ -139,15 +158,25 @@ def _analyze_font_sizes(page: fitz.Page) -> dict:
                     if size > 0:
                         font_sizes.append(size)
     if not font_sizes:
-        return {"median": 10, "h1_threshold": 16, "h2_threshold": 14, "h3_threshold": 12}
+        return {
+            "median": 10,
+            "h1_threshold": 16,
+            "h2_threshold": 14,
+            "h3_threshold": 12,
+        }
     font_sizes.sort()
     median_size = font_sizes[len(font_sizes) // 2]
     # Thresholds for different heading levels.
     h1_threshold = median_size * 1.5
     h2_threshold = median_size * 1.3
     h3_threshold = median_size * 1.1
-    _LOG.debug("Font size analysis: median=%.2f, h1>=%.2f, h2>=%.2f, h3>=%.2f",
-              median_size, h1_threshold, h2_threshold, h3_threshold)
+    _LOG.debug(
+        "Font size analysis: median=%.2f, h1>=%.2f, h2>=%.2f, h3>=%.2f",
+        median_size,
+        h1_threshold,
+        h2_threshold,
+        h3_threshold,
+    )
     return {
         "median": median_size,
         "h1_threshold": h1_threshold,
@@ -210,8 +239,14 @@ def _extract_text_with_formatting(
         else:
             md_type = "text"
         text_items.append((block_y, md_type, content))
-        _LOG.debug("Page %d: Block at y=%.2f, size=%.2f, type=%s: %s",
-                  page_num, block_y, max_font_size, md_type, content[:50])
+        _LOG.debug(
+            "Page %d: Block at y=%.2f, size=%.2f, type=%s: %s",
+            page_num,
+            block_y,
+            max_font_size,
+            md_type,
+            content[:50],
+        )
     return text_items
 
 
@@ -285,7 +320,7 @@ def _pdf_to_markdown(
     markdown_content = "\n\n".join(md_lines)
     # Apply prettier formatting to the markdown.
     _LOG.info("Applying prettier formatting to markdown")
-    markdown_content = hdockexec.prettier_on_str(
+    markdown_content = hdocexec.prettier_on_str(
         markdown_content,
         file_type="md",
         print_width=80,

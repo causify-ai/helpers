@@ -476,6 +476,29 @@ def _cleanup_after(prefix: str) -> None:
 
 # #############################################################################
 
+_VALID_ACTIONS = [
+    "cleanup_before",
+    "preprocess_notes",
+    "render_images",
+    "run_pandoc",
+    "copy_to_gdrive",
+    "open",
+    "cleanup_after",
+]
+
+
+_DEFAULT_ACTIONS = [
+    "cleanup_before",
+    "preprocess_notes",
+    "render_images",
+    "run_pandoc",
+    "open",
+    "cleanup_after",
+]
+
+
+# #############################################################################
+
 
 def _run_all(args: argparse.Namespace) -> None:
     _LOG.debug("type=%s", args.type)
@@ -606,29 +629,6 @@ def _run_all(args: argparse.Namespace) -> None:
     _LOG.info("\n%s", hprint.frame("SUCCESS"))
 
 
-# #############################################################################
-
-_VALID_ACTIONS = [
-    "cleanup_before",
-    "preprocess_notes",
-    "render_images",
-    "run_pandoc",
-    "copy_to_gdrive",
-    "open",
-    "cleanup_after",
-]
-
-
-_DEFAULT_ACTIONS = [
-    "cleanup_before",
-    "preprocess_notes",
-    "render_images",
-    "run_pandoc",
-    "open",
-    "cleanup_after",
-]
-
-
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -680,7 +680,7 @@ def _parse() -> argparse.ArgumentParser:
         "--toc_type",
         action="store",
         default="none",
-        choices=["none", "pandoc_native", "navigation"],
+        choices=["none", "pandoc_native", "navigation", "remove_headers"],
     )
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False

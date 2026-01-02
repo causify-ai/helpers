@@ -8,7 +8,7 @@
   books
 - The document catalogs over 30 specialized tools organized into categories: core
   documentation tools, extraction and conversion tools, dockerized tools, utility
-  and processing tools, and generation and publishing tools
+  and processing tools, generation and publishing tools, and shell script utilities
 - Each tool is documented with its purpose, usage examples, and integration with
   the broader documentation ecosystem
 - The toolchain emphasizes automation, consistency, and ease of use through
@@ -77,10 +77,10 @@
     - E.g., C-like comments
       `// Comment`
       ```text
-      \*
+      /*
       ...
       */
-      ````
+      ```
   - Framing of titles  
     ```text
     # ##############
@@ -111,7 +111,6 @@
     - `convert_docx_to_markdown.py`: Converts DOCX to Markdown
     - `pdf_to_md.py`: Converts PDF to Markdown
     - `extract_toc_from_txt.py`: Extracts headers from Markdown and LaTeX files for navigation
-    - `extract_notebook_images.py`: Extracts images from Jupyter notebooks
     - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
 
   - Dockerized Tools
@@ -123,20 +122,26 @@
     - `dockerized_prettier.py`: Prettier formatting
 
   - Utility and Processing Tools
-    - `run_pandoc.py`: Runs Pandoc conversions  
-    - `replace_latex.py`: Batch LaTeX transformations  
-    - `check_links.py`: Validates URL reachability  
-    - `process_slides.py`: Processes slides with LLM
+    - `run_pandoc.py`: Runs Pandoc conversions
+    - `replace_latex.py`: Batch LaTeX transformations
+    - `check_links.py`: Validates URL reachability
+    - `check_ai_slop.py`: Detects and fixes AI-generated content using Undetectable.ai API
+    - `concatenate_pdfs.py`: Merges multiple PDF files into a single PDF
 
   - Generation and Publishing Tools
-    - `generate_readme_index.py`: Generates README index  
-    - `generate_script_catalog.py`: Creates script catalog  
-    - `generate_latex_sty.py`: Generates LaTeX style files  
-    - `generate_images.py`: Generates images with DALL-E  
-    - `save_screenshot.py`: Screenshot capture utility  
-    - `publish_notes.py`: Publishes notes to remote server  
-    - `create_google_drive_map.py`: Creates directory structure summaries  
-    - `llm_transform.py`: LLM-based text transformations  
+    - `generate_readme_index.py`: Generates README index
+    - `generate_script_catalog.py`: Creates script catalog
+    - `generate_latex_sty.py`: Generates LaTeX style files
+    - `generate_images.py`: Generates images with DALL-E
+    - `publish_notes.py`: Publishes notes to remote server
+    - `create_google_drive_map.py`: Creates directory structure summaries
+
+  - Shell Script Utilities
+    - `open_md_in_browser.sh`: Renders Markdown to HTML and opens in browser
+    - `open_md_on_github.sh`: Opens a file in GitHub web interface
+    - `run_latex.sh`: Dockerized LaTeX compilation with PDF viewer
+    - `replace_latex.sh`: Shell wrapper for LaTeX batch transformations
+    - `latexdockercmd.sh`: LaTeX Docker command utility  
 
 # Description of executables
 
@@ -341,76 +346,75 @@ The supported File types and code blocks are:
   :%!lint_txt.py
   ```
 
-## `extract_notebook_images.py`
+## `check_ai_slop.py`
 
 ### What It Does
 
-- Spins up a docker container and dumps every `png/svg` output cell into a
-  folder.
-- You can then publish or reuse the static plots/diagrams already rendered in a
-  Jupyter notebook.
+- Detect and remove AI slop using the Undetectable.ai REST API
+- Provides two main actions:
+  - **detect**: Analyze text to determine if it was AI-generated (score 1-100)
+  - **fix**: Humanize AI-generated text to make it undetectable
+- Requires `API_UNDETECTABLE` environment variable with Undetectable.ai API key
+- Supports customization of readability level and content purpose
 
 ### Examples
 
-- Minimal call:
+- Detect AI content in a file
   ```bash
-  > extract_notebook_images.py \
-      --in_notebook_filename notebooks/Lesson8.ipynb \
-      --out_image_dir notebooks/screenshots
+  > check_ai_slop.py -i input.txt --action detect
   ```
 
-## `llm_transform.py`
+- Humanize AI content and save to output file
+  ```bash
+  > check_ai_slop.py -i input.txt -o output.txt --action fix
+  ```
+
+- Process with specific humanization settings
+  ```bash
+  > check_ai_slop.py -i input.txt -o output.txt --action fix --readability "University" --purpose "Essay"
+  ```
+
+- Check and fix in one command
+  ```bash
+  > check_ai_slop.py -i input.txt -o output.txt --action detect,fix
+  ```
+
+## `concatenate_pdfs.py`
 
 ### What It Does
 
-- Apply a GPT‑style transformation (rewrite, summarise, critique code, convert
-  to slides, etc.) to any text file _without_ leaving the terminal / editor.
-
-- **Note**: You need to have an `OPENAI_API_KEY` and an internet connection.
+- Merges multiple PDF files into a single output PDF file
+- Accepts file paths or glob patterns (e.g., `*.pdf`, `Lesson*.pdf`)
+- Automatically sorts input files alphabetically before concatenation
+- Supports dry-run mode to preview which files will be merged without actually merging them
+- Creates output directory if it doesn't exist
+- Reports file sizes and number of pages processed
 
 ### Examples
 
-- Basic transformation on a text file
-
+- Concatenate all PDF files in current directory
   ```bash
-  > llm_transform.py -i draft.txt -o polished.txt -p rewrite_clearer
+  > concatenate_pdfs.py --input_files "*.pdf" --output_file combined.pdf
   ```
 
-- List all available prompts
-
+- Concatenate specific lesson PDFs in sorted order
   ```bash
-  > llm_transform.py -p list_prompts -i - -o -
+  > concatenate_pdfs.py --input_files "data605/book/Lesson*.pdf" --output_file data605_lessons.pdf
   ```
 
-- Turn a code file into a review checklist (outputs vim cfile format)
-
+- Dry run to see which files will be concatenated
   ```bash
-  > llm_transform.py -i foo.py -o cfile -p code_review
-  > vim cfile
+  > concatenate_pdfs.py --input_files "*.pdf" --output_file combined.pdf --dry_run
   ```
 
-- Propose refactoring for a Python file
-
+- Concatenate specific files
   ```bash
-  > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
+  > concatenate_pdfs.py --input_files "file1.pdf file2.pdf file3.pdf" --output_file output.pdf
   ```
 
-- Color‑accent the bold bullets for slides
-
+- Concatenate PDFs with verbose logging
   ```bash
-  > llm_transform.py -i deck.md -o - -p slide_colorize | tee deck.color.md
-  ```
-
-- Inline use in Vim, visual‑select a block, then:
-
-  ```vim
-  :'<,'>!llm_transform.py -p summarize -i - -o -
-  ```
-
-- Compare original and transformed text side-by-side
-
-  ```bash
-  > llm_transform.py -i notes.txt -o result.txt -p improve_clarity --compare
+  > concatenate_pdfs.py --input_files "chapter*.pdf" --output_file book.pdf -v DEBUG
   ```
 
 ## `run_pandoc.py`
@@ -760,14 +764,6 @@ The supported File types and code blocks are:
   ```
   dockerized_prettier.py --parser markdown --tab-width 4 --prose-wrap always --write test.md
   ```
-
-## `save_screenshot.py`
-
-### What It Does
-
-1. Prompts you to select a screen region (`⌘ + Ctrl + 4`).
-2. Saves it as `screenshot.YYYY‑MM‑DD_HH‑MM‑SS.png` (or your chosen name).
-3. Prints and copies the Markdown embed `<img src="path/to/file.png">`.
 
 ## `generate_images.py`
 
@@ -1152,39 +1148,6 @@ The supported File types and code blocks are:
   > preprocess_notes.py --input qa.txt --output qa.md --type pdf --qa
   ```
 
-## `process_slides.py`
-
-### What It Does
-
-- Process Markdown slides using LLM prompts for enhancement or critique
-- Extracts individual slides from Markdown documents
-- Applies LLM transformations to each slide independently
-- Supports parallel processing for batch operations
-- Can use either direct LLM API calls or `llm_transform` script
-- Provides progress tracking and error handling options
-
-### Examples
-
-- Process slides with LLM action
-  ```bash
-  > process_slides.py --in_file slides.md --action slide_format --out_file processed.md
-  ```
-
-- Process with llm_transform script
-  ```bash
-  > process_slides.py --in_file lecture.md --action slide_critique --out_file critique.md --use_llm_transform
-  ```
-
-- Process specific slide range with parallel execution
-  ```bash
-  > process_slides.py --in_file slides.md --action format --out_file out.md --limit 10:20 --num_threads 4
-  ```
-
-- Continue on errors (don't abort)
-  ```bash
-  > process_slides.py --in_file slides.md --action enhance --out_file enhanced.md --no_abort_on_error
-  ```
-
 ## `create_google_drive_map.py`
 
 ### What It Does
@@ -1268,6 +1231,77 @@ The supported File types and code blocks are:
   - `generate_vim_spell_check()`: Creates vim spell-check file
   - `generate_perl1()`, `generate_perl2()`, `generate_perl3()`: Generate Perl conversion scripts
   - `generate_mathcal()`: Generates mathcal notation macros
+
+## `open_md_in_browser.sh`
+
+### What It Does
+
+- Renders a Markdown file to HTML using Pandoc and opens it in the default browser
+- Useful for quickly previewing Markdown files with proper formatting
+- Creates a temporary HTML file (`tmp.rendered_md.html`)
+
+### Examples
+
+- Preview a Markdown file
+  ```bash
+  > open_md_in_browser.sh README.md
+  ```
+
+## `open_md_on_github.sh`
+
+### What It Does
+
+- Opens a file from the current repository in the GitHub web interface
+- Automatically determines the repository URL and current branch
+- Constructs and opens the GitHub URL for the specified file
+- Useful for quickly navigating to a file on GitHub
+
+### Examples
+
+- Open a file on GitHub
+  ```bash
+  > open_md_on_github.sh docs/README.md
+  ```
+
+## `run_latex.sh`
+
+### What It Does
+
+- Dockerized LaTeX compilation script
+- Compiles a LaTeX `.tex` file to PDF using Docker
+- Runs `pdflatex` twice to resolve references
+- Opens the resulting PDF in Skim.app (macOS)
+- Uses `blang/latex:ubuntu` Docker image
+
+### Examples
+
+- Compile a LaTeX file to PDF
+  ```bash
+  > run_latex.sh paper.tex
+  ```
+
+## `replace_latex.sh`
+
+### What It Does
+
+- Shell wrapper for batch LaTeX text transformations
+- Applies standard cleanup and formatting rules to LaTeX files
+- Works in conjunction with `replace_latex.py`
+
+### Examples
+
+- Apply transformations to a LaTeX file
+  ```bash
+  > replace_latex.sh document.tex
+  ```
+
+## `latexdockercmd.sh`
+
+### What It Does
+
+- Utility script for running LaTeX commands in Docker
+- Provides Docker-based LaTeX compilation functionality
+- Used as a helper by other LaTeX-related scripts
 
 # Useful Tools
 

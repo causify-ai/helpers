@@ -4,7 +4,7 @@ from typing import Optional
 
 import pytest
 
-import dev_scripts_helpers.documentation.lint_txt as dshdlino
+import dev_scripts_helpers.documentation.lint_txt as dshdlitx
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
@@ -48,10 +48,10 @@ def _get_text1() -> str:
     return txt
 
 
+
 # #############################################################################
 # Test_lint_txt1
 # #############################################################################
-
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
@@ -73,7 +73,7 @@ class Test_lint_txt1(hunitest.TestCase):
         txt = txt.split("\n")
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         # Run.
-        actual = dshdlino._preprocess_txt(txt)
+        actual = dshdlitx._preprocess_txt(txt)
         # Check.
         actual = "\n".join(actual)
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
@@ -150,17 +150,16 @@ class Test_lint_txt1(hunitest.TestCase):
         self.helper(txt, expected)
 
 
+
 # #############################################################################
 # Test_lint_txt2
 # #############################################################################
-
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
 )
 class Test_lint_txt2(hunitest.TestCase):
-
     @staticmethod
     def get_text_problematic_for_prettier1() -> str:
         txt = r"""
@@ -177,9 +176,7 @@ class Test_lint_txt2(hunitest.TestCase):
         txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
         return txt
 
-    def helper(
-        self, txt: str, expected: Optional[str], file_name: str
-    ) -> str:
+    def helper(self, txt: str, expected: Optional[str], file_name: str) -> str:
         """
         Helper function to process the given text and compare the result with
         the expected output.
@@ -196,7 +193,7 @@ class Test_lint_txt2(hunitest.TestCase):
         txt = txt.split("\n")
         file_name = os.path.join(self.get_scratch_space(), file_name)
         # Run function.
-        actual = dshdlino._perform_actions(txt, file_name)
+        actual = dshdlitx._perform_actions(txt, file_name)
         # Check.
         actual = "\n".join(actual)
         if expected:
@@ -369,10 +366,10 @@ class Test_lint_txt2(hunitest.TestCase):
         self.helper(txt, expected, file_name)
 
 
+
 # #############################################################################
 # Test_lint_txt_cmd_line1
 # #############################################################################
-
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
@@ -384,7 +381,11 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
     """
 
     def run_lint_txt(
-        self, in_file: str, type_: str, use_script: bool, cmd_opts: str,
+        self,
+        in_file: str,
+        type_: str,
+        use_script: bool,
+        cmd_opts: str,
     ) -> Optional[str]:
         """
         Run lint_txt processing directly by calling the code.
@@ -424,7 +425,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
             txt = hio.from_file(in_file)
             lines = txt.split("\n")
             # Process the content directly.
-            out_lines = dshdlino._perform_actions(
+            out_lines = dshdlitx._perform_actions(
                 lines,
                 in_file,
                 actions=None,
@@ -461,7 +462,9 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         outcome from test_md1.
         """
         # Prepare inputs.
-        in_file = os.path.join(self.get_input_dir(test_method_name="test_md1"), "text.md")
+        in_file = os.path.join(
+            self.get_input_dir(test_method_name="test_md1"), "text.md"
+        )
         type_ = "md"
         use_script = True
         cmd_opts = ""
@@ -493,7 +496,9 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         outcome from test_tex1.
         """
         # Prepare inputs.
-        in_file = os.path.join(self.get_input_dir(test_method_name="test_tex1"), "text.tex")
+        in_file = os.path.join(
+            self.get_input_dir(test_method_name="test_tex1"), "text.tex"
+        )
         type_ = "tex"
         use_script = True
         cmd_opts = "--print-width 80"

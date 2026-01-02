@@ -7,15 +7,57 @@ import helpers.hllm_cli as hllmcli
 import logging
 import shlex
 import subprocess
-from typing import Optional
+from typing import Callable, List, Optional, Union
 
+import pandas as pd
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hsystem as hsystem
+import helpers.henv as henv
 
 _LOG = logging.getLogger(__name__)
+
+
+def install_needed_modules(
+    *, use_sudo: bool = True, venv_path: Optional[str] = None
+) -> None:
+    """
+    Install needed modules for LLM CLI.
+
+    :param use_sudo: whether to use sudo to install the module
+    :param venv_path: path to the virtual environment
+        E.g., /Users/saggese/src/venv/client_venv.helpers
+    """
+    henv.install_module_if_not_present(
+        "llm",
+        package_name="llm",
+        use_sudo=use_sudo,
+        use_activate=True,
+        venv_path=venv_path,
+    )
+    # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
+    import importlib
+    import sys
+
+    # Reload this module (hgoogle_drive_api) if already imported
+    this_module_name = __name__
+    if this_module_name in sys.modules:
+        importlib.reload(sys.modules[this_module_name])
+
+
+def shutup_llm_logging() -> None:
+    """
+    Shut up OpenAI logging.
+    """
+    # OpenAI client logging.
+    logging.getLogger("openai").setLevel(logging.WARNING)
+    # Common HTTP logging sources
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
 # #############################################################################
@@ -111,6 +153,7 @@ def _apply_llm_via_library(
     :return: LLM response as string
     """
     import llm
+
     # Get the model.
     if model:
         llm_model = llm.get_model(model)
@@ -140,6 +183,7 @@ def _apply_llm_via_library(
 # #############################################################################
 
 
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
 def apply_llm(
     input_str: str,
     *,
@@ -245,3 +289,178 @@ def apply_llm_with_files(
     _LOG.debug("Writing output to file: %s", output_file)
     hio.to_file(output_file, response)
     _LOG.debug("Wrote %d characters to output file", len(response))
+
+
+def apply_llm_batch(
+    prompt: str,
+    input_list: List[str],
+    *,
+    model: Optional[str] = None,
+) -> List[str]:
+    """
+    Apply an LLM to process a batch of input texts using the same system prompt.
+
+    This function provides a unified interface to call LLMs on multiple inputs,
+    processing each input sequentially with the same system prompt and model
+    configuration. A progress bar tracks progress through the batch.
+
+    :param prompt: system prompt to guide the LLM's behavior
+    :param input_list: list of input texts to process with the LLM
+    :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
+    :return: list of LLM responses as strings, in the same order as inputs
+    """
+    hdbg.dassert_isinstance(prompt, str)
+    hdbg.dassert_isinstance(input_list, list)
+    hdbg.dassert_lt(0, len(input_list), "Input list cannot be empty")
+    for idx, input_str in enumerate(input_list):
+        hdbg.dassert_isinstance(
+            input_str,
+            str,
+            "Input at index %d must be a string",
+            idx,
+        )
+        hdbg.dassert_ne(
+            input_str,
+            "",
+            "Input at index %d cannot be empty",
+            idx,
+        )
+    if model is not None:
+        hdbg.dassert_isinstance(model, str)
+        hdbg.dassert_ne(model, "", "Model cannot be empty string")
+    _LOG.debug("Processing batch of %d inputs", len(input_list))
+    # Process each input sequentially with progress bar.
+    responses = []
+    use_llm_executable = False
+    _LOG.debug("use_llm_executable=%s", use_llm_executable)
+    for input_str in input_list:
+        response = apply_llm(
+            input_str,
+            system_prompt=prompt,
+            model=model,
+            use_llm_executable=use_llm_executable,
+        )
+        responses.append(response)
+    _LOG.debug("Batch processing completed")
+    return responses
+
+
+# TODO(gp): Add unit tests.
+# TODO(gp): Add tag for progress bar.
+# TODO(gp): Pass progress bar to accumulate.
+# TODO(gp): Skip values that already have a value in the target column.
+def apply_llm_prompt_to_df(
+    prompt: str,
+    df: pd.DataFrame,
+    extractor: Callable[[Union[str, pd.Series]], str],
+    target_col: str,
+    *,
+    batch_size: int = 100,
+    dump_every_batch: Optional[str] = None,
+    model: Optional[str] = None,
+) -> pd.DataFrame:
+    """
+    Apply an LLM to process a dataframe column using the same system prompt.
+
+    This function processes text from a source column in batches, applies the LLM
+    to each item, and stores the results in a target column. It can optionally
+    save progress to a file after each batch.
+
+    :param prompt: system prompt to guide the LLM's behavior
+    :param df: dataframe to process
+    :param source_col: name of column containing input text to process
+    :param target_col: name of column to store results
+    :param batch_size: number of items to process in each batch
+    :param dump_every_batch: optional file path to dump the dataframe after each batch
+    :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
+    :return: dataframe with new target column containing LLM responses
+    """
+    hdbg.dassert_isinstance(prompt, str)
+    hdbg.dassert_ne(prompt, "", "Prompt cannot be empty")
+    hdbg.dassert_isinstance(df, pd.DataFrame)
+    hdbg.dassert_lt(0, len(df), "Dataframe cannot be empty")
+    hdbg.dassert_isinstance(target_col, str)
+    hdbg.dassert_ne(target_col, "", "Target column cannot be empty")
+    hdbg.dassert_isinstance(batch_size, int)
+    hdbg.dassert_lt(0, batch_size)
+    if dump_every_batch is not None:
+        hdbg.dassert_isinstance(dump_every_batch, str)
+        hdbg.dassert_ne(dump_every_batch, "", "Dump file path cannot be empty")
+    if model is not None:
+        hdbg.dassert_isinstance(model, str)
+        hdbg.dassert_ne(model, "", "Model cannot be empty string")
+    # Create target column if it doesn't exist.
+    if target_col not in df.columns:
+        df[target_col] = None
+    # Process items in batches with progress bar for entire workload.
+    num_batches = (len(df) + batch_size - 1) // batch_size
+    _LOG.info("Processing %d items in %d batches", len(df), num_batches)
+    num_skipped = 0
+    # Use appropriate tqdm for notebook or terminal
+    # TODO(gp): Factor this out somewhere.
+    try:
+        from IPython import get_ipython
+
+        if get_ipython() is not None:
+            from tqdm.notebook import tqdm as notebook_tqdm
+
+            tqdm_progress = notebook_tqdm
+        else:
+            tqdm_progress = tqdm
+    except ImportError:
+        tqdm_progress = tqdm
+
+    for batch_num in tqdm_progress(
+        range(num_batches), desc="Processing batches"
+    ):
+        # Get batch rows.
+        start_idx = batch_num * batch_size
+        end_idx = min(start_idx + batch_size, len(df))
+        rows = df.iloc[start_idx:end_idx]
+        # Extract items from rows, filtering out invalid ones.
+        batch_items = []
+        batch_indices = []
+        for idx, row in rows.iterrows():
+            extracted_text = extractor(row)
+            # Check if extraction returned valid text (not NaN/None/empty).
+            if extracted_text != "":
+                batch_items.append(extracted_text)
+                batch_indices.append(idx)
+            else:
+                # Set NaN for rows with missing company information.
+                df.at[idx, target_col] = ""
+                num_skipped += 1
+        # Call LLM only if there are valid items in this batch.
+        if batch_items:
+            _LOG.debug(
+                "Processing batch %d/%d (%d items, %d skipped)",
+                batch_num + 1,
+                num_batches,
+                len(batch_items),
+                len(rows) - len(batch_items),
+            )
+            batch_responses = apply_llm_batch(
+                prompt=prompt,
+                input_list=batch_items,
+                model=model,
+            )
+            # Update dataframe with batch results.
+            for idx, response in zip(batch_indices, batch_responses):
+                df.at[idx, target_col] = response.strip()
+        else:
+            _LOG.debug(
+                "Skipping batch %d/%d (all %d items have missing data)",
+                batch_num + 1,
+                num_batches,
+                len(rows),
+            )
+        # Dump dataframe to file after batch if requested.
+        if dump_every_batch is not None:
+            _LOG.debug("Dumping dataframe to file: %s", dump_every_batch)
+            df.to_csv(dump_every_batch, index=False)
+    _LOG.info(
+        "Processing completed (%d items processed, %d skipped)",
+        len(df) - num_skipped,
+        num_skipped,
+    )
+    return df

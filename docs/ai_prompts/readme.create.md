@@ -1,6 +1,6 @@
 You are an expert technical writer specializing in software documentation.
 
-I will give you the path of a directory <DIR> and you will write a **README.md**
+I will give you the path of a directory <DIR> and you will write a README.md
 in the target directory that has the following sections
 
 # Structure of the Dir
@@ -37,8 +37,8 @@ in the target directory that has the following sections
   - Its `--help` text
   - Its docstring
 
-Create a **"Description of executables"** section with one subsection **per
-tool**, using this exact structure:
+Create a "Description of executables" section with one subsection per
+tool, using this exact structure:
 
 ````markdown
 ## `<tool>`
@@ -52,11 +52,21 @@ tool**, using this exact structure:
 
 - Provide 2–4 realistic example commands
 - For each example:
-  - Start with a short, bolded description.
+  - Start with a short description
   - Follow with a fenced bash code block:
     ```bash
     > actual command here
     ```
+````
+
+- For instance
+````
+### Examples
+
+- Generate 5 HD quality images from a prompt:
+  ```bash
+  > ./generate_class_images.py "A sunset over mountains" --dst_dir ./images
+  ```
 ````
 
 - Examples of this file are:

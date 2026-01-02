@@ -223,7 +223,7 @@ def _system(
             if blocking:
                 # Blocking call: get the output.
                 while True:
-                    line = p.stdout.readline().decode("utf-8")  # type: ignore
+                    line = p.stdout.readline().decode("utf-8", errors="replace")  # type: ignore
                     if not line:
                         break
                     if not suppress_output:

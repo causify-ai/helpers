@@ -13,6 +13,10 @@ The full list of transformations is:
 - Remove empty lines in the questions and answers
 - Remove all the lines with only spaces
 - Add TOC
+
+Import as:
+
+import dev_scripts_helpers.documentation.preprocess_notes as dsdoprno
 """
 
 import argparse
@@ -28,6 +32,11 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
+# #############################################################################
+# Constants
+# #############################################################################
+
+
 _NUM_SPACES = 2
 
 _TRACE = False
@@ -39,12 +48,19 @@ _VALID_ACTIONS = [
     "colorize_bullets",
 ]
 
+# #############################################################################
+# Helper functions
+# #############################################################################
+
 
 def _process_abbreviations(in_line: str) -> str:
     r"""
     Transform some abbreviations into LaTeX.
 
     E.g., - `->` into `$\rightarrow$`
+
+    :param in_line: input line to process
+    :return: transformed line with abbreviations replaced
     """
     line = in_line
     for x, y in [
@@ -52,8 +68,8 @@ def _process_abbreviations(in_line: str) -> str:
         # TODO(gp): This collides with the arrow in graphviz commands. We
         # should skip this transformation if we are in a graphviz block.
         # (r"->", r"\rightarrow"),
-        #(r"-^", r"\uparrow"),
-        #(r"-v", r"\downarrow"),
+        # (r"-^", r"\uparrow"),
+        # (r"-v", r"\downarrow"),
     ]:
         line = re.sub(rf"(\s){re.escape(x)}(\s)", rf"\1${re.escape(y)}$\2", line)
     if line != in_line:
@@ -66,6 +82,9 @@ def _process_enumerated_list(in_line: str) -> str:
     Transform enumerated list with parenthesis to `.`.
 
     E.g., "1) foo bar" is transformed into "1. foo bar".
+
+    :param in_line: input line to process
+    :return: transformed line with enumerated lists updated
     """
     line = re.sub(r"^(\s*)(\d+)\)\s", r"\1\2. ", in_line)
     return line
@@ -74,6 +93,9 @@ def _process_enumerated_list(in_line: str) -> str:
 def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
     """
     Transform `* foo bar` into `- **foo bar**`.
+
+    :param line: input line to process
+    :return: tuple of (should_continue, transformed_line)
     """
     # Bold.
     meta = "**"
@@ -93,9 +115,15 @@ def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
     return do_continue, line
 
 
-def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str]:
+def _process_question_to_slides(
+    line: str, *, level: int = 4
+) -> Tuple[bool, str]:
     """
     Transform `* foo bar` into `#### foo bar`.
+
+    :param line: input line to process
+    :param level: header level to use (default: 4)
+    :return: tuple of (should_continue, transformed_line)
     """
     hdbg.dassert_lte(1, level)
     prefix = "#" * level
@@ -111,14 +139,21 @@ def _process_question_to_slides(line: str, *, level: int = 4) -> Tuple[bool, str
 
 # TODO(gp): Use hmarkdown.process_lines().
 # TODO(gp): Add a way to control the list of transformations.
-def _transform_lines(lines: List[str], type_: str, is_qa: bool, *, actions: Optional[List[str]] = None) -> List[str]:
+def _transform_lines(
+    lines: List[str],
+    type_: str,
+    is_qa: bool,
+    *,
+    actions: Optional[List[str]] = None,
+) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
-    :param lines: List of lines of the notes.
-    :param type_: Type of output to generate (e.g., `pdf`, `html`, `slides`).
-    :param is_qa: True if the input is a QA file.
-    :return: List of lines of the notes.
+    :param lines: list of lines of the notes
+    :param type_: type of output to generate (e.g., `pdf`, `html`, `slides`)
+    :param is_qa: True if the input is a QA file
+    :param actions: optional list of actions to perform
+    :return: list of processed lines
     """
     _LOG.debug("\n%s", hprint.frame("transform_lines"))
     hdbg.dassert_isinstance(lines, list)
@@ -210,9 +245,9 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool, *, actions: Opti
                     out.append(" " * _NUM_SPACES + line)
             else:
                 # Empty line.
-                prev_line_is_verbatim = ((i - 1) > 0) and lines[i - 1].startswith(
-                    "```"
-                )
+                prev_line_is_verbatim = ((i - 1) > 0) and lines[
+                    i - 1
+                ].startswith("```")
                 next_line_is_verbatim = ((i + 1) < len(lines)) and (
                     lines[i + 1].startswith("```")
                 )
@@ -234,10 +269,9 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool, *, actions: Opti
                     out.append(" " * _NUM_SPACES + line)
     #
     if type_ == "slides":
-
         # Colorize links.
         to_execute, actions = hparser.mark_action("process_links", actions)
-        #to_execute = False
+        # to_execute = False
         if to_execute:
             out = hmarkdo.format_md_links_to_latex_format(out)
 
@@ -246,6 +280,9 @@ def _transform_lines(lines: List[str], type_: str, is_qa: bool, *, actions: Opti
         def _colorize_bullets(slide_text: List[str]) -> str:
             """
             Color bullet points in the slide.
+
+            :param slide_text: list of lines in the slide
+            :return: colorized slide text
             """
             slide_text = "\n".join(slide_text)
             if not hmarkdo.has_color_command(slide_text):
@@ -298,11 +335,11 @@ def _add_navigation_slides(
     """
     Add the navigation slides to the notes.
 
-    :param txt: The notes text.
-    :param max_level: The maximum level of headers to consider (e.g., 3
-        create a navigation slide for headers of level 1, 2, and 3).
-    :param sanity_check: If True, perform sanity checks.
-    :return: The notes text with the navigation slides.
+    :param lines: list of lines of the notes
+    :param max_level: maximum level of headers to consider (e.g., 3 creates a
+        navigation slide for headers of level 1, 2, and 3)
+    :param sanity_check: if True, perform sanity checks
+    :return: list of lines with the navigation slides added
     """
     _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
     hdbg.dassert_isinstance(lines, list)
@@ -345,11 +382,43 @@ def _add_navigation_slides(
     return out
 
 
+def _remove_headers(lines: List[str], max_level: int) -> List[str]:
+    """
+    Remove all markdown headers from the lines that are smaller than level 3.
+
+    :param lines: list of lines to process
+    :param max_level: maximum level of headers to consider (default: 3)
+    :return: list of lines with relevant headers removed
+    """
+    _LOG.debug("\n%s", hprint.frame("Remove headers smaller than level 3"))
+    hdbg.dassert_isinstance(lines, list)
+    out: List[str] = []
+    for line in lines:
+        is_header_line, level, _ = hmarkdo.is_header(line)
+        # Exclude header lines with level 1 or 2 (i.e., smaller than level 3).
+        if not (is_header_line and level < max_level):
+            out.append(line)
+    hdbg.dassert_isinstance(out, list)
+    return out
+
+
 def _preprocess_lines(
-    lines: List[str], type_: str, toc_type: str, is_qa: bool, *, actions: Optional[List[str]] = None
+    lines: List[str],
+    type_: str,
+    toc_type: str,
+    is_qa: bool,
+    *,
+    actions: Optional[List[str]] = None,
 ) -> List[str]:
     """
     Preprocess the lines of the notes.
+
+    :param lines: list of lines of the notes
+    :param type_: type of output to generate
+    :param toc_type: type of table of contents to add
+    :param is_qa: True if the input is a QA file
+    :param actions: optional list of actions to perform
+    :return: list of preprocessed lines
     """
     hdbg.dassert_isinstance(lines, list)
     # Apply transformations.
@@ -359,6 +428,9 @@ def _preprocess_lines(
         hdbg.dassert_eq(type_, "slides")
         max_level = 2
         out = _add_navigation_slides(out, max_level, sanity_check=True)
+    elif toc_type == "remove_headers":
+        # Remove headers smaller than level 4 so that we leave only the `*`.
+        out = _remove_headers(out, max_level=4)
     hdbg.dassert_isinstance(out, list)
     return out
 
@@ -367,6 +439,11 @@ def _preprocess_lines(
 
 
 def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command line arguments.
+
+    :return: argument parser
+    """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -384,9 +461,9 @@ def _parse() -> argparse.ArgumentParser:
         "--toc_type",
         action="store",
         default="none",
-        choices=["none", "pandoc_native", "navigation"],
+        choices=["none", "pandoc_native", "navigation", "remove_headers"],
     )
-    # TODO(gp): Unclear what it doesn.
+    # TODO(gp): Unclear what it does.
     parser.add_argument(
         "--qa", action="store_true", default=False, help="The input file is QA"
     )
@@ -396,6 +473,11 @@ def _parse() -> argparse.ArgumentParser:
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Execute the main preprocessing logic.
+
+    :param parser: argument parser
+    """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", hdbg.get_command_line())
@@ -406,7 +488,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     txt = hio.from_file(args.input)
     # Process.
     lines = txt.split("\n")
-    out = _preprocess_lines(lines, args.type, args.toc_type, args.qa, actions=actions)
+    out = _preprocess_lines(
+        lines, args.type, args.toc_type, args.qa, actions=actions
+    )
     out = "\n".join(out)
     # Save results.
     hio.to_file(args.output, out)

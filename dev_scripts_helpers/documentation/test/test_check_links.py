@@ -10,13 +10,12 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+
 # #############################################################################
 # Test_is_image_or_email
 # #############################################################################
 
-
 class Test_is_image_or_email(hunitest.TestCase):
-
     def test_png_image(self) -> None:
         """
         Test that PNG image files are correctly identified.
@@ -34,7 +33,9 @@ class Test_is_image_or_email(hunitest.TestCase):
         Test that JPG image files are correctly identified.
         """
         # Prepare inputs.
-        url = "data605/lectures_source/images/lecture_1/lec_1_slide_4_image_1.jpg"
+        url = (
+            "data605/lectures_source/images/lecture_1/lec_1_slide_4_image_1.jpg"
+        )
         # Run test.
         actual = dshdchli._is_image_or_email(url)
         # Check outputs.
@@ -114,13 +115,12 @@ class Test_is_image_or_email(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected))
 
 
+
 # #############################################################################
 # Test_extract_urls_from_text
 # #############################################################################
 
-
 class Test_extract_urls_from_text(hunitest.TestCase):
-
     def test_markdown_links(self) -> None:
         """
         Test extraction of URLs from Markdown-style links.
@@ -373,20 +373,22 @@ class Test_extract_urls_from_text(hunitest.TestCase):
         # Check outputs.
         expected = [
             ("https://example.com/page", 1),
-            ("https://github.com/causify-ai/helpers/blob/HEAD//valid-url.com", 5),
+            (
+                "https://github.com/causify-ai/helpers/blob/HEAD//valid-url.com",
+                5,
+            ),
             ("https://valid-url.com", 5),
         ]
         self.assert_equal(str(sorted(actual)), str(sorted(expected)))
+
 
 
 # #############################################################################
 # Test_check_url_reachable
 # #############################################################################
 
-
 # TODO(gp): Mock this.
 class Test_check_url_reachable(hunitest.TestCase):
-
     def test_reachable_url(self) -> None:
         """
         Test checking a known reachable URL.
@@ -424,13 +426,12 @@ class Test_check_url_reachable(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected))
 
 
+
 # #############################################################################
 # Test_check_links_in_file
 # #############################################################################
 
-
 class Test_check_links_in_file(hunitest.TestCase):
-
     def test_file_with_reachable_links(self) -> None:
         """
         Test checking links in a file with reachable URLs.
@@ -452,12 +453,16 @@ class Test_check_links_in_file(hunitest.TestCase):
             "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
             return_value=("https://github.com/causify-ai/helpers", "HEAD"),
         ):
-            reachable_urls, broken_urls = dshdchli._check_links_in_file(test_file)
+            reachable_urls, broken_urls = dshdchli._check_links_in_file(
+                test_file
+            )
         # Check outputs.
         self.assert_equal(str(len(reachable_urls)), str(2))
         self.assert_equal(str(len(broken_urls)), str(1))
         expected_urls = ["https://www.google.com", "https://www.github.com"]
-        self.assert_equal(str(sorted(reachable_urls)), str(sorted(expected_urls)))
+        self.assert_equal(
+            str(sorted(reachable_urls)), str(sorted(expected_urls))
+        )
 
     def test_file_with_broken_links(self) -> None:
         """
@@ -480,7 +485,9 @@ class Test_check_links_in_file(hunitest.TestCase):
             "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
             return_value=("https://github.com/causify-ai/helpers", "HEAD"),
         ):
-            reachable_urls, broken_urls = dshdchli._check_links_in_file(test_file)
+            reachable_urls, broken_urls = dshdchli._check_links_in_file(
+                test_file
+            )
         # Check outputs.
         self.assert_equal(str(len(reachable_urls)), str(0))
         self.assert_equal(str(len(broken_urls)), str(3))
@@ -514,7 +521,9 @@ class Test_check_links_in_file(hunitest.TestCase):
             "dev_scripts_helpers.documentation.check_links._get_git_repo_info",
             return_value=("https://github.com/causify-ai/helpers", "HEAD"),
         ):
-            reachable_urls, broken_urls = dshdchli._check_links_in_file(test_file)
+            reachable_urls, broken_urls = dshdchli._check_links_in_file(
+                test_file
+            )
         # Check outputs.
         self.assert_equal(str(len(reachable_urls)), str(0))
         self.assert_equal(str(len(broken_urls)), str(0))

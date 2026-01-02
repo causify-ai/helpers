@@ -1,0 +1,73 @@
+# Python core
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# C extensions / binaries
+*.so
+*.dll
+*.dylib
+
+# Jupyter / IPython
+.ipynb_checkpoints/
+.profile_default/
+.ipython/
+
+# Data files
+*.parquet
+*.feather
+*.h5
+*.hdf5
+*.npz
+*.npy
+
+# Documents / large assets
+*.pptx
+*.docx
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Logs / temp
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs / editors
+.vscode/
+.idea/
+*.iml
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ML / experiment artifacts
+wandb/
+mlruns/
+lightning_logs/
+tensorboard/
+#*.pkl
+
+# Secrets
+.env
+.env.*
