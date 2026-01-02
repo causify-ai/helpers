@@ -325,8 +325,10 @@ class Test_get_cache_perf(_BaseCacheTest):
         hcacsimp.enable_cache_perf("_cached_function")
         _LOG.debug("Call _cached_function(8) twice")
         # First call should be a miss.
+        _LOG.debug("# First call should be a miss")
         _cached_function(8)
         # Second call should be a hit.
+        _LOG.debug("# Second call should be a hit")
         _cached_function(8)
         # Retrieve performance statistics.
         stats: str = hcacsimp.get_cache_perf_stats("_cached_function")
@@ -590,7 +592,8 @@ class Test__refreshable_function(_BaseCacheTest):
         # Call the function twice with the same input.
         _refreshable_function(3)
         _refreshable_function(3)
-        # Verify that the function was only called once (cache hit on the second call).
+        # Verify that the function was only called once (cache hit on the second
+        # call).
         self.assertEqual(
             _refreshable_function.call_count,
             1,
@@ -610,7 +613,8 @@ class Test__refreshable_function(_BaseCacheTest):
         )
         # Verify that the function returns the correct value (3 * 10 = 30).
         self.assertEqual(res, 30)
-        # Verify that the function's call count has incremented, indicating it was re-called.
+        # Verify that the function's call count has incremented, indicating it
+        # was re-called.
         self.assertEqual(
             _refreshable_function.call_count,
             2,
