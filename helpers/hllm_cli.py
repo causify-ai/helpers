@@ -52,6 +52,7 @@ def shutup_llm_logging() -> None:
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
 
+
 # #############################################################################
 # Helper functions
 # #############################################################################

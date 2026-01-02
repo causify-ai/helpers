@@ -350,7 +350,7 @@ def get_disk_cache(func_name: str) -> Dict:
     return data
 
 
-def force_cache_from_disk(func_name: str = "") -> None:
+def force_cache_from_disk(*, func_name: str = "") -> None:
     """
     Force loading the cache from disk and update the memory cache.
 
@@ -372,7 +372,7 @@ def force_cache_from_disk(func_name: str = "") -> None:
     _CACHE[func_name] = disk_cache
 
 
-def flush_cache_to_disk(func_name: str = "") -> None:
+def flush_cache_to_disk(*, func_name: str = "") -> None:
     """
     Flush the memory cache to disk and update the memory cache.
 
@@ -515,7 +515,7 @@ def cache_stats_to_str(func_name: str = "") -> "pd.DataFrame":  # noqa: F821
 # #############################################################################
 
 
-def reset_mem_cache(func_name: str = "") -> None:
+def reset_mem_cache(*, func_name: str = "") -> None:
     """
     Reset the memory cache for a given function.
 
@@ -532,7 +532,7 @@ def reset_mem_cache(func_name: str = "") -> None:
     del _CACHE[func_name]
 
 
-def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
+def reset_disk_cache(*, func_name: str = "", interactive: bool = True) -> None:
     """
     Reset the disk cache for a given function name.
 
@@ -559,7 +559,7 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
         os.remove(file_name)
 
 
-def reset_cache(func_name: str = "", interactive: bool = True) -> None:
+def reset_cache(*, func_name: str = "", interactive: bool = True) -> None:
     """
     Reset both memory and disk cache for a given function.
 
