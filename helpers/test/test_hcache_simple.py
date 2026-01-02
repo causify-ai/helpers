@@ -127,24 +127,24 @@ class _BaseCacheTest(hunitest.TestCase):
          - Set specific cache properties needed for the tests.
         """
         # Set the cache properties for each function.
-        hcacsimp.set_cache_property("system", "_cached_function", "type", "json")
+        hcacsimp.set_cache_property("_cached_function", "type", "json")
         hcacsimp.set_cache_property(
-            "system", "_cached_pickle_function", "type", "pickle"
+            "_cached_pickle_function", "type", "pickle"
         )
-        hcacsimp.set_cache_property("system", "_multi_arg_func", "type", "json")
+        hcacsimp.set_cache_property("_multi_arg_func", "type", "json")
         hcacsimp.set_cache_property(
-            "system", "_refreshable_function", "type", "json"
+            "_refreshable_function", "type", "json"
         )
-        hcacsimp.set_cache_property("system", "_kwarg_func", "type", "json")
+        hcacsimp.set_cache_property("_kwarg_func", "type", "json")
         hcacsimp.set_cache_property(
-            "system", "_dummy_cached_function", "type", "json"
+            "_dummy_cached_function", "type", "json"
         )
 
     def tear_down_test(self) -> None:
         """
         Teardown operations to run after each test:
             - Reset cache(in-memory, disk).
-            - Reset system cache properties.
+            - Reset cache properties.
         """
         # Reset caches for all cached functions.
         for func_name in [
@@ -157,12 +157,12 @@ class _BaseCacheTest(hunitest.TestCase):
         ]:
             # Reset both disk and in-memory cache.
             hcacsimp.reset_cache(func_name=func_name, interactive=False)
-        # Reset system cache properties.
+        # Reset cache properties.
         try:
-            hcacsimp.reset_cache_property("system")
+            hcacsimp.reset_cache_property()
         except OSError:
             # If there is an OSError, remove the system cache property file manually.
-            system_file = hcacsimp.get_cache_property_file("system")
+            system_file = hcacsimp.get_cache_property_file()
             if os.path.exists(system_file):
                 os.remove(system_file)
 
@@ -362,11 +362,11 @@ class Test_set_cache_property(_BaseCacheTest):
         """
         # Set a valid cache property.
         hcacsimp.set_cache_property(
-            "user", "_cached_function", "report_on_cache_miss", True
+            "_cached_function", "report_on_cache_miss", True
         )
         # Retrieve and verify the property.
         val: bool = hcacsimp.get_cache_property(
-            "user", "_cached_function", "report_on_cache_miss"
+            "_cached_function", "report_on_cache_miss"
         )
         self.assertTrue(val)
 
@@ -377,19 +377,19 @@ class Test_set_cache_property(_BaseCacheTest):
         """
         # Set and verify the cache property.
         hcacsimp.set_cache_property(
-            "user", "_cached_function", "report_on_cache_miss", True
+            "_cached_function", "report_on_cache_miss", True
         )
         self.assertTrue(
             hcacsimp.get_cache_property(
-                "user", "_cached_function", "report_on_cache_miss"
+                "_cached_function", "report_on_cache_miss"
             )
         )
-        # Reset all user cache properties.
-        hcacsimp.reset_cache_property("user")
+        # Reset all cache properties.
+        hcacsimp.reset_cache_property()
         # Verify that the property is no longer True.
         self.assertFalse(
             hcacsimp.get_cache_property(
-                "user", "_cached_function", "report_on_cache_miss"
+                "_cached_function", "report_on_cache_miss"
             )
         )
 
@@ -400,7 +400,7 @@ class Test_set_cache_property(_BaseCacheTest):
         # Verify that setting an invalid property raises an error.
         with self.assertRaises(AssertionError):
             hcacsimp.set_cache_property(
-                "user", "_cached_function", "invalid_prop", True
+                "_cached_function", "invalid_prop", True
             )
 
     def test4(self) -> None:
@@ -409,10 +409,10 @@ class Test_set_cache_property(_BaseCacheTest):
         """
         # Set force_refresh property and verify that it appears in the properties string.
         hcacsimp.set_cache_property(
-            "user", "_cached_function", "force_refresh", True
+            "_cached_function", "force_refresh", True
         )
         prop_str: str = hcacsimp.cache_property_to_str(
-            "user", "_cached_function"
+            "_cached_function"
         )
         # Check output.
         self.assertIn("force_refresh: True", prop_str)
@@ -609,7 +609,7 @@ class Test__refreshable_function(_BaseCacheTest):
         res: int = _refreshable_function(3)
         # Enable force_refresh so that the function will be re-called.
         hcacsimp.set_cache_property(
-            "user", "_refreshable_function", "force_refresh", True
+            "_refreshable_function", "force_refresh", True
         )
         # Verify that the function returns the correct value (3 * 10 = 30).
         self.assertEqual(res, 30)

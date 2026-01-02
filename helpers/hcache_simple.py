@@ -71,30 +71,23 @@ if "_CACHE" not in globals():
 #     - write through (e.g., True or False)
 #     - exclude keys (e.g., ["password", "api_key"])
 
-def get_cache_property_file(type_: str) -> str:
+def get_cache_property_file() -> str:
     """
-    Get the cache property file name for the given type.
+    Get the cache property file name.
 
-    :param type_: The type of cache property ('user' or 'system').
     :return: The cache property file name.
     """
-    if type_ == "user":
-        val = "cache_property.user.pkl"
-    elif type_ == "system":
-        val = "cache_property.system.pkl"
-    else:
-        raise ValueError(f"Invalid type '{type_}'")
+    val = "tmp.cache_property.user.pkl"
     return val
 
 
-def _get_initial_cache_property(type_: str) -> _CacheType:
+def _get_initial_cache_property() -> _CacheType:
     """
     Get the initial cache property from disk or create an empty one.
 
-    :param type_: The type of cache property ('user' or 'system').
     :return: A dictionary containing cache properties.
     """
-    file_name_ = get_cache_property_file(type_)
+    file_name_ = get_cache_property_file()
     if os.path.exists(file_name_):
         _LOG.debug("Loading from %s", file_name_)
         with open(file_name_, "rb") as file:
@@ -107,64 +100,37 @@ def _get_initial_cache_property(type_: str) -> _CacheType:
 
 
 # Create global variables for the cache properties.
-if "_USER_CACHE_PROPERTY" not in globals():
-    _LOG.debug("Creating _USER_CACHE_PROPERTY")
-    _USER_CACHE_PROPERTY = _get_initial_cache_property("user")
+if "_CACHE_PROPERTY" not in globals():
+    _LOG.debug("Creating _CACHE_PROPERTY")
+    _CACHE_PROPERTY = _get_initial_cache_property()
 
 
-if "_SYSTEM_CACHE_PROPERTY" not in globals():
-    _LOG.debug("Creating _SYSTEM_CACHE_PROPERTY")
-    _SYSTEM_CACHE_PROPERTY = _get_initial_cache_property("system")
-
-
-def _check_valid_cache_property(type_: str, property_name: str) -> None:
+def _check_valid_cache_property(property_name: str) -> None:
     """
     Verify that a cache property name is valid for the given type.
 
     :param type_: The type of cache property ('user' or 'system').
     :param property_name: The property name to validate.
     """
-    if type_ == "user":
-        valid_properties = [
-            # Abort if there is a cache miss. This is used to make sure everything
-            # is cached.
-            "abort_on_cache_miss",
-            # Report if there is a cache miss and return `_cache_miss_` instead of
-            # accessing the real value.
-            "report_on_cache_miss",
-            # Enable performance stats (e.g., miss, hit, tot for the cache).
-            "enable_perf",
-            # Force to refresh the value.
-            "force_refresh",
-            # TODO(gp): "force_refresh_once"
-        ]
-    elif type_ == "system":
-        valid_properties = [
-            "type",
-        ]
-    else:
-        raise ValueError(f"Invalid type '{type_}'")
+    valid_properties = [
+        # Abort if there is a cache miss. This is used to make sure everything
+        # is cached.
+        "abort_on_cache_miss",
+        # Report if there is a cache miss and return `_cache_miss_` instead of
+        # accessing the real value.
+        "report_on_cache_miss",
+        # Enable performance stats (e.g., miss, hit, tot for the cache).
+        "enable_perf",
+        # Force to refresh the value.
+        "force_refresh",
+        # TODO(gp): "force_refresh_once"
+        "type",
+    ]
     hdbg.dassert_in(property_name, valid_properties)
 
 
-def _get_cache_property(type_: str) -> Dict[str, Any]:
-    """
-    Get the cache property dictionary for the given type.
-
-    :param type_: The type of cache property ('user' or 'system').
-    :return: The cache property dictionary.
-    """
-    if type_ == "user":
-        val = _USER_CACHE_PROPERTY
-    elif type_ == "system":
-        val = _SYSTEM_CACHE_PROPERTY
-    else:
-        raise ValueError(f"Invalid type '{type_}'")
-    return val
-
-
 def set_cache_property(
-    type_: str, func_name: str, property_name: str, val: Any
+    func_name: str, property_name: str, val: Any
 ) -> None:
     """
     Set a property for the cache of a given function name.
@@ -174,63 +140,54 @@ def set_cache_property(
     :param property_name: The name of the property to set.
     :param val: The value to set for the property.
     """
-    _check_valid_cache_property(type_, property_name)
+    _check_valid_cache_property(property_name)
     # Assign value.
-    cache_property = _get_cache_property(type_)
+    cache_property = _CACHE_PROPERTY
     if func_name not in cache_property:
         cache_property[func_name] = {}
     dict_ = cache_property[func_name]
     dict_[property_name] = val
     # Update values on the disk.
-    file_name = get_cache_property_file(type_)
+    file_name = get_cache_property_file()
     _LOG.debug("Updating %s", file_name)
     with open(file_name, "wb") as file:
         pickle.dump(cache_property, file)
 
 
-def get_cache_property(type_: str, func_name: str, property_name: str) -> bool:
+def get_cache_property(func_name: str, property_name: str) -> bool:
     """
     Get the value of a property for the cache of a given function name.
     """
-    _check_valid_cache_property(type_, property_name)
+    _check_valid_cache_property(property_name)
     # Read data.
-    cache_property = _get_cache_property(type_)
+    cache_property = _CACHE_PROPERTY
     value = cache_property.get(func_name, {}).get(property_name, False)
     value = cast(bool, value)
     return value
 
 
-def reset_cache_property(type_: str) -> None:
+def reset_cache_property() -> None:
     """
     Reset the cache property for the given type.
 
     :param type_: The type of cache property ('user' or 'system').
     """
-    file_name = get_cache_property_file(type_)
+    file_name = get_cache_property_file()
     _LOG.warning("Resetting %s", file_name)
     # Empty the values.
-    if type_ == "user":
-        global _USER_CACHE_PROPERTY
-        _USER_CACHE_PROPERTY = {}
-        cache_property = _USER_CACHE_PROPERTY
-    elif type_ == "system":
-        global _SYSTEM_CACHE_PROPERTY
-        _SYSTEM_CACHE_PROPERTY = {}
-        cache_property = _SYSTEM_CACHE_PROPERTY
-    else:
-        raise ValueError(f"Invalid type '{type_}'")
+    global _CACHE_PROPERTY
+    _CACHE_PROPERTY = {}
+    cache_property = _CACHE_PROPERTY
     # Update values on the disk.
     _LOG.debug("Updating %s", file_name)
     with open(file_name, "wb") as file:
         pickle.dump(cache_property, file)
 
 
-def cache_property_to_str(type_: str, func_name: str = "") -> str:
+def cache_property_to_str(func_name: str = "") -> str:
     """
     Convert cache properties to a string representation.
 
-    :param type_: The type of cache properties to convert ('user' or
-        'system'). If empty, convert all types.
     :param func_name: The name of the function whose cache properties
         are to be converted.
     :return: A string representation of the cache properties.
@@ -241,23 +198,17 @@ def cache_property_to_str(type_: str, func_name: str = "") -> str:
     type: json
     ```
     """
-    if type_ == "":
-        txt: List[str] = []
-        for type_tmp in ["user", "system"]:
-            txt.append(cache_property_to_str(type_tmp, func_name))
-        result = "\n".join(txt)
-        return result
     txt: List[str] = []
     if func_name == "":
         func_names = get_cache_func_names("all")
         for func_name_tmp in func_names:
-            txt.append(cache_property_to_str(type_, func_name_tmp))
+            txt.append(cache_property_to_str(func_name_tmp))
         result = "\n".join(txt)
         return result
     #
-    txt.append(f"# type_={type_} func_name={func_name}")
-    cache_property = _get_cache_property(type_)
-    _LOG.debug("%s_cache_property=%s", type_, cache_property)
+    txt.append(f"# func_name={func_name}")
+    cache_property = _CACHE_PROPERTY
+    _LOG.debug("cache_property=%s", cache_property)
     if func_name in cache_property:
         for k, v in cache_property[func_name].items():
             txt.append(f"{k}: {v}")
@@ -357,7 +308,7 @@ def _get_cache_file_name(func_name: str) -> str:
     :return: The cache file name with appropriate extension.
     """
     file_name = f"cache.{func_name}"
-    cache_type = get_cache_property("system", func_name, "type")
+    cache_type = get_cache_property(func_name, "type")
     _LOG.debug(hprint.to_str("cache_type"))
     if cache_type == "pickle":
         file_name += ".pkl"
@@ -377,7 +328,7 @@ def _save_cache_dict_to_disk(func_name: str, data: Dict) -> None:
     """
     # Get the filename for the disk cache.
     file_name = _get_cache_file_name(func_name)
-    cache_type = get_cache_property("system", func_name, "type")
+    cache_type = get_cache_property(func_name, "type")
     _LOG.debug(hprint.to_str("file_name cache_type"))
     if cache_type == "pickle":
         with open(file_name, "wb") as file:
@@ -403,7 +354,7 @@ def get_disk_cache(func_name: str) -> Dict:
         data: _CacheType = {}
         _save_cache_dict_to_disk(func_name, data)
     # Load data.
-    cache_type = get_cache_property("system", func_name, "type")
+    cache_type = get_cache_property(func_name, "type")
     _LOG.debug(hprint.to_str("cache_type"))
     if cache_type == "pickle":
         with open(file_name, "rb") as file:
@@ -692,9 +643,9 @@ def simple_cache(
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
         # Only set cache type if not already set (preserve existing setting).
-        existing_type = get_cache_property("system", func_name, "type")
+        existing_type = get_cache_property(func_name, "type")
         if not existing_type:
-            set_cache_property("system", func_name, "type", cache_type)
+            set_cache_property(func_name, "type", cache_type)
         # Handle mutable default argument.
         nonlocal exclude_keys
         if exclude_keys is None:
@@ -767,7 +718,7 @@ def simple_cache(
             # Handle a forced refresh.
             force_refresh = (
                 force_refresh or
-                get_cache_property("user", func_name, "force_refresh")
+                get_cache_property(func_name, "force_refresh")
             )
             _LOG.debug("force_refresh=%s", force_refresh)
             #if key in cache and not force_refresh:
@@ -786,14 +737,14 @@ def simple_cache(
                 # Abort on cache miss.
                 abort_on_cache_miss = (
                     abort_on_cache_miss or
-                    get_cache_property("user", func_name, "abort_on_cache_miss")
+                    get_cache_property(func_name, "abort_on_cache_miss")
                 )
                 _LOG.debug("abort_on_cache_miss=%s", abort_on_cache_miss)
                 if abort_on_cache_miss:
                     raise ValueError(f"Cache miss for key='{key}'")
                 # Report on cache miss.
                 report_on_cache_miss = report_on_cache_miss or get_cache_property(
-                    "user", func_name, "report_on_cache_miss"
+                    func_name, "report_on_cache_miss"
                 )
                 _LOG.debug("report_on_cache_miss=%s", report_on_cache_miss)
                 if report_on_cache_miss:
