@@ -13,6 +13,7 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): -> _cached_json_double
 @hcacsimp.simple_cache(cache_type="json")
 def _cached_function(x: int) -> int:
     """
@@ -25,6 +26,7 @@ def _cached_function(x: int) -> int:
     return res
 
 
+# TODO(gp): -> _cached_json_square
 @hcacsimp.simple_cache(cache_type="pickle")
 def _cached_pickle_function(x: int) -> int:
     """
@@ -37,6 +39,7 @@ def _cached_pickle_function(x: int) -> int:
     return res
 
 
+# TODO(gp): -> _cached_multi_arg_sum
 @hcacsimp.simple_cache(cache_type="json")
 def _multi_arg_func(a: int, b: int) -> int:
     """
@@ -50,6 +53,7 @@ def _multi_arg_func(a: int, b: int) -> int:
     return res
 
 
+# TODO(gp): -> _cached_refreshable_func
 @hcacsimp.simple_cache(cache_type="json")
 def _refreshable_function(x: int) -> int:
     """
@@ -67,6 +71,7 @@ def _refreshable_function(x: int) -> int:
 _refreshable_function.call_count = 0
 
 
+# TODO(gp): -> _cached_kwarg_diff
 @hcacsimp.simple_cache(cache_type="json")
 def _kwarg_func(a: int, b: int = 0) -> int:
     """
@@ -80,6 +85,7 @@ def _kwarg_func(a: int, b: int = 0) -> int:
     return res
 
 
+# TODO(gp): -> _cached_add_100
 @hcacsimp.simple_cache(cache_type="json")
 def _dummy_cached_function(x: int) -> int:
     """
@@ -93,17 +99,17 @@ def _dummy_cached_function(x: int) -> int:
 
 
 # #############################################################################
-# BaseCacheTest
+# _BaseCacheTest
 # #############################################################################
 
 
-class BaseCacheTest(hunitest.TestCase):
+class _BaseCacheTest(hunitest.TestCase):
     """
     Base test class to provide common setup and teardown functionality.
 
-    Instead of using setUp/tearDown, we use set_up_test/tear_down_test
-    along with a pytest fixture that ensures these methods run before
-    and after each test.
+    Instead of using setUp/tearDown, we use set_up_test/tear_down_test along
+    with a pytest fixture that ensures these methods run before and after each
+    test.
     """
 
     @pytest.fixture(autouse=True)
@@ -166,7 +172,7 @@ class BaseCacheTest(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_get_cache(BaseCacheTest):
+class Test_get_cache(_BaseCacheTest):
     """
     Test get_cache functionality for retrieving cached values.
     """
@@ -175,16 +181,13 @@ class Test_get_cache(BaseCacheTest):
         """
         Verify that get_cache returns a cache with the expected key and value.
         """
-        # Prepare inputs.
-        input_val = 2
-        expected_key = '{"args": [2], "kwargs": {}}'
-        expected_value = 4
-        # Run test.
-        _cached_function(input_val)
+        # Populate the cache by calling _cached_function.
+        _cached_function(2)
+        # Retrieve the in-memory cache for _cached_function.
         cache: Dict[str, Any] = hcacsimp.get_cache("_cached_function")
-        # Check outputs.
-        self.assertIn(expected_key, cache)
-        self.assert_equal(cache[expected_key], expected_value)
+        # Assert that the key '{"args": [2], "kwargs": {}}' is in the cache and its value is 4.
+        self.assertIn('{"args": [2], "kwargs": {}}', cache)
+        self.assertEqual(cache['{"args": [2], "kwargs": {}}'], 4)
 
 
 # #############################################################################
@@ -192,7 +195,7 @@ class Test_get_cache(BaseCacheTest):
 # #############################################################################
 
 
-class Test_flush_cache_to_disk(BaseCacheTest):
+class Test_flush_cache_to_disk(_BaseCacheTest):
     """
     Test flush_cache_to_disk functionality for persisting cache to disk.
     """
@@ -201,13 +204,13 @@ class Test_flush_cache_to_disk(BaseCacheTest):
         """
         Verify that flushing creates a cache file on disk.
         """
-        # Prepare inputs.
-        input_val = 3
-        cache_file = "cache._cached_function.json"
-        # Run test.
-        _cached_function(input_val)
+        # Call _cached_function to populate the cache.
+        _cached_function(3)
+        # Flush the cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_function")
-        # Check outputs.
+        # Define expected cache file name.
+        cache_file: str = "cache._cached_function.json"
+        # Assert that the cache file now exists on disk.
         self.assertTrue(
             os.path.exists(cache_file), "Cache file should exist on disk."
         )
@@ -216,19 +219,20 @@ class Test_flush_cache_to_disk(BaseCacheTest):
         """
         Verify that the disk cache file contains the expected key and value.
         """
-        # Prepare inputs.
-        input_val = 3
-        expected_key = '{"args": [3], "kwargs": {}}'
-        expected_value = 6
-        cache_file = "cache._cached_function.json"
-        # Run test.
-        _cached_function(input_val)
+        # Populate cache and flush to disk.
+        _cached_function(3)
+        # Flush the cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_function")
+        # Define the expected cache file name.
+        cache_file: str = "cache._cached_function.json"
+        # Open and load the disk cache file.
         with open(cache_file, "r", encoding="utf-8") as f:
+            # Load the JSON data from the file into a dictionary.
             disk_cache: Dict[str, Any] = json.load(f)
-        # Check outputs.
-        self.assertIn(expected_key, disk_cache)
-        self.assert_equal(disk_cache[expected_key], expected_value)
+        # Assert that the disk cache contains the key '{"args": [3], "kwargs": {}}' with the correct value.
+        self.assertIn('{"args": [3], "kwargs": {}}', disk_cache)
+        # Assert that the value for key '{"args": [3], "kwargs": {}}' is 6.
+        self.assertEqual(disk_cache['{"args": [3], "kwargs": {}}'], 6)
 
 
 # #############################################################################
@@ -236,7 +240,7 @@ class Test_flush_cache_to_disk(BaseCacheTest):
 # #############################################################################
 
 
-class Test_reset_mem_cache(BaseCacheTest):
+class Test_reset_mem_cache(_BaseCacheTest):
     """
     Test reset_mem_cache functionality for clearing in-memory cache.
     """
@@ -245,15 +249,14 @@ class Test_reset_mem_cache(BaseCacheTest):
         """
         Verify that the cache is empty after `reset_mem_cache` is called.
         """
-        # Prepare inputs.
-        input_val = 5
-        expected_key = '{"args": [5], "kwargs": {}}'
-        # Run test.
-        _cached_function(input_val)
+        # Populate the in-memory cache.
+        _cached_function(5)
+        # Reset the in-memory cache.
         hcacsimp.reset_mem_cache("_cached_function")
+        # Retrieve the cache after reset.
         cache_after: Dict[str, Any] = hcacsimp.get_cache("_cached_function")
-        # Check outputs.
-        self.assertNotIn(expected_key, cache_after)
+        # Verify that the key '{"args": [5], "kwargs": {}}' is no longer in the cache.
+        self.assertNotIn('{"args": [5], "kwargs": {}}', cache_after)
 
 
 # #############################################################################
@@ -261,7 +264,7 @@ class Test_reset_mem_cache(BaseCacheTest):
 # #############################################################################
 
 
-class Test_force_cache_from_disk(BaseCacheTest):
+class Test_force_cache_from_disk(_BaseCacheTest):
     """
     Test force_cache_from_disk functionality for loading cache from disk.
     """
@@ -270,17 +273,15 @@ class Test_force_cache_from_disk(BaseCacheTest):
         """
         Verify that the memory cache is empty after a reset.
         """
-        # Prepare inputs.
-        input_val = 7
-        expected_key = '{"args": [7], "kwargs": {}}'
-        # Run test.
-        _cached_function(input_val)
+        # Populate cache and flush to disk.
+        _cached_function(7)
         hcacsimp.flush_cache_to_disk("_cached_function")
+        # Reset in-memory cache.
         hcacsimp.reset_mem_cache("_cached_function")
         mem_cache: Dict[str, Any] = hcacsimp.get_mem_cache("_cached_function")
-        # Check outputs.
+        # Ensure that the in-memory cache is empty.
         self.assertNotIn(
-            expected_key,
+            '{"args": [7], "kwargs": {}}',
             mem_cache,
             "Memory cache should be empty after reset.",
         )
@@ -290,19 +291,17 @@ class Test_force_cache_from_disk(BaseCacheTest):
         Populate disk cache, reset memory, force reload, and verify that the
         key appears.
         """
-        # Prepare inputs.
-        input_val = 7
-        expected_key = '{"args": [7], "kwargs": {}}'
-        # Run test.
-        _cached_function(input_val)
+        # Populate cache, flush to disk, and then reset in-memory cache.
+        _cached_function(7)
         hcacsimp.flush_cache_to_disk("_cached_function")
         hcacsimp.reset_mem_cache("_cached_function")
         _LOG.debug("Force reload disk cache for '_cached_function'")
+        # Force reload cache from disk.
         hcacsimp.force_cache_from_disk("_cached_function")
         full_cache: Dict[str, Any] = hcacsimp.get_cache("_cached_function")
-        # Check outputs.
+        # Assert that the key is restored in the in-memory cache.
         self.assertIn(
-            expected_key,
+            '{"args": [7], "kwargs": {}}',
             full_cache,
             "After forcing, disk key should appear in memory.",
         )
@@ -313,7 +312,7 @@ class Test_force_cache_from_disk(BaseCacheTest):
 # #############################################################################
 
 
-class Test_get_cache_perf(BaseCacheTest):
+class Test_get_cache_perf(_BaseCacheTest):
     """
     Test cache performance tracking functionality.
     """
@@ -322,15 +321,16 @@ class Test_get_cache_perf(BaseCacheTest):
         """
         Verify that performance tracking records hits and misses correctly.
         """
-        # Prepare inputs.
-        input_val = 8
-        # Run test.
+        # Enable performance tracking.
         hcacsimp.enable_cache_perf("_cached_function")
         _LOG.debug("Call _cached_function(8) twice")
-        _cached_function(input_val)
-        _cached_function(input_val)
+        # First call should be a miss.
+        _cached_function(8)
+        # Second call should be a hit.
+        _cached_function(8)
+        # Retrieve performance statistics.
         stats: str = hcacsimp.get_cache_perf_stats("_cached_function")
-        # Check outputs.
+        # Verify that one hit and one miss are recorded.
         self.assertIn("hits=1", stats)
         self.assertIn("misses=1", stats)
 
@@ -338,11 +338,10 @@ class Test_get_cache_perf(BaseCacheTest):
         """
         Verify that disabling performance tracking returns None.
         """
-        # Run test.
+        # Disable performance tracking.
         hcacsimp.disable_cache_perf("_cached_function")
-        perf_data = hcacsimp.get_cache_perf("_cached_function")
-        # Check outputs.
-        self.assertIsNone(perf_data)
+        # Assert that performance data is no longer available.
+        self.assertIsNone(hcacsimp.get_cache_perf("_cached_function"))
 
 
 # #############################################################################
@@ -350,7 +349,7 @@ class Test_get_cache_perf(BaseCacheTest):
 # #############################################################################
 
 
-class Test_set_cache_property(BaseCacheTest):
+class Test_set_cache_property(_BaseCacheTest):
     """
     Test set_cache_property and get_cache_property functionality.
     """
@@ -359,14 +358,14 @@ class Test_set_cache_property(BaseCacheTest):
         """
         Verify that setting a valid cache property works and can be retrieved.
         """
-        # Run test.
+        # Set a valid cache property.
         hcacsimp.set_cache_property(
             "user", "_cached_function", "report_on_cache_miss", True
         )
+        # Retrieve and verify the property.
         val: bool = hcacsimp.get_cache_property(
             "user", "_cached_function", "report_on_cache_miss"
         )
-        # Check outputs.
         self.assertTrue(val)
 
     def test2(self) -> None:
@@ -374,7 +373,7 @@ class Test_set_cache_property(BaseCacheTest):
         Verify that resetting cache properties clears previously set
         properties.
         """
-        # Run test.
+        # Set and verify the cache property.
         hcacsimp.set_cache_property(
             "user", "_cached_function", "report_on_cache_miss", True
         )
@@ -383,18 +382,20 @@ class Test_set_cache_property(BaseCacheTest):
                 "user", "_cached_function", "report_on_cache_miss"
             )
         )
+        # Reset all user cache properties.
         hcacsimp.reset_cache_property("user")
-        val_after_reset: bool = hcacsimp.get_cache_property(
-            "user", "_cached_function", "report_on_cache_miss"
+        # Verify that the property is no longer True.
+        self.assertFalse(
+            hcacsimp.get_cache_property(
+                "user", "_cached_function", "report_on_cache_miss"
+            )
         )
-        # Check outputs.
-        self.assertFalse(val_after_reset)
 
     def test3(self) -> None:
         """
         Verify that setting an invalid cache property raises an error.
         """
-        # Run test and check outputs.
+        # Verify that setting an invalid property raises an error.
         with self.assertRaises(AssertionError):
             hcacsimp.set_cache_property(
                 "user", "_cached_function", "invalid_prop", True
@@ -404,14 +405,14 @@ class Test_set_cache_property(BaseCacheTest):
         """
         Verify return of a string containing the property value.
         """
-        # Run test.
+        # Set force_refresh property and verify that it appears in the properties string.
         hcacsimp.set_cache_property(
             "user", "_cached_function", "force_refresh", True
         )
         prop_str: str = hcacsimp.cache_property_to_str(
             "user", "_cached_function"
         )
-        # Check outputs.
+        # Check output.
         self.assertIn("force_refresh: True", prop_str)
 
 
@@ -420,7 +421,7 @@ class Test_set_cache_property(BaseCacheTest):
 # #############################################################################
 
 
-class Test_get_cache_func_names(BaseCacheTest):
+class Test_get_cache_func_names(_BaseCacheTest):
     """
     Test get_cache_func_names functionality for retrieving cached function names.
     """
@@ -429,12 +430,11 @@ class Test_get_cache_func_names(BaseCacheTest):
         """
         Verify that memory cache function names include `_cached_function`.
         """
-        # Prepare inputs.
-        input_val = 9
-        # Run test.
-        _cached_function(input_val)
+        # Populate in-memory cache.
+        _cached_function(9)
+        # Retrieve function names from the memory cache.
         mem_funcs = hcacsimp.get_cache_func_names("mem")
-        # Check outputs.
+        # Check output.
         self.assertIn("_cached_function", mem_funcs)
 
     def test2(self) -> None:
@@ -442,15 +442,17 @@ class Test_get_cache_func_names(BaseCacheTest):
         Verify that all cache function names include both JSON and pickle
         functions.
         """
-        # Prepare inputs.
-        input_val = 2
-        # Run test.
-        _cached_function(input_val)
+        # Populate and flush caches for JSON and pickle functions.
+        _cached_function(2)
+        # Flush _cached_function cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_function")
-        _cached_pickle_function(input_val)
+        # Call _cached_pickle_function with input 2.
+        _cached_pickle_function(2)
+        # Flush _cached_pickle_function cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_pickle_function")
+        # Retrieve all cache function names (both memory and disk).
         all_funcs = hcacsimp.get_cache_func_names("all")
-        # Check outputs.
+        # Check output.
         self.assertIn("_cached_function", all_funcs)
         self.assertIn("_cached_pickle_function", all_funcs)
 
@@ -459,13 +461,13 @@ class Test_get_cache_func_names(BaseCacheTest):
         Verify that disk cache function names include `_cached_function` after
         flushing.
         """
-        # Prepare inputs.
-        input_val = 2
-        # Run test.
-        _cached_function(input_val)
+        # Flush JSON cache to disk and verify disk cache function names.
+        _cached_function(2)
+        # Flush _cached_function cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_function")
+        # Retrieve function names from the disk cache.
         disk_funcs = hcacsimp.get_cache_func_names("disk")
-        # Check outputs.
+        # Check output.
         self.assertIn("_cached_function", disk_funcs)
 
 
@@ -474,7 +476,7 @@ class Test_get_cache_func_names(BaseCacheTest):
 # #############################################################################
 
 
-class Test_cache_stats_to_str(BaseCacheTest):
+class Test_cache_stats_to_str(_BaseCacheTest):
     """
     Test cache_stats_to_str functionality for generating cache statistics.
     """
@@ -484,15 +486,14 @@ class Test_cache_stats_to_str(BaseCacheTest):
         Verify that cache_stats_to_str returns a DataFrame with 'memory' and
         'disk' columns.
         """
-        # Prepare inputs.
-        input_val = 1
-        # Run test.
-        _dummy_cached_function(input_val)
+        # Populate cache.
+        _dummy_cached_function(1)
         stats_df: pd.DataFrame = hcacsimp.cache_stats_to_str(
             "_dummy_cached_function"
         )
-        # Check outputs.
+        # Assert that the returned object is a DataFrame.
         self.assertIsInstance(stats_df, pd.DataFrame)
+        # Verify that it contains the 'memory' and 'disk' columns.
         self.assertIn("memory", stats_df.columns)
         self.assertIn("disk", stats_df.columns)
 
@@ -502,7 +503,7 @@ class Test_cache_stats_to_str(BaseCacheTest):
 # #############################################################################
 
 
-class Test__kwarg_func(BaseCacheTest):
+class Test__kwarg_func(_BaseCacheTest):
     """
     Test caching behavior with keyword arguments.
     """
@@ -512,14 +513,10 @@ class Test__kwarg_func(BaseCacheTest):
         Test that verifies keyword arguments are handled correctly by the
         cache.
         """
-        # Prepare inputs.
-        arg_a = 5
-        kwarg_b1 = 3
-        kwarg_b2 = 10
-        # Run test.
-        res1: int = _kwarg_func(arg_a, b=kwarg_b1)
-        res2: int = _kwarg_func(arg_a, b=kwarg_b2)
-        # Check outputs.
+        # Call with different keyword argument values.
+        res1: int = _kwarg_func(5, b=3)
+        res2: int = _kwarg_func(5, b=10)
+        # Both calls should return the different result as both args, kwargs are used for caching.
         self.assertNotEqual(res1, res2)
 
 
@@ -528,7 +525,7 @@ class Test__kwarg_func(BaseCacheTest):
 # #############################################################################
 
 
-class Test__multi_arg_func(BaseCacheTest):
+class Test__multi_arg_func(_BaseCacheTest):
     """
     Test caching behavior with multiple positional arguments.
     """
@@ -537,15 +534,12 @@ class Test__multi_arg_func(BaseCacheTest):
         """
         Verify that the cache for _multi_arg_func contains the correct key.
         """
-        # Prepare inputs.
-        arg1 = 1
-        arg2 = 2
-        expected_key = '{"args": [1, 2], "kwargs": {}}'
-        # Run test.
-        _multi_arg_func(arg1, arg2)
+        # Populate the cache.
+        _multi_arg_func(1, 2)
         cache: Dict[str, Any] = hcacsimp.get_cache("_multi_arg_func")
-        # Check outputs.
-        self.assertIn(expected_key, cache)
+        print("cache__ ", cache)
+        # Verify that the cache key is formatted as  '{"args": [1, 2], "kwargs": {}}'.
+        self.assertIn('{"args": [1, 2], "kwargs": {}}', cache)
 
 
 # #############################################################################
@@ -553,7 +547,7 @@ class Test__multi_arg_func(BaseCacheTest):
 # #############################################################################
 
 
-class Test__cached_pickle_function(BaseCacheTest):
+class Test__cached_pickle_function(_BaseCacheTest):
     """
     Test caching with pickle serialization.
     """
@@ -563,20 +557,18 @@ class Test__cached_pickle_function(BaseCacheTest):
         Ensure that _cached_pickle_function returns the correct value and disk
         file.
         """
-        # Prepare inputs.
-        input_val = 4
-        expected_result = 16
-        expected_key = '{"args": [4], "kwargs": {}}'
-        cache_file = "cache._cached_pickle_function.pkl"
-        # Run test.
-        res: int = _cached_pickle_function(input_val)
+        # Call the function to square the input.
+        res: int = _cached_pickle_function(4)
+        # Flush the cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_pickle_function")
+        cache_file: str = "cache._cached_pickle_function.pkl"
+        # Open and load the pickle cache file.
         with open(cache_file, "rb") as f:
             disk_cache: Dict[str, Any] = pickle.load(f)
-        # Check outputs.
-        self.assert_equal(res, expected_result)
-        self.assertIn(expected_key, disk_cache)
-        self.assert_equal(disk_cache[expected_key], expected_result)
+        # Verify the result and cache contents.
+        self.assertEqual(res, 16)
+        self.assertIn('{"args": [4], "kwargs": {}}', disk_cache)
+        self.assertEqual(disk_cache['{"args": [4], "kwargs": {}}'], 16)
 
 
 # #############################################################################
@@ -584,7 +576,7 @@ class Test__cached_pickle_function(BaseCacheTest):
 # #############################################################################
 
 
-class Test__refreshable_function(BaseCacheTest):
+class Test__refreshable_function(_BaseCacheTest):
     """
     Test force_refresh cache property functionality.
     """
@@ -593,17 +585,16 @@ class Test__refreshable_function(BaseCacheTest):
         """
         Verify that `_refreshable_function` is called only once initially.
         """
-        # Prepare inputs.
+        # Reset call counter.
         _refreshable_function.call_count = 0
-        input_val = 3
-        expected_call_count = 1
-        # Run test.
-        _refreshable_function(input_val)
-        _refreshable_function(input_val)
-        # Check outputs.
-        self.assert_equal(
+        # Call the function twice with the same input.
+        _refreshable_function(3)
+        _refreshable_function(3)
+        # Verify that the function was only called once (cache hit on the second call).
+        self.assertEqual(
             _refreshable_function.call_count,
-            expected_call_count,
+            1,
+            "Function should be called only once initially.",
         )
 
     def test2(self) -> None:
@@ -611,19 +602,17 @@ class Test__refreshable_function(BaseCacheTest):
         Verify that enabling `force_refresh` causes `_refreshable_function` to
         be re-called.
         """
-        # Prepare inputs.
-        input_val = 3
-        expected_result = 30
-        expected_call_count = 2
-        # Run test.
-        res: int = _refreshable_function(input_val)
+        # Call the function normally.
+        res: int = _refreshable_function(3)
+        # Enable force_refresh so that the function will be re-called.
         hcacsimp.set_cache_property(
             "user", "_refreshable_function", "force_refresh", True
         )
-        _refreshable_function(input_val)
-        # Check outputs.
-        self.assert_equal(res, expected_result)
-        self.assert_equal(
+        # Verify that the function returns the correct value (3 * 10 = 30).
+        self.assertEqual(res, 30)
+        # Verify that the function's call count has incremented, indicating it was re-called.
+        self.assertEqual(
             _refreshable_function.call_count,
-            expected_call_count,
+            2,
+            "Function should be re-called when force_refresh is enabled.",
         )

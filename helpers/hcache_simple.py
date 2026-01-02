@@ -537,7 +537,7 @@ def get_cache(func_name: str) -> _CacheType:
 # #############################################################################
 
 
-def cache_stats_to_str(func_name: str = "") -> "pd.DataFrame":  # noqa: F821
+def cache_stats_to_str(func_name: str = "") -> Optional["pd.DataFrame"]:  # noqa: F821
     """
     Print the cache stats for a function or for all functions.
 
@@ -560,7 +560,10 @@ def cache_stats_to_str(func_name: str = "") -> "pd.DataFrame":  # noqa: F821
         for func_name in get_cache_func_names("all"):
             result_tmp = cache_stats_to_str(func_name)
             result.append(result_tmp)
-        result = pd.concat(result)
+        if result:
+            result = pd.concat(result)
+        else:
+            result = None
         return result
     result = {}
     # Memory cache.
@@ -595,7 +598,7 @@ def reset_mem_cache(func_name: str = "") -> None:
         memory caches.
     """
     if func_name == "":
-        _LOG.info("Before:\n%s", cache_stats_to_str())
+        _LOG.info("Before resetting memory cache:\n%s", cache_stats_to_str())
         for func_name_tmp in get_cache_func_names("all"):
             reset_mem_cache(func_name_tmp)
         _LOG.info("After:\n%s", cache_stats_to_str())
@@ -614,17 +617,19 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
     :param interactive: If True, prompt the user for confirmation before
         resetting the disk cache.
     """
-    if interactive and not func_name:
+    if interactive:
         hsystem.query_yes_no(
-            "Are you sure you want to reset the disk cache? " +
-            "This will delete all cache files."
+            f"Are you sure you want to reset the disk cache for func_name={func_name}?"
         )
     if func_name == "":
+        _LOG.info("Before resetting disk cache:\n%s", cache_stats_to_str())
         cache_files = glob.glob("cache.*")
         _LOG.warning("Resetting disk cache")
         for file_name in cache_files:
             os.remove(file_name)
+        _LOG.info("After:\n%s", cache_stats_to_str())
         return
+    #
     file_name = _get_cache_file_name(func_name)
     if os.path.exists(file_name):
         _LOG.warning("Removing cache file '%s'", file_name)
@@ -783,8 +788,7 @@ def simple_cache(
                 )
                 _LOG.debug("abort_on_cache_miss=%s", abort_on_cache_miss)
                 if abort_on_cache_miss:
-                    #raise ValueError(f"Cache miss for key='{key}'")
-                    pass
+                    raise ValueError(f"Cache miss for key='{key}'")
                 # Report on cache miss.
                 report_on_cache_miss = report_on_cache_miss or get_cache_property(
                     "user", func_name, "report_on_cache_miss"
