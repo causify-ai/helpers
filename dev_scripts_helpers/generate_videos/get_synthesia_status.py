@@ -30,10 +30,10 @@ API_BASE = "https://api.synthesia.io/v2"
 TIMEOUT = 30  # seconds per HTTP request
 
 
+
 # #############################################################################
 # SynthesiaError
 # #############################################################################
-
 
 class SynthesiaError(RuntimeError):
     pass
@@ -204,7 +204,10 @@ def _parse() -> argparse.Namespace:
         help="Maximum number of videos to retrieve (default: 20)",
     )
     parser.add_argument(
-        "--offset", type=int, default=0, help="Offset for pagination (default: 0)"
+        "--offset",
+        type=int,
+        default=0,
+        help="Offset for pagination (default: 0)",
     )
     parser.add_argument(
         "--today",

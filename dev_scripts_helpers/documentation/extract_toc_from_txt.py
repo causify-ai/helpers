@@ -64,7 +64,9 @@ def _extract_and_write_headers(
     """
     # Print the headers.
     if mode == "cfile":
-        output_content = hmarkdo.header_list_to_vim_cfile(input_file_name, header_list)
+        output_content = hmarkdo.header_list_to_vim_cfile(
+            input_file_name, header_list
+        )
     else:
         output_content = hmarkdo.header_list_to_markdown(header_list, mode)
     hparser.write_file(output_content, out_file_name)

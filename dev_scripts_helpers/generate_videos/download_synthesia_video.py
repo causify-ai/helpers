@@ -34,10 +34,10 @@ TIMEOUT = 30  # seconds per HTTP request
 DOWNLOAD_TIMEOUT = 300  # 5 minutes for video downloads
 
 
+
 # #############################################################################
 # SynthesiaError
 # #############################################################################
-
 
 class SynthesiaError(RuntimeError):
     pass

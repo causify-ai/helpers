@@ -77,28 +77,6 @@ def _find_gdoc_files(input_dir: str) -> List[str]:
     return gdoc_files
 
 
-def _generate_doc_links(
-    gdoc_files: List[str],
-    input_dir: str,
-    *,
-    style: str = "default",
-) -> str:
-    """
-    Generate markdown-formatted links for Google Docs.
-
-    :param gdoc_files: list of paths to .gdoc files
-    :param input_dir: base directory for computing relative paths
-    :param style: output style - 'full_path' shows full path in link text,
-        'default' separates directory from filename
-    :return: markdown-formatted text with links
-    """
-    hdbg.dassert_in(style, ["full_path", "default"])
-    if style == "full_path":
-        return _generate_doc_links_full_path(gdoc_files, input_dir)
-    elif style == "default":
-        return _generate_doc_links_default(gdoc_files, input_dir)
-
-
 def _generate_doc_links_full_path(
     gdoc_files: List[str],
     input_dir: str,
@@ -123,9 +101,7 @@ def _generate_doc_links_full_path(
             # Format: - [full_path/filename.gdoc/filename](URL).
             link_text = f"{rel_path}/{base_name}"
             # Generate markdown link.
-            google_doc_url = (
-                f"https://docs.google.com/document/d/{doc_id}"
-            )
+            google_doc_url = f"https://docs.google.com/document/d/{doc_id}"
             link = f"- [{link_text}]({google_doc_url})"
             lines.append(link)
             # Also log to console.
@@ -158,9 +134,7 @@ def _generate_doc_links_default(
             base_name = os.path.basename(file_path_str)
             base_name = base_name.replace(".gdoc", "")
             # Generate markdown link URL.
-            google_doc_url = (
-                f"https://docs.google.com/document/d/{doc_id}"
-            )
+            google_doc_url = f"https://docs.google.com/document/d/{doc_id}"
             # Add full path as main bullet.
             lines.append(f"- {rel_path}")
             # Add filename as indented sub-bullet with link.
@@ -170,6 +144,28 @@ def _generate_doc_links_default(
             _LOG.info("%s -> %s", file_path_str, google_doc_url)
     content = "\n".join(lines)
     return content
+
+
+def _generate_doc_links(
+    gdoc_files: List[str],
+    input_dir: str,
+    *,
+    style: str = "default",
+) -> str:
+    """
+    Generate markdown-formatted links for Google Docs.
+
+    :param gdoc_files: list of paths to .gdoc files
+    :param input_dir: base directory for computing relative paths
+    :param style: output style - 'full_path' shows full path in link text,
+        'default' separates directory from filename
+    :return: markdown-formatted text with links
+    """
+    hdbg.dassert_in(style, ["full_path", "default"])
+    if style == "full_path":
+        return _generate_doc_links_full_path(gdoc_files, input_dir)
+    elif style == "default":
+        return _generate_doc_links_default(gdoc_files, input_dir)
 
 
 def extract_gdoc_map(

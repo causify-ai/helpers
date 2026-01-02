@@ -5,10 +5,6 @@ you are writing an academic paper
 - When asked to read a paper (e.g., a Latex paper) makes sure to read all the
   files included in the Latex file
 
-# Check references
-- Make sure every picture and table has a label and caption and it's referenced
-  in the text
-
 # Writing style
 When writing a paper follow the following suggestions
 
@@ -61,6 +57,12 @@ A strong CS academic tone reflects the conventional structure:
 ## 7. Modest and Cautious
 - Avoid absolute claims such as “solves,” “proves,” or “always.”
 - Use appropriately hedged language like “suggests,” “indicates,” or “in most cases.”
+
+# Check references
+- Make sure every picture and table has a label and caption and it's referenced
+  in the text
+- Captions should only contain a reference to what is done and comments and more
+  content should be in the text
 
 # Instructions
 When asked to perform a task

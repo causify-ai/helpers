@@ -20,6 +20,9 @@
   * [`ai_review.py`](#ai_reviewpy)
     + [What It Does](#what-it-does-5)
     + [Examples](#examples-5)
+  * [`print_daily_cost.py`](#print_daily_costpy)
+    + [What It Does](#what-it-does-6)
+    + [Examples](#examples-6)
   * [Dockerized Variants](#dockerized-variants)
     + [What They Do](#what-they-do)
 
@@ -232,6 +235,32 @@ Docker-based execution to handle dependencies and API credentials.
 - Skip post-transforms:
   ```bash
   > ai_review.py -i input.py -o output.py --prompt "Review" --skip-post-transforms
+  ```
+
+## `print_daily_cost.py`
+
+### What It Does
+
+- Fetches and displays daily API costs from OpenAI and Anthropic billing APIs.
+- Queries the OpenAI Costs API and Anthropic Admin API for cost data.
+- Displays results in a formatted text table showing per-provider and total costs.
+- Requires OPENAI_API_KEY and ANTHROPIC_ADMIN_API_KEY environment variables.
+
+### Examples
+
+- Print today's costs:
+  ```bash
+  > print_daily_cost.py
+  ```
+
+- Print costs with debug logging:
+  ```bash
+  > print_daily_cost.py -v DEBUG
+  ```
+
+- Print costs for a specific date:
+  ```bash
+  > print_daily_cost.py --date 2025-12-30
   ```
 
 ## Dockerized Variants

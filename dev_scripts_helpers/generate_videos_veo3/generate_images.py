@@ -174,7 +174,9 @@ def run_test(
         # Choose API method.
         if use_rest_api:
             project_id = "skilled-bonus-472420-m5"
-            hdbg.dassert(project_id, "Project ID is required when using REST API")
+            hdbg.dassert(
+                project_id, "Project ID is required when using REST API"
+            )
             _generate_images_rest_api(
                 model_name,
                 prompt,

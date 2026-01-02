@@ -288,7 +288,7 @@ def _comment_line(
     """
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     # The line should not start with the comment.
-    #hdbg.dassert_not_in(comment_prefix, line)
+    # hdbg.dassert_not_in(comment_prefix, line)
     ret = f"{comment_prefix} {line}{comment_postfix}"
     return ret
 
@@ -846,6 +846,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         _LOG.info("%s Files saved in place", len(in_files))
     else:
         _LOG.info("Result saved in '%s'", out_file)
+
 
 if __name__ == "__main__":
     _main(_parse())

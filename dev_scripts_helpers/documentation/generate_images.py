@@ -155,7 +155,9 @@ def _generate_images(
         quality = "standard" if low_res else "hd"
     elif model == "gpt-image-1":
         size = "1024x1024"  # gpt-image-1 default size.
-        quality = "medium" if low_res else "high"  # gpt-image-1 uses low/medium/high/auto.
+        quality = (
+            "medium" if low_res else "high"
+        )  # gpt-image-1 uses low/medium/high/auto.
     else:
         hdbg.dfatal("Unsupported model: %s", model)
     _LOG.debug("Generating %s images with prompt: '%s'", count, prompt[:100])
@@ -173,11 +175,15 @@ def _generate_images(
         for i in range(count):
             resolution_suffix = "standard" if low_res else "hd"
             if prompt_name:
-                filename = f"image.{prompt_name}.{i + 1:02d}.{resolution_suffix}.png"
+                filename = (
+                    f"image.{prompt_name}.{i + 1:02d}.{resolution_suffix}.png"
+                )
             else:
                 filename = f"image_{i + 1:02d}_{resolution_suffix}.png"
             filepath = os.path.join(dst_dir, filename)
-            _LOG.debug("[DRY RUN] Would save image %s/%s to: %s", i + 1, count, filepath)
+            _LOG.debug(
+                "[DRY RUN] Would save image %s/%s to: %s", i + 1, count, filepath
+            )
             # Update progress bar if provided.
             if progress_bar is not None:
                 progress_bar.update(1)
@@ -211,22 +217,22 @@ def _generate_images(
         filepath = os.path.join(dst_dir, filename)
         # Get the image data - could be URL or base64 encoded.
         image_data = response.data[0]
-        if hasattr(image_data, 'url') and image_data.url:
+        if hasattr(image_data, "url") and image_data.url:
             # Download from URL.
             image_url = image_data.url
             _LOG.debug("Downloading image from URL to %s", filepath)
             urllib.request.urlretrieve(image_url, filepath)
-        elif hasattr(image_data, 'b64_json') and image_data.b64_json:
+        elif hasattr(image_data, "b64_json") and image_data.b64_json:
             # Decode base64 image.
             _LOG.debug("Decoding base64 image to %s", filepath)
             image_bytes = base64.b64decode(image_data.b64_json)
-            with open(filepath, 'wb') as f:
+            with open(filepath, "wb") as f:
                 f.write(image_bytes)
         else:
             hdbg.dfatal(
                 "Image response does not contain 'url' or 'b64_json'. "
                 "Response data: %s",
-                image_data
+                image_data,
             )
         _LOG.debug("Saved image to: %s", filepath)
         # Update progress bar if provided.
@@ -275,9 +281,15 @@ def _generate_images_from_file(
         descriptions_with_names = _parse_descriptions_with_names(content)
         # Print number of descriptions if multiple.
         if len(descriptions_with_names) > 1:
-            _LOG.info("Found %s descriptions in input file", len(descriptions_with_names))
+            _LOG.info(
+                "Found %s descriptions in input file",
+                len(descriptions_with_names),
+            )
             # Debug: print first description to verify extraction.
-            _LOG.debug("First description preview: %s", descriptions_with_names[0][1][:100])
+            _LOG.debug(
+                "First description preview: %s",
+                descriptions_with_names[0][1][:100],
+            )
     elif prompt:
         # Use prompt from command line.
         descriptions_with_names = [(None, prompt)]
@@ -288,7 +300,9 @@ def _generate_images_from_file(
             "Either prompt or --input file is required",
         )
     hdbg.dassert_lte(1, count, "Count must be at least 1")
-    hdbg.dassert_lte(count, 10, "Count should not exceed 10 for practical reasons")
+    hdbg.dassert_lte(
+        count, 10, "Count should not exceed 10 for practical reasons"
+    )
     #
     if style != "":
         _LOG.info("Adding style: %s", style)
@@ -310,7 +324,10 @@ def _generate_images_from_file(
         else:
             raise ValueError("Invalid style: %s" % style)
         style = hprint.dedent(style)
-        descriptions_with_names = [(tag, style + "\n" + description) for tag, description in descriptions_with_names]
+        descriptions_with_names = [
+            (tag, style + "\n" + description)
+            for tag, description in descriptions_with_names
+        ]
     # Calculate total number of images to generate.
     total_images = len(descriptions_with_names) * count
     _LOG.debug(
@@ -324,9 +341,13 @@ def _generate_images_from_file(
     hio.create_dir(dst_dir, incremental=True)
     # Create progress bar for total image generation.
     with tqdm(total=total_images, desc="Generating images") as pbar:
-        for desc_idx, (prompt_name, description) in enumerate(descriptions_with_names, start=1):
+        for desc_idx, (prompt_name, description) in enumerate(
+            descriptions_with_names, start=1
+        ):
             _LOG.debug(
-                "Processing description %s/%s", desc_idx, len(descriptions_with_names)
+                "Processing description %s/%s",
+                desc_idx,
+                len(descriptions_with_names),
             )
             _LOG.debug("Description: %s", description[:200])
             # Generate images for this description.

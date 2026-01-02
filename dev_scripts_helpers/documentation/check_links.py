@@ -283,7 +283,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     reachable_urls, broken_urls = _check_links_in_file(args.in_file)
     # Generate cfile by default if there are broken URLs.
     if broken_urls:
-        cfile_content = _generate_cfile_for_broken_urls(args.in_file, broken_urls)
+        cfile_content = _generate_cfile_for_broken_urls(
+            args.in_file, broken_urls
+        )
         hio.to_file(args.cfile, "\n".join(cfile_content))
         _LOG.info("Generated cfile with broken URLs: %s", args.cfile)
     elif args.cfile != "cfile":

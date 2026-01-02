@@ -446,6 +446,10 @@
 
 # Linter2
 
-find ck_marketing/workflows/ -name "*.py" -o -name "*.ipynb" | grep -v ipynb_checkpoints | sort | tee tmp
+tmp=$(find ck_marketing/workflows/ -name "*.py" -o -name "*.ipynb" | \grep -v ipynb_checkpoints | sort | tee tmp)
 
+tmp=$(git diff --name-only master... | \grep py)
+
+pre-commit run --files $(cat tmp)
 helpers_root/linters2/normalize_import.py $(cat tmp)
+helpers_root/linters2/add_class_frames.py $(cat tmp)

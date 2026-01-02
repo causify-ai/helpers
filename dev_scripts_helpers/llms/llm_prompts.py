@@ -1,3 +1,9 @@
+"""
+Import as:
+
+import dev_scripts_helpers.llms.llm_prompts as dshlllpr
+"""
+
 import ast
 import functools
 import hashlib
@@ -746,6 +752,7 @@ def latex_reduce() -> _PROMPT_OUT:
     post_transforms: Set[str] = set()
     post_container_transforms = ["format_latex"]
     return system, pre_transforms, post_transforms, post_container_transforms
+
 
 # #############################################################################
 # Markdown.
@@ -1805,6 +1812,7 @@ Begin your summary now, following the exact format specified above.
     post_container_transforms = ["format_markdown"]
     return system, pre_transforms, post_transforms, post_container_transforms
 
+
 def text_to_one_bullet() -> _PROMPT_OUT:
     """
     Convert free form text into a single bullet point summary.
@@ -1911,13 +1919,12 @@ def text_rephrase() -> _PROMPT_OUT:
 # #############################################################################
 
 
-def from_file() -> _PROMPT_OUT:
+def from_file(file_name: str) -> _PROMPT_OUT:
     """
     Load and apply prompt from prompt.txt file.
     """
-    file = "prompt.txt"
-    if os.path.exists(file):
-        system = hio.from_file(file)
+    if os.path.exists(file_name):
+        system = hio.from_file(file_name)
     else:
         system = ""
     pre_transforms: Set[str] = set()
@@ -2187,7 +2194,9 @@ def _convert_to_vim_cfile_str(txt: str, in_file_name: str) -> str:
     return txt_out
 
 
-def _convert_to_vim_cfile(txt: str, in_file_name: str, out_file_name: str) -> str:
+def _convert_to_vim_cfile(
+    txt: str, in_file_name: str, out_file_name: str
+) -> str:
     """
     Convert the text passed to a vim cfile.
 
@@ -2254,14 +2263,24 @@ def run_prompt(
     _LOG.debug(hprint.func_signature_to_str())
     # Get the info corresponding to the prompt tag.
     prompt_tags = list(zip(*get_prompt_tags()))[0]
-    hdbg.dassert_in(prompt_tag, prompt_tags)
-    python_cmd = f"{prompt_tag}()"
-    (
-        system_prompt,
-        pre_transforms,
-        post_transforms,
-        post_container_transforms,
-    ) = eval(python_cmd)
+    if prompt_tag.startswith("from_file:"):
+        file_name = prompt_tag[len("from_file:") :]
+        hdbg.dassert_file_exists(file_name)
+        (
+            system_prompt,
+            pre_transforms,
+            post_transforms,
+            post_container_transforms,
+        ) = from_file(file_name)
+    else:
+        hdbg.dassert_in(prompt_tag, prompt_tags)
+        python_cmd = f"{prompt_tag}()"
+        (
+            system_prompt,
+            pre_transforms,
+            post_transforms,
+            post_container_transforms,
+        ) = eval(python_cmd)
     # Check return types.
     hdbg.dassert_isinstance(system_prompt, str)
     hdbg.dassert_isinstance(pre_transforms, set)

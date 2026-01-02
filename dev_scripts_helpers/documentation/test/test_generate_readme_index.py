@@ -10,12 +10,29 @@ import helpers.hio as hio  # noqa: E402
 import helpers.hunit_test as hunitest  # noqa: E402
 
 
+
 # #############################################################################
 # Test_list_markdown_files
 # #############################################################################
 
-
 class Test_list_markdown_files(hunitest.TestCase):
+    def _write_input_file(self, txt: str, file_name: str) -> str:
+        """
+        Write test content to a file in the scratch space.
+
+        :param txt: the content of the file
+        :param file_name: the name of the file
+        :return: the path to the file with the test content
+        """
+        txt = txt.strip()
+        # Get file path to write.
+        dir_name = self.get_scratch_space()
+        file_path = os.path.join(dir_name, file_name)
+        file_path = os.path.abspath(file_path)
+        # Create the file.
+        hio.to_file(file_path, txt)
+        return file_path
+
     def test1(self) -> None:
         """
         Test retrieving all Markdown files in a directory.
@@ -102,28 +119,11 @@ class Test_list_markdown_files(hunitest.TestCase):
         # Check.
         self.assertEqual(actual, expected)
 
-    def _write_input_file(self, txt: str, file_name: str) -> str:
-        """
-        Write test content to a file in the scratch space.
-
-        :param txt: the content of the file
-        :param file_name: the name of the file
-        :return: the path to the file with the test content
-        """
-        txt = txt.strip()
-        # Get file path to write.
-        dir_name = self.get_scratch_space()
-        file_path = os.path.join(dir_name, file_name)
-        file_path = os.path.abspath(file_path)
-        # Create the file.
-        hio.to_file(file_path, txt)
-        return file_path
 
 
 # #############################################################################
 # Test_generate_readme_index
 # #############################################################################
-
 
 class Test_generate_readme_index(hunitest.TestCase):
     def test1(self) -> None:
@@ -149,6 +149,19 @@ class Test_generate_readme_index(hunitest.TestCase):
         )
         # Check.
         self.check_string(actual)
+
+    def _write_readme(self, content: str) -> str:
+        """
+        Create a README file with content.
+
+        :param content: the content to write into the README file
+        :return: the path to the directory containing the README
+        """
+        content = textwrap.dedent(content)
+        dir_path = self.get_scratch_space()
+        readme_path = os.path.join(dir_path, "README.md")
+        hio.to_file(readme_path, content)
+        return dir_path
 
     def test2(self) -> None:
         """
@@ -289,16 +302,3 @@ class Test_generate_readme_index(hunitest.TestCase):
         )
         # Check.
         self.check_string(actual)
-
-    def _write_readme(self, content: str) -> str:
-        """
-        Create a README file with content.
-
-        :param content: the content to write into the README file
-        :return: the path to the directory containing the README
-        """
-        content = textwrap.dedent(content)
-        dir_path = self.get_scratch_space()
-        readme_path = os.path.join(dir_path, "README.md")
-        hio.to_file(readme_path, content)
-        return dir_path

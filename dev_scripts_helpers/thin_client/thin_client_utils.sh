@@ -268,7 +268,7 @@ set_path() {
     dassert_dir_exists $DEV_SCRIPT_HELPER_DIR
     dtrace "DEV_SCRIPT_HELPER_DIR=$DEV_SCRIPT_HELPER_DIR"
     # Add to the PATH all the first level directory under `dev_scripts`.
-    export PATH_TMP="$(find $DEV_SCRIPT_HELPER_DIR -maxdepth 1 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//')"
+    export PATH_TMP="$(find $DEV_SCRIPT_HELPER_DIR -maxdepth 2 -type d -not -path "$(pwd)" | tr '\n' ':' | sed 's/:$//')"
     dtrace "PATH_TMP=$PATH_TMP"
     export PATH=$PATH_TMP:$PATH
     #
