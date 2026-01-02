@@ -126,6 +126,7 @@ class _BaseCacheTest(hunitest.TestCase):
 
          - Set specific cache properties needed for the tests.
         """
+        _LOG.debug("set_up_test")
         # Set the cache properties for each function.
         hcacsimp.set_cache_property("_cached_function", "type", "json")
         hcacsimp.set_cache_property(
@@ -146,6 +147,7 @@ class _BaseCacheTest(hunitest.TestCase):
             - Reset cache(in-memory, disk).
             - Reset cache properties.
         """
+        _LOG.debug("tear_down_test")
         # Reset caches for all cached functions.
         for func_name in [
             "_cached_function",
@@ -156,6 +158,7 @@ class _BaseCacheTest(hunitest.TestCase):
             "_dummy_cached_function",
         ]:
             # Reset both disk and in-memory cache.
+            _LOG.debug("reset_cache func_name='%s'", func_name)
             hcacsimp.reset_cache(func_name=func_name, interactive=False)
         # Reset cache properties.
         try:

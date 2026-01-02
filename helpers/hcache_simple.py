@@ -15,7 +15,7 @@ import logging
 import os
 import pickle
 import re
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional, Union, cast
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -71,13 +71,16 @@ if "_CACHE" not in globals():
 #     - write through (e.g., True or False)
 #     - exclude keys (e.g., ["password", "api_key"])
 
+_SYSTEM_PROPERTIES = ["type", "write_through", "exclude_keys"]
+
+
 def get_cache_property_file() -> str:
     """
     Get the cache property file name.
 
     :return: The cache property file name.
     """
-    val = "tmp.cache_property.user.pkl"
+    val = "tmp.cache_property.pkl"
     return val
 
 
@@ -109,9 +112,10 @@ def _check_valid_cache_property(property_name: str) -> None:
     """
     Verify that a cache property name is valid for the given type.
 
-    :param type_: The type of cache property ('user' or 'system').
     :param property_name: The property name to validate.
     """
+    _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_isinstance(property_name, str)
     valid_properties = [
         # Abort if there is a cache miss. This is used to make sure everything
         # is cached.
@@ -140,6 +144,9 @@ def set_cache_property(
     :param property_name: The name of the property to set.
     :param val: The value to set for the property.
     """
+    _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_isinstance(func_name, str)
+    hdbg.dassert_isinstance(property_name, str)
     _check_valid_cache_property(property_name)
     # Assign value.
     cache_property = _CACHE_PROPERTY
@@ -150,34 +157,51 @@ def set_cache_property(
     # Update values on the disk.
     file_name = get_cache_property_file()
     _LOG.debug("Updating %s", file_name)
+    # Make sure the dict is well-formed.
+    for func_name_tmp in cache_property:
+        hdbg.dassert_isinstance(func_name_tmp, str)
+        _LOG.debug("func_name_tmp='%s' -> %s", func_name_tmp, cache_property[func_name_tmp])
     with open(file_name, "wb") as file:
         pickle.dump(cache_property, file)
 
 
-def get_cache_property(func_name: str, property_name: str) -> bool:
+def get_cache_property(func_name: str, property_name: str) -> Union[bool, Any]:
     """
     Get the value of a property for the cache of a given function name.
     """
+    _LOG.debug(hprint.func_signature_to_str())
     _check_valid_cache_property(property_name)
     # Read data.
     cache_property = _CACHE_PROPERTY
-    value = cache_property.get(func_name, {}).get(property_name, False)
-    value = cast(bool, value)
+    if property_name in _SYSTEM_PROPERTIES:
+        if func_name not in cache_property:
+            return None
+        value = cache_property[func_name][property_name]
+    else:
+        value = cache_property.get(func_name, {}).get(property_name, False)
     return value
 
 
 def reset_cache_property() -> None:
     """
     Reset the cache property for the given type.
-
-    :param type_: The type of cache property ('user' or 'system').
     """
     file_name = get_cache_property_file()
     _LOG.warning("Resetting %s", file_name)
     # Empty the values.
     global _CACHE_PROPERTY
-    _CACHE_PROPERTY = {}
     cache_property = _CACHE_PROPERTY
+    # Empty the values exluding the system properties like `type` and
+    # `write_through`.
+    _LOG.debug("before cache_property=%s", cache_property)
+    # Iterate over a list of keys to avoid modifying the dictionary during iteration
+    for func_name_tmp in list(cache_property.keys()):
+        # Only remove non-system properties from the function's property dict
+        func_prop = cache_property[func_name_tmp]
+        for property_name_tmp in list(func_prop.keys()):
+            if property_name_tmp not in _SYSTEM_PROPERTIES:
+                del func_prop[property_name_tmp]
+    _LOG.debug("after cache_property=%s", cache_property)
     # Update values on the disk.
     _LOG.debug("Updating %s", file_name)
     with open(file_name, "wb") as file:
@@ -190,13 +214,13 @@ def cache_property_to_str(func_name: str = "") -> str:
 
     :param func_name: The name of the function whose cache properties
         are to be converted.
-    :return: A string representation of the cache properties.
-    E.g.,
-    ```
-    # type_=user func_name=slow_square
-    # type_=system func_name=slow_square
-    type: json
-    ```
+    :return: A string representation of the cache properties. E.g.,
+        ```
+        # func_name=slow_square
+        type: json
+        write_through: False
+        exclude_keys: []
+        ```
     """
     txt: List[str] = []
     if func_name == "":
@@ -307,6 +331,8 @@ def _get_cache_file_name(func_name: str) -> str:
     :param func_name: The name of the function.
     :return: The cache file name with appropriate extension.
     """
+    _LOG.debug("func_name='%s'", func_name)
+    hdbg.dassert_isinstance(func_name, str)
     file_name = f"cache.{func_name}"
     cache_type = get_cache_property(func_name, "type")
     _LOG.debug(hprint.to_str("cache_type"))
@@ -548,10 +574,12 @@ def reset_mem_cache(func_name: str = "") -> None:
     :param func_name: The name of the function. If empty, reset all
         memory caches.
     """
+    _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_isinstance(func_name, str)
     if func_name == "":
         _LOG.info("Before resetting memory cache:\n%s", cache_stats_to_str())
         for func_name_tmp in get_cache_func_names("all"):
-            reset_mem_cache(func_name_tmp)
+            reset_mem_cache(func_name=func_name_tmp)
         _LOG.info("After:\n%s", cache_stats_to_str())
         return
     _CACHE[func_name] = {}
@@ -568,6 +596,10 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
     :param interactive: If True, prompt the user for confirmation before
         resetting the disk cache.
     """
+
+    _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_isinstance(func_name, str)
+    hdbg.dassert_isinstance(interactive, bool)
     if interactive:
         hsystem.query_yes_no(
             f"Are you sure you want to reset the disk cache for func_name={func_name}?"
@@ -595,8 +627,11 @@ def reset_cache(func_name: str = "", interactive: bool = True) -> None:
     :param interactive: If True, prompt the user for confirmation before
         resetting the disk cache.
     """
-    reset_mem_cache(func_name)
-    reset_disk_cache(func_name, interactive=interactive)
+    _LOG.debug(hprint.func_signature_to_str())
+    hdbg.dassert_isinstance(func_name, str)
+    hdbg.dassert_isinstance(interactive, bool)
+    reset_mem_cache(func_name=func_name)
+    reset_disk_cache(func_name=func_name, interactive=interactive)
 
 
 # #############################################################################
