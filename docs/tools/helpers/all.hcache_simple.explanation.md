@@ -26,6 +26,8 @@
   supports tagged caches, automatic invalidation, and shared cache directories
   across multiple functions and users, using advanced tools
 
+- A tutorial of the cache is `/helpers/notebooks/hcache_simple.tutorial.ipynb`
+
 ## Overview
 
 - The caching system supports two storage layers:
@@ -123,14 +125,14 @@
       summary string
 
 - Interface:
-  - `enable_cache_perf`: to enable the cache performance
-  - `disable_cache_perf`: to disable the cache performance
-  - `get_cache_perf_stats` prints performance metrics
+  - `enable_cache_perf()`: to enable the cache performance
+  - `disable_cache_perf()`: to disable the cache performance
+  - `get_cache_perf_stats()` prints performance metrics
 
 ## Cache Inspection and Statistics
 
 - The system provides several utility functions for inspecting and debugging the
-  cache state:
+  cache state
 
 - `cache_stats_to_str(func_name)`: Returns a pandas DataFrame showing cache
   statistics
@@ -138,9 +140,9 @@
   - Shows both memory and disk cache sizes for each function
   - Example output:
     ```
-                memory  disk
-    find_email      -  1044
-    verify_email    -  2322
+                 memory  disk
+    find_email        -  1044
+    verify_email      -  2322
     ```
 
 - `get_cache_func_names(type_)`: Retrieves list of cached function names
@@ -206,7 +208,7 @@
     - Useful for excluding session-specific objects (e.g., clients,
       connections)
 
-- Decorator flow:
+- Flow:
   - Initialization:
     - When the function is decorated with, for example,
       `@simple_cache(cache_type="json")`, the decorator sets the system property
