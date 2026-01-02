@@ -66,7 +66,7 @@ wandb/
 mlruns/
 lightning_logs/
 tensorboard/
-*.pkl
+#*.pkl
 
 # Secrets
 .env
