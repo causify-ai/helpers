@@ -7,16 +7,17 @@ import helpers.hllm_cli as hllmcli
 import logging
 import shlex
 import subprocess
-from typing import Callable, List, Optional, Union
+import sys
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from tqdm import tqdm
 
-import helpers.hdbg as hdbg
 import helpers.hcache_simple as hcacsimp
+import helpers.hdbg as hdbg
+import helpers.henv as henv
 import helpers.hio as hio
 import helpers.hsystem as hsystem
-import helpers.henv as henv
 
 _LOG = logging.getLogger(__name__)
 
@@ -40,9 +41,8 @@ def install_needed_modules(
     )
     # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
     import importlib
-    import sys
 
-    # Reload this module (hgoogle_drive_api) if already imported
+    # Reload this module if already imported.
     this_module_name = __name__
     if this_module_name in sys.modules:
         importlib.reload(sys.modules[this_module_name])
@@ -296,6 +296,8 @@ def apply_llm_batch(
     input_list: List[str],
     *,
     model: Optional[str] = None,
+    testing_functor: Optional[Callable[[str], str]] = None,
+    progress_bar_object: Optional[tqdm] = None,
 ) -> List[str]:
     """
     Apply an LLM to process a batch of input texts using the same system prompt.
@@ -307,6 +309,7 @@ def apply_llm_batch(
     :param prompt: system prompt to guide the LLM's behavior
     :param input_list: list of input texts to process with the LLM
     :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
+    :param progress_bar_object: optional progress bar object to update
     :return: list of LLM responses as strings, in the same order as inputs
     """
     hdbg.dassert_isinstance(prompt, str)
@@ -334,21 +337,41 @@ def apply_llm_batch(
     use_llm_executable = False
     _LOG.debug("use_llm_executable=%s", use_llm_executable)
     for input_str in input_list:
-        response = apply_llm(
-            input_str,
-            system_prompt=prompt,
-            model=model,
-            use_llm_executable=use_llm_executable,
-        )
+        if testing_functor is None:
+            response = apply_llm(
+                input_str,
+                system_prompt=prompt,
+                model=model,
+                use_llm_executable=use_llm_executable,
+            )
+        else:
+            response = testing_functor(input_str)
         responses.append(response)
+        if progress_bar_object is not None:
+            progress_bar_object.update(1)
     _LOG.debug("Batch processing completed")
     return responses
 
 
-# TODO(gp): Add unit tests.
-# TODO(gp): Add tag for progress bar.
-# TODO(gp): Pass progress bar to accumulate.
+# TODO(gp): Move it somewhere else.
+def get_tqdm_progress_bar() -> tqdm:
+    # Use appropriate tqdm for notebook or terminal
+    try:
+        from IPython import get_ipython
+
+        if get_ipython() is not None:
+            from tqdm.notebook import tqdm as notebook_tqdm
+
+            tqdm_progress = notebook_tqdm
+        else:
+            tqdm_progress = tqdm
+    except ImportError:
+        tqdm_progress = tqdm
+    return tqdm_progress
+
+
 # TODO(gp): Skip values that already have a value in the target column.
+# TODO(gp): Parallelize
 def apply_llm_prompt_to_df(
     prompt: str,
     df: pd.DataFrame,
@@ -358,22 +381,26 @@ def apply_llm_prompt_to_df(
     batch_size: int = 100,
     dump_every_batch: Optional[str] = None,
     model: Optional[str] = None,
-) -> pd.DataFrame:
+    tag: str = "Processing",
+    testing_functor: Optional[Callable[[str], str]] = None,
+) -> Tuple[pd.DataFrame, Dict[str, int]]:
     """
     Apply an LLM to process a dataframe column using the same system prompt.
 
-    This function processes text from a source column in batches, applies the LLM
-    to each item, and stores the results in a target column. It can optionally
-    save progress to a file after each batch.
+    This function processes text from dataframe rows using an extractor function,
+    applies the LLM to each item in batches, and stores the results in a target
+    column. It can optionally save progress to a file after each batch.
 
     :param prompt: system prompt to guide the LLM's behavior
     :param df: dataframe to process
-    :param source_col: name of column containing input text to process
+    :param extractor: callable that extracts text from a row or string
     :param target_col: name of column to store results
     :param batch_size: number of items to process in each batch
     :param dump_every_batch: optional file path to dump the dataframe after each batch
     :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
-    :return: dataframe with new target column containing LLM responses
+    :param tag: description tag for progress bar
+    :param testing_functor: optional functor to use for testing
+    :return: tuple of (dataframe with results, statistics dict)
     """
     hdbg.dassert_isinstance(prompt, str)
     hdbg.dassert_ne(prompt, "", "Prompt cannot be empty")
@@ -393,26 +420,20 @@ def apply_llm_prompt_to_df(
     if target_col not in df.columns:
         df[target_col] = None
     # Process items in batches with progress bar for entire workload.
-    num_batches = (len(df) + batch_size - 1) // batch_size
-    _LOG.info("Processing %d items in %d batches", len(df), num_batches)
+    num_items = len(df)
+    num_batches = (num_items + batch_size - 1) // batch_size
+    _LOG.info("Processing %d items in %d batches", num_items, num_batches)
     num_skipped = 0
-    # Use appropriate tqdm for notebook or terminal
-    # TODO(gp): Factor this out somewhere.
-    try:
-        from IPython import get_ipython
-
-        if get_ipython() is not None:
-            from tqdm.notebook import tqdm as notebook_tqdm
-
-            tqdm_progress = notebook_tqdm
-        else:
-            tqdm_progress = tqdm
-    except ImportError:
-        tqdm_progress = tqdm
-
-    for batch_num in tqdm_progress(
-        range(num_batches), desc="Processing batches"
-    ):
+    progress_bar_ctor = get_tqdm_progress_bar()
+    progress_bar_object = progress_bar_ctor(  # type: ignore
+        total=num_items,
+        desc=tag,
+        dynamic_ncols=True,
+        # Workaround for unit tests.
+        # file=sys.__stderr__
+    )
+    # TODO(gp): Precompute the batch indices that needs to be processed.
+    for batch_num in range(num_batches):
         # Get batch rows.
         start_idx = batch_num * batch_size
         end_idx = min(start_idx + batch_size, len(df))
@@ -430,6 +451,7 @@ def apply_llm_prompt_to_df(
                 # Set NaN for rows with missing company information.
                 df.at[idx, target_col] = ""
                 num_skipped += 1
+                progress_bar_object.update(1)
         # Call LLM only if there are valid items in this batch.
         if batch_items:
             _LOG.debug(
@@ -443,6 +465,8 @@ def apply_llm_prompt_to_df(
                 prompt=prompt,
                 input_list=batch_items,
                 model=model,
+                progress_bar_object=progress_bar_object,
+                testing_functor=testing_functor,
             )
             # Update dataframe with batch results.
             for idx, response in zip(batch_indices, batch_responses):
@@ -452,7 +476,7 @@ def apply_llm_prompt_to_df(
                 "Skipping batch %d/%d (all %d items have missing data)",
                 batch_num + 1,
                 num_batches,
-                len(rows),
+                num_items,
             )
         # Dump dataframe to file after batch if requested.
         if dump_every_batch is not None:
@@ -460,7 +484,12 @@ def apply_llm_prompt_to_df(
             df.to_csv(dump_every_batch, index=False)
     _LOG.info(
         "Processing completed (%d items processed, %d skipped)",
-        len(df) - num_skipped,
+        num_items - num_skipped,
         num_skipped,
     )
-    return df
+    stats = {
+        "num_items": num_items,
+        "num_skipped": num_skipped,
+        "num_batches": num_batches,
+    }
+    return df, stats

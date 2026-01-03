@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_transform as hpantran
 """
 
 import csv
@@ -674,8 +674,20 @@ def filter_df(
     *,
     invert: bool = False,
     check_value: bool = True,
+    # TODO(gp): -> verbose
     print_info: bool = True,
 ) -> pd.DataFrame:
+    """
+    Filter a dataframe based on a column value.
+
+    :param df: dataframe to filter
+    :param col_name: column name to filter on
+    :param value: value to filter on
+    :param invert: whether to invert the filter
+    :param check_value: whether to check that the value is in the column
+    :param print_info: whether to print information about the filter
+    :return: filtered dataframe
+    """
     hdbg.dassert_in(col_name, df.columns)
     if isinstance(value, list):
         mask = df[col_name].isin(value)
@@ -688,3 +700,62 @@ def filter_df(
     if print_info:
         _LOG.info("selected=%s", hprint.perc(mask.sum(), df.shape[0]))
     return df[mask]
+
+
+def remove_empty_columns(
+    df: pd.DataFrame, *, verbose: bool = True
+) -> pd.DataFrame:
+    """
+    Remove empty columns from a dataframe.
+
+    :param df: dataframe to remove empty columns from
+    :return: dataframe with empty columns removed
+    """
+    mask = df.apply(lambda col: col.notna() & (col != "")).any()
+    non_empty_columns = df.columns[mask]
+    empty_columns = df.columns[~mask]
+    if verbose:
+        _LOG.info(
+            "kept %s columns: %s",
+            hprint.perc(len(non_empty_columns), len(df.columns)),
+            hprint.list_to_str(non_empty_columns),
+        )
+        _LOG.info(
+            "removed %s columns: %s",
+            hprint.perc(len(empty_columns), len(df.columns)),
+            hprint.list_to_str(empty_columns),
+        )
+    df = df[non_empty_columns]
+    return df
+
+
+def remove_stable_columns(
+    df: pd.DataFrame, *, threshold: float = 0.9, verbose: bool = True
+) -> pd.DataFrame:
+    """
+    Remove columns from a dataframe that have less than threshold unique values.
+
+    :param df: dataframe to remove stable columns from
+    :param threshold: threshold for the percentage of stable columns to remove
+    :return: dataframe with stable columns removed
+    """
+    high_variability_columns = []
+    for col in df.columns:
+        unique_values = df[col].unique()
+        if len(unique_values) / len(df) >= threshold:
+            high_variability_columns.append(col)
+    # Compute the columns to remove.
+    columns_to_remove = df.columns[~df.columns.isin(high_variability_columns)]
+    if verbose:
+        _LOG.info(
+            "kept %s columns: %s",
+            hprint.perc(len(high_variability_columns), len(df.columns)),
+            hprint.list_to_str(high_variability_columns),
+        )
+        _LOG.info(
+            "removed %s columns: %s",
+            hprint.perc(len(columns_to_remove), len(df.columns)),
+            hprint.list_to_str(columns_to_remove),
+        )
+    df = df[high_variability_columns]
+    return df
