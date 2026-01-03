@@ -1,39 +1,48 @@
 import helpers.hunit_test as hunitest
+import helpers.hprint as hprint
 import linters2.add_class_frames as laadclfr
 
+# #############################################################################
+# Test_add_class_frame
+# #############################################################################
 
 class Test_add_class_frame(hunitest.TestCase):
+    def helper(self, content: str, expected: str) -> None:
+        # Initialize the input file contents.
+        content = hprint.dedent(content)
+        # Run.
+        actual = "\n".join(laadclfr.update_class_frames(content))
+        expected = hprint.dedent(expected)
+        # Check.
+        self.assert_equal(actual, expected)
+
     def test1(self) -> None:
         """
         Test adding frames to classes, without extra complications.
         """
-        # Initialize the input file contents.
         content = """
-class FirstClass():
-    pass
+        class FirstClass():
+            pass
 
-class SecondClass():
-    pass
+        class SecondClass():
+            pass
         """
-        # Run.
-        actual = "\n".join(laadclfr.update_class_frames(content))
-        # Check.
         expected = """
-# #############################################################################
-# FirstClass
-# #############################################################################
+        # #############################################################################
+        # FirstClass
+        # #############################################################################
 
-class FirstClass():
-    pass
+        class FirstClass():
+            pass
 
-# #############################################################################
-# SecondClass
-# #############################################################################
+        # #############################################################################
+        # SecondClass
+        # #############################################################################
 
-class SecondClass():
-    pass
+        class SecondClass():
+            pass
         """
-        self.assertEqual(actual, expected)
+        self.helper(content, expected)
 
     def test2(self) -> None:
         """
@@ -42,119 +51,107 @@ class SecondClass():
         Lines with decorators or comments that immediately precede class
         initialization need to be skipped.
         """
-        # Initialize the input file contents.
         content = """
-# Comment.
-class FirstClass():
-    pass
+        # Comment.
+        class FirstClass():
+            pass
 
-# Comment.
-@decorator
-class SecondClass():
-    pass
+        # Comment.
+        @decorator
+        class SecondClass():
+            pass
 
-@mult_line_decorator(
-    note="..."
-)
-class ThirdClass():
-     pass
+        @mult_line_decorator(
+            note="..."
+        )
+        class ThirdClass():
+            pass
         """
-        # Run.
-        actual = "\n".join(laadclfr.update_class_frames(content))
-        # Check.
         expected = """
-# #############################################################################
-# FirstClass
-# #############################################################################
+        # #############################################################################
+        # FirstClass
+        # #############################################################################
 
-# Comment.
-class FirstClass():
-    pass
+        # Comment.
+        class FirstClass():
+            pass
 
-# #############################################################################
-# SecondClass
-# #############################################################################
+        # #############################################################################
+        # SecondClass
+        # #############################################################################
 
-# Comment.
-@decorator
-class SecondClass():
-    pass
+        # Comment.
+        @decorator
+        class SecondClass():
+            pass
 
-# #############################################################################
-# ThirdClass
-# #############################################################################
+        # #############################################################################
+        # ThirdClass
+        # #############################################################################
 
-@mult_line_decorator(
-    note="..."
-)
-class ThirdClass():
-     pass
+        @mult_line_decorator(
+            note="..."
+        )
+        class ThirdClass():
+            pass
         """
-        self.assertEqual(actual, expected)
+        self.helper(content, expected)
 
     def test3(self) -> None:
         """
         Test adding a frame to a class in the middle of a file.
         """
-        # Initialize the input file contents.
         content = """
-def func1():
-    pass
+        def func1():
+            pass
 
-class FirstClass():
-    pass
+        class FirstClass():
+            pass
         """
-        # Run.
-        actual = "\n".join(laadclfr.update_class_frames(content))
-        # Check.
         expected = """
-def func1():
-    pass
+        def func1():
+            pass
 
-# #############################################################################
-# FirstClass
-# #############################################################################
+        # #############################################################################
+        # FirstClass
+        # #############################################################################
 
-class FirstClass():
-    pass
+        class FirstClass():
+            pass
         """
-        self.assertEqual(actual, expected)
+        self.helper(content, expected)
 
     def test4(self) -> None:
         """
         Test adding frames to classes when there are separating lines present.
         """
-        # Initialize the input file contents.
         content = """
-class FirstClass():
-    pass
+        class FirstClass():
+            pass
 
-# #############################################################################
+        # #############################################################################
 
-class SecondClass():
-    pass
+        class SecondClass():
+            pass
         """
-        # Run.
-        actual = "\n".join(laadclfr.update_class_frames(content))
-        # Check.
         expected = """
-# #############################################################################
-# FirstClass
-# #############################################################################
+        # #############################################################################
+        # FirstClass
+        # #############################################################################
 
-class FirstClass():
-    pass
+        class FirstClass():
+            pass
 
-# #############################################################################
+        # #############################################################################
 
-# #############################################################################
-# SecondClass
-# #############################################################################
+        # #############################################################################
+        # SecondClass
+        # #############################################################################
 
-class SecondClass():
-    pass
+        class SecondClass():
+            pass
         """
-        self.assertEqual(actual, expected)
+        self.helper(content, expected)
 
     def test5(self) -> None:
         """
@@ -163,31 +160,28 @@ class SecondClass():
         Check that the existing frames are not changed when they contain
         class names.
         """
-        # Initialize the input file contents.
         content = """
-def func1():
-    pass
+        def func1():
+            pass
 
-# #############################################################################
-# FirstClass
-# #############################################################################
+        # #############################################################################
+        # FirstClass
+        # #############################################################################
 
-class FirstClass():
-    pass
+        class FirstClass():
+            pass
 
-# #############################################################################
-# SecondClass
-# #############################################################################
+        # #############################################################################
+        # SecondClass
+        # #############################################################################
 
-@decorator1
-@decorator2
-class SecondClass():
-    pass
+        @decorator1
+        @decorator2
+        class SecondClass():
+            pass
         """
-        # Run.
-        actual = "\n".join(laadclfr.update_class_frames(content))
-        # Check.
-        self.assertEqual(actual, content)
+        expected = content
+        self.helper(content, expected)
 
     def test6(self) -> None:
         """
@@ -196,48 +190,44 @@ class SecondClass():
         Check that the existing frames are removed when they do not
         contain class names, and new frames with class names are added.
         """
-        # Initialize the input file contents.
         content = """
-def func1():
-    pass
+        def func1():
+            pass
 
-# #############################################################################
-# Some text
-# #############################################################################
+        # #############################################################################
+        # Some text
+        # #############################################################################
 
-class FirstClass():
-    pass
+        class FirstClass():
+            pass
 
-# #############################################################################
-# Other text
-# #############################################################################
+        # #############################################################################
+        # Other text
+        # #############################################################################
 
-@decorator1
-@decorator2
-class SecondClass():
-    pass
+        @decorator1
+        @decorator2
+        class SecondClass():
+            pass
         """
-        # Run.
-        actual = "\n".join(laadclfr.update_class_frames(content))
-        # Check.
         expected = """
-def func1():
-    pass
+        def func1():
+            pass
 
-# #############################################################################
-# FirstClass
-# #############################################################################
+        # #############################################################################
+        # FirstClass
+        # #############################################################################
 
-class FirstClass():
-    pass
+        class FirstClass():
+            pass
 
-# #############################################################################
-# SecondClass
-# #############################################################################
+        # #############################################################################
+        # SecondClass
+        # #############################################################################
 
-@decorator1
-@decorator2
-class SecondClass():
-    pass
+        @decorator1
+        @decorator2
+        class SecondClass():
+            pass
         """
-        self.assertEqual(actual, expected)
+        self.helper(content, expected)

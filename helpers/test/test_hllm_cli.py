@@ -1,10 +1,16 @@
 import logging
 import os
+import pickle
+import time
+from typing import Dict
 
+import pandas as pd
 import pytest
 
+import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -263,3 +269,301 @@ class Test_apply_llm_with_files(hunitest.TestCase):
         correctness.
         """
         self._run_test_cases_print_only(use_llm_executable=True)
+
+
+# #############################################################################
+# Test_apply_llm_prompt_to_df1
+# #############################################################################
+
+
+class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
+    """
+    Test apply_llm_prompt_to_df with testing_functor.
+    """
+
+    @staticmethod
+    def _extract_expression(obj) -> str:
+        """
+        Extract mathematical expression from a DataFrame row or string.
+
+        :param obj: either a string or a pandas Series
+        :return: extracted string for evaluation
+        """
+        if isinstance(obj, pd.Series):
+            # Extract from DataFrame row.
+            if "expression" in obj.index:
+                expr = obj["expression"]
+                # Handle None, NaN, or empty string.
+                if pd.isna(expr) or expr == "":
+                    return ""
+                return str(expr)
+            return ""
+        else:
+            # Already a string.
+            if pd.isna(obj) or obj == "":
+                return ""
+            return str(obj)
+
+    @staticmethod
+    def _eval_functor(input_str: str, *, delay: float = 0.0) -> str:
+        """
+        Evaluate the input string using eval and return the result as a string.
+
+        :param input_str: mathematical expression to evaluate
+        :return: result of evaluation as a string
+        """
+        _LOG.debug("input_str='%s'", input_str)
+        if delay > 0.0:
+            time.sleep(delay)
+        result = eval(input_str)
+        result_str = str(result)
+        _LOG.debug("-> result_str='%s'", result_str)
+        return result_str
+
+    def helper(
+        self,
+        df: pd.DataFrame,
+        batch_size: int,
+        expected_df: pd.DataFrame,
+        expected_stats: Dict[str, int],
+    ) -> None:
+        """
+        Test apply_llm_prompt_to_df with testing_functor that uses eval.
+        """
+        # Prepare inputs.
+        prompt = "Dummy"
+        extractor = self._extract_expression
+        # To test the progress bar.
+        #delay = 0.5
+        delay = 0.0
+        testing_functor = lambda input_str: self._eval_functor(input_str, delay=delay)
+        # Run test.
+        result_df, stats = hllmcli.apply_llm_prompt_to_df(
+            prompt=prompt,
+            df=df,
+            extractor=extractor,
+            target_col="result",
+            batch_size=batch_size,
+            model="gpt-5-nano",
+            testing_functor=testing_functor,
+        )
+        # Check outputs.
+        self.assert_equal(str(result_df), str(expected_df))
+        self.assert_equal(str(stats), str(expected_stats))
+
+    def _helper_test1(self, batch_size: int) -> None:
+        """
+        Test apply_llm_prompt_to_df with testing_functor that uses eval.
+        """
+        # Prepare inputs.
+        df = pd.DataFrame({
+            "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
+        })
+        # Prepare outputs.
+        expected_df = pd.DataFrame({
+            "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
+            "result": ["5", "50", "75", "5.0"],
+        })
+        num_items = len(df)
+        expected_stats = {
+            "num_items": num_items,
+            "num_skipped": 0,
+            "num_batches": (num_items + batch_size - 1) // batch_size,
+        }
+        # Run test.
+        self.helper(df, batch_size, expected_df, expected_stats)
+
+    def _helper_test2(self, batch_size: int) -> None:
+        """
+        Test apply_llm_prompt_to_df with larger dataframe and batch_size > 1.
+        """
+        # Prepare inputs.
+        df = pd.DataFrame({
+            "expression": [
+                "1 + 1",
+                "2 * 3",
+                "10 - 5",
+                "20 / 4",
+                "3 ** 2",
+                "100 // 3",
+                "15 % 4",
+            ],
+        })
+        # Prepare outputs.
+        expected_df = pd.DataFrame({
+            "expression": [
+                "1 + 1",
+                "2 * 3",
+                "10 - 5",
+                "20 / 4",
+                "3 ** 2",
+                "100 // 3",
+                "15 % 4",
+            ],
+            "result": ["2", "6", "5", "5.0", "9", "33", "3"],
+        })
+        num_items = len(df)
+        expected_stats = {
+            "num_items": num_items,
+            "num_skipped": 0,
+            "num_batches": (num_items + batch_size - 1) // batch_size,
+        }
+        # Run test.
+        self.helper(df, batch_size, expected_df, expected_stats)
+
+    def _helper_test3(self, batch_size: int) -> None:
+        """
+        Test apply_llm_prompt_to_df with pre-filled target column values.
+
+        This test verifies that all rows are processed and pre-filled values
+        are overwritten with computed results from the testing_functor.
+        """
+        # Prepare inputs.
+        df = pd.DataFrame({
+            "expression": [
+                "5 + 5",
+                "3 * 4",
+                "20 - 8",
+                "16 / 2",
+                "2 ** 3",
+            ],
+        })
+        # Pre-fill some values in the target column.
+        df["result"] = [None, "12", None, None, "8"]
+        # Prepare outputs.
+        expected_df = pd.DataFrame({
+            "expression": [
+                "5 + 5",
+                "3 * 4",
+                "20 - 8",
+                "16 / 2",
+                "2 ** 3",
+            ],
+            "result": ["10", "12", "12", "8.0", "8"],
+        })
+        num_items = len(df)
+        expected_stats = {
+            "num_items": num_items,
+            "num_skipped": 0,
+            "num_batches": (num_items + batch_size - 1) // batch_size,
+        }
+        # Run test.
+        self.helper(df, batch_size, expected_df, expected_stats)
+
+    def _helper_test4(self, batch_size: int) -> None:
+        """
+        Test apply_llm_prompt_to_df with rows that have empty extraction results.
+
+        This test verifies that rows with empty or None expressions are skipped
+        and marked with empty string in the result column.
+        """
+        # Prepare inputs.
+        df = pd.DataFrame({
+            "expression": ["5 + 5", "", "10 + 10", None, "15 + 15"],
+        })
+        # Prepare outputs.
+        expected_df = pd.DataFrame({
+            "expression": ["5 + 5", "", "10 + 10", None, "15 + 15"],
+            "result": ["10", "", "20", "", "30"],
+        })
+        num_items = len(df)
+        expected_stats = {
+            "num_items": num_items,
+            "num_skipped": 2,
+            "num_batches": (num_items + batch_size - 1) // batch_size,
+        }
+        # Run test.
+        self.helper(df, batch_size, expected_df, expected_stats)
+
+    def _helper_test5(self, batch_size: int) -> None:
+        """
+        Test apply_llm_prompt_to_df with batch where all items have missing data.
+
+        This test verifies that batches with all empty/None items are skipped
+        entirely and the else branch is executed.
+        """
+        # Prepare inputs.
+        df = pd.DataFrame({
+            "expression": ["1 + 1", "", None, "", "5 + 5"],
+        })
+        # Prepare outputs.
+        expected_df = pd.DataFrame({
+            "expression": ["1 + 1", "", None, "", "5 + 5"],
+            "result": ["2", "", "", "", "10"],
+        })
+        num_items = len(df)
+        expected_stats = {
+            "num_items": num_items,
+            "num_skipped": 3,
+            "num_batches": (num_items + batch_size - 1) // batch_size,
+        }
+        # Run test.
+        self.helper(df, batch_size, expected_df, expected_stats)
+
+    # batch_size=1
+
+    def test1_num_batch1(self) -> None:
+        self._helper_test1(batch_size=1)
+
+    def test2_num_batch1(self) -> None:
+        self._helper_test2(batch_size=1)
+
+    def test3_num_batch1(self) -> None:
+        self._helper_test3(batch_size=1)
+
+    def test4_num_batch1(self) -> None:
+        self._helper_test4(batch_size=1)
+
+    def test5_num_batch1(self) -> None:
+        self._helper_test5(batch_size=1)
+
+    # batch_size=2
+
+    def test1_num_batch2(self) -> None:
+        self._helper_test1(batch_size=2)
+
+    def test2_num_batch2(self) -> None:
+        self._helper_test2(batch_size=2)
+
+    def test3_num_batch2(self) -> None:
+        self._helper_test3(batch_size=2)
+
+    def test4_num_batch2(self) -> None:
+        self._helper_test4(batch_size=2)
+
+    def test5_num_batch2(self) -> None:
+        self._helper_test5(batch_size=2)
+
+    # batch_size=3
+
+    def test1_num_batch3(self) -> None:
+        self._helper_test1(batch_size=3)
+
+    def test2_num_batch3(self) -> None:
+        self._helper_test2(batch_size=3)
+
+    def test3_num_batch3(self) -> None:
+        self._helper_test3(batch_size=3)
+
+    def test4_num_batch3(self) -> None:
+        self._helper_test4(batch_size=3)
+
+    def test5_num_batch3(self) -> None:
+        self._helper_test5(batch_size=3)
+
+    # batch_size=10
+
+    def test1_num_batch10(self) -> None:
+        self._helper_test1(batch_size=10)
+
+    def test2_num_batch10(self) -> None:
+        self._helper_test2(batch_size=10)
+
+    def test3_num_batch10(self) -> None:
+        self._helper_test3(batch_size=10)
+
+    def test4_num_batch10(self) -> None:
+        self._helper_test4(batch_size=10)
+
+    def test5_num_batch10(self) -> None:
+        self._helper_test5(batch_size=10)

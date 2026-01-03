@@ -130,10 +130,54 @@ def _insert_frame(
     ) = _check_above_initialization(lines, line_num)
     if remove_old_frame:
         # Remove the frame that was already present above the class.
-        updated_lines = (
-            updated_lines[: -(num_non_empty_lines + num_empty_lines + 4)]
-            + updated_lines[-(num_non_empty_lines + num_empty_lines) :]
-        )
+        # The frame consists of 3 lines (top border, class name, bottom border)
+        # plus num_empty_lines empty lines after it.
+        frame_size = 3 + num_empty_lines
+        if num_non_empty_lines > 0:
+            updated_lines = (
+                updated_lines[: -(num_non_empty_lines + frame_size)]
+                + updated_lines[-num_non_empty_lines:]
+            )
+        else:
+            updated_lines = updated_lines[:-frame_size]
+    # Ensure exactly 1 empty line before the frame (unless at file start).
+    # Count trailing empty lines (before any decorators/comments).
+    if num_non_empty_lines > 0:
+        # There are decorators/comments, check empty lines before them.
+        lines_to_check = updated_lines[: -num_non_empty_lines]
+    else:
+        # No decorators/comments, check all lines.
+        lines_to_check = updated_lines
+    # Count trailing empty lines.
+    num_trailing_empty = 0
+    for i in range(len(lines_to_check) - 1, -1, -1):
+        if lines_to_check[i] == "":
+            num_trailing_empty += 1
+        else:
+            break
+    # Check if there's any non-empty content before the class.
+    has_content_before = len(lines_to_check) > num_trailing_empty
+    # Adjust to have exactly 1 empty line (only if there's content before).
+    if num_trailing_empty == 0 and has_content_before:
+        # No empty lines but has content, add 1.
+        if num_non_empty_lines > 0:
+            updated_lines = (
+                updated_lines[: -num_non_empty_lines]
+                + [""]
+                + updated_lines[-num_non_empty_lines:]
+            )
+        else:
+            updated_lines.append("")
+    elif num_trailing_empty > 1:
+        # Too many empty lines, remove excess to keep only 1.
+        excess = num_trailing_empty - 1
+        if num_non_empty_lines > 0:
+            updated_lines = (
+                updated_lines[: -(num_non_empty_lines + excess)]
+                + updated_lines[-num_non_empty_lines:]
+            )
+        else:
+            updated_lines = updated_lines[:-excess]
     # Build the class frame.
     class_name = class_init_match.group(1)
     class_frame = [
