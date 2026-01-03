@@ -143,6 +143,7 @@ def get_credentials(
 
 
 # TODO(gp): Extend this to work with v3, v4, etc.
+# TODO(ai_gp): Make it private if it's not called by anybody else.
 def get_sheets_service(credentials: "goasea.Credentials") -> "godisc.Resource":
     """
     Get Google Sheets service with provided credentials.
@@ -159,6 +160,7 @@ def get_sheets_service(credentials: "goasea.Credentials") -> "godisc.Resource":
     return sheets_service
 
 
+# TODO(ai_gp): Make it private if it's not called by anybody else.
 def get_gsheet_id(
     credentials: "goasea.Credentials",
     sheet_id: str,
@@ -191,7 +193,8 @@ def get_gsheet_id(
     return first_sheet_id
 
 
-# TODO(gp): -> get_gsheet_name
+# TODO(ai_gp): -> get_gsheet_name
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def get_tab_name_from_url(
     credentials: "goasea.Credentials",
     url: str,
@@ -214,6 +217,7 @@ def get_tab_name_from_url(
     return tab_name
 
 
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def get_tabs_from_gsheet(
     credentials: "goasea.Credentials",
     url: str,
@@ -230,6 +234,7 @@ def get_tabs_from_gsheet(
     return [sheet.title for sheet in spreadsheet.worksheets()]
 
 
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def get_gsheet_tab_url(
     credentials: "goasea.Credentials",
     url: str,
@@ -261,6 +266,7 @@ def get_gsheet_tab_url(
     return full_url
 
 
+# TODO(ai_gp): Make it private if it's not called by anybody else.
 def freeze_rows_in_gsheet(
     credentials: "goasea.Credentials",
     sheet_id: str,
@@ -328,6 +334,7 @@ def freeze_rows_in_gsheet(
     _LOG.debug("response: %s", response)
 
 
+# TODO(ai_gp): Make it private if it's not called by anybody else.
 def set_row_height_in_gsheet(
     credentials: "goasea.Credentials",
     sheet_id: str,
@@ -406,6 +413,7 @@ def set_row_height_in_gsheet(
     _LOG.debug("response: %s", response)
 
 
+# TODO(ai_gp): Make it private if it's not called by anybody else.
 def set_text_wrapping_clip_in_gsheet(
     credentials: "goasea.Credentials",
     sheet_id: str,
@@ -470,6 +478,7 @@ def set_text_wrapping_clip_in_gsheet(
     _LOG.debug("response: %s", response)
 
 
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def from_gsheet(
     credentials: "goasea.Credentials",
     url: str,
@@ -500,6 +509,7 @@ def from_gsheet(
     return df
 
 
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def to_gsheet(
     credentials: "goasea.Credentials",
     df: pd.DataFrame,
@@ -572,6 +582,7 @@ def to_gsheet(
 # #############################################################################
 
 
+# TODO(ai_gp): Make it private if it's not called by anybody else.
 def get_gdrive_service(credentials: "goasea.Credentials") -> "godisc.Resource":
     """
     Get Google Drive service with provided credentials.
@@ -629,6 +640,7 @@ def _create_new_google_document(
     return doc_id
 
 
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def move_gfile_to_dir(
     credentials: "goasea.Credentials",
     gfile_id: str,
@@ -660,6 +672,7 @@ def move_gfile_to_dir(
     return res
 
 
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def share_google_file(
     credentials: "goasea.Credentials",
     gfile_id: str,
@@ -689,6 +702,7 @@ def share_google_file(
     _LOG.debug("The Google file is shared with '%s'", user)
 
 
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def create_empty_google_file(
     credentials: "goasea.Credentials",
     gfile_type: str,
@@ -740,6 +754,7 @@ def create_empty_google_file(
     return gfile_id
 
 
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def create_or_overwrite_with_timestamp(
     credentials: "goasea.Credentials",
     file_name: str,
@@ -817,6 +832,7 @@ def create_or_overwrite_with_timestamp(
 # #############################################################################
 
 
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def create_google_drive_folder(
     credentials: "goasea.Credentials",
     folder_name: str,
@@ -991,6 +1007,7 @@ def _get_folder_path_list(
     return path_list
 
 
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def get_google_path_from_url(
     credentials: "goasea.Credentials",
     url: str,
@@ -1031,6 +1048,9 @@ def print_info_about_google_url(
 
 
 # TODO(gp): Add clean up
+# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
+# TODO(gp): Make url mandatory and when url = "tmp" use the hardcored value.
+# TODO(gp): -> save_df_to_gsheet
 def save_df_to_tmp_gsheet(df: pd.DataFrame, *, url: str = "", tab_name: str = "", remove_empty_columns: bool = False, 
     remove_stable_columns: bool = False,
     verbose: bool = True,
