@@ -2,12 +2,14 @@ import json
 import logging
 import os
 import pickle
+import pprint
 from typing import Any, Dict
 
 import pandas as pd
 import pytest
 
 import helpers.hcache_simple as hcacsimp
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -1269,10 +1271,13 @@ class Test_mock_cache(_BaseCacheTest):
         # Step 2: Read the cache data from memory.
         _LOG.debug("Step 2: Read cache data")
         cache_data = hcacsimp.get_cache(func_name)
-        cache_key = '{"args": [42], "kwargs": {}}'
-        self.assertIn(cache_key, cache_data)
-        cached_value = cache_data[cache_key]
-        self.assertEqual(cached_value, expected_result)
+        expected = """
+        {
+            "{\"args\": [42], \"kwargs\": {}}": 84
+        }
+        """
+        expected = hprint.dedent(expected)
+        self.assert_equal(pprint.pformat(cache_data), expected)
         # Step 3: Reset the cache (both memory and disk).
         _LOG.debug("Step 3: Reset cache")
         hcacsimp.reset_cache(func_name, interactive=False)

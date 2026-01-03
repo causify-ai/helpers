@@ -45,6 +45,27 @@ if "_CACHE" not in globals():
     _CACHE: _CacheType = {}
 
 
+def sanity_check_cache(cache_data: _CacheType, *, assert_on_empty: bool = True) -> None:
+    """
+    Sanity check the cache data.
+
+    :param cache_data: The cache data to check.
+    :param assert_on_empty: If True, assert that the cache data is not empty.
+    """
+    hdbg.dassert_isinstance(cache_data, dict)
+    if assert_on_empty:
+        hdbg.dassert_ne(len(cache_data), 0, "Cache data is empty")
+    for func_name, func_data in cache_data.items():
+        hdbg.dassert_isinstance(func_name, str)
+        hdbg.dassert_ne(func_name, "", "Function name is empty")
+        hdbg.dassert_isinstance(func_data, dict), f"func_data is not a dict: {func_data}"
+        if assert_on_empty:
+            hdbg.dassert_ne(len(func_data), 0, "Function data is empty")
+        for cache_key, cached_value in func_data.items():
+            hdbg.dassert_isinstance(cache_key, str)
+            hdbg.dassert_ne(cache_key, "", "Cache key is empty")
+            hdbg.dassert_isinstance(cached_value, Any)
+
 # #############################################################################
 # Cache properties.
 # #############################################################################
@@ -266,6 +287,11 @@ def get_cache_func_names(type_: str) -> List[str]:
     elif type_ == "disk":
         disk_func_names = glob.glob(os.path.join(get_cache_dir(), "tmp.cache_simple.*"))
         disk_func_names = [os.path.basename(cache) for cache in disk_func_names]
+        # Exclude the cache property file.
+        disk_func_names = [
+            cache for cache in disk_func_names
+            if cache != "tmp.cache_simple_property.pkl"
+        ]
         disk_func_names = [
             re.sub(r"tmp\.cache_simple\.(.*)\.(json|pkl)", r"\1", cache)
             for cache in disk_func_names
@@ -691,21 +717,8 @@ def reset_cache(func_name: str = "", interactive: bool = True) -> None:
 
 
 # #############################################################################
-# Decorator
+# Mock / unit test cache.
 # #############################################################################
-
-# - Decorated functions accept special keyword arguments to control caching
-#   behavior:
-#   - `force_refresh=True`: Bypass cache and recompute the result
-#   - `abort_on_cache_miss=True`: Raise an exception if cache miss occurs
-#   - `report_on_cache_miss=True`: Return "_cache_miss_" instead of computing on
-#     cache miss
-#   - `cache_mode`: Alternative way to control caching with predefined modes:
-#     - `"REFRESH_CACHE"`: Force cache refresh (same as `force_refresh=True`)
-#     - `"HIT_CACHE_OR_ABORT"`: Abort on cache miss (same as
-#       `abort_on_cache_miss=True`)
-#     - `"DISABLE_CACHE"`: Completely disable caching for this call
-
 
 def _get_cache_key(args: Any, kwargs: Any) -> str:
     cache_key = json.dumps(
@@ -731,8 +744,13 @@ def mock_cache(func_name: str, args: Any, kwargs: Any, value: Any) -> None:
     :param value: The value to store in the cache.
     """
     # In general we should not use the main cache for mocking.
-    hdbg.dassert_ne( get_cache_dir(), get_main_cache_dir(),
+    hdbg.dassert_ne(get_cache_dir(), get_main_cache_dir(),
         msg="We do not use the main cache for mocking")
+    hdbg.dassert_isinstance(func_name, str)
+    hdbg.dassert_ne(func_name, "", "Function name is empty")
+    hdbg.dassert_isinstance(args, tuple), f"args is not a tuple: {args}"
+    hdbg.dassert_isinstance(kwargs, dict), f"kwargs is not a dict: {kwargs}"
+    hdbg.dassert_ne(kwargs, {}, "Keyword arguments are empty")
     # Get the cache key.
     cache_key = _get_cache_key(args, kwargs)
     # Get the cache.
@@ -740,6 +758,37 @@ def mock_cache(func_name: str, args: Any, kwargs: Any, value: Any) -> None:
     # Update cache.
     cache[cache_key] = value
 
+
+import json
+
+def mock_cache_from_disk(func_name: str, cache_data: _CacheType) -> None:
+    """
+    Mock the cache from disk data.
+
+    :param func_name: The name of the function.
+    :param cache_data: The cache data to mock.
+    """
+    hdbg.dassert_isinstance(func_name, str)
+    hcacsimp.sanity_check_cache(cache_data, assert_on_empty=True)
+    for cache_key, cached_value in cache_data.items():
+        mock_cache(func_name, cache_key, cached_value)
+
+
+# #############################################################################
+# Decorator
+# #############################################################################
+
+# - Decorated functions accept special keyword arguments to control caching
+#   behavior:
+#   - `force_refresh=True`: Bypass cache and recompute the result
+#   - `abort_on_cache_miss=True`: Raise an exception if cache miss occurs
+#   - `report_on_cache_miss=True`: Return "_cache_miss_" instead of computing on
+#     cache miss
+#   - `cache_mode`: Alternative way to control caching with predefined modes:
+#     - `"REFRESH_CACHE"`: Force cache refresh (same as `force_refresh=True`)
+#     - `"HIT_CACHE_OR_ABORT"`: Abort on cache miss (same as
+#       `abort_on_cache_miss=True`)
+#     - `"DISABLE_CACHE"`: Completely disable caching for this call
 
 # TODO(gp): Not sure that cache_mode is worth having the duplication.
 def simple_cache(
