@@ -1,14 +1,16 @@
 import logging
 import os
 import pickle
+import time
+from typing import Dict
 
 import pandas as pd
 import pytest
-from typing import Dict
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -268,11 +270,11 @@ class Test_apply_llm_with_files(hunitest.TestCase):
         """
         self._run_test_cases_print_only(use_llm_executable=True)
 
+
 # #############################################################################
 # Test_apply_llm_prompt_to_df1
 # #############################################################################
 
-import time
 
 class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     """
@@ -318,8 +320,13 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         _LOG.debug("-> result_str='%s'", result_str)
         return result_str
 
-    # TODO(ai_gp): add type hints.
-    def helper(self, df, batch_size, expected_df, expected_stats: Dict[str, int]) -> None:
+    def helper(
+        self,
+        df: pd.DataFrame,
+        batch_size: int,
+        expected_df: pd.DataFrame,
+        expected_stats: Dict[str, int],
+    ) -> None:
         """
         Test apply_llm_prompt_to_df with testing_functor that uses eval.
         """
@@ -342,7 +349,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         )
         # Check outputs.
         self.assert_equal(str(result_df), str(expected_df))
-        self.assert_equal(str(stats, expected_stats))
+        self.assert_equal(str(stats), str(expected_stats))
 
     def _helper_test1(self, batch_size: int) -> None:
         """
@@ -357,10 +364,11 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
             "result": ["5", "50", "75", "5.0"],
         })
+        num_items = len(df)
         expected_stats = {
-            "num_items": 4,
+            "num_items": num_items,
             "num_skipped": 0,
-            "num_batches": 1,
+            "num_batches": (num_items + batch_size - 1) // batch_size,
         }
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
@@ -394,10 +402,11 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             ],
             "result": ["2", "6", "5", "5.0", "9", "33", "3"],
         })
+        num_items = len(df)
         expected_stats = {
-            "num_items": 7,
+            "num_items": num_items,
             "num_skipped": 0,
-            "num_batches": 1,
+            "num_batches": (num_items + batch_size - 1) // batch_size,
         }
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
@@ -432,10 +441,11 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             ],
             "result": ["10", "12", "12", "8.0", "8"],
         })
+        num_items = len(df)
         expected_stats = {
-            "num_items": 5,
+            "num_items": num_items,
             "num_skipped": 0,
-            "num_batches": 1,
+            "num_batches": (num_items + batch_size - 1) // batch_size,
         }
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
@@ -456,10 +466,11 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             "expression": ["5 + 5", "", "10 + 10", None, "15 + 15"],
             "result": ["10", "", "20", "", "30"],
         })
+        num_items = len(df)
         expected_stats = {
-            "num_items": 5,
+            "num_items": num_items,
             "num_skipped": 2,
-            "num_batches": 1,
+            "num_batches": (num_items + batch_size - 1) // batch_size,
         }
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
@@ -480,30 +491,33 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             "expression": ["1 + 1", "", None, "", "5 + 5"],
             "result": ["2", "", "", "", "10"],
         })
+        num_items = len(df)
         expected_stats = {
-            "num_items": 5,
-            "num_skipped": 0,
-            "num_batches": 1,
+            "num_items": num_items,
+            "num_skipped": 3,
+            "num_batches": (num_items + batch_size - 1) // batch_size,
         }
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
 
+    # batch_size=1
+
     def test1_num_batch1(self) -> None:
         self._helper_test1(batch_size=1)
 
-    def test2_num_batch2(self) -> None:
+    def test2_num_batch1(self) -> None:
         self._helper_test2(batch_size=1)
 
-    def test3_num_batch3(self) -> None:
+    def test3_num_batch1(self) -> None:
         self._helper_test3(batch_size=1)
 
-    def test4_num_batch4(self) -> None:
+    def test4_num_batch1(self) -> None:
         self._helper_test4(batch_size=1)
 
-    def test5_num_batch5(self) -> None:
+    def test5_num_batch1(self) -> None:
         self._helper_test5(batch_size=1)
  
-    #
+    # batch_size=2
 
     def test1_num_batch2(self) -> None:
         self._helper_test1(batch_size=2)
@@ -520,8 +534,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     def test5_num_batch2(self) -> None:
         self._helper_test5(batch_size=2)
 
-    # 
-
+    # batch_size=3
     def test1_num_batch3(self) -> None:
         self._helper_test1(batch_size=3)
 
@@ -537,7 +550,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     def test5_num_batch3(self) -> None:
         self._helper_test5(batch_size=3)
 
-    # 
+    # batch_size=5
 
     def test1_num_batch10(self) -> None:
         self._helper_test1(batch_size=10)
@@ -554,11 +567,11 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     def test5_num_batch10(self) -> None:
         self._helper_test5(batch_size=10)
 
+
 # #############################################################################
-# Test_apply_llm_prompt_to_df
+# Test_apply_llm_prompt_to_df2
 # #############################################################################
-import helpers.hprint as hprint
-import pprint
+
 
 class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
     """
@@ -601,7 +614,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         else:
             # Already a string.
             return obj
-        
+
     def _create_test_df(self) -> pd.DataFrame:
         # Create a minimal DataFrame with test data (2 rows).
         df = pd.DataFrame({

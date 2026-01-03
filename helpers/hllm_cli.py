@@ -7,16 +7,17 @@ import helpers.hllm_cli as hllmcli
 import logging
 import shlex
 import subprocess
-from typing import Callable, List, Optional, Union, Dict, Tuple
+import sys
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from tqdm import tqdm
 
-import helpers.hdbg as hdbg
 import helpers.hcache_simple as hcacsimp
+import helpers.hdbg as hdbg
+import helpers.henv as henv
 import helpers.hio as hio
 import helpers.hsystem as hsystem
-import helpers.henv as henv
 
 _LOG = logging.getLogger(__name__)
 
@@ -40,7 +41,6 @@ def install_needed_modules(
     )
     # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
     import importlib
-    import sys
 
     # Reload this module (hgoogle_drive_api) if already imported
     this_module_name = __name__
@@ -339,11 +339,11 @@ def apply_llm_batch(
     for input_str in input_list:
         if testing_functor is None:
             response = apply_llm(
-            input_str,
-            system_prompt=prompt,
-            model=model,
-            use_llm_executable=use_llm_executable,
-        )
+                input_str,
+                system_prompt=prompt,
+                model=model,
+                use_llm_executable=use_llm_executable,
+            )
         else:
             response = testing_functor(input_str)
         responses.append(response)
@@ -352,7 +352,7 @@ def apply_llm_batch(
     _LOG.debug("Batch processing completed")
     return responses
 
-    
+
 # TODO(gp): Move it somewhere else.
 def get_tqdm_progress_bar() -> tqdm:
     # Use appropriate tqdm for notebook or terminal
@@ -369,7 +369,6 @@ def get_tqdm_progress_bar() -> tqdm:
         tqdm_progress = tqdm
     return tqdm_progress
 
-import sys
 
 # TODO(gp): Skip values that already have a value in the target column.
 # TODO(gp): Parallelize
@@ -382,7 +381,7 @@ def apply_llm_prompt_to_df(
     batch_size: int = 100,
     dump_every_batch: Optional[str] = None,
     model: Optional[str] = None,
-    tag : str = "Processing",
+    tag: str = "Processing",
     testing_functor: Optional[Callable[[str], str]] = None,
 ) -> Tuple[pd.DataFrame, Dict[str, int]]:
     """
@@ -426,8 +425,9 @@ def apply_llm_prompt_to_df(
     num_skipped = 0
     progress_bar_ctor = get_tqdm_progress_bar()
     progress_bar_object = progress_bar_ctor(  # type: ignore
-        total=num_items, desc=tag,
-        dynamic_ncols=True, 
+        total=num_items,
+        desc=tag,
+        dynamic_ncols=True,
         # Workaround for unit tests.
         # file=sys.__stderr__
     )
