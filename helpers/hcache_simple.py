@@ -110,7 +110,7 @@ def get_cache_property_file() -> str:
 
     :return: The cache property file name.
     """
-    val = os.path.join(get_cache_dir(), "tmp.cache_property.pkl")
+    val = os.path.join(get_cache_dir(), "tmp.cache_simple_property.pkl")
     return val
 
 
@@ -264,7 +264,7 @@ def get_cache_func_names(type_: str) -> List[str]:
         mem_func_names = sorted(list(_CACHE.keys()))
         val = mem_func_names
     elif type_ == "disk":
-        disk_func_names = glob.glob(os.path.join(get_cache_dir(), "tmp.cache.*"))
+        disk_func_names = glob.glob(os.path.join(get_cache_dir(), "tmp.cache_simple.*"))
         disk_func_names = [os.path.basename(cache) for cache in disk_func_names]
         disk_func_names = [
             re.sub(r"tmp\.cache\.(.*)\.(json|pkl)", r"\1", cache)
@@ -402,7 +402,7 @@ def _get_cache_file_name(func_name: str) -> str:
     """
     _LOG.debug("func_name='%s'", func_name)
     hdbg.dassert_isinstance(func_name, str)
-    file_name = os.path.join(get_cache_dir(), f"tmp.cache.{func_name}")
+    file_name = os.path.join(get_cache_dir(), f"tmp.cache_simple.{func_name}")
     cache_type = get_cache_property(func_name, "type")
     _LOG.debug(hprint.to_str("cache_type"))
     if cache_type == "pickle":
@@ -660,13 +660,13 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
             f"Are you sure you want to reset the disk cache for func_name={func_name}?"
         )
     if func_name == "":
-        _LOG.info("Before resetting disk cache:\n%s", cache_stats_to_str())
-        cache_files = glob.glob(os.path.join(get_cache_dir(), "tmp.cache.*"))
+        _LOG.debug("Before resetting disk cache:\n%s", cache_stats_to_str())
+        cache_files = glob.glob(os.path.join(get_cache_dir(), "tmp.cache_simple.*"))
         _LOG.warning("Resetting disk cache")
         for file_name in cache_files:
             if os.path.isfile(file_name):
                 os.remove(file_name)
-        _LOG.info("After:\n%s", cache_stats_to_str())
+        _LOG.debug("After:\n%s", cache_stats_to_str())
         return
     #
     file_name = _get_cache_file_name(func_name)

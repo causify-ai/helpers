@@ -9,6 +9,7 @@
   * [Cache Inspection and Statistics](#cache-inspection-and-statistics)
   * [Cache Properties: User and System](#cache-properties-user-and-system)
   * [Decorator](#decorator)
+  * [Mock Cache](#mock-cache)
   * [Common Misunderstandings](#common-misunderstandings)
   * [Execution Flow Diagram](#execution-flow-diagram)
 
@@ -333,6 +334,75 @@
       instance (even for the same prompt) would result in a cache miss. This
       exclusion ensures the cache key is based only on the `prompt`, improving
       hit rates.
+
+## Mock Cache
+
+- Purpose:
+  - The `mock_cache` function allows testing of cached functions without
+    executing expensive operations (e.g., API calls, database queries, LLM
+    calls)
+  - Useful for unit testing when you want to simulate cached values without
+    actually calling the real function
+
+- Function signature:
+  ```python
+  def mock_cache(func_name: str, args: Any, kwargs: Any, value: Any) -> None
+  ```
+
+- Parameters:
+  - `func_name`: The name of the cached function to mock
+  - `args`: The positional arguments for the function (as a list)
+  - `kwargs`: The keyword arguments for the function (as a dict)
+  - `value`: The value to store in the cache (the return value to mock)
+
+- Safety requirement:
+  - `mock_cache` requires using a temporary cache directory (not the main cache
+    directory) to prevent accidentally polluting the production cache
+  - Use `set_cache_dir()` to configure a test-specific cache directory before
+    calling `mock_cache`
+
+- Typical workflow:
+  1. Set up a temporary cache directory (e.g., using `self.get_scratch_space()`
+     in tests)
+  2. (Optional) Warm up the cache by calling the function once to capture the
+     real cached value
+  3. (Optional) Read the cached value for later reuse
+  4. Reset the cache to clear all cached data
+  5. Use `mock_cache()` to insert a known value for specific arguments
+  6. Call the cached function with `abort_on_cache_miss=True` to verify the
+     cache is hit
+
+- Flow example:
+  - Testing an expensive LLM call:
+    ```python
+    import helpers.hcache_simple as hcacsimp
+
+    @hcacsimp.simple_cache(cache_type="json")
+    def call_llm(prompt: str) -> str:
+        # Expensive LLM API call
+        return expensive_llm_api(prompt)
+
+    # In test:
+    def test_llm_function():
+        # Set up temporary cache directory
+        temp_dir = "/tmp/test_cache"
+        hcacsimp.set_cache_dir(temp_dir)
+
+        # Mock the cache with a known response
+        test_prompt = "Hello, world!"
+        mock_response = "Mocked LLM response"
+        hcacsimp.mock_cache("call_llm", [test_prompt], {}, mock_response)
+
+        # Verify cache hit (function not actually called)
+        result = call_llm(test_prompt, abort_on_cache_miss=True)
+        assert result == mock_response
+    ```
+
+- Use cases:
+  - Testing functions that call expensive external APIs (OpenAI, AWS, etc.)
+  - Testing functions with non-deterministic behavior by providing fixed values
+  - Creating reproducible test scenarios without network dependencies
+  - Speeding up test suites by avoiding actual expensive computations
 
 ## Common Misunderstandings
 
