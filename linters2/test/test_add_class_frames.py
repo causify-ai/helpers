@@ -1,6 +1,6 @@
 import helpers.hunit_test as hunitest
 import helpers.hprint as hprint
-import linters2.add_class_frames as laadclfr
+import linters2.add_class_frames as ladclfra
 
 # #############################################################################
 # Test_add_class_frame
@@ -11,7 +11,7 @@ class Test_add_class_frame(hunitest.TestCase):
         # Initialize the input file contents.
         content = hprint.dedent(content)
         # Run.
-        actual = "\n".join(laadclfr.update_class_frames(content))
+        actual = "\n".join(ladclfra.update_class_frames(content))
         expected = hprint.dedent(expected)
         # Check.
         self.assert_equal(actual, expected)

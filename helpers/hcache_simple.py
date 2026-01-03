@@ -45,7 +45,9 @@ if "_CACHE" not in globals():
     _CACHE: _CacheType = {}
 
 
-def sanity_check_cache(cache_data: _CacheType, *, assert_on_empty: bool = True) -> None:
+def sanity_check_cache(
+    cache_data: _CacheType, *, assert_on_empty: bool = True
+) -> None:
     """
     Sanity check the cache data.
 
@@ -58,7 +60,10 @@ def sanity_check_cache(cache_data: _CacheType, *, assert_on_empty: bool = True) 
     for func_name, func_data in cache_data.items():
         hdbg.dassert_isinstance(func_name, str)
         hdbg.dassert_ne(func_name, "", "Function name is empty")
-        hdbg.dassert_isinstance(func_data, dict), f"func_data is not a dict: {func_data}"
+        (
+            hdbg.dassert_isinstance(func_data, dict),
+            f"func_data is not a dict: {func_data}",
+        )
         if assert_on_empty:
             hdbg.dassert_ne(len(func_data), 0, "Function data is empty")
         for cache_key, cached_value in func_data.items():
@@ -78,6 +83,7 @@ def cache_data_to_str(cache_data: _CacheType) -> str:
             txt.append(f"  cache_key={cache_key} cached_value={cached_value}")
     result = "\n".join(txt)
     return result
+
 
 # #############################################################################
 # Cache properties.
@@ -298,11 +304,14 @@ def get_cache_func_names(type_: str) -> List[str]:
         mem_func_names = sorted(list(_CACHE.keys()))
         val = mem_func_names
     elif type_ == "disk":
-        disk_func_names = glob.glob(os.path.join(get_cache_dir(), "tmp.cache_simple.*"))
+        disk_func_names = glob.glob(
+            os.path.join(get_cache_dir(), "tmp.cache_simple.*")
+        )
         disk_func_names = [os.path.basename(cache) for cache in disk_func_names]
         # Exclude the cache property file.
         disk_func_names = [
-            cache for cache in disk_func_names
+            cache
+            for cache in disk_func_names
             if cache != "tmp.cache_simple_property.pkl"
         ]
         disk_func_names = [
@@ -700,7 +709,9 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
         )
     if func_name == "":
         _LOG.debug("Before resetting disk cache:\n%s", cache_stats_to_str())
-        cache_files = glob.glob(os.path.join(get_cache_dir(), "tmp.cache_simple.*"))
+        cache_files = glob.glob(
+            os.path.join(get_cache_dir(), "tmp.cache_simple.*")
+        )
         _LOG.warning("Resetting disk cache")
         for file_name in cache_files:
             if os.path.isfile(file_name):
@@ -733,6 +744,7 @@ def reset_cache(func_name: str = "", interactive: bool = True) -> None:
 # Mock / unit test cache.
 # #############################################################################
 
+
 def _get_cache_key(args: Any, kwargs: Any) -> str:
     cache_key = json.dumps(
         {"args": args, "kwargs": kwargs},
@@ -757,8 +769,11 @@ def mock_cache(func_name: str, args: Any, kwargs: Any, value: Any) -> None:
     :param value: The value to store in the cache.
     """
     # In general we should not use the main cache for mocking.
-    hdbg.dassert_ne(get_cache_dir(), get_main_cache_dir(),
-        msg="We do not use the main cache for mocking")
+    hdbg.dassert_ne(
+        get_cache_dir(),
+        get_main_cache_dir(),
+        msg="We do not use the main cache for mocking",
+    )
     hdbg.dassert_isinstance(func_name, str)
     hdbg.dassert_ne(func_name, "", "Function name is empty")
     hdbg.dassert_isinstance(args, tuple), f"args is not a tuple: {args}"
@@ -771,8 +786,6 @@ def mock_cache(func_name: str, args: Any, kwargs: Any, value: Any) -> None:
     # Update cache.
     cache[cache_key] = value
 
-
-import json
 
 def mock_cache_from_disk(func_name: str, cache_data: _CacheType) -> None:
     """
@@ -802,6 +815,7 @@ def mock_cache_from_disk(func_name: str, cache_data: _CacheType) -> None:
 #     - `"HIT_CACHE_OR_ABORT"`: Abort on cache miss (same as
 #       `abort_on_cache_miss=True`)
 #     - `"DISABLE_CACHE"`: Completely disable caching for this call
+
 
 # TODO(gp): Not sure that cache_mode is worth having the duplication.
 def simple_cache(

@@ -1,17 +1,13 @@
 import logging
 import os
-import pickle
 import time
 from typing import Dict
 
 import pandas as pd
 import pytest
 
-import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
-import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -98,6 +94,9 @@ _TEST_CASES_PRINT_ONLY = [
     ),
 ]
 
+# #############################################################################
+# Test_apply_llm_with_files
+# #############################################################################
 
 class Test_apply_llm_with_files(hunitest.TestCase):
     """
@@ -137,7 +136,7 @@ class Test_apply_llm_with_files(hunitest.TestCase):
 
     @pytest.mark.skipif(
         __import__("importlib").util.find_spec("llm") is None,
-        reason="llm Python library is not installed"
+        reason="llm Python library is not installed",
     )
     def test_library(self) -> None:
         """
@@ -149,8 +148,7 @@ class Test_apply_llm_with_files(hunitest.TestCase):
         self._run_test_cases(use_llm_executable=False)
 
     @pytest.mark.skipif(
-        not hllmcli._check_llm_executable(),
-        reason="llm executable not found"
+        not hllmcli._check_llm_executable(), reason="llm executable not found"
     )
     def test_executable(self) -> None:
         """
@@ -194,7 +192,7 @@ class Test_apply_llm_with_files(hunitest.TestCase):
 
     @pytest.mark.skipif(
         __import__("importlib").util.find_spec("llm") is None,
-        reason="llm Python library is not installed"
+        reason="llm Python library is not installed",
     )
     def test_input_text_library(self) -> None:
         """
@@ -206,8 +204,7 @@ class Test_apply_llm_with_files(hunitest.TestCase):
         self._run_test_cases_input_text(use_llm_executable=False)
 
     @pytest.mark.skipif(
-        not hllmcli._check_llm_executable(),
-        reason="llm executable not found"
+        not hllmcli._check_llm_executable(), reason="llm executable not found"
     )
     def test_input_text_executable(self) -> None:
         """
@@ -244,7 +241,7 @@ class Test_apply_llm_with_files(hunitest.TestCase):
 
     @pytest.mark.skipif(
         __import__("importlib").util.find_spec("llm") is None,
-        reason="llm Python library is not installed"
+        reason="llm Python library is not installed",
     )
     def test_print_only_library(self) -> None:
         """
@@ -257,8 +254,7 @@ class Test_apply_llm_with_files(hunitest.TestCase):
         self._run_test_cases_print_only(use_llm_executable=False)
 
     @pytest.mark.skipif(
-        not hllmcli._check_llm_executable(),
-        reason="llm executable not found"
+        not hllmcli._check_llm_executable(), reason="llm executable not found"
     )
     def test_print_only_executable(self) -> None:
         """
@@ -270,11 +266,9 @@ class Test_apply_llm_with_files(hunitest.TestCase):
         """
         self._run_test_cases_print_only(use_llm_executable=True)
 
-
 # #############################################################################
 # Test_apply_llm_prompt_to_df1
 # #############################################################################
-
 
 class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     """
@@ -334,9 +328,11 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         prompt = "Dummy"
         extractor = self._extract_expression
         # To test the progress bar.
-        #delay = 0.5
+        # delay = 0.5
         delay = 0.0
-        testing_functor = lambda input_str: self._eval_functor(input_str, delay=delay)
+        testing_functor = lambda input_str: self._eval_functor(
+            input_str, delay=delay
+        )
         # Run test.
         result_df, stats = hllmcli.apply_llm_prompt_to_df(
             prompt=prompt,
@@ -356,14 +352,18 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         Test apply_llm_prompt_to_df with testing_functor that uses eval.
         """
         # Prepare inputs.
-        df = pd.DataFrame({
-            "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
-        })
+        df = pd.DataFrame(
+            {
+                "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
+            }
+        )
         # Prepare outputs.
-        expected_df = pd.DataFrame({
-            "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
-            "result": ["5", "50", "75", "5.0"],
-        })
+        expected_df = pd.DataFrame(
+            {
+                "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
+                "result": ["5", "50", "75", "5.0"],
+            }
+        )
         num_items = len(df)
         expected_stats = {
             "num_items": num_items,
@@ -378,30 +378,34 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         Test apply_llm_prompt_to_df with larger dataframe and batch_size > 1.
         """
         # Prepare inputs.
-        df = pd.DataFrame({
-            "expression": [
-                "1 + 1",
-                "2 * 3",
-                "10 - 5",
-                "20 / 4",
-                "3 ** 2",
-                "100 // 3",
-                "15 % 4",
-            ],
-        })
+        df = pd.DataFrame(
+            {
+                "expression": [
+                    "1 + 1",
+                    "2 * 3",
+                    "10 - 5",
+                    "20 / 4",
+                    "3 ** 2",
+                    "100 // 3",
+                    "15 % 4",
+                ],
+            }
+        )
         # Prepare outputs.
-        expected_df = pd.DataFrame({
-            "expression": [
-                "1 + 1",
-                "2 * 3",
-                "10 - 5",
-                "20 / 4",
-                "3 ** 2",
-                "100 // 3",
-                "15 % 4",
-            ],
-            "result": ["2", "6", "5", "5.0", "9", "33", "3"],
-        })
+        expected_df = pd.DataFrame(
+            {
+                "expression": [
+                    "1 + 1",
+                    "2 * 3",
+                    "10 - 5",
+                    "20 / 4",
+                    "3 ** 2",
+                    "100 // 3",
+                    "15 % 4",
+                ],
+                "result": ["2", "6", "5", "5.0", "9", "33", "3"],
+            }
+        )
         num_items = len(df)
         expected_stats = {
             "num_items": num_items,
@@ -419,28 +423,32 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         are overwritten with computed results from the testing_functor.
         """
         # Prepare inputs.
-        df = pd.DataFrame({
-            "expression": [
-                "5 + 5",
-                "3 * 4",
-                "20 - 8",
-                "16 / 2",
-                "2 ** 3",
-            ],
-        })
+        df = pd.DataFrame(
+            {
+                "expression": [
+                    "5 + 5",
+                    "3 * 4",
+                    "20 - 8",
+                    "16 / 2",
+                    "2 ** 3",
+                ],
+            }
+        )
         # Pre-fill some values in the target column.
         df["result"] = [None, "12", None, None, "8"]
         # Prepare outputs.
-        expected_df = pd.DataFrame({
-            "expression": [
-                "5 + 5",
-                "3 * 4",
-                "20 - 8",
-                "16 / 2",
-                "2 ** 3",
-            ],
-            "result": ["10", "12", "12", "8.0", "8"],
-        })
+        expected_df = pd.DataFrame(
+            {
+                "expression": [
+                    "5 + 5",
+                    "3 * 4",
+                    "20 - 8",
+                    "16 / 2",
+                    "2 ** 3",
+                ],
+                "result": ["10", "12", "12", "8.0", "8"],
+            }
+        )
         num_items = len(df)
         expected_stats = {
             "num_items": num_items,
@@ -458,14 +466,18 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         and marked with empty string in the result column.
         """
         # Prepare inputs.
-        df = pd.DataFrame({
-            "expression": ["5 + 5", "", "10 + 10", None, "15 + 15"],
-        })
+        df = pd.DataFrame(
+            {
+                "expression": ["5 + 5", "", "10 + 10", None, "15 + 15"],
+            }
+        )
         # Prepare outputs.
-        expected_df = pd.DataFrame({
-            "expression": ["5 + 5", "", "10 + 10", None, "15 + 15"],
-            "result": ["10", "", "20", "", "30"],
-        })
+        expected_df = pd.DataFrame(
+            {
+                "expression": ["5 + 5", "", "10 + 10", None, "15 + 15"],
+                "result": ["10", "", "20", "", "30"],
+            }
+        )
         num_items = len(df)
         expected_stats = {
             "num_items": num_items,
@@ -483,14 +495,18 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         entirely and the else branch is executed.
         """
         # Prepare inputs.
-        df = pd.DataFrame({
-            "expression": ["1 + 1", "", None, "", "5 + 5"],
-        })
+        df = pd.DataFrame(
+            {
+                "expression": ["1 + 1", "", None, "", "5 + 5"],
+            }
+        )
         # Prepare outputs.
-        expected_df = pd.DataFrame({
-            "expression": ["1 + 1", "", None, "", "5 + 5"],
-            "result": ["2", "", "", "", "10"],
-        })
+        expected_df = pd.DataFrame(
+            {
+                "expression": ["1 + 1", "", None, "", "5 + 5"],
+                "result": ["2", "", "", "", "10"],
+            }
+        )
         num_items = len(df)
         expected_stats = {
             "num_items": num_items,
