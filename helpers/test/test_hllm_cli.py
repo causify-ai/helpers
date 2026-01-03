@@ -271,6 +271,8 @@ class Test_apply_llm_with_files(hunitest.TestCase):
 # Test_apply_llm_prompt_to_df1
 # #############################################################################
 
+import time
+
 class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     """
     Test apply_llm_prompt_to_df with testing_functor.
@@ -287,14 +289,20 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         if isinstance(obj, pd.Series):
             # Extract from DataFrame row.
             if "expression" in obj.index:
-                return obj["expression"]
+                expr = obj["expression"]
+                # Handle None, NaN, or empty string.
+                if pd.isna(expr) or expr == "":
+                    return ""
+                return str(expr)
             return ""
         else:
             # Already a string.
-            return obj
+            if pd.isna(obj) or obj == "":
+                return ""
+            return str(obj)
 
     @staticmethod
-    def _eval_functor(input_str: str) -> str:
+    def _eval_functor(input_str: str, *, delay: float = 0.0) -> str:
         """
         Evaluate the input string using eval and return the result as a string.
 
@@ -302,11 +310,14 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         :return: result of evaluation as a string
         """
         _LOG.debug("input_str='%s'", input_str)
+        if delay > 0.0:
+            time.sleep(delay)
         result = eval(input_str)
         result_str = str(result)
         _LOG.debug("-> result_str='%s'", result_str)
         return result_str
 
+    # TODO(ai_gp): add type hints.
     def helper(self, df, batch_size, expected_df) -> None:
         """
         Test apply_llm_prompt_to_df with testing_functor that uses eval.
@@ -314,7 +325,10 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         # Prepare inputs.
         prompt = "Dummy"
         extractor = self._extract_expression
-        testing_functor = self._eval_functor
+        # To test the progress bar.
+        #delay = 0.5
+        delay = 0.0
+        testing_functor = lambda input_str: self._eval_functor(input_str, delay=delay)
         # Run test.
         result_df = hllmcli.apply_llm_prompt_to_df(
             prompt=prompt,
@@ -408,6 +422,46 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
                 "2 ** 3",
             ],
             "result": ["10", "12", "12", "8.0", "8"],
+        })
+        # Run test.
+        self.helper(df, batch_size, expected_df)
+
+    def test4(self) -> None:
+        """
+        Test apply_llm_prompt_to_df with rows that have empty extraction results.
+
+        This test verifies that rows with empty or None expressions are skipped
+        and marked with empty string in the result column.
+        """
+        # Prepare inputs.
+        df = pd.DataFrame({
+            "expression": ["5 + 5", "", "10 + 10", None, "15 + 15"],
+        })
+        batch_size = 10
+        # Prepare outputs.
+        expected_df = pd.DataFrame({
+            "expression": ["5 + 5", "", "10 + 10", None, "15 + 15"],
+            "result": ["10", "", "20", "", "30"],
+        })
+        # Run test.
+        self.helper(df, batch_size, expected_df)
+
+    def test5(self) -> None:
+        """
+        Test apply_llm_prompt_to_df with batch where all items have missing data.
+
+        This test verifies that batches with all empty/None items are skipped
+        entirely and the else branch is executed.
+        """
+        # Prepare inputs.
+        df = pd.DataFrame({
+            "expression": ["1 + 1", "", None, "", "5 + 5"],
+        })
+        batch_size = 2
+        # Prepare outputs.
+        expected_df = pd.DataFrame({
+            "expression": ["1 + 1", "", None, "", "5 + 5"],
+            "result": ["2", "", "", "", "10"],
         })
         # Run test.
         self.helper(df, batch_size, expected_df)

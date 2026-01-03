@@ -1,31 +1,49 @@
-Given the passed function, increase the test coverage towards
-100% following the instructions `docs/ai_prompts/coding.format_unit_tests.md`
+Task: Increase unit test coverage to approach 100 percent for a given function.
 
-- For all the code you must follow the instructions in
-  `docs/ai_prompts/coding.format_code.md`
+Context and constraints:
+- You will be given a specific function to work on.
+- All tests and code must strictly follow:
+  - docs/ai_prompts/coding.format_unit_tests.md for tests
+  - docs/ai_prompts/coding.format_code.md for any code
+- Focus on meaningful behavior and correctness rather than superficial coverage.
+- If any part of the task is unclear or underspecified, stop and ask for
+  clarification before proceeding.
 
-Step 1
-- Run the tests in the file corresponding to that function
-  (e.g., helpers/hllm_cli.py -> helpers/test/test_hllm_cli.py)
-  and compute the coverage
+Process:
+
+## Step 1: Establish current coverage
+- Identify the test file corresponding to the target function
+  Example: helpers/hllm_cli.py → helpers/test/test_hllm_cli.py
+- Run the following command and record the results:
 
   pytest --cov=yourpkg --cov-report=term-missing --cov-report=html
 
-Step 2
-- Come up with a testing plan to address the missing untested code
-  - Focus on testing modularly (i.e., testing one function at the
-    time and then the cross-product)
-  - Focus on end-to-end behavior rather than incidental behaviors
-  - Do not test assertions or invalid inputs, unless critical
+- Summarize which lines and branches are not covered.
 
-Step 3
-- Write test class and methods
-- Preview unit tests that need to be written by creating input and expected
-  outputs
-- Do not implement code
+## Step 2: Design a testing plan
+- Analyze uncovered code paths and behaviors.
+- Propose a clear testing plan that:
+  - Tests functions modularly before testing interactions.
+  - Prioritizes end-to-end and user-visible behavior over incidental implementation details.
+  - Avoids testing assertions, defensive checks, or invalid inputs unless they
+    are critical to correctness.
+- Explicitly map each uncovered area to one or more proposed tests.
 
-Step 4
-- Once the user is ok with the plan, implement the code
-- Compute the coverage and make sure that the target function
-- If the task is not perfectly clear, you MUST not perform it, but ask for
-  clarifications
+## Step 3: Specify tests without implementation
+- Define test classes and test method names.
+- For each proposed test:
+  - Describe the input data.
+  - Describe the expected output or observable behavior.
+- Do not write executable test code at this stage.
+
+## Step 4: Implement after approval
+- Wait for user confirmation or feedback on the testing plan.
+- After approval:
+  - Implement the tests according to the approved plan.
+  - Re-run coverage and verify that coverage for the target function is near 100 percent.
+  - Report final coverage results and remaining gaps, if any.
+
+Important rules:
+- Do not implement tests before the plan is approved.
+- Do not proceed if instructions or requirements are ambiguous.
+- Always adhere to the formatting and style guides referenced above.

@@ -1,9 +1,3 @@
-[report]
-# Glob pattern(s) of files to omit from the report.
-omit =
-    */devops/compose/*
-    */helpers/test/outcomes/*/tmp.scratch/*
-
 [run]
 branch = True
 # Allow multiple processes to write separate coverage files.
@@ -12,6 +6,15 @@ parallel = True
 concurrency = multiprocessing
 # Ensure coverage data is saved on process termination.
 sigterm = True
+# Glob pattern(s) of files to omit from the report.
+omit =
+    */devops/compose/*
+    */helpers/test/outcomes/*/tmp.scratch/*
+    */site-packages/*
+    */dist-packages/*
+    */.venv/*
+    */venv/*
+    */tests/*
 
 [paths]
 # "/app" in the container is the same as "." on the host.

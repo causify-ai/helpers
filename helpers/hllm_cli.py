@@ -356,7 +356,6 @@ def apply_llm_batch(
 # TODO(gp): Move it somewhere else.
 def get_tqdm_progress_bar() -> tqdm:
     # Use appropriate tqdm for notebook or terminal
-    # TODO(gp): Factor this out somewhere.
     try:
         from IPython import get_ipython
 
@@ -370,11 +369,10 @@ def get_tqdm_progress_bar() -> tqdm:
         tqdm_progress = tqdm
     return tqdm_progress
 
+import sys
 
-# TODO(gp): Add unit tests.
-# TODO(gp): Add tag for progress bar.
-# TODO(gp): Pass progress bar to accumulate.
 # TODO(gp): Skip values that already have a value in the target column.
+# TODO(gp): Parallelize
 def apply_llm_prompt_to_df(
     prompt: str,
     df: pd.DataFrame,
@@ -384,7 +382,7 @@ def apply_llm_prompt_to_df(
     batch_size: int = 100,
     dump_every_batch: Optional[str] = None,
     model: Optional[str] = None,
-    tag : str = "Processing batches",
+    tag : str = "Processing",
     testing_functor: Optional[Callable[[str], str]] = None,
 ) -> pd.DataFrame:
     """
@@ -428,7 +426,10 @@ def apply_llm_prompt_to_df(
     num_skipped = 0
     progress_bar_ctor = get_tqdm_progress_bar()
     progress_bar_object = progress_bar_ctor(  # type: ignore
-        num_items, desc=tag,
+        total=num_items, desc=tag,
+        dynamic_ncols=True, 
+        # Workaround for unit tests.
+        # file=sys.__stderr__
     )
     # TODO(gp): Precompute the batch indices that needs to be processed.
     for batch_num in range(num_batches):
@@ -485,4 +486,4 @@ def apply_llm_prompt_to_df(
         num_items - num_skipped,
         num_skipped,
     )
-    return df
+    return df, num_items, num_skipped, num_batches
