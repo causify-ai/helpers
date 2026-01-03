@@ -516,7 +516,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
 
     def test5_num_batch1(self) -> None:
         self._helper_test5(batch_size=1)
- 
+
     # batch_size=2
 
     def test1_num_batch2(self) -> None:
@@ -535,6 +535,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         self._helper_test5(batch_size=2)
 
     # batch_size=3
+
     def test1_num_batch3(self) -> None:
         self._helper_test1(batch_size=3)
 
@@ -550,7 +551,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     def test5_num_batch3(self) -> None:
         self._helper_test5(batch_size=3)
 
-    # batch_size=5
+    # batch_size=10
 
     def test1_num_batch10(self) -> None:
         self._helper_test1(batch_size=10)
@@ -642,7 +643,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         prompt = self._get_test_prompt()
         extractor = self._extract_test_fields
         # Call apply_llm_prompt_to_df.
-        result_df = hllmcli.apply_llm_prompt_to_df(
+        result_df, _ = hllmcli.apply_llm_prompt_to_df(
             prompt=prompt,
             df=df,
             extractor=extractor,
@@ -699,7 +700,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         hcacsimp.set_cache_property("apply_llm", "abort_on_cache_miss", True)
         # Run test.
         # Call apply_llm_prompt_to_df.
-        result_df = hllmcli.apply_llm_prompt_to_df(
+        result_df, _ = hllmcli.apply_llm_prompt_to_df(
             prompt=prompt,
             df=df,
             extractor=extractor,

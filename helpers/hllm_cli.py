@@ -42,7 +42,7 @@ def install_needed_modules(
     # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
     import importlib
 
-    # Reload this module (hgoogle_drive_api) if already imported
+    # Reload this module if already imported.
     this_module_name = __name__
     if this_module_name in sys.modules:
         importlib.reload(sys.modules[this_module_name])
@@ -387,19 +387,20 @@ def apply_llm_prompt_to_df(
     """
     Apply an LLM to process a dataframe column using the same system prompt.
 
-    This function processes text from a source column in batches, applies the LLM
-    to each item, and stores the results in a target column. It can optionally
-    save progress to a file after each batch.
+    This function processes text from dataframe rows using an extractor function,
+    applies the LLM to each item in batches, and stores the results in a target
+    column. It can optionally save progress to a file after each batch.
 
     :param prompt: system prompt to guide the LLM's behavior
     :param df: dataframe to process
-    :param source_col: name of column containing input text to process
+    :param extractor: callable that extracts text from a row or string
     :param target_col: name of column to store results
     :param batch_size: number of items to process in each batch
     :param dump_every_batch: optional file path to dump the dataframe after each batch
     :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
+    :param tag: description tag for progress bar
     :param testing_functor: optional functor to use for testing
-    :return: dataframe with new target column containing LLM responses
+    :return: tuple of (dataframe with results, statistics dict)
     """
     hdbg.dassert_isinstance(prompt, str)
     hdbg.dassert_ne(prompt, "", "Prompt cannot be empty")
