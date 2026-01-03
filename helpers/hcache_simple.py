@@ -66,6 +66,19 @@ def sanity_check_cache(cache_data: _CacheType, *, assert_on_empty: bool = True) 
             hdbg.dassert_ne(cache_key, "", "Cache key is empty")
             hdbg.dassert_isinstance(cached_value, Any)
 
+
+def cache_data_to_str(cache_data: _CacheType) -> str:
+    txt = []
+    txt.append(hprint.frame("Cache data"))
+    hdbg.dassert_isinstance(cache_data, dict)
+    for func_name, func_data in cache_data.items():
+        txt.append(f"# func_name={func_name}")
+        hdbg.dassert_isinstance(func_data, dict)
+        for cache_key, cached_value in func_data.items():
+            txt.append(f"  cache_key={cache_key} cached_value={cached_value}")
+    result = "\n".join(txt)
+    return result
+
 # #############################################################################
 # Cache properties.
 # #############################################################################

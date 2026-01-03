@@ -267,6 +267,185 @@ class Test_apply_llm_with_files(hunitest.TestCase):
         """
         self._run_test_cases_print_only(use_llm_executable=True)
 
+# #############################################################################
+# Test_apply_llm_prompt_to_df1
+# #############################################################################
+
+class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
+    """
+    Test apply_llm_prompt_to_df with testing_functor.
+    """
+
+    @staticmethod
+    def _extract_expression(obj) -> str:
+        """
+        Extract mathematical expression from a DataFrame row or string.
+
+        :param obj: either a string or a pandas Series
+        :return: extracted string for evaluation
+        """
+        if isinstance(obj, pd.Series):
+            # Extract from DataFrame row.
+            if "expression" in obj.index:
+                return obj["expression"]
+            return ""
+        else:
+            # Already a string.
+            return obj
+
+    @staticmethod
+    def _eval_functor(input_str: str) -> str:
+        """
+        Evaluate the input string using eval and return the result as a string.
+
+        :param input_str: mathematical expression to evaluate
+        :return: result of evaluation as a string
+        """
+        _LOG.debug("input_str='%s'", input_str)
+        result = eval(input_str)
+        result_str = str(result)
+        _LOG.debug("-> result_str='%s'", result_str)
+        return result_str
+
+    def helper(self, df, batch_size, expected_df) -> None:
+        """
+        Test apply_llm_prompt_to_df with testing_functor that uses eval.
+        """
+        # Prepare inputs.
+        prompt = "Dummy"
+        extractor = self._extract_expression
+        testing_functor = self._eval_functor
+        # Run test.
+        result_df = hllmcli.apply_llm_prompt_to_df(
+            prompt=prompt,
+            df=df,
+            extractor=extractor,
+            target_col="result",
+            batch_size=batch_size,
+            model="gpt-5-nano",
+            testing_functor=testing_functor,
+        )
+        # Check outputs.
+        self.assert_equal(str(result_df), str(expected_df))
+
+    # TODO(ai_gp): Use helper for all the functions.
+    def test1(self) -> None:
+        """
+        Test apply_llm_prompt_to_df with testing_functor that uses eval.
+        """
+        # Prepare inputs.
+        df = pd.DataFrame({
+            "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
+        })
+        prompt = "Evaluate the following expression"
+        extractor = self._extract_expression
+        testing_functor = self._eval_functor
+        # Run test.
+        result_df = hllmcli.apply_llm_prompt_to_df(
+            prompt=prompt,
+            df=df,
+            extractor=extractor,
+            target_col="result",
+            batch_size=10,
+            model=None,
+            testing_functor=testing_functor,
+        )
+        # Check outputs.
+        expected_df = pd.DataFrame({
+            "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
+            "result": ["5", "50", "75", "5.0"],
+        })
+        self.assert_equal(str(result_df), str(expected_df))
+
+    def test2(self) -> None:
+        """
+        Test apply_llm_prompt_to_df with larger dataframe and batch_size > 1.
+        """
+        # Prepare inputs.
+        df = pd.DataFrame({
+            "expression": [
+                "1 + 1",
+                "2 * 3",
+                "10 - 5",
+                "20 / 4",
+                "3 ** 2",
+                "100 // 3",
+                "15 % 4",
+            ],
+        })
+        prompt = "Evaluate the following expression"
+        extractor = self._extract_expression
+        testing_functor = self._eval_functor
+        # Run test.
+        result_df = hllmcli.apply_llm_prompt_to_df(
+            prompt=prompt,
+            df=df,
+            extractor=extractor,
+            target_col="result",
+            batch_size=3,
+            model=None,
+            testing_functor=testing_functor,
+        )
+        # Check outputs.
+        expected_df = pd.DataFrame({
+            "expression": [
+                "1 + 1",
+                "2 * 3",
+                "10 - 5",
+                "20 / 4",
+                "3 ** 2",
+                "100 // 3",
+                "15 % 4",
+            ],
+            "result": ["2", "6", "5", "5.0", "9", "33", "3"],
+        })
+        self.assert_equal(str(result_df), str(expected_df))
+
+    def test3(self) -> None:
+        """
+        Test apply_llm_prompt_to_df with pre-filled target column values.
+
+        This test verifies that all rows are processed and pre-filled values
+        are overwritten with computed results from the testing_functor.
+        """
+        # Prepare inputs.
+        df = pd.DataFrame({
+            "expression": [
+                "5 + 5",
+                "3 * 4",
+                "20 - 8",
+                "16 / 2",
+                "2 ** 3",
+            ],
+        })
+        # Pre-fill some values in the target column.
+        df["result"] = [None, "12", None, None, "8"]
+        prompt = "Evaluate the following expression"
+        extractor = self._extract_expression
+        testing_functor = self._eval_functor
+        # Run test.
+        result_df = hllmcli.apply_llm_prompt_to_df(
+            prompt=prompt,
+            df=df,
+            extractor=extractor,
+            target_col="result",
+            batch_size=2,
+            model=None,
+            testing_functor=testing_functor,
+        )
+        # Check outputs.
+        expected_df = pd.DataFrame({
+            "expression": [
+                "5 + 5",
+                "3 * 4",
+                "20 - 8",
+                "16 / 2",
+                "2 ** 3",
+            ],
+            "result": ["10", "12", "12", "8.0", "8"],
+        })
+        self.assert_equal(str(result_df), str(expected_df))
+
 
 # #############################################################################
 # Test_apply_llm_prompt_to_df
@@ -274,7 +453,7 @@ class Test_apply_llm_with_files(hunitest.TestCase):
 import helpers.hprint as hprint
 import pprint
 
-class Test_apply_llm_prompt_to_df(hunitest.TestCase):
+class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
     """
     Test apply_llm_prompt_to_df with mocked cache.
     """
@@ -342,9 +521,6 @@ class Test_apply_llm_prompt_to_df(hunitest.TestCase):
         # Get the prompt and extractor using local helper functions.
         prompt = self._get_test_prompt()
         extractor = self._extract_test_fields
-        # Set abort_on_cache_miss to ensure we don't hit the LLM API.
-        hcacsimp.set_cache_property("apply_llm", "abort_on_cache_miss", True)
-        # Run test.
         # Call apply_llm_prompt_to_df.
         result_df = hllmcli.apply_llm_prompt_to_df(
             prompt=prompt,
@@ -352,20 +528,21 @@ class Test_apply_llm_prompt_to_df(hunitest.TestCase):
             extractor=extractor,
             target_col="sum",
             batch_size=10,
-            model=None,
+            model="gpt-5-nano",
         )
         _LOG.debug("result_df=%s", result_df)
         # Flush the cache to disk to ensure it's saved.
         hcacsimp.flush_cache_to_disk("apply_llm")
         # Read the data from the cache file.
         cache_data = hcacsimp.get_disk_cache("apply_llm")
-        _LOG.debug("cache_data=%s", pprint.pformat(cache_data))
+        cache_data_str = hcacsimp.cache_data_to_str(cache_data)
+        _LOG.debug("Created cache_data_str=\n%s", cache_data_str)
         # Verify cache has entries.
         hcacsimp.sanity_check_cache(cache_data, assert_on_empty=True)
         # Create a file with the cache content.
         input_dir = self.get_input_dir(
             test_class_name=self.__class__.__name__,
-            test_method_name="test1",
+            test_method_name="test_create_cache",
         )
         hio.create_dir(input_dir, incremental=True)
         cache_file = os.path.join(input_dir, "test_cache.pkl")
@@ -386,11 +563,12 @@ class Test_apply_llm_prompt_to_df(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         hcacsimp.set_cache_dir(scratch_dir)
         # Load the saved cache file from test_create_cache's input directory.
-        test_dir = os.path.dirname(__file__)
-        cache_file = os.path.join(test_dir, "test_cache.pkl")
+        input_dir = self.get_input_dir()
+        cache_file = os.path.join(input_dir, "test_cache.pkl")
         with open(cache_file, "rb") as f:
             cache_data = pickle.load(f)
-        _LOG.debug("Loaded cache_data=%s", pprint.pformat(cache_data))
+        cache_data_str = hcacsimp.cache_data_to_str(cache_data)
+        _LOG.debug("Loaded cache_data_str=\n%s", cache_data_str)
         hcacsimp.mock_cache_from_disk("apply_llm", cache_data)
         # Create a minimal DataFrame with test data (2 rows).
         df = self._create_test_df()
@@ -415,6 +593,6 @@ class Test_apply_llm_prompt_to_df(hunitest.TestCase):
             "num2": [3, 15],
             "sum": [5, 25],
         })
-        self.assert_equal(result_df, df)
+        self.assert_equal(result_df, expected_df)
         # Reset the cache property.
         hcacsimp.set_cache_property("apply_llm", "abort_on_cache_miss", False)
