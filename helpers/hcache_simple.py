@@ -265,9 +265,7 @@ def get_cache_func_names(type_: str) -> List[str]:
         val = mem_func_names
     elif type_ == "disk":
         disk_func_names = glob.glob(os.path.join(get_cache_dir(), "tmp.cache.*"))
-        disk_func_names = [
-            os.path.basename(cache) for cache in disk_func_names
-        ]
+        disk_func_names = [os.path.basename(cache) for cache in disk_func_names]
         disk_func_names = [
             re.sub(r"tmp\.cache\.(.*)\.(json|pkl)", r"\1", cache)
             for cache in disk_func_names
@@ -708,6 +706,7 @@ def reset_cache(func_name: str = "", interactive: bool = True) -> None:
 #       `abort_on_cache_miss=True`)
 #     - `"DISABLE_CACHE"`: Completely disable caching for this call
 
+
 def _get_cache_key(args: Any, kwargs: Any) -> str:
     cache_key = json.dumps(
         {"args": args, "kwargs": kwargs},
@@ -877,8 +876,9 @@ def simple_cache(
                 value = func(*args, **kwargs_for_func)
                 # Update cache.
                 cache[cache_key] = value
-                _LOG.debug("Updating cache with key='%s' value='%s'", cache_key,
-                    value)
+                _LOG.debug(
+                    "Updating cache with key='%s' value='%s'", cache_key, value
+                )
                 #
                 if write_through:
                     _LOG.debug("Writing through to disk")
