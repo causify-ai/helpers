@@ -719,17 +719,20 @@ def _get_cache_key(args: Any, kwargs: Any) -> str:
 
 def mock_cache(func_name: str, args: Any, kwargs: Any, value: Any) -> None:
     """
-    Mock the cache for a given function
+    Mock the cache for a given function.
 
-    When we want to mock the cache for a given function, we can use this
-    function to set the cache value for a given function and cache key.
-    In general we should not use the central cache.
+    E.g., when testing a cached expensive function (e.g., an LLM call or
+    downloading data) we can mock the cache to return a fixed value, instead of
+    calling the function.
 
     :param func_name: The name of the function.
     :param args: The arguments for the function.
     :param kwargs: The keyword arguments for the function.
     :param value: The value to store in the cache.
     """
+    # In general we should not use the main cache for mocking.
+    hdbg.dassert_ne( get_cache_dir(), get_main_cache_dir(),
+        msg="We do not use the main cache for mocking")
     # Get the cache key.
     cache_key = _get_cache_key(args, kwargs)
     # Get the cache.
