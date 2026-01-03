@@ -328,7 +328,6 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(str(result_df), str(expected_df))
 
-    # TODO(ai_gp): Use helper for all the functions.
     def test1(self) -> None:
         """
         Test apply_llm_prompt_to_df with testing_functor that uses eval.
@@ -337,25 +336,14 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         df = pd.DataFrame({
             "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
         })
-        prompt = "Evaluate the following expression"
-        extractor = self._extract_expression
-        testing_functor = self._eval_functor
-        # Run test.
-        result_df = hllmcli.apply_llm_prompt_to_df(
-            prompt=prompt,
-            df=df,
-            extractor=extractor,
-            target_col="result",
-            batch_size=10,
-            model=None,
-            testing_functor=testing_functor,
-        )
-        # Check outputs.
+        batch_size = 10
+        # Prepare outputs.
         expected_df = pd.DataFrame({
             "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
             "result": ["5", "50", "75", "5.0"],
         })
-        self.assert_equal(str(result_df), str(expected_df))
+        # Run test.
+        self.helper(df, batch_size, expected_df)
 
     def test2(self) -> None:
         """
@@ -373,20 +361,8 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
                 "15 % 4",
             ],
         })
-        prompt = "Evaluate the following expression"
-        extractor = self._extract_expression
-        testing_functor = self._eval_functor
-        # Run test.
-        result_df = hllmcli.apply_llm_prompt_to_df(
-            prompt=prompt,
-            df=df,
-            extractor=extractor,
-            target_col="result",
-            batch_size=3,
-            model=None,
-            testing_functor=testing_functor,
-        )
-        # Check outputs.
+        batch_size = 3
+        # Prepare outputs.
         expected_df = pd.DataFrame({
             "expression": [
                 "1 + 1",
@@ -399,7 +375,8 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             ],
             "result": ["2", "6", "5", "5.0", "9", "33", "3"],
         })
-        self.assert_equal(str(result_df), str(expected_df))
+        # Run test.
+        self.helper(df, batch_size, expected_df)
 
     def test3(self) -> None:
         """
@@ -420,20 +397,8 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         })
         # Pre-fill some values in the target column.
         df["result"] = [None, "12", None, None, "8"]
-        prompt = "Evaluate the following expression"
-        extractor = self._extract_expression
-        testing_functor = self._eval_functor
-        # Run test.
-        result_df = hllmcli.apply_llm_prompt_to_df(
-            prompt=prompt,
-            df=df,
-            extractor=extractor,
-            target_col="result",
-            batch_size=2,
-            model=None,
-            testing_functor=testing_functor,
-        )
-        # Check outputs.
+        batch_size = 2
+        # Prepare outputs.
         expected_df = pd.DataFrame({
             "expression": [
                 "5 + 5",
@@ -444,7 +409,8 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             ],
             "result": ["10", "12", "12", "8.0", "8"],
         })
-        self.assert_equal(str(result_df), str(expected_df))
+        # Run test.
+        self.helper(df, batch_size, expected_df)
 
 
 # #############################################################################
