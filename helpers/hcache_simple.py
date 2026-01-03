@@ -267,7 +267,7 @@ def get_cache_func_names(type_: str) -> List[str]:
         disk_func_names = glob.glob(os.path.join(get_cache_dir(), "tmp.cache_simple.*"))
         disk_func_names = [os.path.basename(cache) for cache in disk_func_names]
         disk_func_names = [
-            re.sub(r"tmp\.cache\.(.*)\.(json|pkl)", r"\1", cache)
+            re.sub(r"tmp\.cache_simple\.(.*)\.(json|pkl)", r"\1", cache)
             for cache in disk_func_names
         ]
         disk_func_names = sorted(disk_func_names)
@@ -632,10 +632,10 @@ def reset_mem_cache(func_name: str = "") -> None:
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(func_name, str)
     if func_name == "":
-        _LOG.info("Before resetting memory cache:\n%s", cache_stats_to_str())
+        _LOG.debug("Before resetting memory cache:\n%s", cache_stats_to_str())
         for func_name_tmp in get_cache_func_names("all"):
             reset_mem_cache(func_name=func_name_tmp)
-        _LOG.info("After:\n%s", cache_stats_to_str())
+        _LOG.debug("After:\n%s", cache_stats_to_str())
         return
     _CACHE[func_name] = {}
     del _CACHE[func_name]
