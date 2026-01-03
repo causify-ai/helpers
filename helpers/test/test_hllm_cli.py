@@ -4,6 +4,7 @@ import pickle
 
 import pandas as pd
 import pytest
+from typing import Dict
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
@@ -318,7 +319,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         return result_str
 
     # TODO(ai_gp): add type hints.
-    def helper(self, df, batch_size, expected_df) -> None:
+    def helper(self, df, batch_size, expected_df, expected_stats: Dict[str, int]) -> None:
         """
         Test apply_llm_prompt_to_df with testing_functor that uses eval.
         """
@@ -330,7 +331,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         delay = 0.0
         testing_functor = lambda input_str: self._eval_functor(input_str, delay=delay)
         # Run test.
-        result_df = hllmcli.apply_llm_prompt_to_df(
+        result_df, stats = hllmcli.apply_llm_prompt_to_df(
             prompt=prompt,
             df=df,
             extractor=extractor,
@@ -341,6 +342,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         )
         # Check outputs.
         self.assert_equal(str(result_df), str(expected_df))
+        self.assert_equal(str(stats, expected_stats))
 
     def _helper_test1(self, batch_size: int) -> None:
         """
@@ -355,8 +357,13 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             "expression": ["2 + 3", "10 * 5", "100 - 25", "15 / 3"],
             "result": ["5", "50", "75", "5.0"],
         })
+        expected_stats = {
+            "num_items": 4,
+            "num_skipped": 0,
+            "num_batches": 1,
+        }
         # Run test.
-        self.helper(df, batch_size, expected_df)
+        self.helper(df, batch_size, expected_df, expected_stats)
 
     def _helper_test2(self, batch_size: int) -> None:
         """
@@ -387,8 +394,13 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             ],
             "result": ["2", "6", "5", "5.0", "9", "33", "3"],
         })
+        expected_stats = {
+            "num_items": 7,
+            "num_skipped": 0,
+            "num_batches": 1,
+        }
         # Run test.
-        self.helper(df, batch_size, expected_df)
+        self.helper(df, batch_size, expected_df, expected_stats)
 
     def _helper_test3(self, batch_size: int) -> None:
         """
@@ -420,8 +432,13 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             ],
             "result": ["10", "12", "12", "8.0", "8"],
         })
+        expected_stats = {
+            "num_items": 5,
+            "num_skipped": 0,
+            "num_batches": 1,
+        }
         # Run test.
-        self.helper(df, batch_size, expected_df)
+        self.helper(df, batch_size, expected_df, expected_stats)
 
     def _helper_test4(self, batch_size: int) -> None:
         """
@@ -439,8 +456,13 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             "expression": ["5 + 5", "", "10 + 10", None, "15 + 15"],
             "result": ["10", "", "20", "", "30"],
         })
+        expected_stats = {
+            "num_items": 5,
+            "num_skipped": 2,
+            "num_batches": 1,
+        }
         # Run test.
-        self.helper(df, batch_size, expected_df)
+        self.helper(df, batch_size, expected_df, expected_stats)
 
     def _helper_test5(self, batch_size: int) -> None:
         """
@@ -458,8 +480,13 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             "expression": ["1 + 1", "", None, "", "5 + 5"],
             "result": ["2", "", "", "", "10"],
         })
+        expected_stats = {
+            "num_items": 5,
+            "num_skipped": 0,
+            "num_batches": 1,
+        }
         # Run test.
-        self.helper(df, batch_size, expected_df)
+        self.helper(df, batch_size, expected_df, expected_stats)
 
     def test1_num_batch1(self) -> None:
         self._helper_test1(batch_size=1)
@@ -518,8 +545,8 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     def test2_num_batch10(self) -> None:
         self._helper_test2(batch_size=10)
 
-    def test10_num_batch10(self) -> None:
-        self._helper_test10(batch_size=10)
+    def test3_num_batch10(self) -> None:
+        self._helper_test3(batch_size=10)
 
     def test4_num_batch10(self) -> None:
         self._helper_test4(batch_size=10)

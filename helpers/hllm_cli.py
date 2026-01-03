@@ -7,7 +7,7 @@ import helpers.hllm_cli as hllmcli
 import logging
 import shlex
 import subprocess
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Dict, Tuple
 
 import pandas as pd
 from tqdm import tqdm
@@ -384,7 +384,7 @@ def apply_llm_prompt_to_df(
     model: Optional[str] = None,
     tag : str = "Processing",
     testing_functor: Optional[Callable[[str], str]] = None,
-) -> pd.DataFrame:
+) -> Tuple[pd.DataFrame, Dict[str, int]]:
     """
     Apply an LLM to process a dataframe column using the same system prompt.
 
@@ -486,4 +486,9 @@ def apply_llm_prompt_to_df(
         num_items - num_skipped,
         num_skipped,
     )
-    return df, num_items, num_skipped, num_batches
+    stats = {
+        "num_items": num_items,
+        "num_skipped": num_skipped,
+        "num_batches": num_batches,
+    }
+    return df, stats
