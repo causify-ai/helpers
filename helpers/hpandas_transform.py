@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_transform as hpantran
 """
 
 import csv
@@ -702,7 +702,9 @@ def filter_df(
     return df[mask]
 
 
-def remove_empty_columns(df: pd.DataFrame, *, verbose: bool = True) -> pd.DataFrame:
+def remove_empty_columns(
+    df: pd.DataFrame, *, verbose: bool = True
+) -> pd.DataFrame:
     """
     Remove empty columns from a dataframe.
 
@@ -713,21 +715,23 @@ def remove_empty_columns(df: pd.DataFrame, *, verbose: bool = True) -> pd.DataFr
     non_empty_columns = df.columns[mask]
     empty_columns = df.columns[~mask]
     if verbose:
-        _LOG.info("kept %s columns: %s", 
+        _LOG.info(
+            "kept %s columns: %s",
             hprint.perc(len(non_empty_columns), len(df.columns)),
-            hprint.list_to_str(non_empty_columns)
+            hprint.list_to_str(non_empty_columns),
         )
-        _LOG.info("removed %s columns: %s", 
+        _LOG.info(
+            "removed %s columns: %s",
             hprint.perc(len(empty_columns), len(df.columns)),
-            hprint.list_to_str(empty_columns)
+            hprint.list_to_str(empty_columns),
         )
     df = df[non_empty_columns]
     return df
 
 
-def remove_stable_columns(df: pd.DataFrame, *,
-    threshold: float = 0.9,
-    verbose: bool = True) -> pd.DataFrame:
+def remove_stable_columns(
+    df: pd.DataFrame, *, threshold: float = 0.9, verbose: bool = True
+) -> pd.DataFrame:
     """
     Remove columns from a dataframe that have less than threshold unique values.
 
@@ -744,13 +748,14 @@ def remove_stable_columns(df: pd.DataFrame, *,
     columns_to_remove = df.columns[~df.columns.isin(high_variability_columns)]
     if verbose:
         _LOG.info(
-            "kept %s columns: %s", 
+            "kept %s columns: %s",
             hprint.perc(len(high_variability_columns), len(df.columns)),
-            hprint.list_to_str(high_variability_columns)
+            hprint.list_to_str(high_variability_columns),
         )
-        _LOG.info("removed %s columns: %s", 
+        _LOG.info(
+            "removed %s columns: %s",
             hprint.perc(len(columns_to_remove), len(df.columns)),
-            hprint.list_to_str(columns_to_remove)
+            hprint.list_to_str(columns_to_remove),
         )
     df = df[high_variability_columns]
     return df

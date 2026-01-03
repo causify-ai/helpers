@@ -1,5 +1,6 @@
-I will give a list of files, functions, variable to rename
-In TODO: -> means rename
+I will give a list of files, functions, variable to rename in a codebase
+
+In `TODO: ->` means rename
 
 For files use `git mv`
 

@@ -175,7 +175,8 @@ class Test_flush_cache_to_disk(_BaseCacheTest):
         hcacsimp.flush_cache_to_disk("_cached_json_double")
         # Define expected cache file name.
         cache_file: str = os.path.join(
-            hcacsimp.get_main_cache_dir(), "tmp.cache_simple._cached_json_double.json"
+            hcacsimp.get_main_cache_dir(),
+            "tmp.cache_simple._cached_json_double.json",
         )
         # Assert that the cache file now exists on disk.
         self.assertTrue(
@@ -192,7 +193,8 @@ class Test_flush_cache_to_disk(_BaseCacheTest):
         hcacsimp.flush_cache_to_disk("_cached_json_double")
         # Define the expected cache file name.
         cache_file: str = os.path.join(
-            hcacsimp.get_main_cache_dir(), "tmp.cache_simple._cached_json_double.json"
+            hcacsimp.get_main_cache_dir(),
+            "tmp.cache_simple._cached_json_double.json",
         )
         # Open and load the disk cache file.
         with open(cache_file, "r", encoding="utf-8") as f:
@@ -511,7 +513,8 @@ class Test__cached_pickle_square(_BaseCacheTest):
         # Flush the cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_pickle_square")
         cache_file: str = os.path.join(
-            hcacsimp.get_main_cache_dir(), "tmp.cache_simple._cached_pickle_square.pkl"
+            hcacsimp.get_main_cache_dir(),
+            "tmp.cache_simple._cached_pickle_square.pkl",
         )
         # Open and load the pickle cache file.
         with open(cache_file, "rb") as f:
@@ -736,11 +739,13 @@ class Test_reset_disk_cache_all(_BaseCacheTest):
         hcacsimp.reset_disk_cache("", interactive=False)
         # Check outputs.
         cache_file1 = os.path.join(
-            hcacsimp.get_main_cache_dir(), "tmp.cache_simple._cached_json_double.json"
+            hcacsimp.get_main_cache_dir(),
+            "tmp.cache_simple._cached_json_double.json",
         )
         self.assertFalse(os.path.exists(cache_file1))
         cache_file2 = os.path.join(
-            hcacsimp.get_main_cache_dir(), "tmp.cache_simple._cached_multi_arg_sum.json"
+            hcacsimp.get_main_cache_dir(),
+            "tmp.cache_simple._cached_multi_arg_sum.json",
         )
         self.assertFalse(os.path.exists(cache_file2))
 
@@ -793,11 +798,13 @@ class Test_flush_cache_to_disk_all(_BaseCacheTest):
         hcacsimp.flush_cache_to_disk("")
         # Check outputs.
         cache_file1 = os.path.join(
-            hcacsimp.get_main_cache_dir(), "tmp.cache_simple._cached_json_double.json"
+            hcacsimp.get_main_cache_dir(),
+            "tmp.cache_simple._cached_json_double.json",
         )
         self.assertTrue(os.path.exists(cache_file1))
         cache_file2 = os.path.join(
-            hcacsimp.get_main_cache_dir(), "tmp.cache_simple._cached_multi_arg_sum.json"
+            hcacsimp.get_main_cache_dir(),
+            "tmp.cache_simple._cached_multi_arg_sum.json",
         )
         self.assertTrue(os.path.exists(cache_file2))
 
@@ -1240,11 +1247,9 @@ class Test_cache_mode_parameter(_BaseCacheTest):
         self.assertEqual(result2, 90)
         self.assertEqual(_test_cache_mode_kwarg.call_count, initial_count + 2)
 
-
 # #############################################################################
 # Test_mock_cache
 # #############################################################################
-
 
 class Test_mock_cache(_BaseCacheTest):
     """

@@ -174,7 +174,15 @@ def _apply_llm_via_library(
         response = "".join(response_parts)
     else:
         # Run without progress bar.
-        response = llm_model.prompt(input_str, system=system_prompt).text()
+        result = llm_model.prompt(input_str, system=system_prompt)
+        response = result.text()
+        # Optionally: log or return cost information if present
+        if hasattr(result, "response") and hasattr(result.response, "usage"):
+            usage = result.response.usage
+            # Typical keys: 'prompt_tokens', 'completion_tokens', 'total_tokens', 'total_cost'
+            cost = getattr(usage, "total_cost", None)
+            if cost is not None:
+                _LOG.info("LLM call cost: $%.6f", cost)
     return response
 
 

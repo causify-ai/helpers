@@ -144,7 +144,7 @@ def _insert_frame(
     # Count trailing empty lines (before any decorators/comments).
     if num_non_empty_lines > 0:
         # There are decorators/comments, check empty lines before them.
-        lines_to_check = updated_lines[: -num_non_empty_lines]
+        lines_to_check = updated_lines[:-num_non_empty_lines]
     else:
         # No decorators/comments, check all lines.
         lines_to_check = updated_lines
@@ -162,7 +162,7 @@ def _insert_frame(
         # No empty lines but has content, add 1.
         if num_non_empty_lines > 0:
             updated_lines = (
-                updated_lines[: -num_non_empty_lines]
+                updated_lines[:-num_non_empty_lines]
                 + [""]
                 + updated_lines[-num_non_empty_lines:]
             )
@@ -214,8 +214,6 @@ def update_class_frames(file_content: str) -> List[str]:
     for line_num in range(len(lines)):
         updated_lines = _insert_frame(lines, line_num, updated_lines)
     return updated_lines
-
-
 
 # #############################################################################
 # _ClassFramer
