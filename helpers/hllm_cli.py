@@ -481,6 +481,7 @@ def apply_llm_batch_with_shared_prompt(
     responses = []
     total_cost = 0.0
     if testing_functor is None:
+        # TODO(gp): Factor this out and use a cache.
         llm_model = llm.get_model(model)
         conv = llm.Conversation(model=llm_model)
         for input_str in input_list:
@@ -705,6 +706,7 @@ def apply_llm_prompt_to_df(
         # Workaround for unit tests.
         # file=sys.__stderr__
     )
+    total_cost = 0.0
     # TODO(gp): Precompute the batch indices that needs to be processed.
     for batch_num in range(num_batches):
         # Get batch rows.
@@ -749,6 +751,8 @@ def apply_llm_prompt_to_df(
                 testing_functor=testing_functor,
                 progress_bar_object=progress_bar_object,
             )
+            # Update total_cost.
+            total_cost += batch_cost
             # Store results back into dataframe.
             for idx, response in zip(batch_indices, batch_responses):
                 df.at[idx, target_col] = response
@@ -772,5 +776,6 @@ def apply_llm_prompt_to_df(
         "num_items": num_items,
         "num_skipped": num_skipped,
         "num_batches": num_batches,
+        "total_cost_in_dollars": total_cost,
     }
     return df, stats

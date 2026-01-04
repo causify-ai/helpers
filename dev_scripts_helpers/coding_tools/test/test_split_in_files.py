@@ -100,39 +100,80 @@ class Test_parse_file_content(hunitest.TestCase):
 # Test_split_file
 # #############################################################################
 
-# TODO(ai_gp): Names of test methods should be test1, test2, etc.
 
 class Test_split_file(hunitest.TestCase):
     """
     Test splitting input file into multiple output files.
     """
 
-    def test_split_file_basic(self) -> None:
+    def _create_input_file_for_split(
+        self,
+        content: str,
+        filename: str = "input.txt",
+        output_dir: str = None,
+    ) -> tuple:
+        """
+        Create an input file with dedented content in scratch space.
+
+        :param content: Raw content string (will be dedented)
+        :param filename: Name of input file
+        :param output_dir: Optional custom output directory path
+        :return: Tuple of (input_file_path, output_directory_path)
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        if output_dir is None:
+            output_dir = scratch_dir
+        input_file = os.path.join(scratch_dir, filename)
+        content = hprint.dedent(content)
+        # Run.
+        hio.to_file(input_file, content)
+        # Check outputs.
+        return input_file, output_dir
+
+    def _run_split_file(
+        self,
+        input_file: str,
+        output_dir: str,
+        dry_run: bool = False,
+        skip_verify: bool = False,
+        preserve_input: bool = True,
+    ) -> None:
+        """
+        Run _split_file with standard test parameters.
+
+        :param input_file: Path to input file
+        :param output_dir: Output directory path
+        :param dry_run: Whether to do dry run
+        :param skip_verify: Whether to skip verification
+        :param preserve_input: Whether to preserve input file
+        """
+        # Run.
+        dshctsifi._split_file(
+            input_file,
+            output_dir=output_dir,
+            dry_run=dry_run,
+            skip_verify=skip_verify,
+            preserve_input=preserve_input,
+        )
+
+    def test1(self) -> None:
         """
         Test basic file splitting with two output files.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.txt")
         content = """
         <start:output1.txt>
         Content for output1
         <start:output2.txt>
         Content for output2
         """
-        content = hprint.dedent(content)
-        hio.to_file(input_file, content)
+        input_file, output_dir = self._create_input_file_for_split(content)
         # Run test.
-        dshctsifi._split_file(
-            input_file,
-            output_dir=scratch_dir,
-            dry_run=False,
-            skip_verify=False,
-            preserve_input=True,
-        )
+        self._run_split_file(input_file, output_dir)
         # Check outputs.
-        output1_file = os.path.join(scratch_dir, "output1.txt")
-        output2_file = os.path.join(scratch_dir, "output2.txt")
+        output1_file = os.path.join(output_dir, "output1.txt")
+        output2_file = os.path.join(output_dir, "output2.txt")
         self.assertEqual(os.path.exists(output1_file), True)
         self.assertEqual(os.path.exists(output2_file), True)
         output1_content = hio.from_file(output1_file)
@@ -140,13 +181,11 @@ class Test_split_file(hunitest.TestCase):
         self.assert_equal(output1_content, "\nContent for output1\n")
         self.assert_equal(output2_content, "\nContent for output2\n")
 
-    def test_split_file_with_common_section(self) -> None:
+    def test2(self) -> None:
         """
         Test file splitting with common section prepended to all files.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.txt")
         content = """
         <start_common>
         Common header
@@ -155,19 +194,12 @@ class Test_split_file(hunitest.TestCase):
         <start:output2.txt>
         Content 2
         """
-        content = hprint.dedent(content)
-        hio.to_file(input_file, content)
+        input_file, output_dir = self._create_input_file_for_split(content)
         # Run test.
-        dshctsifi._split_file(
-            input_file,
-            output_dir=scratch_dir,
-            dry_run=False,
-            skip_verify=False,
-            preserve_input=True,
-        )
+        self._run_split_file(input_file, output_dir)
         # Check outputs.
-        output1_file = os.path.join(scratch_dir, "output1.txt")
-        output2_file = os.path.join(scratch_dir, "output2.txt")
+        output1_file = os.path.join(output_dir, "output1.txt")
+        output2_file = os.path.join(output_dir, "output2.txt")
         output1_content = hio.from_file(output1_file)
         output2_content = hio.from_file(output2_file)
         expected1 = "\nCommon header\n\nContent 1\n"
@@ -175,57 +207,42 @@ class Test_split_file(hunitest.TestCase):
         self.assert_equal(output1_content, expected1)
         self.assert_equal(output2_content, expected2)
 
-    def test_split_file_creates_output_directory(self) -> None:
+    def test3(self) -> None:
         """
         Test that output directory is created if it doesn't exist.
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.txt")
-        output_dir = os.path.join(scratch_dir, "new_output_dir")
+        custom_output_dir = os.path.join(scratch_dir, "new_output_dir")
         content = """
         <start:test.txt>
         Test content
         """
-        content = hprint.dedent(content)
-        hio.to_file(input_file, content)
-        # Run test.
-        dshctsifi._split_file(
-            input_file,
-            output_dir=output_dir,
-            dry_run=False,
-            skip_verify=False,
-            preserve_input=True,
+        input_file, _ = self._create_input_file_for_split(
+            content, output_dir=custom_output_dir
         )
+        # Run test.
+        self._run_split_file(input_file, custom_output_dir)
         # Check outputs.
-        self.assertEqual(os.path.exists(output_dir), True)
-        output_file = os.path.join(output_dir, "test.txt")
+        self.assertEqual(os.path.exists(custom_output_dir), True)
+        output_file = os.path.join(custom_output_dir, "test.txt")
         self.assertEqual(os.path.exists(output_file), True)
 
-    def test_split_file_preserves_content_exactly(self) -> None:
+    def test4(self) -> None:
         """
         Test that content is preserved exactly including whitespace.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.txt")
         content = """
         <start:test.txt>
             Indented content
         Content with    spaces
         """
-        content = hprint.dedent(content)
-        hio.to_file(input_file, content)
+        input_file, output_dir = self._create_input_file_for_split(content)
         # Run test.
-        dshctsifi._split_file(
-            input_file,
-            output_dir=scratch_dir,
-            dry_run=False,
-            skip_verify=False,
-            preserve_input=True,
-        )
+        self._run_split_file(input_file, output_dir)
         # Check outputs.
-        output_file = os.path.join(scratch_dir, "test.txt")
+        output_file = os.path.join(output_dir, "test.txt")
         output_content = hio.from_file(output_file)
         expected = "\n    Indented content\nContent with    spaces\n"
         self.assert_equal(output_content, expected)
@@ -234,12 +251,64 @@ class Test_split_file(hunitest.TestCase):
 # TestSplitFileIntegration
 # #############################################################################
 
+
 class TestSplitFileIntegration(hunitest.TestCase):
     """
     Integration tests for the complete split_in_files workflow.
     """
 
-    def test_end_to_end_basic_split(self) -> None:
+    def _create_input_file_for_split(
+        self,
+        content: str,
+        filename: str = "input.txt",
+        output_dir: str = None,
+    ) -> tuple:
+        """
+        Create an input file with dedented content in scratch space.
+
+        :param content: Raw content string (will be dedented)
+        :param filename: Name of input file
+        :param output_dir: Optional custom output directory path
+        :return: Tuple of (input_file_path, output_directory_path)
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        if output_dir is None:
+            output_dir = scratch_dir
+        input_file = os.path.join(scratch_dir, filename)
+        content = hprint.dedent(content)
+        # Run.
+        hio.to_file(input_file, content)
+        # Check outputs.
+        return input_file, output_dir
+
+    def _run_split_file(
+        self,
+        input_file: str,
+        output_dir: str,
+        dry_run: bool = False,
+        skip_verify: bool = False,
+        preserve_input: bool = True,
+    ) -> None:
+        """
+        Run _split_file with standard test parameters.
+
+        :param input_file: Path to input file
+        :param output_dir: Output directory path
+        :param dry_run: Whether to do dry run
+        :param skip_verify: Whether to skip verification
+        :param preserve_input: Whether to preserve input file
+        """
+        # Run.
+        dshctsifi._split_file(
+            input_file,
+            output_dir=output_dir,
+            dry_run=dry_run,
+            skip_verify=skip_verify,
+            preserve_input=preserve_input,
+        )
+
+    def test1(self) -> None:
         """
         Test complete workflow from input file to multiple output files.
 
@@ -250,8 +319,6 @@ class TestSplitFileIntegration(hunitest.TestCase):
         4. Verify content integrity
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.txt")
         content = """
         <start:module1.py>
         def function1():
@@ -262,20 +329,13 @@ class TestSplitFileIntegration(hunitest.TestCase):
         <start:readme.txt>
         This is a readme file.
         """
-        content = hprint.dedent(content)
-        hio.to_file(input_file, content)
+        input_file, output_dir = self._create_input_file_for_split(content)
         # Run test.
-        dshctsifi._split_file(
-            input_file,
-            output_dir=scratch_dir,
-            dry_run=False,
-            skip_verify=False,
-            preserve_input=True,
-        )
+        self._run_split_file(input_file, output_dir)
         # Check outputs.
-        module1_file = os.path.join(scratch_dir, "module1.py")
-        module2_file = os.path.join(scratch_dir, "module2.py")
-        readme_file = os.path.join(scratch_dir, "readme.txt")
+        module1_file = os.path.join(output_dir, "module1.py")
+        module2_file = os.path.join(output_dir, "module2.py")
+        readme_file = os.path.join(output_dir, "readme.txt")
         self.assertEqual(os.path.exists(module1_file), True)
         self.assertEqual(os.path.exists(module2_file), True)
         self.assertEqual(os.path.exists(readme_file), True)
@@ -290,7 +350,7 @@ class TestSplitFileIntegration(hunitest.TestCase):
         )
         self.assert_equal(readme_content, "\nThis is a readme file.\n")
 
-    def test_end_to_end_with_common_and_multiple_files(self) -> None:
+    def test2(self) -> None:
         """
         Test workflow with common section and multiple output files.
 
@@ -301,8 +361,6 @@ class TestSplitFileIntegration(hunitest.TestCase):
         4. Verify unique content in each file
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.txt")
         content = """
         <start_common>
         # Common header
@@ -317,20 +375,13 @@ class TestSplitFileIntegration(hunitest.TestCase):
         def func3():
             pass
         """
-        content = hprint.dedent(content)
-        hio.to_file(input_file, content)
+        input_file, output_dir = self._create_input_file_for_split(content)
         # Run test.
-        dshctsifi._split_file(
-            input_file,
-            output_dir=scratch_dir,
-            dry_run=False,
-            skip_verify=False,
-            preserve_input=True,
-        )
+        self._run_split_file(input_file, output_dir)
         # Check outputs.
-        file1 = os.path.join(scratch_dir, "file1.py")
-        file2 = os.path.join(scratch_dir, "file2.py")
-        file3 = os.path.join(scratch_dir, "file3.py")
+        file1 = os.path.join(output_dir, "file1.py")
+        file2 = os.path.join(output_dir, "file2.py")
+        file3 = os.path.join(output_dir, "file3.py")
         content1 = hio.from_file(file1)
         content2 = hio.from_file(file2)
         content3 = hio.from_file(file3)
@@ -344,7 +395,7 @@ class TestSplitFileIntegration(hunitest.TestCase):
         self.assertIn("def func2():", content2)
         self.assertIn("def func3():", content3)
 
-    def test_end_to_end_large_file(self) -> None:
+    def test3(self) -> None:
         """
         Test handling of large file with many sections.
         """
@@ -360,17 +411,12 @@ class TestSplitFileIntegration(hunitest.TestCase):
             sections.append(f"Line 3 of file {i}\n")
         content = "".join(sections)
         hio.to_file(input_file, content)
+        output_dir = scratch_dir
         # Run test.
-        dshctsifi._split_file(
-            input_file,
-            output_dir=scratch_dir,
-            dry_run=False,
-            skip_verify=False,
-            preserve_input=True,
-        )
+        self._run_split_file(input_file, output_dir)
         # Check outputs.
         for i in range(10):
-            output_file = os.path.join(scratch_dir, f"file{i}.txt")
+            output_file = os.path.join(output_dir, f"file{i}.txt")
             self.assertEqual(os.path.exists(output_file), True)
             file_content = hio.from_file(output_file)
             expected_lines = [

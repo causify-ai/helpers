@@ -18,7 +18,8 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 # Whether to run tests that use the real LLM API.
-_RUN_REAL_LLM = False
+#_RUN_REAL_LLM = False
+_RUN_REAL_LLM = True
 
 # #############################################################################
 # Test_apply_llm_with_files
@@ -105,15 +106,13 @@ _TEST_CASES_PRINT_ONLY = [
 # Test_apply_llm_with_files
 # #############################################################################
 
-@pytest.mark.skipif(
-    not _RUN_REAL_LLM, reason="real LLM not enabled",
-)
-class Test_apply_llm_with_files(hunitest.TestCase):
-    """
-    Test apply_llm_with_files using both library and executable interfaces.
 
-    Tests run various command-line configurations to ensure they execute
-    without errors. Does not verify output correctness.
+class TestApplyLlmBase(hunitest.TestCase):
+    """
+    Base class with helper methods for testing apply_llm functions.
+
+    Provides common helper methods used across different test classes to
+    reduce code duplication and maintain consistency.
     """
 
     def _run_test_cases(self, use_llm_executable: bool) -> None:
@@ -144,34 +143,6 @@ class Test_apply_llm_with_files(hunitest.TestCase):
             output_content = hio.from_file(output_file)
             self.assertGreater(len(output_content), 0)
 
-    @pytest.mark.skipif(
-        __import__("importlib").util.find_spec("llm") is None,
-        reason="llm Python library is not installed",
-    )
-    def test_library(self) -> None:
-        """
-        Test multiple command-line configurations using library interface.
-
-        Tests various command-line argument combinations to ensure they
-        execute without errors. Does not verify output correctness.
-        """
-        self._run_test_cases(use_llm_executable=False)
-
-    @pytest.mark.skipif(
-        not hllmcli._check_llm_executable(), reason="llm executable not found"
-    )
-    def test_executable(self) -> None:
-        """
-        Test multiple command-line configurations using executable interface.
-
-        Tests various command-line argument combinations to ensure they
-        execute without errors. Does not verify output correctness.
-        """
-        self._run_test_cases(use_llm_executable=True)
-
-    # //////////////////////////////////////////////////////////////////////////
-
-    # TODO(gp): -> helper
     def _run_test_cases_input_text(self, use_llm_executable: bool) -> None:
         """
         Helper method to run input_text test cases with specified interface.
@@ -201,12 +172,45 @@ class Test_apply_llm_with_files(hunitest.TestCase):
             output_content = hio.from_file(output_file)
             self.assertGreater(len(output_content), 0)
 
-    # //////////////////////////////////////////////////////////////////////////
+
+@pytest.mark.skipif(
+    not _RUN_REAL_LLM, reason="real LLM not enabled",
+)
+class Test_apply_llm_with_files1(TestApplyLlmBase):
+    """
+    Test apply_llm_with_files using both library and executable interfaces.
+
+    Tests run various command-line configurations to ensure they execute
+    without errors. Does not verify output correctness.
+    """
+
+    def test_library(self) -> None:
+        """
+        Test multiple command-line configurations using library interface.
+
+        Tests various command-line argument combinations to ensure they
+        execute without errors. Does not verify output correctness.
+        """
+        self._run_test_cases(use_llm_executable=False)
 
     @pytest.mark.skipif(
-        __import__("importlib").util.find_spec("llm") is None,
-        reason="llm Python library is not installed",
+        not hllmcli._check_llm_executable(), reason="llm executable not found"
     )
+    def test_executable(self) -> None:
+        """
+        Test multiple command-line configurations using executable interface.
+
+        Tests various command-line argument combinations to ensure they
+        execute without errors. Does not verify output correctness.
+        """
+        self._run_test_cases(use_llm_executable=True)
+
+@pytest.mark.skipif(
+    not _RUN_REAL_LLM, reason="real LLM not enabled",
+)
+class Test_apply_llm_with_files2(TestApplyLlmBase):
+
+    # TODO(ai_gp): -> test1_library
     def test_input_text_library(self) -> None:
         """
         Test input_text parameter using library interface.
@@ -216,6 +220,7 @@ class Test_apply_llm_with_files(hunitest.TestCase):
         """
         self._run_test_cases_input_text(use_llm_executable=False)
 
+    # TODO(ai_gp): -> test1_executable
     @pytest.mark.skipif(
         not hllmcli._check_llm_executable(), reason="llm executable not found"
     )
@@ -252,10 +257,7 @@ class Test_apply_llm_with_files(hunitest.TestCase):
             # Print response to stdout (simulating print_only behavior).
             print(response)
 
-    @pytest.mark.skipif(
-        __import__("importlib").util.find_spec("llm") is None,
-        reason="llm Python library is not installed",
-    )
+    # TODO(ai_gp): -> test2_library
     def test_print_only_library(self) -> None:
         """
         Test print_only parameter using library interface.
@@ -266,6 +268,7 @@ class Test_apply_llm_with_files(hunitest.TestCase):
         """
         self._run_test_cases_print_only(use_llm_executable=False)
 
+    # TODO(ai_gp): -> test2_executable
     @pytest.mark.skipif(
         not hllmcli._check_llm_executable(), reason="llm executable not found"
     )
@@ -300,7 +303,6 @@ def _eval_functor(input_str: str, *, delay: float = 0.0) -> str:
     return result_str
 
 
-
 class Test_apply_llm_batch1(hunitest.TestCase):
     """
     Test and compare three batch processing approaches.
@@ -313,6 +315,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
     eval.
     """
 
+    # TODO(ai_gp): -> get_test_prompt
     @staticmethod
     def _get_test_prompt() -> str:
         """
@@ -323,6 +326,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         prompt = "You are a calculator. Return only the numeric result."
         return prompt
 
+    # TODO(ai_gp): -> helper
     def _helper(
         self,
         model: str,
@@ -355,6 +359,9 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         else:
             self.assertEqual(cost, 0.0)
 
+    @pytest.mark.skipif(
+        not _RUN_REAL_LLM, reason="real LLM not enabled",
+    )
     def test_individual1(self) -> None:
         """
         Test apply_llm_batch_individual without testing_functor.
@@ -385,6 +392,9 @@ class Test_apply_llm_batch1(hunitest.TestCase):
             testing_functor,
         )
 
+    @pytest.mark.skipif(
+        not _RUN_REAL_LLM, reason="real LLM not enabled",
+    )
     def test_shared1(self) -> None:
         """
         Test apply_llm_batch_with_shared_prompt without testing_functor.
@@ -415,6 +425,9 @@ class Test_apply_llm_batch1(hunitest.TestCase):
             testing_functor,
         )
 
+    @pytest.mark.skipif(
+        not _RUN_REAL_LLM, reason="real LLM not enabled",
+    )
     def test_combined1(self) -> None:
         """
         Test apply_llm_batch_combined without testing_functor.
@@ -514,6 +527,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         self.assert_equal(str(result_df), str(expected_df))
         self.assert_equal(str(stats), str(expected_stats))
 
+    # TODO(ai_gp): -> helper_test1
     def _helper_test1(self, batch_size: int) -> None:
         """
         Test apply_llm_prompt_to_df with testing_functor that uses eval.
@@ -540,6 +554,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
 
+    # TODO(ai_gp): -> helper_test2
     def _helper_test2(self, batch_size: int) -> None:
         """
         Test apply_llm_prompt_to_df with larger dataframe and batch_size > 1.
@@ -582,6 +597,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
 
+    # TODO(ai_gp): -> helper_test3
     def _helper_test3(self, batch_size: int) -> None:
         """
         Test apply_llm_prompt_to_df with pre-filled target column values.
@@ -625,6 +641,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
 
+    # TODO(ai_gp): -> helper_test4
     def _helper_test4(self, batch_size: int) -> None:
         """
         Test apply_llm_prompt_to_df with rows that have empty extraction results.
@@ -654,6 +671,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         # Run test.
         self.helper(df, batch_size, expected_df, expected_stats)
 
+    # TODO(ai_gp): -> helper_test5
     def _helper_test5(self, batch_size: int) -> None:
         """
         Test apply_llm_prompt_to_df with batch where all items have missing data.
@@ -762,6 +780,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
     Test apply_llm_prompt_to_df with mocked cache.
     """
 
+    # TODO(ai_gp): -> get_test_prompt
     @staticmethod
     def _get_test_prompt() -> str:
         """
@@ -780,6 +799,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         prompt = hprint.dedent(prompt)
         return prompt
 
+    # TODO(ai_gp): -> extract_test_fields
     @staticmethod
     def _extract_test_fields(obj) -> str:
         """
@@ -799,6 +819,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
             # Already a string.
             return obj
 
+    # TODO(ai_gp): -> create_test_df
     def _create_test_df(self) -> pd.DataFrame:
         # Create a minimal DataFrame with test data (2 rows).
         df = pd.DataFrame(
@@ -910,6 +931,9 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
 # Test_apply_llm_batch_cost_comparison
 # #############################################################################
 
+@pytest.mark.skipif(
+    not _RUN_REAL_LLM, reason="real LLM not enabled",
+)
 class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
     """
     Test and compare costs of different batch processing approaches.
@@ -918,6 +942,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
     different batch modes.
     """
 
+    # TODO(ai_gp): -> get_person_industry_prompt
     @staticmethod
     def _get_person_industry_prompt() -> str:
         """
@@ -968,6 +993,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         prompt = hprint.dedent(prompt)
         return prompt
 
+    # TODO(ai_gp): -> get_test_industries
     @staticmethod
     def _get_test_industries() -> list:
         """
@@ -989,6 +1015,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         ]
         return industries
 
+    # TODO(ai_gp): -> test1
     def test_batch_mode_comparison(self) -> None:
         """
         Compare costs and time of different batch modes in apply_llm_prompt_to_df.
@@ -997,9 +1024,8 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         1. individual - processes each query separately
         2. batch - uses shared prompt context
         3. combined - combines all queries into single API call
-
-        The test uses a testing_functor to avoid actual LLM API calls.
         """
+        # TODO(gp): Reset cache.
         # Prepare inputs.
         prompt = self._get_person_industry_prompt()
         industries = self._get_test_industries()
@@ -1016,7 +1042,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         batch_modes = ["individual", "batch_with_shared_prompt", "combined"]
         results = []
         for batch_mode in batch_modes:
-            _LOG.info("Testing batch mode: %s", batch_mode)
+            _LOG.info(hprint.frame("Testing batch mode: %s", batch_mode))
             # Create a copy of the DataFrame for this batch mode.
             df_copy = df.copy()
             # Measure time.
@@ -1041,6 +1067,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
                     "Num Items": stats["num_items"],
                     "Num Skipped": stats["num_skipped"],
                     "Num Batches": stats["num_batches"],
+                    "Total Cost ($)": stats["total_cost_in_dollars"],
                 }
             )
             # Verify results.
@@ -1050,6 +1077,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         comparison_df = pd.DataFrame(results)
         _LOG.info("Batch mode comparison:\n%s", comparison_df)
 
+    # TODO(ai_gp): -> create_cost_summary
     def _create_cost_summary(
         self,
         individual_cost: float,
