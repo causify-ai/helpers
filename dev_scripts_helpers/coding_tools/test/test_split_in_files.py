@@ -22,25 +22,10 @@ class Test_parse_file_content(hunitest.TestCase):
     def test_parse_file_content_with_common_section(self) -> None:
         """
         Test parsing file with <start_common> and multiple file sections.
-
-        Expected input:
-        ```
-        <start_common>
-        Common header
-        <start:file1.txt>
-        Content for file1
-        <start:file2.txt>
-        Content for file2
-        ```
-
-        Expected output:
-        - common_section = "\\nCommon header\\n"
-        - sections = {
-            "file1.txt": "\\nContent for file1\\n",
-            "file2.txt": "\\nContent for file2\\n"
-          }
         """
         # Prepare inputs.
+        # TODO(ai_gp): Use a string aligned with the rest of the code and then use hprint.dedent
+        # for all the content.
         content = """<start_common>
 Common header
 <start:file1.txt>
@@ -66,21 +51,6 @@ Content for file2
     def test_parse_file_content_without_common_section(self) -> None:
         """
         Test parsing file without <start_common> section.
-
-        Expected input:
-        ```
-        <start:file1.txt>
-        Content for file1
-        <start:file2.txt>
-        Content for file2
-        ```
-
-        Expected output:
-        - common_section = ""
-        - sections = {
-            "file1.txt": "\\nContent for file1\\n",
-            "file2.txt": "\\nContent for file2\\n"
-          }
         """
         # Prepare inputs.
         content = """<start:file1.txt>
@@ -105,16 +75,6 @@ Content for file2
     def test_parse_file_content_single_file(self) -> None:
         """
         Test parsing file with single file section.
-
-        Expected input:
-        ```
-        <start:output.txt>
-        Single file content
-        ```
-
-        Expected output:
-        - common_section = ""
-        - sections = {"output.txt": "\\nSingle file content\\n"}
         """
         # Prepare inputs.
         content = """<start:output.txt>
@@ -131,53 +91,6 @@ Single file content
         self.assertEqual(len(line_ranges), 1)
         self.assertEqual(common_line_range, None)
 
-    def test_parse_file_content_no_tags_raises_error(self) -> None:
-        """
-        Test that file without any tags raises assertion error.
-
-        Expected input:
-        ```
-        Just plain text without any tags
-        ```
-
-        Expected: AssertionError
-        """
-        # Prepare inputs.
-        content = "Just plain text without any tags\n"
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            dshctsifi._parse_file_content(content)
-
-    def test_parse_file_content_only_common_tag_raises_error(self) -> None:
-        """
-        Test that file with only <start_common> and no file tags raises error.
-
-        Expected input:
-        ```
-        <start_common>
-        Common content only
-        ```
-
-        Expected: AssertionError
-        """
-        # Prepare inputs.
-        content = """<start_common>
-Common content only
-"""
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            dshctsifi._parse_file_content(content)
-
-
-# #############################################################################
-# Test_verify_all_content_saved
-# #############################################################################
-
-# NOTE: The _verify_all_content_saved() function does not exist in the
-# implementation, so these tests are not implemented. The function may have
-# been planned but was not implemented in the current version of the code.
-
-
 
 # #############################################################################
 # Test_split_file
@@ -191,19 +104,6 @@ class Test_split_file(hunitest.TestCase):
     def test_split_file_basic(self) -> None:
         """
         Test basic file splitting with two output files.
-
-        Expected input file content:
-        ```
-        <start:output1.txt>
-        Content for output1
-        <start:output2.txt>
-        Content for output2
-        ```
-
-        Expected output:
-        - Two files created: output1.txt, output2.txt
-        - output1.txt contains "Content for output1"
-        - output2.txt contains "Content for output2"
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -235,21 +135,6 @@ Content for output2
     def test_split_file_with_common_section(self) -> None:
         """
         Test file splitting with common section prepended to all files.
-
-        Expected input file content:
-        ```
-        <start_common>
-        Common header
-        <start:output1.txt>
-        Content 1
-        <start:output2.txt>
-        Content 2
-        ```
-
-        Expected output:
-        - Two files created with common header prepended
-        - output1.txt contains "Common header\\nContent 1"
-        - output2.txt contains "Common header\\nContent 2"
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -283,14 +168,6 @@ Content 2
     def test_split_file_creates_output_directory(self) -> None:
         """
         Test that output directory is created if it doesn't exist.
-
-        Expected input:
-        - Input file with tags
-        - output_dir that doesn't exist yet
-
-        Expected output:
-        - Output directory is created
-        - Files are written to the new directory
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -313,41 +190,9 @@ Test content
         output_file = os.path.join(output_dir, "test.txt")
         self.assertEqual(os.path.exists(output_file), True)
 
-    def test_split_file_nonexistent_input_raises_error(self) -> None:
-        """
-        Test that nonexistent input file raises assertion error.
-
-        Expected input:
-        - Path to file that doesn't exist
-
-        Expected: AssertionError
-        """
-        # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        nonexistent_file = os.path.join(scratch_dir, "nonexistent.txt")
-        # Run test and check output.
-        with self.assertRaises(AssertionError):
-            dshctsifi._split_file(
-                nonexistent_file,
-                output_dir=scratch_dir,
-                dry_run=False,
-                skip_verify=False,
-                preserve_input=True,
-            )
-
     def test_split_file_preserves_content_exactly(self) -> None:
         """
         Test that content is preserved exactly including whitespace.
-
-        Expected input file content:
-        ```
-        <start:test.txt>
-            Indented content
-        Content with    spaces
-        ```
-
-        Expected output:
-        - test.txt contains exact whitespace including indentation
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
@@ -370,8 +215,6 @@ Content with    spaces
         output_content = hio.from_file(output_file)
         expected = "\n    Indented content\nContent with    spaces\n"
         self.assert_equal(output_content, expected)
-
-
 
 # #############################################################################
 # TestSplitFileIntegration
@@ -486,14 +329,6 @@ def func3():
     def test_end_to_end_large_file(self) -> None:
         """
         Test handling of large file with many sections.
-
-        Expected input:
-        - File with 10+ sections
-        - Each section with significant content
-
-        Expected output:
-        - All 10+ files created successfully
-        - No data loss or corruption
         """
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()

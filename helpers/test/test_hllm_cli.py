@@ -1050,11 +1050,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         _LOG.info("Individual cost: $%.6f", individual_cost)
         # Approach 2: Batch (Individual) - using apply_llm_batch_individual.
         _LOG.info("Testing Batch (Individual) approach...")
-        (
-            batch_responses,
-            batch_errors,
-            batch_cost,
-        ) = hllmcli.apply_llm_batch_individual(
+        batch_responses, batch_cost = hllmcli.apply_llm_batch_individual(
             prompt=prompt,
             input_list=industries,
             model=model,
@@ -1090,8 +1086,6 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         self.assertEqual(len(individual_responses), len(industries))
         self.assertEqual(len(batch_responses), len(industries))
         self.assertEqual(len(combined_responses), len(industries))
-        # Check that batch approach has no errors.
-        self.assertEqual(len([e for e in batch_errors if e is not None]), 0)
         # Create a summary markdown.
         summary = self._create_cost_summary(
             individual_cost, batch_cost, combined_cost, len(industries)
@@ -1116,8 +1110,30 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         :param num_queries: number of queries processed
         :return: markdown summary string
         """
-        # TODO(ai_gp): Print the result as a pandas dataframe.
-        summary = """# Cost Comparison: Three Approaches for Batch LLM Processing
+        # Create a DataFrame with cost comparison data.
+        comparison_df = pd.DataFrame(
+            {
+                "Approach": ["Individual", "Batch (Individual)", "Combined"],
+                "Total Cost ($)": [individual_cost, batch_cost, combined_cost],
+                "Cost per Query ($)": [
+                    individual_cost / num_queries,
+                    batch_cost / num_queries,
+                    combined_cost / num_queries,
+                ],
+                "Relative to Individual": [
+                    1.00,
+                    batch_cost / individual_cost if individual_cost > 0 else 0,
+                    combined_cost / individual_cost if individual_cost > 0 else 0,
+                ],
+            }
+        )
+        # Format the DataFrame as a string with proper precision.
+        comparison_str = comparison_df.to_string(
+            index=False,
+            float_format=lambda x: f"{x:.6f}",
+        )
+        # Create the summary with configuration and results.
+        summary = f"""# Cost Comparison: Three Approaches for Batch LLM Processing
 
 ## Test Configuration
 - Model: gpt-4o-mini
@@ -1126,22 +1142,6 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
 
 ## Cost Results
 
-| Approach | Total Cost ($) | Cost per Query ($) | Relative to Individual |
-|----------|----------------|-------------------|------------------------|
-| Individual | ${individual_cost:.6f} | ${individual_per_query:.6f} | 1.00x |
-| Batch (Individual) | ${batch_cost:.6f} | ${batch_per_query:.6f} | {batch_relative:.2f}x |
-| Combined | ${combined_cost:.6f} | ${combined_per_query:.6f} | {combined_relative:.2f}x |
-""".format(
-            num_queries=num_queries,
-            individual_cost=individual_cost,
-            individual_per_query=individual_cost / num_queries,
-            batch_cost=batch_cost,
-            batch_per_query=batch_cost / num_queries,
-            batch_relative=batch_cost / individual_cost if individual_cost > 0 else 0,
-            combined_cost=combined_cost,
-            combined_per_query=combined_cost / num_queries,
-            combined_relative=(
-                combined_cost / individual_cost if individual_cost > 0 else 0
-            ),
-        )
+{comparison_str}
+"""
         return summary
