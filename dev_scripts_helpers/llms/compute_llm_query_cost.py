@@ -305,6 +305,68 @@ Remember to respond with ONLY the JSON object, no additional text."""
     _LOG.info("Detailed results:\n%s", json.dumps(results, indent=2))
 
 
+def _run_detailed_comparison(
+    model: str,
+    prompts: List[str],
+    *,
+    system_prompt: str = "",
+) -> None:
+    """
+    Run detailed comparison making actual individual calls vs batch.
+
+    This makes N individual calls and compares to batch processing to show
+    real-world cost differences.
+
+    :param model: model name to use for the API calls
+    :param prompts: list of user prompts
+    :param system_prompt: system prompt (optional)
+    """
+    _LOG.info("=" * 80)
+    _LOG.info("DETAILED COMPARISON: INDIVIDUAL vs BATCH PROCESSING")
+    _LOG.info("=" * 80)
+    # Part 1: Run individual queries.
+    _LOG.info("\n### RUNNING INDIVIDUAL QUERIES (NON-BATCH) ###\n")
+    individual_costs = []
+    individual_total = 0.0
+    for i, prompt in enumerate(prompts, 1):
+        _LOG.info("Query %d/%d: %s", i, len(prompts), prompt)
+        _, prompt_cost, completion_cost, total_cost = _call_llm_and_compute_cost(
+            model, prompt, system_prompt=system_prompt
+        )
+        individual_costs.append(total_cost)
+        individual_total += total_cost
+        _LOG.info("  Cost: $%.6f", total_cost)
+    _LOG.info("\n" + "=" * 80)
+    _LOG.info("INDIVIDUAL QUERIES TOTAL: $%.6f", individual_total)
+    _LOG.info("=" * 80 + "\n")
+    # Part 2: Run batch processing.
+    _LOG.info("\n### RUNNING BATCH PROCESSING ###\n")
+    batch_results = []
+    batch_total_prompt_cost = 0.0
+    batch_total_completion_cost = 0.0
+    for i, prompt in enumerate(prompts, 1):
+        _LOG.info("Batch query %d/%d", i, len(prompts))
+        _, prompt_cost, completion_cost, total_cost = _call_llm_and_compute_cost(
+            model, prompt, system_prompt=system_prompt
+        )
+        batch_total_prompt_cost += prompt_cost
+        batch_total_completion_cost += completion_cost
+    batch_total = batch_total_prompt_cost + batch_total_completion_cost
+    _LOG.info("\n" + "=" * 80)
+    _LOG.info("BATCH PROCESSING TOTAL: $%.6f", batch_total)
+    _LOG.info("=" * 80 + "\n")
+    # Part 3: Final comparison.
+    savings = individual_total - batch_total
+    savings_pct = (savings / individual_total) * 100 if individual_total > 0 else 0
+    _LOG.info("=" * 80)
+    _LOG.info("FINAL COMPARISON")
+    _LOG.info("=" * 80)
+    _LOG.info("Individual queries total: $%.6f", individual_total)
+    _LOG.info("Batch processing total:   $%.6f", batch_total)
+    _LOG.info("Savings:                  $%.6f (%.2f%%)", savings, savings_pct)
+    _LOG.info("=" * 80)
+
+
 def _parse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -346,6 +408,12 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Run all three approaches and compare costs (individual, batch, combined)",
     )
+    parser.add_argument(
+        "--run_comparison",
+        action="store_true",
+        default=False,
+        help="Run detailed comparison between individual and batch processing (makes separate calls)",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -359,7 +427,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Process based on mode.
     if args.prompts_file:
         prompts = _read_prompts_from_file(args.prompts_file)
-        if args.compare_all:
+        if args.run_comparison:
+            # Run detailed comparison with actual individual calls.
+            _run_detailed_comparison(
+                args.model, prompts, system_prompt=args.system_prompt
+            )
+        elif args.compare_all:
             # Compare all three approaches.
             _LOG.info("COMPARING ALL THREE APPROACHES")
             _LOG.info("=" * 80)

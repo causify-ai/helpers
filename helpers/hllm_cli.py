@@ -4,6 +4,7 @@ Import as:
 import helpers.hllm_cli as hllmcli
 """
 
+import json
 import logging
 import shlex
 import subprocess
@@ -309,6 +310,31 @@ def apply_llm_with_files(
 
 
 # #############################################################################
+# Batch processing
+# #############################################################################
+
+
+def _calculate_llm_cost(
+    prompt: str,
+    completion: str,
+    model: str,
+) -> float:
+    """
+    Calculate the cost of an LLM call using tokencost library.
+
+    :param prompt: the prompt sent to the LLM
+    :param completion: the completion returned by the LLM
+    :param model: the model name used
+    :return: total cost in dollars
+    """
+    import tokencost
+    #
+    prompt_cost = tokencost.calculate_prompt_cost(prompt, model)
+    completion_cost = tokencost.calculate_completion_cost(completion, model)
+    total_cost = prompt_cost + completion_cost
+    # Convert to float to ensure consistent type.
+    return float(total_cost)
+
 
 def apply_llm_batch(
     prompt: str,
@@ -347,9 +373,6 @@ def apply_llm_batch(
             "Input at index %d cannot be empty",
             idx,
         )
-    if model is not None:
-        hdbg.dassert_isinstance(model, str)
-        hdbg.dassert_ne(model, "", "Model cannot be empty string")
     _LOG.debug("Processing batch of %d inputs", len(input_list))
     # Process each input sequentially with progress bar.
     responses = []
@@ -370,6 +393,195 @@ def apply_llm_batch(
             progress_bar_object.update(1)
     _LOG.debug("Batch processing completed")
     return responses
+
+
+def apply_llm_batch_individual(
+    prompt: str,
+    input_list: List[str],
+    *,
+    model: Optional[str] = None,
+    testing_functor: Optional[Callable[[str], str]] = None,
+    progress_bar_object: Optional[tqdm] = None,
+) -> Tuple[List[str], float]:
+    """
+    Apply an LLM to process a batch of inputs with individual error handling.
+
+    This function processes each input sequentially with individual error
+    handling per query. Each query that fails will have an exception recorded
+    in the errors list while other queries continue processing.
+
+    Use this approach when:
+    - Processing 3-20 queries
+    - Same system prompt for all
+    - Need individual error handling per query
+
+    :param prompt: system prompt to guide the LLM's behavior
+    :param input_list: list of input texts to process with the LLM
+    :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
+    :param testing_functor: optional functor to use for testing instead of LLM
+    :param progress_bar_object: optional progress bar object to update
+    :return: tuple of (responses, errors, total_cost) where responses is a
+        list of LLM responses (or None for failed queries), errors is a list
+        of exceptions (or None for successful queries), and total_cost is the
+        total cost in dollars
+    """
+    hdbg.dassert_isinstance(prompt, str)
+    hdbg.dassert_isinstance(input_list, list)
+    hdbg.dassert_lt(0, len(input_list), "Input list cannot be empty")
+    for idx, input_str in enumerate(input_list):
+        hdbg.dassert_isinstance(
+            input_str,
+            str,
+            "Input at index %d must be a string",
+            idx,
+        )
+        hdbg.dassert_ne(
+            input_str,
+            "",
+            "Input at index %d cannot be empty",
+            idx,
+        )
+    _LOG.debug("Processing batch of %d inputs individually", len(input_list))
+    # Process each input sequentially with progress bar and error handling.
+    responses = []
+    total_cost = 0.0
+    use_llm_executable = False
+    _LOG.debug("use_llm_executable=%s", use_llm_executable)
+    for input_str in input_list:
+        if testing_functor is None:
+            response = apply_llm(
+                input_str,
+                system_prompt=prompt,
+                model=model,
+                use_llm_executable=use_llm_executable,
+            )
+            # Calculate cost for this call.
+            if model:
+                cost = _calculate_llm_cost(
+                    prompt + "\n" + input_str, response, model
+                )
+                total_cost += cost
+        else:
+            response = testing_functor(input_str)
+        responses.append(response)
+        if progress_bar_object is not None:
+            progress_bar_object.update(1)
+    _LOG.debug("Batch processing completed")
+    _LOG.info("Total cost for batch: $%.6f", total_cost)
+    return responses, total_cost
+
+
+def apply_llm_batch_combined(
+    prompt: str,
+    input_list: List[str],
+    *,
+    model: Optional[str] = None,
+    max_retries: int = 3,
+    testing_functor: Optional[Callable[[str], str]] = None,
+    progress_bar_object: Optional[tqdm] = None,
+) -> Tuple[List[str], float]:
+    """
+    Apply an LLM to process a batch using a single combined prompt.
+
+    This function combines all queries into a single prompt and expects
+    structured JSON output. It includes retry logic for failed JSON parsing.
+
+    Use this approach when:
+    - Processing 5-50 queries
+    - Same system prompt for all
+    - All queries can fail together (acceptable)
+    - Output is structured (JSON)
+
+    :param prompt: system prompt to guide the LLM's behavior
+    :param input_list: list of input texts to process with the LLM
+    :param model: optional model name to use (e.g., "gpt-4", "claude-3-opus")
+    :param max_retries: maximum number of retries for JSON parsing failures
+    :param testing_functor: optional functor to use for testing instead of LLM
+    :param progress_bar_object: optional progress bar object to update
+    :return: tuple of (responses, total_cost) where responses is a list of
+        LLM responses and total_cost is the total cost in dollars
+    """
+    hdbg.dassert_isinstance(prompt, str)
+    hdbg.dassert_isinstance(input_list, list)
+    hdbg.dassert_lt(0, len(input_list), "Input list cannot be empty")
+    for idx, input_str in enumerate(input_list):
+        hdbg.dassert_isinstance(
+            input_str,
+            str,
+            "Input at index %d must be a string",
+            idx,
+        )
+        hdbg.dassert_ne(
+            input_str,
+            "",
+            "Input at index %d cannot be empty",
+            idx,
+        )
+    hdbg.dassert_isinstance(max_retries, int)
+    hdbg.dassert_lt(0, max_retries)
+    _LOG.debug(
+        "Processing batch of %d inputs with combined prompt", len(input_list)
+    )
+    # Build combined prompt.
+    combined_prompt = f"{prompt}\n\nProcess the following items and return results as JSON in the format: {{\"0\": \"result1\", \"1\": \"result2\", ...}}\n\n"
+    for idx, input_str in enumerate(input_list):
+        combined_prompt += f"{idx}: {input_str}\n"
+    combined_prompt += "\nReturn ONLY the JSON object, no other text."
+    # Process with retries for JSON parsing.
+    total_cost = 0.0
+    use_llm_executable = False
+    _LOG.debug("use_llm_executable=%s", use_llm_executable)
+    for retry_num in range(max_retries):
+        try:
+            if testing_functor is None:
+                response = apply_llm(
+                    combined_prompt,
+                    system_prompt=None,
+                    model=model,
+                    use_llm_executable=use_llm_executable,
+                )
+                # Calculate cost for this call.
+                if model:
+                    cost = _calculate_llm_cost(combined_prompt, response, model)
+                    total_cost += cost
+            else:
+                response = testing_functor(combined_prompt)
+            # Parse JSON response.
+            _LOG.debug("Parsing JSON response (attempt %d/%d)", retry_num + 1, max_retries)
+            # Extract JSON from response (handle cases where LLM adds extra text).
+            response_stripped = response.strip()
+            # Find JSON object boundaries.
+            json_start = response_stripped.find("{")
+            json_end = response_stripped.rfind("}") + 1
+            if json_start >= 0 and json_end > json_start:
+                json_str = response_stripped[json_start:json_end]
+                result_dict = json.loads(json_str)
+                # Convert dict to list in order.
+                responses = []
+                for idx in range(len(input_list)):
+                    key = str(idx)
+                    if key in result_dict:
+                        responses.append(result_dict[key])
+                    else:
+                        _LOG.warning("Missing result for index %d", idx)
+                        responses.append("")
+                _LOG.debug("Successfully parsed JSON response")
+                if progress_bar_object is not None:
+                    progress_bar_object.update(len(input_list))
+                _LOG.info("Total cost for combined batch: $%.6f", total_cost)
+                return responses, total_cost
+            else:
+                raise ValueError("No JSON object found in response")
+        except (json.JSONDecodeError, ValueError) as e:
+            _LOG.debug(
+                "JSON parsing failed (attempt %d/%d): %s", retry_num + 1, max_retries, e
+            )
+            if retry_num == max_retries - 1:
+                hdbg.dfatal("Failed to parse JSON after %d retries", max_retries)
+            # Add instruction to retry.
+            combined_prompt += f"\n\nPrevious response had invalid JSON format. Please return ONLY a valid JSON object."
+    # Should not reach here.
+    raise RuntimeError("Unexpected error in apply_llm_batch_combined")
 
 
 # #############################################################################

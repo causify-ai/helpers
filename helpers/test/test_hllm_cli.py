@@ -746,3 +746,279 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         self.assert_equal(result_df, expected_df)
         # Reset the cache property.
         hcacsimp.set_cache_property("apply_llm", "abort_on_cache_miss", False)
+
+
+# #############################################################################
+# Test_apply_llm_batch_cost_comparison
+# #############################################################################
+
+
+class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
+    """
+    Test and compare costs of different batch processing approaches.
+    """
+
+    @staticmethod
+    def _get_person_industry_prompt() -> str:
+        """
+        Get the industry classification prompt for testing.
+
+        :return: system prompt string
+        """
+        prompt = """
+        Given the following list of industries with examples, classify the text into the
+        corresponding industry:
+        - Agriculture
+        - Automotive
+        - Construction
+        - Consumer Goods
+        - Education
+        - Energy & Utilities
+        - Engineering Services
+        - Event Management
+        - Financial Services
+        - Government & Nonprofits
+        - Healthcare
+        - Human Resources & Staffing
+        - IT - Hardware
+        - IT - Software
+        - IT - Cybersecurity
+        - IT - Cloud Services
+        - IT - Managed Services
+        - IT - Consulting & Integration
+        - IT - Support Services
+        - IT - Data & Analytics
+        - IT - DevOps & Automation
+        - Legal Services
+        - Logistics & Transportation
+        - Manufacturing
+        - Marketing & Advertising Agencies
+        - Media & Entertainment
+        - Pharmaceutical & Biotechnology
+        - Real Estate
+        - Retail & eCommerce
+        - Sports & Recreation
+        - Telecommunications
+        - Travel & Hospitality
+
+        You MUST report the industry exactly as one of the options above. Do not
+        include any other text.
+        If you are not sure about the industry, return "unknown".
+        """
+        prompt = hprint.dedent(prompt)
+        return prompt
+
+    @staticmethod
+    def _get_test_industries() -> list:
+        """
+        Get a list of test company descriptions for industry classification.
+
+        :return: list of company descriptions
+        """
+        industries = [
+            "A company that sells fresh produce and operates farms",
+            "A car manufacturer that produces electric vehicles",
+            "A construction company specializing in residential buildings",
+            "A company that manufactures consumer electronics and appliances",
+            "An online learning platform providing courses for students",
+            "An electric utility company providing power generation services",
+            "A civil engineering firm providing infrastructure design",
+            "A company organizing corporate events and conferences",
+            "A bank providing retail banking and investment services",
+            "A nonprofit organization focused on environmental conservation",
+        ]
+        return industries
+
+    @staticmethod
+    def _mock_classify_industry(input_str: str) -> str:
+        """
+        Mock function to simulate industry classification.
+
+        :param input_str: company description or combined prompt
+        :return: mocked industry classification
+        """
+        # Check if this is a combined prompt (contains JSON format instruction).
+        if "JSON" in input_str and "\"0\":" in input_str:
+            # Parse the combined prompt to extract all queries.
+            lines = input_str.split("\n")
+            results = {}
+            for line in lines:
+                if line.strip() and line[0].isdigit() and ":" in line:
+                    idx_str = line.split(":")[0].strip()
+                    results[idx_str] = "IT - Software"
+            # Return as JSON.
+            import json
+            #
+            return json.dumps(results)
+        else:
+            # Individual query - return simple classification.
+            return "IT - Software"
+
+    def test_cost_comparison(self) -> None:
+        """
+        Compare costs of Individual, Batch, and Combined approaches.
+
+        This test compares the costs of three different approaches for
+        processing multiple queries:
+        1. Individual - calling apply_llm for each query separately
+        2. Batch (Individual) - using apply_llm_batch_individual
+        3. Combined - using apply_llm_batch_combined
+
+        The test uses a testing_functor to avoid actual LLM API calls and
+        focuses on demonstrating the cost calculation logic.
+        """
+        # Prepare inputs.
+        prompt = self._get_person_industry_prompt()
+        industries = self._get_test_industries()
+        model = "gpt-4o-mini"
+        testing_functor = self._mock_classify_industry
+        # Approach 1: Individual - calling apply_llm for each query separately.
+        _LOG.info("Testing Individual approach...")
+        individual_responses = []
+        individual_cost = 0.0
+        for industry in industries:
+            response = hllmcli.apply_llm(
+                industry,
+                system_prompt=prompt,
+                model=model,
+            )
+            individual_responses.append(response)
+            # In a real scenario, we would calculate cost here.
+            # For testing, we use a mock cost.
+            individual_cost += 0.001
+        _LOG.info("Individual approach completed")
+        _LOG.info("Individual cost: $%.6f", individual_cost)
+        # Approach 2: Batch (Individual) - using apply_llm_batch_individual.
+        _LOG.info("Testing Batch (Individual) approach...")
+        (
+            batch_responses,
+            batch_errors,
+            batch_cost,
+        ) = hllmcli.apply_llm_batch_individual(
+            prompt=prompt,
+            input_list=industries,
+            model=model,
+            testing_functor=testing_functor,
+        )
+        _LOG.info("Batch (Individual) approach completed")
+        _LOG.info("Batch (Individual) cost: $%.6f", batch_cost)
+        # Approach 3: Combined - using apply_llm_batch_combined.
+        _LOG.info("Testing Combined approach...")
+        combined_responses, combined_cost = hllmcli.apply_llm_batch_combined(
+            prompt=prompt,
+            input_list=industries,
+            model=model,
+            testing_functor=testing_functor,
+        )
+        _LOG.info("Combined approach completed")
+        _LOG.info("Combined cost: $%.6f", combined_cost)
+        # Compare results.
+        comparison_df = pd.DataFrame(
+            {
+                "Approach": ["Individual", "Batch (Individual)", "Combined"],
+                "Cost ($)": [individual_cost, batch_cost, combined_cost],
+                "Num Queries": [len(industries)] * 3,
+                "Cost per Query ($)": [
+                    individual_cost / len(industries),
+                    batch_cost / len(industries),
+                    combined_cost / len(industries),
+                ],
+            }
+        )
+        _LOG.info("Cost comparison:\n%s", comparison_df)
+        # Check that all approaches returned results.
+        self.assertEqual(len(individual_responses), len(industries))
+        self.assertEqual(len(batch_responses), len(industries))
+        self.assertEqual(len(combined_responses), len(industries))
+        # Check that batch approach has no errors.
+        self.assertEqual(len([e for e in batch_errors if e is not None]), 0)
+        # Create a summary markdown.
+        summary = self._create_cost_summary(
+            individual_cost, batch_cost, combined_cost, len(industries)
+        )
+        _LOG.info("Cost summary:\n%s", summary)
+        # Save the comparison to the test outcome.
+        self.check_string(summary)
+
+    def _create_cost_summary(
+        self,
+        individual_cost: float,
+        batch_cost: float,
+        combined_cost: float,
+        num_queries: int,
+    ) -> str:
+        """
+        Create a markdown summary of cost comparison.
+
+        :param individual_cost: cost of individual approach
+        :param batch_cost: cost of batch approach
+        :param combined_cost: cost of combined approach
+        :param num_queries: number of queries processed
+        :return: markdown summary string
+        """
+        summary = """# Cost Comparison: Three Approaches for Batch LLM Processing
+
+## Test Configuration
+- Model: gpt-4o-mini
+- Number of queries: {num_queries}
+- Prompt: Industry classification
+
+## Cost Results
+
+| Approach | Total Cost ($) | Cost per Query ($) | Relative to Individual |
+|----------|----------------|-------------------|------------------------|
+| Individual | ${individual_cost:.6f} | ${individual_per_query:.6f} | 1.00x |
+| Batch (Individual) | ${batch_cost:.6f} | ${batch_per_query:.6f} | {batch_relative:.2f}x |
+| Combined | ${combined_cost:.6f} | ${combined_per_query:.6f} | {combined_relative:.2f}x |
+
+## Approach Descriptions
+
+### 1. Individual Approach
+- Calls apply_llm for each query separately
+- {num_queries} separate API calls
+- Maximum flexibility for error handling
+- Highest cost due to repeated system prompts
+
+### 2. Batch (Individual) Approach
+- Uses apply_llm_batch_individual
+- {num_queries} separate API calls
+- Individual error handling per query
+- Structured error tracking
+
+### 3. Combined Approach
+- Uses apply_llm_batch_combined
+- Single API call with all queries
+- JSON-structured output
+- Retry logic for parsing failures
+- Lowest cost due to single prompt
+
+## Recommendations
+
+- Use **Individual** when:
+  - Processing 1-5 queries
+  - Maximum reliability required per query
+
+- Use **Batch (Individual)** when:
+  - Processing 3-20 queries
+  - Need individual error handling
+  - Want structured error reporting
+
+- Use **Combined** when:
+  - Processing 5-50 queries
+  - All queries can fail together
+  - Cost optimization is important
+  - Output is structured (JSON)
+""".format(
+            num_queries=num_queries,
+            individual_cost=individual_cost,
+            individual_per_query=individual_cost / num_queries,
+            batch_cost=batch_cost,
+            batch_per_query=batch_cost / num_queries,
+            batch_relative=batch_cost / individual_cost if individual_cost > 0 else 0,
+            combined_cost=combined_cost,
+            combined_per_query=combined_cost / num_queries,
+            combined_relative=(
+                combined_cost / individual_cost if individual_cost > 0 else 0
+            ),
+        )
+        return summary
