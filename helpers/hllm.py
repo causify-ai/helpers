@@ -11,20 +11,18 @@ import re
 from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
 
 import openai
-import requests
 import tqdm
 from pydantic import BaseModel
 
 import helpers.hcache_simple as hcacsimp
+import helpers.hllm_cost as hllmcost
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
 
-# hdbg.set_logger_verbosity(logging.DEBUG)
 
-# _LOG.debug = _LOG.info
 
 # Create a generic type variable.
 T = TypeVar("T", bound=BaseModel)
@@ -122,23 +120,6 @@ def response_to_txt(response: Any) -> str:
         raise ValueError(f"Unknown response type: {type(response)}")
     hdbg.dassert_isinstance(ret, str)
     return ret
-
-
-def _extract(
-    file: openai.types.file_object.FileObject, attributes: List[str]
-) -> Dict[str, Any]:
-    """
-    Extract specific keys from a dictionary.
-
-    :param file: provided file to extract specific values
-    :param attributes: list of attributes to extract
-    :return: dictionary with extracted key-value pairs
-    """
-    obj_tmp = {}
-    for attr in attributes:
-        if hasattr(file, attr):
-            obj_tmp[attr] = getattr(file, attr)
-    return obj_tmp
 
 
 def build_chat_completion_messages(
@@ -276,7 +257,7 @@ class LLMClient:
         temperature: float,
         *,
         images_as_base64: Optional[Tuple[str, ...]] = None,
-        cost_tracker: Optional["LLMCostTracker"] = None,
+        cost_tracker: Optional[hllmcost.LLMCostTracker] = None,
         use_responses_api: bool = False,
         **create_kwargs,
     ) -> Dict[Any, Any]:
@@ -314,223 +295,7 @@ class LLMClient:
 
 
 # #############################################################################
-# OpenRouter API Helpers
-# #############################################################################
 
-
-def _get_models_info_file() -> str:
-    """
-    Get the path to the file for storing OpenRouter models info.
-    """
-    file_path = "tmp.openrouter_models_info.csv"
-    return file_path
-
-
-def _retrieve_openrouter_model_info() -> "pd.DataFrame":
-    """
-    Retrieve OpenRouter models info from the OpenRouter API.
-    """
-    import pandas as pd
-
-    response = requests.get("https://openrouter.ai/api/v1/models")
-    # {'architecture': {'input_modalities': ['text', 'image'],
-    #                   'instruct_type': None,
-    #                   'modality': 'text+image->text',
-    #                   'output_modalities': ['text'],
-    #                   'tokenizer': 'Mistral'},
-    #  'context_length': 131072,
-    #  'created': 1746627341,
-    #  'description': 'Mistral Medium 3 is a high-performance enterprise-grade '
-    #                 'language model designed to deliver frontier-level '
-    #                  ...
-    #                 'broad compatibility across cloud environments.',
-    #  'id': 'mistralai/mistral-medium-3',
-    #  'name': 'Mistral: Mistral Medium 3',
-    #  'per_request_limits': None,
-    #  'pricing': {'completion': '0.000002',
-    #              'image': '0',
-    #              'internal_reasoning': '0',
-    #              'prompt': '0.0000004',
-    #              'request': '0',
-    #              'web_search': '0'},
-    #  'supported_parameters': ['tools',
-    #                           'tool_choice',
-    #                           'max_tokens',
-    #                           'temperature',
-    #                           'top_p',
-    #                           'stop',
-    #                           'frequency_penalty',
-    #                           'presence_penalty',
-    #                           'response_format',
-    #                           'structured_outputs',
-    #                           'seed'],
-    #  'top_provider': {'context_length': 131072,
-    #                   'is_moderated': False,
-    #                   'max_completion_tokens': None}}
-    response_json = response.json()
-    # There is only one key in the response.
-    hdbg.dassert_eq(list(response_json.keys()), ["data"])
-    response_json = response_json["data"]
-    model_info_df = pd.DataFrame(response_json)
-    return model_info_df
-
-
-def _save_models_info_to_csv(
-    model_info_df: "pd.DataFrame",
-    file_name: str,
-) -> "pd.DataFrame":
-    """
-    Save models info to a CSV file.
-    """
-    hdbg.dassert_isinstance(file_name, str)
-    hdbg.dassert_ne(file_name, "")
-    # TODO(*): Save all the data.
-    # Extract prompt, completion pricing from pricing column.
-    model_info_df["prompt_pricing"] = model_info_df["pricing"].apply(
-        lambda x: x["prompt"]
-    )
-    model_info_df["completion_pricing"] = model_info_df["pricing"].apply(
-        lambda x: x["completion"]
-    )
-    required_columns = [
-        "id",
-        "name",
-        "description",
-        "prompt_pricing",
-        "completion_pricing",
-        "supported_parameters",
-    ]
-    # Take only relevant columns.
-    model_info_df = model_info_df.loc[:, required_columns]
-    # Save to CSV file.
-    model_info_df.to_csv(file_name, index=False)
-    return model_info_df
-
-
-# #############################################################################
-# LLMCostTracker
-# #############################################################################
-
-
-class LLMCostTracker:
-    """
-    Track the costs of LLM API calls through one of the providers.
-    """
-
-    def __init__(self) -> None:
-        """
-        Initialize the class.
-        """
-        self.current_cost: float = 0.0
-
-    def end_logging_costs(self) -> None:
-        """
-        End logging costs by resetting the current cost to 0.
-        """
-        self.current_cost = 0.0
-
-    def accumulate_cost(self, cost: float) -> None:
-        """
-        Accumulate the cost.
-
-        :param cost: The cost to accumulate
-        """
-        self.current_cost += cost
-
-    def get_current_cost(self) -> float:
-        """
-        Get the current accumulated cost.
-
-        :return: The current cost
-        """
-        return self.current_cost
-
-    def calculate_cost(
-        self,
-        completion: Any,
-        model: str,
-        *,
-        models_info_file: str = "",
-    ) -> float:
-        """
-        Calculate the cost of an API call, based on the provider.
-
-        :param completion: the completion response from API
-        :param model: the model used for the completion
-        :return: the calculated cost in dollars
-        """
-        import pandas as pd
-
-        # Get the number of input and output tokens.
-        usage = getattr(completion, "usage", None)
-        hdbg.dassert(
-            usage is not None,
-            "Completion/response object has no 'usage' attribute",
-        )
-        if hasattr(usage, "prompt_tokens") and hasattr(
-            usage, "completion_tokens"
-        ):
-            prompt_tokens = usage.prompt_tokens
-            completion_tokens = usage.completion_tokens
-        elif hasattr(usage, "input_tokens") and hasattr(usage, "output_tokens"):
-            prompt_tokens = usage.input_tokens
-            completion_tokens = usage.output_tokens
-        else:
-            raise ValueError(
-                f"Unknown usage structure on completion object: {usage}"
-            )
-        # Get the provider and model details.
-        provider_name, model = _get_llm_provider_and_model(model)
-        if provider_name == "openai":
-            # Get the pricing for the selected model.
-            # TODO(gp): Use pricing from OpenAI or Openrouter API.
-            # https://openai.com/api/pricing/
-            # https://gptforwork.com/tools/openai-chatgpt-api-pricing-calculator
-            # Cost per 1M tokens.
-            pricing = {
-                "gpt-3.5-turbo": {"prompt": 0.5, "completion": 1.5},
-                "gpt-4o-mini": {"prompt": 0.15, "completion": 0.60},
-                "gpt-4o": {"prompt": 2.5, "completion": 10},
-                "gpt-5.2": {"prompt": 1.75, "completion": 14.0},
-                "gpt-5.1": {"prompt": 1.25, "completion": 10.0},
-                "gpt-5-mini": {"prompt": 0.25, "completion": 2.00},
-            }
-            hdbg.dassert_in(model, pricing)
-            model_pricing = pricing[model]
-            # Calculate the cost.
-            cost = (prompt_tokens / 1e6) * model_pricing["prompt"] + (
-                completion_tokens / 1e6
-            ) * model_pricing["completion"]
-        elif provider_name == "openrouter":
-            # If the model info file doesn't exist, download one.
-            if models_info_file == "":
-                models_info_file = _get_models_info_file()
-            _LOG.debug(hprint.to_str("models_info_file"))
-            if not os.path.isfile(models_info_file):
-                model_info_df = _retrieve_openrouter_model_info()
-                _save_models_info_to_csv(model_info_df, models_info_file)
-            else:
-                model_info_df = pd.read_csv(models_info_file)
-            # Extract pricing for this model.
-            hdbg.dassert_in(model, model_info_df["id"].values)
-            row = model_info_df.loc[model_info_df["id"] == model].iloc[0]
-            prompt_price = row["prompt_pricing"]
-            completion_price = row["completion_pricing"]
-            # Compute cost.
-            cost = (
-                prompt_tokens * prompt_price
-                + completion_tokens * completion_price
-            )
-        else:
-            raise ValueError(f"Unknown provider: {provider_name}")
-        _LOG.debug(hprint.to_str("prompt_tokens completion_tokens cost"))
-        return cost
-
-
-# #############################################################################
-
-
-_LLM_COST_Tracker = LLMCostTracker()
 
 
 @hcacsimp.simple_cache(
@@ -547,7 +312,7 @@ def _call_api_sync(
     model: str,
     *,
     images_as_base64: Optional[Tuple[str, ...]] = None,
-    cost_tracker: Optional[LLMCostTracker] = None,
+    cost_tracker: Optional[hllmcost.LLMCostTracker] = None,
     use_responses_api: bool = False,
     **create_kwargs,
 ) -> Dict[Any, Any]:
@@ -588,13 +353,12 @@ def _call_api_sync(
         # Store the output of the Responses API.
         completion_obj["output_text"] = completion.output_text
     if cost_tracker is None:
-        cost_tracker = _LLM_COST_Tracker
-    # Calculate the cost of the completion.
-    hdbg.dassert_isinstance(cost_tracker, LLMCostTracker)
-    cost = cost_tracker.calculate_cost(completion, model)
-    cost_tracker.accumulate_cost(cost)
-    # Store the cost in the completion object.
-    completion_obj["cost"] = cost
+        # Calculate the cost of the completion.
+        hdbg.dassert_isinstance(cost_tracker, hllmcost.LLMCostTracker)
+        cost = cost_tracker.calculate_cost(completion, model)
+        cost_tracker.accumulate_cost(cost)
+        # Store the cost in the completion object.
+        completion_obj["cost"] = cost
     return completion_obj
 
 
@@ -737,7 +501,7 @@ def get_structured_completion(
     model: str = "",
     temperature: float = 0.1,
     images_as_base64: Optional[Tuple[str, ...]] = None,
-    cost_tracker: Optional["LLMCostTracker"] = None,
+    cost_tracker: Optional[hllmcost.LLMCostTracker] = None,
     print_cost: bool = False,
     **create_kwargs,
 ) -> T:
@@ -773,258 +537,15 @@ def get_structured_completion(
     parsed_output: T = response.output_parsed
     # Track costs.
     if cost_tracker is None:
-        cost_tracker = _LLM_COST_Tracker
-    hdbg.dassert_isinstance(cost_tracker, LLMCostTracker)
-    cost = cost_tracker.calculate_cost(response, llm_client.model)
-    cost_tracker.accumulate_cost(cost)
-    if print_cost:
-        _LOG.info("cost=%.6f", cost)
+        hdbg.dassert_isinstance(cost_tracker, hllmcost.LLMCostTracker)
+        cost = cost_tracker.calculate_cost(response)
+        cost_tracker.accumulate_cost(cost)
+        if print_cost:
+            _LOG.info("cost=%.6f", cost)
     return parsed_output
 
 
-# # #############################################################################
-
-
-# def file_to_info(file: openai.types.file_object.FileObject) -> Dict[str, Any]:
-#     """
-#     Convert a file object to a dictionary with selected attributes.
-
-#     :param file: file object
-#     :return: dictionary with file metadata
-#     """
-#     hdbg.dassert_isinstance(file, openai.types.file_object.FileObject)
-#     keys = ["id", "created_at", "filename"]
-#     file_info = _extract(file, keys)
-#     file_info["created_at"] = datetime.datetime.fromtimestamp(
-#         file_info["created_at"]
-#     )
-#     return file_info
-
-
-# def files_to_str(files: List[openai.types.file_object.FileObject]) -> str:
-#     """
-#     Generate a string summary of a list of file objects.
-
-#     :param files: list of file objects
-#     :return: string summary
-#     """
-#     txt: List[str] = []
-#     txt.append("Found %s files" % len(files))
-#     for file in files:
-#         txt.append("Deleting file " + file_to_info(file))
-#     txt = "\n".join(txt)
-#     return txt
-
-
-# def delete_all_files(*, ask_for_confirmation: bool = True) -> None:
-#     """
-#     Delete all files from OpenAI's file storage.
-
-#     :param ask_for_confirmation: whether to prompt for confirmation
-#         before deletion
-#     """
-#     client = get_openai_client()
-#     files = list(client.files.list())
-#     # Print.
-#     _LOG.info(files_to_str(files))
-#     # Confirm.
-#     if ask_for_confirmation:
-#         hdbg.dfatal("Stopping due to user confirmation.")
-#     # Delete.
-#     for file in files:
-#         _LOG.info("Deleting file %s", file)
-#         client.files.delete(file.id)
-
-
-# # #############################################################################
-# # Assistants
-# # #############################################################################
-
-
-# def assistant_to_info(assistant: OAssistant.Assistant) -> Dict[str, Any]:
-#     """
-#     Extract metadata from an assistant object.
-
-#     :param assistant: assistant object
-#     :return: dictionary with assistant metadata
-#     """
-#     hdbg.dassert_isinstance(assistant, OAssistant.Assistant)
-#     keys = ["name", "created_at", "id", "instructions", "model"]
-#     assistant_info = _extract(assistant, keys)
-#     assistant_info["created_at"] = datetime.datetime.fromtimestamp(
-#         assistant_info["created_at"]
-#     )
-#     return assistant_info
-
-
-# def assistants_to_str(assistants: List[OAssistant.Assistant]) -> str:
-#     """
-#     Generate a string summary of a list of assistants.
-
-#     :param assistants: list of assistants
-#     :return: a string summary
-#     """
-#     txt = []
-#     txt.append("Found %s assistants" % len(assistants))
-#     for assistant in assistants:
-#         txt.append("Deleting assistant " + assistant_to_info(assistant))
-#     txt = "\n".join(txt)
-#     return txt
-
-
-# def delete_all_assistants(*, ask_for_confirmation: bool = True) -> None:
-#     """
-#     Delete all assistants from OpenAI's assistant storage.
-
-#     :param ask_for_confirmation: whether to prompt for confirmation
-#         before deletion.
-#     """
-#     client = get_openai_client()
-#     assistants = client.beta.assistants.list()
-#     assistants = assistants.data
-#     _LOG.info(assistants_to_str(assistants))
-#     if ask_for_confirmation:
-#         hdbg.dfatal("Stopping due to user confirmation.")
-#     for assistant in assistants:
-#         _LOG.info("Deleting assistant %s", assistant)
-#         client.beta.assistants.delete(assistant.id)
-
-
-# def get_coding_style_assistant(
-#     assistant_name: str,
-#     instructions: str,
-#     vector_store_name: str,
-#     file_paths: List[str],
-#     *,
-#     model: Optional[str] = None,
-# ) -> OAssistant.Assistant:
-#     """
-#     Create or retrieve a coding style assistant with vector store support.
-
-#     :param assistant_name: name of the assistant
-#     :param instructions: instructions for the assistant
-#     :param vector_store_name: name of the vectore store
-#     :param file_paths: list of file paths to upload
-#     :param model: OpenAI model to use
-#     :return: created or updated assistant object
-#     """
-#     model = _MODEL if model is None else model
-#     client = get_openai_client()
-#     # Check if the assistant already exists.
-#     existing_assistants = list(client.beta.assistants.list().data)
-#     for existing_assistant in existing_assistants:
-#         if existing_assistant.name == assistant_name:
-#             _LOG.debug("Assistant '%s' already exists.", assistant_name)
-#             return existing_assistant
-#     # Cretae the assistant.
-#     _LOG.info("Creating a new assistant: %s", assistant_name)
-#     assistant = client.beta.assistants.create(
-#         name=assistant_name,
-#         instructions=instructions,
-#         model=model,
-#         tools=[{"type": "file_search"}],
-#     )
-#     # Check if the vector store already exists.
-#     vector_stores = list(client.beta.vector_stores.list().data)
-#     vector_store = None
-#     for store in vector_stores:
-#         if store.name == vector_store_name:
-#             _LOG.debug(
-#                 "Vector store '%s' already exists. Using it", vector_store_name
-#             )
-#             vector_store = store
-#             break
-#     if not vector_store:
-#         _LOG.debug("Creating vector store ...")
-#         # Create a vector store.
-#         vector_store = client.beta.vector_stores.create(name=vector_store_name)
-#     # Upload files to the vector store (if provided).
-#     if file_paths:
-#         file_streams = [open(path, "rb") for path in file_paths]
-#         _LOG.debug("Uploading files to vector store ...")
-#         try:
-#             file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
-#                 vector_store_id=vector_store.id, files=file_streams
-#             )
-#             _LOG.info(
-#                 "File batch uploaded successfully with status: %s",
-#                 file_batch.status,
-#             )
-#         except Exception as e:
-#             _LOG.error("Failed to upload files to vector store: %s", str(e))
-#             raise
-#     # Associate the assistant with the vector store.
-#     assistant = client.beta.assistants.update(
-#         assistant_id=assistant.id,
-#         tool_resources={"file_search": {"vector_store_ids": [vector_store.id]}},
-#     )
-#     return assistant
-
-
-# def get_query_assistant(
-#     assistant: OAssistant.Assistant, question: str
-# ) -> List[OMessage.Message]:
-#     """
-#     Query an assistant with sepecific question.
-
-#     :param assistant: assistant to query
-#     :param question: user question
-#     :return: list of messages containing the assistant's response
-#     """
-#     client = get_openai_client()
-#     # Create a thread and attach the file to the message.
-#     thread = client.beta.threads.create(
-#         messages=[
-#             {
-#                 "role": "user",
-#                 "content": question,
-#             }
-#         ]
-#     )
-#     # The thread now has a vector store with that file in its tool resources.
-#     _LOG.debug("thread=%s", thread.tool_resources.file_search)
-#     run = client.beta.threads.runs.create_and_poll(
-#         thread_id=thread.id, assistant_id=assistant.id
-#     )
-#     messages = list(
-#         client.beta.threads.messages.list(thread_id=thread.id, run_id=run.id)
-#     )
-#     return messages
-
-
-# # import os
-# # import requests
-# #
-# #
-# # def get_openai_usage():
-# #     # Define the API endpoint.
-# #     endpoint = "https://api.openai.com/v1/organization/costs"
-# #     start_date = datetime.datetime.now() - datetime.timedelta(days=10)
-# #     start_date = int(start_date.timestamp())
-# #     # Request headers.
-# #     #api_key = os.environ.get("OPENAI_API_KEY")
-# #     headers = {
-# #         "Authorization": f"Bearer {api_key}",
-# #     }
-# #     # Query parameters
-# #     params = {
-# #         "start_time": start_date,
-# #         #"end_date": end_date,
-# #     }
-# #     # Send the request
-# #     response = requests.get(endpoint, headers=headers, params=params)
-# #     if response.status_code == 200:
-# #         data = response.json()
-# #         import pprint
-# #         pprint.pprint(data)
-# #         total_spent = data.get("total_usage", 0) / 100  # Convert cents to dollars
-# #         #print(f"Total spent from {start_date} to {end_date}: "
-# #         #       f"${total_spent:.2f}")
-# #         return total_spent
-# #     else:
-# #         print(f"Failed to fetch usage: {response.status_code}, {response.text}")
-# #         return None
-# #
+# #############################################################################
 
 
 def apply_prompt_to_dataframe(
@@ -1033,6 +554,7 @@ def apply_prompt_to_dataframe(
     model: str,
     input_col,
     response_col,
+    *,
     chunk_size=50,
     allow_overwrite: bool = False,
 ):

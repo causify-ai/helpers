@@ -22,6 +22,10 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
+#_LOG.trace = lambda *args, **kwargs: None
+_LOG.trace = _LOG.debug
+
+
 def install_needed_modules(
     *, use_sudo: bool = True, venv_path: Optional[str] = None
 ) -> None:
@@ -174,15 +178,20 @@ def _apply_llm_via_library(
         response = "".join(response_parts)
     else:
         # Run without progress bar.
+        _LOG.trace("system_prompt=\n%s", system_prompt)
+        _LOG.trace("input_str=\n%s", input_str)
         result = llm_model.prompt(input_str, system=system_prompt)
         response = result.text()
+        _LOG.trace("response=\n%s", response)
         # Optionally: log or return cost information if present
         if hasattr(result, "response") and hasattr(result.response, "usage"):
+            assert 0
             usage = result.response.usage
             # Typical keys: 'prompt_tokens', 'completion_tokens', 'total_tokens', 'total_cost'
             cost = getattr(usage, "total_cost", None)
             if cost is not None:
                 _LOG.info("LLM call cost: $%.6f", cost)
+                assert 0
     return response
 
 
@@ -299,6 +308,8 @@ def apply_llm_with_files(
     _LOG.debug("Wrote %d characters to output file", len(response))
 
 
+# #############################################################################
+
 def apply_llm_batch(
     prompt: str,
     input_list: List[str],
@@ -360,6 +371,8 @@ def apply_llm_batch(
     _LOG.debug("Batch processing completed")
     return responses
 
+
+# #############################################################################
 
 # TODO(gp): Move it somewhere else.
 def get_tqdm_progress_bar() -> tqdm:
