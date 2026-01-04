@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 
 import helpers.hcache_simple as hcacsimp
+import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
 import helpers.hprint as hprint
@@ -325,7 +326,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
     def _helper(
         self,
         model: str,
-        func: Optional[Callable],
+        func: Callable,
         testing_functor: Optional[Callable[[str], str]],
     ) -> None:
         """
@@ -334,7 +335,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         :param func: batch processing function to test
         :param testing_functor: optional testing functor for mocking
         """
-        # TODO(ai_gp): Only one among func and testing_functor can be provided.
+        _LOG.trace(hprint.to_str("model func testing_functor"))
         # Create test inputs.
         prompt = self._get_test_prompt()
         input_list = ["2 + 2", "3 * 3", "10 - 5", "20 / 4"]
@@ -376,7 +377,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         This test uses a mock calculator instead of the real LLM API.
         """
         model = ""
-        func = None
+        func = hllmcli.apply_llm_batch_individual
         testing_functor = _eval_functor
         self._helper(
             model,
@@ -406,7 +407,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         This test uses a mock calculator instead of the real LLM API.
         """
         model = ""
-        func = None
+        func = hllmcli.apply_llm_batch_with_shared_prompt
         testing_functor = _eval_functor
         self._helper(
             model,
@@ -420,7 +421,8 @@ class Test_apply_llm_batch1(hunitest.TestCase):
 
         This test uses the real LLM API.
         """
-        model = "gpt-5-nano"
+        #model = "gpt-5-nano"
+        model = "gpt-4o-mini"
         func = hllmcli.apply_llm_batch_combined
         testing_functor = None
         self._helper(
@@ -436,7 +438,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         This test uses a mock calculator instead of the real LLM API.
         """
         model = ""
-        func = None
+        func = hllmcli.apply_llm_batch_combined
         testing_functor = _eval_functor
         self._helper(
             model,

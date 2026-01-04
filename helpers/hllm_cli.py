@@ -364,8 +364,8 @@ def _llm(
     response = result.text()
     _LOG.trace("response=\n%s", response)
     usage = result.usage()
-    input_tokens = result.usage["input_tokens"]
-    output_tokens = result.usage["output_tokens"]
+    input_tokens = usage.input
+    output_tokens = usage.output
     prompt_cost = tokencost.calculate_cost_by_tokens(
         num_tokens=input_tokens,
         model=model,
@@ -545,6 +545,17 @@ def apply_llm_batch_combined(
     for idx, input_str in enumerate(input_list):
         combined_prompt += f"{idx}: {input_str}\n"
     combined_prompt += "\nReturn ONLY the JSON object, no other text."
+    _LOG.debug("Combined prompt:\n%s", combined_prompt)
+    # You are a calculator. Return only the numeric result.
+    # ```
+    # Process the following items and return results as JSON in the format:
+    # {"0": "result1", "1": "result2", ...}
+    # 0: 2 + 2
+    # 1: 3 * 3
+    # 2: 10 - 5
+    # 3: 20 / 4
+    # Return ONLY the JSON object, no other text.
+    # ```
     # Process with retries for JSON parsing.
     total_cost = 0.0
     if testing_functor is None:
@@ -556,31 +567,34 @@ def apply_llm_batch_combined(
             total_cost += cost
             try:
                 # Parse JSON response.
-                _LOG.debug("Parsing JSON response (attempt %d/%d)", retry_num + 1, max_retries)
+                # E.g.,
+                # ```
+                # {"0": "4", "1": "9", "2": "5", "3": "5"}
+                # ```
+                _LOG.debug("Parsing JSON response:\n%s", response)
                 # Extract JSON from response (handle cases where LLM adds extra text).
                 response_stripped = response.strip()
                 # Find JSON object boundaries.
                 json_start = response_stripped.find("{")
                 json_end = response_stripped.rfind("}") + 1
-                if json_start >= 0 and json_end > json_start:
-                    json_str = response_stripped[json_start:json_end]
-                    result_dict = json.loads(json_str)
-                    # Convert dict to list in order.
-                    responses = []
-                    for idx in range(len(input_list)):
-                        key = str(idx)
-                        if key in result_dict:
-                            responses.append(result_dict[key])
-                        else:
-                            _LOG.warning("Missing result for index %d", idx)
-                            responses.append("")
-                    _LOG.debug("Successfully parsed JSON response")
-                    if progress_bar_object is not None:
-                        progress_bar_object.update(len(input_list))
-                    _LOG.info("Total cost for combined batch: $%.6f", total_cost)
-                    return responses, total_cost
-                else:
-                    raise ValueError("No JSON object found in response")
+                hdbg.dassert_lte(0, json_start)
+                hdbg.dassert_lt(json_start, json_end)
+                json_str = response_stripped[json_start:json_end]
+                result_dict = json.loads(json_str)
+                # Convert dict to list in order.
+                responses = []
+                for idx in range(len(input_list)):
+                    key = str(idx)
+                    if key in result_dict:
+                        responses.append(result_dict[key])
+                    else:
+                        _LOG.warning("Missing result for index %d", idx)
+                        responses.append("")
+                _LOG.debug("Successfully parsed JSON response")
+                if progress_bar_object is not None:
+                    progress_bar_object.update(len(input_list))
+                _LOG.info("Total cost for combined batch: $%.6f", total_cost)
+                return responses, total_cost
             except (json.JSONDecodeError, ValueError) as e:
                 _LOG.debug(
                     "JSON parsing failed (attempt %d/%d): %s", retry_num + 1, max_retries, e
@@ -590,10 +604,13 @@ def apply_llm_batch_combined(
                 # Add instruction to retry.
                 combined_prompt += "\n\nPrevious response had invalid JSON format. Please return ONLY a valid JSON object."
     else:
+        responses = []
         for input_str in input_list:
             response = testing_functor(input_str)
-            progress_bar_object.update(1)
-        cost = 0.0
+            if progress_bar_object is not None:
+                progress_bar_object.update(1)
+        total_cost = 0.0
+        return responses, total_cost
     # Should not reach here.
     raise RuntimeError("Unexpected error in apply_llm_batch_combined")
 
