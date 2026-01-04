@@ -546,6 +546,7 @@ def apply_llm_batch_combined(
 
         Output format:
         '{"0": "result1", "1": "result2", ...}
+
         """
     )
     combined_prompt += hprint.dedent(instruction)
@@ -735,7 +736,7 @@ def apply_llm_prompt_to_df(
             )
             if batch_mode == "individual":
                 func = apply_llm_batch_individual
-            elif batch_mode == "batch":
+            elif batch_mode == "batch_with_shared_prompt":
                 func = apply_llm_batch_with_shared_prompt
             elif batch_mode == "combined":
                 func = apply_llm_batch_combined

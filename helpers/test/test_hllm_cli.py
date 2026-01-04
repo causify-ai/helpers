@@ -910,12 +910,12 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
 # Test_apply_llm_batch_cost_comparison
 # #############################################################################
 
-
-# TODO(ai_gp): Test apply_llm_prompt_to_df using different batch modes and compare the
-# results in terms of cost and time.
 class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
     """
     Test and compare costs of different batch processing approaches.
+
+    Tests both direct batch function calls and apply_llm_prompt_to_df with
+    different batch modes.
     """
 
     @staticmethod
@@ -989,110 +989,66 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         ]
         return industries
 
-    @staticmethod
-    def _mock_classify_industry(input_str: str) -> str:
+    def test_batch_mode_comparison(self) -> None:
         """
-        Mock function to simulate industry classification.
+        Compare costs and time of different batch modes in apply_llm_prompt_to_df.
 
-        :param input_str: company description or combined prompt
-        :return: mocked industry classification
-        """
-        # Check if this is a combined prompt (contains JSON format instruction).
-        if "JSON" in input_str and "\"0\":" in input_str:
-            # Parse the combined prompt to extract all queries.
-            lines = input_str.split("\n")
-            results = {}
-            for line in lines:
-                if line.strip() and line[0].isdigit() and ":" in line:
-                    idx_str = line.split(":")[0].strip()
-                    results[idx_str] = "IT - Software"
-            # Return as JSON.
-            import json
-            #
-            return json.dumps(results)
-        else:
-            # Individual query - return simple classification.
-            return "IT - Software"
+        This test compares the performance of three batch modes:
+        1. individual - processes each query separately
+        2. batch - uses shared prompt context
+        3. combined - combines all queries into single API call
 
-    def test_cost_comparison(self) -> None:
-        """
-        Compare costs of Individual, Batch, and Combined approaches.
-
-        This test compares the costs of three different approaches for
-        processing multiple queries:
-        1. Individual - calling apply_llm for each query separately
-        2. Batch (Individual) - using apply_llm_batch_individual
-        3. Combined - using apply_llm_batch_combined
-
-        The test uses a testing_functor to avoid actual LLM API calls and
-        focuses on demonstrating the cost calculation logic.
+        The test uses a testing_functor to avoid actual LLM API calls.
         """
         # Prepare inputs.
         prompt = self._get_person_industry_prompt()
         industries = self._get_test_industries()
+        testing_functor = None
         model = "gpt-4o-mini"
-        testing_functor = self._mock_classify_industry
-        # Approach 1: Individual - calling apply_llm for each query separately.
-        _LOG.info("Testing Individual approach...")
-        individual_responses = []
-        individual_cost = 0.0
-        for industry in industries:
-            response = hllmcli.apply_llm(
-                industry,
-                system_prompt=prompt,
+        # Create DataFrame from test data.
+        df = pd.DataFrame({"description": industries})
+        # Extractor function to get text from DataFrame row.
+        def extractor(obj):
+            if isinstance(obj, pd.Series):
+                return obj["description"]
+            return str(obj)
+        # Test each batch mode.
+        batch_modes = ["individual", "batch_with_shared_prompt", "combined"]
+        results = []
+        for batch_mode in batch_modes:
+            _LOG.info("Testing batch mode: %s", batch_mode)
+            # Create a copy of the DataFrame for this batch mode.
+            df_copy = df.copy()
+            # Measure time.
+            start_time = time.time()
+            # Call apply_llm_prompt_to_df with the current batch mode.
+            result_df, stats = hllmcli.apply_llm_prompt_to_df(
+                prompt=prompt,
+                df=df_copy,
+                extractor=extractor,
+                target_col="industry",
+                batch_mode=batch_mode,
                 model=model,
+                batch_size=10,
+                testing_functor=testing_functor,
             )
-            individual_responses.append(response)
-            # In a real scenario, we would calculate cost here.
-            # For testing, we use a mock cost.
-            individual_cost += 0.001
-        _LOG.info("Individual approach completed")
-        _LOG.info("Individual cost: $%.6f", individual_cost)
-        # Approach 2: Batch (Individual) - using apply_llm_batch_individual.
-        _LOG.info("Testing Batch (Individual) approach...")
-        batch_responses, batch_cost = hllmcli.apply_llm_batch_individual(
-            prompt=prompt,
-            input_list=industries,
-            model=model,
-            testing_functor=testing_functor,
-        )
-        _LOG.info("Batch (Individual) approach completed")
-        _LOG.info("Batch (Individual) cost: $%.6f", batch_cost)
-        # Approach 3: Combined - using apply_llm_batch_combined.
-        _LOG.info("Testing Combined approach...")
-        combined_responses, combined_cost = hllmcli.apply_llm_batch_combined(
-            prompt=prompt,
-            input_list=industries,
-            model=model,
-            testing_functor=testing_functor,
-        )
-        _LOG.info("Combined approach completed")
-        _LOG.info("Combined cost: $%.6f", combined_cost)
-        # Compare results.
-        comparison_df = pd.DataFrame(
-            {
-                "Approach": ["Individual", "Batch (Individual)", "Combined"],
-                "Cost ($)": [individual_cost, batch_cost, combined_cost],
-                "Num Queries": [len(industries)] * 3,
-                "Cost per Query ($)": [
-                    individual_cost / len(industries),
-                    batch_cost / len(industries),
-                    combined_cost / len(industries),
-                ],
-            }
-        )
-        _LOG.info("Cost comparison:\n%s", comparison_df)
-        # Check that all approaches returned results.
-        self.assertEqual(len(individual_responses), len(industries))
-        self.assertEqual(len(batch_responses), len(industries))
-        self.assertEqual(len(combined_responses), len(industries))
-        # Create a summary markdown.
-        summary = self._create_cost_summary(
-            individual_cost, batch_cost, combined_cost, len(industries)
-        )
-        _LOG.info("Cost summary:\n%s", summary)
-        # Save the comparison to the test outcome.
-        self.check_string(summary)
+            elapsed_time = time.time() - start_time
+            # Store results.
+            results.append(
+                {
+                    "Batch Mode": batch_mode,
+                    "Time (s)": elapsed_time,
+                    "Num Items": stats["num_items"],
+                    "Num Skipped": stats["num_skipped"],
+                    "Num Batches": stats["num_batches"],
+                }
+            )
+            # Verify results.
+            self.assertEqual(len(result_df), len(industries))
+            self.assertIn("industry", result_df.columns)
+        # Create comparison DataFrame.
+        comparison_df = pd.DataFrame(results)
+        _LOG.info("Batch mode comparison:\n%s", comparison_df)
 
     def _create_cost_summary(
         self,

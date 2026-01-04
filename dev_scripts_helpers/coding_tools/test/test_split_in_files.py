@@ -3,6 +3,7 @@ import os
 
 import dev_scripts_helpers.coding_tools.split_in_files as dshctsifi
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -18,21 +19,20 @@ class Test_parse_file_content(hunitest.TestCase):
     Test parsing file content and extracting sections based on tags.
     """
 
-    # TODO(ai_gp): Rename to test1, test2, ...
-    def test_parse_file_content_with_common_section(self) -> None:
+    def test1(self) -> None:
         """
         Test parsing file with <start_common> and multiple file sections.
         """
         # Prepare inputs.
-        # TODO(ai_gp): Use a string aligned with the rest of the code and then use hprint.dedent
-        # for all the content.
-        content = """<start_common>
-Common header
-<start:file1.txt>
-Content for file1
-<start:file2.txt>
-Content for file2
-"""
+        content = """
+        <start_common>
+        Common header
+        <start:file1.txt>
+        Content for file1
+        <start:file2.txt>
+        Content for file2
+        """
+        content = hprint.dedent(content)
         # Run test.
         common_section, sections, line_ranges, common_line_range = (
             dshctsifi._parse_file_content(content)
@@ -48,16 +48,18 @@ Content for file2
         self.assertEqual(len(line_ranges), 2)
         self.assertEqual(common_line_range, (1, 3))
 
-    def test_parse_file_content_without_common_section(self) -> None:
+    def test2(self) -> None:
         """
         Test parsing file without <start_common> section.
         """
         # Prepare inputs.
-        content = """<start:file1.txt>
-Content for file1
-<start:file2.txt>
-Content for file2
-"""
+        content = """
+        <start:file1.txt>
+        Content for file1
+        <start:file2.txt>
+        Content for file2
+        """
+        content = hprint.dedent(content)
         # Run test.
         common_section, sections, line_ranges, common_line_range = (
             dshctsifi._parse_file_content(content)
@@ -72,14 +74,16 @@ Content for file2
         self.assertEqual(len(line_ranges), 2)
         self.assertEqual(common_line_range, None)
 
-    def test_parse_file_content_single_file(self) -> None:
+    def test3(self) -> None:
         """
         Test parsing file with single file section.
         """
         # Prepare inputs.
-        content = """<start:output.txt>
-Single file content
-"""
+        content = """
+        <start:output.txt>
+        Single file content
+        """
+        content = hprint.dedent(content)
         # Run test.
         common_section, sections, line_ranges, common_line_range = (
             dshctsifi._parse_file_content(content)
@@ -96,6 +100,8 @@ Single file content
 # Test_split_file
 # #############################################################################
 
+# TODO(ai_gp): Names of test methods should be test1, test2, etc.
+
 class Test_split_file(hunitest.TestCase):
     """
     Test splitting input file into multiple output files.
@@ -108,11 +114,13 @@ class Test_split_file(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "input.txt")
-        content = """<start:output1.txt>
-Content for output1
-<start:output2.txt>
-Content for output2
-"""
+        content = """
+        <start:output1.txt>
+        Content for output1
+        <start:output2.txt>
+        Content for output2
+        """
+        content = hprint.dedent(content)
         hio.to_file(input_file, content)
         # Run test.
         dshctsifi._split_file(
@@ -139,13 +147,15 @@ Content for output2
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "input.txt")
-        content = """<start_common>
-Common header
-<start:output1.txt>
-Content 1
-<start:output2.txt>
-Content 2
-"""
+        content = """
+        <start_common>
+        Common header
+        <start:output1.txt>
+        Content 1
+        <start:output2.txt>
+        Content 2
+        """
+        content = hprint.dedent(content)
         hio.to_file(input_file, content)
         # Run test.
         dshctsifi._split_file(
@@ -173,9 +183,11 @@ Content 2
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "input.txt")
         output_dir = os.path.join(scratch_dir, "new_output_dir")
-        content = """<start:test.txt>
-Test content
-"""
+        content = """
+        <start:test.txt>
+        Test content
+        """
+        content = hprint.dedent(content)
         hio.to_file(input_file, content)
         # Run test.
         dshctsifi._split_file(
@@ -197,10 +209,12 @@ Test content
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "input.txt")
-        content = """<start:test.txt>
-    Indented content
-Content with    spaces
-"""
+        content = """
+        <start:test.txt>
+            Indented content
+        Content with    spaces
+        """
+        content = hprint.dedent(content)
         hio.to_file(input_file, content)
         # Run test.
         dshctsifi._split_file(
@@ -238,15 +252,17 @@ class TestSplitFileIntegration(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "input.txt")
-        content = """<start:module1.py>
-def function1():
-    return "Hello"
-<start:module2.py>
-def function2():
-    return "World"
-<start:readme.txt>
-This is a readme file.
-"""
+        content = """
+        <start:module1.py>
+        def function1():
+            return "Hello"
+        <start:module2.py>
+        def function2():
+            return "World"
+        <start:readme.txt>
+        This is a readme file.
+        """
+        content = hprint.dedent(content)
         hio.to_file(input_file, content)
         # Run test.
         dshctsifi._split_file(
@@ -287,19 +303,21 @@ This is a readme file.
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         input_file = os.path.join(scratch_dir, "input.txt")
-        content = """<start_common>
-# Common header
-import logging
-<start:file1.py>
-def func1():
-    pass
-<start:file2.py>
-def func2():
-    pass
-<start:file3.py>
-def func3():
-    pass
-"""
+        content = """
+        <start_common>
+        # Common header
+        import logging
+        <start:file1.py>
+        def func1():
+            pass
+        <start:file2.py>
+        def func2():
+            pass
+        <start:file3.py>
+        def func3():
+            pass
+        """
+        content = hprint.dedent(content)
         hio.to_file(input_file, content)
         # Run test.
         dshctsifi._split_file(
