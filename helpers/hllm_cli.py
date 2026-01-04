@@ -9,8 +9,11 @@ import logging
 import shlex
 import subprocess
 import sys
+import importlib
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
+import llm
+import tokencost
 import pandas as pd
 from tqdm import tqdm
 
@@ -45,7 +48,6 @@ def install_needed_modules(
         venv_path=venv_path,
     )
     # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
-    import importlib
 
     # Reload this module if already imported.
     this_module_name = __name__
@@ -157,8 +159,6 @@ def _apply_llm_via_library(
         output (used for progress bar)
     :return: LLM response as string
     """
-    import llm
-
     # Get the model.
     if model:
         llm_model = llm.get_model(model)
@@ -353,30 +353,31 @@ def _llm(
     _LOG.trace("system_prompt=\n%s", system_prompt)
     #
     hdbg.dassert_isinstance(input_str, str)
-    hdbg.dassert_ne(input_str, "", "Input string cannot be empty")
     _LOG.trace("input_str=\n%s", input_str)
     #
     hdbg.dassert_isinstance(model, str)
     hdbg.dassert_ne(model, "", "Model cannot be empty")
-    _LOG.debug("model=%s", llm_model.model_id)
-
-    import llm
 
     llm_model = llm.get_model(model)
+    _LOG.debug("model=%s", llm_model.model_id)
     result = llm_model.prompt(input_str, system=system_prompt)
     response = result.text()
     _LOG.trace("response=\n%s", response)
-    #
-    import tokencost
-
+    usage = result.usage()
     input_tokens = result.usage["input_tokens"]
     output_tokens = result.usage["output_tokens"]
-    cost = tokencost.calculate_cost(
+    prompt_cost = tokencost.calculate_cost_by_tokens(
+        num_tokens=input_tokens,
         model=model,
-        prompt_tokens=input_tokens,
-        completion_tokens=output_tokens
+        token_type='input'
     )
-    return response, float(cost)
+    completion_cost = tokencost.calculate_cost_by_tokens(
+        num_tokens=output_tokens,
+        model=model,
+        token_type='output'
+    )
+    cost = float(prompt_cost + completion_cost)
+    return response, cost
 
 
 def _call_llm_or_test_functor(
@@ -422,8 +423,6 @@ def _calculate_llm_cost(
     :param model: the model name used
     :return: total cost in dollars
     """
-    import tokencost
-    #
     prompt_cost = tokencost.calculate_prompt_cost(prompt, model)
     completion_cost = tokencost.calculate_completion_cost(completion, model)
     total_cost = prompt_cost + completion_cost
@@ -479,25 +478,39 @@ def apply_llm_batch_with_shared_prompt(
     _LOG.debug("Processing batch of %d inputs", len(input_list))
     # Process each input sequentially with progress bar.
     responses = []
-    conv = llm.Conversation()
-    conv.system = prompt
-    conv.model = model
-    for input_str in input_list:
-        if testing_functor is None:
-            response = m.prompt(input_str, conversation=conv)
-            input_tokens = result.usage["input_tokens"]
-            output_tokens = result.usage["output_tokens"]
-            cost = tokencost.calculate_cost(
+    total_cost = 0.0
+    if testing_functor is None:
+        llm_model = llm.get_model(model)
+        conv = llm.Conversation(model=llm_model)
+        for input_str in input_list:
+            result = conv.prompt(input_str, system=prompt)
+            response = result.text()
+            usage = result.usage()
+            input_tokens = usage.input
+            output_tokens = usage.output
+            prompt_cost = tokencost.calculate_cost_by_tokens(
+                num_tokens=input_tokens,
                 model=model,
-                prompt_tokens=input_tokens,
-                completion_tokens=output_tokens
+                token_type='input'
             )
-        else:
+            completion_cost = tokencost.calculate_cost_by_tokens(
+                num_tokens=output_tokens,
+                model=model,
+                token_type='output'
+            )
+            cost = float(prompt_cost + completion_cost)
+            total_cost += cost
+            responses.append(response)
+            if progress_bar_object is not None:
+                progress_bar_object.update(1)
+    else:
+        for input_str in input_list:
             response = testing_functor(input_str)
-        responses.append(response)
-        if progress_bar_object is not None:
-            progress_bar_object.update(1)
+            responses.append(response)
+            if progress_bar_object is not None:
+                progress_bar_object.update(1)
     _LOG.debug("Batch processing completed")
+    _LOG.info("Total cost for batch: $%.6f", total_cost)
     return responses, total_cost
 
 
@@ -538,8 +551,8 @@ def apply_llm_batch_combined(
         for retry_num in range(max_retries):
             _LOG.debug("Processing batch of %d inputs with combined prompt (attempt %d/%d)", len(input_list), retry_num + 1, max_retries)
             system_prompt = combined_prompt
-            prompt = ""
-            response, cost = _llm(system_prompt, prompt, model)
+            user_prompt = "Process the items listed above."
+            response, cost = _llm(system_prompt, user_prompt, model)
             total_cost += cost
             try:
                 # Parse JSON response.
@@ -703,18 +716,22 @@ def apply_llm_prompt_to_df(
                 func = apply_llm_batch_combined
             else:
                 hdbg.dfatal("Invalid batch mode: %s", batch_mode)
-            batch_responses = func(
+            batch_responses, batch_cost = func(
                 prompt=prompt,
                 input_list=batch_items,
                 model=model,
                 testing_functor=testing_functor,
                 progress_bar_object=progress_bar_object,
             )
+            # Store results back into dataframe.
+            for idx, response in zip(batch_indices, batch_responses):
+                df.at[idx, target_col] = response
+        else:
             _LOG.debug(
                 "Skipping batch %d/%d (all %d items have missing data)",
                 batch_num + 1,
                 num_batches,
-                num_items,
+                len(rows),
             )
         # Dump dataframe to file after batch if requested.
         if dump_every_batch is not None:
