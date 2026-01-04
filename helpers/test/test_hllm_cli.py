@@ -348,7 +348,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
             testing_functor=testing_functor,
         )
         # Check basic properties.
-        responses = [str(int(r)) for r in responses]
+        responses = [str(int(float(r))) for r in responses]
         self.assertEqual(responses, expected_responses)
         if testing_functor is None:
             self.assertGreater(cost, 0.0)
@@ -421,8 +421,8 @@ class Test_apply_llm_batch1(hunitest.TestCase):
 
         This test uses the real LLM API.
         """
-        #model = "gpt-5-nano"
-        model = "gpt-4o-mini"
+        model = "gpt-5-nano"
+        #model = "gpt-4o-mini"
         func = hllmcli.apply_llm_batch_combined
         testing_functor = None
         self._helper(
@@ -911,7 +911,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(gp): Test apply_llm_prompt_to_df using different batch modes and compare the
+# TODO(ai_gp): Test apply_llm_prompt_to_df using different batch modes and compare the
 # results in terms of cost and time.
 class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
     """
@@ -1116,6 +1116,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         :param num_queries: number of queries processed
         :return: markdown summary string
         """
+        # TODO(ai_gp): Print the result as a pandas dataframe.
         summary = """# Cost Comparison: Three Approaches for Batch LLM Processing
 
 ## Test Configuration
@@ -1130,44 +1131,6 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
 | Individual | ${individual_cost:.6f} | ${individual_per_query:.6f} | 1.00x |
 | Batch (Individual) | ${batch_cost:.6f} | ${batch_per_query:.6f} | {batch_relative:.2f}x |
 | Combined | ${combined_cost:.6f} | ${combined_per_query:.6f} | {combined_relative:.2f}x |
-
-## Approach Descriptions
-
-### 1. Individual Approach
-- Calls apply_llm for each query separately
-- {num_queries} separate API calls
-- Maximum flexibility for error handling
-- Highest cost due to repeated system prompts
-
-### 2. Batch (Individual) Approach
-- Uses apply_llm_batch_individual
-- {num_queries} separate API calls
-- Individual error handling per query
-- Structured error tracking
-
-### 3. Combined Approach
-- Uses apply_llm_batch_combined
-- Single API call with all queries
-- JSON-structured output
-- Retry logic for parsing failures
-- Lowest cost due to single prompt
-
-## Recommendations
-
-- Use **Individual** when:
-  - Processing 1-5 queries
-  - Maximum reliability required per query
-
-- Use **Batch (Individual)** when:
-  - Processing 3-20 queries
-  - Need individual error handling
-  - Want structured error reporting
-
-- Use **Combined** when:
-  - Processing 5-50 queries
-  - All queries can fail together
-  - Cost optimization is important
-  - Output is structured (JSON)
 """.format(
             num_queries=num_queries,
             individual_cost=individual_cost,

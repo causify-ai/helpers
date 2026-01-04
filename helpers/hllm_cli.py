@@ -21,6 +21,7 @@ import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -536,12 +537,18 @@ def apply_llm_batch_combined(
         "Processing batch of %d inputs with combined prompt", len(input_list)
     )
     # Build combined prompt.
+
     combined_prompt = f"{prompt}\n\n"
     instruction = (
-        "Process the following items and return results as JSON in the format: "
-        '{"0": "result1", "1": "result2", ...}\n\n'
+        """
+        Return the results only as a valid JSON object with string values, using
+        zero-based numeric keys that match the item numbers.
+
+        Output format:
+        '{"0": "result1", "1": "result2", ...}
+        """
     )
-    combined_prompt += instruction
+    combined_prompt += hprint.dedent(instruction)
     for idx, input_str in enumerate(input_list):
         combined_prompt += f"{idx}: {input_str}\n"
     combined_prompt += "\nReturn ONLY the JSON object, no other text."
@@ -607,6 +614,7 @@ def apply_llm_batch_combined(
         responses = []
         for input_str in input_list:
             response = testing_functor(input_str)
+            responses.append(response)
             if progress_bar_object is not None:
                 progress_bar_object.update(1)
         total_cost = 0.0
