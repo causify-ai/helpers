@@ -9,10 +9,73 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_get_line_number
+# #############################################################################
+
+
+class Test_get_line_number(hunitest.TestCase):
+    """
+    Test getting line numbers from character positions in content.
+    """
+
+    def test_first_line(self) -> None:
+        """
+        Test position in first line returns line 1.
+        """
+        # Prepare inputs.
+        content = "Line 1\nLine 2\nLine 3"
+        position = 3
+        # Run test.
+        actual = dshctsifi._get_line_number(content, position)
+        # Check outputs.
+        expected = 1
+        self.assertEqual(actual, expected)
+
+    def test_second_line(self) -> None:
+        """
+        Test position in second line returns line 2.
+        """
+        # Prepare inputs.
+        content = "Line 1\nLine 2\nLine 3"
+        position = 10
+        # Run test.
+        actual = dshctsifi._get_line_number(content, position)
+        # Check outputs.
+        expected = 2
+        self.assertEqual(actual, expected)
+
+    def test_start_of_content(self) -> None:
+        """
+        Test position 0 returns line 1.
+        """
+        # Prepare inputs.
+        content = "Line 1\nLine 2\nLine 3"
+        position = 0
+        # Run test.
+        actual = dshctsifi._get_line_number(content, position)
+        # Check outputs.
+        expected = 1
+        self.assertEqual(actual, expected)
+
+    def test_after_newline(self) -> None:
+        """
+        Test position right after newline returns next line number.
+        """
+        # Prepare inputs.
+        content = "Line 1\nLine 2\nLine 3"
+        position = 7
+        # Run test.
+        actual = dshctsifi._get_line_number(content, position)
+        # Check outputs.
+        expected = 2
+        self.assertEqual(actual, expected)
+
 
 # #############################################################################
 # Test_parse_file_content
 # #############################################################################
+
 
 class Test_parse_file_content(hunitest.TestCase):
     """
@@ -41,8 +104,8 @@ class Test_parse_file_content(hunitest.TestCase):
         expected_common = "\nCommon header\n"
         self.assert_equal(common_section, expected_common)
         expected_sections = {
-            "file1.txt": "\nContent for file1\n",
-            "file2.txt": "\nContent for file2\n",
+            "file1.txt": ["\nContent for file1\n"],
+            "file2.txt": ["\nContent for file2"],
         }
         self.assert_equal(str(sections), str(expected_sections))
         self.assertEqual(len(line_ranges), 2)
@@ -67,8 +130,8 @@ class Test_parse_file_content(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(common_section, "")
         expected_sections = {
-            "file1.txt": "\nContent for file1\n",
-            "file2.txt": "\nContent for file2\n",
+            "file1.txt": ["\nContent for file1\n"],
+            "file2.txt": ["\nContent for file2"],
         }
         self.assert_equal(str(sections), str(expected_sections))
         self.assertEqual(len(line_ranges), 2)
@@ -90,10 +153,176 @@ class Test_parse_file_content(hunitest.TestCase):
         )
         # Check outputs.
         self.assert_equal(common_section, "")
-        expected_sections = {"output.txt": "\nSingle file content\n"}
+        expected_sections = {"output.txt": ["\nSingle file content"]}
         self.assert_equal(str(sections), str(expected_sections))
         self.assertEqual(len(line_ranges), 1)
         self.assertEqual(common_line_range, None)
+
+    def test_no_tags_raises_error(self) -> None:
+        """
+        Test that file with no tags raises assertion error.
+        """
+        # Prepare inputs.
+        content = "Just some content without any tags"
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            dshctsifi._parse_file_content(content)
+        actual = str(cm.exception)
+        self.assertIn("No tags found", actual)
+
+    def test_only_common_section_raises_error(self) -> None:
+        """
+        Test that file with only <start_common> and no file sections raises error.
+        """
+        # Prepare inputs.
+        content = """
+        <start_common>
+        Common section only
+        """
+        content = hprint.dedent(content)
+        # Run test and check output.
+        with self.assertRaises(AssertionError) as cm:
+            dshctsifi._parse_file_content(content)
+        actual = str(cm.exception)
+        self.assertIn("No file sections found", actual)
+
+    def test_multiple_chunks_same_filename(self) -> None:
+        """
+        Test parsing file with multiple chunks for the same filename.
+        """
+        # Prepare inputs.
+        content = """
+        <start:output.txt>
+        First chunk
+        <start:output.txt>
+        Second chunk
+        <start:output.txt>
+        Third chunk
+        """
+        content = hprint.dedent(content)
+        # Run test.
+        common_section, sections, line_ranges, common_line_range = (
+            dshctsifi._parse_file_content(content)
+        )
+        # Check outputs.
+        self.assert_equal(common_section, "")
+        # Should have one key with three chunks.
+        self.assertEqual(len(sections), 1)
+        self.assertIn("output.txt", sections)
+        self.assertEqual(len(sections["output.txt"]), 3)
+        self.assert_equal(sections["output.txt"][0], "\nFirst chunk\n")
+        self.assert_equal(sections["output.txt"][1], "\nSecond chunk\n")
+        self.assert_equal(sections["output.txt"][2], "\nThird chunk\n")
+
+    def test_mixed_single_and_multiple_chunks(self) -> None:
+        """
+        Test parsing file with mix of single-chunk and multi-chunk files.
+        """
+        # Prepare inputs.
+        content = """
+        <start:file1.txt>
+        Content 1
+        <start:file2.txt>
+        First part of file2
+        <start:file1.txt>
+        More content for file1
+        <start:file3.txt>
+        Content 3
+        """
+        content = hprint.dedent(content)
+        # Run test.
+        common_section, sections, line_ranges, common_line_range = (
+            dshctsifi._parse_file_content(content)
+        )
+        # Check outputs.
+        self.assertEqual(len(sections), 3)
+        # file1.txt should have 2 chunks.
+        self.assertEqual(len(sections["file1.txt"]), 2)
+        # file2.txt should have 1 chunk.
+        self.assertEqual(len(sections["file2.txt"]), 1)
+        # file3.txt should have 1 chunk.
+        self.assertEqual(len(sections["file3.txt"]), 1)
+
+
+# #############################################################################
+# Test_remove_content_from_input_file
+# #############################################################################
+
+
+class Test_remove_content_from_input_file(hunitest.TestCase):
+    """
+    Test removing content between tags from input file.
+    """
+
+    def test_basic_removal(self) -> None:
+        """
+        Test removing content between tags while preserving tags.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.txt")
+        content = """<start:file1.txt>
+Content for file1
+<start:file2.txt>
+Content for file2
+"""
+        hio.to_file(input_file, content)
+        # Run test.
+        dshctsifi._remove_content_from_input_file(input_file, content)
+        # Check outputs.
+        result = hio.from_file(input_file)
+        expected = """<start:file1.txt>
+<start:file2.txt>
+"""
+        self.assert_equal(result, expected)
+
+    def test_removal_with_common_section(self) -> None:
+        """
+        Test removing content including common section.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.txt")
+        content = """<start_common>
+Common content
+<start:file1.txt>
+Content 1
+<start:file2.txt>
+Content 2
+"""
+        hio.to_file(input_file, content)
+        # Run test.
+        dshctsifi._remove_content_from_input_file(input_file, content)
+        # Check outputs.
+        result = hio.from_file(input_file)
+        expected = """<start_common>
+<start:file1.txt>
+<start:file2.txt>
+"""
+        self.assert_equal(result, expected)
+
+    def test_removal_preserves_untagged_content(self) -> None:
+        """
+        Test that untagged content before tags is preserved.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.txt")
+        content = """Untagged header
+More untagged stuff
+<start:file1.txt>
+Content for file1
+"""
+        hio.to_file(input_file, content)
+        # Run test.
+        dshctsifi._remove_content_from_input_file(input_file, content)
+        # Check outputs.
+        result = hio.from_file(input_file)
+        expected = """Untagged header
+More untagged stuff
+<start:file1.txt>
+"""
+        self.assert_equal(result, expected)
 
 
 # #############################################################################
@@ -138,6 +367,7 @@ class Test_split_file(hunitest.TestCase):
         dry_run: bool = False,
         skip_verify: bool = False,
         preserve_input: bool = True,
+        append: bool = False,
     ) -> None:
         """
         Run _split_file with standard test parameters.
@@ -147,6 +377,7 @@ class Test_split_file(hunitest.TestCase):
         :param dry_run: Whether to do dry run
         :param skip_verify: Whether to skip verification
         :param preserve_input: Whether to preserve input file
+        :param append: Whether to append to existing files
         """
         # Run.
         dshctsifi._split_file(
@@ -155,6 +386,7 @@ class Test_split_file(hunitest.TestCase):
             dry_run=dry_run,
             skip_verify=skip_verify,
             preserve_input=preserve_input,
+            append=append,
         )
 
     def test1(self) -> None:
@@ -247,6 +479,141 @@ class Test_split_file(hunitest.TestCase):
         expected = "\n    Indented content\nContent with    spaces\n"
         self.assert_equal(output_content, expected)
 
+    def test_dry_run_mode(self) -> None:
+        """
+        Test that dry_run mode doesn't create output files.
+        """
+        # Prepare inputs.
+        content = """
+        <start:output1.txt>
+        Content 1
+        <start:output2.txt>
+        Content 2
+        """
+        input_file, output_dir = self._create_input_file_for_split(content)
+        # Run test.
+        self._run_split_file(input_file, output_dir, dry_run=True)
+        # Check outputs.
+        output1_file = os.path.join(output_dir, "output1.txt")
+        output2_file = os.path.join(output_dir, "output2.txt")
+        # Files should not be created in dry run mode.
+        self.assertEqual(os.path.exists(output1_file), False)
+        self.assertEqual(os.path.exists(output2_file), False)
+
+    def test_preserve_input_false(self) -> None:
+        """
+        Test that preserve_input=False removes content from input file.
+        """
+        # Prepare inputs.
+        content = """
+        <start:output1.txt>
+        Content 1
+        <start:output2.txt>
+        Content 2
+        """
+        input_file, output_dir = self._create_input_file_for_split(content)
+        original_content = hio.from_file(input_file)
+        # Run test.
+        self._run_split_file(input_file, output_dir, preserve_input=False)
+        # Check outputs.
+        modified_content = hio.from_file(input_file)
+        # Content should be different (tags preserved, content removed).
+        self.assertNotEqual(original_content, modified_content)
+        # Tags should still be present.
+        self.assertIn("<start:output1.txt>", modified_content)
+        self.assertIn("<start:output2.txt>", modified_content)
+        # Original content should not be present.
+        self.assertNotIn("Content 1", modified_content)
+        self.assertNotIn("Content 2", modified_content)
+
+    def test_multiple_chunks_concatenated(self) -> None:
+        """
+        Test that multiple chunks for same filename are concatenated.
+        """
+        # Prepare inputs.
+        content = """
+        <start:output.txt>
+        First chunk
+        <start:output.txt>
+        Second chunk
+        <start:output.txt>
+        Third chunk
+        """
+        input_file, output_dir = self._create_input_file_for_split(content)
+        # Run test.
+        self._run_split_file(input_file, output_dir)
+        # Check outputs.
+        output_file = os.path.join(output_dir, "output.txt")
+        self.assertEqual(os.path.exists(output_file), True)
+        output_content = hio.from_file(output_file)
+        # All chunks should be concatenated.
+        self.assertIn("First chunk", output_content)
+        self.assertIn("Second chunk", output_content)
+        self.assertIn("Third chunk", output_content)
+
+    def test_append_mode_existing_file(self) -> None:
+        """
+        Test that append mode appends to existing file instead of overwriting.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        output_dir = scratch_dir
+        # Create existing file.
+        existing_file = os.path.join(output_dir, "output.txt")
+        hio.to_file(existing_file, "Existing content\n")
+        # Create input file.
+        content = """
+        <start:output.txt>
+        New content
+        """
+        input_file, _ = self._create_input_file_for_split(
+            content, output_dir=output_dir
+        )
+        # Run test with append mode.
+        dshctsifi._split_file(
+            input_file,
+            output_dir=output_dir,
+            dry_run=False,
+            skip_verify=False,
+            preserve_input=True,
+            append=True,
+        )
+        # Check outputs.
+        output_content = hio.from_file(existing_file)
+        # Should contain both existing and new content.
+        self.assertIn("Existing content", output_content)
+        self.assertIn("New content", output_content)
+
+    def test_append_mode_new_file(self) -> None:
+        """
+        Test that append mode creates file if it doesn't exist.
+        """
+        # Prepare inputs.
+        content = """
+        <start_common>
+        Common header
+        <start:newfile.txt>
+        File content
+        """
+        input_file, output_dir = self._create_input_file_for_split(content)
+        # Run test.
+        dshctsifi._split_file(
+            input_file,
+            output_dir=output_dir,
+            dry_run=False,
+            skip_verify=False,
+            preserve_input=True,
+            append=True,
+        )
+        # Check outputs.
+        output_file = os.path.join(output_dir, "newfile.txt")
+        self.assertEqual(os.path.exists(output_file), True)
+        output_content = hio.from_file(output_file)
+        # Should contain both common section and file content.
+        self.assertIn("Common header", output_content)
+        self.assertIn("File content", output_content)
+
+
 # #############################################################################
 # TestSplitFileIntegration
 # #############################################################################
@@ -289,6 +656,7 @@ class TestSplitFileIntegration(hunitest.TestCase):
         dry_run: bool = False,
         skip_verify: bool = False,
         preserve_input: bool = True,
+        append: bool = False,
     ) -> None:
         """
         Run _split_file with standard test parameters.
@@ -298,6 +666,7 @@ class TestSplitFileIntegration(hunitest.TestCase):
         :param dry_run: Whether to do dry run
         :param skip_verify: Whether to skip verification
         :param preserve_input: Whether to preserve input file
+        :param append: Whether to append to existing files
         """
         # Run.
         dshctsifi._split_file(
@@ -306,6 +675,7 @@ class TestSplitFileIntegration(hunitest.TestCase):
             dry_run=dry_run,
             skip_verify=skip_verify,
             preserve_input=preserve_input,
+            append=append,
         )
 
     def test1(self) -> None:
