@@ -11,6 +11,7 @@ import subprocess
 import sys
 import importlib
 import pprint
+import time
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import llm
@@ -681,7 +682,7 @@ def apply_llm_prompt_to_df(
     :param testing_functor: optional functor to use for testing
     :return: tuple of (dataframe with results, statistics dict)
     """
-    # TODO(ai_gp): Calculate the time taken to process the dataframe.
+    start_time = time.time()
     hdbg.dassert_isinstance(prompt, str)
     hdbg.dassert_ne(prompt, "", "Prompt cannot be empty")
     hdbg.dassert_isinstance(df, pd.DataFrame)
@@ -772,12 +773,14 @@ def apply_llm_prompt_to_df(
         if dump_every_batch is not None:
             _LOG.debug("Dumping dataframe to file: %s", dump_every_batch)
             df.to_csv(dump_every_batch, index=False)
-    # TODO(ai_gp): Add time taken to process the dataframe.
+    # Calculate elapsed time.
+    elapsed_time = time.time() - start_time
     stats = {
         "num_items": num_items,
         "num_skipped": num_skipped,
         "num_batches": num_batches,
         "total_cost_in_dollars": total_cost,
+        "elapsed_time_in_seconds": elapsed_time,
     }
     _LOG.info(
         "Processing completed:\n%s", pprint.pformat(stats)
