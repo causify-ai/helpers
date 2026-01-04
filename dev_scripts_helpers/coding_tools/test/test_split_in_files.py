@@ -19,57 +19,58 @@ class Test_get_line_number(hunitest.TestCase):
     Test getting line numbers from character positions in content.
     """
 
-    def test_first_line(self) -> None:
+    def helper(self, content: str, position: int, expected: int) -> None:
+        """
+        Helper method to test _get_line_number.
+        """
+        # Run test.
+        actual = dshctsifi._get_line_number(content, position)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
         """
         Test position in first line returns line 1.
         """
         # Prepare inputs.
         content = "Line 1\nLine 2\nLine 3"
         position = 3
-        # Run test.
-        actual = dshctsifi._get_line_number(content, position)
-        # Check outputs.
         expected = 1
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(content, position, expected)
 
-    def test_second_line(self) -> None:
+    def test2(self) -> None:
         """
         Test position in second line returns line 2.
         """
         # Prepare inputs.
         content = "Line 1\nLine 2\nLine 3"
         position = 10
-        # Run test.
-        actual = dshctsifi._get_line_number(content, position)
-        # Check outputs.
         expected = 2
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(content, position, expected)
 
-    def test_start_of_content(self) -> None:
+    def test3(self) -> None:
         """
         Test position 0 returns line 1.
         """
         # Prepare inputs.
         content = "Line 1\nLine 2\nLine 3"
         position = 0
-        # Run test.
-        actual = dshctsifi._get_line_number(content, position)
-        # Check outputs.
         expected = 1
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(content, position, expected)
 
-    def test_after_newline(self) -> None:
+    def test4(self) -> None:
         """
         Test position right after newline returns next line number.
         """
         # Prepare inputs.
         content = "Line 1\nLine 2\nLine 3"
         position = 7
-        # Run test.
-        actual = dshctsifi._get_line_number(content, position)
-        # Check outputs.
         expected = 2
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(content, position, expected)
 
 
 # #############################################################################
@@ -158,7 +159,7 @@ class Test_parse_file_content(hunitest.TestCase):
         self.assertEqual(len(line_ranges), 1)
         self.assertEqual(common_line_range, None)
 
-    def test_no_tags_raises_error(self) -> None:
+    def test4(self) -> None:
         """
         Test that file with no tags raises assertion error.
         """
@@ -170,7 +171,7 @@ class Test_parse_file_content(hunitest.TestCase):
         actual = str(cm.exception)
         self.assertIn("No tags found", actual)
 
-    def test_only_common_section_raises_error(self) -> None:
+    def test5(self) -> None:
         """
         Test that file with only <start_common> and no file sections raises error.
         """
@@ -186,7 +187,7 @@ class Test_parse_file_content(hunitest.TestCase):
         actual = str(cm.exception)
         self.assertIn("No file sections found", actual)
 
-    def test_multiple_chunks_same_filename(self) -> None:
+    def test6(self) -> None:
         """
         Test parsing file with multiple chunks for the same filename.
         """
@@ -214,7 +215,7 @@ class Test_parse_file_content(hunitest.TestCase):
         self.assert_equal(sections["output.txt"][1], "\nSecond chunk\n")
         self.assert_equal(sections["output.txt"][2], "\nThird chunk\n")
 
-    def test_mixed_single_and_multiple_chunks(self) -> None:
+    def test7(self) -> None:
         """
         Test parsing file with mix of single-chunk and multi-chunk files.
         """
@@ -254,75 +255,83 @@ class Test_remove_content_from_input_file(hunitest.TestCase):
     Test removing content between tags from input file.
     """
 
-    def test_basic_removal(self) -> None:
+    def helper(self, content: str, expected: str) -> None:
+        """
+        Helper method to test removing content from input file.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.txt")
+        hio.to_file(input_file, content)
+        # Run test.
+        dshctsifi._remove_content_from_input_file(input_file, content)
+        # Check outputs.
+        result = hio.from_file(input_file)
+        self.assert_equal(result, expected)
+
+    def test1(self) -> None:
         """
         Test removing content between tags while preserving tags.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.txt")
-        content = """<start:file1.txt>
-Content for file1
-<start:file2.txt>
-Content for file2
-"""
-        hio.to_file(input_file, content)
+        content = """
+        <start:file1.txt>
+        Content for file1
+        <start:file2.txt>
+        Content for file2
+        """
+        content = hprint.dedent(content)
+        expected = """
+        <start:file1.txt>
+        <start:file2.txt>
+        """
+        expected = hprint.dedent(expected)
         # Run test.
-        dshctsifi._remove_content_from_input_file(input_file, content)
-        # Check outputs.
-        result = hio.from_file(input_file)
-        expected = """<start:file1.txt>
-<start:file2.txt>
-"""
-        self.assert_equal(result, expected)
+        self.helper(content, expected)
 
-    def test_removal_with_common_section(self) -> None:
+    def test2(self) -> None:
         """
         Test removing content including common section.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.txt")
-        content = """<start_common>
-Common content
-<start:file1.txt>
-Content 1
-<start:file2.txt>
-Content 2
-"""
-        hio.to_file(input_file, content)
+        content = """
+        <start_common>
+        Common content
+        <start:file1.txt>
+        Content 1
+        <start:file2.txt>
+        Content 2
+        """
+        content = hprint.dedent(content)
+        expected = """
+        <start_common>
+        <start:file1.txt>
+        <start:file2.txt>
+        """
+        expected = hprint.dedent(expected)
         # Run test.
-        dshctsifi._remove_content_from_input_file(input_file, content)
-        # Check outputs.
-        result = hio.from_file(input_file)
-        expected = """<start_common>
-<start:file1.txt>
-<start:file2.txt>
-"""
-        self.assert_equal(result, expected)
+        self.helper(content, expected)
 
-    def test_removal_preserves_untagged_content(self) -> None:
+    def test3(self) -> None:
         """
         Test that untagged content before tags is preserved.
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        input_file = os.path.join(scratch_dir, "input.txt")
-        content = """Untagged header
-More untagged stuff
-<start:file1.txt>
-Content for file1
-"""
-        hio.to_file(input_file, content)
+        content = """
+        Untagged header
+        More untagged stuff
+        <start:file1.txt>
+        Content for file1
+        """
+        content = hprint.dedent(content)
+        expected = """
+        Untagged header
+        More untagged stuff
+        <start:file1.txt>
+        """
+        expected = hprint.dedent(expected)
         # Run test.
-        dshctsifi._remove_content_from_input_file(input_file, content)
-        # Check outputs.
-        result = hio.from_file(input_file)
-        expected = """Untagged header
-More untagged stuff
-<start:file1.txt>
-"""
-        self.assert_equal(result, expected)
+        self.helper(content, expected)
 
 
 # #############################################################################
@@ -479,7 +488,7 @@ class Test_split_file(hunitest.TestCase):
         expected = "\n    Indented content\nContent with    spaces\n"
         self.assert_equal(output_content, expected)
 
-    def test_dry_run_mode(self) -> None:
+    def test5(self) -> None:
         """
         Test that dry_run mode doesn't create output files.
         """
@@ -500,7 +509,7 @@ class Test_split_file(hunitest.TestCase):
         self.assertEqual(os.path.exists(output1_file), False)
         self.assertEqual(os.path.exists(output2_file), False)
 
-    def test_preserve_input_false(self) -> None:
+    def test6(self) -> None:
         """
         Test that preserve_input=False removes content from input file.
         """
@@ -526,7 +535,7 @@ class Test_split_file(hunitest.TestCase):
         self.assertNotIn("Content 1", modified_content)
         self.assertNotIn("Content 2", modified_content)
 
-    def test_multiple_chunks_concatenated(self) -> None:
+    def test7(self) -> None:
         """
         Test that multiple chunks for same filename are concatenated.
         """
@@ -551,7 +560,7 @@ class Test_split_file(hunitest.TestCase):
         self.assertIn("Second chunk", output_content)
         self.assertIn("Third chunk", output_content)
 
-    def test_append_mode_existing_file(self) -> None:
+    def test8(self) -> None:
         """
         Test that append mode appends to existing file instead of overwriting.
         """
@@ -584,7 +593,7 @@ class Test_split_file(hunitest.TestCase):
         self.assertIn("Existing content", output_content)
         self.assertIn("New content", output_content)
 
-    def test_append_mode_new_file(self) -> None:
+    def test9(self) -> None:
         """
         Test that append mode creates file if it doesn't exist.
         """
