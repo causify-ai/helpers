@@ -270,6 +270,10 @@ class Test_apply_llm_with_files(hunitest.TestCase):
         """
         self._run_test_cases_print_only(use_llm_executable=True)
 
+
+# TODO(ai_gp): Add unit tests for apply_llm_batch, apply_llm_batch_individual, and apply_llm_batch_combined.
+# using the same test cases.
+
 # #############################################################################
 # Test_apply_llm_prompt_to_df1
 # #############################################################################
@@ -594,11 +598,6 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
 # #############################################################################
 
 # TODO(gp): Convert this into a unit test for apply_llm_prompt.
-
-# #############################################################################
-# Test_apply_llm_prompt_to_df2
-# #############################################################################
-
 class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
     """
     Test apply_llm_prompt_to_df with mocked cache.
