@@ -56,8 +56,8 @@ Content for file2
         expected_common = "\nCommon header\n"
         self.assert_equal(common_section, expected_common)
         expected_sections = {
-            "file1.txt": "\nContent for file1\n",
-            "file2.txt": "\nContent for file2\n",
+            "file1.txt": ["\nContent for file1\n"],
+            "file2.txt": ["\nContent for file2\n"],
         }
         self.assert_equal(str(sections), str(expected_sections))
         self.assertEqual(len(line_ranges), 2)
@@ -95,8 +95,8 @@ Content for file2
         # Check outputs.
         self.assert_equal(common_section, "")
         expected_sections = {
-            "file1.txt": "\nContent for file1\n",
-            "file2.txt": "\nContent for file2\n",
+            "file1.txt": ["\nContent for file1\n"],
+            "file2.txt": ["\nContent for file2\n"],
         }
         self.assert_equal(str(sections), str(expected_sections))
         self.assertEqual(len(line_ranges), 2)
@@ -126,7 +126,7 @@ Single file content
         )
         # Check outputs.
         self.assert_equal(common_section, "")
-        expected_sections = {"output.txt": "\nSingle file content\n"}
+        expected_sections = {"output.txt": ["\nSingle file content\n"]}
         self.assert_equal(str(sections), str(expected_sections))
         self.assertEqual(len(line_ranges), 1)
         self.assertEqual(common_line_range, None)
@@ -167,6 +167,86 @@ Common content only
         # Run test and check output.
         with self.assertRaises(AssertionError):
             dshctsifi._parse_file_content(content)
+
+    def test_parse_file_content_multiple_chunks_same_filename(self) -> None:
+        """
+        Test parsing file with multiple chunks for the same filename.
+
+        Expected input:
+        ```
+        <start:output.txt>
+        First chunk
+        <start:output.txt>
+        Second chunk
+        <start:output.txt>
+        Third chunk
+        ```
+
+        Expected output:
+        - sections = {"output.txt": [chunk1, chunk2, chunk3]}
+        - line_ranges = {"output.txt": [(1,2), (2,3), (3,4)]}
+        """
+        # Prepare inputs.
+        content = """<start:output.txt>
+First chunk
+<start:output.txt>
+Second chunk
+<start:output.txt>
+Third chunk
+"""
+        # Run test.
+        common_section, sections, line_ranges, common_line_range = (
+            dshctsifi._parse_file_content(content)
+        )
+        # Check outputs.
+        self.assert_equal(common_section, "")
+        self.assertEqual(len(sections), 1)
+        self.assertIn("output.txt", sections)
+        self.assertEqual(len(sections["output.txt"]), 3)
+        self.assert_equal(sections["output.txt"][0], "\nFirst chunk\n")
+        self.assert_equal(sections["output.txt"][1], "\nSecond chunk\n")
+        self.assert_equal(sections["output.txt"][2], "\nThird chunk\n")
+        self.assertEqual(len(line_ranges["output.txt"]), 3)
+
+    def test_parse_file_content_mixed_multiple_and_single_chunks(self) -> None:
+        """
+        Test parsing with some files having multiple chunks, others single.
+
+        Expected input:
+        ```
+        <start:file1.txt>
+        File1 chunk1
+        <start:file2.txt>
+        File2 only chunk
+        <start:file1.txt>
+        File1 chunk2
+        ```
+
+        Expected output:
+        - sections = {
+            "file1.txt": [chunk1, chunk2],
+            "file2.txt": [chunk]
+          }
+        """
+        # Prepare inputs.
+        content = """<start:file1.txt>
+File1 chunk1
+<start:file2.txt>
+File2 only chunk
+<start:file1.txt>
+File1 chunk2
+"""
+        # Run test.
+        common_section, sections, line_ranges, common_line_range = (
+            dshctsifi._parse_file_content(content)
+        )
+        # Check outputs.
+        self.assertEqual(len(sections), 2)
+        self.assertEqual(len(sections["file1.txt"]), 2)
+        self.assertEqual(len(sections["file2.txt"]), 1)
+        self.assert_equal(sections["file1.txt"][0], "\nFile1 chunk1\n")
+        self.assert_equal(sections["file1.txt"][1], "\nFile1 chunk2\n")
+        self.assert_equal(sections["file2.txt"][0], "\nFile2 only chunk\n")
 
 
 # #############################################################################
@@ -221,6 +301,7 @@ Content for output2
             dry_run=False,
             skip_verify=False,
             preserve_input=True,
+            append=False,
         )
         # Check outputs.
         output1_file = os.path.join(scratch_dir, "output1.txt")
@@ -269,6 +350,7 @@ Content 2
             dry_run=False,
             skip_verify=False,
             preserve_input=True,
+            append=False,
         )
         # Check outputs.
         output1_file = os.path.join(scratch_dir, "output1.txt")
@@ -307,6 +389,7 @@ Test content
             dry_run=False,
             skip_verify=False,
             preserve_input=True,
+            append=False,
         )
         # Check outputs.
         self.assertEqual(os.path.exists(output_dir), True)
@@ -333,6 +416,7 @@ Test content
                 dry_run=False,
                 skip_verify=False,
                 preserve_input=True,
+                append=False,
             )
 
     def test_split_file_preserves_content_exactly(self) -> None:
@@ -364,11 +448,189 @@ Content with    spaces
             dry_run=False,
             skip_verify=False,
             preserve_input=True,
+            append=False,
         )
         # Check outputs.
         output_file = os.path.join(scratch_dir, "test.txt")
         output_content = hio.from_file(output_file)
         expected = "\n    Indented content\nContent with    spaces\n"
+        self.assert_equal(output_content, expected)
+
+    def test_split_file_multiple_chunks_same_file(self) -> None:
+        """
+        Test splitting with multiple chunks for the same filename.
+
+        Expected input file content:
+        ```
+        <start:output.txt>
+        First chunk
+        <start:output.txt>
+        Second chunk
+        ```
+
+        Expected output:
+        - Single output.txt file containing both chunks concatenated
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.txt")
+        content = """<start:output.txt>
+First chunk
+<start:output.txt>
+Second chunk
+"""
+        hio.to_file(input_file, content)
+        # Run test.
+        dshctsifi._split_file(
+            input_file,
+            output_dir=scratch_dir,
+            dry_run=False,
+            skip_verify=False,
+            preserve_input=True,
+            append=False,
+        )
+        # Check outputs.
+        output_file = os.path.join(scratch_dir, "output.txt")
+        output_content = hio.from_file(output_file)
+        expected = "\nFirst chunk\n\nSecond chunk\n"
+        self.assert_equal(output_content, expected)
+
+    def test_split_file_append_to_existing_file(self) -> None:
+        """
+        Test append mode with existing file.
+
+        Expected workflow:
+        1. Create existing output file with content
+        2. Run split with append=True
+        3. New content is appended to existing file
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.txt")
+        output_file = os.path.join(scratch_dir, "output.txt")
+        # Create existing file.
+        hio.to_file(output_file, "Existing content\n")
+        content = """<start:output.txt>
+New content
+"""
+        hio.to_file(input_file, content)
+        # Run test.
+        dshctsifi._split_file(
+            input_file,
+            output_dir=scratch_dir,
+            dry_run=False,
+            skip_verify=False,
+            preserve_input=True,
+            append=True,
+        )
+        # Check outputs.
+        output_content = hio.from_file(output_file)
+        expected = "Existing content\n\nNew content\n"
+        self.assert_equal(output_content, expected)
+
+    def test_split_file_append_to_nonexisting_file(self) -> None:
+        """
+        Test append mode when file doesn't exist creates new file.
+
+        Expected workflow:
+        1. No existing output file
+        2. Run split with append=True
+        3. New file is created with common section and content
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.txt")
+        content = """<start_common>
+Common header
+<start:output.txt>
+New content
+"""
+        hio.to_file(input_file, content)
+        # Run test.
+        dshctsifi._split_file(
+            input_file,
+            output_dir=scratch_dir,
+            dry_run=False,
+            skip_verify=False,
+            preserve_input=True,
+            append=True,
+        )
+        # Check outputs.
+        output_file = os.path.join(scratch_dir, "output.txt")
+        output_content = hio.from_file(output_file)
+        expected = "\nCommon header\n\nNew content\n"
+        self.assert_equal(output_content, expected)
+
+    def test_split_file_multiple_chunks_with_append(self) -> None:
+        """
+        Test multiple chunks with append mode.
+
+        Expected workflow:
+        1. Create existing file
+        2. Run split with multiple chunks for same file and append=True
+        3. All chunks are appended to existing file
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.txt")
+        output_file = os.path.join(scratch_dir, "output.txt")
+        # Create existing file.
+        hio.to_file(output_file, "Existing\n")
+        content = """<start:output.txt>
+Chunk 1
+<start:output.txt>
+Chunk 2
+"""
+        hio.to_file(input_file, content)
+        # Run test.
+        dshctsifi._split_file(
+            input_file,
+            output_dir=scratch_dir,
+            dry_run=False,
+            skip_verify=False,
+            preserve_input=True,
+            append=True,
+        )
+        # Check outputs.
+        output_content = hio.from_file(output_file)
+        expected = "Existing\n\nChunk 1\n\nChunk 2\n"
+        self.assert_equal(output_content, expected)
+
+    def test_split_file_append_with_common_section(self) -> None:
+        """
+        Test that common section is not appended when file exists.
+
+        Expected workflow:
+        1. Create existing file
+        2. Run split with common section and append=True
+        3. Common section is NOT added to existing file
+        4. Only new content is appended
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        input_file = os.path.join(scratch_dir, "input.txt")
+        output_file = os.path.join(scratch_dir, "output.txt")
+        # Create existing file.
+        hio.to_file(output_file, "Existing\n")
+        content = """<start_common>
+Common header
+<start:output.txt>
+New content
+"""
+        hio.to_file(input_file, content)
+        # Run test.
+        dshctsifi._split_file(
+            input_file,
+            output_dir=scratch_dir,
+            dry_run=False,
+            skip_verify=False,
+            preserve_input=True,
+            append=True,
+        )
+        # Check outputs.
+        output_content = hio.from_file(output_file)
+        # Common section should NOT be in the output since file existed.
+        expected = "Existing\n\nNew content\n"
         self.assert_equal(output_content, expected)
 
 
@@ -412,6 +674,7 @@ This is a readme file.
             dry_run=False,
             skip_verify=False,
             preserve_input=True,
+            append=False,
         )
         # Check outputs.
         module1_file = os.path.join(scratch_dir, "module1.py")
@@ -465,6 +728,7 @@ def func3():
             dry_run=False,
             skip_verify=False,
             preserve_input=True,
+            append=False,
         )
         # Check outputs.
         file1 = os.path.join(scratch_dir, "file1.py")
@@ -514,6 +778,7 @@ def func3():
             dry_run=False,
             skip_verify=False,
             preserve_input=True,
+            append=False,
         )
         # Check outputs.
         for i in range(10):

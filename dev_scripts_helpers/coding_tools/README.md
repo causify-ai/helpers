@@ -103,7 +103,7 @@ refactoring.
     logging
 - `split_in_files.py`
   - Splits file with special tags into separate output files with optional
-    common section
+    common section, supports multiple chunks per file and append mode
 - `toml_merge.py`
   - Merges multiple pyproject.toml files handling dependencies and
     dev-dependencies
@@ -465,8 +465,9 @@ refactoring.
 
 - Reads a file containing special tags and splits it into separate output files
 - Supports optional common section that is copied to all output files
+- Allows multiple chunks with the same filename to be concatenated into one file
+- Can append to existing files instead of overwriting them with `--append` flag
 - Modifies input file after splitting: removes content between tags, keeps tags and untagged content
-- Verifies that all content from input file is saved in output files (can be disabled)
 - Provides dry run mode to preview operations without writing files
 
 #### Examples
@@ -483,6 +484,12 @@ refactoring.
 > ./split_in_files.py --input_file input.txt --output_dir ./output
 ```
 
+**Append to existing files instead of overwriting**
+
+```bash
+> ./split_in_files.py --input_file input.txt --append
+```
+
 **Preview what would be done without writing files (dry run)**
 
 ```bash
@@ -493,12 +500,6 @@ refactoring.
 
 ```bash
 > ./split_in_files.py --input_file input.txt --preserve_input
-```
-
-**Skip content verification for faster processing**
-
-```bash
-> ./split_in_files.py --input_file input.txt --skip_verify
 ```
 
 **Split with verbose logging**
