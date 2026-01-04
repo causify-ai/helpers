@@ -10,6 +10,7 @@ import shlex
 import subprocess
 import sys
 import importlib
+import pprint
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import llm
@@ -457,7 +458,7 @@ def apply_llm_batch_individual(
         if progress_bar_object is not None:
             progress_bar_object.update(1)
     _LOG.debug("Batch processing completed")
-    _LOG.info("Total cost for batch: $%.6f", total_cost)
+    _LOG.debug("Total cost for batch with individual prompt: $%.6f", total_cost)
     return responses, total_cost
 
 
@@ -505,7 +506,7 @@ def apply_llm_batch_with_shared_prompt(
             if progress_bar_object is not None:
                 progress_bar_object.update(1)
     _LOG.debug("Batch processing completed")
-    _LOG.info("Total cost for batch: $%.6f", total_cost)
+    _LOG.debug("Total cost for batch with shared prompt: $%.6f", total_cost)
     return responses, total_cost
 
 
@@ -598,7 +599,7 @@ def apply_llm_batch_combined(
                 _LOG.debug("Successfully parsed JSON response")
                 if progress_bar_object is not None:
                     progress_bar_object.update(len(input_list))
-                _LOG.info("Total cost for combined batch: $%.6f", total_cost)
+                _LOG.debug("Total cost for batch with combined prompt: $%.6f", total_cost)
                 return responses, total_cost
             except (json.JSONDecodeError, ValueError) as e:
                 _LOG.debug(
@@ -660,6 +661,7 @@ def apply_llm_prompt_to_df(
     dump_every_batch: Optional[str] = None,
     tag: str = "Processing",
     testing_functor: Optional[Callable[[str], str]] = None,
+    use_sys_stderr: bool = False,
 ) -> Tuple[pd.DataFrame, Dict[str, int]]:
     """
     Apply an LLM to process a dataframe column using the same system prompt.
@@ -679,6 +681,7 @@ def apply_llm_prompt_to_df(
     :param testing_functor: optional functor to use for testing
     :return: tuple of (dataframe with results, statistics dict)
     """
+    # TODO(ai_gp): Calculate the time taken to process the dataframe.
     hdbg.dassert_isinstance(prompt, str)
     hdbg.dassert_ne(prompt, "", "Prompt cannot be empty")
     hdbg.dassert_isinstance(df, pd.DataFrame)
@@ -706,7 +709,7 @@ def apply_llm_prompt_to_df(
         desc=tag,
         dynamic_ncols=True,
         # Workaround for unit tests.
-        # file=sys.__stderr__
+        file=sys.__stderr__ if use_sys_stderr else None
     )
     total_cost = 0.0
     # TODO(gp): Precompute the batch indices that needs to be processed.
@@ -769,15 +772,14 @@ def apply_llm_prompt_to_df(
         if dump_every_batch is not None:
             _LOG.debug("Dumping dataframe to file: %s", dump_every_batch)
             df.to_csv(dump_every_batch, index=False)
-    _LOG.info(
-        "Processing completed (%d items processed, %d skipped)",
-        num_items - num_skipped,
-        num_skipped,
-    )
+    # TODO(ai_gp): Add time taken to process the dataframe.
     stats = {
         "num_items": num_items,
         "num_skipped": num_skipped,
         "num_batches": num_batches,
         "total_cost_in_dollars": total_cost,
     }
+    _LOG.info(
+        "Processing completed:\n%s", pprint.pformat(stats)
+    )
     return df, stats

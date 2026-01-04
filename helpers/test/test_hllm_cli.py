@@ -527,6 +527,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             batch_size=batch_size,
             model="gpt-5-nano",
             testing_functor=testing_functor,
+            use_sys_stderr=True,
         )
         # Check outputs.
         self.assert_equal(str(result_df), str(expected_df))
@@ -857,6 +858,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
             target_col="sum",
             batch_size=10,
             model="gpt-5-nano",
+            use_sys_stderr=True,
         )
         _LOG.debug("result_df=%s", result_df)
         # Flush the cache to disk to ensure it's saved.
@@ -913,7 +915,8 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
             extractor=extractor,
             target_col="sum",
             batch_size=10,
-            model=None,
+            model="gpt-5-nano",
+            use_sys_stderr=True,
         )
         # Check outputs.
         expected_df = pd.DataFrame(
@@ -953,38 +956,14 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         prompt = """
         Given the following list of industries with examples, classify the text into the
         corresponding industry:
-        - Agriculture
-        - Automotive
-        - Construction
-        - Consumer Goods
-        - Education
-        - Energy & Utilities
-        - Engineering Services
-        - Event Management
-        - Financial Services
-        - Government & Nonprofits
-        - Healthcare
-        - Human Resources & Staffing
-        - IT - Hardware
-        - IT - Software
-        - IT - Cybersecurity
-        - IT - Cloud Services
-        - IT - Managed Services
-        - IT - Consulting & Integration
-        - IT - Support Services
-        - IT - Data & Analytics
-        - IT - DevOps & Automation
-        - Legal Services
-        - Logistics & Transportation
-        - Manufacturing
-        - Marketing & Advertising Agencies
-        - Media & Entertainment
-        - Pharmaceutical & Biotechnology
-        - Real Estate
-        - Retail & eCommerce
-        - Sports & Recreation
-        - Telecommunications
-        - Travel & Hospitality
+        - Industrial & Built Environment
+        - Transportation & Logistics
+        - Consumer & Retail
+        - Technology & Digital Services
+        - Health & Life Sciences
+        - Finance & Professional Services
+        - Public & Social Sector
+        - Media, Marketing & Experiences
 
         You MUST report the industry exactly as one of the options above. Do not
         include any other text.
@@ -1066,11 +1045,9 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         for batch_mode in batch_modes:
             # Reset cache before each batch mode to ensure fair comparison.
             hcacsimp.reset_mem_cache("apply_llm")
-            _LOG.info(hprint.frame("Testing batch mode: %s" % batch_mode))
+            _LOG.info("\n%s", hprint.frame("Testing batch mode: %s" % batch_mode))
             # Create a copy of the DataFrame for this batch mode.
             df_copy = df.copy()
-            # Measure time.
-            start_time = time.time()
             # Call apply_llm_prompt_to_df with the current batch mode.
             result_df, stats = hllmcli.apply_llm_prompt_to_df(
                 prompt=prompt,
@@ -1081,8 +1058,10 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
                 model=model,
                 batch_size=10,
                 testing_functor=testing_functor,
+                use_sys_stderr=True,
             )
-            elapsed_time = time.time() - start_time
+            # TODO(ai_gp): Print time and cost for each batch mode.
+            # TODO(ai_gp): Add time taken to process the dataframe from stats.
             # Store results.
             results.append(
                 {
@@ -1141,6 +1120,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         comparison_df["Cost Ratio vs Individual"] = comparison_df[
             "Cost Ratio vs Individual"
         ].round(2)
+        # TODO(ai_gp): Print comparison_df so that it's not truncated.
         _LOG.info("Batch mode comparison:\n%s", comparison_df)
 
     def test1(self) -> None:
