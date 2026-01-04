@@ -2,7 +2,7 @@ import logging
 import os
 import pickle
 import time
-from typing import Dict
+from typing import Callable, Dict, List, Optional, Tuple
 
 import pandas as pd
 import pytest
@@ -165,6 +165,7 @@ class Test_apply_llm_with_files(hunitest.TestCase):
 
     # //////////////////////////////////////////////////////////////////////////
 
+    # TODO(gp): -> helper
     def _run_test_cases_input_text(self, use_llm_executable: bool) -> None:
         """
         Helper method to run input_text test cases with specified interface.
@@ -193,6 +194,8 @@ class Test_apply_llm_with_files(hunitest.TestCase):
             # Check that output file is not empty.
             output_content = hio.from_file(output_file)
             self.assertGreater(len(output_content), 0)
+
+    # //////////////////////////////////////////////////////////////////////////
 
     @pytest.mark.skipif(
         __import__("importlib").util.find_spec("llm") is None,
@@ -271,8 +274,190 @@ class Test_apply_llm_with_files(hunitest.TestCase):
         self._run_test_cases_print_only(use_llm_executable=True)
 
 
-# TODO(ai_gp): Add unit tests for apply_llm_batch, apply_llm_batch_individual, and apply_llm_batch_combined.
-# using the same test cases.
+# #############################################################################
+# Test_apply_llm_batch
+# #############################################################################
+
+
+# Test cases for batch processing functions.
+# Each tuple contains (description, additional_kwargs).
+_TEST_CASES_BATCH = [
+    # Basic usage with default settings
+    (
+        "Basic batch processing",
+        {},
+    ),
+    # With specific model selection
+    (
+        "With specific model selection",
+        {"model": "gpt-4o-mini"},
+    ),
+    # With different batch sizes
+    (
+        "With larger batch size",
+        {},
+    ),
+]
+
+def _eval_functor(input_str: str, *, delay: float = 0.0) -> str:
+    """
+    Evaluate the input string using eval and return the result as a string.
+
+    :param input_str: mathematical expression to evaluate
+    :return: result of evaluation as a string
+    """
+    _LOG.debug("input_str='%s'", input_str)
+    if delay > 0.0:
+        time.sleep(delay)
+    result = eval(input_str)
+    result_str = str(result)
+    _LOG.debug("-> result_str='%s'", result_str)
+    return result_str
+
+
+class Test_apply_llm_batch1(hunitest.TestCase):
+    """
+    Test and compare three batch processing approaches.
+
+    Tests:
+    - apply_llm_batch_individual()
+    - apply_llm_batch_with_shared_prompt()
+    - apply_llm_batch_combined()
+    to verify they return consistent results using a testing functor that uses
+    eval.
+    """
+
+    @staticmethod
+    def _get_test_prompt() -> str:
+        """
+        Get a simple test prompt for batch processing.
+
+        :return: system prompt string
+        """
+        prompt = "You are a calculator. Return only the numeric result."
+        return prompt
+
+    def _helper(
+        self,
+        model: str,
+        func: Optional[Callable],
+        testing_functor: Optional[Callable[[str], str]],
+    ) -> None:
+        """
+        Helper function to run a batch processing function with test inputs.
+
+        :param func: batch processing function to test
+        :param testing_functor: optional testing functor for mocking
+        """
+        # TODO(ai_gp): Only one among func and testing_functor can be provided.
+        # Create test inputs.
+        prompt = self._get_test_prompt()
+        input_list = ["2 + 2", "3 * 3", "10 - 5", "20 / 4"]
+        expected_responses = ["4", "9", "5", "5.0"]
+        # Run the function.
+        responses, cost = func(
+            prompt=prompt,
+            input_list=input_list,
+            model=model,
+            testing_functor=testing_functor,
+        )
+        # Check basic properties.
+        self.assert_equal(responses, expected_responses)
+        if testing_functor is None:
+            self.assertGreater(cost, 0.0)
+        else:
+            self.assertEqual(cost, 0.0)
+
+    def test_individual1(self) -> None:
+        """
+        Test apply_llm_batch_individual without testing_functor.
+
+        This test uses the real LLM API.
+        """
+        model = "gpt-5-nano"
+        func = hllmcli.apply_llm_batch_individual
+        testing_functor = None
+        self._helper(
+            model,
+            func,
+            testing_functor,
+        )
+
+    def test_individual2(self) -> None:
+        """
+        Test apply_llm_batch_individual with testing_functor.
+
+        This test uses a mock calculator instead of the real LLM API.
+        """
+        model = ""
+        func = None
+        testing_functor = self._eval_functor
+        self._helper(
+            model,
+            func,
+            testing_functor,
+        )
+
+    def test_shared1(self) -> None:
+        """
+        Test apply_llm_batch_with_shared_prompt without testing_functor.
+
+        This test uses the real LLM API.
+        """
+        model = "gpt-5-nano"
+        func = hllmcli.apply_llm_batch_with_shared_prompt
+        testing_functor = None
+        self._helper(
+            model,
+            func,
+            testing_functor,
+        )
+
+    def test_shared2(self) -> None:
+        """
+        Test apply_llm_batch_with_shared_prompt with testing_functor.
+
+        This test uses a mock calculator instead of the real LLM API.
+        """
+        model = ""
+        func = None
+        testing_functor = self._eval_functor
+        self._helper(
+            model,
+            func,
+            testing_functor,
+        )
+
+    def test_combined1(self) -> None:
+        """
+        Test apply_llm_batch_combined without testing_functor.
+
+        This test uses the real LLM API.
+        """
+        model = "gpt-5-nano"
+        func = hllmcli.apply_llm_batch_combined
+        testing_functor = None
+        self._helper(
+            model,
+            func,
+            testing_functor,
+        )
+
+    def test_combined2(self) -> None:
+        """
+        Test apply_llm_batch_combined with testing_functor.
+
+        This test uses a mock calculator instead of the real LLM API.
+        """
+        model = ""
+        func = None
+        testing_functor = self._eval_functor
+        self._helper(
+            model,
+            func,
+            testing_functor,
+        )
+
 
 # #############################################################################
 # Test_apply_llm_prompt_to_df1
@@ -281,6 +466,8 @@ class Test_apply_llm_with_files(hunitest.TestCase):
 class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     """
     Test apply_llm_prompt_to_df with testing_functor.
+
+    This is used to test the logic around `apply_llm_batch_*()` functions.
     """
 
     @staticmethod
@@ -305,22 +492,6 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
             if pd.isna(obj) or obj == "":
                 return ""
             return str(obj)
-
-    @staticmethod
-    def _eval_functor(input_str: str, *, delay: float = 0.0) -> str:
-        """
-        Evaluate the input string using eval and return the result as a string.
-
-        :param input_str: mathematical expression to evaluate
-        :return: result of evaluation as a string
-        """
-        _LOG.debug("input_str='%s'", input_str)
-        if delay > 0.0:
-            time.sleep(delay)
-        result = eval(input_str)
-        result_str = str(result)
-        _LOG.debug("-> result_str='%s'", result_str)
-        return result_str
 
     def helper(
         self,
@@ -752,6 +923,8 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(gp): Test apply_llm_prompt_to_df using different batch modes and compare the
+# results in terms of cost and time.
 class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
     """
     Test and compare costs of different batch processing approaches.

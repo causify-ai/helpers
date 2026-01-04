@@ -464,7 +464,7 @@ def apply_llm_batch_individual(
     return responses, total_cost
 
 
-def apply_llm_batch(
+def apply_llm_batch_with_shared_prompt(
     prompt: str,
     input_list: List[str],
     *,
@@ -538,7 +538,7 @@ def apply_llm_batch_combined(
         for retry_num in range(max_retries):
             _LOG.debug("Processing batch of %d inputs with combined prompt (attempt %d/%d)", len(input_list), retry_num + 1, max_retries)
             system_prompt = combined_prompt
-            prompt = input_str
+            prompt = ""
             response, cost = _llm(system_prompt, prompt, model)
             total_cost += cost
             try:
@@ -575,12 +575,12 @@ def apply_llm_batch_combined(
                 if retry_num == max_retries - 1:
                     hdbg.dfatal("Failed to parse JSON after %d retries", max_retries)
                 # Add instruction to retry.
-                combined_prompt += f"\n\nPrevious response had invalid JSON format. Please return ONLY a valid JSON object."
-        else:
-            for input_str in input_list:
-                response = testing_functor(input_str)
-                progress_bar_object.update(1)
-            cost = 0.0
+                combined_prompt += "\n\nPrevious response had invalid JSON format. Please return ONLY a valid JSON object."
+    else:
+        for input_str in input_list:
+            response = testing_functor(input_str)
+            progress_bar_object.update(1)
+        cost = 0.0
     # Should not reach here.
     raise RuntimeError("Unexpected error in apply_llm_batch_combined")
 
@@ -698,7 +698,7 @@ def apply_llm_prompt_to_df(
             if batch_mode == "individual":
                 func = apply_llm_batch_individual
             elif batch_mode == "batch":
-                func = apply_llm_batch
+                func = apply_llm_batch_with_shared_prompt
             elif batch_mode == "combined":
                 func = apply_llm_batch_combined
             else:
