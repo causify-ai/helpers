@@ -83,6 +83,27 @@ class Test_parse_file_content(hunitest.TestCase):
     Test parsing file content and extracting sections based on tags.
     """
 
+    def helper(
+        self,
+        content: str,
+        expected_common: str,
+        expected_sections: dict,
+        expected_line_ranges_len: int,
+        expected_common_line_range: tuple,
+    ) -> None:
+        """
+        Helper method to test _parse_file_content.
+        """
+        # Run test.
+        common_section, sections, line_ranges, common_line_range = (
+            dshctsifi._parse_file_content(content)
+        )
+        # Check outputs.
+        self.assert_equal(common_section, expected_common)
+        self.assert_equal(str(sections), str(expected_sections))
+        self.assertEqual(len(line_ranges), expected_line_ranges_len)
+        self.assertEqual(common_line_range, expected_common_line_range)
+
     def test1(self) -> None:
         """
         Test parsing file with <start_common> and multiple file sections.
@@ -97,20 +118,21 @@ class Test_parse_file_content(hunitest.TestCase):
         Content for file2
         """
         content = hprint.dedent(content)
-        # Run test.
-        common_section, sections, line_ranges, common_line_range = (
-            dshctsifi._parse_file_content(content)
-        )
-        # Check outputs.
         expected_common = "\nCommon header\n"
-        self.assert_equal(common_section, expected_common)
         expected_sections = {
             "file1.txt": ["\nContent for file1\n"],
             "file2.txt": ["\nContent for file2"],
         }
-        self.assert_equal(str(sections), str(expected_sections))
-        self.assertEqual(len(line_ranges), 2)
-        self.assertEqual(common_line_range, (1, 3))
+        expected_line_ranges_len = 2
+        expected_common_line_range = (1, 3)
+        # Run test.
+        self.helper(
+            content,
+            expected_common,
+            expected_sections,
+            expected_line_ranges_len,
+            expected_common_line_range,
+        )
 
     def test2(self) -> None:
         """
@@ -124,19 +146,21 @@ class Test_parse_file_content(hunitest.TestCase):
         Content for file2
         """
         content = hprint.dedent(content)
-        # Run test.
-        common_section, sections, line_ranges, common_line_range = (
-            dshctsifi._parse_file_content(content)
-        )
-        # Check outputs.
-        self.assert_equal(common_section, "")
+        expected_common = ""
         expected_sections = {
             "file1.txt": ["\nContent for file1\n"],
             "file2.txt": ["\nContent for file2"],
         }
-        self.assert_equal(str(sections), str(expected_sections))
-        self.assertEqual(len(line_ranges), 2)
-        self.assertEqual(common_line_range, None)
+        expected_line_ranges_len = 2
+        expected_common_line_range = None
+        # Run test.
+        self.helper(
+            content,
+            expected_common,
+            expected_sections,
+            expected_line_ranges_len,
+            expected_common_line_range,
+        )
 
     def test3(self) -> None:
         """
@@ -148,16 +172,18 @@ class Test_parse_file_content(hunitest.TestCase):
         Single file content
         """
         content = hprint.dedent(content)
-        # Run test.
-        common_section, sections, line_ranges, common_line_range = (
-            dshctsifi._parse_file_content(content)
-        )
-        # Check outputs.
-        self.assert_equal(common_section, "")
+        expected_common = ""
         expected_sections = {"output.txt": ["\nSingle file content"]}
-        self.assert_equal(str(sections), str(expected_sections))
-        self.assertEqual(len(line_ranges), 1)
-        self.assertEqual(common_line_range, None)
+        expected_line_ranges_len = 1
+        expected_common_line_range = None
+        # Run test.
+        self.helper(
+            content,
+            expected_common,
+            expected_sections,
+            expected_line_ranges_len,
+            expected_common_line_range,
+        )
 
     def test4(self) -> None:
         """

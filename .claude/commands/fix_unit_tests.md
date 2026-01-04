@@ -15,7 +15,7 @@ Content for file2
 """
 ```
 
-Do 
+  align the content of the string to the rest of the code
 
 ```
   def hello()
@@ -31,7 +31,9 @@ Do
 
 2) Rename the test methods as test1, test2, ...
 
-3) Aggressively factor out common code
+3) Aggressively factor out common code in helper code so that each
+   test method sets the inputs and the expected value and then calls
+   the helper function with the common code
 
 - Instead of
 
@@ -95,8 +97,7 @@ Do
         self.helper(content, position, expected)
     ```
 
+# Important
+
 For all the code you must follow the instructions in
   `docs/ai_prompts/coding.format_code.md`
-
-
-
