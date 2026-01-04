@@ -27,7 +27,7 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 
-#_LOG.trace = lambda *args, **kwargs: None
+# _LOG.trace = lambda *args, **kwargs: None
 _LOG.trace = _LOG.debug
 
 
@@ -305,6 +305,7 @@ def apply_llm_with_files(
 # Batch processing
 # #############################################################################
 
+
 def _validate_batch_inputs(
     prompt: str,
     input_list: List[str],
@@ -368,14 +369,10 @@ def _llm(
     input_tokens = usage.input
     output_tokens = usage.output
     prompt_cost = tokencost.calculate_cost_by_tokens(
-        num_tokens=input_tokens,
-        model=model,
-        token_type='input'
+        num_tokens=input_tokens, model=model, token_type="input"
     )
     completion_cost = tokencost.calculate_cost_by_tokens(
-        num_tokens=output_tokens,
-        model=model,
-        token_type='output'
+        num_tokens=output_tokens, model=model, token_type="output"
     )
     cost = float(prompt_cost + completion_cost)
     return response, cost
@@ -491,14 +488,10 @@ def apply_llm_batch_with_shared_prompt(
             input_tokens = usage.input
             output_tokens = usage.output
             prompt_cost = tokencost.calculate_cost_by_tokens(
-                num_tokens=input_tokens,
-                model=model,
-                token_type='input'
+                num_tokens=input_tokens, model=model, token_type="input"
             )
             completion_cost = tokencost.calculate_cost_by_tokens(
-                num_tokens=output_tokens,
-                model=model,
-                token_type='output'
+                num_tokens=output_tokens, model=model, token_type="output"
             )
             cost = float(prompt_cost + completion_cost)
             total_cost += cost
@@ -540,8 +533,7 @@ def apply_llm_batch_combined(
     # Build combined prompt.
 
     combined_prompt = f"{prompt}\n\n"
-    instruction = (
-        """
+    instruction = """
         Return the results only as a valid JSON object with string values, using
         zero-based numeric keys that match the item numbers.
 
@@ -549,7 +541,6 @@ def apply_llm_batch_combined(
         '{"0": "result1", "1": "result2", ...}
 
         """
-    )
     combined_prompt += hprint.dedent(instruction)
     for idx, input_str in enumerate(input_list):
         combined_prompt += f"{idx}: {input_str}\n"
@@ -569,7 +560,12 @@ def apply_llm_batch_combined(
     total_cost = 0.0
     if testing_functor is None:
         for retry_num in range(max_retries):
-            _LOG.debug("Processing batch of %d inputs with combined prompt (attempt %d/%d)", len(input_list), retry_num + 1, max_retries)
+            _LOG.debug(
+                "Processing batch of %d inputs with combined prompt (attempt %d/%d)",
+                len(input_list),
+                retry_num + 1,
+                max_retries,
+            )
             system_prompt = combined_prompt
             user_prompt = "Process the items listed above."
             response, cost = _llm(system_prompt, user_prompt, model)
@@ -606,10 +602,15 @@ def apply_llm_batch_combined(
                 return responses, total_cost
             except (json.JSONDecodeError, ValueError) as e:
                 _LOG.debug(
-                    "JSON parsing failed (attempt %d/%d): %s", retry_num + 1, max_retries, e
+                    "JSON parsing failed (attempt %d/%d): %s",
+                    retry_num + 1,
+                    max_retries,
+                    e,
                 )
                 if retry_num == max_retries - 1:
-                    hdbg.dfatal("Failed to parse JSON after %d retries", max_retries)
+                    hdbg.dfatal(
+                        "Failed to parse JSON after %d retries", max_retries
+                    )
                 # Add instruction to retry.
                 combined_prompt += "\n\nPrevious response had invalid JSON format. Please return ONLY a valid JSON object."
     else:
@@ -626,6 +627,7 @@ def apply_llm_batch_combined(
 
 
 # #############################################################################
+
 
 # TODO(gp): Move it somewhere else.
 def get_tqdm_progress_bar() -> tqdm:

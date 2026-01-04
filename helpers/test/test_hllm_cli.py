@@ -2,13 +2,12 @@ import logging
 import os
 import pickle
 import time
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, Optional
 
 import pandas as pd
 import pytest
 
 import helpers.hcache_simple as hcacsimp
-import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
 import helpers.hprint as hprint
@@ -18,7 +17,7 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 # Whether to run tests that use the real LLM API.
-#_RUN_REAL_LLM = False
+# _RUN_REAL_LLM = False
 _RUN_REAL_LLM = True
 
 # #############################################################################
@@ -103,9 +102,8 @@ _TEST_CASES_PRINT_ONLY = [
 ]
 
 # #############################################################################
-# Test_apply_llm_with_files
+# TestApplyLlmBase
 # #############################################################################
-
 
 class TestApplyLlmBase(hunitest.TestCase):
     """
@@ -172,9 +170,13 @@ class TestApplyLlmBase(hunitest.TestCase):
             output_content = hio.from_file(output_file)
             self.assertGreater(len(output_content), 0)
 
+# #############################################################################
+# Test_apply_llm_with_files1
+# #############################################################################
 
 @pytest.mark.skipif(
-    not _RUN_REAL_LLM, reason="real LLM not enabled",
+    not _RUN_REAL_LLM,
+    reason="real LLM not enabled",
 )
 class Test_apply_llm_with_files1(TestApplyLlmBase):
     """
@@ -205,11 +207,15 @@ class Test_apply_llm_with_files1(TestApplyLlmBase):
         """
         self._run_test_cases(use_llm_executable=True)
 
+# #############################################################################
+# Test_apply_llm_with_files2
+# #############################################################################
+
 @pytest.mark.skipif(
-    not _RUN_REAL_LLM, reason="real LLM not enabled",
+    not _RUN_REAL_LLM,
+    reason="real LLM not enabled",
 )
 class Test_apply_llm_with_files2(TestApplyLlmBase):
-
     def test1_library(self) -> None:
         """
         Test input_text parameter using library interface.
@@ -283,6 +289,7 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
 # Test_apply_llm_batch1
 # #############################################################################
 
+
 def _eval_functor(input_str: str, *, delay: float = 0.0) -> str:
     """
     Evaluate the input string using eval and return the result as a string.
@@ -298,6 +305,9 @@ def _eval_functor(input_str: str, *, delay: float = 0.0) -> str:
     _LOG.debug("-> result_str='%s'", result_str)
     return result_str
 
+# #############################################################################
+# Test_apply_llm_batch1
+# #############################################################################
 
 class Test_apply_llm_batch1(hunitest.TestCase):
     """
@@ -354,7 +364,8 @@ class Test_apply_llm_batch1(hunitest.TestCase):
             self.assertEqual(cost, 0.0)
 
     @pytest.mark.skipif(
-        not _RUN_REAL_LLM, reason="real LLM not enabled",
+        not _RUN_REAL_LLM,
+        reason="real LLM not enabled",
     )
     def test_individual1(self) -> None:
         """
@@ -387,7 +398,8 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         )
 
     @pytest.mark.skipif(
-        not _RUN_REAL_LLM, reason="real LLM not enabled",
+        not _RUN_REAL_LLM,
+        reason="real LLM not enabled",
     )
     def test_shared1(self) -> None:
         """
@@ -420,7 +432,8 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         )
 
     @pytest.mark.skipif(
-        not _RUN_REAL_LLM, reason="real LLM not enabled",
+        not _RUN_REAL_LLM,
+        reason="real LLM not enabled",
     )
     def test_combined1(self) -> None:
         """
@@ -429,7 +442,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
         This test uses the real LLM API.
         """
         model = "gpt-5-nano"
-        #model = "gpt-4o-mini"
+        # model = "gpt-4o-mini"
         func = hllmcli.apply_llm_batch_combined
         testing_functor = None
         self.helper(
@@ -452,7 +465,6 @@ class Test_apply_llm_batch1(hunitest.TestCase):
             func,
             testing_functor,
         )
-
 
 # #############################################################################
 # Test_apply_llm_prompt_to_df1
@@ -504,9 +516,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         # To test the progress bar.
         # delay = 0.5
         delay = 0.0
-        testing_functor = lambda input_str: _eval_functor(
-            input_str, delay=delay
-        )
+        testing_functor = lambda input_str: _eval_functor(input_str, delay=delay)
         # Run test.
         result_df, stats = hllmcli.apply_llm_prompt_to_df(
             prompt=prompt,
@@ -764,7 +774,6 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     def test5_num_batch10(self) -> None:
         self.helper_test5(batch_size=10)
 
-
 # #############################################################################
 # Test_apply_llm_prompt_to_df2
 # #############################################################################
@@ -918,13 +927,13 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         # Reset the cache property.
         hcacsimp.set_cache_property("apply_llm", "abort_on_cache_miss", False)
 
-
 # #############################################################################
 # Test_apply_llm_batch_cost_comparison
 # #############################################################################
 
 @pytest.mark.skipif(
-    not _RUN_REAL_LLM, reason="real LLM not enabled",
+    not _RUN_REAL_LLM,
+    reason="real LLM not enabled",
 )
 class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
     """
@@ -1002,35 +1011,61 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
             "A company organizing corporate events and conferences",
             "A bank providing retail banking and investment services",
             "A nonprofit organization focused on environmental conservation",
+            "A hospital providing emergency and surgical medical services",
+            "A staffing agency providing recruitment and temp worker services",
+            "A data center company providing server hardware and infrastructure",
+            "A software development company creating enterprise resource planning systems",
+            "A cybersecurity firm providing threat detection and penetration testing",
+            "A cloud infrastructure provider offering scalable computing resources",
+            "An IT company providing network management and server maintenance",
+            "A consulting firm helping businesses integrate SAP and Oracle systems",
+            "A help desk company providing 24/7 technical support services",
+            "A data analytics company building business intelligence dashboards",
+            "A DevOps company providing CI/CD pipeline automation tools",
+            "A law firm specializing in corporate mergers and acquisitions",
+            "A shipping company providing international freight and logistics",
+            "A factory manufacturing industrial machinery and equipment",
+            "An advertising agency creating brand campaigns for consumer products",
+            "A streaming service providing movies and TV shows online",
+            "A pharmaceutical company developing new drugs and vaccines",
+            "A commercial real estate firm managing office building portfolios",
+            "An online retailer selling clothing and accessories through eCommerce",
+            "A sports equipment manufacturer producing gear for athletes",
+            "A telecommunications company providing mobile and internet services",
+            "A hotel chain operating luxury resorts and vacation properties",
         ]
         return industries
 
-    def test1(self) -> None:
+    def helper(self, model: str) -> None:
         """
         Compare costs and time of different batch modes in apply_llm_prompt_to_df.
 
         This test compares the performance of three batch modes:
-        1. individual - processes each query separately
-        2. batch - uses shared prompt context
-        3. combined - combines all queries into single API call
+        1. individual: processes each query separately
+        2. batch_with_shared_prompt: uses shared prompt context
+        3. combined: combines all queries into single API call
         """
-        # TODO(gp): Reset cache.
         # Prepare inputs.
         prompt = self.get_person_industry_prompt()
         industries = self.get_test_industries()
         testing_functor = None
-        model = "gpt-4o-mini"
         # Create DataFrame from test data.
         df = pd.DataFrame({"description": industries})
+
         # Extractor function to get text from DataFrame row.
         def extractor(obj):
             if isinstance(obj, pd.Series):
                 return obj["description"]
             return str(obj)
+
         # Test each batch mode.
         batch_modes = ["individual", "batch_with_shared_prompt", "combined"]
         results = []
+        # Store result DataFrames to compare across batch modes.
+        result_dfs = {}
         for batch_mode in batch_modes:
+            # Reset cache before each batch mode to ensure fair comparison.
+            hcacsimp.reset_mem_cache("apply_llm")
             _LOG.info(hprint.frame("Testing batch mode: %s" % batch_mode))
             # Create a copy of the DataFrame for this batch mode.
             df_copy = df.copy()
@@ -1059,61 +1094,59 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
                     "Total Cost ($)": stats["total_cost_in_dollars"],
                 }
             )
+            # Store result DataFrame for comparison.
+            result_dfs[batch_mode] = result_df
             # Verify results.
             self.assertEqual(len(result_df), len(industries))
             self.assertIn("industry", result_df.columns)
+        # Check that all batch modes produce the same results.
+        # Compare each batch mode's results with the first batch mode.
+        first_batch_mode = batch_modes[0]
+        first_result_df = result_dfs[first_batch_mode]
+        for batch_mode in batch_modes[1:]:
+            result_df = result_dfs[batch_mode]
+            # Compare the industry classification results.
+            pd.testing.assert_series_equal(
+                first_result_df["industry"],
+                result_df["industry"],
+                check_names=False,
+                obj=f"Results from '{first_batch_mode}' vs '{batch_mode}'",
+            )
+            _LOG.info(
+                "Results match between '%s' and '%s'",
+                first_batch_mode,
+                batch_mode,
+            )
         # Create comparison DataFrame.
         comparison_df = pd.DataFrame(results)
+        # Add relative metrics compared to individual mode.
+        individual_time = comparison_df.loc[
+            comparison_df["Batch Mode"] == "individual", "Time (s)"
+        ].iloc[0]
+        individual_cost = comparison_df.loc[
+            comparison_df["Batch Mode"] == "individual", "Total Cost ($)"
+        ].iloc[0]
+        comparison_df["Time Ratio vs Individual"] = (
+            comparison_df["Time (s)"] / individual_time
+        )
+        comparison_df["Cost Ratio vs Individual"] = (
+            comparison_df["Total Cost ($)"] / individual_cost
+        )
+        # Format the DataFrame for better readability.
+        comparison_df["Time (s)"] = comparison_df["Time (s)"].round(2)
+        comparison_df["Total Cost ($)"] = comparison_df["Total Cost ($)"].round(6)
+        comparison_df["Time Ratio vs Individual"] = comparison_df[
+            "Time Ratio vs Individual"
+        ].round(2)
+        comparison_df["Cost Ratio vs Individual"] = comparison_df[
+            "Cost Ratio vs Individual"
+        ].round(2)
         _LOG.info("Batch mode comparison:\n%s", comparison_df)
 
-    def create_cost_summary(
-        self,
-        individual_cost: float,
-        batch_cost: float,
-        combined_cost: float,
-        num_queries: int,
-    ) -> str:
-        """
-        Create a markdown summary of cost comparison.
+    def test1(self) -> None:
+        model = "gpt-4o-mini"
+        self.helper(model)
 
-        :param individual_cost: cost of individual approach
-        :param batch_cost: cost of batch approach
-        :param combined_cost: cost of combined approach
-        :param num_queries: number of queries processed
-        :return: markdown summary string
-        """
-        # Create a DataFrame with cost comparison data.
-        comparison_df = pd.DataFrame(
-            {
-                "Approach": ["Individual", "Batch (Individual)", "Combined"],
-                "Total Cost ($)": [individual_cost, batch_cost, combined_cost],
-                "Cost per Query ($)": [
-                    individual_cost / num_queries,
-                    batch_cost / num_queries,
-                    combined_cost / num_queries,
-                ],
-                "Relative to Individual": [
-                    1.00,
-                    batch_cost / individual_cost if individual_cost > 0 else 0,
-                    combined_cost / individual_cost if individual_cost > 0 else 0,
-                ],
-            }
-        )
-        # Format the DataFrame as a string with proper precision.
-        comparison_str = comparison_df.to_string(
-            index=False,
-            float_format=lambda x: f"{x:.6f}",
-        )
-        # Create the summary with configuration and results.
-        summary = f"""# Cost Comparison: Three Approaches for Batch LLM Processing
-
-## Test Configuration
-- Model: gpt-4o-mini
-- Number of queries: {num_queries}
-- Prompt: Industry classification
-
-## Cost Results
-
-{comparison_str}
-"""
-        return summary
+    def test2(self) -> None:
+        model = "gpt-5-nano"
+        self.helper(model)
