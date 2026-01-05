@@ -361,9 +361,9 @@ def _llm(
     #
     hdbg.dassert_isinstance(model, str)
     hdbg.dassert_ne(model, "", "Model cannot be empty")
-
     llm_model = llm.get_model(model)
     _LOG.debug("model=%s", llm_model.model_id)
+    # Call the LLM.
     result = llm_model.prompt(input_str, system=system_prompt)
     response = result.text()
     _LOG.trace("response=\n%s", response)
@@ -675,6 +675,7 @@ def apply_llm_prompt_to_df(
     :param df: dataframe to process
     :param extractor: callable that extracts text from a row or string
     :param target_col: name of column to store results
+    :param batch_mode: batch mode to use (individual, shared_prompt, combined)
     :param model: model name to use (e.g., "gpt-4", "claude-3-opus")
     :param batch_size: number of items to process in each batch
     :param dump_every_batch: optional file path to dump the dataframe after each batch
@@ -744,7 +745,7 @@ def apply_llm_prompt_to_df(
             )
             if batch_mode == "individual":
                 func = apply_llm_batch_individual
-            elif batch_mode == "batch_with_shared_prompt":
+            elif batch_mode == "shared_prompt":
                 func = apply_llm_batch_with_shared_prompt
             elif batch_mode == "combined":
                 func = apply_llm_batch_combined

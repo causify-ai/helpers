@@ -286,6 +286,153 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
 
 
 # #############################################################################
+# Test_llm1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    not _RUN_REAL_LLM,
+    reason="real LLM not enabled",
+)
+class Test_llm1(hunitest.TestCase):
+    """
+    Test _llm() function with different models and prompt lengths.
+
+    Tests verify that _llm() correctly processes prompts of varying lengths
+    across different models, and tracks timing and cost information.
+    """
+
+    @staticmethod
+    def get_short_prompt() -> str:
+        """
+        Get a short test prompt.
+
+        :return: short system prompt string
+        """
+        prompt = "You are a helpful assistant. Answer concisely."
+        return prompt
+
+    @staticmethod
+    def get_medium_prompt() -> str:
+        """
+        Get a medium-length test prompt.
+
+        :return: medium-length system prompt string
+        """
+        prompt = """
+        You are a helpful assistant. Your task is to provide clear and
+        accurate answers to questions. Always be concise but thorough in
+        your explanations. If you don't know something, acknowledge it.
+        Use simple language that anyone can understand.
+        """
+        prompt = hprint.dedent(prompt)
+        return prompt
+
+    @staticmethod
+    def get_long_prompt() -> str:
+        """
+        Get a long test prompt.
+
+        :return: long system prompt string
+        """
+        prompt = """
+        You are a highly knowledgeable AI assistant with expertise across
+        multiple domains including technology, science, mathematics, and
+        general knowledge. Your primary objectives are:
+
+        1. Provide accurate and well-researched information
+        2. Explain concepts clearly and thoroughly
+        3. Use examples when they help clarify complex topics
+        4. Cite sources or acknowledge uncertainty when appropriate
+        5. Adapt your language to the user's level of understanding
+        6. Break down complex problems into manageable steps
+        7. Verify calculations and logical reasoning before responding
+        8. Consider multiple perspectives when discussing controversial topics
+
+        When answering questions:
+        - Start with a direct answer to the question
+        - Follow with supporting details and context
+        - Use bullet points or numbered lists for clarity
+        - Provide examples when helpful
+        - Suggest follow-up resources if relevant
+
+        Always maintain a professional, helpful, and respectful tone.
+        """
+        prompt = hprint.dedent(prompt)
+        return prompt
+
+    def test1(self) -> None:
+        """
+        Test _llm() with multiple models and prompt lengths.
+
+        Tests short, medium, and long prompts across different models to
+        verify proper handling and cost calculation. Reports results in a
+        comprehensive table with time, cost, and cost-per-character metrics.
+        """
+        hcacsimp.set_cache_property("_test_llm", "mode", "DISABLE_CACHE")
+        # Define test configurations with model-specific inputs.
+        # Questions are designed to elicit longer responses for more accurate cost
+        # comparisons.
+        test_configs = [
+            ("gpt-5-nano", "Explain the concept of machine learning and provide examples of its applications in real-world scenarios."),
+            ("gpt-4o-mini", "Describe the history and culture of Paris, France, including its major landmarks and contributions to art and literature."),
+            ("gpt-4o", "Explain what recursion is in computer science, provide multiple examples with code, and discuss when to use recursion versus iteration."),
+        ]
+        # Store results for tabular reporting.
+        results = []
+        # Run tests for each model and prompt type combination.
+        for model, input_str in test_configs:
+            for prompt_type, prompt_getter in [
+                ("short", self.get_short_prompt),
+                ("medium", self.get_medium_prompt),
+                ("long", self.get_long_prompt),
+            ]:
+                _LOG.info("Testing model=%s with %s prompt", model, prompt_type)
+                system_prompt = prompt_getter()
+                # Run test.
+                start_time = time.time()
+                response, cost = hllmcli._llm(system_prompt, input_str, model)
+                elapsed_time = time.time() - start_time
+                # Check outputs.
+                self.assertIsInstance(response, str)
+                self.assertGreater(len(response), 0)
+                self.assertIsInstance(cost, float)
+                self.assertGreaterEqual(cost, 0.0)
+                # Calculate cost per character and cost per 1M characters.
+                response_len = len(response)
+                cost_per_char = cost / response_len if response_len > 0 else 0.0
+                cost_per_1m_chars = cost_per_char * 1_000_000 if response_len > 0 else 0.0
+                # Store results.
+                results.append(
+                    {
+                        "Model": model,
+                        "Prompt Type": prompt_type,
+                        "Time (s)": elapsed_time,
+                        "Cost ($)": cost,
+                        "Response Length": response_len,
+                        "Cost/Char ($)": cost_per_char,
+                        "Cost/1M Chars ($)": cost_per_1m_chars,
+                    }
+                )
+        # Create DataFrame for tabular display.
+        results_df = pd.DataFrame(results)
+        # Format numeric columns.
+        results_df["Time (s)"] = results_df["Time (s)"].round(2)
+        results_df["Cost ($)"] = results_df["Cost ($)"].round(6)
+        results_df["Cost/Char ($)"] = results_df["Cost/Char ($)"].round(8)
+        results_df["Cost/1M Chars ($)"] = results_df["Cost/1M Chars ($)"].round(2)
+        # Log results table.
+        _LOG.info("\n%s", hprint.frame("LLM Test Results"))
+        with pd.option_context(
+            "display.max_columns", None,
+            "display.max_rows", None,
+            "display.width", None,
+            "display.max_colwidth", None,
+        ):
+            _LOG.info("\n%s", results_df.to_string(index=False))
+
+
+# #############################################################################
 # Test_apply_llm_batch1
 # #############################################################################
 
@@ -531,8 +678,9 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
         )
         # Check outputs.
         self.assert_equal(str(result_df), str(expected_df))
-        elapsed_time = stats_copy.pop("elapsed_time_in_seconds")
+        elapsed_time = stats.pop("elapsed_time_in_seconds")
         self.assertGreater(elapsed_time, 0.0)
+        self.assertEqual(stats, expected_stats)
 
     def helper_test1(self, batch_size: int) -> None:
         """
@@ -1016,7 +1164,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         ]
         return industries
 
-    def helper(self, model: str) -> None:
+    def helper(self, model: str, batch_size: int) -> None:
         """
         Compare costs and time of different batch modes in apply_llm_prompt_to_df.
 
@@ -1059,7 +1207,7 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
                 target_col="industry",
                 batch_mode=batch_mode,
                 model=model,
-                batch_size=10,
+                batch_size=batch_size,
                 testing_functor=testing_functor,
                 use_sys_stderr=True,
             )
@@ -1142,18 +1290,52 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         ):
             _LOG.info("Batch mode comparison:\n%s", comparison_df)
 
-    #    Batch Mode  Time (s)  Num Items  Num Batches  Total Cost ($)  Time Ratio  Cost Ratio
-    #    individual     15.99         32            4        0.000653        1.00       1.00
-    # shared_prompt     16.27         32            4        0.001063        1.02       1.63
-    #      combined      7.63         32            4        0.000329        0.48       0.50
+    #     Batch Mode  Time (s)  Num Items  Num Batches  Total Cost ($)  Time Ratio  Cost Ratio
+    #     individual     17.98         32            4        0.000653        1.00        1.00
+    #  shared_prompt     17.60         32            4        0.000998        0.98        1.53
+    #       combined      8.42         32            4        0.000330        0.47        0.51
+    #
+    #     Batch Mode  Time (s)  Num Items  Num Batches  Total Cost ($)  Time Ratio  Cost Ratio
+    #     individual     19.27         32            2        0.000651        1.00        1.00
+    #  shared_prompt     19.34         32            2        0.001385        1.00        2.13
+    #       combined      7.45         32            2        0.000277        0.39        0.43
+    #
+    #     Batch Mode  Time (s)  Num Items  Num Batches  Total Cost ($)  Time Ratio  Cost Ratio
+    #     individual     16.38         32            1        0.000651        1.00        1.00
+    #  shared_prompt     17.51         32            1        0.002148        1.07        3.30
+    #       combined      6.15         32            1        0.000251        0.38        0.39
     def test1(self) -> None:
         model = "gpt-4o-mini"
-        self.helper(model)
+        batch_size = 8
+        self.helper(model, batch_size)
+        #
+        batch_size = 16
+        self.helper(model, batch_size)
+        #
+        batch_size = 32
+        self.helper(model, batch_size)
 
     #    Batch Mode  Time (s)  Num Items  Num Batches  Total Cost ($)  Time Ratio  Cost Ratio
-    #    individual     55.27         32            4        0.002327        1.00        1.00
-    # shared_prompt     56.28         32            4        0.002459        1.02        1.06
-    #      combined     29.29         32            4        0.001736        0.53        0.75
+    #    individual     68.57         32            4        0.002711        1.00        1.00
+    # shared_prompt     53.07         32            4        0.002638        0.77        0.97
+    #      combined     29.30         32            4        0.001654        0.43        0.61
+    #
+    #    Batch Mode  Time (s)  Num Items  Num Batches  Total Cost ($)  Time Ratio  Cost Ratio
+    #    individual     68.40         32            2        0.002788        1.00        1.00
+    # shared_prompt     53.88         32            2        0.002809        0.79        1.01
+    #      combined     25.99         32            2        0.001643        0.38        0.59
+    #
+    #    Batch Mode  Time (s)  Num Items  Num Batches  Total Cost ($)  Time Ratio  Cost Ratio
+    #    individual     59.38         32            1        0.002610        1.00        1.00
+    # shared_prompt     52.61         32            1        0.002482        0.89        0.95
+    #      combined     15.79         32            1        0.001118        0.27        0.43
     def test2(self) -> None:
         model = "gpt-5-nano"
-        self.helper(model)
+        batch_size = 8
+        self.helper(model, batch_size)
+        #
+        batch_size = 16
+        self.helper(model, batch_size)
+        #
+        batch_size = 32
+        self.helper(model, batch_size)

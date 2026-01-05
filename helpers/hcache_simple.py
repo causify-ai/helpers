@@ -201,7 +201,10 @@ def _check_valid_cache_property(property_name: str) -> None:
         # Force to refresh the value.
         "force_refresh",
         # TODO(gp): "force_refresh_once"
+        # json or pickle cache type.
         "type",
+        # cache mode.
+        "mode",
     ]
     hdbg.dassert_in(property_name, valid_properties)
 
