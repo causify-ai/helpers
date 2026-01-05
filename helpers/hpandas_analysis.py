@@ -8,21 +8,27 @@ import helpers.hpandas_analysis as hpananal
 
 import datetime
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union, cast
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
-import sklearn.linear_model
-import statsmodels.api
-import tqdm.autonotebook as tauton
 
 import helpers.hdbg as hdbg
-import helpers.hmatplotlib as hmatplo
-import helpers.hpandas as hpandas
 import helpers.hprint as hprint
+
+# Lazy imports to avoid slow module loading.
+# When a type checker analyzes the code: it pretends the imports exist, so you
+# can use those names in type annotations without “unknown name” errors.
+# These heavy dependencies are only imported when functions are actually called.
+if TYPE_CHECKING:
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    import sklearn.linear_model
+    import statsmodels.api
+    import tqdm.autonotebook as tauton
+    import helpers.hmatplotlib as hmatplo
+    import helpers.hpandas as hpandas
 
 _LOG = logging.getLogger(__name__)
 
@@ -51,6 +57,8 @@ def rolling_corr_over_time(
     :return: corr_df is a multi-index df storing correlation matrices with
         labels
     """
+    import helpers.hpandas as hpandas
+
     hpandas.dassert_strictly_increasing_index(df)
     # Handle NaNs based on mode.
     if nan_mode == "drop":
@@ -118,6 +126,9 @@ def rolling_pca_over_time(
           timestamps
         - eigvec_df stores eigenvectors as multiindex df
     """
+    import helpers.hpandas as hpandas
+    import tqdm.autonotebook as tauton
+
     # Compute rolling correlation.
     corr_df = rolling_corr_over_time(df, com, nan_mode)
     # Compute eigvalues and eigenvectors.
@@ -159,6 +170,8 @@ def plot_pca_over_time(
     """
     Similar to plot_pca_analysis() but over time.
     """
+    import helpers.hmatplotlib as hmatplo
+
     # Plot eigenvalues.
     eigval_df.plot(title="Eigenvalues over time", ylim=(0, 1))
     # Plot cumulative variance.
@@ -187,7 +200,7 @@ def plot_time_distributions(
     dts: List[Union[datetime.datetime, pd.Timestamp]],
     mode: str,
     density: bool = True,
-) -> mpl.axes.Axes:
+) -> "mpl.axes.Axes":
     """
     Compute distribution for an array of timestamps `dts`.
 
@@ -300,6 +313,8 @@ def jointplot(
     :param predictor_var: x-var
     :param args, kwargs: arguments passed to seaborn.jointplot()
     """
+    import seaborn as sns
+
     hdbg.dassert_in(predicted_var, df.columns)
     hdbg.dassert_in(predictor_var, df.columns)
     df = df[[predicted_var, predictor_var]]
@@ -414,6 +429,9 @@ def ols_regress(
         can be slow or hang
     :return:
     """
+    import helpers.hmatplotlib as hmatplo
+    import statsmodels.api
+
     obj = _preprocess_regression(
         df,
         intercept,
@@ -545,6 +563,10 @@ def robust_regression(
     :param predicted_var_delay: shift predicted variable by this many periods
     :param predictor_vars_delay: shift predictor variables by this many periods
     """
+    import helpers.hmatplotlib as hmatplo
+    import matplotlib.pyplot as plt
+    import sklearn.linear_model
+
     obj = _preprocess_regression(
         df,
         intercept,
