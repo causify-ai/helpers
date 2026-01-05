@@ -19,8 +19,8 @@ import sklearn.linear_model
 import statsmodels.api
 import tqdm.autonotebook as tauton
 
-import core.plotting as coplotti
 import helpers.hdbg as hdbg
+import helpers.hmatplotlib as hmatloti
 import helpers.hpandas as hpandas
 import helpers.hprint as hprint
 
@@ -170,7 +170,7 @@ def plot_pca_over_time(
     num_pcs_to_plot = _get_num_pcs_to_plot(num_pcs_to_plot, max_pcs)
     _LOG.info("num_pcs_to_plot=%s", num_pcs_to_plot)
     if num_pcs_to_plot > 0:
-        _, axes = coplotti.get_multiple_plots(
+        _, axes = hmatloti.get_multiple_plots(
             num_pcs_to_plot,
             num_cols=num_cols,
             y_scale=4,
@@ -454,14 +454,14 @@ def ols_regress(
                 if tsplot:
                     # Plot the data over time.
                     if tsplot_figsize is None:
-                        tsplot_figsize = coplotti.FIG_SIZE
+                        tsplot_figsize = hmatloti.FIG_SIZE
                     df[[predicted_var, predictor_vars[0]]].plot(
                         figsize=tsplot_figsize
                     )
                 if jointplot_:
                     # Perform scatter plot.
                     if jointplot_height is None:
-                        jointplot_height = coplotti.FIG_SIZE[1]
+                        jointplot_height = hmatloti.FIG_SIZE[1]
                     jointplot(
                         df,
                         predicted_var,
@@ -581,7 +581,7 @@ def robust_regression(
     _LOG.info("Estimated coef for RANSAC=%s", ransac.estimator_.coef_)
     if jointplot_:
         if jointplot_figsize is None:
-            jointplot_figsize = coplotti.FIG_SIZE
+            jointplot_figsize = hmatloti.FIG_SIZE
         plt.figure(figsize=jointplot_figsize)
         plt.scatter(
             X[inlier_mask],
