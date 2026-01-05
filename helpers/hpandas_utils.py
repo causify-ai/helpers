@@ -431,3 +431,154 @@ def resolve_column_names(
             # `columns`.
             column_set = [c for c in columns if c in column_set]
     return column_set
+
+
+def _get_unique_elements_in_column(df: pd.DataFrame, col_name: str) -> List[Any]:
+    try:
+        vals = df[col_name].unique()
+    except TypeError:
+        # TypeError: unhashable type: 'list'
+        _LOG.error("Column '%s' has unhashable types", col_name)
+        vals = list(set(map(str, df[col_name])))
+    cast(List[Any], vals)
+    return vals
+
+
+def _get_variable_cols(
+    df: pd.DataFrame, threshold: int = 1
+) -> Tuple[List[str], List[str]]:
+    """
+    Return columns of a df that contain less than <threshold> unique values.
+
+    :return: (variable columns, constant columns)
+    """
+    var_cols = []
+    const_cols = []
+    for col_name in df.columns:
+        unique_elems = _get_unique_elements_in_column(df, col_name)
+        num_unique_elems = len(unique_elems)
+        if num_unique_elems <= threshold:
+            const_cols.append(col_name)
+        else:
+            var_cols.append(col_name)
+    return var_cols, const_cols
+
+
+def remove_columns_with_low_variability(
+    df: pd.DataFrame, threshold: int = 1, log_level: int = logging.DEBUG
+) -> pd.DataFrame:
+    """
+    Remove columns of a df that contain less than <threshold> unique values.
+
+    :return: df with only columns with sufficient variability
+    """
+    var_cols, const_cols = _get_variable_cols(df, threshold=threshold)
+    _LOG.log(log_level, "# Constant cols")
+    for col_name in const_cols:
+        unique_elems = _get_unique_elements_in_column(df, col_name)
+        _LOG.log(
+            log_level,
+            "  %s: %s",
+            col_name,
+            hprint.list_to_str(list(map(str, unique_elems))),
+        )
+    _LOG.log(log_level, "# Var cols")
+    _LOG.log(log_level, hprint.list_to_str(var_cols))
+    return df[var_cols]
+
+
+def print_column_variability(
+    df: pd.DataFrame,
+    max_num_vals: int = 3,
+    num_digits: int = 2,
+    use_thousands_separator: bool = True,
+) -> pd.DataFrame:
+    """
+    Print statistics about the values in each column of a data frame.
+
+    This is useful to get a sense of which columns are interesting.
+    """
+    print(("# df.columns=%s" % hprint.list_to_str(df.columns)))
+    res = []
+    for c in tauton.tqdm(df.columns, desc="Computing column variability"):
+        vals = _get_unique_elements_in_column(df, c)
+        try:
+            min_val = min(vals)
+        except TypeError as e:
+            _LOG.debug("Column='%s' reported %s", c, e)
+            min_val = "nan"
+        try:
+            max_val = max(vals)
+        except TypeError as e:
+            _LOG.debug("Column='%s' reported %s", c, e)
+            max_val = "nan"
+        if len(vals) <= max_num_vals:
+            txt = ", ".join(map(str, vals))
+        else:
+            txt = ", ".join(map(str, [min_val, "...", max_val]))
+        row = ["%20s" % c, len(vals), txt]
+        res.append(row)
+    res = pd.DataFrame(res, columns=["col_name", "num", "elems"])
+    res.sort_values("num", inplace=True)
+    # TODO(gp): Fix this.
+    # res = add_count_as_idx(res)
+    res = add_pct(
+        res,
+        "num",
+        df.shape[0],
+        "[diff %]",
+        num_digits=num_digits,
+        use_thousands_separator=use_thousands_separator,
+    )
+    res.reset_index(drop=True, inplace=True)
+    return res
+
+
+def breakdown_table(
+    df: pd.DataFrame,
+    col_name: str,
+    num_digits: int = 2,
+    use_thousands_separator: bool = True,
+    verbosity: bool = False,
+) -> pd.DataFrame:
+    if isinstance(col_name, list):
+        for c in col_name:
+            print(("\n" + hprint.frame(c).rstrip("\n")))
+            res = breakdown_table(df, c)
+            print(res)
+        return None
+    #
+    if verbosity:
+        print(("# col_name=%s" % col_name))
+    first_col_name = df.columns[0]
+    res = df.groupby(col_name)[first_col_name].count()
+    res = pd.DataFrame(res)
+    res.columns = ["count"]
+    res.sort_values(["count"], ascending=False, inplace=True)
+    res = pd.concat([
+        res,
+        pd.DataFrame([df.shape[0]], index=["Total"], columns=["count"])
+    ])
+    res["pct"] = (100.0 * res["count"]) / df.shape[0]
+    # Format.
+    res["count"] = [
+        hprint.round_digits(
+            v, num_digits=None, use_thousands_separator=use_thousands_separator
+        )
+        for v in res["count"]
+    ]
+    res["pct"] = [
+        hprint.round_digits(
+            v, num_digits=num_digits, use_thousands_separator=False
+        )
+        for v in res["pct"]
+    ]
+    if verbosity:
+        for k, df_tmp in df.groupby(col_name):
+            print((hprint.frame("%s=%s" % (col_name, k))))
+            cols = [col_name, "description"]
+            with pd.option_context(
+                "display.max_colwidth", 100000, "display.width", 130
+            ):
+                print((df_tmp[cols]))
+    return res

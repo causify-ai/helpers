@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import helpers.hdatetime as hdateti
 import helpers.hpandas as hpandas
 import helpers.hpandas_transform as hpantran
 import helpers.hprint as hprint
@@ -1704,3 +1705,179 @@ class Test_get_df_from_iterator(hunitest.TestCase):
         1        6       F
         """
         self.assert_equal(actual_signature, expected_signature, fuzzy_match=True)
+
+
+class TestFilterByTime(hunitest.TestCase):
+    def test_filter_by_index1(self) -> None:
+        """
+        Verify that `[lower_bound, upper_bound)` works.
+        """
+        df = self._get_test_data()
+        lower_bound = hdateti.to_datetime("2017-01-02")
+        upper_bound = hdateti.to_datetime("2017-01-04")
+        actual = hpantran.filter_by_time(
+            df=df,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+            inclusive="left",
+            ts_col_name=None,
+        )
+        expected = df[1:3]
+        self.assert_equal(actual.to_string(), expected.to_string())
+
+    def test_filter_by_index2(self) -> None:
+        """
+        Verify that `(lower_bound, upper_bound]` works.
+        """
+        df = self._get_test_data()
+        lower_bound = hdateti.to_datetime("2017-01-02")
+        upper_bound = hdateti.to_datetime("2017-01-04")
+        actual = hpantran.filter_by_time(
+            df=df,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+            inclusive="right",
+            ts_col_name=None,
+        )
+        expected = df[2:4]
+        self.assert_equal(actual.to_string(), expected.to_string())
+
+    def test_filter_by_index3(self) -> None:
+        """
+        Verify that `[lower_bound, upper_bound]` works.
+        """
+        df = self._get_test_data()
+        lower_bound = hdateti.to_datetime("2017-01-02")
+        upper_bound = hdateti.to_datetime("2017-01-04")
+        actual = hpantran.filter_by_time(
+            df=df,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+            inclusive="both",
+            ts_col_name=None,
+        )
+        expected = df[1:4]
+        self.assert_equal(actual.to_string(), expected.to_string())
+
+    def test_filter_by_index4(self) -> None:
+        """
+        Verify that `(lower_bound, upper_bound)` works.
+        """
+        df = self._get_test_data()
+        lower_bound = hdateti.to_datetime("2017-01-02")
+        upper_bound = hdateti.to_datetime("2017-01-04")
+        actual = hpantran.filter_by_time(
+            df=df,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+            inclusive="neither",
+            ts_col_name=None,
+        )
+        expected = df[2:3]
+        self.assert_equal(actual.to_string(), expected.to_string())
+
+    def test_filter_by_column1(self) -> None:
+        """
+        Verify that `[lower_bound, upper_bound)` works.
+        """
+        df = self._get_test_data()
+        lower_bound = hdateti.to_datetime("2018-04-06")
+        upper_bound = hdateti.to_datetime("2018-04-08")
+        actual = hpantran.filter_by_time(
+            df=df,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+            inclusive="left",
+            ts_col_name="col2",
+        )
+        expected = df[1:3]
+        self.assert_equal(actual.to_string(), expected.to_string())
+
+    def test_filter_by_column2(self) -> None:
+        """
+        Verify that `(lower_bound, upper_bound]` works.
+        """
+        df = self._get_test_data()
+        lower_bound = hdateti.to_datetime("2018-04-06")
+        upper_bound = hdateti.to_datetime("2018-04-08")
+        actual = hpantran.filter_by_time(
+            df=df,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+            inclusive="right",
+            ts_col_name="col2",
+        )
+        expected = df[2:4]
+        self.assert_equal(actual.to_string(), expected.to_string())
+
+    def test_filter_by_column3(self) -> None:
+        """
+        Verify that `[lower_bound, upper_bound]` works.
+        """
+        df = self._get_test_data()
+        lower_bound = hdateti.to_datetime("2018-04-06")
+        upper_bound = hdateti.to_datetime("2018-04-08")
+        actual = hpantran.filter_by_time(
+            df=df,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+            inclusive="both",
+            ts_col_name="col2",
+        )
+        expected = df[1:4]
+        self.assert_equal(actual.to_string(), expected.to_string())
+
+    def test_filter_by_column4(self) -> None:
+        """
+        Verify that `(lower_bound, upper_bound)` works.
+        """
+        df = self._get_test_data()
+        lower_bound = hdateti.to_datetime("2018-04-06")
+        upper_bound = hdateti.to_datetime("2018-04-08")
+        actual = hpantran.filter_by_time(
+            df=df,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+            inclusive="neither",
+            ts_col_name="col2",
+        )
+        expected = df[2:3]
+        self.assert_equal(actual.to_string(), expected.to_string())
+
+    def test_no_intersection(self) -> None:
+        """
+        Verify that if time interval is not covered by data then empty
+        DataFrame is returned.
+        """
+        df = self._get_test_data()
+        lower_bound = hdateti.to_datetime("2021-04-06")
+        upper_bound = hdateti.to_datetime("2021-04-08")
+        actual = hpantran.filter_by_time(
+            df=df,
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+            inclusive="both",
+            ts_col_name=None,
+        )
+        self.assertEqual(actual.shape[0], 0)
+
+    @staticmethod
+    def _get_test_data() -> pd.DataFrame:
+        """
+        Get data for testing.
+
+        :return: data for testing
+        """
+        df = pd.DataFrame(
+            {
+                "col1": [1, 2, 3, 4],
+                "col2": [
+                    hdateti.to_datetime("2018-04-05"),
+                    hdateti.to_datetime("2018-04-06"),
+                    hdateti.to_datetime("2018-04-07"),
+                    hdateti.to_datetime("2018-04-08"),
+                ],
+            }
+        )
+        df.index = pd.date_range("2017-01-01", periods=4)
+        return df

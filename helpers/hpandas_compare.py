@@ -19,10 +19,6 @@ _LOG = hloggin.getLogger(__name__)
 
 RowsValues = List[List[str]]
 
-# #############################################################################
-# Functions
-# #############################################################################
-
 
 def compare_dataframe_rows(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame:
     """
@@ -253,9 +249,34 @@ def compare_dfs(
     return df_diff
 
 
-# #############################################################################
-# Multi-index dfs
-# #############################################################################
-
-
-# TODO(Grisha): should be a more elegant way to add a column.
+def find_common_columns(
+    names: List[str], dfs: List[pd.DataFrame]
+) -> pd.DataFrame:
+    df = []
+    for i, df1 in enumerate(dfs):
+        df1 = dfs[i].columns
+        for j in range(i + 1, len(dfs)):
+            df2 = dfs[j].columns
+            common_cols = [c for c in df1 if c in df2]
+            df.append(
+                (
+                    names[i],
+                    len(df1),
+                    names[j],
+                    len(df2),
+                    len(common_cols),
+                    ", ".join(common_cols),
+                )
+            )
+    df = pd.DataFrame(
+        df,
+        columns=[
+            "table1",
+            "num_cols1",
+            "num_cols2",
+            "table2",
+            "num_comm_cols",
+            "common_cols",
+        ],
+    )
+    return df

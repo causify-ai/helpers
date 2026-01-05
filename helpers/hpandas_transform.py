@@ -759,3 +759,223 @@ def remove_stable_columns(
         )
     df = df[high_variability_columns]
     return df
+
+
+def adapt_to_series(f: Callable) -> Callable:
+    """
+    Extend a function working on dataframes so that it can work on series.
+    """
+
+    def wrapper(
+        obj: Union[pd.Series, pd.DataFrame], *args: Any, **kwargs: Any
+    ) -> Any:
+        # Convert a pd.Series to a pd.DataFrame.
+        was_series = False
+        if isinstance(obj, pd.Series):
+            obj = pd.DataFrame(obj)
+            was_series = True
+        hdbg.dassert_isinstance(obj, pd.DataFrame)
+        # Apply the function.
+        res = f(obj, *args, **kwargs)
+        # Transform the output, if needed.
+        if was_series:
+            if isinstance(res, tuple):
+                res_obj, res_tmp = res[0], res[1:]
+                res_obj_srs = hpandas.to_series(res_obj)
+                res_obj_srs = [res_obj_srs]
+                res_obj_srs.extend(res_tmp)
+                res = tuple(res_obj_srs)
+            else:
+                res = hpandas.to_series(res)
+        return res
+
+    return wrapper
+
+
+# #############################################################################
+
+
+def add_pct(
+    df: pd.DataFrame,
+    col_name: str,
+    total: int,
+    dst_col_name: str,
+    num_digits: int = 2,
+    use_thousands_separator: bool = True,
+) -> pd.DataFrame:
+    """
+    Add to df a column "dst_col_name" storing the percentage of values in
+    column "col_name" with respect to "total". The rest of the parameters are
+    the same as hprint.round_digits().
+
+    :return: updated df
+    """
+    # Add column with percentage right after col_name.
+    pos_col_name = df.columns.tolist().index(col_name)
+    df.insert(pos_col_name + 1, dst_col_name, (100.0 * df[col_name]) / total)
+    # Format.
+    df[col_name] = [
+        hprint.round_digits(
+            v, num_digits=None, use_thousands_separator=use_thousands_separator
+        )
+        for v in df[col_name]
+    ]
+    df[dst_col_name] = [
+        hprint.round_digits(
+            v, num_digits=num_digits, use_thousands_separator=False
+        )
+        for v in df[dst_col_name]
+    ]
+    return df
+
+
+# #############################################################################
+
+
+def remove_columns(
+    df: pd.DataFrame, cols: Collection[str], log_level: int = logging.DEBUG
+) -> pd.DataFrame:
+    to_remove = set(cols).intersection(set(df.columns))
+    _LOG.log(log_level, "to_remove=%s", hprint.list_to_str(to_remove))
+    df.drop(to_remove, axis=1, inplace=True)
+    _LOG.debug("df=\n%s", df.head(3))
+    _LOG.log(log_level, hprint.list_to_str(df.columns))
+    return df
+
+
+def filter_with_df(
+    df: pd.DataFrame, filter_df: pd.DataFrame, log_level: int = logging.DEBUG
+) -> pd.Series:
+    """
+    Compute a mask for DataFrame df using common columns and values in
+    "filter_df".
+    """
+    mask = None
+    for c in filter_df:
+        hdbg.dassert_in(c, df.columns)
+        vals = filter_df[c].unique()
+        if mask is None:
+            mask = df[c].isin(vals)
+        else:
+            mask &= df[c].isin(vals)
+    mask: pd.DataFrame
+    _LOG.log(log_level, "after filter=%s", hprint.perc(mask.sum(), len(mask)))
+    return mask
+
+
+def filter_by_time(
+    df: pd.DataFrame,
+    lower_bound: hdateti.StrictDatetime,
+    upper_bound: hdateti.StrictDatetime,
+    inclusive: str,
+    ts_col_name: Optional[str],
+    log_level: int = logging.DEBUG,
+) -> pd.DataFrame:
+    """
+    Filter data by time between `lower_bound` and `upper_bound`.
+
+    Pass `None` to `ts_col_name` to filter by `DatetimeIndex`.
+
+    :param df: data to filter
+    :param lower_bound: left limit point of the time interval
+    :param upper_bound: right limit point of the time interval
+    :param inclusive: include boundaries
+        - "both" to `[lower_bound, upper_bound]`
+        - "neither" to `(lower_bound, upper_bound)`
+        - "right" to `(lower_bound, upper_bound]`
+        - "left" to `[lower_bound, upper_bound)`
+    :param ts_col_name: name of a timestamp column to filter with
+    :param log_level: the level of logging, e.g. `DEBUG`
+    :return: data filtered by time
+    """
+    hdateti.dassert_is_strict_datetime(lower_bound)
+    hdateti.dassert_is_strict_datetime(upper_bound)
+    # Time filtering is not working if timezones are different.
+    hdateti.dassert_tz_compatible_timestamp_with_df(lower_bound, df, ts_col_name)
+    hdateti.dassert_tz_compatible_timestamp_with_df(upper_bound, df, ts_col_name)
+    #
+    if ts_col_name is None:
+        # Filter data by index.
+        hdbg.dassert_isinstance(df.index, pd.DatetimeIndex)
+        # Cast index to `pd.Series` to use the `between` method.
+        mask = df.index.to_series().between(lower_bound, upper_bound, inclusive)
+    else:
+        # Filter data by a specified column.
+        hdbg.dassert_in(ts_col_name, df.columns)
+        mask = df[ts_col_name].between(lower_bound, upper_bound, inclusive)
+    #
+    _LOG.log(
+        log_level,
+        "Filtering between %s and %s with inclusive=`%s`, " "selected rows=%s",
+        lower_bound,
+        upper_bound,
+        inclusive,
+        hprint.perc(mask.sum(), df.shape[0]),
+    )
+    return df[mask]
+
+
+def filter_by_val(
+    df: pd.DataFrame,
+    col_name: str,
+    min_val: float,
+    max_val: float,
+    use_thousands_separator: bool = True,
+    log_level: int = logging.DEBUG,
+) -> pd.DataFrame:
+    """
+    Filter out rows of df where df[col_name] is not in [min_val, max_val].
+    """
+    # TODO(gp): If column is ordered, this can be done more efficiently with
+    # binary search.
+    num_rows = df.shape[0]
+    if min_val is not None and max_val is not None:
+        hdbg.dassert_lte(min_val, max_val)
+    mask = None
+    if min_val is not None:
+        mask = min_val <= df[col_name]
+    if max_val is not None:
+        mask2 = df[col_name] <= max_val
+        if mask is None:
+            mask = mask2
+        else:
+            mask &= mask2
+    res = df[mask]
+    hdbg.dassert_lt(0, res.shape[0])
+    _LOG.log(
+        log_level,
+        "Rows kept %s, removed %s rows",
+        hprint.perc(
+            res.shape[0],
+            num_rows,
+            use_thousands_separator=use_thousands_separator,
+        ),
+        hprint.perc(
+            num_rows - res.shape[0],
+            num_rows,
+            use_thousands_separator=use_thousands_separator,
+        ),
+    )
+    return res
+
+
+# #############################################################################
+# PCA
+# #############################################################################
+
+
+def sample_rolling_df(
+    rolling_df: pd.DataFrame, periods: int
+) -> Tuple[pd.DataFrame, pd.DatetimeIndex]:
+    """
+    Given a rolling metric stored as multiindex (e.g., correlation computed by
+    pd.ewm) sample `periods` equispaced samples.
+
+    :return: sampled df, array of timestamps selected
+    """
+    timestamps = rolling_df.index.get_level_values(0)
+    ts = timestamps[:: math.ceil(len(timestamps) / periods)]
+    _LOG.debug("timestamps=%s", str(ts))
+    # rolling_df_out = rolling_df.unstack().reindex(ts).stack(dropna=False)
+    rolling_df_out = rolling_df.loc[ts]
+    return rolling_df_out, ts
