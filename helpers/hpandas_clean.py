@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_clean as hpanclea
 """
 
 from typing import Any, List, Optional, Union

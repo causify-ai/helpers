@@ -5,7 +5,7 @@ import helpers.hpandas_utils as hpanutil
 """
 
 import logging
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -19,7 +19,6 @@ import helpers.hsystem as hsystem
 _LOG = hloggin.getLogger(__name__)
 
 # Import add_pct for use in this module.
-from helpers.hpandas_transform import add_pct
 
 
 # TODO(gp): -> AxisNameSet
@@ -539,6 +538,7 @@ def print_column_variability(
     # res = add_count_as_idx(res)
     # Import locally to avoid circular dependency.
     from helpers.hpandas_transform import add_pct as hpantran_add_pct
+
     res = hpantran_add_pct(
         res,
         "num",

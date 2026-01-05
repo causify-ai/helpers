@@ -4,7 +4,6 @@ Import as:
 import helpers.hpandas_stats as hpanstat
 """
 
-import logging
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy as np
@@ -14,7 +13,6 @@ import IPython.display
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
-import helpers.hpandas as hpandas
 import helpers.hpandas_dassert as hpandass
 import helpers.hpandas_transform as hpantran
 import helpers.hprint as hprint
@@ -308,6 +306,7 @@ def report_zero_nan_inf_stats(
     _LOG.info("num_rows=%s", hprint.thousand_separator(num_rows))
     _LOG.info("data=")
     from helpers.hpandas_display import display_df as hpd_display_df
+
     hpd_display_df(df, max_lines=5, as_txt=as_txt)
     #
     num_days = len(set(df.index.date))
@@ -409,5 +408,3 @@ def format_ols_regress_results(regr_res: Optional[pd.DataFrame]) -> pd.DataFrame
     col_names = regr_res["param_names"] + ["R^2 [%]", "Adj R^2 [%]"]
     df = pd.DataFrame([row], columns=col_names)
     return df
-
-

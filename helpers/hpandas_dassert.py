@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_dassert as hpandass
 """
 
 from typing import Any, Dict, Iterable, List, Optional, Union
