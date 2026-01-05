@@ -671,7 +671,6 @@ class TestSplitFileIntegration(hunitest.TestCase):
         content = hprint.dedent(content)
         # Run.
         hio.to_file(input_file, content)
-        # Check outputs.
         return input_file, output_dir
 
     def _run_split_file(
