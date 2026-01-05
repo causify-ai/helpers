@@ -8,11 +8,9 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
-
 # #############################################################################
 # Test_get_line_number
 # #############################################################################
-
 
 class Test_get_line_number(hunitest.TestCase):
     """
@@ -72,11 +70,9 @@ class Test_get_line_number(hunitest.TestCase):
         # Run test.
         self.helper(content, position, expected)
 
-
 # #############################################################################
 # Test_parse_file_content
 # #############################################################################
-
 
 class Test_parse_file_content(hunitest.TestCase):
     """
@@ -270,11 +266,9 @@ class Test_parse_file_content(hunitest.TestCase):
         # file3.txt should have 1 chunk.
         self.assertEqual(len(sections["file3.txt"]), 1)
 
-
 # #############################################################################
 # Test_remove_content_from_input_file
 # #############################################################################
-
 
 class Test_remove_content_from_input_file(hunitest.TestCase):
     """
@@ -359,11 +353,9 @@ class Test_remove_content_from_input_file(hunitest.TestCase):
         # Run test.
         self.helper(content, expected)
 
-
 # #############################################################################
 # Test_split_file
 # #############################################################################
-
 
 class Test_split_file(hunitest.TestCase):
     """
@@ -648,11 +640,9 @@ class Test_split_file(hunitest.TestCase):
         self.assertIn("Common header", output_content)
         self.assertIn("File content", output_content)
 
-
 # #############################################################################
 # TestSplitFileIntegration
 # #############################################################################
-
 
 class TestSplitFileIntegration(hunitest.TestCase):
     """

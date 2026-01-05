@@ -49,6 +49,11 @@ def read_csv_to_df(
 ) -> pd.DataFrame:
     """
     Read a CSV file into a `pd.DataFrame`.
+
+    :param stream: file path, S3File, or S3FileSystem object
+    :param args: additional arguments passed to pd.read_csv()
+    :param kwargs: additional keyword arguments passed to pd.read_csv()
+    :return: dataframe with CSV contents
     """
     # Gets filename from stream if it is not already a string,
     # so it can be inspected for extension type.
@@ -73,6 +78,11 @@ def read_parquet_to_df(
 ) -> pd.DataFrame:
     """
     Read a Parquet file into a `pd.DataFrame`.
+
+    :param stream: file path, S3File, or S3FileSystem object
+    :param args: additional arguments passed to pd.read_parquet()
+    :param kwargs: additional keyword arguments passed to pd.read_parquet()
+    :return: dataframe with Parquet contents
     """
     # Read.
     _LOG.debug(hprint.to_str("args kwargs"))

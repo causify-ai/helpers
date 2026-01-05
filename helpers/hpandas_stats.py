@@ -157,8 +157,9 @@ def remap_obj(
     """
     Substitute each value of an object with another value from a dictionary.
 
-    :param obj: an object to substitute value in
-    :param map_: values to substitute with
+    :param obj: a Series or Index to remap values in
+    :param map_: dictionary mapping old values to new values
+    :param kwargs: additional keyword arguments passed to pd.Series.map()
     :return: remapped pandas series
     """
     hdbg.dassert_lte(1, obj.shape[0])
@@ -213,7 +214,11 @@ def heatmap_df(df: pd.DataFrame, *, axis: Any = None) -> pd.DataFrame:
 
 def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Dict[str, Any]) -> str:
     """
-    Report percentage of True for a list / series.
+    Report percentage of True values in a list or series.
+
+    :param vals: list or series of boolean values
+    :param perc_kwargs: additional keyword arguments passed to hprint.perc()
+    :return: formatted percentage string
     """
     if isinstance(vals, list):
         vals = pd.Series(vals)
@@ -302,7 +307,8 @@ def report_zero_nan_inf_stats(
     num_rows = df.shape[0]
     _LOG.info("num_rows=%s", hprint.thousand_separator(num_rows))
     _LOG.info("data=")
-    hpandas.display_df(df, max_lines=5, as_txt=as_txt)
+    from helpers.hpandas_display import display_df as hpd_display_df
+    hpd_display_df(df, max_lines=5, as_txt=as_txt)
     #
     num_days = len(set(df.index.date))
     _LOG.info("num_days=%s", num_days)
@@ -349,7 +355,7 @@ def report_zero_nan_inf_stats(
         hprint.round_digits
     )
     #
-    hpandas.display_df(stats_df, as_txt=as_txt)
+    hpd_display_df(stats_df, as_txt=as_txt)
     return stats_df
 
 
@@ -405,216 +411,3 @@ def format_ols_regress_results(regr_res: Optional[pd.DataFrame]) -> pd.DataFrame
     return df
 
 
-def describe_df(
-    df: pd.DataFrame,
-    ts_col: Optional[str] = None,
-    max_col_width: int = 30,
-    max_thr: int = 15,
-    sort_by_uniq_num: bool = False,
-    log_level: int = logging.INFO,
-) -> None:
-    """
-    Improved version of pd.DataFrame.describe()
-
-    :param ts_col: timestamp column
-    """
-    if ts_col is None:
-        _LOG.log(
-            log_level,
-            "[%s, %s], count=%s",
-            min(df.index),
-            max(df.index),
-            len(df.index.unique()),
-        )
-    else:
-        _LOG.log(
-            log_level,
-            "%s: [%s, %s], count=%s",
-            ts_col,
-            min(df[ts_col]),
-            max(df[ts_col]),
-            len(df[ts_col].unique()),
-        )
-    _LOG.log(log_level, "num_cols=%s", df.shape[1])
-    _LOG.log(log_level, "num_rows=%s", df.shape[0])
-    res_df = []
-    for c in df.columns:
-        uniq = df[c].unique()
-        num = len(uniq)
-        if num < max_thr:
-            vals = " ".join(map(str, uniq))
-        else:
-            vals = " ".join(map(str, uniq[:10]))
-        if len(vals) > max_col_width:
-            vals = vals[:max_col_width] + " ..."
-        type_str = df[c].dtype
-        res_df.append([c, len(uniq), vals, type_str])
-    #
-    res_df = pd.DataFrame(res_df, columns=["column", "num uniq", "vals", "type"])
-    res_df.set_index("column", inplace=True)
-    if sort_by_uniq_num:
-        res_df.sort("num uniq", inplace=True)
-    _LOG.log(log_level, "res_df=\n%s", res_df)
-
-
-def report_zero_nan_inf_stats(
-    df: pd.DataFrame,
-    zero_threshold: float = 1e-9,
-    verbose: bool = False,
-    as_txt: bool = False,
-) -> pd.DataFrame:
-    """
-    Report count and percentage about zeros, nans, infs for a df.
-    """
-    # Convert Series to DataFrame if needed.
-    if isinstance(df, pd.Series):
-        df = pd.DataFrame(df)
-    _LOG.info("index in [%s, %s]", df.index.min(), df.index.max())
-    #
-    num_rows = df.shape[0]
-    _LOG.info("num_rows=%s", hprint.thousand_separator(num_rows))
-    _LOG.info("data=")
-    display_df(df, max_lines=5, as_txt=as_txt)
-    #
-    num_days = len(set(df.index.date))
-    _LOG.info("num_days=%s", num_days)
-    #
-    num_weekdays = len(set(d for d in df.index.date if d.weekday() < 5))
-    _LOG.info("num_weekdays=%s", num_weekdays)
-    #
-    stats_df = pd.DataFrame(None, index=df.columns)
-    if False:
-        # Find the index of the first non-nan value.
-        df = df.applymap(lambda x: not np.isnan(x))
-        min_idx = df.idxmax(axis=0)
-        min_idx.name = "min_idx"
-        # Find the index of the last non-nan value.
-        max_idx = df.reindex(index=df.index[::-1]).idxmax(axis=0)
-        max_idx.name = "max_idx"
-    stats_df["num_rows"] = num_rows
-    #
-    num_zeros = (np.abs(df) < zero_threshold).sum(axis=0)
-    if verbose:
-        stats_df["num_zeros"] = num_zeros
-    stats_df["zeros [%]"] = (100.0 * num_zeros / num_rows).apply(
-        hprint.round_digits
-    )
-    #
-    num_nans = np.isnan(df).sum(axis=0)
-    if verbose:
-        stats_df["num_nans"] = num_nans
-    stats_df["nans [%]"] = (100.0 * num_nans / num_rows).apply(
-        hprint.round_digits
-    )
-    #
-    num_infs = np.isinf(df).sum(axis=0)
-    if verbose:
-        stats_df["num_infs"] = num_infs
-    stats_df["infs [%]"] = (100.0 * num_infs / num_rows).apply(
-        hprint.round_digits
-    )
-    #
-    num_valid = df.shape[0] - num_zeros - num_nans - num_infs
-    if verbose:
-        stats_df["num_valid"] = num_valid
-    stats_df["valid [%]"] = (100.0 * num_valid / num_rows).apply(
-        hprint.round_digits
-    )
-    #
-    display_df(stats_df, as_txt=as_txt)
-    return stats_df
-
-
-# #############################################################################
-
-
-def pvalue_to_stars(pval: Optional[float]) -> str:
-    if np.isnan(pval):
-        stars = "NA"
-    else:
-        hdbg.dassert_lte(0.0, pval)
-        hdbg.dassert_lte(pval, 1.0)
-        pval = cast(float, pval)
-        if pval < 0.005:
-            # More than 99.5% confidence.
-            stars = "****"
-        elif pval < 0.01:
-            # More than 99% confidence.
-            stars = "***"
-        elif pval < 0.05:
-            # More than 95% confidence.
-            stars = "**"
-        elif pval < 0.1:
-            # More than 90% confidence.
-            stars = "*"
-        else:
-            stars = "?"
-    return stars
-
-
-def format_ols_regress_results(regr_res: Optional[pd.DataFrame]) -> pd.DataFrame:
-    if regr_res is None:
-        _LOG.warning("regr_res=None: skipping")
-        df = pd.DataFrame(None)
-        return df
-    row: List[Union[float, str]] = [
-        "%.3f (%s)" % (coeff, pvalue_to_stars(pval))
-        for (coeff, pval) in zip(regr_res["coeffs"], regr_res["pvals"])
-    ]
-    row.append(float("%.2f" % (regr_res["rsquared"] * 100.0)))
-    row.append(float("%.2f" % (regr_res["adj_rsquared"] * 100.0)))
-    col_names = regr_res["param_names"] + ["R^2 [%]", "Adj R^2 [%]"]
-    df = pd.DataFrame([row], columns=col_names)
-    return df
-
-
-def describe_df(
-    df: pd.DataFrame,
-    ts_col: Optional[str] = None,
-    max_col_width: int = 30,
-    max_thr: int = 15,
-    sort_by_uniq_num: bool = False,
-    log_level: int = logging.INFO,
-) -> None:
-    """
-    Improved version of pd.DataFrame.describe()
-
-    :param ts_col: timestamp column
-    """
-    if ts_col is None:
-        _LOG.log(
-            log_level,
-            "[%s, %s], count=%s",
-            min(df.index),
-            max(df.index),
-            len(df.index.unique()),
-        )
-    else:
-        _LOG.log(
-            log_level,
-            "%s: [%s, %s], count=%s",
-            ts_col,
-            min(df[ts_col]),
-            max(df[ts_col]),
-            len(df[ts_col].unique()),
-        )
-    _LOG.log(log_level, "num_cols=%s", df.shape[1])
-    _LOG.log(log_level, "num_rows=%s", df.shape[0])
-    res_df = []
-    for c in df.columns:
-        uniq = df[c].unique()
-        num = len(uniq)
-        if num < max_thr:
-            vals = " ".join(map(str, uniq))
-        else:
-            vals = " ".join(map(str, uniq[:10]))
-        if len(vals) > max_col_width:
-            vals = vals[:max_col_width] + " ..."
-        type_str = df[c].dtype
-        res_df.append([c, len(uniq), vals, type_str])
-    #
-    res_df = pd.DataFrame(res_df, columns=["column", "num uniq", "vals", "type"])
-    res_df.set_index("column", inplace=True)
-    if sort_by_uniq_num:
-        res_df.sort("num uniq", inplace=True)
-    _LOG.log(log_level, "res_df=\n%s", res_df)

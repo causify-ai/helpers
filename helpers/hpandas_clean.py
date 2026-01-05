@@ -25,18 +25,21 @@ def drop_duplicates(
     **kwargs: Any,
 ) -> Union[pd.Series, pd.DataFrame]:
     """
-    Wrap `pandas.drop_duplicates()`.
+    Wrap `pandas.drop_duplicates()` with additional index handling.
 
     See the official docs:
     - https://pandas.pydata.org/docs/reference/api/pandas.Series.drop_duplicates.html
     - https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.drop_duplicates.html
 
-    :param use_index:
+    :param data: input series or dataframe
+    :param use_index: whether to consider index values when identifying duplicates
         - if `True`, use index values together with a column subset for
             identifying duplicates
         - if `False`, duplicated rows are with the exact same values in a subset
             and different indices
     :param column_subset: a list of columns to consider for identifying duplicates
+    :param args: additional arguments passed to pandas.drop_duplicates()
+    :param kwargs: additional keyword arguments passed to pandas.drop_duplicates()
     :return: data without duplicates
     """
     _LOG.debug(hprint.to_str("use_index column_subset args kwargs"))
@@ -237,6 +240,18 @@ def remove_outliers(
     axis: Any = 0,
     upper_quantile: Optional[float] = None,
 ) -> pd.DataFrame:
+    """
+    Remove outliers from a dataframe based on quantile thresholds.
+
+    :param df: input dataframe
+    :param lower_quantile: lower quantile threshold (0.0 to 1.0)
+    :param column_set: columns to apply outlier removal to
+    :param fill_value: value to use for filling outliers (currently unused)
+    :param mode: outlier removal mode (currently unused)
+    :param axis: axis along which to compute quantiles (0 for columns, 1 for rows)
+    :param upper_quantile: upper quantile threshold, defaults to 1 - lower_quantile
+    :return: dataframe with outliers removed based on quantile thresholds
+    """
     hdbg.dassert_eq(len(df.shape), 2, "Multi-index dfs not supported")
     # Validate quantile parameters.
     hdbg.dassert_lte(0.0, lower_quantile)

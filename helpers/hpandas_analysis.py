@@ -30,6 +30,10 @@ _LOG = logging.getLogger(__name__)
 def _get_num_pcs_to_plot(num_pcs_to_plot: int, max_pcs: int) -> int:
     """
     Get the number of principal components to plot.
+
+    :param num_pcs_to_plot: requested number of PCs to plot, use -1 for all
+    :param max_pcs: maximum number of available principal components
+    :return: validated number of PCs to plot
     """
     if num_pcs_to_plot == -1:
         num_pcs_to_plot = max_pcs
@@ -66,6 +70,15 @@ def rolling_corr_over_time(
 def _get_eigvals_eigvecs(
     df: pd.DataFrame, dt: datetime.date, sort_eigvals: bool
 ) -> Tuple[np.array, np.array]:
+    """
+    Compute eigenvalues and eigenvectors for a correlation matrix at a
+    specific date.
+
+    :param df: correlation matrix dataframe with multiindex (date, columns)
+    :param dt: date for which to compute eigenvalues/eigenvectors
+    :param sort_eigvals: whether to sort eigenvalues in descending order
+    :return: tuple of (eigenvalues array, eigenvectors array)
+    """
     hdbg.dassert_isinstance(dt, datetime.date)
     df_tmp = df.loc[dt].copy()
     # Compute rolling eigenvalues and eigenvectors.
@@ -84,7 +97,9 @@ def _get_eigvals_eigvecs(
             idx = eigval.argsort()[::-1]
             eigval = eigval[idx]
             eigvec = eigvec[:, idx]
-            _LOG.debug("After sorting:\neigval=\n%s\neigvec=\n%s", eigval, eigvec)
+            _LOG.debug(
+                "After sorting:\neigval=\n%s\neigvec=\n%s", eigval, eigvec
+            )
     #
     if (eigval == 0).all():
         eigvec = np.nan * eigvec
@@ -124,15 +139,11 @@ def rolling_pca_over_time(
     eigval_df = eigval_df.multiply(1 / eigval_df.sum(axis=1), axis="index")
     #
     # pylint ref: github.com/PyCQA/pylint/issues/3139
-    eigvec = eigvec.reshape(
-        (-1, eigvec.shape[-1])
-    )  # pylint: disable=unsubscriptable-object
+    eigvec = eigvec.reshape((-1, eigvec.shape[-1]))  # pylint: disable=unsubscriptable-object
     idx = pd.MultiIndex.from_product(
         [timestamps, df.columns], names=["datetime", None]
     )
-    eigvec_df = pd.DataFrame(
-        eigvec, index=idx, columns=range(df.shape[1])
-    )  # pylint: disable=unsubscriptable-object
+    eigvec_df = pd.DataFrame(eigvec, index=idx, columns=range(df.shape[1]))  # pylint: disable=unsubscriptable-object
     hdbg.dassert_eq(
         len(eigvec_df.index.get_level_values(0).unique()), len(timestamps)
     )
@@ -212,7 +223,9 @@ def plot_time_distributions(
         # Count.
         count = pd.Series(vals).value_counts(sort=False)
         # Compute the labels.
-        yticks = ["%02d:%02d" % (bins[k] / 60, bins[k] % 60) for k in count.index]
+        yticks = [
+            "%02d:%02d" % (bins[k] / 60, bins[k] % 60) for k in count.index
+        ]
     elif mode == "weekday":
         data = [dt.date().weekday() for dt in dts]
         bins = np.arange(0, 7 + 1)
@@ -431,7 +444,9 @@ def ols_regress(
     if tsplot or jointplot_:
         if max_nrows is not None and df.shape[0] > max_nrows:
             _LOG.warning(
-                "Skipping plots since df has %d > %d rows", df.shape[0], max_nrows
+                "Skipping plots since df has %d > %d rows",
+                df.shape[0],
+                max_nrows,
             )
         else:
             predictor_vars = [p for p in predictor_vars if p != "const"]
@@ -454,7 +469,9 @@ def ols_regress(
                         height=jointplot_height,
                     )
             else:
-                _LOG.warning("Skipping plots since there are too many predictors")
+                _LOG.warning(
+                    "Skipping plots since there are too many predictors"
+                )
     if print_model_stats:
         return None
     return regr_res
@@ -516,6 +533,18 @@ def robust_regression(
     predicted_var_delay: int = 0,
     predictor_vars_delay: int = 0,
 ) -> None:
+    """
+    Perform robust regression using RANSAC algorithm to handle outliers.
+
+    :param df: dataframe with data
+    :param predicted_var: dependent variable column name
+    :param predictor_vars: independent variable column name(s)
+    :param intercept: whether to include intercept in regression
+    :param jointplot_: whether to create a scatter plot
+    :param jointplot_figsize: size of the joint plot
+    :param predicted_var_delay: shift predicted variable by this many periods
+    :param predictor_vars_delay: shift predictor variables by this many periods
+    """
     obj = _preprocess_regression(
         df,
         intercept,

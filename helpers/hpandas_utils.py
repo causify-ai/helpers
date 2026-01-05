@@ -1,14 +1,15 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_utils as hpanutil
 """
 
 import logging
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+import tqdm.autonotebook as tauton
 
 import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
@@ -16,6 +17,9 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = hloggin.getLogger(__name__)
+
+# Import add_pct for use in this module.
+from helpers.hpandas_transform import add_pct
 
 
 # TODO(gp): -> AxisNameSet
@@ -33,7 +37,7 @@ ColumnSet = Optional[Union[str, List[str]]]
 
 def _display(log_level: int, df: pd.DataFrame) -> None:
     """
-    Display a df in a notebook at the given log level.
+    Display a dataframe in a notebook at the given log level.
 
     The behavior is similar to a command like `_LOG.log(log_level, ...)` but
     for a notebook `display` command.
@@ -41,6 +45,7 @@ def _display(log_level: int, df: pd.DataFrame) -> None:
     :param log_level: log level at which to display a df. E.g., if `log_level =
         logging.DEBUG`, then we display the df only if we are running with
         `-v DEBUG`. If `log_level = logging.INFO` then we don't display it
+    :param df: dataframe to display
     """
     from IPython.display import display
 
@@ -361,7 +366,7 @@ def head(
     *,
     print_columns: bool = False,
     num_rows: int = 2,
-    seed: Union[int, None] = None
+    seed: Union[int, None] = None,
 ) -> str:
     """
     Display a sample of rows from a DataFrame.
@@ -387,9 +392,12 @@ def head(
     else:
         df = df.head(num_rows)
     with pd.option_context(
-        "display.width", 200,
-        "display.max_columns", None,
-        "display.max_colwidth", None,
+        "display.width",
+        200,
+        "display.max_columns",
+        None,
+        "display.max_colwidth",
+        None,
     ):
         txt += "\n" + str(df)
     return txt
@@ -434,6 +442,13 @@ def resolve_column_names(
 
 
 def _get_unique_elements_in_column(df: pd.DataFrame, col_name: str) -> List[Any]:
+    """
+    Get unique elements in a column, handling unhashable types.
+
+    :param df: dataframe containing the column
+    :param col_name: name of the column to get unique elements from
+    :return: list of unique elements
+    """
     try:
         vals = df[col_name].unique()
     except TypeError:
@@ -522,7 +537,9 @@ def print_column_variability(
     res.sort_values("num", inplace=True)
     # TODO(gp): Fix this.
     # res = add_count_as_idx(res)
-    res = add_pct(
+    # Import locally to avoid circular dependency.
+    from helpers.hpandas_transform import add_pct as hpantran_add_pct
+    res = hpantran_add_pct(
         res,
         "num",
         df.shape[0],
@@ -541,6 +558,16 @@ def breakdown_table(
     use_thousands_separator: bool = True,
     verbosity: bool = False,
 ) -> pd.DataFrame:
+    """
+    Create a breakdown table showing value counts and percentages for a column.
+
+    :param df: dataframe to analyze
+    :param col_name: column name to create breakdown for
+    :param num_digits: number of decimal digits for percentages
+    :param use_thousands_separator: whether to use thousands separator in counts
+    :param verbosity: whether to print additional details
+    :return: breakdown table with counts and percentages
+    """
     if isinstance(col_name, list):
         for c in col_name:
             print(("\n" + hprint.frame(c).rstrip("\n")))
@@ -555,10 +582,9 @@ def breakdown_table(
     res = pd.DataFrame(res)
     res.columns = ["count"]
     res.sort_values(["count"], ascending=False, inplace=True)
-    res = pd.concat([
-        res,
-        pd.DataFrame([df.shape[0]], index=["Total"], columns=["count"])
-    ])
+    res = pd.concat(
+        [res, pd.DataFrame([df.shape[0]], index=["Total"], columns=["count"])]
+    )
     res["pct"] = (100.0 * res["count"]) / df.shape[0]
     # Format.
     res["count"] = [

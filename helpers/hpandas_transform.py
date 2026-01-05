@@ -5,9 +5,10 @@ import helpers.hpandas_transform as hpantran
 """
 
 import csv
+import math
 import random
 import re
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+from typing import Any, Callable, Collection, Dict, Iterator, List, Optional, Tuple, Union
 
 import pandas as pd
 
@@ -835,6 +836,14 @@ def add_pct(
 def remove_columns(
     df: pd.DataFrame, cols: Collection[str], log_level: int = logging.DEBUG
 ) -> pd.DataFrame:
+    """
+    Remove specified columns from a dataframe.
+
+    :param df: dataframe to remove columns from
+    :param cols: collection of column names to remove
+    :param log_level: logging level for reporting removed columns
+    :return: dataframe with specified columns removed
+    """
     to_remove = set(cols).intersection(set(df.columns))
     _LOG.log(log_level, "to_remove=%s", hprint.list_to_str(to_remove))
     df.drop(to_remove, axis=1, inplace=True)
@@ -880,13 +889,14 @@ def filter_by_time(
     :param lower_bound: left limit point of the time interval
     :param upper_bound: right limit point of the time interval
     :param inclusive: include boundaries
-        - "both" to `[lower_bound, upper_bound]`
-        - "neither" to `(lower_bound, upper_bound)`
-        - "right" to `(lower_bound, upper_bound]`
-        - "left" to `[lower_bound, upper_bound)`
-    :param ts_col_name: name of a timestamp column to filter with
+        - "both": `[lower_bound, upper_bound]`
+        - "neither": `(lower_bound, upper_bound)`
+        - "right": `(lower_bound, upper_bound]`
+        - "left": `[lower_bound, upper_bound)`
+    :param ts_col_name: name of a timestamp column to filter with, or None to
+        use the DatetimeIndex
     :param log_level: the level of logging, e.g. `DEBUG`
-    :return: data filtered by time
+    :return: dataframe filtered by time
     """
     hdateti.dassert_is_strict_datetime(lower_bound)
     hdateti.dassert_is_strict_datetime(upper_bound)
@@ -906,7 +916,7 @@ def filter_by_time(
     #
     _LOG.log(
         log_level,
-        "Filtering between %s and %s with inclusive=`%s`, " "selected rows=%s",
+        "Filtering between %s and %s with inclusive=`%s`, selected rows=%s",
         lower_bound,
         upper_bound,
         inclusive,

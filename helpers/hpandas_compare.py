@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_compare as hpancomp
 """
 
 import logging
@@ -252,6 +252,13 @@ def compare_dfs(
 def find_common_columns(
     names: List[str], dfs: List[pd.DataFrame]
 ) -> pd.DataFrame:
+    """
+    Find common columns across multiple dataframes.
+
+    :param names: list of names for each dataframe
+    :param dfs: list of dataframes to compare
+    :return: dataframe showing common columns between each pair of dataframes
+    """
     df = []
     for i, df1 in enumerate(dfs):
         df1 = dfs[i].columns
