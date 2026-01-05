@@ -3,7 +3,7 @@ Matplotlib utilities and plotting helpers.
 
 Import as:
 
-import helpers.hmatplotlib as hmatloti
+import helpers.hmatplotlib as hmatplo
 """
 
 import logging
