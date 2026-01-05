@@ -284,11 +284,9 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
         """
         self._run_test_cases_print_only(use_llm_executable=True)
 
-
 # #############################################################################
 # Test_llm1
 # #############################################################################
-
 
 @pytest.mark.skipif(
     not _RUN_REAL_LLM,
@@ -374,9 +372,18 @@ class Test_llm1(hunitest.TestCase):
         # Questions are designed to elicit longer responses for more accurate cost
         # comparisons.
         test_configs = [
-            ("gpt-5-nano", "Explain the concept of machine learning and provide examples of its applications in real-world scenarios."),
-            ("gpt-4o-mini", "Describe the history and culture of Paris, France, including its major landmarks and contributions to art and literature."),
-            ("gpt-4o", "Explain what recursion is in computer science, provide multiple examples with code, and discuss when to use recursion versus iteration."),
+            (
+                "gpt-5-nano",
+                "Explain the concept of machine learning and provide examples of its applications in real-world scenarios.",
+            ),
+            (
+                "gpt-4o-mini",
+                "Describe the history and culture of Paris, France, including its major landmarks and contributions to art and literature.",
+            ),
+            (
+                "gpt-4o",
+                "Explain what recursion is in computer science, provide multiple examples with code, and discuss when to use recursion versus iteration.",
+            ),
         ]
         # Store results for tabular reporting.
         results = []
@@ -401,7 +408,9 @@ class Test_llm1(hunitest.TestCase):
                 # Calculate cost per character and cost per 1M characters.
                 response_len = len(response)
                 cost_per_char = cost / response_len if response_len > 0 else 0.0
-                cost_per_1m_chars = cost_per_char * 1_000_000 if response_len > 0 else 0.0
+                cost_per_1m_chars = (
+                    cost_per_char * 1_000_000 if response_len > 0 else 0.0
+                )
                 # Store results.
                 results.append(
                     {
@@ -420,14 +429,20 @@ class Test_llm1(hunitest.TestCase):
         results_df["Time (s)"] = results_df["Time (s)"].round(2)
         results_df["Cost ($)"] = results_df["Cost ($)"].round(6)
         results_df["Cost/Char ($)"] = results_df["Cost/Char ($)"].round(8)
-        results_df["Cost/1M Chars ($)"] = results_df["Cost/1M Chars ($)"].round(2)
+        results_df["Cost/1M Chars ($)"] = results_df["Cost/1M Chars ($)"].round(
+            2
+        )
         # Log results table.
         _LOG.info("\n%s", hprint.frame("LLM Test Results"))
         with pd.option_context(
-            "display.max_columns", None,
-            "display.max_rows", None,
-            "display.width", None,
-            "display.max_colwidth", None,
+            "display.max_columns",
+            None,
+            "display.max_rows",
+            None,
+            "display.width",
+            None,
+            "display.max_colwidth",
+            None,
         ):
             _LOG.info("\n%s", results_df.to_string(index=False))
 
@@ -1196,7 +1211,9 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         # Store result DataFrames to compare across batch modes.
         result_dfs = {}
         for batch_mode in batch_modes:
-            _LOG.info("\n%s", hprint.frame("Testing batch mode: %s" % batch_mode))
+            _LOG.info(
+                "\n%s", hprint.frame("Testing batch mode: %s" % batch_mode)
+            )
             # Create a copy of the DataFrame for this batch mode.
             df_copy = df.copy()
             # Call apply_llm_prompt_to_df with the current batch mode.
@@ -1239,19 +1256,32 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         # Check that all batch modes produce the same results.
         # Compare each batch mode's results with the first batch mode.
         first_batch_mode = batch_modes[0]
-        first_result_df = result_dfs[first_batch_mode]["industry"].reset_index(drop=True)
+        first_result_df = result_dfs[first_batch_mode]["industry"].reset_index(
+            drop=True
+        )
         for batch_mode in batch_modes[1:]:
-            compare_result_df = result_dfs[batch_mode]["industry"].reset_index(drop=True)
+            compare_result_df = result_dfs[batch_mode]["industry"].reset_index(
+                drop=True
+            )
             # Create a comparison DataFrame between the two batch modes.
-            match_df = pd.DataFrame({
-                first_batch_mode: first_result_df,
-                batch_mode: compare_result_df,
-            })
+            match_df = pd.DataFrame(
+                {
+                    first_batch_mode: first_result_df,
+                    batch_mode: compare_result_df,
+                }
+            )
             # Add a column with whether they match or not.
-            match_df["Match"] = match_df[first_batch_mode] == match_df[batch_mode]
+            match_df["Match"] = (
+                match_df[first_batch_mode] == match_df[batch_mode]
+            )
             all_match = match_df["Match"].all()
             if not all_match:
-                _LOG.error("Results mismatch between '%s' and '%s':\n%s", first_batch_mode, batch_mode, match_df)
+                _LOG.error(
+                    "Results mismatch between '%s' and '%s':\n%s",
+                    first_batch_mode,
+                    batch_mode,
+                    match_df,
+                )
         _LOG.info(
             "Results match between '%s' and '%s'",
             first_batch_mode,
@@ -1266,27 +1296,27 @@ class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
         individual_cost = comparison_df.loc[
             comparison_df["Batch Mode"] == "individual", "Total Cost ($)"
         ].iloc[0]
-        comparison_df["Time Ratio"] = (
-            comparison_df["Time (s)"] / individual_time
-        )
+        comparison_df["Time Ratio"] = comparison_df["Time (s)"] / individual_time
         comparison_df["Cost Ratio"] = (
             comparison_df["Total Cost ($)"] / individual_cost
         )
         # Format the DataFrame for better readability.
         comparison_df["Time (s)"] = comparison_df["Time (s)"].round(2)
-        comparison_df["Total Cost ($)"] = comparison_df["Total Cost ($)"].round(6)
-        comparison_df["Time Ratio"] = comparison_df[
-            "Time Ratio"
-        ].round(2)
-        comparison_df["Cost Ratio"] = comparison_df[
-            "Cost Ratio"
-        ].round(2)
+        comparison_df["Total Cost ($)"] = comparison_df["Total Cost ($)"].round(
+            6
+        )
+        comparison_df["Time Ratio"] = comparison_df["Time Ratio"].round(2)
+        comparison_df["Cost Ratio"] = comparison_df["Cost Ratio"].round(2)
         # Print comparison_df without truncation.
         with pd.option_context(
-            "display.max_columns", None,
-            "display.max_rows", None,
-            "display.width", None,
-            "display.max_colwidth", None,
+            "display.max_columns",
+            None,
+            "display.max_rows",
+            None,
+            "display.width",
+            None,
+            "display.max_colwidth",
+            None,
         ):
             _LOG.info("Batch mode comparison:\n%s", comparison_df)
 

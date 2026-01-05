@@ -63,6 +63,7 @@ def _call_llm_and_compute_cost(
     :return: tuple of (completion, prompt_cost, completion_cost, total_cost)
     """
     from tokencost import calculate_completion_cost, calculate_prompt_cost
+
     # Format the messages.
     messages = []
     if system_prompt:
@@ -88,7 +89,12 @@ def _call_llm_and_compute_cost(
     _LOG.debug("Completion cost: $%.6f", completion_cost)
     # Total cost.
     total_cost = prompt_cost + completion_cost
-    return completion, float(prompt_cost), float(completion_cost), float(total_cost)
+    return (
+        completion,
+        float(prompt_cost),
+        float(completion_cost),
+        float(total_cost),
+    )
 
 
 def _read_prompts_from_file(file_path: str) -> List[str]:
@@ -99,6 +105,7 @@ def _read_prompts_from_file(file_path: str) -> List[str]:
     :return: list of prompts
     """
     import os
+
     hdbg.dassert(
         os.path.exists(file_path),
         "Prompts file does not exist:",
@@ -128,6 +135,7 @@ def _process_batch_prompts(
     """
     import json
     from tokencost import calculate_prompt_cost
+
     _LOG.info("Processing %d prompts with model=%s", len(prompts), model)
     if system_prompt:
         _LOG.info("Using shared system prompt: %s", system_prompt)
@@ -205,6 +213,7 @@ def _process_combined_prompts(
     """
     import json
     from tokencost import calculate_prompt_cost
+
     _LOG.info("Processing %d prompts in single combined query", len(prompts))
     if system_prompt:
         _LOG.info("Using system prompt: %s", system_prompt)
@@ -284,7 +293,9 @@ Remember to respond with ONLY the JSON object, no additional text."""
     avg_completion_per_query = completion_cost / len(prompts)
     individual_total = individual_prompt_cost + completion_cost
     savings = individual_total - total_cost
-    savings_pct = (savings / individual_total) * 100 if individual_total > 0 else 0
+    savings_pct = (
+        (savings / individual_total) * 100 if individual_total > 0 else 0
+    )
     _LOG.info("-" * 80)
     _LOG.info("COST COMPARISON (combined vs individual)")
     _LOG.info("-" * 80)
@@ -299,7 +310,9 @@ Remember to respond with ONLY the JSON object, no additional text."""
             {
                 "question_num": i,
                 "question": prompt,
-                "answer": answer_data.get("answer", "N/A") if isinstance(answer_data, dict) else "N/A",
+                "answer": answer_data.get("answer", "N/A")
+                if isinstance(answer_data, dict)
+                else "N/A",
             }
         )
     _LOG.info("Detailed results:\n%s", json.dumps(results, indent=2))
@@ -357,7 +370,9 @@ def _run_detailed_comparison(
     _LOG.info("=" * 80 + "\n")
     # Part 3: Final comparison.
     savings = individual_total - batch_total
-    savings_pct = (savings / individual_total) * 100 if individual_total > 0 else 0
+    savings_pct = (
+        (savings / individual_total) * 100 if individual_total > 0 else 0
+    )
     _LOG.info("=" * 80)
     _LOG.info("FINAL COMPARISON")
     _LOG.info("=" * 80)
@@ -420,6 +435,7 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     import json
+
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Check dependencies.

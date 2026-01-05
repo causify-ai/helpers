@@ -23,7 +23,6 @@ import helpers.htimer as htimer
 _LOG = logging.getLogger(__name__)
 
 
-
 # Create a generic type variable.
 T = TypeVar("T", bound=BaseModel)
 
@@ -191,111 +190,6 @@ def build_responses_input(
 
 
 # #############################################################################
-# LLMClient
-# #############################################################################
-
-
-class LLMClient:
-    """
-    Class to handle LLM API client creation and requests.
-    """
-
-    def __init__(
-        self,
-        model: str,
-    ) -> None:
-        """
-        Initialize the LLMClient.
-
-        The model can be specified as:
-        - "gpt-4o-mini"
-        - "openai/gpt-4o-mini"
-        - "deepseek/deepseek-r1-0528-qwen3-8b:free/"
-
-        :param model: model to use for the completion.
-        """
-        hdbg.dassert_isinstance(model, str)
-        if model == "":
-            provider_name, model = self.get_default_model()
-        else:
-            provider_name, model = _get_llm_provider_and_model(model)
-
-        self.provider_name = provider_name
-        self.model = model
-
-    def get_default_model(self) -> Tuple[str, str]:
-        """
-        Get the default provider and model for the client.
-
-        :return: default provider and model used in the client
-        """
-        provider_name = "openai"
-        model = self._get_default_model(provider_name)
-        return provider_name, model
-
-    def create_client(self) -> None:
-        """
-        Create an LLM client.
-        """
-        if self.provider_name == "openai":
-            base_url = "https://api.openai.com/v1"
-            api_key = os.environ.get("OPENAI_API_KEY")
-        elif self.provider_name == "openrouter":
-            base_url = "https://openrouter.ai/api/v1"
-            api_key = os.environ.get("OPENROUTER_API_KEY")
-        else:
-            raise ValueError(f"Unknown provider: {self.provider_name}")
-        _LOG.debug(hprint.to_str("self.provider_name base_url"))
-        client = openai.OpenAI(base_url=base_url, api_key=api_key)
-        self.client = client
-
-    def call_llm(
-        self,
-        cache_mode: str,
-        user_prompt: str,
-        system_prompt: str,
-        temperature: float,
-        *,
-        images_as_base64: Optional[Tuple[str, ...]] = None,
-        cost_tracker: Optional[hllmcost.LLMCostTracker] = None,
-        use_responses_api: bool = False,
-        **create_kwargs,
-    ) -> Dict[Any, Any]:
-        """
-        Call the LLM API.
-
-        Check `_call_api_sync()` params for more details.
-        """
-        return _call_api_sync(
-            cache_mode=cache_mode,
-            client=self.client,
-            user_prompt=user_prompt,
-            system_prompt=system_prompt,
-            temperature=temperature,
-            model=self.model,
-            images_as_base64=images_as_base64,
-            cost_tracker=cost_tracker,
-            use_responses_api=use_responses_api,
-            **create_kwargs,
-        )
-
-    def _get_default_model(self, provider_name: str) -> str:
-        """
-        Get the default model for a provider.
-
-        :return: default model for the provider
-        """
-        if provider_name == "openai":
-            model = "gpt-4o"
-        elif provider_name == "openrouter":
-            model = "openai/gpt-4o"
-        else:
-            raise ValueError(f"Unknown provider: {self.provider_name}")
-        return model
-
-
-# #############################################################################
-
 
 
 @hcacsimp.simple_cache(
@@ -360,6 +254,108 @@ def _call_api_sync(
         # Store the cost in the completion object.
         completion_obj["cost"] = cost
     return completion_obj
+
+# #############################################################################
+# LLMClient
+# #############################################################################
+
+class LLMClient:
+    """
+    Class to handle LLM API client creation and requests.
+    """
+
+    def __init__(
+        self,
+        model: str,
+    ) -> None:
+        """
+        Initialize the LLMClient.
+
+        The model can be specified as:
+        - "gpt-4o-mini"
+        - "openai/gpt-4o-mini"
+        - "deepseek/deepseek-r1-0528-qwen3-8b:free/"
+
+        :param model: model to use for the completion.
+        """
+        hdbg.dassert_isinstance(model, str)
+        if model == "":
+            provider_name, model = self.get_default_model()
+        else:
+            provider_name, model = _get_llm_provider_and_model(model)
+
+        self.provider_name = provider_name
+        self.model = model
+
+    def _get_default_model(self, provider_name: str) -> str:
+        """
+        Get the default model for a provider.
+
+        :return: default model for the provider
+        """
+        if provider_name == "openai":
+            model = "gpt-4o"
+        elif provider_name == "openrouter":
+            model = "openai/gpt-4o"
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        return model
+
+    def get_default_model(self) -> Tuple[str, str]:
+        """
+        Get the default provider and model for the client.
+
+        :return: default provider and model used in the client
+        """
+        provider_name = "openai"
+        model = self._get_default_model(provider_name)
+        return provider_name, model
+
+    def create_client(self) -> None:
+        """
+        Create an LLM client.
+        """
+        if self.provider_name == "openai":
+            base_url = "https://api.openai.com/v1"
+            api_key = os.environ.get("OPENAI_API_KEY")
+        elif self.provider_name == "openrouter":
+            base_url = "https://openrouter.ai/api/v1"
+            api_key = os.environ.get("OPENROUTER_API_KEY")
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        _LOG.debug(hprint.to_str("self.provider_name base_url"))
+        client = openai.OpenAI(base_url=base_url, api_key=api_key)
+        self.client = client
+
+    def call_llm(
+        self,
+        cache_mode: str,
+        user_prompt: str,
+        system_prompt: str,
+        temperature: float,
+        *,
+        images_as_base64: Optional[Tuple[str, ...]] = None,
+        cost_tracker: Optional[hllmcost.LLMCostTracker] = None,
+        use_responses_api: bool = False,
+        **create_kwargs,
+    ) -> Dict[Any, Any]:
+        """
+        Call the LLM API.
+
+        Check `_call_api_sync()` params for more details.
+        """
+        return _call_api_sync(
+            cache_mode=cache_mode,
+            client=self.client,
+            user_prompt=user_prompt,
+            system_prompt=system_prompt,
+            temperature=temperature,
+            model=self.model,
+            images_as_base64=images_as_base64,
+            cost_tracker=cost_tracker,
+            use_responses_api=use_responses_api,
+            **create_kwargs,
+        )
 
 
 # #############################################################################

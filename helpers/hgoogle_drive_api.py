@@ -8,9 +8,11 @@ import helpers.hgoogle_drive_api as hgodrapi
 """
 
 import logging
+
 # TODO(ai_gp): Use import os
 import os.path
 import re
+
 # TODO(ai_gp): Use import datetime
 from datetime import datetime
 from typing import List, Optional
@@ -219,6 +221,33 @@ def get_tabs_from_gsheet(
     return [sheet.title for sheet in spreadsheet.worksheets()]
 
 
+# #############################################################################
+
+
+def _extract_file_id_from_url(url: str) -> str:
+    """
+    Extract the file ID from a Google Docs/Sheets/Drive URL.
+
+    E.g.,
+    https://docs.google.com/spreadsheets/d/FILE_ID/...
+    https://docs.google.com/document/d/FILE_ID/...
+    https://drive.google.com/file/d/FILE_ID/...
+
+    :param url: URL of the Google Docs/Sheets/Drive file.
+    :return: File ID extracted from the URL.
+    """
+    # Handle URLs like:
+    # https://docs.google.com/spreadsheets/d/FILE_ID/...
+    # https://docs.google.com/document/d/FILE_ID/...
+    # https://drive.google.com/file/d/FILE_ID/...
+    pattern = r"/d/([a-zA-Z0-9-_]+)"
+    match = re.search(pattern, url)
+    hdbg.dassert(match, "Invalid URL format: %s", url)
+    file_id = match.group(1)
+    _LOG.debug("Extracted file ID: '%s' from URL: '%s'", file_id, url)
+    return file_id
+
+
 # TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def get_gsheet_tab_url(
     credentials: "goasea.Credentials",
@@ -308,7 +337,9 @@ def freeze_rows_in_gsheet(
                 }
             }
         )
-        _LOG.debug("Adding bold formatting to %s frozen rows", num_rows_to_freeze)
+        _LOG.debug(
+            "Adding bold formatting to %s frozen rows", num_rows_to_freeze
+        )
     # Execute the batch update.
     freeze_request = {"requests": requests}
     response = (
@@ -553,13 +584,8 @@ def to_gsheet(
             spreadsheet.id,
             tab_name=tab_name,
         )
-    _LOG.info(
-        "Data written to:\ntab '%s'\nGoogle Sheet '%s'", tab_name, url
-    )
-    _LOG.info(
-        "url=%s",
-        get_gsheet_tab_url(credentials, url, tab_name)
-    )
+    _LOG.info("Data written to:\ntab '%s'\nGoogle Sheet '%s'", tab_name, url)
+    _LOG.info("url=%s", get_gsheet_tab_url(credentials, url, tab_name))
 
 
 # #############################################################################
@@ -917,33 +943,6 @@ def get_folder_id_by_name(
     return folder_list[0]
 
 
-# #############################################################################
-
-
-def _extract_file_id_from_url(url: str) -> str:
-    """
-    Extract the file ID from a Google Docs/Sheets/Drive URL.
-
-    E.g.,
-    https://docs.google.com/spreadsheets/d/FILE_ID/...
-    https://docs.google.com/document/d/FILE_ID/...
-    https://drive.google.com/file/d/FILE_ID/...
-
-    :param url: URL of the Google Docs/Sheets/Drive file.
-    :return: File ID extracted from the URL.
-    """
-    # Handle URLs like:
-    # https://docs.google.com/spreadsheets/d/FILE_ID/...
-    # https://docs.google.com/document/d/FILE_ID/...
-    # https://drive.google.com/file/d/FILE_ID/...
-    pattern = r"/d/([a-zA-Z0-9-_]+)"
-    match = re.search(pattern, url)
-    hdbg.dassert(match, "Invalid URL format: %s", url)
-    file_id = match.group(1)
-    _LOG.debug("Extracted file ID: '%s' from URL: '%s'", file_id, url)
-    return file_id
-
-
 def _get_folder_path_list(
     service: "godisc.Resource",
     file_id: str,
@@ -1036,7 +1035,12 @@ def print_info_about_google_url(
 # TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 # TODO(gp): Make url mandatory and when url = "tmp" use the hardcored value.
 # TODO(gp): -> save_df_to_gsheet
-def save_df_to_tmp_gsheet(df: pd.DataFrame, *, url: str = "", tab_name: str = "", remove_empty_columns: bool = False, 
+def save_df_to_tmp_gsheet(
+    df: pd.DataFrame,
+    *,
+    url: str = "",
+    tab_name: str = "",
+    remove_empty_columns: bool = False,
     remove_stable_columns: bool = False,
     verbose: bool = True,
 ) -> None:
@@ -1060,4 +1064,11 @@ def save_df_to_tmp_gsheet(df: pd.DataFrame, *, url: str = "", tab_name: str = ""
             if tab_name not in tab_names:
                 break
         hdbg.dassert_ne(tab_name, "No empty tab name found")
-    to_gsheet(get_credentials(), df, url, tab_name=tab_name, freeze_rows=True, set_text_wrapping_clip=True)
+    to_gsheet(
+        get_credentials(),
+        df,
+        url,
+        tab_name=tab_name,
+        freeze_rows=True,
+        set_text_wrapping_clip=True,
+    )

@@ -17,6 +17,7 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 try:
     import llm
     import tokencost
+
     _LLM_AVAILABLE = True
 except ImportError:
     _LLM_AVAILABLE = False
@@ -610,7 +611,10 @@ def apply_llm_batch_combined(
                 _LOG.debug("Successfully parsed JSON response")
                 if progress_bar_object is not None:
                     progress_bar_object.update(len(input_list))
-                _LOG.debug("Total cost for batch with combined prompt: $%.6f", total_cost)
+                _LOG.debug(
+                    "Total cost for batch with combined prompt: $%.6f",
+                    total_cost,
+                )
                 return responses, total_cost
             except (json.JSONDecodeError, ValueError) as e:
                 _LOG.debug(
@@ -713,8 +717,12 @@ def apply_llm_prompt_to_df(
     # Process items in batches with progress bar for entire workload.
     num_items = len(df)
     num_batches = (num_items + batch_size - 1) // batch_size
-    _LOG.info("Processing %d items in %d batches of %d items each", num_items,
-        num_batches, batch_size)
+    _LOG.info(
+        "Processing %d items in %d batches of %d items each",
+        num_items,
+        num_batches,
+        batch_size,
+    )
     _LOG.info(hprint.to_str("model batch_mode"))
     num_skipped = 0
     progress_bar_ctor = get_tqdm_progress_bar()
@@ -723,7 +731,7 @@ def apply_llm_prompt_to_df(
         desc=tag,
         dynamic_ncols=True,
         # Workaround for unit tests.
-        file=sys.__stderr__ if use_sys_stderr else None
+        file=sys.__stderr__ if use_sys_stderr else None,
     )
     total_cost = 0.0
     # TODO(gp): Precompute the batch indices that needs to be processed.
@@ -795,7 +803,5 @@ def apply_llm_prompt_to_df(
         "total_cost_in_dollars": total_cost,
         "elapsed_time_in_seconds": elapsed_time,
     }
-    _LOG.info(
-        "Processing completed:\n%s", pprint.pformat(stats)
-    )
+    _LOG.info("Processing completed:\n%s", pprint.pformat(stats))
     return df, stats

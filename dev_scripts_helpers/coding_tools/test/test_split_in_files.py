@@ -8,8 +8,6 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
-
-
 # #############################################################################
 # Test_parse_file_content
 # #############################################################################
@@ -95,11 +93,9 @@ class Test_parse_file_content(hunitest.TestCase):
         self.assertEqual(len(line_ranges), 1)
         self.assertEqual(common_line_range, None)
 
-
 # #############################################################################
 # Test_split_file
 # #############################################################################
-
 
 class Test_split_file(hunitest.TestCase):
     """
@@ -250,7 +246,6 @@ class Test_split_file(hunitest.TestCase):
 # #############################################################################
 # TestSplitFileIntegration
 # #############################################################################
-
 
 class TestSplitFileIntegration(hunitest.TestCase):
     """
