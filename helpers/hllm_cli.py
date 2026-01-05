@@ -14,8 +14,13 @@ import pprint
 import time
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
-import llm
-import tokencost
+try:
+    import llm
+    import tokencost
+    _LLM_AVAILABLE = True
+except ImportError:
+    _LLM_AVAILABLE = False
+
 import pandas as pd
 from tqdm import tqdm
 
@@ -50,8 +55,13 @@ def install_needed_modules(
         use_activate=True,
         venv_path=venv_path,
     )
-    # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
-
+    henv.install_module_if_not_present(
+        "tokencost",
+        package_name="tokencost",
+        use_sudo=use_sudo,
+        use_activate=True,
+        venv_path=venv_path,
+    )
     # Reload this module if already imported.
     this_module_name = __name__
     if this_module_name in sys.modules:
@@ -703,7 +713,9 @@ def apply_llm_prompt_to_df(
     # Process items in batches with progress bar for entire workload.
     num_items = len(df)
     num_batches = (num_items + batch_size - 1) // batch_size
-    _LOG.info("Processing %d items in %d batches", num_items, num_batches)
+    _LOG.info("Processing %d items in %d batches of %d items each", num_items,
+        num_batches, batch_size)
+    _LOG.info(hprint.to_str("model batch_mode"))
     num_skipped = 0
     progress_bar_ctor = get_tqdm_progress_bar()
     progress_bar_object = progress_bar_ctor(  # type: ignore

@@ -8,25 +8,14 @@ import helpers.hgoogle_drive_api as hgodrapi
 """
 
 import logging
+# TODO(ai_gp): Use import os
 import os.path
 import re
+# TODO(ai_gp): Use import datetime
 from datetime import datetime
 from typing import List, Optional
-
-# This package need to be manually installed until it is added to the
-# container.
-# Run the following line in a notebook:
-# ```
-# > !sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade google-api-python-client)"
-# ```
-# Or run the following part in python:
-# ```
-# import subprocess
-# install_code = subprocess.call(
-#   'sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade google-api-python-client)"',
-#   shell=True,
-# )
-# ```
+import importlib
+import sys
 
 # Try to import optional Google API dependencies.
 try:
@@ -84,10 +73,6 @@ def install_needed_modules(
         use_activate=True,
         venv_path=venv_path,
     )
-    # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
-    import importlib
-    import sys
-
     # Reload this module (hgoogle_drive_api) if already imported
     this_module_name = __name__
     if this_module_name in sys.modules:
