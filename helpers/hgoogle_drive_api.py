@@ -7,17 +7,13 @@ Import as:
 import helpers.hgoogle_drive_api as hgodrapi
 """
 
-import logging
-
-# TODO(ai_gp): Use import os
-import os.path
-import re
-
-# TODO(ai_gp): Use import datetime
-from datetime import datetime
-from typing import List, Optional, Union
+import datetime
 import importlib
+import logging
+import os
+import re
 import sys
+from typing import List, Optional, Union
 
 # Try to import optional Google API dependencies.
 try:
@@ -147,8 +143,7 @@ def get_sheets_service(credentials: "goasea.Credentials") -> "godisc.Resource":
     return sheets_service
 
 
-# TODO(ai_gp): Make it private if it's not called by anybody else.
-def get_gsheet_id(
+def _get_gsheet_id(
     credentials: "goasea.Credentials",
     sheet_id: str,
     *,
@@ -180,11 +175,10 @@ def get_gsheet_id(
     return first_sheet_id
 
 
-# TODO(ai_gp): -> get_gsheet_name
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
-def get_tab_name_from_url(
-    credentials: "goasea.Credentials",
+def get_gsheet_name(
     url: str,
+    *,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> str:
     """
     Get the name of a Google Sheet from its URL.
@@ -192,10 +186,12 @@ def get_tab_name_from_url(
     E.g., https://docs.google.com/spreadsheets/d/1GnnmtGTrHDwMP77VylEK0bSF_RLUV5BWf1iGmxuBQpI
     -> pitchbook.Outreach_AI_companies
 
-    :param credentials: Google credentials object.
     :param url: URL of the Google Sheets file.
+    :param credentials: Google credentials object.
     :return: Name of the Google Sheet (spreadsheet title).
     """
+    if credentials is None:
+        credentials = get_credentials()
     # TODO(ai): Should we use the Sheets API instead?
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(url)
@@ -204,18 +200,20 @@ def get_tab_name_from_url(
     return tab_name
 
 
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def get_tabs_from_gsheet(
-    credentials: "goasea.Credentials",
     url: str,
+    *,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> List[str]:
     """
     Get all the tabs (worksheets) from a Google Sheet.
 
-    :param credentials: Google credentials object.
     :param url: URL of the Google Sheet.
+    :param credentials: Google credentials object.
     :return: List of tab names.
     """
+    if credentials is None:
+        credentials = get_credentials()
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(url)
     return [sheet.title for sheet in spreadsheet.worksheets()]
@@ -248,11 +246,11 @@ def _extract_file_id_from_url(url: str) -> str:
     return file_id
 
 
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def get_gsheet_tab_url(
-    credentials: "goasea.Credentials",
     url: str,
     tab_name: str,
+    *,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> str:
     """
     Generate the full URL for a specific tab in a Google Sheet.
@@ -262,17 +260,19 @@ def get_gsheet_tab_url(
     - Tab name: Sheet3
     - Output: https://docs.google.com/spreadsheets/d/1NLY7dTmkXmllYfewDH53z-uSRpC9-zBTTmAOB_O30DI/edit?gid=229426446#gid=229426446
 
-    :param credentials: Google credentials object.
     :param url: URL of the Google Sheets file.
     :param tab_name: Name of the tab to generate the URL for.
+    :param credentials: Google credentials object.
     :return: Full URL with the gid parameter for the specified tab.
     """
+    if credentials is None:
+        credentials = get_credentials()
     hdbg.dassert(tab_name, "tab_name parameter must be provided")
     # Extract the spreadsheet ID from the URL.
     sheet_id = _extract_file_id_from_url(url)
     _LOG.debug("Extracted sheet_id: '%s' from URL: '%s'", sheet_id, url)
     # Get the gid for the specified tab.
-    gid = get_gsheet_id(credentials, sheet_id, tab_name=tab_name)
+    gid = _get_gsheet_id(credentials, sheet_id, tab_name=tab_name)
     _LOG.debug("Retrieved gid: '%s' for tab: '%s'", gid, tab_name)
     # Construct the full URL with the gid parameter.
     full_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/edit?gid={gid}#gid={gid}"
@@ -280,8 +280,7 @@ def get_gsheet_tab_url(
     return full_url
 
 
-# TODO(ai_gp): Make it private if it's not called by anybody else.
-def freeze_rows_in_gsheet(
+def _freeze_rows_in_gsheet(
     credentials: "goasea.Credentials",
     sheet_id: str,
     num_rows_to_freeze: int,
@@ -300,7 +299,7 @@ def freeze_rows_in_gsheet(
     :param bold: If True, make the frozen rows bold.
     """
     hdbg.dassert_lt(0, num_rows_to_freeze)
-    tab_id = get_gsheet_id(credentials, sheet_id=sheet_id, tab_name=tab_name)
+    tab_id = _get_gsheet_id(credentials, sheet_id=sheet_id, tab_name=tab_name)
     sheets_service = get_sheets_service(credentials)
     # Build the batch update request.
     requests = []
@@ -350,8 +349,7 @@ def freeze_rows_in_gsheet(
     _LOG.debug("response: %s", response)
 
 
-# TODO(ai_gp): Make it private if it's not called by anybody else.
-def set_row_height_in_gsheet(
+def _set_row_height_in_gsheet(
     credentials: "goasea.Credentials",
     sheet_id: str,
     height: int,
@@ -373,7 +371,7 @@ def set_row_height_in_gsheet(
     :param tab_name: Name of the sheet (tab) to set row height in.
         Defaults to the first tab if not provided.
     """
-    tab_id = get_gsheet_id(credentials, sheet_id=sheet_id, tab_name=tab_name)
+    tab_id = _get_gsheet_id(credentials, sheet_id=sheet_id, tab_name=tab_name)
     sheets_service = get_sheets_service(credentials)
     if start_index is None and end_index is None:
         sheet_metadata = (
@@ -429,8 +427,7 @@ def set_row_height_in_gsheet(
     _LOG.debug("response: %s", response)
 
 
-# TODO(ai_gp): Make it private if it's not called by anybody else.
-def set_text_wrapping_clip_in_gsheet(
+def _set_text_wrapping_clip_in_gsheet(
     credentials: "goasea.Credentials",
     sheet_id: str,
     *,
@@ -444,7 +441,7 @@ def set_text_wrapping_clip_in_gsheet(
     :param tab_name: Name of the sheet (tab) to set text wrapping in.
         Defaults to the first tab if not provided.
     """
-    tab_id = get_gsheet_id(credentials, sheet_id=sheet_id, tab_name=tab_name)
+    tab_id = _get_gsheet_id(credentials, sheet_id=sheet_id, tab_name=tab_name)
     sheets_service = get_sheets_service(credentials)
     # Get sheet metadata to determine the range.
     sheet_metadata = (
@@ -494,22 +491,23 @@ def set_text_wrapping_clip_in_gsheet(
     _LOG.debug("response: %s", response)
 
 
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def from_gsheet(
-    credentials: "goasea.Credentials",
     url: str,
     *,
     tab_name: Optional[str] = None,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> pd.DataFrame:
     """
     Read data from a Google Sheet.
 
-    :param credentials: Google credentials object.
     :param url: URL of the Google Sheets file.
     :param tab_name: Name of the tab to read (default: first sheet if
         not specified).
+    :param credentials: Google credentials object.
     :return: pandas DataFrame with the sheet data.
     """
+    if credentials is None:
+        credentials = get_credentials()
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(url)
     if tab_name is None:
@@ -525,24 +523,27 @@ def from_gsheet(
     return df
 
 
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def to_gsheet(
-    credentials: "goasea.Credentials",
     df: pd.DataFrame,
     url: str,
     *,
     tab_name: Optional[str] = "new_data",
     freeze_rows: bool = False,
     set_text_wrapping_clip: bool = False,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> None:
     """
     Write data to a specified Google Sheet and tab.
 
-    :param credentials: Google credentials object.
     :param df: Data to be written.
     :param url: URL of the Google Sheet.
     :param tab_name: Name of the tab where the data will be written.
+    :param freeze_rows: If True, freeze the header row.
+    :param set_text_wrapping_clip: If True, set text wrapping to CLIP.
+    :param credentials: Google credentials object.
     """
+    if credentials is None:
+        credentials = get_credentials()
     client = gspread.authorize(credentials)
     spreadsheet = client.open_by_url(url)
     # Try to get existing worksheet or create new one.
@@ -558,14 +559,14 @@ def to_gsheet(
         )
     #
     if freeze_rows:
-        freeze_rows_in_gsheet(
+        _freeze_rows_in_gsheet(
             credentials,
             spreadsheet.id,
             num_rows_to_freeze=1,
             tab_name=tab_name,
         )
         #
-        set_row_height_in_gsheet(
+        _set_row_height_in_gsheet(
             credentials,
             spreadsheet.id,
             height=20,
@@ -579,13 +580,13 @@ def to_gsheet(
     worksheet.update("A1", values)
     #
     if set_text_wrapping_clip:
-        set_text_wrapping_clip_in_gsheet(
+        _set_text_wrapping_clip_in_gsheet(
             credentials,
             spreadsheet.id,
             tab_name=tab_name,
         )
     _LOG.info("Data written to:\ntab '%s'\nGoogle Sheet '%s'", tab_name, url)
-    _LOG.info("url=%s", get_gsheet_tab_url(credentials, url, tab_name))
+    _LOG.info("url=%s", get_gsheet_tab_url(url, tab_name, credentials=credentials))
 
 
 # #############################################################################
@@ -593,8 +594,7 @@ def to_gsheet(
 # #############################################################################
 
 
-# TODO(ai_gp): Make it private if it's not called by anybody else.
-def get_gdrive_service(credentials: "goasea.Credentials") -> "godisc.Resource":
+def _get_gdrive_service(credentials: "goasea.Credentials") -> "godisc.Resource":
     """
     Get Google Drive service with provided credentials.
 
@@ -651,21 +651,22 @@ def _create_new_google_document(
     return doc_id
 
 
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def move_gfile_to_dir(
-    credentials: "goasea.Credentials",
     gfile_id: str,
     folder_id: str,
+    *,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> dict:
     """
     Move a Google file to a specified folder in Google Drive.
 
-    :param credentials: Google credentials object.
     :param gfile_id: The ID of the Google file.
     :param folder_id: The ID of the folder.
+    :param credentials: Google credentials object.
     :return: The response from the API after moving the file.
     """
-    # TODO(gp): -> get_gdrive_service
+    if credentials is None:
+        credentials = get_credentials()
     service = godisc.build(
         "drive", "v3", credentials=credentials, cache_discovery=False
     )
@@ -683,19 +684,21 @@ def move_gfile_to_dir(
     return res
 
 
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def share_google_file(
-    credentials: "goasea.Credentials",
     gfile_id: str,
     user: str,
+    *,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> None:
     """
     Share a Google file with a user.
 
-    :param credentials: Google credentials object.
     :param gfile_id: The ID of the Google file.
     :param user: The email address of the user.
+    :param credentials: Google credentials object.
     """
+    if credentials is None:
+        credentials = get_credentials()
     # Build the Google Drive service using the provided credentials.
     # TODO(gp): -> get_gdrive_service
     service = godisc.build(
@@ -713,26 +716,27 @@ def share_google_file(
     _LOG.debug("The Google file is shared with '%s'", user)
 
 
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def create_empty_google_file(
-    credentials: "goasea.Credentials",
     gfile_type: str,
     gfile_name: str,
     gdrive_folder_id: str,
     *,
     user: Optional[str] = None,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> str:
     """
     Create a new Google file (sheet or doc) and move it to a specified folder.
 
-    :param credentials: Google credentials object for API access.
     :param gfile_type: the type of the Google file ('sheet' or 'doc').
     :param gfile_name: the name of the new Google file.
     :param gdrive_folder_id: the ID of the Google Drive folder.
     :param user: the email address of the user to share the Google file.
+    :param credentials: Google credentials object for API access.
     :return: the ID of the created Google file, or None if an error
         occurred.
     """
+    if credentials is None:
+        credentials = get_credentials()
     # Create the new Google file (either Sheet or Doc).
     if gfile_type == "sheet":
         gfile_id = _create_new_google_document(
@@ -751,10 +755,10 @@ def create_empty_google_file(
     _LOG.debug("Created a new Google %s '%s'", gfile_type, gfile_name)
     # Move the Google file to the specified folder.
     if gdrive_folder_id:
-        move_gfile_to_dir(credentials, gfile_id, gdrive_folder_id)
+        move_gfile_to_dir(gfile_id, gdrive_folder_id, credentials=credentials)
     # Share the Google file to the user and send an email.
     if user:
-        share_google_file(credentials, gfile_id, user)
+        share_google_file(gfile_id, user, credentials=credentials)
         _LOG.debug(
             "The new Google '%s': '%s' is shared with '%s'",
             gfile_type,
@@ -765,28 +769,29 @@ def create_empty_google_file(
     return gfile_id
 
 
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def create_or_overwrite_with_timestamp(
-    credentials: "goasea.Credentials",
     file_name: str,
     folder_id: str,
     *,
     file_type: str = "sheets",
     overwrite: bool = False,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> str:
     """
     Create or overwrite a Google Sheet or Google Doc with a timestamp in a
     specific Google Drive folder.
 
-    :param credentials: Google credentials object.
     :param file_name: Name for the file (timestamp will be added).
     :param folder_id: Google Drive folder ID where the file will be
         created or updated.
     :param file_type: Type of file to create ('sheets' or 'docs').
     :param overwrite: If True, overwrite an existing file. Otherwise,
         create a new file.
+    :param credentials: Google credentials object.
     :return: The ID of the created or overwritten file.
     """
+    if credentials is None:
+        credentials = get_credentials()
     # Authenticate with Google APIs using the provided credentials.
     # TODO(gp): -> get_gdrive_service
     drive_service = godisc.build("drive", "v3", credentials=credentials)
@@ -817,7 +822,7 @@ def create_or_overwrite_with_timestamp(
         _LOG.debug("Overwriting existing file '%s'", files[0]["name"])
     else:
         # Create new file with timestamp.
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         new_file_name = f"{file_name}_{timestamp}"
         file_metadata = {
             "name": new_file_name,
@@ -843,20 +848,22 @@ def create_or_overwrite_with_timestamp(
 # #############################################################################
 
 
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def create_google_drive_folder(
-    credentials: "goasea.Credentials",
     folder_name: str,
     parent_folder_id: str,
+    *,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> str:
     """
     Create a new Google Drive folder inside the given folder.
 
-    :param credentials: Google credentials object.
     :param folder_name: the name of the new Google Drive folder.
     :param parent_folder_id: the ID of the parent folder.
+    :param credentials: Google credentials object.
     :return: the ID of the created Google Drive folder.
     """
+    if credentials is None:
+        credentials = get_credentials()
     # Build the Google Drive service using the provided credentials.
     # TODO(gp): -> get_gdrive_service
     service = godisc.build(
@@ -991,10 +998,10 @@ def _get_folder_path_list(
     return path_list
 
 
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 def get_google_path_from_url(
-    credentials: "goasea.Credentials",
     url: str,
+    *,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> List[str]:
     """
     Get the full folder path from a Google Docs/Sheets/Drive URL.
@@ -1002,15 +1009,17 @@ def get_google_path_from_url(
     E.g., https://docs.google.com/spreadsheets/d/1GnnmtGTrHDwMP77VylEK0bSF_RLUV5BWf1iGmxuBQpI
     -> ['My Drive', 'Folder1', 'Folder2']
 
-    :param credentials: Google credentials object.
     :param url: URL of the Google Docs/Sheets/Drive file.
+    :param credentials: Google credentials object.
     :return: List of folder names from root to immediate parent folder.
         Returns empty list if file is at root level.
     """
+    if credentials is None:
+        credentials = get_credentials()
     # Extract file ID from URL.
     file_id = _extract_file_id_from_url(url)
     # Get Google Drive service.
-    service = get_gdrive_service(credentials)
+    service = _get_gdrive_service(credentials)
     # Get folder path as list.
     path_list = _get_folder_path_list(service, file_id)
     _LOG.debug("Retrieved folder path for URL '%s': %s", url, path_list)
@@ -1018,21 +1027,32 @@ def get_google_path_from_url(
 
 
 def print_info_about_google_url(
-    credentials: "goasea.Credentials", url: str, tab_name: str = None
+    url: str,
+    *,
+    tab_name: Optional[str] = None,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> None:
+    """
+    Print information about a Google Sheet URL.
+
+    :param url: URL of the Google Sheets file.
+    :param tab_name: Optional tab name to display full URL for.
+    :param credentials: Google credentials object.
+    """
+    if credentials is None:
+        credentials = get_credentials()
     print("url: '%s'" % url)
-    print("file name: '%s'" % get_tab_name_from_url(credentials, url))
-    print("tab names: '%s'" % get_tabs_from_gsheet(credentials, url))
+    print("file name: '%s'" % get_gsheet_name(url, credentials=credentials))
+    print("tab names: '%s'" % get_tabs_from_gsheet(url, credentials=credentials))
     if tab_name is not None:
-        print("full url: '%s'" % get_gsheet_tab_url(credentials, url, tab_name))
+        print("full url: '%s'" % get_gsheet_tab_url(url, tab_name, credentials=credentials))
     print(
         "folder path: '%s'"
-        % "/".join(get_google_path_from_url(credentials, url))
+        % "/".join(get_google_path_from_url(url, credentials=credentials))
     )
 
 
 # TODO(gp): Add clean up
-# TODO(ai_gp): Pass the credentials: Optional["goasea.Credentials"] = None after the *
 # TODO(gp): Make url mandatory and when url = "tmp" use the hardcored value.
 # TODO(gp): -> save_df_to_gsheet
 def save_df_to_tmp_gsheet(
@@ -1043,13 +1063,21 @@ def save_df_to_tmp_gsheet(
     remove_empty_columns: bool = False,
     remove_stable_columns: bool = False,
     verbose: bool = True,
+    credentials: Optional["goasea.Credentials"] = None,
 ) -> None:
     """
     Save a DataFrame to a Google Sheet.
 
     :param df: The DataFrame to save.
+    :param url: URL of the Google Sheet (empty means default temp sheet).
     :param tab_name: The name of the tab to save the DataFrame to.
+    :param remove_empty_columns: Whether to remove empty columns.
+    :param remove_stable_columns: Whether to remove stable columns.
+    :param verbose: Whether to print verbose output.
+    :param credentials: Google credentials object.
     """
+    if credentials is None:
+        credentials = get_credentials()
     if remove_stable_columns:
         df = hpandas.remove_stable_columns(df, verbose=verbose)
     if remove_empty_columns:
@@ -1058,30 +1086,30 @@ def save_df_to_tmp_gsheet(
         url = "https://docs.google.com/spreadsheets/d/1NLY7dTmkXmllYfewDH53z-uSRpC9-zBTTmAOB_O30DI/edit?gid=0#gid=0"
     if tab_name == "":
         # Find the first tab name that is not empty.
-        tab_names = get_tabs_from_gsheet(get_credentials(), url)
+        tab_names = get_tabs_from_gsheet(url, credentials=credentials)
         for i in range(0, 100):
             tab_name = "Sheet" + str(i)
             if tab_name not in tab_names:
                 break
         hdbg.dassert_ne(tab_name, "No empty tab name found")
     to_gsheet(
-        get_credentials(),
         df,
         url,
         tab_name=tab_name,
         freeze_rows=True,
         set_text_wrapping_clip=True,
+        credentials=credentials,
     )
 
 
 def _get_gsheet_to_df(url: str, tab_name: Optional[str]) -> pd.DataFrame:
     credentials = get_credentials()
-    file_name = get_tab_name_from_url(credentials, url)
+    file_name = get_gsheet_name(url, credentials=credentials)
     _LOG.info(
         "Reading data:\n  url='%s'\n  file_name='%s'\n  tab_name='%s'"
         % (url, file_name, tab_name)
     )
-    df = from_gsheet(credentials, url, tab_name=tab_name)
+    df = from_gsheet(url, tab_name=tab_name, credentials=credentials)
     return df
 
 
@@ -1129,7 +1157,7 @@ def read_all_gsheets(url: str, *,
     """
     dfs = []
     if tab_names == "all":
-        tab_names = get_tabs_from_gsheet(get_credentials(), url)
+        tab_names = get_tabs_from_gsheet(url)
     for tab_name in tab_names:
         df = get_cached_gsheet_to_df(url, tab_name)
         dfs.append(df)

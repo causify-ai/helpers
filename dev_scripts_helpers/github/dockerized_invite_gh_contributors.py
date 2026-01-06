@@ -49,7 +49,7 @@ def extract_usernames_from_gsheet(gsheet_url: str) -> List[str]:
     credentials = hgodrapi.get_credentials(
         service_key_path="/app/DATA605/google_secret.json"
     )
-    df = hgodrapi.from_gsheet(credentials, gsheet_url)
+    df = hgodrapi.from_gsheet(gsheet_url, credentials=credentials)
     usernames = [
         user for user in df["GitHub user"].tolist() if user and user.strip()
     ]
