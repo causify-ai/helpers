@@ -22,13 +22,6 @@ import helpers.hprint as hprint
 # These heavy dependencies are only imported when functions are actually called.
 if TYPE_CHECKING:
     import matplotlib as mpl
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    import sklearn.linear_model
-    import statsmodels.api
-    import tqdm.autonotebook as tauton
-    import helpers.hmatplotlib as hmatplo
-    import helpers.hpandas as hpandas
 
 _LOG = logging.getLogger(__name__)
 
