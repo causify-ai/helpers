@@ -220,13 +220,15 @@ def _set_task_definition_config(
         "name"
     ] = task_definition_name
     # Set placeholder image URL.
-    # TODO(heanh): Select image based on environment and region.
-    registry_url = hrecouti.get_repo_config().get_container_registry_url()
+    # Get the base registry URL in the base region.
+    base_registry_url = hrecouti.get_repo_config().get_container_registry_url()
+    # Build the region-specific ECR registry URL for the target region.
+    # ECR registry URL format: `{account_id}.dkr.ecr.{region}.amazonaws.com`.
+    account_id = base_registry_url.split(".")[0]
+    registry_url = f"{account_id}.dkr.ecr.{region}.amazonaws.com"
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    # TODO(heanh): Consider replicating the image to the ECR in the region
-    # where the task definition is created.
-    # We can use the image from ECR in the base region for now to avoid
-    # unnecessary image replications.
+    # Make sure that the ECR replication is configured for the target region, 
+    # so images are available in any new regions.
     task_definition_config["containerDefinitions"][0]["image"] = (
         _IMAGE_URL_TEMPLATE.format(registry_url, image_name)
     )
