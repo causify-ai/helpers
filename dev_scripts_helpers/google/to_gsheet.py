@@ -85,7 +85,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.info("Google Sheet information:")
     hgodrapi.print_info_about_google_url(args.url, credentials=credentials)
     # Check if the tab already exists.
-    existing_tabs = hgodrapi.get_tabs_from_gsheet(args.url, credentials=credentials)
+    existing_tabs = hgodrapi.get_tabs_from_gsheet(
+        args.url, credentials=credentials
+    )
     tab_exists = args.tabname in existing_tabs
     if tab_exists and not args.overwrite:
         hdbg.dfatal(

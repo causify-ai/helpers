@@ -586,7 +586,9 @@ def to_gsheet(
             tab_name=tab_name,
         )
     _LOG.info("Data written to:\ntab '%s'\nGoogle Sheet '%s'", tab_name, url)
-    _LOG.info("url=%s", get_gsheet_tab_url(url, tab_name, credentials=credentials))
+    _LOG.info(
+        "url=%s", get_gsheet_tab_url(url, tab_name, credentials=credentials)
+    )
 
 
 # #############################################################################
@@ -1045,7 +1047,10 @@ def print_info_about_google_url(
     print("file name: '%s'" % get_gsheet_name(url, credentials=credentials))
     print("tab names: '%s'" % get_tabs_from_gsheet(url, credentials=credentials))
     if tab_name is not None:
-        print("full url: '%s'" % get_gsheet_tab_url(url, tab_name, credentials=credentials))
+        print(
+            "full url: '%s'"
+            % get_gsheet_tab_url(url, tab_name, credentials=credentials)
+        )
     print(
         "folder path: '%s'"
         % "/".join(get_google_path_from_url(url, credentials=credentials))
@@ -1145,8 +1150,12 @@ def get_gsheet_to_df(
     return df
 
 
-def read_all_gsheets(url: str, *,
-    tab_names: Union[str, List[str]], concat: bool = False) -> Union[pd.DataFrame, List[pd.DataFrame]]:
+def read_all_gsheets(
+    url: str,
+    *,
+    tab_names: Union[str, List[str]],
+    concat: bool = False
+) -> Union[pd.DataFrame, List[pd.DataFrame]]:
     """
     Read all the sheets from a Google Sheet.
 
