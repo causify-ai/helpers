@@ -8,25 +8,16 @@ import helpers.hgoogle_drive_api as hgodrapi
 """
 
 import logging
+
+# TODO(ai_gp): Use import os
 import os.path
 import re
-from datetime import datetime
-from typing import List, Optional
 
-# This package need to be manually installed until it is added to the
-# container.
-# Run the following line in a notebook:
-# ```
-# > !sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade google-api-python-client)"
-# ```
-# Or run the following part in python:
-# ```
-# import subprocess
-# install_code = subprocess.call(
-#   'sudo /bin/bash -c "(source /venv/bin/activate; pip install --upgrade google-api-python-client)"',
-#   shell=True,
-# )
-# ```
+# TODO(ai_gp): Use import datetime
+from datetime import datetime
+from typing import List, Optional, Union
+import importlib
+import sys
 
 # Try to import optional Google API dependencies.
 try:
@@ -45,7 +36,7 @@ except ImportError:
     _GOOGLE_API_AVAILABLE = False
 
 import pandas as pd
-
+import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hpandas as hpandas
@@ -84,10 +75,6 @@ def install_needed_modules(
         use_activate=True,
         venv_path=venv_path,
     )
-    # Reload the currently imported modules to make sure any freshly installed dependencies are loaded.
-    import importlib
-    import sys
-
     # Reload this module (hgoogle_drive_api) if already imported
     this_module_name = __name__
     if this_module_name in sys.modules:
@@ -1085,3 +1072,73 @@ def save_df_to_tmp_gsheet(
         freeze_rows=True,
         set_text_wrapping_clip=True,
     )
+
+
+def _get_gsheet_to_df(url: str, tab_name: Optional[str]) -> pd.DataFrame:
+    credentials = get_credentials()
+    file_name = get_tab_name_from_url(credentials, url)
+    _LOG.info(
+        "Reading data:\n  url='%s'\n  file_name='%s'\n  tab_name='%s'"
+        % (url, file_name, tab_name)
+    )
+    df = from_gsheet(credentials, url, tab_name=tab_name)
+    return df
+
+
+get_cached_gsheet_to_df = hcacsimp.simple_cache(
+    cache_type="pickle", write_through=True
+)(_get_gsheet_to_df)
+
+
+# TODO(gp): This is redundant with disable cache.
+def get_gsheet_to_df(
+    url: str,
+    tab_name: Optional[str],
+    *,
+    remove_spaces_in_cols: bool = True,
+    force_no_cache: bool = False,
+) -> pd.DataFrame:
+    """
+    Get a Google Sheet as a DataFrame with optional caching.
+
+    :param url: The URL of the Google Sheet.
+    :param tab_name: The name of the tab to read
+        - `None` means the first sheet
+    :param remove_spaces_in_cols: Whether to remove spaces in the column names.
+    :param force_no_cache: Whether to bypass the cache and fetch fresh data.
+    :return: DataFrame containing the sheet data.
+    """
+    if force_no_cache:
+        df = get_gsheet_to_df(url, tab_name)
+    else:
+        df = get_cached_gsheet_to_df(url, tab_name)
+    if remove_spaces_in_cols:
+        df.columns = df.columns.str.replace(" ", "")
+    return df
+
+
+def read_all_gsheets(url: str, *,
+    tab_names: Union[str, List[str]], concat: bool = False) -> Union[pd.DataFrame, List[pd.DataFrame]]:
+    """
+    Read all the sheets from a Google Sheet.
+
+    :param url: The URL of the Google Sheet.
+    :param tab_names: The names of the sheets to read.
+    :param concat: Whether to concatenate the DataFrames.
+    :return: A list of DataFrames, one for each sheet.
+    """
+    dfs = []
+    if tab_names == "all":
+        tab_names = get_tabs_from_gsheet(get_credentials(), url)
+    for tab_name in tab_names:
+        df = get_cached_gsheet_to_df(url, tab_name)
+        dfs.append(df)
+    if len(dfs) > 1 and concat:
+        # Assert if the columns are the same.
+        for df in dfs[1:]:
+            hdbg.dassert_eq(df.columns, dfs[0].columns)
+        # Concatenate the DataFrames.
+        df = pd.concat(dfs)
+        df.reset_index(drop=True, inplace=True)
+        return df
+    return dfs
