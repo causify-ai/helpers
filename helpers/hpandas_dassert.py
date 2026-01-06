@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_dassert as hpandass
 """
 
 from typing import Any, Dict, Iterable, List, Optional, Union
@@ -27,6 +27,9 @@ RowsValues = List[List[str]]
 def _get_index(obj: Union[pd.Index, pd.DataFrame, pd.Series]) -> pd.Index:
     """
     Return the index of a Pandas object.
+
+    :param obj: pandas Index, DataFrame, or Series
+    :return: the index of the object
     """
     if isinstance(obj, pd.Index):
         index = obj
@@ -347,6 +350,12 @@ def dassert_approx_eq(
 def dassert_is_days(
     timedelta: pd.Timedelta, *, min_num_days: Optional[int] = None
 ) -> None:
+    """
+    Assert that a timedelta represents an integer number of days.
+
+    :param timedelta: the timedelta to check
+    :param min_num_days: optional minimum number of days to enforce
+    """
     hdbg.dassert(
         (timedelta / pd.Timedelta(days=1)).is_integer(),
         "timedelta='%s' is not an integer number of days",

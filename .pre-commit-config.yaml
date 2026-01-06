@@ -14,6 +14,12 @@ repos:
     # Run the formatter.
     - id: ruff-format
 
+- repo: https://github.com/mwouts/jupytext
+  rev: v1.16.0
+  hooks:
+    - id: jupytext
+      args: ["--sync"]
+
 #  - repo: local
 #    hooks:
 #      - id: fixit-lint

@@ -4,7 +4,7 @@ Import as:
 import helpers.hpandas_stats as hpanstat
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -155,8 +155,9 @@ def remap_obj(
     """
     Substitute each value of an object with another value from a dictionary.
 
-    :param obj: an object to substitute value in
-    :param map_: values to substitute with
+    :param obj: a Series or Index to remap values in
+    :param map_: dictionary mapping old values to new values
+    :param kwargs: additional keyword arguments passed to pd.Series.map()
     :return: remapped pandas series
     """
     hdbg.dassert_lte(1, obj.shape[0])
@@ -211,7 +212,11 @@ def heatmap_df(df: pd.DataFrame, *, axis: Any = None) -> pd.DataFrame:
 
 def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Dict[str, Any]) -> str:
     """
-    Report percentage of True for a list / series.
+    Report percentage of True values in a list or series.
+
+    :param vals: list or series of boolean values
+    :param perc_kwargs: additional keyword arguments passed to hprint.perc()
+    :return: formatted percentage string
     """
     if isinstance(vals, list):
         vals = pd.Series(vals)
@@ -276,3 +281,130 @@ def display_value_counts_stats_df(
     _LOG.info("# %s", col_names)
     stats_df = get_value_counts_stats_df(df, col_names, num_rows=num_rows)
     IPython.display.display(stats_df)
+
+
+# #############################################################################
+# Functions moved from core/explore.py
+# #############################################################################
+
+
+def report_zero_nan_inf_stats(
+    df: pd.DataFrame,
+    zero_threshold: float = 1e-9,
+    verbose: bool = False,
+    as_txt: bool = False,
+) -> pd.DataFrame:
+    """
+    Report count and percentage about zeros, nans, infs for a df.
+    """
+    # Convert Series to DataFrame if needed.
+    if isinstance(df, pd.Series):
+        df = pd.DataFrame(df)
+    _LOG.info("index in [%s, %s]", df.index.min(), df.index.max())
+    #
+    num_rows = df.shape[0]
+    _LOG.info("num_rows=%s", hprint.thousand_separator(num_rows))
+    _LOG.info("data=")
+    from helpers.hpandas_display import display_df as hpd_display_df
+
+    hpd_display_df(df, max_lines=5, as_txt=as_txt)
+    #
+    num_days = len(set(df.index.date))
+    _LOG.info("num_days=%s", num_days)
+    #
+    num_weekdays = len(set(d for d in df.index.date if d.weekday() < 5))
+    _LOG.info("num_weekdays=%s", num_weekdays)
+    #
+    stats_df = pd.DataFrame(None, index=df.columns)
+    if False:
+        # Find the index of the first non-nan value.
+        df = df.applymap(lambda x: not np.isnan(x))
+        min_idx = df.idxmax(axis=0)
+        min_idx.name = "min_idx"
+        # Find the index of the last non-nan value.
+        max_idx = df.reindex(index=df.index[::-1]).idxmax(axis=0)
+        max_idx.name = "max_idx"
+    stats_df["num_rows"] = num_rows
+    #
+    num_zeros = (np.abs(df) < zero_threshold).sum(axis=0)
+    if verbose:
+        stats_df["num_zeros"] = num_zeros
+    stats_df["zeros [%]"] = (100.0 * num_zeros / num_rows).apply(
+        hprint.round_digits
+    )
+    #
+    num_nans = np.isnan(df).sum(axis=0)
+    if verbose:
+        stats_df["num_nans"] = num_nans
+    stats_df["nans [%]"] = (100.0 * num_nans / num_rows).apply(
+        hprint.round_digits
+    )
+    #
+    num_infs = np.isinf(df).sum(axis=0)
+    if verbose:
+        stats_df["num_infs"] = num_infs
+    stats_df["infs [%]"] = (100.0 * num_infs / num_rows).apply(
+        hprint.round_digits
+    )
+    #
+    num_valid = df.shape[0] - num_zeros - num_nans - num_infs
+    if verbose:
+        stats_df["num_valid"] = num_valid
+    stats_df["valid [%]"] = (100.0 * num_valid / num_rows).apply(
+        hprint.round_digits
+    )
+    #
+    hpd_display_df(stats_df, as_txt=as_txt)
+    return stats_df
+
+
+def pvalue_to_stars(pval: Optional[float]) -> str:
+    """
+    Convert p-value to star notation for statistical significance.
+
+    :param pval: p-value to convert
+    :return: star notation (* to ****) or ? for non-significant, NA for NaN
+    """
+    if np.isnan(pval):
+        stars = "NA"
+    else:
+        hdbg.dassert_lte(0.0, pval)
+        hdbg.dassert_lte(pval, 1.0)
+        pval = cast(float, pval)
+        if pval < 0.005:
+            # More than 99.5% confidence.
+            stars = "****"
+        elif pval < 0.01:
+            # More than 99% confidence.
+            stars = "***"
+        elif pval < 0.05:
+            # More than 95% confidence.
+            stars = "**"
+        elif pval < 0.1:
+            # More than 90% confidence.
+            stars = "*"
+        else:
+            stars = "?"
+    return stars
+
+
+def format_ols_regress_results(regr_res: Optional[pd.DataFrame]) -> pd.DataFrame:
+    """
+    Format OLS regression results into a readable DataFrame.
+
+    :param regr_res: regression results dictionary with coeffs, pvals, rsquared, etc.
+    :return: formatted DataFrame with coefficients and statistics
+    """
+    if regr_res is None:
+        _LOG.warning("regr_res=None: skipping")
+        df = pd.DataFrame(None)
+        return df
+    row: List[Union[float, str]] = [
+        "%.3f (%s)" % (coeff, pvalue_to_stars(pval))
+        for (coeff, pval) in zip(regr_res["coeffs"], regr_res["pvals"])
+    ]
+    row.append(float("%.2f" % (regr_res["rsquared"] * 100.0)))
+    row.append(float("%.2f" % (regr_res["adj_rsquared"] * 100.0)))
+    col_names = regr_res["param_names"] + ["R^2 [%]", "Adj R^2 [%]"]
+    df = pd.DataFrame([row], columns=col_names)
+    return df

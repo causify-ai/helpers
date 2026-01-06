@@ -1,14 +1,15 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_utils as hpanutil
 """
 
 import logging
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import pandas as pd
+import tqdm.autonotebook as tauton
 
 import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
@@ -16,6 +17,8 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = hloggin.getLogger(__name__)
+
+# Import add_pct for use in this module.
 
 
 # TODO(gp): -> AxisNameSet
@@ -33,7 +36,7 @@ ColumnSet = Optional[Union[str, List[str]]]
 
 def _display(log_level: int, df: pd.DataFrame) -> None:
     """
-    Display a df in a notebook at the given log level.
+    Display a dataframe in a notebook at the given log level.
 
     The behavior is similar to a command like `_LOG.log(log_level, ...)` but
     for a notebook `display` command.
@@ -41,6 +44,7 @@ def _display(log_level: int, df: pd.DataFrame) -> None:
     :param log_level: log level at which to display a df. E.g., if `log_level =
         logging.DEBUG`, then we display the df only if we are running with
         `-v DEBUG`. If `log_level = logging.INFO` then we don't display it
+    :param df: dataframe to display
     """
     from IPython.display import display
 
@@ -361,7 +365,7 @@ def head(
     *,
     print_columns: bool = False,
     num_rows: int = 2,
-    seed: Union[int, None] = None
+    seed: Union[int, None] = None,
 ) -> str:
     """
     Display a sample of rows from a DataFrame.
@@ -387,9 +391,12 @@ def head(
     else:
         df = df.head(num_rows)
     with pd.option_context(
-        "display.width", 200,
-        "display.max_columns", None,
-        "display.max_colwidth", None,
+        "display.width",
+        200,
+        "display.max_columns",
+        None,
+        "display.max_colwidth",
+        None,
     ):
         txt += "\n" + str(df)
     return txt
@@ -431,3 +438,173 @@ def resolve_column_names(
             # `columns`.
             column_set = [c for c in columns if c in column_set]
     return column_set
+
+
+def _get_unique_elements_in_column(df: pd.DataFrame, col_name: str) -> List[Any]:
+    """
+    Get unique elements in a column, handling unhashable types.
+
+    :param df: dataframe containing the column
+    :param col_name: name of the column to get unique elements from
+    :return: list of unique elements
+    """
+    try:
+        vals = df[col_name].unique()
+    except TypeError:
+        # TypeError: unhashable type: 'list'
+        _LOG.error("Column '%s' has unhashable types", col_name)
+        vals = list(set(map(str, df[col_name])))
+    cast(List[Any], vals)
+    return vals
+
+
+def _get_variable_cols(
+    df: pd.DataFrame, threshold: int = 1
+) -> Tuple[List[str], List[str]]:
+    """
+    Return columns of a df that contain less than <threshold> unique values.
+
+    :return: (variable columns, constant columns)
+    """
+    var_cols = []
+    const_cols = []
+    for col_name in df.columns:
+        unique_elems = _get_unique_elements_in_column(df, col_name)
+        num_unique_elems = len(unique_elems)
+        if num_unique_elems <= threshold:
+            const_cols.append(col_name)
+        else:
+            var_cols.append(col_name)
+    return var_cols, const_cols
+
+
+def remove_columns_with_low_variability(
+    df: pd.DataFrame, threshold: int = 1, log_level: int = logging.DEBUG
+) -> pd.DataFrame:
+    """
+    Remove columns of a df that contain less than <threshold> unique values.
+
+    :return: df with only columns with sufficient variability
+    """
+    var_cols, const_cols = _get_variable_cols(df, threshold=threshold)
+    _LOG.log(log_level, "# Constant cols")
+    for col_name in const_cols:
+        unique_elems = _get_unique_elements_in_column(df, col_name)
+        _LOG.log(
+            log_level,
+            "  %s: %s",
+            col_name,
+            hprint.list_to_str(list(map(str, unique_elems))),
+        )
+    _LOG.log(log_level, "# Var cols")
+    _LOG.log(log_level, hprint.list_to_str(var_cols))
+    return df[var_cols]
+
+
+def print_column_variability(
+    df: pd.DataFrame,
+    max_num_vals: int = 3,
+    num_digits: int = 2,
+    use_thousands_separator: bool = True,
+) -> pd.DataFrame:
+    """
+    Print statistics about the values in each column of a data frame.
+
+    This is useful to get a sense of which columns are interesting.
+    """
+    print(("# df.columns=%s" % hprint.list_to_str(df.columns)))
+    res = []
+    for c in tauton.tqdm(df.columns, desc="Computing column variability"):
+        vals = _get_unique_elements_in_column(df, c)
+        try:
+            min_val = min(vals)
+        except TypeError as e:
+            _LOG.debug("Column='%s' reported %s", c, e)
+            min_val = "nan"
+        try:
+            max_val = max(vals)
+        except TypeError as e:
+            _LOG.debug("Column='%s' reported %s", c, e)
+            max_val = "nan"
+        if len(vals) <= max_num_vals:
+            txt = ", ".join(map(str, vals))
+        else:
+            txt = ", ".join(map(str, [min_val, "...", max_val]))
+        row = ["%20s" % c, len(vals), txt]
+        res.append(row)
+    res = pd.DataFrame(res, columns=["col_name", "num", "elems"])
+    res.sort_values("num", inplace=True)
+    # TODO(gp): Fix this.
+    # res = add_count_as_idx(res)
+    # Import locally to avoid circular dependency.
+    from helpers.hpandas_transform import add_pct as hpantran_add_pct
+
+    res = hpantran_add_pct(
+        res,
+        "num",
+        df.shape[0],
+        "[diff %]",
+        num_digits=num_digits,
+        use_thousands_separator=use_thousands_separator,
+    )
+    res.reset_index(drop=True, inplace=True)
+    return res
+
+
+def breakdown_table(
+    df: pd.DataFrame,
+    col_name: str,
+    num_digits: int = 2,
+    use_thousands_separator: bool = True,
+    verbosity: bool = False,
+) -> pd.DataFrame:
+    """
+    Create a breakdown table showing value counts and percentages for a column.
+
+    :param df: dataframe to analyze
+    :param col_name: column name to create breakdown for
+    :param num_digits: number of decimal digits for percentages
+    :param use_thousands_separator: whether to use thousands separator in counts
+    :param verbosity: whether to print additional details
+    :return: breakdown table with counts and percentages
+    """
+    if isinstance(col_name, list):
+        for c in col_name:
+            print(("\n" + hprint.frame(c).rstrip("\n")))
+            res = breakdown_table(df, c)
+            print(res)
+        return None
+    #
+    if verbosity:
+        print(("# col_name=%s" % col_name))
+    first_col_name = df.columns[0]
+    res = df.groupby(col_name)[first_col_name].count()
+    res = pd.DataFrame(res)
+    res.columns = ["count"]
+    res.sort_values(["count"], ascending=False, inplace=True)
+    res = pd.concat(
+        [res, pd.DataFrame([df.shape[0]], index=["Total"], columns=["count"])]
+    )
+    res["pct"] = (100.0 * res["count"]) / df.shape[0]
+    # Format.
+    res["count"] = [
+        hprint.round_digits(
+            v, num_digits=None, use_thousands_separator=use_thousands_separator
+        )
+        for v in res["count"]
+    ]
+    res["pct"] = [
+        hprint.round_digits(
+            v, num_digits=num_digits, use_thousands_separator=False
+        )
+        for v in res["pct"]
+    ]
+    if verbosity:
+        for k, df_tmp in df.groupby(col_name):
+            print((hprint.frame("%s=%s" % (col_name, k))))
+            cols = [col_name, "description"]
+            with pd.option_context(
+                "display.max_colwidth", 100000, "display.width", 130
+            ):
+                print((df_tmp[cols]))
+    return res
