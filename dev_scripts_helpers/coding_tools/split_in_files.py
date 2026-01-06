@@ -11,6 +11,11 @@ Tags format:
 - <start_common> - Optional section copied to all output files
 - <start:filename> - Start of a new file section
 
+Features:
+- Multiple chunks can use the same filename - they will be concatenated
+- Can append to existing files instead of overwriting them
+- Common section is prepended only once per file (first chunk)
+
 Example:
 # Split a file with tags into separate files:
 > split_in_files.py --input_file input.txt
@@ -24,8 +29,19 @@ Example:
 # Keep the input file unchanged after splitting:
 > split_in_files.py --input_file input.txt --preserve_input
 
+# Append to existing files instead of overwriting:
+> split_in_files.py --input_file input.txt --append
+
 # Skip content verification for faster processing:
 > split_in_files.py --input_file input.txt --skip_verify
+
+# Use multiple chunks with same filename (concatenated into one file):
+# Input file:
+#   <start:output.txt>
+#   First chunk
+#   <start:output.txt>
+#   Second chunk
+# Result: output.txt contains "First chunk\nSecond chunk"
 
 Import as:
 
@@ -61,10 +77,13 @@ def _parse_file_content(content: str) -> tuple:
     """
     Parse file content and extract sections based on tags.
 
+    Supports multiple chunks for the same filename - they will be collected
+    in order and can be concatenated or appended to the same file.
+
     :param content: the content of the input file
     :return: tuple of (common_section, sections_dict, line_ranges) where:
-        - sections_dict maps filename to content
-        - line_ranges maps filename to (start_line, end_line) tuple
+        - sections_dict maps filename to list of content chunks
+        - line_ranges maps filename to list of (start_line, end_line) tuples
     """
     # Find all tags in the content.
     tag_pattern = r"<start(?::([^>]+)|_common)>"
@@ -98,7 +117,7 @@ def _parse_file_content(content: str) -> tuple:
             end_line = _get_line_number(content, common_end_idx)
             common_line_range = (start_line, end_line)
             start_idx = 1
-    # Extract file sections.
+    # Extract file sections - support multiple chunks per filename.
     for i in range(start_idx, len(matches)):
         match = matches[i]
         filename = match.group(1)
@@ -116,17 +135,25 @@ def _parse_file_content(content: str) -> tuple:
             section_end_idx = len(content)
         # Extract section content (excluding the tag itself).
         section_content = content[match.end() : section_end_idx]
-        sections[filename] = section_content
         # Calculate line range for this section.
         start_line = _get_line_number(content, match.end())
         end_line = _get_line_number(content, section_end_idx)
-        line_ranges[filename] = (start_line, end_line)
+        # Support multiple chunks for the same filename.
+        if filename not in sections:
+            sections[filename] = []
+            line_ranges[filename] = []
+        sections[filename].append(section_content)
+        line_ranges[filename].append((start_line, end_line))
     hdbg.dassert_lt(
         0,
         len(sections),
         "No file sections found. Expected at least one <start:filename> tag.",
     )
-    _LOG.debug("Extracted %d file sections", len(sections))
+    _LOG.debug("Extracted %d unique files", len(sections))
+    # Log if any files have multiple chunks.
+    for filename, chunks in sections.items():
+        if len(chunks) > 1:
+            _LOG.info("File '%s' has %d chunks", filename, len(chunks))
     return common_section, sections, line_ranges, common_line_range
 
 
@@ -139,7 +166,7 @@ def _display_dry_run(
     """
     Display what would be written in dry run mode.
 
-    :param line_ranges: dict mapping filename to (start_line, end_line) tuple
+    :param line_ranges: dict mapping filename to list of (start_line, end_line) tuples
     :param common_line_range: tuple of (start_line, end_line) for common section
     :param output_dir: output directory path
     """
@@ -154,20 +181,51 @@ def _display_dry_run(
             end_line,
         )
     # Display file sections.
-    for filename, (start_line, end_line) in line_ranges.items():
+    for filename, line_range_list in line_ranges.items():
         output_path = os.path.join(output_dir, filename)
-        if common_line_range:
-            common_start, common_end = common_line_range
-            _LOG.info(
-                "line_%d:line_%d + line_%d:line_%d -> %s",
-                common_start,
-                common_end,
-                start_line,
-                end_line,
-                output_path,
-            )
-        else:
-            _LOG.info("line_%d:line_%d -> %s", start_line, end_line, output_path)
+        # Handle multiple chunks for the same file.
+        for chunk_idx, (start_line, end_line) in enumerate(line_range_list):
+            if len(line_range_list) > 1:
+                chunk_label = f" [chunk {chunk_idx + 1}/{len(line_range_list)}]"
+            else:
+                chunk_label = ""
+            if common_line_range:
+                common_start, common_end = common_line_range
+                if chunk_idx == 0:
+                    _LOG.info(
+                        "line_%d:line_%d + line_%d:line_%d -> %s%s",
+                        common_start,
+                        common_end,
+                        start_line,
+                        end_line,
+                        output_path,
+                        chunk_label,
+                    )
+                else:
+                    _LOG.info(
+                        "line_%d:line_%d -> %s%s (append)",
+                        start_line,
+                        end_line,
+                        output_path,
+                        chunk_label,
+                    )
+            else:
+                if chunk_idx == 0:
+                    _LOG.info(
+                        "line_%d:line_%d -> %s%s",
+                        start_line,
+                        end_line,
+                        output_path,
+                        chunk_label,
+                    )
+                else:
+                    _LOG.info(
+                        "line_%d:line_%d -> %s%s (append)",
+                        start_line,
+                        end_line,
+                        output_path,
+                        chunk_label,
+                    )
 
 
 def _remove_content_from_input_file(input_file: str, content: str) -> None:
@@ -215,15 +273,20 @@ def _split_file(
     dry_run: bool,
     skip_verify: bool,
     preserve_input: bool,
+    append: bool,
 ) -> None:
     """
     Split input file into multiple files based on tags.
+
+    Supports multiple chunks for the same filename - chunks can be concatenated
+    into a single file or appended to existing files.
 
     :param input_file: path to the input file
     :param output_dir: directory where output files will be written
     :param dry_run: if True, show what would be done without writing files
     :param skip_verify: if True, skip verification that all content is saved
     :param preserve_input: if True, keep input file unchanged after splitting
+    :param append: if True, append to existing files instead of overwriting
     """
     hdbg.dassert(
         os.path.exists(input_file),
@@ -248,14 +311,61 @@ def _split_file(
     # Create output directory if it doesn't exist.
     hio.create_dir(output_dir, incremental=True)
     _LOG.info("Writing output files to: %s", output_dir)
-    # Write each section to a file.
-    for filename, section_content in sections.items():
+    # Write each section to a file, handling multiple chunks per filename.
+    total_files = 0
+    for filename, chunk_list in sections.items():
         output_path = os.path.join(output_dir, filename)
-        # Combine common section with file-specific content.
-        final_content = common_section + section_content
-        hio.to_file(output_path, final_content)
-        _LOG.info("Created file: %s (%d bytes)", output_path, len(final_content))
-    _LOG.info("Successfully split file into %d output files", len(sections))
+        file_exists = os.path.exists(output_path)
+        # Process each chunk for this filename.
+        for chunk_idx, chunk_content in enumerate(chunk_list):
+            is_first_chunk = chunk_idx == 0
+            # Determine write mode.
+            if is_first_chunk and not append:
+                # First chunk, not in append mode: create/overwrite file.
+                mode = "write"
+                final_content = common_section + chunk_content
+            elif is_first_chunk and append and file_exists:
+                # First chunk, append mode, file exists: append to file.
+                mode = "append"
+                final_content = chunk_content
+            elif is_first_chunk and append and not file_exists:
+                # First chunk, append mode, file doesn't exist: create file.
+                mode = "write"
+                final_content = common_section + chunk_content
+            else:
+                # Subsequent chunks: always append.
+                mode = "append"
+                final_content = chunk_content
+            # Write or append the content.
+            if mode == "write":
+                hio.to_file(output_path, final_content)
+                action = "Created" if not file_exists else "Overwrote"
+            else:
+                # Append to file.
+                existing_content = hio.from_file(output_path)
+                hio.to_file(output_path, existing_content + final_content)
+                action = "Appended to"
+            # Log the action.
+            if len(chunk_list) > 1:
+                _LOG.info(
+                    "%s file: %s [chunk %d/%d] (%d bytes)",
+                    action,
+                    output_path,
+                    chunk_idx + 1,
+                    len(chunk_list),
+                    len(final_content),
+                )
+            else:
+                _LOG.info(
+                    "%s file: %s (%d bytes)",
+                    action,
+                    output_path,
+                    len(final_content),
+                )
+            # Update file_exists for next iteration.
+            file_exists = True
+        total_files += 1
+    _LOG.info("Successfully split file into %d output files", total_files)
     # Remove content from input file unless preserve_input is True.
     if not preserve_input:
         _remove_content_from_input_file(input_file, content)
@@ -292,6 +402,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Keep input file unchanged (default: remove content, keep tags)",
     )
+    parser.add_argument(
+        "--append",
+        action="store_true",
+        help="Append to existing files instead of overwriting them",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -313,6 +428,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         dry_run=args.dry_run,
         skip_verify=args.skip_verify,
         preserve_input=args.preserve_input,
+        append=args.append,
     )
 
 

@@ -83,9 +83,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     credentials = hgodrapi.get_credentials()
     # Print information about the Google Sheet.
     _LOG.info("Google Sheet information:")
-    hgodrapi.print_info_about_google_url(credentials, args.url)
+    hgodrapi.print_info_about_google_url(args.url, credentials=credentials)
     # Check if the tab already exists.
-    existing_tabs = hgodrapi.get_tabs_from_gsheet(credentials, args.url)
+    existing_tabs = hgodrapi.get_tabs_from_gsheet(
+        args.url, credentials=credentials
+    )
     tab_exists = args.tabname in existing_tabs
     if tab_exists and not args.overwrite:
         hdbg.dfatal(
@@ -94,11 +96,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Write data to Google Sheet.
     _LOG.info("Writing data to tab '%s' in Google Sheet", args.tabname)
     hgodrapi.to_gsheet(
-        credentials,
         df,
         args.url,
         tab_name=args.tabname,
         freeze_rows=True,
+        credentials=credentials,
     )
     _LOG.info("Successfully wrote data to Google Sheet")
 

@@ -87,16 +87,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
     credentials = hgodrapi.get_credentials()
     # Print information about the Google Sheet.
     _LOG.info("Google Sheet information:")
-    hgodrapi.print_info_about_google_url(credentials, args.url)
+    hgodrapi.print_info_about_google_url(args.url, credentials=credentials)
     # Read data from Google Sheet.
     if args.tabname:
         _LOG.info("Reading data from tab '%s'", args.tabname)
     else:
         _LOG.info("Reading data from first tab")
     df = hgodrapi.from_gsheet(
-        credentials,
         args.url,
         tab_name=args.tabname,
+        credentials=credentials,
     )
     _LOG.info("Loaded %d rows and %d columns", len(df), len(df.columns))
     # Save to CSV.
