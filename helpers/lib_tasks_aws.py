@@ -227,7 +227,7 @@ def _set_task_definition_config(
     account_id = base_registry_url.split(".")[0]
     registry_url = f"{account_id}.dkr.ecr.{region}.amazonaws.com"
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    # Make sure that the ECR replication is configured for the target region, 
+    # Make sure that the ECR replication is configured for the target region,
     # so images are available in any new regions.
     task_definition_config["containerDefinitions"][0]["image"] = (
         _IMAGE_URL_TEMPLATE.format(registry_url, image_name)
