@@ -241,6 +241,7 @@ def _set_task_definition_config(
     task_definition_config["containerDefinitions"][0]["logConfiguration"][
         "options"
     ] = log_config_opts
+    # Index is based on the order of the environment variables in the template.
     # Set environment variable `CSFY_ECR_BASE_PATH`.
     task_definition_config["containerDefinitions"][0]["environment"][0][
         "value"
