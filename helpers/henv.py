@@ -84,6 +84,7 @@ def install_module_if_not_present(
     if _has_module:
         print(f"Module '{import_name}' is already installed.")
         return
+    print(f"Installing module '{import_name}'...")
     # Sometime the package name is different from the import name.
     # E.g., we import using `import dash_bootstrap_components` but the package
     # name is `dash-bootstrap-components`.

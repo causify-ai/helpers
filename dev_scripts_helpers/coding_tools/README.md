@@ -37,12 +37,15 @@
     + [`manage_cache.py`](#manage_cachepy)
       - [What It Does](#what-it-does-10)
       - [Examples](#examples-10)
-    + [`parallel_script_template.py`](#parallel_script_templatepy)
+    + [`print_pickle.py`](#print_picklepy)
       - [What It Does](#what-it-does-11)
       - [Examples](#examples-11)
-    + [`split_in_files.py`](#split_in_filespy)
+    + [`parallel_script_template.py`](#parallel_script_templatepy)
       - [What It Does](#what-it-does-12)
       - [Examples](#examples-12)
+    + [`split_in_files.py`](#split_in_filespy)
+      - [What It Does](#what-it-does-13)
+      - [Examples](#examples-13)
 
 <!-- tocstop -->
 
@@ -87,6 +90,8 @@ refactoring.
   - Measures and reports execution time for importing Python modules
 - `parallel_script_template.py`
   - Template demonstrating parallel execution using hjoblib API
+- `print_pickle.py`
+  - Reads pickle file and displays contents using pretty print formatting
 - `process_prof.py`
   - Post-processes cProfile output to generate statistics and call graphs
 - `reorder_python_code.md`
@@ -423,6 +428,34 @@ refactoring.
 
 ```bash
 > ./manage_cache.py --action list
+```
+
+### `print_pickle.py`
+
+#### What It Does
+
+- Loads and displays contents of pickle files in readable format
+- Shows object type information and pretty-printed structure
+- Supports configurable depth for nested data structures
+
+#### Examples
+
+**Print contents of a pickle file**
+
+```bash
+> ./print_pickle.py --input data.pkl
+```
+
+**Print with increased depth for nested structures**
+
+```bash
+> ./print_pickle.py --input cache.pkl --depth 5
+```
+
+**Print with debug logging**
+
+```bash
+> ./print_pickle.py --input file.pkl -v DEBUG
 ```
 
 ### `parallel_script_template.py`

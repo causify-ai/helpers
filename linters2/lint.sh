@@ -8,6 +8,7 @@ fi
 DIR=$1
 
 find $DIR -name "*.py" -o -name "*.ipynb" | grep -v ipynb_checkpoints | sort | tee tmp
+cat tmp
 
 pre-commit run --files $(cat tmp)
 

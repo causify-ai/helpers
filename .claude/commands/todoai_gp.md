@@ -1,9 +1,6 @@
-I will give a list of files, functions, variable to rename in a codebase
+Implement all the TODO(ai_gp) in the passed file
 
 In `TODO: ->` means rename
-
-For files use `git mv`
-
 Make sure to update all the references to those objects in the code base
 - E.g., for files, look for and update imports
 - E.g., for functions, find the callers in notebooks ipynb, Python files,
@@ -11,8 +8,8 @@ Make sure to update all the references to those objects in the code base
 - Update documentation in txt and md files
 - If needed, run corresponding unit tests to make sure the code works
 
-- For Python code follow the rules in
+- For a file containing Python code apply the rules from
   `docs/ai_prompts/coding.format_code.md`
 
-- For Python code with unit tests, follow the rules in the rules from
-  `docs/ai_prompts/coding.format_unit_tests.md`
+- For a file storing unit tests (i.e., whose basename starts with test_) apply
+  the rules from `docs/ai_prompts/coding.format_unit_tests.md`
