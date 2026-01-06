@@ -21,33 +21,33 @@
 
 <!-- tocstop -->
 
-# Hpandas_Dassert.Py
+# hpandas_Dassert.Py
 
 ## Index/Axis Validation & Assertions
 
 - \_get_index()
-- Dassert_index_is_datetime()
-- Dassert_unique_index()
-- Dassert_increasing_index()
-- Dassert_strictly_increasing_index()
-- Dassert_monotonic_index()
-- Dassert_time_indexed_df()
-- Dassert_indices_equal()
-- Dassert_columns_equal()
-- Dassert_axes_equal()
+- dassert_index_is_datetime()
+- dassert_unique_index()
+- dassert_increasing_index()
+- dassert_strictly_increasing_index()
+- dassert_monotonic_index()
+- dassert_time_indexed_df()
+- dassert_indices_equal()
+- dassert_columns_equal()
+- dassert_axes_equal()
 
-- Dassert_series_type_is()
-- Dassert_series_type_in()
-- Dassert_valid_remap()
-- Dassert_approx_eq()
-- Dassert_is_days()
+- dassert_series_type_is()
+- dassert_series_type_in()
+- dassert_valid_remap()
+- dassert_approx_eq()
+- dassert_is_days()
 
 # Hpandas_Conversion.Py
 
 ## Dataframe/Series Conversion
 
-- To_series()
-- As_series()
+- to_series()
+- as_series()
 
 ## Infer Type
 

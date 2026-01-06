@@ -148,7 +148,9 @@ class TestFunctionName(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected))
 
     def test_case1(self) -> None:
-        """Test description."""
+        """
+        Test description.
+        """
         # Prepare inputs.
         input1 = <value>
         # Prepare outputs.
@@ -157,18 +159,15 @@ class TestFunctionName(hunitest.TestCase):
         self.helper(input1, expected)
 
     def test_case2(self) -> None:
-        """Test description."""
+        """
+        Test description.
+        """
         # Prepare inputs.
         input1 = <different_value>
         # Prepare outputs.
         expected = <different_value>
         # Run test.
         self.helper(input1, expected)
-```
-
-**Alternative: Private helper with underscore prefix:**
-```python
-def _test_function_name(self, param1: Type1, expected: Type2) -> None:
 ```
 
 ## Assertion Patterns
@@ -408,104 +407,6 @@ When generating a test file, follow this exact sequence:
           # Check outputs.
           self.assert_equal(str(actual), str(expected))
   ```
-
-## Real-World Example from Codebase
-
-- An complete example is
-  ```python
-  import logging
-
-  import helpers.hparser as hparser
-  import helpers.hunit_test as hunitest
-
-  _LOG = logging.getLogger(__name__)
-
-
-  # #############################################################################
-  # TestParseLimitRange
-  # #############################################################################
-
-
-  class TestParseLimitRange(hunitest.TestCase):
-      """
-      Test parsing limit range strings into tuples.
-      """
-
-      def test_parse_limit_range_valid1(self) -> None:
-          """Test parsing valid range format."""
-          # Prepare inputs.
-          limit_str = "1:5"
-          # Prepare outputs.
-          expected = (1, 5)
-          # Run test.
-          actual = hparser.parse_limit_range(limit_str)
-          # Check outputs.
-          self.assertEqual(actual, expected)
-
-      def test_parse_limit_range_no_colon(self) -> None:
-          """Test that missing colon raises assertion error."""
-          # Prepare inputs.
-          limit_str = "15"
-          # Run test and check output.
-          with self.assertRaises(AssertionError):
-              hparser.parse_limit_range(limit_str)
-
-      def test_parse_limit_range_invalid_start(self) -> None:
-          """Test that non-integer start raises fatal error."""
-          # Prepare inputs.
-          limit_str = "abc:5"
-          # Run test and check output.
-          with self.assertRaises(AssertionError):
-              hparser.parse_limit_range(limit_str)
-
-
-  # #############################################################################
-  # TestApplyLimitRange
-  # #############################################################################
-
-
-  class TestApplyLimitRange(hunitest.TestCase):
-      """
-      Test applying limit ranges to item lists.
-      """
-
-      def test_apply_limit_range_no_limit(self) -> None:
-          """Test that None limit range returns original items."""
-          # Prepare inputs.
-          items = ["a", "b", "c", "d", "e"]
-          # Run test.
-          actual = hparser.apply_limit_range(items, None)
-          # Check outputs.
-          self.assertEqual(actual, items)
-
-      def test_apply_limit_range_valid_range(self) -> None:
-          """Test applying valid range to items."""
-          # Prepare inputs.
-          items = ["a", "b", "c", "d", "e"]
-          limit_range = (1, 3)
-          # Prepare outputs.
-          expected = ["b", "c", "d"]  # 0-indexed, inclusive
-          # Run test.
-          actual = hparser.apply_limit_range(items, limit_range)
-          # Check outputs.
-          self.assertEqual(actual, expected)
-  ```
-
-## Test Method Generation Checklist
-
-Before completing test generation, verify:
-
-- [ ] Type hint `-> None:` present
-- [ ] Docstring present and descriptive
-- [ ] Three sections with standard comments
-- [ ] Using `self.assert_equal()` not `self.assertEqual()`
-- [ ] Actual before expected in assertions
-- [ ] Helper method if 3+ similar tests
-- [ ] Class separator comment if multiple classes
-- [ ] Imports include `logging` and `hunitest`
-- [ ] Logger constant `_LOG` defined after imports
-- [ ] No mock objects used
-- [ ] No `hdbg.dassert()` calls
 
 ## End of Instructions
 
