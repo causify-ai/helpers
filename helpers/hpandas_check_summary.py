@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hpandas_check_summary as hpanchsum
+import helpers.hpandas_check_summary as hpachsum
 """
 
 import dataclasses

@@ -26,7 +26,6 @@ import pandas as pd
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
-
 import helpers.hpandas_conversion as hpanconv
 import helpers.hpandas_dassert as hpandass
 import helpers.hpandas_utils as hpanutil
@@ -54,9 +53,7 @@ def resample_index(index: pd.DatetimeIndex, frequency: str) -> pd.DatetimeIndex:
     """
     _LOG.debug(hprint.to_str("index frequency"))
     hdbg.dassert_isinstance(index, pd.DatetimeIndex)
-    hpandass.dassert_unique_index(
-        index, msg="Index must have only unique values"
-    )
+    hpandass.dassert_unique_index(index, msg="Index must have only unique values")
     min_date = index.min()
     max_date = index.max()
     _LOG.debug("min_date=%s max_date=%s", min_date, max_date)
@@ -746,10 +743,12 @@ def remove_stable_columns(
     df: pd.DataFrame, *, threshold: float = 0.9, verbose: bool = True
 ) -> pd.DataFrame:
     """
-    Remove columns from a dataframe that have less than threshold unique values.
+    Remove columns from a dataframe that have less than threshold unique
+    values.
 
     :param df: dataframe to remove stable columns from
-    :param threshold: threshold for the percentage of stable columns to remove
+    :param threshold: threshold for the percentage of stable columns to
+        remove
     :return: dataframe with stable columns removed
     """
     high_variability_columns = []
