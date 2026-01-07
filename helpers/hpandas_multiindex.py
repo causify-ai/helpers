@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_multiindex as hpanmulti
 """
 
 import logging

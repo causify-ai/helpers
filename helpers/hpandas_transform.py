@@ -27,8 +27,6 @@ import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
 
-# TODO(ai_gp): Import the file and not the package to avoid cyclic imports.
-import helpers.hpandas as hpandas
 import helpers.hpandas_conversion as hpanconv
 import helpers.hpandas_dassert as hpandass
 import helpers.hpandas_utils as hpanutil
@@ -796,12 +794,12 @@ def adapt_to_series(f: Callable) -> Callable:
         if was_series:
             if isinstance(res, tuple):
                 res_obj, res_tmp = res[0], res[1:]
-                res_obj_srs = hpandas.to_series(res_obj)
+                res_obj_srs = hpanconv.to_series(res_obj)
                 res_obj_srs = [res_obj_srs]
                 res_obj_srs.extend(res_tmp)
                 res = tuple(res_obj_srs)
             else:
-                res = hpandas.to_series(res)
+                res = hpanconv.to_series(res)
         return res
 
     return wrapper

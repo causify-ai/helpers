@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_conversion as hpanconv
 """
 
 from typing import List, Optional, Union
