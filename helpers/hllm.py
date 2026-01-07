@@ -286,12 +286,12 @@ class LLMClient:
         Check `_call_api_sync()` params for more details.
         """
         return _call_api_sync(
+            self.client,
+            user_prompt,
+            system_prompt,
+            temperature,
+            self.model,
             cache_mode=cache_mode,
-            client=self.client,
-            user_prompt=user_prompt,
-            system_prompt=system_prompt,
-            temperature=temperature,
-            model=self.model,
             images_as_base64=images_as_base64,
             cost_tracker=cost_tracker,
             use_responses_api=use_responses_api,
@@ -538,14 +538,13 @@ _LLM_COST_Tracker = LLMCostTracker()
 )
 def _call_api_sync(
     # pylint: disable=unused-argument
-    # This is needed to support caching.
-    cache_mode: str,
     client: openai.OpenAI,
     user_prompt: str,
     system_prompt: str,
     temperature: float,
     model: str,
     *,
+    cache_mode: Optional[str] = None,
     images_as_base64: Optional[Tuple[str, ...]] = None,
     cost_tracker: Optional[LLMCostTracker] = None,
     use_responses_api: bool = False,
