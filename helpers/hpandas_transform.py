@@ -28,7 +28,6 @@ import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
 import helpers.hpandas_conversion as hpanconv
 import helpers.hpandas_dassert as hpandass
-import helpers.hpandas_utils as hpanutil
 import helpers.hprint as hprint
 
 _LOG = hloggin.getLogger(__name__)
@@ -260,8 +259,11 @@ def apply_columns_mode(
         df1_copy = df1_copy[common_columns]
         df2_copy = df2_copy[common_columns]
         # Log the string representation of 2 dfs.
-        _LOG.debug("df1 after filtering=\n%s", hpanutil.df_to_str(df1))
-        _LOG.debug("df2 after filtering=\n%s", hpanutil.df_to_str(df2))
+        # Import locally to avoid circular dependency.
+        from helpers.hpandas_utils import df_to_str as hpanutil_df_to_str
+
+        _LOG.debug("df1 after filtering=\n%s", hpanutil_df_to_str(df1))
+        _LOG.debug("df2 after filtering=\n%s", hpanutil_df_to_str(df2))
     elif mode == "leave_unchanged":
         # Ignore mismatch.
         _LOG.debug(
@@ -301,8 +303,11 @@ def trim_df(
     :return: the trimmed dataframe
     """
     if _TRACE:
+        # Import locally to avoid circular dependency.
+        from helpers.hpandas_utils import df_to_str as hpanutil_df_to_str
+
         _LOG.trace(
-            hpanutil.df_to_str(
+            hpanutil_df_to_str(
                 df, print_dtypes=True, print_shape_info=True, tag="df"
             )
         )
@@ -310,7 +315,10 @@ def trim_df(
         hprint.to_str("ts_col_name start_ts end_ts left_close right_close")
     )
     if _TRACE:
-        _LOG.trace("df=\n%s", hpanutil.df_to_str(df))
+        # Import locally to avoid circular dependency.
+        from helpers.hpandas_utils import df_to_str as hpanutil_df_to_str
+
+        _LOG.trace("df=\n%s", hpanutil_df_to_str(df))
     if df.empty:
         # If the df is empty, there is nothing to trim.
         return df
