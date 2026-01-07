@@ -286,12 +286,12 @@ class LLMClient:
         Check `_call_api_sync()` params for more details.
         """
         return _call_api_sync(
+            self.client,
+            user_prompt,
+            system_prompt,
+            temperature,
+            self.model,
             cache_mode=cache_mode,
-            client=self.client,
-            user_prompt=user_prompt,
-            system_prompt=system_prompt,
-            temperature=temperature,
-            model=self.model,
             images_as_base64=images_as_base64,
             cost_tracker=cost_tracker,
             use_responses_api=use_responses_api,
