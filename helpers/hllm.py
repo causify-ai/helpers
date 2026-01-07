@@ -538,14 +538,13 @@ _LLM_COST_Tracker = LLMCostTracker()
 )
 def _call_api_sync(
     # pylint: disable=unused-argument
-    # This is needed to support caching.
-    # cache_mode: str,
     client: openai.OpenAI,
     user_prompt: str,
     system_prompt: str,
     temperature: float,
     model: str,
     *,
+    cache_mode: Optional[str] = None,
     images_as_base64: Optional[Tuple[str, ...]] = None,
     cost_tracker: Optional[LLMCostTracker] = None,
     use_responses_api: bool = False,
