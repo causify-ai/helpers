@@ -98,7 +98,7 @@ def dassert_increasing_index(
     Ensure that a Pandas object has an increasing index.
     """
     import helpers.hpandas_utils as hpanutil
-    
+
     index = _get_index(obj)
     if not index.is_monotonic_increasing:
         # Print information about the problematic indices like:
