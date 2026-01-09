@@ -11,7 +11,6 @@ import pandas as pd
 
 import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
-import helpers.hpandas_dassert as hpandass
 
 _LOG = hloggin.getLogger(__name__)
 
@@ -148,6 +147,8 @@ def convert_col_to_int(
     categorical-type column, this function will convert it to an integer
     column.
     """
+    import helpers.hpandas_dassert as hpandass
+
     hdbg.dassert_isinstance(df, pd.DataFrame)
     hdbg.dassert_isinstance(col, str)
     hdbg.dassert_in(col, df.columns)

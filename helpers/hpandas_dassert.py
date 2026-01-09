@@ -12,7 +12,6 @@ import pandas as pd
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
-import helpers.hpandas_utils as hpanutil
 
 _LOG = hloggin.getLogger(__name__)
 
@@ -72,6 +71,8 @@ def dassert_unique_index(
     """
     Ensure that a Pandas object has a unique index.
     """
+    import helpers.hpandas_utils as hpanutil
+
     index = _get_index(obj)
     if not index.is_unique:
         dup_indices = index.duplicated(keep=False)
@@ -96,6 +97,8 @@ def dassert_increasing_index(
     """
     Ensure that a Pandas object has an increasing index.
     """
+    import helpers.hpandas_utils as hpanutil
+    
     index = _get_index(obj)
     if not index.is_monotonic_increasing:
         # Print information about the problematic indices like:

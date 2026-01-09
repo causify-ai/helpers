@@ -50,9 +50,9 @@ def rolling_corr_over_time(
     :return: corr_df is a multi-index df storing correlation matrices with
         labels
     """
-    import helpers.hpandas as hpandas
+    import helpers.hpandas_dassert as hpandass
 
-    hpandas.dassert_strictly_increasing_index(df)
+    hpandass.dassert_strictly_increasing_index(df)
     # Handle NaNs based on mode.
     if nan_mode == "drop":
         df = df.dropna(how="any")
@@ -119,7 +119,7 @@ def rolling_pca_over_time(
           timestamps
         - eigvec_df stores eigenvectors as multiindex df
     """
-    import helpers.hpandas as hpandas
+    import helpers.hpandas_dassert as hpandass
     import tqdm.autonotebook as tauton
 
     # Compute rolling correlation.
@@ -137,7 +137,7 @@ def rolling_pca_over_time(
     # Package results.
     eigval_df = pd.DataFrame(eigval, index=timestamps)
     hdbg.dassert_eq(eigval_df.shape[0], len(timestamps))
-    hpandas.dassert_strictly_increasing_index(eigval_df)
+    hpandass.dassert_strictly_increasing_index(eigval_df)
     # Normalize by sum.
     # TODO(gp): Move this up.
     eigval_df = eigval_df.multiply(1 / eigval_df.sum(axis=1), axis="index")
