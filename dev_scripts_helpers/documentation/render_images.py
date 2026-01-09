@@ -280,7 +280,7 @@ def _render_image_code(
     # not possible to use a decorator to implement the caching.
     in_code_file_path, abs_img_dir_path, out_img_file_path = (
         _get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext, use_github_hosting
+            out_file, image_code_idx, dst_ext, use_github_hosting, dst_dir=dst_dir
         )
     )
     hio.create_dir(abs_img_dir_path, incremental=True)
@@ -538,6 +538,7 @@ def _render_images(
     use_sudo: bool = False,
     dry_run: bool = False,
     use_github_hosting: bool = False,
+    dst_dir: str = None,
 ) -> List[str]:
     r"""
     Insert rendered images instead of image code blocks.
@@ -586,6 +587,8 @@ def _render_images(
     :param use_github_hosting: if True, insert rendered image links
         using absolute GitHub-hosted URLs instead of relative paths
         (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/readme.1.png)
+    :param dst_dir: absolute path to directory for storing rendered images.
+        If None, uses default location
     :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
@@ -702,6 +705,7 @@ def _render_images(
                     use_sudo=use_sudo,
                     dry_run=dry_run,
                     use_github_hosting=use_github_hosting,
+                    dst_dir=dst_dir,
                 )
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
@@ -880,6 +884,7 @@ def _process_single_file(
     use_sudo: bool,
     dry_run: bool,
     use_github_hosting: bool,
+    dst_dir: str = None,
 ) -> None:
     """
     Process a single file for image rendering.
@@ -892,6 +897,8 @@ def _process_single_file(
     :param dry_run: if True, the rendering command is not executed
     :param use_github_hosting: if True, insert rendered image links using
         absolute GitHub-hosted URLs
+    :param dst_dir: absolute path to directory for storing rendered images.
+        If None, uses default location
     """
     _LOG.info(hprint.func_signature_to_str())
     # Verify that the input and output file types are valid and equal.
@@ -920,6 +927,7 @@ def _process_single_file(
         use_sudo=use_sudo,
         dry_run=dry_run,
         use_github_hosting=use_github_hosting,
+        dst_dir=dst_dir,
     )
     # Remove empty consecutive lines.
     out_lines = hprint.remove_empty_lines(
@@ -984,6 +992,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
         else:
             # Render in-place.
             out_file = in_files[0]
+    # Compute default dst_dir if not specified.
+    if args.dst_dir is None:
+        # For multi-file mode, use first input file to determine default.
+        default_dst_dir = f"{in_files[0]}.figs"
+        _LOG.info(
+            "No --dst_dir specified, using default: %s", default_dst_dir
+        )
+    else:
+        default_dst_dir = args.dst_dir
+        _LOG.info("Using specified --dst_dir: %s", default_dst_dir)
     # Process each file with progress bar.
     _LOG.info("Processing %s files", len(in_files))
     if len(in_files) > 1:
@@ -1006,10 +1024,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
         actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
         _LOG.info("Selected actions: %s", actions)
         for in_file in iterator:
-            _LOG.info("Processing file '%s' to '%s'", in_file, out_file)
-            # For multi-file mode, always render in-place.
+            # For multi-file mode, compute dst_dir per file if using default.
             if len(in_files) > 1:
                 out_file = in_file
+                if args.dst_dir is None:
+                    dst_dir = f"{in_file}.figs"
+                else:
+                    hdbg.dfatal("You can't specify dst_dir for multiple input files")
+            else:
+                dst_dir = default_dst_dir
+            _LOG.info("Processing file '%s' to '%s'", in_file, out_file)
             _process_single_file(
                 in_file,
                 out_file,
@@ -1018,6 +1042,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 use_sudo=args.dockerized_use_sudo,
                 dry_run=args.dry_run,
                 use_github_hosting=args.use_github_hosting,
+                dst_dir=dst_dir,
             )
     if len(in_files) > 1:
         _LOG.info("%s Files saved in place", len(in_files))

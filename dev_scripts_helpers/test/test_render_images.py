@@ -14,7 +14,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test_get_comment_prefix_postfix(hunitest.TestCase):
     """
-    Test the _get_comment_prefix_postfix() function for different file types.
+    Test _get_comment_prefix_postfix() function.
     """
 
     def helper(self, extension: str, expected: tuple) -> None:
@@ -29,7 +29,7 @@ class Test_get_comment_prefix_postfix(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
-    def test_markdown(self) -> None:
+    def test1(self) -> None:
         """Test comment prefix/postfix for Markdown files."""
         # Prepare inputs.
         extension = ".md"
@@ -38,7 +38,7 @@ class Test_get_comment_prefix_postfix(hunitest.TestCase):
         # Run test.
         self.helper(extension, expected)
 
-    def test_tex(self) -> None:
+    def test2(self) -> None:
         """Test comment prefix/postfix for LaTeX files."""
         # Prepare inputs.
         extension = ".tex"
@@ -47,7 +47,7 @@ class Test_get_comment_prefix_postfix(hunitest.TestCase):
         # Run test.
         self.helper(extension, expected)
 
-    def test_txt(self) -> None:
+    def test3(self) -> None:
         """Test comment prefix/postfix for text files."""
         # Prepare inputs.
         extension = ".txt"
@@ -56,7 +56,7 @@ class Test_get_comment_prefix_postfix(hunitest.TestCase):
         # Run test.
         self.helper(extension, expected)
 
-    def test_invalid_extension(self) -> None:
+    def test4(self) -> None:
         """Test that invalid file extension raises ValueError."""
         # Prepare inputs.
         extension = ".invalid"
@@ -75,7 +75,7 @@ class Test_get_comment_prefix_postfix(hunitest.TestCase):
 
 class Test_comment_line(hunitest.TestCase):
     """
-    Test the _comment_line() function for different file types.
+    Test _comment_line() function.
     """
 
     def helper(self, line: str, extension: str, expected: str) -> None:
@@ -91,7 +91,7 @@ class Test_comment_line(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual, expected)
 
-    def test_markdown(self) -> None:
+    def test1(self) -> None:
         """Test commenting a line in Markdown format."""
         # Prepare inputs.
         line = "This is a line"
@@ -101,7 +101,7 @@ class Test_comment_line(hunitest.TestCase):
         # Run test.
         self.helper(line, extension, expected)
 
-    def test_tex(self) -> None:
+    def test2(self) -> None:
         """Test commenting a line in LaTeX format."""
         # Prepare inputs.
         line = "\\begin{document}"
@@ -111,7 +111,7 @@ class Test_comment_line(hunitest.TestCase):
         # Run test.
         self.helper(line, extension, expected)
 
-    def test_txt(self) -> None:
+    def test3(self) -> None:
         """Test commenting a line in text format."""
         # Prepare inputs.
         line = "Some text"
@@ -121,7 +121,7 @@ class Test_comment_line(hunitest.TestCase):
         # Run test.
         self.helper(line, extension, expected)
 
-    def test_empty_line_markdown(self) -> None:
+    def test4(self) -> None:
         """Test commenting an empty line in Markdown."""
         # Prepare inputs.
         line = ""
@@ -139,7 +139,7 @@ class Test_comment_line(hunitest.TestCase):
 
 class Test_uncomment_line(hunitest.TestCase):
     """
-    Test the _uncomment_line() function for different file types.
+    Test _uncomment_line() function.
     """
 
     def helper(self, line: str, extension: str, expected: str) -> None:
@@ -155,7 +155,7 @@ class Test_uncomment_line(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(actual, expected)
 
-    def test_markdown(self) -> None:
+    def test1(self) -> None:
         """Test uncommenting a line in Markdown format."""
         # Prepare inputs.
         line = "[//]: # ( This is a line )"
@@ -165,7 +165,7 @@ class Test_uncomment_line(hunitest.TestCase):
         # Run test.
         self.helper(line, extension, expected)
 
-    def test_tex(self) -> None:
+    def test2(self) -> None:
         """Test uncommenting a line in LaTeX format."""
         # Prepare inputs.
         line = "% \\begin{document}"
@@ -175,7 +175,7 @@ class Test_uncomment_line(hunitest.TestCase):
         # Run test.
         self.helper(line, extension, expected)
 
-    def test_txt(self) -> None:
+    def test3(self) -> None:
         """Test uncommenting a line in text format."""
         # Prepare inputs.
         line = "// Some text"
@@ -185,7 +185,7 @@ class Test_uncomment_line(hunitest.TestCase):
         # Run test.
         self.helper(line, extension, expected)
 
-    def test_line_without_comment_prefix(self) -> None:
+    def test4(self) -> None:
         """Test uncommenting a line without comment prefix."""
         # Prepare inputs.
         line = "This is a normal line"
@@ -203,10 +203,10 @@ class Test_uncomment_line(hunitest.TestCase):
 
 class Test_insert_image_code(hunitest.TestCase):
     """
-    Test the _insert_image_code() function for different file types.
+    Test _insert_image_code() function.
     """
 
-    def test_markdown_simple(self) -> None:
+    def test1(self) -> None:
         """Test inserting image code in Markdown format without label or caption."""
         # Prepare inputs.
         extension = ".md"
@@ -224,7 +224,7 @@ class Test_insert_image_code(hunitest.TestCase):
         """
         self.assert_equal(actual, hprint.dedent(expected))
 
-    def test_markdown_with_label_and_caption(self) -> None:
+    def test2(self) -> None:
         """Test inserting image code in Markdown with label and caption."""
         # Prepare inputs.
         extension = ".md"
@@ -248,7 +248,7 @@ class Test_insert_image_code(hunitest.TestCase):
         """
         self.assert_equal(actual, hprint.dedent(expected))
 
-    def test_markdown_with_size_only(self) -> None:
+    def test3(self) -> None:
         """Test inserting image code in Markdown with size but no label/caption."""
         # Prepare inputs.
         extension = ".md"
@@ -266,7 +266,7 @@ class Test_insert_image_code(hunitest.TestCase):
         """
         self.assert_equal(actual, hprint.dedent(expected))
 
-    def test_tex_simple(self) -> None:
+    def test4(self) -> None:
         """Test inserting image code in LaTeX format without label or caption."""
         # Prepare inputs.
         extension = ".tex"
@@ -286,7 +286,7 @@ class Test_insert_image_code(hunitest.TestCase):
         """
         self.assert_equal(actual, hprint.dedent(expected))
 
-    def test_tex_with_label_and_caption(self) -> None:
+    def test5(self) -> None:
         """Test inserting image code in LaTeX with label and caption."""
         # Prepare inputs.
         extension = ".tex"
@@ -314,7 +314,7 @@ class Test_insert_image_code(hunitest.TestCase):
         """
         self.assert_equal(actual, hprint.dedent(expected))
 
-    def test_txt_format(self) -> None:
+    def test6(self) -> None:
         """Test inserting image code in text format."""
         # Prepare inputs.
         extension = ".txt"
@@ -332,7 +332,7 @@ class Test_insert_image_code(hunitest.TestCase):
         """
         self.assert_equal(actual, hprint.dedent(expected))
 
-    def test_invalid_extension(self) -> None:
+    def test7(self) -> None:
         """Test that invalid file extension raises ValueError."""
         # Prepare inputs.
         extension = ".invalid"
@@ -353,10 +353,10 @@ class Test_insert_image_code(hunitest.TestCase):
 
 class Test_remove_image_code(hunitest.TestCase):
     """
-    Test the _remove_image_code() function for removing rendered image blocks.
+    Test _remove_image_code() function.
     """
 
-    def test_remove_markdown_rendered_block(self) -> None:
+    def test1(self) -> None:
         """Test removing rendered image block and uncommenting original code in Markdown."""
         # Prepare inputs.
         lines = """
@@ -386,7 +386,7 @@ class Test_remove_image_code(hunitest.TestCase):
         expected_lines = hprint.dedent(expected).split("\n")
         self.assert_equal(str(actual), str(expected_lines))
 
-    def test_remove_tex_rendered_block(self) -> None:
+    def test2(self) -> None:
         """Test removing rendered image block in LaTeX format."""
         # Prepare inputs.
         lines = r"""
@@ -418,7 +418,7 @@ class Test_remove_image_code(hunitest.TestCase):
         expected_lines = hprint.dedent(expected).split("\n")
         self.assert_equal(str(actual), str(expected_lines))
 
-    def test_remove_multiple_blocks(self) -> None:
+    def test3(self) -> None:
         """Test removing multiple rendered image blocks."""
         # Prepare inputs.
         lines = """
@@ -461,7 +461,7 @@ class Test_remove_image_code(hunitest.TestCase):
         expected_lines = hprint.dedent(expected).split("\n")
         self.assert_equal(str(actual), str(expected_lines))
 
-    def test_no_rendered_blocks(self) -> None:
+    def test4(self) -> None:
         """Test that lines without rendered blocks remain unchanged."""
         # Prepare inputs.
         lines = """
@@ -481,7 +481,7 @@ class Test_remove_image_code(hunitest.TestCase):
         """).split("\n")
         self.assert_equal(str(actual), str(expected_lines))
 
-    def test_empty_lines(self) -> None:
+    def test5(self) -> None:
         """Test handling of empty input."""
         # Prepare inputs.
         lines = []
