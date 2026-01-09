@@ -21,6 +21,8 @@ fi
 # Process the file (you can replace the following line with your processing code)
 echo "Processing file: $filename"
 
+# render_images.py -i $filename
+
 dst_filename="tmp.rendered_md.html"
 
 pandoc $filename -o $dst_filename

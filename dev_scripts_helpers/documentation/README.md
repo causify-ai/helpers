@@ -213,10 +213,11 @@
 ### What It Does
 
 - This script auto renders figures by:
-  - Detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, ...)
+  - Detecting fenced code blocks (PlantUML, Mermaid, TikZ, Graphviz, LaTeX)
+  - Generating AI images from text prompts using OpenAI's DALL-E API
   - Rendering them into images calling the appropriate tool
-  - Commenting them out the block
-  - Inlining a `![](img)` markup
+  - Commenting out the block
+  - Inlining a `![](img)` markup or `\includegraphics{}` for LaTeX
 
 - Render the images in a text file
   ```bash
@@ -228,12 +229,13 @@ The supported File types and code blocks are:
 
 - File extension: `.md`, `.txt`
   - Rendering syntax allowed:
-    - `plantuml`
-    - `mermaid`
-    - `graphviz`
-    - `tikz`
-    - `latex`
-  - Output embeds as: `<img src="figs/xxx.png">`
+    - `plantuml` - UML diagrams
+    - `mermaid` - Flowcharts and diagrams
+    - `graphviz` - Graph visualizations
+    - `tikz` - TikZ/LaTeX diagrams
+    - `latex` - LaTeX equations and tables
+    - `image` - AI-generated images from text prompts
+  - Output embeds as: `![](figs/xxx.png)`
 - File extension: `.tex`
   - Rendering syntax allowed:
     - Same tags (TikZ & LaTeX especially)
@@ -264,6 +266,16 @@ The supported File types and code blocks are:
   > render_images.py -i lesson.md -o /tmp/out.md --dry_run
   ```
 
+- Render with GitHub-hosted absolute URLs instead of relative paths
+  ```bash
+  > render_images.py -i README.md --action render --use_github_hosting
+  ```
+
+- Remove rendered images and uncomment original code
+  ```bash
+  > render_images.py -i lesson.md --remove_figs
+  ```
+
 - Render multiple files using comma-separated list
 
   ```bash
@@ -289,6 +301,14 @@ The supported File types and code blocks are:
   ```bash
   > render_images.py --input file1.md --input file2.md --input file3.md --action render
   ```
+
+- Generate AI images from text prompt in markdown
+  ````markdown
+  ```image
+  A futuristic cityscape with flying cars and neon lights
+  ```
+  ````
+  This will generate 3 AI images and embed them in the document
 
 ## `lint_notes.py`
 
