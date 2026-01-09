@@ -30,7 +30,8 @@ def _get_num_pcs_to_plot(num_pcs_to_plot: int, max_pcs: int) -> int:
     """
     Get the number of principal components to plot.
 
-    :param num_pcs_to_plot: requested number of PCs to plot, use -1 for all
+    :param num_pcs_to_plot: requested number of PCs to plot, use -1 for
+        all
     :param max_pcs: maximum number of available principal components
     :return: validated number of PCs to plot
     """
@@ -47,12 +48,12 @@ def rolling_corr_over_time(
     """
     Compute rolling correlation over time.
 
-    :return: corr_df is a multi-index df storing correlation matrices with
-        labels
+    :return: corr_df is a multi-index df storing correlation matrices
+        with labels
     """
-    import helpers.hpandas as hpandas
+    import helpers.hpandas_dassert as hpandass
 
-    hpandas.dassert_strictly_increasing_index(df)
+    hpandass.dassert_strictly_increasing_index(df)
     # Handle NaNs based on mode.
     if nan_mode == "drop":
         df = df.dropna(how="any")
@@ -72,10 +73,11 @@ def _get_eigvals_eigvecs(
     df: pd.DataFrame, dt: datetime.date, sort_eigvals: bool
 ) -> Tuple[np.array, np.array]:
     """
-    Compute eigenvalues and eigenvectors for a correlation matrix at a
-    specific date.
+    Compute eigenvalues and eigenvectors for a correlation matrix at a specific
+    date.
 
-    :param df: correlation matrix dataframe with multiindex (date, columns)
+    :param df: correlation matrix dataframe with multiindex (date,
+        columns)
     :param dt: date for which to compute eigenvalues/eigenvectors
     :param sort_eigvals: whether to sort eigenvalues in descending order
     :return: tuple of (eigenvalues array, eigenvectors array)
@@ -98,9 +100,7 @@ def _get_eigvals_eigvecs(
             idx = eigval.argsort()[::-1]
             eigval = eigval[idx]
             eigvec = eigvec[:, idx]
-            _LOG.debug(
-                "After sorting:\neigval=\n%s\neigvec=\n%s", eigval, eigvec
-            )
+            _LOG.debug("After sorting:\neigval=\n%s\neigvec=\n%s", eigval, eigvec)
     #
     if (eigval == 0).all():
         eigvec = np.nan * eigvec
@@ -119,8 +119,9 @@ def rolling_pca_over_time(
           timestamps
         - eigvec_df stores eigenvectors as multiindex df
     """
-    import helpers.hpandas as hpandas
     import tqdm.autonotebook as tauton
+
+    import helpers.hpandas_dassert as hpandass
 
     # Compute rolling correlation.
     corr_df = rolling_corr_over_time(df, com, nan_mode)
@@ -137,17 +138,21 @@ def rolling_pca_over_time(
     # Package results.
     eigval_df = pd.DataFrame(eigval, index=timestamps)
     hdbg.dassert_eq(eigval_df.shape[0], len(timestamps))
-    hpandas.dassert_strictly_increasing_index(eigval_df)
+    hpandass.dassert_strictly_increasing_index(eigval_df)
     # Normalize by sum.
     # TODO(gp): Move this up.
     eigval_df = eigval_df.multiply(1 / eigval_df.sum(axis=1), axis="index")
     #
     # pylint ref: github.com/PyCQA/pylint/issues/3139
-    eigvec = eigvec.reshape((-1, eigvec.shape[-1]))  # pylint: disable=unsubscriptable-object
+    eigvec = eigvec.reshape(
+        (-1, eigvec.shape[-1])
+    )  # pylint: disable=unsubscriptable-object
     idx = pd.MultiIndex.from_product(
         [timestamps, df.columns], names=["datetime", None]
     )
-    eigvec_df = pd.DataFrame(eigvec, index=idx, columns=range(df.shape[1]))  # pylint: disable=unsubscriptable-object
+    eigvec_df = pd.DataFrame(
+        eigvec, index=idx, columns=range(df.shape[1])
+    )  # pylint: disable=unsubscriptable-object
     hdbg.dassert_eq(
         len(eigvec_df.index.get_level_values(0).unique()), len(timestamps)
     )
@@ -229,9 +234,7 @@ def plot_time_distributions(
         # Count.
         count = pd.Series(vals).value_counts(sort=False)
         # Compute the labels.
-        yticks = [
-            "%02d:%02d" % (bins[k] / 60, bins[k] % 60) for k in count.index
-        ]
+        yticks = ["%02d:%02d" % (bins[k] / 60, bins[k] % 60) for k in count.index]
     elif mode == "weekday":
         data = [dt.date().weekday() for dt in dts]
         bins = np.arange(0, 7 + 1)
@@ -303,8 +306,8 @@ def jointplot(
 
     :param df: dataframe
     :param predicted_var: y-var
-    :param predictor_var: x-var
-    :param args, kwargs: arguments passed to seaborn.jointplot()
+    :param predictor_var: x-var :param args, kwargs: arguments passed to
+        seaborn.jointplot()
     """
     import seaborn as sns
 
@@ -418,12 +421,13 @@ def ols_regress(
     :param jointplot_height:
     :param predicted_var_delay:
     :param predictor_vars_delay:
-    :param max_nrows: do not plot if there are too many rows, since notebook
-        can be slow or hang
+    :param max_nrows: do not plot if there are too many rows, since
+        notebook can be slow or hang
     :return:
     """
-    import helpers.hmatplotlib as hmatplo
     import statsmodels.api
+
+    import helpers.hmatplotlib as hmatplo
 
     obj = _preprocess_regression(
         df,
@@ -480,9 +484,7 @@ def ols_regress(
                         height=jointplot_height,
                     )
             else:
-                _LOG.warning(
-                    "Skipping plots since there are too many predictors"
-                )
+                _LOG.warning("Skipping plots since there are too many predictors")
     if print_model_stats:
         return None
     return regr_res
@@ -553,12 +555,15 @@ def robust_regression(
     :param intercept: whether to include intercept in regression
     :param jointplot_: whether to create a scatter plot
     :param jointplot_figsize: size of the joint plot
-    :param predicted_var_delay: shift predicted variable by this many periods
-    :param predictor_vars_delay: shift predictor variables by this many periods
+    :param predicted_var_delay: shift predicted variable by this many
+        periods
+    :param predictor_vars_delay: shift predictor variables by this many
+        periods
     """
-    import helpers.hmatplotlib as hmatplo
     import matplotlib.pyplot as plt
     import sklearn.linear_model
+
+    import helpers.hmatplotlib as hmatplo
 
     obj = _preprocess_regression(
         df,
