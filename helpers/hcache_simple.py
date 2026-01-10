@@ -931,6 +931,7 @@ def simple_cache(
             _LOG.trace("force_refresh=%s", force_refresh)
             if cache_key in cache and not force_refresh:
                 _LOG.trace("Cache hit for key='%s'", cache_key)
+                _LOG.warning("Cache hit for %s", func_name)
                 # Update the performance stats.
                 if cache_perf:
                     cache_perf["hits"] += 1

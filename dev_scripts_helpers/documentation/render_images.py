@@ -92,6 +92,7 @@ def _get_rendered_file_paths(
     out_file_name_body = os.path.splitext(out_file_name)[0]
     # Create the name for the image file, e.g., "readme.1.png".
     img_name = f"{out_file_name_body}.{image_code_idx}.{dst_ext}"
+
     # Determine the absolute path to the images directory.
     if dst_dir is not None:
         # Use the provided dst_dir.
@@ -280,7 +281,11 @@ def _render_image_code(
     # not possible to use a decorator to implement the caching.
     in_code_file_path, abs_img_dir_path, out_img_file_path = (
         _get_rendered_file_paths(
-            out_file, image_code_idx, dst_ext, use_github_hosting, dst_dir=dst_dir
+            out_file,
+            image_code_idx,
+            dst_ext,
+            use_github_hosting,
+            dst_dir=dst_dir,
         )
     )
     hio.create_dir(abs_img_dir_path, incremental=True)
@@ -996,9 +1001,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.dst_dir is None:
         # For multi-file mode, use first input file to determine default.
         default_dst_dir = f"{in_files[0]}.figs"
-        _LOG.info(
-            "No --dst_dir specified, using default: %s", default_dst_dir
-        )
+        _LOG.info("No --dst_dir specified, using default: %s", default_dst_dir)
     else:
         default_dst_dir = args.dst_dir
         _LOG.info("Using specified --dst_dir: %s", default_dst_dir)
@@ -1030,7 +1033,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 if args.dst_dir is None:
                     dst_dir = f"{in_file}.figs"
                 else:
-                    hdbg.dfatal("You can't specify dst_dir for multiple input files")
+                    hdbg.dfatal(
+                        "You can't specify dst_dir for multiple input files"
+                    )
             else:
                 dst_dir = default_dst_dir
             _LOG.info("Processing file '%s' to '%s'", in_file, out_file)

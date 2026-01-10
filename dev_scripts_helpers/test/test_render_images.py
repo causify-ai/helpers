@@ -1,16 +1,14 @@
 import logging
 
-import dev_scripts_helpers.documentation.render_images as dscdorima
+import dev_scripts_helpers.documentation.render_images as dshdreim
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
-
 # #############################################################################
 # Test_get_comment_prefix_postfix
 # #############################################################################
-
 
 class Test_get_comment_prefix_postfix(hunitest.TestCase):
     """
@@ -25,12 +23,14 @@ class Test_get_comment_prefix_postfix(hunitest.TestCase):
         :param expected: expected tuple (comment_prefix, comment_postfix)
         """
         # Run test.
-        actual = dscdorima._get_comment_prefix_postfix(extension)
+        actual = dshdreim._get_comment_prefix_postfix(extension)
         # Check outputs.
         self.assert_equal(str(actual), str(expected))
 
     def test1(self) -> None:
-        """Test comment prefix/postfix for Markdown files."""
+        """
+        Test comment prefix/postfix for Markdown files.
+        """
         # Prepare inputs.
         extension = ".md"
         # Prepare outputs.
@@ -39,7 +39,9 @@ class Test_get_comment_prefix_postfix(hunitest.TestCase):
         self.helper(extension, expected)
 
     def test2(self) -> None:
-        """Test comment prefix/postfix for LaTeX files."""
+        """
+        Test comment prefix/postfix for LaTeX files.
+        """
         # Prepare inputs.
         extension = ".tex"
         # Prepare outputs.
@@ -48,7 +50,9 @@ class Test_get_comment_prefix_postfix(hunitest.TestCase):
         self.helper(extension, expected)
 
     def test3(self) -> None:
-        """Test comment prefix/postfix for text files."""
+        """
+        Test comment prefix/postfix for text files.
+        """
         # Prepare inputs.
         extension = ".txt"
         # Prepare outputs.
@@ -57,21 +61,21 @@ class Test_get_comment_prefix_postfix(hunitest.TestCase):
         self.helper(extension, expected)
 
     def test4(self) -> None:
-        """Test that invalid file extension raises ValueError."""
+        """
+        Test that invalid file extension raises ValueError.
+        """
         # Prepare inputs.
         extension = ".invalid"
         # Run test and check output.
         with self.assertRaises(ValueError) as cm:
-            dscdorima._get_comment_prefix_postfix(extension)
+            dshdreim._get_comment_prefix_postfix(extension)
         actual = str(cm.exception)
         expected = "Unsupported file type: .invalid"
         self.assert_equal(actual, expected)
 
-
 # #############################################################################
 # Test_comment_line
 # #############################################################################
-
 
 class Test_comment_line(hunitest.TestCase):
     """
@@ -87,12 +91,14 @@ class Test_comment_line(hunitest.TestCase):
         :param expected: expected commented line
         """
         # Run test.
-        actual = dscdorima._comment_line(line, extension)
+        actual = dshdreim._comment_line(line, extension)
         # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
-        """Test commenting a line in Markdown format."""
+        """
+        Test commenting a line in Markdown format.
+        """
         # Prepare inputs.
         line = "This is a line"
         extension = ".md"
@@ -102,7 +108,9 @@ class Test_comment_line(hunitest.TestCase):
         self.helper(line, extension, expected)
 
     def test2(self) -> None:
-        """Test commenting a line in LaTeX format."""
+        """
+        Test commenting a line in LaTeX format.
+        """
         # Prepare inputs.
         line = "\\begin{document}"
         extension = ".tex"
@@ -112,7 +120,9 @@ class Test_comment_line(hunitest.TestCase):
         self.helper(line, extension, expected)
 
     def test3(self) -> None:
-        """Test commenting a line in text format."""
+        """
+        Test commenting a line in text format.
+        """
         # Prepare inputs.
         line = "Some text"
         extension = ".txt"
@@ -122,7 +132,9 @@ class Test_comment_line(hunitest.TestCase):
         self.helper(line, extension, expected)
 
     def test4(self) -> None:
-        """Test commenting an empty line in Markdown."""
+        """
+        Test commenting an empty line in Markdown.
+        """
         # Prepare inputs.
         line = ""
         extension = ".md"
@@ -131,11 +143,9 @@ class Test_comment_line(hunitest.TestCase):
         # Run test.
         self.helper(line, extension, expected)
 
-
 # #############################################################################
 # Test_uncomment_line
 # #############################################################################
-
 
 class Test_uncomment_line(hunitest.TestCase):
     """
@@ -151,12 +161,14 @@ class Test_uncomment_line(hunitest.TestCase):
         :param expected: expected uncommented line
         """
         # Run test.
-        actual = dscdorima._uncomment_line(line, extension)
+        actual = dshdreim._uncomment_line(line, extension)
         # Check outputs.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
-        """Test uncommenting a line in Markdown format."""
+        """
+        Test uncommenting a line in Markdown format.
+        """
         # Prepare inputs.
         line = "[//]: # ( This is a line )"
         extension = ".md"
@@ -166,7 +178,9 @@ class Test_uncomment_line(hunitest.TestCase):
         self.helper(line, extension, expected)
 
     def test2(self) -> None:
-        """Test uncommenting a line in LaTeX format."""
+        """
+        Test uncommenting a line in LaTeX format.
+        """
         # Prepare inputs.
         line = "% \\begin{document}"
         extension = ".tex"
@@ -176,7 +190,9 @@ class Test_uncomment_line(hunitest.TestCase):
         self.helper(line, extension, expected)
 
     def test3(self) -> None:
-        """Test uncommenting a line in text format."""
+        """
+        Test uncommenting a line in text format.
+        """
         # Prepare inputs.
         line = "// Some text"
         extension = ".txt"
@@ -186,7 +202,9 @@ class Test_uncomment_line(hunitest.TestCase):
         self.helper(line, extension, expected)
 
     def test4(self) -> None:
-        """Test uncommenting a line without comment prefix."""
+        """
+        Test uncommenting a line without comment prefix.
+        """
         # Prepare inputs.
         line = "This is a normal line"
         extension = ".md"
@@ -195,11 +213,9 @@ class Test_uncomment_line(hunitest.TestCase):
         # Run test.
         self.helper(line, extension, expected)
 
-
 # #############################################################################
 # Test_insert_image_code
 # #############################################################################
-
 
 class Test_insert_image_code(hunitest.TestCase):
     """
@@ -207,13 +223,15 @@ class Test_insert_image_code(hunitest.TestCase):
     """
 
     def test1(self) -> None:
-        """Test inserting image code in Markdown format without label or caption."""
+        """
+        Test inserting image code in Markdown format without label or caption.
+        """
         # Prepare inputs.
         extension = ".md"
         rel_img_path = "figs/image.png"
         user_img_size = ""
         # Run test.
-        actual = dscdorima._insert_image_code(
+        actual = dshdreim._insert_image_code(
             extension, rel_img_path, user_img_size
         )
         # Check outputs.
@@ -225,7 +243,9 @@ class Test_insert_image_code(hunitest.TestCase):
         self.assert_equal(actual, hprint.dedent(expected))
 
     def test2(self) -> None:
-        """Test inserting image code in Markdown with label and caption."""
+        """
+        Test inserting image code in Markdown with label and caption.
+        """
         # Prepare inputs.
         extension = ".md"
         rel_img_path = "figs/diagram.png"
@@ -233,7 +253,7 @@ class Test_insert_image_code(hunitest.TestCase):
         label = "fig:my_diagram"
         caption = "This is a diagram"
         # Run test.
-        actual = dscdorima._insert_image_code(
+        actual = dshdreim._insert_image_code(
             extension,
             rel_img_path,
             user_img_size,
@@ -249,13 +269,15 @@ class Test_insert_image_code(hunitest.TestCase):
         self.assert_equal(actual, hprint.dedent(expected))
 
     def test3(self) -> None:
-        """Test inserting image code in Markdown with size but no label/caption."""
+        """
+        Test inserting image code in Markdown with size but no label/caption.
+        """
         # Prepare inputs.
         extension = ".md"
         rel_img_path = "figs/image.png"
         user_img_size = "width=80%"
         # Run test.
-        actual = dscdorima._insert_image_code(
+        actual = dshdreim._insert_image_code(
             extension, rel_img_path, user_img_size
         )
         # Check outputs.
@@ -267,13 +289,15 @@ class Test_insert_image_code(hunitest.TestCase):
         self.assert_equal(actual, hprint.dedent(expected))
 
     def test4(self) -> None:
-        """Test inserting image code in LaTeX format without label or caption."""
+        """
+        Test inserting image code in LaTeX format without label or caption.
+        """
         # Prepare inputs.
         extension = ".tex"
         rel_img_path = "figs/figure.png"
         user_img_size = ""
         # Run test.
-        actual = dscdorima._insert_image_code(
+        actual = dshdreim._insert_image_code(
             extension, rel_img_path, user_img_size
         )
         # Check outputs.
@@ -287,7 +311,9 @@ class Test_insert_image_code(hunitest.TestCase):
         self.assert_equal(actual, hprint.dedent(expected))
 
     def test5(self) -> None:
-        """Test inserting image code in LaTeX with label and caption."""
+        """
+        Test inserting image code in LaTeX with label and caption.
+        """
         # Prepare inputs.
         extension = ".tex"
         rel_img_path = "figs/diagram.png"
@@ -295,7 +321,7 @@ class Test_insert_image_code(hunitest.TestCase):
         label = "fig:test_diagram"
         caption = "Test diagram showing communication"
         # Run test.
-        actual = dscdorima._insert_image_code(
+        actual = dshdreim._insert_image_code(
             extension,
             rel_img_path,
             user_img_size,
@@ -315,13 +341,15 @@ class Test_insert_image_code(hunitest.TestCase):
         self.assert_equal(actual, hprint.dedent(expected))
 
     def test6(self) -> None:
-        """Test inserting image code in text format."""
+        """
+        Test inserting image code in text format.
+        """
         # Prepare inputs.
         extension = ".txt"
         rel_img_path = "figs/image.png"
         user_img_size = ""
         # Run test.
-        actual = dscdorima._insert_image_code(
+        actual = dshdreim._insert_image_code(
             extension, rel_img_path, user_img_size
         )
         # Check outputs.
@@ -333,23 +361,23 @@ class Test_insert_image_code(hunitest.TestCase):
         self.assert_equal(actual, hprint.dedent(expected))
 
     def test7(self) -> None:
-        """Test that invalid file extension raises ValueError."""
+        """
+        Test that invalid file extension raises ValueError.
+        """
         # Prepare inputs.
         extension = ".invalid"
         rel_img_path = "figs/image.png"
         user_img_size = ""
         # Run test and check output.
         with self.assertRaises(ValueError) as cm:
-            dscdorima._insert_image_code(extension, rel_img_path, user_img_size)
+            dshdreim._insert_image_code(extension, rel_img_path, user_img_size)
         actual = str(cm.exception)
         expected = "Unsupported file extension: .invalid"
         self.assert_equal(actual, expected)
 
-
 # #############################################################################
 # Test_remove_image_code
 # #############################################################################
-
 
 class Test_remove_image_code(hunitest.TestCase):
     """
@@ -357,7 +385,9 @@ class Test_remove_image_code(hunitest.TestCase):
     """
 
     def test1(self) -> None:
-        """Test removing rendered image block and uncommenting original code in Markdown."""
+        """
+        Test removing rendered image block and uncommenting original code in Markdown.
+        """
         # Prepare inputs.
         lines = """
         Some text before
@@ -374,7 +404,7 @@ class Test_remove_image_code(hunitest.TestCase):
         lines = hprint.dedent(lines).split("\n")
         extension = ".md"
         # Run test.
-        actual = dscdorima._remove_image_code(lines, extension)
+        actual = dshdreim._remove_image_code(lines, extension)
         # Check outputs.
         expected = """
         Some text before
@@ -387,7 +417,9 @@ class Test_remove_image_code(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected_lines))
 
     def test2(self) -> None:
-        """Test removing rendered image block in LaTeX format."""
+        """
+        Test removing rendered image block in LaTeX format.
+        """
         # Prepare inputs.
         lines = r"""
         Text before
@@ -406,7 +438,7 @@ class Test_remove_image_code(hunitest.TestCase):
         lines = hprint.dedent(lines).split("\n")
         extension = ".tex"
         # Run test.
-        actual = dscdorima._remove_image_code(lines, extension)
+        actual = dshdreim._remove_image_code(lines, extension)
         # Check outputs.
         expected = """
         Text before
@@ -419,7 +451,9 @@ class Test_remove_image_code(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected_lines))
 
     def test3(self) -> None:
-        """Test removing multiple rendered image blocks."""
+        """
+        Test removing multiple rendered image blocks.
+        """
         # Prepare inputs.
         lines = """
         First block:
@@ -445,7 +479,7 @@ class Test_remove_image_code(hunitest.TestCase):
         lines = hprint.dedent(lines).split("\n")
         extension = ".md"
         # Run test.
-        actual = dscdorima._remove_image_code(lines, extension)
+        actual = dshdreim._remove_image_code(lines, extension)
         # Check outputs.
         expected = """
         First block:
@@ -462,7 +496,9 @@ class Test_remove_image_code(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected_lines))
 
     def test4(self) -> None:
-        """Test that lines without rendered blocks remain unchanged."""
+        """
+        Test that lines without rendered blocks remain unchanged.
+        """
         # Prepare inputs.
         lines = """
         Some normal text
@@ -472,7 +508,7 @@ class Test_remove_image_code(hunitest.TestCase):
         lines = hprint.dedent(lines).split("\n")
         extension = ".md"
         # Run test.
-        actual = dscdorima._remove_image_code(lines, extension)
+        actual = dshdreim._remove_image_code(lines, extension)
         # Check outputs.
         expected_lines = hprint.dedent("""
         Some normal text
@@ -482,11 +518,13 @@ class Test_remove_image_code(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected_lines))
 
     def test5(self) -> None:
-        """Test handling of empty input."""
+        """
+        Test handling of empty input.
+        """
         # Prepare inputs.
         lines = []
         extension = ".md"
         # Run test.
-        actual = dscdorima._remove_image_code(lines, extension)
+        actual = dshdreim._remove_image_code(lines, extension)
         # Check outputs.
         self.assert_equal(actual, [])
