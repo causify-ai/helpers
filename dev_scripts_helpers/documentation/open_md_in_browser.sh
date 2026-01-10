@@ -23,9 +23,15 @@ echo "Processing file: $filename"
 
 # render_images.py -i $filename
 
-dst_filename="tmp.rendered_md.html"
+# Get the directory and basename of the input file
+file_dir=$(dirname "$filename")
+file_base=$(basename "$filename" .md)
 
-pandoc $filename -o $dst_filename
+# Create destination filename in the same directory as input
+#dst_filename="${file_dir}/${file_base}.rendered.html"
+dst_filename="${file_dir}/${file_base}.rendered.pdf"
+
+pandoc $filename -o $dst_filename --resource-path=$file_dir
 
 echo "Saved to $dst_filename"
 open $dst_filename

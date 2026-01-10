@@ -55,9 +55,7 @@ def _get_rendered_file_paths(
     template_out_file: str,
     image_code_idx: int,
     dst_ext: str,
-    use_github_hosting: bool,
-    *,
-    dst_dir: str = None,
+    dst_dir: str,
 ) -> Tuple[str, str, str]:
     """
     Generate paths to files for image rendering.
@@ -74,11 +72,7 @@ def _get_rendered_file_paths(
     :param image_code_idx: order number of the image code block in the input
         file
     :param dst_ext: extension of the target image file
-    :param use_github_hosting: if True, insert rendered image links
-        using absolute GitHub-hosted URLs instead of relative paths
-        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/readme.1.png)
-    :param dst_dir: absolute path to directory for storing rendered images.
-        If None, uses 'figs' subdirectory relative to output file
+    :param dst_dir: absolute path to directory for storing rendered images
     :return:
         - path to the temporary file with the image code (e.g., `readme.1.txt`)
         - absolute path to the dir with rendered images (e.g., `/usr/docs/figs`)
@@ -92,29 +86,16 @@ def _get_rendered_file_paths(
     out_file_name_body = os.path.splitext(out_file_name)[0]
     # Create the name for the image file, e.g., "readme.1.png".
     img_name = f"{out_file_name_body}.{image_code_idx}.{dst_ext}"
-
     # Determine the absolute path to the images directory.
-    if dst_dir is not None:
-        # Use the provided dst_dir.
-        abs_img_dir_path = os.path.abspath(dst_dir)
-    else:
-        # Use default 'figs' subdirectory relative to output file.
-        sub_dir = "figs"
-        abs_img_dir_path = os.path.join(out_file_dir, sub_dir)
+    abs_img_dir_path = os.path.abspath(dst_dir)
     # Compute the relative path from the output file to the image.
     rel_img_path = os.path.relpath(
         os.path.join(abs_img_dir_path, img_name), out_file_dir
     )
-    # Use GitHub absolute reference when specified.
-    if use_github_hosting:
-        repo_name = hgit.get_repo_full_name_from_client(super_module=True)
-        github_abs_path = (
-            f"https://raw.githubusercontent.com/{repo_name}/master/"
-        )
-        rel_img_path = os.path.join(github_abs_path, rel_img_path)
     # Get the path to a temporary file with the image code, e.g., "readme.1.txt".
     dir_name = "tmp.render_images"
     code_file_path = f"{dir_name}/{out_file_name_body}.{image_code_idx}.txt"
+    _LOG.debug(hprint.to_str("code_file_path abs_img_dir_path rel_img_path"))
     return (code_file_path, abs_img_dir_path, rel_img_path)
 
 
@@ -194,12 +175,11 @@ def _render_image_code(
     image_code_type: str,
     out_file: str,
     dst_ext: str,
+    dst_dir: str,
     *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-    use_github_hosting: bool = False,
-    dst_dir: str = None,
 ) -> List[str]:
     """
     Render the image code into one or more image files.
@@ -215,10 +195,7 @@ def _render_image_code(
     :param force_rebuild: rebuild the Docker image before rendering
     :param use_sudo: run Docker with sudo
     :param dry_run: if True, the rendering command is not executed
-    :param use_github_hosting: if True, insert rendered image links
-        using absolute GitHub-hosted URLs instead of relative paths
-    :param dst_dir: absolute path to directory for storing rendered images.
-        If None, uses default location
+    :param dst_dir: absolute path to directory for storing rendered images
     :return: list of paths to the rendered images (usually 1 image, but 3 for
         "image" type)
     """
@@ -284,8 +261,7 @@ def _render_image_code(
             out_file,
             image_code_idx,
             dst_ext,
-            use_github_hosting,
-            dst_dir=dst_dir,
+            dst_dir,
         )
     )
     hio.create_dir(abs_img_dir_path, incremental=True)
@@ -297,6 +273,14 @@ def _render_image_code(
         "Creating the image from '%s' source and saving image to '%s'",
         in_code_file_path,
         abs_img_dir_path,
+    )
+    # Build absolute path for the image file (docker runner needs host-absolute).
+    abs_img_file_path = (
+        out_img_file_path
+        if os.path.isabs(out_img_file_path)
+        else os.path.join(
+            abs_img_dir_path, os.path.basename(out_img_file_path)
+        )
     )
     if dry_run:
         _LOG.warning("Skipping image generation because dry_run is set")
@@ -313,9 +297,8 @@ def _render_image_code(
                 dry_run=dry_run,
             )
             # Build relative paths for the generated images.
-            sub_dir = "figs"
             out_img_file_paths = [
-                os.path.join(sub_dir, img_file) for img_file in generated_files
+                os.path.join(abs_img_dir_path, img_file) for img_file in generated_files
             ]
             # Remove the temp file.
             os.remove(in_code_file_path)
@@ -329,14 +312,6 @@ def _render_image_code(
                 use_sudo=use_sudo,
             )
         elif image_code_type == "mermaid":
-            # Build absolute path for the image file (docker runner needs host-absolute).
-            abs_img_file_path = (
-                out_img_file_path
-                if os.path.isabs(out_img_file_path)
-                else os.path.join(
-                    abs_img_dir_path, os.path.basename(out_img_file_path)
-                )
-            )
             hdocexec.run_dockerized_mermaid(
                 in_code_file_path,
                 abs_img_file_path,
@@ -348,7 +323,8 @@ def _render_image_code(
             hdocexec.run_dockerized_tikz_to_bitmap(
                 in_code_file_path,
                 cmd_opts,
-                out_img_file_path,
+                #out_img_file_path,
+                abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
@@ -357,7 +333,8 @@ def _render_image_code(
             hdocexec.run_dockerized_graphviz(
                 in_code_file_path,
                 cmd_opts,
-                out_img_file_path,
+                #out_img_file_path,
+                abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
@@ -377,8 +354,10 @@ def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     Define the character that comments out a line depending on the file type.
     """
     if extension == ".md":
-        comment_prefix = "[//]: # ("
-        comment_postfix = " )"
+        #comment_prefix = "[//]: # ("
+        #comment_postfix = " )"
+        comment_prefix = "<!-- "
+        comment_postfix = " -->"
     elif extension == ".tex":
         comment_prefix = "%"
         comment_postfix = ""
@@ -538,12 +517,11 @@ def _render_images(
     in_lines: List[str],
     out_file: str,
     dst_ext: str,
+    dst_dir: str,
     *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-    use_github_hosting: bool = False,
-    dst_dir: str = None,
 ) -> List[str]:
     r"""
     Insert rendered images instead of image code blocks.
@@ -589,11 +567,7 @@ def _render_images(
     :param dst_ext: extension for rendered images
     :param dry_run: if True, the text of the file is updated but the images are
         not actually created
-    :param use_github_hosting: if True, insert rendered image links
-        using absolute GitHub-hosted URLs instead of relative paths
-        (e.g., https://raw.githubusercontent.com/causify-ai/helpers/master/figs/readme.1.png)
-    :param dst_dir: absolute path to directory for storing rendered images.
-        If None, uses default location
+    :param dst_dir: absolute path to directory for storing rendered images
     :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
@@ -706,11 +680,10 @@ def _render_images(
                     image_code_type,
                     out_file,
                     dst_ext,
+                    dst_dir,
                     force_rebuild=force_rebuild,
                     use_sudo=use_sudo,
                     dry_run=dry_run,
-                    use_github_hosting=use_github_hosting,
-                    dst_dir=dst_dir,
                 )
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
@@ -860,11 +833,6 @@ def _parse() -> argparse.ArgumentParser:
         "defaults to <input_file>.figs (e.g., 'doc.md' -> 'doc.md.figs')",
     )
     parser.add_argument(
-        "--use_github_hosting",
-        action="store_true",
-        help="Use GitHub-hosted absolute URLs instead of relative image paths",
-    )
-    parser.add_argument(
         "--remove_figs",
         action="store_true",
         help="Remove rendered images and uncomment original image code",
@@ -884,12 +852,11 @@ def _process_single_file(
     in_file: str,
     out_file: str,
     actions: List[str],
+    dst_dir: str,
     *,
     force_rebuild: bool,
     use_sudo: bool,
     dry_run: bool,
-    use_github_hosting: bool,
-    dst_dir: str = None,
 ) -> None:
     """
     Process a single file for image rendering.
@@ -900,10 +867,7 @@ def _process_single_file(
     :param force_rebuild: rebuild the Docker image before rendering
     :param use_sudo: run Docker with sudo
     :param dry_run: if True, the rendering command is not executed
-    :param use_github_hosting: if True, insert rendered image links using
-        absolute GitHub-hosted URLs
-    :param dst_dir: absolute path to directory for storing rendered images.
-        If None, uses default location
+    :param dst_dir: absolute path to directory for storing rendered images
     """
     _LOG.info(hprint.func_signature_to_str())
     # Verify that the input and output file types are valid and equal.
@@ -928,11 +892,10 @@ def _process_single_file(
         in_lines,
         out_file,
         dst_ext,
+        dst_dir,
         force_rebuild=force_rebuild,
         use_sudo=use_sudo,
         dry_run=dry_run,
-        use_github_hosting=use_github_hosting,
-        dst_dir=dst_dir,
     )
     # Remove empty consecutive lines.
     out_lines = hprint.remove_empty_lines(
@@ -1043,11 +1006,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
                 in_file,
                 out_file,
                 actions,
+                dst_dir,
                 force_rebuild=args.dockerized_force_rebuild,
                 use_sudo=args.dockerized_use_sudo,
                 dry_run=args.dry_run,
-                use_github_hosting=args.use_github_hosting,
-                dst_dir=dst_dir,
             )
     if len(in_files) > 1:
         _LOG.info("%s Files saved in place", len(in_files))

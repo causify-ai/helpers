@@ -6,7 +6,7 @@ The goal is to add clarity and intuition through examples and pictures.
 Each illustration can be
 - a graphviz graph
 - a Tikz graph
-- an graphic image
+- an graphic image with minimal or numbers or writings
 
 - A graphviz diagram, any TikZ image, any graphic image should conform to the
   template in `helpers_root/docs/ai_coding/ai.diagram_template.md`

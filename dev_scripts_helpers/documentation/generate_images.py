@@ -254,7 +254,7 @@ def _generate_images_from_file(
     low_res: bool = False,
     reference_image: Optional[str] = None,
     dry_run: bool = False,
-    from_scratch: bool = False,
+    no_backup: bool = False,
     model_name: Optional[str] = None,
 ) -> None:
     """
@@ -268,7 +268,6 @@ def _generate_images_from_file(
     :param low_res: generate standard quality vs HD quality
     :param reference_image: optional reference image path for DALL-E 2 editing
     :param dry_run: if True, print actions without executing API calls
-    :param from_scratch: if True, create destination directory from scratch
     :param model_name: model to use (dall-e-2, dall-e-3, gpt-image-1)
     """
     # Get descriptions from command line or file.
@@ -337,7 +336,8 @@ def _generate_images_from_file(
         count,
     )
     # Ensure destination directory exists.
-    hio.backup_file_or_dir_if_exists(dst_dir)
+    if not no_backup:
+        hio.backup_file_or_dir_if_exists(dst_dir)
     hio.create_dir(dst_dir, incremental=True)
     # Create progress bar for total image generation.
     with tqdm(total=total_images, desc="Generating images") as pbar:
@@ -416,14 +416,13 @@ def _parse() -> argparse.ArgumentParser:
         help="Workload type for specialized image generation (optional)",
     )
     parser.add_argument(
+        "--no_backup",
+        help="Do not backup the destination directory",
+    )
+    parser.add_argument(
         "--dry_run",
         action="store_true",
         help="Print what would be done without executing API calls",
-    )
-    parser.add_argument(
-        "--from_scratch",
-        action="store_true",
-        help="Create destination directory from scratch (delete if exists)",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -436,15 +435,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.dassert_is_not(args.dst_dir, None, "Destination directory is required")
     # Generate images from command line or file.
     _generate_images_from_file(
-        args.prompt,
-        args.input,
-        args.style,
-        args.dst_dir,
-        args.count,
+        prompt=args.prompt,
+        input_file=args.input,
+        style=args.style,
+        dst_dir=args.dst_dir,
+        count=args.count,
         low_res=args.low_res,
         reference_image=args.reference_image,
         dry_run=args.dry_run,
-        from_scratch=args.from_scratch,
+        no_backup=args.no_backup,
         model_name=args.model,
     )
 

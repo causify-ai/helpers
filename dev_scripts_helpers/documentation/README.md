@@ -14,6 +14,28 @@
 - The toolchain emphasizes automation, consistency, and ease of use through
   command-line interfaces and editor integration
 
+# Structure of the Dir
+
+- `OLD/`
+  - Archived legacy scripts and tools no longer in active use
+- `test/`
+  - Unit tests for documentation processing scripts and utilities
+- `__pycache__/`
+  - Python bytecode cache directory
+
+# Description of Files
+
+- `check_links.instr.md`
+  - Instructions and examples for using the check_links.py script to validate URLs
+- `create_google_drive_map.md`
+  - Documentation explaining how to generate directory structure summaries with LLM analysis
+- `generate_all_projects.md`
+  - Guide for generating documentation across multiple project repositories
+- `latex_abbrevs.sty`
+  - LaTeX style file with custom abbreviation macros for vectors, matrices, and mathcal notation
+- `pandoc.latex`
+  - Custom Pandoc LaTeX template for document conversion with styling configurations
+
 # Documentation Toolchain
 
 - This is a high‑level guide to the workflows that turn raw notes, slides, Latex
@@ -246,13 +268,20 @@ The supported File types and code blocks are:
 - Render to a new file
 
   ```bash
-  > render_images.py -i lesson.md -o lesson.rendered.md --action render --run_dockerized
+  > render_images.py -i lesson.md -o lesson.rendered.md --action render --dst_dir ./lesson.md.figs --run_dockerized
   ```
 
 - Render in‑place (Markdown or LaTeX)
 
   ```bash
   > render_images.py -i lesson.md --action render --run_dockerized
+  ```
+  Note: When `--dst_dir` is not specified, defaults to `<input_file>.figs`
+
+- Specify custom output directory for rendered images
+
+  ```bash
+  > render_images.py -i lesson.md --action render --dst_dir /custom/path/images
   ```
 
 - HTML preview of already‑rendered images
@@ -264,11 +293,6 @@ The supported File types and code blocks are:
 - Dry‑run (test parsing / comments only)
   ```bash
   > render_images.py -i lesson.md -o /tmp/out.md --dry_run
-  ```
-
-- Render with GitHub-hosted absolute URLs instead of relative paths
-  ```bash
-  > render_images.py -i README.md --action render --use_github_hosting
   ```
 
 - Remove rendered images and uncomment original code
