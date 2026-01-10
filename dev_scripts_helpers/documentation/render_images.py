@@ -36,7 +36,6 @@ from tqdm import tqdm
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
-import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -279,9 +278,7 @@ def _render_image_code(
     abs_img_file_path = (
         out_img_file_path
         if os.path.isabs(out_img_file_path)
-        else os.path.join(
-            abs_img_dir_path, os.path.basename(out_img_file_path)
-        )
+        else os.path.join(abs_img_dir_path, os.path.basename(out_img_file_path))
     )
     if dry_run:
         _LOG.warning("Skipping image generation because dry_run is set")
@@ -299,7 +296,8 @@ def _render_image_code(
             )
             # Build relative paths for the generated images.
             out_img_file_paths = [
-                os.path.join(abs_img_dir_path, img_file) for img_file in generated_files
+                os.path.join(abs_img_dir_path, img_file)
+                for img_file in generated_files
             ]
             # Remove the temp file.
             os.remove(in_code_file_path)
@@ -324,7 +322,7 @@ def _render_image_code(
             hdocexec.run_dockerized_tikz_to_bitmap(
                 in_code_file_path,
                 cmd_opts,
-                #out_img_file_path,
+                # out_img_file_path,
                 abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
@@ -334,7 +332,7 @@ def _render_image_code(
             hdocexec.run_dockerized_graphviz(
                 in_code_file_path,
                 cmd_opts,
-                #out_img_file_path,
+                # out_img_file_path,
                 abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
@@ -355,8 +353,8 @@ def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     Define the character that comments out a line depending on the file type.
     """
     if extension == ".md":
-        #comment_prefix = "[//]: # ("
-        #comment_postfix = " )"
+        # comment_prefix = "[//]: # ("
+        # comment_postfix = " )"
         comment_prefix = "<!-- "
         comment_postfix = " -->"
     elif extension == ".tex":
@@ -497,7 +495,7 @@ def _insert_image_code(
     elif extension == ".tex":
         # Use the LaTeX syntax with tagged markers to make it easier to do a
         # replacement.
-        #out_lines.append(r"\begin{figure}[!ht]")
+        # out_lines.append(r"\begin{figure}[!ht]")
         out_lines.append(r"\begin{figure}[H]")
         out_lines.append(
             r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}"

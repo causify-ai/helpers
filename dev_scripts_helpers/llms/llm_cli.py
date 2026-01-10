@@ -54,7 +54,6 @@ import dev_scripts_helpers.llms.llm_cli as dshllcli
 
 import argparse
 import logging
-from typing import Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio

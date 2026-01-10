@@ -159,6 +159,29 @@ def _apply_llm_via_executable(
     return response, cost
 
 
+def _calculate_cost_from_usage(
+    usage: object,
+    model: str,
+) -> float:
+    """
+    Calculate LLM cost from usage object.
+
+    :param usage: usage object from LLM result containing input/output token counts
+    :param model: model name for cost calculation
+    :return: total cost in dollars
+    """
+    input_tokens = usage.input
+    output_tokens = usage.output
+    prompt_cost = tokencost.calculate_cost_by_tokens(
+        num_tokens=input_tokens, model=model, token_type="input"
+    )
+    completion_cost = tokencost.calculate_cost_by_tokens(
+        num_tokens=output_tokens, model=model, token_type="output"
+    )
+    cost = float(prompt_cost + completion_cost)
+    return cost
+
+
 def _apply_llm_via_library(
     input_str: str,
     *,
@@ -210,7 +233,12 @@ def _apply_llm_via_library(
             usage=usage,
             model=llm_model.model_id,
         )
-        _LOG.debug("Cost: $%.6f (input: %d tokens, output: %d tokens)", cost, usage.input, usage.output)
+        _LOG.debug(
+            "Cost: $%.6f (input: %d tokens, output: %d tokens)",
+            cost,
+            usage.input,
+            usage.output,
+        )
     return response, cost
 
 
@@ -429,29 +457,6 @@ def _call_llm_or_test_functor(
         response = testing_functor(input_str)
         cost = 0.0
     return response, cost
-
-
-def _calculate_cost_from_usage(
-    usage: object,
-    model: str,
-) -> float:
-    """
-    Calculate LLM cost from usage object.
-
-    :param usage: usage object from LLM result containing input/output token counts
-    :param model: model name for cost calculation
-    :return: total cost in dollars
-    """
-    input_tokens = usage.input
-    output_tokens = usage.output
-    prompt_cost = tokencost.calculate_cost_by_tokens(
-        num_tokens=input_tokens, model=model, token_type="input"
-    )
-    completion_cost = tokencost.calculate_cost_by_tokens(
-        num_tokens=output_tokens, model=model, token_type="output"
-    )
-    cost = float(prompt_cost + completion_cost)
-    return cost
 
 
 def _calculate_llm_cost(

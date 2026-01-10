@@ -282,9 +282,7 @@ def _generate_quizzes(
     # Extract lesson number from source name (e.g., Lesson01.1-Intro.txt -> 01.1)
     match = re.match(r"Lesson([\d.]+)", source_name)
     if not match:
-        hdbg.dfatal(
-            "Could not extract lesson number from %s", source_name
-        )
+        hdbg.dfatal("Could not extract lesson number from %s", source_name)
     lesson_number = match.group(1)
     # Find gen_quizzes.sh script.
     # Look for it in classes/ directory relative to repo root.
