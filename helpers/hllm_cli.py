@@ -107,7 +107,7 @@ def _apply_llm_via_executable(
     system_prompt: Optional[str] = None,
     model: Optional[str] = None,
     expected_num_chars: Optional[int] = None,
-) -> str:
+) -> Tuple[str, float]:
     """
     Apply LLM using the llm CLI executable.
 
@@ -116,7 +116,7 @@ def _apply_llm_via_executable(
     :param model: optional model name to use
     :param expected_num_chars: optional expected number of characters in
         output (used for progress bar)
-    :return: LLM response as string
+    :return: tuple of (LLM response as string, cost in dollars)
     """
     # Build command.
     cmd = ["llm"]
@@ -153,7 +153,10 @@ def _apply_llm_via_executable(
         # Run without progress bar.
         cmd_str = " ".join(shlex.quote(arg) for arg in cmd)
         _, response = hsystem.system_to_string(cmd_str)
-    return response
+    # Cost calculation not available when using executable.
+    cost = 0.0
+    _LOG.debug("Cost calculation not available when using llm executable")
+    return response, cost
 
 
 def _apply_llm_via_library(
@@ -162,7 +165,7 @@ def _apply_llm_via_library(
     system_prompt: Optional[str] = None,
     model: Optional[str] = None,
     expected_num_chars: Optional[int] = None,
-) -> str:
+) -> Tuple[str, float]:
     """
     Apply LLM using the llm Python library.
 
@@ -171,7 +174,7 @@ def _apply_llm_via_library(
     :param model: optional model name to use
     :param expected_num_chars: optional expected number of characters in
         output (used for progress bar)
-    :return: LLM response as string
+    :return: tuple of (LLM response as string, cost in dollars)
     """
     # Get the model.
     if model:
@@ -191,6 +194,9 @@ def _apply_llm_via_library(
                 response_parts.append(chunk_str)
                 pbar.update(len(chunk_str))
         response = "".join(response_parts)
+        # Streaming doesn't provide usage info, so we can't calculate cost.
+        cost = 0.0
+        _LOG.debug("Cost calculation not available for streaming mode")
     else:
         # Run without progress bar.
         _LOG.trace("system_prompt=\n%s", system_prompt)
@@ -198,7 +204,14 @@ def _apply_llm_via_library(
         result = llm_model.prompt(input_str, system=system_prompt)
         response = result.text()
         _LOG.trace("response=\n%s", response)
-    return response
+        # Calculate cost.
+        usage = result.usage()
+        cost = _calculate_cost_from_usage(
+            usage=usage,
+            model=llm_model.model_id,
+        )
+        _LOG.debug("Cost: $%.6f (input: %d tokens, output: %d tokens)", cost, usage.input, usage.output)
+    return response, cost
 
 
 # #############################################################################
@@ -214,7 +227,7 @@ def apply_llm(
     model: Optional[str] = None,
     use_llm_executable: bool = False,
     expected_num_chars: Optional[int] = None,
-) -> str:
+) -> Tuple[str, float]:
     """
     Apply an LLM to process input text using either CLI executable or library.
 
@@ -229,7 +242,7 @@ def apply_llm(
         use the llm Python library
     :param expected_num_chars: optional expected number of characters in
         output; if provided, displays a progress bar during generation
-    :return: LLM response as string
+    :return: tuple of (LLM response as string, cost in dollars)
     """
     hdbg.dassert_isinstance(input_str, str)
     hdbg.dassert_ne(input_str, "", "Input string cannot be empty")
@@ -250,21 +263,21 @@ def apply_llm(
             _check_llm_executable(),
             "llm executable not found. Install it using: pip install llm",
         )
-        response = _apply_llm_via_executable(
+        response, cost = _apply_llm_via_executable(
             input_str,
             system_prompt=system_prompt,
             model=model,
             expected_num_chars=expected_num_chars,
         )
     else:
-        response = _apply_llm_via_library(
+        response, cost = _apply_llm_via_library(
             input_str,
             system_prompt=system_prompt,
             model=model,
             expected_num_chars=expected_num_chars,
         )
     _LOG.debug("LLM processing completed")
-    return response
+    return response, cost
 
 
 def apply_llm_with_files(
@@ -275,7 +288,7 @@ def apply_llm_with_files(
     model: Optional[str] = None,
     use_llm_executable: bool = False,
     expected_num_chars: Optional[int] = None,
-) -> None:
+) -> float:
     """
     Apply an LLM to process text from an input file and save to output file.
 
@@ -291,6 +304,7 @@ def apply_llm_with_files(
         use the llm Python library
     :param expected_num_chars: optional expected number of characters in
         output; if provided, displays a progress bar during generation
+    :return: cost in dollars
     """
     hdbg.dassert_isinstance(input_file, str)
     hdbg.dassert_ne(input_file, "", "Input file cannot be empty")
@@ -301,7 +315,7 @@ def apply_llm_with_files(
     input_str = hio.from_file(input_file)
     _LOG.debug("Read %d characters from input file", len(input_str))
     # Process with LLM.
-    response = apply_llm(
+    response, cost = apply_llm(
         input_str,
         system_prompt=system_prompt,
         model=model,
@@ -312,6 +326,7 @@ def apply_llm_with_files(
     _LOG.debug("Writing output to file: %s", output_file)
     hio.to_file(output_file, response)
     _LOG.debug("Wrote %d characters to output file", len(response))
+    return cost
 
 
 # #############################################################################
@@ -379,15 +394,10 @@ def _llm(
     response = result.text()
     _LOG.trace("response=\n%s", response)
     usage = result.usage()
-    input_tokens = usage.input
-    output_tokens = usage.output
-    prompt_cost = tokencost.calculate_cost_by_tokens(
-        num_tokens=input_tokens, model=model, token_type="input"
+    cost = _calculate_cost_from_usage(
+        usage=usage,
+        model=model,
     )
-    completion_cost = tokencost.calculate_cost_by_tokens(
-        num_tokens=output_tokens, model=model, token_type="output"
-    )
-    cost = float(prompt_cost + completion_cost)
     return response, cost
 
 
@@ -419,6 +429,29 @@ def _call_llm_or_test_functor(
         response = testing_functor(input_str)
         cost = 0.0
     return response, cost
+
+
+def _calculate_cost_from_usage(
+    usage: object,
+    model: str,
+) -> float:
+    """
+    Calculate LLM cost from usage object.
+
+    :param usage: usage object from LLM result containing input/output token counts
+    :param model: model name for cost calculation
+    :return: total cost in dollars
+    """
+    input_tokens = usage.input
+    output_tokens = usage.output
+    prompt_cost = tokencost.calculate_cost_by_tokens(
+        num_tokens=input_tokens, model=model, token_type="input"
+    )
+    completion_cost = tokencost.calculate_cost_by_tokens(
+        num_tokens=output_tokens, model=model, token_type="output"
+    )
+    cost = float(prompt_cost + completion_cost)
+    return cost
 
 
 def _calculate_llm_cost(
@@ -498,15 +531,10 @@ def apply_llm_batch_with_shared_prompt(
             result = conv.prompt(input_str, system=prompt)
             response = result.text()
             usage = result.usage()
-            input_tokens = usage.input
-            output_tokens = usage.output
-            prompt_cost = tokencost.calculate_cost_by_tokens(
-                num_tokens=input_tokens, model=model, token_type="input"
+            cost = _calculate_cost_from_usage(
+                usage=usage,
+                model=model,
             )
-            completion_cost = tokencost.calculate_cost_by_tokens(
-                num_tokens=output_tokens, model=model, token_type="output"
-            )
-            cost = float(prompt_cost + completion_cost)
             total_cost += cost
             responses.append(response)
             if progress_bar_object is not None:

@@ -14,6 +14,7 @@ import argparse
 import glob
 import logging
 import os
+import re
 from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
@@ -241,8 +242,6 @@ def _generate_book_chapter(
     :param source_name: name of source file
     """
     # Extract lesson number from source name (e.g., Lesson01.1-Intro.txt -> 01.1)
-    import re
-
     match = re.match(r"Lesson([\d.]+)", source_name)
     if not match:
         hdbg.dfatal(f"Could not extract lesson number from {source_name}")
@@ -264,6 +263,47 @@ def _generate_book_chapter(
     hsystem.system(cmd_str, suppress_output=False)
 
 
+def _generate_quizzes(
+    class_dir: str,
+    source_path: str,
+    source_name: str,
+) -> None:
+    """
+    Generate quizzes from a lecture source file.
+
+    Calls gen_quizzes.sh which uses an LLM to generate multiple choice questions
+    from the lecture content. The script outputs the quizzes to the
+    lectures_quizzes directory.
+
+    :param class_dir: class directory (data605 or msml610)
+    :param source_path: path to source .txt file
+    :param source_name: name of source file
+    """
+    # Extract lesson number from source name (e.g., Lesson01.1-Intro.txt -> 01.1)
+    match = re.match(r"Lesson([\d.]+)", source_name)
+    if not match:
+        hdbg.dfatal(
+            "Could not extract lesson number from %s", source_name
+        )
+    lesson_number = match.group(1)
+    # Find gen_quizzes.sh script.
+    # Look for it in classes/ directory relative to repo root.
+    script_path = os.path.join("classes", "gen_quizzes.sh")
+    hdbg.dassert(
+        os.path.isfile(script_path),
+        "gen_quizzes.sh not found at %s. "
+        "Please ensure the script exists in the classes directory.",
+        script_path,
+    )
+    # Build command.
+    _LOG.info(
+        "Generating quizzes for %s (lesson %s)", source_name, lesson_number
+    )
+    cmd_str = f"{script_path} {class_dir} {lesson_number}"
+    _LOG.info("Executing: %s", cmd_str)
+    hsystem.system(cmd_str, suppress_output=False)
+
+
 def _process_lecture_file(
     class_dir: str,
     source_path: str,
@@ -279,7 +319,7 @@ def _process_lecture_file(
     :param source_path: path to source .txt file
     :param source_name: name of source file
     :param actions: list of actions to execute ('pdf', 'script',
-        'slide_reduce', 'slide_check', 'book_chapter')
+        'slide_reduce', 'slide_check', 'book_chapter', 'generate_quizzes')
     :param limit: optional slide range to process
     """
     _LOG.info("Processing file: %s", source_path)
@@ -295,6 +335,8 @@ def _process_lecture_file(
             _slide_check(source_path, source_name, limit=limit)
         elif action == "book_chapter":
             _generate_book_chapter(class_dir, source_path, source_name)
+        elif action == "generate_quizzes":
+            _generate_quizzes(class_dir, source_path, source_name)
         else:
             hdbg.dfatal("Unknown action: %s" % action)
 
@@ -308,6 +350,7 @@ _VALID_ACTIONS = [
     "slide_check",
     "slide_improve",
     "book_chapter",
+    "generate_quizzes",
 ]
 _DEFAULT_ACTIONS = ["pdf"]
 

@@ -54,6 +54,7 @@ import dev_scripts_helpers.llms.llm_cli as dshllcli
 
 import argparse
 import logging
+from typing import Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -234,7 +235,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         else:
             input_str = hio.from_file(input_file)
         # Process with LLM.
-        response = hllmcli.apply_llm(
+        response, cost = hllmcli.apply_llm(
             input_str,
             system_prompt=system_prompt,
             model=args.model,
@@ -248,7 +249,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             hio.to_file(output_file, response)
     else:
         # Use file-based processing.
-        hllmcli.apply_llm_with_files(
+        cost = hllmcli.apply_llm_with_files(
             input_file=input_file,
             output_file=output_file,
             system_prompt=system_prompt,
@@ -258,6 +259,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
     msg, elapsed_time = htimer.dtimer_stop(memento)
     _LOG.info(msg)
+    # Log the cost.
+    _LOG.info("Total cost: $%.6f", cost)
     _LOG.info("LLM CLI processing completed successfully")
     if not print_only:
         _LOG.info("Output written to: %s", output_file)

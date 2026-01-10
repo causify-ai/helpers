@@ -24,6 +24,15 @@ For each proposed refactoring, produce:
      - file1.py: l1–l2, l3–l4, ...
      - file2.py: l5–l8, ...
 
+3. Create a vim quickfile cfile so that the user can navigate the proposed
+   changes with a command like `vim -c "cfile cfile"` for instance
+
+```
+/path/to/file1.py:10:1: Replace with function ...
+/path/to/file1.py:12:1: 
+/path/to/file1.py:12:1: 
+```
+
 ## Constraints & Guidelines
 - Do not suggest functions that are trivial (e.g., fewer than 2–3 meaningful lines).
 - Prefer extracting logic that:

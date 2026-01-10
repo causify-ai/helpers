@@ -13,6 +13,9 @@ else
 fi;
 echo $msg
 
+# Play a sound.
+(for i in {1..2}; do afplay -v 1.00 /System/Library/Sounds/Ping.aiff; done) &
+
 if [[ 0 == 0 ]]; then
     if [[ "$(uname)" == "Darwin" ]]; then
         # brew install terminal-notifier

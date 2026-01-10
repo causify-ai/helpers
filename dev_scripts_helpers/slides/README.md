@@ -224,6 +224,7 @@ content into various formats.
 - `slide_reduce`: Apply LLM transformation to reduce slide content
 - `slide_check`: Apply LLM validation to check slide quality
 - `book_chapter`: Generate book chapter PDF from lecture content
+- `generate_quizzes`: Generate multiple choice quizzes from lecture content using LLM
 
 **Workflow:**
 
@@ -235,6 +236,7 @@ content into various formats.
    - PDF slides → `<class>/lectures/`
    - Scripts → `<class>/lectures_script/`
    - Book chapters → `<class>/book/`
+   - Quizzes → `<class>/lectures_quizzes/`
 
 **Command Line Arguments:**
 
@@ -255,6 +257,7 @@ content into various formats.
 - `generate_slide_script.py`: Creates instructor scripts
 - `process_slides.py`: Performs LLM-based transformations
 - `gen_book_chapter.sh`: Generates book chapters
+- `gen_quizzes.sh`: Generates quizzes from lecture content
 - `lint_txt.py`: Lints generated text files
 
 ### Examples
@@ -292,6 +295,11 @@ content into various formats.
 - Generate book chapter from lecture:
   ```bash
   > ./process_lessons.py --lectures "01.1" --class data605 --action book_chapter
+  ```
+
+- Generate quizzes from lecture content:
+  ```bash
+  > ./process_lessons.py --lectures "01.1" --class data605 --action generate_quizzes
   ```
 
 - Process all lesson 01 lectures with multiple actions:
