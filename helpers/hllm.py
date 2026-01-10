@@ -372,7 +372,7 @@ def get_completion(
     cache_mode: str = "DISABLE_CACHE",
     temperature: float = 0.1,
     images_as_base64: Optional[Tuple[str, ...]] = None,
-    cost_tracker: Optional["LLMCostTracker"] = None,
+    cost_tracker: Optional["hllmcost.LLMCostTracker"] = None,
     use_responses_api: bool = False,
     return_raw: bool = False,
     **create_kwargs,

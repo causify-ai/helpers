@@ -1291,7 +1291,7 @@ class Test_mock_cache(_BaseCacheTest):
         self.assertEqual(len(mem_cache), 0)
         # Step 4: Mock the cache by inserting the saved value.
         _LOG.debug("Step 4: Mock cache with saved value")
-        hcacsimp.mock_cache(func_name, [test_value], {}, cached_value)
+        hcacsimp.mock_cache(func_name, [test_value], {}, expected_result)
         # Step 5: Verify the cache hit by calling with abort_on_cache_miss.
         _LOG.debug("Step 5: Verify cache hit")
         result2 = _cached_json_double(test_value, abort_on_cache_miss=True)

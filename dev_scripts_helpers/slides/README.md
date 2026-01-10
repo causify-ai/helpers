@@ -219,10 +219,11 @@ content into various formats.
 
 **Supported Actions:**
 
-- `pdf`: Generate presentation slides from text source files
-- `script`: Generate instructor reading scripts with commentary
-- `slide_reduce`: Apply LLM transformation to reduce slide content
-- `slide_check`: Apply LLM validation to check slide quality
+- `generate_pdf`: Generate presentation slides from text source files
+- `generate_script`: Generate instructor reading scripts with commentary
+- `reduce_slide`: Apply LLM transformation to reduce slide content
+- `check_slide`: Apply LLM validation to check slide quality
+- `improve_slide`: Apply LLM transformation to improve slide content
 - `book_chapter`: Generate book chapter PDF from lecture content
 - `generate_quizzes`: Generate multiple choice quizzes from lecture content using LLM
 
@@ -244,8 +245,8 @@ content into various formats.
   - Single pattern: '01.1' or '01\*'
   - Multiple patterns separated by colon: '01\*:02\*:03.1'
 - `--class`: Class directory name (required, choices: data605, msml610)
-- `--action`: Actions to perform (default: pdf)
-  - Can specify multiple: `--action pdf --action script`
+- `--action`: Actions to perform (default: generate_pdf)
+  - Can specify multiple: `--action generate_pdf --action generate_script`
 - `--limit`: Optional slide range to process (e.g., '1:3')
   - Only works when processing a single lecture file
 - `--dry_run`: Print commands without executing them
@@ -264,17 +265,17 @@ content into various formats.
 
 - Generate PDF slides for all lectures in lesson 01:
   ```bash
-  > ./process_lessons.py --lectures "01*" --class msml610 --action pdf
+  > ./process_lessons.py --lectures "01*" --class msml610 --action generate_pdf
   ```
 
 - Generate both PDF and script for a specific lecture:
   ```bash
-  > ./process_lessons.py --lectures "01.1" --class data605 --action pdf --action script
+  > ./process_lessons.py --lectures "01.1" --class data605 --action generate_pdf --action generate_script
   ```
 
 - Process specific slide range in a single lecture:
   ```bash
-  > ./process_lessons.py --lectures "02.3" --class msml610 --limit "5:10" --action pdf
+  > ./process_lessons.py --lectures "02.3" --class msml610 --limit "5:10" --action generate_pdf
   ```
 
 - Process multiple lecture patterns with dry run:
@@ -284,12 +285,12 @@ content into various formats.
 
 - Reduce slide content using LLM for a single lecture:
   ```bash
-  > ./process_lessons.py --lectures "01.1" --class data605 --action slide_reduce
+  > ./process_lessons.py --lectures "01.1" --class data605 --action reduce_slide
   ```
 
 - Check slide quality using LLM validation:
   ```bash
-  > ./process_lessons.py --lectures "01.1" --class data605 --action slide_check
+  > ./process_lessons.py --lectures "01.1" --class data605 --action check_slide
   ```
 
 - Generate book chapter from lecture:
@@ -304,12 +305,12 @@ content into various formats.
 
 - Process all lesson 01 lectures with multiple actions:
   ```bash
-  > ./process_lessons.py --lectures "01*" --class data605 --action pdf --action script --action slide_check
+  > ./process_lessons.py --lectures "01*" --class data605 --action generate_pdf --action generate_script --action check_slide
   ```
 
 - Process with verbose logging for debugging:
   ```bash
-  > ./process_lessons.py --lectures "01.1" --class data605 --action pdf -v DEBUG
+  > ./process_lessons.py --lectures "01.1" --class data605 --action generate_pdf -v DEBUG
   ```
 
 ## `process_slides.py`

@@ -52,12 +52,7 @@ def _find_lecture_files(
     :return: list of tuples (source_path, source_name)
     """
     lectures_source_dir = os.path.join(class_dir, "lectures_source")
-    # TODO(ai): Use hdbg.dassert_dir_exists(lectures_source_dir)
-    hdbg.dassert(
-        os.path.isdir(lectures_source_dir),
-        "Lectures source directory does not exist:",
-        lectures_source_dir,
-    )
+    hdbg.dassert_dir_exists(lectures_source_dir)
     # Find all matching files.
     _LOG.debug(
         "Finding lecture files for lecture_source_dir='%s' and patterns='%s'",
@@ -196,7 +191,7 @@ def _slide_reduce(
 
 
 def _slide_check(
-    source_path: str, source_name: str, *, limit: str = None
+    source_path: str, source_name: str, *, limit: Optional[str] = None
 ) -> None:
     """
     Check slides by applying LLM transformation.
@@ -244,16 +239,12 @@ def _generate_book_chapter(
     # Extract lesson number from source name (e.g., Lesson01.1-Intro.txt -> 01.1)
     match = re.match(r"Lesson([\d.]+)", source_name)
     if not match:
-        hdbg.dfatal(f"Could not extract lesson number from {source_name}")
+        hdbg.dfatal("Could not extract lesson number from:", source_name)
     lesson_number = match.group(1)
     # Find gen_book_chapter.sh script.
     # Look for it in classes/ directory relative to repo root.
     script_path = os.path.join("classes", "gen_book_chapter.sh")
-    if not os.path.isfile(script_path):
-        hdbg.dfatal(
-            f"gen_book_chapter.sh not found at {script_path}. "
-            "Please ensure the script exists in the classes directory."
-        )
+    hdbg.dassert_path_exists(script_path)
     # Build command.
     _LOG.info(
         "Generating book chapter for %s (lesson %s)", source_name, lesson_number
@@ -282,17 +273,12 @@ def _generate_quizzes(
     # Extract lesson number from source name (e.g., Lesson01.1-Intro.txt -> 01.1)
     match = re.match(r"Lesson([\d.]+)", source_name)
     if not match:
-        hdbg.dfatal("Could not extract lesson number from %s", source_name)
+        hdbg.dfatal("Could not extract lesson number from:", source_name)
     lesson_number = match.group(1)
     # Find gen_quizzes.sh script.
     # Look for it in classes/ directory relative to repo root.
     script_path = os.path.join("classes", "gen_quizzes.sh")
-    hdbg.dassert(
-        os.path.isfile(script_path),
-        "gen_quizzes.sh not found at %s. "
-        "Please ensure the script exists in the classes directory.",
-        script_path,
-    )
+    hdbg.dassert_path_exists(script_path)
     # Build command.
     _LOG.info(
         "Generating quizzes for %s (lesson %s)", source_name, lesson_number
@@ -308,7 +294,7 @@ def _process_lecture_file(
     source_name: str,
     actions: List[str],
     *,
-    limit: str = None,
+    limit: Optional[str] = None,
 ) -> None:
     """
     Process a single lecture file for specified actions.
@@ -316,41 +302,45 @@ def _process_lecture_file(
     :param class_dir: class directory (data605 or msml610)
     :param source_path: path to source .txt file
     :param source_name: name of source file
-    :param actions: list of actions to execute ('pdf', 'script',
-        'slide_reduce', 'slide_check', 'book_chapter', 'generate_quizzes')
+    :param actions: list of actions to execute ('generate_pdf', 'generate_script',
+        'reduce_slide', 'check_slide', 'improve_slide', 'book_chapter',
+        'generate_quizzes')
     :param limit: optional slide range to process
     """
     _LOG.info("Processing file: %s", source_path)
     # Process each action.
     for action in actions:
-        if action == "pdf":
+        if action == "generate_pdf":
             _generate_pdf(class_dir, source_path, source_name, limit=limit)
-        elif action == "script":
+        elif action == "generate_script":
             _generate_script(class_dir, source_path, source_name, limit=limit)
-        elif action == "slide_reduce":
+        elif action == "reduce_slide":
             _slide_reduce(source_path, source_name, limit=limit)
-        elif action == "slide_check":
+        elif action == "check_slide":
             _slide_check(source_path, source_name, limit=limit)
+        elif action == "improve_slide":
+            # TODO: Implement _slide_improve function.
+            hdbg.dfatal("improve_slide action not yet implemented")
         elif action == "book_chapter":
             _generate_book_chapter(class_dir, source_path, source_name)
         elif action == "generate_quizzes":
             _generate_quizzes(class_dir, source_path, source_name)
         else:
-            hdbg.dfatal("Unknown action: %s" % action)
+            hdbg.dfatal("Unknown action:", action)
 
 
 # #############################################################################
 
 _VALID_ACTIONS = [
-    "pdf",
-    "script",
-    "slide_reduce",
-    "slide_check",
-    "slide_improve",
+    "generate_pdf",
+    "generate_script",
+    "reduce_slide",
+    "check_slide",
+    "improve_slide",
     "book_chapter",
     "generate_quizzes",
 ]
-_DEFAULT_ACTIONS = ["pdf"]
+_DEFAULT_ACTIONS = ["generate_pdf"]
 
 # #############################################################################
 

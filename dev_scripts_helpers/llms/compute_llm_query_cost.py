@@ -290,7 +290,6 @@ Remember to respond with ONLY the JSON object, no additional text."""
         float(calculate_prompt_cost(msgs, model)) for msgs in messages_list
     )
     # Assume similar completion cost per query.
-    avg_completion_per_query = completion_cost / len(prompts)
     individual_total = individual_prompt_cost + completion_cost
     savings = individual_total - total_cost
     savings_pct = (
@@ -354,7 +353,6 @@ def _run_detailed_comparison(
     _LOG.info("=" * 80 + "\n")
     # Part 2: Run batch processing.
     _LOG.info("\n### RUNNING BATCH PROCESSING ###\n")
-    batch_results = []
     batch_total_prompt_cost = 0.0
     batch_total_completion_cost = 0.0
     for i, prompt in enumerate(prompts, 1):

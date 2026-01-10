@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "# Files added / modified in the current Git branch:"
-git diff --diff-filter=AM  --name-only master... | \grep py | tee tmp
+echo "# Files added / modified in current Git client:"
+git diff --name-only --diff-filter=AM HEAD | \grep py | tee tmp
 
 echo "# Linting"
 pre-commit run --files $(cat tmp)

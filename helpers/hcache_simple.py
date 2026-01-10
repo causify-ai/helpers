@@ -801,7 +801,7 @@ def mock_cache_from_disk(func_name: str, cache_data: _CacheType) -> None:
     :param cache_data: The cache data to mock.
     """
     hdbg.dassert_isinstance(func_name, str)
-    hcacsimp.sanity_check_cache(cache_data, assert_on_empty=True)
+    sanity_check_cache(cache_data, assert_on_empty=True)
     for cache_key, cached_value in cache_data.items():
         mock_cache(func_name, cache_key, cached_value)
 
