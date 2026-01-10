@@ -417,6 +417,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--no_backup",
+        action="store_true",
         help="Do not backup the destination directory",
     )
     parser.add_argument(

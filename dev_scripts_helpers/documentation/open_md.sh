@@ -31,7 +31,15 @@ file_base=$(basename "$filename" .md)
 #dst_filename="${file_dir}/${file_base}.rendered.html"
 dst_filename="${file_dir}/${file_base}.rendered.pdf"
 
-pandoc $filename -o $dst_filename --resource-path=$file_dir
+pandoc $filename \
+  -o $dst_filename \
+    --resource-path=$file_dir \
+  --pdf-engine=xelatex \
+  -V papersize=A4 \
+  -V fontsize=11pt \
+  -V geometry:margin=1in \
+  -V linestretch=1.15 \
+  -V mainfont="Helvetica Neue"
 
 echo "Saved to $dst_filename"
 open $dst_filename

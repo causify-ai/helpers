@@ -138,7 +138,8 @@ def _generate_ai_images_from_prompt(
         f"{generate_script} "
         f"--input {prompt_file} "
         f"--dst_dir {abs_img_dir_path} "
-        f"--count {_AI_IMAGE_COUNT}"
+        f"--count {_AI_IMAGE_COUNT} "
+        f"--no_backup"
     )
     _LOG.info("Generating AI images with command: %s", cmd)
     # The generated files follow the naming pattern from generate_images.py:
@@ -496,7 +497,7 @@ def _insert_image_code(
     elif extension == ".tex":
         # Use the LaTeX syntax with tagged markers to make it easier to do a
         # replacement.
-        # out_lines.append(r"\begin{figure}[!ht]")
+        #out_lines.append(r"\begin{figure}[!ht]")
         out_lines.append(r"\begin{figure}[H]")
         out_lines.append(
             r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}"

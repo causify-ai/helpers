@@ -61,7 +61,7 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         expected = """
         tmp.render_images/e.8.txt
         /custom/path/images
-        ../../custom/path/images/e.8.png
+        ../../../../custom/path/images/e.8.png
         """
         self.assert_equal(actual, expected, dedent=True)
 
@@ -419,9 +419,9 @@ class Test_insert_image_code1(hunitest.TestCase):
         )
         # Check output.
         expected = """
-        [//]: # ( render_images:begin )
+        <!--  render_images:begin -->
         ![](figs/test.1.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
@@ -441,9 +441,9 @@ class Test_insert_image_code1(hunitest.TestCase):
         )
         # Check output.
         expected = """
-        [//]: # ( render_images:begin )
+        <!--  render_images:begin -->
         ![](figs/test.1.png){#fig:test_diagram}
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
@@ -463,9 +463,9 @@ class Test_insert_image_code1(hunitest.TestCase):
         )
         # Check output.
         expected = """
-        [//]: # ( render_images:begin )
+        <!--  render_images:begin -->
         ![Test diagram caption](figs/test.1.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
@@ -485,9 +485,9 @@ class Test_insert_image_code1(hunitest.TestCase):
         )
         # Check output.
         expected = """
-        [//]: # ( render_images:begin )
+        <!--  render_images:begin -->
         ![Test diagram caption](figs/test.1.png){#fig:test_diagram}
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
@@ -507,9 +507,9 @@ class Test_insert_image_code1(hunitest.TestCase):
         )
         # Check output.
         expected = """
-        [//]: # ( render_images:begin )
+        <!--  render_images:begin -->
         ![Test diagram](figs/test.1.png){#fig:test_diagram height=100%}
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
@@ -541,7 +541,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         # Check output.
         expected = r"""
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/test.1.png}
         \end{figure}
         % render_images:end
@@ -565,7 +565,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         # Check output.
         expected = r"""
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/test.1.png}
           \label{fig:test_diagram}
         \end{figure}
@@ -590,7 +590,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         # Check output.
         expected = r"""
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/test.1.png}
           \caption{Test diagram caption}
         \end{figure}
@@ -615,7 +615,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         # Check output.
         expected = r"""
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/test.1.png}
           \caption{Test diagram caption}
           \label{fig:test_diagram}
@@ -710,14 +710,14 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```plantuml )
-        [//]: # ( Alice --> Bob )
-        [//]: # ( ``` )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```plantuml -->
+        <!--  Alice --> Bob -->
+        <!--  ``` -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![](figs/out.1.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -735,14 +735,14 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "md"
         expected = r"""
         A
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```plantuml )
-        [//]: # ( Alice --> Bob )
-        [//]: # ( ``` )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```plantuml -->
+        <!--  Alice --> Bob -->
+        <!--  ``` -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![](figs/out.1.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -761,16 +761,16 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```plantuml )
-        [//]: # ( @startuml )
-        [//]: # ( Alice --> Bob )
-        [//]: # ( @enduml )
-        [//]: # ( ``` )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```plantuml -->
+        <!--  @startuml -->
+        <!--  Alice --> Bob -->
+        <!--  @enduml -->
+        <!--  ``` -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![](figs/out.1.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -791,7 +791,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
@@ -818,7 +818,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
@@ -848,7 +848,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
@@ -869,15 +869,15 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```mermaid )
-        [//]: # ( flowchart TD; )
-        [//]: # (   A[Start] --> B[End]; )
-        [//]: # ( ``` )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```mermaid -->
+        <!--  flowchart TD; -->
+        <!--    A[Start] --> B[End]; -->
+        <!--  ``` -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![](figs/out.1.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -896,15 +896,15 @@ class Test_render_images1(hunitest.TestCase):
         file_ext = "md"
         expected = r"""
         A
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```mermaid )
-        [//]: # ( flowchart TD; )
-        [//]: # (   A[Start] --> B[End]; )
-        [//]: # ( ``` )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```mermaid -->
+        <!--  flowchart TD; -->
+        <!--    A[Start] --> B[End]; -->
+        <!--  ``` -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![](figs/out.1.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         B
         """
         self.helper(in_lines, file_ext, expected)
@@ -928,7 +928,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
@@ -957,7 +957,7 @@ class Test_render_images1(hunitest.TestCase):
         % ```
         % rendered_images:end
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/out.1.png}
         \end{figure}
         % render_images:end
@@ -1057,15 +1057,15 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```graphviz )
-        [//]: # ( digraph { A -> B } )
-        [//]: # ( ``` )
-        [//]: # ( label=fig:test_diagram )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```graphviz -->
+        <!--  digraph { A -> B } -->
+        <!--  ``` -->
+        <!--  label=fig:test_diagram -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![](figs/out.1.png){#fig:test_diagram}
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -1081,15 +1081,15 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```graphviz )
-        [//]: # ( digraph { A -> B } )
-        [//]: # ( ``` )
-        [//]: # ( caption=Test diagram showing communication )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```graphviz -->
+        <!--  digraph { A -> B } -->
+        <!--  ``` -->
+        <!--  caption=Test diagram showing communication -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![Test diagram showing communication](figs/out.1.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -1106,16 +1106,16 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```graphviz )
-        [//]: # ( digraph { A -> B } )
-        [//]: # ( ``` )
-        [//]: # ( label=fig:test_diagram )
-        [//]: # ( caption=Test diagram showing communication )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```graphviz -->
+        <!--  digraph { A -> B } -->
+        <!--  ``` -->
+        <!--  label=fig:test_diagram -->
+        <!--  caption=Test diagram showing communication -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![Test diagram showing communication](figs/out.1.png){#fig:test_diagram}
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -1134,18 +1134,18 @@ class Test_render_images1(hunitest.TestCase):
         """
         file_ext = "md"
         expected = r"""
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```graphviz )
-        [//]: # ( digraph { A -> B } )
-        [//]: # ( ``` )
-        [//]: # ( label=fig:test_diagram )
-        [//]: # ( caption=This is a caption )
-        [//]: # (   that spans multiple lines )
-        [//]: # (   to test continuation )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```graphviz -->
+        <!--  digraph { A -> B } -->
+        <!--  ``` -->
+        <!--  label=fig:test_diagram -->
+        <!--  caption=This is a caption -->
+        <!--    that spans multiple lines -->
+        <!--    to test continuation -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![This is a caption that spans multiple lines to test continuation](figs/out.1.png){#fig:test_diagram}
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.helper(in_lines, file_ext, expected)
 
@@ -1168,7 +1168,7 @@ class Test_render_images1(hunitest.TestCase):
         % label=fig:test_diagram
         % rendered_images:end
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/out.1.png}
           \label{fig:test_diagram}
         \end{figure}
@@ -1195,7 +1195,7 @@ class Test_render_images1(hunitest.TestCase):
         % caption=Test diagram showing communication
         % rendered_images:end
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/out.1.png}
           \caption{Test diagram showing communication}
         \end{figure}
@@ -1224,7 +1224,7 @@ class Test_render_images1(hunitest.TestCase):
         % caption=Test diagram showing communication
         % rendered_images:end
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/out.1.png}
           \caption{Test diagram showing communication}
           \label{fig:test_diagram}
@@ -1246,7 +1246,7 @@ class Test_render_images1(hunitest.TestCase):
         %     caption=Test diagram showing communication
         % rendered_images:end
         % render_images:begin
-        \begin{figure}[!ht]
+        \begin{figure}[H]
           \includegraphics[width=\linewidth]{figs/out.1.png}
           \caption{Test diagram showing communication}
           \label{fig:test_diagram}
