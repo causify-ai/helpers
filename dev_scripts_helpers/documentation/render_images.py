@@ -318,7 +318,7 @@ def _render_image_code(
                 use_sudo=use_sudo,
             )
         elif image_code_type in ("tikz", "latex", "raw_latex"):
-            cmd_opts: List[str] = ["-density 600", "-quality 30"]
+            cmd_opts: List[str] = ["-density 600", "-quality 95"]
             hdocexec.run_dockerized_tikz_to_bitmap(
                 in_code_file_path,
                 cmd_opts,

@@ -33,6 +33,8 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         hio.to_file(in_file, txt)
         return in_file
 
+    # #########################################################################
+
     def create_input_file1(self) -> str:
         txt = """
         # Header1
@@ -85,7 +87,6 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Save a script file to store the commands.
         script_file = os.path.join(out_dir, "script.sh")
         cmd.append(f"--script {script_file}")
-        hdbg.dassert_in(type_, ["pdf", "html"])
         out_file = os.path.join(out_dir, f"output.{type_}")
         cmd.append(f"--output {out_file}")
         cmd.append(cmd_opts)
@@ -101,7 +102,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         cmd = " ".join(cmd)
         hsystem.system(cmd)
         # Check that the file exists.
-        if type_ == "pdf":
+        if type_ == "pdf" or type_ == "slides":
             out_file = os.path.join(out_dir, "tmp.pandoc.tex")
         elif type_ == "html":
             out_file = os.path.join(out_dir, "tmp.pandoc.html")
