@@ -14,8 +14,6 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
-
-
 # #############################################################################
 # Test_notes_to_pdf1
 # #############################################################################
@@ -25,7 +23,17 @@ _LOG = logging.getLogger(__name__)
     reason="Disabled because of CmampTask10710",
 )
 class Test_notes_to_pdf1(hunitest.TestCase):
-    def create_input_file(self) -> str:
+    """
+    Test `notes_to_pdf.py` with a simple input file.
+    """
+
+    def create_input_file_from_txt(self, txt: str) -> str:
+        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        in_file = os.path.join(self.get_scratch_space(), "input.md")
+        hio.to_file(in_file, txt)
+        return in_file
+
+    def create_input_file1(self) -> str:
         txt = """
         # Header1
 
@@ -41,10 +49,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         # Header4
         - baz
         """
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        in_file = os.path.join(self.get_scratch_space(), "input.md")
-        hio.to_file(in_file, txt)
-        return in_file
+        return self.create_input_file_from_txt(txt)
 
     # TODO(gp): Run this calling directly the code and not executing the script.
     def run_notes_to_pdf(
@@ -120,7 +125,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         > notes_to_pdf.py --input input.md -t pdf --preview
         """
         # Prepare inputs.
-        in_file = self.create_input_file()
+        in_file = self.create_input_file1()
         type_ = "pdf"
         cmd_opts = "--preview_actions"
         # Run the script.
@@ -135,7 +140,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         > notes_to_pdf.py --input input.md -t pdf
         """
         # Prepare inputs.
-        in_file = self.create_input_file()
+        in_file = self.create_input_file1()
         type_ = "pdf"
         cmd_opts = ""
         # Run the script.
@@ -151,9 +156,48 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         > notes_to_pdf.py --input input.md -t pdf --filter_by_header Header2
         """
         # Prepare inputs.
-        in_file = self.create_input_file()
+        in_file = self.create_input_file1()
         type_ = "pdf"
         cmd_opts = "--filter_by_header Header2"
+        # Run the script.
+        script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
+        # Check.
+        txt = f"script_txt:\n{script_txt}\n"
+        txt += f"output_txt:\n{output_txt}\n"
+        self.check_string(txt, purify_text=True)
+
+    # #########################################################################
+
+    def test4(self) -> None:
+        """
+        Run:
+        > notes_to_pdf.py --input input.md --type slides --toc_type navigation
+        """
+        # Prepare inputs.
+        txt = r"""
+        * Comparison
+
+        ```latex
+        \usepackage{float}
+        \usepackage{caption}
+        \begin{document}
+
+        \begin{tabular}{|p{3cm}|p{4cm}|p{4cm}|p{4cm}|}
+        \hline
+        \textbf{Feature} & \textbf{RDF} & \textbf{Property Graph} & \textbf{XML} \\
+        \hline
+        Core data model & Triples: \textbf{(subject, predicate, object)} & \textbf{Nodes} and \textbf{edges} with properties & \textbf{Hierarchical tree} of elements \\
+        \hline
+        How facts are stored & Fact is a separate triple & Facts are properties on nodes or edges & Nested tags with attributes \\
+        \hline
+        \end{tabular}
+        \end{document}
+        ```
+        """
+        in_file = self.create_input_file_from_txt(txt)
+        #
+        type_ = "slides"
+        cmd_opts = ""
         # Run the script.
         script_txt, output_txt = self.run_notes_to_pdf(in_file, type_, cmd_opts)
         # Check.

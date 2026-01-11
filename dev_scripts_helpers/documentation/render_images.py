@@ -322,7 +322,6 @@ def _render_image_code(
             hdocexec.run_dockerized_tikz_to_bitmap(
                 in_code_file_path,
                 cmd_opts,
-                # out_img_file_path,
                 abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
@@ -332,7 +331,6 @@ def _render_image_code(
             hdocexec.run_dockerized_graphviz(
                 in_code_file_path,
                 cmd_opts,
-                # out_img_file_path,
                 abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
