@@ -10,20 +10,39 @@ import process_slides
 
 import argparse
 import logging
-import os
 from typing import List, Optional, Tuple
 
+from tqdm import tqdm
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hjoblib as hjoblib
+import helpers.hllm_cli as hllmcli
 import helpers.hmarkdown_slides as hmarslid
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+
+def _get_system_prompt_from_tag(prompt_tag: str) -> str:
+    """
+    Get the system prompt from a prompt tag.
+
+    :param prompt_tag: tag of the prompt to get
+    :return: system prompt string
+    """
+    # Get the info corresponding to the prompt tag.
+    prompt_tags = list(zip(*dshlllpr.get_prompt_tags()))[0]
+    hdbg.dassert_in(prompt_tag, prompt_tags)
+    # Call the prompt function to get its return value.
+    python_cmd = f"{prompt_tag}()"
+    system_prompt, _, _, _ = eval(python_cmd)
+    # Dedent the system prompt.
+    system_prompt = hprint.dedent(system_prompt)
+    return system_prompt
 
 
 def _extract_slides_from_markdown(txt: str) -> List[Tuple[str, str]]:
@@ -118,41 +137,42 @@ def _process_slide_with_llm(
             slide_content, action, no_abort_on_error=no_abort_on_error
         )
     else:
-        # Use the original method with run_prompt.
+        # Use apply_llm with use_llm_executable=False.
         # Use gpt-4 model for processing.
         model = "gpt-4o"
-        # Call the run_prompt function with the action as prompt_tag.
-        result = dshlllpr.run_prompt(
-            prompt_tag=action,
-            txt=slide_content,
-            model=model,
-        )
-        # Handle errors based on --no_abort_on_error flag.
-        if result is None:
+        # Get the system prompt from the action.
+        system_prompt = _get_system_prompt_from_tag(action)
+        # Call apply_llm with use_llm_executable=False.
+        try:
+            result, cost = hllmcli.apply_llm(
+                input_str=slide_content,
+                system_prompt=system_prompt,
+                model=model,
+                use_llm_executable=False,
+            )
+            _LOG.debug("LLM processing completed with cost: $%.6f", cost)
+        except Exception as e:
+            # Handle errors based on --no_abort_on_error flag.
             if no_abort_on_error:
                 _LOG.warning(
-                    "LLM processing failed, continuing with original content"
+                    "LLM processing failed: %s, continuing with original content",
+                    str(e),
                 )
-                result = slide_content  # Return original if processing failed.
+                result = slide_content
             else:
-                hdbg.dfatal("LLM processing failed for slide")
+                hdbg.dfatal("LLM processing failed for slide: %s", str(e))
         return result
 
 
-def _workload_process_slide(
+def _process_single_slide(
     slide_title: str,
     slide_content: str,
     action: str,
     use_llm_transform: bool,
     no_abort_on_error: bool,
-    *,
-    incremental: bool,
-    num_attempts: int,
 ) -> str:
     """
-    Workload function to process a single slide.
-
-    This function is designed to be called by hjoblib.parallel_execute.
+    Process a single slide.
 
     :param slide_title: title of the slide
     :param slide_content: content of the slide to process
@@ -160,11 +180,8 @@ def _workload_process_slide(
     :param use_llm_transform: if True, use llm_transform script
     :param no_abort_on_error: if True, continue processing even if LLM
         fails
-    :param incremental: passed by hjoblib for incremental processing
-    :param num_attempts: passed by hjoblib for retry logic
     :return: formatted processed result for the slide
     """
-    _ = incremental, num_attempts
     _LOG.debug("Processing slide: %s", slide_title)
     # Process the slide using LLM.
     processed_content = _process_slide_with_llm(
@@ -188,11 +205,6 @@ def _process_slides(
     limit_range: Optional[Tuple[int, int]] = None,
     use_llm_transform: bool = False,
     no_abort_on_error: bool = False,
-    dry_run: bool = False,
-    num_threads: str = "serial",
-    incremental: bool = True,
-    abort_on_error: bool = True,
-    num_attempts: int = 1,
 ) -> List[str]:
     """
     Process all slides with the specified action.
@@ -203,48 +215,21 @@ def _process_slides(
     :param use_llm_transform: if True, use llm_transform script
     :param no_abort_on_error: if True, continue processing even if LLM
         fails
-    :param dry_run: if True, print workload without executing
-    :param num_threads: number of threads for parallel execution
-    :param incremental: if True, skip already processed slides
-    :param abort_on_error: if True, stop on first error
-    :param num_attempts: number of retry attempts for each slide
     :return: list of formatted processed results
     """
     # Apply limit range filtering.
     slides = hparser.apply_limit_range(slides, limit_range, item_name="slides")
-    # Create tasks for parallel execution.
-    tasks: List[hjoblib.Task] = []
-    for slide_title, slide_content in slides:
-        # Each task is a tuple of (args, kwargs).
-        args = (
+    # Process slides sequentially with progress bar.
+    processed_results = []
+    for slide_title, slide_content in tqdm(slides, desc="Processing slides"):
+        result = _process_single_slide(
             slide_title,
             slide_content,
             action,
             use_llm_transform,
             no_abort_on_error,
         )
-        kwargs: dict = {}
-        task = (args, kwargs)
-        tasks.append(task)
-    # Create workload.
-    workload_func = _workload_process_slide
-    func_name = "_workload_process_slide"
-    workload = (workload_func, func_name, tasks)
-    # Setup log file.
-    log_file = os.path.join(".", "process_slides.parallel_execute.log")
-    # Execute workload in parallel.
-    processed_results = hjoblib.parallel_execute(
-        workload,
-        dry_run,
-        num_threads,
-        incremental,
-        abort_on_error,
-        num_attempts,
-        log_file,
-    )
-    # hjoblib.parallel_execute returns None in dry_run mode.
-    if processed_results is None:
-        processed_results = []
+        processed_results.append(result)
     return processed_results
 
 
@@ -287,7 +272,6 @@ def _parse() -> argparse.ArgumentParser:
         help="Continue processing even if LLM transformation fails",
     )
     hparser.add_limit_range_arg(parser)
-    hparser.add_parallel_processing_arg(parser, num_threads_default="serial")
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -302,12 +286,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.parse_verbosity_args(args)
     # Parse limit range.
     limit_range = hparser.parse_limit_range_args(args)
-    # Parse parallel processing arguments.
-    dry_run = args.dry_run
-    num_threads = args.num_threads
-    incremental = not args.no_incremental
-    abort_on_error = not args.skip_on_error
-    num_attempts = args.num_attempts
     # Validate input file exists.
     hdbg.dassert_file_exists(args.in_file)
     _LOG.info("Reading input file: %s", args.in_file)
@@ -323,11 +301,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         limit_range=limit_range,
         use_llm_transform=args.use_llm_transform,
         no_abort_on_error=args.no_abort_on_error,
-        dry_run=dry_run,
-        num_threads=num_threads,
-        incremental=incremental,
-        abort_on_error=abort_on_error,
-        num_attempts=num_attempts,
     )
     # Write results to output file.
     output_content = "\n\n".join(processed_results)

@@ -246,7 +246,7 @@ def _call_api_sync(
     if isinstance(completion, openai.types.responses.Response):
         # Store the output of the Responses API.
         completion_obj["output_text"] = completion.output_text
-    if cost_tracker is None:
+    if cost_tracker is not None:
         # Calculate the cost of the completion.
         hdbg.dassert_isinstance(cost_tracker, hllmcost.LLMCostTracker)
         cost = cost_tracker.calculate_cost(completion, model)
@@ -480,7 +480,7 @@ def get_completion(
     # Report the time taken.
     msg, _ = htimer.dtimer_stop(memento)
     _LOG.info(msg)
-    if print_cost:
+    if print_cost and "cost" in completion:
         _LOG.info("cost=%.6f", completion["cost"])
     if return_raw:
         # Return the full completion/response object.

@@ -892,11 +892,9 @@ def simple_cache(
             kwargs_for_cache_key = {
                 k: v for k, v in kwargs.items() if k not in excluded_keys
             }
-            # Prepare kwargs for the actual function call (excluding cache
-            # control params).
-            kwargs_for_func = {
-                k: v for k, v in kwargs.items() if k not in {"cache_mode"}
-            }
+            # Prepare kwargs for the actual function call.
+            # Keep cache_mode since the wrapped function may need it in its signature.
+            kwargs_for_func = kwargs.copy()
             # `cache_mode` is a special keyword argument to control caching
             # behavior.
             if "cache_mode" in kwargs:
