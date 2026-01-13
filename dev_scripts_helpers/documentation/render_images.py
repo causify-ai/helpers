@@ -326,6 +326,7 @@ def _render_image_code(
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
+            assert 0, out_img_file_path
         elif image_code_type == "graphviz":
             cmd_opts: List[str] = []
             hdocexec.run_dockerized_graphviz(
