@@ -48,10 +48,7 @@ def _display(log_level: int, df: pd.DataFrame) -> None:
     """
     from IPython.display import display
 
-    if (
-        hsystem.is_running_in_ipynb()
-        and log_level >= hdbg.get_logger_verbosity()
-    ):
+    if hsystem.is_running_in_ipynb() and log_level >= hdbg.get_logger_verbosity():
         display(df)
 
 
@@ -76,7 +73,8 @@ def _df_to_str(
     :param max_rows: The maximum number of rows to display.
     :param precision: The precision of the numbers.
     :param display_width: The width of the display.
-    :param use_tabulate: Whether to use the tabulate library to format the DataFrame.
+    :param use_tabulate: Whether to use the tabulate library to format
+        the DataFrame.
     :param log_level: The log level to use.
     :return: A string representation of the DataFrame.
     """
@@ -536,10 +534,7 @@ def print_column_variability(
     res.sort_values("num", inplace=True)
     # TODO(gp): Fix this.
     # res = add_count_as_idx(res)
-    # Import locally to avoid circular dependency.
-    from helpers.hpandas_transform import add_pct as hpantran_add_pct
-
-    res = hpantran_add_pct(
+    res = add_pct(
         res,
         "num",
         df.shape[0],
@@ -549,6 +544,46 @@ def print_column_variability(
     )
     res.reset_index(drop=True, inplace=True)
     return res
+
+
+# Start copy-paste From helpers/hpandas_transform.py
+
+
+def add_pct(
+    df: pd.DataFrame,
+    col_name: str,
+    total: int,
+    dst_col_name: str,
+    num_digits: int = 2,
+    use_thousands_separator: bool = True,
+) -> pd.DataFrame:
+    """
+    Add to df a column "dst_col_name" storing the percentage of values in
+    column "col_name" with respect to "total". The rest of the parameters are
+    the same as hprint.round_digits().
+
+    :return: updated df
+    """
+    # Add column with percentage right after col_name.
+    pos_col_name = df.columns.tolist().index(col_name)
+    df.insert(pos_col_name + 1, dst_col_name, (100.0 * df[col_name]) / total)
+    # Format.
+    df[col_name] = [
+        hprint.round_digits(
+            v, num_digits=None, use_thousands_separator=use_thousands_separator
+        )
+        for v in df[col_name]
+    ]
+    df[dst_col_name] = [
+        hprint.round_digits(
+            v, num_digits=num_digits, use_thousands_separator=False
+        )
+        for v in df[dst_col_name]
+    ]
+    return df
+
+
+# End copy-paste.
 
 
 def breakdown_table(
@@ -564,7 +599,8 @@ def breakdown_table(
     :param df: dataframe to analyze
     :param col_name: column name to create breakdown for
     :param num_digits: number of decimal digits for percentages
-    :param use_thousands_separator: whether to use thousands separator in counts
+    :param use_thousands_separator: whether to use thousands separator
+        in counts
     :param verbosity: whether to print additional details
     :return: breakdown table with counts and percentages
     """
