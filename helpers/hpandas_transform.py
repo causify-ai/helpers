@@ -56,9 +56,7 @@ def resample_index(index: pd.DatetimeIndex, frequency: str) -> pd.DatetimeIndex:
 
     _LOG.debug(hprint.to_str("index frequency"))
     hdbg.dassert_isinstance(index, pd.DatetimeIndex)
-    hpandass.dassert_unique_index(
-        index, msg="Index must have only unique values"
-    )
+    hpandass.dassert_unique_index(index, msg="Index must have only unique values")
     min_date = index.min()
     max_date = index.max()
     _LOG.debug("min_date=%s max_date=%s", min_date, max_date)
@@ -208,7 +206,7 @@ def apply_index_mode(
     """
     # Import locally to avoid cyclic import
     import helpers.hpandas_dassert as hpandass
-        
+
     _LOG.debug("mode=%s", mode)
     hdbg.dassert_isinstance(df1, pd.DataFrame)
     hdbg.dassert_isinstance(df2, pd.DataFrame)
@@ -315,6 +313,7 @@ def trim_df(
     if _TRACE:
         # Import locally to avoid cyclic import
         import helpers.hpandas_utils as hpanutil
+
         _LOG.trace(
             hpanutil.df_to_str(
                 df, print_dtypes=True, print_shape_info=True, tag="df"
@@ -326,6 +325,7 @@ def trim_df(
     if _TRACE:
         # Import locally to avoid cyclic import
         import helpers.hpandas_utils as hpanutil
+
         _LOG.trace("df=\n%s", hpanutil.df_to_str(df))
     if df.empty:
         # If the df is empty, there is nothing to trim.
@@ -509,6 +509,7 @@ def str_to_df(
     # Cast the columns into appropriate types.
     # Import locally to avoid cyclic import
     import helpers.hpandas_conversion as hpanconv
+
     for col, col_type in col_to_type.items():
         if col == "__index__":
             df.index = hpanconv.cast_series_to_type(df.index, col_type)
@@ -761,10 +762,12 @@ def remove_stable_columns(
     df: pd.DataFrame, *, threshold: float = 0.9, verbose: bool = True
 ) -> pd.DataFrame:
     """
-    Remove columns from a dataframe that have less than threshold unique values.
+    Remove columns from a dataframe that have less than threshold unique
+    values.
 
     :param df: dataframe to remove stable columns from
-    :param threshold: threshold for the percentage of stable columns to remove
+    :param threshold: threshold for the percentage of stable columns to
+        remove
     :return: dataframe with stable columns removed
     """
     high_variability_columns = []
@@ -821,6 +824,7 @@ def adapt_to_series(f: Callable) -> Callable:
 
 
 # #############################################################################
+
 
 def add_pct(
     df: pd.DataFrame,

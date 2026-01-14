@@ -48,10 +48,7 @@ def _display(log_level: int, df: pd.DataFrame) -> None:
     """
     from IPython.display import display
 
-    if (
-        hsystem.is_running_in_ipynb()
-        and log_level >= hdbg.get_logger_verbosity()
-    ):
+    if hsystem.is_running_in_ipynb() and log_level >= hdbg.get_logger_verbosity():
         display(df)
 
 
@@ -76,7 +73,8 @@ def _df_to_str(
     :param max_rows: The maximum number of rows to display.
     :param precision: The precision of the numbers.
     :param display_width: The width of the display.
-    :param use_tabulate: Whether to use the tabulate library to format the DataFrame.
+    :param use_tabulate: Whether to use the tabulate library to format
+        the DataFrame.
     :param log_level: The log level to use.
     :return: A string representation of the DataFrame.
     """
@@ -547,7 +545,9 @@ def print_column_variability(
     res.reset_index(drop=True, inplace=True)
     return res
 
+
 # Start copy-paste From helpers/hpandas_transform.py
+
 
 def add_pct(
     df: pd.DataFrame,
@@ -582,7 +582,9 @@ def add_pct(
     ]
     return df
 
+
 # End copy-paste.
+
 
 def breakdown_table(
     df: pd.DataFrame,
@@ -597,7 +599,8 @@ def breakdown_table(
     :param df: dataframe to analyze
     :param col_name: column name to create breakdown for
     :param num_digits: number of decimal digits for percentages
-    :param use_thousands_separator: whether to use thousands separator in counts
+    :param use_thousands_separator: whether to use thousands separator
+        in counts
     :param verbosity: whether to print additional details
     :return: breakdown table with counts and percentages
     """
