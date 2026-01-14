@@ -28,10 +28,7 @@ import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
 
 # TODO(ai_gp): Import the file and not the package to avoid cyclic imports.
-import helpers.hpandas as hpandas
 import helpers.hpandas_conversion as hpanconv
-import helpers.hpandas_dassert as hpandass
-import helpers.hpandas_utils as hpanutil
 import helpers.hprint as hprint
 
 _LOG = hloggin.getLogger(__name__)
@@ -54,6 +51,9 @@ def resample_index(index: pd.DatetimeIndex, frequency: str) -> pd.DatetimeIndex:
     :param frequency: frequency from `pd.date_range()` to resample to
     :return: resampled `DatetimeIndex`
     """
+    # Import locally to avoid cyclic import.
+    import helpers.hpandas_dassert as hpandass
+
     _LOG.debug(hprint.to_str("index frequency"))
     hdbg.dassert_isinstance(index, pd.DatetimeIndex)
     hpandass.dassert_unique_index(
@@ -206,6 +206,9 @@ def apply_index_mode(
         - "leave_unchanged": ignore any indices mismatch and return dfs as-is
     :return: transformed copy of the inputs
     """
+    # Import locally to avoid cyclic import
+    import helpers.hpandas_dassert as hpandass
+        
     _LOG.debug("mode=%s", mode)
     hdbg.dassert_isinstance(df1, pd.DataFrame)
     hdbg.dassert_isinstance(df2, pd.DataFrame)
@@ -248,6 +251,10 @@ def apply_columns_mode(
         - "leave_unchanged": ignore any column mismatches and return dfs as-is
     :return: transformed copy of the inputs
     """
+    # Import locally to avoid cyclic import
+    import helpers.hpandas_dassert as hpandass
+    import helpers.hpandas_utils as hpanutil
+
     _LOG.debug("mode=%s", mode)
     # Input validation.
     hdbg.dassert_isinstance(df1, pd.DataFrame)
@@ -306,6 +313,8 @@ def trim_df(
     :return: the trimmed dataframe
     """
     if _TRACE:
+        # Import locally to avoid cyclic import
+        import helpers.hpandas_utils as hpanutil
         _LOG.trace(
             hpanutil.df_to_str(
                 df, print_dtypes=True, print_shape_info=True, tag="df"
@@ -315,6 +324,8 @@ def trim_df(
         hprint.to_str("ts_col_name start_ts end_ts left_close right_close")
     )
     if _TRACE:
+        # Import locally to avoid cyclic import
+        import helpers.hpandas_utils as hpanutil
         _LOG.trace("df=\n%s", hpanutil.df_to_str(df))
     if df.empty:
         # If the df is empty, there is nothing to trim.
@@ -452,7 +463,7 @@ def str_to_df(
 
     :param df_as_str: a df as a string
         - the format of the string is the same as the output of
-          `hpandas.df_to_str()` on a pd.DataFrame, e.g.
+          `hpandas_utils.df_to_str()` on a pd.DataFrame, e.g.
           ```
               col1 col2   col3   col4
           0   0.1  a      None   2020-01-01
@@ -496,6 +507,8 @@ def str_to_df(
     if index_name != "":
         df.index.name = index_name
     # Cast the columns into appropriate types.
+    # Import locally to avoid cyclic import
+    import helpers.hpandas_conversion as hpanconv
     for col, col_type in col_to_type.items():
         if col == "__index__":
             df.index = hpanconv.cast_series_to_type(df.index, col_type)
@@ -796,19 +809,18 @@ def adapt_to_series(f: Callable) -> Callable:
         if was_series:
             if isinstance(res, tuple):
                 res_obj, res_tmp = res[0], res[1:]
-                res_obj_srs = hpandas.to_series(res_obj)
+                res_obj_srs = hpanconv.to_series(res_obj)
                 res_obj_srs = [res_obj_srs]
                 res_obj_srs.extend(res_tmp)
                 res = tuple(res_obj_srs)
             else:
-                res = hpandas.to_series(res)
+                res = hpanconv.to_series(res)
         return res
 
     return wrapper
 
 
 # #############################################################################
-
 
 def add_pct(
     df: pd.DataFrame,
