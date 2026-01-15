@@ -480,6 +480,7 @@ class TestPlaybackFileMode1(hunitest.TestCase):
         return playback_code
 
     @pytest.mark.requires_ck_infra
+    @pytest.mark.slow("~10 seconds.")
     def test1(self) -> None:
         """
         Test writing to file when number of tests is more than generated.
@@ -488,6 +489,7 @@ class TestPlaybackFileMode1(hunitest.TestCase):
         self.check_string(self.helper(max_tests))
 
     @pytest.mark.requires_ck_infra
+    @pytest.mark.slow("~10 seconds.")
     def test2(self) -> None:
         """
         Test writing to file when number of tests is default.
@@ -495,6 +497,7 @@ class TestPlaybackFileMode1(hunitest.TestCase):
         self.check_string(self.helper())
 
     @pytest.mark.requires_ck_infra
+    @pytest.mark.slow("~10 seconds.")
     def test3(self) -> None:
         """
         Test writing to file when number of tests is lower than generated.
