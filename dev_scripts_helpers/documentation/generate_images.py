@@ -32,6 +32,7 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 
 import openai
+import requests
 from tqdm import tqdm
 
 _LOG = logging.getLogger(__name__)
@@ -204,12 +205,14 @@ def _generate_images(
                 )
         else:
             # Use generate endpoint for DALL-E 3 and gpt-image-1.
+            # Request base64 response format to avoid URL download issues.
             response = client.images.generate(
                 model=model,
                 prompt=prompt,
                 size=size,
                 quality=quality,
                 n=1,
+                response_format="b64_json",
             )
         # Create filename using new format.
         resolution_suffix = "low_res" if low_res else "high_res"
@@ -218,10 +221,18 @@ def _generate_images(
         # Get the image data - could be URL or base64 encoded.
         image_data = response.data[0]
         if hasattr(image_data, "url") and image_data.url:
-            # Download from URL.
+            # Download from URL using requests library for better error handling.
             image_url = image_data.url
-            _LOG.debug("Downloading image from URL to %s", filepath)
-            urllib.request.urlretrieve(image_url, filepath)
+            _LOG.debug("Downloading image '%s' from URL to %s", image_url, filepath)
+            try:
+                response_img = requests.get(image_url, timeout=30)
+                response_img.raise_for_status()
+                with open(filepath, "wb") as f:
+                    f.write(response_img.content)
+            except requests.exceptions.RequestException as e:
+                _LOG.error("Failed to download image from URL: %s", e)
+                _LOG.error("URL: %s", image_url)
+                raise
         elif hasattr(image_data, "b64_json") and image_data.b64_json:
             # Decode base64 image.
             _LOG.debug("Decoding base64 image to %s", filepath)

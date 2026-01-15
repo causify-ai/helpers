@@ -15,7 +15,7 @@ This directory has no subdirectories.
 - `create_google_drive_map.py`
   - Processes directories by generating tree output and creating AI summaries with LLM
 - `to_local_dir.py`
-  - Converts Google Drive document links to local directory paths
+  - Converts Google Drive URLs (documents, sheets, files, or folders) to local directory paths
 
 ## Description of Executables
 
@@ -64,16 +64,21 @@ This directory has no subdirectories.
 
 #### What It Does
 
-- Converts Google Drive document URLs to local file system paths
+- Converts Google Drive URLs (documents, sheets, files, or folders) to local file system paths
 - Supports automatic account detection across multiple Google Drive accounts (causify, gmail, umd)
-- Can search for files by name across all configured accounts
+- Can search for files or folders by name across all configured accounts
 - Verifies if the local path exists and reports the result
 
 #### Examples
 
-- Convert a Google Drive URL to local path with automatic account detection:
+- Convert a Google Drive document URL to local path with automatic account detection:
   ```bash
   > ./to_local_dir.py --url "https://docs.google.com/document/d/1DK-ZWp4EhY-EpdfH66SOsdZcWkM1VE9o/edit"
+  ```
+
+- Convert a Google Drive folder URL to local path:
+  ```bash
+  > ./to_local_dir.py --url "https://drive.google.com/drive/u/0/folders/15eHDd9GUCJp8Y5YSpxJXZGqP0xiGvjfP"
   ```
 
 - Convert a URL with explicit account specification:
@@ -81,12 +86,12 @@ This directory has no subdirectories.
   > ./to_local_dir.py --url "https://docs.google.com/document/d/1DK-ZWp4EhY-EpdfH66SOsdZcWkM1VE9o/edit" --account causify
   ```
 
-- Find a file by name in a specific account:
+- Find a file or folder by name in a specific account:
   ```bash
   > ./to_local_dir.py --file_name "My Document" --account gmail
   ```
 
-- Find a file by name with automatic account detection:
+- Find a file or folder by name with automatic account detection:
   ```bash
-  > ./to_local_dir.py --file_name "My Document" --account auto
+  > ./to_local_dir.py --file_name "My Folder" --account auto
   ```

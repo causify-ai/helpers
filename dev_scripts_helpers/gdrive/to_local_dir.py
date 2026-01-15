@@ -3,7 +3,7 @@
 """
 Convert Google Drive document links to local directory paths.
 
-This script takes a Google Drive document URL (for Docs, Sheets, or Drive files)
+This script takes a Google Drive URL (for Docs, Sheets, Drive files, or folders)
 and converts it to the corresponding local directory path under one of the
 configured Google Drive accounts.
 
@@ -14,8 +14,11 @@ The script supports three Google Drive accounts:
 
 Usage examples:
 
-# Automatic account detection
+# Automatic account detection for a document
 > to_local_dir.py --url "https://docs.google.com/document/d/1DK-ZWp4EhY-EpdfH66SOsdZcWkM1VE9o/edit"
+
+# Automatic account detection for a folder
+> to_local_dir.py --url "https://drive.google.com/drive/u/0/folders/15eHDd9GUCJp8Y5YSpxJXZGqP0xiGvjfP"
 
 # Specify account explicitly
 > to_local_dir.py --url "https://docs.google.com/document/d/1DK-ZWp4EhY-EpdfH66SOsdZcWkM1VE9o/edit" --account causify
@@ -31,6 +34,7 @@ import dev_scripts_helpers.gdrive.to_local_dir as dscgdtld
 import argparse
 import logging
 import os
+import re
 from typing import Dict, List, Optional
 
 import helpers.hdbg as hdbg
@@ -58,6 +62,65 @@ def _get_valid_accounts() -> List[str]:
     :return: List of account names
     """
     return list(GOOGLE_DRIVE_ACCOUNTS.keys())
+
+
+def _is_folder_url(url: str) -> bool:
+    """
+    Check if the URL is a Google Drive folder URL.
+
+    :param url: URL to check
+    :return: True if it's a folder URL, False otherwise
+    """
+    # Folder URLs have the pattern: /folders/FOLDER_ID
+    return "/folders/" in url
+
+
+def _extract_folder_id_from_url(url: str) -> str:
+    """
+    Extract the folder ID from a Google Drive folder URL.
+
+    E.g., https://drive.google.com/drive/u/0/folders/FOLDER_ID
+
+    :param url: URL of the Google Drive folder
+    :return: Folder ID extracted from the URL
+    """
+    # Handle URLs like: https://drive.google.com/drive/u/0/folders/FOLDER_ID
+    pattern = r"/folders/([a-zA-Z0-9-_]+)"
+    match = re.search(pattern, url)
+    hdbg.dassert(match, "Invalid folder URL format: %s", url)
+    folder_id = match.group(1)
+    _LOG.debug("Extracted folder ID: '%s' from URL: '%s'", folder_id, url)
+    return folder_id
+
+
+def _get_folder_name_from_id(
+    credentials: "goasea.Credentials",
+    folder_id: str,
+) -> str:
+    """
+    Get the folder name from its ID using the Google Drive API.
+
+    :param credentials: Google credentials object
+    :param folder_id: The ID of the folder
+    :return: Name of the folder
+    """
+    service = hgodrapi.get_gdrive_service(credentials)
+    try:
+        folder_metadata = (
+            service.files()
+            .get(
+                fileId=folder_id,
+                fields="name",
+                supportsAllDrives=True,
+            )
+            .execute()
+        )
+        folder_name = folder_metadata.get("name")
+        _LOG.debug("Retrieved folder name: '%s'", folder_name)
+        return folder_name
+    except Exception as e:
+        _LOG.error("Could not get folder name for ID '%s': %s", folder_id, e)
+        raise
 
 
 def _get_local_gdrive_path(account: str) -> str:
@@ -90,11 +153,11 @@ def _find_file_in_account(
     account: str,
 ) -> Optional[str]:
     """
-    Find a file by name in a specific Google Drive account.
+    Find a file or folder by name in a specific Google Drive account.
 
-    :param file_name: Name of the file to search for
+    :param file_name: Name of the file or folder to search for
     :param account: Account name (causify, gmail, umd)
-    :return: Full path to the file if found, None otherwise
+    :return: Full path to the file/folder if found, None otherwise
     """
     base_path = _get_local_gdrive_path(account)
     if not os.path.exists(base_path):
@@ -105,30 +168,36 @@ def _find_file_in_account(
         )
         return None
     _LOG.debug("Searching for '%s' in account '%s'", file_name, account)
-    # Walk through the directory tree to find the file
+    # Walk through the directory tree to find the file or folder
     for root, dirs, files in os.walk(base_path):
+        # Check if it's a file
         if file_name in files:
             full_path = os.path.join(root, file_name)
             _LOG.info("Found file: %s", full_path)
             return full_path
-    _LOG.debug("File '%s' not found in account '%s'", file_name, account)
+        # Check if it's a directory
+        if file_name in dirs:
+            full_path = os.path.join(root, file_name)
+            _LOG.info("Found folder: %s", full_path)
+            return full_path
+    _LOG.debug("File/folder '%s' not found in account '%s'", file_name, account)
     return None
 
 
 def _auto_detect_account(file_name: str) -> Optional[str]:
     """
-    Auto-detect which Google Drive account contains the file.
+    Auto-detect which Google Drive account contains the file or folder.
 
-    :param file_name: Name of the file to search for
+    :param file_name: Name of the file or folder to search for
     :return: Account name if found, None otherwise
     """
-    _LOG.info("Auto-detecting account for file: %s", file_name)
+    _LOG.info("Auto-detecting account for file/folder: %s", file_name)
     for account in GOOGLE_DRIVE_ACCOUNTS.keys():
         file_path = _find_file_in_account(file_name, account)
         if file_path:
-            _LOG.info("File found in account: %s", account)
+            _LOG.info("File/folder found in account: %s", account)
             return account
-    _LOG.warning("File '%s' not found in any account", file_name)
+    _LOG.warning("File/folder '%s' not found in any account", file_name)
     return None
 
 
@@ -162,7 +231,7 @@ def convert_url_to_local_path(
     """
     Convert a Google Drive URL to a local file system path.
 
-    :param url: Google Drive URL (Docs, Sheets, or Drive)
+    :param url: Google Drive URL (Docs, Sheets, Drive files, or folders)
     :param account: Account name (causify, gmail, umd), or None for auto-detection
     :param credentials: Google credentials object (optional)
     :return: Local file system path
@@ -170,21 +239,38 @@ def convert_url_to_local_path(
     # Get credentials if not provided
     if credentials is None:
         credentials = hgodrapi.get_credentials()
-    # Get the file name from the URL
-    try:
-        file_name = hgodrapi.get_tab_name_from_url(credentials, url)
-    except Exception as e:
-        _LOG.warning("Could not get file name from URL: %s", e)
-        # Try to extract file ID and use it as fallback
-        file_id = hgodrapi._extract_file_id_from_url(url)
-        file_name = f"file_{file_id}"
-    _LOG.info("File name: %s", file_name)
-    # Get the Google Drive path
-    google_path_list = hgodrapi.get_google_path_from_url(credentials, url)
-    _LOG.info("Google path: %s", google_path_list)
+
+    # Check if this is a folder URL
+    if _is_folder_url(url):
+        _LOG.info("Detected folder URL")
+        # Extract folder ID
+        folder_id = _extract_folder_id_from_url(url)
+        # Get folder name
+        folder_name = _get_folder_name_from_id(credentials, folder_id)
+        _LOG.info("Folder name: %s", folder_name)
+        # Get the Google Drive path (this gets the path to the parent folders)
+        service = hgodrapi.get_gdrive_service(credentials)
+        google_path_list = hgodrapi._get_folder_path_list(service, folder_id)
+        _LOG.info("Google path: %s", google_path_list)
+    else:
+        _LOG.info("Detected file URL")
+        # Get the file name from the URL
+        try:
+            file_name = hgodrapi.get_tab_name_from_url(credentials, url)
+        except Exception as e:
+            _LOG.warning("Could not get file name from URL: %s", e)
+            # Try to extract file ID and use it as fallback
+            file_id = hgodrapi._extract_file_id_from_url(url)
+            file_name = f"file_{file_id}"
+        folder_name = file_name
+        _LOG.info("File name: %s", file_name)
+        # Get the Google Drive path
+        google_path_list = hgodrapi.get_google_path_from_url(credentials, url)
+        _LOG.info("Google path: %s", google_path_list)
+
     # Auto-detect account if not specified
     if account is None or account == "auto":
-        account = _auto_detect_account(file_name)
+        account = _auto_detect_account(folder_name)
         if account is None:
             _LOG.warning(
                 "Could not auto-detect account. Using 'causify' as default."
@@ -192,7 +278,7 @@ def convert_url_to_local_path(
             account = "causify"
     # Convert to local path
     local_path = _convert_google_path_to_local_path(
-        google_path_list, file_name, account
+        google_path_list, folder_name, account
     )
     return local_path
 
@@ -203,9 +289,9 @@ def convert_file_name_to_local_path(
     account: Optional[str] = None,
 ) -> str:
     """
-    Convert a file name to a local file system path by searching in Google Drive accounts.
+    Convert a file or folder name to a local file system path by searching in Google Drive accounts.
 
-    :param file_name: Name of the file to search for
+    :param file_name: Name of the file or folder to search for
     :param account: Account name (causify, gmail, umd), or None for auto-detection
     :return: Local file system path
     """
@@ -213,12 +299,12 @@ def convert_file_name_to_local_path(
     if account is None or account == "auto":
         account = _auto_detect_account(file_name)
         if account is None:
-            raise ValueError(f"File '{file_name}' not found in any account")
-    # Find the file in the specified account
+            raise ValueError(f"File/folder '{file_name}' not found in any account")
+    # Find the file or folder in the specified account
     file_path = _find_file_in_account(file_name, account)
     if file_path is None:
         raise ValueError(
-            f"File '{file_name}' not found in account '{account}'"
+            f"File/folder '{file_name}' not found in account '{account}'"
         )
     return file_path
 
@@ -233,12 +319,12 @@ def _parse() -> argparse.ArgumentParser:
     group.add_argument(
         "--url",
         action="store",
-        help="Google Drive URL (Docs, Sheets, or Drive)",
+        help="Google Drive URL (Docs, Sheets, Drive files, or folders)",
     )
     group.add_argument(
         "--file_name",
         action="store",
-        help="Name of the file to search for",
+        help="Name of the file or folder to search for",
     )
     parser.add_argument(
         "--account",
@@ -269,7 +355,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
             )
         # Check if the path exists
         if os.path.exists(local_path):
-            _LOG.info("File found at: %s", local_path)
+            path_type = "folder" if os.path.isdir(local_path) else "file"
+            _LOG.info("%s found at: %s", path_type.capitalize(), local_path)
             print(local_path)
         else:
             _LOG.warning(
