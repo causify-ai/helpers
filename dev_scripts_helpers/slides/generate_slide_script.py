@@ -112,7 +112,7 @@ def _generate_slide_script(
         processed
     """
     _LOG.info("Reading slides from: %s", in_file)
-    slides = dshsslut.extract_slides_from_file(in_file)
+    slides, _ = dshsslut.extract_slides_from_file(in_file)
     _LOG.info("Found %d slides total", len(slides))
     # Apply limit range if specified.
     if limit_range is not None:
