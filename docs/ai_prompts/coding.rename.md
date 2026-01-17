@@ -15,4 +15,4 @@ Make sure to update all the references to those objects in the code base
   `docs/ai_prompts/coding.format_code.md`
 
 - For Python code with unit tests, follow the rules in the rules from
-  `docs/ai_prompts/coding.format_unit_tests.md`
+  `docs/ai_prompts/testing.format_unit_tests.md`

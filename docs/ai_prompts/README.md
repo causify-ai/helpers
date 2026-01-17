@@ -15,7 +15,7 @@ the root level.
 - `coding.format_code.md`
   - Python coding standards including assertions, logging patterns, and script
     formatting rules
-- `coding.format_unit_tests.md`
+- `testing.format_unit_tests.md`
   - Unit testing conventions including test structure, naming patterns, golden
     file testing, and pytest usage
 - `coding.improve_comments.md`
