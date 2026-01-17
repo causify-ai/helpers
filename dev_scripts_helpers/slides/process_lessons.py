@@ -24,6 +24,20 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+_VALID_ACTIONS = [
+    "generate_pdf",
+    "generate_script",
+    "reduce_slide",
+    "check_slide",
+    "improve_slide",
+    "book_chapter",
+    "generate_class_quizzes",
+    "generate_class_recap",
+]
+_DEFAULT_ACTIONS = ["generate_pdf"]
+
+
+# #############################################################################
 
 def _parse_lecture_patterns(lectures_arg: str) -> List[str]:
     """
@@ -226,7 +240,7 @@ def _generate_book_chapter(
     """
     Generate book chapter from a lecture source file.
 
-    Calls gen_book_chapter.sh which:
+    Uses gen_book_chapter.py Python script which:
     1. Generates a PDF from the lecture source
     2. Creates book chapter using generate_book_chapter.py
     3. Converts to PDF using pandoc
@@ -241,30 +255,27 @@ def _generate_book_chapter(
     if not match:
         hdbg.dfatal("Could not extract lesson number from:", source_name)
     lesson_number = match.group(1)
-    # Find gen_book_chapter.sh script.
-    # Look for it in classes/ directory relative to repo root.
-    script_path = os.path.join("classes", "gen_book_chapter.sh")
-    hdbg.dassert_path_exists(script_path)
-    # Build command.
+    # Build command using Python script.
     _LOG.info(
         "Generating book chapter for %s (lesson %s)", source_name, lesson_number
     )
-    cmd_str = f"{script_path} {class_dir} {lesson_number}"
+    cmd_str = f"gen_book_chapter.py {class_dir} {lesson_number}"
     _LOG.info("Executing: %s", cmd_str)
     hsystem.system(cmd_str, suppress_output=False)
 
 
-def _generate_quizzes(
+def _generate_class_quizzes(
     class_dir: str,
     source_path: str,
     source_name: str,
 ) -> None:
     """
-    Generate quizzes from a lecture source file.
+    Generate multiple choice quizzes from a lecture source file.
 
-    Calls gen_quizzes.sh which uses an LLM to generate multiple choice questions
-    from the lecture content. The script outputs the quizzes to the
-    lectures_quizzes directory.
+    Uses gen_quizzes.py Python script with --for_class_quizzes flag which
+    generates 20 multiple choice questions with 5 answers each from the
+    lecture content. The script outputs the quizzes to the lectures_quizzes
+    directory.
 
     :param class_dir: class directory (data605 or msml610)
     :param source_path: path to source .txt file
@@ -275,15 +286,47 @@ def _generate_quizzes(
     if not match:
         hdbg.dfatal("Could not extract lesson number from:", source_name)
     lesson_number = match.group(1)
-    # Find gen_quizzes.sh script.
-    # Look for it in classes/ directory relative to repo root.
-    script_path = os.path.join("classes", "gen_quizzes.sh")
-    hdbg.dassert_path_exists(script_path)
-    # Build command.
+    # Build command using Python script.
     _LOG.info(
-        "Generating quizzes for %s (lesson %s)", source_name, lesson_number
+        "Generating class quizzes for %s (lesson %s)", source_name, lesson_number
     )
-    cmd_str = f"{script_path} {class_dir} {lesson_number}"
+    cmd_str = (
+        f"gen_quizzes.py --for_class_quizzes "
+        f"{class_dir} {lesson_number}"
+    )
+    _LOG.info("Executing: %s", cmd_str)
+    hsystem.system(cmd_str, suppress_output=False)
+
+
+def _generate_class_recap(
+    class_dir: str,
+    source_path: str,
+    source_name: str,
+) -> None:
+    """
+    Generate class recap questions from a lecture source file.
+
+    Uses gen_quizzes.py Python script with --for_class_recap flag which
+    generates 5 open-ended discussion/review questions from the lecture
+    content. The script outputs the questions to the lectures_quizzes directory.
+
+    :param class_dir: class directory (data605 or msml610)
+    :param source_path: path to source .txt file
+    :param source_name: name of source file
+    """
+    # Extract lesson number from source name (e.g., Lesson01.1-Intro.txt -> 01.1)
+    match = re.match(r"Lesson([\d.]+)", source_name)
+    if not match:
+        hdbg.dfatal("Could not extract lesson number from:", source_name)
+    lesson_number = match.group(1)
+    # Build command using Python script.
+    _LOG.info(
+        "Generating class recap for %s (lesson %s)", source_name, lesson_number
+    )
+    cmd_str = (
+        f"gen_quizzes.py --for_class_recap "
+        f"{class_dir} {lesson_number}"
+    )
     _LOG.info("Executing: %s", cmd_str)
     hsystem.system(cmd_str, suppress_output=False)
 
@@ -304,7 +347,7 @@ def _process_lecture_file(
     :param source_name: name of source file
     :param actions: list of actions to execute ('generate_pdf', 'generate_script',
         'reduce_slide', 'check_slide', 'improve_slide', 'book_chapter',
-        'generate_quizzes')
+        'generate_class_quizzes', 'generate_class_recap')
     :param limit: optional slide range to process
     """
     _LOG.info("Processing file: %s", source_path)
@@ -323,24 +366,12 @@ def _process_lecture_file(
             hdbg.dfatal("improve_slide action not yet implemented")
         elif action == "book_chapter":
             _generate_book_chapter(class_dir, source_path, source_name)
-        elif action == "generate_quizzes":
-            _generate_quizzes(class_dir, source_path, source_name)
+        elif action == "generate_class_quizzes":
+            _generate_class_quizzes(class_dir, source_path, source_name)
+        elif action == "generate_class_recap":
+            _generate_class_recap(class_dir, source_path, source_name)
         else:
             hdbg.dfatal("Unknown action:", action)
-
-
-# #############################################################################
-
-_VALID_ACTIONS = [
-    "generate_pdf",
-    "generate_script",
-    "reduce_slide",
-    "check_slide",
-    "improve_slide",
-    "book_chapter",
-    "generate_quizzes",
-]
-_DEFAULT_ACTIONS = ["generate_pdf"]
 
 # #############################################################################
 

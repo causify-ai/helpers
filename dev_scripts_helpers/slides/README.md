@@ -225,7 +225,10 @@ content into various formats.
 - `check_slide`: Apply LLM validation to check slide quality
 - `improve_slide`: Apply LLM transformation to improve slide content
 - `book_chapter`: Generate book chapter PDF from lecture content
-- `generate_quizzes`: Generate multiple choice quizzes from lecture content using LLM
+- `generate_class_quizzes`: Generate multiple choice quizzes from lecture content
+  using LLM
+- `generate_class_recap`: Generate open-ended discussion/review questions from
+  lecture content using LLM
 
 **Workflow:**
 
@@ -257,8 +260,8 @@ content into various formats.
 - `notes_to_pdf.py`: Converts text source to PDF slides
 - `generate_slide_script.py`: Creates instructor scripts
 - `process_slides.py`: Performs LLM-based transformations
-- `gen_book_chapter.sh`: Generates book chapters
-- `gen_quizzes.sh`: Generates quizzes from lecture content
+- `class_scripts/gen_book_chapter.py`: Generates book chapters
+- `class_scripts/gen_quizzes.py`: Generates quizzes from lecture content
 - `lint_txt.py`: Lints generated text files
 
 ### Examples
@@ -298,9 +301,14 @@ content into various formats.
   > ./process_lessons.py --lectures "01.1" --class data605 --action book_chapter
   ```
 
-- Generate quizzes from lecture content:
+- Generate multiple choice quizzes from lecture content:
   ```bash
-  > ./process_lessons.py --lectures "01.1" --class data605 --action generate_quizzes
+  > ./process_lessons.py --lectures "01.1" --class data605 --action generate_class_quizzes
+  ```
+
+- Generate discussion/review questions from lecture content:
+  ```bash
+  > ./process_lessons.py --lectures "01.1" --class data605 --action generate_class_recap
   ```
 
 - Process all lesson 01 lectures with multiple actions:
