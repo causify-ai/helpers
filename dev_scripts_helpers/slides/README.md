@@ -24,8 +24,8 @@ using AI services.
 - `generate_slide_script.py`
   - Generates presentation scripts from markdown slides using LLM processing
 - `process_lessons.py`
-  - Generates PDF slides and reading scripts for lecture materials from text
-    source files
+  - Orchestrates generation of PDF slides, scripts, and book chapters with
+    pattern and range support
 - `process_slides.py`
   - Processes markdown slides using LLM prompts for transformation and quality
     checks
@@ -232,21 +232,24 @@ content into various formats.
 
 **Workflow:**
 
-1. Parse lecture patterns from command line arguments (e.g., '01\*', '01.1',
-   '01\*:03\*')
+1. Parse lecture patterns or ranges from command line arguments (e.g., '01\*',
+   '01.1', '01\*:03\*', '01.1-03.2')
 2. Find matching lecture source files in `<class>/lectures_source/` directory
 3. For each matching file, execute specified actions in sequence
 4. Output generated files to appropriate directories:
    - PDF slides → `<class>/lectures/`
    - Scripts → `<class>/lectures_script/`
    - Book chapters → `<class>/book/`
-   - Quizzes → `<class>/lectures_quizzes/`
+   - Multiple choice quizzes → `<class>/lectures_quizzes/`
+   - Discussion/recap questions → `<class>/lectures_recap/`
 
 **Command Line Arguments:**
 
-- `--lectures`: Lecture pattern(s) to process (required)
+- `--lectures`: Lecture(s) to process (required)
   - Single pattern: '01.1' or '01\*'
-  - Multiple patterns separated by colon: '01\*:02\*:03.1'
+  - Union of patterns (colon-separated): '01\*:02\*:03.1'
+  - Continuous range (hyphen-separated): '01.1-03.2' (inclusive)
+  - Note: Range and union syntax cannot be mixed
 - `--class`: Class directory name (required, choices: data605, msml610)
 - `--action`: Actions to perform (default: generate_pdf)
   - Can specify multiple: `--action generate_pdf --action generate_script`
@@ -281,9 +284,19 @@ content into various formats.
   > ./process_lessons.py --lectures "02.3" --class msml610 --limit "5:10" --action generate_pdf
   ```
 
-- Process multiple lecture patterns with dry run:
+- Process multiple lecture patterns with union syntax:
   ```bash
   > ./process_lessons.py --lectures "01*:02*:03.1" --class data605 --dry_run
+  ```
+
+- Generate PDFs for a continuous range of lessons:
+  ```bash
+  > ./process_lessons.py --lectures "01.1-03.2" --class data605 --action generate_pdf
+  ```
+
+- Generate scripts for all lessons from 02.1 through 05.3:
+  ```bash
+  > ./process_lessons.py --lectures "02.1-05.3" --class msml610 --action generate_script
   ```
 
 - Reduce slide content using LLM for a single lecture:

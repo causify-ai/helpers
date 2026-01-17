@@ -5,7 +5,12 @@ Process lecture source files to generate PDF slides, scripts, and book chapters.
 
 Orchestrates the generation of multiple outputs from lecture source files including
 PDF slides, instructor scripts, LLM-based transformations, and book chapters.
-Supports batch processing via pattern matching and slide range limiting.
+Supports batch processing via pattern matching, lesson ranges, and slide range limiting.
+
+Lecture selection supports:
+- Single pattern: '01.1' or '01*'
+- Union of patterns: '01*:02*:03.1' (colon-separated)
+- Continuous range: '01.1-03.2' (hyphen-separated, inclusive)
 
 For detailed usage, examples, and documentation, see README.md in this directory.
 """
@@ -39,42 +44,127 @@ _DEFAULT_ACTIONS = ["generate_pdf"]
 
 # #############################################################################
 
-def _parse_lecture_patterns(lectures_arg: str) -> List[str]:
+def _parse_lecture_patterns(lectures_arg: str) -> Tuple[bool, List[str]]:
     """
-    Parse the lectures argument into a list of patterns.
+    Parse the lectures argument into patterns or range.
 
     The lectures argument can be:
     - A single pattern: '01.1' or '01*'
     - Multiple patterns separated by colon: '01*:02*:03.1'
+    - A range separated by hyphen: '01.1-03.2'
+
+    Range syntax and colon-separated patterns cannot be mixed.
 
     :param lectures_arg: lectures argument from command line
-    :return: list of lecture patterns
+    :return: tuple of (is_range, patterns_or_range)
+        - is_range: True if input is a range, False if patterns
+        - patterns_or_range: list with [start, end] if range, else list of patterns
     """
+    # Check if this is a range syntax (contains hyphen).
+    if "-" in lectures_arg:
+        # Validate that colon is not used (cannot mix syntaxes).
+        hdbg.dassert(
+            ":" not in lectures_arg,
+            "Cannot mix range syntax (hyphen) with union syntax (colon):",
+            lectures_arg,
+        )
+        # Parse range bounds.
+        parts = lectures_arg.split("-")
+        hdbg.dassert_eq(
+            len(parts),
+            2,
+            "Range syntax must have exactly two parts (start-end):",
+            lectures_arg,
+        )
+        _LOG.debug("Parsed lecture range: %s to %s", parts[0], parts[1])
+        return True, parts
+    # Parse as colon-separated patterns (original behavior).
     patterns = lectures_arg.split(":")
     _LOG.debug("Parsed lecture patterns: %s", patterns)
-    return patterns
+    return False, patterns
+
+
+def _expand_lecture_range(
+    class_dir: str, start_lesson: str, end_lesson: str
+) -> List[Tuple[str, str]]:
+    """
+    Expand a lesson range to find all matching lecture files.
+
+    :param class_dir: class directory (data605 or msml610)
+    :param start_lesson: start of range (e.g., '01.1')
+    :param end_lesson: end of range (e.g., '03.2')
+    :return: list of tuples (source_path, source_name) for lessons in range
+    """
+    lectures_source_dir = os.path.join(class_dir, "lectures_source")
+    hdbg.dassert_dir_exists(lectures_source_dir)
+    # Find all lecture files in the directory.
+    all_files_pattern = os.path.join(lectures_source_dir, "Lesson*")
+    all_files = sorted(glob.glob(all_files_pattern))
+    _LOG.debug("Found %d total lecture files", len(all_files))
+    # Extract lesson numbers from filenames and filter to range.
+    result = []
+    for file_path in all_files:
+        basename = os.path.basename(file_path)
+        # Extract lesson number from filename (e.g., 'Lesson01.1-Intro.txt' -> '01.1').
+        match = re.match(r"Lesson([\d.]+)", basename)
+        if not match:
+            continue
+        lesson_num = match.group(1)
+        # Check if lesson is within range (inclusive).
+        # Use string comparison which works for lesson numbers like "01.1", "01.2", etc.
+        if start_lesson <= lesson_num <= end_lesson:
+            result.append((file_path, basename))
+            _LOG.debug("Including lesson %s in range", lesson_num)
+    # Validate that we found files in the range.
+    hdbg.dassert_lt(
+        0,
+        len(result),
+        "No lecture files found in range %s to %s",
+        start_lesson,
+        end_lesson,
+    )
+    _LOG.info(
+        "Found %d lecture files in range %s to %s",
+        len(result),
+        start_lesson,
+        end_lesson,
+    )
+    return result
 
 
 def _find_lecture_files(
-    class_dir: str, patterns: List[str]
+    class_dir: str, is_range: bool, patterns_or_range: List[str]
 ) -> List[Tuple[str, str]]:
     """
-    Find all lecture source files matching the given patterns.
+    Find all lecture source files matching patterns or within a range.
 
     :param class_dir: class directory (data605 or msml610)
-    :param patterns: list of lecture patterns to match
+    :param is_range: True if patterns_or_range is a range [start, end]
+    :param patterns_or_range: list of patterns to match, or [start, end] if is_range
     :return: list of tuples (source_path, source_name)
     """
+    # Handle range syntax.
+    if is_range:
+        hdbg.dassert_eq(
+            len(patterns_or_range),
+            2,
+            "Range must have exactly two elements [start, end]:",
+            patterns_or_range,
+        )
+        start_lesson, end_lesson = patterns_or_range
+        _LOG.info("Finding lectures in range: %s to %s", start_lesson, end_lesson)
+        return _expand_lecture_range(class_dir, start_lesson, end_lesson)
+    # Handle pattern-based matching (original behavior).
     lectures_source_dir = os.path.join(class_dir, "lectures_source")
     hdbg.dassert_dir_exists(lectures_source_dir)
     # Find all matching files.
     _LOG.debug(
         "Finding lecture files for lecture_source_dir='%s' and patterns='%s'",
         lectures_source_dir,
-        patterns,
+        patterns_or_range,
     )
     all_files = []
-    for pattern in patterns:
+    for pattern in patterns_or_range:
         pattern_path = os.path.join(lectures_source_dir, f"Lesson{pattern}*")
         matched_files = sorted(glob.glob(pattern_path))
         _LOG.debug("Pattern '%s' matched %d files", pattern, len(matched_files))
@@ -308,7 +398,7 @@ def _generate_class_recap(
 
     Uses gen_quizzes.py Python script with --for_class_recap flag which
     generates 5 open-ended discussion/review questions from the lecture
-    content. The script outputs the questions to the lectures_quizzes directory.
+    content. The script outputs the questions to the lectures_recap directory.
 
     :param class_dir: class directory (data605 or msml610)
     :param source_path: path to source .txt file
@@ -390,7 +480,13 @@ def _parse() -> argparse.ArgumentParser:
         "--lectures",
         action="store",
         required=True,
-        help="Lecture pattern(s) to process (e.g., '01*', '01.1', '01*:03*')",
+        help=(
+            "Lecture(s) to process. Supports multiple formats: "
+            "- Single pattern: '01.1' or '01*' "
+            "- Union (colon-separated): '01*:02*:03.1' "
+            "- Range (hyphen-separated): '01.1-03.2' (inclusive). "
+            "Note: Range and union syntax cannot be mixed."
+        ),
     )
     parser.add_argument(
         "--limit",
@@ -429,13 +525,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     # Parse arguments.
-    patterns = _parse_lecture_patterns(args.lectures)
+    is_range, patterns_or_range = _parse_lecture_patterns(args.lectures)
     actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     _LOG.info("Selected actions: %s", actions)
     # Find matching lecture files.
-    files = _find_lecture_files(args.class_name, patterns)
+    files = _find_lecture_files(args.class_name, is_range, patterns_or_range)
     hdbg.dassert_lt(
-        0, len(files), "No lecture files found for patterns: %s", patterns
+        0,
+        len(files),
+        "No lecture files found for input: %s",
+        args.lectures,
     )
     # Validate if --limit is specified.
     if args.limit:
