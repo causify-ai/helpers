@@ -23,7 +23,6 @@ import base64
 import logging
 import os
 import re
-import urllib.request
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
@@ -223,7 +222,9 @@ def _generate_images(
         if hasattr(image_data, "url") and image_data.url:
             # Download from URL using requests library for better error handling.
             image_url = image_data.url
-            _LOG.debug("Downloading image '%s' from URL to %s", image_url, filepath)
+            _LOG.debug(
+                "Downloading image '%s' from URL to %s", image_url, filepath
+            )
             try:
                 response_img = requests.get(image_url, timeout=30)
                 response_img.raise_for_status()

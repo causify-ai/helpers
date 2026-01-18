@@ -44,6 +44,7 @@ _DEFAULT_ACTIONS = ["generate_pdf"]
 
 # #############################################################################
 
+
 def _parse_lecture_patterns(lectures_arg: str) -> Tuple[bool, List[str]]:
     """
     Parse the lectures argument into patterns or range.
@@ -152,7 +153,9 @@ def _find_lecture_files(
             patterns_or_range,
         )
         start_lesson, end_lesson = patterns_or_range
-        _LOG.info("Finding lectures in range: %s to %s", start_lesson, end_lesson)
+        _LOG.info(
+            "Finding lectures in range: %s to %s", start_lesson, end_lesson
+        )
         return _expand_lecture_range(class_dir, start_lesson, end_lesson)
     # Handle pattern-based matching (original behavior).
     lectures_source_dir = os.path.join(class_dir, "lectures_source")
@@ -380,10 +383,7 @@ def _generate_class_quizzes(
     _LOG.info(
         "Generating class quizzes for %s (lesson %s)", source_name, lesson_number
     )
-    cmd_str = (
-        f"gen_quizzes.py --for_class_quizzes "
-        f"{class_dir} {lesson_number}"
-    )
+    cmd_str = f"gen_quizzes.py --for_class_quizzes {class_dir} {lesson_number}"
     _LOG.info("Executing: %s", cmd_str)
     hsystem.system(cmd_str, suppress_output=False)
 
@@ -413,10 +413,7 @@ def _generate_class_recap(
     _LOG.info(
         "Generating class recap for %s (lesson %s)", source_name, lesson_number
     )
-    cmd_str = (
-        f"gen_quizzes.py --for_class_recap "
-        f"{class_dir} {lesson_number}"
-    )
+    cmd_str = f"gen_quizzes.py --for_class_recap {class_dir} {lesson_number}"
     _LOG.info("Executing: %s", cmd_str)
     hsystem.system(cmd_str, suppress_output=False)
 
@@ -462,6 +459,7 @@ def _process_lecture_file(
             _generate_class_recap(class_dir, source_path, source_name)
         else:
             hdbg.dfatal("Unknown action:", action)
+
 
 # #############################################################################
 

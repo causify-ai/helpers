@@ -29,7 +29,6 @@ from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
-import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
 
@@ -136,7 +135,9 @@ def _create_symbolic_link(
     # Remove existing file/link if in force mode or if it's broken.
     if os.path.exists(target_path) or os.path.islink(target_path):
         if dry_run:
-            _LOG.info("[DRY RUN] Would remove existing file/link: %s", target_path)
+            _LOG.info(
+                "[DRY RUN] Would remove existing file/link: %s", target_path
+            )
         else:
             _LOG.info("Removing existing file/link: %s", target_path)
             if os.path.isdir(target_path) and not os.path.islink(target_path):
@@ -145,7 +146,9 @@ def _create_symbolic_link(
                 os.remove(target_path)
     # Create the symbolic link.
     if dry_run:
-        _LOG.info("[DRY RUN] Would create link: %s -> %s", target_path, source_path)
+        _LOG.info(
+            "[DRY RUN] Would create link: %s -> %s", target_path, source_path
+        )
     else:
         _LOG.info("Creating link: %s -> %s", target_path, source_path)
         os.symlink(source_path, target_path)
@@ -169,7 +172,10 @@ def _create_all_links(
     repo_root = _get_current_repo_root()
     # Create links.
     if dry_run:
-        _LOG.info("[DRY RUN] Would create symbolic links for %d items", len(files_to_link))
+        _LOG.info(
+            "[DRY RUN] Would create symbolic links for %d items",
+            len(files_to_link),
+        )
     else:
         _LOG.info("Creating symbolic links for %d items", len(files_to_link))
     for item in files_to_link:
@@ -183,7 +189,9 @@ def _create_all_links(
             _LOG.warning("Source does not exist, skipping: %s", source_path)
             continue
         # Create the link.
-        _create_symbolic_link(source_path, target_path, force=force, dry_run=dry_run)
+        _create_symbolic_link(
+            source_path, target_path, force=force, dry_run=dry_run
+        )
     if dry_run:
         _LOG.info("[DRY RUN] Finished preview of symbolic links")
     else:

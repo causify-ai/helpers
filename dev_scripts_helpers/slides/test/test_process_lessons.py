@@ -1,18 +1,16 @@
 import logging
 import os
-from typing import List, Tuple
+from typing import List
 
 import helpers.hunit_test as hunitest
 
-import dev_scripts_helpers.slides.process_lessons as dsssprle
+import dev_scripts_helpers.slides.process_lessons as dshsprle
 
 _LOG = logging.getLogger(__name__)
-
 
 # #############################################################################
 # Test_parse_lecture_patterns
 # #############################################################################
-
 
 class Test_parse_lecture_patterns(hunitest.TestCase):
     """
@@ -29,7 +27,7 @@ class Test_parse_lecture_patterns(hunitest.TestCase):
         Helper to test _parse_lecture_patterns and assert results.
         """
         # Run test.
-        actual_is_range, actual_patterns = dsssprle._parse_lecture_patterns(
+        actual_is_range, actual_patterns = dshsprle._parse_lecture_patterns(
             lectures_arg
         )
         # Check outputs.
@@ -103,8 +101,10 @@ class Test_parse_lecture_patterns(hunitest.TestCase):
         lectures_arg = "01.1-03.2:04*"
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
-            dsssprle._parse_lecture_patterns(lectures_arg)
-        expected_error = "Cannot mix range syntax (hyphen) with union syntax (colon)"
+            dshsprle._parse_lecture_patterns(lectures_arg)
+        expected_error = (
+            "Cannot mix range syntax (hyphen) with union syntax (colon)"
+        )
         self.assertIn(expected_error, str(cm.exception))
 
     def test6(self) -> None:
@@ -118,15 +118,13 @@ class Test_parse_lecture_patterns(hunitest.TestCase):
         lectures_arg = "01.1-03.2-05.1"
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
-            dsssprle._parse_lecture_patterns(lectures_arg)
+            dshsprle._parse_lecture_patterns(lectures_arg)
         expected_error = "Range syntax must have exactly two parts (start-end)"
         self.assertIn(expected_error, str(cm.exception))
-
 
 # #############################################################################
 # Test_expand_lecture_range
 # #############################################################################
-
 
 class Test_expand_lecture_range(hunitest.TestCase):
     """
@@ -185,7 +183,7 @@ class Test_expand_lecture_range(hunitest.TestCase):
         expected_first_file = "Lesson01.1-Intro.txt"
         expected_last_file = "Lesson02.1-Git.txt"
         # Run test.
-        actual_files = dsssprle._expand_lecture_range(
+        actual_files = dshsprle._expand_lecture_range(
             class_dir, start_lesson, end_lesson
         )
         # Check outputs.
@@ -213,7 +211,7 @@ class Test_expand_lecture_range(hunitest.TestCase):
         expected_count = 1
         expected_file = "Lesson01.1-Intro.txt"
         # Run test.
-        actual_files = dsssprle._expand_lecture_range(
+        actual_files = dshsprle._expand_lecture_range(
             class_dir, start_lesson, end_lesson
         )
         # Check outputs.
@@ -238,15 +236,13 @@ class Test_expand_lecture_range(hunitest.TestCase):
         end_lesson = "99.9"
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
-            dsssprle._expand_lecture_range(class_dir, start_lesson, end_lesson)
+            dshsprle._expand_lecture_range(class_dir, start_lesson, end_lesson)
         expected_error = "No lecture files found in range"
         self.assertIn(expected_error, str(cm.exception))
-
 
 # #############################################################################
 # Test_find_lecture_files
 # #############################################################################
-
 
 class Test_find_lecture_files(hunitest.TestCase):
     """
@@ -287,7 +283,7 @@ class Test_find_lecture_files(hunitest.TestCase):
         Helper to test _find_lecture_files and assert result count.
         """
         # Run test.
-        actual_files = dsssprle._find_lecture_files(
+        actual_files = dshsprle._find_lecture_files(
             class_dir, is_range, patterns_or_range
         )
         # Check outputs.
@@ -385,6 +381,6 @@ class Test_find_lecture_files(hunitest.TestCase):
         patterns_or_range = ["01.1", "02.1", "03.1"]
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
-            dsssprle._find_lecture_files(class_dir, is_range, patterns_or_range)
+            dshsprle._find_lecture_files(class_dir, is_range, patterns_or_range)
         expected_error = "Range must have exactly two elements"
         self.assertIn(expected_error, str(cm.exception))

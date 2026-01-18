@@ -39,7 +39,6 @@ from typing import Dict, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hgoogle_drive_api as hgodrapi
-import helpers.hio as hio
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -216,7 +215,9 @@ def _convert_google_path_to_local_path(
     """
     base_path = _get_local_gdrive_path(account)
     # Skip "My Drive" if it's in the path
-    filtered_path = [p for p in google_path_list if p not in ["My Drive", "Shared drives"]]
+    filtered_path = [
+        p for p in google_path_list if p not in ["My Drive", "Shared drives"]
+    ]
     # Construct the full path
     local_path = os.path.join(base_path, *filtered_path, file_name)
     return local_path
@@ -299,7 +300,9 @@ def convert_file_name_to_local_path(
     if account is None or account == "auto":
         account = _auto_detect_account(file_name)
         if account is None:
-            raise ValueError(f"File/folder '{file_name}' not found in any account")
+            raise ValueError(
+                f"File/folder '{file_name}' not found in any account"
+            )
     # Find the file or folder in the specified account
     file_path = _find_file_in_account(file_name, account)
     if file_path is None:
