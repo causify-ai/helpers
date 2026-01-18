@@ -1,9 +1,3 @@
-"""
-Unit tests for process_lessons.py.
-
-Tests the lecture pattern parsing and range expansion functionality.
-"""
-
 import logging
 import os
 from typing import List, Tuple
@@ -25,7 +19,24 @@ class Test_parse_lecture_patterns(hunitest.TestCase):
     Test _parse_lecture_patterns function for parsing lecture patterns and ranges.
     """
 
-    def test_single_pattern(self) -> None:
+    def _helper(
+        self,
+        lectures_arg: str,
+        expected_is_range: bool,
+        expected_patterns: List[str],
+    ) -> None:
+        """
+        Helper to test _parse_lecture_patterns and assert results.
+        """
+        # Run test.
+        actual_is_range, actual_patterns = dsssprle._parse_lecture_patterns(
+            lectures_arg
+        )
+        # Check outputs.
+        self.assertEqual(actual_is_range, expected_is_range)
+        self.assertEqual(actual_patterns, expected_patterns)
+
+    def test1(self) -> None:
         """
         Test parsing a single lecture pattern.
 
@@ -34,16 +45,12 @@ class Test_parse_lecture_patterns(hunitest.TestCase):
         """
         # Prepare inputs.
         lectures_arg = "01.1"
-        # Prepare outputs.
         expected_is_range = False
         expected_patterns = ["01.1"]
         # Run test.
-        actual_is_range, actual_patterns = dsssprle._parse_lecture_patterns(lectures_arg)
-        # Check outputs.
-        self.assertEqual(actual_is_range, expected_is_range)
-        self.assertEqual(actual_patterns, expected_patterns)
+        self._helper(lectures_arg, expected_is_range, expected_patterns)
 
-    def test_wildcard_pattern(self) -> None:
+    def test2(self) -> None:
         """
         Test parsing a wildcard pattern.
 
@@ -52,16 +59,12 @@ class Test_parse_lecture_patterns(hunitest.TestCase):
         """
         # Prepare inputs.
         lectures_arg = "01*"
-        # Prepare outputs.
         expected_is_range = False
         expected_patterns = ["01*"]
         # Run test.
-        actual_is_range, actual_patterns = dsssprle._parse_lecture_patterns(lectures_arg)
-        # Check outputs.
-        self.assertEqual(actual_is_range, expected_is_range)
-        self.assertEqual(actual_patterns, expected_patterns)
+        self._helper(lectures_arg, expected_is_range, expected_patterns)
 
-    def test_union_patterns(self) -> None:
+    def test3(self) -> None:
         """
         Test parsing multiple patterns separated by colons (union syntax).
 
@@ -70,16 +73,12 @@ class Test_parse_lecture_patterns(hunitest.TestCase):
         """
         # Prepare inputs.
         lectures_arg = "01*:02*:03.1"
-        # Prepare outputs.
         expected_is_range = False
         expected_patterns = ["01*", "02*", "03.1"]
         # Run test.
-        actual_is_range, actual_patterns = dsssprle._parse_lecture_patterns(lectures_arg)
-        # Check outputs.
-        self.assertEqual(actual_is_range, expected_is_range)
-        self.assertEqual(actual_patterns, expected_patterns)
+        self._helper(lectures_arg, expected_is_range, expected_patterns)
 
-    def test_range_syntax(self) -> None:
+    def test4(self) -> None:
         """
         Test parsing a range pattern with hyphen separator.
 
@@ -88,16 +87,12 @@ class Test_parse_lecture_patterns(hunitest.TestCase):
         """
         # Prepare inputs.
         lectures_arg = "01.1-03.2"
-        # Prepare outputs.
         expected_is_range = True
         expected_range = ["01.1", "03.2"]
         # Run test.
-        actual_is_range, actual_range = dsssprle._parse_lecture_patterns(lectures_arg)
-        # Check outputs.
-        self.assertEqual(actual_is_range, expected_is_range)
-        self.assertEqual(actual_range, expected_range)
+        self._helper(lectures_arg, expected_is_range, expected_range)
 
-    def test_mixed_syntax_raises_error(self) -> None:
+    def test5(self) -> None:
         """
         Test that mixing range and union syntax raises AssertionError.
 
@@ -112,7 +107,7 @@ class Test_parse_lecture_patterns(hunitest.TestCase):
         expected_error = "Cannot mix range syntax (hyphen) with union syntax (colon)"
         self.assertIn(expected_error, str(cm.exception))
 
-    def test_invalid_range_format_raises_error(self) -> None:
+    def test6(self) -> None:
         """
         Test that invalid range format raises AssertionError.
 
@@ -140,7 +135,28 @@ class Test_expand_lecture_range(hunitest.TestCase):
     Note: These tests require a mock directory structure with lecture files.
     """
 
-    def test_valid_range_multiple_files(self) -> None:
+    def _create_test_structure(
+        self,
+        test_files: List[str],
+    ) -> str:
+        """
+        Create test directory structure with lecture files.
+
+        :param test_files: List of lecture filenames to create
+        :return: class_dir path
+        """
+        scratch_dir = self.get_scratch_space()
+        class_dir = os.path.join(scratch_dir, "data605")
+        lectures_source_dir = os.path.join(class_dir, "lectures_source")
+        os.makedirs(lectures_source_dir)
+        # Create mock lecture files.
+        for filename in test_files:
+            filepath = os.path.join(lectures_source_dir, filename)
+            with open(filepath, "w") as f:
+                f.write(f"Content of {filename}")
+        return class_dir
+
+    def test1(self) -> None:
         """
         Test expanding a range that includes multiple lecture files.
 
@@ -157,34 +173,27 @@ class Test_expand_lecture_range(hunitest.TestCase):
         ]
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        class_dir = os.path.join(scratch_dir, "data605")
-        lectures_source_dir = os.path.join(class_dir, "lectures_source")
-        os.makedirs(lectures_source_dir)
-        # Create mock lecture files.
         test_files = [
             "Lesson01.1-Intro.txt",
             "Lesson01.2-BigData.txt",
             "Lesson02.1-Git.txt",
         ]
-        for filename in test_files:
-            filepath = os.path.join(lectures_source_dir, filename)
-            with open(filepath, "w") as f:
-                f.write(f"Content of {filename}")
+        class_dir = self._create_test_structure(test_files)
         start_lesson = "01.1"
         end_lesson = "02.1"
-        # Prepare outputs.
         expected_count = 3
         expected_first_file = "Lesson01.1-Intro.txt"
         expected_last_file = "Lesson02.1-Git.txt"
         # Run test.
-        actual_files = dsssprle._expand_lecture_range(class_dir, start_lesson, end_lesson)
+        actual_files = dsssprle._expand_lecture_range(
+            class_dir, start_lesson, end_lesson
+        )
         # Check outputs.
         self.assertEqual(len(actual_files), expected_count)
         self.assertEqual(actual_files[0][1], expected_first_file)
         self.assertEqual(actual_files[-1][1], expected_last_file)
 
-    def test_valid_range_single_file(self) -> None:
+    def test2(self) -> None:
         """
         Test expanding a range that includes only one lecture file.
 
@@ -197,26 +206,21 @@ class Test_expand_lecture_range(hunitest.TestCase):
         [('.../Lesson01.1-Intro.txt', 'Lesson01.1-Intro.txt')]
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        class_dir = os.path.join(scratch_dir, "data605")
-        lectures_source_dir = os.path.join(class_dir, "lectures_source")
-        os.makedirs(lectures_source_dir)
-        # Create mock lecture file.
-        test_file = "Lesson01.1-Intro.txt"
-        filepath = os.path.join(lectures_source_dir, test_file)
-        with open(filepath, "w") as f:
-            f.write("Content of Lesson01.1")
+        test_files = ["Lesson01.1-Intro.txt"]
+        class_dir = self._create_test_structure(test_files)
         start_lesson = "01.1"
         end_lesson = "01.1"
-        # Prepare outputs.
         expected_count = 1
+        expected_file = "Lesson01.1-Intro.txt"
         # Run test.
-        actual_files = dsssprle._expand_lecture_range(class_dir, start_lesson, end_lesson)
+        actual_files = dsssprle._expand_lecture_range(
+            class_dir, start_lesson, end_lesson
+        )
         # Check outputs.
         self.assertEqual(len(actual_files), expected_count)
-        self.assertEqual(actual_files[0][1], test_file)
+        self.assertEqual(actual_files[0][1], expected_file)
 
-    def test_no_files_in_range_raises_error(self) -> None:
+    def test3(self) -> None:
         """
         Test that an empty range raises AssertionError.
 
@@ -228,14 +232,8 @@ class Test_expand_lecture_range(hunitest.TestCase):
         Expected: AssertionError with message about no files found
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        class_dir = os.path.join(scratch_dir, "data605")
-        lectures_source_dir = os.path.join(class_dir, "lectures_source")
-        os.makedirs(lectures_source_dir)
-        # Create a file outside the range.
-        filepath = os.path.join(lectures_source_dir, "Lesson01.1-Intro.txt")
-        with open(filepath, "w") as f:
-            f.write("Content")
+        test_files = ["Lesson01.1-Intro.txt"]
+        class_dir = self._create_test_structure(test_files)
         start_lesson = "99.1"
         end_lesson = "99.9"
         # Run test and check output.
@@ -257,7 +255,45 @@ class Test_find_lecture_files(hunitest.TestCase):
     Note: These tests require a mock directory structure with lecture files.
     """
 
-    def test_range_mode(self) -> None:
+    def _create_test_structure(
+        self,
+        test_files: List[str],
+    ) -> str:
+        """
+        Create test directory structure with lecture files.
+
+        :param test_files: List of lecture filenames to create
+        :return: class_dir path
+        """
+        scratch_dir = self.get_scratch_space()
+        class_dir = os.path.join(scratch_dir, "data605")
+        lectures_source_dir = os.path.join(class_dir, "lectures_source")
+        os.makedirs(lectures_source_dir)
+        # Create mock lecture files.
+        for filename in test_files:
+            filepath = os.path.join(lectures_source_dir, filename)
+            with open(filepath, "w") as f:
+                f.write(f"Content of {filename}")
+        return class_dir
+
+    def _helper(
+        self,
+        class_dir: str,
+        is_range: bool,
+        patterns_or_range: List[str],
+        expected_count: int,
+    ) -> None:
+        """
+        Helper to test _find_lecture_files and assert result count.
+        """
+        # Run test.
+        actual_files = dsssprle._find_lecture_files(
+            class_dir, is_range, patterns_or_range
+        )
+        # Check outputs.
+        self.assertEqual(len(actual_files), expected_count)
+
+    def test1(self) -> None:
         """
         Test finding files using range mode.
 
@@ -269,30 +305,19 @@ class Test_find_lecture_files(hunitest.TestCase):
         Expected output: List of tuples for files from Lesson01.1 to Lesson02.1
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        class_dir = os.path.join(scratch_dir, "data605")
-        lectures_source_dir = os.path.join(class_dir, "lectures_source")
-        os.makedirs(lectures_source_dir)
-        # Create mock lecture files.
         test_files = [
             "Lesson01.1-Intro.txt",
             "Lesson01.2-BigData.txt",
             "Lesson02.1-Git.txt",
         ]
-        for filename in test_files:
-            filepath = os.path.join(lectures_source_dir, filename)
-            with open(filepath, "w") as f:
-                f.write(f"Content of {filename}")
+        class_dir = self._create_test_structure(test_files)
         is_range = True
         patterns_or_range = ["01.1", "02.1"]
-        # Prepare outputs.
         expected_count = 3
         # Run test.
-        actual_files = dsssprle._find_lecture_files(class_dir, is_range, patterns_or_range)
-        # Check outputs.
-        self.assertEqual(len(actual_files), expected_count)
+        self._helper(class_dir, is_range, patterns_or_range, expected_count)
 
-    def test_pattern_mode_single_pattern(self) -> None:
+    def test2(self) -> None:
         """
         Test finding files using single pattern mode.
 
@@ -304,30 +329,19 @@ class Test_find_lecture_files(hunitest.TestCase):
         Expected output: List of tuples for all files matching Lesson01*
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        class_dir = os.path.join(scratch_dir, "data605")
-        lectures_source_dir = os.path.join(class_dir, "lectures_source")
-        os.makedirs(lectures_source_dir)
-        # Create mock lecture files.
         test_files = [
             "Lesson01.1-Intro.txt",
             "Lesson01.2-BigData.txt",
             "Lesson02.1-Git.txt",
         ]
-        for filename in test_files:
-            filepath = os.path.join(lectures_source_dir, filename)
-            with open(filepath, "w") as f:
-                f.write(f"Content of {filename}")
+        class_dir = self._create_test_structure(test_files)
         is_range = False
         patterns_or_range = ["01*"]
-        # Prepare outputs.
         expected_count = 2  # Lesson01.1 and Lesson01.2
         # Run test.
-        actual_files = dsssprle._find_lecture_files(class_dir, is_range, patterns_or_range)
-        # Check outputs.
-        self.assertEqual(len(actual_files), expected_count)
+        self._helper(class_dir, is_range, patterns_or_range, expected_count)
 
-    def test_pattern_mode_multiple_patterns(self) -> None:
+    def test3(self) -> None:
         """
         Test finding files using multiple patterns (union syntax).
 
@@ -339,30 +353,19 @@ class Test_find_lecture_files(hunitest.TestCase):
         Expected output: List of tuples for all files matching Lesson01* and Lesson02*
         """
         # Prepare inputs.
-        scratch_dir = self.get_scratch_space()
-        class_dir = os.path.join(scratch_dir, "data605")
-        lectures_source_dir = os.path.join(class_dir, "lectures_source")
-        os.makedirs(lectures_source_dir)
-        # Create mock lecture files.
         test_files = [
             "Lesson01.1-Intro.txt",
             "Lesson01.2-BigData.txt",
             "Lesson02.1-Git.txt",
         ]
-        for filename in test_files:
-            filepath = os.path.join(lectures_source_dir, filename)
-            with open(filepath, "w") as f:
-                f.write(f"Content of {filename}")
+        class_dir = self._create_test_structure(test_files)
         is_range = False
         patterns_or_range = ["01*", "02*"]
-        # Prepare outputs.
         expected_count = 3  # All files match
         # Run test.
-        actual_files = dsssprle._find_lecture_files(class_dir, is_range, patterns_or_range)
-        # Check outputs.
-        self.assertEqual(len(actual_files), expected_count)
+        self._helper(class_dir, is_range, patterns_or_range, expected_count)
 
-    def test_invalid_range_length_raises_error(self) -> None:
+    def test4(self) -> None:
         """
         Test that invalid range length raises AssertionError.
 

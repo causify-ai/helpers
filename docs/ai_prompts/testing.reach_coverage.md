@@ -1,4 +1,4 @@
-Task: Increase unit test coverage to approach 100 percent for a given function.
+Increase unit test coverage to approach 100 percent for a given function.
 
 Context and constraints:
 - You will be given a specific function to work on.
@@ -8,8 +8,6 @@ Context and constraints:
 - Focus on meaningful behavior and correctness rather than superficial coverage.
 - If any part of the task is unclear or underspecified, stop and ask for
   clarification before proceeding.
-
-Process:
 
 ## Step 1: Establish current coverage
 - Identify the test file corresponding to the target function

@@ -15,9 +15,6 @@ the root level.
 - `coding.format_code.md`
   - Python coding standards including assertions, logging patterns, and script
     formatting rules
-- `testing.format_unit_tests.md`
-  - Unit testing conventions including test structure, naming patterns, golden
-    file testing, and pytest usage
 - `coding.improve_comments.md`
   - Prompt template for improving code comments clarity and conciseness
 - `coding.update_comments.md`
@@ -26,6 +23,45 @@ the root level.
 - `coding.update_expected_vars.md`
   - Prompt for updating expected variable names in test files to match code
     changes
+- `coding.factor_common_code.md`
+  - Prompt for identifying and refactoring duplicated or near-duplicated code
+    blocks into shared functions
+- `coding.fix_gh_issue.md`
+  - Prompt for analyzing and fixing GitHub issues
+- `coding.fix_param_use.md`
+  - Prompt for fixing parameter usage issues in Python code
+- `coding.find_doc.md`
+  - Prompt for finding documentation for files, classes, or functions
+- `coding.lint.md`
+  - Prompt for improving code appearance by applying formatting rules from
+    `coding.format_code.md` and `testing.format_unit_tests.md`
+- `coding.rename.md`
+  - Prompt for renaming files, functions, and variables across a codebase with
+    proper reference updates
+- `coding.review.md`
+  - Prompt for reviewing Python code, finding bugs, and providing fixes with
+    minimal changes
+- `coding.todoai_gp.md`
+  - Prompt for implementing TODO(ai_gp) comments in code files
+- `coding.update_dir_readme.md`
+  - Prompt for creating or updating README.md for a given directory
+- `coding.update_file_readme.md`
+  - Prompt for creating or updating README.md for a given file
+
+## Testing
+
+- `testing.format_unit_tests.md`
+  - Unit testing conventions including test structure, naming patterns, golden
+    file testing, and pytest usage
+- `testing.fix_unit_tests.md`
+  - Prompt for refactoring test code by aligning strings, renaming test methods
+    as test1/test2, and factoring out common code into helper functions
+- `testing.move_test_code.md`
+  - Prompt for moving test code from one file to another using
+    `split_in_files.py`
+- `testing.reach_coverage.md`
+  - Prompt for increasing unit test coverage to approach 100% for a given
+    function with structured 4-step process
 
 ## Documentation and Writing
 
@@ -46,6 +82,9 @@ the root level.
 - `blog.format_text.md`
   - Markdown formatting guidelines for writing blog posts with proper structure
     and metadata
+- `blog.add_figures.md`
+  - Prompt for adding images, diagrams, and visuals to blog posts using
+    graphviz, TikZ, or graphic images
 
 ## Academic Papers
 
@@ -56,3 +95,24 @@ the root level.
   - Prompt template for improving bibliography formatting and citation accuracy
 - `paper.suggest_improvements.md`
   - Prompt for suggesting improvements to academic paper content and structure
+- `paper.fix_figures.md`
+  - Prompt for fixing figures in academic papers
+
+## Demo and Presentations
+
+- `demo.create_script.md`
+  - Prompt for creating 15-slide presentation storyboards for narrated explainer
+    videos targeting non-technical audiences
+- `demo.create_pictures.md`
+  - Prompt for creating visual assets for demonstrations and presentations
+
+## Graphviz and Visualization
+
+- `graphviz.causal_kg_style.md`
+  - Style guide for creating causal knowledge graphs using graphviz with
+    consistent formatting
+- `graphviz.convert_image.md`
+  - Prompt for converting images to graphviz dot format by iteratively tweaking
+    until matching the original
+- `graphviz.generate_legend.md`
+  - Prompt for generating legend diagrams for graphviz visualizations
