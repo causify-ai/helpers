@@ -1,0 +1,1 @@
+../../docs/ai_prompts/coding.factor_common_code.md
