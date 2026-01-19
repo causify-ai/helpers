@@ -17,8 +17,8 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 # Whether to run tests that use the real LLM API.
-# _RUN_REAL_LLM = False
-_RUN_REAL_LLM = True
+_RUN_REAL_LLM = False
+# _RUN_REAL_LLM = True
 
 # #############################################################################
 # Test_apply_llm_with_files
