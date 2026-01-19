@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hpandas as hpandas
+import helpers.hpandas_conversion as hpanconv
 """
 
 from typing import List, Optional, Union
@@ -11,7 +11,6 @@ import pandas as pd
 
 import helpers.hdbg as hdbg
 import helpers.hlogging as hloggin
-import helpers.hpandas_dassert as hpandass
 
 _LOG = hloggin.getLogger(__name__)
 
@@ -122,9 +121,7 @@ def convert_to_type(col: pd.Series, type_: str) -> pd.Series:
             lambda x: (
                 True
                 if x in ["True", 1, "1", "true", True]
-                else False
-                if x in [0, "0", "False", False, "false"]
-                else None
+                else False if x in [0, "0", "False", False, "false"] else None
             )
         )
     elif type_ == "is_int":
@@ -148,6 +145,8 @@ def convert_col_to_int(
     categorical-type column, this function will convert it to an integer
     column.
     """
+    import helpers.hpandas_dassert as hpandass
+
     hdbg.dassert_isinstance(df, pd.DataFrame)
     hdbg.dassert_isinstance(col, str)
     hdbg.dassert_in(col, df.columns)

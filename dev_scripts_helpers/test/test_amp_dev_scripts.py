@@ -1,4 +1,5 @@
 import logging
+import pytest
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
@@ -35,6 +36,7 @@ class Test_url_py1(hunitest.TestCase):
         expected = "oil/ST/Task229_Exploratory_analysis_of_ST_data_part1.ipynb"
         self.assertEqual(actual, expected)
 
+    @pytest.mark.slow("~10 seconds.")
     def test_run1(self) -> None:
         exec_name = hgit.find_file_in_git_tree("url.py")
         hdbg.dassert_path_exists(exec_name)
