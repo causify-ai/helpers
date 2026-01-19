@@ -163,7 +163,7 @@ This documentation provides comprehensive guidelines for:
   Python scripts with tests, documentation, planning steps, and AI todos
 - `docs/ai_prompts/coding.format_code.md`: Python coding standards including
   hdbg assertions, hsystem usage, logging patterns, and script templates
-- `docs/ai_prompts/coding.format_unit_tests.md`: Unit testing conventions
+- `docs/ai_prompts/testing.format_unit_tests.md`: Unit testing conventions
   including test structure, naming patterns, and golden file testing
 
 - `docs/ai_prompts/blog.format_text.md`: Markdown formatting guidelines for
@@ -180,7 +180,7 @@ When creating a Python script:
    `docs/ai_prompts/coding.format_code.md`
 
 2. **Generate unit tests** for the code following the instructions in
-   `docs/ai_prompts/coding.format_unit_tests.md`
+   `docs/ai_prompts/testing.format_unit_tests.md`
 
 3. **Generate a short description** of how to use the script in a file close to
    the script with extension `.md`

@@ -269,6 +269,37 @@
 
 ## Create Symbolic Links
 
+### Create Standard Configuration File Links
+
+- Use `create_all_helpers_links.py` to automatically create symbolic links for
+  standard configuration files from `helpers_root` to the repository root
+
+  ```bash
+  # Create all missing links
+  > helpers_root/dev_scripts_helpers/thin_client/create_all_helpers_links.py
+
+  # Force recreate all links (even if they exist)
+  > helpers_root/dev_scripts_helpers/thin_client/create_all_helpers_links.py --force
+
+  # Preview what would be done without making changes
+  > helpers_root/dev_scripts_helpers/thin_client/create_all_helpers_links.py --dry_run
+  ```
+
+- This script creates symbolic links for the following standard files:
+  - `.claude/` - Claude Code configuration
+  - `.coveragerc` - Test coverage configuration
+  - `.gitignore` - Git ignore patterns
+  - `.gitleaksignore` - Gitleaks scan exclusions
+  - `.isort.cfg` - Import sorting configuration
+  - `.pre-commit-config.yaml` - Pre-commit hooks
+  - `CLAUDE.md` - Claude Code project context
+  - `conftest.py` - Pytest configuration
+  - `linters2/` - Linting scripts
+  - `pyproject.toml` - Python project configuration
+  - `pytest.ini` - Pytest settings
+
+### Create Custom Symbolic Links
+
 - Check the difference between the super-repo and `helpers`
 
   ```bash

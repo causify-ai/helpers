@@ -1,4 +1,8 @@
-#!/usr/bin/env -S uv run --script
+#!/usr/bin/env -S uv run
+
+# /// script
+# dependencies = ["pypdf", "pyyaml"]
+# ///
 
 """
 Concatenate multiple PDF files into a single PDF file.
@@ -25,10 +29,6 @@ Import as:
 
 import dev_scripts_helpers.documentation.concatenate_pdfs as dsdocopr
 """
-
-# /// script
-# dependencies = ["pypdf", "pyyaml"]
-# ///
 
 import argparse
 import glob

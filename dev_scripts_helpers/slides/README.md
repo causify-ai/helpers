@@ -24,8 +24,8 @@ using AI services.
 - `generate_slide_script.py`
   - Generates presentation scripts from markdown slides using LLM processing
 - `process_lessons.py`
-  - Generates PDF slides and reading scripts for lecture materials from text
-    source files
+  - Orchestrates generation of PDF slides, scripts, and book chapters with
+    pattern and range support
 - `process_slides.py`
   - Processes markdown slides using LLM prompts for transformation and quality
     checks
@@ -219,31 +219,40 @@ content into various formats.
 
 **Supported Actions:**
 
-- `pdf`: Generate presentation slides from text source files
-- `script`: Generate instructor reading scripts with commentary
-- `slide_reduce`: Apply LLM transformation to reduce slide content
-- `slide_check`: Apply LLM validation to check slide quality
+- `generate_pdf`: Generate presentation slides from text source files
+- `generate_script`: Generate instructor reading scripts with commentary
+- `reduce_slide`: Apply LLM transformation to reduce slide content
+- `check_slide`: Apply LLM validation to check slide quality
+- `improve_slide`: Apply LLM transformation to improve slide content
 - `book_chapter`: Generate book chapter PDF from lecture content
+- `generate_class_quizzes`: Generate multiple choice quizzes from lecture content
+  using LLM
+- `generate_class_recap`: Generate open-ended discussion/review questions from
+  lecture content using LLM
 
 **Workflow:**
 
-1. Parse lecture patterns from command line arguments (e.g., '01\*', '01.1',
-   '01\*:03\*')
+1. Parse lecture patterns or ranges from command line arguments (e.g., '01\*',
+   '01.1', '01\*:03\*', '01.1-03.2')
 2. Find matching lecture source files in `<class>/lectures_source/` directory
 3. For each matching file, execute specified actions in sequence
 4. Output generated files to appropriate directories:
    - PDF slides → `<class>/lectures/`
    - Scripts → `<class>/lectures_script/`
    - Book chapters → `<class>/book/`
+   - Multiple choice quizzes → `<class>/lectures_quizzes/`
+   - Discussion/recap questions → `<class>/lectures_recap/`
 
 **Command Line Arguments:**
 
-- `--lectures`: Lecture pattern(s) to process (required)
+- `--lectures`: Lecture(s) to process (required)
   - Single pattern: '01.1' or '01\*'
-  - Multiple patterns separated by colon: '01\*:02\*:03.1'
+  - Union of patterns (colon-separated): '01\*:02\*:03.1'
+  - Continuous range (hyphen-separated): '01.1-03.2' (inclusive)
+  - Note: Range and union syntax cannot be mixed
 - `--class`: Class directory name (required, choices: data605, msml610)
-- `--action`: Actions to perform (default: pdf)
-  - Can specify multiple: `--action pdf --action script`
+- `--action`: Actions to perform (default: generate_pdf)
+  - Can specify multiple: `--action generate_pdf --action generate_script`
 - `--limit`: Optional slide range to process (e.g., '1:3')
   - Only works when processing a single lecture file
 - `--dry_run`: Print commands without executing them
@@ -254,39 +263,50 @@ content into various formats.
 - `notes_to_pdf.py`: Converts text source to PDF slides
 - `generate_slide_script.py`: Creates instructor scripts
 - `process_slides.py`: Performs LLM-based transformations
-- `gen_book_chapter.sh`: Generates book chapters
+- `class_scripts/gen_book_chapter.py`: Generates book chapters
+- `class_scripts/gen_quizzes.py`: Generates quizzes from lecture content
 - `lint_txt.py`: Lints generated text files
 
 ### Examples
 
 - Generate PDF slides for all lectures in lesson 01:
   ```bash
-  > ./process_lessons.py --lectures "01*" --class msml610 --action pdf
+  > ./process_lessons.py --lectures "01*" --class msml610 --action generate_pdf
   ```
 
 - Generate both PDF and script for a specific lecture:
   ```bash
-  > ./process_lessons.py --lectures "01.1" --class data605 --action pdf --action script
+  > ./process_lessons.py --lectures "01.1" --class data605 --action generate_pdf --action generate_script
   ```
 
 - Process specific slide range in a single lecture:
   ```bash
-  > ./process_lessons.py --lectures "02.3" --class msml610 --limit "5:10" --action pdf
+  > ./process_lessons.py --lectures "02.3" --class msml610 --limit "5:10" --action generate_pdf
   ```
 
-- Process multiple lecture patterns with dry run:
+- Process multiple lecture patterns with union syntax:
   ```bash
   > ./process_lessons.py --lectures "01*:02*:03.1" --class data605 --dry_run
   ```
 
+- Generate PDFs for a continuous range of lessons:
+  ```bash
+  > ./process_lessons.py --lectures "01.1-03.2" --class data605 --action generate_pdf
+  ```
+
+- Generate scripts for all lessons from 02.1 through 05.3:
+  ```bash
+  > ./process_lessons.py --lectures "02.1-05.3" --class msml610 --action generate_script
+  ```
+
 - Reduce slide content using LLM for a single lecture:
   ```bash
-  > ./process_lessons.py --lectures "01.1" --class data605 --action slide_reduce
+  > ./process_lessons.py --lectures "01.1" --class data605 --action reduce_slide
   ```
 
 - Check slide quality using LLM validation:
   ```bash
-  > ./process_lessons.py --lectures "01.1" --class data605 --action slide_check
+  > ./process_lessons.py --lectures "01.1" --class data605 --action check_slide
   ```
 
 - Generate book chapter from lecture:
@@ -294,14 +314,24 @@ content into various formats.
   > ./process_lessons.py --lectures "01.1" --class data605 --action book_chapter
   ```
 
+- Generate multiple choice quizzes from lecture content:
+  ```bash
+  > ./process_lessons.py --lectures "01.1" --class data605 --action generate_class_quizzes
+  ```
+
+- Generate discussion/review questions from lecture content:
+  ```bash
+  > ./process_lessons.py --lectures "01.1" --class data605 --action generate_class_recap
+  ```
+
 - Process all lesson 01 lectures with multiple actions:
   ```bash
-  > ./process_lessons.py --lectures "01*" --class data605 --action pdf --action script --action slide_check
+  > ./process_lessons.py --lectures "01*" --class data605 --action generate_pdf --action generate_script --action check_slide
   ```
 
 - Process with verbose logging for debugging:
   ```bash
-  > ./process_lessons.py --lectures "01.1" --class data605 --action pdf -v DEBUG
+  > ./process_lessons.py --lectures "01.1" --class data605 --action generate_pdf -v DEBUG
   ```
 
 ## `process_slides.py`

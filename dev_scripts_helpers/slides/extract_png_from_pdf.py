@@ -1,5 +1,14 @@
 #!/usr/bin/env -S uv run
 
+# /// script
+# dependencies = [
+#   "pdf2image",
+#   "pillow",
+#   "pyyaml",
+#   "tqdm",
+# ]
+# ///
+
 """
 Extract PNG images from PDF files, one image per page.
 
@@ -14,15 +23,6 @@ Examples:
 # Extract with custom DPI for higher quality.
 > extract_png_from_pdf.py --input_file lecture.pdf --output_dir slides --dpi 300
 """
-
-# /// script
-# dependencies = [
-#   "pdf2image",
-#   "pillow",
-#   "pyyaml",
-#   "tqdm",
-# ]
-# ///
 
 import argparse
 import logging
