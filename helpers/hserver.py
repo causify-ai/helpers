@@ -104,7 +104,12 @@ def _get_host_name() -> str:
         # release='5.15.0-1081-aws'
         # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025'
         # machine='x86_64'
-        host_name = os.uname()[1]
+        if os.name == "nt":
+            import platform
+
+            host_name = platform.uname().node
+        else:
+            host_name = os.uname()[1]
     _LOG.debug("host_name=%s", host_name)
     return host_name
 
@@ -125,7 +130,12 @@ def _get_host_os_name() -> str:
         # release='5.15.0-1081-aws'
         # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025'
         # machine='x86_64'
-        host_os_name = os.uname()[0]
+        if os.name == "nt":
+            import platform
+
+            host_os_name = platform.system()
+        else:
+            host_os_name = os.uname()[0]
     _LOG.debug("host_os_name=%s", host_os_name)
     return host_os_name
 
@@ -145,7 +155,12 @@ def _get_host_os_version() -> str:
         # release='5.15.0-1081-aws'
         # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025'
         # machine='x86_64'
-        host_os_version = os.uname()[2]
+        if os.name == "nt":
+            import platform
+
+            host_os_version = platform.release()
+        else:
+            host_os_version = os.uname()[2]
     _LOG.debug("host_os_version=%s", host_os_version)
     return host_os_version
 
@@ -242,20 +257,21 @@ def is_dev_csfy() -> bool:
     # release='5.15.0-1081-aws',
     # version='#88~20.04.1-Ubuntu SMP Fri Mar 28 14:17:22 UTC 2025',
     # machine='x86_64'
-    host_name = os.uname()[1]
+    host_name = _get_host_name()
     host_names = ("dev1", "dev2", "dev3")
     csfy_host_name = os.environ.get("CSFY_HOST_NAME", "")
     _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
     is_dev_csfy_ = host_name in host_names or csfy_host_name in host_names
     return is_dev_csfy_
 
+    # TODO(gp): This is obsolete and should be removed.
 
-# TODO(gp): This is obsolete and should be removed.
+
 def is_dev4() -> bool:
     """
     Return whether it's running on dev4.
     """
-    host_name = os.uname()[1]
+    host_name = _get_host_name()
     csfy_host_name = os.environ.get("CSFY_HOST_NAME", None)
     dev4 = "cf-spm-dev4"
     _LOG.debug("host_name=%s csfy_host_name=%s", host_name, csfy_host_name)
@@ -277,12 +293,10 @@ def is_host_mac(*, version: Optional[str] = None) -> bool:
         `Catalina`, `Monterey`)
     """
     _LOG.debug("version=%s", version)
-    host_os_name = os.uname()[0]
-    _LOG.debug("os.uname()=%s", str(os.uname()))
+    host_os_name = _get_host_os_name()
+    # _LOG.debug("os.uname()=%s", str(os.uname()))
     csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
-    _LOG.debug(
-        "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
-    )
+    _LOG.debug("host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name)
     is_mac_ = host_os_name == "Darwin" or csfy_host_os_name == "Darwin"
     if version is None:
         # The user didn't request a specific version, so we return whether we
@@ -313,7 +327,7 @@ def is_host_mac(*, version: Optional[str] = None) -> bool:
     else:
         raise ValueError(f"Invalid version='{version}'")
     _LOG.debug("macos_tag=%s", macos_tag)
-    host_os_version = os.uname()[2]
+    host_os_version = _get_host_os_version()
     # 'Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
     #   root:xnu-6153.141.2~1/RELEASE_X86_64'
     csfy_host_os_version = os.environ.get("CSFY_HOST_VERSION", "")
@@ -378,7 +392,7 @@ def is_external_linux() -> bool:
     else:
         # We need to check if the host is Linux.
         host_os_name = _get_host_os_name()
-        ret = host_os_name == "Linux"
+        ret = host_os_name in ("Linux", "Windows")
     return ret
 
 
@@ -417,8 +431,8 @@ def _get_setup_signature() -> str:
     # is_inside_ci()
     cmds.append('os.environ.get("CSFY_CI", "*undef*")')
     # is_mac()
-    cmds.append("os.uname()[0]")
-    cmds.append("os.uname()[2]")
+    cmds.append("_get_host_os_name()")
+    cmds.append("_get_host_os_version()")
     # is_external_linux()
     cmds.append('os.environ.get("CSFY_HOST_OS_NAME", "*undef*")')
     # Build an array of strings with the results of executing the commands.
@@ -699,9 +713,7 @@ def get_docker_info() -> str:
     else:
         has_sibling_containers_support_ = "*undef*"
         has_docker_dind_support_ = "*undef*"
-    txt_tmp.append(
-        f"has_sibling_containers_support={has_sibling_containers_support_}"
-    )
+    txt_tmp.append(f"has_sibling_containers_support={has_sibling_containers_support_}")
     txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
     #
     txt = hprint.to_info("Docker info", txt_tmp)
@@ -771,7 +783,7 @@ def has_dind_support() -> bool:
 
 
 def _raise_invalid_host(only_warning: bool) -> None:
-    host_os_name = os.uname()[0]
+    host_os_name = _get_host_os_name()
     am_host_os_name = os.environ.get("AM_HOST_OS_NAME", None)
     msg = (
         f"Don't recognize host: host_os_name={host_os_name}, "
