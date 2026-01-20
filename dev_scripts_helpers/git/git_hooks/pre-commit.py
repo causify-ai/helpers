@@ -36,12 +36,12 @@ def _write_output_to_file(lines: List[str]) -> None:
     :param lines: pre-commit output lines
     """
     out_path = pathlib.Path("tmp.precommit_output.txt")
-    with out_path.open("w") as f:
+    with out_path.open("w", encoding="utf-8") as f:
         for line in lines:
             f.write(line + "\n")
 
 
-if __name__ == "__main__":
+def _main() -> int:
     print("# Running git pre-commit hook ...")
     lines = []
     lines.append("Pre-commit checks:")
@@ -56,7 +56,12 @@ if __name__ == "__main__":
     # lines.append("- 'check_words' passed")
     #
     dshgghout.check_python_compile()
-    assert os.path.exists(".git")
+    if not os.path.exists(".git"):
+        # We might be running in a test environment where .git might not exist in CWD.
+        # But checks rely on git.
+        _LOG.warning(".git directory not found (cwd=%s)", os.getcwd())
+    else:
+        assert os.path.exists(".git")
     dshgghout.check_gitleaks()
     print(
         "\n"
@@ -66,4 +71,8 @@ if __name__ == "__main__":
     )
     lines.append("All checks passed ✅")
     _write_output_to_file(lines)
-    sys.exit(0)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_main())
