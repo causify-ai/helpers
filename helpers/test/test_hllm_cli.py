@@ -1020,8 +1020,9 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
             df=df,
             extractor=extractor,
             target_col="sum",
-            batch_size=10,
+            batch_mode="individual",
             model="gpt-5-nano",
+            batch_size=10,
             use_sys_stderr=True,
         )
         _LOG.debug("result_df=%s", result_df)
@@ -1078,8 +1079,9 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
             df=df,
             extractor=extractor,
             target_col="sum",
-            batch_size=10,
+            batch_mode="individual",
             model="gpt-5-nano",
+            batch_size=10,
             use_sys_stderr=True,
         )
         # Check outputs.

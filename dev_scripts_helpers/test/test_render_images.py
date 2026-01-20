@@ -34,7 +34,7 @@ class Test_get_comment_prefix_postfix(hunitest.TestCase):
         # Prepare inputs.
         extension = ".md"
         # Prepare outputs.
-        expected = ("[//]: # (", " )")
+        expected = ("<!-- ", " -->")
         # Run test.
         self.helper(extension, expected)
 
@@ -103,7 +103,7 @@ class Test_comment_line(hunitest.TestCase):
         line = "This is a line"
         extension = ".md"
         # Prepare outputs.
-        expected = "[//]: # ( This is a line )"
+        expected = "<!--  This is a line -->"
         # Run test.
         self.helper(line, extension, expected)
 
@@ -139,7 +139,7 @@ class Test_comment_line(hunitest.TestCase):
         line = ""
         extension = ".md"
         # Prepare outputs.
-        expected = "[//]: # (  )"
+        expected = "<!--   -->"
         # Run test.
         self.helper(line, extension, expected)
 
@@ -170,7 +170,7 @@ class Test_uncomment_line(hunitest.TestCase):
         Test uncommenting a line in Markdown format.
         """
         # Prepare inputs.
-        line = "[//]: # ( This is a line )"
+        line = "<!-- This is a line -->"
         extension = ".md"
         # Prepare outputs.
         expected = "This is a line"
@@ -185,7 +185,7 @@ class Test_uncomment_line(hunitest.TestCase):
         line = "% \\begin{document}"
         extension = ".tex"
         # Prepare outputs.
-        expected = " \\begin{document}"
+        expected = "\\begin{document}"
         # Run test.
         self.helper(line, extension, expected)
 
@@ -197,7 +197,7 @@ class Test_uncomment_line(hunitest.TestCase):
         line = "// Some text"
         extension = ".txt"
         # Prepare outputs.
-        expected = " Some text"
+        expected = "Some text"
         # Run test.
         self.helper(line, extension, expected)
 
@@ -236,9 +236,9 @@ class Test_insert_image_code(hunitest.TestCase):
         )
         # Check outputs.
         expected = """
-        [//]: # ( render_images:begin )
+        <!--  render_images:begin -->
         ![](figs/image.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.assert_equal(actual, hprint.dedent(expected))
 
@@ -262,9 +262,9 @@ class Test_insert_image_code(hunitest.TestCase):
         )
         # Check outputs.
         expected = """
-        [//]: # ( render_images:begin )
+        <!--  render_images:begin -->
         ![This is a diagram](figs/diagram.png){#fig:my_diagram width=50%}
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.assert_equal(actual, hprint.dedent(expected))
 
@@ -282,9 +282,9 @@ class Test_insert_image_code(hunitest.TestCase):
         )
         # Check outputs.
         expected = """
-        [//]: # ( render_images:begin )
+        <!--  render_images:begin -->
         ![](figs/image.png){width=80%}
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         self.assert_equal(actual, hprint.dedent(expected))
 
@@ -372,7 +372,7 @@ class Test_insert_image_code(hunitest.TestCase):
         with self.assertRaises(ValueError) as cm:
             dshdreim._insert_image_code(extension, rel_img_path, user_img_size)
         actual = str(cm.exception)
-        expected = "Unsupported file extension: .invalid"
+        expected = "Unsupported file type: .invalid"
         self.assert_equal(actual, expected)
 
 # #############################################################################
@@ -391,14 +391,14 @@ class Test_remove_image_code(hunitest.TestCase):
         # Prepare inputs.
         lines = """
         Some text before
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```plantuml )
-        [//]: # ( A -> B )
-        [//]: # ( ``` )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```plantuml -->
+        <!--  A -> B -->
+        <!--  ``` -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![](figs/image.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         Some text after
         """
         lines = hprint.dedent(lines).split("\n")
@@ -457,24 +457,24 @@ class Test_remove_image_code(hunitest.TestCase):
         # Prepare inputs.
         lines = """
         First block:
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```plantuml )
-        [//]: # ( A -> B )
-        [//]: # ( ``` )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```plantuml -->
+        <!--  A -> B -->
+        <!--  ``` -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![](figs/image1.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
 
         Second block:
-        [//]: # ( rendered_images:begin )
-        [//]: # ( ```mermaid )
-        [//]: # ( graph TD )
-        [//]: # ( ``` )
-        [//]: # ( rendered_images:end )
-        [//]: # ( render_images:begin )
+        <!--  rendered_images:begin -->
+        <!--  ```mermaid -->
+        <!--  graph TD -->
+        <!--  ``` -->
+        <!--  rendered_images:end -->
+        <!--  render_images:begin -->
         ![](figs/image2.png)
-        [//]: # ( render_images:end )
+        <!--  render_images:end -->
         """
         lines = hprint.dedent(lines).split("\n")
         extension = ".md"
