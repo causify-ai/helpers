@@ -240,7 +240,6 @@ def convert_url_to_local_path(
     # Get credentials if not provided
     if credentials is None:
         credentials = hgodrapi.get_credentials()
-
     # Check if this is a folder URL
     if _is_folder_url(url):
         _LOG.info("Detected folder URL")
@@ -257,7 +256,7 @@ def convert_url_to_local_path(
         _LOG.info("Detected file URL")
         # Get the file name from the URL
         try:
-            file_name = hgodrapi.get_tab_name_from_url(credentials, url)
+            file_name = hgodrapi.get_gsheet_name(url, credentials=credentials)
         except Exception as e:
             _LOG.warning("Could not get file name from URL: %s", e)
             # Try to extract file ID and use it as fallback

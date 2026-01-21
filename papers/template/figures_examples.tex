@@ -1,0 +1,48 @@
+```graphviz
+digraph Sciences {
+  rankdir=TB;
+  node [shape=plaintext];
+
+  Sciences -> Behavioral;
+  Sciences -> Formal;
+  Sciences -> Physical;
+
+  Behavioral [label=<
+    <B>Behavioral</B><BR ALIGN="LEFT"/>
+    &#8226; Psychology<BR ALIGN="LEFT"/>
+    &#8226; Cognitive Science<BR ALIGN="LEFT"/>
+    &#8226; Sociology<BR ALIGN="LEFT"/>
+    &#8226; Anthropology<BR ALIGN="LEFT"/>
+    &#8226; Communication Studies<BR ALIGN="LEFT"/>
+    &#8226; Behavioral Economics<BR ALIGN="LEFT"/>
+    &#8226; Education Research<BR ALIGN="LEFT"/>
+    &#8226; Marketing &amp; Consumer Behavior<BR ALIGN="LEFT"/>
+    &#8226; Organizational Behavior<BR ALIGN="LEFT"/>
+    &#8226; Criminology<BR ALIGN="LEFT"/>
+  >];
+
+  Formal [label=<
+    <B>Formal</B><BR ALIGN="LEFT"/>
+    &#8226; Mathematics<BR ALIGN="LEFT"/>
+    &#8226; Logic<BR ALIGN="LEFT"/>
+    &#8226; Theoretical Computer Science<BR ALIGN="LEFT"/>
+    &#8226; Information Theory<BR ALIGN="LEFT"/>
+    &#8226; Systems Theory<BR ALIGN="LEFT"/>
+    &#8226; Statistics<BR ALIGN="LEFT"/>
+    &#8226; Game Theory<BR ALIGN="LEFT"/>
+    &#8226; Decision Theory<BR ALIGN="LEFT"/>
+    &#8226; Formal Epistemology<BR ALIGN="LEFT"/>
+  >];
+
+  Physical [label=<
+    <B>Physical</B><BR ALIGN="LEFT"/>
+    &#8226; Physics<BR ALIGN="LEFT"/>
+    &#8226; Chemistry<BR ALIGN="LEFT"/>
+    &#8226; Earth Sciences<BR ALIGN="LEFT"/>
+    &#8226; Astronomy &amp; Astrophysics<BR ALIGN="LEFT"/>
+    &#8226; Materials Science<BR ALIGN="LEFT"/>
+    &#8226; Environmental Science<BR ALIGN="LEFT"/>
+    &#8226; Physical Geography<BR ALIGN="LEFT"/>
+  >];
+}
+```
