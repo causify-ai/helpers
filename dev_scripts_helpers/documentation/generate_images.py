@@ -328,7 +328,7 @@ def _generate_images_from_file(
             """
         elif style == "style2":
             style = """
-            Use a unified minimalist flat-illustration style: clean vector lines, 
+            Use a unified minimalist flat-illustration style: clean vector lines,
             simple geometric shapes, muted blue-white color palette, no
             gradients, no shadows, no textures, no writings, centered composition
 

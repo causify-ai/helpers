@@ -954,6 +954,7 @@ def init_logger(
     in_pytest: bool = False,
     report_memory_usage: bool = False,
     report_cpu_usage: bool = False,
+    report_command_line: bool = True,
 ) -> None:
     """
     Send stderr and stdout to logging (optionally teeing the logs to file).
@@ -973,6 +974,7 @@ def init_logger(
         can overwrite the default logger from pytest
     :param report_memory_usage: turn on reporting memory usage
     :param report_cpu_usage: turn on reporting CPU usage
+    :param report_command_line: turn on reporting command line
     """
     # Try to minimize dependencies.
     import helpers.hlogging as hloggin
@@ -1064,7 +1066,8 @@ def init_logger(
     dassert(hasattr(hloggin, "shutup_chatty_modules"))
     assert hasattr(hloggin, "shutup_chatty_modules")
     hloggin.shutup_chatty_modules(verbose=False)
-    _LOG.info("> cmd='%s'", get_command_line())
+    if report_command_line:
+        _LOG.info("> cmd='%s'", get_command_line())
     #
     # test_logger()
 
