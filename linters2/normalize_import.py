@@ -78,11 +78,9 @@ _CUSTOM_SHORT_IMPORTS = {
     # "core.config_builders": "ccbuild",
 }
 
-
 # #############################################################################
 # LongToShortImportGenerator
 # #############################################################################
-
 
 class LongToShortImportGenerator:
     """
@@ -126,56 +124,6 @@ class LongToShortImportGenerator:
         # long import. E.g., "helpers/git" -> "helpers.git".
         long_import = file_path_wo_ext.replace("/", ".")
         return long_import
-
-    def shorten_import_names(self, py_files: List[str]) -> LongImportToShort:
-        """
-        Shorten the imports for provided filenames.
-
-        If it is impossible to create a unique short import for a
-        filename, skip it.
-
-        :param py_files: list of Python files' paths
-        :return: long import to short import mappings, e.g.
-            `{"long_import1": "short_import1", "long_import2":
-            "short_import1"}`
-        """
-        # Report the Python files.
-        _LOG.debug("Python files=\n%s", "\n".join(py_files))
-        # Get long imports from file paths.
-        long_imports = [
-            self.get_long_import_from_file_path(file) for file in py_files
-        ]
-        # Verify that there are no duplicated Python files in subdirs.
-        # `get_long_import_from_file_path()` removes some subdirs from long
-        # imports (e.g., `/app/amp/core/finance.py` -> `core.finance`) but
-        # there may be duplicates in different subdirs of such type.
-        hdbg.dassert_no_duplicates(
-            long_imports, "Remove duplicated Python files before linting."
-        )
-        # Build the mapping shortening the imports.
-        long_import_to_short: LongImportToShort = {}
-        for long_import in long_imports:
-            _LOG.debug("# Processing '%s'", long_import)
-            # E.g., "im.kitbot.data.load.kitbot_s3_data_loader" ->
-            # "imkdalokis3datloa".
-            short_import = self._shorten_import(
-                long_import, long_import_to_short
-            )
-            if short_import is not None:
-                hdbg.dassert_ne(short_import, "")
-                # Store the long import to short import mapping.
-                long_import_to_short[long_import] = short_import
-                _LOG.debug("%s -> %s", long_import, short_import)
-        _LOG.debug(
-            "long_import_to_short=\n%s",
-            self._print_long_import_to_short(long_import_to_short),
-        )
-        # Reverse the mapping.
-        short_import_to_long = self._build_reverse_mapping(long_import_to_short)
-        # Make sure that all short imports are unique.
-        collisions = self._find_collisions(short_import_to_long)
-        hdbg.dassert_eq(0, len(collisions))
-        return long_import_to_short
 
     @staticmethod
     def _find_collisions(short_import_to_long: ShortImportToLong) -> Collisions:
@@ -369,47 +317,6 @@ class LongToShortImportGenerator:
             res.append(f"{value} -> ({len(keys)}) {str(keys)}")
         return "\n".join(res)
 
-    def _shorten_import(
-        self,
-        long_import: str,
-        long_import_to_short: LongImportToShort,
-    ) -> Optional[str]:
-        """
-        Shorten an import if it is possible.
-
-        :param long_import: long import
-        :param long_import_to_short: existing long import to short
-            import mappings
-        :return: short import or None if it was not possible to shorten
-            the long import (e.g., due to collision or a not supported
-            name)
-        """
-        _LOG.debug("long_import=%s", long_import)
-        # Apply custom mapping to the corresponding long imports.
-        if long_import in _CUSTOM_SHORT_IMPORTS:
-            # Get short import from custom short imports.
-            short_import: Optional[str] = _CUSTOM_SHORT_IMPORTS[long_import]
-            _LOG.debug(
-                "Using custom short import='%s' for long_import='%s'",
-                short_import,
-                long_import,
-            )
-            return short_import
-        # Chunkify the long import.
-        # E.g., dataflow_amp.real_time.pipeline ->
-        # ["dataflow", "amp", "real", "time", "pipeline"].
-        chunks = self._chunkify(long_import)
-        _LOG.debug("chunks=%s", chunks)
-        # Compute maximum chunk length for each chunk.
-        chunk_lengths = self._compute_max_chunk_lengths(chunks)
-        # Come up with a unique short import if it is possible.
-        short_import = self._search_for_unique_short_import(
-            chunks,
-            chunk_lengths,
-            set(long_import_to_short.values()),
-        )
-        return short_import
-
     # The function is an naive implementation of `_shorten_import()`.
     # def _shorten_import_naive(long_import: str, target_num_chars: int = 8) -> str:
     #     """
@@ -496,6 +403,47 @@ class LongToShortImportGenerator:
         )
         return None
 
+    def _shorten_import(
+        self,
+        long_import: str,
+        long_import_to_short: LongImportToShort,
+    ) -> Optional[str]:
+        """
+        Shorten an import if it is possible.
+
+        :param long_import: long import
+        :param long_import_to_short: existing long import to short
+            import mappings
+        :return: short import or None if it was not possible to shorten
+            the long import (e.g., due to collision or a not supported
+            name)
+        """
+        _LOG.debug("long_import=%s", long_import)
+        # Apply custom mapping to the corresponding long imports.
+        if long_import in _CUSTOM_SHORT_IMPORTS:
+            # Get short import from custom short imports.
+            short_import: Optional[str] = _CUSTOM_SHORT_IMPORTS[long_import]
+            _LOG.debug(
+                "Using custom short import='%s' for long_import='%s'",
+                short_import,
+                long_import,
+            )
+            return short_import
+        # Chunkify the long import.
+        # E.g., dataflow_amp.real_time.pipeline ->
+        # ["dataflow", "amp", "real", "time", "pipeline"].
+        chunks = self._chunkify(long_import)
+        _LOG.debug("chunks=%s", chunks)
+        # Compute maximum chunk length for each chunk.
+        chunk_lengths = self._compute_max_chunk_lengths(chunks)
+        # Come up with a unique short import if it is possible.
+        short_import = self._search_for_unique_short_import(
+            chunks,
+            chunk_lengths,
+            set(long_import_to_short.values()),
+        )
+        return short_import
+
     def _build_reverse_mapping(
         self,
         long_import_to_short: LongImportToShort,
@@ -519,111 +467,64 @@ class LongToShortImportGenerator:
         )
         return short_import_to_long
 
+    def shorten_import_names(self, py_files: List[str]) -> LongImportToShort:
+        """
+        Shorten the imports for provided filenames.
+
+        If it is impossible to create a unique short import for a
+        filename, skip it.
+
+        :param py_files: list of Python files' paths
+        :return: long import to short import mappings, e.g.
+            `{"long_import1": "short_import1", "long_import2":
+            "short_import1"}`
+        """
+        # Report the Python files.
+        _LOG.debug("Python files=\n%s", "\n".join(py_files))
+        # Get long imports from file paths.
+        long_imports = [
+            self.get_long_import_from_file_path(file) for file in py_files
+        ]
+        # Verify that there are no duplicated Python files in subdirs.
+        # `get_long_import_from_file_path()` removes some subdirs from long
+        # imports (e.g., `/app/amp/core/finance.py` -> `core.finance`) but
+        # there may be duplicates in different subdirs of such type.
+        hdbg.dassert_no_duplicates(
+            long_imports, "Remove duplicated Python files before linting."
+        )
+        # Build the mapping shortening the imports.
+        long_import_to_short: LongImportToShort = {}
+        for long_import in long_imports:
+            _LOG.debug("# Processing '%s'", long_import)
+            # E.g., "im.kitbot.data.load.kitbot_s3_data_loader" ->
+            # "imkdalokis3datloa".
+            short_import = self._shorten_import(
+                long_import, long_import_to_short
+            )
+            if short_import is not None:
+                hdbg.dassert_ne(short_import, "")
+                # Store the long import to short import mapping.
+                long_import_to_short[long_import] = short_import
+                _LOG.debug("%s -> %s", long_import, short_import)
+        _LOG.debug(
+            "long_import_to_short=\n%s",
+            self._print_long_import_to_short(long_import_to_short),
+        )
+        # Reverse the mapping.
+        short_import_to_long = self._build_reverse_mapping(long_import_to_short)
+        # Make sure that all short imports are unique.
+        collisions = self._find_collisions(short_import_to_long)
+        hdbg.dassert_eq(0, len(collisions))
+        return long_import_to_short
 
 # #############################################################################
 # CodeImportNormalizer
 # #############################################################################
 
-
 class CodeImportNormalizer:
     """
     Normalize short imports in files.
     """
-
-    def replace_short_imports_in_file(
-        self,
-        file_path: str,
-        long_to_short_imports: LongImportToShort,
-    ) -> List[str]:
-        """
-        Replace short imports in a file with Python code.
-
-        A correct short import for a given long import is taken from the
-        pre-computed mapping in `long_to_short_imports`.
-
-        The following situations are possible:
-        1) A correct short import (e.g. `import helpers.cache as hcache`) is
-           found once in the file.
-           - Nothing is changed.
-        2) A correct short import (e.g. `import helpers.cache as hcache`) is
-           found more than once in the file.
-           - Nothing is changed; a warning is issued that the same import is
-             found multiple times.
-        3) An incorrect short import (e.g. `import helpers.cache as hcac`) is
-           found once in the file.
-           - It is replaced with the correct one, unless it is in a comment or
-             a (doc)string.
-        4) An incorrect short import (e.g. `import helpers.cache as hcac`) is
-           found more than once in the file.
-           - They are replaced with the correct one, unless they are in a comment
-             or a (doc)string; a warning is issued that the same import is
-             found multiple times.
-        5) Multiple imports of the same long import are found; the first one is
-           correct (e.g. `import helpers.cache as hcache`), the second one is
-           incorrect (e.g. `import helpers.cache as hcac`).
-           - The incorrect one is replaced with the correct one, unless it is in
-             a comment or a (doc)string; a warning is issued that the same import
-             is found multiple times.
-        6) Multiple imports of the same long import are found; the first one is
-           incorrect (e.g. `import helpers.cache as hcac`), the second one is
-           correct (e.g. `import helpers.cache as hcache`).
-           - The incorrect one is replaced with the correct one, unless it is in
-             a comment or a (doc)string; a warning is issued that the same import
-             is found multiple times.
-
-        :param file_path: path to the file to process
-        :param long_to_short_imports: pre-computed long-to-short import mappings
-        :return: warnings about imports, if any
-        """
-        _LOG.debug("Cleaning imports in '%s'.", file_path)
-        # Extract code from the input file.
-        code = hio.from_file(file_path)
-        # Extract long-to-short import mappings from the current file.
-        import_mappings_from_file, warnings = (
-            self._extract_existing_import_mappings_from_code(code)
-        )
-        for long_import, short_import in import_mappings_from_file:
-            if long_import not in long_to_short_imports.keys():
-                # TODO(Grisha): add import normalization for 3rd party and native packages in #215.
-                # TODO(Grisha): after #215 is done `_LOG.debug()` -> assertion.
-                _LOG.debug(
-                    "There is no long-to-short import mapping for file='%s'",
-                    file_path,
-                )
-                continue
-            old_short_import = short_import
-            # Get short import from the pre-computed mapping.
-            new_short_import = long_to_short_imports[long_import]
-            if old_short_import == new_short_import:
-                # Short import is OK, skip it.
-                continue
-            # Make sure that there are no conflicts of the new import with the existing
-            # file code.
-            conflict = self._is_short_import_used(
-                code=code,
-                short_import=new_short_import,
-                long_import=long_import,
-            )
-            hdbg.dassert(
-                not conflict,
-                msg=f"Short import '{new_short_import}' is already used in '{file_path}'",
-            )
-            # Replace all instances of the short import with the transformed short
-            # import for that file.
-            _LOG.debug(
-                "Replacing short import '%s' with '%s' for '%s'",
-                old_short_import,
-                new_short_import,
-                long_import,
-            )
-            code = self._replace_short_import_in_code(
-                code=code,
-                old_short_import=old_short_import,
-                new_short_import=new_short_import,
-            )
-        # Save changes to the file.
-        hio.to_file(file_path, code)
-        return warnings
 
     @staticmethod
     def _replace_short_import_in_code(
@@ -790,44 +691,109 @@ class CodeImportNormalizer:
                 )
         return unique_matches, warnings
 
+    def replace_short_imports_in_file(
+        self,
+        file_path: str,
+        long_to_short_imports: LongImportToShort,
+    ) -> List[str]:
+        """
+        Replace short imports in a file with Python code.
+
+        A correct short import for a given long import is taken from the
+        pre-computed mapping in `long_to_short_imports`.
+
+        The following situations are possible:
+        1) A correct short import (e.g. `import helpers.cache as hcache`) is
+           found once in the file.
+           - Nothing is changed.
+        2) A correct short import (e.g. `import helpers.cache as hcache`) is
+           found more than once in the file.
+           - Nothing is changed; a warning is issued that the same import is
+             found multiple times.
+        3) An incorrect short import (e.g. `import helpers.cache as hcac`) is
+           found once in the file.
+           - It is replaced with the correct one, unless it is in a comment or
+             a (doc)string.
+        4) An incorrect short import (e.g. `import helpers.cache as hcac`) is
+           found more than once in the file.
+           - They are replaced with the correct one, unless they are in a comment
+             or a (doc)string; a warning is issued that the same import is
+             found multiple times.
+        5) Multiple imports of the same long import are found; the first one is
+           correct (e.g. `import helpers.cache as hcache`), the second one is
+           incorrect (e.g. `import helpers.cache as hcac`).
+           - The incorrect one is replaced with the correct one, unless it is in
+             a comment or a (doc)string; a warning is issued that the same import
+             is found multiple times.
+        6) Multiple imports of the same long import are found; the first one is
+           incorrect (e.g. `import helpers.cache as hcac`), the second one is
+           correct (e.g. `import helpers.cache as hcache`).
+           - The incorrect one is replaced with the correct one, unless it is in
+             a comment or a (doc)string; a warning is issued that the same import
+             is found multiple times.
+
+        :param file_path: path to the file to process
+        :param long_to_short_imports: pre-computed long-to-short import mappings
+        :return: warnings about imports, if any
+        """
+        _LOG.debug("Cleaning imports in '%s'.", file_path)
+        # Extract code from the input file.
+        code = hio.from_file(file_path)
+        # Extract long-to-short import mappings from the current file.
+        import_mappings_from_file, warnings = (
+            self._extract_existing_import_mappings_from_code(code)
+        )
+        for long_import, short_import in import_mappings_from_file:
+            if long_import not in long_to_short_imports.keys():
+                # TODO(Grisha): add import normalization for 3rd party and native packages in #215.
+                # TODO(Grisha): after #215 is done `_LOG.debug()` -> assertion.
+                _LOG.debug(
+                    "There is no long-to-short import mapping for file='%s'",
+                    file_path,
+                )
+                continue
+            old_short_import = short_import
+            # Get short import from the pre-computed mapping.
+            new_short_import = long_to_short_imports[long_import]
+            if old_short_import == new_short_import:
+                # Short import is OK, skip it.
+                continue
+            # Make sure that there are no conflicts of the new import with the existing
+            # file code.
+            conflict = self._is_short_import_used(
+                code=code,
+                short_import=new_short_import,
+                long_import=long_import,
+            )
+            hdbg.dassert(
+                not conflict,
+                msg=f"Short import '{new_short_import}' is already used in '{file_path}'",
+            )
+            # Replace all instances of the short import with the transformed short
+            # import for that file.
+            _LOG.debug(
+                "Replacing short import '%s' with '%s' for '%s'",
+                old_short_import,
+                new_short_import,
+                long_import,
+            )
+            code = self._replace_short_import_in_code(
+                code=code,
+                old_short_import=old_short_import,
+                new_short_import=new_short_import,
+            )
+        # Save changes to the file.
+        hio.to_file(file_path, code)
+        return warnings
 
 # #############################################################################
 # ImportDocstringGenerator
 # #############################################################################
 
-
 class ImportDocstringGenerator:
     """
     Generate the import docstring for a Python file.
     """
-
-    def process_file(
-        self,
-        file_path: str,
-        long_to_short_import: LongImportToShort,
-    ) -> str:
-        """
-        Generate the import line for the file.
-
-        :param file_path: a file path to process
-        :param long_to_short_import: long-to-short import mappings
-        :return: an update content of the file
-        """
-        # Read the code in the Python file.
-        code = hio.from_file(file_path)
-        # Get the canonical import for the file path.
-        long_import = LongToShortImportGenerator.get_long_import_from_file_path(
-            file_path
-        )
-        hdbg.dassert_in(long_import, long_to_short_import.keys())
-        short_import = long_to_short_import[long_import]
-        # Get the code with the fixed import line.
-        _LOG.debug(
-            "Normalizing import docstring in file='%s'",
-            file_path,
-        )
-        new_code = self._process_code(code, long_import, short_import)
-        return new_code
 
     @staticmethod
     def _insert_docstring_if_needed(code: str) -> str:
@@ -907,30 +873,6 @@ class ImportDocstringGenerator:
         docstring = docstring.replace('\n\n"""', '\n"""')
         return docstring
 
-    def _process_code(
-        self, code: str, long_import: str, short_import: str
-    ) -> str:
-        """
-        Update the import line with the correct short import in the code.
-
-        :param code: the content of the file
-        :param long_import: long import name, e.g. "helpers.git"
-        :param short_import: short import name, e.g. "hgit"
-        :return: processed content of the file
-        """
-        if liutils.is_shebang(code):
-            # Check whether the file starts with the shebang. In this case,
-            # the file is executable and no import docstring is needed.
-            _LOG.debug(
-                "The file starts with the shebang, no import docstring is needed.",
-            )
-            return code
-        # Insert an import line at the beginning of the file.
-        code = self._insert_docstring_if_needed(code)
-        # Fill the docstring with the correct import or fix the existing one.
-        new_content = self._fix_import(code, long_import, short_import)
-        return new_content
-
     def _fix_import(
         self,
         code: str,
@@ -971,11 +913,61 @@ class ImportDocstringGenerator:
         new_code = code.replace(original_docstring_quoted, new_docstring_quoted)
         return new_code
 
+    def _process_code(
+        self, code: str, long_import: str, short_import: str
+    ) -> str:
+        """
+        Update the import line with the correct short import in the code.
+
+        :param code: the content of the file
+        :param long_import: long import name, e.g. "helpers.git"
+        :param short_import: short import name, e.g. "hgit"
+        :return: processed content of the file
+        """
+        if liutils.is_shebang(code):
+            # Check whether the file starts with the shebang. In this case,
+            # the file is executable and no import docstring is needed.
+            _LOG.debug(
+                "The file starts with the shebang, no import docstring is needed.",
+            )
+            return code
+        # Insert an import line at the beginning of the file.
+        code = self._insert_docstring_if_needed(code)
+        # Fill the docstring with the correct import or fix the existing one.
+        new_content = self._fix_import(code, long_import, short_import)
+        return new_content
+
+    def process_file(
+        self,
+        file_path: str,
+        long_to_short_import: LongImportToShort,
+    ) -> str:
+        """
+        Generate the import line for the file.
+
+        :param file_path: a file path to process
+        :param long_to_short_import: long-to-short import mappings
+        :return: an update content of the file
+        """
+        # Read the code in the Python file.
+        code = hio.from_file(file_path)
+        # Get the canonical import for the file path.
+        long_import = LongToShortImportGenerator.get_long_import_from_file_path(
+            file_path
+        )
+        hdbg.dassert_in(long_import, long_to_short_import.keys())
+        short_import = long_to_short_import[long_import]
+        # Get the code with the fixed import line.
+        _LOG.debug(
+            "Normalizing import docstring in file='%s'",
+            file_path,
+        )
+        new_code = self._process_code(code, long_import, short_import)
+        return new_code
 
 # #############################################################################
 # _NormalizeImports
 # #############################################################################
-
 
 class _NormalizeImports(liaction.Action):
     """
@@ -1091,7 +1083,9 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, report_command_line=args.no_report_command_line)
+    hdbg.init_logger(
+        verbosity=args.log_level, report_command_line=args.no_report_command_line
+    )
     # Get the root of the Git repo.
     root_dir = hgit.get_client_root(super_module=False)
     _LOG.debug("root_dir = '%s'", root_dir)

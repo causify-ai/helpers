@@ -262,7 +262,9 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, report_command_line=args.no_report_command_line)
+    hdbg.init_logger(
+        verbosity=args.log_level, report_command_line=args.no_report_command_line
+    )
     action = _ClassFramer()
     action.run(args.files)
 

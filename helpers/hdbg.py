@@ -544,6 +544,23 @@ def dassert_not_intersection(
         _dfatal(txt, msg, *args, only_warning=only_warning)
 
 
+def dassert_is_iterable(
+    val: Any,
+    msg: Optional[str] = None,
+    *args: Any,
+    only_warning: bool = False,
+) -> None:
+    """
+    Check that `val` is an iterable (excluding strings, bytes), raise otherwise.
+    """
+    cond = isinstance(val, Iterable) and not isinstance(
+        val, (str, bytes, bytearray)
+    )
+    if not cond:
+        txt = f"Val '{val}' of type '{type(val)}' is not an iterable"
+        _dfatal(txt, msg, *args, only_warning=only_warning)
+
+
 # #############################################################################
 # Array related.
 # #############################################################################
@@ -553,7 +570,7 @@ def dassert_no_duplicates(
     val1: Iterable[Any],
     msg: Optional[str] = None,
     *args: Any,
-    only_warning: bool = False
+    only_warning: bool = False,
 ) -> None:
     """
     Check that `val1` has no duplicates, raise otherwise.
@@ -592,21 +609,6 @@ def dassert_is_sorted(
         txt.append("val1=\n" + pprint.pformat(val1))
         txt.append("is not sorted")
         txt.append("sorted(val1)=\n" + pprint.pformat(sorted_val1))
-        _dfatal(txt, msg, *args, only_warning=only_warning)
-
-
-def dassert_is_iterable(
-    val: Any,
-    msg: Optional[str] = None,
-    *args: Any,
-    only_warning: bool = False,
-) -> None:
-    """
-    Check that `val` is an iterable (excluding strings, bytes), raise otherwise.
-    """
-    cond = isinstance(val, Iterable) and not isinstance(val, (str, bytes, bytearray))
-    if not cond:
-        txt = f"Val '{val}' of type '{type(val)}' is not an iterable"
         _dfatal(txt, msg, *args, only_warning=only_warning)
 
 
@@ -931,6 +933,20 @@ def dassert_related_params(
                 _dfatal(txt, msg, *args, only_warning=only_warning)
     else:
         raise ValueError(f"Invalid mode='{mode}'")
+
+
+# #############################################################################
+# Command line.
+# #############################################################################
+
+
+# Sample at the beginning of time before we start fiddling with command line
+# args.
+_CMD_LINE = " ".join(arg for arg in sys.argv)
+
+
+def get_command_line() -> str:
+    return _CMD_LINE
 
 
 # #############################################################################
