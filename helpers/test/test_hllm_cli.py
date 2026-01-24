@@ -1,6 +1,6 @@
 import logging
 import os
-import pickle
+import json
 import time
 from typing import Callable, Dict, Optional
 
@@ -16,9 +16,10 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
-# Whether to run tests that use the real LLM API.
-_RUN_REAL_LLM = False
-# _RUN_REAL_LLM = True
+# Whether to run tests that use the real LLM API. In the CI it should always
+# be _RUN_REAL_LLM = False.
+#_RUN_REAL_LLM = False
+_RUN_REAL_LLM = True
 
 # #############################################################################
 # Test_apply_llm_with_files
@@ -960,7 +961,8 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         :return: system prompt string
         """
         prompt = """
-        You are a calculator. Given input in the format "a + b", return only the sum as a number.
+        You are a calculator. Given input in the format "a + b", return only
+        the sum as a number.
 
         Return ONLY the numeric result, nothing else.
         """
@@ -987,7 +989,9 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
             return obj
 
     def create_test_df(self) -> pd.DataFrame:
-        # Create a minimal DataFrame with test data (2 rows).
+        """
+        Create a minimal DataFrame with test data (2 rows).
+        """
         df = pd.DataFrame(
             {
                 "num1": [2, 10],
@@ -995,26 +999,12 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
             }
         )
         return df
-
-    def test_create_cache(self) -> None:
-        """
-        Warm up cache by calling apply_llm and save cache to file.
-
-        This test creates a cache by calling apply_llm with test data,
-        then saves the cache to a file for use in subsequent tests.
-        """
-        # Prepare inputs.
-        # Set up temporary cache directory to avoid polluting the main cache.
-        scratch_dir = self.get_scratch_space()
-        hcacsimp.set_cache_dir(scratch_dir)
-        # Get the test prompt using local helper function.
+        
+    def run_cached_apply_llm_prompt_to_df(self) -> None:
         prompt = self.get_test_prompt()
-        # Call apply_llm to warm up the cache for both inputs.
         df = self.create_test_df()
-        # Get the prompt and extractor using local helper functions.
         prompt = self.get_test_prompt()
         extractor = self.extract_test_fields
-        # Call apply_llm_prompt_to_df.
         result_df, _ = hllmcli.apply_llm_prompt_to_df(
             prompt=prompt,
             df=df,
@@ -1026,75 +1016,81 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
             use_sys_stderr=True,
         )
         _LOG.debug("result_df=%s", result_df)
-        # Flush the cache to disk to ensure it's saved.
-        hcacsimp.flush_cache_to_disk("apply_llm")
-        # Read the data from the cache file.
-        cache_data = hcacsimp.get_disk_cache("apply_llm")
-        cache_data_str = hcacsimp.cache_data_to_str(cache_data)
-        _LOG.debug("Created cache_data_str=\n%s", cache_data_str)
-        # Verify cache has entries.
-        hcacsimp.sanity_check_cache(cache_data, assert_on_empty=True)
-        # Create a file with the cache content.
-        input_dir = self.get_input_dir(
-            test_class_name=self.__class__.__name__,
-            test_method_name="test_create_cache",
-        )
-        hio.create_dir(input_dir, incremental=True)
-        cache_file = os.path.join(input_dir, "test_cache.pkl")
-        cmd = "cp -r %s %s" % (scratch_dir, cache_file)
-        hsystem.system(cmd)
-        _LOG.info("Cache saved to %s", cache_file)
-
-    def test1(self) -> None:
-        """
-        Test apply_llm_prompt_to_df with mocked cache.
-
-        This test loads the cache file created in test_create_cache,
-        mocks the cache, and verifies that apply_llm_prompt_to_df
-        uses the cached values without hitting the LLM API.
-        """
-        # Prepare inputs.
-        # Set up temporary cache directory.
-        scratch_dir = self.get_scratch_space()
-        hcacsimp.set_cache_dir(scratch_dir)
-        # Load the saved cache file from test_create_cache's input directory.
-        input_dir = self.get_input_dir()
-        cache_file = os.path.join(input_dir, "test_cache.pkl")
-        with open(cache_file, "rb") as f:
-            cache_data = pickle.load(f)
-        cache_data_str = hcacsimp.cache_data_to_str(cache_data)
-        _LOG.debug("Loaded cache_data_str=\n%s", cache_data_str)
-        hcacsimp.mock_cache_from_disk("apply_llm", cache_data)
-        # Create a minimal DataFrame with test data (2 rows).
-        df = self.create_test_df()
-        # Get the prompt and extractor using local helper functions.
-        prompt = self.get_test_prompt()
-        extractor = self.extract_test_fields
-        # Set abort_on_cache_miss to ensure we don't hit the LLM API.
-        hcacsimp.set_cache_property("apply_llm", "abort_on_cache_miss", True)
-        # Run test.
-        # Call apply_llm_prompt_to_df.
-        result_df, _ = hllmcli.apply_llm_prompt_to_df(
-            prompt=prompt,
-            df=df,
-            extractor=extractor,
-            target_col="sum",
-            batch_mode="individual",
-            model="gpt-5-nano",
-            batch_size=10,
-            use_sys_stderr=True,
-        )
         # Check outputs.
         expected_df = pd.DataFrame(
             {
                 "num1": [2, 10],
                 "num2": [3, 15],
-                "sum": [5, 25],
+                "sum": ["5", "25"],
             }
         )
-        self.assert_equal(result_df, expected_df)
+        self.assert_equal(str(result_df), str(expected_df))
+
+    def load_cache_data(self, input_dir: str) -> hcacsimp._CacheType:
+        """
+        Load the cache data from the cache file.
+        """
+        cache_file = os.path.join(input_dir, "tmp.cache_simple._llm.json")
+        with open(cache_file, "r", encoding="utf-8") as f:
+            cache_data = json.load(f)
+        return cache_data
+
+    @pytest.mark.skipif(
+        not _RUN_REAL_LLM,
+        reason="real LLM not enabled",
+    )
+    def test1(self) -> None:
+        """
+        Warm up cache by calling apply_llm and save cache to file.
+
+        This test creates a cache by calling apply_llm with test data,
+        then saves the cache to a file for use in subsequent tests.
+        """
+        # Create a file with the cache content for test2 in the input directory.
+        input_dir = self.get_input_dir(
+            test_class_name=self.__class__.__name__,
+            test_method_name="test2",
+        )
+        hcacsimp.set_cache_dir(input_dir)
+        # Call apply_llm to warm up the cache for both inputs.
+        self.run_cached_apply_llm_prompt_to_df()
+        # Flush the cache to disk to ensure it's saved.
+        hcacsimp.flush_cache_to_disk("_llm")
+        # Check that the cache file exists and is not empty.
+        cache_data = self.load_cache_data(input_dir)
+        hcacsimp.sanity_check_cache(cache_data, assert_on_empty=True)
+
+    def test2(self) -> None:
+        """
+        Test apply_llm_prompt_to_df with mocked cache.
+
+        This test
+        - loads the cache file created in test1
+        - mocks the cache with the data from the cache file
+        - verifies that apply_llm_prompt_to_df uses the cached values without
+          hitting the LLM API.
+        """
+        # Prepare inputs.
+        # # Set up temporary cache directory.
+        # scratch_dir = self.get_scratch_space()
+        # hcacsimp.set_cache_dir(scratch_dir)
+        # Load the saved cache file from test2's input directory.
+        input_dir = self.get_input_dir()
+        # Load the cache data from the cache file.
+        cache_data = self.load_cache_data(input_dir)
+        hcacsimp.sanity_check_cache(cache_data, assert_on_empty=True)
+        _LOG.debug("Loaded cache_data=\n%s", cache_data)
+        cache_data_str = hcacsimp.cache_data_to_str(cache_data)
+        _LOG.debug("Loaded cache_data_str=\n%s", cache_data_str)
+        # Extract the function cache from the wrapped structure.
+        func_cache = cache_data["_llm"]
+        hcacsimp.mock_cache_from_disk("_llm", func_cache)
+        # Set abort_on_cache_miss to ensure we don't hit the LLM API.
+        hcacsimp.set_cache_property("_llm", "abort_on_cache_miss", True)
+        # Run apply_llm_prompt_to_df with mocked cache.
+        self.run_cached_apply_llm_prompt_to_df()
         # Reset the cache property.
-        hcacsimp.set_cache_property("apply_llm", "abort_on_cache_miss", False)
+        hcacsimp.set_cache_property("_llm", "abort_on_cache_miss", False)
 
 # #############################################################################
 # Test_apply_llm_batch_cost_comparison

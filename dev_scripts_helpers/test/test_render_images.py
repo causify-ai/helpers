@@ -217,6 +217,7 @@ class Test_uncomment_line(hunitest.TestCase):
 # Test_insert_image_code
 # #############################################################################
 
+# TODO(ai_gp): Factor out common code in a helper
 class Test_insert_image_code(hunitest.TestCase):
     """
     Test _insert_image_code() function.
@@ -379,6 +380,7 @@ class Test_insert_image_code(hunitest.TestCase):
 # Test_remove_image_code
 # #############################################################################
 
+# TODO(ai_gp): Factor out common code in a helper
 class Test_remove_image_code(hunitest.TestCase):
     """
     Test _remove_image_code() function.
@@ -414,7 +416,7 @@ class Test_remove_image_code(hunitest.TestCase):
         Some text after
         """
         expected_lines = hprint.dedent(expected).split("\n")
-        self.assert_equal(str(actual), str(expected_lines))
+        self.assertEqual(actual, expected_lines)
 
     def test2(self) -> None:
         """
@@ -493,7 +495,7 @@ class Test_remove_image_code(hunitest.TestCase):
         ```
         """
         expected_lines = hprint.dedent(expected).split("\n")
-        self.assert_equal(str(actual), str(expected_lines))
+        self.assert_equal(actual, expected_lines)
 
     def test4(self) -> None:
         """
@@ -515,7 +517,7 @@ class Test_remove_image_code(hunitest.TestCase):
         No rendered images here
         Just plain content
         """).split("\n")
-        self.assert_equal(str(actual), str(expected_lines))
+        self.assertEqual(actual, expected_lines)
 
     def test5(self) -> None:
         """
@@ -527,4 +529,4 @@ class Test_remove_image_code(hunitest.TestCase):
         # Run test.
         actual = dshdreim._remove_image_code(lines, extension)
         # Check outputs.
-        self.assert_equal(actual, [])
+        self.assertEqual(actual, [])

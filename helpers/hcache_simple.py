@@ -72,7 +72,7 @@ def sanity_check_cache(
         for cache_key, cached_value in func_data.items():
             hdbg.dassert_isinstance(cache_key, str)
             hdbg.dassert_ne(cache_key, "", "Cache key is empty")
-            hdbg.dassert_isinstance(cached_value, Any)
+            # Note: cached_value can be Any type, no isinstance check needed.
 
 
 def cache_data_to_str(cache_data: _CacheType) -> str:
@@ -793,17 +793,20 @@ def mock_cache(func_name: str, args: Any, kwargs: Any, value: Any) -> None:
     cache[cache_key] = value
 
 
-def mock_cache_from_disk(func_name: str, cache_data: _CacheType) -> None:
+def mock_cache_from_disk(func_name: str, cache_data: Dict[str, Any]) -> None:
     """
     Mock the cache from disk data.
 
     :param func_name: The name of the function.
-    :param cache_data: The cache data to mock.
+    :param cache_data: The function's cache data (cache_key -> cached_value dict).
     """
     hdbg.dassert_isinstance(func_name, str)
-    sanity_check_cache(cache_data, assert_on_empty=True)
-    for cache_key, cached_value in cache_data.items():
-        mock_cache(func_name, cache_key, cached_value)
+    hdbg.dassert_isinstance(cache_data, dict)
+    hdbg.dassert_ne(len(cache_data), 0, "Cache data is empty")
+    # Get the cache for this function.
+    cache = get_cache(func_name)
+    # Update cache with all entries from cache_data.
+    cache.update(cache_data)
 
 
 # #############################################################################
