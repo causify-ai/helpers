@@ -2,14 +2,12 @@ import json
 import logging
 import os
 import pickle
-import pprint
 from typing import Any, Dict
 
 import pandas as pd
 import pytest
 
 import helpers.hcache_simple as hcacsimp
-import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -1247,15 +1245,16 @@ class Test_cache_mode_parameter(_BaseCacheTest):
         self.assertEqual(result2, 90)
         self.assertEqual(_test_cache_mode_kwarg.call_count, initial_count + 2)
 
+
 # # #############################################################################
 # # Test_mock_cache
 # # #############################################################################
-# 
+#
 # class Test_mock_cache(_BaseCacheTest):
 #     """
 #     Test mock_cache functionality for testing cached functions.
 #     """
-# 
+#
 #     def test1(self) -> None:
 #         """
 #         Verify mock_cache workflow: warm cache, save to disk, reset, mock,

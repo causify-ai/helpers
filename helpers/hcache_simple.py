@@ -27,7 +27,7 @@ _LOG = logging.getLogger(__name__)
 
 # Disable tracing for production code.
 _LOG.trace = lambda *args, **kwargs: None
-#_LOG.trace = _LOG.debug
+# _LOG.trace = _LOG.debug
 
 # #############################################################################
 # Memory cache.
@@ -92,7 +92,9 @@ def sanity_check_cache(
     for func_name, func_cache_data in cache_data.items():
         hdbg.dassert_isinstance(func_name, str)
         hdbg.dassert_ne(func_name, "", "Function name is empty")
-        sanity_check_function_cache(func_cache_data, assert_on_empty=assert_on_empty)
+        sanity_check_function_cache(
+            func_cache_data, assert_on_empty=assert_on_empty
+        )
 
 
 def cache_data_to_str(cache_data: _CacheType) -> str:
@@ -509,7 +511,11 @@ def _get_cache_file_name(func_name: str) -> str:
     return file_name
 
 
-def _save_data_to_file(file_name: str, cache_type: Optional[str], func_cache_data: _FunctionCacheType) -> None:
+def _save_data_to_file(
+    file_name: str,
+    cache_type: Optional[str],
+    func_cache_data: _FunctionCacheType,
+) -> None:
     """
     Save the function cache data to a file.
 
@@ -528,12 +534,20 @@ def _save_data_to_file(file_name: str, cache_type: Optional[str], func_cache_dat
             pickle.dump(func_cache_data, file)
     elif cache_type == "json":
         with open(file_name, "w", encoding="utf-8") as file:
-            json.dump(func_cache_data, file, indent=4, sort_keys=True, ensure_ascii=False)
+            json.dump(
+                func_cache_data,
+                file,
+                indent=4,
+                sort_keys=True,
+                ensure_ascii=False,
+            )
     else:
         raise ValueError(f"Invalid cache type '{cache_type}'")
 
 
-def _save_cache_dict_to_disk(func_name: str, func_cache_data: _FunctionCacheType) -> None:
+def _save_cache_dict_to_disk(
+    func_name: str, func_cache_data: _FunctionCacheType
+) -> None:
     """
     Save a cache dictionary to the disk cache.
 
@@ -546,7 +560,10 @@ def _save_cache_dict_to_disk(func_name: str, func_cache_data: _FunctionCacheType
     _LOG.trace(hprint.to_str("file_name cache_type"))
     _save_data_to_file(file_name, cache_type, func_cache_data)
 
-def _load_data_from_file(file_name: str, cache_type: Optional[str]) -> _FunctionCacheType:
+
+def _load_data_from_file(
+    file_name: str, cache_type: Optional[str]
+) -> _FunctionCacheType:
     """
     Load the function cache data from a file.
 
@@ -819,7 +836,33 @@ def _get_cache_key(args: Any, kwargs: Any) -> str:
     return cache_key
 
 
-def mock_cache_from_args_kwargs(func_name: str, args: Any, kwargs: Any, value: Any) -> None:
+def mock_cache(func_name: str, cache_key: str, value: Any) -> None:
+    """
+    Mock the function cache for a given function and cache key.
+
+    :param func_name: The name of the function.
+    :param cache_key: The cache key.
+    :param value: The value to store in the cache.
+    """
+    # We should not use the main cache directory for mocking.
+    hdbg.dassert_ne(
+        get_cache_dir(),
+        get_main_cache_dir(),
+        msg="Do not use the main cache directory for mocking",
+    )
+    hdbg.dassert_isinstance(func_name, str)
+    hdbg.dassert_ne(func_name, "", "Function name is empty")
+    hdbg.dassert_isinstance(cache_key, str)
+    hdbg.dassert_ne(cache_key, "", "Cache key is empty")
+    # Get the function cache.
+    func_cache_data = get_cache(func_name)
+    # Update the function cache.
+    func_cache_data[cache_key] = value
+
+
+def mock_cache_from_args_kwargs(
+    func_name: str, args: Any, kwargs: Any, value: Any
+) -> None:
     """
     Mock the function cache for a given function and args/kwargs.
 
@@ -840,31 +883,9 @@ def mock_cache_from_args_kwargs(func_name: str, args: Any, kwargs: Any, value: A
     mock_cache(func_name, cache_key, value)
 
 
-def mock_cache(func_name: str, cache_key: str, value: Any) -> None:
-    """
-    Mock the function cache for a given function and cache key.
-
-    :param func_name: The name of the function.
-    :param cache_key: The cache key.
-    :param value: The value to store in the cache.
-    """
-    # We should not use the main cache directory for mocking.
-    hdbg.dassert_ne(
-        get_cache_dir(),
-        get_main_cache_dir(),
-        msg="Do not use the main cache directory for mocking",
-    )
-    hdbg.dassert_isinstance(func_name, str) 
-    hdbg.dassert_ne(func_name, "", "Function name is empty")
-    hdbg.dassert_isinstance(cache_key, str)
-    hdbg.dassert_ne(cache_key, "", "Cache key is empty")
-    # Get the function cache.
-    func_cache_data = get_cache(func_name)
-    # Update the function cache.
-    func_cache_data[cache_key] = value
-
-
-def mock_cache_from_disk(func_name: str, func_cache_data: _FunctionCacheType) -> None:
+def mock_cache_from_disk(
+    func_name: str, func_cache_data: _FunctionCacheType
+) -> None:
     """
     Mock the function cache from disk data.
 

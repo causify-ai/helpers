@@ -10,14 +10,13 @@ import helpers.hcache_simple as hcacsimp
 import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
 # Disable calling LLM when testing.
 _RUN_REAL_LLM = False
-#_RUN_REAL_LLM = True
+# _RUN_REAL_LLM = True
 
 # #############################################################################
 # Test_apply_llm_with_files
@@ -997,7 +996,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
             }
         )
         return df
-        
+
     def run_cached_apply_llm_prompt_to_df(self) -> None:
         prompt = self.get_test_prompt()
         df = self.create_test_df()
@@ -1047,7 +1046,9 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         hcacsimp.flush_cache_to_disk("_llm")
         func_cache_data = hcacsimp.get_disk_cache("_llm")
         # Check that the cache file exists and is not empty.
-        hcacsimp.sanity_check_function_cache(func_cache_data, assert_on_empty=True)
+        hcacsimp.sanity_check_function_cache(
+            func_cache_data, assert_on_empty=True
+        )
 
     def test2(self) -> None:
         """
@@ -1070,7 +1071,9 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         _LOG.debug("cache_file=%s", cache_file)
         func_cache_data = hcacsimp._load_data_from_file(cache_file, "json")
         _LOG.debug("func_cache_data=%s", func_cache_data)
-        hcacsimp.sanity_check_function_cache(func_cache_data, assert_on_empty=True)
+        hcacsimp.sanity_check_function_cache(
+            func_cache_data, assert_on_empty=True
+        )
         _LOG.debug("Loaded func_cache_data=\n%s", func_cache_data)
         hcacsimp.mock_cache_from_disk("_llm", func_cache_data)
         try:

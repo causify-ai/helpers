@@ -142,12 +142,12 @@ def _generate_images(
     elif use_reference:
         # Reference image requires DALL-E 2.
         hdbg.dassert_path_exists(reference_image)
-        #model = "dall-e-2"
+        # model = "dall-e-2"
         model = "gpt-image-1"
         _LOG.warning("Using DALL-E 2 with reference image: %s", reference_image)
     else:
         # Default to DALL-E 3.
-        #model = "dall-e-3"
+        # model = "dall-e-3"
         model = "gpt-image-1"
     # Set size and quality based on model.
     if model == "dall-e-2":
