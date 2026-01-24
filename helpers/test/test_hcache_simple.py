@@ -132,8 +132,6 @@ class _BaseCacheTest(hunitest.TestCase):
         hcacsimp.reset_cache("", interactive=False)
         hcacsimp.reset_cache_property()
         hcacsimp.set_cache_dir(self._cache_dir)
-        #
-        super().tearDown()
 
 # #############################################################################
 # Test_get_cache
@@ -179,7 +177,7 @@ class Test_flush_cache_to_disk(_BaseCacheTest):
         # Assert that the cache file now exists on disk.
         self.assertTrue(
             os.path.exists(cache_file),
-            f"Cache file {cache_file} should exist on disk."
+            f"Cache file {cache_file} should exist on disk.",
         )
 
     def test2(self) -> None:
@@ -509,7 +507,9 @@ class Test__cached_pickle_square(_BaseCacheTest):
         hcacsimp.flush_cache_to_disk("_cached_pickle_square")
         cache_file = hcacsimp._get_cache_file_name("_cached_pickle_square")
         # Open and load the pickle cache file.
-        func_cache_data = hcacsimp._load_func_cache_data_from_file(cache_file, "pickle")
+        func_cache_data = hcacsimp._load_func_cache_data_from_file(
+            cache_file, "pickle"
+        )
         _LOG.debug("func_cache_data=%s", func_cache_data)
         # Verify the result and cache contents.
         self.assertEqual(res, 16)
