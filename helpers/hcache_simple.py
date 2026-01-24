@@ -188,6 +188,7 @@ def _get_initial_cache_property() -> _CacheType:
     file_name_ = get_cache_property_file()
     if os.path.exists(file_name_):
         _LOG.trace("Loading from %s", file_name_)
+        # TODO(gp): Use _load_data_from_file, if possible.
         with open(file_name_, "rb") as file:
             val = pickle.load(file)
     else:
@@ -511,7 +512,7 @@ def _get_cache_file_name(func_name: str) -> str:
     return file_name
 
 
-def _save_data_to_file(
+def _save_func_cache_data_to_file(
     file_name: str,
     cache_type: Optional[str],
     func_cache_data: _FunctionCacheType,
@@ -528,6 +529,8 @@ def _save_data_to_file(
             cache_type = "pickle"
         else:
             cache_type = "json"
+    hio.create_enclosing_dir(file_name, incremental=True)
+    _LOG.trace("Saving to '%s'", file_name)
     # Load data.
     if cache_type == "pickle":
         with open(file_name, "wb") as file:
@@ -558,10 +561,10 @@ def _save_cache_dict_to_disk(
     file_name = _get_cache_file_name(func_name)
     cache_type = get_cache_property(func_name, "type")
     _LOG.trace(hprint.to_str("file_name cache_type"))
-    _save_data_to_file(file_name, cache_type, func_cache_data)
+    _save_func_cache_data_to_file(file_name, cache_type, func_cache_data)
 
 
-def _load_data_from_file(
+def _load_func_cache_data_from_file(
     file_name: str, cache_type: Optional[str]
 ) -> _FunctionCacheType:
     """
@@ -578,7 +581,8 @@ def _load_data_from_file(
         else:
             cache_type = "json"
     # Load data.
-    _LOG.trace("Loading from %s", file_name)
+    _LOG.trace("Loading from '%s'", file_name)
+    hdbg.dassert_file_exists(file_name)
     if cache_type == "pickle":
         with open(file_name, "rb") as file:
             func_cache_data = pickle.load(file)
@@ -607,7 +611,7 @@ def get_disk_cache(func_name: str) -> _FunctionCacheType:
     # Load data.
     cache_type = get_cache_property(func_name, "type")
     _LOG.trace(hprint.to_str("cache_type"))
-    func_cache_data = _load_data_from_file(file_name, cache_type)
+    func_cache_data = _load_func_cache_data_from_file(file_name, cache_type)
     return func_cache_data
 
 
