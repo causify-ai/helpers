@@ -1,8 +1,0 @@
-14:11:48 - [36mINFO [0m hdbg.py init_logger:1060                               14:11:48 - [36mINFO [0m hdbg.py init_logger:1060                               Saving log to file '/Users/saggese/src/csfy1/papers/slides/modify_pptx_colors.py.log'
-14:11:48 - [36mINFO [0m hdbg.py init_logger:1067                               14:11:48 - [36mINFO [0m hdbg.py init_logger:1067                               > cmd='papers/slides/modify_pptx_colors.py --input slides.pptx --output slides2.pptx --background papers/slides/causify_background.png'
-14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:130         14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:130         Loading presentation from: slides.pptx
-14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:134         14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:134         Using text color: #FAFBFD (RGB: (250, 251, 253))
-14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:136         14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:136         Using background image: papers/slides/causify_background.png
-14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:141         14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:141         Processing 16 slides...
-14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:166         14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:166         Saving modified presentation to: slides2.pptx
-14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:168         14:11:48 - [36mINFO [0m modify_pptx_colors.py _modify_presentation:168         Done!
