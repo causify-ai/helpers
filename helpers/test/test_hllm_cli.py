@@ -1026,15 +1026,6 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         )
         self.assert_equal(str(result_df), str(expected_df))
 
-    def load_cache_data(self, input_dir: str) -> hcacsimp._CacheType:
-        """
-        Load the cache data from the cache file.
-        """
-        cache_file = os.path.join(input_dir, "tmp.cache_simple._llm.json")
-        with open(cache_file, "r", encoding="utf-8") as f:
-            cache_data = json.load(f)
-        return cache_data
-
     @pytest.mark.skipif(
         not _RUN_REAL_LLM,
         reason="real LLM not enabled",
@@ -1056,9 +1047,9 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         self.run_cached_apply_llm_prompt_to_df()
         # Flush the cache to disk to ensure it's saved.
         hcacsimp.flush_cache_to_disk("_llm")
+        func_cache_data = hcacsimp.get_disk_cache("_llm")
         # Check that the cache file exists and is not empty.
-        cache_data = self.load_cache_data(input_dir)
-        hcacsimp.sanity_check_cache(cache_data, assert_on_empty=True)
+        hcacsimp.sanity_check_function_cache(func_cache_data, assert_on_empty=True)
 
     def test2(self) -> None:
         """
@@ -1077,14 +1068,13 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         # Load the saved cache file from test2's input directory.
         input_dir = self.get_input_dir()
         # Load the cache data from the cache file.
-        cache_data = self.load_cache_data(input_dir)
-        hcacsimp.sanity_check_cache(cache_data, assert_on_empty=True)
-        _LOG.debug("Loaded cache_data=\n%s", cache_data)
-        cache_data_str = hcacsimp.cache_data_to_str(cache_data)
-        _LOG.debug("Loaded cache_data_str=\n%s", cache_data_str)
-        # Extract the function cache from the wrapped structure.
-        func_cache = cache_data["_llm"]
-        hcacsimp.mock_cache_from_disk("_llm", func_cache)
+        cache_file = os.path.join(input_dir, "tmp.cache_simple._llm.json")
+        _LOG.debug("cache_file=%s", cache_file)
+        func_cache_data = hcacsimp.get_disk_cache("_llm")
+        _LOG.debug("func_cache_data=%s", func_cache_data)
+        hcacsimp.sanity_check_function_cache(func_cache_data, assert_on_empty=True)
+        _LOG.debug("Loaded func_cache_data=\n%s", func_cache_data)
+        hcacsimp.mock_cache_from_disk("_llm", func_cache_data)
         # Set abort_on_cache_miss to ensure we don't hit the LLM API.
         hcacsimp.set_cache_property("_llm", "abort_on_cache_miss", True)
         # Run apply_llm_prompt_to_df with mocked cache.
