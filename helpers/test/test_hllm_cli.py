@@ -1,6 +1,5 @@
 import logging
 import os
-import json
 import time
 from typing import Callable, Dict, Optional
 
@@ -16,10 +15,9 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
-# Whether to run tests that use the real LLM API. In the CI it should always
-# be _RUN_REAL_LLM = False.
-#_RUN_REAL_LLM = False
-_RUN_REAL_LLM = True
+# Disable calling LLM when testing.
+_RUN_REAL_LLM = False
+#_RUN_REAL_LLM = True
 
 # #############################################################################
 # Test_apply_llm_with_files
@@ -1063,24 +1061,47 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         """
         # Prepare inputs.
         # # Set up temporary cache directory.
-        # scratch_dir = self.get_scratch_space()
-        # hcacsimp.set_cache_dir(scratch_dir)
+        scratch_dir = self.get_scratch_space()
+        hcacsimp.set_cache_dir(scratch_dir)
         # Load the saved cache file from test2's input directory.
         input_dir = self.get_input_dir()
         # Load the cache data from the cache file.
         cache_file = os.path.join(input_dir, "tmp.cache_simple._llm.json")
         _LOG.debug("cache_file=%s", cache_file)
-        func_cache_data = hcacsimp.get_disk_cache("_llm")
+        func_cache_data = hcacsimp._load_data_from_file(cache_file, "json")
         _LOG.debug("func_cache_data=%s", func_cache_data)
         hcacsimp.sanity_check_function_cache(func_cache_data, assert_on_empty=True)
         _LOG.debug("Loaded func_cache_data=\n%s", func_cache_data)
         hcacsimp.mock_cache_from_disk("_llm", func_cache_data)
-        # Set abort_on_cache_miss to ensure we don't hit the LLM API.
-        hcacsimp.set_cache_property("_llm", "abort_on_cache_miss", True)
-        # Run apply_llm_prompt_to_df with mocked cache.
-        self.run_cached_apply_llm_prompt_to_df()
-        # Reset the cache property.
-        hcacsimp.set_cache_property("_llm", "abort_on_cache_miss", False)
+        try:
+            # Set abort_on_cache_miss to ensure we don't hit the LLM API.
+            hcacsimp.set_cache_property("_llm", "abort_on_cache_miss", True)
+            # Run apply_llm_prompt_to_df with mocked cache.
+            self.run_cached_apply_llm_prompt_to_df()
+        finally:
+            # Reset the cache property.
+            hcacsimp.set_cache_property("_llm", "abort_on_cache_miss", False)
+
+    def test3(self) -> None:
+        """
+        Test apply_llm_prompt_to_df without mocked cache.
+
+        This test verifies that apply_llm_prompt_to_df raises an error when the
+        cache is missed and abort_on_cache_miss=True.
+        """
+        # Set up temporary cache directory.
+        scratch_dir = self.get_scratch_space()
+        hcacsimp.set_cache_dir(scratch_dir)
+        try:
+            # Set abort_on_cache_miss to ensure we don't hit the LLM API.
+            hcacsimp.set_cache_property("_llm", "abort_on_cache_miss", True)
+            with self.assertRaises(ValueError) as fail:
+                # Run apply_llm_prompt_to_df without mocked cache.
+                self.run_cached_apply_llm_prompt_to_df()
+            self.assertIn("Cache miss", str(fail.exception))
+        finally:
+            # Reset the cache property.
+            hcacsimp.set_cache_property("_llm", "abort_on_cache_miss", False)
 
 # #############################################################################
 # Test_apply_llm_batch_cost_comparison

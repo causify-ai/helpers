@@ -25,8 +25,9 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+# Disable tracing for production code.
 _LOG.trace = lambda *args, **kwargs: None
-# _LOG.trace = _LOG.debug
+#_LOG.trace = _LOG.debug
 
 # #############################################################################
 # Memory cache.
@@ -73,6 +74,7 @@ def sanity_check_function_cache(
         hdbg.dassert_isinstance(cache_key, str)
         hdbg.dassert_ne(cache_key, "", "Cache key is empty")
         # cached_value can be any type, so no type check needed
+        _ = cached_value
 
 
 def sanity_check_cache(
@@ -559,6 +561,7 @@ def _load_data_from_file(file_name: str, cache_type: Optional[str]) -> _Function
         else:
             cache_type = "json"
     # Load data.
+    _LOG.trace("Loading from %s", file_name)
     if cache_type == "pickle":
         with open(file_name, "rb") as file:
             func_cache_data = pickle.load(file)
