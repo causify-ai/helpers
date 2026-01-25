@@ -1069,7 +1069,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
         # Load the cache data from the cache file.
         cache_file = os.path.join(input_dir, "tmp.cache_simple._llm.json")
         _LOG.debug("cache_file=%s", cache_file)
-        func_cache_data = hcacsimp._load_data_from_file(cache_file, "json")
+        func_cache_data = hcacsimp._load_func_cache_data_from_file(cache_file, "json")
         _LOG.debug("func_cache_data=%s", func_cache_data)
         hcacsimp.sanity_check_function_cache(
             func_cache_data, assert_on_empty=True

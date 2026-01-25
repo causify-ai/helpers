@@ -495,7 +495,7 @@ class Test_remove_image_code(hunitest.TestCase):
         ```
         """
         expected_lines = hprint.dedent(expected).split("\n")
-        self.assert_equal(actual, expected_lines)
+        self.assert_equal("\n".join(actual), "\n".join(expected_lines))
 
     def test4(self) -> None:
         """
