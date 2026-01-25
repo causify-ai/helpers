@@ -1,8 +1,9 @@
 I want to create an example of an interactive visualization in a Jupyter notebook
 with ipywidget to understand the passed concept.
 
-Execute one step at the time and ask the user if you can proceed with the second
-step
+Execute all the steps, unless the user explicitly says to execute in steps
+- In that case, execute one step at the time and ask the user if you can proceed
+  with the second step
 
 # Step 1)
 - Given the problem
@@ -13,7 +14,6 @@ step
   - Find notes in the lecture notes
     - E.g., `msml610/lectures_source/Lesson94.Refresher_information_theory.txt`
 
-# Step 2)
 - Make a proposal and explain in short bullet points what can be done and why
   should be done
 - The goals are:
@@ -88,10 +88,10 @@ step
   - Joint entropy increase faster than marginal entropies
   ```
 
-# Step 3)
+# Step 2)
 - Propose an implementation in few bullet points
   - E.g., what are the functions, where are they stored
 - Ask all clarifying questions if things are not clear
 
-# Step 4)
+# Step 3)
 - Follow the instructions in `docs/ai_prompts/notebooks.format_code.md`
