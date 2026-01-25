@@ -234,7 +234,7 @@ class _NotebookImageExtractor:
         The function orchestrates the extraction of all marked regions from a
         Jupyter notebook
         - Process each region independently: adjusting cells according to its
-        extraction mode
+          extraction mode
         - Convert the region to an HTML file
         - Capture a screenshot using Playwright
         - Clean up the temporary HTML file
