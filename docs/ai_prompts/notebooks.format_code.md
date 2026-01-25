@@ -14,7 +14,44 @@ py:percent format (e.g., msml610/tutorials/Lesson94-Information_Theory.py)
 ## Use Python style
 - For all the code follow the rules from `docs/ai_prompts/coding.format_code.md`
 
-## Format of each cell
+## Use pandas and seaborn
+- When writing new code:
+  - Use pandas library instead of numpy
+  - Prefer to use Seaborn package instead of matplotlib
+
+- The goal is to make the code shorter and more readable
+
+## Add code to a library / utilities
+- Find the library / utility file that correspond to a notebook
+  - E.g., 
+    ```
+    Lesson94-Information_Theory.ipynb
+    ->
+    utils_Lesson94-Information_Theory.ipynb
+    ```
+- Implement the code
+  - Saving the functions and the bulk of the code in the utils_ files
+  - Having only the caller code in Jupyter notebook
+- Reuse code already existing in the `utils_*.py` file and in the `helpers`
+  directory
+
+## Add code to the right place in the library
+- The library / utility file should have a structure that follows the flow of the
+  notebook
+- Add the functions in the part of the utility file that corresponds to the
+  Jupyter notebook
+
+## Do not use emoji or non-ascii characters
+- Do not use emoji or non-ascii characters, but only ascii ones
+- You can use Latex notation for formulas, like $...$ even if they are not
+  rendered
+
+## Add all information on the graph
+- When creating an interactive graph
+  - Do not use the statement `print` after the graph
+  - Add notations directly on the graph
+
+## Format of each Jupyter cell
 - Each cell has only one concept / group of statements and a comment on the
   result
 - Each cell has
@@ -38,7 +75,7 @@ py:percent format (e.g., msml610/tutorials/Lesson94-Information_Theory.py)
   # If heads occurs 100% of the time → no uncertainty, $H = 0$ bit.
   ```
 
-## Each cell should have only one example
+## Each Jupyter cell should have only one example
 - Cells that contain more than one concept / example should be split so that each
   cell has only one example
 
@@ -110,6 +147,19 @@ py:percent format (e.g., msml610/tutorials/Lesson94-Information_Theory.py)
     print(f"\nMutual Information I(Weather; Activity) = {mi:.4f} bits")
     print(f"This means knowing the weather reduces uncertainty about activity by {mi:.4f} bits")
     ```
+
+## Interactive widgets
+- Add the controls first with both sliders and a cell to enter the values
+  - Clearly identify the meaning of each slider
+  - E.g., "n = the number of sample points used", "rho = the correlation between the two random variables"
+
+- Use a single row of 3 or 4 graphs (not in a 2 by 2 grid)
+  - E.g., joint distribution, entropy metrics, sampled realizations, explanation
+  - One graph should be "Comments" containing an explanation of what's happening
+    in the remaining graphs, based on the values
+  - Add information in each graph as a legend
+- Do not print any information as `print()` statement, but write all the
+  information in the "Comments" graph
 
 ## Final step
 - After you have modified the Python file you will run a command to pair the
