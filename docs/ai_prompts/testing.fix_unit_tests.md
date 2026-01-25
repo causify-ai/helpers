@@ -1,7 +1,7 @@
-When I pass you a test file apply the following transformations to the
-code, making sure that there is no change in behavior
+When I pass you a test file apply the following transformations to the code,
+making sure that there is no change in behavior.
 
-1) Align strings to the code
+## Step 1: Align strings to the code
 
 - Instead of this
 
@@ -29,13 +29,15 @@ Content for file2
     content = hprint.dedent(content)
 ```
 
-2) Rename the test methods as test1, test2, ...
+## Step 2: Rename the test methods as test1, test2, ...
 
-3) Aggressively factor out common code in helper code so that each
-   test method sets the inputs and the expected value and then calls
-   the helper function with the common code
+## Step 3: Factor out common coded
 
-- Instead of
+Aggressively factor out common code in helper code so that each test method sets
+the inputs and the expected value and then calls the helper function with the
+common code
+
+- Instead of:
 
     ```
     def test_first_line(self) -> None:

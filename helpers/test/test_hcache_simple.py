@@ -1,7 +1,5 @@
-import json
 import logging
 import os
-import pickle
 from typing import Any, Dict
 
 import pandas as pd
@@ -119,14 +117,16 @@ class _BaseCacheTest(hunitest.TestCase):
          - Set specific cache properties needed for the tests.
         """
         _LOG.debug("set_up_test")
+        super().setUp()
+        #
         self._cache_dir = hcacsimp.get_cache_dir()
-        hcacsimp.set_cache_dir(hcacsimp.get_cache_dir())
+        hcacsimp.set_cache_dir(self.get_scratch_space())
 
     def tear_down_test(self) -> None:
         """
         Teardown operations to run after each test:
-            - Reset cache(in-memory, disk).
-            - Reset cache properties.
+        - Reset cache(in-memory, disk).
+        - Reset cache properties.
         """
         _LOG.debug("tear_down_test")
         hcacsimp.reset_cache("", interactive=False)
@@ -150,7 +150,8 @@ class Test_get_cache(_BaseCacheTest):
         _cached_json_double(2)
         # Retrieve the in-memory cache for _cached_json_double.
         cache: Dict[str, Any] = hcacsimp.get_cache("_cached_json_double")
-        # Assert that the key '{"args": [2], "kwargs": {}}' is in the cache and its value is 4.
+        # Assert that the key '{"args": [2], "kwargs": {}}' is in the cache and
+        # its value is 4.
         self.assertIn('{"args": [2], "kwargs": {}}', cache)
         self.assertEqual(cache['{"args": [2], "kwargs": {}}'], 4)
 
@@ -172,13 +173,11 @@ class Test_flush_cache_to_disk(_BaseCacheTest):
         # Flush the cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_json_double")
         # Define expected cache file name.
-        cache_file: str = os.path.join(
-            hcacsimp.get_main_cache_dir(),
-            "tmp.cache_simple._cached_json_double.json",
-        )
+        cache_file = hcacsimp._get_cache_file_name("_cached_json_double")
         # Assert that the cache file now exists on disk.
         self.assertTrue(
-            os.path.exists(cache_file), "Cache file should exist on disk."
+            os.path.exists(cache_file),
+            f"Cache file {cache_file} should exist on disk.",
         )
 
     def test2(self) -> None:
@@ -190,15 +189,11 @@ class Test_flush_cache_to_disk(_BaseCacheTest):
         # Flush the cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_json_double")
         # Define the expected cache file name.
-        cache_file: str = os.path.join(
-            hcacsimp.get_main_cache_dir(),
-            "tmp.cache_simple._cached_json_double.json",
-        )
-        # Open and load the disk cache file.
-        with open(cache_file, "r", encoding="utf-8") as f:
-            # Load the JSON data from the file into a dictionary.
-            disk_cache: Dict[str, Any] = json.load(f)
-        # Assert that the disk cache contains the key '{"args": [3], "kwargs": {}}' with the correct value.
+        cache_file = hcacsimp._get_cache_file_name("_cached_json_double")
+        # # Open and load the disk cache file.
+        disk_cache = hcacsimp._load_func_cache_data_from_file(cache_file, "json")
+        # Assert that the disk cache contains the key '{"args": [3], "kwargs":
+        # {}}' with the correct value.
         self.assertIn('{"args": [3], "kwargs": {}}', disk_cache)
         # Assert that the value for key '{"args": [3], "kwargs": {}}' is 6.
         self.assertEqual(disk_cache['{"args": [3], "kwargs": {}}'], 6)
@@ -510,17 +505,16 @@ class Test__cached_pickle_square(_BaseCacheTest):
         res: int = _cached_pickle_square(4)
         # Flush the cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_pickle_square")
-        cache_file: str = os.path.join(
-            hcacsimp.get_main_cache_dir(),
-            "tmp.cache_simple._cached_pickle_square.pkl",
-        )
+        cache_file = hcacsimp._get_cache_file_name("_cached_pickle_square")
         # Open and load the pickle cache file.
-        with open(cache_file, "rb") as f:
-            disk_cache: Dict[str, Any] = pickle.load(f)
+        func_cache_data = hcacsimp._load_func_cache_data_from_file(
+            cache_file, "pickle"
+        )
+        _LOG.debug("func_cache_data=%s", func_cache_data)
         # Verify the result and cache contents.
         self.assertEqual(res, 16)
-        self.assertIn('{"args": [4], "kwargs": {}}', disk_cache)
-        self.assertEqual(disk_cache['{"args": [4], "kwargs": {}}'], 16)
+        self.assertIn('{"args": [4], "kwargs": {}}', func_cache_data)
+        self.assertEqual(func_cache_data['{"args": [4], "kwargs": {}}'], 16)
 
 # #############################################################################
 # Test__cached_refreshable_func
@@ -736,15 +730,9 @@ class Test_reset_disk_cache_all(_BaseCacheTest):
         # Run test.
         hcacsimp.reset_disk_cache("", interactive=False)
         # Check outputs.
-        cache_file1 = os.path.join(
-            hcacsimp.get_main_cache_dir(),
-            "tmp.cache_simple._cached_json_double.json",
-        )
+        cache_file1 = hcacsimp._get_cache_file_name("_cached_json_double")
         self.assertFalse(os.path.exists(cache_file1))
-        cache_file2 = os.path.join(
-            hcacsimp.get_main_cache_dir(),
-            "tmp.cache_simple._cached_multi_arg_sum.json",
-        )
+        cache_file2 = hcacsimp._get_cache_file_name("_cached_multi_arg_sum")
         self.assertFalse(os.path.exists(cache_file2))
 
 # #############################################################################
@@ -795,15 +783,10 @@ class Test_flush_cache_to_disk_all(_BaseCacheTest):
         # Run test.
         hcacsimp.flush_cache_to_disk("")
         # Check outputs.
-        cache_file1 = os.path.join(
-            hcacsimp.get_main_cache_dir(),
-            "tmp.cache_simple._cached_json_double.json",
-        )
+        cache_file1 = hcacsimp._get_cache_file_name("_cached_json_double")
         self.assertTrue(os.path.exists(cache_file1))
-        cache_file2 = os.path.join(
-            hcacsimp.get_main_cache_dir(),
-            "tmp.cache_simple._cached_multi_arg_sum.json",
-        )
+        #
+        cache_file2 = hcacsimp._get_cache_file_name("_cached_multi_arg_sum")
         self.assertTrue(os.path.exists(cache_file2))
 
 # #############################################################################
@@ -1152,13 +1135,10 @@ class Test_write_through(_BaseCacheTest):
         # Run test.
         _write_through_function(11)
         # Check outputs.
-        cache_file = os.path.join(
-            hcacsimp.get_main_cache_dir(),
-            "tmp.cache_simple._write_through_function.json",
-        )
+        cache_file = hcacsimp._get_cache_file_name("_write_through_function")
         self.assertTrue(os.path.exists(cache_file))
-        with open(cache_file, "r", encoding="utf-8") as f:
-            disk_cache = json.load(f)
+        #
+        disk_cache = hcacsimp._load_func_cache_data_from_file(cache_file, "json")
         self.assertIn('{"args": [11], "kwargs": {}}', disk_cache)
         self.assertEqual(disk_cache['{"args": [11], "kwargs": {}}'], 99)
 
@@ -1244,3 +1224,52 @@ class Test_cache_mode_parameter(_BaseCacheTest):
         self.assertEqual(result1, 90)
         self.assertEqual(result2, 90)
         self.assertEqual(_test_cache_mode_kwarg.call_count, initial_count + 2)
+
+
+# # #############################################################################
+# # Test_mock_cache
+# # #############################################################################
+#
+# class Test_mock_cache(_BaseCacheTest):
+#     """
+#     Test mock_cache functionality for testing cached functions.
+#     """
+#
+#     def test1(self) -> None:
+#         """
+#         Verify mock_cache workflow: warm cache, save to disk, reset, mock,
+#         and verify cache hit.
+#         """
+#         # Prepare inputs.
+#         test_value = 42
+#         expected_result = test_value * 2
+#         func_name = "_cached_json_double"
+#         # Set up temporary cache directory for mocking.
+#         scratch_dir = self.get_scratch_space()
+#         original_cache_dir = hcacsimp.get_cache_dir()
+#         hcacsimp.set_cache_dir(scratch_dir)
+#         # Step 1: Warm up the cache by calling the function.
+#         _LOG.debug("Step 1: Warm up cache")
+#         result1 = _cached_json_double(test_value)
+#         self.assertEqual(result1, expected_result)
+#         # Step 2: Read the cache data from memory.
+#         _LOG.debug("Step 2: Read cache data")
+#         cache_data = hcacsimp.get_cache(func_name)
+#         expected = """{'{"args": [42], "kwargs": {}}': 84}"""
+#         self.assert_equal(pprint.pformat(cache_data), expected)
+#         # Step 3: Reset the cache (both memory and disk).
+#         _LOG.debug("Step 3: Reset cache")
+#         hcacsimp.reset_cache(func_name, interactive=False)
+#         # Verify cache is empty.
+#         mem_cache = hcacsimp.get_mem_cache(func_name)
+#         self.assertEqual(len(mem_cache), 0)
+#         # Step 4: Mock the cache by inserting the saved value.
+#         _LOG.debug("Step 4: Mock cache with saved value")
+#         hcacsimp.mock_cache(func_name, (test_value,), {}, expected_result)
+#         # Step 5: Verify the cache hit by calling with abort_on_cache_miss.
+#         _LOG.debug("Step 5: Verify cache hit")
+#         result2 = _cached_json_double(test_value, abort_on_cache_miss=True)
+#         # Check outputs.
+#         self.assertEqual(result2, expected_result)
+#         # Restore original cache directory.
+#         hcacsimp.set_cache_dir(original_cache_dir)

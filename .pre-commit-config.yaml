@@ -1,21 +1,58 @@
 repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+  hooks:
+    - id: check-json
+      name: Check JSON syntax
+
+    - id: check-merge-conflict
+      args: [--assume-in-merge]
+
+    - id: check-shebang-scripts-are-executable
+
+    - id: check-symlinks
+
+    - id: check-toml
+      name: Check TOML syntax
+
+    - id: check-executables-have-shebangs
+
+    - id: check-added-large-files
+      args: ['--maxkb=500']
+
+    - id: check-ast
+
+    - id: check-yaml
+
+    - id: end-of-file-fixer
+
+    - id: mixed-line-ending
+
+    - id: trailing-whitespace
+
+    - id: name-tests-test
+
+    - id: mixed-line-ending
+      args: ['--fix=lf']
+
 - repo: https://github.com/bwhmather/ssort
-  rev: master
+  rev: 0.16.0
   hooks:
     - id: ssort
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   # Ruff version.
-  rev: v0.14.8
+  rev: v0.14.14
   hooks:
     # Run the linter.
     - id: ruff-check
       args: [ --fix ]
+     
     # Run the formatter.
     - id: ruff-format
 
 - repo: https://github.com/mwouts/jupytext
-  rev: v1.16.0
+  rev: v1.19.0bis
   hooks:
     - id: jupytext
       args: ["--sync"]

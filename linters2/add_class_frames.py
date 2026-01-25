@@ -248,7 +248,13 @@ def _parse() -> argparse.ArgumentParser:
         nargs="+",
         action="store",
         type=str,
-        help="files to process",
+        help="Files to process",
+    )
+    parser.add_argument(
+        "--no_report_command_line",
+        action="store_false",
+        default=True,
+        help="Do not report the command line",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -256,7 +262,9 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level)
+    hdbg.init_logger(
+        verbosity=args.log_level, report_command_line=args.no_report_command_line
+    )
     action = _ClassFramer()
     action.run(args.files)
 

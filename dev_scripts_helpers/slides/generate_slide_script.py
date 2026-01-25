@@ -1,4 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
+
+# /// script
+# dependencies = [
+#   "openai",
+#   "pandas>=2.0.0",
+#   "pyyaml",
+#   "requests",
+#   "tqdm",
+# ]
+# ///
 
 """
 Generate presentation script from markdown slides using LLM processing.
@@ -11,13 +21,6 @@ Examples:
 # Process slides in groups of 3
 > generate_slide_script.py --in_file slides.md --out_file script.md --slides_per_group 3
 """
-
-# /// script
-# dependencies = [
-#   "pandas>=2.0.0",
-#   "openai",
-# ]
-# ///
 
 import argparse
 import logging
@@ -109,7 +112,7 @@ def _generate_slide_script(
         processed
     """
     _LOG.info("Reading slides from: %s", in_file)
-    slides = dshsslut.extract_slides_from_file(in_file)
+    slides, _ = dshsslut.extract_slides_from_file(in_file)
     _LOG.info("Found %d slides total", len(slides))
     # Apply limit range if specified.
     if limit_range is not None:

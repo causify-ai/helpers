@@ -25,6 +25,11 @@
   source directory and a destination directory
 - These tools simplify workflows where you want to create read-only symbolic
   links for files, stage modifications, and later restore the links
+- For automated linking of standard configuration files from `helpers_root` to
+  the repository root, see
+  [`create_all_helpers_links.py`](/dev_scripts_helpers/thin_client/create_all_helpers_links.py)
+  which is documented in
+  [Managing common files](/docs/tools/dev_system/all.runnable_repo.reference.md#managing-common-files)
 
 ## Why Do We Need This Approach?
 

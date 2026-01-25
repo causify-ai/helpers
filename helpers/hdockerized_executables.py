@@ -175,7 +175,7 @@ def run_dockerized_prettier(
     return ret
 
 
-# This a different approach I've tried to inject files inside a container
+# This is a different approach I've tried to inject files inside a container
 # and read them back. It's an interesting approach but it's flaky.
 #
 # # Inside a container we need to copy the input file to the container and
@@ -261,7 +261,7 @@ def convert_pandoc_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     in_file_path = cmd_list[1]
     cmd_list = cmd_list[2:]
     _LOG.debug(hprint.to_str("cmd"))
-    #
+    # Parse arguments.
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--output", required=True)
     parser.add_argument("--data-dir", default=None)
@@ -309,10 +309,10 @@ def convert_pandoc_arguments_to_cmd(
     for key, value in params["in_dir_params"].items():
         if value:
             cmd.append(f"--{key} {value}")
-    #
+    # Add command options.
     hdbg.dassert_isinstance(params["cmd_opts"], list)
     cmd.append(" ".join(params["cmd_opts"]))
-    #
+    # Join all parts.
     cmd = " ".join(cmd)
     _LOG.debug(hprint.to_str("cmd"))
     return cmd
@@ -454,7 +454,7 @@ def run_dockerized_pandoc(
     caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    #
+    # Convert command to arguments.
     param_dict = convert_pandoc_cmd_to_arguments(cmd)
     param_dict["input"] = hdocker.convert_caller_to_callee_docker_path(
         param_dict["input"],
@@ -488,7 +488,7 @@ def run_dockerized_pandoc(
         else:
             value_tmp = value
         param_dict["in_dir_params"][key] = value_tmp
-    #
+    # Convert arguments back to command.
     pandoc_cmd = convert_pandoc_arguments_to_cmd(param_dict)
     _LOG.debug(hprint.to_str("pandoc_cmd"))
     # The command is like:
@@ -753,14 +753,14 @@ def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     hdbg.dassert_file_exists(in_file_path)
     cmd_list = cmd_list[1:-1]
     _LOG.debug(hprint.to_str("cmd"))
-    #
+    # Parse arguments.
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-directory", required=True)
     # Latex uses options like `-XYZ` which confuse `argparse` so we need to
     # replace `-XYZ` with `--XYZ`.
     cmd_list = [re.sub(r"^-", r"--", cmd_opts) for cmd_opts in cmd_list]
     _LOG.debug(hprint.to_str("cmd"))
-    # # Parse known arguments and capture the rest.
+    # Parse known arguments and capture the rest.
     args, unknown_args = parser.parse_known_args(cmd_list)
     _LOG.debug(hprint.to_str("args unknown_args"))
     # Return all the arguments in a dictionary with names that match the
@@ -797,13 +797,13 @@ def convert_latex_arguments_to_cmd(
     for key, value in params["in_dir_params"].items():
         if value:
             cmd.append(f"-{key} {value}")
-    #
+    # Add command options.
     hdbg.dassert_isinstance(params["cmd_opts"], list)
     cmd.append(" ".join(params["cmd_opts"]))
     # The input needs to be last to work around the bug in pdflatex where the
     # options before the input file are not always parsed correctly.
     cmd.append(f"{params['input']}")
-    #
+    # Join all parts.
     cmd = " ".join(cmd)
     _LOG.debug(hprint.to_str("cmd"))
     return cmd
@@ -907,7 +907,7 @@ def run_dockerized_latex(
     caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
-    #
+    # Convert command to arguments.
     param_dict = convert_latex_cmd_to_arguments(cmd)
     param_dict["input"] = hdocker.convert_caller_to_callee_docker_path(
         param_dict["input"],
@@ -947,7 +947,7 @@ def run_dockerized_latex(
     latex_cmd = convert_latex_arguments_to_cmd(param_dict)
     latex_cmd = "pdflatex " + latex_cmd
     _LOG.debug(hprint.to_str("latex_cmd"))
-    #
+    # Build Docker command.
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
     docker_cmd.extend(
         [
@@ -977,7 +977,7 @@ def run_basic_latex(
     Run a basic Latex command.
     """
     _LOG.debug(hprint.func_signature_to_str())
-    #
+    # Validate input files.
     # hdbg.dassert_file_extension(input_file_name, "tex")
     hdbg.dassert_file_exists(in_file_name)
     hdbg.dassert_file_extension(out_file_name, "pdf")
@@ -1035,7 +1035,7 @@ def run_dockerized_imagemagick(
     Run `ImageMagick` in a Docker container.
     """
     _LOG.debug(hprint.func_signature_to_str())
-    #
+    # Build the container.
     container_image = "tmp.imagemagick"
     dockerfile = r"""
     FROM alpine:latest
@@ -1083,6 +1083,7 @@ def run_dockerized_imagemagick(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
+    # Build ImageMagick command.
     cmd_opts_as_str = " ".join(cmd_opts)
     cmd = f"magick {cmd_opts_as_str} {in_file_path} {out_file_path}"
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
@@ -1447,7 +1448,7 @@ def run_dockerized_graphviz(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    #
+    # Build graphviz command.
     cmd_opts_str = " ".join(cmd_opts)
     graphviz_cmd = [
         "dot",
@@ -1458,7 +1459,7 @@ def run_dockerized_graphviz(
         in_file_path,
     ]
     graphviz_cmd = " ".join(graphviz_cmd)
-    #
+    # Build Docker command.
     docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
     docker_cmd.extend(
         [

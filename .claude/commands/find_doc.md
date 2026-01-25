@@ -1,0 +1,1 @@
+../../docs/ai_prompts/coding.find_doc.md

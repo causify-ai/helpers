@@ -25,9 +25,21 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+# Disable tracing for production code.
+_LOG.trace = lambda *args, **kwargs: None
+# _LOG.trace = _LOG.debug
+
 # #############################################################################
 # Memory cache.
 # #############################################################################
+
+# Type for the cache of a single function: key -> value properties. E.g.,
+# ```
+# {
+#     "{\"args\": [4], \"kwargs\": {}}": 16
+# }
+# ```
+_FunctionCacheType = Dict[str, Any]
 
 # Basic type for caching data: func_name -> key -> value properties. E.g.,
 # ```
@@ -37,12 +49,32 @@ _LOG = logging.getLogger(__name__)
 #     }
 # }
 # ```
-_CacheType = Dict[str, Dict[str, Any]]
+_CacheType = Dict[str, _FunctionCacheType]
 
 # Create global variable for the memory cache.
 if "_CACHE" not in globals():
-    _LOG.debug("Creating _CACHE")
+    _LOG.trace("Creating _CACHE")
     _CACHE: _CacheType = {}
+
+
+def sanity_check_function_cache(
+    func_cache_data: _FunctionCacheType, *, assert_on_empty: bool = True
+) -> None:
+    """
+    Sanity check the function cache data.
+
+    :param func_cache_data: The function cache data to check.
+    :param assert_on_empty: If True, assert that the function cache data is not
+        empty.
+    """
+    hdbg.dassert_isinstance(func_cache_data, dict)
+    if assert_on_empty:
+        hdbg.dassert_ne(len(func_cache_data), 0, "Function data is empty")
+    for cache_key, cached_value in func_cache_data.items():
+        hdbg.dassert_isinstance(cache_key, str)
+        hdbg.dassert_ne(cache_key, "", "Cache key is empty")
+        # cached_value can be any type, so no type check needed
+        _ = cached_value
 
 
 def sanity_check_cache(
@@ -57,19 +89,12 @@ def sanity_check_cache(
     hdbg.dassert_isinstance(cache_data, dict)
     if assert_on_empty:
         hdbg.dassert_ne(len(cache_data), 0, "Cache data is empty")
-    for func_name, func_data in cache_data.items():
+    for func_name, func_cache_data in cache_data.items():
         hdbg.dassert_isinstance(func_name, str)
         hdbg.dassert_ne(func_name, "", "Function name is empty")
-        (
-            hdbg.dassert_isinstance(func_data, dict),
-            f"func_data is not a dict: {func_data}",
+        sanity_check_function_cache(
+            func_cache_data, assert_on_empty=assert_on_empty
         )
-        if assert_on_empty:
-            hdbg.dassert_ne(len(func_data), 0, "Function data is empty")
-        for cache_key, cached_value in func_data.items():
-            hdbg.dassert_isinstance(cache_key, str)
-            hdbg.dassert_ne(cache_key, "", "Cache key is empty")
-            hdbg.dassert_isinstance(cached_value, Any)
 
 
 def cache_data_to_str(cache_data: _CacheType) -> str:
@@ -122,7 +147,7 @@ def get_main_cache_dir() -> str:
 
 # Create global variable for the cache directory.
 if "_CACHE_DIR" not in globals():
-    _LOG.debug("Creating _CACHE_DIR")
+    _LOG.trace("Creating _CACHE_DIR")
     _CACHE_DIR = get_main_cache_dir()
 
 
@@ -134,7 +159,7 @@ def set_cache_dir(cache_dir: str) -> None:
     hdbg.dassert_isinstance(cache_dir, str)
     _CACHE_DIR = os.path.abspath(cache_dir)
     hio.create_dir(_CACHE_DIR, incremental=True)
-    _LOG.debug("Setting _CACHE_DIR to %s", _CACHE_DIR)
+    _LOG.trace("Setting _CACHE_DIR to %s", _CACHE_DIR)
 
 
 def get_cache_dir() -> str:
@@ -162,7 +187,8 @@ def _get_initial_cache_property() -> _CacheType:
     """
     file_name_ = get_cache_property_file()
     if os.path.exists(file_name_):
-        _LOG.debug("Loading from %s", file_name_)
+        _LOG.trace("Loading from %s", file_name_)
+        # TODO(gp): Use _load_data_from_file, if possible.
         with open(file_name_, "rb") as file:
             val = pickle.load(file)
     else:
@@ -174,7 +200,7 @@ def _get_initial_cache_property() -> _CacheType:
 
 # Create global variables for the cache properties.
 if "_CACHE_PROPERTY" not in globals():
-    _LOG.debug("Creating _CACHE_PROPERTY")
+    _LOG.trace("Creating _CACHE_PROPERTY")
     _CACHE_PROPERTY = _get_initial_cache_property()
 
 
@@ -184,7 +210,7 @@ def _check_valid_cache_property(property_name: str) -> None:
 
     :param property_name: The property name to validate.
     """
-    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.trace(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(property_name, str)
     valid_properties = [
         # Abort if there is a cache miss. This is used to make sure everything
@@ -198,7 +224,10 @@ def _check_valid_cache_property(property_name: str) -> None:
         # Force to refresh the value.
         "force_refresh",
         # TODO(gp): "force_refresh_once"
+        # json or pickle cache type.
         "type",
+        # cache mode.
+        "mode",
     ]
     hdbg.dassert_in(property_name, valid_properties)
 
@@ -212,7 +241,7 @@ def set_cache_property(func_name: str, property_name: str, val: Any) -> None:
     :param property_name: The name of the property to set.
     :param val: The value to set for the property.
     """
-    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.trace(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(func_name, str)
     hdbg.dassert_isinstance(property_name, str)
     _check_valid_cache_property(property_name)
@@ -224,24 +253,24 @@ def set_cache_property(func_name: str, property_name: str, val: Any) -> None:
     dict_[property_name] = val
     # Update values on the disk.
     file_name = get_cache_property_file()
-    _LOG.debug("Updating %s", file_name)
+    _LOG.trace("Updating %s", file_name)
     # Make sure the dict is well-formed.
     for func_name_tmp in cache_property:
         hdbg.dassert_isinstance(func_name_tmp, str)
-        _LOG.debug(
+        _LOG.trace(
             "func_name_tmp='%s' -> %s",
             func_name_tmp,
             cache_property[func_name_tmp],
         )
-    with open(file_name, "wb") as file:
-        pickle.dump(cache_property, file)
+    hio.create_enclosing_dir(file_name, incremental=True)
+    _save_cache_dict_to_disk(file_name, cache_property)
 
 
 def get_cache_property(func_name: str, property_name: str) -> Union[bool, Any]:
     """
     Get the value of a property for the cache of a given function name.
     """
-    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.trace(hprint.func_signature_to_str())
     _check_valid_cache_property(property_name)
     # Read data.
     cache_property = _CACHE_PROPERTY
@@ -265,7 +294,7 @@ def reset_cache_property() -> None:
     cache_property = _CACHE_PROPERTY
     # Empty the values excluding the system properties like `type` and
     # `write_through`.
-    _LOG.debug("before cache_property=%s", cache_property)
+    _LOG.trace("before cache_property=%s", cache_property)
     # Iterate over a list of keys to avoid modifying the dictionary during iteration
     for func_name_tmp in list(cache_property.keys()):
         # Only remove non-system properties from the function's property dict
@@ -273,11 +302,11 @@ def reset_cache_property() -> None:
         for property_name_tmp in list(func_prop.keys()):
             if property_name_tmp not in _SYSTEM_PROPERTIES:
                 del func_prop[property_name_tmp]
-    _LOG.debug("after cache_property=%s", cache_property)
+    _LOG.trace("after cache_property=%s", cache_property)
     # Update values on the disk.
-    _LOG.debug("Updating %s", file_name)
-    with open(file_name, "wb") as file:
-        pickle.dump(cache_property, file)
+    _LOG.trace("Updating %s", file_name)
+    hio.create_enclosing_dir(file_name, incremental=True)
+    _save_cache_dict_to_disk(file_name, cache_property)
 
 
 # #############################################################################
@@ -349,7 +378,7 @@ def cache_property_to_str(func_name: str = "") -> str:
     #
     txt.append(f"# func_name={func_name}")
     cache_property = _CACHE_PROPERTY
-    _LOG.debug("cache_property=%s", cache_property)
+    _LOG.trace("cache_property=%s", cache_property)
     if func_name in cache_property:
         for k, v in cache_property[func_name].items():
             txt.append(f"{k}: {v}")
@@ -364,7 +393,7 @@ def cache_property_to_str(func_name: str = "") -> str:
 
 # Create global variable for the cache performance.
 if "_CACHE_PERF" not in globals():
-    _LOG.debug("Creating _CACHE_PERF")
+    _LOG.trace("Creating _CACHE_PERF")
     # func_name -> perf properties (such as tot, hits, misses).
     _CACHE_PERF: Dict[str, Dict[str, int]] = {}
 
@@ -439,6 +468,18 @@ def get_cache_perf_stats(func_name: str) -> str:
 # #############################################################################
 
 # Functions to save and retrieve cache from disk.
+# ```
+# {
+#     "{\"args\": [\"You are a calculator. Given input in the format \\\"a + b\\\", return only\\nthe sum as a number.\\n\\nReturn ONLY the numeric result, nothing else.\", \"10 + 15\", \"gpt-5-nano\"], \"kwargs\": {}}": [
+#         "25",
+#         3.195e-05
+#     ],
+#     "{\"args\": [\"You are a calculator. Given input in the format \\\"a + b\\\", return only\\nthe sum as a number.\\n\\nReturn ONLY the numeric result, nothing else.\", \"2 + 3\", \"gpt-5-nano\"], \"kwargs\": {}}": [
+#         "5",
+#         3.195e-05
+#     ]
+# }
+# ```
 
 
 def _get_cache_file_name(func_name: str) -> str:
@@ -448,11 +489,11 @@ def _get_cache_file_name(func_name: str) -> str:
     :param func_name: The name of the function.
     :return: The cache file name with appropriate extension.
     """
-    _LOG.debug("func_name='%s'", func_name)
+    _LOG.trace("func_name='%s'", func_name)
     hdbg.dassert_isinstance(func_name, str)
     file_name = os.path.join(get_cache_dir(), f"tmp.cache_simple.{func_name}")
     cache_type = get_cache_property(func_name, "type")
-    _LOG.debug(hprint.to_str("cache_type"))
+    _LOG.trace(hprint.to_str("cache_type"))
     if cache_type == "pickle":
         file_name += ".pkl"
     elif cache_type == "json":
@@ -471,34 +512,90 @@ def _get_cache_file_name(func_name: str) -> str:
     return file_name
 
 
-def _save_cache_dict_to_disk(func_name: str, data: Dict) -> None:
+def _save_func_cache_data_to_file(
+    file_name: str,
+    cache_type: Optional[str],
+    func_cache_data: _FunctionCacheType,
+) -> None:
     """
-    Save a cache dictionary to the disk cache.
+    Save the function cache data to a file.
 
-    :param func_name: The name of the function.
-    :param data: The cache data to save.
+    :param file_name: The name of the file.
+    :param func_cache_data: The function cache data to save.
     """
-    # Get the filename for the disk cache.
-    file_name = _get_cache_file_name(func_name)
-    cache_type = get_cache_property(func_name, "type")
-    _LOG.debug(hprint.to_str("file_name cache_type"))
     # Infer cache type from file extension if not set.
     if cache_type is None:
         if file_name.endswith(".pkl"):
             cache_type = "pickle"
         else:
             cache_type = "json"
+    hio.create_enclosing_dir(file_name, incremental=True)
+    _LOG.trace("Saving to '%s'", file_name)
+    # Load data.
     if cache_type == "pickle":
         with open(file_name, "wb") as file:
-            pickle.dump(data, file)
+            pickle.dump(func_cache_data, file)
     elif cache_type == "json":
         with open(file_name, "w", encoding="utf-8") as file:
-            json.dump(data, file, indent=4, sort_keys=True, ensure_ascii=False)
+            json.dump(
+                func_cache_data,
+                file,
+                indent=4,
+                sort_keys=True,
+                ensure_ascii=False,
+            )
     else:
         raise ValueError(f"Invalid cache type '{cache_type}'")
 
 
-def get_disk_cache(func_name: str) -> Dict:
+def _save_cache_dict_to_disk(
+    func_name: str, func_cache_data: _FunctionCacheType
+) -> None:
+    """
+    Save a cache dictionary to the disk cache.
+
+    :param func_name: The name of the function.
+    :param func_cache_data: The function cache data to save.
+    """
+    # Get the filename for the disk cache.
+    file_name = _get_cache_file_name(func_name)
+    cache_type = get_cache_property(func_name, "type")
+    _LOG.trace(hprint.to_str("file_name cache_type"))
+    _save_func_cache_data_to_file(file_name, cache_type, func_cache_data)
+
+
+def _load_func_cache_data_from_file(
+    file_name: str, cache_type: Optional[str]
+) -> _FunctionCacheType:
+    """
+    Load the function cache data from a file.
+
+    :param file_name: The name of the file.
+    :param cache_type: The type of the cache.
+    :return: The function cache data.
+    """
+    # Infer cache type from file extension if not set.
+    if cache_type is None:
+        if file_name.endswith(".pkl"):
+            cache_type = "pickle"
+        else:
+            cache_type = "json"
+    # Load data.
+    _LOG.trace("Loading from '%s'", file_name)
+    hdbg.dassert_file_exists(file_name)
+    if cache_type == "pickle":
+        with open(file_name, "rb") as file:
+            func_cache_data = pickle.load(file)
+    elif cache_type == "json":
+        with open(file_name, "r", encoding="utf-8") as file:
+            func_cache_data = json.load(file)
+    else:
+        raise ValueError(f"Invalid cache type '{cache_type}'")
+    return func_cache_data
+
+
+# TODO(gp): Maybe private?
+def get_disk_cache(func_name: str) -> _FunctionCacheType:
     """
     Retrieve the disk cache for a given function.
 
@@ -508,27 +605,14 @@ def get_disk_cache(func_name: str) -> Dict:
     file_name = _get_cache_file_name(func_name)
     # If the disk cache doesn't exist, create it.
     if not os.path.exists(file_name):
-        _LOG.debug("No cache from disk")
-        data: _CacheType = {}
-        _save_cache_dict_to_disk(func_name, data)
+        _LOG.trace("No cache from disk")
+        func_cache_data: _FunctionCacheType = {}
+        _save_cache_dict_to_disk(func_name, func_cache_data)
     # Load data.
     cache_type = get_cache_property(func_name, "type")
-    _LOG.debug(hprint.to_str("cache_type"))
-    # Infer cache type from file extension if not set.
-    if cache_type is None:
-        if file_name.endswith(".pkl"):
-            cache_type = "pickle"
-        else:
-            cache_type = "json"
-    if cache_type == "pickle":
-        with open(file_name, "rb") as file:
-            data = pickle.load(file)
-    elif cache_type == "json":
-        with open(file_name, "r", encoding="utf-8") as file:
-            data = json.load(file)
-    else:
-        raise ValueError(f"Invalid cache type '{cache_type}'")
-    return data
+    _LOG.trace(hprint.to_str("cache_type"))
+    func_cache_data = _load_func_cache_data_from_file(file_name, cache_type)
+    return func_cache_data
 
 
 # #############################################################################
@@ -595,10 +679,10 @@ def force_cache_from_disk(func_name: str = "") -> None:
             force_cache_from_disk(func_name_tmp)
         _LOG.info("After:\n%s", cache_stats_to_str())
         return
-    _LOG.debug("func_name='%s'", func_name)
+    _LOG.trace("func_name='%s'", func_name)
     # Get disk cache.
     disk_cache = get_disk_cache(func_name)
-    _LOG.debug("disk_cache=%s", len(disk_cache))
+    _LOG.trace("disk_cache=%s", len(disk_cache))
     # Update the memory cache.
     global _CACHE
     _CACHE[func_name] = disk_cache
@@ -628,13 +712,13 @@ def flush_cache_to_disk(func_name: str = "") -> None:
             flush_cache_to_disk(func_name_tmp)
         _LOG.info("After:\n%s", cache_stats_to_str())
         return
-    _LOG.debug("func_name='%s'", func_name)
+    _LOG.trace("func_name='%s'", func_name)
     # Get memory cache.
     mem_cache = get_mem_cache(func_name)
-    _LOG.debug("mem_cache=%s", len(mem_cache))
+    _LOG.trace("mem_cache=%s", len(mem_cache))
     # Get disk cache.
     disk_cache = get_disk_cache(func_name)
-    _LOG.debug("disk_cache=%s", len(disk_cache))
+    _LOG.trace("disk_cache=%s", len(disk_cache))
     # Merge disk cache with memory cache.
     disk_cache.update(mem_cache)
     # Save merged cache to disk.
@@ -654,12 +738,13 @@ def get_cache(func_name: str) -> _CacheType:
     """
     global _CACHE
     if func_name in _CACHE:
-        _LOG.debug("Loading mem cache for '%s'", func_name)
+        _LOG.trace("Loading mem cache for '%s'", func_name)
         cache = get_mem_cache(func_name)
     else:
-        _LOG.debug("Loading disk cache for '%s'", func_name)
-        cache = get_disk_cache(func_name)
-        _CACHE[func_name] = cache
+        _LOG.trace("Loading disk cache for '%s'", func_name)
+        func_cache_data = get_disk_cache(func_name)
+        _CACHE[func_name] = func_cache_data
+        cache = func_cache_data
     return cache
 
 
@@ -677,13 +762,13 @@ def reset_mem_cache(func_name: str = "") -> None:
     :param func_name: The name of the function. If empty, reset all
         memory caches.
     """
-    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.trace(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(func_name, str)
     if func_name == "":
-        _LOG.debug("Before resetting memory cache:\n%s", cache_stats_to_str())
+        _LOG.trace("Before resetting memory cache:\n%s", cache_stats_to_str())
         for func_name_tmp in get_cache_func_names("all"):
             reset_mem_cache(func_name=func_name_tmp)
-        _LOG.debug("After:\n%s", cache_stats_to_str())
+        _LOG.trace("After:\n%s", cache_stats_to_str())
         return
     _CACHE[func_name] = {}
     del _CACHE[func_name]
@@ -700,7 +785,7 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
         resetting the disk cache.
     """
 
-    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.trace(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(func_name, str)
     hdbg.dassert_isinstance(interactive, bool)
     if interactive:
@@ -708,7 +793,7 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
             f"Are you sure you want to reset the disk cache for func_name={func_name}?"
         )
     if func_name == "":
-        _LOG.debug("Before resetting disk cache:\n%s", cache_stats_to_str())
+        _LOG.trace("Before resetting disk cache:\n%s", cache_stats_to_str())
         cache_files = glob.glob(
             os.path.join(get_cache_dir(), "tmp.cache_simple.*")
         )
@@ -716,7 +801,7 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
         for file_name in cache_files:
             if os.path.isfile(file_name):
                 os.remove(file_name)
-        _LOG.debug("After:\n%s", cache_stats_to_str())
+        _LOG.trace("After:\n%s", cache_stats_to_str())
         return
     #
     file_name = _get_cache_file_name(func_name)
@@ -733,7 +818,7 @@ def reset_cache(func_name: str = "", interactive: bool = True) -> None:
     :param interactive: If True, prompt the user for confirmation before
         resetting the disk cache.
     """
-    _LOG.debug(hprint.func_signature_to_str())
+    _LOG.trace(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(func_name, str)
     hdbg.dassert_isinstance(interactive, bool)
     reset_mem_cache(func_name=func_name)
@@ -751,13 +836,39 @@ def _get_cache_key(args: Any, kwargs: Any) -> str:
         sort_keys=True,
         default=str,
     )
-    _LOG.debug("cache_key=%s", cache_key)
+    _LOG.trace("cache_key=%s", cache_key)
     return cache_key
 
 
-def mock_cache(func_name: str, args: Any, kwargs: Any, value: Any) -> None:
+def mock_cache(func_name: str, cache_key: str, value: Any) -> None:
     """
-    Mock the cache for a given function.
+    Mock the function cache for a given function and cache key.
+
+    :param func_name: The name of the function.
+    :param cache_key: The cache key.
+    :param value: The value to store in the cache.
+    """
+    # We should not use the main cache directory for mocking.
+    hdbg.dassert_ne(
+        get_cache_dir(),
+        get_main_cache_dir(),
+        msg="Do not use the main cache directory for mocking",
+    )
+    hdbg.dassert_isinstance(func_name, str)
+    hdbg.dassert_ne(func_name, "", "Function name is empty")
+    hdbg.dassert_isinstance(cache_key, str)
+    hdbg.dassert_ne(cache_key, "", "Cache key is empty")
+    # Get the function cache.
+    func_cache_data = get_cache(func_name)
+    # Update the function cache.
+    func_cache_data[cache_key] = value
+
+
+def mock_cache_from_args_kwargs(
+    func_name: str, args: Any, kwargs: Any, value: Any
+) -> None:
+    """
+    Mock the function cache for a given function and args/kwargs.
 
     E.g., when testing a cached expensive function (e.g., an LLM call or
     downloading data) we can mock the cache to return a fixed value, instead of
@@ -768,35 +879,26 @@ def mock_cache(func_name: str, args: Any, kwargs: Any, value: Any) -> None:
     :param kwargs: The keyword arguments for the function.
     :param value: The value to store in the cache.
     """
-    # In general we should not use the main cache for mocking.
-    hdbg.dassert_ne(
-        get_cache_dir(),
-        get_main_cache_dir(),
-        msg="We do not use the main cache for mocking",
-    )
-    hdbg.dassert_isinstance(func_name, str)
-    hdbg.dassert_ne(func_name, "", "Function name is empty")
     hdbg.dassert_isinstance(args, tuple), f"args is not a tuple: {args}"
     hdbg.dassert_isinstance(kwargs, dict), f"kwargs is not a dict: {kwargs}"
-    hdbg.dassert_ne(kwargs, {}, "Keyword arguments are empty")
     # Get the cache key.
     cache_key = _get_cache_key(args, kwargs)
-    # Get the cache.
-    cache = get_cache(func_name)
-    # Update cache.
-    cache[cache_key] = value
+    # Mock the cache.
+    mock_cache(func_name, cache_key, value)
 
 
-def mock_cache_from_disk(func_name: str, cache_data: _CacheType) -> None:
+def mock_cache_from_disk(
+    func_name: str, func_cache_data: _FunctionCacheType
+) -> None:
     """
-    Mock the cache from disk data.
+    Mock the function cache from disk data.
 
     :param func_name: The name of the function.
     :param cache_data: The cache data to mock.
     """
     hdbg.dassert_isinstance(func_name, str)
-    hcacsimp.sanity_check_cache(cache_data, assert_on_empty=True)
-    for cache_key, cached_value in cache_data.items():
+    sanity_check_function_cache(func_cache_data, assert_on_empty=True)
+    for cache_key, cached_value in func_cache_data.items():
         mock_cache(func_name, cache_key, cached_value)
 
 
@@ -886,34 +988,32 @@ def simple_cache(
             kwargs_for_cache_key = {
                 k: v for k, v in kwargs.items() if k not in excluded_keys
             }
-            # Prepare kwargs for the actual function call (excluding cache
-            # control params).
-            kwargs_for_func = {
-                k: v for k, v in kwargs.items() if k not in {"cache_mode"}
-            }
+            # Prepare kwargs for the actual function call.
+            # Keep cache_mode since the wrapped function may need it in its signature.
+            kwargs_for_func = kwargs.copy()
             # `cache_mode` is a special keyword argument to control caching
             # behavior.
             if "cache_mode" in kwargs:
                 cache_mode = kwargs.get("cache_mode")
-                _LOG.debug("cache_mode=%s", cache_mode)
+                _LOG.trace("cache_mode=%s", cache_mode)
                 if cache_mode == "REFRESH_CACHE":
                     # Force to refresh the cache.
-                    _LOG.debug("Forcing cache refresh")
+                    _LOG.trace("Forcing cache refresh")
                     force_refresh = True
                 if cache_mode == "HIT_CACHE_OR_ABORT":
                     # Abort if the cache is not hit.
-                    _LOG.debug("Abort on cache miss")
+                    _LOG.trace("Abort on cache miss")
                     abort_on_cache_miss = True
                 if cache_mode == "DISABLE_CACHE":
                     # Disable the cache.
-                    _LOG.debug("Disabling cache")
+                    _LOG.trace("Disabling cache")
                     value = func(*args, **kwargs_for_func)
                     return value
             # Get the key.
             cache_key = _get_cache_key(args, kwargs_for_cache_key)
             # Get the cache properties.
             cache_perf = get_cache_perf(func_name)
-            _LOG.debug("cache_perf is None=%s", cache_perf is None)
+            _LOG.trace("cache_perf is None=%s", cache_perf is None)
             # Update the performance stats.
             if cache_perf:
                 hdbg.dassert_in("tot", cache_perf)
@@ -922,16 +1022,19 @@ def simple_cache(
             force_refresh = force_refresh or get_cache_property(
                 func_name, "force_refresh"
             )
-            _LOG.debug("force_refresh=%s", force_refresh)
+            _LOG.trace("force_refresh=%s", force_refresh)
             if cache_key in cache and not force_refresh:
-                _LOG.debug("Cache hit for key='%s'", cache_key)
+                _LOG.trace("Cache hit for key='%s'", cache_key)
+                # Highlight that a function was cached with a _LOG.warning,
+                # even if a cache hit is not suprising.
+                _LOG.warning("Cache hit for %s", func_name)
                 # Update the performance stats.
                 if cache_perf:
                     cache_perf["hits"] += 1
                 # Retrieve the value from the cache.
                 value = cache[cache_key]
             else:
-                _LOG.debug("Cache miss for key='%s'", cache_key)
+                _LOG.trace("Cache miss for key='%s'", cache_key)
                 # Update the performance stats.
                 if cache_perf:
                     cache_perf["misses"] += 1
@@ -939,7 +1042,7 @@ def simple_cache(
                 abort_on_cache_miss = abort_on_cache_miss or get_cache_property(
                     func_name, "abort_on_cache_miss"
                 )
-                _LOG.debug("abort_on_cache_miss=%s", abort_on_cache_miss)
+                _LOG.trace("abort_on_cache_miss=%s", abort_on_cache_miss)
                 if abort_on_cache_miss:
                     raise ValueError(f"Cache miss for key='{cache_key}'")
                 # Report on cache miss.
@@ -947,20 +1050,20 @@ def simple_cache(
                     report_on_cache_miss
                     or get_cache_property(func_name, "report_on_cache_miss")
                 )
-                _LOG.debug("report_on_cache_miss=%s", report_on_cache_miss)
+                _LOG.trace("report_on_cache_miss=%s", report_on_cache_miss)
                 if report_on_cache_miss:
-                    _LOG.debug("Cache miss for key='%s'", cache_key)
+                    _LOG.trace("Cache miss for key='%s'", cache_key)
                     return "_cache_miss_"
                 # Access the intrinsic function.
                 value = func(*args, **kwargs_for_func)
                 # Update cache.
                 cache[cache_key] = value
-                _LOG.debug(
+                _LOG.trace(
                     "Updating cache with key='%s' value='%s'", cache_key, value
                 )
                 #
                 if write_through:
-                    _LOG.debug("Writing through to disk")
+                    _LOG.trace("Writing through to disk")
                     flush_cache_to_disk(func_name)
             return value
 

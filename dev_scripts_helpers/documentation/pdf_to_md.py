@@ -1,4 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run
+
+# /// script
+# dependencies = ["pymupdf", "pyyaml"]
+# ///
+
 """
 Convert a PDF to Markdown using PyMuPDF (fitz).
 
@@ -23,10 +28,6 @@ Import as:
 
 import dev_scripts_helpers.documentation.pdf_to_md as dsdopema
 """
-
-# /// script
-# dependencies = ["pymupdf", "pyyaml"]
-# ///
 
 import argparse
 import logging
