@@ -544,6 +544,23 @@ def dassert_not_intersection(
         _dfatal(txt, msg, *args, only_warning=only_warning)
 
 
+def dassert_is_iterable(
+    val: Any,
+    msg: Optional[str] = None,
+    *args: Any,
+    only_warning: bool = False,
+) -> None:
+    """
+    Check that `val` is an iterable (excluding strings, bytes), raise otherwise.
+    """
+    cond = isinstance(val, Iterable) and not isinstance(
+        val, (str, bytes, bytearray)
+    )
+    if not cond:
+        txt = f"Val '{val}' of type '{type(val)}' is not an iterable"
+        _dfatal(txt, msg, *args, only_warning=only_warning)
+
+
 # #############################################################################
 # Array related.
 # #############################################################################
@@ -553,7 +570,7 @@ def dassert_no_duplicates(
     val1: Iterable[Any],
     msg: Optional[str] = None,
     *args: Any,
-    only_warning: bool = False
+    only_warning: bool = False,
 ) -> None:
     """
     Check that `val1` has no duplicates, raise otherwise.
@@ -592,21 +609,6 @@ def dassert_is_sorted(
         txt.append("val1=\n" + pprint.pformat(val1))
         txt.append("is not sorted")
         txt.append("sorted(val1)=\n" + pprint.pformat(sorted_val1))
-        _dfatal(txt, msg, *args, only_warning=only_warning)
-
-
-def dassert_is_iterable(
-    val: Any,
-    msg: Optional[str] = None,
-    *args: Any,
-    only_warning: bool = False,
-) -> None:
-    """
-    Check that `val` is an iterable (excluding strings, bytes), raise otherwise.
-    """
-    cond = isinstance(val, Iterable) and not isinstance(val, (str, bytes, bytearray))
-    if not cond:
-        txt = f"Val '{val}' of type '{type(val)}' is not an iterable"
         _dfatal(txt, msg, *args, only_warning=only_warning)
 
 
@@ -934,6 +936,20 @@ def dassert_related_params(
 
 
 # #############################################################################
+# Command line.
+# #############################################################################
+
+
+# Sample at the beginning of time before we start fiddling with command line
+# args.
+_CMD_LINE = " ".join(arg for arg in sys.argv)
+
+
+def get_command_line() -> str:
+    return _CMD_LINE
+
+
+# #############################################################################
 # Logger.
 # #############################################################################
 
@@ -954,6 +970,7 @@ def init_logger(
     in_pytest: bool = False,
     report_memory_usage: bool = False,
     report_cpu_usage: bool = False,
+    report_command_line: bool = True,
 ) -> None:
     """
     Send stderr and stdout to logging (optionally teeing the logs to file).
@@ -973,6 +990,7 @@ def init_logger(
         can overwrite the default logger from pytest
     :param report_memory_usage: turn on reporting memory usage
     :param report_cpu_usage: turn on reporting CPU usage
+    :param report_command_line: turn on reporting command line
     """
     # Try to minimize dependencies.
     import helpers.hlogging as hloggin
@@ -1064,7 +1082,8 @@ def init_logger(
     dassert(hasattr(hloggin, "shutup_chatty_modules"))
     assert hasattr(hloggin, "shutup_chatty_modules")
     hloggin.shutup_chatty_modules(verbose=False)
-    _LOG.info("> cmd='%s'", get_command_line())
+    if report_command_line:
+        _LOG.info("> cmd='%s'", get_command_line())
     #
     # test_logger()
 
