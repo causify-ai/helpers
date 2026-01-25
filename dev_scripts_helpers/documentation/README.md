@@ -20,8 +20,6 @@
   - Archived legacy scripts and tools no longer in active use
 - `test/`
   - Unit tests for documentation processing scripts and utilities
-- `__pycache__/`
-  - Python bytecode cache directory
 
 # Description of Files
 
