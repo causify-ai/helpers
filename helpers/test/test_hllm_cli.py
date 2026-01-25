@@ -12,6 +12,8 @@ import helpers.hllm_cli as hllmcli
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
+from helpers.test.test_hcache_simple import _BaseCacheTest
+
 _LOG = logging.getLogger(__name__)
 
 # Disable calling LLM when testing.
@@ -103,7 +105,7 @@ _TEST_CASES_PRINT_ONLY = [
 # TestApplyLlmBase
 # #############################################################################
 
-class TestApplyLlmBase(hunitest.TestCase):
+class TestApplyLlmBase(_BaseCacheTest):
     """
     Base class with helper methods for testing apply_llm functions.
 
@@ -174,7 +176,7 @@ class TestApplyLlmBase(hunitest.TestCase):
 
 @pytest.mark.skipif(
     not _RUN_REAL_LLM,
-    reason="real LLM not enabled",
+    reason="Real LLM not enabled",
 )
 class Test_apply_llm_with_files1(TestApplyLlmBase):
     """
@@ -211,7 +213,7 @@ class Test_apply_llm_with_files1(TestApplyLlmBase):
 
 @pytest.mark.skipif(
     not _RUN_REAL_LLM,
-    reason="real LLM not enabled",
+    reason="Real LLM not enabled",
 )
 class Test_apply_llm_with_files2(TestApplyLlmBase):
     def test1_library(self) -> None:
@@ -288,7 +290,7 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
 
 @pytest.mark.skipif(
     not _RUN_REAL_LLM,
-    reason="real LLM not enabled",
+    reason="Real LLM not enabled",
 )
 class Test_llm1(hunitest.TestCase):
     """
@@ -525,7 +527,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
 
     @pytest.mark.skipif(
         not _RUN_REAL_LLM,
-        reason="real LLM not enabled",
+        reason="Real LLM not enabled",
     )
     def test_individual1(self) -> None:
         """
@@ -559,7 +561,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
 
     @pytest.mark.skipif(
         not _RUN_REAL_LLM,
-        reason="real LLM not enabled",
+        reason="Real LLM not enabled",
     )
     def test_shared1(self) -> None:
         """
@@ -593,7 +595,7 @@ class Test_apply_llm_batch1(hunitest.TestCase):
 
     @pytest.mark.skipif(
         not _RUN_REAL_LLM,
-        reason="real LLM not enabled",
+        reason="Real LLM not enabled",
     )
     def test_combined1(self) -> None:
         """
@@ -942,7 +944,7 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
 # #############################################################################
 
 # TODO(gp): Convert this into a unit test for apply_llm_prompt.
-class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
+class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
     """
     Test apply_llm_prompt_to_df with mocked cache.
     """
@@ -1025,7 +1027,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
 
     @pytest.mark.skipif(
         not _RUN_REAL_LLM,
-        reason="real LLM not enabled",
+        reason="Real LLM not enabled",
     )
     def test1(self) -> None:
         """
@@ -1112,7 +1114,7 @@ class Test_apply_llm_prompt_to_df2(hunitest.TestCase):
 
 @pytest.mark.skipif(
     not _RUN_REAL_LLM,
-    reason="real LLM not enabled",
+    reason="Real LLM not enabled",
 )
 class Test_apply_llm_batch_cost_comparison(hunitest.TestCase):
     """

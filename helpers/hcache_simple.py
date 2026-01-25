@@ -262,8 +262,8 @@ def set_cache_property(func_name: str, property_name: str, val: Any) -> None:
             func_name_tmp,
             cache_property[func_name_tmp],
         )
-    with open(file_name, "wb") as file:
-        pickle.dump(cache_property, file)
+    hio.create_enclosing_dir(file_name, incremental=True)
+    _save_cache_dict_to_disk(file_name, cache_property)
 
 
 def get_cache_property(func_name: str, property_name: str) -> Union[bool, Any]:
@@ -305,8 +305,8 @@ def reset_cache_property() -> None:
     _LOG.trace("after cache_property=%s", cache_property)
     # Update values on the disk.
     _LOG.trace("Updating %s", file_name)
-    with open(file_name, "wb") as file:
-        pickle.dump(cache_property, file)
+    hio.create_enclosing_dir(file_name, incremental=True)
+    _save_cache_dict_to_disk(file_name, cache_property)
 
 
 # #############################################################################
