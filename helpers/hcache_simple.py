@@ -263,7 +263,7 @@ def set_cache_property(func_name: str, property_name: str, val: Any) -> None:
             cache_property[func_name_tmp],
         )
     hio.create_enclosing_dir(file_name, incremental=True)
-    _save_cache_dict_to_disk(file_name, cache_property)
+    _save_func_cache_data_to_file(file_name, "pickle", cache_property)
 
 
 def get_cache_property(func_name: str, property_name: str) -> Union[bool, Any]:
@@ -306,7 +306,7 @@ def reset_cache_property() -> None:
     # Update values on the disk.
     _LOG.trace("Updating %s", file_name)
     hio.create_enclosing_dir(file_name, incremental=True)
-    _save_cache_dict_to_disk(file_name, cache_property)
+    _save_func_cache_data_to_file(file_name, "pickle", cache_property)
 
 
 # #############################################################################

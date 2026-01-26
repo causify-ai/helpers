@@ -3,8 +3,8 @@ Increase unit test coverage to approach 100 percent for a given function.
 Context and constraints:
 - You will be given a specific function to work on.
 - All tests and code must strictly follow:
-  - `docs/ai_prompts/testing.format_unit_tests.md` for tests
-  - `docs/ai_prompts/coding.format_code.md` for any code
+  - `docs/ai_prompts/testing.format_rules.md` for tests
+  - `docs/ai_prompts/coding.format_rules.md` for any code
 - Focus on meaningful behavior and correctness rather than superficial coverage.
 - If any part of the task is unclear or underspecified, stop and ask for
   clarification before proceeding.

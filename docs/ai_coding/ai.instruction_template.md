@@ -17,14 +17,14 @@ that
   the plan is
 
 - For all the code you must follow the instructions in
-  `docs/ai_prompts/coding.format_code.md`
+  `docs/ai_prompts/coding.format_rules.md`
 
 Step 2) Update the file README.md in the same directory of the
    script following the instructions in 
    in `docs/ai_prompts/readme.create.md`
 
 Step 3) Generate unit tests for the code following the instructions in
-  `docs/ai_prompts/testing.format_unit_tests.md`
+  `docs/ai_prompts/testing.format_rules.md`
   - Write test class and methods
   - Do not implement code
   - Preview unit tests that need to be written by creating input and expected
@@ -34,10 +34,10 @@ Step 3) Generate unit tests for the code following the instructions in
 
 Step 1) Rename the files in docs/ai_coding/ that have instructions.md
 
-docs/ai_prompts/blog.format_text.md
-docs/ai_prompts/coding.format_code.md
+docs/ai_prompts/blog.format_rules.md
+docs/ai_prompts/coding.format_rules.md
 docs/ai_coding/ai.paper.prompt.md
-docs/ai_prompts/testing.format_unit_tests.md
+docs/ai_prompts/testing.format_rules.md
 
 replacing _instructions.md with .prompt.md
 
@@ -50,7 +50,7 @@ Step 1) Write a Python function XYZ that ...
 The interface is like:
 
 - For all the code you must follow the instructions in
-  `docs/ai_prompts/coding.format_code.md`
+  `docs/ai_prompts/coding.format_rules.md`
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
@@ -59,7 +59,7 @@ Step 2) Update the file README.md in the same directory of the
  script following the instructions in `docs/ai_prompts/readme.create.md`
 
 Step 3) Generate unit tests for the code following the instructions in
-`docs/ai_prompts/testing.format_unit_tests.md`
+`docs/ai_prompts/testing.format_rules.md`
 
 # Implement an invoke target
 
@@ -91,7 +91,7 @@ Step 3) Generate unit tests for the code following the instructions in
 
 ## Step 4)
   - Implement unit tests following the instructions in 
-    `docs/ai_prompts/testing.format_unit_tests.md`
+    `docs/ai_prompts/testing.format_rules.md`
 
 ## Step 5)
   - If it's a new script, find where the documentation of this change should go
@@ -106,4 +106,4 @@ Step 3) Generate unit tests for the code following the instructions in
 
 ## Step 7)
   - Implement the code following the instructions in
-    `docs/ai_prompts/coding.format_code.md`
+    `docs/ai_prompts/coding.format_rules.md`

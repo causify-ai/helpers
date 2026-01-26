@@ -12,7 +12,7 @@ Make sure to update all the references to those objects in the code base
 - If needed, run corresponding unit tests to make sure the code works
 
 - For Python code follow the rules in
-  `docs/ai_prompts/coding.format_code.md`
+  `docs/ai_prompts/coding.format_rules.md`
 
 - For Python code with unit tests, follow the rules in the rules from
-  `docs/ai_prompts/testing.format_unit_tests.md`
+  `docs/ai_prompts/testing.format_rules.md`
