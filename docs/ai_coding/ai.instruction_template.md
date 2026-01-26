@@ -32,7 +32,7 @@ next step
 
 # Implement notebook
 - Add examples to explain the code below to <file> following
-  `docs/ai_prompts/notebooks.format_code.md`
+  `docs/ai_prompts/notebooks.format_rules.md`
 
 <content>
 * Entropy and Probability Density Function (PDF)

@@ -94,4 +94,4 @@ Execute all the steps, unless the user explicitly says to execute in steps
 - Ask all clarifying questions if things are not clear
 
 # Step 3)
-- Follow the instructions in `docs/ai_prompts/notebooks.format_code.md`
+- Follow the instructions in `docs/ai_prompts/notebooks.format_rules.md`

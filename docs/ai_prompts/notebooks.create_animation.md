@@ -26,6 +26,6 @@
   )
   ```
 
-- Follow the instructions in `docs/ai_prompts/notebooks.format_code.md`
+- Follow the instructions in `docs/ai_prompts/notebooks.format_rules.md`
 
 - After updating the Python file make sure to synchronize with Jupytext

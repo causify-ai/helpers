@@ -90,6 +90,8 @@ def _get_all_files(
     for file_name_to_remove in file_names_to_remove:
         file_names = [f for f in file_names if file_name_to_remove not in f]
     file_names = [f for f in file_names if os.path.basename(f) != "cfile"]
+    # Exclude broken symlinks and non-existent files.
+    file_names = [f for f in file_names if os.path.exists(f)]
     _LOG.info(
         "Found %s target files with extensions '%s'",
         len(file_names),
@@ -671,8 +673,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
             file_names = [
                 file_name
                 for file_name in file_names
-                if os.path.normpath(os.path.dirname(file_name))
-                not in exclude_dirs_list
+                if not any(
+                    os.path.normpath(file_name).startswith(
+                        os.path.normpath(exclude_dir) + os.sep
+                    )
+                    or os.path.normpath(file_name).startswith(
+                        "." + os.sep + os.path.normpath(exclude_dir) + os.sep
+                    )
+                    for exclude_dir in exclude_dirs_list
+                )
             ]
             num_files_after = len(file_names)
             _LOG.info(

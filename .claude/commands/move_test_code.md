@@ -1,1 +1,0 @@
-../../docs/ai_prompts/coding.move_test_code.md
