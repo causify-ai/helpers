@@ -199,7 +199,8 @@ def _render_images_in_file(
     if render_images_dir not in sys.path:
         sys.path.insert(0, render_images_dir)
     import dev_scripts_helpers.documentation.render_images as dshdreim
-    # Save images into the same directory as the file under the `figs` 
+
+    # Save images into the same directory as the file under the `figs`
     # sub dir.
     dst_dir = os.path.join(os.path.dirname(file_path), "figs")
     hio.create_dir(dst_dir, incremental=True)
