@@ -161,6 +161,9 @@ py:percent format (e.g., msml610/tutorials/Lesson94-Information_Theory.py)
 - Do not print any information as `print()` statement, but write all the
   information in the "Comments" graph
 
+- You can use `plot_joint_entropy_interactive()` in
+  `msml610/tutorials/utils_Lesson94_Information_Theory.py` as a reference
+
 ## Final step
 - After you have modified the Python file you will run a command to pair the
   notebook and the Python file
