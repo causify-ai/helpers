@@ -56,7 +56,7 @@ if [[ $NUM_PASSES -ge 3 ]]; then
         # Extract directory and base name for bibtex
         TEX_DIR=$(dirname $LATEX_NAME)
         TEX_BASE=$(basename $LATEX_NAME .tex)
-        cp $SCRIPT_DIR/references.bib .
+        cp $SCRIPT_DIR/*.bib .
         bibtex $TEX_BASE
 
         # Third pdflatex pass - resolves all cross-references
