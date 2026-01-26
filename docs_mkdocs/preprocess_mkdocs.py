@@ -199,7 +199,10 @@ def _render_images_in_file(
     if render_images_dir not in sys.path:
         sys.path.insert(0, render_images_dir)
     import dev_scripts_helpers.documentation.render_images as dshdreim
-
+    # Save images into the same directory as the file under the `figs` 
+    # sub dir.
+    dst_dir = os.path.join(os.path.dirname(file_path), "figs")
+    hio.create_dir(dst_dir, incremental=True)
     # Read the file.
     in_lines = hio.from_file(file_path).split("\n")
     # Render images (in-place, using png).
@@ -207,7 +210,7 @@ def _render_images_in_file(
         in_lines,
         out_file=file_path,
         dst_ext="png",
-        dst_dir="./blog/docs/posts/figs",
+        dst_dir=dst_dir,
         force_rebuild=force_rebuild,
         use_sudo=use_sudo,
         dry_run=False,
