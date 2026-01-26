@@ -16,7 +16,7 @@ next step
   the plan is
 
 - For all the code you must follow the instructions in
-  `docs/ai_prompts/coding.format_code.md`
+  `docs/ai_prompts/coding.format_rules.md`
 
 ## Step 2)
 - Update the file README.md in the same directory of the script following the
@@ -24,7 +24,7 @@ next step
 
 ## Step 3)
 - Generate unit tests for the code following the instructions in
-  `docs/ai_prompts/testing.format_unit_tests.md`
+  `docs/ai_prompts/testing.format_rules.md`
   - Write test class and methods
   - Do not implement code
   - Preview unit tests that need to be written by creating input and expected
@@ -71,8 +71,11 @@ next step
   - For all the code you must follow the instructions in
     `docs/ai_prompts/coding.format_code.md`
 
-  - If the task is not perfectly clear, you MUST not perform it, but ask for
-    clarifications
+- If the task is not perfectly clear, you MUST not perform it, but ask for
+  clarifications
+
+- For all the code you must follow the instructions in
+  `docs/ai_prompts/coding.format_rules.md`
 
 ## Step 2)
 - Update the file README.md in the same directory of the script following the
@@ -80,7 +83,7 @@ next step
 
 ## Step 3)
 - Generate unit tests for the code following the instructions in
-  `docs/ai_prompts/testing.format_unit_tests.md`
+  `docs/ai_prompts/testing.format_rules.md`
 
 # Implement an invoke target
 
@@ -112,7 +115,7 @@ next step
 
 ## Step 4)
   - Implement unit tests following the instructions in 
-    `docs/ai_prompts/testing.format_unit_tests.md`
+    `docs/ai_prompts/testing.format_rules.md`
 
 ## Step 5)
   - If it's a new script, find where the documentation of this change should go
@@ -127,4 +130,4 @@ next step
 
 ## Step 7)
   - Implement the code following the instructions in
-    `docs/ai_prompts/coding.format_code.md`
+    `docs/ai_prompts/coding.format_rules.md`

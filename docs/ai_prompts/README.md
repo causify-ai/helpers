@@ -12,7 +12,7 @@ the root level.
 
 ## Coding and Development
 
-- `coding.format_code.md`
+- `coding.format_rules.md`
   - Python coding standards including assertions, logging patterns, and script
     formatting rules
 - `coding.improve_comments.md`
@@ -34,7 +34,7 @@ the root level.
   - Prompt for finding documentation for files, classes, or functions
 - `coding.lint.md`
   - Prompt for improving code appearance by applying formatting rules from
-    `coding.format_code.md` and `testing.format_unit_tests.md`
+    `coding.format_rules.md` and `testing.format_rules.md`
 - `coding.rename.md`
   - Prompt for renaming files, functions, and variables across a codebase with
     proper reference updates
@@ -50,7 +50,7 @@ the root level.
 
 ## Testing
 
-- `testing.format_unit_tests.md`
+- `testing.format_rules.md`
   - Unit testing conventions including test structure, naming patterns, golden
     file testing, and pytest usage
 - `testing.fix_unit_tests.md`
@@ -65,7 +65,7 @@ the root level.
 
 ## Documentation and Writing
 
-- `markdown.format.md`
+- `markdown.format_rules.md`
   - Style guide for writing structured bullet-point markdown optimized for AI
     and human readability
 - `readme.create.md`
@@ -79,7 +79,7 @@ the root level.
 
 - `blog.create_tldr.md`
   - Prompt for creating three catchy and controversial TLDRs under 20 words
-- `blog.format_text.md`
+- `blog.format_rules.md`
   - Markdown formatting guidelines for writing blog posts with proper structure
     and metadata
 - `blog.add_figures.md`

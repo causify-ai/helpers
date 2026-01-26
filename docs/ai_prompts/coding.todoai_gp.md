@@ -9,10 +9,10 @@
   - If needed, run corresponding unit tests to make sure the code works
 
 - For a file containing Python code you MUST apply the rules from
-  `docs/ai_prompts/coding.format_code.md`
+  `docs/ai_prompts/coding.format_rules.md`
 
 - For a file storing unit tests (i.e., whose basename starts with test_) you MUST
-  apply the rules from `docs/ai_prompts/testing.format_unit_tests.md`
+  apply the rules from `docs/ai_prompts/testing.format_rules.md`
 
 - For a notebook ipynb and its paired Python file, you MUST apply the rules from
-  `docs/ai_prompts/notebook.format_code.md`
+  `docs/ai_prompts/notebook.format_rules.md`

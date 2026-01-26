@@ -102,4 +102,4 @@ common code
 # Important
 
 For all the code you must follow the instructions in
-  `docs/ai_prompts/coding.format_code.md`
+  `docs/ai_prompts/coding.format_rules.md`

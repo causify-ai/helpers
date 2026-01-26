@@ -6,4 +6,4 @@ Given the passed Python file
 - Update the comments that are not in sync with the code
 
 - For all the code you must follow the instructions in
-  `docs/ai_prompts/coding.format_code.md`
+  `docs/ai_prompts/coding.format_rules.md`
