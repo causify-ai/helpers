@@ -496,12 +496,23 @@ refactoring.
 
 #### What It Does
 
-- Reads a file containing special tags and splits it into separate output files
-- Supports optional common section that is copied to all output files
-- Allows multiple chunks with the same filename to be concatenated into one file
+Splits a file into multiple files based on special tags. After splitting, the
+input file is modified to remove content between tags, keeping only the tags
+themselves and any untagged content.
+
+**Tag formats:**
+
+- `<start_common>` - Optional section copied to all output files
+- `<start:filename>` - Start of a new file section
+
+**Features:**
+
+- Multiple chunks can use the same filename - they will be concatenated
 - Can append to existing files instead of overwriting them with `--append` flag
-- Modifies input file after splitting: removes content between tags, keeps tags and untagged content
+- Common section is prepended only once per file (first chunk)
 - Provides dry run mode to preview operations without writing files
+- Can preserve input file unchanged with `--preserve_input` flag
+- Skip content verification for faster processing with `--skip_verify`
 
 #### Examples
 
