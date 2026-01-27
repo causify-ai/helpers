@@ -76,11 +76,6 @@ def _parse() -> argparse.ArgumentParser:
         help="Force rebuild of all images (ignore cache)",
     )
     parser.add_argument(
-        "--use_github_hosting",
-        action="store_true",
-        help="Use GitHub-hosted absolute URLs for images",
-    )
-    parser.add_argument(
         "--skip_validation",
         action="store_true",
         help="Skip frontmatter validation (only for --blog mode)",
@@ -186,7 +181,6 @@ def _render_images_in_file(
     file_path: str,
     force_rebuild: bool = False,
     use_sudo: bool = False,
-    use_github_hosting: bool = False,
 ) -> None:
     """
     Render images in a markdown file (PlantUML, Mermaid, Graphviz, etc.).
@@ -194,7 +188,6 @@ def _render_images_in_file(
     :param file_path: path to the markdown file to process
     :param force_rebuild: force rebuild of Docker images
     :param use_sudo: use sudo for Docker commands
-    :param use_github_hosting: use GitHub absolute URLs for images
     """
     # Add the dev_scripts_helpers/documentation directory to path
     helpers_root = os.path.abspath(
@@ -207,6 +200,10 @@ def _render_images_in_file(
         sys.path.insert(0, render_images_dir)
     import dev_scripts_helpers.documentation.render_images as dshdreim
 
+    # Save images into the same directory as the file under the `figs`
+    # sub dir.
+    dst_dir = os.path.join(os.path.dirname(file_path), "figs")
+    hio.create_dir(dst_dir, incremental=True)
     # Read the file.
     in_lines = hio.from_file(file_path).split("\n")
     # Render images (in-place, using png).
@@ -214,10 +211,10 @@ def _render_images_in_file(
         in_lines,
         out_file=file_path,
         dst_ext="png",
+        dst_dir=dst_dir,
         force_rebuild=force_rebuild,
         use_sudo=use_sudo,
         dry_run=False,
-        use_github_hosting=use_github_hosting,
     )
     # Write back.
     hio.to_file(file_path, "\n".join(out_lines))
@@ -227,7 +224,6 @@ def _render_images_in_file(
 def _process_markdown_files(
     directory: str,
     render_images: bool = False,
-    use_github_hosting: bool = False,
     is_blog: bool = False,
     skip_validation: bool = False,
     force_rebuild: bool = False,
@@ -238,7 +234,6 @@ def _process_markdown_files(
     :param directory: directory to process
     :param render_images: whether to render mermaid/plantuml/graphviz
         diagrams
-    :param use_github_hosting: use GitHub absolute URLs for images
     :param is_blog: Whether processing blog posts (affects validation
         and processing)
     :param skip_validation: skip frontmatter validation (only for blogs)
@@ -285,7 +280,6 @@ def _process_markdown_files(
                     try:
                         _render_images_in_file(
                             file_path,
-                            use_github_hosting=use_github_hosting,
                             force_rebuild=force_rebuild,
                         )
                     except Exception as e:
@@ -379,7 +373,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _process_markdown_files(
         output_dir,
         render_images=args.render_images,
-        use_github_hosting=args.use_github_hosting,
         is_blog=is_blog,
         skip_validation=args.skip_validation,
         force_rebuild=args.force_rebuild,
