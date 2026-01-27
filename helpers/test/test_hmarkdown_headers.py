@@ -312,6 +312,7 @@ def _test_full_navigation_flow(self_: Any, txt: str) -> None:
 
 
 class Test_header_list_to_vim_cfile1(hunitest.TestCase):
+    # TODO(ai_gp): Rename test1, test2 and add docstrings.
     def test_get_header_list1(self) -> None:
         # Prepare inputs.
         markdown_file = "test.py"
@@ -340,6 +341,8 @@ class Test_header_list_to_vim_cfile1(hunitest.TestCase):
 
 
 class Test_header_list_to_markdown1(hunitest.TestCase):
+    # TODO(ai_gp): Factor out common code in helper
+    # TODO(ai_gp): Rename test1, test2 and add docstrings.
     def test_mode_list1(self) -> None:
         # Prepare inputs.
         headers = get_header_list1()
@@ -389,6 +392,9 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
 
 
 class Test_is_markdown_line_separator1(hunitest.TestCase):
+    # TODO(ai_gp): Factor out common code in helper
+
+    # TODO(ai_gp): Rename test1, test2 and add docstrings.
     def test_valid_separator1(self) -> None:
         # Prepare inputs.
         line = "-----------------------"
@@ -513,6 +519,8 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
 
 
 class Test_extract_section_from_markdown1(hunitest.TestCase):
+    # TODO(ai_gp): Factor out common code in helper
+
     # TODO(gp): This doesn't seem correct.
     def test1(self) -> None:
         # Prepare inputs.
@@ -595,6 +603,9 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
 
 
 class Test_extract_headers_from_markdown1(hunitest.TestCase):
+    # TODO(ai_gp): Factor out common code in helper
+
+    # TODO(ai_gp): Rename test1, test2 and add docstrings.
     def test_multiple_headers(self) -> None:
         # Prepare inputs.
         content = _get_markdown_example1()
@@ -637,6 +648,9 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
 
 
 class Test_extract_slides_from_markdown1(hunitest.TestCase):
+    # TODO(ai_gp): Factor out common code in helper
+
+    # TODO(ai_gp): Rename test1, test2 and add docstrings
     def test_multiple_slides(self) -> None:
         # Prepare inputs.
         content = _get_markdown_slides_example1()
@@ -978,6 +992,7 @@ class Test_modify_header_level1(hunitest.TestCase):
 
 
 class Test_format_headers1(hunitest.TestCase):
+    # TODO(ai_gp): -> helper
     def helper_process(
         self, input_text: List[str], expected: List[str], max_lev: int
     ) -> None:
@@ -1143,6 +1158,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
+    # TODO(ai_gp): Rename test1, test2
     def test1(self) -> None:
         txt = r"""
         * ML theory
