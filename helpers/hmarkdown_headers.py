@@ -10,6 +10,7 @@ import re
 from typing import List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
+import helpers.hmarkdown_fenced_blocks as hmarfbl
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -103,6 +104,22 @@ def frame_chapters(lines: List[str], *, max_lev: int = 4) -> List[str]:
     return txt_new
 
 
+def has_mixed_case(word: str) -> bool:
+    """
+    Check if a word has capital letters in positions other than the first.
+
+    This detects words like "SimpleFeedForward", "DeepNPTS", etc. that should
+    be preserved as-is.
+
+    :param word: word to check
+    :return: True if the word has capital letters after the first position
+    """
+    if len(word) <= 1:
+        return False
+    # Check if any character after the first position is uppercase.
+    return any(c.isupper() for c in word[1:])
+
+
 def capitalize_header(lines: List[str]) -> List[str]:
     """
     Improve the header and slide titles.
@@ -119,10 +136,16 @@ def capitalize_header(lines: List[str]) -> List[str]:
             Establish a Phased, Collaborative Approach
 
     - Strings inside backticks, single quotes, and double quotes are preserved.
+    - Words with mixed case (e.g., SimpleFeedForward, DeepNPTS) are preserved.
+    - Headers inside fenced code blocks are not processed.
     """
     hdbg.dassert_isinstance(lines, list)
+    # Replace fenced blocks with tags to avoid processing headers inside them.
+    lines_without_fenced, fence_map = hmarfbl.replace_fenced_blocks_with_tags(
+        lines
+    )
     txt_new: List[str] = []
-    for i, line in enumerate(lines):
+    for i, line in enumerate(lines_without_fenced):
         # Parse header (starting with `#`) and slide title (starting with `*`).
         m = re.match(r"^(\#+|\*) (.*)$", line)
         if m:
@@ -148,10 +171,10 @@ def capitalize_header(lines: List[str]) -> List[str]:
                 "vs",
                 "with",
             }
-            # Find and temporarily replace quoted strings to preserve them
+            # Find and temporarily replace quoted strings to preserve them.
             quoted_strings = []
             placeholders = []
-            # Pattern to match strings inside backticks, single quotes, or double quotes
+            # Pattern to match strings inside backticks, single quotes, or double quotes.
             quote_pattern = r'(`[^`]*`|\'[^\']*\'|"[^"]*")'
 
             def replace_quoted(match: re.Match) -> str:
@@ -171,12 +194,15 @@ def capitalize_header(lines: List[str]) -> List[str]:
                 if word.startswith("__QUOTED_") and word.endswith("__"):
                     # Skip placeholder words, they will be restored later.
                     continue
-                elif i == 0 and not word.isupper():
-                    # Capitalize the first word.
-                    words[i] = word.title()
                 elif word.isupper():
                     # Skip words that are all caps (e.g. ML, API).
                     continue
+                elif has_mixed_case(word):
+                    # Skip words with mixed case (e.g. SimpleFeedForward, DeepNPTS).
+                    continue
+                elif i == 0:
+                    # Capitalize the first word.
+                    words[i] = word.title()
                 elif word.lower() in non_cap_words:
                     # Don't capitalize conjunctions and other minor words.
                     words[i] = word.lower()
@@ -192,6 +218,8 @@ def capitalize_header(lines: List[str]) -> List[str]:
             txt_new.append(line)
         else:
             txt_new.append(line)
+    # Restore fenced blocks.
+    txt_new = hmarfbl.replace_tags_with_fenced_blocks(txt_new, fence_map)
     hdbg.dassert_isinstance(txt_new, list)
     return txt_new
 
