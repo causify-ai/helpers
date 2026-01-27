@@ -112,6 +112,24 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     return txt_new
 
 
+def _remove_page_separators(lines: List[str]) -> List[str]:
+    """
+    Remove page separator lines from the given text.
+
+    Page separators are lines that match the pattern `^---\\s*$`.
+
+    :param lines: The lines to be processed.
+    :return: The lines with page separators removed.
+    """
+    _LOG.debug("lines=%s", lines)
+    txt = "\n".join(lines)
+    # Remove lines with ---.
+    txt = re.sub(r"^---\s*$", "", txt, flags=re.MULTILINE)
+    ret = txt.split("\n")
+    hdbg.dassert_isinstance(ret, list)
+    return ret
+
+
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
     """
     Post-process the given text by applying various transformations.
@@ -281,6 +299,10 @@ def _perform_actions(
     action = "postprocess"
     if _to_execute_action(action, actions):
         lines = _postprocess_txt(lines, in_file_name)
+    # Remove page separators.
+    action = "remove_page_separators"
+    if _to_execute_action(action, actions):
+        lines = _remove_page_separators(lines)
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
@@ -316,6 +338,8 @@ _VALID_ACTIONS = [
     "prettier",
     # _postprocess(): post-process the given text.
     "postprocess",
+    # _remove_page_separators(): remove page separator lines (---).
+    "remove_page_separators",
     #
     "frame_chapters",
     "capitalize_header",
