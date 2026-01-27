@@ -8,6 +8,9 @@ existing tests in the helpers repository.
 - For a source file `helpers/module_name.py`, create a test file at
   `helpers/test/test_module_name.py`
 
+## Unit test code structure
+- Always derive testing classes from `hunitest.TestCase`
+
 - Use this exact structure:
   ```python
   import logging
@@ -18,22 +21,12 @@ existing tests in the helpers repository.
   _LOG = logging.getLogger(__name__)
 
 
-  # #############################################################################
-  # TestClassName1
-  # #############################################################################
-
-
   class TestClassName1(hunitest.TestCase):
       """
       Brief description of what this test class tests.
       """
 
       # Test methods here
-
-
-  # #############################################################################
-  # TestClassName2
-  # #############################################################################
 
 
   class TestClassName2(hunitest.TestCase):
@@ -46,27 +39,15 @@ existing tests in the helpers repository.
 
 ## Naming conventions
 
-- Testing a function → Use `Test_<FunctionName>` (with underscore)
-  - Example: function `parse_limit_range()` → `class Test_parse_limit_range(hunitest.TestCase):`
-  - Example: function `apply_limit_range()` → `class Test_apply_limit_range(hunitest.TestCase):`
+- Testing a function -> Use `Test_<FunctionName>` (with underscore)
+  - Example: function `parse_limit_range()` -> `class Test_parse_limit_range(hunitest.TestCase):`
+  - Example: function `apply_limit_range()` -> `class Test_apply_limit_range(hunitest.TestCase):`
 
-- Testing a class → Use `Test<ClassName>` (no underscore)
-  - Example: class `Config` → `class TestConfig(hunitest.TestCase):`
-  - Example: class `ConfigBuilder` → `class TestConfigBuilder(hunitest.TestCase):`
+- Testing a class -> Use `Test<ClassName>` (no underscore)
+  - Example: class `Config` -> `class TestConfig(hunitest.TestCase):`
+  - Example: class `ConfigBuilder` -> `class TestConfigBuilder(hunitest.TestCase):`
 
-- Test method names → Choose based on number of tests:
-  - If you have < 5 similar tests: use descriptive names
-    ```python
-    def test_parse_limit_range_valid_input(self) -> None:
-    def test_parse_limit_range_no_colon(self) -> None:
-    def test_parse_limit_range_invalid_start(self) -> None:
-    ```
-  - If you have >= 5 similar tests: use numbered names
-    ```python
-    def test_parse_limit_range1(self) -> None:
-    def test_parse_limit_range2(self) -> None:
-    def test_parse_limit_range3(self) -> None:
-    ```
+- Test method names -> Always number the method tests, as `test1`, `test2`
 
 ## Test method structure - Use three sections
 
@@ -90,7 +71,6 @@ existing tests in the helpers repository.
 
 - For section 2 use:
   - `# Run test.`
-  - `# Run.`
 
 - For section 3 use:
   - `# Check output.`
@@ -98,8 +78,8 @@ existing tests in the helpers repository.
 
 ## Use helper methods when you have repetitive tests
 
-- If you write 3+ test methods that call the same function with only different
-  input values and expected outputs, create a helper method
+- If you write 2 or more test methods that call the same function with only
+  different input values and expected outputs, create a helper method
 
 - Example:
   ```python
@@ -219,7 +199,9 @@ existing tests in the helpers repository.
 - Simplified version when exact message doesn't matter:
   ```python
   def test_raises_error(self) -> None:
-      """Test that function raises AssertionError for invalid input."""
+      """
+      Test that function raises AssertionError for invalid input.
+      """
       # Prepare inputs.
       invalid_input = <value>
       # Run test and check output.
@@ -230,7 +212,9 @@ existing tests in the helpers repository.
 - Check for partial message:
   ```python
   def test_error_message_content(self) -> None:
-      """Test that error message contains expected text."""
+      """
+      Test that error message contains expected text.
+      """
       # Prepare inputs.
       invalid_input = <value>
       # Run test and check output.
@@ -243,16 +227,9 @@ existing tests in the helpers repository.
 
 - For each function, generate tests for:
   - Happy path (normal, expected input)
-    - `test_<function>_valid_input()`
   - Edge cases (boundary conditions)
-    - Empty input: `test_<function>_empty_input()`
-    - Zero: `test_<function>_zero()`
-    - Single item: `test_<function>_single_item()`
-    - Large input: `test_<function>_large_input()`
+    - E.g., empty input, zero, single item, large input
   - Error conditions (invalid input)
-    - None: `test_<function>_none_raises_error()`
-    - Wrong type: `test_<function>_invalid_type_raises_error()`
-    - Invalid value: `test_<function>_invalid_value_raises_error()`
 
 ## Input data patterns
 
@@ -293,11 +270,15 @@ existing tests in the helpers repository.
 - Use when multiple test methods need the same setup/teardown code:
   ```python
   class TestClassName(hunitest.TestCase):
-      """Test description."""
+      """
+      Test description.
+      """
 
       @pytest.fixture(autouse=True)
       def setup_teardown_test(self):
-          """Setup and teardown for each test."""
+          """
+          Setup and teardown for each test.
+          """
           # Run before each test.
           self.set_up_test()
           yield
@@ -305,14 +286,20 @@ existing tests in the helpers repository.
           self.tear_down_test()
 
       def set_up_test(self) -> None:
-          """Setup code that runs before each test."""
+          """
+          Setup code that runs before each test.
+          """
           self.test_data = <initialize>
 
       def tear_down_test(self) -> None:
-          """Cleanup code that runs after each test."""
+          """
+          Cleanup code that runs after each test.
+          """
           <cleanup>
 
       def test_method1(self) -> None:
-          """Test description."""
-          # Use self.test_data here
+          """
+          Test description.i
+          """
+          # Use self.test_data here.
   ```
