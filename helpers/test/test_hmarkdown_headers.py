@@ -5,6 +5,7 @@ from typing import Any, List, Tuple, cast
 
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
+import helpers.hmarkdown_headers as hmarkhea
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -1220,6 +1221,128 @@ class Test_sanity_check_header_list1(hunitest.TestCase):
         hmarkdo.sanity_check_header_list(header_list)
 
 # #############################################################################
+# Test__has_internal_capitals1
+# #############################################################################
+
+class Test__has_internal_capitals1(hunitest.TestCase):
+    """
+    Test `_has_internal_capitals` function.
+    """
+
+    def helper(self, word: str, expected: bool) -> None:
+        """
+        Test helper for `_has_internal_capitals`.
+
+        :param word: word to test
+        :param expected: expected result
+        """
+        # Run test.
+        actual = hmarkhea._has_internal_capitals(word)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    # TODO(ai_gp): Rename to test1, test2, test3
+    def test_word_with_internal_capitals(self) -> None:
+        """
+        Test word with internal capital letters.
+        """
+        # Prepare inputs.
+        word = "SimpleFeedForward"
+        # Prepare outputs.
+        expected = True
+        # Run test.
+        self.helper(word, expected)
+
+    def test_word_with_multiple_internal_capitals(self) -> None:
+        """
+        Test word with multiple internal capital letters.
+        """
+        # Prepare inputs.
+        word = "DeepNPTS"
+        # Prepare outputs.
+        expected = True
+        # Run test.
+        self.helper(word, expected)
+
+    def test_word_with_capital_at_start_only(self) -> None:
+        """
+        Test word with capital only at the start.
+        """
+        # Prepare inputs.
+        word = "Machine"
+        # Prepare outputs.
+        expected = False
+        # Run test.
+        self.helper(word, expected)
+
+    def test_all_lowercase_word(self) -> None:
+        """
+        Test all lowercase word.
+        """
+        # Prepare inputs.
+        word = "learning"
+        # Prepare outputs.
+        expected = False
+        # Run test.
+        self.helper(word, expected)
+
+    def test_all_uppercase_word(self) -> None:
+        """
+        Test all uppercase word.
+        """
+        # Prepare inputs.
+        word = "ML"
+        # Prepare outputs.
+        expected = True
+        # Run test.
+        self.helper(word, expected)
+
+    def test_single_character_lowercase(self) -> None:
+        """
+        Test single lowercase character.
+        """
+        # Prepare inputs.
+        word = "a"
+        # Prepare outputs.
+        expected = False
+        # Run test.
+        self.helper(word, expected)
+
+    def test_single_character_uppercase(self) -> None:
+        """
+        Test single uppercase character.
+        """
+        # Prepare inputs.
+        word = "A"
+        # Prepare outputs.
+        expected = False
+        # Run test.
+        self.helper(word, expected)
+
+    def test_empty_string(self) -> None:
+        """
+        Test empty string.
+        """
+        # Prepare inputs.
+        word = ""
+        # Prepare outputs.
+        expected = False
+        # Run test.
+        self.helper(word, expected)
+
+    def test_camel_case_word(self) -> None:
+        """
+        Test camelCase word.
+        """
+        # Prepare inputs.
+        word = "camelCase"
+        # Prepare outputs.
+        expected = True
+        # Run test.
+        self.helper(word, expected)
+
+
+# #############################################################################
 # Test_capitalize_header1
 # #############################################################################
 
@@ -1316,5 +1439,104 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         expected = r"""
         # Introduction to `sklearn` and "data preprocessing" in 'python'
+        """
+        self.helper(txt, expected)
+
+    # TODO(ai_gp): Rename to test1, test2, test3
+    def test_preserve_internal_capitals(self) -> None:
+        """
+        Test that words with internal capitals are preserved.
+        """
+        txt = r"""
+        # SimpleFeedForward model
+        """
+        expected = r"""
+        # SimpleFeedForward Model
+        """
+        self.helper(txt, expected)
+
+    def test_preserve_multiple_internal_capitals(self) -> None:
+        """
+        Test multiple words with internal capitals.
+        """
+        txt = r"""
+        * DeepNPTS and SimpleFeedForward models
+        """
+        expected = r"""
+        * DeepNPTS and SimpleFeedForward Models
+        """
+        self.helper(txt, expected)
+
+    def test_mixed_normal_and_internal_capitals(self) -> None:
+        """
+        Test mixed normal words and words with internal capitals.
+        """
+        txt = r"""
+        # Using SimpleFeedForward for machine learning
+        """
+        expected = r"""
+        # Using SimpleFeedForward for Machine Learning
+        """
+        self.helper(txt, expected)
+
+    def test_headers_inside_fenced_blocks_not_processed(self) -> None:
+        """
+        Test that headers inside fenced code blocks are not processed.
+        """
+        txt = r"""
+        # Main header
+
+        ```python
+        # 50% confidence interval (interquartile range)
+        q25 = forecast.quantile(0.25)
+        ```
+
+        ## Another header
+        """
+        expected = r"""
+        # Main Header
+
+        ```python
+        # 50% confidence interval (interquartile range)
+        q25 = forecast.quantile(0.25)
+        ```
+
+        ## Another Header
+        """
+        self.helper(txt, expected)
+
+    def test_multiple_fenced_blocks(self) -> None:
+        """
+        Test headers inside multiple fenced code blocks are not processed.
+        """
+        txt = r"""
+        # First header
+
+        ```python
+        # comment in code
+        x = 1
+        ```
+
+        ## Second header
+
+        ```bash
+        # shell comment
+        echo "hello"
+        ```
+        """
+        expected = r"""
+        # First Header
+
+        ```python
+        # comment in code
+        x = 1
+        ```
+
+        ## Second Header
+
+        ```bash
+        # shell comment
+        echo "hello"
+        ```
         """
         self.helper(txt, expected)
