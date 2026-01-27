@@ -1152,10 +1152,7 @@ def get_gsheet_to_df(
 
 
 def read_all_gsheets(
-    url: str,
-    *,
-    tab_names: Union[str, List[str]],
-    concat: bool = False
+    url: str, *, tab_names: Union[str, List[str]], concat: bool = False
 ) -> Union[pd.DataFrame, List[pd.DataFrame]]:
     """
     Read all the sheets from a Google Sheet.

@@ -16,11 +16,9 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-
 # #############################################################################
-# NotebookImageExtractor
+# _NotebookImageExtractor
 # #############################################################################
-
 
 class _NotebookImageExtractor:
     """
