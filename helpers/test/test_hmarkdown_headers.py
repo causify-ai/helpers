@@ -1241,8 +1241,7 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(actual, expected)
 
-    # TODO(ai_gp): Rename to test1, test2, test3
-    def test_word_with_internal_capitals(self) -> None:
+    def test1(self) -> None:
         """
         Test word with internal capital letters.
         """
@@ -1253,7 +1252,7 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_word_with_multiple_internal_capitals(self) -> None:
+    def test2(self) -> None:
         """
         Test word with multiple internal capital letters.
         """
@@ -1264,7 +1263,7 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_word_with_capital_at_start_only(self) -> None:
+    def test3(self) -> None:
         """
         Test word with capital only at the start.
         """
@@ -1275,7 +1274,7 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_all_lowercase_word(self) -> None:
+    def test4(self) -> None:
         """
         Test all lowercase word.
         """
@@ -1286,7 +1285,7 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_all_uppercase_word(self) -> None:
+    def test5(self) -> None:
         """
         Test all uppercase word.
         """
@@ -1297,7 +1296,7 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_single_character_lowercase(self) -> None:
+    def test6(self) -> None:
         """
         Test single lowercase character.
         """
@@ -1308,7 +1307,7 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_single_character_uppercase(self) -> None:
+    def test7(self) -> None:
         """
         Test single uppercase character.
         """
@@ -1319,7 +1318,7 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_empty_string(self) -> None:
+    def test8(self) -> None:
         """
         Test empty string.
         """
@@ -1330,7 +1329,7 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_camel_case_word(self) -> None:
+    def test9(self) -> None:
         """
         Test camelCase word.
         """
@@ -1442,8 +1441,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    # TODO(ai_gp): Rename to test1, test2, test3
-    def test_preserve_internal_capitals(self) -> None:
+    def test10(self) -> None:
         """
         Test that words with internal capitals are preserved.
         """
@@ -1455,7 +1453,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_preserve_multiple_internal_capitals(self) -> None:
+    def test11(self) -> None:
         """
         Test multiple words with internal capitals.
         """
@@ -1467,7 +1465,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_normal_and_internal_capitals(self) -> None:
+    def test12(self) -> None:
         """
         Test mixed normal words and words with internal capitals.
         """
@@ -1479,7 +1477,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_headers_inside_fenced_blocks_not_processed(self) -> None:
+    def test13(self) -> None:
         """
         Test that headers inside fenced code blocks are not processed.
         """
@@ -1505,7 +1503,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_multiple_fenced_blocks(self) -> None:
+    def test14(self) -> None:
         """
         Test headers inside multiple fenced code blocks are not processed.
         """
