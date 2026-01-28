@@ -39,8 +39,8 @@ class Test_parse_file_content(hunitest.TestCase):
         expected_common = "\nCommon header\n"
         self.assert_equal(common_section, expected_common)
         expected_sections = {
-            "file1.txt": "\nContent for file1\n",
-            "file2.txt": "\nContent for file2\n",
+            "file1.txt": ["\nContent for file1\n"],
+            "file2.txt": ["\nContent for file2"],
         }
         self.assert_equal(str(sections), str(expected_sections))
         self.assertEqual(len(line_ranges), 2)
@@ -65,8 +65,8 @@ class Test_parse_file_content(hunitest.TestCase):
         # Check outputs.
         self.assert_equal(common_section, "")
         expected_sections = {
-            "file1.txt": "\nContent for file1\n",
-            "file2.txt": "\nContent for file2\n",
+            "file1.txt": ["\nContent for file1\n"],
+            "file2.txt": ["\nContent for file2"],
         }
         self.assert_equal(str(sections), str(expected_sections))
         self.assertEqual(len(line_ranges), 2)
@@ -88,7 +88,7 @@ class Test_parse_file_content(hunitest.TestCase):
         )
         # Check outputs.
         self.assert_equal(common_section, "")
-        expected_sections = {"output.txt": "\nSingle file content\n"}
+        expected_sections = {"output.txt": ["\nSingle file content"]}
         self.assert_equal(str(sections), str(expected_sections))
         self.assertEqual(len(line_ranges), 1)
         self.assertEqual(common_line_range, None)
@@ -134,6 +134,7 @@ class Test_split_file(hunitest.TestCase):
         dry_run: bool = False,
         skip_verify: bool = False,
         preserve_input: bool = True,
+        append: bool = False,
     ) -> None:
         """
         Run _split_file with standard test parameters.
@@ -143,6 +144,7 @@ class Test_split_file(hunitest.TestCase):
         :param dry_run: Whether to do dry run
         :param skip_verify: Whether to skip verification
         :param preserve_input: Whether to preserve input file
+        :param append: Whether to append to existing files
         """
         # Run.
         dshctsifi._split_file(
@@ -151,6 +153,7 @@ class Test_split_file(hunitest.TestCase):
             dry_run=dry_run,
             skip_verify=skip_verify,
             preserve_input=preserve_input,
+            append=append,
         )
 
     def test1(self) -> None:
@@ -284,6 +287,7 @@ class TestSplitFileIntegration(hunitest.TestCase):
         dry_run: bool = False,
         skip_verify: bool = False,
         preserve_input: bool = True,
+        append: bool = False,
     ) -> None:
         """
         Run _split_file with standard test parameters.
@@ -293,6 +297,7 @@ class TestSplitFileIntegration(hunitest.TestCase):
         :param dry_run: Whether to do dry run
         :param skip_verify: Whether to skip verification
         :param preserve_input: Whether to preserve input file
+        :param append: Whether to append to existing files
         """
         # Run.
         dshctsifi._split_file(
@@ -301,6 +306,7 @@ class TestSplitFileIntegration(hunitest.TestCase):
             dry_run=dry_run,
             skip_verify=skip_verify,
             preserve_input=preserve_input,
+            append=append,
         )
 
     def test1(self) -> None:
