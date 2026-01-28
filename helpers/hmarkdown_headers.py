@@ -157,10 +157,11 @@ def capitalize_header(lines: List[str]) -> List[str]:
       DeepNPTS).
     - Headers inside fenced code blocks are not processed.
     """
-    import helpers.hmarkdown_fenced_blocks as hmafenbl
+    import helpers.hmarkdown_fenced_blocks as hmafeblo
+
     hdbg.dassert_isinstance(lines, list)
     # Replace fenced blocks with tags to prevent processing headers inside them.
-    lines_without_fenced, fence_map = hmafenbl.replace_fenced_blocks_with_tags(
+    lines_without_fenced, fence_map = hmafeblo.replace_fenced_blocks_with_tags(
         lines
     )
     txt_new: List[str] = []
@@ -242,7 +243,7 @@ def capitalize_header(lines: List[str]) -> List[str]:
         else:
             txt_new.append(line)
     # Restore fenced blocks.
-    txt_new = hmafenbl.replace_tags_with_fenced_blocks(txt_new, fence_map)
+    txt_new = hmafeblo.replace_tags_with_fenced_blocks(txt_new, fence_map)
     hdbg.dassert_isinstance(txt_new, list)
     return txt_new
 
