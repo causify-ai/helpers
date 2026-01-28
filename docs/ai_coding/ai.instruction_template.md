@@ -1,3 +1,11 @@
+# Rules
+
+./helpers_root/docs/ai_prompts/blog.format_rules.md
+./helpers_root/docs/ai_prompts/coding.format_rules.md
+./helpers_root/docs/ai_prompts/markdown.format_rules.md
+./helpers_root/docs/ai_prompts/notebooks.format_rules.md
+./helpers_root/docs/ai_prompts/testing.format_rules.md
+
 # Implement code
 
 Implement one step at the time asking user for confirmation, before moving to the
