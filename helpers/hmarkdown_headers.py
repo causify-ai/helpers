@@ -10,6 +10,7 @@ import re
 from typing import List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
+import helpers.hmarkdown_fenced_blocks as hmarfbl
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -119,6 +120,22 @@ def frame_chapters(lines: List[str], *, max_lev: int = 4) -> List[str]:
             txt_new.append(line)
     hdbg.dassert_isinstance(txt_new, list)
     return txt_new
+
+
+def has_mixed_case(word: str) -> bool:
+    """
+    Check if a word has capital letters in positions other than the first.
+
+    This detects words like "SimpleFeedForward", "DeepNPTS", etc. that should
+    be preserved as-is.
+
+    :param word: word to check
+    :return: True if the word has capital letters after the first position
+    """
+    if len(word) <= 1:
+        return False
+    # Check if any character after the first position is uppercase.
+    return any(c.isupper() for c in word[1:])
 
 
 def capitalize_header(lines: List[str]) -> List[str]:

@@ -1538,3 +1538,404 @@ class Test_capitalize_header1(hunitest.TestCase):
         ```
         """
         self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_capitalize_header2
+# #############################################################################
+
+
+class Test_capitalize_header2(hunitest.TestCase):
+    """
+    Test enhanced capitalize_header functionality for mixed case words and
+    fenced blocks.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Helper method to test capitalize_header function.
+
+        :param txt: input text to process
+        :param expected: expected output after processing
+        """
+        # Prepare inputs.
+        txt = hprint.dedent(txt)
+        # Run function.
+        lines = txt.split("\n")
+        actual_lines = hmarkdo.capitalize_header(lines)
+        actual = "\n".join(actual_lines)
+        # Check outputs.
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
+    # TODO(ai_gp): Rename test1, test2, ...
+    def test_mixed_case_simple_feed_forward(self) -> None:
+        """
+        Test that SimpleFeedForward is preserved as-is.
+        """
+        txt = r"""
+        # using SimpleFeedForward for predictions
+        """
+        expected = r"""
+        # Using SimpleFeedForward for Predictions
+        """
+        self.helper(txt, expected)
+
+    def test_mixed_case_deep_npts(self) -> None:
+        """
+        Test that DeepNPTS is preserved as-is.
+        """
+        txt = r"""
+        # training with DeepNPTS model
+        """
+        expected = r"""
+        # Training with DeepNPTS Model
+        """
+        self.helper(txt, expected)
+
+    def test_mixed_case_multiple_words(self) -> None:
+        """
+        Test multiple mixed case words in the same header.
+        """
+        txt = r"""
+        # comparing SimpleFeedForward and DeepNPTS models
+        """
+        expected = r"""
+        # Comparing SimpleFeedForward and DeepNPTS Models
+        """
+        self.helper(txt, expected)
+
+    def test_mixed_case_with_all_caps(self) -> None:
+        """
+        Test mixed case words combined with all caps words.
+        """
+        txt = r"""
+        # using API with SimpleFeedForward for ML tasks
+        """
+        expected = r"""
+        # Using API with SimpleFeedForward for ML Tasks
+        """
+        self.helper(txt, expected)
+
+    def test_mixed_case_first_word(self) -> None:
+        """
+        Test mixed case word as the first word in header.
+        """
+        txt = r"""
+        # SimpleFeedForward network architecture
+        """
+        expected = r"""
+        # SimpleFeedForward Network Architecture
+        """
+        self.helper(txt, expected)
+
+    def test_fenced_block_with_header(self) -> None:
+        """
+        Test that headers inside fenced blocks are not capitalized.
+        """
+        txt = r"""
+        # Main header
+        Some text
+        ```python
+        # 50% confidence interval (interquartile range)
+        q25 = forecast.quantile(0.25)
+        ```
+        """
+        expected = r"""
+        # Main Header
+        Some text
+        ```python
+        # 50% confidence interval (interquartile range)
+        q25 = forecast.quantile(0.25)
+        ```
+        """
+        self.helper(txt, expected)
+
+    def test_fenced_block_multiple_headers(self) -> None:
+        """
+        Test that multiple headers inside fenced blocks are not capitalized.
+        """
+        txt = r"""
+        # introduction to forecasting
+        ```python
+        # 50% confidence interval (interquartile range)
+        q25 = forecast.quantile(0.25)
+        q75 = forecast.quantile(0.75)
+
+        # 90% confidence interval
+        q05 = forecast.quantile(0.05)
+        q95 = forecast.quantile(0.95)
+
+        # mean and median
+        mean = forecast.mean
+        median = forecast.quantile(0.5)
+        ```
+        # conclusion
+        """
+        expected = r"""
+        # Introduction to Forecasting
+        ```python
+        # 50% confidence interval (interquartile range)
+        q25 = forecast.quantile(0.25)
+        q75 = forecast.quantile(0.75)
+
+        # 90% confidence interval
+        q05 = forecast.quantile(0.05)
+        q95 = forecast.quantile(0.95)
+
+        # mean and median
+        mean = forecast.mean
+        median = forecast.quantile(0.5)
+        ```
+        # Conclusion
+        """
+        self.helper(txt, expected)
+
+    def test_fenced_block_with_language_specifier(self) -> None:
+        """
+        Test that headers in fenced blocks with language specifier are not
+        capitalized.
+        """
+        txt = r"""
+        # data processing
+        ```bash
+        # run the script
+        python script.py
+        ```
+        """
+        expected = r"""
+        # Data Processing
+        ```bash
+        # run the script
+        python script.py
+        ```
+        """
+        self.helper(txt, expected)
+
+    def test_mixed_case_in_fenced_block(self) -> None:
+        """
+        Test mixed case words inside fenced blocks are preserved.
+        """
+        txt = r"""
+        # using SimpleFeedForward model
+        ```python
+        # SimpleFeedForward implementation
+        class SimpleFeedForward:
+            pass
+        ```
+        """
+        expected = r"""
+        # Using SimpleFeedForward Model
+        ```python
+        # SimpleFeedForward implementation
+        class SimpleFeedForward:
+            pass
+        ```
+        """
+        self.helper(txt, expected)
+
+    def test_multiple_fenced_blocks(self) -> None:
+        """
+        Test multiple fenced blocks in the same document.
+        """
+        txt = r"""
+        # first section
+        ```python
+        # code block 1
+        x = 1
+        ```
+        # second section
+        ```python
+        # code block 2
+        y = 2
+        ```
+        """
+        expected = r"""
+        # First Section
+        ```python
+        # code block 1
+        x = 1
+        ```
+        # Second Section
+        ```python
+        # code block 2
+        y = 2
+        ```
+        """
+        self.helper(txt, expected)
+
+    def test_slide_title_with_mixed_case(self) -> None:
+        """
+        Test that slide titles (starting with *) also preserve mixed case.
+        """
+        txt = r"""
+        * using SimpleFeedForward for predictions
+        """
+        expected = r"""
+        * Using SimpleFeedForward for Predictions
+        """
+        self.helper(txt, expected)
+
+    def test_mixed_case_with_punctuation(self) -> None:
+        """
+        Test mixed case words with punctuation.
+        """
+        txt = r"""
+        # SimpleFeedForward: a neural network approach
+        """
+        expected = r"""
+        # SimpleFeedForward: a Neural Network Approach
+        """
+        self.helper(txt, expected)
+
+    def test_normal_words_still_capitalized(self) -> None:
+        """
+        Test that normal words without mixed case are still capitalized
+        properly.
+        """
+        txt = r"""
+        # introduction to machine learning
+        """
+        expected = r"""
+        # Introduction to Machine Learning
+        """
+        self.helper(txt, expected)
+
+    def test_empty_fenced_block(self) -> None:
+        """
+        Test empty fenced blocks don't cause issues.
+        """
+        txt = r"""
+        # header before
+        ```
+        ```
+        # header after
+        """
+        expected = r"""
+        # Header Before
+        ```
+        ```
+        # Header After
+        """
+        self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_has_mixed_case1
+# #############################################################################
+
+
+class Test_has_mixed_case1(hunitest.TestCase):
+    """
+    Test the _has_mixed_case helper function.
+    """
+    # TODO(ai_gp): Factor out a helper function with common code.
+
+    # TODO(ai_gp): Rename test1, test2, ...
+    def test_simple_feed_forward(self) -> None:
+        """
+        Test SimpleFeedForward has mixed case.
+        """
+        # Prepare inputs.
+        word = "SimpleFeedForward"
+        # Call function.
+        actual = hmarkdo.has_mixed_case(word)
+        # Check output.
+        expected = True
+        self.assertEqual(actual, expected)
+
+    def test_deep_npts(self) -> None:
+        """
+        Test DeepNPTS has mixed case (all caps after first).
+        """
+        # Prepare inputs.
+        word = "DeepNPTS"
+        # Call function.
+        actual = hmarkdo.has_mixed_case(word)
+        # Check output.
+        expected = True
+        self.assertEqual(actual, expected)
+
+    def test_machine_no_mixed_case(self) -> None:
+        """
+        Test Machine does not have mixed case (only first char capital).
+        """
+        # Prepare inputs.
+        word = "Machine"
+        # Call function.
+        actual = hmarkdo.has_mixed_case(word)
+        # Check output.
+        expected = False
+        self.assertEqual(actual, expected)
+
+    def test_lowercase_no_mixed_case(self) -> None:
+        """
+        Test lowercase word has no mixed case.
+        """
+        # Prepare inputs.
+        word = "machine"
+        # Call function.
+        actual = hmarkdo.has_mixed_case(word)
+        # Check output.
+        expected = False
+        self.assertEqual(actual, expected)
+
+    def test_all_caps_has_mixed_case(self) -> None:
+        """
+        Test all caps word has mixed case (caps after first position).
+        """
+        # Prepare inputs.
+        word = "API"
+        # Call function.
+        actual = hmarkdo.has_mixed_case(word)
+        # Check output.
+        expected = True
+        self.assertEqual(actual, expected)
+
+    def test_single_char_no_mixed_case(self) -> None:
+        """
+        Test single character has no mixed case.
+        """
+        # Prepare inputs.
+        word = "A"
+        # Call function.
+        actual = hmarkdo.has_mixed_case(word)
+        # Check output.
+        expected = False
+        self.assertEqual(actual, expected)
+
+    def test_two_chars_capital_no_mixed_case(self) -> None:
+        """
+        Test two character word with first capital has no mixed case.
+        """
+        # Prepare inputs.
+        word = "At"
+        # Call function.
+        actual = hmarkdo.has_mixed_case(word)
+        # Check output.
+        expected = False
+        self.assertEqual(actual, expected)
+
+    def test_two_chars_both_caps_mixed_case(self) -> None:
+        """
+        Test two character word with both caps has mixed case.
+        """
+        # Prepare inputs.
+        word = "ML"
+        # Call function.
+        actual = hmarkdo.has_mixed_case(word)
+        # Check output.
+        expected = True
+        self.assertEqual(actual, expected)
+
+    def test_camel_case(self) -> None:
+        """
+        Test camelCase word has mixed case.
+        """
+        # Prepare inputs.
+        word = "camelCase"
+        # Call function.
+        actual = hmarkdo.has_mixed_case(word)
+        # Check output.
+        expected = True
+        self.assertEqual(actual, expected)
