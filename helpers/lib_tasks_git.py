@@ -152,7 +152,8 @@ def git_add_all_untracked(ctx):  # type: ignore
     Add all untracked files to Git.
     """
     hlitauti.report_task()
-    cmd = "git add $(git ls-files -o --exclude-standard)"
+    #cmd = "git add $(git ls-files -o --exclude-standard)"
+    cmd = "git ls-files -o --exclude-standard -z | xargs -0 git add"
     hlitauti.run(ctx, cmd)
 
 
