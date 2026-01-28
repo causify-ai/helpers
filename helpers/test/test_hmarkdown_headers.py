@@ -5,7 +5,7 @@ from typing import Any, List, Tuple, cast
 
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
-import helpers.hmarkdown_headers as hmarkhea
+import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -1237,7 +1237,7 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         :param expected: expected result
         """
         # Run test.
-        actual = hmarkhea._has_internal_capitals(word)
+        actual = hmarhead._has_internal_capitals(word)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -1339,7 +1339,6 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         expected = True
         # Run test.
         self.helper(word, expected)
-
 
 # #############################################################################
 # Test_capitalize_header1
@@ -1539,11 +1538,9 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-
 # #############################################################################
 # Test_capitalize_header2
 # #############################################################################
-
 
 class Test_capitalize_header2(hunitest.TestCase):
     """
@@ -1819,16 +1816,15 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-
 # #############################################################################
 # Test_has_mixed_case1
 # #############################################################################
-
 
 class Test_has_mixed_case1(hunitest.TestCase):
     """
     Test the _has_mixed_case helper function.
     """
+
     # TODO(ai_gp): Factor out a helper function with common code.
 
     # TODO(ai_gp): Rename test1, test2, ...

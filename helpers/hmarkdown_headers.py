@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hmarkdown_headers as hmarkdo
+import helpers.hmarkdown_headers as hmarhead
 """
 
 import dataclasses
@@ -10,7 +10,6 @@ import re
 from typing import List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
-import helpers.hmarkdown_fenced_blocks as hmarfbl
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -316,11 +315,9 @@ def extract_section_from_markdown(
     hdbg.dassert_isinstance(extracted_lines, list)
     return extracted_lines
 
-
 # #############################################################################
 # HeaderInfo
 # #############################################################################
-
 
 @dataclasses.dataclass
 class HeaderInfo:
@@ -357,13 +354,13 @@ class HeaderInfo:
         #
         self.children: List[HeaderInfo] = []
 
+    def as_tuple(self) -> Tuple[int, str, int]:
+        return (self.level, self.description, self.line_number)
+
     def __repr__(self) -> str:
         return (
             f"HeaderInfo({self.level}, '{self.description}', {self.line_number})"
         )
-
-    def as_tuple(self) -> Tuple[int, str, int]:
-        return (self.level, self.description, self.line_number)
 
 
 HeaderList = List[HeaderInfo]
