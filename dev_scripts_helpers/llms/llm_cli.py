@@ -63,7 +63,7 @@ def _parse() -> argparse.ArgumentParser:
         required=False,
         default=None,
         help="Path to the output file where result will be saved (use '-' to "
-            "print to screen). If not specified, writes in-place to the input file",
+        "print to screen). If not specified, writes in-place to the input file",
     )
     # Create mutually exclusive group for system prompt sources.
     system_prompt_group = parser.add_mutually_exclusive_group()

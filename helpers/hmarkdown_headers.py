@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hmarkdown_headers as hmarkdo
+import helpers.hmarkdown_headers as hmarhead
 """
 
 import dataclasses
@@ -10,7 +10,6 @@ import re
 from typing import List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
-import helpers.hmarkdown_fenced_blocks as hmarfbl
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 
@@ -158,10 +157,11 @@ def capitalize_header(lines: List[str]) -> List[str]:
       DeepNPTS).
     - Headers inside fenced code blocks are not processed.
     """
-    import helpers.hmarkdown_fenced_blocks as hmafenbl
+    import helpers.hmarkdown_fenced_blocks as hmafeblo
+
     hdbg.dassert_isinstance(lines, list)
     # Replace fenced blocks with tags to prevent processing headers inside them.
-    lines_without_fenced, fence_map = hmafenbl.replace_fenced_blocks_with_tags(
+    lines_without_fenced, fence_map = hmafeblo.replace_fenced_blocks_with_tags(
         lines
     )
     txt_new: List[str] = []
@@ -243,7 +243,7 @@ def capitalize_header(lines: List[str]) -> List[str]:
         else:
             txt_new.append(line)
     # Restore fenced blocks.
-    txt_new = hmafenbl.replace_tags_with_fenced_blocks(txt_new, fence_map)
+    txt_new = hmafeblo.replace_tags_with_fenced_blocks(txt_new, fence_map)
     hdbg.dassert_isinstance(txt_new, list)
     return txt_new
 
@@ -316,11 +316,9 @@ def extract_section_from_markdown(
     hdbg.dassert_isinstance(extracted_lines, list)
     return extracted_lines
 
-
 # #############################################################################
 # HeaderInfo
 # #############################################################################
-
 
 @dataclasses.dataclass
 class HeaderInfo:
@@ -357,13 +355,13 @@ class HeaderInfo:
         #
         self.children: List[HeaderInfo] = []
 
+    def as_tuple(self) -> Tuple[int, str, int]:
+        return (self.level, self.description, self.line_number)
+
     def __repr__(self) -> str:
         return (
             f"HeaderInfo({self.level}, '{self.description}', {self.line_number})"
         )
-
-    def as_tuple(self) -> Tuple[int, str, int]:
-        return (self.level, self.description, self.line_number)
 
 
 HeaderList = List[HeaderInfo]
