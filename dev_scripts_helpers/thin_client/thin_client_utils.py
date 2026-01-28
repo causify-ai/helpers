@@ -136,7 +136,7 @@ def _create_repo_windows(
     """
     Create windows for the given module.
     """
-    windows = ["dbash", "regr", "jupyter"]
+    windows = ["dbash1", "dbash2", "dbash3", "regr", "jupyter"]
     tmux_cmd = f"source {setenv_path}"
     # We create the first named named window only for submodule, for root
     # one it's created upon session creation.

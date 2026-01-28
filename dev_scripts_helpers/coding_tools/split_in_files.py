@@ -16,6 +16,14 @@ Features:
 - Can append to existing files instead of overwriting them
 - Common section is prepended only once per file (first chunk)
 
+Use multiple chunks with same filename (concatenated into one file):
+Input file:
+  <start:output.txt>
+  First chunk
+  <start:output.txt>
+  Second chunk
+Result: output.txt contains "First chunk\nSecond chunk"
+
 Example:
 # Split a file with tags into separate files:
 > split_in_files.py --input_file input.txt
@@ -34,14 +42,6 @@ Example:
 
 # Skip content verification for faster processing:
 > split_in_files.py --input_file input.txt --skip_verify
-
-# Use multiple chunks with same filename (concatenated into one file):
-# Input file:
-#   <start:output.txt>
-#   First chunk
-#   <start:output.txt>
-#   Second chunk
-# Result: output.txt contains "First chunk\nSecond chunk"
 
 Import as:
 

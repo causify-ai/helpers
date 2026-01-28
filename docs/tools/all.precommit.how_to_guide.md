@@ -209,7 +209,7 @@
   installed packages
   ```bash
   docker> sudo bash -c "(source /venv/bin/activate; pip install --quiet ty)"
-  docker> ty check --output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' .
+  docker> ty check --output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' . 2>&1 | tee ty.log
 	...
 	error[unresolved-attribute] linters/utils.py:101:22: Type `list[str]` has no attribute `replace`
 	error[unresolved-import] main_pytest.py:15:8: Cannot resolve imported module `junitparser`
@@ -217,7 +217,7 @@
 	...
 
 	# To format the output for a cfile:
-  docker> ty check ... | cut -d' ' -f2- | tee cfile
+  docker> cat ty.log | cut -d' ' -f2- | tee cfile
   ```
 
 ### `fixit`
@@ -453,3 +453,10 @@ tmp=$(git diff --name-only master... | \grep py)
 pre-commit run --files $(cat tmp)
 helpers_root/linters2/normalize_import.py $(cat tmp)
 helpers_root/linters2/add_class_frames.py $(cat tmp)
+
+# Notebooks
+
+- Make sure that all notebooks are paired
+
+jupytext --set-formats ipynb,py:percent **/*.ipynb
+jupytext --sync **/*.ipynb

@@ -33,3 +33,8 @@ path = "."
 #  "**/import_check/example/**"
 #]
 #show_source = true
+
+# pyproject.toml
+[tool.jupytext]
+# Pair by default.
+formats = "ipynb,py:percent"

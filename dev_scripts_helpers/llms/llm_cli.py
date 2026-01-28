@@ -1,51 +1,20 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
+
+# /// script
+# dependencies = [
+#   "llm",
+#   "pandas",
+#   "pyyaml",
+#   "tokencost",
+#   "tqdm",
+# ]
+# ///
 
 r"""
 CLI script to apply LLM transformations to text files or text input.
 
-This script provides a command-line interface to the apply_llm_with_files
-function from helpers.hllm_cli. It reads text from an input file or command line,
-processes it using an LLM (either via the llm CLI executable or the llm Python
-library), and writes the result to an output file or prints to screen.
-
-Examples:
-# Basic usage with input and output files.
-> llm_cli.py --input input.txt --output output.txt
-> llm_cli.py -i input.txt -o output.txt
-
-# In-place editing (writes back to input file).
-> llm_cli.py --input input.txt
-> llm_cli.py -i input.txt
-
-# Basic usage with input text.
-> llm_cli.py --input_text "What is 2+2?" --output output.txt
-
-# Print to screen instead of file.
-> llm_cli.py --input_text "What is 2+2?" --output -
-> llm_cli.py -i input.txt -o -
-
-# Use llm CLI executable instead of library.
-> llm_cli.py -i input.txt -o output.txt --use_llm_executable
-
-# With system prompt and specific model.
-> llm_cli.py -i input.txt -o output.txt \
-    --system_prompt "You are a helpful assistant" \
-    --model gpt-4
-
-# With system prompt from file.
-> llm_cli.py -i input.txt -o output.txt \
-    --system_prompt_file system_prompt.txt
-
-# With automatic progress bar (estimates output size).
-> llm_cli.py -i input.txt -o output.txt -b
-> llm_cli.py -i input.txt -o output.txt --progress_bar
-
-# With progress bar and explicit output size.
-> llm_cli.py -i input.txt -o output.txt --expected_num_chars 5000
-
-# Apply linting to output file after processing.
-> llm_cli.py -i input.txt -o output.txt --lint
-> llm_cli.py -i input.txt --lint  # In-place editing with linting
+For detailed documentation, usage examples, and feature descriptions, see:
+dev_scripts_helpers/llms/README.md
 
 Import as:
 
@@ -79,7 +48,7 @@ def _parse() -> argparse.ArgumentParser:
         "--input",
         type=str,
         dest="input",
-        help="Path to the input file containing text to process",
+        help="Path to the input file containing text to process, or '-' for stdin",
     )
     input_group.add_argument(
         "--input_text",
@@ -93,7 +62,8 @@ def _parse() -> argparse.ArgumentParser:
         dest="output",
         required=False,
         default=None,
-        help="Path to the output file where result will be saved (use '-' to print to screen). If not specified, writes in-place to the input file",
+        help="Path to the output file where result will be saved (use '-' to "
+        "print to screen). If not specified, writes in-place to the input file",
     )
     # Create mutually exclusive group for system prompt sources.
     system_prompt_group = parser.add_mutually_exclusive_group()
@@ -150,26 +120,37 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
-    hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Suppress logging when using stdin/stdout unless DEBUG is requested.
+    verbosity = args.log_level
+    if args.input == "-" or args.output == "-":
+        if args.log_level == "INFO":
+            verbosity = "CRITICAL"
+    hdbg.init_logger(verbosity=verbosity, use_exec_path=True)
     # Validate arguments.
     if args.expected_num_chars is not None:
         hdbg.dassert_lt(0, args.expected_num_chars)
     # Determine input source.
     if args.input:
         hdbg.dassert_ne(args.input, "", "Input file cannot be empty")
-        input_text = None
-        input_file = args.input
+        if args.input == "-":
+            # Read from stdin.
+            input_file = "-"
+            input_text = None
+        else:
+            # Read from file.
+            input_text = None
+            input_file = args.input
     else:
         hdbg.dassert_ne(args.input_text, "", "Input text cannot be empty")
         input_text = args.input_text
         input_file = None
     # Determine output destination.
     if args.output is None:
-        # In-place editing: only allowed with input file.
+        # In-place editing: only allowed with input file (not stdin).
         hdbg.dassert(
-            input_file is not None,
-            "Output must be specified when using --input_text. "
-            "In-place editing only works with --input",
+            input_file is not None and input_file != "-",
+            "Output must be specified when using --input_text or stdin. "
+            "In-place editing only works with --input <file>",
         )
         output_file = input_file
         print_only = False
@@ -200,7 +181,12 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if args.progress_bar and args.expected_num_chars is None:
         # Read input to get its length.
         if input_file:
-            input_content = hio.from_file(input_file)
+            if input_file == "-":
+                # Read from stdin.
+                input_lines = hparser.read_file(input_file)
+                input_content = "\n".join(input_lines)
+            else:
+                input_content = hio.from_file(input_file)
         else:
             input_content = input_text
         input_length = len(input_content)
@@ -226,11 +212,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Process the file.
     _LOG.info("Processing with LLM '%s'...", args.model)
     memento = htimer.dtimer_start(logging.INFO, "LLM processing")
-    # If using input_text or print_only, call apply_llm directly.
-    if input_text is not None or print_only:
+    # If using input_text, stdin, or print_only, call apply_llm directly.
+    if input_text is not None or input_file == "-" or print_only:
         # Get input text.
         if input_text is not None:
             input_str = input_text
+        elif input_file == "-":
+            # Read from stdin.
+            input_lines = hparser.read_file(input_file)
+            input_str = "\n".join(input_lines)
         else:
             input_str = hio.from_file(input_file)
         # Process with LLM.
@@ -242,10 +232,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             expected_num_chars=expected_num_chars,
         )
         # Handle output.
-        if print_only:
-            print(response)
-        else:
-            hio.to_file(output_file, response)
+        hparser.write_file(response, output_file)
     else:
         # Use file-based processing.
         cost = hllmcli.apply_llm_with_files(
