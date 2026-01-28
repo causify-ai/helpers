@@ -15,10 +15,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 
 _LOG = logging.getLogger(__name__)
 
 # Default figure size for plots.
+# TODO(gp): Is this used?
 FIG_SIZE = (20, 5)
 
 
@@ -69,3 +71,17 @@ def get_multiple_plots(
     for empty_ax in empty_axes:
         empty_ax.remove()
     return fig, ax[:num_plots]
+
+
+def save_fig(fig: mpl.figure.Figure, file_name: str) -> None:
+    """
+    Save matplotlib figure to file.
+
+    :param fig: Matplotlib figure
+    :param file_name: Output filename
+    """
+    hdbg.dassert_isinstance(fig, mpl.figure.Figure)
+    hdbg.dassert_isinstance(file_name, str)
+    hio.create_enclosing_dir(file_name, incremental=True)
+    fig.savefig(file_name, dpi=300, bbox_inches="tight")
+    _LOG.info("Saved figure to %s", file_name)

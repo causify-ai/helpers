@@ -71,6 +71,24 @@ def is_header(line: str) -> Tuple[bool, int, str]:
 # #############################################################################
 
 
+def _has_internal_capitals(word: str) -> bool:
+    """
+    Check if a word has capital letters within it (not just at the start).
+
+    This function detects words like `SimpleFeedForward`, `DeepNPTS` that
+    should be preserved without title case transformation.
+
+    :param word: word to check
+    :return: `True` if the word has internal capitals, `False` otherwise
+    """
+    hdbg.dassert_isinstance(word, str)
+    # A word has internal capitals if it contains at least one uppercase letter
+    # after the first character.
+    if len(word) <= 1:
+        return False
+    return any(char.isupper() for char in word[1:])
+
+
 def frame_chapters(lines: List[str], *, max_lev: int = 4) -> List[str]:
     """
     Add the frame around each chapter.
@@ -136,12 +154,14 @@ def capitalize_header(lines: List[str]) -> List[str]:
             Establish a Phased, Collaborative Approach
 
     - Strings inside backticks, single quotes, and double quotes are preserved.
-    - Words with mixed case (e.g., SimpleFeedForward, DeepNPTS) are preserved.
+    - Words with internal capital letters are preserved (e.g., SimpleFeedForward,
+      DeepNPTS).
     - Headers inside fenced code blocks are not processed.
     """
+    import helpers.hmarkdown_fenced_blocks as hmafenbl
     hdbg.dassert_isinstance(lines, list)
-    # Replace fenced blocks with tags to avoid processing headers inside them.
-    lines_without_fenced, fence_map = hmarfbl.replace_fenced_blocks_with_tags(
+    # Replace fenced blocks with tags to prevent processing headers inside them.
+    lines_without_fenced, fence_map = hmafenbl.replace_fenced_blocks_with_tags(
         lines
     )
     txt_new: List[str] = []
@@ -194,15 +214,19 @@ def capitalize_header(lines: List[str]) -> List[str]:
                 if word.startswith("__QUOTED_") and word.endswith("__"):
                     # Skip placeholder words, they will be restored later.
                     continue
+                elif i == 0 and not word.isupper():
+                    # Capitalize the first word if it doesn't have internal capitals.
+                    if _has_internal_capitals(word):
+                        # Preserve words with internal capitals.
+                        pass
+                    else:
+                        words[i] = word.title()
                 elif word.isupper():
                     # Skip words that are all caps (e.g. ML, API).
                     continue
-                elif has_mixed_case(word):
-                    # Skip words with mixed case (e.g. SimpleFeedForward, DeepNPTS).
-                    continue
-                elif i == 0:
-                    # Capitalize the first word.
-                    words[i] = word.title()
+                elif _has_internal_capitals(word):
+                    # Preserve words with internal capitals (e.g., SimpleFeedForward).
+                    pass
                 elif word.lower() in non_cap_words:
                     # Don't capitalize conjunctions and other minor words.
                     words[i] = word.lower()
@@ -219,7 +243,7 @@ def capitalize_header(lines: List[str]) -> List[str]:
         else:
             txt_new.append(line)
     # Restore fenced blocks.
-    txt_new = hmarfbl.replace_tags_with_fenced_blocks(txt_new, fence_map)
+    txt_new = hmafenbl.replace_tags_with_fenced_blocks(txt_new, fence_map)
     hdbg.dassert_isinstance(txt_new, list)
     return txt_new
 

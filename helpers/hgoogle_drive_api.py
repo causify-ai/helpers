@@ -1124,6 +1124,7 @@ get_cached_gsheet_to_df = hcacsimp.simple_cache(
 
 
 # TODO(gp): This is redundant with disable cache.
+# TODO(gp): Create a function to normalize the column names.
 def get_gsheet_to_df(
     url: str,
     tab_name: Optional[str],
@@ -1151,10 +1152,7 @@ def get_gsheet_to_df(
 
 
 def read_all_gsheets(
-    url: str,
-    *,
-    tab_names: Union[str, List[str]],
-    concat: bool = False
+    url: str, *, tab_names: Union[str, List[str]], concat: bool = False
 ) -> Union[pd.DataFrame, List[pd.DataFrame]]:
     """
     Read all the sheets from a Google Sheet.
@@ -1165,6 +1163,7 @@ def read_all_gsheets(
     :return: A list of DataFrames, one for each sheet.
     """
     dfs = []
+    # TODO(ai_gp): -> _all_
     if tab_names == "all":
         tab_names = get_tabs_from_gsheet(url)
     for tab_name in tab_names:

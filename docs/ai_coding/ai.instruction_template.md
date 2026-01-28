@@ -1,12 +1,19 @@
-# Implement script
+# Rules
+
+./helpers_root/docs/ai_prompts/blog.format_rules.md
+./helpers_root/docs/ai_prompts/coding.format_rules.md
+./helpers_root/docs/ai_prompts/markdown.format_rules.md
+./helpers_root/docs/ai_prompts/notebooks.format_rules.md
+./helpers_root/docs/ai_prompts/testing.format_rules.md
+
+# Implement code
 
 Implement one step at the time asking user for confirmation, before moving to the
 next step
 
-Step 1) Write a Python script XYZ
-...
-that
-...
+## Step 1)
+
+- Write a Python script XYZ ... that ...
 
 - The interface is like:
   ...
@@ -19,47 +26,72 @@ that
 - For all the code you must follow the instructions in
   `docs/ai_prompts/coding.format_rules.md`
 
-Step 2) Update the file README.md in the same directory of the
-   script following the instructions in 
-   in `docs/ai_prompts/readme.create.md`
+## Step 2)
+- Update the file README.md in the same directory of the script following the
+  instructions in `docs/ai_prompts/readme.create.md`
 
-Step 3) Generate unit tests for the code following the instructions in
+## Step 3)
+- Generate unit tests for the code following the instructions in
   `docs/ai_prompts/testing.format_rules.md`
   - Write test class and methods
   - Do not implement code
   - Preview unit tests that need to be written by creating input and expected
     outputs
 
+# Implement notebook
+- Add examples to explain the code below to <file> following
+  `docs/ai_prompts/notebooks.format_rules.md`
+
+<content>
+* Entropy and Probability Density Function (PDF)
+- Entropy is related to variance but is not the same
+  - Variance measures how far values are from the mean
+  - Entropy measures how unpredictable a random draw is
+
+- If a distribution has more spread, typically its entropy is larger
+  - It is possible that variance increases, but entropy doesn't
+    - E.g., a uniform distribution increasing its support
+
+- Entropy is related to information and uncertainty
+  - A flatter distribution has high entropy
+  - A sharply peaked distribution has low entropy
+  - A distribution with two close peaks has low variance but high entropy
+</content>
+
+- If the task is not perfectly clear (e.g., where to add the code, what code to
+  add), you MUST not perform it, but ask for clarifications
+
 # Rename files
 
-Step 1) Rename the files in docs/ai_coding/ that have instructions.md
+## Step 1)
 
-docs/ai_prompts/blog.format_rules.md
-docs/ai_prompts/coding.format_rules.md
-docs/ai_coding/ai.paper.prompt.md
-docs/ai_prompts/testing.format_rules.md
+- Rename the files in ... that have ...
 
-replacing _instructions.md with .prompt.md
-
-Step 2) Make sure that all the files in the repo are updated
+## Step 2)
+- Make sure that all the files in the repo are updated with this change
 
 # Implement function
 
-Step 1) Write a Python function XYZ that ...
+## Step 1)
+- Write a Python function XYZ that ...
 
-The interface is like:
-
-- For all the code you must follow the instructions in
-  `docs/ai_prompts/coding.format_rules.md`
+- The interface is like:
+  - For all the code you must follow the instructions in
+    `docs/ai_prompts/coding.format_code.md`
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
   clarifications
 
-Step 2) Update the file README.md in the same directory of the
- script following the instructions in `docs/ai_prompts/readme.create.md`
+- For all the code you must follow the instructions in
+  `docs/ai_prompts/coding.format_rules.md`
 
-Step 3) Generate unit tests for the code following the instructions in
-`docs/ai_prompts/testing.format_rules.md`
+## Step 2)
+- Update the file README.md in the same directory of the script following the
+  instructions in `docs/ai_prompts/readme.create.md`
+
+## Step 3)
+- Generate unit tests for the code following the instructions in
+  `docs/ai_prompts/testing.format_rules.md`
 
 # Implement an invoke target
 
