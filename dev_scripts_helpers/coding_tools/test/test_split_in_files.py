@@ -12,6 +12,7 @@ _LOG = logging.getLogger(__name__)
 # Test_parse_file_content
 # #############################################################################
 
+
 class Test_parse_file_content(hunitest.TestCase):
     """
     Test parsing file content and extracting sections based on tags.
@@ -93,9 +94,11 @@ class Test_parse_file_content(hunitest.TestCase):
         self.assertEqual(len(line_ranges), 1)
         self.assertEqual(common_line_range, None)
 
+
 # #############################################################################
 # Test_split_file
 # #############################################################################
+
 
 class Test_split_file(hunitest.TestCase):
     """
@@ -243,9 +246,11 @@ class Test_split_file(hunitest.TestCase):
         expected = "\n    Indented content\nContent with    spaces\n"
         self.assert_equal(output_content, expected)
 
+
 # #############################################################################
 # TestSplitFileIntegration
 # #############################################################################
+
 
 class TestSplitFileIntegration(hunitest.TestCase):
     """
