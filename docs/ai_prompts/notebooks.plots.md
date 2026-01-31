@@ -16,10 +16,8 @@
   - Theoretical data should have lighter and transparent colors and dotted lines
   - Empirical data should have darker colors and be solid lines
 
--> plot
 ## Plotting graphs
 - When a plot changes, it should not change the values on the y-axis and x-axis
 - The xlim and ylim of the graphs should be fixed until the graph is too big
   to fit in which case it should change so that the xlim or ylim doubles or
   it's reduced in half, so that the xlim / ylim can be stable
-

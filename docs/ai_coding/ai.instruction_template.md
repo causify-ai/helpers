@@ -39,27 +39,19 @@ next step
     outputs
 
 # Implement notebook
-- Add examples to explain the code below to <file> following
-  `docs/ai_prompts/notebooks.format_rules.md`
 
-<content>
-* Entropy and Probability Density Function (PDF)
-- Entropy is related to variance but is not the same
-  - Variance measures how far values are from the mean
-  - Entropy measures how unpredictable a random draw is
+## Step 1)
+- Read ./msml610/lectures_source/Lesson05.1-Learning_Theory.txt and understand
+  the bin analogy
 
-- If a distribution has more spread, typically its entropy is larger
-  - It is possible that variance increases, but entropy doesn't
-    - E.g., a uniform distribution increasing its support
+## Step 2)
+- Execute docs/ai_prompts/notebooks.create_visual_script.md to create the script
+  for the concept
 
-- Entropy is related to information and uncertainty
-  - A flatter distribution has high entropy
-  - A sharply peaked distribution has low entropy
-  - A distribution with two close peaks has low variance but high entropy
-</content>
-
-- If the task is not perfectly clear (e.g., where to add the code, what code to
-  add), you MUST not perform it, but ask for clarifications
+## Step 3)
+- Execute docs/ai_prompts/notebooks.implement_script.md for
+  msml610/tutorials/Lesson05.Lesson05.1-Learning_Theory.Bin_Analogy.md
+- Save the results in msml610/tutorials/Lesson05.1-Learning_Theory.Bin_Analogy_ML.ipynb
 
 # Rename files
 
