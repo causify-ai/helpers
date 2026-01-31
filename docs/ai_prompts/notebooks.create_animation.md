@@ -1,7 +1,7 @@
 - Given the function passed that can go in `ipywidget.interact()` create an
-  animation using the template below
+  animation using the template below:
 
-  ```
+  ```python
   # Parameters for video generation.
   n_steps = 11
   n_samples_fixed = 300
@@ -26,6 +26,4 @@
   )
   ```
 
-- Follow the instructions in `docs/ai_prompts/notebooks.format_rules.md`
-
-- After updating the Python file make sure to synchronize with Jupytext
+- Always follow the instructions in `docs/ai_prompts/notebooks.format_rules.md`

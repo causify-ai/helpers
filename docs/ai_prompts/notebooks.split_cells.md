@@ -1,4 +1,4 @@
-## Format of each Jupyter cell
+# Format of each Jupyter cell
 - Each cell has only one concept / group of statements and a comment on the
   result
 - Each cell has:
@@ -22,7 +22,7 @@
   # If heads occurs 100% of the time → no uncertainty, $H = 0$ bit.
   ```
 
-## Each Jupyter cell should have only one example
+# Each Jupyter cell should have only one example
 - Cells that contain more than one concept / example should be split so that each
   cell has only one example
 
