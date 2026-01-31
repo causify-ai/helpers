@@ -27,21 +27,21 @@ dist/
 .profile_default/
 .ipython/
 
-# Data files
-*.parquet
-*.feather
-*.h5
-*.hdf5
-*.npz
-*.npy
+## Data files
+#*.parquet
+#*.feather
+#*.h5
+#*.hdf5
+#*.npz
+#*.npy
 
-# Documents / large assets
-*.pptx
-*.docx
-*.zip
-*.tar
-*.tar.gz
-*.7z
+## Documents / large assets
+#*.pptx
+#*.docx
+#*.zip
+#*.tar
+#*.tar.gz
+#*.7z
 
 # Logs / temp
 *.swp
@@ -56,10 +56,10 @@ Thumbs.db
 .idea/
 *.iml
 
-# Testing / coverage
-.pytest_cache/
-.coverage
-htmlcov/
+## Testing / coverage
+#.pytest_cache/
+#.coverage
+#htmlcov/
 
 # ML / experiment artifacts
 wandb/
