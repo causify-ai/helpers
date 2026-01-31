@@ -101,6 +101,36 @@ def colorize_bold_text(
     return result
 
 
+def remove_bullets(markdown_text: str) -> str:
+    """
+    Remove bullet points (dashes) and leading spaces from markdown text.
+
+    This function removes all leading dashes (`-`) from lines and removes
+    leading whitespace. Empty lines are preserved.
+
+    :param markdown_text: Input markdown text
+    :return: Markdown text with bullets removed
+    """
+    lines = markdown_text.split("\n")
+    result = []
+    for line in lines:
+        # Check if line is not empty.
+        if line.strip():
+            # Remove leading whitespace.
+            stripped_line = line.lstrip()
+            # Check if line starts with a bullet point.
+            if stripped_line.startswith("- "):
+                # Remove the bullet and the space after it.
+                result.append(stripped_line[2:])
+            else:
+                # Keep the line as is (no leading whitespace).
+                result.append(stripped_line)
+        else:
+            # Preserve empty lines.
+            result.append("")
+    return "\n".join(result)
+
+
 def format_first_level_bullets(markdown_text: str) -> str:
     """
     Add empty lines only before first level bullets and remove all empty lines

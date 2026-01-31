@@ -11,6 +11,114 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# Test_remove_bullets
+# #############################################################################
+
+
+class Test_remove_bullets(hunitest.TestCase):
+    """
+    Test the remove_bullets function.
+    """
+
+    def helper(self, text: str, expected: str) -> None:
+        """
+        Helper to test remove_bullets function.
+
+        :param text: Input text with bullets
+        :param expected: Expected output with bullets removed
+        """
+        # Run test.
+        text = hprint.dedent(text)
+        actual = hmarkdo.remove_bullets(text)
+        # Check outputs.
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test1(self) -> None:
+        """
+        Test basic bullet removal.
+        """
+        # Prepare inputs.
+        text = """
+        - First item
+        - Second item
+        - Third item
+        """
+        # Prepare outputs.
+        expected = """
+        First item
+        Second item
+        Third item
+        """
+        # Run test.
+        self.helper(text, expected)
+
+    def test2(self) -> None:
+        """
+        Test nested bullets removal.
+        """
+        # Prepare inputs.
+        text = """
+        - First item
+          - Nested item
+          - Another nested
+        - Second item
+        """
+        # Prepare outputs.
+        expected = """
+        First item
+        Nested item
+        Another nested
+        Second item
+        """
+        # Run test.
+        self.helper(text, expected)
+
+    def test3(self) -> None:
+        """
+        Test mixed content with bullets and non-bullets.
+        """
+        # Prepare inputs.
+        text = """
+        - Bullet item
+        Regular text line
+        - Another bullet
+        More regular text
+        """
+        # Prepare outputs.
+        expected = """
+        Bullet item
+        Regular text line
+        Another bullet
+        More regular text
+        """
+        # Run test.
+        self.helper(text, expected)
+
+    def test4(self) -> None:
+        """
+        Test empty lines preservation.
+        """
+        # Prepare inputs.
+        text = """
+        - First item
+
+        - Second item
+
+        - Third item
+        """
+        # Prepare outputs.
+        expected = """
+        First item
+
+        Second item
+
+        Third item
+        """
+        # Run test.
+        self.helper(text, expected)
+
+
+# #############################################################################
 # Test_bold_first_level_bullets1
 # #############################################################################
 
