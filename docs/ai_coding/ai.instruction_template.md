@@ -38,25 +38,22 @@ next step
   - Preview unit tests that need to be written by creating input and expected
     outputs
 
-# Implement notebook
+# Implement notebook script
 
-## Step 1)
-- Read ./msml610/lectures_source/Lesson05.1-Learning_Theory.txt and understand
+## Build the script
+- Read `msml610/lectures_source/Lesson05.1-Learning_Theory.txt` and understand
   the bin analogy
-
-## Step 2)
-- Execute docs/ai_prompts/notebooks.create_visual_script.md to create the script
+- Execute `docs/ai_prompts/notebooks.create_visual_script.md` to create the script
   for the concept
 
-## Step 3)
-- Execute docs/ai_prompts/notebooks.implement_script.md for
-  msml610/tutorials/Lesson05.Lesson05.1-Learning_Theory.Bin_Analogy.md
-- Save the results in msml610/tutorials/Lesson05.1-Learning_Theory.Bin_Analogy_ML.ipynb
+## Build notebook
+- Execute `docs/ai_prompts/notebooks.implement_script.md` for cell XYZ of
+  `msml610/tutorials/Lesson05.1-Learning_Theory.Bin_Analogy.md`
+- Update `msml610/tutorials/Lesson05.1-Learning_Theory.Bin_Analogy_ML.ipynb`
 
 # Rename files
 
 ## Step 1)
-
 - Rename the files in ... that have ...
 
 ## Step 2)
