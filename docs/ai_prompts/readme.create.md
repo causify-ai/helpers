@@ -37,37 +37,37 @@ in the target directory that has the following sections
   - Its `--help` text
   - Its docstring
 
-Create a "Description of executables" section with one subsection per
-tool, using this exact structure:
+- Create a "Description of executables" section with one subsection per tool,
+  using this exact structure:
 
-````markdown
-## `<tool>`
+  ````markdown
+  ## `<tool>`
 
-### What It Does
+  ### What It Does
 
-- 1–3 bullet points describing the tool's purpose in clear, plain language.
-- Mention important inputs, outputs, and side effects.
+  - 1–3 bullet points describing the tool's purpose in clear, plain language.
+  - Mention important inputs, outputs, and side effects.
 
-### Examples
+  ### Examples
 
-- Provide 2–4 realistic example commands
-- For each example:
-  - Start with a short description
-  - Follow with a fenced bash code block:
-    ```bash
-    > actual command here
-    ```
-````
+  - Provide 2–4 realistic example commands
+  - For each example:
+    - Start with a short description
+    - Follow with a fenced bash code block:
+      ```bash
+      > actual command here
+      ```
+  ````
 
 - For instance
-````
-### Examples
+  ````
+  ### Examples
 
-- Generate 5 HD quality images from a prompt:
-  ```bash
-  > ./generate_class_images.py "A sunset over mountains" --dst_dir ./images
-  ```
-````
+  - Generate 5 HD quality images from a prompt:
+    ```bash
+    > ./generate_class_images.py "A sunset over mountains" --dst_dir ./images
+    ```
+  ````
 
 - Examples of this file are:
   - `dev_scripts_helpers/documentation/README.md`

@@ -1,6 +1,8 @@
-# Conventions for Writing Markdown Files
+# Summary
 
-## Goals and Philosophy
+- This file contains conventions for writing markdown files
+
+# Goals and Philosophy
 
 - Make the text easy to consume for both humans and AI
 
@@ -13,15 +15,13 @@
 
 - This document is written using the rules described in this document itself
 
-## Formatting Guidelines
+# Formatting Guidelines
 
-#### Every Document Has a Summary Header
-
+### Every Document Has a Summary Header
 - Every document should have a summary paragraph with a header `# Summary` with
   a short paragraph containing what's the content of the document
 
-#### Headers and Paragraphs
-
+### Headers and Paragraphs
 - Use headers and paragraphs
   ```
   # Header 1
@@ -29,8 +29,7 @@
   ## Header 2
   ```
 
-#### Use Only Text
-
+### Use Only Text
 - Avoid emojis and icons
 - Avoid any decorative formatting
   - Do not use line separator like `---`
@@ -40,8 +39,7 @@
   - **Good**: "hello"
   - **Bad**: “hello”
 
-#### Use Bullets
-
+### Use Bullets
 - Use bullet points inside a paragraph
 
 - Each bullet should express one complete atomic idea
@@ -64,8 +62,7 @@
 
 - Do not end a bullet point with a period `.`
 
-#### Use Nested Bullets
-
+### Use Nested Bullets
 - Use nested bullets to show:
   - Dependencies and relationships
     - E.g., cause -> effect
@@ -91,8 +88,7 @@
     - Examples
     - Implications
 
-#### List of Items
-
+### List of Items
 - In lists of items
   - Bold the item whenever possible
   - Use verbatim when the item is a script
@@ -108,20 +104,17 @@
     - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
     ```
 
-#### Use Verbatim for Programs
-
+### Use Verbatim for Programs
 - For libraries, executables, scripts use verbatim
   - E.g., `notes_to_pdf.py`, `python`, `pandas`
 
-#### Use and Do Not Use &
-
+### Use and Do Not Use &
 - **Bad**: Extraction & Conversion Tools
 - **Good**: Extraction and Conversion Tools
 
-## Writing Style
+# Writing Style
 
-#### Writing Style
-
+### Writing Style
 - Use explicit references instead of unclear ones
   - **Good**: "TCP protocol"
   - **Bad**: "it"
@@ -132,23 +125,22 @@
 
 - Prefer plain language over academic jargon
 
-#### Avoid Long Prose
+- Make sure text is short and not unnecessarily long
 
+### Avoid Long Prose
 - Prefer structured notes over narrative prose
 
 - Use a first-person, self-directed voice, e.g.,
   - **Good**: "Key thing to remember: entropy increases"
 
-#### Use Direct Statements
-
+### Use Direct Statements
 - Convert abstract principles into short, direct statements, e.g.,
   - **Good**: "Everyone takes responsibility: no blaming others if work isn't
     finished."
   - **Bad**: "Everyone takes responsibility, owns their projects, and blames no
     one if something doesn't get finished."
 
-#### Try to Use Lists
-
+### Try to Use Lists
 - **Good**
   ```
   - This document covers how to publish:
@@ -168,8 +160,24 @@
   `//umd_classes`)
   ```
 
-#### Use Diagrams Over Text When Possible
+### Use fenced code blocks
+- When using fenced code blocks, make sure there are valid programming language
+  (e.g., `python`, `bash`, `latex`, `verbatim`)
+- E.g.,
+  ````
+  ```python
+  ````
+- For `bash` make sure the commands start with `>`
 
+- The fenced code block should be aligned with the text and the bullet points
+  ````
+  - Do this and that:
+    ```bash
+    > do_this_and_that
+    ```
+  ````
+
+### Use Diagrams Over Text When Possible
 - Summarize systems or relationships using:
   - Graphviz
   - Mermaid

@@ -1,26 +1,27 @@
 #!/usr/bin/env python3
 """
+This tool allows to handle sets of links to files that are shared across many dirs.
+
+A detailed description is:
+
+docs/tools/dev_system/all.replace_common_files_with_script_links.md
+
 Usage Example:
 
-- Using absolute links
+- Step 1: Replace files in dst_dir with links from src_dir:
+  ```
+  > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
+  ```
+- Step 2: Stage linked files for modification:
+  ```
+  > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --stage_links
+  ```
+- Step 3: After modification, restore the symbolic links:
+  ```
+  > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
+  ```
 
-    Step 1: Replace files in dst_dir with links from src_dir:
-
-        > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
-
-    Step 2: Stage linked files for modification:
-
-        > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --stage_links
-
-    Step 3: After modification, restore the symbolic links:
-
-        > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links
-
-- Using relative links
-
-    > create_links.py --src_dir /path/to/src --dst_dir /path/to/dst --replace_links --use_relative_paths
-
-    - Other steps remain same.
+- Links can be absolute or relative (using `--replace_links --use_relative_paths`)
 
 Import as:
 
