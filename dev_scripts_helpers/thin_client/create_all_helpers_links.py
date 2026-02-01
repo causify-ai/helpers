@@ -41,7 +41,8 @@ _LOG = logging.getLogger(__name__)
 _FILES_TO_LINK = [
     ".claude",
     ".coveragerc",
-    ".gitignore",
+    # git doesn't like .gitignore to be a link.
+    #".gitignore",
     ".gitleaksignore",
     ".isort.cfg",
     ".pre-commit-config.yaml",
