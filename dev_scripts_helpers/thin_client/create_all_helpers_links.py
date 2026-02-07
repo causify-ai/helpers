@@ -8,14 +8,14 @@ helpers_root to the current repository, enabling thin client repositories to
 share common configuration.
 
 Example usage:
-    # Create all missing links
-    > create_all_helpers_links.py
+# Create all missing links
+> create_all_helpers_links.py
 
-    # Force recreate all links (even if they exist)
-    > create_all_helpers_links.py --force
+# Force recreate all links (even if they exist)
+> create_all_helpers_links.py --force
 
-    # Preview what would be done without making changes
-    > create_all_helpers_links.py --dry_run
+# Preview what would be done without making changes
+> create_all_helpers_links.py --dry_run
 
 Import as:
 
@@ -48,6 +48,7 @@ _FILES_TO_LINK = [
     ".pre-commit-config.yaml",
     "CLAUDE.md",
     "conftest.py",
+    "invoke.yaml",
     "linters2/",
     "pyproject.toml",
     "pytest.ini",
@@ -110,6 +111,11 @@ def _should_create_link(
     if force:
         _LOG.info("Force mode: will recreate existing link: %s", target_path)
         return True
+    # Warn if the file exists but is not a symbolic link.
+    if os.path.exists(target_path) and not os.path.islink(target_path):
+        _LOG.warning(
+            "Target exists but is not a symbolic link: %s", target_path
+        )
     _LOG.debug("Target already exists and is not broken: %s", target_path)
     return False
 
@@ -131,7 +137,12 @@ def _create_symbolic_link(
     """
     # Check if we should create the link.
     if not _should_create_link(target_path, force=force):
-        _LOG.info("Skipping existing link: %s", target_path)
+        # Print the target for existing links.
+        if os.path.islink(target_path):
+            link_target = os.readlink(target_path)
+            _LOG.info("Skipping existing link: %s -> %s", target_path, link_target)
+        else:
+            _LOG.info("Skipping existing link: %s", target_path)
         return
     # Remove existing file/link if in force mode or if it's broken.
     if os.path.exists(target_path) or os.path.islink(target_path):
@@ -145,14 +156,74 @@ def _create_symbolic_link(
                 hsystem.system(f"rm -rf {target_path}")
             else:
                 os.remove(target_path)
+    # Compute relative path from target to source.
+    target_dir = os.path.dirname(target_path)
+    relative_source_path = os.path.relpath(source_path, target_dir)
     # Create the symbolic link.
     if dry_run:
         _LOG.info(
-            "[DRY RUN] Would create link: %s -> %s", target_path, source_path
+            "[DRY RUN] Would create link: %s -> %s", target_path, relative_source_path
         )
     else:
-        _LOG.info("Creating link: %s -> %s", target_path, source_path)
-        os.symlink(source_path, target_path)
+        _LOG.info("Creating link: %s -> %s", target_path, relative_source_path)
+        os.symlink(relative_source_path, target_path)
+
+
+def _analyze_links(
+    files_to_link: List[str],
+) -> None:
+    """
+    Analyze and report existing symbolic links.
+
+    :param files_to_link: list of files/directories to analyze
+    """
+    # Get paths.
+    helpers_root = _get_helpers_root_path()
+    repo_root = _get_current_repo_root()
+    # Analyze links.
+    _LOG.info("Analyzing symbolic links for %d items", len(files_to_link))
+    for item in files_to_link:
+        # Remove trailing slash for directories.
+        item_clean = item.rstrip("/")
+        # Build full paths.
+        source_path = os.path.join(helpers_root, item_clean)
+        target_path = os.path.join(repo_root, item_clean)
+        # Check if target exists.
+        if not os.path.exists(target_path) and not os.path.islink(target_path):
+            _LOG.info("Link does not exist: %s", target_path)
+            continue
+        # Check if it's a symbolic link.
+        if not os.path.islink(target_path):
+            _LOG.info("Not a symbolic link: %s", target_path)
+            continue
+        # Read the link target.
+        link_target = os.readlink(target_path)
+        # Resolve to absolute path for checking.
+        target_dir = os.path.dirname(target_path)
+        resolved_path = os.path.normpath(
+            os.path.join(target_dir, link_target)
+        )
+        # Check if the resolved path exists.
+        if not os.path.exists(resolved_path):
+            _LOG.info(
+                "Broken link: %s -> %s (resolved: %s)",
+                target_path,
+                link_target,
+                resolved_path,
+            )
+            continue
+        # Determine if it's a file or directory.
+        if os.path.isfile(resolved_path):
+            item_type = "file"
+        elif os.path.isdir(resolved_path):
+            item_type = "directory"
+        else:
+            item_type = "unknown"
+        # Report the link.
+        _LOG.info(
+            "Link: %s -> %s (type: %s)", target_path, link_target, item_type
+        )
+    _LOG.info("Finished analyzing symbolic links")
 
 
 def _create_all_links(
@@ -205,6 +276,11 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
+        "--analyze",
+        action="store_true",
+        help="Analyze and report existing links instead of creating them",
+    )
+    parser.add_argument(
         "--force",
         action="store_true",
         help="Force recreate links even if they exist",
@@ -221,8 +297,11 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    # Create all symbolic links.
-    _create_all_links(_FILES_TO_LINK, force=args.force, dry_run=args.dry_run)
+    # Analyze or create symbolic links.
+    if args.analyze:
+        _analyze_links(_FILES_TO_LINK)
+    else:
+        _create_all_links(_FILES_TO_LINK, force=args.force, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

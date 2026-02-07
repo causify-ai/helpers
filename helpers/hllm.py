@@ -15,8 +15,8 @@ import tqdm
 from pydantic import BaseModel
 
 import helpers.hcache_simple as hcacsimp
-import helpers.hllm_cost as hllmcost
 import helpers.hdbg as hdbg
+import helpers.hllm_cost as hllmcost
 import helpers.hprint as hprint
 import helpers.htimer as htimer
 
@@ -255,9 +255,11 @@ def _call_api_sync(
         completion_obj["cost"] = cost
     return completion_obj
 
+
 # #############################################################################
 # LLMClient
 # #############################################################################
+
 
 class LLMClient:
     """
@@ -286,20 +288,6 @@ class LLMClient:
 
         self.provider_name = provider_name
         self.model = model
-
-    def _get_default_model(self, provider_name: str) -> str:
-        """
-        Get the default model for a provider.
-
-        :return: default model for the provider
-        """
-        if provider_name == "openai":
-            model = "gpt-4o"
-        elif provider_name == "openrouter":
-            model = "openai/gpt-4o"
-        else:
-            raise ValueError(f"Unknown provider: {self.provider_name}")
-        return model
 
     def get_default_model(self) -> Tuple[str, str]:
         """
@@ -356,6 +344,20 @@ class LLMClient:
             use_responses_api=use_responses_api,
             **create_kwargs,
         )
+
+    def _get_default_model(self, provider_name: str) -> str:
+        """
+        Get the default model for a provider.
+
+        :return: default model for the provider
+        """
+        if provider_name == "openai":
+            model = "gpt-4o"
+        elif provider_name == "openrouter":
+            model = "openai/gpt-4o"
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        return model
 
 
 # #############################################################################
@@ -532,7 +534,7 @@ def get_structured_completion(
     )
     parsed_output: T = response.output_parsed
     # Track costs.
-    if cost_tracker is None:
+    if cost_tracker is not None:
         hdbg.dassert_isinstance(cost_tracker, hllmcost.LLMCostTracker)
         cost = cost_tracker.calculate_cost(response)
         cost_tracker.accumulate_cost(cost)
