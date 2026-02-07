@@ -149,9 +149,6 @@ def _check_links(in_file_name: str) -> None:
     _LOG.debug("Found check_links.py at: %s", script_path)
     # Build command.
     cmd = f"{script_path} --in_file {in_file_name}"
-    # Execute the script and capture output.
-    # Use abort_on_error=False to prevent failures from breaking lint workflow.
-    # TODO(ai_gp): Instead of saving the output, just print it
     hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
 

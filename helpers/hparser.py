@@ -200,7 +200,6 @@ def add_action_arg(
         "--action",
         action="append",
         dest="action",
-        choices=valid_actions,
         help="Actions to execute (see available actions below)",
     )
     group.add_argument(
@@ -208,7 +207,6 @@ def add_action_arg(
         "--skip_action",
         action="append",
         dest="skip_action",
-        choices=valid_actions,
         help="Actions to skip from default set (see available actions below)",
     )
     group.add_argument(
@@ -216,7 +214,6 @@ def add_action_arg(
         "--enable",
         action="append",
         dest="enable_action",
-        choices=valid_actions,
         help="Enable additional actions on top of defaults (see available actions below)",
     )
     if default_actions is not None:
@@ -299,17 +296,29 @@ def select_actions(
         # Convert it into list since through some code paths it can be a tuple.
         actions = list(default_actions)
     else:
+        # Validate actions specified by user.
+        for action in args.action:
+            hdbg.dassert_in(
+                action,
+                valid_actions,
+                "Invalid action '%s'",
+                action,
+            )
         actions = args.action[:]
     hdbg.dassert_isinstance(actions, list)
     hdbg.dassert_no_duplicates(actions)
-    # Validate actions.
-    for action in set(actions):
-        if action not in valid_actions:
-            raise ValueError(f"Invalid action '{action}'")
     # Remove actions, if needed.
     if args.skip_action:
         hdbg.dassert_isinstance(args.skip_action, list)
         for skip_action in args.skip_action:
+            # Validate that skip_action is a valid action.
+            hdbg.dassert_in(
+                skip_action,
+                valid_actions,
+                "Invalid action '%s'",
+                skip_action,
+            )
+            # Validate that skip_action is in the current action list.
             hdbg.dassert_in(skip_action, actions)
             actions = [a for a in actions if a != skip_action]
     # Add enabled actions on top of defaults.
