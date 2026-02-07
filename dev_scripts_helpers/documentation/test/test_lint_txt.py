@@ -22,7 +22,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(ai_gp): Rename the test methods to test1, test2, ...
 class Test_remove_page_separators(hunitest.TestCase):
     """
     Test the _remove_page_separators function.
@@ -45,7 +44,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
 
-    def test_remove_single_separator(self) -> None:
+    def test1(self) -> None:
         """
         Test removing a single page separator line.
         """
@@ -64,7 +63,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    def test_remove_multiple_separators(self) -> None:
+    def test2(self) -> None:
         """
         Test removing multiple page separator lines.
         """
@@ -87,7 +86,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    def test_remove_separator_with_spaces(self) -> None:
+    def test3(self) -> None:
         """
         Test removing page separators with trailing spaces.
         """
@@ -106,7 +105,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    def test_no_separator(self) -> None:
+    def test4(self) -> None:
         """
         Test that text without separators remains unchanged.
         """
@@ -125,7 +124,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    def test_separator_in_code_block_preserved(self) -> None:
+    def test5(self) -> None:
         """
         Test that separators within text content are preserved.
         """
@@ -144,7 +143,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    def test_empty_input(self) -> None:
+    def test6(self) -> None:
         """
         Test with empty input.
         """
