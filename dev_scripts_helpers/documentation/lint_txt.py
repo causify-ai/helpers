@@ -13,12 +13,14 @@ from typing import Any, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
+import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hmarkdown_toc as hmarktoc
 import helpers.hparser as hparser
 import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -127,6 +129,30 @@ def _remove_page_separators(lines: List[str]) -> List[str]:
     ret = txt.split("\n")
     hdbg.dassert_isinstance(ret, list)
     return ret
+
+
+def _check_links(in_file_name: str) -> None:
+    """
+    Check if all URLs in the file are reachable by calling check_links.py.
+
+    This action calls the standalone check_links.py script to validate URL
+    reachability. The script performs HTTP/HTTPS requests to verify each link.
+    Broken links are reported via logging but do NOT cause the action to fail,
+    maintaining the formatting workflow.
+
+    :param in_file_name: The name of the input file to check.
+    """
+    _LOG.info("Checking links in file: %s", in_file_name)
+    # Find the check_links.py script.
+    script_path = hgit.find_file_in_git_tree("check_links.py")
+    hdbg.dassert_file_exists(script_path)
+    _LOG.debug("Found check_links.py at: %s", script_path)
+    # Build command.
+    cmd = f"{script_path} --in_file {in_file_name}"
+    # Execute the script and capture output.
+    # Use abort_on_error=False to prevent failures from breaking lint workflow.
+    # TODO(ai_gp): Instead of saving the output, just print it
+    hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
 
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
@@ -266,6 +292,14 @@ def _perform_actions(
     if _to_execute_action(action, actions):
         if is_md_file:
             lines = hmarktoc.refresh_toc(lines, **kwargs)
+    # Check links.
+    action = "check_links"
+    if _to_execute_action(action, actions):
+        # Only check links for markdown and text files.
+        if is_md_file or is_txt_file:
+            _check_links(in_file_name)
+        else:
+            _LOG.debug("Skipping link check for non-text file type")
     # Reattach YAML front matter if it was extracted.
     lines = hmarktoc.reattach_yaml_frontmatter(yaml_frontmatter, lines)
     return lines
@@ -288,13 +322,17 @@ _VALID_ACTIONS = [
     "capitalize_header",
     # _refresh_toc(): refresh the table of contents.
     "refresh_toc",
+    # _check_links(): check if URLs in the file are reachable.
+    "check_links",
 ]
 
 
-# By default, exclude refresh_toc action. Users can explicitly enable it via
-# --action.
+# By default, exclude refresh_toc and check_links actions. Users can
+# explicitly enable them via --action.
 _DEFAULT_ACTIONS = [
-    action for action in _VALID_ACTIONS if action != "refresh_toc"
+    action
+    for action in _VALID_ACTIONS
+    if action not in ["refresh_toc", "check_links"]
 ]
 
 
