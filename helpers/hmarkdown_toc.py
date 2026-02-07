@@ -19,6 +19,9 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+# #############################################################################
+# YAML preamble
+# #############################################################################
 
 def extract_yaml_frontmatter(lines: List[str]) -> Tuple[List[str], List[str]]:
     """
@@ -57,6 +60,27 @@ def extract_yaml_frontmatter(lines: List[str]) -> Tuple[List[str], List[str]]:
     return [], lines
 
 
+def reattach_yaml_frontmatter(
+    yaml_frontmatter: List[str], lines: List[str]
+) -> List[str]:
+    """
+    Reattach YAML front matter to the beginning of the content lines.
+
+    :param yaml_frontmatter: The YAML front matter lines to reattach.
+    :param lines: The content lines to prepend the front matter to.
+    :return: Combined lines with YAML front matter reattached.
+    """
+    if not yaml_frontmatter:
+        return lines
+    # Add an empty line after the front matter if the remaining content doesn't
+    # start with one.
+    if lines and lines[0] != "":
+        return yaml_frontmatter + [""] + lines
+    return yaml_frontmatter + lines
+
+
+# #############################################################################
+# TOC
 # #############################################################################
 
 

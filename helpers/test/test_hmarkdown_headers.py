@@ -11,6 +11,9 @@ import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+# TODO(ai_gp): Rename all the test methods to match the convention test1,
+# test2, ...
+
 
 def _to_header_list(data: List[Tuple[int, str]]) -> hmarkdo.HeaderList:
     res = [
@@ -1542,8 +1545,6 @@ class Test_capitalize_header1(hunitest.TestCase):
 # Test_capitalize_header2
 # #############################################################################
 
-# TODO(ai_gp): Rename the test methods test1, test2 instead of
-# test_mixed_case_simple_feed_forward
 class Test_capitalize_header2(hunitest.TestCase):
     """
     Test enhanced capitalize_header functionality for mixed case words and
@@ -1567,7 +1568,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
-    def test_mixed_case_simple_feed_forward(self) -> None:
+    def test1(self) -> None:
         """
         Test that SimpleFeedForward is preserved as-is.
         """
@@ -1579,7 +1580,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_deep_npts(self) -> None:
+    def test2(self) -> None:
         """
         Test that DeepNPTS is preserved as-is.
         """
@@ -1591,7 +1592,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_multiple_words(self) -> None:
+    def test3(self) -> None:
         """
         Test multiple mixed case words in the same header.
         """
@@ -1603,7 +1604,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_with_all_caps(self) -> None:
+    def test4(self) -> None:
         """
         Test mixed case words combined with all caps words.
         """
@@ -1615,7 +1616,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_first_word(self) -> None:
+    def test5(self) -> None:
         """
         Test mixed case word as the first word in header.
         """
@@ -1627,7 +1628,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_fenced_block_with_header(self) -> None:
+    def test6(self) -> None:
         """
         Test that headers inside fenced blocks are not capitalized.
         """
@@ -1649,7 +1650,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_fenced_block_multiple_headers(self) -> None:
+    def test7(self) -> None:
         """
         Test that multiple headers inside fenced blocks are not capitalized.
         """
@@ -1689,7 +1690,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_fenced_block_with_language_specifier(self) -> None:
+    def test8(self) -> None:
         """
         Test that headers in fenced blocks with language specifier are not
         capitalized.
@@ -1710,7 +1711,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_in_fenced_block(self) -> None:
+    def test9(self) -> None:
         """
         Test mixed case words inside fenced blocks are preserved.
         """
@@ -1732,7 +1733,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_multiple_fenced_blocks(self) -> None:
+    def test10(self) -> None:
         """
         Test multiple fenced blocks in the same document.
         """
@@ -1762,7 +1763,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_slide_title_with_mixed_case(self) -> None:
+    def test11(self) -> None:
         """
         Test that slide titles (starting with *) also preserve mixed case.
         """
@@ -1774,7 +1775,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_with_punctuation(self) -> None:
+    def test12(self) -> None:
         """
         Test mixed case words with punctuation.
         """
@@ -1786,7 +1787,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_normal_words_still_capitalized(self) -> None:
+    def test13(self) -> None:
         """
         Test that normal words without mixed case are still capitalized
         properly.
@@ -1799,7 +1800,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_empty_fenced_block(self) -> None:
+    def test14(self) -> None:
         """
         Test empty fenced blocks don't cause issues.
         """
@@ -1821,8 +1822,6 @@ class Test_capitalize_header2(hunitest.TestCase):
 # Test_has_mixed_case1
 # #############################################################################
 
-# TODO(ai_gp): Rename the test methods test1, test2 instead of
-# test_mixed_case_simple_feed_forward
 class Test_has_mixed_case1(hunitest.TestCase):
     """
     Test the _has_mixed_case helper function.
@@ -1840,7 +1839,7 @@ class Test_has_mixed_case1(hunitest.TestCase):
         # Check output.
         self.assertEqual(actual, expected)
 
-    def test_simple_feed_forward(self) -> None:
+    def test1(self) -> None:
         """
         Test SimpleFeedForward has mixed case.
         """
@@ -1851,7 +1850,7 @@ class Test_has_mixed_case1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_deep_npts(self) -> None:
+    def test2(self) -> None:
         """
         Test DeepNPTS has mixed case (all caps after first).
         """
@@ -1862,7 +1861,7 @@ class Test_has_mixed_case1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_machine_no_mixed_case(self) -> None:
+    def test3(self) -> None:
         """
         Test Machine does not have mixed case (only first char capital).
         """
@@ -1873,7 +1872,7 @@ class Test_has_mixed_case1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_lowercase_no_mixed_case(self) -> None:
+    def test4(self) -> None:
         """
         Test lowercase word has no mixed case.
         """
@@ -1884,7 +1883,7 @@ class Test_has_mixed_case1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_all_caps_has_mixed_case(self) -> None:
+    def test5(self) -> None:
         """
         Test all caps word has mixed case (caps after first position).
         """
@@ -1895,7 +1894,7 @@ class Test_has_mixed_case1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_single_char_no_mixed_case(self) -> None:
+    def test6(self) -> None:
         """
         Test single character has no mixed case.
         """
@@ -1906,7 +1905,7 @@ class Test_has_mixed_case1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_two_chars_capital_no_mixed_case(self) -> None:
+    def test7(self) -> None:
         """
         Test two character word with first capital has no mixed case.
         """
@@ -1917,7 +1916,7 @@ class Test_has_mixed_case1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_two_chars_both_caps_mixed_case(self) -> None:
+    def test8(self) -> None:
         """
         Test two character word with both caps has mixed case.
         """
@@ -1928,7 +1927,7 @@ class Test_has_mixed_case1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
-    def test_camel_case(self) -> None:
+    def test9(self) -> None:
         """
         Test camelCase word has mixed case.
         """

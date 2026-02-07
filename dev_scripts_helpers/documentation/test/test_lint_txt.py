@@ -9,7 +9,6 @@ import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
-import helpers.hmarkdown_toc as hmarktoc
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -19,130 +18,11 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_extract_yaml_frontmatter
-# #############################################################################
-
-
-# TODO(ai_gp): Move to the test file of hmarkdown_toc.py
-class Test_extract_yaml_frontmatter(hunitest.TestCase):
-    """
-    Test the extract_yaml_frontmatter function.
-    """
-
-    def helper(
-        self,
-        txt: str,
-        expected_frontmatter: list,
-        expected_remaining: list,
-    ) -> None:
-        """
-        Test helper for extract_yaml_frontmatter.
-
-        :param txt: Input text to process
-        :param expected_frontmatter: Expected front matter lines
-        :param expected_remaining: Expected remaining lines
-        """
-        # Prepare inputs.
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Run test.
-        frontmatter, remaining = hmarktoc.extract_yaml_frontmatter(lines)
-        # Check outputs.
-        self.assertEqual(frontmatter, expected_frontmatter)
-        self.assertEqual(remaining, expected_remaining)
-
-    def test1(self) -> None:
-        """
-        Test extracting YAML front matter from a file.
-        """
-        # Prepare inputs.
-        txt = """
-        ---
-        title: My Document
-        date: 2024-01-01
-        ---
-        # Content
-        This is the main content.
-        """
-        # Prepare outputs.
-        expected_frontmatter = ["---", "title: My Document", "date: 2024-01-01", "---"]
-        expected_remaining = ["# Content", "This is the main content."]
-        # Run test.
-        self.helper(txt, expected_frontmatter, expected_remaining)
-
-    def test2(self) -> None:
-        """
-        Test processing a file without YAML front matter.
-        """
-        # Prepare inputs.
-        txt = """
-        # Content
-        This is the main content.
-        """
-        # Prepare outputs.
-        expected_frontmatter = []
-        expected_remaining = ["# Content", "This is the main content."]
-        # Run test.
-        self.helper(txt, expected_frontmatter, expected_remaining)
-
-    def test3(self) -> None:
-        """
-        Test handling incomplete YAML front matter (missing closing delimiter).
-        """
-        # Prepare inputs.
-        txt = """
-        ---
-        title: My Document
-        # Content without closing delimiter
-        """
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Prepare outputs.
-        expected_frontmatter = []
-        expected_remaining = lines
-        # Run test.
-        self.helper(txt, expected_frontmatter, expected_remaining)
-
-    def test4(self) -> None:
-        """
-        Test extracting empty YAML front matter.
-        """
-        # Prepare inputs.
-        txt = """
-        ---
-        ---
-        # Content
-        """
-        # Prepare outputs.
-        expected_frontmatter = ["---", "---"]
-        expected_remaining = ["# Content"]
-        # Run test.
-        self.helper(txt, expected_frontmatter, expected_remaining)
-
-    def test5(self) -> None:
-        """
-        Test that separators not at the beginning are not treated as front matter.
-        """
-        # Prepare inputs.
-        txt = """
-        # Content
-        ---
-        More content
-        """
-        lines = txt.split("\n")
-        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
-        # Prepare outputs.
-        expected_frontmatter = []
-        expected_remaining = lines
-        # Run test.
-        self.helper(txt, expected_frontmatter, expected_remaining)
-
-
-# #############################################################################
 # Test_remove_page_separators
 # #############################################################################
 
 
+# TODO(ai_gp): Rename the test methods to test1, test2, ...
 class Test_remove_page_separators(hunitest.TestCase):
     """
     Test the _remove_page_separators function.

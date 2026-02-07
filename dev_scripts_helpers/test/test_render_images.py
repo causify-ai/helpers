@@ -217,11 +217,42 @@ class Test_uncomment_line(hunitest.TestCase):
 # Test_insert_image_code
 # #############################################################################
 
-# TODO(ai_gp): Factor out common code in a helper
 class Test_insert_image_code(hunitest.TestCase):
     """
     Test _insert_image_code() function.
     """
+
+    def helper(
+        self,
+        extension: str,
+        rel_img_path: str,
+        user_img_size: str,
+        expected: str,
+        label: str = "",
+        caption: str = "",
+    ) -> None:
+        """
+        Helper method to test _insert_image_code function.
+
+        :param extension: File extension (e.g., ".md", ".tex")
+        :param rel_img_path: Relative path to the image
+        :param user_img_size: Size specification for the image
+        :param expected: Expected output string
+        :param label: Optional image label
+        :param caption: Optional image caption
+        """
+        # Prepare kwargs for optional parameters.
+        kwargs = {}
+        if label:
+            kwargs["label"] = label
+        if caption:
+            kwargs["caption"] = caption
+        # Run test.
+        actual = dshdreim._insert_image_code(
+            extension, rel_img_path, user_img_size, **kwargs
+        )
+        # Check outputs.
+        self.assert_equal(actual, hprint.dedent(expected))
 
     def test1(self) -> None:
         """
@@ -231,17 +262,14 @@ class Test_insert_image_code(hunitest.TestCase):
         extension = ".md"
         rel_img_path = "figs/image.png"
         user_img_size = ""
-        # Run test.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size
-        )
-        # Check outputs.
+        # Prepare outputs.
         expected = """
         <!--  render_images:begin -->
         ![](figs/image.png)
         <!--  render_images:end -->
         """
-        self.assert_equal(actual, hprint.dedent(expected))
+        # Run test.
+        self.helper(extension, rel_img_path, user_img_size, expected)
 
     def test2(self) -> None:
         """
@@ -253,21 +281,14 @@ class Test_insert_image_code(hunitest.TestCase):
         user_img_size = "width=50%"
         label = "fig:my_diagram"
         caption = "This is a diagram"
-        # Run test.
-        actual = dshdreim._insert_image_code(
-            extension,
-            rel_img_path,
-            user_img_size,
-            label=label,
-            caption=caption,
-        )
-        # Check outputs.
+        # Prepare outputs.
         expected = """
         <!--  render_images:begin -->
         ![This is a diagram](figs/diagram.png){#fig:my_diagram width=50%}
         <!--  render_images:end -->
         """
-        self.assert_equal(actual, hprint.dedent(expected))
+        # Run test.
+        self.helper(extension, rel_img_path, user_img_size, expected, label, caption)
 
     def test3(self) -> None:
         """
@@ -277,17 +298,14 @@ class Test_insert_image_code(hunitest.TestCase):
         extension = ".md"
         rel_img_path = "figs/image.png"
         user_img_size = "width=80%"
-        # Run test.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size
-        )
-        # Check outputs.
+        # Prepare outputs.
         expected = """
         <!--  render_images:begin -->
         ![](figs/image.png){width=80%}
         <!--  render_images:end -->
         """
-        self.assert_equal(actual, hprint.dedent(expected))
+        # Run test.
+        self.helper(extension, rel_img_path, user_img_size, expected)
 
     def test4(self) -> None:
         """
@@ -297,11 +315,7 @@ class Test_insert_image_code(hunitest.TestCase):
         extension = ".tex"
         rel_img_path = "figs/figure.png"
         user_img_size = ""
-        # Run test.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size
-        )
-        # Check outputs.
+        # Prepare outputs.
         expected = r"""
         % render_images:begin
         \begin{figure}[H]
@@ -309,7 +323,8 @@ class Test_insert_image_code(hunitest.TestCase):
         \end{figure}
         % render_images:end
         """
-        self.assert_equal(actual, hprint.dedent(expected))
+        # Run test.
+        self.helper(extension, rel_img_path, user_img_size, expected)
 
     def test5(self) -> None:
         """
@@ -321,15 +336,7 @@ class Test_insert_image_code(hunitest.TestCase):
         user_img_size = ""
         label = "fig:test_diagram"
         caption = "Test diagram showing communication"
-        # Run test.
-        actual = dshdreim._insert_image_code(
-            extension,
-            rel_img_path,
-            user_img_size,
-            label=label,
-            caption=caption,
-        )
-        # Check outputs.
+        # Prepare outputs.
         expected = r"""
         % render_images:begin
         \begin{figure}[H]
@@ -339,7 +346,8 @@ class Test_insert_image_code(hunitest.TestCase):
         \end{figure}
         % render_images:end
         """
-        self.assert_equal(actual, hprint.dedent(expected))
+        # Run test.
+        self.helper(extension, rel_img_path, user_img_size, expected, label, caption)
 
     def test6(self) -> None:
         """
@@ -349,17 +357,14 @@ class Test_insert_image_code(hunitest.TestCase):
         extension = ".txt"
         rel_img_path = "figs/image.png"
         user_img_size = ""
-        # Run test.
-        actual = dshdreim._insert_image_code(
-            extension, rel_img_path, user_img_size
-        )
-        # Check outputs.
+        # Prepare outputs.
         expected = """
         // render_images:begin
         ![](figs/image.png)
         // render_images:end
         """
-        self.assert_equal(actual, hprint.dedent(expected))
+        # Run test.
+        self.helper(extension, rel_img_path, user_img_size, expected)
 
     def test7(self) -> None:
         """
@@ -380,11 +385,26 @@ class Test_insert_image_code(hunitest.TestCase):
 # Test_remove_image_code
 # #############################################################################
 
-# TODO(ai_gp): Factor out common code in a helper
 class Test_remove_image_code(hunitest.TestCase):
     """
     Test _remove_image_code() function.
     """
+
+    def helper(self, lines: str, extension: str, expected: str) -> None:
+        """
+        Helper method to test _remove_image_code function.
+
+        :param lines: Input lines as a string
+        :param extension: File extension (e.g., ".md", ".tex")
+        :param expected: Expected output string
+        """
+        # Prepare inputs.
+        lines_list = hprint.dedent(lines).split("\n")
+        # Run test.
+        actual = dshdreim._remove_image_code(lines_list, extension)
+        # Check outputs.
+        expected_lines = hprint.dedent(expected).split("\n")
+        self.assertEqual(actual, expected_lines)
 
     def test1(self) -> None:
         """
@@ -403,11 +423,8 @@ class Test_remove_image_code(hunitest.TestCase):
         <!--  render_images:end -->
         Some text after
         """
-        lines = hprint.dedent(lines).split("\n")
         extension = ".md"
-        # Run test.
-        actual = dshdreim._remove_image_code(lines, extension)
-        # Check outputs.
+        # Prepare outputs.
         expected = """
         Some text before
         ```plantuml
@@ -415,8 +432,8 @@ class Test_remove_image_code(hunitest.TestCase):
         ```
         Some text after
         """
-        expected_lines = hprint.dedent(expected).split("\n")
-        self.assertEqual(actual, expected_lines)
+        # Run test.
+        self.helper(lines, extension, expected)
 
     def test2(self) -> None:
         """
@@ -437,11 +454,8 @@ class Test_remove_image_code(hunitest.TestCase):
         % render_images:end
         Text after
         """
-        lines = hprint.dedent(lines).split("\n")
         extension = ".tex"
-        # Run test.
-        actual = dshdreim._remove_image_code(lines, extension)
-        # Check outputs.
+        # Prepare outputs.
         expected = """
         Text before
         ```tikz
@@ -449,8 +463,8 @@ class Test_remove_image_code(hunitest.TestCase):
         ```
         Text after
         """
-        expected_lines = hprint.dedent(expected).split("\n")
-        self.assert_equal(str(actual), str(expected_lines))
+        # Run test.
+        self.helper(lines, extension, expected)
 
     def test3(self) -> None:
         """
@@ -478,11 +492,8 @@ class Test_remove_image_code(hunitest.TestCase):
         ![](figs/image2.png)
         <!--  render_images:end -->
         """
-        lines = hprint.dedent(lines).split("\n")
         extension = ".md"
-        # Run test.
-        actual = dshdreim._remove_image_code(lines, extension)
-        # Check outputs.
+        # Prepare outputs.
         expected = """
         First block:
         ```plantuml
@@ -494,8 +505,8 @@ class Test_remove_image_code(hunitest.TestCase):
         graph TD
         ```
         """
-        expected_lines = hprint.dedent(expected).split("\n")
-        self.assert_equal("\n".join(actual), "\n".join(expected_lines))
+        # Run test.
+        self.helper(lines, extension, expected)
 
     def test4(self) -> None:
         """

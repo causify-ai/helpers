@@ -129,26 +129,6 @@ def _remove_page_separators(lines: List[str]) -> List[str]:
     return ret
 
 
-# TODO(ai_gp): Move to hmarkdown_toc.py
-def _reattach_yaml_frontmatter(
-    yaml_frontmatter: List[str], lines: List[str]
-) -> List[str]:
-    """
-    Reattach YAML front matter to the beginning of the content lines.
-
-    :param yaml_frontmatter: The YAML front matter lines to reattach.
-    :param lines: The content lines to prepend the front matter to.
-    :return: Combined lines with YAML front matter reattached.
-    """
-    if not yaml_frontmatter:
-        return lines
-    # Add an empty line after the front matter if the remaining content doesn't
-    # start with one.
-    if lines and lines[0] != "":
-        return yaml_frontmatter + [""] + lines
-    return yaml_frontmatter + lines
-
-
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
     """
     Post-process the given text by applying various transformations.
@@ -287,7 +267,7 @@ def _perform_actions(
         if is_md_file:
             lines = hmarktoc.refresh_toc(lines, **kwargs)
     # Reattach YAML front matter if it was extracted.
-    lines = _reattach_yaml_frontmatter(yaml_frontmatter, lines)
+    lines = hmarktoc.reattach_yaml_frontmatter(yaml_frontmatter, lines)
     return lines
 
 
