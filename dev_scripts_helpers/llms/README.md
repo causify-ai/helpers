@@ -150,7 +150,7 @@ Key features:
 
 - List available transformations:
   ```bash
-  > llm_transform.py -i input.txt -o output.txt -p list_prompts
+  > llm_transform.py --list
   ```
 
 - Code review (generates cfile):

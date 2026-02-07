@@ -41,8 +41,24 @@
 
 - Use the coding style in `docs/ai_coding/code_template.py`
 - Use REST comments in docstrings
-- Do not use empty lines within functions but use comments to separate chunks of
-  code
+  - If the comment is only one line, still convert it to
+    - **Bad**
+      ```python
+      def reset(self) -> None:
+        """Reset any internal state of the strategy."""
+        pass
+      ```
+    - **Good**
+      ```python
+      def reset(self) -> None:
+        """
+        Reset any internal state of the strategy.
+        """
+        pass
+      ```
+
+- Remove empty lines inside functions so that the code is compact
+- Use comments to separate chunks of code
 - Use periods at the end of all comments
 
 - Use `_LOG.info` instead of print

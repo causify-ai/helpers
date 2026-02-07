@@ -20,7 +20,7 @@ Examples
 > llm_transform.py -i input.txt -o output.txt -p uppercase
 
 # List of transforms
-> llm_transform.py -i input.txt -o output.txt -p list_prompts
+> llm_transform.py --list
 
 # Code review
 > llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_review
@@ -67,6 +67,11 @@ def _parse() -> argparse.ArgumentParser:
     )
     hparser.add_llm_prompt_arg(parser)
     hparser.add_dockerized_script_arg(parser)
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List available prompts and contexts",
+    )
     parser.add_argument(
         "-c",
         "--compare",
@@ -193,6 +198,18 @@ def _run_dockerized_llm_transform(
     return ret
 
 
+def _get_input_transforms() -> List[str]:
+    input_transforms = [
+        "md_to_latex",
+        "md_clean_up",
+        "md_bold_bullets",
+        "md_remove_bullets",
+        "slide_format_figures",
+        "slide_add_figure",
+    ]
+    return input_transforms
+
+
 def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> bool:
     """
     Process a transform that doesn't require LLMs.
@@ -204,13 +221,7 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
     """
     _LOG.debug(hprint.func_signature_to_str())
     #
-    if prompt in (
-        "md_to_latex",
-        "md_clean_up",
-        "md_bold_bullets",
-        "slide_format_figures",
-        "slide_add_figure",
-    ):
+    if prompt in _get_input_transforms():
         # Read the input.
         _LOG.debug("Reading input file: %s", in_file_name)
         txt = hparser.read_file(in_file_name)
@@ -226,6 +237,8 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
             lines = hmarkdo.bold_first_level_bullets(lines)
             txt = "\n".join(lines)
             txt = hmarkdo.format_markdown(txt)
+        elif prompt == "md_remove_bullets":
+            txt = hmarkdo.remove_bullets(txt)
         elif prompt == "slide_format_figures":
             lines = txt.split("\n")
             lines = hmarkdo.format_figures(lines)
@@ -259,8 +272,8 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hparser.init_logger_for_input_output_transform(args, verbose=False)
-    #
-    if args.prompt == "list_prompts":
+    # Handle --list option.
+    if args.list:
         print("# Available contexts:")
         print("""
         - code_*: Python code
@@ -273,7 +286,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
 
         """)
         print("# Available prompt tags:")
-        prompt_tags = dshlllpr.get_prompt_tags()
+        prompt_tags = []
+        prompt_tags.extend(dshlllpr.get_prompt_tags())
+        # Add input transforms as tuples (name, description).
+        for transform in _get_input_transforms():
+            prompt_tags.append((transform, "Input transform (no LLM)"))
         print(dshlllpr.prompt_tags_to_str(prompt_tags))
         return
     # Process targets that don't require LLMs.

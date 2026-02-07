@@ -47,6 +47,9 @@ the root level.
   - Prompt for creating or updating README.md for a given directory
 - `coding.update_file_readme.md`
   - Prompt for creating or updating README.md for a given file
+- `coding.make_function_private.md`
+  - Prompt for identifying functions not called by other files and making them
+    private by prepending underscore
 
 ## Testing
 
@@ -63,6 +66,39 @@ the root level.
   - Prompt for increasing unit test coverage to approach 100% for a given
     function with structured 4-step process
 
+## Notebooks
+
+- `notebooks.format_rules.md`
+  - Jupyter notebook formatting conventions including cell structure, Jupytext
+    pairing, widget patterns, and plotting standards
+- `notebooks.create_visual_script.md`
+  - Prompt for creating markdown descriptions of Jupyter notebook cells with
+    visualizations and interactive widgets for educational content
+- `notebooks.implement_script.md`
+  - Prompt for implementing Jupyter notebook cells from script descriptions with
+    utils library integration and widget conventions
+- `notebooks.create_animation.md`
+  - Prompt for creating video animations from interactive widget functions using
+    generate_animation template
+- `notebooks.lint.md`
+  - Prompt for improving Jupyter notebook appearance using format rules without
+    changing behavior
+- `notebooks.lint_numbered_cells.md`
+  - Prompt for renaming markdown cells with numbered format and reorganizing
+    utils code to match cell order
+- `notebooks.move_to_lib.md`
+  - Prompt for moving Jupyter notebook functions to utils library files while
+    keeping only caller code in notebooks
+- `notebooks.plots.md`
+  - Guidelines for creating plots with pandas/seaborn, adding information
+    directly to plots, and styling theoretical vs empirical data
+- `notebooks.split_cells.md`
+  - Instructions for splitting Jupyter cells so each contains only one concept
+    or example with proper commenting structure
+- `notebooks.utils_library.md`
+  - Guidelines for organizing notebook utility files with proper structure
+    following notebook flow with separators
+
 ## Documentation and Writing
 
 - `markdown.format_rules.md`
@@ -71,6 +107,9 @@ the root level.
 - `readme.create.md`
   - Prompt template for generating comprehensive README files with directory
     structure and executable documentation
+- `readme.format.md`
+  - Formatting guidelines for README files with proper command block structure
+    and descriptions
 - `text.humanize.md`
   - Guidelines for avoiding AI-style writing patterns and creating natural,
     human-sounding text
@@ -116,3 +155,9 @@ the root level.
     until matching the original
 - `graphviz.generate_legend.md`
   - Prompt for generating legend diagrams for graphviz visualizations
+
+## Slides and Presentations
+
+- `slides.format_rules.md`
+  - Guidelines for creating executive-level presentation slides with clear
+    structure, bullet points, and image suggestions in markdown format
