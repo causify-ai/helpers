@@ -10,7 +10,7 @@ import logging
 import os
 import re
 import tempfile
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -112,11 +112,51 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     return txt_new
 
 
+# TODO(ai_gp): Should go in `hmarkdown_toc.py`. Also move the unit tests to the
+# right place, if needed.
+def _extract_yaml_frontmatter(lines: List[str]) -> Tuple[List[str], List[str]]:
+    """
+    Extract YAML front matter from the beginning of the file.
+
+    YAML front matter is delimited by `---` at the beginning and end.
+    Example:
+    ```
+    ---
+    title: My Document
+    date: 2024-01-01
+    ---
+    ```
+
+    :param lines: The lines to be processed.
+    :return: A tuple of (frontmatter_lines, remaining_lines).
+    """
+    _LOG.debug("lines=%s", lines)
+    # Check if file starts with YAML front matter.
+    if len(lines) < 3:
+        # Not enough lines for front matter.
+        return [], lines
+    if not re.match(r"^---\s*$", lines[0]):
+        # No front matter marker at the beginning.
+        return [], lines
+    # Find the closing --- marker.
+    for i in range(1, len(lines)):
+        if re.match(r"^---\s*$", lines[i]):
+            # Found closing marker.
+            frontmatter = lines[: i + 1]
+            remaining = lines[i + 1 :]
+            _LOG.debug("Found YAML front matter: %d lines", len(frontmatter))
+            return frontmatter, remaining
+    # No closing marker found, treat as no front matter.
+    _LOG.debug("No closing YAML front matter marker found")
+    return [], lines
+
+
 def _remove_page_separators(lines: List[str]) -> List[str]:
     """
     Remove page separator lines from the given text.
 
     Page separators are lines that match the pattern `^---\\s*$`.
+    Note: YAML front matter should be extracted before calling this function.
 
     :param lines: The lines to be processed.
     :return: The lines with page separators removed.
@@ -180,7 +220,8 @@ def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
     return lines_new
 
 
-# TODO(gp): Should go in `hmarkdown_toc.py`.
+# TODO(ai_gp): Should go in `hmarkdown_toc.py` and made public. Also move the
+# unit tests to the right place.
 def _refresh_toc(
     lines: List[str],
     *,
@@ -285,6 +326,10 @@ def _perform_actions(
     # Remove the . from the extenstion (e.g., ".txt").
     hdbg.dassert(extension.startswith("."), "Invalid extension='%s'", extension)
     extension = extension[1:]
+    # Extract YAML front matter if present (only for markdown files).
+    yaml_frontmatter: List[str] = []
+    if is_md_file:
+        yaml_frontmatter, lines = _extract_yaml_frontmatter(lines)
     # Pre-process text.
     action = "preprocess"
     if _to_execute_action(action, actions):
@@ -325,6 +370,14 @@ def _perform_actions(
     if _to_execute_action(action, actions):
         if is_md_file:
             lines = _refresh_toc(lines, **kwargs)
+    # TODO(ai_gp): Move this into a function.
+    # Reattach YAML front matter if it was extracted.
+    if yaml_frontmatter:
+        # Add an empty line after the front matter if the remaining content doesn't start with one.
+        if lines and lines[0] != "":
+            lines = yaml_frontmatter + [""] + lines
+        else:
+            lines = yaml_frontmatter + lines
     return lines
 
 
@@ -417,11 +470,18 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Read input.
     lines = hparser.from_file(in_file_name)
     _LOG.debug("in_file_name=%s", in_file_name)
+    # Print actions.
+    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    add_frame = True
+    actions_as_str = hparser.actions_to_string(
+        actions, _VALID_ACTIONS, add_frame
+    )
+    _LOG.info("\n%s", actions_as_str)
     # Process.
     out_lines = _perform_actions(
         lines,
         in_file_name,
-        actions=args.action,
+        actions=actions,
         print_width=args.print_width,
         use_dockerized_prettier=args.use_dockerized_prettier,
         use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,

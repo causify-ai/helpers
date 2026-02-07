@@ -18,6 +18,125 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# Test_extract_yaml_frontmatter
+# #############################################################################
+
+
+class Test_extract_yaml_frontmatter(hunitest.TestCase):
+    """
+    Test the _extract_yaml_frontmatter function.
+    """
+
+    def helper(
+        self,
+        txt: str,
+        expected_frontmatter: list,
+        expected_remaining: list,
+    ) -> None:
+        """
+        Test helper for _extract_yaml_frontmatter.
+
+        :param txt: Input text to process
+        :param expected_frontmatter: Expected front matter lines
+        :param expected_remaining: Expected remaining lines
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        frontmatter, remaining = dshdlitx._extract_yaml_frontmatter(lines)
+        # Check outputs.
+        self.assertEqual(frontmatter, expected_frontmatter)
+        self.assertEqual(remaining, expected_remaining)
+
+    def test1(self) -> None:
+        """
+        Test extracting YAML front matter from a file.
+        """
+        # Prepare inputs.
+        txt = """
+        ---
+        title: My Document
+        date: 2024-01-01
+        ---
+        # Content
+        This is the main content.
+        """
+        # Prepare outputs.
+        expected_frontmatter = ["---", "title: My Document", "date: 2024-01-01", "---"]
+        expected_remaining = ["# Content", "This is the main content."]
+        # Run test.
+        self.helper(txt, expected_frontmatter, expected_remaining)
+
+    def test2(self) -> None:
+        """
+        Test processing a file without YAML front matter.
+        """
+        # Prepare inputs.
+        txt = """
+        # Content
+        This is the main content.
+        """
+        # Prepare outputs.
+        expected_frontmatter = []
+        expected_remaining = ["# Content", "This is the main content."]
+        # Run test.
+        self.helper(txt, expected_frontmatter, expected_remaining)
+
+    def test3(self) -> None:
+        """
+        Test handling incomplete YAML front matter (missing closing delimiter).
+        """
+        # Prepare inputs.
+        txt = """
+        ---
+        title: My Document
+        # Content without closing delimiter
+        """
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Prepare outputs.
+        expected_frontmatter = []
+        expected_remaining = lines
+        # Run test.
+        self.helper(txt, expected_frontmatter, expected_remaining)
+
+    def test4(self) -> None:
+        """
+        Test extracting empty YAML front matter.
+        """
+        # Prepare inputs.
+        txt = """
+        ---
+        ---
+        # Content
+        """
+        # Prepare outputs.
+        expected_frontmatter = ["---", "---"]
+        expected_remaining = ["# Content"]
+        # Run test.
+        self.helper(txt, expected_frontmatter, expected_remaining)
+
+    def test5(self) -> None:
+        """
+        Test that separators not at the beginning are not treated as front matter.
+        """
+        # Prepare inputs.
+        txt = """
+        # Content
+        ---
+        More content
+        """
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Prepare outputs.
+        expected_frontmatter = []
+        expected_remaining = lines
+        # Run test.
+        self.helper(txt, expected_frontmatter, expected_remaining)
+
+
+# #############################################################################
 # Test_remove_page_separators
 # #############################################################################
 
@@ -501,6 +620,85 @@ class Test_lint_txt2(hunitest.TestCase):
           ```
         """
         file_name = "test.txt"
+        self.helper(txt, expected, file_name)
+
+    def test7(self) -> None:
+        """
+        Test that YAML front matter is preserved in markdown files.
+        """
+        txt = r"""
+        ---
+        title: My Document
+        date: 2024-01-01
+        author: Test Author
+        ---
+
+        # Main Content
+
+        - This is a list
+          - With nested items
+        """
+        expected = r"""
+        ---
+        title: My Document
+        date: 2024-01-01
+        author: Test Author
+        ---
+
+        <!-- toc -->
+
+        - [Main Content](#main-content)
+
+        <!-- tocstop -->
+
+        # Main Content
+
+        - This is a list
+          - With nested items
+        """
+        file_name = "test.md"
+        self.helper(txt, expected, file_name)
+
+    def test8(self) -> None:
+        """
+        Test that page separators are removed but YAML front matter is preserved.
+        """
+        txt = r"""
+        ---
+        title: Test
+        ---
+
+        # Section 1
+
+        Content here.
+
+        ---
+
+        # Section 2
+
+        More content.
+        """
+        expected = r"""
+        ---
+        title: Test
+        ---
+
+        <!-- toc -->
+
+        - [Section 1](#section-1)
+        - [Section 2](#section-2)
+
+        <!-- tocstop -->
+
+        # Section 1
+
+        Content here.
+
+        # Section 2
+
+        More content.
+        """
+        file_name = "test.md"
         self.helper(txt, expected, file_name)
 
 

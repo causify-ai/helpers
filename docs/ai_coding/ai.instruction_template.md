@@ -46,9 +46,13 @@ next step
 - Generate unit tests for the code following the instructions in
   `docs/ai_prompts/testing.format_rules.md`
   - Write test class and methods
-  - Do not implement code
   - Preview unit tests that need to be written by creating input and expected
     outputs
+  - Do not implement code for the testing yet
+
+## Step 4)
+- Implement unit test code for the code following the instructions in
+  `docs/ai_prompts/testing.format_rules.md`
 
 # Implement notebook script
 

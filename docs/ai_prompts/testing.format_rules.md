@@ -3,6 +3,17 @@ You are an expert Python developer.
 I will pass you a Python file that needs unit tests or ask you to update
 existing tests in the helpers repository.
 
+# Test coverage
+
+## What to test
+- For each function, generate tests for:
+  - Happy path (normal, expected input)
+  - Edge cases (boundary conditions)
+    - E.g., empty input, zero, single item, large input
+  - Do not test heavily error conditions (e.g., invalid input)
+
+# File and test structure
+
 ## File structure
 
 - For a source file `helpers/module_name.py`, create a test file at
@@ -37,19 +48,36 @@ existing tests in the helpers repository.
       # Test methods here
   ```
 
-## Naming conventions
+# Naming conventions
+
+## Naming conventions for a function
 
 - Testing a function -> Use `Test_<FunctionName>` (with underscore)
-  - Example: function `parse_limit_range()` -> `class Test_parse_limit_range(hunitest.TestCase):`
-  - Example: function `apply_limit_range()` -> `class Test_apply_limit_range(hunitest.TestCase):`
+  - Examples
+  - For function `parse_limit_range()` ->
+    `class Test_parse_limit_range(hunitest.TestCase):`
+  - For function `apply_limit_range()` ->
+    `class Test_apply_limit_range(hunitest.TestCase):`
+
+## Naming conventions for a class
 
 - Testing a class -> Use `Test<ClassName>` (no underscore)
-  - Example: class `Config` -> `class TestConfig(hunitest.TestCase):`
-  - Example: class `ConfigBuilder` -> `class TestConfigBuilder(hunitest.TestCase):`
+  - Examples
+  - For class `Config` -> `class TestConfig(hunitest.TestCase):`
+  - For class `ConfigBuilder` -> `class TestConfigBuilder(hunitest.TestCase):`
 
-- Test method names -> Always number the method tests, as `test1`, `test2`
+## Test method names
+- For test method names always number the method tests, as `test1`, `test2`
+  - Good
+    - `test1`
+    - `test2`
+  - Bad
+    - `test_preserve_yaml_frontmatter`
+    - `test_page_separator_removal_with_frontmatter`
 
-## Test method structure - Use three sections
+# Test method conventions
+
+## Use three sections in testing methods
 
 - Every test method must have three sections with standard comments:
   ```python
@@ -77,14 +105,15 @@ existing tests in the helpers repository.
   - `# Check outputs.`
 
 ## Use helper methods when you have repetitive tests
-
 - If you write 2 or more test methods that call the same function with only
   different input values and expected outputs, create a helper method
 
 - Example:
   ```python
   class TestFunctionName(hunitest.TestCase):
-      """Test description."""
+      """
+      Test description.
+      """
 
       def helper(self, param1: Type1, expected: Type2) -> None:
           """
@@ -98,7 +127,7 @@ existing tests in the helpers repository.
           # Check outputs.
           self.assert_equal(str(actual), str(expected))
 
-      def test_case1(self) -> None:
+      def test1(self) -> None:
           """
           Test description.
           """
@@ -109,7 +138,7 @@ existing tests in the helpers repository.
           # Run test.
           self.helper(input1, expected)
 
-      def test_case2(self) -> None:
+      def test2(self) -> None:
           """
           Test description.
           """
@@ -155,25 +184,6 @@ existing tests in the helpers repository.
       line2
       """
   self.assert_equal(actual, expected, dedent=True)
-  ```
-
-## Use golden file testing for large outputs
-
-- When output is > 50 lines or changes frequently:
-  ```python
-  def test_large_output(self) -> None:
-      """Test description."""
-      # Prepare inputs.
-      input_data = <value>
-      # Run test.
-      actual = function_under_test(input_data)
-      # Check outputs.
-      self.check_string(actual)
-  ```
-
-- With fuzzy matching:
-  ```python
-  self.check_string(actual, fuzzy_match=True)
   ```
 
 ## Testing exceptions
@@ -223,13 +233,24 @@ existing tests in the helpers repository.
       self.assertIn("expected substring", str(cm.exception))
   ```
 
-## Test coverage - What to test
+## Use golden file testing for large outputs
 
-- For each function, generate tests for:
-  - Happy path (normal, expected input)
-  - Edge cases (boundary conditions)
-    - E.g., empty input, zero, single item, large input
-  - Error conditions (invalid input)
+- When output is > 50 lines or changes frequently:
+  ```python
+  def test_large_output(self) -> None:
+      """Test description."""
+      # Prepare inputs.
+      input_data = <value>
+      # Run test.
+      actual = function_under_test(input_data)
+      # Check outputs.
+      self.check_string(actual)
+  ```
+
+- With fuzzy matching:
+  ```python
+  self.check_string(actual, fuzzy_match=True)
+  ```
 
 ## Input data patterns
 
