@@ -11,17 +11,19 @@
   - Brevity
   - Visual structure
 
-- Think of notes as a hybrid between a textbook and a student’s notebook
+- Think of notes as a hybrid between a textbook and a student's notebook
 
 - This document is written using the rules described in this document itself
 
 # Formatting Guidelines
 
 ### Every Document Has a Summary Header
+
 - Every document should have a summary paragraph with a header `# Summary` with
   a short paragraph containing what's the content of the document
 
 ### Headers and Paragraphs
+
 - Use headers and paragraphs
   ```
   # Header 1
@@ -30,6 +32,7 @@
   ```
 
 ### Use Only Text
+
 - Avoid emojis and icons
 - Avoid any decorative formatting
   - Do not use line separator like `---`
@@ -37,9 +40,10 @@
   - **Good**: A -> B
   - **Bad**: A → B
   - **Good**: "hello"
-  - **Bad**: “hello”
+  - **Bad**: "hello"
 
 ### Use Bullets
+
 - Use bullet points inside a paragraph
 
 - Each bullet should express one complete atomic idea
@@ -63,6 +67,7 @@
 - Do not end a bullet point with a period `.`
 
 ### Use Nested Bullets
+
 - Use nested bullets to show:
   - Dependencies and relationships
     - E.g., cause -> effect
@@ -89,6 +94,7 @@
     - Implications
 
 ### List of Items
+
 - In lists of items
   - Bold the item whenever possible
   - Use verbatim when the item is a script
@@ -105,16 +111,19 @@
     ```
 
 ### Use Verbatim for Programs
+
 - For libraries, executables, scripts use verbatim
   - E.g., `notes_to_pdf.py`, `python`, `pandas`
 
 ### Use and Do Not Use &
+
 - **Bad**: Extraction & Conversion Tools
 - **Good**: Extraction and Conversion Tools
 
 # Writing Style
 
 ### Writing Style
+
 - Use explicit references instead of unclear ones
   - **Good**: "TCP protocol"
   - **Bad**: "it"
@@ -128,12 +137,14 @@
 - Make sure text is short and not unnecessarily long
 
 ### Avoid Long Prose
+
 - Prefer structured notes over narrative prose
 
 - Use a first-person, self-directed voice, e.g.,
   - **Good**: "Key thing to remember: entropy increases"
 
 ### Use Direct Statements
+
 - Convert abstract principles into short, direct statements, e.g.,
   - **Good**: "Everyone takes responsibility: no blaming others if work isn't
     finished."
@@ -141,6 +152,7 @@
     one if something doesn't get finished."
 
 ### Try to Use Lists
+
 - **Good**
   ```
   - This document covers how to publish:
@@ -160,7 +172,8 @@
   `//umd_classes`)
   ```
 
-### Use fenced code blocks
+### Use Fenced Code Blocks
+
 - When using fenced code blocks, make sure there are valid programming language
   (e.g., `python`, `bash`, `latex`, `verbatim`)
 - E.g.,
@@ -178,6 +191,7 @@
   ````
 
 ### Use Diagrams Over Text When Possible
+
 - Summarize systems or relationships using:
   - Graphviz
   - Mermaid

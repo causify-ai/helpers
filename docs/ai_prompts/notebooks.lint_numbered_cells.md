@@ -1,14 +1,16 @@
 Given a Jupyter notebook passed on the command line, you must improve its
-appearance without changing its behavior using the rules from 
+appearance without changing its behavior using the rules from
 `docs/ai_prompts/notebooks.format_rules.md`
 
-# Modify only the Python file paired to a Jupyter notebook
+# Modify Only the Python File Paired to a Jupyter Notebook
+
 - Remember to modify only the Python file paired with Jupytext to the notebook
   and then sync them with Jupytext
 
-# Rename Markdown Cells 
-- Each markdown cell must be named, depending on the markdown header level,
-  with a format like "Cell 1:" or "Cell 1.1:" as in the following
+# Rename Markdown Cells
+
+- Each markdown cell must be named, depending on the markdown header level, with
+  a format like "Cell 1:" or "Cell 1.1:" as in the following
   - For header of level 1
     ```
     # Cell 1: Visual Bin: Population of Marbles.
@@ -23,7 +25,8 @@ appearance without changing its behavior using the rules from
   # Imports
   ```
 
-# Content of the Markdown cells
+# Content of the Markdown Cells
+
 - Each markdown cell must have text organized in bullet list
   - Bad
     ```
@@ -50,9 +53,9 @@ appearance without changing its behavior using the rules from
   - `n_samples`: Number of trials to repeat the experiment (how many times we compute $\nu$)
   - `seed`: Random seed for reproducibility
   ```
-  
 
-# Content of code cells
+# Content of Code Cells
+
 - The interactive code in each cell must have a reference to the cell itself so
   that they are in sync
 
@@ -65,9 +68,10 @@ appearance without changing its behavior using the rules from
   utils.cell1_draw_bin_with_marbles_interactive()
   ```
 
-# Reorganize code in the `utils_*.py` code
-- When the code implementing the cells is in a `utils_*.py` Python file, make sure
-  that:
+# Reorganize Code in the `utils_*.py` Code
+
+- When the code implementing the cells is in a `utils_*.py` Python file, make
+  sure that:
   - The code is in the right order according to the cells
     - E.g., the code for `cell1_draw_bin_with_marbles_interactive` comes before
       the code for `cell2_...`

@@ -1,18 +1,19 @@
-Given the passed script for a Jupyter notebook in the format described 
-in `docs/ai_prompts/notebooks.create_visual_script.md` implement one cell at the
+Given the passed script for a Jupyter notebook in the format described in
+`docs/ai_prompts/notebooks.create_visual_script.md` implement one cell at the
 time, unless the user explicitly says to implement all the cells
 
 # Conventions
+
 - Always use the conventions in `docs/ai_prompts/notebooks.format_rules.md`
 
-# Save code to the utils_*.py
+# Save code to the `utils_*.py`
+
 - Each notebook is paired with Jupytext to a Python file and has a corresponding
   `utils_*.py` file containing the code corresponding to that notebook
   - E.g., for the Jupyter notebook
-    `msml610/tutorials/Lesson94-Information_Theory.ipynb`
-    is paired with Jupytext to the file
-    `msml610/tutorials/Lesson94-Information_Theory.py`
-    and the corresponding `utils_*.py` file is
+    `msml610/tutorials/Lesson94-Information_Theory.ipynb` is paired with
+    Jupytext to the file `msml610/tutorials/Lesson94-Information_Theory.py` and
+    the corresponding `utils_*.py` file is
     `./msml610/tutorials/utils_Lesson94_Information_Theory.py`
 
 - All the code implementing the widget must go in the utility
@@ -23,7 +24,8 @@ time, unless the user explicitly says to implement all the cells
   # Changing the seed generates new realizations with different empirical values.
   ```
 
-# Interactive widgets conventions
+# Interactive Widgets Conventions
+
 - Interactive widgets must always have:
   - The name of the variable (e.g., n, mu, nu)
   - Value cell and "-" and "+" buttons
@@ -33,6 +35,7 @@ time, unless the user explicitly says to implement all the cells
   `build_widget_control()` to create the widgets
 
 # Complex Interactive Widgets
+
 - When the user asks for a "complex interactive widget", it means that there
   must be multiple graphs (like 3 or 4 on the same row) in the same cell
 - Add the controls first with both sliders and a cell to enter the values
@@ -47,22 +50,24 @@ time, unless the user explicitly says to implement all the cells
 - You can use `plot_joint_entropy_interactive()` in
   `msml610/tutorials/utils_Lesson94_Information_Theory.py` as a reference
 
-# Plotting graphs
-- When a plot changes a little bit because of the interactive widget controls, it
-  must not abruptly change the values on the y-axis and x-axis
+# Plotting Graphs
+
+- When a plot changes a little bit because of the interactive widget controls,
+  it must not abruptly change the values on the y-axis and x-axis
 - The xlim and ylim of the graphs must be fixed until the graph is too big to
   fit in which case it must change so that the xlim or ylim doubles or it's
-  reduced in half, so that the xlim / ylim can be stable when changing the widget
-  controls
+  reduced in half, so that the xlim / ylim can be stable when changing the
+  widget controls
 
-# Format of each Jupyter cell
+# Format of Each Jupyter Cell
+
 - Each cell has only one concept / group of statements and a comment on the
   result
 - Each cell has:
-  - a comment explaining what we want to do
-  - a group of commands
-  - a statement to show the result (e.g., `print()`, `display()`)
-  - a comment about the outcome
+  - A comment explaining what we want to do
+  - A group of commands
+  - A statement to show the result (e.g., `print()`, `display()`)
+  - A comment about the outcome
   ```
   # Comment explaining what we are trying to do.
   operation

@@ -12,7 +12,8 @@
 
 - Do not write any code
 
-# Markdown description of each cell
+# Markdown Description of Each Cell
+
 - Focus only on the examples without repeating content from the content
 
 - Describe each cell using bullet points
@@ -55,6 +56,7 @@
   ```
 
 # Formatting
+
 - Do not use non-ascii characters
   - E.g., use mu instead of μ
 
