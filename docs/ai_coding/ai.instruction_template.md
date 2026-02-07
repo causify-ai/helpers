@@ -1,3 +1,15 @@
+# Simple change
+
+- Do ...
+
+- If the task is not perfectly clear, you MUST not perform it, but ask for
+  clarifications
+- When the task is complex, create a plan.md with 5 bullet points explaining what
+  the plan is
+
+- For all the code you must follow the instructions in
+  `docs/ai_prompts/coding.format_rules.md`
+
 # Rules
 
 ./helpers_root/docs/ai_prompts/blog.format_rules.md

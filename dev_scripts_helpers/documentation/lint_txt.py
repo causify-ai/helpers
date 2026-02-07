@@ -348,7 +348,11 @@ _VALID_ACTIONS = [
 ]
 
 
-_DEFAULT_ACTIONS = _VALID_ACTIONS[:]
+# By default, exclude refresh_toc action. Users can explicitly enable it via
+# --action.
+_DEFAULT_ACTIONS = [
+    action for action in _VALID_ACTIONS if action != "refresh_toc"
+]
 
 
 def _parser() -> argparse.ArgumentParser:
