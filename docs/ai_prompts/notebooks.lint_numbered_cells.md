@@ -41,6 +41,17 @@ appearance without changing its behavior using the rules from
 
 - Markdown cell must use Latex notation for variables and formulas
 
+- Each Markdown cell before of an interactive cell should have a description of
+  the parameters
+  ```
+  **Parameters**:
+  - `mu` ($\mu$): True probability of success (between 0 and 1)
+  - `samples per trial` ($N$): Number of samples drawn in each trial
+  - `n_samples`: Number of trials to repeat the experiment (how many times we compute $\nu$)
+  - `seed`: Random seed for reproducibility
+  ```
+  
+
 # Content of code cells
 - The interactive code in each cell must have a reference to the cell itself so
   that they are in sync
