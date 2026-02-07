@@ -152,7 +152,8 @@ def git_add_all_untracked(ctx):  # type: ignore
     Add all untracked files to Git.
     """
     hlitauti.report_task()
-    cmd = "git add $(git ls-files -o --exclude-standard)"
+    # cmd = "git add $(git ls-files -o --exclude-standard)"
+    cmd = "git ls-files -o --exclude-standard -z | xargs -0 git add"
     hlitauti.run(ctx, cmd)
 
 
@@ -683,7 +684,9 @@ def _git_diff_with_branch(
         cmd.append(f"--diff-filter={diff_type}")
     cmd.append(f"--name-only HEAD {hash_}")
     cmd = " ".join(cmd)
-    files = hsystem.system_to_files(cmd, dir_name, remove_files_non_present=False)
+    files = hsystem.system_to_files(
+        cmd, dir_name, remove_files_non_present=False
+    )
     files = sorted(files)
     _LOG.debug("%s", "\n".join(files))
     # Filter by `file_name`, if needed.
@@ -1105,7 +1108,9 @@ def git_backup(ctx, dry_run=False):  # type: ignore
                 msg=f"Submodule path does not exist: {submodule_path}",
             )
             _LOG.info("Checking submodule: %s", submodule_path)
-            submodule_files = hgit.get_modified_and_untracked_files(submodule_path)
+            submodule_files = hgit.get_modified_and_untracked_files(
+                submodule_path
+            )
             _LOG.info(
                 "Found %d files in submodule %s",
                 len(submodule_files),
@@ -1141,9 +1146,8 @@ def git_backup(ctx, dry_run=False):  # type: ignore
     # Create the zip file.
     _LOG.info("Creating zip file: %s", zip_file_name)
     import zipfile
-    with zipfile.ZipFile(
-        zip_file_name, "w", zipfile.ZIP_DEFLATED
-    ) as zipf:
+
+    with zipfile.ZipFile(zip_file_name, "w", zipfile.ZIP_DEFLATED) as zipf:
         for repo_path, file_path in all_files:
             full_path = os.path.join(repo_path, file_path)
             # Preserve directory structure in zip.

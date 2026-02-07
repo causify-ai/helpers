@@ -89,7 +89,7 @@ def get_function_name(count: int = 0) -> str:
 # End copy-paste.
 
 
-# Start copy-paste from helpers/system_interaction.py
+# Start copy-paste from helpers/hsystem.py
 def _system_to_string(
     cmd: str, abort_on_error: bool = True, verbose: bool = False
 ) -> Tuple[int, str]:
@@ -120,6 +120,27 @@ def _system_to_string(
 
 
 # End copy-paste.
+
+
+def _system(cmd: str, abort_on_error: bool = True, verbose: bool = False) -> int:
+    """
+    Execute a system call and return the return code.
+
+    :param cmd: command to execute
+    :param abort_on_error: if True, abort execution if command fails
+    :param verbose: if True, print the command before execution
+    :return: return code of the command
+    """
+    assert isinstance(cmd, str), f"Type of '{str(cmd)}' is {type(cmd)}"
+    if verbose:
+        print(f"> {cmd}")
+    rc = subprocess.call(cmd, shell=True, executable="/bin/bash")
+    if abort_on_error and rc != 0:
+        msg = f"cmd='{cmd}' failed with rc='{rc}'"
+        _LOG.error(msg)
+        sys.exit(-1)
+    return rc
+
 
 # #############################################################################
 # Utils.
@@ -218,9 +239,9 @@ def check_author(abort_on_error: bool = True) -> None:
     verbose = True
     var = "user.name"
     cmd = f"{_GIT_BINARY_PATH} config {var}"
-    _system_to_string(cmd, verbose=verbose)
+    _system(cmd, verbose=verbose)
     cmd = f"{_GIT_BINARY_PATH} config --show-origin {var}"
-    _system_to_string(cmd, verbose=verbose)
+    _system(cmd, verbose=verbose)
     #
     var = "user.email"
     cmd = f"{_GIT_BINARY_PATH} config {var}"
@@ -228,7 +249,7 @@ def check_author(abort_on_error: bool = True) -> None:
     _ = rc
     user_email = user_email.lstrip().rstrip()
     cmd = f"{_GIT_BINARY_PATH} config --show-origin {var}"
-    _system_to_string(cmd, verbose=verbose)
+    _system(cmd, verbose=verbose)
     print(f"user_email='{user_email}'")
     # Check.
     error = False
@@ -501,10 +522,10 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
     docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c {config_path}/gitleaks-rules.toml git /app --pre-commit --staged --verbose
     """
     _LOG.debug("cmd='%s'", cmd)
-    rc, txt = _system_to_string(cmd, abort_on_error=False)
+    rc = _system(cmd, abort_on_error=False)
     error = False
     if rc != 0:
         error = True
-        _LOG.error(txt)
+        _LOG.error("Gitleaks check failed with rc=%s", rc)
     # Handle error.
     _handle_error(func_name, error, abort_on_error)

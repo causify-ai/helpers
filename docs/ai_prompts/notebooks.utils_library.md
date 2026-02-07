@@ -1,4 +1,4 @@
-## Add code to a library / utilities
+# Add code to a library / utilities
 - Find or create the library / utility file that correspond to the notebook
   - E.g., 
     ```
@@ -12,7 +12,7 @@
 - Reuse code already existing in the `utils_*.py` file and in the `helpers`
   directory
 
-## Add code to the right place in the library
+# Add code to the right place in the library
 - The library / utility file should have a structure that follows the flow of the
   notebook
 - Add the functions in the part of the utility file that corresponds to the

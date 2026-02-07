@@ -140,7 +140,7 @@ def _insert_frame(
             )
         else:
             updated_lines = updated_lines[:-frame_size]
-    # Ensure exactly 1 empty line before the frame (unless at file start).
+    # Ensure exactly 2 empty lines before the frame (unless at file start).
     # Count trailing empty lines (before any decorators/comments).
     if num_non_empty_lines > 0:
         # There are decorators/comments, check empty lines before them.
@@ -157,20 +157,21 @@ def _insert_frame(
             break
     # Check if there's any non-empty content before the class.
     has_content_before = len(lines_to_check) > num_trailing_empty
-    # Adjust to have exactly 1 empty line (only if there's content before).
-    if num_trailing_empty == 0 and has_content_before:
-        # No empty lines but has content, add 1.
+    # Adjust to have exactly 2 empty lines (only if there's content before).
+    if num_trailing_empty < 2 and has_content_before:
+        # Not enough empty lines but has content, add to reach 2.
+        lines_to_add = 2 - num_trailing_empty
         if num_non_empty_lines > 0:
             updated_lines = (
                 updated_lines[:-num_non_empty_lines]
-                + [""]
+                + [""] * lines_to_add
                 + updated_lines[-num_non_empty_lines:]
             )
         else:
-            updated_lines.append("")
-    elif num_trailing_empty > 1:
-        # Too many empty lines, remove excess to keep only 1.
-        excess = num_trailing_empty - 1
+            updated_lines.extend([""] * lines_to_add)
+    elif num_trailing_empty > 2:
+        # Too many empty lines, remove excess to keep only 2.
+        excess = num_trailing_empty - 2
         if num_non_empty_lines > 0:
             updated_lines = (
                 updated_lines[: -(num_non_empty_lines + excess)]
@@ -184,6 +185,7 @@ def _insert_frame(
         f"# {'#' * (MAX_LINE_LENGTH - 2)}",
         f"# {class_name}",
         f"# {'#' * (MAX_LINE_LENGTH - 2)}",
+        "",
         "",
     ]
     # Add the class frame to the lines to be written into the updated file.

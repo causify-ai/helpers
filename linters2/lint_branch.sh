@@ -4,7 +4,7 @@ echo "# Files added / modified in the current Git branch:"
 {
   git diff --diff-filter=AM --name-only master...
   git diff --name-only --diff-filter=AM HEAD
-} | grep '\.py$' | sort -u > tmp
+} | grep -E '\.(py|ipynb)$' | sort -u > tmp
 
 echo "# Linting"
 pre-commit run --files $(cat tmp)

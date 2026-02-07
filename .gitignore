@@ -69,5 +69,5 @@ tensorboard/
 #*.pkl
 
 # Secrets
-.env
-.env.*
+#.env
+#.env.*
