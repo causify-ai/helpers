@@ -1542,6 +1542,8 @@ class Test_capitalize_header1(hunitest.TestCase):
 # Test_capitalize_header2
 # #############################################################################
 
+# TODO(ai_gp): Rename the test methods test1, test2 instead of
+# test_mixed_case_simple_feed_forward
 class Test_capitalize_header2(hunitest.TestCase):
     """
     Test enhanced capitalize_header functionality for mixed case words and
@@ -1565,7 +1567,6 @@ class Test_capitalize_header2(hunitest.TestCase):
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
-    # TODO(ai_gp): Rename test1, test2, ...
     def test_mixed_case_simple_feed_forward(self) -> None:
         """
         Test that SimpleFeedForward is preserved as-is.
@@ -1820,6 +1821,8 @@ class Test_capitalize_header2(hunitest.TestCase):
 # Test_has_mixed_case1
 # #############################################################################
 
+# TODO(ai_gp): Rename the test methods test1, test2 instead of
+# test_mixed_case_simple_feed_forward
 class Test_has_mixed_case1(hunitest.TestCase):
     """
     Test the _has_mixed_case helper function.

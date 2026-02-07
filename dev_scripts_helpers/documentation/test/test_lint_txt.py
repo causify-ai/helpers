@@ -9,6 +9,7 @@ import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hmarkdown_toc as hmarktoc
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -22,9 +23,10 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
+# TODO(ai_gp): Move to the test file of hmarkdown_toc.py
 class Test_extract_yaml_frontmatter(hunitest.TestCase):
     """
-    Test the _extract_yaml_frontmatter function.
+    Test the extract_yaml_frontmatter function.
     """
 
     def helper(
@@ -34,7 +36,7 @@ class Test_extract_yaml_frontmatter(hunitest.TestCase):
         expected_remaining: list,
     ) -> None:
         """
-        Test helper for _extract_yaml_frontmatter.
+        Test helper for extract_yaml_frontmatter.
 
         :param txt: Input text to process
         :param expected_frontmatter: Expected front matter lines
@@ -44,7 +46,7 @@ class Test_extract_yaml_frontmatter(hunitest.TestCase):
         lines = txt.split("\n")
         lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         # Run test.
-        frontmatter, remaining = dshdlitx._extract_yaml_frontmatter(lines)
+        frontmatter, remaining = hmarktoc.extract_yaml_frontmatter(lines)
         # Check outputs.
         self.assertEqual(frontmatter, expected_frontmatter)
         self.assertEqual(remaining, expected_remaining)
