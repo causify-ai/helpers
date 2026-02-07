@@ -183,7 +183,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         if input_file:
             if input_file == "-":
                 # Read from stdin.
-                input_lines = hparser.read_file(input_file)
+                input_lines = hparser.from_file(input_file)
                 input_content = "\n".join(input_lines)
             else:
                 input_content = hio.from_file(input_file)
@@ -219,7 +219,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             input_str = input_text
         elif input_file == "-":
             # Read from stdin.
-            input_lines = hparser.read_file(input_file)
+            input_lines = hparser.from_file(input_file)
             input_str = "\n".join(input_lines)
         else:
             input_str = hio.from_file(input_file)
@@ -232,7 +232,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             expected_num_chars=expected_num_chars,
         )
         # Handle output.
-        hparser.write_file(response, output_file)
+        hparser.to_file(response, output_file)
     else:
         # Use file-based processing.
         cost = hllmcli.apply_llm_with_files(

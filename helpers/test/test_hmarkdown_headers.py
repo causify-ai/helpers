@@ -1825,20 +1825,28 @@ class Test_has_mixed_case1(hunitest.TestCase):
     Test the _has_mixed_case helper function.
     """
 
-    # TODO(ai_gp): Factor out a helper function with common code.
+    def helper(self, word: str, expected: bool) -> None:
+        """
+        Test helper for has_mixed_case.
 
-    # TODO(ai_gp): Rename test1, test2, ...
+        :param word: word to test
+        :param expected: expected result
+        """
+        # Call function.
+        actual = hmarkdo.has_mixed_case(word)
+        # Check output.
+        self.assertEqual(actual, expected)
+
     def test_simple_feed_forward(self) -> None:
         """
         Test SimpleFeedForward has mixed case.
         """
         # Prepare inputs.
         word = "SimpleFeedForward"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = True
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
     def test_deep_npts(self) -> None:
         """
@@ -1846,11 +1854,10 @@ class Test_has_mixed_case1(hunitest.TestCase):
         """
         # Prepare inputs.
         word = "DeepNPTS"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = True
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
     def test_machine_no_mixed_case(self) -> None:
         """
@@ -1858,11 +1865,10 @@ class Test_has_mixed_case1(hunitest.TestCase):
         """
         # Prepare inputs.
         word = "Machine"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = False
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
     def test_lowercase_no_mixed_case(self) -> None:
         """
@@ -1870,11 +1876,10 @@ class Test_has_mixed_case1(hunitest.TestCase):
         """
         # Prepare inputs.
         word = "machine"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = False
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
     def test_all_caps_has_mixed_case(self) -> None:
         """
@@ -1882,11 +1887,10 @@ class Test_has_mixed_case1(hunitest.TestCase):
         """
         # Prepare inputs.
         word = "API"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = True
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
     def test_single_char_no_mixed_case(self) -> None:
         """
@@ -1894,11 +1898,10 @@ class Test_has_mixed_case1(hunitest.TestCase):
         """
         # Prepare inputs.
         word = "A"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = False
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
     def test_two_chars_capital_no_mixed_case(self) -> None:
         """
@@ -1906,11 +1909,10 @@ class Test_has_mixed_case1(hunitest.TestCase):
         """
         # Prepare inputs.
         word = "At"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = False
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
     def test_two_chars_both_caps_mixed_case(self) -> None:
         """
@@ -1918,11 +1920,10 @@ class Test_has_mixed_case1(hunitest.TestCase):
         """
         # Prepare inputs.
         word = "ML"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = True
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
     def test_camel_case(self) -> None:
         """
@@ -1930,8 +1931,7 @@ class Test_has_mixed_case1(hunitest.TestCase):
         """
         # Prepare inputs.
         word = "camelCase"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = True
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)

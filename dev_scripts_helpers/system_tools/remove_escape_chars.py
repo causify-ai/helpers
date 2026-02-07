@@ -35,11 +35,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_file_name, out_file_name = hparser.parse_input_output_args(
         args, clear_screen=False
     )
-    txt = hparser.read_file(in_file_name)
+    txt = hparser.from_file(in_file_name)
     txt_tmp = "\n".join(txt)
     txt_tmp = hprint.remove_non_printable_chars(txt_tmp)
     txt_tmp = txt_tmp.split("\n")
-    hparser.write_file(txt_tmp, out_file_name)
+    hparser.to_file(txt_tmp, out_file_name)
 
 
 if __name__ == "__main__":

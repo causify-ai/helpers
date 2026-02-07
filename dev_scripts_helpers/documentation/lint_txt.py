@@ -411,7 +411,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if in_file_name == "-":
         hdbg.dassert_ne(args.type, "")
     # Read input.
-    lines = hparser.read_file(in_file_name)
+    lines = hparser.from_file(in_file_name)
     _LOG.debug("in_file_name=%s", in_file_name)
     # Process.
     out_lines = _perform_actions(
@@ -423,7 +423,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         use_dockerized_markdown_toc=args.use_dockerized_markdown_toc,
     )
     # Write output.
-    hparser.write_file(out_lines, out_file_name)
+    hparser.to_file(out_lines, out_file_name)
 
 
 if __name__ == "__main__":

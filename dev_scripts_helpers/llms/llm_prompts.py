@@ -139,9 +139,6 @@ _CODING_CONTEXT = r"""
 def test() -> _PROMPT_OUT:
     """
     Placeholder to test the flow.
-
-    :return: tuple of (system_prompt, pre_transforms, post_transforms,
-        post_container_transforms)
     """
     system = ""
     pre_transforms: Set[str] = set()
@@ -161,9 +158,6 @@ def test() -> _PROMPT_OUT:
 def code_apply_cfile() -> _PROMPT_OUT:
     """
     Apply a cfile to the code by converting from imports to regular imports.
-
-    :return: tuple of (system_prompt, pre_transforms, post_transforms,
-        post_container_transforms)
     """
     system = _CODING_CONTEXT
     system += r"""
@@ -1675,9 +1669,6 @@ def text_summarize() -> _PROMPT_OUT:
 def text_rewrite() -> _PROMPT_OUT:
     """
     Rewrite the text to increase clarity and readability.
-
-    :return: tuple of (system_prompt, pre_transforms, post_transforms,
-        post_container_transforms)
     """
     system = ""
     system += r"""

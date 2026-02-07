@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -311,10 +312,10 @@ def mark_action(action: str, actions: Optional[List[str]]) -> Tuple[bool, Option
 # in_file_name, out_file_name = hparser.parse_input_output_args(args)
 # ...
 # # Read input file, handling stdin.
-# in_lines = hparser.read_file(in_file_name)
+# in_lines = hparser.from_file(in_file_name)
 # ...
 # # Write output, handling stdout.
-# hparser.write_file(txt, out_file_name)
+# hparser.to_file(txt, out_file_name)
 # ```
 # See helpers_root/dev_scripts_helpers/coding_tools/transform_template.py as an
 # example.
@@ -343,7 +344,7 @@ def mark_action(action: str, actions: Optional[List[str]]) -> Tuple[bool, Option
 # )
 # ...
 # # Write output, handling stdout.
-# hparser.write_file(txt, out_file_name)
+# hparser.to_file(txt, out_file_name)
 # ```
 #
 # See helpers_root/dev_scripts_helpers/llms/llm_transform.py as an example.
@@ -445,10 +446,11 @@ def init_logger_for_input_output_transform(
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True, force_white=False)
 
 
-# TODO(gp): GFI -> from_file for symmetry for hio.
-def read_file(file_name: str) -> List[str]:
+def from_file(file_name: str) -> List[str]:
     """
     Read file or stdin (represented by `-`), returning an array of lines.
+
+    If file_name is "pb" and the platform is macOS, read from clipboard.
     """
     if file_name == "-":
         _LOG.info("Reading from stdin")
@@ -456,22 +458,44 @@ def read_file(file_name: str) -> List[str]:
         txt = []
         for line in sys.stdin:
             txt.append(line.rstrip("\n"))
+    elif file_name == "pb":
+        # Read from clipboard (macOS only).
+        if hserver.is_host_mac():
+            _LOG.info("Reading from clipboard")
+            cmd = "pbpaste"
+            rc, txt_str = hsystem.system_to_string(cmd)
+            txt = txt_str.split("\n")
+        else:
+            hdbg.dfatal("Reading from clipboard (pb) only works on macOS")
     else:
         txt = hio.from_file(file_name)
         txt = txt.split("\n")
     return txt
 
 
-# TODO(gp): GFI -> to_file for symmetry for hio.
-def write_file(txt: Union[str, List[str]], file_name: str) -> None:
+def to_file(txt: Union[str, List[str]], file_name: str) -> None:
     """
     Write txt in a file or stdout (represented by `-`).
+
+    If file_name is "pb" and the platform is macOS, write to clipboard.
     """
     if isinstance(txt, str):
         txt = [txt]
     if file_name == "-":
         _LOG.debug("Saving to stdout")
         print("\n".join(txt))
+    elif file_name == "pb":
+        # Write to clipboard (macOS only).
+        if hserver.is_host_mac():
+            _LOG.info("Writing to clipboard")
+            txt_str = "\n".join(txt)
+            # Use echo with pbcopy, escaping single quotes.
+            txt_str_escaped = txt_str.replace("'", "'\\''")
+            cmd = f"echo -n '{txt_str_escaped}' | pbcopy"
+            hsystem.system(cmd)
+            _LOG.info("Written to clipboard")
+        else:
+            hdbg.dfatal("Writing to clipboard (pb) only works on macOS")
     else:
         _LOG.debug("Saving to file")
         with open(file_name, "w") as f:
@@ -492,7 +516,7 @@ def adapt_input_output_args_for_dockerized_scripts(
     """
     # Since we need to call a container and passing stdin/stdout is tricky,
     # we read the input and save it in a temporary file.
-    in_lines = read_file(in_file_name)
+    in_lines = from_file(in_file_name)
     if in_file_name == "-":
         tmp_in_file_name = f"tmp.{tag}.in.txt"
         in_txt = "\n".join(in_lines)
@@ -725,17 +749,23 @@ def add_dockerized_script_arg(
 
 
 def add_llm_prompt_arg(
-    parser: argparse.ArgumentParser, *, default_prompt: str = ""
+    parser: argparse.ArgumentParser, *, default_prompt: str = "",
+    is_required: bool = True,
 ) -> argparse.ArgumentParser:
     """
     Add common command line arguments for `*llm_transform.py` scripts.
+
+    :param default_prompt: default prompt to use
+    :param is_required: whether the prompt is required
+    :return: parser with the option added
     """
     parser.add_argument(
         "--debug",
         action="store_true",
         help="Print before/after the transform",
     )
-    is_required = default_prompt == ""
+    if default_prompt != "":
+        is_required = False
     parser.add_argument(
         "-p",
         "--prompt",
