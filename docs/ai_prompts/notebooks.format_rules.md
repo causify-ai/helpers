@@ -16,7 +16,9 @@ py:percent format (e.g., msml610/tutorials/Lesson94-Information_Theory.py)
 - For all the Python code you must follow the rules from
   `docs/ai_prompts/coding.format_code.md`
 
-# Each notebook as the following format
+# Format of a Jupyter notebook
+- Each notebook has the following format
+
 - The first cell of a notebook is:
   ```python
   %load_ext autoreload

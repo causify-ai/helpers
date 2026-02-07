@@ -15,8 +15,8 @@ time, unless the user explicitly says to implement all the cells
     and the corresponding `utils_*.py` file is
     `./msml610/tutorials/utils_Lesson94_Information_Theory.py`
 
-- All the code implementing the widget should go in the utility
-- Only the caller to the function should be in the notebook
+- All the code implementing the widget must go in the utility
+- Only the caller to the function must be in the notebook
   ```
   # Display PDF, empirical mean nu, and compare with theoretical statistics.
   utils.sample_bernoulli3()
@@ -27,19 +27,19 @@ time, unless the user explicitly says to implement all the cells
 - Interactive widgets must always have:
   - The name of the variable (e.g., n, mu, nu)
   - Value cell and "-" and "+" buttons
-- The widget to select the seed should always be the first widget
+- The widget to select the seed must always be the first widget
 
 - Use code in `msml610_utils.py` like `_create_slider_widget()`,
   `build_widget_control()` to create the widgets
 
 # Complex Interactive Widgets
 - When the user asks for a "complex interactive widget", it means that there
-  should be multiple graphs (like 3 or 4 on the same row) in the same cell
+  must be multiple graphs (like 3 or 4 on the same row) in the same cell
 - Add the controls first with both sliders and a cell to enter the values
 
 - Use a single row of 3 or 4 graphs (not in a 2 by 2 grid)
   - E.g., joint distribution, entropy metrics, sampled realizations, explanation
-  - One graph should be "Comments" containing an explanation of what's happening
+  - One graph must be "Comments" containing an explanation of what's happening
     in the remaining graphs, based on the values selected in the widget
   - Add information in each graph as a legend
 - Do not print any information as `print()` statement, but write all the
@@ -49,9 +49,9 @@ time, unless the user explicitly says to implement all the cells
 
 # Plotting graphs
 - When a plot changes a little bit because of the interactive widget controls, it
-  should not abruptly change the values on the y-axis and x-axis
-- The xlim and ylim of the graphs should be fixed until the graph is too big to
-  fit in which case it should change so that the xlim or ylim doubles or it's
+  must not abruptly change the values on the y-axis and x-axis
+- The xlim and ylim of the graphs must be fixed until the graph is too big to
+  fit in which case it must change so that the xlim or ylim doubles or it's
   reduced in half, so that the xlim / ylim can be stable when changing the widget
   controls
 
