@@ -1,6 +1,6 @@
-Given the passed script for a Jupyter notebook in the format described in
-`docs/ai_prompts/notebooks.create_visual_script.md` implement one cell at the
-time, unless the user explicitly says to implement all the cells
+- Given the passed description for a Jupyter notebook in the format described in
+  `docs/ai_prompts/notebooks.create_visual_script.md` implement the cells
+  requested by the user
 
 # Conventions
 
@@ -18,7 +18,7 @@ time, unless the user explicitly says to implement all the cells
 
 - All the code implementing the widget must go in the utility
 - Only the caller to the function must be in the notebook
-  ```
+  ```python
   # Display PDF, empirical mean nu, and compare with theoretical statistics.
   utils.sample_bernoulli3()
   # Changing the seed generates new realizations with different empirical values.
@@ -33,6 +33,55 @@ time, unless the user explicitly says to implement all the cells
 
 - Use code in `msml610_utils.py` like `_create_slider_widget()`,
   `build_widget_control()` to create the widgets
+
+# Format of Cells
+
+- Each cell description of the Jupyter notebook has the format
+  ```markdown
+  ## Cell i: Visual Bin.
+  - Purpose: Give a concrete visual of the "unknown" population
+  - Visualization:
+    - Draw a 2D bin filled with red and green marbles
+    - Show bin with marbles colored proportionally to mu
+    - ...
+  - Interactive widget:
+    - Slider for mu (true proportion of red marbles, 0-1)
+    - ...
+  - Comment box: ...
+  ```
+- Each cell description corresponds to a markdown cell and an interactive cell
+  - The markdown cell contains the Header and the Purpose
+  - The interactive cell contains the Visualization, Interactive widget, Comment
+    box
+
+# Format of Markdown Cell
+- The markdown cell has a title from the header, like:
+  ```
+  ## Cell i: Visual Bin.
+  ```
+- It describes:
+  - The purpose of the cell
+  - The meaning of the variables in the following interactive widget
+  - What can be learned from the interactive cell
+
+- E.g.,
+  ```markdown
+  ## Cell 1.2: Samples Over Time and Empirical PDF
+
+  - Visualize $N$ samples from a Bernoulli distribution:
+    - As a sequence over time
+    - As an empirical probability distribution function (PDF)
+
+  **Parameters**:
+  - `mu` ($\mu$): True probability of success (between 0 and 1)
+  - `N` ($N$): Number of samples to draw
+  - `seed`: Random seed for reproducibility
+
+  **Key observation**:
+  - The empirical probability (blue line) is always at or below the theoretical bound (red line)
+  - This confirms the Hoeffding inequality
+  - The gap between them shows how conservative the bound is
+  ```
 
 # Complex Interactive Widgets
 
@@ -58,28 +107,3 @@ time, unless the user explicitly says to implement all the cells
   fit in which case it must change so that the xlim or ylim doubles or it's
   reduced in half, so that the xlim / ylim can be stable when changing the
   widget controls
-
-# Format of Each Jupyter Cell
-
-- Each cell has only one concept / group of statements and a comment on the
-  result
-- Each cell has:
-  - A comment explaining what we want to do
-  - A group of commands
-  - A statement to show the result (e.g., `print()`, `display()`)
-  - A comment about the outcome
-  ```
-  # Comment explaining what we are trying to do.
-  operation
-
-  print results
-  # Comment on the result.
-  ```
-
-- Example:
-  ```python
-  # Test with broken coin.
-  biased_coin = [1.0, 0.0]
-  print(f"Biased coin (100-0) entropy: {utils.calculate_entropy(biased_coin):.4f} bits")
-  # If heads occurs 100% of the time → no uncertainty, $H = 0$ bit.
-  ```

@@ -59,8 +59,15 @@ next step
 - Execute `docs/ai_prompts/notebooks.create_visual_script.md` to create the script
   for the concept
 
+## Create a notebook
+- Create a notebook
+  ```bash
+  > cp ./msml610/tutorials/template.ipynb msml610/tutorials/Lesson05.1-Learning_Theory.Bin_Analogy_ML.ipynb
+  ```
+
 ## Build notebook
-- Execute `docs/ai_prompts/notebooks.implement_script.md` for cell XYZ of
+- Execute `docs/ai_prompts/notebooks.implement_script.md` for cells between
+  <start> and <end> of
   `msml610/tutorials/Lesson05.1-Learning_Theory.Bin_Analogy.md`
 - Update `msml610/tutorials/Lesson05.1-Learning_Theory.Bin_Analogy_ML.ipynb`
 
@@ -71,29 +78,6 @@ next step
 
 ## Step 2)
 - Make sure that all the files in the repo are updated with this change
-
-# Implement function
-
-## Step 1)
-- Write a Python function XYZ that ...
-
-- The interface is like:
-  - For all the code you must follow the instructions in
-    `docs/ai_prompts/coding.format_code.md`
-
-- If the task is not perfectly clear, you MUST not perform it, but ask for
-  clarifications
-
-- For all the code you must follow the instructions in
-  `docs/ai_prompts/coding.format_rules.md`
-
-## Step 2)
-- Update the file README.md in the same directory of the script following the
-  instructions in `docs/ai_prompts/readme.create.md`
-
-## Step 3)
-- Generate unit tests for the code following the instructions in
-  `docs/ai_prompts/testing.format_rules.md`
 
 # Implement an invoke target
 
@@ -106,9 +90,9 @@ next step
 
 - There should be an option --dry-run to just print what needs to be done
 
-# Implement code with preview
+# Plan and then Implement Code
 
-## Step 1)
+## Step 1) Come up with a plan for the code
   - Describe the goal, listing the main steps
   - Mention any edge cases
   - If the task is not perfectly clear, you MUST not perform it, but ask for
@@ -116,28 +100,31 @@ next step
   - Write the plan in a file `claude.plan.md`
   - Wait for my response before executing the plan
 
-## Step 2)
+## Step 2) Implement interfaces
   - Write the interfaces and the docstrings of the needed code in the places of
     the code base
-  - Add comment explaining what functions should do
+  - Add comment explaining what each function does
   - Do not implement the body of the code
   - Wait for my response
 
-## Step 4)
+## Step 3) Implement code
+  - Implement the code following the instructions in
+    `docs/ai_prompts/coding.format_rules.md`
+
+## Step 4) Come up with a plan for the tests
   - Implement unit tests following the instructions in 
     `docs/ai_prompts/testing.format_rules.md`
 
-## Step 5)
+## Step 5) Implement tests
+  - Implement unit tests following the instructions in 
+    `docs/ai_prompts/testing.format_rules.md`
+
+## Step 6) Create new README
   - If it's a new script, find where the documentation of this change should go
   - Generate a short description of how to use the script in a file close to the
     script with extension .md
   - Explain the goal of the script
   - Report some examples of how to use the script
-
-## Step 6)
   - Update the file README.md in the same directory of the script following the
     instructions in `docs/ai_prompts/readme.create.md`
 
-## Step 7)
-  - Implement the code following the instructions in
-    `docs/ai_prompts/coding.format_rules.md`
