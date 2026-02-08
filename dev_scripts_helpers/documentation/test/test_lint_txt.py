@@ -44,7 +44,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
 
-    def test_remove_single_separator(self) -> None:
+    def test1(self) -> None:
         """
         Test removing a single page separator line.
         """
@@ -63,7 +63,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    def test_remove_multiple_separators(self) -> None:
+    def test2(self) -> None:
         """
         Test removing multiple page separator lines.
         """
@@ -86,7 +86,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    def test_remove_separator_with_spaces(self) -> None:
+    def test3(self) -> None:
         """
         Test removing page separators with trailing spaces.
         """
@@ -105,7 +105,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    def test_no_separator(self) -> None:
+    def test4(self) -> None:
         """
         Test that text without separators remains unchanged.
         """
@@ -124,7 +124,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    def test_separator_in_code_block_preserved(self) -> None:
+    def test5(self) -> None:
         """
         Test that separators within text content are preserved.
         """
@@ -143,7 +143,7 @@ class Test_remove_page_separators(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
-    def test_empty_input(self) -> None:
+    def test6(self) -> None:
         """
         Test with empty input.
         """
@@ -501,6 +501,85 @@ class Test_lint_txt2(hunitest.TestCase):
           ```
         """
         file_name = "test.txt"
+        self.helper(txt, expected, file_name)
+
+    def test7(self) -> None:
+        """
+        Test that YAML front matter is preserved in markdown files.
+        """
+        txt = r"""
+        ---
+        title: My Document
+        date: 2024-01-01
+        author: Test Author
+        ---
+
+        # Main Content
+
+        - This is a list
+          - With nested items
+        """
+        expected = r"""
+        ---
+        title: My Document
+        date: 2024-01-01
+        author: Test Author
+        ---
+
+        <!-- toc -->
+
+        - [Main Content](#main-content)
+
+        <!-- tocstop -->
+
+        # Main Content
+
+        - This is a list
+          - With nested items
+        """
+        file_name = "test.md"
+        self.helper(txt, expected, file_name)
+
+    def test8(self) -> None:
+        """
+        Test that page separators are removed but YAML front matter is preserved.
+        """
+        txt = r"""
+        ---
+        title: Test
+        ---
+
+        # Section 1
+
+        Content here.
+
+        ---
+
+        # Section 2
+
+        More content.
+        """
+        expected = r"""
+        ---
+        title: Test
+        ---
+
+        <!-- toc -->
+
+        - [Section 1](#section-1)
+        - [Section 2](#section-2)
+
+        <!-- tocstop -->
+
+        # Section 1
+
+        Content here.
+
+        # Section 2
+
+        More content.
+        """
+        file_name = "test.md"
         self.helper(txt, expected, file_name)
 
 

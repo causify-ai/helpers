@@ -311,7 +311,7 @@ def _test_full_navigation_flow(self_: Any, txt: str) -> None:
 # #############################################################################
 
 class Test_header_list_to_vim_cfile1(hunitest.TestCase):
-    def test_basic_header_structure(self) -> None:
+    def test1(self) -> None:
         """
         Test conversion of header list to vim cfile format with multiple
         levels.
@@ -357,7 +357,7 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
         # Check output.
         self.assert_equal(actual, expected, dedent=True)
 
-    def test_list_mode(self) -> None:
+    def test1(self) -> None:
         """
         Test conversion of header list to markdown list format with
         indentation.
@@ -380,7 +380,7 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
         # Run test.
         self.helper(headers, mode, expected)
 
-    def test_headers_mode(self) -> None:
+    def test2(self) -> None:
         """
         Test conversion of header list to markdown headers format with
         proper heading levels.
@@ -420,7 +420,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Check output.
         self.assertEqual(actual, expected)
 
-    def test_dash_separator(self) -> None:
+    def test1(self) -> None:
         """
         Test that a line with only dashes is recognized as a separator.
         """
@@ -431,7 +431,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_hash_prefix_dash_separator(self) -> None:
+    def test2(self) -> None:
         """
         Test that a line with hash prefix and dashes is a valid separator.
         """
@@ -442,7 +442,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_hash_separator(self) -> None:
+    def test3(self) -> None:
         """
         Test that a line with hash prefix and hash characters is a valid
         separator.
@@ -454,7 +454,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_triple_hash_equals_separator(self) -> None:
+    def test4(self) -> None:
         """
         Test that a line with triple hash prefix and equals is a valid
         separator.
@@ -466,7 +466,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_slash_separator(self) -> None:
+    def test5(self) -> None:
         """
         Test that a line with hash and slashes is a valid separator.
         """
@@ -477,7 +477,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_slash_separator_with_spaces(self) -> None:
+    def test6(self) -> None:
         """
         Test that a line with hash, spaces, and slashes is a valid
         separator.
@@ -489,7 +489,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_plain_text_not_separator(self) -> None:
+    def test7(self) -> None:
         """
         Test that plain text is not recognized as a separator.
         """
@@ -500,7 +500,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_short_dash_not_separator(self) -> None:
+    def test8(self) -> None:
         """
         Test that a short dash line is not a valid separator.
         """
@@ -511,7 +511,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_mixed_characters_not_separator(self) -> None:
+    def test9(self) -> None:
         """
         Test that mixed separator characters are not valid.
         """
@@ -522,7 +522,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_short_equals_not_separator(self) -> None:
+    def test10(self) -> None:
         """
         Test that two equals signs alone are not a valid separator.
         """
@@ -533,7 +533,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_dash_prefix_slash_not_separator(self) -> None:
+    def test11(self) -> None:
         """
         Test that dash prefix with slashes is not a valid separator.
         """
@@ -544,7 +544,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_separator_with_trailing_text_not_valid(self) -> None:
+    def test12(self) -> None:
         """
         Test that separators with trailing text are not valid.
         """
@@ -555,7 +555,7 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
-    def test_separator_with_surrounding_text_not_valid(self) -> None:
+    def test13(self) -> None:
         """
         Test that separators with surrounding text are not valid.
         """
@@ -587,7 +587,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         self.assert_equal(actual, expected, dedent=True)
 
     # TODO(gp): This doesn't seem correct.
-    def test_extract_header_with_subheader(self) -> None:
+    def test1(self) -> None:
         """
         Test extracting a section that includes a subheader.
         """
@@ -603,7 +603,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         # Run test.
         self.helper(content, "Header1", expected)
 
-    def test_extract_subheader_section(self) -> None:
+    def test2(self) -> None:
         """
         Test extracting a subheader section only.
         """
@@ -618,7 +618,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         # Run test.
         self.helper(content, "Header2", expected)
 
-    def test_extract_last_header(self) -> None:
+    def test3(self) -> None:
         """
         Test extracting the last header section in the document.
         """
@@ -633,7 +633,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         # Run test.
         self.helper(content, "Header3", expected)
 
-    def test_extract_header_from_simple_document(self) -> None:
+    def test4(self) -> None:
         """
         Test extracting a header that spans to the end of document.
         """
@@ -649,7 +649,7 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         # Run test.
         self.helper(content, "Header1", expected)
 
-    def test_no_header(self) -> None:
+    def test5(self) -> None:
         # Prepare inputs.
         content = _get_markdown_no_header_example1()
         # Call tested function.
@@ -682,7 +682,7 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Check output.
         self.assert_equal(str(actual), expected)
 
-    def test_multiple_headers_different_levels(self) -> None:
+    def test1(self) -> None:
         """
         Test extracting multiple headers with different levels from markdown
         content.
@@ -695,7 +695,7 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Run test.
         self.helper(content, max_level, expected)
 
-    def test_two_level_header_structure(self) -> None:
+    def test2(self) -> None:
         """
         Test extracting headers from a simple two-level structure.
         """
@@ -709,7 +709,7 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         # Run test.
         self.helper(content, max_level, expected)
 
-    def test_no_headers(self) -> None:
+    def test3(self) -> None:
         # Prepare inputs.
         content = r"""
         This is some content without any headers.
@@ -740,7 +740,7 @@ class Test_extract_slides_from_markdown1(hunitest.TestCase):
         # Check output.
         self.assert_equal(str(actual), expected)
 
-    def test_three_slide_presentation(self) -> None:
+    def test1(self) -> None:
         """
         Test extracting multiple slides from markdown presentation format.
         """
@@ -751,7 +751,7 @@ class Test_extract_slides_from_markdown1(hunitest.TestCase):
         # Run test.
         self.helper(content, expected)
 
-    def test_single_slide_presentation(self) -> None:
+    def test2(self) -> None:
         """
         Test extracting a single slide from markdown presentation format.
         """
@@ -762,7 +762,7 @@ class Test_extract_slides_from_markdown1(hunitest.TestCase):
         # Run test.
         self.helper(content, expected)
 
-    def test_no_slides(self) -> None:
+    def test3(self) -> None:
         # Prepare inputs.
         content = _get_markdown_no_header_example1()
         # Call function.
@@ -1356,7 +1356,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
-    def test_short_title_capitalization(self) -> None:
+    def test1(self) -> None:
         """
         Test capitalizing a short two-word title.
         """
@@ -1368,7 +1368,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_longer_title_capitalization(self) -> None:
+    def test2(self) -> None:
         """
         Test capitalizing a longer multi-word title.
         """
@@ -1380,7 +1380,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_backticks_preserved(self) -> None:
+    def test3(self) -> None:
         """
         Test that strings inside backticks are preserved.
         """
@@ -1392,7 +1392,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_single_quotes_preserved(self) -> None:
+    def test4(self) -> None:
         """
         Test that strings inside single quotes are preserved.
         """
@@ -1404,7 +1404,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_double_quotes_preserved(self) -> None:
+    def test5(self) -> None:
         """
         Test that strings inside double quotes are preserved.
         """
@@ -1416,7 +1416,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_quotes_and_backticks(self) -> None:
+    def test6(self) -> None:
         """
         Test mixed usage of quotes and backticks.
         """
@@ -1428,7 +1428,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_complex_title_with_quotes(self) -> None:
+    def test7(self) -> None:
         """
         Test complex title with various quote types.
         """
@@ -1440,7 +1440,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test10(self) -> None:
+    def test8(self) -> None:
         """
         Test that words with internal capitals are preserved.
         """
@@ -1452,7 +1452,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test11(self) -> None:
+    def test9(self) -> None:
         """
         Test multiple words with internal capitals.
         """
@@ -1464,7 +1464,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test12(self) -> None:
+    def test10(self) -> None:
         """
         Test mixed normal words and words with internal capitals.
         """
@@ -1476,7 +1476,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test13(self) -> None:
+    def test11(self) -> None:
         """
         Test that headers inside fenced code blocks are not processed.
         """
@@ -1502,7 +1502,7 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test14(self) -> None:
+    def test12(self) -> None:
         """
         Test headers inside multiple fenced code blocks are not processed.
         """
@@ -1565,8 +1565,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         expected = hprint.dedent(expected)
         self.assert_equal(actual, expected)
 
-    # TODO(ai_gp): Rename test1, test2, ...
-    def test_mixed_case_simple_feed_forward(self) -> None:
+    def test1(self) -> None:
         """
         Test that SimpleFeedForward is preserved as-is.
         """
@@ -1578,7 +1577,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_deep_npts(self) -> None:
+    def test2(self) -> None:
         """
         Test that DeepNPTS is preserved as-is.
         """
@@ -1590,7 +1589,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_multiple_words(self) -> None:
+    def test3(self) -> None:
         """
         Test multiple mixed case words in the same header.
         """
@@ -1602,7 +1601,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_with_all_caps(self) -> None:
+    def test4(self) -> None:
         """
         Test mixed case words combined with all caps words.
         """
@@ -1614,7 +1613,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_first_word(self) -> None:
+    def test5(self) -> None:
         """
         Test mixed case word as the first word in header.
         """
@@ -1626,7 +1625,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_fenced_block_with_header(self) -> None:
+    def test6(self) -> None:
         """
         Test that headers inside fenced blocks are not capitalized.
         """
@@ -1648,7 +1647,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_fenced_block_multiple_headers(self) -> None:
+    def test7(self) -> None:
         """
         Test that multiple headers inside fenced blocks are not capitalized.
         """
@@ -1688,7 +1687,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_fenced_block_with_language_specifier(self) -> None:
+    def test8(self) -> None:
         """
         Test that headers in fenced blocks with language specifier are not
         capitalized.
@@ -1709,7 +1708,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_in_fenced_block(self) -> None:
+    def test9(self) -> None:
         """
         Test mixed case words inside fenced blocks are preserved.
         """
@@ -1731,7 +1730,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_multiple_fenced_blocks(self) -> None:
+    def test10(self) -> None:
         """
         Test multiple fenced blocks in the same document.
         """
@@ -1761,7 +1760,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_slide_title_with_mixed_case(self) -> None:
+    def test11(self) -> None:
         """
         Test that slide titles (starting with *) also preserve mixed case.
         """
@@ -1773,7 +1772,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_mixed_case_with_punctuation(self) -> None:
+    def test12(self) -> None:
         """
         Test mixed case words with punctuation.
         """
@@ -1785,7 +1784,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_normal_words_still_capitalized(self) -> None:
+    def test13(self) -> None:
         """
         Test that normal words without mixed case are still capitalized
         properly.
@@ -1798,7 +1797,7 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
-    def test_empty_fenced_block(self) -> None:
+    def test14(self) -> None:
         """
         Test empty fenced blocks don't cause issues.
         """
@@ -1825,113 +1824,113 @@ class Test_has_mixed_case1(hunitest.TestCase):
     Test the _has_mixed_case helper function.
     """
 
-    # TODO(ai_gp): Factor out a helper function with common code.
+    def helper(self, word: str, expected: bool) -> None:
+        """
+        Test helper for has_mixed_case.
 
-    # TODO(ai_gp): Rename test1, test2, ...
-    def test_simple_feed_forward(self) -> None:
+        :param word: word to test
+        :param expected: expected result
+        """
+        # Call function.
+        actual = hmarkdo.has_mixed_case(word)
+        # Check output.
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
         """
         Test SimpleFeedForward has mixed case.
         """
         # Prepare inputs.
         word = "SimpleFeedForward"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = True
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
-    def test_deep_npts(self) -> None:
+    def test2(self) -> None:
         """
         Test DeepNPTS has mixed case (all caps after first).
         """
         # Prepare inputs.
         word = "DeepNPTS"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = True
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
-    def test_machine_no_mixed_case(self) -> None:
+    def test3(self) -> None:
         """
         Test Machine does not have mixed case (only first char capital).
         """
         # Prepare inputs.
         word = "Machine"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = False
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
-    def test_lowercase_no_mixed_case(self) -> None:
+    def test4(self) -> None:
         """
         Test lowercase word has no mixed case.
         """
         # Prepare inputs.
         word = "machine"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = False
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
-    def test_all_caps_has_mixed_case(self) -> None:
+    def test5(self) -> None:
         """
         Test all caps word has mixed case (caps after first position).
         """
         # Prepare inputs.
         word = "API"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = True
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
-    def test_single_char_no_mixed_case(self) -> None:
+    def test6(self) -> None:
         """
         Test single character has no mixed case.
         """
         # Prepare inputs.
         word = "A"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = False
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
-    def test_two_chars_capital_no_mixed_case(self) -> None:
+    def test7(self) -> None:
         """
         Test two character word with first capital has no mixed case.
         """
         # Prepare inputs.
         word = "At"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = False
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
-    def test_two_chars_both_caps_mixed_case(self) -> None:
+    def test8(self) -> None:
         """
         Test two character word with both caps has mixed case.
         """
         # Prepare inputs.
         word = "ML"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = True
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)
 
-    def test_camel_case(self) -> None:
+    def test9(self) -> None:
         """
         Test camelCase word has mixed case.
         """
         # Prepare inputs.
         word = "camelCase"
-        # Call function.
-        actual = hmarkdo.has_mixed_case(word)
-        # Check output.
+        # Prepare outputs.
         expected = True
-        self.assertEqual(actual, expected)
+        # Run test.
+        self.helper(word, expected)

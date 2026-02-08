@@ -37,7 +37,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Parse files from command line.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     # Read file.
-    txt = hparser.read_file(in_file_name)
+    txt = hparser.from_file(in_file_name)
     # Transform with LLM.
     txt_tmp = "\n".join(txt)
     prompt_tag = args.prompt
@@ -60,7 +60,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
             res.extend(txt)
             res.append("# After:")
         res.extend(txt_tmp.split("\n"))
-        hparser.write_file(res, out_file_name)
+        hparser.to_file(res, out_file_name)
 
 
 if __name__ == "__main__":

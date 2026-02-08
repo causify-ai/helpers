@@ -55,13 +55,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     # Read file.
-    txt = hparser.read_file(in_file_name)
+    txt = hparser.from_file(in_file_name)
     # Transform.
     files = _parse_input_cfile(txt)
     files = sorted(list(set(files)))
     # Write file.
     txt_out = "\n".join(files)
-    hparser.write_file(txt_out, out_file_name)
+    hparser.to_file(txt_out, out_file_name)
 
 
 if __name__ == "__main__":

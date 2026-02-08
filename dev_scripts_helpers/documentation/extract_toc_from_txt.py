@@ -69,7 +69,7 @@ def _extract_and_write_headers(
         )
     else:
         output_content = hmarkdo.header_list_to_markdown(header_list, mode)
-    hparser.write_file(output_content, out_file_name)
+    hparser.to_file(output_content, out_file_name)
     # Sanity check the headers.
     hmarkdo.sanity_check_header_list(header_list)
 
@@ -205,7 +205,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hparser.init_logger_for_input_output_transform(args, verbose=verbose)
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     #
-    input_content = hparser.read_file(in_file_name)
+    input_content = hparser.from_file(in_file_name)
     # Detect file type and dispatch to appropriate extraction function.
     _, ext = os.path.splitext(in_file_name)
     if ext == ".md":

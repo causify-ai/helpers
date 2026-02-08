@@ -60,13 +60,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_file_name, out_file_name = hparser.parse_input_output_args(
         args, clear_screen=True
     )
-    txt = hparser.read_file(in_file_name)
+    txt = hparser.from_file(in_file_name)
     txt = "\n".join(txt)
     #
     hdbg.dassert_in(args.instruction, hchainst.instructions)
     instruction = hchainst.instructions[args.instruction]
     result = _process_text(txt, instruction)
-    hparser.write_file(result, out_file_name)
+    hparser.to_file(result, out_file_name)
 
 
 if __name__ == "__main__":

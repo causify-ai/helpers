@@ -77,7 +77,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if out_file_name != "-":
         hio.delete_file(out_file_name)
     # Read file.
-    txt = hparser.read_file(in_file_name)
+    txt = hparser.from_file(in_file_name)
     # Transform.
     txt_tmp = "\n".join(txt)
     cfile, traceback = htraceb.parse_traceback(
@@ -90,7 +90,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     cfile_as_str = htraceb.cfile_to_str(cfile)
     print(hprint.frame("cfile", char1="-") + "\n" + cfile_as_str)
     # Write file.
-    hparser.write_file(cfile_as_str.split("\n"), out_file_name)
+    hparser.to_file(cfile_as_str.split("\n"), out_file_name)
 
 
 if __name__ == "__main__":

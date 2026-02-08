@@ -93,7 +93,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         out_txt = hio.from_file(tmp_out_file_name)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
-    hparser.write_file(out_txt, out_file_name)
+    hparser.to_file(out_txt, out_file_name)
     if os.path.basename(out_file_name) == "cfile":
         print(out_txt)
 

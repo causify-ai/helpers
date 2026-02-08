@@ -1,30 +1,30 @@
 I will pass you a file.
 
 In that file, make sure that:
-- callers pass the parameters by position and pass the keywords arguments
-- constant should be assigned to intermediate variable with the same name
+- Callers pass the parameters by position and pass the keywords arguments
+- Constant should be assigned to intermediate variable with the same name
   corresponding to the formal parameters
 
 - For a function with the signature
-```
-  def apply_llm_prompt_to_df(
-    prompt: str,
-    df: pd.DataFrame,
-    extractor: Callable[[Union[str, pd.Series]], str],
-    target_col: str,
-    batch_mode: str,
-    *,
-    model: str,
-    batch_size: int = 50,
-    dump_every_batch: Optional[str] = None,
-    tag: str = "Processing",
-    testing_functor: Optional[Callable[[str], str]] = None,
-    use_sys_stderr: bool = False,
-) -> Tuple[pd.DataFrame, Dict[str, int]]:
-```
+  ```python
+    def apply_llm_prompt_to_df(
+      prompt: str,
+      df: pd.DataFrame,
+      extractor: Callable[[Union[str, pd.Series]], str],
+      target_col: str,
+      batch_mode: str,
+      *,
+      model: str,
+      batch_size: int = 50,
+      dump_every_batch: Optional[str] = None,
+      tag: str = "Processing",
+      testing_functor: Optional[Callable[[str], str]] = None,
+      use_sys_stderr: bool = False,
+  ) -> Tuple[pd.DataFrame, Dict[str, int]]:
+  ```
 
 - Bad
-  ```
+  ```python
   df, stats = hllmcli.apply_llm_prompt_to_df(
       prompt=prompt,
       df=df,
@@ -38,7 +38,7 @@ In that file, make sure that:
   ```
 
 - Good
-  ```
+  ```python
   target_col = "industry"
   df, stats = hllmcli.apply_llm_prompt_to_df(
       prompt,
@@ -51,4 +51,3 @@ In that file, make sure that:
       tag=tag,
   )
   ```
-

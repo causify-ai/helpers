@@ -334,6 +334,18 @@ def _generate_images_from_file(
 
             Use transparent background.
             """
+        elif style == "causify":
+            style = """
+            Modern, tech-centric vector illustration in a monochromatic
+            blue-to-cyan palette, featuring clean geometric shapes with rounded
+            corners, uniform stroke weight, and crisp vector lines. Subtle glow
+            and soft highlights add depth without shadows or textures. Icons
+            are semi-flat with slight dimensionality, abstract and symbolic, no
+            text or labels. Composition is centered and balanced with clear
+            visual flow using arrows and connectors, generous spacing, and a
+            dark or transparent background. Polished, minimal, and suitable for
+            AI, analytics, and decision-making visuals.
+            """
         else:
             raise ValueError("Invalid style: %s" % style)
         style = hprint.dedent(style)

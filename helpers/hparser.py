@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -172,27 +173,48 @@ def add_action_arg(
     default_actions: Optional[List[str]],
 ) -> argparse.ArgumentParser:
     """
-    Add a command line option to select actions to execute or skip.
+    Add command line options to select actions to execute, skip, or enable.
+
+    The function creates a mutually exclusive group with three options:
+    - `-a/--action`: specify exact actions to execute
+    - `-sa/--skip_action`: skip specific actions from default set
+    - `-e/--enable`: enable additional actions on top of defaults
+
+    Available actions are listed once in the help epilog to avoid repetition.
 
     :param parser: parser to add the option to
     :param valid_actions: list of valid actions
     :param default_actions: list of default actions to execute
     :return: parser with the option added
     """
+    # Add epilog with list of available actions to avoid repeating them.
+    actions_list = ", ".join(valid_actions)
+    if parser.epilog:
+        parser.epilog += f"\n\nAvailable actions: {actions_list}"
+    else:
+        parser.epilog = f"Available actions: {actions_list}"
+    # Create mutually exclusive group for action selection.
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
-        "-a", "--action",
+        "-a",
+        "--action",
         action="append",
         dest="action",
-        choices=valid_actions,
-        help="Actions to execute",
+        help="Actions to execute (see available actions below)",
     )
     group.add_argument(
-        "-sa", "--skip_action",
+        "-sa",
+        "--skip_action",
         action="append",
         dest="skip_action",
-        choices=valid_actions,
-        help="Actions to skip",
+        help="Actions to skip from default set (see available actions below)",
+    )
+    group.add_argument(
+        "-e",
+        "--enable",
+        action="append",
+        dest="enable_action",
+        help="Enable additional actions on top of defaults (see available actions below)",
     )
     if default_actions is not None:
         hdbg.dassert_is_subset(default_actions, valid_actions)
@@ -237,6 +259,11 @@ def select_actions(
     """
     Select actions based on the command line arguments.
 
+    Supports three mutually exclusive modes:
+    - `--action`: run only specified actions
+    - `--skip_action`: run default actions minus specified ones
+    - `--enable`: run default actions plus specified additional ones
+
     :param args: command line arguments
     :param valid_actions: list of valid actions
     :param default_actions: list of default actions to execute
@@ -250,6 +277,17 @@ def select_actions(
         not (args.action and args.skip_action),
         "You can't specify together --action and --skip_action",
     )
+    # Check for enable_action attribute (added for backward compatibility).
+    has_enable = hasattr(args, "enable_action")
+    if has_enable:
+        hdbg.dassert(
+            not (args.action and args.enable_action),
+            "You can't specify together --action and --enable",
+        )
+        hdbg.dassert(
+            not (args.skip_action and args.enable_action),
+            "You can't specify together --skip_action and --enable",
+        )
     # Select actions.
     if not args.action or args.all:
         if default_actions is None:
@@ -258,19 +296,43 @@ def select_actions(
         # Convert it into list since through some code paths it can be a tuple.
         actions = list(default_actions)
     else:
+        # Validate actions specified by user.
+        for action in args.action:
+            hdbg.dassert_in(
+                action,
+                valid_actions,
+                "Invalid action '%s'",
+                action,
+            )
         actions = args.action[:]
     hdbg.dassert_isinstance(actions, list)
     hdbg.dassert_no_duplicates(actions)
-    # Validate actions.
-    for action in set(actions):
-        if action not in valid_actions:
-            raise ValueError(f"Invalid action '{action}'")
     # Remove actions, if needed.
     if args.skip_action:
         hdbg.dassert_isinstance(args.skip_action, list)
         for skip_action in args.skip_action:
+            # Validate that skip_action is a valid action.
+            hdbg.dassert_in(
+                skip_action,
+                valid_actions,
+                "Invalid action '%s'",
+                skip_action,
+            )
+            # Validate that skip_action is in the current action list.
             hdbg.dassert_in(skip_action, actions)
             actions = [a for a in actions if a != skip_action]
+    # Add enabled actions on top of defaults.
+    if has_enable and args.enable_action:
+        hdbg.dassert_isinstance(args.enable_action, list)
+        for enable_action in args.enable_action:
+            hdbg.dassert_in(
+                enable_action,
+                valid_actions,
+                "Invalid action '%s'",
+                enable_action,
+            )
+            if enable_action not in actions:
+                actions.append(enable_action)
     # Reorder actions according to 'valid_actions'.
     actions = [action for action in valid_actions if action in actions]
     return actions
@@ -311,10 +373,10 @@ def mark_action(action: str, actions: Optional[List[str]]) -> Tuple[bool, Option
 # in_file_name, out_file_name = hparser.parse_input_output_args(args)
 # ...
 # # Read input file, handling stdin.
-# in_lines = hparser.read_file(in_file_name)
+# in_lines = hparser.from_file(in_file_name)
 # ...
 # # Write output, handling stdout.
-# hparser.write_file(txt, out_file_name)
+# hparser.to_file(txt, out_file_name)
 # ```
 # See helpers_root/dev_scripts_helpers/coding_tools/transform_template.py as an
 # example.
@@ -343,7 +405,7 @@ def mark_action(action: str, actions: Optional[List[str]]) -> Tuple[bool, Option
 # )
 # ...
 # # Write output, handling stdout.
-# hparser.write_file(txt, out_file_name)
+# hparser.to_file(txt, out_file_name)
 # ```
 #
 # See helpers_root/dev_scripts_helpers/llms/llm_transform.py as an example.
@@ -445,10 +507,11 @@ def init_logger_for_input_output_transform(
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True, force_white=False)
 
 
-# TODO(gp): GFI -> from_file for symmetry for hio.
-def read_file(file_name: str) -> List[str]:
+def from_file(file_name: str) -> List[str]:
     """
     Read file or stdin (represented by `-`), returning an array of lines.
+
+    If file_name is "pb" and the platform is macOS, read from clipboard.
     """
     if file_name == "-":
         _LOG.info("Reading from stdin")
@@ -456,22 +519,44 @@ def read_file(file_name: str) -> List[str]:
         txt = []
         for line in sys.stdin:
             txt.append(line.rstrip("\n"))
+    elif file_name == "pb":
+        # Read from clipboard (macOS only).
+        if hserver.is_host_mac():
+            _LOG.info("Reading from clipboard")
+            cmd = "pbpaste"
+            rc, txt_str = hsystem.system_to_string(cmd)
+            txt = txt_str.split("\n")
+        else:
+            hdbg.dfatal("Reading from clipboard (pb) only works on macOS")
     else:
         txt = hio.from_file(file_name)
         txt = txt.split("\n")
     return txt
 
 
-# TODO(gp): GFI -> to_file for symmetry for hio.
-def write_file(txt: Union[str, List[str]], file_name: str) -> None:
+def to_file(txt: Union[str, List[str]], file_name: str) -> None:
     """
     Write txt in a file or stdout (represented by `-`).
+
+    If file_name is "pb" and the platform is macOS, write to clipboard.
     """
     if isinstance(txt, str):
         txt = [txt]
     if file_name == "-":
         _LOG.debug("Saving to stdout")
         print("\n".join(txt))
+    elif file_name == "pb":
+        # Write to clipboard (macOS only).
+        if hserver.is_host_mac():
+            _LOG.info("Writing to clipboard")
+            txt_str = "\n".join(txt)
+            # Use echo with pbcopy, escaping single quotes.
+            txt_str_escaped = txt_str.replace("'", "'\\''")
+            cmd = f"echo -n '{txt_str_escaped}' | pbcopy"
+            hsystem.system(cmd)
+            _LOG.info("Written to clipboard")
+        else:
+            hdbg.dfatal("Writing to clipboard (pb) only works on macOS")
     else:
         _LOG.debug("Saving to file")
         with open(file_name, "w") as f:
@@ -492,7 +577,7 @@ def adapt_input_output_args_for_dockerized_scripts(
     """
     # Since we need to call a container and passing stdin/stdout is tricky,
     # we read the input and save it in a temporary file.
-    in_lines = read_file(in_file_name)
+    in_lines = from_file(in_file_name)
     if in_file_name == "-":
         tmp_in_file_name = f"tmp.{tag}.in.txt"
         in_txt = "\n".join(in_lines)
@@ -725,17 +810,23 @@ def add_dockerized_script_arg(
 
 
 def add_llm_prompt_arg(
-    parser: argparse.ArgumentParser, *, default_prompt: str = ""
+    parser: argparse.ArgumentParser, *, default_prompt: str = "",
+    is_required: bool = True,
 ) -> argparse.ArgumentParser:
     """
     Add common command line arguments for `*llm_transform.py` scripts.
+
+    :param default_prompt: default prompt to use
+    :param is_required: whether the prompt is required
+    :return: parser with the option added
     """
     parser.add_argument(
         "--debug",
         action="store_true",
         help="Print before/after the transform",
     )
-    is_required = default_prompt == ""
+    if default_prompt != "":
+        is_required = False
     parser.add_argument(
         "-p",
         "--prompt",

@@ -23,16 +23,16 @@ Examples
 > llm_transform.py --list
 
 # Code review
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_review
+> llm_transform.py -i render_images.py -o cfile -p code_review
 
 # Propose refactoring
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
+> llm_transform.py -i render_images.py -o cfile -p code_propose_refactoring
 """
 
 import argparse
 import logging
 import os
-from typing import List, Optional, cast
+from typing import List, Optional, Tuple, cast
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import dev_scripts_helpers.llms.llm_utils as dshlllut
@@ -65,9 +65,10 @@ def _parse() -> argparse.ArgumentParser:
         out_default="-",
         in_required=False,
     )
-    hparser.add_llm_prompt_arg(parser)
+    hparser.add_llm_prompt_arg(parser, is_required=False)
     hparser.add_dockerized_script_arg(parser)
     parser.add_argument(
+        "-l",
         "--list",
         action="store_true",
         help="List available prompts and contexts",
@@ -198,14 +199,14 @@ def _run_dockerized_llm_transform(
     return ret
 
 
-def _get_input_transforms() -> List[str]:
+def _get_input_transforms() -> List[Tuple[str, str]]:
     input_transforms = [
-        "md_to_latex",
-        "md_clean_up",
-        "md_bold_bullets",
-        "md_remove_bullets",
-        "slide_format_figures",
-        "slide_add_figure",
+        ("md_to_latex", "Convert Markdown to LaTeX using pandoc and format"),
+        ("md_clean_up", "Clean up and format Markdown source text"),
+        ("md_bold_bullets", "Bold the first level bullets in Markdown and format"),
+        ("md_remove_bullets", "Remove bullets from Markdown"),
+        ("slide_format_figures", "Format Markdown figure blocks for slides"),
+        ("slide_add_figure", "Add column structure for figures in slide Markdown"),
     ]
     return input_transforms
 
@@ -221,10 +222,11 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
     """
     _LOG.debug(hprint.func_signature_to_str())
     #
-    if prompt in _get_input_transforms():
+    input_transforms_names = [transform[0] for transform in _get_input_transforms()]
+    if prompt in input_transforms_names:
         # Read the input.
         _LOG.debug("Reading input file: %s", in_file_name)
-        txt = hparser.read_file(in_file_name)
+        txt = hparser.from_file(in_file_name)
         txt = "\n".join(txt)
         if prompt == "md_to_latex":
             txt = hlatex.convert_pandoc_md_to_latex(txt)
@@ -264,7 +266,7 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
             raise ValueError(f"Invalid prompt='{prompt}'")
         #
         _LOG.debug("Writing output file: %s", out_file_name)
-        hparser.write_file(txt, out_file_name)
+        hparser.to_file(txt, out_file_name)
         return True
     return False
 
@@ -288,9 +290,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         print("# Available prompt tags:")
         prompt_tags = []
         prompt_tags.extend(dshlllpr.get_prompt_tags())
-        # Add input transforms as tuples (name, description).
-        for transform in _get_input_transforms():
-            prompt_tags.append((transform, "Input transform (no LLM)"))
+        prompt_tags.extend(_get_input_transforms())
         print(dshlllpr.prompt_tags_to_str(prompt_tags))
         return
     # Process targets that don't require LLMs.
@@ -343,7 +343,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         out_txt = hio.from_file(tmp_out_file_name)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
-    hparser.write_file(out_txt, out_file_name)
+    hparser.to_file(out_txt, out_file_name)
     if os.path.basename(out_file_name) == "cfile":
         print(out_txt)
 

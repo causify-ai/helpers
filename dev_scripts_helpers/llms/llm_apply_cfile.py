@@ -196,7 +196,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     #     out_txt = hdocker.prettier_on_str(out_txt)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
-    # hparser.write_file(out_txt, out_file_name)
+    # hparser.to_file(out_txt, out_file_name)
 
 
 if __name__ == "__main__":
