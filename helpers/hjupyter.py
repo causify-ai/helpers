@@ -101,6 +101,9 @@ def build_run_notebook_cmd(
     return cmd_run_txt
 
 
+# #############################################################################
+
+
 def find_paired_files(
     directory: str,
     *,
@@ -326,7 +329,7 @@ def report_execution_results(
         if nb_failures:
             _LOG.error("Failed notebooks:")
             for file_path in nb_failures:
-                basename = os.path.basename(nb_path)
+                basename = os.path.basename(file_path)
                 _, error, _ = nb_results[file_path]
                 _LOG.error("  - %s: %s", basename, error)
         _LOG.error("=" * 80)
