@@ -1,4 +1,4 @@
-# Simple change
+# Simple Change
 - Do ...
 
 - If the task is not perfectly clear, you MUST not perform it, but ask for
@@ -15,7 +15,7 @@
 ./helpers_root/docs/ai_prompts/notebooks.format_rules.md
 ./helpers_root/docs/ai_prompts/testing.format_rules.md
 
-# Implement code
+# Implement Code
 
 Implement one step at the time asking user for confirmation, before moving to the
 next step
@@ -51,7 +51,7 @@ next step
 - Implement unit test code for the code following the instructions in
   `docs/ai_prompts/testing.format_rules.md`
 
-# Implement notebook script
+# Implement Notebook Script
 
 source = `msml610/lectures_source/Lesson05.1-Learning_Theory.txt`
 notebook = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.ipynb`
@@ -63,18 +63,17 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md`
 - Execute `docs/ai_prompts/notebooks.create_visual_script.md` to create the script
   for the concept
 
-## Create a template notebook
-- Create an empty notebook
+## Build Notebook
+- If there is no $notebook
   ```bash
   > cp ./msml610/tutorials/template.ipynb $notebook
+  > git add $notebook
   ```
-
-## Build notebook
 - Execute `docs/ai_prompts/notebooks.implement_script.md` for cells between
   <start> and <end> of $script
 - Update $notebook
 
-# Rename files
+# Rename Files
 
 ## Step 1)
 - Rename the files in ... that have ...
@@ -82,7 +81,7 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md`
 ## Step 2)
 - Make sure that all the files in the repo are updated with this change
 
-# Implement an invoke target
+# Implement an Invoke Target
 
 - Add an invoke target in helpers/lib_tasks_git.py to create a zip file with
   all the files that are modified or untracked for both the current repo, using
@@ -130,4 +129,3 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md`
   - Report some examples of how to use the script
   - Update the file README.md in the same directory of the script following the
     instructions in `docs/ai_prompts/readme.create.md`
-
