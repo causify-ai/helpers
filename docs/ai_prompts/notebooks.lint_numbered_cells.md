@@ -98,9 +98,9 @@
   utils.cell1_draw_bin_with_marbles_interactive()
   ```
 
-# Reorganize Code in the `utils_*.py` Python File
+# Reorganize Code in the `*_utils.py` Python File
 
-- When the code implementing the cells is in a `utils_*.py` Python file, make
+- When the code implementing the cells is in a `*_utils.py` Python file, make
   sure that:
 1) All the code must be in the right order according to the cells
    - E.g., the code for `cell1_draw_bin_with_marbles_interactive` comes before

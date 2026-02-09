@@ -44,7 +44,7 @@ py:percent format (e.g., msml610/tutorials/Lesson94-Information_Theory.py)
 
   ```python
   import msml610_utils as ut
-  import utils_Lesson94_Information_Theory as utils
+  import Lesson94_Information_Theory_utils as utils
 
   ut.config_notebook()
 
@@ -62,14 +62,14 @@ py:percent format (e.g., msml610/tutorials/Lesson94-Information_Theory.py)
 # Notebook Pairing to Python File and Utility File
 
 - Each notebook is paired with Jupytext to a Python file and has a corresponding
-  `utils_*.py` file containing the code corresponding to that notebook
+  `*_utils.py` file containing the code corresponding to that notebook
   - E.g., for the Jupyter notebook
     `msml610/tutorials/Lesson94-Information_Theory.ipynb` is paired with
     Jupytext to the file `msml610/tutorials/Lesson94-Information_Theory.py` and
-    the corresponding `utils_*.py` file is
-    `./msml610/tutorials/utils_Lesson94_Information_Theory.py`
+    the corresponding `*_utils.py` file is
+    `./msml610/tutorials/Lesson94_Information_Theory_utils.py`
 - Given the notebook, find and print the corresponding paired file and the
-  `utils_*.py` file
+  `*_utils.py` file
 
 # Final Step
 

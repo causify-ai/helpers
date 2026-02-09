@@ -6,15 +6,15 @@
 
 - Always use the conventions in `docs/ai_prompts/notebooks.format_rules.md`
 
-# Save code to the `utils_*.py`
+# Save code to the `*_utils.py`
 
 - Each notebook is paired with Jupytext to a Python file and has a corresponding
-  `utils_*.py` file containing the code corresponding to that notebook
+  `*_utils.py` file containing the code corresponding to that notebook
   - E.g., for the Jupyter notebook
     `msml610/tutorials/Lesson94-Information_Theory.ipynb` is paired with
     Jupytext to the file `msml610/tutorials/Lesson94-Information_Theory.py` and
-    the corresponding `utils_*.py` file is
-    `./msml610/tutorials/utils_Lesson94_Information_Theory.py`
+    the corresponding `*_utils.py` file is
+    `./msml610/tutorials/Lesson94_Information_Theory_utils.py`
 
 - All the code implementing the widget must go in the utility
 - Only the caller to the function must be in the notebook
@@ -97,7 +97,7 @@
 - Do not print any information as `print()` statement, but write all the
   information in the "Comments" graph
 - You can use `plot_joint_entropy_interactive()` in
-  `msml610/tutorials/utils_Lesson94_Information_Theory.py` as a reference
+  `msml610/tutorials/Lesson94_Information_Theory_utils.py` as a reference
 
 # Plotting Graphs
 

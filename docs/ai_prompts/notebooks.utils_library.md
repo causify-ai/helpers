@@ -2,11 +2,11 @@
 
 - Find or create the library / utility file that correspond to the notebook
   - E.g., `Lesson94-Information_Theory.ipynb` ->
-    `utils_Lesson94-Information_Theory.py`
+    Lesson94-Information_Theory_utils.py`
 - Implement the code and then:
-  - Save the functions and the bulk of the code in the `utils_*.py` files
+  - Save the functions and the bulk of the code in the `*_utils.py` files
   - Leave only the caller code in Jupyter notebook
-- Reuse code already existing in the `utils_*.py` file and in the `helpers`
+- Reuse code already existing in the `*_utils.py` file and in the `helpers`
   directory
 
 # Add Code to the Right Place in the Library

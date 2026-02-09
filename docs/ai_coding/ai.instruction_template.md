@@ -53,23 +53,26 @@ next step
 
 # Implement notebook script
 
+source = `msml610/lectures_source/Lesson05.1-Learning_Theory.txt`
+notebook = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.ipynb`
+script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md`
+
+
 ## Build the script
-- Read `msml610/lectures_source/Lesson05.1-Learning_Theory.txt` and understand
-  the bin analogy
+- Read $source and understand the bin analogy
 - Execute `docs/ai_prompts/notebooks.create_visual_script.md` to create the script
   for the concept
 
-## Create a notebook
-- Create a notebook
+## Create a template notebook
+- Create an empty notebook
   ```bash
-  > cp ./msml610/tutorials/template.ipynb msml610/tutorials/Lesson05.1-Learning_Theory.Bin_Analogy_ML.ipynb
+  > cp ./msml610/tutorials/template.ipynb $notebook
   ```
 
 ## Build notebook
 - Execute `docs/ai_prompts/notebooks.implement_script.md` for cells between
-  <start> and <end> of
-  `msml610/tutorials/Lesson05.1-Learning_Theory.Bin_Analogy.md`
-- Update `msml610/tutorials/Lesson05.1-Learning_Theory.Bin_Analogy_ML.ipynb`
+  <start> and <end> of $script
+- Update $notebook
 
 # Rename files
 
