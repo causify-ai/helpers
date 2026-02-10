@@ -17,7 +17,7 @@ For all the code follow the rules from `docs/ai_prompts/coding.format_code.md`
 - Then you will move all the functions from the notebook to the `*_utils.py`
   file without changing the code
 
-# Step 3.
+# Step 3)
 
 - You will change the Python code to call the functions in the utils file
 

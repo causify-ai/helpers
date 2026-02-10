@@ -1,9 +1,9 @@
-You are an expert Python developer.
+- You are an expert Python developer.
 
-I will pass you a Python file paired with Jupyter notebook with jupytext using a
-py:percent format (e.g., msml610/tutorials/Lesson94-Information_Theory.py)
+- I will pass you a Python file paired with Jupyter notebook with jupytext using
+  a py:percent format (e.g., `msml610/tutorials/Lesson94-Information_Theory.py`)
 
-# Modify Only the Python File Paired to a Jupyter Notebook
+# Use Jupytext
 
 - When changing a notebook, you must only modify the Python file paired with the
   given Jupyter notebook
@@ -11,6 +11,12 @@ py:percent format (e.g., msml610/tutorials/Lesson94-Information_Theory.py)
   a command to pair the notebook and the Python file:
   ```bash
   > uvx jupytext --set-formats ipynb,py:percent  <ipynb file>
+  ```
+
+- After you have modified the Python file corresponding to the Jupyter notebook,
+  you will run a command to pair the notebook and the Python file
+  ```
+  > uvx jupytext --sync <python file>
   ```
 
 # Use Python Style
@@ -70,11 +76,3 @@ py:percent format (e.g., msml610/tutorials/Lesson94-Information_Theory.py)
     `./msml610/tutorials/Lesson94_Information_Theory_utils.py`
 - Given the notebook, find and print the corresponding paired file and the
   `*_utils.py` file
-
-# Final Step
-
-- After you have modified the Python file corresponding to the Jupyter notebook,
-  you will run a command to pair the notebook and the Python file
-  ```
-  > uvx jupytext --sync <python file>
-  ```

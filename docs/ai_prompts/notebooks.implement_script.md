@@ -54,35 +54,6 @@
   - The interactive cell contains the Visualization, Interactive widget, Comment
     box
 
-# Format of Markdown Cell
-- The markdown cell has a title from the header, like:
-  ```
-  ## Cell i: Visual Bin.
-  ```
-- It describes:
-  - The purpose of the cell
-  - The meaning of the variables in the following interactive widget
-  - What can be learned from the interactive cell
-
-- E.g.,
-  ```markdown
-  ## Cell 1.2: Samples Over Time and Empirical PDF
-
-  - Visualize $N$ samples from a Bernoulli distribution:
-    - As a sequence over time
-    - As an empirical probability distribution function (PDF)
-
-  **Parameters**:
-  - `mu` ($\mu$): True probability of success (between 0 and 1)
-  - `N` ($N$): Number of samples to draw
-  - `seed`: Random seed for reproducibility
-
-  **Key observation**:
-  - The empirical probability (blue line) is always at or below the theoretical bound (red line)
-  - This confirms the Hoeffding inequality
-  - The gap between them shows how conservative the bound is
-  ```
-
 # Complex Interactive Widgets
 
 - When the user asks for a "complex interactive widget", it means that there

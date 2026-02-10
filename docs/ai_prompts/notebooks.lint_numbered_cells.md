@@ -2,13 +2,11 @@
   appearance without changing its behavior using the rules from
   `docs/ai_prompts/notebooks.format_rules.md`
 
-# Modify Only the Python File Paired to a Jupyter Notebook
-
+# Use Jupytext
 - Remember to modify only the Python file paired with Jupytext to the notebook
   and then sync them with Jupytext
 
 # Rename Markdown Cells
-
 - Each markdown cell must be named, depending on the markdown header level, with
   a format like "Cell 1:" or "Cell 1.1:" as in the following
   - For header of level 1
@@ -55,9 +53,63 @@
     utils.cell2_create_binary_entropy_widget()
     ```
 
-# Content of the Markdown Cells
+# Header of a Markdown Cell with `Cell XYZ`
+- A markdown cell can have a title starting with `Cell XYZ: ...`
+  - If the header is level 1 (e.g., 1, 2, 3), it should have a single `#`, e.g.,
+    ```markdown
+    # Cell i: Visual Bin.
+    ```
+  - If the header is level 2 (e.g., 1.2, 2.3), it should be prepended `##`, e.g.,
+    ```markdown
+    ## Cell 1.2: Samples Over Time and Empirical PDF.
+    ```
 
-- Each markdown cell must have text organized in bullet list
+# Content of a Markdown Cell with `Cell XYZ` header
+- Each Markdown cell before of an interactive cell should have a description of
+  the parameters
+
+## Goal
+- Describe the goal of the interactive cell
+  ```markdown
+  **Goal**:
+  - Visualize the true target function and how we sample data from it
+  - Understand that in real-world machine learning, we don't have access to the complete target function: we only observe sampled points
+  - Show the relationship between the true function, in-sample (training) data, and out-of-sample (test) data
+  ```
+
+## Plots
+- Describe the plots of the interactive cell
+  ```markdown
+  **Plots**:
+  - Display four plots:
+    - _True Target Function_: The complete unknown function we want to learn (shown with and without noise)
+    - _In-Sample Data (80%)_: Green points used for training the model
+    - _Out-of-Sample Data (20%)_: Red points used for testing the model
+    - _Comments_: Summary of parameters and observations
+  ```
+
+## Parameters
+- Describe the parameters of the interactive cell
+  ```markdown
+  **Parameters**:
+  - `Function`: Select the true target function (Slow Sinusoid, Fast Sinusoid, Parabola, Constant, or Linear)
+  - `epsilon` ($\epsilon$): Standard deviation of noise added to observations
+  - `N (total samples)` ($N$): Number of data points to sample from the function
+  ```
+
+## Key observations
+- Describe the key points and observations of the interactive cell
+  ```markdown
+  **Key observations**:
+  - The complete curve represents the unknown target function $f(x)$
+  - In practice, we only have access to a few noisy samples from this function
+  - We split data into training (green) and testing (red) sets
+  - The goal is to learn from training data and generalize to test data
+  ```
+
+# Use Nested Bullets
+
+- Each markdown cell must have text organized in nested bullet list
   - Bad
     ```
     Examine what happens when we repeatedly sample N points many times. Each trial produces an empirical mean nu. This cell shows the distribution of nu over many trials and compares it with the expected distribution predicted by the Law of Large Numbers and Central Limit Theorem.
@@ -72,17 +124,8 @@
         Numbers and Central Limit Theorem.
     ```
 
+# Use Latex notation
 - Markdown cell must use Latex notation for variables and formulas
-
-- Each Markdown cell before of an interactive cell should have a description of
-  the parameters
-  ```
-  **Parameters**:
-  - `mu` ($\mu$): True probability of success (between 0 and 1)
-  - `samples per trial` ($N$): Number of samples drawn in each trial
-  - `n_samples`: Number of trials to repeat the experiment (how many times we compute $\nu$)
-  - `seed`: Random seed for reproducibility
-  ```
 
 # Content of Code Cells
 
