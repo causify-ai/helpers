@@ -129,3 +129,9 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md`
   - Report some examples of how to use the script
   - Update the file README.md in the same directory of the script following the
     instructions in `docs/ai_prompts/readme.create.md`
+
+# Write short tutorial
+
+- Execute `docs/ai_prompts/blog.write_tutorial.md` about ripgrep
+
+- Write the result in `website/docs/blog/drafts/ripgrep.md`

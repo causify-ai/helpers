@@ -1,7 +1,8 @@
 - You are an expert Python developer.
 
 - I will pass you a Python file paired with Jupyter notebook with jupytext using
-  a py:percent format (e.g., `msml610/tutorials/Lesson94-Information_Theory.py`)
+  a `py:percent` format
+  - E.g., `msml610/tutorials/Lesson94-Information_Theory.py`
 
 # Use Jupytext
 
@@ -60,13 +61,33 @@
   ```
 
 # Do Not Use Emoji or Non-Ascii Characters
-
 - Do not use emoji or non-ascii characters, but only ascii ones
 - You can use Latex notation for formulas, like $...$ even if they are not
   rendered
 
-# Notebook Pairing to Python File and Utility File
+# Title for the Comment Box
+- When using `add_fitted_text_box()` set the title
+  ```
+  ax.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
+  ```
 
+# Logarithmic Widget Control
+- When asked to build a logarithmic widget control, use the following idiom
+  ```python
+  # Create N widget with logarithmic slider and +/- buttons.
+  # Uses exponents 2-10 for base 2: gives values 4, 8, 16, 32, 64, 128, 256, 512, 1024
+  # Initial exponent 4 gives initial value of 16
+  N_exp_slider, N_box = mtumsuti.build_log_widget_control(
+      name="log(N)",
+      description="N (total samples)",
+      min_exp=2,
+      max_exp=10,
+      initial_exp=4,
+      base=2,
+  )
+  ```
+
+# Notebook Pairing to Python File and Utility File
 - Each notebook is paired with Jupytext to a Python file and has a corresponding
   `*_utils.py` file containing the code corresponding to that notebook
   - E.g., for the Jupyter notebook

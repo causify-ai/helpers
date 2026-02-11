@@ -24,7 +24,6 @@
   ```
 
 # Cells in Increasing Order
-
 - Cells should be increasing and consecutive order
   - Bad
     ```markdown
@@ -124,6 +123,9 @@
         Numbers and Central Limit Theorem.
     ```
 
+# Do Not Use Capitalized Text
+- Do not use capitalized text, but prefer to use italic or bold text
+
 # Use Latex notation
 - Markdown cell must use Latex notation for variables and formulas
 
@@ -140,6 +142,34 @@
   ```
   utils.cell1_draw_bin_with_marbles_interactive()
   ```
+
+# Keep Function Names in Sync with the Cells
+- The name of a Python function needs to be in sync with the header of the
+  corresponding cell
+  - Good
+    ```markdown
+    # Cell 1: True Target Function and Data Sampling
+    utils.cell1_plot_true_target_function()
+    ```
+    ```markdown
+    ## Cell 2.2: Interactive Hoeffding Inequality Demonstration
+    utils.cell4_hoeffding_inequality_demo()
+    ```
+  - Bad
+    ```markdown
+    ## Cell 2.2: Interactive Hoeffding Inequality Demonstration
+    utils.cell4_hoeffding_inequality_demo()
+    ```
+
+- Assume that the header of the cells are correct and the function names need
+  to be renamed
+
+# Widget Variable Names
+
+- In the widgets of an interactive cell use only the names of the variables
+  without description
+  - `mu`, `N`, `epsilon`, `seed`
+- `seed` should be the last one
 
 # Reorganize Code in the `*_utils.py` Python File
 
