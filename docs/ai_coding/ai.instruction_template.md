@@ -57,13 +57,12 @@ source = `msml610/lectures_source/Lesson05.1-Learning_Theory.txt`
 notebook = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.ipynb`
 script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md`
 
-
-## Build the script
+## Build the Notebook Script
 - Read $source and understand the bin analogy
 - Execute `docs/ai_prompts/notebooks.create_visual_script.md` to create the script
   for the concept
 
-## Build Notebook
+## Build the Notebook
 - If there is no $notebook
   ```bash
   > cp ./msml610/tutorials/template.ipynb $notebook
