@@ -24,21 +24,16 @@
   ```markdown
   ## Cell i: Visual Bin.
   - Purpose: Give a concrete visual of the "unknown" population
-  - Visualization:
-    - Draw a 2D bin filled with red and green marbles
+  - Display:
+    - Show bin with marbles colored proportionally to mu
     - ...
   - Interactive widget:
     - Slider for mu (true proportion of red marbles, 0-1)
     - ...
-  - Display:
-    - Show bin with marbles colored proportionally to mu
-  - Comment box: ...
+  - Key insights: ...
   ```
 
 - Cells should be numbered incrementally with a format
-  ```markdown
-  ## Cell 1: Visual Bin - Population of Marbles.
-  ```
 
 # Formatting
 
