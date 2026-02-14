@@ -177,6 +177,34 @@ def _handle_empty_lines(lines: List[str]) -> List[str]:
     return lines_new
 
 
+def _add_blank_lines_between_headers(lines: List[str]) -> List[str]:
+    """
+    Add blank lines between consecutive markdown headers.
+
+    When two headers (lines starting with #) appear on consecutive lines,
+    insert a blank line between them. This improves readability and follows
+    markdown best practices.
+
+    :param lines: The lines to be processed.
+    :return: The lines with blank lines added between consecutive headers.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        lines_new.append(line)
+        # Check if current line is a header.
+        if re.match(r"^(#+)\s+(.*)$", line):
+            # Check if next line is also a header.
+            if i + 1 < len(lines) and re.match(r"^(#+)\s+(.*)$", lines[i + 1]):
+                # Add a blank line between the two consecutive headers.
+                lines_new.append("")
+        i += 1
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 def _check_links(in_file_name: str) -> None:
     """
     Check if all URLs in the file are reachable by calling check_links.py.
@@ -324,6 +352,10 @@ def _perform_actions(
     action = "handle_empty_lines"
     if _to_execute_action(action, actions):
         lines = _handle_empty_lines(lines)
+    # Add blank lines between consecutive headers.
+    action = "add_blank_lines_between_headers"
+    if _to_execute_action(action, actions):
+        lines = _add_blank_lines_between_headers(lines)
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
@@ -376,6 +408,9 @@ _VALID_ACTIONS = [
     # _handle_empty_lines(): remove empty lines after headers and before code
     # blocks.
     "handle_empty_lines",
+    # _add_blank_lines_between_headers(): add blank lines between consecutive
+    # headers.
+    "add_blank_lines_between_headers",
     #
     "frame_chapters",
     "capitalize_header",

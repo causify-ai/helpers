@@ -423,6 +423,201 @@ class Test_remove_page_separators(hunitest.TestCase):
         self.helper(txt, expected)
 
 
+# #############################################################################
+# Test_add_blank_lines_between_headers
+# #############################################################################
+
+
+class Test_add_blank_lines_between_headers(hunitest.TestCase):
+    """
+    Test the _add_blank_lines_between_headers function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _add_blank_lines_between_headers.
+
+        :param txt: Input text to process
+        :param expected: Expected output after adding blank lines
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._add_blank_lines_between_headers(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test adding blank line between two consecutive headers.
+        """
+        # Prepare inputs.
+        txt = """
+        # Conversational Diagram Designer (CDD)
+        ## 1. Overview
+        Conversational Diagram Designer (CDD) is a browser-based diagramming tool.
+        """
+        # Prepare outputs.
+        expected = """
+        # Conversational Diagram Designer (CDD)
+
+        ## 1. Overview
+        Conversational Diagram Designer (CDD) is a browser-based diagramming tool.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test adding blank lines between multiple consecutive headers.
+        """
+        # Prepare inputs.
+        txt = """
+        # Title
+        ## Subtitle
+        ### Subsubtitle
+        #### Deep subtitle
+        Content here
+        """
+        # Prepare outputs.
+        expected = """
+        # Title
+
+        ## Subtitle
+
+        ### Subsubtitle
+
+        #### Deep subtitle
+        Content here
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test that non-consecutive headers are not affected.
+        """
+        # Prepare inputs.
+        txt = """
+        # Header 1
+
+        Some text here.
+
+        ## Header 2
+
+        More text here.
+        """
+        # Prepare outputs.
+        expected = """
+        # Header 1
+
+        Some text here.
+
+        ## Header 2
+
+        More text here.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test mixed consecutive and non-consecutive headers.
+        """
+        # Prepare inputs.
+        txt = """
+        # Main Title
+        ## Section 1
+        Content for section 1.
+
+        ## Section 2
+        ### Subsection 2.1
+        More content.
+        """
+        # Prepare outputs.
+        expected = """
+        # Main Title
+
+        ## Section 1
+        Content for section 1.
+
+        ## Section 2
+
+        ### Subsection 2.1
+        More content.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test with empty input.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test with text without headers.
+        """
+        # Prepare inputs.
+        txt = """
+        First line
+        Second line
+        Third line
+        """
+        # Prepare outputs.
+        expected = """
+        First line
+        Second line
+        Third line
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test with only one header.
+        """
+        # Prepare inputs.
+        txt = """
+        # Single Header
+        Some content below.
+        """
+        # Prepare outputs.
+        expected = """
+        # Single Header
+        Some content below.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test headers at beginning and end of file.
+        """
+        # Prepare inputs.
+        txt = """
+        # First Header
+        ## Second Header
+        """
+        # Prepare outputs.
+        expected = """
+        # First Header
+
+        ## Second Header
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+
 def _get_text1() -> str:
     """
     Get sample text containing mathematical equations in LaTeX format.
