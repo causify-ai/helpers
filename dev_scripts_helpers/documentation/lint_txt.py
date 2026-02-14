@@ -21,6 +21,7 @@ import helpers.hmarkdown_toc as hmarktoc
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.htext_protect as htxtpro
 
 _LOG = logging.getLogger(__name__)
 
@@ -197,6 +198,8 @@ def _check_links(in_file_name: str) -> None:
     hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
 
+# TODO(gp): Clarify what are the transformations for this.
+# TODO(gp): Reuse the code in htext_protect
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
     """
     Post-process the given text by applying various transformations.
@@ -259,8 +262,6 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
     return to_execute
 
 
-# TODO(ai_gp): Add a stage to remove all the commented parts and the content
-# of fenced blocks
 def _perform_actions(
     lines: List[str],
     in_file_name: str,
@@ -270,6 +271,9 @@ def _perform_actions(
 ) -> List[str]:
     """
     Process the given text by applying a series of actions.
+
+    Protected content (fenced blocks, comments) is extracted before processing
+    and restored afterward to prevent formatters from modifying it.
 
     :param lines: The lines to be processed.
     :param in_file_name: The name of the input file.
@@ -296,6 +300,8 @@ def _perform_actions(
     yaml_frontmatter: List[str] = []
     if is_md_file:
         yaml_frontmatter, lines = hmarktoc.extract_yaml_frontmatter(lines)
+    # Extract protected content (fenced blocks, comments, math blocks).
+    lines, protected_map = htxtpro.extract_protected_content(lines, extension)
     # Pre-process text.
     action = "preprocess"
     if _to_execute_action(action, actions):
@@ -348,6 +354,8 @@ def _perform_actions(
             _check_links(in_file_name)
         else:
             _LOG.debug("Skipping link check for non-text file type")
+    # Restore protected content.
+    lines = htxtpro.restore_protected_content(lines, protected_map)
     # Reattach YAML front matter if it was extracted.
     lines = hmarktoc.reattach_yaml_frontmatter(yaml_frontmatter, lines)
     return lines

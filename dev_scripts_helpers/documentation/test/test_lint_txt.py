@@ -761,8 +761,8 @@ class Test_lint_txt2(hunitest.TestCase):
         * `str.format`
         - Python 3 allows to format multiple values, e.g.,
           ```python
-          key = 'my_var'
-          value = 1.234
+             key = 'my_var'
+           value = 1.234
           ```
         """
         file_name = "test.txt"
