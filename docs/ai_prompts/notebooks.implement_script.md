@@ -6,15 +6,15 @@
 
 - Always use the conventions in `docs/ai_prompts/notebooks.format_rules.md`
 
-# Save code to the `utils_*.py`
+# Save Code to the `*_utils.py`
 
 - Each notebook is paired with Jupytext to a Python file and has a corresponding
-  `utils_*.py` file containing the code corresponding to that notebook
+  `*_utils.py` file containing the code corresponding to that notebook
   - E.g., for the Jupyter notebook
     `msml610/tutorials/Lesson94-Information_Theory.ipynb` is paired with
     Jupytext to the file `msml610/tutorials/Lesson94-Information_Theory.py` and
-    the corresponding `utils_*.py` file is
-    `./msml610/tutorials/utils_Lesson94_Information_Theory.py`
+    the corresponding `*_utils.py` file is
+    `./msml610/tutorials/Lesson94_Information_Theory_utils.py`
 
 - All the code implementing the widget must go in the utility
 - Only the caller to the function must be in the notebook
@@ -23,16 +23,6 @@
   utils.sample_bernoulli3()
   # Changing the seed generates new realizations with different empirical values.
   ```
-
-# Interactive Widgets Conventions
-
-- Interactive widgets must always have:
-  - The name of the variable (e.g., n, mu, nu)
-  - Value cell and "-" and "+" buttons
-- The widget to select the seed must always be the first widget
-
-- Use code in `msml610_utils.py` like `_create_slider_widget()`,
-  `build_widget_control()` to create the widgets
 
 # Format of Cells
 
@@ -54,35 +44,6 @@
   - The interactive cell contains the Visualization, Interactive widget, Comment
     box
 
-# Format of Markdown Cell
-- The markdown cell has a title from the header, like:
-  ```
-  ## Cell i: Visual Bin.
-  ```
-- It describes:
-  - The purpose of the cell
-  - The meaning of the variables in the following interactive widget
-  - What can be learned from the interactive cell
-
-- E.g.,
-  ```markdown
-  ## Cell 1.2: Samples Over Time and Empirical PDF
-
-  - Visualize $N$ samples from a Bernoulli distribution:
-    - As a sequence over time
-    - As an empirical probability distribution function (PDF)
-
-  **Parameters**:
-  - `mu` ($\mu$): True probability of success (between 0 and 1)
-  - `N` ($N$): Number of samples to draw
-  - `seed`: Random seed for reproducibility
-
-  **Key observation**:
-  - The empirical probability (blue line) is always at or below the theoretical bound (red line)
-  - This confirms the Hoeffding inequality
-  - The gap between them shows how conservative the bound is
-  ```
-
 # Complex Interactive Widgets
 
 - When the user asks for a "complex interactive widget", it means that there
@@ -97,7 +58,7 @@
 - Do not print any information as `print()` statement, but write all the
   information in the "Comments" graph
 - You can use `plot_joint_entropy_interactive()` in
-  `msml610/tutorials/utils_Lesson94_Information_Theory.py` as a reference
+  `msml610/tutorials/Lesson94_Information_Theory_utils.py` as a reference
 
 # Plotting Graphs
 

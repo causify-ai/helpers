@@ -1,5 +1,4 @@
-## Template nodes
-
+## Template Nodes
 ```
 digraph WindTurbineCKG {
   rankdir=LR;
@@ -39,8 +38,7 @@ subgraph cluster_legend {
 }
 ```
 
-## Edge legend
-
+## Edge Legend
 ```
 digraph legend {
     graph [rankdir=TB, nodesep=0.5, ranksep=0.7];
@@ -112,4 +110,3 @@ digraph legend {
     b1 -> b2 -> b3 -> b4 -> b5 -> b6 [style=invis];
 }
 ```
-
