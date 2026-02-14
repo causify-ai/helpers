@@ -186,7 +186,7 @@ def execute_file_with_docker(
             scratch_dir = os.path.join(working_dir, "tmp.notebook_scratch")
             # Build Python command to run notebook.
             cmd = (
-                f"python -c \""
+                f'python -c "'
                 f"import helpers.hjupyter as hjupyte; "
                 f"import helpers.hio as hio; "
                 f"hio.create_dir('{scratch_dir}', incremental=True); "
@@ -264,12 +264,8 @@ def report_execution_results(
     :return: tuple of (total_failures, error_message)
     """
     # Collect failures.
-    py_failures = [
-        f for f, (success, _, _) in py_results.items() if not success
-    ]
-    nb_failures = [
-        f for f, (success, _, _) in nb_results.items() if not success
-    ]
+    py_failures = [f for f, (success, _, _) in py_results.items() if not success]
+    nb_failures = [f for f, (success, _, _) in nb_results.items() if not success]
     # Calculate statistics.
     py_total = len(py_results)
     py_success = py_total - len(py_failures)
@@ -334,7 +330,6 @@ def report_execution_results(
                 _LOG.error("  - %s: %s", basename, error)
         _LOG.error("=" * 80)
         error_message = (
-            f"{total_failures} file(s) failed to execute. "
-            f"See log for details."
+            f"{total_failures} file(s) failed to execute. See log for details."
         )
     return total_failures, error_message

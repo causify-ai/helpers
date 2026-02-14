@@ -649,10 +649,10 @@ def _get_text1() -> str:
     return txt
 
 
-
 # #############################################################################
 # Test_lint_txt1
 # #############################################################################
+
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
@@ -751,10 +751,10 @@ class Test_lint_txt1(hunitest.TestCase):
         self.helper(txt, expected)
 
 
-
 # #############################################################################
 # Test_lint_txt2
 # #############################################################################
+
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
@@ -1040,10 +1040,10 @@ class Test_lint_txt2(hunitest.TestCase):
         self.helper(txt, expected, file_name)
 
 
-
 # #############################################################################
 # Test_lint_txt_cmd_line1
 # #############################################################################
+
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),

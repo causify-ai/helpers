@@ -14,14 +14,13 @@ from typing import Any, List, Optional
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
-import helpers.hio as hio
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
-import helpers.hmarkdown_toc as hmarktoc
+import helpers.hmarkdown_toc as hmartoc
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import helpers.htext_protect as htxtpro
+import helpers.htext_protect as htexprot
 
 _LOG = logging.getLogger(__name__)
 
@@ -168,7 +167,11 @@ def _handle_empty_lines(lines: List[str]) -> List[str]:
                 empty_line_count += 1
                 j += 1
             # Check if we found a code block after empty lines.
-            if empty_line_count > 0 and j < len(lines) and re.match(r"^\s*```", lines[j]):
+            if (
+                empty_line_count > 0
+                and j < len(lines)
+                and re.match(r"^\s*```", lines[j])
+            ):
                 # Skip the empty lines.
                 i = j
                 continue
@@ -327,9 +330,9 @@ def _perform_actions(
     # Extract YAML front matter if present (only for markdown files).
     yaml_frontmatter: List[str] = []
     if is_md_file:
-        yaml_frontmatter, lines = hmarktoc.extract_yaml_frontmatter(lines)
+        yaml_frontmatter, lines = hmartoc.extract_yaml_frontmatter(lines)
     # Extract protected content (fenced blocks, comments, math blocks).
-    lines, protected_map = htxtpro.extract_protected_content(lines, extension)
+    lines, protected_map = htexprot.extract_protected_content(lines, extension)
     # Pre-process text.
     action = "preprocess"
     if _to_execute_action(action, actions):
@@ -377,7 +380,7 @@ def _perform_actions(
     action = "refresh_toc"
     if _to_execute_action(action, actions):
         if is_md_file:
-            lines = hmarktoc.refresh_toc(lines, **kwargs)
+            lines = hmartoc.refresh_toc(lines, **kwargs)
     # Check links.
     action = "check_links"
     if _to_execute_action(action, actions):
@@ -387,9 +390,9 @@ def _perform_actions(
         else:
             _LOG.debug("Skipping link check for non-text file type")
     # Restore protected content.
-    lines = htxtpro.restore_protected_content(lines, protected_map)
+    lines = htexprot.restore_protected_content(lines, protected_map)
     # Reattach YAML front matter if it was extracted.
-    lines = hmarktoc.reattach_yaml_frontmatter(yaml_frontmatter, lines)
+    lines = hmartoc.reattach_yaml_frontmatter(yaml_frontmatter, lines)
     return lines
 
 

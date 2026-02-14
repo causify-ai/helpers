@@ -3,6 +3,10 @@ Utilities for protecting content during text processing.
 
 Extract and restore content that should not be modified by formatters and text
 transformations (code blocks, comments, etc.).
+
+Import as:
+
+import helpers.htext_protect as htexprot
 """
 
 import logging
@@ -220,9 +224,7 @@ def extract_protected_content(
         _LOG.warning("Unclosed math block detected")
     if in_html_comment:
         _LOG.warning("Unclosed HTML comment detected")
-    _LOG.debug(
-        "Extracted %d protected content blocks", len(protected_map)
-    )
+    _LOG.debug("Extracted %d protected content blocks", len(protected_map))
     return lines_new, protected_map
 
 
@@ -239,9 +241,7 @@ def restore_protected_content(
     """
     hdbg.dassert_isinstance(lines, list)
     hdbg.dassert_isinstance(protected_map, dict)
-    _LOG.debug(
-        "Restoring %d protected content blocks", len(protected_map)
-    )
+    _LOG.debug("Restoring %d protected content blocks", len(protected_map))
     #
     lines_new: List[str] = []
     for line in lines:

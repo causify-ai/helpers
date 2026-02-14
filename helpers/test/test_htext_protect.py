@@ -1,7 +1,7 @@
 import logging
 
 import helpers.hprint as hprint
-import helpers.htext_protect as htxtpro
+import helpers.htext_protect as htexprot
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class Test__extract_protected_content(hunitest.TestCase):
         lines = txt.split("\n")
         lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         # Run test.
-        actual_lines, protected_map = htxtpro.extract_protected_content(
+        actual_lines, protected_map = htexprot.extract_protected_content(
             lines, file_type
         )
         # Check outputs.
@@ -341,7 +341,7 @@ class Test__restore_protected_content(hunitest.TestCase):
         lines = txt.split("\n")
         lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         # Run test.
-        actual_lines = htxtpro.restore_protected_content(lines, protected_map)
+        actual_lines = htexprot.restore_protected_content(lines, protected_map)
         # Check outputs.
         actual = "\n".join(actual_lines)
         expected = hprint.dedent(
@@ -499,10 +499,10 @@ class Test_extract_restore_roundtrip(hunitest.TestCase):
         lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         original = "\n".join(lines)
         # Run test.
-        extracted_lines, protected_map = htxtpro.extract_protected_content(
+        extracted_lines, protected_map = htexprot.extract_protected_content(
             lines, file_type
         )
-        restored_lines = htxtpro.restore_protected_content(
+        restored_lines = htexprot.restore_protected_content(
             extracted_lines, protected_map
         )
         # Check outputs.
