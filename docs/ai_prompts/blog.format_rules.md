@@ -1,41 +1,39 @@
-Format the text of the blog using the following rules.
+- Format the text of the blog using the following rules.
 
 ## Front Matter (YAML)
 
-Every blog post must start with YAML front matter enclosed in `---`:
-
-```markdown
----
-title: "Your Blog Post Title"
-authors:
-  - gpsaggese
-date: YYYY-MM-DD
-description:
-categories:
-  - Category Name
----
-```
-
-- **title**: Use double quotes, capitalize major words
-- **authors**: List format with username(s)
-- **date**: Use YYYY-MM-DD format
-- **description**: Usually left empty or contains a brief description
-- **categories**: Common categories include:
-  - Business
-  - Causal AI
-  - Startup
-  - Causal News
-  - Causal ELI5
+- Every blog post must start with YAML front matter enclosed in `---`:
+  ```markdown
+  ---
+  title: "Your Blog Post Title"
+  authors:
+    - gpsaggese
+  date: YYYY-MM-DD
+  description:
+  categories:
+    - Category Name
+  ---
+  ```
+  where
+  - **title**: Use double quotes, capitalize major words
+  - **authors**: List format with username(s)
+  - **date**: Use YYYY-MM-DD format
+  - **description**: Usually left empty or contains a brief description
+  - **categories**: Common categories include:
+    - Business
+    - Causal AI
+    - Startup
+    - Causal News
+    - Causal ELI5
 
 ## TL;DR Section
 
-Immediately after the front matter, add a TL;DR (or TLDR):
+- Immediately after the front matter, add a TL;DR (or TLDR):
+  ```markdown
+  TL;DR Your punchy one-liner summary that captures the essence of the post.
 
-```markdown
-TL;DR Your punchy one-liner summary that captures the essence of the post.
-
-<!-- more -->
-```
+  <!-- more -->
+  ```
 
 - Keep it very short and impactful (one sentence)
 - Use a colon after TL;DR or TLDR

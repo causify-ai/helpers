@@ -131,6 +131,51 @@ def _remove_page_separators(lines: List[str]) -> List[str]:
     return ret
 
 
+def _handle_empty_lines(lines: List[str]) -> List[str]:
+    """
+    Remove empty lines in specific contexts.
+
+    This function removes:
+    1. All empty lines immediately after markdown headers (lines starting
+       with #).
+    2. All empty lines between a text line and a code block marker (```).
+
+    :param lines: The lines to be processed.
+    :return: The lines with empty lines removed in specific contexts.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        lines_new.append(line)
+        # Check if current line is a header.
+        if re.match(r"^(#+)\s+(.*)$", line):
+            # Skip all following empty lines after the header.
+            i += 1
+            while i < len(lines) and re.match(r"^\s*$", lines[i]):
+                i += 1
+            continue
+        # Check if current line is non-empty text followed by empty lines
+        # and then a code block.
+        if line.strip() and not re.match(r"^\s*```", line):
+            # Look ahead for empty lines followed by code block.
+            j = i + 1
+            # Count empty lines.
+            empty_line_count = 0
+            while j < len(lines) and re.match(r"^\s*$", lines[j]):
+                empty_line_count += 1
+                j += 1
+            # Check if we found a code block after empty lines.
+            if empty_line_count > 0 and j < len(lines) and re.match(r"^\s*```", lines[j]):
+                # Skip the empty lines.
+                i = j
+                continue
+        i += 1
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 def _check_links(in_file_name: str) -> None:
     """
     Check if all URLs in the file are reachable by calling check_links.py.
@@ -214,6 +259,8 @@ def _to_execute_action(action: str, actions: Optional[List[str]] = None) -> bool
     return to_execute
 
 
+# TODO(ai_gp): Add a stage to remove all the commented parts and the content
+# of fenced blocks
 def _perform_actions(
     lines: List[str],
     in_file_name: str,
@@ -267,6 +314,10 @@ def _perform_actions(
     action = "remove_page_separators"
     if _to_execute_action(action, actions):
         lines = _remove_page_separators(lines)
+    # Handle empty lines.
+    action = "handle_empty_lines"
+    if _to_execute_action(action, actions):
+        lines = _handle_empty_lines(lines)
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
@@ -314,6 +365,9 @@ _VALID_ACTIONS = [
     "postprocess",
     # _remove_page_separators(): remove page separator lines (---).
     "remove_page_separators",
+    # _handle_empty_lines(): remove empty lines after headers and before code
+    # blocks.
+    "handle_empty_lines",
     #
     "frame_chapters",
     "capitalize_header",
