@@ -32,14 +32,12 @@
     - Function name
     - Parameters (with brief explanation if non-obvious)
     - Return value (if any)
-
   - Summary of the locations of duplicated code
     - Use the following format:
       ```verbatim
       file1.py: l1–l2, l3–l4, ...
       File2.py: l5–l8, ...
       ```
-
   - Create a vim quickfile cfile so that the user can navigate the proposed
     changes with a command like `vim -c "cfile cfile"` for instance
     ```verbatim

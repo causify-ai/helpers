@@ -1,4 +1,5 @@
 # Step 1)
+
 - Given the graphviz dot below
   ```
   digraph legend {
@@ -73,11 +74,14 @@
   ```
 
 # Step 2)
+
 - Create a graphviz dot to match exactly the figure.png
 
 # Step 3)
+
 - Use `./helpers_root/dev_scripts_helpers/documentation/dockerized_graphviz.py`
   to generate a png
 
 # Step 4)
+
 - Keep tweaking it until it looks like the figure

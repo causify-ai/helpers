@@ -1,11 +1,9 @@
 - Commands in a readme must follow the format below
-
   - Description
 
     ```bash
     > command
     ```
-
   - Good
 
     ````
@@ -15,7 +13,6 @@
         --system_prompt_file system_prompt.txt
     ```
     ````
-
   - Bad
     ````
     **With system prompt from file:**

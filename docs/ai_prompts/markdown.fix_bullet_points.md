@@ -8,15 +8,16 @@
 - Bad
   ````markdown
   The simplest ripgrep command searches for a pattern in the current directory:
+
   ```bash
   > rg "pattern"
   ```
   ````
 - Good
   ````markdown
-  - The simplest ripgrep command searches for a pattern in the current directory:
+  - The simplest ripgrep command searches for a pattern in the current
+    directory:
     ```bash
     > rg "pattern"
     ```
   ````
-

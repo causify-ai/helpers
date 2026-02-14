@@ -5,7 +5,8 @@
   - All tests and code must strictly follow:
     - `docs/ai_prompts/testing.format_rules.md` for tests
     - `docs/ai_prompts/coding.format_rules.md` for any code
-  - Focus on meaningful behavior and correctness rather than superficial coverage.
+  - Focus on meaningful behavior and correctness rather than superficial
+    coverage.
   - If any part of the task is unclear or underspecified, stop and ask for
     clarification before proceeding.
 

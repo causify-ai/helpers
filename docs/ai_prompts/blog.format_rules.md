@@ -71,9 +71,9 @@ TL;DR Your punchy one-liner summary that captures the essence of the post.
 - Lists often follow a brief introductory sentence ending with a colon
 
 - Example:
+
   ```markdown
   The main advantages are:
-
   - **First advantage**: Description here
   - **Second advantage**: Description here
     - Sub-point with details
@@ -98,6 +98,7 @@ TL;DR Your punchy one-liner summary that captures the essence of the post.
 ## Tables
 
 - Use standard Markdown tables for comparisons:
+
   ```markdown
   | Column 1 | Column 2 | Column 3 |
   | :------- | :------- | :------- |

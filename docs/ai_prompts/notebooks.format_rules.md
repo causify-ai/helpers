@@ -5,10 +5,12 @@
   - E.g., `msml610/tutorials/Lesson94-Information_Theory.py`
 
 # Use Jupytext
+
 - When changing a notebook, you must only modify the Python file paired with the
   given Jupyter notebook
 - If there is no Python file, but only the ipynb Jupyter notebook, you will run
   a command to pair the notebook and the Python file:
+
   ```bash
   > uvx jupytext --set-formats ipynb,py:percent  <ipynb file>
   ```
@@ -20,10 +22,12 @@
   ```
 
 # Use Python Style
+
 - For all the Python code you must follow the rules from
   `docs/ai_prompts/coding.format_code.md`
 
 # Format of a Jupyter Notebook
+
 - Each notebook has the following format
 
 - The first cell of a notebook is:
@@ -54,17 +58,20 @@
   ```
 
 # Do Not Use Emoji or Non-Ascii Characters
+
 - Do not use emoji or non-ascii characters, but only ascii ones
 - You can use Latex notation for formulas, like $...$ even if they are not
   rendered
 
 # Title for the Comment Box
+
 - When using `add_fitted_text_box()` set the title
   ```
   ax.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
   ```
 
 # Interactive Widgets Conventions
+
 - Interactive widgets must always have:
   - The name of the variable (e.g., n, mu, nu)
   - Value cell and "-" and "+" buttons
@@ -74,6 +81,7 @@
   `build_widget_control()` to create the widgets
 
 # Logarithmic Widget Control
+
 - When asked to build a logarithmic widget control, use the following idiom
   ```python
   # Create N widget with logarithmic slider and +/- buttons.
@@ -90,6 +98,7 @@
   ```
 
 # Notebook Pairing to Python File and Utility File
+
 - Each notebook is paired with Jupytext to a Python file and has a corresponding
   `*_utils.py` file containing the code corresponding to that notebook
   - E.g., for the Jupyter notebook

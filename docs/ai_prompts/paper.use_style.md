@@ -33,7 +33,8 @@ When writing a paper follow the following suggestions
 - Clearly describe the basis for assertions.
 
 - Good
-  - "Empirical results show a 12% reduction in latency compared to the baseline."
+  - "Empirical results show a 12% reduction in latency compared to the
+    baseline."
 
 ## 4. Precise and Technical
 
