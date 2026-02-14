@@ -21,6 +21,7 @@
 - Describe each cell using bullet points
 
 - Each cell is described with the following format
+
   ```markdown
   ## Cell i: Visual Bin.
   - Purpose: Give a concrete visual of the "unknown" population

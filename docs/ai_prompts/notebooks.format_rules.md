@@ -5,7 +5,6 @@
   - E.g., `msml610/tutorials/Lesson94-Information_Theory.py`
 
 # Use Jupytext
-
 - When changing a notebook, you must only modify the Python file paired with the
   given Jupyter notebook
 - If there is no Python file, but only the ipynb Jupyter notebook, you will run
@@ -21,12 +20,10 @@
   ```
 
 # Use Python Style
-
 - For all the Python code you must follow the rules from
   `docs/ai_prompts/coding.format_code.md`
 
 # Format of a Jupyter Notebook
-
 - Each notebook has the following format
 
 - The first cell of a notebook is:
@@ -38,13 +35,15 @@
   import logging
 
   import numpy as np
-  import matplotlib.pyplot as plt
+  import pandas as pd
   import seaborn as sns
-  ...
+  import matplotlib.pyplot as plt
 
-  # Set plotting style.
-  sns.set_style("whitegrid")
-  plt.rcParams["figure.figsize"] = (12, 6)
+  ut.config_notebook()
+
+  # Initialize logger.
+  logging.basicConfig(level=logging.INFO)
+  _LOG = logging.getLogger(__name__)
   ```
 
 - The second cell is like:
@@ -52,12 +51,6 @@
   ```python
   import msml610_utils as ut
   import Lesson94_Information_Theory_utils as utils
-
-  ut.config_notebook()
-
-  # Initialize logger.
-  logging.basicConfig(level=logging.INFO)
-  _LOG = logging.getLogger(__name__)
   ```
 
 # Do Not Use Emoji or Non-Ascii Characters
@@ -70,6 +63,15 @@
   ```
   ax.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
   ```
+
+# Interactive Widgets Conventions
+- Interactive widgets must always have:
+  - The name of the variable (e.g., n, mu, nu)
+  - Value cell and "-" and "+" buttons
+- The widget to select the seed must always be the first widget
+
+- Use code in `msml610_utils.py` like `_create_slider_widget()`,
+  `build_widget_control()` to create the widgets
 
 # Logarithmic Widget Control
 - When asked to build a logarithmic widget control, use the following idiom

@@ -3,11 +3,9 @@
   requested by the user
 
 # Conventions
-
 - Always use the conventions in `docs/ai_prompts/notebooks.format_rules.md`
 
 # Save code to the `*_utils.py`
-
 - Each notebook is paired with Jupytext to a Python file and has a corresponding
   `*_utils.py` file containing the code corresponding to that notebook
   - E.g., for the Jupyter notebook
@@ -24,18 +22,7 @@
   # Changing the seed generates new realizations with different empirical values.
   ```
 
-# Interactive Widgets Conventions
-
-- Interactive widgets must always have:
-  - The name of the variable (e.g., n, mu, nu)
-  - Value cell and "-" and "+" buttons
-- The widget to select the seed must always be the first widget
-
-- Use code in `msml610_utils.py` like `_create_slider_widget()`,
-  `build_widget_control()` to create the widgets
-
 # Format of Cells
-
 - Each cell description of the Jupyter notebook has the format
   ```markdown
   ## Cell i: Visual Bin.
@@ -55,7 +42,6 @@
     box
 
 # Complex Interactive Widgets
-
 - When the user asks for a "complex interactive widget", it means that there
   must be multiple graphs (like 3 or 4 on the same row) in the same cell
 - Add the controls first with both sliders and a cell to enter the values
@@ -71,7 +57,6 @@
   `msml610/tutorials/Lesson94_Information_Theory_utils.py` as a reference
 
 # Plotting Graphs
-
 - When a plot changes a little bit because of the interactive widget controls,
   it must not abruptly change the values on the y-axis and x-axis
 - The xlim and ylim of the graphs must be fixed until the graph is too big to

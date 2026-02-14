@@ -15,4 +15,6 @@ linters2/normalize_import.py --no_report_command_line $(cat tmp)
 echo "# add_class_frames.py"
 linters2/add_class_frames.py --no_report_command_line $(cat tmp)
 
+xargs 
+
 # uvx vulture . | grep -v ipynb_checkpoints
