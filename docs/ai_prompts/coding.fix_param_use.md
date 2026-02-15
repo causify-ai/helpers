@@ -1,11 +1,12 @@
-I will pass you a file.
+- I will pass you a file
 
-In that file, make sure that:
-- Callers pass the parameters by position and pass the keywords arguments
-- Constant should be assigned to intermediate variable with the same name
-  corresponding to the formal parameters
+- In that file, make sure that:
+  - Callers pass the parameters by position and pass the keywords arguments
+  - Constant should be assigned to intermediate variable with the same name
+    corresponding to the formal parameters
 
 - For a function with the signature
+
   ```python
     def apply_llm_prompt_to_df(
       prompt: str,
@@ -24,6 +25,7 @@ In that file, make sure that:
   ```
 
 - Bad
+
   ```python
   df, stats = hllmcli.apply_llm_prompt_to_df(
       prompt=prompt,

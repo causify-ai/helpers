@@ -11,7 +11,8 @@
   figure adding the caption and label to the commented section.
 
 - For instance convert
-  ```latex
+
+  ````latex
   %     ```
   % rendered_images:end
   % render_images:begin
@@ -22,11 +23,11 @@
     \label{fig:confounding_adjustment}
   \end{figure}
   % render_images:end
-  ```
+  ````
 
   to
 
-  ```latex
+  ````latex
   %     ```
   % caption=Confounding adjustment in causal inference
   % label=fig:confounding_adjustment
@@ -39,4 +40,4 @@
     \label{fig:confounding_adjustment}
   \end{figure}
   % render_images:end
-  ```
+  ````

@@ -18,6 +18,274 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# Test__handle_empty_lines
+# #############################################################################
+
+
+class Test__handle_empty_lines(hunitest.TestCase):
+    """
+    Test the _handle_empty_lines function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _handle_empty_lines.
+
+        :param txt: Input text to process
+        :param expected: Expected output after handling empty lines
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._handle_empty_lines(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test removing single empty line after header.
+        """
+        # Prepare inputs.
+        txt = """
+        ## Front Matter (YAML)
+
+        Every blog post must start with YAML front matter enclosed in `---`:
+        """
+        # Prepare outputs.
+        expected = """
+        ## Front Matter (YAML)
+        Every blog post must start with YAML front matter enclosed in `---`:
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test removing multiple empty lines after header.
+        """
+        # Prepare inputs.
+        txt = """
+        # Front Matter (YAML)
+
+
+
+        Every blog post must start with YAML front matter enclosed in `---`:
+        """
+        # Prepare outputs.
+        expected = """
+        # Front Matter (YAML)
+        Every blog post must start with YAML front matter enclosed in `---`:
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test removing empty lines between text and code block.
+        """
+        # Prepare inputs.
+        txt = """
+        - Example:
+
+
+          ```markdown
+          The main advantages are:
+          - **First advantage**: Description here
+          - **Second advantage**: Description here
+            - Sub-point with details
+            - Another sub-point
+          ```
+        """
+        # Prepare outputs.
+        expected = """
+        - Example:
+          ```markdown
+          The main advantages are:
+          - **First advantage**: Description here
+          - **Second advantage**: Description here
+            - Sub-point with details
+            - Another sub-point
+          ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test with multiple headers and code blocks.
+        """
+        # Prepare inputs.
+        txt = """
+        # Header 1
+
+        Some text here.
+
+        ## Header 2
+
+
+        More text here.
+
+
+        ```python
+        def foo():
+            pass
+        ```
+        """
+        # Prepare outputs.
+        expected = """
+        # Header 1
+        Some text here.
+
+        ## Header 2
+        More text here.
+        ```python
+        def foo():
+            pass
+        ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test that text without headers or code blocks remains unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        First line
+
+        Second line
+
+        Third line
+        """
+        # Prepare outputs.
+        expected = """
+        First line
+
+        Second line
+
+        Third line
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test with empty input.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test that empty lines between text without code blocks are preserved.
+        """
+        # Prepare inputs.
+        txt = """
+        Line 1
+
+
+        Line 2
+        """
+        # Prepare outputs.
+        expected = """
+        Line 1
+
+
+        Line 2
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test with different header levels.
+        """
+        # Prepare inputs.
+        txt = """
+        # Level 1
+
+        ## Level 2
+
+        ### Level 3
+
+        #### Level 4
+
+        Text content
+        """
+        # Prepare outputs.
+        expected = """
+        # Level 1
+        ## Level 2
+        ### Level 3
+        #### Level 4
+        Text content
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test9(self) -> None:
+        """
+        Test code block with different language tags.
+        """
+        # Prepare inputs.
+        txt = """
+        Example code:
+
+
+        ```javascript
+        console.log("Hello");
+        ```
+        """
+        # Prepare outputs.
+        expected = """
+        Example code:
+        ```javascript
+        console.log("Hello");
+        ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test10(self) -> None:
+        """
+        Test that empty lines inside code blocks are preserved.
+        """
+        # Prepare inputs.
+        txt = """
+        Example:
+
+        ```python
+        def foo():
+            pass
+
+        def bar():
+            pass
+        ```
+        """
+        # Prepare outputs.
+        expected = """
+        Example:
+        ```python
+        def foo():
+            pass
+
+        def bar():
+            pass
+        ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+
+# #############################################################################
 # Test_remove_page_separators
 # #############################################################################
 
@@ -155,6 +423,201 @@ class Test_remove_page_separators(hunitest.TestCase):
         self.helper(txt, expected)
 
 
+# #############################################################################
+# Test_add_blank_lines_between_headers
+# #############################################################################
+
+
+class Test_add_blank_lines_between_headers(hunitest.TestCase):
+    """
+    Test the _add_blank_lines_between_headers function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _add_blank_lines_between_headers.
+
+        :param txt: Input text to process
+        :param expected: Expected output after adding blank lines
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._add_blank_lines_between_headers(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test adding blank line between two consecutive headers.
+        """
+        # Prepare inputs.
+        txt = """
+        # Conversational Diagram Designer (CDD)
+        ## 1. Overview
+        Conversational Diagram Designer (CDD) is a browser-based diagramming tool.
+        """
+        # Prepare outputs.
+        expected = """
+        # Conversational Diagram Designer (CDD)
+
+        ## 1. Overview
+        Conversational Diagram Designer (CDD) is a browser-based diagramming tool.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test adding blank lines between multiple consecutive headers.
+        """
+        # Prepare inputs.
+        txt = """
+        # Title
+        ## Subtitle
+        ### Subsubtitle
+        #### Deep subtitle
+        Content here
+        """
+        # Prepare outputs.
+        expected = """
+        # Title
+
+        ## Subtitle
+
+        ### Subsubtitle
+
+        #### Deep subtitle
+        Content here
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test that non-consecutive headers are not affected.
+        """
+        # Prepare inputs.
+        txt = """
+        # Header 1
+
+        Some text here.
+
+        ## Header 2
+
+        More text here.
+        """
+        # Prepare outputs.
+        expected = """
+        # Header 1
+
+        Some text here.
+
+        ## Header 2
+
+        More text here.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test mixed consecutive and non-consecutive headers.
+        """
+        # Prepare inputs.
+        txt = """
+        # Main Title
+        ## Section 1
+        Content for section 1.
+
+        ## Section 2
+        ### Subsection 2.1
+        More content.
+        """
+        # Prepare outputs.
+        expected = """
+        # Main Title
+
+        ## Section 1
+        Content for section 1.
+
+        ## Section 2
+
+        ### Subsection 2.1
+        More content.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test with empty input.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test with text without headers.
+        """
+        # Prepare inputs.
+        txt = """
+        First line
+        Second line
+        Third line
+        """
+        # Prepare outputs.
+        expected = """
+        First line
+        Second line
+        Third line
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test with only one header.
+        """
+        # Prepare inputs.
+        txt = """
+        # Single Header
+        Some content below.
+        """
+        # Prepare outputs.
+        expected = """
+        # Single Header
+        Some content below.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test headers at beginning and end of file.
+        """
+        # Prepare inputs.
+        txt = """
+        # First Header
+        ## Second Header
+        """
+        # Prepare outputs.
+        expected = """
+        # First Header
+
+        ## Second Header
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+
 def _get_text1() -> str:
     """
     Get sample text containing mathematical equations in LaTeX format.
@@ -186,10 +649,10 @@ def _get_text1() -> str:
     return txt
 
 
-
 # #############################################################################
 # Test_lint_txt1
 # #############################################################################
+
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
@@ -288,10 +751,10 @@ class Test_lint_txt1(hunitest.TestCase):
         self.helper(txt, expected)
 
 
-
 # #############################################################################
 # Test_lint_txt2
 # #############################################################################
+
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
@@ -392,13 +855,11 @@ class Test_lint_txt2(hunitest.TestCase):
         <!-- tocstop -->
 
         # Good
-
         - Good time management
           1. Choose the right tasks
           - Avoid non-essential tasks
 
         ## Bad
-
         - Hello
           - World
         """
@@ -431,7 +892,6 @@ class Test_lint_txt2(hunitest.TestCase):
 
         - Good
         - Hello
-
         ```test
         - hello
             - world
@@ -496,8 +956,8 @@ class Test_lint_txt2(hunitest.TestCase):
         * `str.format`
         - Python 3 allows to format multiple values, e.g.,
           ```python
-          key = 'my_var'
-          value = 1.234
+             key = 'my_var'
+           value = 1.234
           ```
         """
         file_name = "test.txt"
@@ -533,7 +993,6 @@ class Test_lint_txt2(hunitest.TestCase):
         <!-- tocstop -->
 
         # Main Content
-
         - This is a list
           - With nested items
         """
@@ -572,21 +1031,19 @@ class Test_lint_txt2(hunitest.TestCase):
         <!-- tocstop -->
 
         # Section 1
-
         Content here.
 
         # Section 2
-
         More content.
         """
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
 
-
 # #############################################################################
 # Test_lint_txt_cmd_line1
 # #############################################################################
+
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),

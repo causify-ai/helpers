@@ -14,13 +14,13 @@ from typing import Any, List, Optional
 import helpers.hdbg as hdbg
 import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
-import helpers.hio as hio
 import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
-import helpers.hmarkdown_toc as hmarktoc
+import helpers.hmarkdown_toc as hmartoc
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.htext_protect as htexprot
 
 _LOG = logging.getLogger(__name__)
 
@@ -131,6 +131,83 @@ def _remove_page_separators(lines: List[str]) -> List[str]:
     return ret
 
 
+def _handle_empty_lines(lines: List[str]) -> List[str]:
+    """
+    Remove empty lines in specific contexts.
+
+    This function removes:
+    1. All empty lines immediately after markdown headers (lines starting
+       with #).
+    2. All empty lines between a text line and a code block marker (```).
+
+    :param lines: The lines to be processed.
+    :return: The lines with empty lines removed in specific contexts.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        lines_new.append(line)
+        # Check if current line is a header.
+        if re.match(r"^(#+)\s+(.*)$", line):
+            # Skip all following empty lines after the header.
+            i += 1
+            while i < len(lines) and re.match(r"^\s*$", lines[i]):
+                i += 1
+            continue
+        # Check if current line is non-empty text followed by empty lines
+        # and then a code block.
+        if line.strip() and not re.match(r"^\s*```", line):
+            # Look ahead for empty lines followed by code block.
+            j = i + 1
+            # Count empty lines.
+            empty_line_count = 0
+            while j < len(lines) and re.match(r"^\s*$", lines[j]):
+                empty_line_count += 1
+                j += 1
+            # Check if we found a code block after empty lines.
+            if (
+                empty_line_count > 0
+                and j < len(lines)
+                and re.match(r"^\s*```", lines[j])
+            ):
+                # Skip the empty lines.
+                i = j
+                continue
+        i += 1
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
+def _add_blank_lines_between_headers(lines: List[str]) -> List[str]:
+    """
+    Add blank lines between consecutive markdown headers.
+
+    When two headers (lines starting with #) appear on consecutive lines,
+    insert a blank line between them. This improves readability and follows
+    markdown best practices.
+
+    :param lines: The lines to be processed.
+    :return: The lines with blank lines added between consecutive headers.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        lines_new.append(line)
+        # Check if current line is a header.
+        if re.match(r"^(#+)\s+(.*)$", line):
+            # Check if next line is also a header.
+            if i + 1 < len(lines) and re.match(r"^(#+)\s+(.*)$", lines[i + 1]):
+                # Add a blank line between the two consecutive headers.
+                lines_new.append("")
+        i += 1
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 def _check_links(in_file_name: str) -> None:
     """
     Check if all URLs in the file are reachable by calling check_links.py.
@@ -152,6 +229,8 @@ def _check_links(in_file_name: str) -> None:
     hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
 
+# TODO(gp): Clarify what are the transformations for this.
+# TODO(gp): Reuse the code in htext_protect
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
     """
     Post-process the given text by applying various transformations.
@@ -224,6 +303,9 @@ def _perform_actions(
     """
     Process the given text by applying a series of actions.
 
+    Protected content (fenced blocks, comments) is extracted before processing
+    and restored afterward to prevent formatters from modifying it.
+
     :param lines: The lines to be processed.
     :param in_file_name: The name of the input file.
     :param actions: A list of actions to be performed on the text. If
@@ -248,7 +330,9 @@ def _perform_actions(
     # Extract YAML front matter if present (only for markdown files).
     yaml_frontmatter: List[str] = []
     if is_md_file:
-        yaml_frontmatter, lines = hmarktoc.extract_yaml_frontmatter(lines)
+        yaml_frontmatter, lines = hmartoc.extract_yaml_frontmatter(lines)
+    # Extract protected content (fenced blocks, comments, math blocks).
+    lines, protected_map = htexprot.extract_protected_content(lines, extension)
     # Pre-process text.
     action = "preprocess"
     if _to_execute_action(action, actions):
@@ -267,6 +351,14 @@ def _perform_actions(
     action = "remove_page_separators"
     if _to_execute_action(action, actions):
         lines = _remove_page_separators(lines)
+    # Handle empty lines.
+    action = "handle_empty_lines"
+    if _to_execute_action(action, actions):
+        lines = _handle_empty_lines(lines)
+    # Add blank lines between consecutive headers.
+    action = "add_blank_lines_between_headers"
+    if _to_execute_action(action, actions):
+        lines = _add_blank_lines_between_headers(lines)
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
@@ -288,7 +380,7 @@ def _perform_actions(
     action = "refresh_toc"
     if _to_execute_action(action, actions):
         if is_md_file:
-            lines = hmarktoc.refresh_toc(lines, **kwargs)
+            lines = hmartoc.refresh_toc(lines, **kwargs)
     # Check links.
     action = "check_links"
     if _to_execute_action(action, actions):
@@ -297,8 +389,10 @@ def _perform_actions(
             _check_links(in_file_name)
         else:
             _LOG.debug("Skipping link check for non-text file type")
+    # Restore protected content.
+    lines = htexprot.restore_protected_content(lines, protected_map)
     # Reattach YAML front matter if it was extracted.
-    lines = hmarktoc.reattach_yaml_frontmatter(yaml_frontmatter, lines)
+    lines = hmartoc.reattach_yaml_frontmatter(yaml_frontmatter, lines)
     return lines
 
 
@@ -314,6 +408,12 @@ _VALID_ACTIONS = [
     "postprocess",
     # _remove_page_separators(): remove page separator lines (---).
     "remove_page_separators",
+    # _handle_empty_lines(): remove empty lines after headers and before code
+    # blocks.
+    "handle_empty_lines",
+    # _add_blank_lines_between_headers(): add blank lines between consecutive
+    # headers.
+    "add_blank_lines_between_headers",
     #
     "frame_chapters",
     "capitalize_header",

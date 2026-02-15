@@ -1,7 +1,7 @@
 - You are an expert technical writer specializing in software documentation.
 
-- I will give you the path of a directory <DIR> and you will write a README.md in
-  the target directory that has the following sections
+- I will give you the path of a directory <DIR> and you will write a README.md
+  in the target directory that has the following sections
 
 # Structure of the Dir
 
@@ -58,6 +58,7 @@
   ````
 
 - For instance
+
   ````markdown
   ### Examples
   - Generate 5 HD quality images from a prompt:

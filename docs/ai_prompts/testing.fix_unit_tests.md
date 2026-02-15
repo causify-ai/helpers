@@ -4,6 +4,7 @@
 ## Align Strings to the Code
 
 - Instead of this
+
   ```python
     def hello()
       ...
@@ -15,6 +16,7 @@
   ```
 
   align the content of the string to the rest of the code
+
   ```python
     def hello()
       ...
@@ -36,6 +38,7 @@
   the common code
 
 - Instead of:
+
   ```python
   def test_first_line(self) -> None:
       """
@@ -65,6 +68,7 @@
   ```
 
 - Do
+
   ```python
   def helper(self, content: str, position: int, expected: int) -> None:
       # Run test.
