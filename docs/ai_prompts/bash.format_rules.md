@@ -2,7 +2,7 @@
 
 ## Add Description at the Beginning of a Script
 
-- Add a short description of what a script does using bullet points
+- Add a short description of what a script using a single short paragraph.
   - E.g.,
     ```
     #!/bin/bash
