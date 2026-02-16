@@ -1700,7 +1700,9 @@ def docker_build_test_dev_image(  # type: ignore
     _LOG.info("Step 3: Creating branch with date-based name")
     issue_prefix = hrecouti.get_repo_config().get_issue_prefix()
     # Get current date in YYYYMMDD format.
-    today = datetime.date.today().strftime("%Y%m%d")
+    # TODO(Vlad): For testing, need revert back before merging.
+    today = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    # today = datetime.date.today().strftime("%Y%m%d")
     branch_name = f"{issue_prefix}_Periodic_image_release_{today}"
     _LOG.info("Branch name: %s", branch_name)
     cmd = f"git checkout -b {branch_name}"
@@ -1723,9 +1725,10 @@ def docker_build_test_dev_image(  # type: ignore
         stage,
         dev_version,
         skip_tests=False,
-        fast_tests=True,
-        slow_tests=True,
-        superslow_tests=True,
+        # TODO(Vlad): Just for testing purposes, need to set to True before merging.
+        fast_tests=False,
+        slow_tests=False,
+        superslow_tests=False,
         qa_tests=False,
     )
     # 6) Add changelog entry.

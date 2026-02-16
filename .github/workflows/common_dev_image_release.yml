@@ -1,12 +1,14 @@
 name: Common Dev Image Release
 on:
-    workflow_call:
-        inputs:
-          container-dir-name:
-            description: 'Container directory name - directory where Dockerfile and changelog.txt are located.'
-            required: false
-            type: string
-            default: '.'
+  workflow_call:
+    inputs:
+      container-dir-name:
+        # Repo root or runnable dir to release the image from (must have devops/ and changelog.txt).
+        # Examples: '.' (repo root, default) or 'subdir_name' (runnable dir)
+        description: 'Container directory name - directory where Dockerfile and changelog.txt are located.'
+        required: false
+        type: string
+        default: '.'
 env:
   CSFY_CI: true
   # CSFY_ECR_BASE_PATH: ${{ vars.CSFY_ECR_BASE_PATH }}
@@ -45,7 +47,7 @@ jobs:
       # This is needed to pull the Docker image.
       - name: Login to GHCR
         run: |
-          echo "${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}" \
+          echo "${{ secrets.GITHUB_TOKEN }}" \
             | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       # Make everything accessible by any user to avoid permission errors.
@@ -62,7 +64,7 @@ jobs:
           # make it a default behavior? For certain tests to pass, we need entire
           # commit history of the repo including sub-modules.
           fetch-depth: 0
-          token: ${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # To access modules in `amp` and `helpers_root`, make sure PYTHONPATH includes
       # them, just as it's set in `setenv.sh`.
@@ -89,8 +91,8 @@ jobs:
           CSFY_AWS_SESSION_TOKEN: ${{ env.AWS_SESSION_TOKEN }}
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
-          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
-        run: invoke docker_tag_push_dev_image
+          GH_ACTION_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: invoke docker_tag_push_dev_image --container-dir-name="${{ inputs.container-dir-name }}"
 
       # Generate release message.
       - name: Generate release message
