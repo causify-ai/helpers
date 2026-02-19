@@ -6,9 +6,9 @@ Compare a Jupyter notebook with its paired Python file using jupytext.
 Given a file (.ipynb or .py), this script:
 - Finds the paired file (.py for .ipynb, .ipynb for .py)
 - Reports which file is newer
-- Checks if the files are in sync using jupytext --sync --dry-run
+- Checks if the files are in sync using jupytext --test
 - Extracts Python code from the .ipynb file to a temporary file
-- Runs vimdiff between the Python file and the extracted code
+- Prints the vimdiff command to compare the Python file and extracted code
 
 Usage examples:
   ./jupytext_diff.py notebook.ipynb
@@ -73,8 +73,13 @@ def _report_newer_file(file1: str, file2: str) -> None:
     :param file1: First file path
     :param file2: Second file path
     """
+    import datetime
     mtime1 = os.path.getmtime(file1)
     mtime2 = os.path.getmtime(file2)
+    timestamp1 = datetime.datetime.fromtimestamp(mtime1).strftime('%Y-%m-%d %H:%M:%S')
+    timestamp2 = datetime.datetime.fromtimestamp(mtime2).strftime('%Y-%m-%d %H:%M:%S')
+    _LOG.info("File: %s - Modified: %s", file1, timestamp1)
+    _LOG.info("File: %s - Modified: %s", file2, timestamp2)
     if mtime1 > mtime2:
         _LOG.info("Newer file: %s", file1)
     elif mtime2 > mtime1:
@@ -88,13 +93,13 @@ def _check_sync_status(ipynb_file: str) -> None:
     Check if notebook and paired file are in sync using jupytext.
 
     Exit codes:
-    - 0: Files already in sync
-    - 1: Would update paired file
+    - 0: Files already in sync (no diff)
+    - 1: Files differ
     - 2: Error
 
     :param ipynb_file: Path to .ipynb file
     """
-    cmd = f"jupytext --sync --dry-run {ipynb_file}"
+    cmd = f"jupytext --diff {ipynb_file} > /dev/null 2>&1"
     _LOG.info("Checking sync status...")
     exit_code = os.system(cmd)
     # os.system returns the exit code shifted left by 8 bits on Unix
@@ -102,11 +107,9 @@ def _check_sync_status(ipynb_file: str) -> None:
     if exit_code == 0:
         _LOG.info("Files already in sync")
     elif exit_code == 1:
-        _LOG.warning("Would update paired file - files are NOT in sync")
-    elif exit_code == 2:
-        _LOG.error("Error checking sync status")
+        _LOG.warning("Files are NOT in sync - there are differences")
     else:
-        _LOG.error("Unexpected exit code: %d", exit_code)
+        _LOG.error("Error checking sync status (exit code: %d)", exit_code)
 
 
 def _extract_python_from_notebook(ipynb_file: str) -> str:
@@ -134,6 +137,7 @@ def _run_vimdiff(file1: str, file2: str) -> None:
     :param file2: Second file path
     """
     cmd = f"vimdiff {file1} {file2}"
+    _LOG.info("To compare files, run: %s", cmd)
     os.system(cmd)
 
 
