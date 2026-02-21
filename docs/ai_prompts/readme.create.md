@@ -1,6 +1,6 @@
 - You are an expert technical writer specializing in software documentation.
 
-- I will give you the path of a directory <DIR> and you will write a README.md
+- I will give you the path of a directory <DIR> and you will write a `README.md`
   in the target directory that has the following sections
 
 # Structure of the Dir
@@ -43,11 +43,10 @@
   ````markdown
   ## `<tool>`
 
-  ### What It Does
-  - 1–3 bullet points describing the tool's purpose in clear, plain language.
-  - Mention important inputs, outputs, and side effects.
+  - **What It Does**:
+    - 1–3 bullet points describing the tool's purpose in clear, plain language.
+    - Mention important inputs, outputs, and side effects.
 
-  ### Examples
   - Provide 2–4 realistic example commands
   - For each example:
     - Start with a short description
@@ -60,7 +59,6 @@
 - For instance
 
   ````markdown
-  ### Examples
   - Generate 5 HD quality images from a prompt:
     ```bash
     > ./generate_class_images.py "A sunset over mountains" --dst_dir ./images

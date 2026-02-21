@@ -97,7 +97,8 @@
 
 - In lists of items
   - Bold the item whenever possible
-  - Use verbatim when the item is a script
+  - Use verbatim when the item is a script, a command (e.g., `python`, `bash`,
+    `latex`)
   - Use `:` to separate file and description instead of `-`
   - **Bad**:
     ```
@@ -180,8 +181,6 @@
   ````
   ```python
   ````
-- For `bash` make sure the commands start with `>`
-
 - The fenced code block should be aligned with the text and the bullet points
   ````
   - Do this and that:
@@ -189,6 +188,19 @@
     > do_this_and_that
     ```
   ````
+
+### Use `>` For Commands
+- Prepend a `>` before each bash command
+- E.g., convert
+  ```bash
+  pipenv install requests
+  pipenv shell
+  ```
+  to
+  ```bash
+  > pipenv install requests
+  > pipenv shell
+  ```
 
 ### Use Diagrams Over Text When Possible
 
