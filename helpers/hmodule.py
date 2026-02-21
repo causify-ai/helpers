@@ -1,19 +1,21 @@
 """
 Import as:
 
-import helpers.henv as henv
+import helpers.hmodule as hmodule
 """
 
 import logging
 import os
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.hversion as hversio
-import helpers.repo_config_utils as hrecouti
+
+_LOG = logging.getLogger(__name__)
+
+_WARNING = "\033[33mWARNING\033[0m"
 
 
 # TODO(gp): Is this the right place for this function?
@@ -96,6 +98,3 @@ def install_module_if_not_present(
         cmd = f"sudo {cmd}"
     _, output = hsystem.system_to_string(cmd)
     print(output)
-
-
-

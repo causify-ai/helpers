@@ -50,8 +50,7 @@ def _find_paired_file(file_path: str) -> str:
     :return: Path to paired file
     """
     hdbg.dassert(
-        os.path.exists(file_path),
-        "Input file does not exist:", file_path
+        os.path.exists(file_path), "Input file does not exist:", file_path
     )
     if file_path.endswith(".ipynb"):
         paired_file = file_path[:-6] + ".py"
@@ -60,8 +59,7 @@ def _find_paired_file(file_path: str) -> str:
     else:
         hdbg.dfatal("File must end with .ipynb or .py:", file_path)
     hdbg.dassert(
-        os.path.exists(paired_file),
-        "Paired file does not exist:", paired_file
+        os.path.exists(paired_file), "Paired file does not exist:", paired_file
     )
     return paired_file
 
@@ -74,10 +72,15 @@ def _report_newer_file(file1: str, file2: str) -> None:
     :param file2: Second file path
     """
     import datetime
+
     mtime1 = os.path.getmtime(file1)
     mtime2 = os.path.getmtime(file2)
-    timestamp1 = datetime.datetime.fromtimestamp(mtime1).strftime('%Y-%m-%d %H:%M:%S')
-    timestamp2 = datetime.datetime.fromtimestamp(mtime2).strftime('%Y-%m-%d %H:%M:%S')
+    timestamp1 = datetime.datetime.fromtimestamp(mtime1).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+    timestamp2 = datetime.datetime.fromtimestamp(mtime2).strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
     _LOG.info("File: %s - Modified: %s", file1, timestamp1)
     _LOG.info("File: %s - Modified: %s", file2, timestamp2)
     if mtime1 > mtime2:

@@ -1077,10 +1077,11 @@ def to_info(tag: str, txt: Union[str, List[str]]) -> str:
 
 
 def config_notebook(sns_set: bool = True) -> None:
-    import helpers.henv as henv
+    import helpers.hmodule as hmodule
+
     # Matplotlib.
     module = "matplotlib"
-    if henv.has_module(module):
+    if hmodule.has_module(module):
         # Matplotlib.
         import matplotlib.pyplot as plt
 
@@ -1118,7 +1119,7 @@ def config_notebook(sns_set: bool = True) -> None:
         print("No module '{module}'")
     # Seaborn.
     module = "seaborn"
-    if henv.has_module(module):
+    if hmodule.has_module(module):
         import seaborn as sns
 
         if sns_set:
@@ -1127,7 +1128,7 @@ def config_notebook(sns_set: bool = True) -> None:
         print("No module '{module}'")
     # Pandas.
     module = "pandas"
-    if henv.has_module(module):
+    if hmodule.has_module(module):
         import pandas as pd
 
         pd.set_option("display.max_rows", 500)

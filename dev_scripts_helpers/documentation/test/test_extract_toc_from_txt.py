@@ -9,10 +9,10 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-
 # #############################################################################
 # Test_extract_toc_from_txt_script1
 # #############################################################################
+
 
 class Test_extract_toc_from_txt_script1(hunitest.TestCase):
     def helper(self, file: str) -> None:
