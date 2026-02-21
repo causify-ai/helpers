@@ -7,7 +7,7 @@ echo "# Files added / modified in the current Git branch:"
 } | grep -E '\.(py|ipynb)$' | sort -u > tmp
 
 echo "# Linting"
-pre-commit run --files $(cat tmp)
+pre-commit run --files $(cat tmp) | tee precommit.log.txt
 
 echo "# normalize_import.py"
 linters2/normalize_import.py --no_report_command_line $(cat tmp)
