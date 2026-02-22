@@ -1,0 +1,8393 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://causify-ai.github.io/helpers/tools/unit_test/all.run_unit_tests.how_to_guide.html">
+      
+      
+        <link rel="prev" href="../thin_environment/all.thin_environment.reference.html">
+      
+      
+        <link rel="next" href="all.write_unit_tests.how_to_guide.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>All.run unit tests.how to guide - Causify Helpers Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../styles/styles.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/katex@0/dist/katex.min.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#run_unit_tests" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="Causify Helpers Documentation" class="md-header__button md-logo" aria-label="Causify Helpers Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Causify Helpers Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              All.run unit tests.how to guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="Causify Helpers Documentation" class="md-nav__button md-logo" aria-label="Causify Helpers Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    Causify Helpers Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai coding
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ai coding
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.claude_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.claude code.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.claude_code_workflows.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.claude code workflows.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.claude_skills.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.claude skills.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.diagram_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.diagram template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.github_copilot_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.github copilot review.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.instruction_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.instruction template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/all.claude_artifacts.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.claude artifacts.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/all.claude_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.claude code.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/all.llm_cli.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.llm cli.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/all.summarizing_example.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.summarizing example.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai prompts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ai prompts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/bash.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bash.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/blog.add_figures.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog.add figures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/blog.create_tldr.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog.create tldr
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/blog.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/blog.write_tutorial.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog.write tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.factor_common_code.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.factor common code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.find_doc.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.find doc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.fix_from_imports.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.fix from imports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.fix_gh_issue.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.fix gh issue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.fix_param_use.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.fix param use
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.improve_comments.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.improve comments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.lint.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.lint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.make_function_private.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.make function private
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.rename.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.rename
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.review.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.todoai_gp.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.todoai gp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.update_comments.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.update comments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.update_dir_readme.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.update dir readme
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.update_expected_vars.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.update expected vars
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.update_file_readme.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.update file readme
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/demo.create_pictures.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo.create pictures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/demo.create_script.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo.create script
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/graphviz.causal_kg_style.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graphviz.causal kg style
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/graphviz.convert_image.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graphviz.convert image
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/graphviz.generate_legend.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graphviz.generate legend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/markdown.fix_bullet_points.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Markdown.fix bullet points
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/markdown.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Markdown.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.create_animation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.create animation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.create_visual_script.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.create visual script
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.implement_script.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.implement script
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.lint.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.lint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.lint_numbered_cells.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.lint numbered cells
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.move_to_lib.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.move to lib
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.plots.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.plots
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.split_cells.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.split cells
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.utils_library.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.utils library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/paper.fix_figures.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper.fix figures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/paper.improve_bibliography.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper.improve bibliography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/paper.suggest_improvements.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper.suggest improvements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/paper.use_style.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper.use style
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/readme.create.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Readme.create
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/readme.fix_what_it_does.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Readme.fix what it does
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/readme.format.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Readme.format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/slides.fix_slides.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slides.fix slides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/slides.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slides.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/slides.suggest_improvements.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slides.suggest improvements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/slides.write_slides.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slides.write slides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/testing.fix_unit_tests.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing.fix unit tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/testing.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/testing.move_test_code.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing.move test code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/testing.reach_coverage.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing.reach coverage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/text.humanize.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Text.humanize
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blogging
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Blogging
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blogging/all.ghost_platform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.ghost platform.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blogging/all.publish_causify_blogs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.publish causify blogs.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blogging/all.publish_mkdocs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.publish mkdocs.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blogging/all.write_blog.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.write blog.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build system
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build system
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.gitleaks_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gitleaks workflow.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.linter_gh_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.linter gh workflow.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.pytest_allure.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.pytest allure.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.pytest_allure.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.pytest allure.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.semgrep_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.semgrep workflow.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code guidelines
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code guidelines
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_design.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code design.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_like_pragmatic_programmer.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code like pragmatic programmer.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code review.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.coding_style.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.coding style.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.coding_style_guidelines.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.coding style guidelines.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.reading_other_people_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.reading other people code.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.submit_code_for_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.submit code for review.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.type_hints.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.type hints.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation meta
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Documentation meta
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.architecture_diagrams.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.architecture diagrams.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.diataxis.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.diataxis.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.gdocs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gdocs.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.google_technical_writing.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.google technical writing.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.markdown_tools.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.markdown tools.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.plotting_in_latex.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.plotting in latex.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.writing_docs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.writing docs.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    General background
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    General background
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.common_abbreviations.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.common abbreviations.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.glossary.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.glossary.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.literature_review.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.literature review.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.reading_list.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.reading list.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Onboarding
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Onboarding
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.dev_must_read_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.dev must read checklist.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.development.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development_documents.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.development documents.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development_setup.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.development setup.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.hiring_process.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.hiring process.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.onboarding checklist.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.organize_email.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.organize email.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.receive_crypto_payment.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.receive crypto payment.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.track_time_with_hubstaff.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.track time with hubstaff.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/bounty.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bounty.onboarding checklist.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intern.onboarding checklist.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.prepare_for_development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intern.prepare for development.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.running_causify_on_virtual_machine.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intern.running causify on virtual machine.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.set_up_development_on_laptop.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intern.set up development on laptop.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.signing_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intern.signing up.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.ai_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.ai review.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.bfg_repo_cleaner.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.bfg repo cleaner.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.chatgpt_api.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.chatgpt api.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code coverage.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage_subprocess.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code coverage subprocess.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage_subprocess.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code coverage subprocess.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_review_tools.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code review tools.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.codebase_clean_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.codebase clean up.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.codecov.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.codecov.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.evaluating_external_tools.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.evaluating external tools.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.explanation_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.explanation template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.how_to_guide_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.how to guide template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.import_check.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.import check.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.imports_and_packages.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.imports and packages.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.integrate_repos.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.integrate repos.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_bash_print_tree.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.invoke bash print tree.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_git_branch_copy.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.invoke git branch copy.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_workflows.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.invoke workflows.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.llm_transform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.llm transform.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.parquet.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.parquet.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.precommit.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.precommit.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.profiling.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.profiling.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.pycharm.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.pycharm.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.reference_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.reference template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.selenium.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.selenium.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.ssh.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.ssh.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.sync_gh_projects.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.sync gh projects.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.tutorial_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.tutorial template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.veracrypt.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.veracrypt.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.visual_studio_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.visual studio code.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_31" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_31" id="__nav_10_31_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dev system
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_31_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_31">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dev system
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.conda_environment_obsolete.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.conda environment obsolete.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.create_a_runnable_dir.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.create a runnable dir.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.create_a_super_repo_with_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.create a super repo with helpers.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.dealing_with_missing_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.dealing with missing dependencies.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.devops_docker.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.devops docker.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.devops_docker.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.devops docker.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.devops_docker_auto_release.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.devops docker auto release.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.docker_optimizer_container.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.docker optimizer container.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.python_package_upgrade_and_troubleshooting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.python package upgrade and troubleshooting.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.replace_common_files_with_script_links.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.replace common files with script links
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.runnable_repo.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.runnable repo.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.synchronize_gh_issue_labels.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.synchronize gh issue labels.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.synchronize_gh_settings.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.synchronize gh settings.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.transition_to_cmamp2.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.transition to cmamp2.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev_system/all.transition_to_repo_config_yml.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.transition to repo config yml.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_32" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_32" id="__nav_10_32_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_32_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_32">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Docker
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.develop_in_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.develop in helpers.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dind_and_sibling_containers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.dind and sibling containers.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.docker.tutorial.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.docker.tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dockerhub.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.dockerhub.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dockerized_flow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.dockerized flow.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_33" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_33" id="__nav_10_33_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation toolchain
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_33_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_33">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Documentation toolchain
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.extract_notes.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.extract notes.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.latex_toolchain.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.latex toolchain.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.notes_to_pdf.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.notes to pdf.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.render_images.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.render images.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_34" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_34" id="__nav_10_34_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_34_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_34">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Git
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.git.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.git.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.git_hooks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.git hooks.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.git_hooks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.git hooks.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.gitleaks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gitleaks.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.gitleaks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gitleaks.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.integrate_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.integrate helpers.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.invite_gh_contributors.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.invite gh contributors.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.invite_gh_contributors.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.invite gh contributors.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_35" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_35" id="__nav_10_35_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Helpers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_35_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_35">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Helpers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.asyncio.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.asyncio.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hcache.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.hcache.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hcache_simple.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.hcache simple.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hllm.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.hllm.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hplayback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.hplayback.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.qgrid.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.qgrid.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.str_to_df.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.str to df.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_36" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_36" id="__nav_10_36_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linter
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_36_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_36">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Linter
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linter/all.amp_fix_md_links.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.amp fix md links.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linter/all.developing_linter.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.developing linter.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_37" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_37" id="__nav_10_37_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_37_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_37">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.add_toc_to_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.add toc to notebook.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.gsheet_into_pandas.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gsheet into pandas.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.jupyter notebook.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.jupytext.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.jupytext.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.plotting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.plotting.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.publish_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.publish notebook.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.run_jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.run jupyter notebook.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_38" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_38" id="__nav_10_38_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Thin environment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_38_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_38">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Thin environment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.gh_and_thin_env_requirements.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gh and thin env requirements.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.gh_thin_env_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gh thin env dependencies.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.thin_environment.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.thin environment.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_39" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10_39" id="__nav_10_39_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unit test
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_39_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10_39">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Unit test
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.run unit tests.how to guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="all.run_unit_tests.how_to_guide.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.run unit tests.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#run_unit_tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Unit Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run Unit Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run_unit_tests_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Unit Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run Unit Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test_lists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Lists
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using_invoke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Invoke
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timeout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rerunning_timed_out_tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rerunning Timed Out Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compute_test_coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compute Test Coverage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Compute Test Coverage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#an_example_coverage_session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        An Example Coverage Session
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#an_example_with_customized_pytest-cov_html_run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        An Example with Customized Pytest-Cov Html Run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate_coverage_report_with_invoke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate Coverage Report with Invoke
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing_html_report_on_s3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing HTML Report on S3
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running_pytest_directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Pytest Directly
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running Pytest Directly">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic_rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usage_and_invocations_reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage and Invocations Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage and Invocations Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom_pytest_options_behaviors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Pytest Options Behaviors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debugging_notebooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging Notebooks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running_tests_on_gh_actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Tests on GH Actions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running Tests on GH Actions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how_to_run_a_single_test_on_gh_action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Run a Single Test on GH Action
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.write_unit_tests.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.write unit tests.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Work evaluation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Work evaluation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_evaluation/all.asana_utiuls_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.asana utiuls guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Work organization
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Work organization
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.buildmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.buildmeister.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.contributor_feedback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.contributor feedback.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.datapull_DAGmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    all.datapull DAGmeister.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.github_projects_process.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.github projects process.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.inframeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.inframeister.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.issue_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.issue workflow.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.organize_your_work.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.organize your work.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.rollout.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.rollout.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.scrum.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.scrum.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.team_collaboration.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.team collaboration.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.use_github.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.use github.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#run_unit_tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Unit Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run Unit Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#run_unit_tests_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Unit Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run Unit Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test_lists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Lists
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using_invoke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Invoke
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Timeout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rerunning_timed_out_tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rerunning Timed Out Tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compute_test_coverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compute Test Coverage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Compute Test Coverage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#an_example_coverage_session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        An Example Coverage Session
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#an_example_with_customized_pytest-cov_html_run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        An Example with Customized Pytest-Cov Html Run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate_coverage_report_with_invoke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate Coverage Report with Invoke
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#publishing_html_report_on_s3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Publishing HTML Report on S3
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running_pytest_directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Pytest Directly
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running Pytest Directly">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic_rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usage_and_invocations_reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage and Invocations Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage and Invocations Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#custom_pytest_options_behaviors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Pytest Options Behaviors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debugging_notebooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debugging Notebooks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running_tests_on_gh_actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running Tests on GH Actions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running Tests on GH Actions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how_to_run_a_single_test_on_gh_action" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to Run a Single Test on GH Action
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+  <h1>All.run unit tests.how to guide</h1>
+
+<h2 id="run_unit_tests">Run Unit Tests<a class="headerlink" href="#run_unit_tests" title="Permanent link">#</a></h2>
+<h3 id="run_unit_tests_1">Run Unit Tests<a class="headerlink" href="#run_unit_tests_1" title="Permanent link">#</a></h3>
+<ul>
+<li>We use <code>pytest</code> and <code>unittest</code> as testing framework</li>
+<li>Before any PR (and ideally after a few commits), we want to run all the unit
+    tests to make sure we didn't introduce any new bugs</li>
+</ul>
+<h4 id="test_lists">Test Lists<a class="headerlink" href="#test_lists" title="Permanent link">#</a></h4>
+<ul>
+<li>We have different test set lists:<ul>
+<li><code>fast</code><ul>
+<li>Tests that are quick to execute (typically less than 5 secs per test
+    class)</li>
+<li>We want to run these tests before/after every commit/PR to make sure
+    things are not broken</li>
+</ul>
+</li>
+<li><code>slow</code><ul>
+<li>Tests that we don't want to run all the times because they are:<ul>
+<li>Slow (typically less than 20 seconds per test)</li>
+<li>They are related to pieces of code that don't change often<ul>
+<li>E.g., external APIs we don't want to hit continuously</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>superslow</code><ul>
+<li>Tests that run long workload, e.g., running a production model, a long
+    simulation</li>
+<li>No time limit but we need to be judicious with length<ul>
+<li>Anything above 5-15 mins is problematic</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="using_invoke">Using <code>Invoke</code><a class="headerlink" href="#using_invoke" title="Permanent link">#</a></h4>
+<ul>
+<li><a href="https://www.pyinvoke.org/"><code>invoke</code></a> is a task execution framework which
+    allows to execute some typical workflows in a simple way</li>
+<li>In our config script <code>invoke</code> is aliased to <code>i</code> to reduce typing</li>
+<li>
+<p>E.g., we use it to run the test suites:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run only fast tests.</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests
+<span class="c1"># Run only slow tests.</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>run_slow_tests
+<span class="c1"># Run only superslow tests.</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>run_superslow_tests
+</code></pre></div>
+</li>
+<li>
+<p>To see the options use <code>--help</code> option, e.g. <code>i --help run_fast_tests</code>:</p>
+<div class="highlight"><pre><span></span><code>Usage:<span class="w"> </span>inv<span class="o">[</span>oke<span class="o">]</span><span class="w"> </span><span class="o">[</span>--core-opts<span class="o">]</span><span class="w"> </span>run_fast_tests<span class="w"> </span><span class="o">[</span>--options<span class="o">]</span><span class="w"> </span><span class="o">[</span>other<span class="w"> </span>tasks<span class="w"> </span>here<span class="w"> </span>...<span class="o">]</span>
+
+Docstring:
+<span class="w">    </span>Run<span class="w"> </span>fast<span class="w"> </span>tests.
+<span class="w">    </span>:param<span class="w"> </span>stage:<span class="w"> </span><span class="k">select</span><span class="w"> </span>a<span class="w"> </span>specific<span class="w"> </span>stage<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>Docker<span class="w"> </span>image
+<span class="w">    </span>:param<span class="w"> </span>pytest_opts:<span class="w"> </span>option<span class="w"> </span><span class="k">for</span><span class="w"> </span>pytest
+<span class="w">    </span>:param<span class="w"> </span>skip_submodules:<span class="w"> </span>ignore<span class="w"> </span>all<span class="w"> </span>the<span class="w"> </span>dir<span class="w"> </span>inside<span class="w"> </span>a<span class="w"> </span>submodule
+<span class="w">    </span>:param<span class="w"> </span>coverage:<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>coverage<span class="w"> </span>computation
+<span class="w">    </span>:param<span class="w"> </span>collect_only:<span class="w"> </span><span class="k">do</span><span class="w"> </span>not<span class="w"> </span>run<span class="w"> </span>tests<span class="w"> </span>but<span class="w"> </span>show<span class="w"> </span>what<span class="w"> </span>will<span class="w"> </span>be<span class="w"> </span>executed
+<span class="w">    </span>:param<span class="w"> </span>tee_to_file:<span class="w"> </span>save<span class="w"> </span>output<span class="w"> </span>of<span class="w"> </span>pytest<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="sb">`</span>tmp.pytest.log<span class="sb">`</span>
+<span class="w">    </span>:param<span class="w"> </span>kwargs:<span class="w"> </span>kwargs<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="sb">`</span>ctx.run<span class="sb">`</span>
+
+Options:
+<span class="w">    </span>-c,<span class="w"> </span>--coverage
+<span class="w">    </span>-k,<span class="w"> </span>--skip-submodules
+<span class="w">    </span>-o,<span class="w"> </span>--collect-only
+<span class="w">    </span>-p<span class="w"> </span>STRING,<span class="w"> </span>--pytest-opts<span class="o">=</span>STRING
+<span class="w">    </span>-s<span class="w"> </span>STRING,<span class="w"> </span>--stage<span class="o">=</span>STRING
+<span class="w">    </span>-t,<span class="w"> </span>--tee-to-file
+<span class="w">    </span>-v<span class="w"> </span>STRING,<span class="w"> </span>--version<span class="o">=</span>STRING
+</code></pre></div>
+</li>
+<li>
+<p><strong>Docker image stage and version</strong></p>
+<ul>
+<li>
+<p>To select a specific stage for Docker image use the <code>--stage</code> option. E.g.,
+    this might be useful when a user wants to run regressions on the local
+    Docker image to verify that nothing is broken before promoting it to <code>dev</code>
+    image.</p>
+<p><div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--stage<span class="w"> </span><span class="nb">local</span>
+</code></pre></div>
+    - To run the tests on the specific version of a Docker image, use the
+<code>--version</code> option.
+- E.g., this might be useful when releasing a new version of an image.
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--stage<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.4
+</code></pre></div></p>
+</li>
+</ul>
+</li>
+<li>
+<p>Specifying <code>pytest</code> options</p>
+<ul>
+<li>With the option <code>--pytest-opts</code> it is possible to pass any <code>pytest</code> option
+    to <code>invoke</code>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Running in debug mode</strong></p>
+<ul>
+<li>If a user wants to run the tests in debug mode to show the output
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>-s<span class="w"> </span>--dbg
+</code></pre></div></li>
+<li>This is equivalent to specifying <code>-v DEBUG</code> through the command line of one
+    of the executables</li>
+</ul>
+</li>
+<li>
+<p><strong>Save test output to a file</strong></p>
+<ul>
+<li>To save the output of <code>pytest</code> to <code>tmp.pytest.log</code> use the <code>--tee-to-file</code>
+    option.
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--tee-to-file
+</code></pre></div></li>
+</ul>
+</li>
+<li>
+<p><strong>Show the tests but do not run</strong></p>
+<ul>
+<li>To list, but not run, the tests that will be executed, use <code>--collect-only</code>.
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--collect-only
+</code></pre></div></li>
+</ul>
+</li>
+<li>
+<p><strong>Skip submodules</strong></p>
+<ul>
+<li>To skip running tests in submodules, use the <code>--skip-submodules</code> option.</li>
+<li>This option is useful in repos with Git submodules so that you can run only
+    the tests specific to the repo, skipping the tests in the submodule<ul>
+<li>E.g., to run only the tests in <code>cmamp</code> but not in <code>helpers</code> (which is a
+    submodule)
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>cmamp1
+&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--skip-submodules
+</code></pre></div></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Compute test coverage</strong></p>
+<ul>
+<li>
+<p>Use the <code>--coverage</code> option</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--coverage
+</code></pre></div>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="timeout">Timeout<a class="headerlink" href="#timeout" title="Permanent link">#</a></h4>
+<ul>
+<li>We use the <a href="https://pypi.org/project/pytest-timeout/"><code>pytest-timeout</code></a>
+    package to limit durations of fast, slow, and superslow tests</li>
+<li>The timeout restricts the running time of the test methods, including
+    <code>set_up_test()</code> and <code>tear_down_test()</code> time, if they are run at the
+    beginning/end of the methods</li>
+</ul>
+<h4 id="rerunning_timed_out_tests">Rerunning Timed Out Tests<a class="headerlink" href="#rerunning_timed_out_tests" title="Permanent link">#</a></h4>
+<ul>
+<li>Running tests can take different amounts of time depending on workload and
+    machine</li>
+<li>Because of this, we rerun failing tests using
+    <a href="https://pypi.org/project/pytest-rerunfailures/"><code>pytest-rerunfailures</code></a></li>
+<li><code>pytest-rerunfailures</code> is not completely compatible with <code>pytest-timeout</code>.
+    This is why we have to add the <code>-o timeout_func_only=true</code> flag to
+    <code>pytest-timeout</code>. See
+    <a href="https://github.com/pytest-dev/pytest-rerunfailures/issues/99">https://github.com/pytest-dev/pytest-rerunfailures/issues/99</a>
+    for more information</li>
+<li>We rerun time outed fast tests twice and time outed slow and superslow tests
+    once</li>
+<li>There is a
+    <a href="https://pypi.org/project/pytest-rerunfailures/#re-run-individual-failures">way</a>
+    to provide a rerun delay for individual tests. However, we can't use it for
+    now due to
+    <a href="https://github.com/cryptokaizen/cmamp/issues/693#issuecomment-989456031">#693 (comment)</a></li>
+</ul>
+<h4 id="compute_test_coverage">Compute Test Coverage<a class="headerlink" href="#compute_test_coverage" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>The documentation for the Python package <code>coverage</code> is
+    <a href="https://coverage.readthedocs.io/en/latest/cmd.html#reporting">here</a>.</p>
+</li>
+<li>
+<p>Run a set of unit tests enabling coverage:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run the coverage for a single test:</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--coverage<span class="w"> </span>-p<span class="w"> </span>oms/test/test_broker.py::TestSimulatedBroker1
+
+<span class="c1"># Run coverage for an entire module like `oms`:</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--coverage<span class="w"> </span>-p<span class="w"> </span>oms
+</code></pre></div>
+</li>
+<li>
+<p>This generates and runs a pytest command inside Docker like:</p>
+<div class="highlight"><pre><span></span><code>docker&gt;<span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not slow and not superslow&quot;</span><span class="w"> </span>oms/test/test_broker.py::TestSimulatedBroker1<span class="w"> </span>--cov<span class="o">=</span>.<span class="w"> </span>--cov-branch<span class="w"> </span>--cov-report<span class="w"> </span>term-missing<span class="w"> </span>--cov-report<span class="w"> </span>html
+</code></pre></div>
+<p>which generates:
+- A binary <code>.coverage</code> file that contains the coverage information
+- A default coverage report
+- An <code>htmlcov</code> directory with a browsable HTML coverage report</p>
+</li>
+<li>
+<p>You can post-process the coverage report in different ways using the command
+    <code>coverage</code> inside a docker container, since the code was run (as always)
+    inside the Docker container that contains all the dependencies</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>coverage<span class="w"> </span>-h
+
+Coverage.py,<span class="w"> </span>version<span class="w"> </span><span class="m">5</span>.5<span class="w"> </span>with<span class="w"> </span>C<span class="w"> </span>extension
+Measure,<span class="w"> </span>collect,<span class="w"> </span>and<span class="w"> </span>report<span class="w"> </span>on<span class="w"> </span>code<span class="w"> </span>coverage<span class="w"> </span><span class="k">in</span><span class="w"> </span>Python<span class="w"> </span>programs.
+
+usage:<span class="w"> </span><span class="sb">`</span>coverage<span class="w"> </span>&lt;command&gt;<span class="sb">`</span><span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span><span class="o">[</span>args<span class="o">]</span>
+
+Commands:
+<span class="w">        </span>annotate<span class="w">    </span>Annotate<span class="w"> </span><span class="nb">source</span><span class="w"> </span>files<span class="w"> </span>with<span class="w"> </span>execution<span class="w"> </span>information.
+<span class="w">        </span>combine<span class="w">     </span>Combine<span class="w"> </span>a<span class="w"> </span>number<span class="w"> </span>of<span class="w"> </span>data<span class="w"> </span>files.
+<span class="w">        </span>debug<span class="w">       </span>Display<span class="w"> </span>information<span class="w"> </span>about<span class="w"> </span>the<span class="w"> </span>internals<span class="w"> </span>of<span class="w"> </span>coverage.py
+<span class="w">        </span>erase<span class="w">       </span>Erase<span class="w"> </span>previously<span class="w"> </span>collected<span class="w"> </span>coverage<span class="w"> </span>data.
+<span class="w">        </span><span class="nb">help</span><span class="w">        </span>Get<span class="w"> </span><span class="nb">help</span><span class="w"> </span>on<span class="w"> </span>using<span class="w"> </span>coverage.py.
+<span class="w">        </span>html<span class="w">        </span>Create<span class="w"> </span>an<span class="w"> </span>HTML<span class="w"> </span>report.
+<span class="w">        </span>json<span class="w">        </span>Create<span class="w"> </span>a<span class="w"> </span>JSON<span class="w"> </span>report<span class="w"> </span>of<span class="w"> </span>coverage<span class="w"> </span>results.
+<span class="w">        </span>report<span class="w">      </span>Report<span class="w"> </span>coverage<span class="w"> </span>stats<span class="w"> </span>on<span class="w"> </span>modules.
+<span class="w">        </span>run<span class="w">         </span>Run<span class="w"> </span>a<span class="w"> </span>Python<span class="w"> </span>program<span class="w"> </span>and<span class="w"> </span>measure<span class="w"> </span>code<span class="w"> </span>execution.
+<span class="w">        </span>xml<span class="w">         </span>Create<span class="w"> </span>an<span class="w"> </span>XML<span class="w"> </span>report<span class="w"> </span>of<span class="w"> </span>coverage<span class="w"> </span>results.
+
+Use<span class="w"> </span><span class="sb">`</span>coverage<span class="w"> </span><span class="nb">help</span><span class="w"> </span>&lt;command&gt;<span class="sb">`</span><span class="w"> </span><span class="k">for</span><span class="w"> </span>detailed<span class="w"> </span><span class="nb">help</span><span class="w"> </span>on<span class="w"> </span>any<span class="w"> </span>command.
+Full<span class="w"> </span>documentation<span class="w"> </span>is<span class="w"> </span>at<span class="w"> </span>https://coverage.readthedocs.io
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>coverage<span class="w"> </span>report<span class="w"> </span>-h
+
+Usage:<span class="w"> </span>coverage<span class="w"> </span>report<span class="w"> </span><span class="o">[</span>options<span class="o">]</span><span class="w"> </span><span class="o">[</span>modules<span class="o">]</span>
+
+Report<span class="w"> </span>coverage<span class="w"> </span>statistics<span class="w"> </span>on<span class="w"> </span>modules.
+
+Options:
+<span class="w">    </span>--contexts<span class="o">=</span>REGEX1,REGEX2,...
+<span class="w">                                                </span>Only<span class="w"> </span>display<span class="w"> </span>data<span class="w"> </span>from<span class="w"> </span>lines<span class="w"> </span>covered<span class="w"> </span><span class="k">in</span><span class="w"> </span>the<span class="w"> </span>given
+<span class="w">                                                </span>contexts.<span class="w"> </span>Accepts<span class="w"> </span>Python<span class="w"> </span>regexes,<span class="w"> </span>which<span class="w"> </span>must<span class="w"> </span>be
+<span class="w">                                                </span>quoted.
+<span class="w">    </span>--fail-under<span class="o">=</span>MIN<span class="w">      </span>Exit<span class="w"> </span>with<span class="w"> </span>a<span class="w"> </span>status<span class="w"> </span>of<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="k">if</span><span class="w"> </span>the<span class="w"> </span>total<span class="w"> </span>coverage<span class="w"> </span>is<span class="w"> </span>less
+<span class="w">                                                </span>than<span class="w"> </span>MIN.
+<span class="w">    </span>-i,<span class="w"> </span>--ignore-errors<span class="w">   </span>Ignore<span class="w"> </span>errors<span class="w"> </span><span class="k">while</span><span class="w"> </span>reading<span class="w"> </span><span class="nb">source</span><span class="w"> </span>files.
+<span class="w">    </span>--include<span class="o">=</span>PAT1,PAT2,...
+<span class="w">                                                </span>Include<span class="w"> </span>only<span class="w"> </span>files<span class="w"> </span>whose<span class="w"> </span>paths<span class="w"> </span>match<span class="w"> </span>one<span class="w"> </span>of<span class="w"> </span>these
+<span class="w">                                                </span>patterns.<span class="w"> </span>Accepts<span class="w"> </span>shell-style<span class="w"> </span>wildcards,<span class="w"> </span>which<span class="w"> </span>must<span class="w"> </span>be
+<span class="w">                                                </span>quoted.
+<span class="w">    </span>--omit<span class="o">=</span>PAT1,PAT2,...<span class="w">  </span>Omit<span class="w"> </span>files<span class="w"> </span>whose<span class="w"> </span>paths<span class="w"> </span>match<span class="w"> </span>one<span class="w"> </span>of<span class="w"> </span>these<span class="w"> </span>patterns.
+<span class="w">                                                </span>Accepts<span class="w"> </span>shell-style<span class="w"> </span>wildcards,<span class="w"> </span>which<span class="w"> </span>must<span class="w"> </span>be<span class="w"> </span>quoted.
+<span class="w">    </span>--precision<span class="o">=</span>N<span class="w">         </span>Number<span class="w"> </span>of<span class="w"> </span>digits<span class="w"> </span>after<span class="w"> </span>the<span class="w"> </span>decimal<span class="w"> </span>point<span class="w"> </span>to<span class="w"> </span>display
+<span class="w">                                                </span><span class="k">for</span><span class="w"> </span>reported<span class="w"> </span>coverage<span class="w"> </span>percentages.
+<span class="w">    </span>--sort<span class="o">=</span>COLUMN<span class="w">         </span>Sort<span class="w"> </span>the<span class="w"> </span>report<span class="w"> </span>by<span class="w"> </span>the<span class="w"> </span>named<span class="w"> </span>column:<span class="w"> </span>name,<span class="w"> </span>stmts,
+<span class="w">                                                </span>miss,<span class="w"> </span>branch,<span class="w"> </span>brpart,<span class="w"> </span>or<span class="w"> </span>cover.<span class="w"> </span>Default<span class="w"> </span>is<span class="w"> </span>name.
+<span class="w">    </span>-m,<span class="w"> </span>--show-missing<span class="w">    </span>Show<span class="w"> </span>line<span class="w"> </span>numbers<span class="w"> </span>of<span class="w"> </span>statements<span class="w"> </span><span class="k">in</span><span class="w"> </span>each<span class="w"> </span>module<span class="w"> </span>that
+<span class="w">                                                </span>weren<span class="s1">&#39;t executed.</span>
+<span class="s1">    --skip-covered        Skip files with 100% coverage.</span>
+<span class="s1">    --no-skip-covered     Disable --skip-covered.</span>
+<span class="s1">    --skip-empty          Skip files with no code.</span>
+<span class="s1">    --debug=OPTS          Debug options, separated by commas. [env:</span>
+<span class="s1">                                                COVERAGE_DEBUG]</span>
+<span class="s1">    -h, --help            Get help on this command.</span>
+<span class="s1">    --rcfile=RCFILE       Specify configuration file. By default &#39;</span>.coveragerc<span class="s1">&#39;,</span>
+<span class="s1">                                                &#39;</span>setup.cfg<span class="s1">&#39;, &#39;</span>tox.ini<span class="s1">&#39;, and &#39;</span>pyproject.toml<span class="err">&#39;</span><span class="w"> </span>are
+<span class="w">                                                </span>tried.<span class="w"> </span><span class="o">[</span>env:<span class="w"> </span>COVERAGE_RCFILE<span class="o">]</span>
+</code></pre></div>
+</li>
+<li>
+<p>Report the coverage for all the files under <code>oms</code> using the workload above
+    (i.e., the fast tests under <code>oms/test/test_broker.py::TestSimulatedBroker1</code>)</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_bash
+docker&gt;<span class="w"> </span>coverage<span class="w"> </span>report<span class="w"> </span>--include<span class="o">=</span><span class="s2">&quot;oms/*&quot;</span>
+Name<span class="w">                                    </span>Stmts<span class="w">   </span>Miss<span class="w"> </span>Branch<span class="w"> </span>BrPart<span class="w">  </span>Cover
+-------------------------------------------------------------------------
+oms/__init__.py<span class="w">                             </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/api.py<span class="w">                                </span><span class="m">154</span><span class="w">     </span><span class="m">47</span><span class="w">     </span><span class="m">36</span><span class="w">      </span><span class="m">2</span><span class="w">    </span><span class="m">70</span>%
+oms/broker.py<span class="w">                             </span><span class="m">200</span><span class="w">     </span><span class="m">31</span><span class="w">     </span><span class="m">50</span><span class="w">      </span><span class="m">9</span><span class="w">    </span><span class="m">81</span>%
+oms/broker_example.py<span class="w">                      </span><span class="m">23</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">4</span><span class="w">      </span><span class="m">1</span><span class="w">    </span><span class="m">96</span>%
+oms/call_optimizer.py<span class="w">                      </span><span class="m">31</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/devops/__init__.py<span class="w">                      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/devops/docker_scripts/__init__.py<span class="w">       </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/locates.py<span class="w">                              </span><span class="m">7</span><span class="w">      </span><span class="m">7</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/mr_market.py<span class="w">                           </span><span class="m">55</span><span class="w">      </span><span class="m">1</span><span class="w">     </span><span class="m">10</span><span class="w">      </span><span class="m">1</span><span class="w">    </span><span class="m">97</span>%
+oms/oms_db.py<span class="w">                              </span><span class="m">47</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">10</span><span class="w">      </span><span class="m">3</span><span class="w">    </span><span class="m">95</span>%
+oms/oms_lib_tasks.py<span class="w">                       </span><span class="m">64</span><span class="w">     </span><span class="m">39</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">38</span>%
+oms/oms_utils.py<span class="w">                           </span><span class="m">34</span><span class="w">     </span><span class="m">34</span><span class="w">      </span><span class="m">6</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/order.py<span class="w">                              </span><span class="m">101</span><span class="w">     </span><span class="m">30</span><span class="w">     </span><span class="m">22</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">64</span>%
+oms/order_example.py<span class="w">                       </span><span class="m">26</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/place_orders.py<span class="w">                       </span><span class="m">121</span><span class="w">      </span><span class="m">8</span><span class="w">     </span><span class="m">18</span><span class="w">      </span><span class="m">6</span><span class="w">    </span><span class="m">90</span>%
+oms/pnl_simulator.py<span class="w">                      </span><span class="m">326</span><span class="w">     </span><span class="m">42</span><span class="w">     </span><span class="m">68</span><span class="w">      </span><span class="m">8</span><span class="w">    </span><span class="m">83</span>%
+oms/portfolio.py<span class="w">                          </span><span class="m">309</span><span class="w">     </span><span class="m">21</span><span class="w">     </span><span class="m">22</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">92</span>%
+oms/portfolio_example.py<span class="w">                   </span><span class="m">32</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/tasks.py<span class="w">                                </span><span class="m">3</span><span class="w">      </span><span class="m">3</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/test/oms_db_helper.py<span class="w">                  </span><span class="m">29</span><span class="w">     </span><span class="m">11</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">65</span>%
+oms/test/test_api.py<span class="w">                      </span><span class="m">132</span><span class="w">     </span><span class="m">25</span><span class="w">     </span><span class="m">12</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">83</span>%
+oms/test/test_broker.py<span class="w">                    </span><span class="m">33</span><span class="w">      </span><span class="m">5</span><span class="w">      </span><span class="m">4</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">86</span>%
+oms/test/test_mocked_portfolio.py<span class="w">           </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/test/test_mr_market.py<span class="w">                 </span><span class="m">46</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/test/test_oms_db.py<span class="w">                   </span><span class="m">114</span><span class="w">     </span><span class="m">75</span><span class="w">     </span><span class="m">14</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">38</span>%
+oms/test/test_order.py<span class="w">                     </span><span class="m">24</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">4</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/test/test_place_orders.py<span class="w">              </span><span class="m">77</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">4</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/test/test_pnl_simulator.py<span class="w">            </span><span class="m">235</span><span class="w">      </span><span class="m">6</span><span class="w">     </span><span class="m">16</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">98</span>%
+oms/test/test_portfolio.py<span class="w">                </span><span class="m">135</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">6</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+-------------------------------------------------------------------------
+TOTAL<span class="w">                                    </span><span class="m">2358</span><span class="w">    </span><span class="m">385</span><span class="w">    </span><span class="m">314</span><span class="w">     </span><span class="m">30</span><span class="w">    </span><span class="m">82</span>%
+</code></pre></div>
+</li>
+<li>
+<p>To exclude the test files, which could inflate the coverage</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>coverage<span class="w"> </span>report<span class="w"> </span>--include<span class="o">=</span><span class="s2">&quot;oms/*&quot;</span><span class="w"> </span>--omit<span class="o">=</span><span class="s2">&quot;*/test_*.py&quot;</span>
+
+Name<span class="w">                                    </span>Stmts<span class="w">   </span>Miss<span class="w"> </span>Branch<span class="w"> </span>BrPart<span class="w">  </span>Cover
+-------------------------------------------------------------------------
+oms/__init__.py<span class="w">                             </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/api.py<span class="w">                                </span><span class="m">154</span><span class="w">     </span><span class="m">47</span><span class="w">     </span><span class="m">36</span><span class="w">      </span><span class="m">2</span><span class="w">    </span><span class="m">70</span>%
+oms/broker.py<span class="w">                             </span><span class="m">200</span><span class="w">     </span><span class="m">31</span><span class="w">     </span><span class="m">50</span><span class="w">      </span><span class="m">9</span><span class="w">    </span><span class="m">81</span>%
+oms/broker_example.py<span class="w">                      </span><span class="m">23</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">4</span><span class="w">      </span><span class="m">1</span><span class="w">    </span><span class="m">96</span>%
+oms/call_optimizer.py<span class="w">                      </span><span class="m">31</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/devops/__init__.py<span class="w">                      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/devops/docker_scripts/__init__.py<span class="w">       </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/locates.py<span class="w">                              </span><span class="m">7</span><span class="w">      </span><span class="m">7</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/mr_market.py<span class="w">                           </span><span class="m">55</span><span class="w">      </span><span class="m">1</span><span class="w">     </span><span class="m">10</span><span class="w">      </span><span class="m">1</span><span class="w">    </span><span class="m">97</span>%
+oms/oms_db.py<span class="w">                              </span><span class="m">47</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">10</span><span class="w">      </span><span class="m">3</span><span class="w">    </span><span class="m">95</span>%
+oms/oms_lib_tasks.py<span class="w">                       </span><span class="m">64</span><span class="w">     </span><span class="m">39</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">38</span>%
+oms/oms_utils.py<span class="w">                           </span><span class="m">34</span><span class="w">     </span><span class="m">34</span><span class="w">      </span><span class="m">6</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/order.py<span class="w">                              </span><span class="m">101</span><span class="w">     </span><span class="m">30</span><span class="w">     </span><span class="m">22</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">64</span>%
+oms/order_example.py<span class="w">                       </span><span class="m">26</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/place_orders.py<span class="w">                       </span><span class="m">121</span><span class="w">      </span><span class="m">8</span><span class="w">     </span><span class="m">18</span><span class="w">      </span><span class="m">6</span><span class="w">    </span><span class="m">90</span>%
+oms/pnl_simulator.py<span class="w">                      </span><span class="m">326</span><span class="w">     </span><span class="m">42</span><span class="w">     </span><span class="m">68</span><span class="w">      </span><span class="m">8</span><span class="w">    </span><span class="m">83</span>%
+oms/portfolio.py<span class="w">                          </span><span class="m">309</span><span class="w">     </span><span class="m">21</span><span class="w">     </span><span class="m">22</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">92</span>%
+oms/portfolio_example.py<span class="w">                   </span><span class="m">32</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/tasks.py<span class="w">                                </span><span class="m">3</span><span class="w">      </span><span class="m">3</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/test/oms_db_helper.py<span class="w">                  </span><span class="m">29</span><span class="w">     </span><span class="m">11</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">65</span>%
+-------------------------------------------------------------------------
+TOTAL<span class="w">                                    </span><span class="m">1562</span><span class="w">    </span><span class="m">274</span><span class="w">    </span><span class="m">252</span><span class="w">     </span><span class="m">30</span><span class="w">    </span><span class="m">80</span>%
+</code></pre></div>
+</li>
+<li>
+<p>To open the line coverage from outside Docker, go with your browser to
+    <a href="/htmlcov/index.html"><code>/htmlcov/index.html</code></a></p>
+</li>
+<li>
+<p>The <code>htmlcov</code> is re-written with every coverage run with the
+    <code>--cov-report html</code> option</p>
+<ul>
+<li>If you move out <code>index.html</code> from <code>htmlcov</code> dir some html features (e.g.,
+    filtering) will not work.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># On macOS:</span>
+&gt;<span class="w"> </span>open<span class="w"> </span>htmlcov/index.html
+</code></pre></div>
+<p><img src="../../code_guidelines/figs/unit_tests/image_1.png"></p>
+</li>
+<li>
+<p>By clicking on a file you can see which lines are not covered</p>
+<p><img src="../../code_guidelines/figs/unit_tests/image_2.png"></p>
+</li>
+</ul>
+<h5 id="an_example_coverage_session">An Example Coverage Session<a class="headerlink" href="#an_example_coverage_session" title="Permanent link">#</a></h5>
+<ul>
+<li>
+<p>You want to measure the unit test coverage of <code>oms</code> component from both <code>fast</code>
+    and <code>slow</code> test suites</p>
+</li>
+<li>
+<p>Start by running the fast tests for the <code>oms</code> dir</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--coverage<span class="w"> </span>-p<span class="w"> </span>oms
+collected<span class="w"> </span><span class="m">66</span><span class="w"> </span>items<span class="w"> </span>/<span class="w"> </span><span class="m">7</span><span class="w"> </span>deselected<span class="w"> </span>/<span class="w"> </span><span class="m">59</span><span class="w"> </span>selected
+...
+</code></pre></div>
+</li>
+<li>
+<p>Compute the coverage for the module sorting by coverage</p>
+<div class="highlight"><pre><span></span><code>docker&gt;<span class="w"> </span>coverage<span class="w"> </span>report<span class="w"> </span>--include<span class="o">=</span><span class="s2">&quot;oms/*&quot;</span><span class="w"> </span>--omit<span class="o">=</span><span class="s2">&quot;*/test_*.py&quot;</span><span class="w"> </span>--sort<span class="o">=</span>cover
+
+Name<span class="w">                                    </span>Stmts<span class="w">   </span>Miss<span class="w"> </span>Branch<span class="w"> </span>BrPart<span class="w">  </span>Cover
+-------------------------------------------------------------------------
+oms/locates.py<span class="w">                              </span><span class="m">7</span><span class="w">      </span><span class="m">7</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/oms_utils.py<span class="w">                           </span><span class="m">34</span><span class="w">     </span><span class="m">34</span><span class="w">      </span><span class="m">6</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/tasks.py<span class="w">                                </span><span class="m">3</span><span class="w">      </span><span class="m">3</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/oms_lib_tasks.py<span class="w">                       </span><span class="m">64</span><span class="w">     </span><span class="m">39</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">38</span>%
+oms/order.py<span class="w">                              </span><span class="m">101</span><span class="w">     </span><span class="m">30</span><span class="w">     </span><span class="m">22</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">64</span>%
+oms/test/oms_db_helper.py<span class="w">                  </span><span class="m">29</span><span class="w">     </span><span class="m">11</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">65</span>%
+oms/api.py<span class="w">                                </span><span class="m">154</span><span class="w">     </span><span class="m">47</span><span class="w">     </span><span class="m">36</span><span class="w">      </span><span class="m">2</span><span class="w">    </span><span class="m">70</span>%
+oms/broker.py<span class="w">                             </span><span class="m">200</span><span class="w">     </span><span class="m">31</span><span class="w">     </span><span class="m">50</span><span class="w">      </span><span class="m">9</span><span class="w">    </span><span class="m">81</span>%
+oms/pnl_simulator.py<span class="w">                      </span><span class="m">326</span><span class="w">     </span><span class="m">42</span><span class="w">     </span><span class="m">68</span><span class="w">      </span><span class="m">8</span><span class="w">    </span><span class="m">83</span>%
+oms/place_orders.py<span class="w">                       </span><span class="m">121</span><span class="w">      </span><span class="m">8</span><span class="w">     </span><span class="m">18</span><span class="w">      </span><span class="m">6</span><span class="w">    </span><span class="m">90</span>%
+oms/portfolio.py<span class="w">                          </span><span class="m">309</span><span class="w">     </span><span class="m">21</span><span class="w">     </span><span class="m">22</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">92</span>%
+oms/oms_db.py<span class="w">                              </span><span class="m">47</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">10</span><span class="w">      </span><span class="m">3</span><span class="w">    </span><span class="m">95</span>%
+oms/broker_example.py<span class="w">                      </span><span class="m">23</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">4</span><span class="w">      </span><span class="m">1</span><span class="w">    </span><span class="m">96</span>%
+oms/mr_market.py<span class="w">                           </span><span class="m">55</span><span class="w">      </span><span class="m">1</span><span class="w">     </span><span class="m">10</span><span class="w">      </span><span class="m">1</span><span class="w">    </span><span class="m">97</span>%
+oms/__init__.py<span class="w">                             </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/call_optimizer.py<span class="w">                      </span><span class="m">31</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/devops/__init__.py<span class="w">                      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/devops/docker_scripts/__init__.py<span class="w">       </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/order_example.py<span class="w">                       </span><span class="m">26</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/portfolio_example.py<span class="w">                   </span><span class="m">32</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+-------------------------------------------------------------------------
+TOTAL<span class="w">                                    </span><span class="m">1562</span><span class="w">    </span><span class="m">274</span><span class="w">    </span><span class="m">252</span><span class="w">     </span><span class="m">30</span><span class="w">    </span><span class="m">80</span>%
+</code></pre></div>
+</li>
+<li>
+<p>You see that some files have low coverage, so you want to see what exactly is
+    not covered</p>
+</li>
+<li>
+<p>Generate the same report in a browsable format:</p>
+<p><div class="highlight"><pre><span></span><code>docker&gt;<span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>htmlcov<span class="p">;</span><span class="w"> </span>coverage<span class="w"> </span>html<span class="w"> </span>--include<span class="o">=</span><span class="s2">&quot;oms/*&quot;</span><span class="w"> </span>--omit<span class="o">=</span><span class="s2">&quot;*/test_*.py&quot;</span>
+<span class="c1"># Wrote HTML report to `htmlcov/index.html`</span>
+
+&gt;<span class="w"> </span>open<span class="w"> </span>htmlcov/index.html
+</code></pre></div>
+- The low coverage for <code>tasks.py</code> and <code>oms_lib_tasks.py</code> is due to the fact
+    that we are running code through invoke that doesn't allow <code>coverage</code> to
+    track it</p>
+</li>
+<li>
+<p>Now, we run the coverage for the slow tests</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Save the coverage from the fast tests run</span>
+&gt;<span class="w"> </span>cp<span class="w"> </span>.coverage<span class="w"> </span>.coverage_fast_tests
+
+&gt;<span class="w"> </span>i<span class="w"> </span>run_slow_tests<span class="w"> </span>--coverage<span class="w"> </span>-p<span class="w"> </span>oms
+collected<span class="w"> </span><span class="m">66</span><span class="w"> </span>items<span class="w"> </span>/<span class="w"> </span><span class="m">59</span><span class="w"> </span>deselected<span class="w"> </span>/<span class="w"> </span><span class="m">7</span><span class="w"> </span>selected
+
+&gt;<span class="w"> </span>cp<span class="w"> </span>.coverage<span class="w"> </span>.coverage_slow_tests
+
+&gt;<span class="w"> </span>coverage<span class="w"> </span>report<span class="w"> </span>--include<span class="o">=</span><span class="s2">&quot;oms/*&quot;</span><span class="w"> </span>--omit<span class="o">=</span><span class="s2">&quot;*/test_*.py&quot;</span><span class="w"> </span>--sort<span class="o">=</span>Cover
+
+Name<span class="w">                                    </span>Stmts<span class="w">   </span>Miss<span class="w"> </span>Branch<span class="w"> </span>BrPart<span class="w">  </span>Cover
+-------------------------------------------------------------------------
+oms/locates.py<span class="w">                              </span><span class="m">7</span><span class="w">      </span><span class="m">7</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/oms_utils.py<span class="w">                           </span><span class="m">34</span><span class="w">     </span><span class="m">34</span><span class="w">      </span><span class="m">6</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/tasks.py<span class="w">                                </span><span class="m">3</span><span class="w">      </span><span class="m">3</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">     </span><span class="m">0</span>%
+oms/pnl_simulator.py<span class="w">                      </span><span class="m">326</span><span class="w">    </span><span class="m">280</span><span class="w">     </span><span class="m">68</span><span class="w">      </span><span class="m">1</span><span class="w">    </span><span class="m">13</span>%
+oms/place_orders.py<span class="w">                       </span><span class="m">121</span><span class="w">    </span><span class="m">100</span><span class="w">     </span><span class="m">18</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">15</span>%
+oms/mr_market.py<span class="w">                           </span><span class="m">55</span><span class="w">     </span><span class="m">44</span><span class="w">     </span><span class="m">10</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">17</span>%
+oms/portfolio.py<span class="w">                          </span><span class="m">309</span><span class="w">    </span><span class="m">256</span><span class="w">     </span><span class="m">22</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">18</span>%
+oms/call_optimizer.py<span class="w">                      </span><span class="m">31</span><span class="w">     </span><span class="m">25</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">19</span>%
+oms/broker.py<span class="w">                             </span><span class="m">200</span><span class="w">    </span><span class="m">159</span><span class="w">     </span><span class="m">50</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">20</span>%
+oms/order.py<span class="w">                              </span><span class="m">101</span><span class="w">     </span><span class="m">78</span><span class="w">     </span><span class="m">22</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">20</span>%
+oms/order_example.py<span class="w">                       </span><span class="m">26</span><span class="w">     </span><span class="m">19</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">27</span>%
+oms/broker_example.py<span class="w">                      </span><span class="m">23</span><span class="w">     </span><span class="m">14</span><span class="w">      </span><span class="m">4</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">33</span>%
+oms/portfolio_example.py<span class="w">                   </span><span class="m">32</span><span class="w">     </span><span class="m">21</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">34</span>%
+oms/api.py<span class="w">                                </span><span class="m">154</span><span class="w">    </span><span class="m">107</span><span class="w">     </span><span class="m">36</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">36</span>%
+oms/oms_lib_tasks.py<span class="w">                       </span><span class="m">64</span><span class="w">     </span><span class="m">39</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">38</span>%
+oms/oms_db.py<span class="w">                              </span><span class="m">47</span><span class="w">      </span><span class="m">5</span><span class="w">     </span><span class="m">10</span><span class="w">      </span><span class="m">2</span><span class="w">    </span><span class="m">84</span>%
+oms/__init__.py<span class="w">                             </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/devops/__init__.py<span class="w">                      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/devops/docker_scripts/__init__.py<span class="w">       </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+oms/test/oms_db_helper.py<span class="w">                  </span><span class="m">29</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+-------------------------------------------------------------------------
+TOTAL<span class="w">                                    </span><span class="m">1562</span><span class="w">   </span><span class="m">1191</span><span class="w">    </span><span class="m">252</span><span class="w">      </span><span class="m">3</span><span class="w">    </span><span class="m">23</span>%
+</code></pre></div>
+</li>
+<li>
+<p>We see that the coverage from the slow tests is only 23% for 7 tests</p>
+<div class="highlight"><pre><span></span><code>docker&gt;<span class="w"> </span>coverage<span class="w"> </span>combine<span class="w"> </span>.coverage_fast_tests<span class="w"> </span>.coverage_slow_tests
+Combined<span class="w"> </span>data<span class="w"> </span>file<span class="w"> </span>.coverage_fast_tests
+Combined<span class="w"> </span>data<span class="w"> </span>file<span class="w"> </span>.coverage_slow_tests
+</code></pre></div>
+</li>
+</ul>
+<h5 id="an_example_with_customized_pytest-cov_html_run">An Example with Customized <code>Pytest-Cov</code> Html Run<a class="headerlink" href="#an_example_with_customized_pytest-cov_html_run" title="Permanent link">#</a></h5>
+<ul>
+<li>
+<p>You want to measure unit test coverage specifically for one test in
+    <code>datapull/common/data/transform/</code> and to save generated <code>htmlcov</code> in the same
+    directory.</p>
+</li>
+<li>
+<p>Run the command in the container:</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docket_bash
+docker&gt;<span class="w"> </span>pytest<span class="w"> </span>--cov-report<span class="w"> </span>term-missing
+<span class="w">    </span>--cov<span class="o">=</span>datapull/common/data/transform/<span class="w"> </span>datapull/common/data/transform/test/test_transform_utils.py
+<span class="w">    </span>--cov-report<span class="w"> </span>html:datapull/common/data/transform/htmlcov
+
+...
+----------<span class="w"> </span>coverage:<span class="w"> </span>platform<span class="w"> </span>linux,<span class="w"> </span>python<span class="w"> </span><span class="m">3</span>.8.10-final-0<span class="w"> </span>-----------
+Name<span class="w">                                                              </span>Stmts<span class="w"> </span>Miss<span class="w"> </span>Cover<span class="w"> </span>Missing
+-----------------------------------------------------------------------------------------------
+datapull/common/data/transform/convert_csv_to_pq.py<span class="w">                  </span><span class="m">55</span><span class="w">    </span><span class="m">55</span><span class="w">   </span><span class="m">0</span>%<span class="w">    </span><span class="m">2</span>-159
+datapull/common/data/transform/extract_data_from_db.py<span class="w">               </span><span class="m">55</span><span class="w">    </span><span class="m">55</span><span class="w">   </span><span class="m">0</span>%<span class="w">    </span><span class="m">2</span>-125
+datapull/common/data/transform/pq_convert.py<span class="w">                         </span><span class="m">126</span><span class="w">   </span><span class="m">126</span><span class="w">  </span><span class="m">0</span>%<span class="w">    </span><span class="m">3</span>-248
+datapull/common/data/transform/transform_pq_by_date_to_by_asset.py<span class="w">   </span><span class="m">131</span><span class="w">   </span><span class="m">131</span><span class="w">  </span><span class="m">0</span>%<span class="w">    </span><span class="m">2</span>-437
+datapull/common/data/transform/transform_utils.py<span class="w">                    </span><span class="m">22</span><span class="w">    </span><span class="m">0</span><span class="w">    </span><span class="m">100</span>%
+-----------------------------------------------------------------------------------------------
+TOTAL<span class="w">                                                             </span><span class="m">389</span><span class="w">   </span><span class="m">367</span><span class="w">  </span><span class="m">6</span>%
+Coverage<span class="w"> </span>HTML<span class="w"> </span>written<span class="w"> </span>to<span class="w"> </span>dir<span class="w"> </span>datapull/common/data/transform/htmlcov
+</code></pre></div>
+</li>
+</ul>
+<h5 id="generate_coverage_report_with_invoke">Generate Coverage Report with <code>Invoke</code><a class="headerlink" href="#generate_coverage_report_with_invoke" title="Permanent link">#</a></h5>
+<ul>
+<li>
+<p>You can compute test coverage for a specified directory and generate text and
+    HTML reports automatically using <code>invoke task run_coverage_report</code></p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>--help<span class="w"> </span>run_coverage_report
+INFO:<span class="w"> </span>&gt;<span class="w"> </span><span class="nv">cmd</span><span class="o">=</span><span class="s1">&#39;/data/grisha/src/venv/amp.client_venv/bin/invoke --help run_coverage_report&#39;</span>
+
+Usage:<span class="w"> </span>inv<span class="o">[</span>oke<span class="o">]</span><span class="w"> </span><span class="o">[</span>--core-opts<span class="o">]</span><span class="w"> </span>run_coverage_report<span class="w"> </span><span class="o">[</span>--options<span class="o">]</span><span class="w"> </span><span class="o">[</span>other<span class="w"> </span>tasks<span class="w"> </span>here<span class="w"> </span>...<span class="o">]</span>
+
+Docstring:
+
+<span class="w">    </span>Compute<span class="w"> </span><span class="nb">test</span><span class="w"> </span>coverage<span class="w"> </span>stats.
+
+:param<span class="w"> </span>target_dir:<span class="w"> </span>directory<span class="w"> </span>to<span class="w"> </span>compute<span class="w"> </span>coverage<span class="w"> </span>stats<span class="w"> </span><span class="k">for</span><span class="w"> </span>running-unit-tests
+:param<span class="w"> </span>generate_html_report:<span class="w"> </span>whether<span class="w"> </span>to<span class="w"> </span>generate<span class="w"> </span>HTML<span class="w"> </span>coverage<span class="w"> </span>report<span class="w"> </span>or<span class="w"> </span>not
+:param<span class="w"> </span>publish_html_on_s3:<span class="w"> </span>whether<span class="w"> </span>to<span class="w"> </span>publish<span class="w"> </span>HTML<span class="w"> </span>coverage<span class="w"> </span>report<span class="w"> </span>or<span class="w"> </span>not
+:param<span class="w"> </span>aws_profile:<span class="w"> </span>the<span class="w"> </span>AWS<span class="w"> </span>profile<span class="w"> </span>to<span class="w"> </span>use<span class="w"> </span><span class="k">for</span><span class="w"> </span>publishing<span class="w"> </span>HTML<span class="w"> </span>report
+
+Options:
+<span class="w">    </span>-a<span class="w"> </span>STRING,<span class="w"> </span>--aws-profile<span class="o">=</span>STRING
+<span class="w">    </span>-g,<span class="w"> </span>--<span class="o">[</span>no-<span class="o">]</span>generate-html-report
+<span class="w">    </span>-p,<span class="w"> </span>--<span class="o">[</span>no-<span class="o">]</span>publish-html-on-s3
+<span class="w">    </span>-t<span class="w"> </span>STRING,<span class="w"> </span>--target-dir<span class="o">=</span>STRING
+</code></pre></div>
+</li>
+<li>
+<p>Compute coverage for <code>market_data</code> dir, generate text and HTML reports and
+    publish HTML report on S3</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>run_coverage_report<span class="w"> </span>--target-dir<span class="w"> </span>market_data
+...
+Name<span class="w">                                   </span>Stmts<span class="w">   </span>Miss<span class="w"> </span>Branch<span class="w"> </span>BrPart<span class="w">  </span>Cover
+------------------------------------------------------------------------
+market_data/real_time_market_data.py<span class="w">     </span><span class="m">100</span><span class="w">     </span><span class="m">81</span><span class="w">     </span><span class="m">32</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">16</span>%
+market_data/replayed_market_data.py<span class="w">      </span><span class="m">111</span><span class="w">     </span><span class="m">88</span><span class="w">     </span><span class="m">24</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">19</span>%
+market_data/abstract_market_data.py<span class="w">      </span><span class="m">177</span><span class="w">    </span><span class="m">141</span><span class="w">     </span><span class="m">24</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">19</span>%
+market_data/market_data_example.py<span class="w">       </span><span class="m">124</span><span class="w">     </span><span class="m">97</span><span class="w">     </span><span class="m">10</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">20</span>%
+market_data/market_data_im_client.py<span class="w">      </span><span class="m">66</span><span class="w">     </span><span class="m">50</span><span class="w">     </span><span class="m">18</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">21</span>%
+market_data/__init__.py<span class="w">                    </span><span class="m">5</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">      </span><span class="m">0</span><span class="w">   </span><span class="m">100</span>%
+------------------------------------------------------------------------
+TOTAL<span class="w">                                    </span><span class="m">583</span><span class="w">    </span><span class="m">457</span><span class="w">    </span><span class="m">108</span><span class="w">      </span><span class="m">0</span><span class="w">    </span><span class="m">19</span>%
+Wrote<span class="w"> </span>HTML<span class="w"> </span>report<span class="w"> </span>to<span class="w"> </span>htmlcov/index.html
+
+<span class="m">20</span>:08:53<span class="w"> </span>-<span class="w"> </span>INFO<span class="w">  </span>lib_tasks.py<span class="w"> </span>_publish_html_coverage_report_on_s3:3679<span class="w">  </span>HTML<span class="w"> </span>coverage<span class="w"> </span>report<span class="w"> </span>is<span class="w"> </span>published<span class="w"> </span>on<span class="w"> </span>S3:<span class="w"> </span><span class="nv">path</span><span class="o">=</span><span class="sb">`</span>s3://cryptokaizen-html/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project<span class="sb">`</span>
+</code></pre></div>
+</li>
+</ul>
+<h5 id="publishing_html_report_on_s3">Publishing HTML Report on S3<a class="headerlink" href="#publishing_html_report_on_s3" title="Permanent link">#</a></h5>
+<ul>
+<li>To make a dir with the report unique, you decorate the dir with a linux user
+    and a Git branch name, e.g.,
+    <code>html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project</code><ul>
+<li><code>html_coverage</code> is the common dir on S3 for coverage reports</li>
+</ul>
+</li>
+<li>After publishing the report, you can open the report via a local web browser<ul>
+<li>See the details in
+    <a href="https://github.com/causify-ai/cmamp/blob/master/docs/infra/ck.use_htmlcov_server.how_to_guide.md">htmlcov server</a></li>
+<li>E.g.
+    <a href="http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/">http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="running_pytest_directly">Running <code>Pytest</code> Directly<a class="headerlink" href="#running_pytest_directly" title="Permanent link">#</a></h3>
+<h4 id="basic_rules">Basic Rules<a class="headerlink" href="#basic_rules" title="Permanent link">#</a></h4>
+<ul>
+<li>Always run <code>pytest</code> from the Docker container to ensure consistency in our
+    environments
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_bash
+<span class="c1"># Then from Docker, run pytest.</span>
+docker<span class="w"> </span>&gt;<span class="w"> </span>pytest<span class="w"> </span>&lt;test_file_name&gt;
+</code></pre></div></li>
+</ul>
+<h3 id="usage_and_invocations_reference">Usage and Invocations Reference<a class="headerlink" href="#usage_and_invocations_reference" title="Permanent link">#</a></h3>
+<ul>
+<li>See <a href="http://doc.pytest.org/en/latest/usage.html"><code>pytest</code> documentation</a></li>
+<li>
+<p>Some examples of useful command lines:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Stop at first failure</span>
+&gt;<span class="w"> </span>pytest<span class="w"> </span>-x
+
+<span class="c1"># Run a single test class</span>
+&gt;<span class="w"> </span>pytest<span class="w"> </span>-k<span class="w"> </span>TestPcaFactorComputer1
+
+<span class="c1"># Run a single test method</span>
+&gt;<span class="w"> </span>pytest<span class="w"> </span>core/test/test_core.py::TestPcaFactorComputer1::test_linearize_eigval_eigvec
+
+<span class="w">    </span><span class="c1"># Run all tests in a file</span>
+&gt;<span class="w"> </span>pytest<span class="w"> </span>core/test/test_core.py
+
+<span class="c1"># Remove cache artifacts</span>
+
+&gt;<span class="w"> </span>find<span class="w"> </span>.<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;__pycache__&quot;</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;.pytest_cache&quot;</span>
+./.pytest_cache
+./dev_scripts/test/Test_linter_py1.test_linter1/tmp.scratch/__pycache__
+./dev_scripts/test/__pycache__
+./dev_scripts/__pycache__
+
+&gt;<span class="w"> </span>find<span class="w"> </span>.<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;__pycache__&quot;</span><span class="w"> </span>-o<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;.pytest_cache&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span>rm<span class="w"> </span>-rf
+
+<span class="c1"># Run with a clear cache</span>
+&gt;<span class="w"> </span>pytest<span class="w"> </span>--cache-clear
+
+<span class="c1"># Run the tests that last failed (this data is stored in .pytest_cache/v/cache/lastfailed)</span>
+&gt;<span class="w"> </span>pytest<span class="w"> </span>--last-failed
+</code></pre></div>
+</li>
+</ul>
+<h4 id="custom_pytest_options_behaviors">Custom <code>Pytest</code> Options Behaviors<a class="headerlink" href="#custom_pytest_options_behaviors" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p><strong>Enable logging</strong></p>
+<ul>
+<li>
+<p>To enable logging of <code>_LOG.debug</code> for a single test run:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Enable debug info</span>
+&gt;<span class="w"> </span>pytest<span class="w"> </span>oms/test/test_broker.py::TestSimulatedBroker1<span class="w"> </span>-s<span class="w"> </span>--dbg
+</code></pre></div>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Update golden outcomes</strong></p>
+<ul>
+<li>
+<p>This switch allows to overwrite the golden outcomes that are used as
+    reference in the unit tests to detect failures</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>pytest<span class="w"> </span>--update_outcomes
+</code></pre></div>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Incremental test mode</strong></p>
+<ul>
+<li>This switch allows to reuse artifacts in the test directory and to skip the
+    clean up phase</li>
+<li>
+<p>It is used to rerun tests from the middle when they are very long and one
+    wants to debug them</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>pytest<span class="w"> </span>--incremental
+</code></pre></div>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="debugging_notebooks">Debugging Notebooks<a class="headerlink" href="#debugging_notebooks" title="Permanent link">#</a></h4>
+<ol>
+<li>Run a failing test with <code>-s --dbg</code> to get detailed logs</li>
+<li>E.g., <code>&gt; pytest core/plotting/test/test_gallery_notebook.py -s --dbg</code></li>
+<li>From the logs take a <code>run_notebook.py</code> script command that was run by the
+   test</li>
+<li>E.g., starting like
+     <code>/app/dev_scripts/notebooks/run_notebook.py --notebook ...</code></li>
+<li>Append <code>--no_suppress_output</code> to this command and run it again directly from
+   the bash</li>
+<li>E.g., like
+     <code>&gt; /app/dev_scripts/notebooks/run_notebook.py --notebook ... --no_suppress_output</code></li>
+<li>Scroll up the logs and see a report about the problem, notebooks failures
+   will be displayed as well</li>
+<li>E.g.,
+     <img width="756" src="https://github.com/kaizen-ai/kaizenflow/assets/31514660/43a2854e-ae4e-450d-95fd-f16df0a53c79"></li>
+</ol>
+<h3 id="running_tests_on_gh_actions">Running Tests on GH Actions<a class="headerlink" href="#running_tests_on_gh_actions" title="Permanent link">#</a></h3>
+<ul>
+<li>The official documentation is
+    <a href="https://docs.github.com/en/actions">https://docs.github.com/en/actions</a></li>
+</ul>
+<h4 id="how_to_run_a_single_test_on_gh_action">How to Run a Single Test on GH Action<a class="headerlink" href="#how_to_run_a_single_test_on_gh_action" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>Unfortunately, there is no way to log in and run interactively on GH machines.
+    This is a feature requested but not implemented by GH yet.</p>
+</li>
+<li>
+<p>All the code to run GH Actions is in the <code>.github</code> directory in <code>lemonade</code> and
+    <code>amp</code>.</p>
+</li>
+<li>
+<p>E.g., to run a single test in the fast test target, instead of the entire
+    regression suite</p>
+<ul>
+<li>
+<p>You can modify <code>.github/workflows/fast_tests.yml</code>, by replacing</p>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># run: invoke run_fast_tests</span>
+run:<span class="w"> </span>invoke<span class="w"> </span>run_fast_tests<span class="w"> </span>--pytest-opts<span class="o">=</span><span class="s2">&quot;helpers/test/test_git.py::Test_git_modified_files1::test_get_modified_files_in_branch1 -s --dbg&quot;</span>
+</code></pre></div>
+- Note that the indentation matters since it's a YAML file</p>
+<pre><code>&lt;img src="../../code_guidelines/figs/unit_tests/image_3.png"&gt;
+</code></pre>
+<ul>
+<li>The <code>-s --dbg</code> is to show <code>_LOG.debug</code> in case you care about that to get
+    more information<ul>
+<li>Commit the code to your branch (not in master, please) since GH runs tests
+independently per branch</li>
+<li>Kick-off manually the fast test through the GH interface</li>
+<li>After debugging, you can revert the change from your branch to <code>master</code> and
+move along with the usual PR flow</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 CAUSIFY.AI. All rights reserved.
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://causify.ai/" target="_blank" rel="noopener" title="causify.ai" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/company/causify-ai/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/causify-ai/" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/gh/rod2ik/cdn@main/mkdocs/javascripts/mkdocs-graphviz.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/katex.min.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/contrib/auto-render.min.js"></script>
+      
+    
+  </body>
+</html>

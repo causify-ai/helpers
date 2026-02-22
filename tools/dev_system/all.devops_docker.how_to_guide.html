@@ -1,0 +1,9133 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://causify-ai.github.io/helpers/tools/dev_system/all.devops_docker.how_to_guide.html">
+      
+      
+        <link rel="prev" href="all.dealing_with_missing_dependencies.how_to_guide.html">
+      
+      
+        <link rel="next" href="all.devops_docker.reference.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>All.devops docker.how to guide - Causify Helpers Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../styles/styles.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/katex@0/dist/katex.min.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#high_level_philosophy" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="Causify Helpers Documentation" class="md-header__button md-logo" aria-label="Causify Helpers Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Causify Helpers Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              All.devops docker.how to guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="Causify Helpers Documentation" class="md-nav__button md-logo" aria-label="Causify Helpers Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    Causify Helpers Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai coding
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ai coding
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.claude_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.claude code.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.claude_code_workflows.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.claude code workflows.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.claude_skills.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.claude skills.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.diagram_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.diagram template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.github_copilot_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.github copilot review.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/ai.instruction_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai.instruction template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/all.claude_artifacts.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.claude artifacts.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/all.claude_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.claude code.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/all.llm_cli.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.llm cli.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_coding/all.summarizing_example.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.summarizing example.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ai prompts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ai prompts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/bash.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bash.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/blog.add_figures.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog.add figures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/blog.create_tldr.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog.create tldr
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/blog.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/blog.write_tutorial.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog.write tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.factor_common_code.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.factor common code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.find_doc.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.find doc
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.fix_from_imports.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.fix from imports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.fix_gh_issue.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.fix gh issue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.fix_param_use.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.fix param use
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.improve_comments.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.improve comments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.lint.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.lint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.make_function_private.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.make function private
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.rename.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.rename
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.review.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.review
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.todoai_gp.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.todoai gp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.update_comments.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.update comments
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.update_dir_readme.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.update dir readme
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.update_expected_vars.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.update expected vars
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/coding.update_file_readme.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coding.update file readme
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/demo.create_pictures.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo.create pictures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/demo.create_script.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo.create script
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/graphviz.causal_kg_style.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graphviz.causal kg style
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/graphviz.convert_image.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graphviz.convert image
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/graphviz.generate_legend.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graphviz.generate legend
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/markdown.fix_bullet_points.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Markdown.fix bullet points
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/markdown.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Markdown.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.create_animation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.create animation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.create_visual_script.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.create visual script
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.implement_script.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.implement script
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.lint.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.lint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.lint_numbered_cells.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.lint numbered cells
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.move_to_lib.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.move to lib
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.plots.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.plots
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.split_cells.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.split cells
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/notebooks.utils_library.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks.utils library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/paper.fix_figures.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper.fix figures
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/paper.improve_bibliography.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper.improve bibliography
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/paper.suggest_improvements.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper.suggest improvements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/paper.use_style.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Paper.use style
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/readme.create.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Readme.create
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/readme.fix_what_it_does.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Readme.fix what it does
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/readme.format.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Readme.format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/slides.fix_slides.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slides.fix slides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/slides.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slides.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/slides.suggest_improvements.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slides.suggest improvements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/slides.write_slides.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Slides.write slides
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/testing.fix_unit_tests.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing.fix unit tests
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/testing.format_rules.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing.format rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/testing.move_test_code.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing.move test code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/testing.reach_coverage.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing.reach coverage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ai_prompts/text.humanize.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Text.humanize
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blogging
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Blogging
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blogging/all.ghost_platform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.ghost platform.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blogging/all.publish_causify_blogs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.publish causify blogs.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blogging/all.publish_mkdocs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.publish mkdocs.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blogging/all.write_blog.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.write blog.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build system
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Build system
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.gitleaks_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gitleaks workflow.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.linter_gh_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.linter gh workflow.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.pytest_allure.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.pytest allure.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.pytest_allure.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.pytest allure.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../build_system/all.semgrep_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.semgrep workflow.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code guidelines
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code guidelines
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_design.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code design.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_like_pragmatic_programmer.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code like pragmatic programmer.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.code_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code review.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.coding_style.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.coding style.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.coding_style_guidelines.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.coding style guidelines.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.reading_other_people_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.reading other people code.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.submit_code_for_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.submit code for review.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code_guidelines/all.type_hints.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.type hints.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation meta
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Documentation meta
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.architecture_diagrams.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.architecture diagrams.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.diataxis.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.diataxis.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.gdocs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gdocs.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.google_technical_writing.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.google technical writing.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.markdown_tools.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.markdown tools.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.plotting_in_latex.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.plotting in latex.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation_meta/all.writing_docs.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.writing docs.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    General background
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    General background
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.common_abbreviations.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.common abbreviations.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.glossary.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.glossary.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.literature_review.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.literature review.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../general_background/all.reading_list.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.reading list.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Onboarding
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Onboarding
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.dev_must_read_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.dev must read checklist.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.development.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development_documents.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.development documents.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.development_setup.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.development setup.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.hiring_process.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.hiring process.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.onboarding checklist.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.organize_email.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.organize email.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.receive_crypto_payment.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.receive crypto payment.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/all.track_time_with_hubstaff.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.track time with hubstaff.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/bounty.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bounty.onboarding checklist.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.onboarding_checklist.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intern.onboarding checklist.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.prepare_for_development.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intern.prepare for development.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.running_causify_on_virtual_machine.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intern.running causify on virtual machine.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.set_up_development_on_laptop.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intern.set up development on laptop.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../onboarding/intern.signing_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intern.signing up.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tools
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.ai_review.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.ai review.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.bfg_repo_cleaner.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.bfg repo cleaner.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.chatgpt_api.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.chatgpt api.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code coverage.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage_subprocess.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code coverage subprocess.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_coverage_subprocess.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code coverage subprocess.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.code_review_tools.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.code review tools.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.codebase_clean_up.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.codebase clean up.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.codecov.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.codecov.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.evaluating_external_tools.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.evaluating external tools.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.explanation_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.explanation template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.how_to_guide_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.how to guide template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.import_check.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.import check.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.imports_and_packages.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.imports and packages.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.integrate_repos.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.integrate repos.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_bash_print_tree.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.invoke bash print tree.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_git_branch_copy.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.invoke git branch copy.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.invoke_workflows.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.invoke workflows.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.llm_transform.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.llm transform.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.parquet.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.parquet.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.precommit.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.precommit.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.profiling.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.profiling.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.pycharm.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.pycharm.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.reference_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.reference template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.selenium.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.selenium.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.ssh.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.ssh.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.sync_gh_projects.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.sync gh projects.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.tutorial_template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.tutorial template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.veracrypt.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.veracrypt.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../all.visual_studio_code.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.visual studio code.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_31" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10_31" id="__nav_10_31_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dev system
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_31_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10_31">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Dev system
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.conda_environment_obsolete.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.conda environment obsolete.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.create_a_runnable_dir.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.create a runnable dir.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.create_a_super_repo_with_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.create a super repo with helpers.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.dealing_with_missing_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.dealing with missing dependencies.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.devops docker.how to guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="all.devops_docker.how_to_guide.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.devops docker.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#high_level_philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High level philosophy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="High level philosophy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#separate_docker_containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Separate Docker containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pre-built_vs_build-on-the-fly_containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-built vs build-on-the-fly containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#thin_client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Thin client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#amp_cmamp_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        amp / cmamp container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stages
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dev
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prod
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registries
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#invoke_targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoke targets
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="invoke targets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-arch_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-arch flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-arch_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-arch flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prod_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prod flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how_to_test_a_package_in_a_docker_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to test a package in a Docker container
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to test a package in a Docker container">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install_a_package_in_a_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install a package in a container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hacky_approach_to_patch_up_a_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hacky approach to patch up a container
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#release_a_docker_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release a Docker image
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Release a Docker image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_of_how_to_release_an_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview of how to release an image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how_to_add_a_python_package_to_dev_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to add a Python package to dev image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how_to_find_unused_packages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to find unused packages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how_to_build_a_local_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to build a local image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing_the_local_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing the local image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pass_the_local_image_to_another_user_for_testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pass the local image to another user for testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tag_local_image_as_dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tag local image as dev
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#push_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Push image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#end-to-end_flow_for_dev_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end flow for dev image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-architecture_build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-architecture build
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#release_a_multi-architecture_dev_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release a multi-architecture dev image
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Release a multi-architecture dev image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pre-release_check-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-release check-list
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command_to_run_the_release_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command to run the release flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-release_check-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-release check-list
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build_prod_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build prod image
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Build prod image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qa_for_prod_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QA for prod image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#end-to-end_flow_for_prod_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end flow for prod image
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#release_a_multi-architecture_prod_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release a multi-architecture prod image
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Release a multi-architecture prod image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flow_for_both_dev_and_prod_images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow for both dev and prod images
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#release_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Release flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cmamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cmamp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qa_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QA flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.devops_docker.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.devops docker.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.devops_docker_auto_release.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.devops docker auto release.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.docker_optimizer_container.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.docker optimizer container.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.python_package_upgrade_and_troubleshooting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.python package upgrade and troubleshooting.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.replace_common_files_with_script_links.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.replace common files with script links
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.runnable_repo.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.runnable repo.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.synchronize_gh_issue_labels.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.synchronize gh issue labels.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.synchronize_gh_settings.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.synchronize gh settings.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.transition_to_cmamp2.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.transition to cmamp2.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="all.transition_to_repo_config_yml.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.transition to repo config yml.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_32" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_32" id="__nav_10_32_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_32_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_32">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Docker
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.develop_in_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.develop in helpers.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dind_and_sibling_containers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.dind and sibling containers.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.docker.tutorial.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.docker.tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dockerhub.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.dockerhub.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/all.dockerized_flow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.dockerized flow.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_33" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_33" id="__nav_10_33_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation toolchain
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_33_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_33">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Documentation toolchain
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.extract_notes.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.extract notes.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.latex_toolchain.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.latex toolchain.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.notes_to_pdf.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.notes to pdf.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation_toolchain/all.render_images.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.render images.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_34" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_34" id="__nav_10_34_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_34_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_34">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Git
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.git.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.git.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.git_hooks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.git hooks.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.git_hooks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.git hooks.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.gitleaks.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gitleaks.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.gitleaks.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gitleaks.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.integrate_helpers.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.integrate helpers.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.invite_gh_contributors.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.invite gh contributors.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git/all.invite_gh_contributors.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.invite gh contributors.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_35" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_35" id="__nav_10_35_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Helpers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_35_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_35">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Helpers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.asyncio.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.asyncio.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hcache.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.hcache.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hcache_simple.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.hcache simple.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hllm.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.hllm.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.hplayback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.hplayback.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.qgrid.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.qgrid.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helpers/all.str_to_df.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.str to df.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_36" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_36" id="__nav_10_36_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linter
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_36_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_36">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Linter
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linter/all.amp_fix_md_links.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.amp fix md links.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linter/all.developing_linter.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.developing linter.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_37" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_37" id="__nav_10_37_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebooks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_37_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_37">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Notebooks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.add_toc_to_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.add toc to notebook.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.gsheet_into_pandas.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gsheet into pandas.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.jupyter notebook.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.jupytext.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.jupytext.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.plotting.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.plotting.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.publish_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.publish notebook.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notebooks/all.run_jupyter_notebook.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.run jupyter notebook.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_38" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_38" id="__nav_10_38_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Thin environment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_38_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_38">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Thin environment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.gh_and_thin_env_requirements.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gh and thin env requirements.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.gh_thin_env_dependencies.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.gh thin env dependencies.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thin_environment/all.thin_environment.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.thin environment.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10_39" >
+        
+          
+          <label class="md-nav__link" for="__nav_10_39" id="__nav_10_39_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Unit test
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_39_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_39">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Unit test
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../unit_test/all.run_unit_tests.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.run unit tests.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../unit_test/all.write_unit_tests.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.write unit tests.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Work evaluation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Work evaluation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_evaluation/all.asana_utiuls_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.asana utiuls guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Work organization
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Work organization
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.buildmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.buildmeister.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.contributor_feedback.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.contributor feedback.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.datapull_DAGmeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    all.datapull DAGmeister.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.github_projects_process.reference.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.github projects process.reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.inframeister.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.inframeister.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.issue_workflow.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.issue workflow.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.organize_your_work.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.organize your work.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.rollout.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.rollout.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.scrum.explanation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.scrum.explanation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.team_collaboration.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.team collaboration.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../work_organization/all.use_github.how_to_guide.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    All.use github.how to guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#high_level_philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        High level philosophy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="High level philosophy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#separate_docker_containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Separate Docker containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pre-built_vs_build-on-the-fly_containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-built vs build-on-the-fly containers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#thin_client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Thin client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#amp_cmamp_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        amp / cmamp container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stages
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dev
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prod
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#registries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Registries
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#invoke_targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        invoke targets
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="invoke targets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-arch_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-arch flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-arch_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-arch flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prod_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prod flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how_to_test_a_package_in_a_docker_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to test a package in a Docker container
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to test a package in a Docker container">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install_a_package_in_a_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install a package in a container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hacky_approach_to_patch_up_a_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hacky approach to patch up a container
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#release_a_docker_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release a Docker image
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Release a Docker image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_of_how_to_release_an_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview of how to release an image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how_to_add_a_python_package_to_dev_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to add a Python package to dev image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how_to_find_unused_packages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to find unused packages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how_to_build_a_local_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to build a local image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#testing_the_local_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing the local image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pass_the_local_image_to_another_user_for_testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pass the local image to another user for testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tag_local_image_as_dev" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tag local image as dev
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#push_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Push image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#end-to-end_flow_for_dev_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end flow for dev image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-architecture_build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-architecture build
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#release_a_multi-architecture_dev_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release a multi-architecture dev image
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Release a multi-architecture dev image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pre-release_check-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-release check-list
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command_to_run_the_release_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command to run the release flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-release_check-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-release check-list
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build_prod_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build prod image
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Build prod image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qa_for_prod_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QA for prod image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#end-to-end_flow_for_prod_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        End-to-end flow for prod image
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#release_a_multi-architecture_prod_image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release a multi-architecture prod image
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Release a multi-architecture prod image">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flow_for_both_dev_and_prod_images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow for both dev and prod images
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#release_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Release flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cmamp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        cmamp
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qa_flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QA flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+  <h1>All.devops docker.how to guide</h1>
+
+<h2 id="high_level_philosophy">High level philosophy<a class="headerlink" href="#high_level_philosophy" title="Permanent link">#</a></h2>
+<ul>
+<li>We use Docker extensively and assume you are familiar with Docker concepts and
+    workflows</li>
+<li>A short tutorial about Docker is
+    <a href="/docs/tools/docker/all.docker.tutorial.md">/docs/tools/docker/all.docker.tutorial.md</a></li>
+</ul>
+<h3 id="separate_docker_containers">Separate Docker containers<a class="headerlink" href="#separate_docker_containers" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>We always want to separate things that don't need to run together in different
+    containers along repos or "independently runnable / deployable directories"</p>
+<ul>
+<li>E.g., <code>dev / prod cmamp</code>, <code>optimizer</code>, <code>im</code>, <code>oms</code></li>
+</ul>
+</li>
+<li>
+<p>The rationale is that when we put too many dependencies in a single container,
+    we start having huge containers that are difficult to deploy and are unstable
+    in terms of building even when using tools like <code>poetry</code>.</p>
+</li>
+<li>Each dir that can be "deployed" and run should have a <code>devops</code> dir to build /
+    QA / release containers with all the needed dependencies</li>
+</ul>
+<h3 id="pre-built_vs_build-on-the-fly_containers">Pre-built vs build-on-the-fly containers<a class="headerlink" href="#pre-built_vs_build-on-the-fly_containers" title="Permanent link">#</a></h3>
+<ol>
+<li>
+<p>Certain containers that need to be widely available to the team and deployed
+   go through the release process and are stored in ECR (AWS and DockerHub)</p>
+</li>
+<li>
+<p>Other containers that are lightweight and used only by one person can be
+   built on the fly using <code>docker compose</code> / <code>docker build</code>.</p>
+</li>
+<li>
+<p>E.g., the <code>infra</code> container, containers to run a simple tools</p>
+</li>
+<li>
+<p>Sometimes we install a dependency on the fly from inside the code, when it's
+   needed only rarely and it doesn't justify being added to the Docker container</p>
+</li>
+<li>E.g., when we need to profile Python code, we install the package directly
+     in the container</li>
+</ol>
+<h3 id="thin_client">Thin client<a class="headerlink" href="#thin_client" title="Permanent link">#</a></h3>
+<ul>
+<li>To bootstrap the system we use a "thin client" which installs in a virtual env
+    the minimum set of packages to run (e.g., installs <code>invoke</code>, <code>docker</code>, etc).</li>
+</ul>
+<h3 id="amp_cmamp_container">amp / cmamp container<a class="headerlink" href="#amp_cmamp_container" title="Permanent link">#</a></h3>
+<ul>
+<li>The <code>dev</code> version is used to develop</li>
+<li>
+<p>The <code>prod</code> version is used for deployment as shortcut to creating a smaller
+    container with only the strictly needed dependencies</p>
+</li>
+<li>
+<p>In order to avoid shipping the monster <code>cmamp</code> dev / prod container, we want
+    to start building smaller containers with only the dependencies that specific
+    prod scripts need</p>
+</li>
+</ul>
+<h3 id="stages">Stages<a class="headerlink" href="#stages" title="Permanent link">#</a></h3>
+<ul>
+<li>A "stage" is a step (e.g., local, dev, prod) in our release workflow of Docker
+    images, code, or infrastructure.</li>
+<li>To run a Docker container in a certain stage use the <code>stage</code> parameter<ul>
+<li>E.g. <code>i docker_bash --stage="local"</code> creates a bash session inside the local
+    Docker <code>amp</code> container</li>
+</ul>
+</li>
+</ul>
+<h4 id="local">Local<a class="headerlink" href="#local" title="Permanent link">#</a></h4>
+<ul>
+<li>A <code>local</code> image is used to develop and test an update to the Docker container<ul>
+<li>E.g. after updating a package, installing a new package, etc.</li>
+</ul>
+</li>
+<li>Local images can only be accessed locally by a developer, i.e. the team
+    members can not / should not use local images</li>
+<li>In practice <code>local</code> images are like <code>dev</code> images but private to users and
+    servers</li>
+</ul>
+<h4 id="dev">Dev<a class="headerlink" href="#dev" title="Permanent link">#</a></h4>
+<ul>
+<li>A <code>dev</code> image is used by team members to develop our system<ul>
+<li>E.g., add new functionalities to the <code>cmamp</code> or <code>helpers</code> codebase</li>
+</ul>
+</li>
+<li>The source code is mounted through a bind mount in Docker so that one can
+    change the code and execute it in Docker, without rebuilding the container</li>
+<li>A local image is tested, blessed, and released as <code>dev</code> so that users and CI
+    can pull it and use it knowing that it's sane</li>
+</ul>
+<h4 id="prod">Prod<a class="headerlink" href="#prod" title="Permanent link">#</a></h4>
+<ul>
+<li>A <code>prod</code> image is used to run a system by final users<ul>
+<li>E.g., Linter inside <code>helpers</code>, some prod system inside Airflow</li>
+</ul>
+</li>
+<li>It is self-contained (i.e., it has no dependencies) since it contains
+    everything required to run a system<ul>
+<li>E.g., OS, Python packages code, code</li>
+</ul>
+</li>
+<li>A <code>prod</code> image is typically created from the <code>dev</code> image by copying the
+    released code inside the <code>prod</code> image</li>
+</ul>
+<h3 id="registries">Registries<a class="headerlink" href="#registries" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>We use several Docker image registries</p>
+<ul>
+<li>AWS ECR: images are used on the dev and prod servers</li>
+<li>GHCR (GitHub Container Repo): images are used by the CI systems</li>
+<li>DockerHub: images are used by developers on the public facing repo</li>
+</ul>
+</li>
+<li>
+<p>In practice we mirror the Docker images to make sure they are close to where
+    they need to be used and they minimize downloading costs</p>
+</li>
+</ul>
+<h2 id="invoke_targets">invoke targets<a class="headerlink" href="#invoke_targets" title="Permanent link">#</a></h2>
+<h3 id="single-arch_flow">Single-arch flow<a class="headerlink" href="#single-arch_flow" title="Permanent link">#</a></h3>
+<ul>
+<li><code>docker_build_local_image</code>: build a "local" image, i.e., a release candidate
+    for the "dev" image</li>
+<li><code>docker_tag_local_image_as_dev</code>: promote "local" image to "dev" without
+    pushing it to the remote</li>
+<li><code>docker_push_dev_image</code>: push image to an image registry</li>
+<li><code>docker_release_dev_image</code>: build, test the "dev" image and then release it to
+    ECR</li>
+</ul>
+<h3 id="multi-arch_flow">Multi-arch flow<a class="headerlink" href="#multi-arch_flow" title="Permanent link">#</a></h3>
+<ul>
+<li><code>docker_tag_push_multi_build_local_image_as_dev</code>: build a "local" multi-arch
+    image and tag it as "dev"</li>
+<li><code>docker_release_multi_build_dev_image</code>: same as <code>docker_release_dev_image</code> but
+    for multi-arch image</li>
+</ul>
+<h3 id="prod_flow">Prod flow<a class="headerlink" href="#prod_flow" title="Permanent link">#</a></h3>
+<ul>
+<li><code>docker_build_prod_image</code>: build a "prod" image from a dev image</li>
+<li><code>docker_push_prod_image</code>: push the "prod" image to ECR</li>
+<li><code>docker_push_prod_candidate_image</code>: push the "prod" candidate image to ECR</li>
+<li><code>docker_build_multi_arch_prod_image</code>: build a multi arch. versioned "prod"
+    image from a "dev" image</li>
+<li><code>docker_tag_push_multi_arch_prod_image</code>: mark the multi-arch versioned "prod"
+    image as "prod" and push them to the target registry</li>
+<li><code>docker_release_prod_image</code>: build, test, and release the "prod" image to ECR</li>
+<li><code>docker_release_multi_arch_prod_image</code>: build, test, and release to Docker
+    registries the multi-arch prod image</li>
+<li><code>docker_release_all</code>: release both the "dev" and "prod" image to ECR</li>
+<li><code>docker_rollback_dev_image</code>: rollback the version of the "dev" image</li>
+<li><code>docker_rollback_prod_image</code>: rollback the version of the "prod" image</li>
+<li><code>docker_create_candidate_image</code>: create a new "prod" candidate image</li>
+<li><code>docker_update_prod_task_definition</code>: update image in "prod" task definition
+    to the desired version</li>
+</ul>
+<h2 id="how_to_test_a_package_in_a_docker_container">How to test a package in a Docker container<a class="headerlink" href="#how_to_test_a_package_in_a_docker_container" title="Permanent link">#</a></h2>
+<h3 id="install_a_package_in_a_container">Install a package in a container<a class="headerlink" href="#install_a_package_in_a_container" title="Permanent link">#</a></h3>
+<ul>
+<li>You can install a Python package with the following command in Docker
+    <div class="highlight"><pre><span></span><code>docker&gt;<span class="w"> </span>sudo<span class="w"> </span>/bin/bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;(source /venv/bin/activate; pip install yfinance)&quot;</span>
+docker&gt;<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import finance&quot;</span>
+</code></pre></div></li>
+</ul>
+<h3 id="hacky_approach_to_patch_up_a_container">Hacky approach to patch up a container<a class="headerlink" href="#hacky_approach_to_patch_up_a_container" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>To patch up a container you can use the following instructions</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># After changing the container, create a new version of the container.</span>
+&gt;<span class="w"> </span>docker<span class="w"> </span>commit<span class="w"> </span>d2916dd5f122<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span><span class="m">623860924167</span>.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev_ccxtpr
+
+<span class="c1"># Push the updated container to the repo.</span>
+&gt;<span class="w"> </span>docker<span class="w"> </span>push<span class="w"> </span><span class="m">623860924167</span>.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev_ccxtpro
+
+<span class="c1"># Now you can pull the container on different machines.</span>
+&gt;<span class="w"> </span>docker<span class="w"> </span>pull<span class="w"> </span><span class="m">623860924167</span>.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev_ccxtpro
+
+<span class="c1"># To use `docker_bash` you might need to retag it to match what the system expects</span>
+&gt;<span class="w"> </span>docker<span class="w"> </span>tag<span class="w"> </span><span class="m">623860924167</span>.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev_ccxtpro
+</code></pre></div>
+</li>
+</ul>
+<h2 id="release_a_docker_image">Release a Docker image<a class="headerlink" href="#release_a_docker_image" title="Permanent link">#</a></h2>
+<ul>
+<li>All the <code>invoke</code> tasks to run the release flow are in
+    <a href="/helpers/lib_tasks.py"><code>/helpers/lib_tasks.py</code></a></li>
+<li>Depending on the type of changes sometimes one needs to rebuild only the
+    <code>prod</code> image, other times one needs to rebuild also the <code>dev</code> image</li>
+<li>
+<p>E.g.,</p>
+<ul>
+<li>If you change Docker build-related things (e.g., add a Python package), you
+    need to rebuild the <code>dev</code> image and then the <code>prod</code> image from the <code>dev</code>
+    image</li>
+<li>If you change the code for a production system, you need to create a new
+    <code>prod</code> image</li>
+</ul>
+</li>
+<li>
+<p>We try to use the same build/release flow, conventions, and code for all the
+    containers (e.g., <code>amp</code>, <code>cmamp</code>, <code>helpers</code>, <code>opt</code>)</p>
+</li>
+</ul>
+<h3 id="overview_of_how_to_release_an_image">Overview of how to release an image<a class="headerlink" href="#overview_of_how_to_release_an_image" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>The release flow consists of the following phases</p>
+<ul>
+<li>Make changes to the image<ul>
+<li>E.g., add Python package through <code>poetry</code>, add an OS package, ...</li>
+</ul>
+</li>
+<li>Update the changelog</li>
+<li>Build a local image<ul>
+<li>Run specific tests (e.g., make sure that the new packages are installed)</li>
+<li>Run unit tests</li>
+<li>Run QA tests</li>
+</ul>
+</li>
+<li>Tag local image as dev image</li>
+<li>Push dev image to ECR, DockerHub, GHCR</li>
+</ul>
+</li>
+<li>
+<p>If there is also an associated prod image</p>
+<ul>
+<li>Build prod image from dev image<ul>
+<li>Run unit tests</li>
+<li>Run QA tests</li>
+</ul>
+</li>
+<li>Push prod image to ECR, DockerHub, GHCR</li>
+</ul>
+</li>
+<li>
+<p>The release flow is implemented in the <code>invoke</code> tasks:</p>
+<ul>
+<li>E.g., <code>docker_release_dev_image</code>, <code>docker_release_prod_image</code>, etc.</li>
+<li>These tasks are quite complex and perform many operations</li>
+<li>Currently, we don't run them directly — instead, we execute the individual
+    steps from the <code>invoke</code> tasks</li>
+<li>Once the release process is more stable, we plan to run them directly</li>
+</ul>
+</li>
+</ul>
+<h3 id="how_to_add_a_python_package_to_dev_image">How to add a Python package to dev image<a class="headerlink" href="#how_to_add_a_python_package_to_dev_image" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>To add a new Python package to a Docker image you need to update <code>poetry</code>
+    files and release a new image:</p>
+<ul>
+<li>Add a new package to
+    <a href="/devops/docker_build/pyproject.toml"><code>/devops/docker_build/pyproject.toml</code></a>
+    file to the <code>[tool.poetry.dependencies]</code> section</li>
+<li>E.g., to add <code>pytest-timeout</code> do:
+    <div class="highlight"><pre><span></span><code>[tool.poetry.dependencies]
+...
+pytest-timeout = &quot;*&quot;
+...
+</code></pre></div></li>
+<li>In general we use the latest version of a package <code>*</code> whenever possible<ul>
+<li>If the latest package has some problems with our codebase, we freeze the
+    version of the problematic packages to a known-good version to get the
+    tests back to green until the problem is solved. We switch back to the
+    latest version once the problem is fixed</li>
+<li>If you need to put a constraint on the package version, follow the
+    <a href="https://python-poetry.org/docs/dependency-specification/">official docs</a>,
+    and explain in a comment why this is needed making reference to GitHub
+    issues</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>To verify that package is installed correctly:</p>
+<ul>
+<li>Build a local image<ul>
+<li>There are two options:<ul>
+<li>Update <code>poetry</code> and upgrade all packages to the latest versions
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_local_image<span class="w"> </span>--version<span class="w"> </span><span class="o">{</span>version<span class="o">}</span><span class="w"> </span>--poetry-mode<span class="o">=</span><span class="s2">&quot;update&quot;</span>
+</code></pre></div></li>
+<li>Install packages from the current <code>poetry.lock</code> file without upgrading
+    the packages
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_local_image<span class="w"> </span>--version<span class="w"> </span>&lt;VERSION&gt;<span class="w"> </span>--poetry-mode<span class="o">=</span><span class="s2">&quot;no_update&quot;</span>
+</code></pre></div></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Run a docker container based on the local image
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_bash<span class="w"> </span>--stage<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--version<span class="w"> </span>&lt;VERSION&gt;
+</code></pre></div></li>
+<li>Verify what package was installed with <code>pip show {package name}</code>, e.g.,
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>pip<span class="w"> </span>show<span class="w"> </span>pytest-rerunfailures
+Name:<span class="w"> </span>pytest-rerunfailures
+Version:<span class="w"> </span><span class="m">10</span>.2
+Summary:<span class="w"> </span>pytest<span class="w"> </span>plugin<span class="w"> </span>to<span class="w"> </span>re-run<span class="w"> </span>tests<span class="w"> </span>to<span class="w"> </span>eliminate<span class="w"> </span>flaky<span class="w"> </span>failures
+...
+Location:<span class="w"> </span>/venv/lib/python3.8/site-packages
+Requires:<span class="w"> </span>pytest,<span class="w"> </span>setuptools
+Required-by:
+</code></pre></div></li>
+<li>Run regressions for the local image, i.e.
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--stage<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--version<span class="w"> </span>&lt;VERSION&gt;
+&gt;<span class="w"> </span>i<span class="w"> </span>run_slow_tests<span class="w"> </span>--stage<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--version<span class="w"> </span>&lt;VERSION&gt;
+</code></pre></div></li>
+</ul>
+</li>
+<li>
+<p>Update the changelog describing the new version</p>
+</li>
+<li>Send a PR with the updated <code>poetry</code> files and any other change needed to make
+    the tests pass</li>
+<li>Release the new image following the
+    <a href="#how-to-test-a-package-in-a-docker-container">Release a Docker image</a>
+    section, use <code>--update-poetry</code> flag to resolve the dependencies</li>
+</ul>
+<h3 id="how_to_find_unused_packages">How to find unused packages<a class="headerlink" href="#how_to_find_unused_packages" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>While installing Python packages we need to make sure that we do not install
+    packages that are not used</p>
+</li>
+<li>
+<p>You can use the import-based approach using
+    <a href="https://github.com/bndr/pipreqs"><code>pipreqs</code></a></p>
+<ul>
+<li>Under the hood it uses the regex below and <code>os.walk</code> for selected dir:
+    <code>python
+REGEXP = [
+    re.compile(r'^import (.+)$'),
+    re.compile(r'^from ((?!\.+).*?) import (?:.*)$')
+]</code></li>
+</ul>
+</li>
+<li>
+<p><code>pipreqs</code> has some limitations</p>
+<ul>
+<li>Not all packages that we use are necessarily imported, e.g. <code>awscli</code>,
+    <code>jupyter</code>, <code>pytest-cov</code>, etc. so <code>pipreqs</code> won't find these packages</li>
+<li>The import name is not always equal to the package actual name, see the
+    mapping <a href="https://github.com/bndr/pipreqs/blob/master/pipreqs/mapping">here</a></li>
+</ul>
+</li>
+<li>
+<p>Run a bash session inside a Docker container</p>
+</li>
+<li>Install <code>pipreqs</code> with <code>sudo pip install pipreqs</code><ul>
+<li>We install it temporary within a Docker bash session in order to introduce
+    another dependency</li>
+<li>You need to re-install <code>pipreqs</code> every time you create a new Docker bash
+    session</li>
+</ul>
+</li>
+<li>To run for a root dir do:
+    <div class="highlight"><pre><span></span><code>docker&gt;<span class="w"> </span>pipreqs<span class="w"> </span>.<span class="w"> </span>--savepath<span class="w"> </span>./tmp.requirements.txt
+</code></pre></div></li>
+<li>The command above will generate <code>./tmp.requirements.txt</code> with the list of the
+    imported packages, e.g.,
+    <div class="highlight"><pre><span></span><code>amp==1.1.4
+async_solipsism==0.3
+beautifulsoup4==4.11.1
+botocore==1.24.37
+cvxopt==1.3.0
+cvxpy==1.2.0
+dill==0.3.4
+environs==9.5.0
+...
+</code></pre></div></li>
+<li>You can grep for a package name to see where it is used, e.g.,
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>jackpy<span class="w"> </span><span class="s2">&quot;dill&quot;</span>
+helpers/hpickle.py:108:<span class="w">       </span>import<span class="w"> </span>dill
+...
+</code></pre></div></li>
+<li>See the <a href="https://github.com/bndr/pipreqs">official docs</a> for the advanced
+    usage</li>
+</ul>
+<h3 id="how_to_build_a_local_image">How to build a local image<a class="headerlink" href="#how_to_build_a_local_image" title="Permanent link">#</a></h3>
+<ul>
+<li>The <code>local</code> image is built using
+    <a href="/devops/docker_build/dev.Dockerfile"><code>/devops/docker_build/dev.Dockerfile</code></a></li>
+<li>
+<p>This Dockerfile runs various scripts to install:</p>
+<ul>
+<li>OS</li>
+<li>Python</li>
+<li><code>venv</code> + Python packages</li>
+<li>Jupyter extensions</li>
+<li>Application-specific packages (e.g., for Linter)</li>
+</ul>
+</li>
+<li>
+<p>To build a local image run:</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_local_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0
+
+<span class="c1"># Build from scratch and not incrementally.</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_local_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--no-cache
+
+<span class="c1"># Update poetry package list.</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_local_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--poetry-mode<span class="o">=</span><span class="s2">&quot;update&quot;</span>
+
+<span class="c1"># See more options:</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_local_image<span class="w"> </span>-h
+</code></pre></div>
+</li>
+<li>
+<p>Once an image is built, it is tagged as <code>local-${user}-${version}</code>, e.g.,
+    <code>local-saggese-1.0.0</code>
+    <div class="highlight"><pre><span></span><code>Successfully tagged 665840871993.dkr.ecr.us-east-1.amazonaws.com/amp:local-gsaggese-1.0.9
+
+&gt; docker image ls 665840871993.dkr.ecr.us-east-1.amazonaws.com/amp:local-gsaggese-1.0.9
+REPOSITORY                                         TAG                    IMAGE ID            CREATED                  SIZE
+665840871993.dkr.ecr.us-east-1.amazonaws.com/amp   local-gsaggese-1.0.9   cf16e3e3d1c7        Less than a second ago   2.75GB
+</code></pre></div></p>
+</li>
+<li>
+<p>A local image is a candidate for becoming a <code>dev</code> image.
+    <div class="highlight"><pre><span></span><code>&gt; i run_fast_tests --stage local --version 1.0.0
+</code></pre></div></p>
+</li>
+</ul>
+<h3 id="testing_the_local_image">Testing the local image<a class="headerlink" href="#testing_the_local_image" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>Compare the version of the packages in the different images</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_bash
+docker&gt;<span class="w"> </span>pip<span class="w"> </span>list<span class="w"> </span><span class="p">|</span><span class="w"> </span>tee<span class="w"> </span>pip_packages.dev.txt
+
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_bash<span class="w"> </span>--stage<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.9
+docker&gt;<span class="w"> </span>pip<span class="w"> </span>list<span class="w"> </span><span class="p">|</span><span class="w"> </span>tee<span class="w"> </span>pip_packages.local.txt
+</code></pre></div>
+</li>
+<li>
+<p>Or in one command:
+    <div class="highlight"><pre><span></span><code>&gt; i docker_cmd --cmd &quot;pip list | tee pip_packages.dev.txt&quot;; i docker_cmd --stage=local --version=1.0.9 --cmd &quot;pip list | tee pip_packages.local.txt&quot;
+&gt; vimdiff pip_packages.dev.txt pip_packages.local.txt
+</code></pre></div></p>
+</li>
+<li>
+<p>You can move the local image on different servers for testing by pushing it on
+    ECR:
+    <div class="highlight"><pre><span></span><code>&gt; i docker_login
+&gt; i docker push 665840871993.dkr.ecr.us-east-1.amazonaws.com/amp:local-gsaggese-1.1.0
+</code></pre></div></p>
+</li>
+</ul>
+<h3 id="pass_the_local_image_to_another_user_for_testing">Pass the local image to another user for testing<a class="headerlink" href="#pass_the_local_image_to_another_user_for_testing" title="Permanent link">#</a></h3>
+<ul>
+<li>Push the local image built by a user to ECR registry</li>
+<li>
+<p>For e.g., if the image is built by user <code>gsaggese</code>
+    <div class="highlight"><pre><span></span><code>&gt; i docker_login
+&gt; i docker push 665840871993.dkr.ecr.us-east-1.amazonaws.com/amp:local-gsaggese-1.1.0
+</code></pre></div></p>
+</li>
+<li>
+<p>From user session who wants to test: pull the local image from ECR
+    <div class="highlight"><pre><span></span><code>&gt; i docker pull 665840871993.dkr.ecr.us-east-1.amazonaws.com/amp:local-gsaggese-1.1.0
+</code></pre></div></p>
+</li>
+<li>
+<p>Tag the local image from user <code>gsaggese</code>, who built the image, as
+    <code>local-currentuser-1.1.0</code> for user <code>currentuser</code> who wants to test it
+    <div class="highlight"><pre><span></span><code>&gt; i docker tag 665840871993.dkr.ecr.us-east-1.amazonaws.com/amp:local-gsaggese-1.1.0 665840871993.dkr.ecr.us-east-1.amazonaws.com/amp:local-currentuser-1.1.0
+</code></pre></div></p>
+</li>
+<li>
+<p>Run any kind of test using the local image. For e.g., to run fast tests
+    <div class="highlight"><pre><span></span><code>&gt; i run_fast_tests --stage local --version 1.1.0
+</code></pre></div></p>
+</li>
+<li>
+<p>Check something inside the container
+    <div class="highlight"><pre><span></span><code>&gt; i docker_bash --stage local --version 1.1.0
+docker &gt; pip freeze | grep pandas
+</code></pre></div></p>
+</li>
+<li>After testing and making sure the regressions are green, make sure to tag the
+    image built by the initial user as <code>dev</code> and not the one tagged for the
+    <code>current-user</code></li>
+<li>This will make sure image is tagged for both <code>arm</code> and <code>x86</code> architecture on
+    the remote registries</li>
+</ul>
+<h3 id="tag_local_image_as_dev">Tag <code>local</code> image as <code>dev</code><a class="headerlink" href="#tag_local_image_as_dev" title="Permanent link">#</a></h3>
+<ul>
+<li>A docker tag is just a way of referring to an image, in the same way Git tags
+    refer to a particular commit in your history</li>
+<li>Basically, tagging is creating a reference from one image (e.g.,
+    <code>local-saggese-1.0.0</code>) to another (<code>dev</code>)</li>
+<li>Once the <code>local</code> (e.g., <code>local-saggese-1.0.0</code>) image is tagged as <code>dev</code>, your
+    <code>dev</code> image becomes equal to <code>local-saggese-1.0.0</code></li>
+<li><code>dev</code> image is also tagged with <code>dev-${version}</code>, e.g., <code>dev-1.0.0</code> to
+    preserve history and allow for quick rollback</li>
+<li>Locally in Git repository a git tag <code>${repo_name}-${version}</code>, e.g.
+    <code>cmamp-1.0.0</code> is created in order to properly control sync between code and
+    container</li>
+</ul>
+<h3 id="push_image">Push image<a class="headerlink" href="#push_image" title="Permanent link">#</a></h3>
+<ul>
+<li>Pushing <code>dev</code> or <code>prod</code> image means sending them to our docker registries</li>
+<li>Once an image is pushed, it can be used by the team members by running
+    <code>i docker_pull</code></li>
+<li>Local git tag <code>${repo_name}-${version}</code>, e.g. <code>cmamp-1.0.0</code>, is pushed at this
+    stage to the remote repository to allow others to properly control sync
+    between code and container.</li>
+<li>To be able to push an image to the ECR one should have permissions to do so</li>
+</ul>
+<h3 id="end-to-end_flow_for_dev_image">End-to-end flow for <code>dev</code> image<a class="headerlink" href="#end-to-end_flow_for_dev_image" title="Permanent link">#</a></h3>
+<!-- TODO(gp): Merge with the rest, this is repeated -->
+
+<ul>
+<li>
+<p>Conceptually the flow consists of the following phases:</p>
+<ol>
+<li>Build a local image of docker</li>
+<li><code>i docker_build_local_image --version 1.0.0</code></li>
+<li>Run fast tests to verify that nothing is broken</li>
+<li><code>i run_fast_tests --stage local --version 1.0.0</code></li>
+<li>Run specific end-to-end tests by</li>
+<li>Tag <code>local</code> image as <code>dev</code></li>
+<li><code>i docker_tag_local_image_as_dev --version 1.0.0</code></li>
+<li>Push <code>dev</code> image to the docker registry</li>
+<li><code>i docker_push_dev_image --version 1.0.0</code></li>
+<li>The mentioned flow is executed by <code>Build dev image</code> GH action and that is a
+    preferred way to do an image release</li>
+</ol>
+</li>
+<li>
+<p>For specific cases that can not be done via GH action see commands below:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># To run the official flow end-to-end:</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_release_dev_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0
+
+<span class="c1"># To see the options:</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_release_dev_image<span class="w"> </span>-h
+
+<span class="c1"># Run from scratch and not incrementally:</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_release_dev_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--no-cache
+
+<span class="c1"># Force an update to poetry to pick up new packages</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_release_dev_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--update-poetry
+
+<span class="c1"># Skip running the QA tests</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_release_dev_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--no-qa-tests
+
+<span class="c1"># Skip running the tests</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_release_dev_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--skip-tests
+
+<span class="c1"># Skip end-to-end tests</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_release_dev_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--no-run-end-to-end-tests
+</code></pre></div>
+</li>
+</ul>
+<h3 id="multi-architecture_build">Multi-architecture build<a class="headerlink" href="#multi-architecture_build" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>We allow to build multi-architecture Docker image using
+    <code>docker_build_local_image</code></p>
+<p><div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_local_image<span class="w"> </span>--version<span class="w"> </span>&lt;VERSION&gt;<span class="w"> </span>--multi-arch<span class="w"> </span>&lt;PLATFORM<span class="w"> </span>NAME&gt;
+</code></pre></div>
+- To build for specific platforms specify the platform name:
+    - For <code>x86</code>: <code>linux/amd64</code>
+    - For <code>arm</code>: <code>linux/arm64</code>
+- To build for both <code>arm</code> and <code>x86</code> architectures:
+    <div class="highlight"><pre><span></span><code>&gt; i docker_build_local_image --version &lt;VERSION&gt; --multi-arch linux/amd64,linux/arm64
+</code></pre></div></p>
+</li>
+<li>
+<p>Multi-arch images are built using <code>docker buildx</code> which does not generate any
+    local image by default</p>
+</li>
+<li>Images are pushed to the remote registry and pulled for testing and usage</li>
+<li>To tag the local image as dev and push it to the target registry: e.g.,
+    <code>aws_ecr.ck</code> or <code>dockerhub.causify</code> , use
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_tag_push_multi_build_local_image_as_dev<span class="w"> </span>--version<span class="w"> </span>&lt;VERSION&gt;<span class="w"> </span>--target-registry<span class="w"> </span>&lt;TARGET&gt;
+</code></pre></div></li>
+<li>Once the image has been successfully pushed to both ECR and DockerHub
+    registries, the subsequent step involves pushing the <code>dev</code> image to GHCR
+    registry. However, this action currently requires manual execution due to
+    restricted access<ul>
+<li>Access to the <code>causify-ai</code> packages is limited. To gain access, kindly reach
+    out to GP, Samarth or Vlad</li>
+<li>To proceed, perform a Docker login using your GitHub username and PAT
+    (Personal Access Token):
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>docker<span class="w"> </span>login<span class="w"> </span>ghcr.io<span class="w"> </span>-u<span class="w"> </span>&lt;username&gt;
+</code></pre></div></li>
+<li>Tag the <code>dev</code> image to the GHCR namespace:
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>docker<span class="w"> </span>tag<span class="w"> </span><span class="m">623860924167</span>.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev<span class="w"> </span>ghcr.io/causify-ai/cmamp:dev
+</code></pre></div></li>
+<li>Push the tagged image to the GHCR registry:
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>docker<span class="w"> </span>push<span class="w"> </span>ghcr.io/causify-ai/cmamp:dev
+</code></pre></div></li>
+</ul>
+</li>
+</ul>
+<h3 id="release_a_multi-architecture_dev_image">Release a multi-architecture dev image<a class="headerlink" href="#release_a_multi-architecture_dev_image" title="Permanent link">#</a></h3>
+<h4 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h4>
+<ul>
+<li>Update the <code>changelog.txt</code> file with a description of the new version</li>
+<li>Build "local" image remotely in the CK AWS ECR registry and pull once it is
+    built</li>
+<li>Run the <code>cmamp</code> regressions using a local image</li>
+<li>Run QA tests using a local image</li>
+<li>Tag the image as dev image and push it to the target Docker registries</li>
+<li>Tag the new <code>dev</code> image to GHCR namespace and push it to GHCR registry</li>
+</ul>
+<h4 id="pre-release_check-list">Pre-release check-list<a class="headerlink" href="#pre-release_check-list" title="Permanent link">#</a></h4>
+<p>Prerequisites:</p>
+<ul>
+<li>The new image is built locally</li>
+</ul>
+<p>Check-list:</p>
+<ul>
+<li>
+<p>Make sure that the regressions are passing when being run using the local
+    image because we run the regressions as part of the official release flow,
+    i.e. via <code>docker_release_multi_build_dev_image()</code>.</p>
+<ul>
+<li><code>cmamp</code><ul>
+<li>[ ] Update the <code>changelog.txt</code> file</li>
+<li>[ ] Fast tests</li>
+<li>[ ] Slow tests</li>
+<li>[ ] Super-slow test</li>
+<li>[ ] QA tests</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Running regressions in the <code>orange</code> repository is not a part of the official
+    image release flow so run them separately.</p>
+<ul>
+<li><code>orange</code><ul>
+<li>[ ] Update the <code>changelog.txt</code> file</li>
+<li>[ ] Fast tests</li>
+<li>[ ] Slow tests</li>
+<li>[ ] Super-slow test</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Example:
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.10.0<span class="w"> </span>--stage<span class="w"> </span><span class="nb">local</span>
+</code></pre></div>
+    where <code>1.10.0</code> is the new version of the image with stage as local.</p>
+</li>
+</ul>
+<h4 id="command_to_run_the_release_flow">Command to run the release flow<a class="headerlink" href="#command_to_run_the_release_flow" title="Permanent link">#</a></h4>
+<ul>
+<li>
+<p>To run the release flow</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_release_multi_build_dev_image<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--version<span class="w"> </span>&lt;VERSION&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--target-registries<span class="w"> </span>&lt;TARGET_REGISTRIES&gt;
+</code></pre></div>
+<p>where
+- TARGET_REGISTRIES: list of target registries to push the image to. E.g.,
+    - <code>aws_ecr.ck</code>: private CK AWS Docker registry
+    - <code>dockerhub.causify</code>: public Dockerhub registry
+- All the other options are the same as for the <code>docker_release_dev_image</code>
+    end-to-end flow.</p>
+</li>
+<li>
+<p>E.g.,
+    <div class="highlight"><pre><span></span><code>&gt; i docker_release_multi_build_dev_image \
+        --version 1.6.1 \
+        --target-registries aws_ecr.ck,dockerhub.causify
+</code></pre></div></p>
+</li>
+</ul>
+<h4 id="post-release_check-list">Post-release check-list<a class="headerlink" href="#post-release_check-list" title="Permanent link">#</a></h4>
+<ul>
+<li>[ ] Make an integration with the <code>kaizenflow</code> repository in order to copy all
+            the changes from the <code>cmamp</code> repository</li>
+<li>[ ] Tag the new <code>dev</code> image to GHCR namespace and push it to GHCR registry</li>
+</ul>
+<h3 id="build_prod_image">Build prod image<a class="headerlink" href="#build_prod_image" title="Permanent link">#</a></h3>
+<ul>
+<li>
+<p>The main differences between <code>dev</code> image and <code>prod</code> image are:</p>
+<ul>
+<li>The source code is accessed through a bind mount for <code>dev</code> image (so that it
+    can be easily modified) and copied inside the image for a <code>prod</code> image
+    (since we want to package the code in the container)</li>
+<li>Requirements to be installed are different:<ul>
+<li><code>dev</code> image requires packages to develop and run the code</li>
+<li><code>prod</code> image requires packages only to run the code</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>The recipe to build a <code>prod</code> image is in
+    <a href="/devops/docker_build/prod.Dockerfile"><code>/devops/docker_build/prod.Dockerfile</code></a>.</p>
+</li>
+<li>
+<p>To build the <code>prod</code> image run:</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_prod_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0
+
+<span class="c1"># Check the options.</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_prod_image<span class="w"> </span>-h
+
+<span class="c1"># To build from scratch.</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_prod_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--no-cache
+</code></pre></div>
+</li>
+<li>
+<p>To run a command inside the prod image
+    <div class="highlight"><pre><span></span><code>&gt; docker run --rm -t --user $(id -u):$(id -g) --workdir=/app
+665840871993.dkr.ecr.us-east-1.amazonaws.com/cmamp:prod-1.0.3 &quot;ls -l /app&quot;
+</code></pre></div></p>
+</li>
+<li>Example of a complex command:
+    <div class="highlight"><pre><span></span><code>&gt; docker run --rm -t --workdir=/app 665840871993.dkr.ecr.us-east-1.amazonaws.com/cmamp:prod-1.0.3 &quot;python /app/datapull/ccxt/data/extract/download_realtime.py --to_datetime &#39;20211204-194432&#39; --from_datetime &#39;20211204-193932&#39; --dst_dir &#39;test/ccxt_test&#39; --data_type &#39;ohlcv&#39; --api_keys &#39;API_keys.json&#39; --universe &#39;v03&#39;&quot;
+</code></pre></div></li>
+</ul>
+<h4 id="qa_for_prod_image">QA for prod image<a class="headerlink" href="#qa_for_prod_image" title="Permanent link">#</a></h4>
+<ul>
+<li>In dev_scripts repo test:
+    <div class="highlight"><pre><span></span><code>&gt; i lint --files &quot;linters/amp_black.py&quot;
+</code></pre></div></li>
+<li>In amp repo make sure:
+    <div class="highlight"><pre><span></span><code>&gt; i lint -f &quot;helpers/dbg.py&quot;
+</code></pre></div></li>
+</ul>
+<h4 id="end-to-end_flow_for_prod_image">End-to-end flow for <code>prod</code> image<a class="headerlink" href="#end-to-end_flow_for_prod_image" title="Permanent link">#</a></h4>
+<ol>
+<li>Build docker <code>prod</code> image
+   <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_prod_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0
+</code></pre></div></li>
+<li>Run all the tests to verify that nothing is broken
+   <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_tests<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--stage<span class="w"> </span>prod
+&gt;<span class="w"> </span>i<span class="w"> </span>run_slow_tests<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--stage<span class="w"> </span>prod
+&gt;<span class="w"> </span>i<span class="w"> </span>run_superslow_tests<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--stage<span class="w"> </span>prod
+&gt;<span class="w"> </span>i<span class="w"> </span>run_qa_tests<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0<span class="w"> </span>--stage<span class="w"> </span>prod
+</code></pre></div></li>
+<li>
+<p>Push <code>prod</code> image to the docker registry
+   <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_push_prod_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0
+</code></pre></div></p>
+</li>
+<li>
+<p>To run the flow end-to-end do:</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_release_prod_image<span class="w"> </span>--version<span class="w"> </span><span class="m">1</span>.0.0
+</code></pre></div>
+</li>
+<li>
+<p>The same options are available as for <code>i docker_release_dev_image</code> and you can
+    check them with <code>i docker_release_prod_image -h</code></p>
+</li>
+</ol>
+<h3 id="release_a_multi-architecture_prod_image">Release a multi-architecture prod image<a class="headerlink" href="#release_a_multi-architecture_prod_image" title="Permanent link">#</a></h3>
+<h4 id="overview_1">Overview<a class="headerlink" href="#overview_1" title="Permanent link">#</a></h4>
+<ul>
+<li>Build <code>prod</code> versioned image remotely in the CK AWS ECR registry and pull once
+    it is built</li>
+<li>Run the <code>cmamp</code> regressions using a versioned <code>prod</code> image</li>
+<li>Tag the versioned <code>prod</code> image as <code>prod</code> image and push it to the Docker
+    registries</li>
+<li>Tag the new <code>prod</code> image to GHCR namespace and push it to GHCR registry</li>
+</ul>
+<h3 id="flow_for_both_dev_and_prod_images">Flow for both dev and prod images<a class="headerlink" href="#flow_for_both_dev_and_prod_images" title="Permanent link">#</a></h3>
+<ul>
+<li>To run both flows end-to-end do:<ul>
+<li><code>i docker_release_all</code></li>
+</ul>
+</li>
+<li>Alternatively, one can run the release stages step-by-step</li>
+</ul>
+<h2 id="release_flow">Release flow<a class="headerlink" href="#release_flow" title="Permanent link">#</a></h2>
+<h3 id="cmamp">cmamp<a class="headerlink" href="#cmamp" title="Permanent link">#</a></h3>
+<ul>
+<li>File a GitHub Issue for the release<ul>
+<li>E.g., "Add package foobar to cmamp image"</li>
+</ul>
+</li>
+<li>Create the corresponding branch
+    <div class="highlight"><pre><span></span><code>&gt; i git_create_branch -i ${issue_number}
+</code></pre></div></li>
+<li>Change the code as needed</li>
+<li>Update the changelog, e.g., <code>//cmamp/changelog.txt</code><ul>
+<li>Specify what was changed</li>
+<li>Pick the release version according to
+    <a href="https://semver.org/">semantic versioning</a> convention<ul>
+<li>For example for version <code>1.2.3</code>:<ul>
+<li>1 is major, 2 is minor, 3 is patch</li>
+</ul>
+</li>
+<li>We keep major and minor versions for <code>dev</code> and <code>prod</code> image in sync, while
+    <code>prod</code> gets patches<ul>
+<li>E.g., go from <code>prod-1.1.0</code> to <code>prod-1.1.1</code> for a small bug fix</li>
+</ul>
+</li>
+<li>In this manner, it cannot happen we have <code>dev-1.1.0</code> and <code>prod-1.2.0</code> at
+    any point in time, but <code>dev-1.1.0</code> and <code>prod-1.1.2</code> are perfectly fine</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Test the change using the local release flow</p>
+<div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>i<span class="w"> </span>docker_build_local_image<span class="w"> </span>-v<span class="w"> </span><span class="si">${</span><span class="nv">version</span><span class="si">}</span>
+...
+
+&gt;<span class="w"> </span>i<span class="w"> </span>run_fast_slow_tests<span class="w"> </span>-s<span class="w"> </span><span class="nb">local</span><span class="w"> </span>-v<span class="w"> </span><span class="si">${</span><span class="nv">version</span><span class="si">}</span>
+</code></pre></div>
+</li>
+<li>
+<p>Make sure that the goal of the Issue is achieved</p>
+<ul>
+<li>E.g., a new package is visible, the package version has been updated</li>
+</ul>
+</li>
+<li>Do a PR with the change including the updated <code>changelog.txt</code>, the poetry
+    files (e.g.,
+    <a href="/devops/docker_build/poetry.toml"><code>/devops/docker_build/poetry.toml</code></a>,
+    <a href="/devops/docker_build/poetry.lock"><code>/devops/docker_build/poetry.lock</code></a></li>
+<li>
+<p>Run the release flow manually (or rely on GH Action build workflow to create
+    the new image)</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Release dev image</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_release_dev_image<span class="w"> </span>--version<span class="w"> </span><span class="nv">$version</span>
+
+<span class="c1"># Pick up the new image from image repo</span>
+&gt;<span class="w"> </span>i<span class="w"> </span>docker_pull
+</code></pre></div>
+</li>
+<li>
+<p>Tag and push the latest <code>dev</code> to GHCR registry manually</p>
+<ul>
+<li>Perform a Docker login using your GitHub username and PAT (Personal Access
+    Token):
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>docker<span class="w"> </span>login<span class="w"> </span>ghcr.io<span class="w"> </span>-u<span class="w"> </span>&lt;username&gt;
+</code></pre></div></li>
+<li>Tag the <code>dev</code> image to the GHCR namespace:
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>docker<span class="w"> </span>tag<span class="w"> </span><span class="m">623860924167</span>.dkr.ecr.eu-north-1.amazonaws.com/cmamp:dev<span class="w"> </span>ghcr.io/causify-ai/cmamp:dev
+</code></pre></div></li>
+<li>Push the tagged image to the GHCR registry:
+    <div class="highlight"><pre><span></span><code>&gt;<span class="w"> </span>docker<span class="w"> </span>push<span class="w"> </span>ghcr.io/causify-ai/cmamp:dev
+</code></pre></div></li>
+</ul>
+</li>
+<li>
+<p>Send a message on the <code>all@</code> chat telling people that a new version of the
+    <code>XYZ</code> container has been released</p>
+</li>
+<li>Users need to do a <code>i docker_pull</code> to get the new container</li>
+<li>Users that don't update should see a message telling them that the code and
+    container are not in sync any more, e.g.,:
+    <div class="highlight"><pre><span></span><code>-----------------------------------------------------------------------------
+This code is not in sync with the container:
+code_version=&#39;1.0.3&#39; != container_version=&#39;amp-1.0.3&#39;
+-----------------------------------------------------------------------------
+You need to:
+- merge origin/master into your branch with `invoke git_merge_master`
+- pull the latest container with `invoke docker_pull`
+</code></pre></div></li>
+</ul>
+<h3 id="qa_flow">QA flow<a class="headerlink" href="#qa_flow" title="Permanent link">#</a></h3>
+<ul>
+<li>The goal is to test that the container as a whole works</li>
+<li>
+<p>We want to run the container as a user would do</p>
+</li>
+<li>
+<p>Usually we run tests inside a container to verify that the code is correct</p>
+</li>
+<li>To test the container itself right now we test outside (in the thin client)
+    <div class="highlight"><pre><span></span><code>&gt; pytest -m qa test --image_stage dev
+</code></pre></div></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 CAUSIFY.AI. All rights reserved.
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://causify.ai/" target="_blank" rel="noopener" title="causify.ai" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/company/causify-ai/" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/causify-ai/" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.action.edit"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/gh/rod2ik/cdn@main/mkdocs/javascripts/mkdocs-graphviz.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/katex.min.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/contrib/auto-render.min.js"></script>
+      
+    
+  </body>
+</html>
