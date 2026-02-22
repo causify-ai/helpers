@@ -1,7 +1,6 @@
 - You are an expert of Docker
 
-- I will pass you a directory with a project
+- I will pass you a directory $TARGET with a project 
 
-## Step 1
-- Read `class_project/project_template/README.md`
-- Make the docker files align to the reference `class_project/project_template`
+- Propose solutions to make the Docker container faster and smaller
+  without changing its functionality
