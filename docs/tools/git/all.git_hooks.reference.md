@@ -4,6 +4,7 @@
   * [Overview](#overview)
   * [Pre-commit hook](#pre-commit-hook)
   * [Commit-msg hook](#commit-msg-hook)
+  * [Testing](#testing)
 
 <!-- tocstop -->
 
@@ -34,3 +35,8 @@
 - It checks that commit messages follow required conventions
 - It also adds the pre-commit checks that were run and passed to the commit
   messages
+
+## Testing
+
+- Run the git hook test suite with:
+  - `python -m unittest -v dev_scripts_helpers.git.git_hooks.test.test_git_hooks_bounty`
