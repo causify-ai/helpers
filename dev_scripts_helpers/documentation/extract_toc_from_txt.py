@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 
 """
-Extract headers from Markdown, LaTeX, or txt slide files and generate a Vim cfile.
+Extract headers from Markdown, LaTeX, txt slide, or Jupyter notebook files and
+generate a Vim cfile.
 
 The script:
-- Processes the input Markdown `.md`, LaTeX `.tex`, or txt slide `.txt` file
+- Processes the input Markdown `.md`, LaTeX `.tex`, txt slide `.txt`, or
+  Jupyter notebook `.ipynb` file
 - Extracts headers up to a specified maximum level
   - Markdown: # (level 1), ## (level 2), ### (level 3), etc.
   - LaTeX: \section{} (level 1), \subsection{} (level 2), \subsubsection{} (level 3)
   - Txt slides: # (level 1), ## (level 2), * (level 3)
+  - Jupyter notebooks: # (level 1), ## (level 2), ### (level 3) from markdown cells
 - Prints a human-readable header map
 - Generates an output file in a format that can be used with Vim's quickfix
   feature.
@@ -22,6 +25,9 @@ The script:
 # Extract headers up to level 3 from a txt slide file and print to stdout:
 > extract_toc_from_txt.py -i slides.txt -o - --mode headers --max-level 3
 
+# Extract headers up to level 3 from a Jupyter notebook and print to stdout:
+> extract_toc_from_txt.py -i notebook.ipynb -o - --mode headers --max-level 3
+
 # To use the generated cfile in Vim:
 - Open Vim and run `:cfile output.cfile`
   ```
@@ -31,6 +37,7 @@ The script:
 """
 
 import argparse
+import json
 import logging
 import os
 from typing import List
@@ -169,6 +176,57 @@ def _extract_headers_from_txtslides(
     _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
 
 
+def _extract_headers_from_notebook(
+    input_file_name: str,
+    lines: List[str],
+    mode: str,
+    max_level: int,
+    out_file_name: str,
+) -> None:
+    """
+    Extract headers from a Jupyter notebook file.
+
+    This function parses a Jupyter notebook JSON file to extract markdown
+    headers from markdown cells. It processes the notebook structure to
+    find all markdown cells, extracts their content, and identifies headers
+    following standard Markdown conventions (# for level 1, ## for level 2, etc.).
+
+    :param input_file_name: path to the input Jupyter notebook file
+    :param lines: list of lines in the input notebook file (JSON content)
+    :param mode: output mode ('cfile' for Vim quickfix, 'headers' for
+        Markdown headers, 'list' for indented list)
+    :param max_level: maximum header levels to parse (1-3)
+    :param out_file_name: path to the output file
+    """
+    hdbg.dassert_isinstance(lines, list)
+    # Join lines to parse as JSON.
+    json_content = "\n".join(lines)
+    notebook_data = json.loads(json_content)
+    # Extract markdown cells.
+    hdbg.dassert_in("cells", notebook_data, "Invalid notebook structure")
+    cells = notebook_data["cells"]
+    # Collect all markdown content from markdown cells.
+    markdown_lines = []
+    for cell in cells:
+        if cell.get("cell_type") == "markdown":
+            # Cell source can be a string or list of strings.
+            source = cell.get("source", [])
+            if isinstance(source, str):
+                # Split string into lines.
+                markdown_lines.extend(source.split("\n"))
+            elif isinstance(source, list):
+                # Join list elements and split by newlines.
+                markdown_lines.extend("".join(source).split("\n"))
+    # Extract headers from the collected markdown content.
+    # We don't want to sanity check since we want to show the headers, even
+    # if malformed.
+    sanity_check = False
+    header_list = hmarkdo.extract_headers_from_markdown(
+        markdown_lines, max_level=max_level, sanity_check=sanity_check
+    )
+    _extract_and_write_headers(input_file_name, header_list, mode, out_file_name)
+
+
 # #############################################################################
 
 
@@ -218,6 +276,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
         )
     elif ext == ".txt":
         _extract_headers_from_txtslides(
+            in_file_name, input_content, args.mode, args.max_level, out_file_name
+        )
+    elif ext == ".ipynb":
+        _extract_headers_from_notebook(
             in_file_name, input_content, args.mode, args.max_level, out_file_name
         )
     else:

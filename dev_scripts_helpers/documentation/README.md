@@ -130,7 +130,7 @@
   - Extraction and Conversion Tools
     - `convert_docx_to_markdown.py`: Converts DOCX to Markdown
     - `pdf_to_md.py`: Converts PDF to Markdown
-    - `extract_toc_from_txt.py`: Extracts headers from Markdown and LaTeX files for navigation
+    - `extract_toc_from_txt.py`: Extracts headers from Markdown, LaTeX, txt slides, and Jupyter notebook files for navigation
     - `extract_gdoc_map.py`: Extracts Google Doc links from `.gdoc` files
 
   - Dockerized Tools
@@ -599,7 +599,7 @@ The supported File types and code blocks are:
 
 ### What It Does
 
-- Extract headers from **Markdown** `.md`, or **LaTeX** `.tex` documents and
+- Extract headers from **Markdown** `.md`, **LaTeX** `.tex`, **txt slide** `.txt`, or **Jupyter notebook** `.ipynb` documents and
   generate:
   - A **plain list** of headers
   - A **nested header map**
@@ -607,6 +607,8 @@ The supported File types and code blocks are:
 - Automatically detects file type based on extension
 - For Markdown: extracts `#`, `##`, `###` headers
 - For LaTeX: extracts `\section{}`, `\subsection{}`, `\subsubsection{}` commands
+- For txt slides: extracts `#` (level 1), `##` (level 2), `*` (level 3) headers
+- For Jupyter notebooks: extracts markdown headers from markdown cells
 
 ### Examples
 
@@ -625,6 +627,11 @@ The supported File types and code blocks are:
 - Extract LaTeX headers up to level 2 (section and subsection only)
   ```bash
   > extract_toc_from_txt.py -i document.tex -o - --mode headers --max-level 2
+  ```
+
+- Extract headers from Jupyter notebook and print to stdout
+  ```bash
+  > extract_toc_from_txt.py -i analysis.ipynb -o - --mode list --max-level 3
   ```
 
 ## `dockerized_tikz_to_bitmap.py`

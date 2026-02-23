@@ -1,45 +1,44 @@
-Format the text of the blog using the following rules.
+- Format the text of the blog using the following rules.
 
 ## Front Matter (YAML)
 
-Every blog post must start with YAML front matter enclosed in `---`:
-
-```markdown
----
-title: "Your Blog Post Title"
-authors:
-  - gpsaggese
-date: YYYY-MM-DD
-description:
-categories:
-  - Category Name
----
-```
-
-- **title**: Use double quotes, capitalize major words
-- **authors**: List format with username(s)
-- **date**: Use YYYY-MM-DD format
-- **description**: Usually left empty or contains a brief description
-- **categories**: Common categories include:
-  - Business
-  - Causal AI
-  - Startup
-  - Causal News
-  - Causal ELI5
+- Every blog post must start with YAML front matter enclosed in `---`:
+  ```markdown
+  ---
+  title: "Your Blog Post Title"
+  authors:
+    - gpsaggese
+  date: YYYY-MM-DD
+  description:
+  categories:
+    - Category Name
+  ---
+  ```
+  where
+  - **title**: Use double quotes, capitalize major words
+  - **authors**: List format with username(s)
+  - **date**: Use YYYY-MM-DD format
+  - **description**: Usually left empty or contains a brief description
+  - **categories**: Common categories include:
+    - Business
+    - Causal AI
+    - Startup
+    - Causal News
+    - Causal ELI5
 
 ## TL;DR Section
 
-Immediately after the front matter, add a TL;DR (or TLDR):
+- Immediately after the front matter, add a TL;DR (or TLDR):
+  ```markdown
+  TL;DR Your punchy one-liner summary that captures the essence of the post.
 
-```markdown
-TL;DR Your punchy one-liner summary that captures the essence of the post.
-
-<!-- more -->
-```
+  <!-- more -->
+  ```
 
 - Keep it very short and impactful (one sentence)
 - Use a colon after TL;DR or TLDR
-- Always follow with `<!-- more -->` tag on a new line with a blank line before it
+- Always follow with `<!-- more -->` tag on a new line with a blank line before
+  it
 
 ## Introduction
 
@@ -69,15 +68,15 @@ TL;DR Your punchy one-liner summary that captures the essence of the post.
 - Use ordered lists (`1.`, `2.`, etc.) when sequence matters
 - Lists often follow a brief introductory sentence ending with a colon
 
-Example:
-```markdown
-The main advantages are:
+- Example:
 
-- **First advantage**: Description here
-- **Second advantage**: Description here
-  - Sub-point with details
-  - Another sub-point
-```
+  ```markdown
+  The main advantages are:
+  - **First advantage**: Description here
+  - **Second advantage**: Description here
+    - Sub-point with details
+    - Another sub-point
+  ```
 
 ## Emphasis and Formatting
 
@@ -86,7 +85,7 @@ The main advantages are:
   - Use at the start of list items for headers/labels
   - Use for strong emphasis
 
-- *Italic text* (`_text_`):
+- _Italic text_ (`_text_`):
   - Use for questions and hypothetical scenarios
   - Use for terms being defined or emphasized
   - Use for "what if" scenarios
@@ -96,13 +95,13 @@ The main advantages are:
 
 ## Tables
 
-Use standard Markdown tables for comparisons:
+- Use standard Markdown tables for comparisons:
 
-```markdown
-| Column 1 | Column 2 | Column 3 |
-| :------- | :------- | :------- |
-| Data 1   | Data 2   | Data 3   |
-```
+  ```markdown
+  | Column 1 | Column 2 | Column 3 |
+  | :------- | :------- | :------- |
+  | Data 1   | Data 2   | Data 3   |
+  ```
 
 - Use left-aligned columns (`:-------`)
 - Keep column headers bold where appropriate

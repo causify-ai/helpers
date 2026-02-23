@@ -86,6 +86,7 @@
     def _main(parser: argparse.ArgumentParser) -> None:
     ```
 
+## Use Action Idiom
 - When using `--action`
 
   ```python
@@ -93,13 +94,16 @@
   hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
   ```
 
+## Create Dirs
 - If directory doesn't exist create it using `hio.create_dir`
   - If a `--from_scratch` option is requested, create the directory from scratch
 
+## Temporary files
 - When using temporary files use files named
   `tmp.${name_of_script}.{function}.txt` to increase debuggability by inspecting
   files
   - No need to clean up files
 
+## Use Progress Bar
 - When there are expensive for loop, use a progress bar using `tqdm` to track
   the progress

@@ -3,15 +3,29 @@ You are an expert Python developer.
 I will pass you a Python file that needs unit tests or ask you to update
 existing tests in the helpers repository.
 
-## File structure
+# Test Coverage
+
+## What to Test
+
+- For each function, generate tests for:
+  - Happy path (normal, expected input)
+  - Edge cases (boundary conditions)
+    - E.g., empty input, zero, single item, large input
+  - Do not test heavily error conditions (e.g., invalid input)
+
+# File and Test Structure
+
+## File Structure
 
 - For a source file `helpers/module_name.py`, create a test file at
   `helpers/test/test_module_name.py`
 
-## Unit test code structure
+## Unit Test Code Structure
+
 - Always derive testing classes from `hunitest.TestCase`
 
 - Use this exact structure:
+
   ```python
   import logging
 
@@ -37,21 +51,40 @@ existing tests in the helpers repository.
       # Test methods here
   ```
 
-## Naming conventions
+# Naming Conventions
+
+## Naming Conventions for a Function
 
 - Testing a function -> Use `Test_<FunctionName>` (with underscore)
-  - Example: function `parse_limit_range()` -> `class Test_parse_limit_range(hunitest.TestCase):`
-  - Example: function `apply_limit_range()` -> `class Test_apply_limit_range(hunitest.TestCase):`
+  - Examples
+  - For function `parse_limit_range()` ->
+    `class Test_parse_limit_range(hunitest.TestCase):`
+  - For function `apply_limit_range()` ->
+    `class Test_apply_limit_range(hunitest.TestCase):`
+
+## Naming Conventions for a Class
 
 - Testing a class -> Use `Test<ClassName>` (no underscore)
-  - Example: class `Config` -> `class TestConfig(hunitest.TestCase):`
-  - Example: class `ConfigBuilder` -> `class TestConfigBuilder(hunitest.TestCase):`
+  - Examples
+  - For class `Config` -> `class TestConfig(hunitest.TestCase):`
+  - For class `ConfigBuilder` -> `class TestConfigBuilder(hunitest.TestCase):`
 
-- Test method names -> Always number the method tests, as `test1`, `test2`
+## Test Method Names
 
-## Test method structure - Use three sections
+- For test method names always number the method tests, as `test1`, `test2`
+  - Good
+    - `test1`
+    - `test2`
+  - Bad
+    - `test_preserve_yaml_frontmatter`
+    - `test_page_separator_removal_with_frontmatter`
+
+# Test Method Conventions
+
+## Use Three Sections in Testing Methods
 
 - Every test method must have three sections with standard comments:
+
   ```python
   def test_something(self) -> None:
       """
@@ -76,15 +109,18 @@ existing tests in the helpers repository.
   - `# Check output.`
   - `# Check outputs.`
 
-## Use helper methods when you have repetitive tests
+## Use Helper Methods When You Have Repetitive Tests
 
 - If you write 2 or more test methods that call the same function with only
   different input values and expected outputs, create a helper method
 
 - Example:
+
   ```python
   class TestFunctionName(hunitest.TestCase):
-      """Test description."""
+      """
+      Test description.
+      """
 
       def helper(self, param1: Type1, expected: Type2) -> None:
           """
@@ -98,7 +134,7 @@ existing tests in the helpers repository.
           # Check outputs.
           self.assert_equal(str(actual), str(expected))
 
-      def test_case1(self) -> None:
+      def test1(self) -> None:
           """
           Test description.
           """
@@ -109,7 +145,7 @@ existing tests in the helpers repository.
           # Run test.
           self.helper(input1, expected)
 
-      def test_case2(self) -> None:
+      def test2(self) -> None:
           """
           Test description.
           """
@@ -121,27 +157,31 @@ existing tests in the helpers repository.
           self.helper(input1, expected)
   ```
 
-## Assertion patterns
+## Assertion Patterns
 
 - Compare simple values:
+
   ```python
   # Check outputs.
   self.assert_equal(actual, expected)
   ```
 
 - Compare data structures as strings:
+
   ```python
   # Check outputs.
   self.assert_equal(str(actual), str(expected))
   ```
 
 - Compare with fuzzy matching (whitespace differences):
+
   ```python
   # Check outputs.
   self.assert_equal(actual, expected, fuzzy_match=True)
   ```
 
 - Compare with text purification (memory addresses):
+
   ```python
   # Check outputs.
   self.assert_equal(actual, expected, purify_text=True)
@@ -157,28 +197,10 @@ existing tests in the helpers repository.
   self.assert_equal(actual, expected, dedent=True)
   ```
 
-## Use golden file testing for large outputs
-
-- When output is > 50 lines or changes frequently:
-  ```python
-  def test_large_output(self) -> None:
-      """Test description."""
-      # Prepare inputs.
-      input_data = <value>
-      # Run test.
-      actual = function_under_test(input_data)
-      # Check outputs.
-      self.check_string(actual)
-  ```
-
-- With fuzzy matching:
-  ```python
-  self.check_string(actual, fuzzy_match=True)
-  ```
-
-## Testing exceptions
+## Testing Exceptions
 
 - Full exception testing with message verification:
+
   ```python
   def test_raises_error(self) -> None:
       """
@@ -197,6 +219,7 @@ existing tests in the helpers repository.
   ```
 
 - Simplified version when exact message doesn't matter:
+
   ```python
   def test_raises_error(self) -> None:
       """
@@ -223,17 +246,30 @@ existing tests in the helpers repository.
       self.assertIn("expected substring", str(cm.exception))
   ```
 
-## Test coverage - What to test
+## Use Golden File Testing for Large Outputs
 
-- For each function, generate tests for:
-  - Happy path (normal, expected input)
-  - Edge cases (boundary conditions)
-    - E.g., empty input, zero, single item, large input
-  - Error conditions (invalid input)
+- When output is > 50 lines or changes frequently:
 
-## Input data patterns
+  ```python
+  def test_large_output(self) -> None:
+      """Test description."""
+      # Prepare inputs.
+      input_data = <value>
+      # Run test.
+      actual = function_under_test(input_data)
+      # Check outputs.
+      self.check_string(actual)
+  ```
+
+- With fuzzy matching:
+  ```python
+  self.check_string(actual, fuzzy_match=True)
+  ```
+
+## Input Data Patterns
 
 - Use multiline text (preferred):
+
   ```python
   # Prepare inputs.
   text = """
@@ -245,12 +281,14 @@ existing tests in the helpers repository.
   ```
 
 - Use list input:
+
   ```python
   # Prepare inputs.
   items = ["a", "b", "c"]
   ```
 
 - Use scratch space for file testing:
+
   ```python
   # Prepare inputs.
   scratch_dir = self.get_scratch_space()
@@ -265,9 +303,10 @@ existing tests in the helpers repository.
   data = hio.from_json(input_file)
   ```
 
-## Setup and teardown
+## Setup and Teardown
 
 - Use when multiple test methods need the same setup/teardown code:
+
   ```python
   class TestClassName(hunitest.TestCase):
       """

@@ -27,8 +27,8 @@ from tqdm import tqdm
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
-import helpers.henv as henv
 import helpers.hio as hio
+import helpers.hmodule as hmodule
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
@@ -49,14 +49,14 @@ def install_needed_modules(
     :param venv_path: path to the virtual environment
         E.g., /Users/saggese/src/venv/client_venv.helpers
     """
-    henv.install_module_if_not_present(
+    hmodule.install_module_if_not_present(
         "llm",
         package_name="llm",
         use_sudo=use_sudo,
         use_activate=True,
         venv_path=venv_path,
     )
-    henv.install_module_if_not_present(
+    hmodule.install_module_if_not_present(
         "tokencost",
         package_name="tokencost",
         use_sudo=use_sudo,

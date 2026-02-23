@@ -1,24 +1,23 @@
-When there are commands in a readme the format should be like
+- Commands in a readme must follow the format below
+  - Description
 
-- Description
-  ```bash
-  > command
-  ```
+    ```bash
+    > command
+    ```
+  - Good
 
-- Good
-  ````
-  - With system prompt from file:
-  ```bash
-  > llm_cli.py -i input.txt -o output.txt \
-      --system_prompt_file system_prompt.txt
-  ```
-  ````
-
-- Bad
-  ````
-  **With system prompt from file:**
-  ```bash
-  > llm_cli.py -i input.txt -o output.txt \
-      --system_prompt_file system_prompt.txt
-  ```
-  ````
+    ````
+    - With system prompt from file:
+    ```bash
+    > llm_cli.py -i input.txt -o output.txt \
+        --system_prompt_file system_prompt.txt
+    ```
+    ````
+  - Bad
+    ````
+    **With system prompt from file:**
+    ```bash
+    > llm_cli.py -i input.txt -o output.txt \
+        --system_prompt_file system_prompt.txt
+    ```
+    ````

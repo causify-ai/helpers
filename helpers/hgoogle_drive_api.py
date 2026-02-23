@@ -34,7 +34,7 @@ except ImportError:
 import pandas as pd
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
-import helpers.henv as henv
+import helpers.hmodule as hmodule
 import helpers.hpandas as hpandas
 
 _LOG = logging.getLogger(__name__)
@@ -50,21 +50,21 @@ def install_needed_modules(
     :param venv_path: path to the virtual environment
         E.g., /Users/saggese/src/venv/client_venv.helpers
     """
-    henv.install_module_if_not_present(
+    hmodule.install_module_if_not_present(
         "google",
         package_name="google-auth",
         use_sudo=use_sudo,
         use_activate=True,
         venv_path=venv_path,
     )
-    henv.install_module_if_not_present(
+    hmodule.install_module_if_not_present(
         "googleapiclient",
         package_name="google-api-python-client",
         use_sudo=use_sudo,
         use_activate=True,
         venv_path=venv_path,
     )
-    henv.install_module_if_not_present(
+    hmodule.install_module_if_not_present(
         "gspread",
         package_name="gspread",
         use_sudo=use_sudo,

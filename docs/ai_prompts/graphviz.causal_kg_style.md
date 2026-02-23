@@ -12,6 +12,7 @@ counterfactuals. In addition, use color to distinguish variable types
 consistently.
 
 ## General Graph Rules
+
 - Use Graphviz DOT syntax
 - Use a directed graph (`digraph`)
 - Set `rankdir=LR` for left-to-right causal flow
@@ -22,7 +23,9 @@ consistently.
 ## Node Representation Rules
 
 ### Variable Type Colors (Required)
+
 Use these colors consistently for node borders/fills:
+
 - Exogenous variable: color=#408AB0, fillcolor=#EAF3F8
 - Endogenous variable: color=#62D4A4, fillcolor=#EAF9F3
 - Target variable: color=#F8D476, fillcolor=#FFF6DA
@@ -31,6 +34,7 @@ Use these colors consistently for node borders/fills:
 - Counterfactual variable: color=#183B4A, fillcolor=#E6EEF1
 
 ### Exogenous vs Endogenous vs Target
+
 - Exogenous variable (no causal parents)
   - `shape=ellipse`
   - `penwidth=2`
@@ -45,6 +49,7 @@ Use these colors consistently for node borders/fills:
   - Must be colored using the target palette above
 
 ### Observable vs Unobservable (Latent) Variables
+
 - Observable variable
   - `style=filled,solid`
   - Use the appropriate color palette for its type
@@ -58,6 +63,7 @@ Use these colors consistently for node borders/fills:
     otherwise default to `shape=ellipse`
 
 ### Special Node Types
+
 - Intervened variable (`do(X)`)
   - `shape=doublecircle`
   - Label must be `do(X)`
@@ -72,6 +78,7 @@ Use these colors consistently for node borders/fills:
 ## Edge Representation Rules
 
 ### Causation
+
 - Direct causal effect
   - Solid arrow (`->`)
   - `style=solid`
@@ -83,6 +90,7 @@ Use these colors consistently for node borders/fills:
   - Use `color=gray30`
 
 ### Correlation / Association (Non-causal)
+
 - Correlation without causal claim
   - Dashed edge
   - No arrowheads (`dir=none`)
@@ -91,6 +99,7 @@ Use these colors consistently for node borders/fills:
   - Use `color=gray50`
 
 ### Effect Attributes (Optional)
+
 - Positive effect
   - Default arrowhead
   - Label `"+"`, `"++"`, `"+++"`
@@ -104,18 +113,21 @@ Use these colors consistently for node borders/fills:
   - Weak: `+`, `-`
 
 ## Confounding and Common Causes
+
 - Represent confounders explicitly
   - Use a latent node with dashed gray styling (latent palette)
   - Draw causal arrows from the confounder to each affected variable
 - Do not use correlation edges to represent confounding
 
 ## Layout and Structure
+
 - Use subgraphs (clusters) when helpful
   - Structural model vs observational associations
   - Different time slices or mechanisms
 - Ensure correlation edges do not affect node ranking (`constraint=false`)
 
 ## Output Requirements
+
 - Output only valid Graphviz/DOT code without triple backticks
 - Do not explain the code in natural language
 - Follow all visual and semantic conventions above exactly
