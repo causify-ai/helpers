@@ -1,23 +1,4 @@
-<!-- toc -->
-
-- [Claude Skills](#claude-skills)
-  * [What Are Skills?](#what-are-skills)
-  * [How Skills Work: Progressive Disclosure](#how-skills-work-progressive-disclosure)
-  * [Key Advantages Over Alternatives](#key-advantages-over-alternatives)
-    + [Compared to Openai'S Gpts](#compared-to-openais-gpts)
-    + [Compared to Custom Instructions](#compared-to-custom-instructions)
-    + [Token Efficiency vs MCP](#token-efficiency-vs-mcp)
-  * [Real-World Applications](#real-world-applications)
-  * [Platform Availability](#platform-availability)
-  * [Creating Your First Skill: Example](#creating-your-first-skill-example)
-  * [Getting Started](#getting-started)
-    + [**Getting Started**](#getting-started)
-    + [**Going Deeper**](#going-deeper)
-
-<!-- tocstop -->
-
 # Claude Skills
-
 - Claude Skills
   - Transforms Claude from a general-purpose AI into a specialized agent
   - Tailors Claude to specific workflows and organizational needs
@@ -26,7 +7,6 @@
   - Allows Claude to dynamically access these components when relevant
 
 ## What Are Skills?
-
 - Skills Concept
   - Skills are organized folders with instructions, scripts, and resources
   - They enable Claude to perform better at specific tasks
@@ -40,7 +20,6 @@
   - YAML includes name and description metadata
 
 ## How Skills Work: Progressive Disclosure
-
 - Skill Initialization
   - Claude scans skill files at session start
   - Reads short explanations from YAML in Markdown files
@@ -56,26 +35,29 @@
 ## Key Advantages Over Alternatives
 
 ### Compared to OpenAI's GPTs
-While OpenAI's GPTs allow users to create and share mini-agents with custom instructions and tools, Anthropic's Skills take a more developer-centric approach, prioritizing modularity, maintainability, and governance.
+While OpenAI's GPTs allow users to create and share mini-agents with custom
+instructions and tools, Anthropic's Skills take a more developer-centric
+approach, prioritizing modularity, maintainability, and governance.
 
 ### Compared to Custom Instructions
-Custom instructions apply broadly to all your conversations. Skills are task-specific and only load when relevant, making them better for specialized workflows.
+Custom instructions apply broadly to all your conversations. Skills are
+task-specific and only load when relevant, making them better for specialized
+workflows.
 
 ### Token Efficiency vs MCP
-MCPs front-load thousands of tokens describing every possible capability. Skills load a 30-token description and only pull the full details when needed.
+MCPs front-load thousands of tokens describing every possible capability. Skills
+load a 30-token description and only pull the full details when needed.
 
 ## Real-World Applications
 
 ## Platform Availability
-
 Skills work across Claude.ai, API, and Code, giving organizations the ability to
-author custom Skills through a new /v1/skills endpoint. Organizations can develop
-a skill once and deploy it everywhere their teams use Claude.
+author custom Skills through a new /v1/skills endpoint. Organizations can
+develop a skill once and deploy it everywhere their teams use Claude.
 
 ## Creating Your First Skill: Example
-
-Here's a simple example of how to create a custom skill for writing professional email responses:
-
+Here's a simple example of how to create a custom skill for writing professional
+email responses:
 ```markdown
 ---
 name: professional-email-responder
@@ -119,16 +101,17 @@ When responding to emails, always consider the recipient's role, the urgency of 
 ```
 
 ## Getting Started
-
-Creating skills is simple. The "skill-creator" skill provides interactive guidance: Claude asks about your workflow, generates the folder structure, formats the SKILL.md file, and bundles the resources you need.
+Creating skills is simple. The "skill-creator" skill provides interactive
+guidance: Claude asks about your workflow, generates the folder structure,
+formats the SKILL.md file, and bundles the resources you need.
 
 To enable Skills:
+
 1. Enable Skills in your Claude settings
-2. For Team and Enterprise users, admins must first enable Skills organization-wide
+2. For Team and Enterprise users, admins must first enable Skills
+   organization-wide
 3. Start creating your first skill using the template above
 4. Skills are included in
-
-
 
 https://github.com/anthropics/skills/tree/main
 
@@ -140,27 +123,28 @@ https://support.claude.com/en/articles/12512198-how-to-create-custom-skills
 
 https://support.claude.com/en/articles/12580051-teach-claude-your-way-of-working-using-skills
 
-Getting started
-Help Center: Using Skills - Setup and troubleshooting
+Getting started Help Center: Using Skills - Setup and troubleshooting
 
-How to create a skill with Claude - Build your first Skill with Claude's guidance
+How to create a skill with Claude - Build your first Skill with Claude's
+guidance
 
-Going deeper
-Skill authoring best practices - Learn the principles behind effective Skills
+Going deeper Skill authoring best practices - Learn the principles behind
+effective Skills
 
 Agent skills overview - Understand how Skills work under the hood
 
 Skill cookbooks - Working examples you can adapt
 
+### Getting Started
+- [Help Center: Using Skills](https://support.claude.com/en/articles/12512176-what-are-skills)
+  \- Setup and troubleshooting
+- [How to create a skill with Claude](https://support.claude.com/en/articles/12599426-how-to-create-a-skill-with-claude-through-conversation)
+  \- Build your first Skill with Claude's guidance
 
-### **Getting started**
-
-* [Help Center: Using Skills](https://support.claude.com/en/articles/12512176-what-are-skills) \- Setup and troubleshooting
-* [How to create a skill with Claude](https://support.claude.com/en/articles/12599426-how-to-create-a-skill-with-claude-through-conversation) \- Build your first Skill with Claude's guidance
-
-### **Going deeper**
-
-* [Skill authoring best practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices) \- Learn the principles behind effective Skills
-* [Agent skills overview](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview) \- Understand how Skills work under the hood
-* [Skill cookbooks](https://github.com/anthropics/claude-cookbooks/tree/main/skills) \- Working examples you can adapt
-
+### Going Deeper
+- [Skill authoring best practices](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices)
+  \- Learn the principles behind effective Skills
+- [Agent skills overview](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview)
+  \- Understand how Skills work under the hood
+- [Skill cookbooks](https://github.com/anthropics/claude-cookbooks/tree/main/skills)
+  \- Working examples you can adapt
