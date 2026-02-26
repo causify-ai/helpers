@@ -148,3 +148,25 @@ Skill cookbooks - Working examples you can adapt
   \- Understand how Skills work under the hood
 - [Skill cookbooks](https://github.com/anthropics/claude-cookbooks/tree/main/skills)
   \- Working examples you can adapt
+
+
+#
+
+// From https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf
+
+- A skill is a set of instructions packaged as a simple folder to teach an agent
+  how to handle specific tasks
+
+- A skill is a folder with
+  - `SKILL.md`: instructions in markdown with YAML frontmatter
+  - `scripts/`: with executable code (e.g., Python, Bash)
+  - `references/`: optional documentation
+  - `assets/`: templates, etc used in output
+
+- 3 levels
+  1. YAML frontmatter
+     - Always loaded
+     - Enough information to know when to load / use each skill
+  2. `SKILL.md`
+     - Loaded when Claude things the skill is relevant
+  3. Additional files loaded when needed
