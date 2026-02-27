@@ -170,3 +170,5 @@ Skill cookbooks - Working examples you can adapt
   2. `SKILL.md`
      - Loaded when Claude things the skill is relevant
   3. Additional files loaded when needed
+
+// https://agentskills.io/home

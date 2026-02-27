@@ -1,7 +1,5 @@
 - Given the passed content, you need to create a Jupyter notebook that helps a
   college student to understand the requested concepts
-  - The Jupyter notebook is described in terms of a markdown
-  - Create or update the file with the script `script.md`
 
 # Goals
 
@@ -13,6 +11,8 @@
     and see the results immediately
 
 - Do not write any code
+  - The Jupyter notebook is described in terms of a markdown
+  - Create or update the file with the script `jupyter_script.md`
 
 # Markdown Description of Each Cell
 
