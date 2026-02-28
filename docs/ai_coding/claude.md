@@ -280,7 +280,21 @@
 
 # Build with CC
 
+- Explore
+  - Fast, read-only, agent optimized for searching and analyzing codebases
+- Plan
+- 
+
 ## Create custom subagents
+
+- Subagents are specialized AI assistants that handle specific types of tasks
+  - Custom context window
+  - Custom system prompt
+  - Specific tool access
+
+- When CC finds a task that matches a subagent description it delegates to
+  subagent
+  - Subagent works independently and returns results
 
 ## Run agent teams
 
