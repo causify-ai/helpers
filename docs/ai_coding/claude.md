@@ -1,4 +1,4 @@
-//
+// https://code.claude.com/docs/en
 
 # Getting started
 
@@ -239,6 +239,44 @@
 
 - CLI tools are the most context-efficient way to interact with external services
   - E.g., `gh`
+
+- Create custom subagents
+  - Stored in `.claude/agents`
+  - Set of allowed tools
+  - Invoke with "Use a subagent to review this code for security issues"
+
+- Let CC interview you
+  ```
+  I want to build [brief description]. Interview me in detail using the AskUserQuestion tool.
+  Ask about technical implementation, edge cases, concerns, and tradeoffs.
+  Don't ask obvious questions, dig into the hard parts I might not have considered.
+  Keep interviewing until we've covered everything, then write a complete spec to SPEC.md.
+  ```
+
+- Course-correct early and often
+  - `ESC`: stop CC mid-action, context is preserved
+  - `ESC + ESC`: rewind and restore code state
+  - `/clear` to start fresh
+  - `/rewind` to a checkpoint
+
+- Manage context
+  - `/clear`
+  - `/compact <instructions>`
+
+- Use subagents to investigate
+  - When CC researches a codebase and reads lots of files, which consume context
+  - A subagent explores the codebase and reports back with findings
+  - E.g., "use a subagent to review this code for edge cases"
+
+- Writer / Reviewer pattern
+  - Writer: Implement XYZ
+  - Reviewer: Review the implementation and look for edge cases, ...
+  - Writer: Address the issues from the review ...
+
+- Write code / Unit tests
+
+- After two failed corrections, `/clear` and write a better initial prompt
+  using what you have learned
 
 # Build with CC
 

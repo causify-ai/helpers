@@ -7,6 +7,15 @@ description: Lint a Jupyter notebook and ensure cells are numbered consecutively
   appearance without changing its behavior using the rules from
   @.claude/skills/notebooks.format_rules/SKILL.md
 
+## Workflow
+
+1. Read all existing cell headers and identify the current numbering
+2. Identify gaps, duplicates, or out-of-order cell numbers
+3. Renumber headers consecutively (1, 2, 3, ... and 1.1, 1.2, ... for sub-cells)
+4. Rename all functions in code cells and the `*_utils.py` file to match the new
+   headers
+5. Sync the paired `.py` file with Jupytext
+
 # Use Jupytext
 
 - Remember to modify only the Python file paired with Jupytext to the notebook
@@ -182,7 +191,7 @@ description: Lint a Jupyter notebook and ensure cells are numbered consecutively
     ```markdown
     ## Cell 2.2: Interactive Hoeffding Inequality Demonstration
 
-    utils.cell4_hoeffding_inequality_demo()
+    utils.cell22_hoeffding_inequality_demo()
     ```
   - Bad
     ```markdown
@@ -210,8 +219,7 @@ description: Lint a Jupyter notebook and ensure cells are numbered consecutively
    - E.g., the code for `cell1_draw_bin_with_marbles_interactive` comes before
      the code for `cell2_...`
 2. All the code for each chunk of cells is close to each other
-
-2. In the Python file, there are framed dividers between cells matching the
+3. In the Python file, there are framed dividers between cells matching the
    title of the cells
    - Good
 

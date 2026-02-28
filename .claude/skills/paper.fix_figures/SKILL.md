@@ -46,3 +46,25 @@ description: Fix figures in a LaTeX paper by ensuring every figure has a label, 
   \end{figure}
   % render_images:end
   ````
+
+# Create Labels and Captions from Scratch
+
+- If a figure has no caption or label, infer them from the filename and
+  surrounding context
+  - E.g., `figs/02_architecture.1.png` → `label=fig:architecture`,
+    `caption=System architecture overview`
+- Choose label names that are short, lowercase, and use underscores
+
+# Add References in the Text
+
+- If a figure has a label but is not cited anywhere in the text, add a
+  parenthetical reference near the most relevant paragraph:
+  ```latex
+  (see Fig.~\ref{fig:confounding_adjustment})
+  ```
+
+# Verify No Orphaned References
+
+- Scan the text for `\ref{fig:xxx}` or `\ref{tab:xxx}` that have no matching
+  `\label{fig:xxx}` or `\label{tab:xxx}` in any figure or table environment
+- Report orphaned references as warnings; do not silently delete them
