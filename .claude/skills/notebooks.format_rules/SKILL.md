@@ -68,10 +68,17 @@ description: Format Jupyter notebooks according to conventions including jupytex
 - You can use Latex notation for formulas, like $...$ even if they are not
   rendered
 
+# Do not allow page separators
+
+- In Jupyter markdown cells remove separators like
+  ```verbatim
+  ---
+  ```
+
 # Title for the Comment Box
 
 - When using `add_fitted_text_box()` set the title
-  ```
+  ```python
   ax.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
   ```
 
