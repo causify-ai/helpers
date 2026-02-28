@@ -5,15 +5,15 @@
   clarifications
 
 - For all the code you must follow the instructions in
-  `docs/ai_prompts/coding.format_rules.md`
+  @.claude/skills/coding.format_rules.md
 
 # Rules
 
-./helpers_root/docs/ai_prompts/blog.format_rules.md
-./helpers_root/docs/ai_prompts/coding.format_rules.md
-./helpers_root/docs/ai_prompts/markdown.format_rules.md
-./helpers_root/docs/ai_prompts/notebooks.format_rules.md
-./helpers_root/docs/ai_prompts/testing.format_rules.md
+.claude/skills/blog.format_rules.md
+.claude/skills/coding.format_rules.md
+.claude/skills/markdown.format_rules.md
+.claude/skills/notebooks.format_rules.md
+.claude/skills/testing.format_rules.md
 
 # Implement Code
 
@@ -33,15 +33,15 @@ next step
   the plan is
 
 - For all the code you must follow the instructions in
-  `docs/ai_prompts/coding.format_rules.md`
+  @.claude/skills/coding.format_rules.md
 
 ## Step 2)
 - Update the file README.md in the same directory of the script following the
-  instructions in `docs/ai_prompts/readme.create.md`
+  instructions in @.claude/skills/readme.create.md
 
 ## Step 3)
 - Generate unit tests for the code following the instructions in
-  `docs/ai_prompts/testing.format_rules.md`
+  @.claude/skills/testing.format_rules.md
   - Write test class and methods
   - Preview unit tests that need to be written by creating input and expected
     outputs
@@ -49,17 +49,17 @@ next step
 
 ## Step 4)
 - Implement unit test code for the code following the instructions in
-  `docs/ai_prompts/testing.format_rules.md`
+  @.claude/skills/testing.format_rules.md
 
 # Implement Notebook Script
 
 source = `msml610/lectures_source/Lesson05.1-Learning_Theory.txt`
 notebook = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.ipynb`
-script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md`
+script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md
 
 ## Build the Notebook Script
 - Read $source and understand the bin analogy
-- Execute `docs/ai_prompts/notebooks.create_visual_script.md` to create the script
+- Execute @.claude/skills/notebooks.create_visual_script.md to create the script
   for the concept
 
 ## Build the Notebook
@@ -68,7 +68,7 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md`
   > cp ./msml610/tutorials/template.ipynb $notebook
   > git add $notebook
   ```
-- Execute `docs/ai_prompts/notebooks.implement_script.md` for cells between
+- Execute @.claude/skills/notebooks.implement_script.md for cells between
   <start> and <end> of $script
 - Update $notebook
 
@@ -98,7 +98,7 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md`
   - Mention any edge cases
   - If the task is not perfectly clear, you MUST not perform it, but ask for
     clarifications
-  - Write the plan in a file `claude.plan.md`
+  - Write the plan in a file `claude.plan.md
   - Wait for my response before executing the plan
 
 ## Step 2) Implement interfaces
@@ -110,15 +110,15 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md`
 
 ## Step 3) Implement code
   - Implement the code following the instructions in
-    `docs/ai_prompts/coding.format_rules.md`
+    @.claude/skills/coding.format_rules.md
 
 ## Step 4) Come up with a plan for the tests
   - Implement unit tests following the instructions in 
-    `docs/ai_prompts/testing.format_rules.md`
+    @.claude/skills/testing.format_rules.md
 
 ## Step 5) Implement tests
   - Implement unit tests following the instructions in 
-    `docs/ai_prompts/testing.format_rules.md`
+    @.claude/skills/testing.format_rules.md
 
 ## Step 6) Create new README
   - If it's a new script, find where the documentation of this change should go
@@ -127,10 +127,10 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md`
   - Explain the goal of the script
   - Report some examples of how to use the script
   - Update the file README.md in the same directory of the script following the
-    instructions in `docs/ai_prompts/readme.create.md`
+    instructions in @.claude/skills/readme.create.md
 
 # Write short tutorial
 
-- Execute `docs/ai_prompts/blog.write_tutorial.md` about ripgrep
+- Execute @.claude/skills/blog.write_tutorial.md about ripgrep
 
-- Write the result in `website/docs/blog/drafts/ripgrep.md`
+- Write the result in `website/docs/blog/drafts/ripgrep.md
