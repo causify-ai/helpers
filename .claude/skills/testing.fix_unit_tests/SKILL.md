@@ -107,4 +107,4 @@ description: Refactor unit test files by aligning strings, renaming methods, and
 # Important
 
 - For all the code you must follow the instructions in
-  `docs/ai_prompts/coding.format_rules.md`
+  @.claude/skills/coding.format_rules/SKILL.md

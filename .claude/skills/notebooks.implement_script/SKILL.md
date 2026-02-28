@@ -4,12 +4,12 @@ description: Implement Jupyter notebook cells from a visual script description f
 ---
 
 - Given the passed description for a Jupyter notebook in the format described in
-  `docs/ai_prompts/notebooks.create_visual_script.md` implement the cells
+  @.claude/skills/notebooks.create_visual_script/SKILL.md implement the cells
   requested by the user
 
 # Conventions
 
-- Always use the conventions in `docs/ai_prompts/notebooks.format_rules.md`
+- Always use the conventions in @.claude/skills/notebooks.format_rules/SKILL.md
 
 # Save Code to the `*_utils.py`
 

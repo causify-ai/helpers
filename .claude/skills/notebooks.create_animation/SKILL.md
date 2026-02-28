@@ -31,4 +31,4 @@ description: Create an animation from an ipywidget interact function using the s
   )
   ```
 
-- Always follow the instructions in `docs/ai_prompts/notebooks.format_rules.md`
+- Always follow the instructions in @.claude/skills/notebooks.format_rules/SKILL.md

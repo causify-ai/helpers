@@ -8,7 +8,7 @@ You are an expert Python developer.
 I will pass you a Python file paired with Jupyter notebook with jupytext using a
 py:percent format (e.g., msml610/tutorials/Lesson94-Information_Theory.py)
 
-For all the code follow the rules from `docs/ai_prompts/coding.format_code.md`
+For all the code follow the rules from @.claude/skills/coding.format_rules/SKILL.md
 
 # Step 1)
 

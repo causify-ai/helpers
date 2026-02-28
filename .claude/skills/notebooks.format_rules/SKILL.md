@@ -29,7 +29,7 @@ description: Format Jupyter notebooks according to conventions including jupytex
 # Use Python Style
 
 - For all the Python code you must follow the rules from
-  `docs/ai_prompts/coding.format_code.md`
+  @.claude/skills/coding.format_rules/SKILL.md
 
 # Format of a Jupyter Notebook
 

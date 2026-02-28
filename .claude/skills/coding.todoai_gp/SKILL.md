@@ -14,10 +14,10 @@ description: Implement all TODO(ai_gp) items in a file including renames, code u
   - If needed, run corresponding unit tests to make sure the code works
 
 - For a file containing Python code you MUST apply the rules from
-  `docs/ai_prompts/coding.format_rules.md`
+  @.claude/skills/coding.format_rules/SKILL.md
 
 - For a file storing unit tests (i.e., whose base name starts with `test_*.py`)
-  you must apply the rules from `docs/ai_prompts/testing.format_rules.md`
+  you must apply the rules from @.claude/skills/testing.format_rules/SKILL.md
 
 - For a notebook ipynb and its paired Python file, you MUST apply the rules from
-  `docs/ai_prompts/notebook.format_rules.md`
+  @.claude/skills/notebooks.format_rules/SKILL.md
