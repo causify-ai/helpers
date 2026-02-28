@@ -1,1 +1,0 @@
-../../docs/ai_prompts/coding.fix_gh_issue.md
