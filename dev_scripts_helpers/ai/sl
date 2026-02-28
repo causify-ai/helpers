@@ -1,0 +1,7 @@
+#!/bin/bash -e
+
+if [[ -n "$1" ]]; then
+    ls -1 .claude/skills/ | grep "$1"
+else
+    ls -1 .claude/skills/
+fi
