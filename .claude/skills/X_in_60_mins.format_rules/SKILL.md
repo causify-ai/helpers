@@ -90,6 +90,12 @@ tutorials/XYZ/
   displays results
 - The notebook must run end-to-end after kernel restart
 
+## Merge Markdown into Notebooks
+
+- Merge markdown files into the corresponding ipynb (a.g., API or example)
+  - E.g., `tutorial_asana.md` explaining the API of Asana should be merged into
+    `asana.API.ipynb`
+
 ## Jupytext pairing
 
 - Every `.ipynb` must be paired with a `.py` file in `percent` format
