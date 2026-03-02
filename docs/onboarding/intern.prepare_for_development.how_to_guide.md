@@ -24,10 +24,10 @@ Happy coding!
 
 ## Technologies used
 
-- [UMD DATA605 Big Data Systems](https://github.com/gpsaggese/umd_data605)
+- [UMD DATA605 Big Data Systems](https://github.com/gpsaggese/umd_classes)
   contains
-  [lectures](https://github.com/gpsaggese/umd_data605/tree/main/lectures) and
-  [tutorials](https://github.com/gpsaggese/umd_data605/tree/main/tutorials)
+  [lectures](https://github.com/gpsaggese/umd_classes/tree/main/lectures) and
+  [tutorials](https://github.com/gpsaggese/umd_classes/tree/main/tutorials)
   about most of the technologies we use in KaizenFlow, e.g., Dask, Docker,
   Docker Compose, Git, github, Jupyter, MongoDB, Pandas, Postgres, Apache Spark
 - You can go through the lectures and tutorials on a per-need basis, depending
