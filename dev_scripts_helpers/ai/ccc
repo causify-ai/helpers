@@ -1,3 +1,0 @@
-#!/bin/bash -xe
-
-claude --dangerously-skip-permissions --model -haiku
