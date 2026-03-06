@@ -39,7 +39,7 @@
 
 ## Coding Style
 
-- Use the coding style in `docs/ai_coding/code_template.py`
+- Use the coding style in `docs/ai_templates/code_template.py`
 - Use REST comments in docstrings
   - If the comment is only one line, still convert it to
     - **Bad**

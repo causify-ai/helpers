@@ -42,7 +42,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "The `store` variable is used."
-        expected = r"The \textcolor{red}{\texttt{store}} variable is used."
+        expected = r"The \textcolor{blue}{\texttt{store}} variable is used."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -52,7 +52,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "Use `function1` and `function2` to process data."
-        expected = r"Use \textcolor{red}{\texttt{function1}} and \textcolor{red}{\texttt{function2}} to process data."
+        expected = r"Use \textcolor{blue}{\texttt{function1}} and \textcolor{blue}{\texttt{function2}} to process data."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -62,7 +62,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "The `main function` is important."
-        expected = r"The \textcolor{red}{\texttt{main function}} is important."
+        expected = r"The \textcolor{blue}{\texttt{main function}} is important."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -92,7 +92,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "`config` is a parameter"
-        expected = r"\textcolor{red}{\texttt{config}} is a parameter"
+        expected = r"\textcolor{blue}{\texttt{config}} is a parameter"
         # Run test.
         self.helper(txt_in, expected)
 
@@ -102,17 +102,17 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "Import the module called `helpers`"
-        expected = r"Import the module called \textcolor{red}{\texttt{helpers}}"
+        expected = r"Import the module called \textcolor{blue}{\texttt{helpers}}"
         # Run test.
         self.helper(txt_in, expected)
 
     def test8(self) -> None:
         """
-        Test backticks containing special characters.
+        Test backticks containing special characters (underscores).
         """
         # Prepare inputs.
         txt_in = "Use the `_private_func` or `__dunder__` naming."
-        expected = r"Use the \textcolor{red}{\texttt{_private_func}} or \textcolor{red}{\texttt{__dunder__}} naming."
+        expected = r"Use the \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{\_\_dunder\_\_}} naming."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -122,7 +122,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "Call `func42` to compute result."
-        expected = r"Call \textcolor{red}{\texttt{func42}} to compute result."
+        expected = r"Call \textcolor{blue}{\texttt{func42}} to compute result."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -143,7 +143,7 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "First sentence with `var1`. Second sentence with `var2`. Third sentence."
-        expected = r"First sentence with \textcolor{red}{\texttt{var1}}. Second sentence with \textcolor{red}{\texttt{var2}}. Third sentence."
+        expected = r"First sentence with \textcolor{blue}{\texttt{var1}}. Second sentence with \textcolor{blue}{\texttt{var2}}. Third sentence."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -153,7 +153,37 @@ class Test_colorize_backticks(hunitest.TestCase):
         """
         # Prepare inputs.
         txt_in = "Import `numpy.array` for matrix operations."
-        expected = r"Import \textcolor{red}{\texttt{numpy.array}} for matrix operations."
+        expected = r"Import \textcolor{blue}{\texttt{numpy.array}} for matrix operations."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test13(self) -> None:
+        """
+        Test backticks containing underscores (escaped in LaTeX).
+        """
+        # Prepare inputs.
+        txt_in = "The `weeks_to_xmas` variable stores the countdown."
+        expected = r"The \textcolor{blue}{\texttt{weeks\_to\_xmas}} variable stores the countdown."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test14(self) -> None:
+        """
+        Test multiple backtick-wrapped words with underscores.
+        """
+        # Prepare inputs.
+        txt_in = "Use `_private_func` or `public_var` for different access levels."
+        expected = r"Use \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{public\_var}} for different access levels."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test15(self) -> None:
+        """
+        Test backticks with leading and trailing underscores.
+        """
+        # Prepare inputs.
+        txt_in = "Call `__init__` or `__dunder__` methods in Python."
+        expected = r"Call \textcolor{blue}{\texttt{\_\_init\_\_}} or \textcolor{blue}{\texttt{\_\_dunder\_\_}} methods in Python."
         # Run test.
         self.helper(txt_in, expected)
 
@@ -193,8 +223,8 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         \let\uline\underline
         \let\ul\underline
         # Chapter 1
-        The \textcolor{red}{\texttt{variable}} is used here.
-        And \textcolor{red}{\texttt{function_name}} is called next.
+        The \textcolor{blue}{\texttt{variable}} is used here.
+        And \textcolor{blue}{\texttt{function\_name}} is called next.
         """
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
@@ -223,7 +253,7 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         \let\uline\underline
         \let\ul\underline
         # Slide Title
-        Use \textcolor{red}{\texttt{method1}} and \textcolor{red}{\texttt{method2}} for processing.
+        Use \textcolor{blue}{\texttt{method1}} and \textcolor{blue}{\texttt{method2}} for processing.
         """
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
@@ -258,7 +288,7 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         ```python
         variable = `store`
         ```
-        The \textcolor{red}{\texttt{variable}} name is important.
+        The \textcolor{blue}{\texttt{variable}} name is important.
         """
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)

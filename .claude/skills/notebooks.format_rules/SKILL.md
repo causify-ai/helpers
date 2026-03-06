@@ -1,5 +1,4 @@
 ---
-name: notebooks.format_rules
 description: Format Jupyter notebooks according to conventions including jupytext, cell structure, and widget patterns
 ---
 

@@ -49,9 +49,9 @@ You can use Claude Code in two ways:
      - "Generate a React component for a login form with validation."
 
 3. I like to use a `instr.md` file with the instructions to `claude` so that
-   - E.g., see the template `docs/ai_coding/ai.instruction_template.md`
+   - E.g., see the template `docs/ai_templates/ai.instruction_template.md`
    ```bash
-   > cp docs/ai_coding/ai.instruction_template.md instr.md
+   > cp docs/ai_templates/ai.instruction_template.md instr.md
    # Customize instr.md with detailed instructions
    claude> execute instr.md
    ```
@@ -154,12 +154,12 @@ This documentation provides comprehensive guidelines for:
 
 ## Interesting Files
 
-- `docs/ai_coding/code_template.py` shows our coding style
-- `docs/ai_coding/unit_test_template.py` shows how our unit tests look like
+- `docs/ai_templates/code_template.py` shows our coding style
+- `docs/ai_templates/unit_test_template.py` shows how our unit tests look like
 
 - `CLAUDE.md`: Project architecture overview and development conventions for
   Claude Code working with the `helpers` repository
-- `docs/ai_coding/ai.instruction_template.md`: Workflow template for creating
+- `docs/ai_templates/ai.instruction_template.md`: Workflow template for creating
   Python scripts with tests, documentation, planning steps, and AI todos
 - `docs/ai_prompts/coding.format_rules.md`: Python coding standards including
   hdbg assertions, hsystem usage, logging patterns, and script templates
