@@ -74,7 +74,7 @@ def get_multiple_plots(
 
 
 def save_fig(
-    fig: mpl.figure.Figure,
+    fig: Optional[mpl.figure.Figure],
     file_name: str,
     *,
     print_markdown: bool = False,
@@ -83,11 +83,13 @@ def save_fig(
     """
     Save matplotlib figure to file and optionally print markdown reference.
 
-    :param fig: Matplotlib figure
+    :param fig: Matplotlib figure. If None, uses the active figure.
     :param file_name: Output filename
     :param print_markdown: If True, print markdown image reference
     :param path_prefix: Path prefix for markdown reference (e.g., "msml610/lectures_source")
     """
+    if fig is None:
+        fig = plt.gcf()
     hdbg.dassert_isinstance(fig, mpl.figure.Figure)
     hdbg.dassert_isinstance(file_name, str)
     hio.create_enclosing_dir(file_name, incremental=True)
