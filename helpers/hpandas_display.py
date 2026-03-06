@@ -4,11 +4,13 @@ Import as:
 import helpers.hpandas_display as hpandisp
 """
 
+import os
 from typing import List, Optional
 
 import pandas as pd
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hlist as hlist
 import helpers.hlogging as hloggin
 
@@ -205,3 +207,54 @@ def display_df(
     else:
         _print_display()
         raise ValueError("Invalid mode=%s" % mode)
+
+
+# #############################################################################
+
+
+def convert_df_to_png(
+    df: pd.DataFrame,
+    file_path: str,
+    index: bool = True,
+    table_conversion: str = "kaleido",
+    dpi: int = 300,
+    print_markdown: bool = False,
+    markdown_path_prefix: Optional[str] = None,
+) -> None:
+    """
+    Convert a dataframe to a PNG image file.
+
+    Uses the dataframe_image library to render the DataFrame as an image
+    with HTML styling.
+
+    :param df: dataframe to convert
+    :param file_path: path where the PNG image will be saved
+    :param index: whether to include the index in the image
+    :param table_conversion: conversion method ('kaleido', 'chrome', or 'playwright')
+    :param dpi: resolution in dots per inch (default: 300 for print quality,
+        higher values = higher resolution and larger file size)
+    :param print_markdown: if True, print markdown image reference like
+        ![](path/to/image.png)
+    :param markdown_path_prefix: optional path to prepend to the image path in
+        the markdown reference (e.g., '../figures/' or 'assets/')
+    """
+    import dataframe_image as dfi
+    hdbg.dassert_isinstance(df, pd.DataFrame)
+    hdbg.dassert_isinstance(file_path, str)
+    # Ensure the output directory exists.
+    hio.create_enclosing_dir(file_path, incremental=True)
+    _LOG.info("Converting dataframe to PNG: %s", file_path)
+    # Prepare dataframe for export, handling index parameter.
+    export_df = df
+    if not index:
+        # Reset index to exclude it from the image.
+        export_df = df.reset_index(drop=True)
+    dfi.export(export_df, file_path, table_conversion=table_conversion, dpi=dpi)
+    _LOG.info("PNG image saved to: %s", file_path)
+    if print_markdown:
+        # Construct the markdown path.
+        markdown_path = file_path
+        if markdown_path_prefix:
+            markdown_path = os.path.join(markdown_path_prefix, file_path)
+        markdown_ref = f"![]({markdown_path})"
+        print(markdown_ref)
