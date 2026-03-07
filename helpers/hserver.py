@@ -563,7 +563,7 @@ def _dassert_setup_consistency() -> None:
     This is used to ensure that the setup configuration is one of the
     expected ones and uniquely defined.
     """
-    etups = _get_setup_settings()
+    setups = _get_setup_settings()
     # One and only one set-up should be true.
     sum_ = sum([value for _, value in setups])
     if sum_ != 1:
