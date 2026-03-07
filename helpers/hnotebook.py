@@ -1,12 +1,10 @@
-# TODO(ai_gp): Move to helpers/hnotebook.py
+import helpers.hmodule as hmodule
 
 
 def config_notebook(sns_set: bool = True) -> None:
     """
     Configure the notebook for plotting.
     """
-    import helpers.hmodule as hmodule
-
     # Matplotlib.
     module = "matplotlib"
     if hmodule.has_module(module):

@@ -6,7 +6,9 @@ import helpers.hmodule as hmodule
 
 import logging
 import os
-from typing import Any, Dict, Optional
+import subprocess
+import textwrap
+from typing import Any, Dict, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hserver as hserver
@@ -16,7 +18,28 @@ _LOG = logging.getLogger(__name__)
 _WARNING = "\033[33mWARNING\033[0m"
 
 
-# TODO(gp): Is this the right place for this function?
+# Use this to avoid extra dependencies from `hsystem`.
+def _system_to_string(cmd: str) -> Tuple[int, str]:
+    """
+    Run a command and return the output and the return code.
+
+    :param cmd: command to run
+    :return: tuple of (return code, output)
+    """
+    result = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        # Redirect stderr to stdout.
+        stderr=subprocess.STDOUT,
+        shell=True,
+        text=True,
+    )
+    rc = result.returncode
+    output = result.stdout
+    output = output.strip()
+    return rc, output
+
+
 def has_module(module: str) -> bool:
     """
     Return whether a Python module can be imported or not.
@@ -33,8 +56,7 @@ def has_module(module: str) -> bool:
         _LOG.warning("%s: %s", _WARNING, str(e))
         has_module_ = False
     """
-    # TODO(ai_gp): Replace this call to dedent with a simpler version of the code.
-    code = hprint.dedent(code)
+    code = textwrap.dedent(code)
     # To make the linter happy.
     has_module_ = True
     locals_: Dict[str, Any] = {}
@@ -95,7 +117,5 @@ def install_module_if_not_present(
         cmd = f"pip install {quiet_flag} {package_name}"
     if use_sudo:
         cmd = f"sudo {cmd}"
-        # TODO(ai_gp): Create a function equivalent to hsystem.system_to_string
-        # so that we don't need to import hsystem.
-    _, output = hsystem.system_to_string(cmd)
+    _, output = _system_to_string(cmd)
     print(output)

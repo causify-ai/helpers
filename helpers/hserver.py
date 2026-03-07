@@ -31,6 +31,23 @@ def _print(msg: str) -> None:
         print(msg)
 
 
+# Copied from hprint to avoid import cycles.
+def _indent(txt: str, *, num_spaces: int = 2) -> str:
+    """
+    Add `num_spaces` spaces before each line of the passed string.
+    """
+    spaces = " " * num_spaces
+    txt_out = []
+    for curr_line in txt.split("\n"):
+        if curr_line.lstrip().rstrip() == "":
+            # Do not prepend any space to a line with only white characters.
+            txt_out.append("")
+            continue
+        txt_out.append(spaces + curr_line)
+    res = "\n".join(txt_out)
+    return res
+
+
 # We can't use `hsystem` to avoid import cycles.
 def _system_to_string(cmd: str) -> Tuple[int, str]:
     """
@@ -546,25 +563,7 @@ def _dassert_setup_consistency() -> None:
     This is used to ensure that the setup configuration is one of the
     expected ones and uniquely defined.
     """
-
-    # We don't want to import `hprint` here because it will cause a circular
-    # import.
-    def _indent(txt: str, *, num_spaces: int = 2) -> str:
-        """
-        Add `num_spaces` spaces before each line of the passed string.
-        """
-        spaces = " " * num_spaces
-        txt_out = []
-        for curr_line in txt.split("\n"):
-            if curr_line.lstrip().rstrip() == "":
-                # Do not prepend any space to a line with only white characters.
-                txt_out.append("")
-                continue
-            txt_out.append(spaces + curr_line)
-        res = "\n".join(txt_out)
-        return res
-
-    setups = _get_setup_settings()
+    etups = _get_setup_settings()
     # One and only one set-up should be true.
     sum_ = sum([value for _, value in setups])
     if sum_ != 1:
@@ -702,8 +701,8 @@ def get_docker_info() -> str:
         f"has_sibling_containers_support={has_sibling_containers_support_}"
     )
     txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
-    # TODO(ai_gp): Print without using hprint.to_info
-    txt = hprint.to_info("Docker info", txt_tmp)
+    # Format as title with indented items.
+    txt = "Docker info" + "\n" + _indent("\n".join(txt_tmp))
     return txt
 
 
@@ -1038,28 +1037,6 @@ def is_CK_S3_available() -> bool:
 # #############################################################################
 # Functions.
 # #############################################################################
-
-
-# Copied from hprint to avoid import cycles.
-
-
-def _indent(txt: str, *, num_spaces: int = 2) -> str:
-    """
-    Add `num_spaces` spaces before each line of the passed string.
-    """
-    spaces = " " * num_spaces
-    txt_out = []
-    for curr_line in txt.split("\n"):
-        if curr_line.lstrip().rstrip() == "":
-            # Do not prepend any space to a line with only white characters.
-            txt_out.append("")
-            continue
-        txt_out.append(spaces + curr_line)
-    res = "\n".join(txt_out)
-    return res
-
-
-# End copy.
 
 
 def config_func_to_str() -> str:

@@ -28,7 +28,7 @@ import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 # %%
-hprint.config_notebook()
+hnotebook.config_notebook()
 
 # TODO(gp): Changing level during the notebook execution doesn't work. Fix it.
 # hdbg.init_logger(verbosity=logging.DEBUG)
