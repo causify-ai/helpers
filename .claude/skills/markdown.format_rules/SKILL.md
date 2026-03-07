@@ -1,5 +1,4 @@
 ---
-name: markdown.format_rules
 description: Format markdown files according to conventions for clarity, structure, and consistency
 ---
 

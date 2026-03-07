@@ -1,5 +1,4 @@
 ---
-name: markdown.fix_bullet_points
 description: Reorganize a markdown file to use bullet points and ensure all fenced code blocks have syntax labels
 ---
 
@@ -26,7 +25,7 @@ description: Reorganize a markdown file to use bullet points and ensure all fenc
        ```
      ````
 
-3) Make sure commands are prepended with
+3) Make sure Linux / MacOS shell commands are prepended with:
    - `>` when they are bash commands
    - `docker>` when they are commands run inside Docker
    - `claude>` when they are commands run inside Claude
