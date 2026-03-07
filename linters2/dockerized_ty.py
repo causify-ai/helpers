@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-# TODO(ai): Add explanation.
+# TODO(ai_gp): Add explanation.
 """
 > ty check \
-        --output-format concise \
-        --color never \
-        --exclude '**/outcomes/**' \
-        --exclude '**/import_check/example/**' .
+    --output-format concise \
+    --color never \
+    --exclude '**/outcomes/**' \
+    --exclude '**/import_check/example/**' .
 """
 
 import argparse
@@ -24,27 +24,6 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 _STANDARD_TY_ARGS = "--output-format concise --color never --exclude '**/outcomes/**' --exclude '**/import_check/example/**' | tee ty.log"
-
-
-def _parse() -> argparse.ArgumentParser:
-    # Create an ArgumentParser instance with the provided docstring.
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "--no_use_standard_ty_args",
-        dest="use_standard_ty_args",
-        action="store_false",
-        default=True,
-        help=f"Use the standard ty arguments ({_STANDARD_TY_ARGS})",
-    )
-    # Add Docker-specific arguments (e.g., --dockerized_force_rebuild,
-    # --dockerized_use_sudo).
-    hparser.add_dockerized_script_arg(parser)
-    # Add logging verbosity parsing.
-    hparser.add_verbosity_arg(parser)
-    return parser
 
 
 def _run_dockerized_ty(
@@ -105,6 +84,27 @@ def _run_dockerized_ty(
         docker_cmd, container_image, dockerfile, mode
     )
     return ret
+
+
+def _parse() -> argparse.ArgumentParser:
+    # Create an ArgumentParser instance with the provided docstring.
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--no_use_standard_ty_args",
+        dest="use_standard_ty_args",
+        action="store_false",
+        default=True,
+        help=f"Use the standard ty arguments ({_STANDARD_TY_ARGS})",
+    )
+    # Add Docker-specific arguments (e.g., --dockerized_force_rebuild,
+    # --dockerized_use_sudo).
+    hparser.add_dockerized_script_arg(parser)
+    # Add logging verbosity parsing.
+    hparser.add_verbosity_arg(parser)
+    return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:

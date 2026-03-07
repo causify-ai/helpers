@@ -131,7 +131,7 @@
   _LOG.info("%s", henv.get_system_signature()[0])
 
   # Configure the notebook style.
-  hprint.config_notebook()
+  hnotebook.config_notebook()
   ```
 
 - The output of the cell looks like:

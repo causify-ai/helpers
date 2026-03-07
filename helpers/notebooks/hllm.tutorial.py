@@ -45,7 +45,7 @@ import helpers.hprint as hprint
 # %%
 print(henv.get_system_signature()[0])
 
-hprint.config_notebook()
+hnotebook.config_notebook()
 
 # %%
 # hdbg.init_logger(verbosity=logging.DEBUG)

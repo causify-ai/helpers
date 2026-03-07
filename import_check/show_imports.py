@@ -48,8 +48,18 @@ CLUSTER_COLOR = "darkslategray"
 _DIR_STRUCTURE_TYPE = Dict[int, Dict[str, List[str]]]
 
 
+# #############################################################################
+# NotModuleError
+# #############################################################################
+
+
 class NotModuleError(Exception):
     pass
+
+
+# #############################################################################
+# _PydepsRunner
+# #############################################################################
 
 
 class _PydepsRunner:
@@ -85,6 +95,37 @@ class _PydepsRunner:
         # pylint: disable=consider-using-with
         # Override pylint to preserve the dir for future use.
         self.tmp_dir = tempfile.TemporaryDirectory(prefix="tmp.pydeps")
+
+    def _run_submodule(self, submodule_path: str) -> str:
+        """
+        Run the `pydeps` script on the specified submodule.
+
+        :param submodule_path: path to the input submodule
+        :return: the output filename
+        """
+        # Initialize the `pydeps` arguments used for each call.
+        pydeps_args = [
+            ("--no-output", ""),
+            ("--show-deps", ""),
+            ("", submodule_path),
+        ]
+        if self.show_cycles:
+            pydeps_args.append(("--show-cycles", ""))
+        output_name = submodule_path.replace("/", "_")
+        # Set the `pydeps` output filename.
+        _tmp_output_filename = f"{self.tmp_dir.name}/{output_name}.json"
+        pydeps_args.append((">", _tmp_output_filename))
+        # Before running pydeps we need to make sure that it uses the code
+        # in `/src` and not the ones in `/app` (see DevToolsTask406).
+        cmd = "export PYTHONPATH=/src:$PYTHONPATH; pydeps"
+        for arg_name, arg_value in pydeps_args:
+            cmd += f" {arg_name} {arg_value}"
+        hsystem.system(cmd)
+        # Assert that the command produced an output.
+        hdbg.dassert_path_exists(
+            _tmp_output_filename, msg="`pydeps` did not produce any output"
+        )
+        return _tmp_output_filename
 
     def run(self) -> str:
         """
@@ -132,36 +173,10 @@ class _PydepsRunner:
         """
         self.tmp_dir.cleanup()
 
-    def _run_submodule(self, submodule_path: str) -> str:
-        """
-        Run the `pydeps` script on the specified submodule.
 
-        :param submodule_path: path to the input submodule
-        :return: the output filename
-        """
-        # Initialize the `pydeps` arguments used for each call.
-        pydeps_args = [
-            ("--no-output", ""),
-            ("--show-deps", ""),
-            ("", submodule_path),
-        ]
-        if self.show_cycles:
-            pydeps_args.append(("--show-cycles", ""))
-        output_name = submodule_path.replace("/", "_")
-        # Set the `pydeps` output filename.
-        _tmp_output_filename = f"{self.tmp_dir.name}/{output_name}.json"
-        pydeps_args.append((">", _tmp_output_filename))
-        # Before running pydeps we need to make sure that it uses the code
-        # in `/src` and not the ones in `/app` (see DevToolsTask406).
-        cmd = "export PYTHONPATH=/src:$PYTHONPATH; pydeps"
-        for arg_name, arg_value in pydeps_args:
-            cmd += f" {arg_name} {arg_value}"
-        hsystem.system(cmd)
-        # Assert that the command produced an output.
-        hdbg.dassert_path_exists(
-            _tmp_output_filename, msg="`pydeps` did not produce any output"
-        )
-        return _tmp_output_filename
+# #############################################################################
+# _NodeInfo
+# #############################################################################
 
 
 @dataclasses.dataclass
@@ -224,10 +239,36 @@ class _NodeInfo:
         self.is_file = is_file
 
 
+# #############################################################################
+# _NodesInfo
+# #############################################################################
+
+
 class _NodesInfo:
     """
     Read, process and write dependency nodes information.
     """
+
+    def _read_textual_output(self, dependencies_filename: str) -> None:
+        """
+        Read the textual output from a file and parse it.
+
+        :param dependencies_filename: name of the file with node dependencies
+        """
+        pydeps_output = hio.from_json(dependencies_filename)
+        for node_name, node_info in pydeps_output.items():
+            # `node_info` is a dictionary containing <node_property>:<property_value>
+            # pairs, where node properties are ["bacon", "imported_by", "imports",
+            # "path"]. Some properties may be unspecified (e.g., when a node does
+            # not depend on any module, `node_info` does not contain the "imports" key).
+            node = _NodeInfo(node_name, node_info["bacon"])
+            if "imported_by" in node_info:
+                node.imported_by = node_info["imported_by"]
+            if "imports" in node_info:
+                node.imports = node_info["imports"]
+            if "path" in node_info:
+                node.path = node_info["path"]
+            self.nodes_info.append(node)
 
     def __init__(self, dependencies_filename: str) -> None:
         """
@@ -317,6 +358,44 @@ class _NodesInfo:
                 node_info.node_name = new_node_name
                 node_info.truncated = True
 
+    @staticmethod
+    def _prepend_prefix_to_internal_imports(
+        node_info: _NodeInfo,
+        prefix: str,
+        mapped_nodes_info: Dict[str, _NodeInfo],
+    ) -> _NodeInfo:
+        """
+        Prepend the specified prefix to node's import data.
+
+        :param node_info: dependency node to update
+        :param prefix: a prefix to prepend
+        :param mapped_nodes_info: a mapping from node names to nodes
+        :return: a modified node
+        """
+        modified_node_info = copy.copy(node_info)
+        # Prepend the prefix to the import data related to the node.
+        if node_info.imported_by is not None:
+            imported_by_modified = []
+            for imp in node_info.imported_by:
+                imp_modified = imp
+                if imp in mapped_nodes_info:
+                    if not mapped_nodes_info[imp].is_external:
+                        # Update the import if it is an internal dependency.
+                        imp_modified = f"{prefix}.{imp}"
+                imported_by_modified.append(imp_modified)
+            modified_node_info.imported_by = imported_by_modified
+        if node_info.imports is not None:
+            imports_modified = []
+            for imp in node_info.imports:
+                imp_modified = imp
+                if imp in mapped_nodes_info:
+                    if not mapped_nodes_info[imp].is_external:
+                        # Update the import if it is an internal dependency.
+                        imp_modified = f"{prefix}.{imp}"
+                imports_modified.append(imp_modified)
+            modified_node_info.imports = imports_modified
+        return modified_node_info
+
     def prepend_prefix_to_internal_node_names(self, prefix: str) -> None:
         """
         Prepend the specified prefix to each internal node name.
@@ -361,64 +440,10 @@ class _NodesInfo:
             mapped_nodes_info[node_info.node_name] = node_info
         return mapped_nodes_info
 
-    @staticmethod
-    def _prepend_prefix_to_internal_imports(
-        node_info: _NodeInfo,
-        prefix: str,
-        mapped_nodes_info: Dict[str, _NodeInfo],
-    ) -> _NodeInfo:
-        """
-        Prepend the specified prefix to node's import data.
 
-        :param node_info: dependency node to update
-        :param prefix: a prefix to prepend
-        :param mapped_nodes_info: a mapping from node names to nodes
-        :return: a modified node
-        """
-        modified_node_info = copy.copy(node_info)
-        # Prepend the prefix to the import data related to the node.
-        if node_info.imported_by is not None:
-            imported_by_modified = []
-            for imp in node_info.imported_by:
-                imp_modified = imp
-                if imp in mapped_nodes_info:
-                    if not mapped_nodes_info[imp].is_external:
-                        # Update the import if it is an internal dependency.
-                        imp_modified = f"{prefix}.{imp}"
-                imported_by_modified.append(imp_modified)
-            modified_node_info.imported_by = imported_by_modified
-        if node_info.imports is not None:
-            imports_modified = []
-            for imp in node_info.imports:
-                imp_modified = imp
-                if imp in mapped_nodes_info:
-                    if not mapped_nodes_info[imp].is_external:
-                        # Update the import if it is an internal dependency.
-                        imp_modified = f"{prefix}.{imp}"
-                imports_modified.append(imp_modified)
-            modified_node_info.imports = imports_modified
-        return modified_node_info
-
-    def _read_textual_output(self, dependencies_filename: str) -> None:
-        """
-        Read the textual output from a file and parse it.
-
-        :param dependencies_filename: name of the file with node dependencies
-        """
-        pydeps_output = hio.from_json(dependencies_filename)
-        for node_name, node_info in pydeps_output.items():
-            # `node_info` is a dictionary containing <node_property>:<property_value>
-            # pairs, where node properties are ["bacon", "imported_by", "imports",
-            # "path"]. Some properties may be unspecified (e.g., when a node does
-            # not depend on any module, `node_info` does not contain the "imports" key).
-            node = _NodeInfo(node_name, node_info["bacon"])
-            if "imported_by" in node_info:
-                node.imported_by = node_info["imported_by"]
-            if "imports" in node_info:
-                node.imports = node_info["imports"]
-            if "path" in node_info:
-                node.path = node_info["path"]
-            self.nodes_info.append(node)
+# #############################################################################
+# DependenceGraphComputer
+# #############################################################################
 
 
 class DependenceGraphComputer:
@@ -450,124 +475,6 @@ class DependenceGraphComputer:
         # duplicated edges.
         self._root_graph: graphviz.Digraph = graphviz.Digraph(strict=True)
         self.structured_graph: nx.Graph = nx.DiGraph()
-
-    def collect_graph_data(self) -> None:
-        """
-        Create a graph from the loaded dependency nodes.
-        """
-        # Remove the module nodes, only file nodes are used for graph creation.
-        self._nodes_info.remove_internal_module_nodes()
-        # Create a mapping between the node names and the nodes.
-        self._mapped_nodes_info = self._nodes_info.map_name_to_node()
-        # Check if we have any dependency nodes.
-        if len(self._nodes_info.nodes_info) == 0:
-            _LOG.info("No dependencies to show.")
-        # If we have dependency nodes, add the corresponding nodes and edges to the
-        # graph.
-        else:
-            self._add_nodes_to_graph()
-            self._add_edges_to_graph()
-            self._remove_isolated_nodes_from_graph()
-
-    def plot_graph(
-        self,
-        out_filename: str,
-        *,
-        out_format: str = "pdf",
-        save_source: Optional[bool] = False,
-    ) -> None:
-        """
-        Plot the graph and save the result.
-
-        :param out_filename: name of the output file
-        :param out_format: output format
-            - "pdf"
-            - "svg"
-            - "png"
-        :param save_source: if set to True, the graph source file will not be deleted
-        """
-        hdbg.dassert_in(out_format, ["pdf", "svg", "png"])
-        if out_filename.endswith(f".{out_format}"):
-            # If `out_filename` already contains the extension, remove it.
-            out_filename = f".{out_format}".join(
-                out_filename.split(f".{out_format}")[:-1]
-            )
-        # Plot the graph in the output file.
-        self._root_graph.render(
-            out_filename, format=out_format, cleanup=not save_source
-        )
-
-    def create_dot_graph(self) -> None:
-        """
-        Create a graphviz dot graph for plotting the graph.
-
-        - Create subgraphs for lower directory levels
-        - Create subgraphs for upper directory levels
-        - Update the upper levels' subgraphs with the lower level subgraphs
-        """
-        if self._show_cycles:
-            # Keep the cycles only.
-            self._remove_non_cyclic_dependencies()
-        # Compute the directory structure for all the nodes in the structured
-        # graph.
-        directories = self._extract_directories_structure()
-        # Get the maximum directory level.
-        max_level = max(directories.keys())
-        if max_level == -1:
-            return
-        # Create a dictionary of subgraphs.
-        self._subgraphs: Dict[str, graphviz.Digraph] = {}
-        # For each directory level, starting from the deepest one, create
-        # a subgraph for each directory of that level.
-        for dir_level in reversed(range(1, max_level + 1)):
-            dir_level_directories = directories[dir_level]
-            for dir_ in dir_level_directories.keys():
-                if dir_ not in self._subgraphs:
-                    # Create a corresponding subgraph if it doesn't already exist.
-                    # The subgraph name is simply the name of directory.
-                    subgraph_name = dir_.split(".")[-1]
-                    self._subgraphs[dir_] = self._create_subgraph(
-                        subgraph_name, CLUSTER_COLOR
-                    )
-                # Add the files from the directory as subgraph nodes.
-                for node in dir_level_directories[dir_]:
-                    self._add_internal_node(node, dir_)
-            # If the dir level is not the deepest one,
-            # update the subgraphs of the lower level.
-            if dir_level < max_level:
-                directories = self._update_lower_level_directories(
-                    directories, dir_level
-                )
-        root_graph_name = list(directories[1].keys())[0]
-        # Add the external dependencies to the root graph.
-        for ext_node in directories[-1]:
-            self._add_external_node(ext_node)
-        # Add the root graph with internal dependencies to the root graph with all
-        # the dependencies.
-        self._root_graph.subgraph(self._subgraphs[root_graph_name])
-        # Add the edges.
-        for from_node, to_node in sorted(self.structured_graph.edges):
-            self._root_graph.edge(from_node, to_node)
-
-    def _create_subgraph(self, name: str, color: str) -> graphviz.Digraph:
-        """
-        Create a subgraph with the specified name and color.
-
-        :param name: subgraph name
-        :param color: color of the cluster frame
-        :return: created subgraph
-        """
-        if self._cluster:
-            cluster = "cluster_"
-        else:
-            cluster = ""
-        graph = graphviz.Digraph(
-            f"{cluster}{name}",
-            graph_attr={"compound": "true", "label": name},
-            node_attr={"style": "filled"},
-            body=[f"\tcolor={color}"],
-        )
-        return graph
 
     def _add_nodes_to_graph(self) -> None:
         """
@@ -625,6 +532,72 @@ class DependenceGraphComputer:
             if node not in connected_nodes:
                 new_structured_graph.remove_node(node)
         self.structured_graph = new_structured_graph
+
+    def collect_graph_data(self) -> None:
+        """
+        Create a graph from the loaded dependency nodes.
+        """
+        # Remove the module nodes, only file nodes are used for graph creation.
+        self._nodes_info.remove_internal_module_nodes()
+        # Create a mapping between the node names and the nodes.
+        self._mapped_nodes_info = self._nodes_info.map_name_to_node()
+        # Check if we have any dependency nodes.
+        if len(self._nodes_info.nodes_info) == 0:
+            _LOG.info("No dependencies to show.")
+        # If we have dependency nodes, add the corresponding nodes and edges to the
+        # graph.
+        else:
+            self._add_nodes_to_graph()
+            self._add_edges_to_graph()
+            self._remove_isolated_nodes_from_graph()
+
+    def plot_graph(
+        self,
+        out_filename: str,
+        *,
+        out_format: str = "pdf",
+        save_source: Optional[bool] = False,
+    ) -> None:
+        """
+        Plot the graph and save the result.
+
+        :param out_filename: name of the output file
+        :param out_format: output format
+            - "pdf"
+            - "svg"
+            - "png"
+        :param save_source: if set to True, the graph source file will not be deleted
+        """
+        hdbg.dassert_in(out_format, ["pdf", "svg", "png"])
+        if out_filename.endswith(f".{out_format}"):
+            # If `out_filename` already contains the extension, remove it.
+            out_filename = f".{out_format}".join(
+                out_filename.split(f".{out_format}")[:-1]
+            )
+        # Plot the graph in the output file.
+        self._root_graph.render(
+            out_filename, format=out_format, cleanup=not save_source
+        )
+
+    def _create_subgraph(self, name: str, color: str) -> graphviz.Digraph:
+        """
+        Create a subgraph with the specified name and color.
+
+        :param name: subgraph name
+        :param color: color of the cluster frame
+        :return: created subgraph
+        """
+        if self._cluster:
+            cluster = "cluster_"
+        else:
+            cluster = ""
+        graph = graphviz.Digraph(
+            f"{cluster}{name}",
+            graph_attr={"compound": "true", "label": name},
+            node_attr={"style": "filled"},
+            body=[f"\tcolor={color}"],
+        )
+        return graph
 
     def _remove_non_cyclic_dependencies(self) -> None:
         """
@@ -764,6 +737,58 @@ class DependenceGraphComputer:
             # Update the upper level directory dot subgraph.
             self._subgraphs[upper_level_dir_name].subgraph(self._subgraphs[dir_])
         return directories_copy
+
+    def create_dot_graph(self) -> None:
+        """
+        Create a graphviz dot graph for plotting the graph.
+
+        - Create subgraphs for lower directory levels
+        - Create subgraphs for upper directory levels
+        - Update the upper levels' subgraphs with the lower level subgraphs
+        """
+        if self._show_cycles:
+            # Keep the cycles only.
+            self._remove_non_cyclic_dependencies()
+        # Compute the directory structure for all the nodes in the structured
+        # graph.
+        directories = self._extract_directories_structure()
+        # Get the maximum directory level.
+        max_level = max(directories.keys())
+        if max_level == -1:
+            return
+        # Create a dictionary of subgraphs.
+        self._subgraphs: Dict[str, graphviz.Digraph] = {}
+        # For each directory level, starting from the deepest one, create
+        # a subgraph for each directory of that level.
+        for dir_level in reversed(range(1, max_level + 1)):
+            dir_level_directories = directories[dir_level]
+            for dir_ in dir_level_directories.keys():
+                if dir_ not in self._subgraphs:
+                    # Create a corresponding subgraph if it doesn't already exist.
+                    # The subgraph name is simply the name of directory.
+                    subgraph_name = dir_.split(".")[-1]
+                    self._subgraphs[dir_] = self._create_subgraph(
+                        subgraph_name, CLUSTER_COLOR
+                    )
+                # Add the files from the directory as subgraph nodes.
+                for node in dir_level_directories[dir_]:
+                    self._add_internal_node(node, dir_)
+            # If the dir level is not the deepest one,
+            # update the subgraphs of the lower level.
+            if dir_level < max_level:
+                directories = self._update_lower_level_directories(
+                    directories, dir_level
+                )
+        root_graph_name = list(directories[1].keys())[0]
+        # Add the external dependencies to the root graph.
+        for ext_node in directories[-1]:
+            self._add_external_node(ext_node)
+        # Add the root graph with internal dependencies to the root graph with all
+        # the dependencies.
+        self._root_graph.subgraph(self._subgraphs[root_graph_name])
+        # Add the edges.
+        for from_node, to_node in sorted(self.structured_graph.edges):
+            self._root_graph.edge(from_node, to_node)
 
 
 # #############################################################################
