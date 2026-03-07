@@ -3,7 +3,7 @@ Unit tests for config command line tools.
 
 Import as:
 
-import config_root.config.test.test_config_scripts as crcotsscr
+import config_root.config.scripts.config_script_utils as crcscsut
 """
 
 import argparse
@@ -21,27 +21,14 @@ from unittest import mock
 import yaml
 
 import helpers.hio as hio
+import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 import config_root.config.config_ as crococon
 
 _LOG = logging.getLogger(__name__)
 
-# Load the config script module dynamically (it has no .py extension).
-_SCRIPT_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "config",
-)
-_config_script = types.ModuleType("config_script")
-with open(_SCRIPT_PATH, "r") as f:
-    _source_code = f.read()
-# Remove shebang if present.
-if _source_code.startswith("#!"):
-    _source_code = "\n" + "\n".join(_source_code.split("\n")[1:])
-exec(
-    compile(_source_code, _SCRIPT_PATH, "exec"),
-    _config_script.__dict__,
-)
+# Import config script utilities directly.
+import config_root.config.scripts.config_script_utils as crcscsut
 
 # #############################################################################
 # Utilities for config command testing.
@@ -97,6 +84,18 @@ class Test_yaml_config_conversion(hunitest.TestCase):
     Test conversion between Config and YAML formats.
     """
 
+    def helper(self, config: crococon.Config) -> crococon.Config:
+        """
+        Test helper for YAML roundtrip conversion.
+
+        :param config: Config object to convert
+        :return: Restored config from YAML
+        """
+        # Run test.
+        yaml_text = _config_to_yaml(config)
+        config_restored = _load_config_from_yaml(yaml_text)
+        return config_restored
+
     def test1(self) -> None:
         """
         Test basic config to YAML and back.
@@ -106,9 +105,8 @@ class Test_yaml_config_conversion(hunitest.TestCase):
         config["a", "b"] = 1
         config["a", "c"] = 2
         config["d"] = 3
-        # Convert to YAML and back.
-        yaml_text = _config_to_yaml(config)
-        config_restored = _load_config_from_yaml(yaml_text)
+        # Run test.
+        config_restored = self.helper(config)
         # Check outputs.
         self.assert_equal(str(config), str(config_restored))
 
@@ -122,9 +120,8 @@ class Test_yaml_config_conversion(hunitest.TestCase):
         config["model", "params", "alpha"] = 0.01
         config["model", "params", "beta"] = 0.5
         config["data", "path"] = "/tmp/data"
-        # Convert to YAML and back.
-        yaml_text = _config_to_yaml(config)
-        config_restored = _load_config_from_yaml(yaml_text)
+        # Run test.
+        config_restored = self.helper(config)
         # Check outputs.
         self.assert_equal(str(config), str(config_restored))
 
@@ -135,9 +132,8 @@ class Test_yaml_config_conversion(hunitest.TestCase):
         # Prepare inputs.
         config = crococon.Config()
         config["value"] = 42
-        # Convert to YAML and back.
-        yaml_text = _config_to_yaml(config)
-        config_restored = _load_config_from_yaml(yaml_text)
+        # Run test.
+        config_restored = self.helper(config)
         # Check outputs.
         self.assertEqual(config_restored["value"], 42)
 
@@ -152,6 +148,22 @@ class Test_has_dummy(hunitest.TestCase):
     Test DUMMY placeholder detection.
     """
 
+    def helper(self, config: crococon.Config, expected_has_dummy: bool) -> None:
+        """
+        Test helper for DUMMY detection.
+
+        :param config: Config object to test
+        :param expected_has_dummy: Expected result of DUMMY check
+        """
+        # Run test.
+        flattened = config.flatten()
+        has_dummy = any(v == crococon.DUMMY for v in flattened.values())
+        # Check output.
+        if expected_has_dummy:
+            self.assertTrue(has_dummy)
+        else:
+            self.assertFalse(has_dummy)
+
     def test1(self) -> None:
         """
         Test config with no DUMMY values.
@@ -161,10 +173,7 @@ class Test_has_dummy(hunitest.TestCase):
         config["a"] = 1
         config["b"] = 2
         # Run test.
-        flattened = config.flatten()
-        has_dummy = any(v == crococon.DUMMY for v in flattened.values())
-        # Check output.
-        self.assertFalse(has_dummy)
+        self.helper(config, False)
 
     def test2(self) -> None:
         """
@@ -175,10 +184,7 @@ class Test_has_dummy(hunitest.TestCase):
         config["a"] = 1
         config["b"] = crococon.DUMMY
         # Run test.
-        flattened = config.flatten()
-        has_dummy = any(v == crococon.DUMMY for v in flattened.values())
-        # Check output.
-        self.assertTrue(has_dummy)
+        self.helper(config, True)
 
     def test3(self) -> None:
         """
@@ -189,10 +195,7 @@ class Test_has_dummy(hunitest.TestCase):
         config["model", "name"] = "linear"
         config["model", "alpha"] = crococon.DUMMY
         # Run test.
-        flattened = config.flatten()
-        has_dummy = any(v == crococon.DUMMY for v in flattened.values())
-        # Check output.
-        self.assertTrue(has_dummy)
+        self.helper(config, True)
 
 
 # #############################################################################
@@ -523,7 +526,7 @@ class Test_load_class(hunitest.TestCase):
         # Prepare inputs.
         class_path = "config_root.config.config_.Config"
         # Run test.
-        cls = _config_script._load_class(class_path)
+        cls = crcscsut._load_class(class_path)
         # Check output.
         self.assertEqual(cls.__name__, "Config")
 
@@ -534,7 +537,7 @@ class Test_load_class(hunitest.TestCase):
         # Prepare inputs.
         class_path = "config_root.config.config_.Config"
         # Run test.
-        cls = _config_script._load_class(class_path)
+        cls = crcscsut._load_class(class_path)
         # Check output: should be Config class.
         self.assertTrue(hasattr(cls, "__init__"))
 
@@ -546,7 +549,7 @@ class Test_load_class(hunitest.TestCase):
         class_path = "InvalidClassPath"
         # Run test and check output: should raise exception.
         with self.assertRaises(Exception):
-            _config_script._load_class(class_path)
+            crcscsut._load_class(class_path)
 
     def test4(self) -> None:
         """
@@ -554,9 +557,9 @@ class Test_load_class(hunitest.TestCase):
         """
         # Prepare inputs.
         class_path = "nonexistent_module.ClassName"
-        # Run test and check output: dfatal is called with wrong args.
-        with self.assertRaises(TypeError):
-            _config_script._load_class(class_path)
+        # Run test and check output: dfatal raises AssertionError.
+        with self.assertRaises(AssertionError):
+            crcscsut._load_class(class_path)
 
     def test5(self) -> None:
         """
@@ -564,9 +567,9 @@ class Test_load_class(hunitest.TestCase):
         """
         # Prepare inputs.
         class_path = "config_root.config.config_.NonexistentClass"
-        # Run test and check output: dfatal is called with wrong args.
-        with self.assertRaises(TypeError):
-            _config_script._load_class(class_path)
+        # Run test and check output: dfatal raises AssertionError.
+        with self.assertRaises(AssertionError):
+            crcscsut._load_class(class_path)
 
 
 # #############################################################################
@@ -586,7 +589,7 @@ class Test_get_dummy_keys(hunitest.TestCase):
         # Prepare inputs.
         config = crococon.Config()
         # Run test.
-        dummy_keys = _config_script._get_dummy_keys(config)
+        dummy_keys = crcscsut._get_dummy_keys(config)
         # Check output.
         self.assertEqual(dummy_keys, [])
 
@@ -598,7 +601,7 @@ class Test_get_dummy_keys(hunitest.TestCase):
         config = crococon.Config()
         config["model", "alpha"] = crococon.DUMMY
         # Run test.
-        dummy_keys = _config_script._get_dummy_keys(config)
+        dummy_keys = crcscsut._get_dummy_keys(config)
         # Check output.
         self.assertEqual(len(dummy_keys), 1)
         self.assertIn(("model", "alpha"), dummy_keys)
@@ -613,7 +616,7 @@ class Test_get_dummy_keys(hunitest.TestCase):
         config["model", "beta"] = 0.5
         config["data", "path"] = crococon.DUMMY
         # Run test.
-        dummy_keys = _config_script._get_dummy_keys(config)
+        dummy_keys = crcscsut._get_dummy_keys(config)
         # Check output.
         self.assertEqual(len(dummy_keys), 2)
         self.assertIn(("model", "alpha"), dummy_keys)
@@ -627,7 +630,7 @@ class Test_get_dummy_keys(hunitest.TestCase):
         config = crococon.Config()
         config["a", "b", "c"] = crococon.DUMMY
         # Run test.
-        dummy_keys = _config_script._get_dummy_keys(config)
+        dummy_keys = crcscsut._get_dummy_keys(config)
         # Check output.
         self.assertEqual(len(dummy_keys), 1)
         self.assertIn(("a", "b", "c"), dummy_keys)
@@ -650,7 +653,7 @@ class Test_convert_to_dict(hunitest.TestCase):
         # Prepare inputs.
         obj = collections.OrderedDict([("a", 1), ("b", 2)])
         # Run test.
-        result = _config_script._convert_to_dict(obj)
+        result = crcscsut._convert_to_dict(obj)
         # Check output.
         self.assertIsInstance(result, dict)
         self.assertNotIsInstance(result, collections.OrderedDict)
@@ -665,7 +668,7 @@ class Test_convert_to_dict(hunitest.TestCase):
             [("x", collections.OrderedDict([("y", 1), ("z", 2)]))]
         )
         # Run test.
-        result = _config_script._convert_to_dict(obj)
+        result = crcscsut._convert_to_dict(obj)
         # Check output: nested dict should also be regular dict.
         self.assertIsInstance(result["x"], dict)
         self.assertNotIsInstance(result["x"], collections.OrderedDict)
@@ -679,7 +682,7 @@ class Test_convert_to_dict(hunitest.TestCase):
             [("ordered", collections.OrderedDict([("a", 1)])), ("regular", {"b": 2})]
         )
         # Run test.
-        result = _config_script._convert_to_dict(obj)
+        result = crcscsut._convert_to_dict(obj)
         # Check output.
         self.assertIsInstance(result["ordered"], dict)
         self.assertIsInstance(result["regular"], dict)
@@ -694,7 +697,7 @@ class Test_convert_to_dict(hunitest.TestCase):
             (collections.OrderedDict([("b", 2)]),),
         ]
         # Run test.
-        result = _config_script._convert_to_dict(obj)
+        result = crcscsut._convert_to_dict(obj)
         # Check output.
         self.assertIsInstance(result[0], dict)
         self.assertIsInstance(result[1][0], dict)
@@ -741,7 +744,7 @@ class Test_convert_to_dict(hunitest.TestCase):
             ]
         )
         # Run test.
-        result = _config_script._convert_to_dict(obj)
+        result = crcscsut._convert_to_dict(obj)
         # Check output: deepest level should be regular dict.
         self.assertIsInstance(result["level1"]["level2"]["level3"]["level4"]["level5"], int)
 
@@ -762,11 +765,12 @@ class Test_yaml_to_config(hunitest.TestCase):
         """
         # Prepare inputs.
         yaml_text = """
-        key1: value1
-        key2: 42
-        """
+            key1: value1
+            key2: 42
+            """
+        yaml_text = hprint.dedent(yaml_text)
         # Run test.
-        config = _config_script._yaml_to_config(yaml_text)
+        config = crcscsut._yaml_to_config(yaml_text)
         # Check output.
         self.assertIsInstance(config, crococon.Config)
 
@@ -776,14 +780,15 @@ class Test_yaml_to_config(hunitest.TestCase):
         """
         # Prepare inputs.
         yaml_text = """
-        model:
-          name: linear
-          params:
-            alpha: 0.01
-            beta: 0.5
-        """
+            model:
+              name: linear
+              params:
+                alpha: 0.01
+                beta: 0.5
+            """
+        yaml_text = hprint.dedent(yaml_text)
         # Run test.
-        config = _config_script._yaml_to_config(yaml_text)
+        config = crcscsut._yaml_to_config(yaml_text)
         # Check output.
         self.assertIsInstance(config, crococon.Config)
 
@@ -795,7 +800,7 @@ class Test_yaml_to_config(hunitest.TestCase):
         yaml_text = ""
         # Run test and check output: empty dict raises assertion.
         with self.assertRaises(AssertionError):
-            _config_script._yaml_to_config(yaml_text)
+            crcscsut._yaml_to_config(yaml_text)
 
     def test4(self) -> None:
         """
@@ -803,11 +808,12 @@ class Test_yaml_to_config(hunitest.TestCase):
         """
         # Prepare inputs.
         yaml_text = """
-        invalid: yaml: structure:
-        """
+            invalid: yaml: structure:
+            """
+        yaml_text = hprint.dedent(yaml_text)
         # Run test and check output.
         with self.assertRaises(yaml.YAMLError):
-            _config_script._yaml_to_config(yaml_text)
+            crcscsut._yaml_to_config(yaml_text)
 
 
 # #############################################################################
@@ -828,14 +834,15 @@ class Test_cmd_template(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         # Create a simple builder class in a temp module.
         builder_code = """
-import config_root.config.config_ as crococon
+            import config_root.config.config_ as crococon
 
-class SimpleBuilder:
-    def get_config_template(self):
-        config = crococon.Config()
-        config["param1"] = "value1"
-        return config
-"""
+            class SimpleBuilder:
+                def get_config_template(self):
+                    config = crococon.Config()
+                    config["param1"] = "value1"
+                    return config
+            """
+        builder_code = hprint.dedent(builder_code)
         builder_file = os.path.join(scratch_dir, "simple_builder.py")
         hio.to_file(builder_file, builder_code)
         # Add scratch dir to sys.path temporarily.
@@ -849,7 +856,7 @@ class SimpleBuilder:
             )
             # Run test: capture stdout.
             with mock.patch("sys.stdout") as mock_stdout:
-                exit_code = _config_script._cmd_template(args)
+                exit_code = crcscsut.cmd_template(args)
             # Check output.
             self.assertEqual(exit_code, 0)
         finally:
@@ -862,14 +869,15 @@ class SimpleBuilder:
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         builder_code = """
-import config_root.config.config_ as crococon
+            import config_root.config.config_ as crococon
 
-class SimpleBuilder:
-    def get_config_template(self):
-        config = crococon.Config()
-        config["param1"] = "value1"
-        return config
-"""
+            class SimpleBuilder:
+                def get_config_template(self):
+                    config = crococon.Config()
+                    config["param1"] = "value1"
+                    return config
+            """
+        builder_code = hprint.dedent(builder_code)
         builder_file = os.path.join(scratch_dir, "simple_builder.py")
         hio.to_file(builder_file, builder_code)
         out_file = os.path.join(scratch_dir, "template.yaml")
@@ -882,7 +890,7 @@ class SimpleBuilder:
                 log_level="INFO",
             )
             # Run test.
-            exit_code = _config_script._cmd_template(args)
+            exit_code = crcscsut.cmd_template(args)
             # Check output.
             self.assertEqual(exit_code, 0)
             self.assertTrue(os.path.exists(out_file))
@@ -897,9 +905,10 @@ class SimpleBuilder:
         scratch_dir = self.get_scratch_space()
         module_name = f"no_template_builder_{id(self)}"
         builder_code = """
-class NoTemplateBuilder:
-    pass
-"""
+            class NoTemplateBuilder:
+                pass
+            """
+        builder_code = hprint.dedent(builder_code)
         builder_file = os.path.join(scratch_dir, f"{module_name}.py")
         hio.to_file(builder_file, builder_code)
         sys.path.insert(0, scratch_dir)
@@ -911,7 +920,7 @@ class NoTemplateBuilder:
                 log_level="INFO",
             )
             # Run test and check exit code.
-            exit_code = _config_script._cmd_template(args)
+            exit_code = crcscsut.cmd_template(args)
             # The script catches the exception and returns 3 when dfatal is called.
             # Check output - should not be 0 (success).
             self.assertNotEqual(exit_code, 0)
@@ -931,7 +940,7 @@ class NoTemplateBuilder:
             log_level="INFO",
         )
         # Run test and check exit code.
-        exit_code = _config_script._cmd_template(args)
+        exit_code = crcscsut.cmd_template(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -946,7 +955,7 @@ class NoTemplateBuilder:
             log_level="INFO",
         )
         # Run test and check exit code.
-        exit_code = _config_script._cmd_template(args)
+        exit_code = crcscsut.cmd_template(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -961,7 +970,7 @@ class NoTemplateBuilder:
             log_level="INFO",
         )
         # Run test and check exit code.
-        exit_code = _config_script._cmd_template(args)
+        exit_code = crcscsut.cmd_template(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -994,7 +1003,7 @@ class Test_cmd_validate(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_validate(args)
+        exit_code = crcscsut.cmd_validate(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1006,12 +1015,13 @@ class Test_cmd_validate(hunitest.TestCase):
         scratch_dir = self.get_scratch_space()
         config_file = os.path.join(scratch_dir, "config.yaml")
         builder_code = """
-import config_root.config.config_ as crococon
+            import config_root.config.config_ as crococon
 
-class SimpleBuilder:
-    def _validate_config_and_dag(self, config):
-        pass
-"""
+            class SimpleBuilder:
+                def _validate_config_and_dag(self, config):
+                    pass
+            """
+        builder_code = hprint.dedent(builder_code)
         builder_file = os.path.join(scratch_dir, "simple_builder.py")
         hio.to_file(builder_file, builder_code)
         config = crococon.Config()
@@ -1027,7 +1037,7 @@ class SimpleBuilder:
                 log_level="INFO",
             )
             # Run test.
-            exit_code = _config_script._cmd_validate(args)
+            exit_code = crcscsut.cmd_validate(args)
             # Check output.
             self.assertEqual(exit_code, 0)
         finally:
@@ -1051,7 +1061,7 @@ class SimpleBuilder:
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_validate(args)
+        exit_code = crcscsut.cmd_validate(args)
         # Check output.
         self.assertEqual(exit_code, 1)
 
@@ -1064,12 +1074,13 @@ class SimpleBuilder:
         config_file = os.path.join(scratch_dir, "config.yaml")
         module_name = f"failing_validator_{id(self)}"
         builder_code = f"""
-import config_root.config.config_ as crococon
+            import config_root.config.config_ as crococon
 
-class FailingValidator:
-    def _validate_config_and_dag(self, config):
-        raise ValueError("Validation failed")
-"""
+            class FailingValidator:
+                def _validate_config_and_dag(self, config):
+                    raise ValueError("Validation failed")
+            """
+        builder_code = hprint.dedent(builder_code)
         builder_file = os.path.join(scratch_dir, f"{module_name}.py")
         hio.to_file(builder_file, builder_code)
         config = crococon.Config()
@@ -1085,7 +1096,7 @@ class FailingValidator:
                 log_level="INFO",
             )
             # Run test.
-            exit_code = _config_script._cmd_validate(args)
+            exit_code = crcscsut.cmd_validate(args)
             # Check output - should not be 0 (the script catches exception and returns 2).
             self.assertNotEqual(exit_code, 0)
         finally:
@@ -1101,9 +1112,10 @@ class FailingValidator:
         scratch_dir = self.get_scratch_space()
         config_file = os.path.join(scratch_dir, "config.yaml")
         builder_code = """
-class SimpleBuilder:
-    pass
-"""
+            class SimpleBuilder:
+                pass
+            """
+        builder_code = hprint.dedent(builder_code)
         builder_file = os.path.join(scratch_dir, "simple_builder.py")
         hio.to_file(builder_file, builder_code)
         config = crococon.Config()
@@ -1119,7 +1131,7 @@ class SimpleBuilder:
                 log_level="INFO",
             )
             # Run test.
-            exit_code = _config_script._cmd_validate(args)
+            exit_code = crcscsut.cmd_validate(args)
             # Check output.
             self.assertEqual(exit_code, 0)
         finally:
@@ -1137,7 +1149,7 @@ class SimpleBuilder:
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_validate(args)
+        exit_code = crcscsut.cmd_validate(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -1173,7 +1185,7 @@ class Test_cmd_merge(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_merge(args)
+        exit_code = crcscsut.cmd_merge(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1198,7 +1210,7 @@ class Test_cmd_merge(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_merge(args)
+        exit_code = crcscsut.cmd_merge(args)
         # Check output.
         self.assertEqual(exit_code, 0)
         self.assertTrue(os.path.exists(out_file))
@@ -1227,7 +1239,7 @@ class Test_cmd_merge(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_merge(args)
+        exit_code = crcscsut.cmd_merge(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1254,7 +1266,7 @@ class Test_cmd_merge(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_merge(args)
+        exit_code = crcscsut.cmd_merge(args)
         # Check output and verify precedence.
         self.assertEqual(exit_code, 0)
         merged_yaml = hio.from_file(out_file)
@@ -1285,7 +1297,7 @@ class Test_cmd_merge(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_merge(args)
+        exit_code = crcscsut.cmd_merge(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1305,7 +1317,7 @@ class Test_cmd_merge(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_merge(args)
+        exit_code = crcscsut.cmd_merge(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -1325,7 +1337,7 @@ class Test_cmd_merge(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_merge(args)
+        exit_code = crcscsut.cmd_merge(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -1358,7 +1370,7 @@ class Test_cmd_set(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_set(args)
+        exit_code = crcscsut.cmd_set(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1380,7 +1392,7 @@ class Test_cmd_set(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_set(args)
+        exit_code = crcscsut.cmd_set(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1402,7 +1414,7 @@ class Test_cmd_set(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_set(args)
+        exit_code = crcscsut.cmd_set(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1424,7 +1436,7 @@ class Test_cmd_set(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_set(args)
+        exit_code = crcscsut.cmd_set(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1446,7 +1458,7 @@ class Test_cmd_set(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_set(args)
+        exit_code = crcscsut.cmd_set(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1468,7 +1480,7 @@ class Test_cmd_set(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test: Config requires nested Config, not dict.
-        exit_code = _config_script._cmd_set(args)
+        exit_code = crcscsut.cmd_set(args)
         # Check output: should return 3 (error).
         self.assertEqual(exit_code, 3)
 
@@ -1490,7 +1502,7 @@ class Test_cmd_set(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_set(args)
+        exit_code = crcscsut.cmd_set(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1513,7 +1525,7 @@ class Test_cmd_set(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_set(args)
+        exit_code = crcscsut.cmd_set(args)
         # Check output.
         self.assertEqual(exit_code, 0)
         self.assertTrue(os.path.exists(out_file))
@@ -1537,7 +1549,7 @@ class Test_cmd_set(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_set(args)
+        exit_code = crcscsut.cmd_set(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1554,7 +1566,7 @@ class Test_cmd_set(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_set(args)
+        exit_code = crcscsut.cmd_set(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -1576,7 +1588,7 @@ class Test_cmd_set(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_set(args)
+        exit_code = crcscsut.cmd_set(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1607,7 +1619,7 @@ class Test_cmd_get(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_get(args)
+        exit_code = crcscsut.cmd_get(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1627,7 +1639,7 @@ class Test_cmd_get(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_get(args)
+        exit_code = crcscsut.cmd_get(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1647,7 +1659,7 @@ class Test_cmd_get(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_get(args)
+        exit_code = crcscsut.cmd_get(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1667,7 +1679,7 @@ class Test_cmd_get(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_get(args)
+        exit_code = crcscsut.cmd_get(args)
         # Check output.
         self.assertEqual(exit_code, 1)
 
@@ -1682,7 +1694,7 @@ class Test_cmd_get(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_get(args)
+        exit_code = crcscsut.cmd_get(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -1716,7 +1728,7 @@ class Test_cmd_diff(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_diff(args)
+        exit_code = crcscsut.cmd_diff(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1742,7 +1754,7 @@ class Test_cmd_diff(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_diff(args)
+        exit_code = crcscsut.cmd_diff(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1768,7 +1780,7 @@ class Test_cmd_diff(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_diff(args)
+        exit_code = crcscsut.cmd_diff(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1794,7 +1806,7 @@ class Test_cmd_diff(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_diff(args)
+        exit_code = crcscsut.cmd_diff(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -1814,7 +1826,7 @@ class Test_cmd_diff(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_diff(args)
+        exit_code = crcscsut.cmd_diff(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -1834,7 +1846,7 @@ class Test_cmd_diff(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_diff(args)
+        exit_code = crcscsut.cmd_diff(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -1870,7 +1882,7 @@ class Test_cmd_sweep(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_sweep(args)
+        exit_code = crcscsut.cmd_sweep(args)
         # Check output.
         self.assertEqual(exit_code, 0)
         # Verify 4 configs generated.
@@ -1902,7 +1914,7 @@ class Test_cmd_sweep(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_sweep(args)
+        exit_code = crcscsut.cmd_sweep(args)
         # Check output.
         self.assertEqual(exit_code, 0)
         # Verify 8 configs generated.
@@ -1930,7 +1942,7 @@ class Test_cmd_sweep(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_sweep(args)
+        exit_code = crcscsut.cmd_sweep(args)
         # Check output.
         self.assertEqual(exit_code, 0)
         self.assertTrue(os.path.exists(out_dir))
@@ -1956,7 +1968,7 @@ class Test_cmd_sweep(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_sweep(args)
+        exit_code = crcscsut.cmd_sweep(args)
         # Check output.
         self.assertEqual(exit_code, 0)
         # Verify numbering.
@@ -1986,7 +1998,7 @@ class Test_cmd_sweep(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_sweep(args)
+        exit_code = crcscsut.cmd_sweep(args)
         # Check output and verify base values preserved.
         self.assertEqual(exit_code, 0)
 
@@ -2011,7 +2023,7 @@ class Test_cmd_sweep(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_sweep(args)
+        exit_code = crcscsut.cmd_sweep(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -2036,7 +2048,7 @@ class Test_cmd_sweep(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_sweep(args)
+        exit_code = crcscsut.cmd_sweep(args)
         # Check output.
         self.assertEqual(exit_code, 0)
 
@@ -2057,7 +2069,7 @@ class Test_cmd_sweep(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_sweep(args)
+        exit_code = crcscsut.cmd_sweep(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -2078,7 +2090,7 @@ class Test_cmd_sweep(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_sweep(args)
+        exit_code = crcscsut.cmd_sweep(args)
         # Check output.
         self.assertEqual(exit_code, 3)
 
@@ -2105,6 +2117,6 @@ class Test_cmd_sweep(hunitest.TestCase):
             log_level="INFO",
         )
         # Run test.
-        exit_code = _config_script._cmd_sweep(args)
+        exit_code = crcscsut.cmd_sweep(args)
         # Check output: should fail with exit 3 (incremental=False by default).
         self.assertEqual(exit_code, 3)
