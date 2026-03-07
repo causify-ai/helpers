@@ -10,7 +10,7 @@ import logging
 import os
 from collections import OrderedDict
 from itertools import product
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -37,17 +37,6 @@ def _load_config_from_yaml(yaml_text: str) -> crococon.Config:
     return config
 
 
-def _config_to_yaml(config: crococon.Config) -> str:
-    """
-    Helper to convert Config to YAML text.
-    """
-    data = config.to_dict()
-    # Convert OrderedDict to regular dict for YAML compatibility.
-    data = _convert_orderdict_to_dict(data)
-    yaml_text = yaml.dump(data, default_flow_style=False, sort_keys=False)
-    return yaml_text
-
-
 def _convert_orderdict_to_dict(obj: Any) -> Any:
     """
     Recursively convert OrderedDict to regular dict.
@@ -60,6 +49,17 @@ def _convert_orderdict_to_dict(obj: Any) -> Any:
         return type(obj)(_convert_orderdict_to_dict(v) for v in obj)
     else:
         return obj
+
+
+def _config_to_yaml(config: crococon.Config) -> str:
+    """
+    Helper to convert Config to YAML text.
+    """
+    data = config.to_dict()
+    # Convert OrderedDict to regular dict for YAML compatibility.
+    data = _convert_orderdict_to_dict(data)
+    yaml_text = yaml.dump(data, default_flow_style=False, sort_keys=False)
+    return yaml_text
 
 
 # #############################################################################
@@ -359,7 +359,9 @@ class Test_diff_configs(hunitest.TestCase):
         # Run test.
         flat1 = cfg1.flatten()
         flat2 = cfg2.flatten()
-        differences = {k: (flat1[k], flat2[k]) for k in flat1 if flat1[k] != flat2[k]}
+        differences = {
+            k: (flat1[k], flat2[k]) for k in flat1 if flat1[k] != flat2[k]
+        }
 
         # Check output.
         self.assert_equal(len(differences), 1)
@@ -427,8 +429,6 @@ class Test_sweep_configs(hunitest.TestCase):
         Test sweep with 3 parameters creates correct combinations.
         """
         # Prepare inputs.
-        from itertools import product
-
         grid_data = {
             "model.alpha": [0.01, 0.1],
             "model.beta": [0.5, 1.0],

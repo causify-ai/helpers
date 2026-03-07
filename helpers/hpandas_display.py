@@ -238,7 +238,9 @@ def convert_df_to_png(
     :param markdown_path_prefix: optional path to prepend to the image path in
         the markdown reference (e.g., '../figures/' or 'assets/')
     """
+    # Keep this import here since it's an optional one.
     import dataframe_image as dfi
+
     hdbg.dassert_isinstance(df, pd.DataFrame)
     hdbg.dassert_isinstance(file_path, str)
     # Ensure the output directory exists.

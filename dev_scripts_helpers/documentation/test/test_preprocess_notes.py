@@ -172,7 +172,9 @@ class Test_colorize_backticks(hunitest.TestCase):
         Test multiple backtick-wrapped words with underscores.
         """
         # Prepare inputs.
-        txt_in = "Use `_private_func` or `public_var` for different access levels."
+        txt_in = (
+            "Use `_private_func` or `public_var` for different access levels."
+        )
         expected = r"Use \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{public\_var}} for different access levels."
         # Run test.
         self.helper(txt_in, expected)
@@ -188,10 +190,10 @@ class Test_colorize_backticks(hunitest.TestCase):
         self.helper(txt_in, expected)
 
 
+# #############################################################################
+# Test_colorize_backticks_integration
+# #############################################################################
 
-# #############################################################################
-# Test_process_question1
-# #############################################################################
 
 class Test_colorize_backticks_integration(hunitest.TestCase):
     """
@@ -294,6 +296,11 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
 
+# #############################################################################
+# Test_process_question1
+# #############################################################################
+
+
 class Test_process_question1(hunitest.TestCase):
     """
     Check that the output of `preprocess_notes.py` is the expected one calling
@@ -344,10 +351,10 @@ class Test_process_question1(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
 
-
 # #############################################################################
 # Test_remove_headers1
 # #############################################################################
+
 
 class Test_remove_headers1(hunitest.TestCase):
     """
@@ -462,10 +469,10 @@ class Test_remove_headers1(hunitest.TestCase):
         self.helper(lines_in, expected)
 
 
-
 # #############################################################################
 # Test_preprocess_notes_end_to_end1
 # #############################################################################
+
 
 class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
     """
@@ -534,10 +541,10 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
 
-
 # #############################################################################
 # Test_preprocess_notes_end_to_end2
 # #############################################################################
+
 
 class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
     """
@@ -582,10 +589,10 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
             self.check_string(actual, tag=tag)
 
 
-
 # #############################################################################
 # Test_preprocess_notes_end_to_end3
 # #############################################################################
+
 
 class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
     """
@@ -630,10 +637,10 @@ class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
             self.check_string(actual, tag=tag)
 
 
-
 # #############################################################################
 # Test_preprocess_notes_executable1
 # #############################################################################
+
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
@@ -698,10 +705,10 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         self.check_string(act)
 
 
-
 # #############################################################################
 # Test_preprocess_notes_remove_headers1
 # #############################################################################
+
 
 class Test_preprocess_notes_remove_headers1(hunitest.TestCase):
     """

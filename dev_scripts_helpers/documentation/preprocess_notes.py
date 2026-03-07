@@ -53,7 +53,7 @@ _VALID_ACTIONS = [
 # #############################################################################
 
 
-def _colorize_backticks(in_line: str, *, color: str = 'blue') -> str:
+def _colorize_backticks(in_line: str, *, color: str = "blue") -> str:
     r"""
     Convert backtick-wrapped strings to LaTeX color format.
 
@@ -68,12 +68,14 @@ def _colorize_backticks(in_line: str, *, color: str = 'blue') -> str:
     # Pattern to match single backticks (not triple backticks).
     # This matches backtick-wrapped text that doesn't contain triple backticks.
     pattern = r"(?<!`)`(?!`)([^`]+?)(?<!`)`(?!`)"
+
     def replace_func(m: re.Match) -> str:
         """Replace function that escapes underscores in the matched text."""
         matched_text = m.group(1)
         # Escape underscores for LaTeX.
         escaped_text = matched_text.replace("_", r"\_")
         return rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
+
     line = re.sub(pattern, replace_func, line)
     if line != in_line:
         _LOG.debug("    -> line=%s", line)
