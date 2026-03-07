@@ -1,0 +1,48 @@
+#!/bin/bash -e
+# """
+# Create a new blog post.
+# """
+
+# Make sure $1 contains a blog name (e.g., `My_New_Post`)
+if [[ -z "$1" ]]; then
+    echo "ERROR: Provide a blog name (e.g., My_New_Post)" >&2
+    exit 1
+fi
+BLOG_NAME="$1"
+
+# Find the repo root (where website/ lives).
+REPO_ROOT=$(git rev-parse --show-toplevel)
+BLOG_DIR="$REPO_ROOT/website/docs/blog/posts"
+
+# Build the file path with draft prefix.
+BLOG_FILE="$BLOG_DIR/draft.$BLOG_NAME.md"
+
+# Check that the file doesn't already exist.
+if [[ -f "$BLOG_FILE" ]]; then
+    echo "ERROR: Blog post already exists: $BLOG_FILE" >&2
+    exit 1
+fi
+
+# Get today's date.
+TODAY=$(date +%Y-%m-%d)
+
+# Create the blog post with frontmatter template.
+cat > "$BLOG_FILE" <<EOF
+---
+draft: true
+title: ""
+authors:
+  - gpsaggese
+date: $TODAY
+description:
+categories:
+  - Causal AI
+---
+
+TL;DR:
+
+<!-- more -->
+EOF
+
+# Print the full path of the new blog post.
+echo "$BLOG_FILE"

@@ -108,9 +108,9 @@ MSML610: Advanced Machine Learning
   - Measure performance with error on a separate test set
 
 - **Classification**: output is a discrete label, e.g.,
-  - `Spam` vs `Not Spam`
-  - Digit recognition `0`, `1`, ...
-  - Sentiment analysis `Pos`, `Neg`, `Neutral`
+  - \textcolor{blue}{\texttt{Spam}} vs \textcolor{blue}{\texttt{Not Spam}}
+  - Digit recognition \textcolor{blue}{\texttt{0}}, \textcolor{blue}{\texttt{1}}, ...
+  - Sentiment analysis \textcolor{blue}{\texttt{Pos}}, \textcolor{blue}{\texttt{Neg}}, \textcolor{blue}{\texttt{Neutral}}
 
 - **Regression**: output is a continuous value, e.g.,
   - House prices given features like size and location
@@ -568,7 +568,7 @@ problem
 - **Example of Spam Filter Classification**
 - We use $N = 4$ words in an email to distinguish spam from non-spam emails
   using logistic regression
-  - Words can be: `buy`, `now`, `deal`, `discount`, `<your name>`
+  - Words can be: \textcolor{blue}{\texttt{buy}}, \textcolor{blue}{\texttt{now}}, \textcolor{blue}{\texttt{deal}}, \textcolor{blue}{\texttt{discount}}, \textcolor{blue}{\texttt{<your name>}}
 
 - How to improve the performance of this classifier?
   1. Collect more data
@@ -578,7 +578,7 @@ problem
        emails as legitimate
   3. Use better features from message body
   4. Detect intentional misspellings
-     - Spammers use misspelled words (e.g., `w4tch` for `watch`) to confuse the
+     - Spammers use misspelled words (e.g., \textcolor{blue}{\texttt{w4tch}} for \textcolor{blue}{\texttt{watch}}) to confuse the
        classifier
      - Use stemming software
 
@@ -633,10 +633,10 @@ problem
 - Stages of ML pipeline for OCR:
   - Text detection: find areas of the picture with text
   - Character segmentation: split text into boxes, one per letter
-    - E.g., `h e l l o`
+    - E.g., \textcolor{blue}{\texttt{h e l l o}}
   - Character classification: classify characters, one at a time
   - Spelling correction: fix errors in text using context
-    - E.g., `hell0` corrected to `hello`
+    - E.g., \textcolor{blue}{\texttt{hell0}} corrected to \textcolor{blue}{\texttt{hello}}
 
 - Issues with text detection:
   - Unknown text location and size
@@ -1414,7 +1414,7 @@ problem
   & \defeq \Pr(\text{TP} | \text{pred == 1})
   & \text{(by definition)}
   \\
-  &= \frac{\text{TP}}{\text{TP + FP}} 
+  &= \frac{\text{TP}}{\text{TP + FP}}
   & \text{($TP + FP = n$ because}
   \\
   &= \frac{\#(y = 1)}{n}
@@ -1598,7 +1598,7 @@ problem
 - **Boosting**
   - Reduces bias by focusing on errors made by previous models
   - Sequentially adds models, each correcting its predecessor
-  - E.g., `adaBoost` increases weights of incorrectly classified data points to
+  - E.g., \textcolor{blue}{\texttt{adaBoost}} increases weights of incorrectly classified data points to
     learn the next model
 
 - **Stacking**

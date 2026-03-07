@@ -164,15 +164,15 @@ existing tests in the helpers repository.
 
 ## Assertion Patterns
 
-- Compare simple values:
-
+- Use `self.assertEqual` to compare simple values (e.g., floats, ints)
   ```python
   # Check outputs.
-  self.assert_equal(actual, expected)
+  self.assertEqual(actual, expected)
   ```
 
-- Compare data structures as strings:
+- Use `self.assert_equal` when the arguments are strings
 
+- Compare data structures XYZ (e.g., lists, dicts) as strings:
   ```python
   # Check outputs.
   self.assert_equal(str(actual), str(expected))
