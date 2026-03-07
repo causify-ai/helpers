@@ -824,7 +824,7 @@
   # Print system signature.
   _LOG.info("%s", henv.get_system_signature()[0])
   # Configure the notebook style.
-  hprint.config_notebook()
+  hnotebook.config_notebook()
   ```
 - The rest of the notebook should be clearly organized using Markdown cells with
   headings of different levels

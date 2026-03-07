@@ -29,7 +29,7 @@ import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 import helpers.hs3 as hs3
 
-hprint.config_notebook()
+hnotebook.config_notebook()
 
 # hdbg.init_logger(verbosity=logging.DEBUG)
 hdbg.init_logger(verbosity=logging.INFO)

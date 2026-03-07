@@ -55,7 +55,7 @@ import helpers.lib_tasks_gh as hlitagh
 hdbg.init_logger(verbosity=logging.INFO)
 _LOG = logging.getLogger(__name__)
 _LOG.info("%s", henv.get_system_signature()[0])
-hprint.config_notebook()
+hnotebook.config_notebook()
 
 # %%
 # Set the display options to print the full table.

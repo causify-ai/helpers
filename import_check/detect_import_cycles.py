@@ -1,4 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
+
+# /// script
+# dependencies = ["pydeps", "networkx", "pyyaml", "graphviz"]
+# ///
 
 """
 Detect cyclic imports.
