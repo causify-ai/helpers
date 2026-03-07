@@ -81,11 +81,9 @@ class Test_yaml_config_conversion(hunitest.TestCase):
         config["a", "b"] = 1
         config["a", "c"] = 2
         config["d"] = 3
-
         # Convert to YAML and back.
         yaml_text = _config_to_yaml(config)
         config_restored = _load_config_from_yaml(yaml_text)
-
         # Check outputs.
         self.assert_equal(str(config), str(config_restored))
 
@@ -99,11 +97,9 @@ class Test_yaml_config_conversion(hunitest.TestCase):
         config["model", "params", "alpha"] = 0.01
         config["model", "params", "beta"] = 0.5
         config["data", "path"] = "/tmp/data"
-
         # Convert to YAML and back.
         yaml_text = _config_to_yaml(config)
         config_restored = _load_config_from_yaml(yaml_text)
-
         # Check outputs.
         self.assert_equal(str(config), str(config_restored))
 
@@ -114,11 +110,9 @@ class Test_yaml_config_conversion(hunitest.TestCase):
         # Prepare inputs.
         config = crococon.Config()
         config["value"] = 42
-
         # Convert to YAML and back.
         yaml_text = _config_to_yaml(config)
         config_restored = _load_config_from_yaml(yaml_text)
-
         # Check outputs.
         self.assert_equal(config_restored["value"], 42)
 
@@ -141,11 +135,9 @@ class Test_has_dummy(hunitest.TestCase):
         config = crococon.Config()
         config["a"] = 1
         config["b"] = 2
-
         # Run test.
         flattened = config.flatten()
         has_dummy = any(v == crococon.DUMMY for v in flattened.values())
-
         # Check output.
         self.assertFalse(has_dummy)
 
@@ -157,11 +149,9 @@ class Test_has_dummy(hunitest.TestCase):
         config = crococon.Config()
         config["a"] = 1
         config["b"] = crococon.DUMMY
-
         # Run test.
         flattened = config.flatten()
         has_dummy = any(v == crococon.DUMMY for v in flattened.values())
-
         # Check output.
         self.assertTrue(has_dummy)
 
@@ -173,11 +163,9 @@ class Test_has_dummy(hunitest.TestCase):
         config = crococon.Config()
         config["model", "name"] = "linear"
         config["model", "alpha"] = crococon.DUMMY
-
         # Run test.
         flattened = config.flatten()
         has_dummy = any(v == crococon.DUMMY for v in flattened.values())
-
         # Check output.
         self.assertTrue(has_dummy)
 
@@ -200,14 +188,11 @@ class Test_merge_configs(hunitest.TestCase):
         base = crococon.Config()
         base["a"] = 1
         base["b"] = 2
-
         override = crococon.Config()
         override["b"] = 20
         override["c"] = 3
-
         # Run test.
         base.update(override, update_mode="overwrite")
-
         # Check outputs.
         self.assert_equal(base["a"], 1)
         self.assert_equal(base["b"], 20)
@@ -221,14 +206,11 @@ class Test_merge_configs(hunitest.TestCase):
         base = crococon.Config()
         base["model", "name"] = "linear"
         base["model", "alpha"] = 0.01
-
         override = crococon.Config()
         override["model", "alpha"] = 0.1
         override["data", "path"] = "/tmp"
-
         # Run test.
         base.update(override, update_mode="overwrite")
-
         # Check outputs.
         self.assert_equal(base["model", "name"], "linear")
         self.assert_equal(base["model", "alpha"], 0.1)
@@ -242,18 +224,14 @@ class Test_merge_configs(hunitest.TestCase):
         cfg1 = crococon.Config()
         cfg1["a"] = 1
         cfg1["b"] = 2
-
         cfg2 = crococon.Config()
         cfg2["b"] = 20
         cfg2["c"] = 3
-
         cfg3 = crococon.Config()
         cfg3["a"] = 100
-
         # Run test.
         cfg1.update(cfg2, update_mode="overwrite")
         cfg1.update(cfg3, update_mode="overwrite")
-
         # Check outputs.
         self.assert_equal(cfg1["a"], 100)
         self.assert_equal(cfg1["b"], 20)
@@ -276,10 +254,8 @@ class Test_set_get_config(hunitest.TestCase):
         """
         # Prepare inputs.
         config = crococon.Config()
-
         # Run test: set.
         config[("a",)] = 1
-
         # Check output: get.
         value = config[("a",)]
         self.assert_equal(value, 1)
@@ -290,11 +266,9 @@ class Test_set_get_config(hunitest.TestCase):
         """
         # Prepare inputs.
         config = crococon.Config()
-
         # Run test: set via tuple.
         key_tuple = ("model", "alpha")
         config[key_tuple] = 0.01
-
         # Check output: get via tuple.
         value = config[key_tuple]
         self.assert_equal(value, 0.01)
@@ -306,7 +280,6 @@ class Test_set_get_config(hunitest.TestCase):
         # Prepare inputs.
         config = crococon.Config()
         config["a"] = 1
-
         # Run test and check output.
         with self.assertRaises(KeyError):
             _ = config[("nonexistent",)]
@@ -330,16 +303,13 @@ class Test_diff_configs(hunitest.TestCase):
         cfg1 = crococon.Config()
         cfg1["a"] = 1
         cfg1["b"] = 2
-
         cfg2 = crococon.Config()
         cfg2["a"] = 1
         cfg2["b"] = 2
-
         # Run test.
         flat1 = cfg1.flatten()
         flat2 = cfg2.flatten()
         is_equal = flat1 == flat2
-
         # Check output.
         self.assertTrue(is_equal)
 
@@ -351,18 +321,15 @@ class Test_diff_configs(hunitest.TestCase):
         cfg1 = crococon.Config()
         cfg1["a"] = 1
         cfg1["b"] = 2
-
         cfg2 = crococon.Config()
         cfg2["a"] = 1
         cfg2["b"] = 20
-
         # Run test.
         flat1 = cfg1.flatten()
         flat2 = cfg2.flatten()
         differences = {
             k: (flat1[k], flat2[k]) for k in flat1 if flat1[k] != flat2[k]
         }
-
         # Check output.
         self.assert_equal(len(differences), 1)
         self.assert_equal(differences[("b",)], (2, 20))
@@ -375,11 +342,9 @@ class Test_diff_configs(hunitest.TestCase):
         cfg1 = crococon.Config()
         cfg1["a"] = 1
         cfg1["b"] = 2
-
         cfg2 = crococon.Config()
         cfg2["a"] = 1
         cfg2["c"] = 3
-
         # Run test.
         flat1 = cfg1.flatten()
         flat2 = cfg2.flatten()
@@ -390,7 +355,6 @@ class Test_diff_configs(hunitest.TestCase):
             v2 = flat2.get(k, "<missing>")
             if v1 != v2:
                 different_keys.append(k)
-
         # Check output.
         self.assert_equal(len(different_keys), 2)
 
@@ -413,14 +377,11 @@ class Test_sweep_configs(hunitest.TestCase):
         base_config = crococon.Config()
         base_config["model", "name"] = "linear"
         base_config["model", "alpha"] = 0.01
-
         grid_data = {"model.alpha": [0.01, 0.1], "model.beta": [0.5, 1.0]}
-
         # Run test.
         grid_keys = list(grid_data.keys())
         grid_values = [grid_data[k] for k in grid_keys]
         combinations = list(product(*grid_values))
-
         # Check output.
         self.assert_equal(len(combinations), 4)
 
@@ -434,12 +395,10 @@ class Test_sweep_configs(hunitest.TestCase):
             "model.beta": [0.5, 1.0],
             "data.size": [100, 1000],
         }
-
         # Run test.
         grid_keys = list(grid_data.keys())
         grid_values = [grid_data[k] for k in grid_keys]
         combinations = list(product(*grid_values))
-
         # Check output: 2 x 2 x 2 = 8.
         self.assert_equal(len(combinations), 8)
 
@@ -452,21 +411,17 @@ class Test_sweep_configs(hunitest.TestCase):
         base_config["model", "name"] = "linear"
         base_config["model", "alpha"] = 0.01
         base_config["data", "path"] = "/tmp"
-
         grid_data = {"model.alpha": [0.1, 0.2]}
-
         # Run test: create one sweep config.
         grid_keys = list(grid_data.keys())
         grid_values = [grid_data[k] for k in grid_keys]
         combination = grid_values[0][0]  # Get first value of first key
-
         sweep_config = base_config.copy()
         # Set update_mode to overwrite to allow setting existing keys.
         sweep_config.update_mode = "overwrite"
         key_parts = grid_keys[0].split(".")
         key_tuple = tuple(key_parts)
         sweep_config[key_tuple] = combination
-
         # Check outputs: base values preserved, grid value updated.
         self.assert_equal(sweep_config["model", "name"], "linear")
         self.assert_equal(sweep_config["data", "path"], "/tmp")
@@ -490,19 +445,15 @@ class Test_config_file_io(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         config_file = os.path.join(scratch_dir, "test_config.yaml")
-
         config = crococon.Config()
         config["a"] = 1
         config["b"] = 2
-
         # Run test: write.
         yaml_text = _config_to_yaml(config)
         hio.to_file(config_file, yaml_text)
-
         # Run test: read.
         yaml_read = hio.from_file(config_file)
         config_restored = _load_config_from_yaml(yaml_read)
-
         # Check output.
         self.assert_equal(str(config), str(config_restored))
 
@@ -513,18 +464,15 @@ class Test_config_file_io(hunitest.TestCase):
         # Prepare inputs.
         scratch_dir = self.get_scratch_space()
         config_file = os.path.join(scratch_dir, "nested_config.yaml")
-
         config = crococon.Config()
         config["model", "name"] = "linear"
         config["model", "params", "alpha"] = 0.01
         config["model", "params", "beta"] = 0.5
-
         # Run test: write and read.
         yaml_text = _config_to_yaml(config)
         hio.to_file(config_file, yaml_text)
         yaml_read = hio.from_file(config_file)
         config_restored = _load_config_from_yaml(yaml_read)
-
         # Check output.
         self.assert_equal(
             config_restored["model", "params", "alpha"],
