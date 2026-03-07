@@ -21,18 +21,17 @@ EXIT CODES:
 """
 
 import argparse
+import collections
 import importlib
+import itertools
 import json
 import logging
 import os
 import sys
-# TODO(ai_gp): Use import itertools
-from itertools import product
 from typing import Any, Dict, Optional, Tuple
 
 import yaml
 
-# TODO(ai_gp): Import the package
 import config_root.config.config_ as crococon
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -101,10 +100,7 @@ def _convert_to_dict(obj: Any) -> Any:
     :param obj: object to convert
     :return: converted object
     """
-    # TODO(ai_gp): Move it out and use import collections
-    from collections import OrderedDict
-
-    if isinstance(obj, OrderedDict):
+    if isinstance(obj, collections.OrderedDict):
         return {k: _convert_to_dict(v) for k, v in obj.items()}
     elif isinstance(obj, dict):
         return {k: _convert_to_dict(v) for k, v in obj.items()}
@@ -401,7 +397,7 @@ def _cmd_sweep(args: argparse.Namespace) -> int:
         grid_keys = list(grid_data.keys())
         grid_values = [grid_data[k] for k in grid_keys]
         count = 0
-        for combination in product(*grid_values):
+        for combination in itertools.product(*grid_values):
             # Create config for this combination.
             config = base_config.copy()
             # Set update_mode to overwrite to allow setting existing keys.

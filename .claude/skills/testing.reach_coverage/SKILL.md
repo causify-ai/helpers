@@ -1,27 +1,19 @@
 ---
-name: testing.reach_coverage
 description: Increase unit test coverage toward 100 percent for a given function following a plan-then-implement workflow
 ---
 
-- Increase unit test coverage to approach 100 percent for a given function.
-
-- Context and constraints:
-  - You will be given a specific function to work on.
-  - All tests and code must strictly follow:
-    - @.claude/skills/testing.format_rules/SKILL.md for tests
-    - @.claude/skills/coding.format_rules/SKILL.md for any code
-  - Focus on meaningful behavior and correctness rather than superficial
-    coverage.
-  - If any part of the task is unclear or underspecified, stop and ask for
-    clarification before proceeding.
+- Increase unit test coverage to approach 100 percent for a given file
 
 ## Step 1: Establish Current Coverage
 
-- Identify the test file corresponding to the target function Example:
-  helpers/hllm_cli.py → helpers/test/test_hllm_cli.py
+- Identify the test file corresponding to the target function
+  - Example:
+    ```
+    helpers/hllm_cli.py → helpers/test/test_hllm_cli.py
+    ```
 - Run the following command and record the results:
   ```
-  pytest --cov=yourpkg --cov-report=term-missing --cov-report=html
+  > pytest --cov=yourpkg --cov-report=term-missing --cov-report=html
   ```
 
 - Summarize which lines and branches are not covered.
@@ -59,3 +51,10 @@ Important rules:
 - Do not implement tests before the plan is approved.
 - Do not proceed if instructions or requirements are ambiguous.
 - Always adhere to the formatting and style guides referenced above.
+- Focus on meaningful behavior and correctness rather than superficial
+  coverage.
+- All tests and code must strictly follow:
+  - @.claude/skills/coding.format_rules/SKILL.md for any Python code
+  - @.claude/skills/testing.format_rules/SKILL.md for tests
+- If any part of the task is unclear or underspecified, stop and ask for
+  clarification before proceeding.

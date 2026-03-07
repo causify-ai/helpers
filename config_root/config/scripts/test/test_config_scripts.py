@@ -6,10 +6,10 @@ Import as:
 import config_root.config.test.test_config_scripts as crcotsscr
 """
 
+import collections
+import itertools
 import logging
 import os
-from collections import OrderedDict
-from itertools import product
 from typing import Any
 
 import yaml
@@ -22,8 +22,11 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test helpers - Utilities for config command testing
+# Utilities for config command testing.
 # #############################################################################
+
+
+# TODO(gp): Consider moving these functions in the library.
 
 
 def _load_config_from_yaml(yaml_text: str) -> crococon.Config:
@@ -41,7 +44,7 @@ def _convert_orderdict_to_dict(obj: Any) -> Any:
     """
     Recursively convert OrderedDict to regular dict.
     """
-    if isinstance(obj, OrderedDict):
+    if isinstance(obj, collections.OrderedDict):
         return {k: _convert_orderdict_to_dict(v) for k, v in obj.items()}
     elif isinstance(obj, dict):
         return {k: _convert_orderdict_to_dict(v) for k, v in obj.items()}
@@ -114,7 +117,7 @@ class Test_yaml_config_conversion(hunitest.TestCase):
         yaml_text = _config_to_yaml(config)
         config_restored = _load_config_from_yaml(yaml_text)
         # Check outputs.
-        self.assert_equal(config_restored["value"], 42)
+        self.assertEqual(config_restored["value"], 42)
 
 
 # #############################################################################
@@ -194,9 +197,9 @@ class Test_merge_configs(hunitest.TestCase):
         # Run test.
         base.update(override, update_mode="overwrite")
         # Check outputs.
-        self.assert_equal(base["a"], 1)
-        self.assert_equal(base["b"], 20)
-        self.assert_equal(base["c"], 3)
+        self.assertEqual(base["a"], 1)
+        self.assertEqual(base["b"], 20)
+        self.assertEqual(base["c"], 3)
 
     def test2(self) -> None:
         """
@@ -212,9 +215,9 @@ class Test_merge_configs(hunitest.TestCase):
         # Run test.
         base.update(override, update_mode="overwrite")
         # Check outputs.
-        self.assert_equal(base["model", "name"], "linear")
-        self.assert_equal(base["model", "alpha"], 0.1)
-        self.assert_equal(base["data", "path"], "/tmp")
+        self.assertEqual(base["model", "name"], "linear")
+        self.assertEqual(base["model", "alpha"], 0.1)
+        self.assertEqual(base["data", "path"], "/tmp")
 
     def test3(self) -> None:
         """
@@ -233,9 +236,9 @@ class Test_merge_configs(hunitest.TestCase):
         cfg1.update(cfg2, update_mode="overwrite")
         cfg1.update(cfg3, update_mode="overwrite")
         # Check outputs.
-        self.assert_equal(cfg1["a"], 100)
-        self.assert_equal(cfg1["b"], 20)
-        self.assert_equal(cfg1["c"], 3)
+        self.assertEqual(cfg1["a"], 100)
+        self.assertEqual(cfg1["b"], 20)
+        self.assertEqual(cfg1["c"], 3)
 
 
 # #############################################################################
@@ -258,7 +261,7 @@ class Test_set_get_config(hunitest.TestCase):
         config[("a",)] = 1
         # Check output: get.
         value = config[("a",)]
-        self.assert_equal(value, 1)
+        self.assertEqual(value, 1)
 
     def test2(self) -> None:
         """
@@ -271,7 +274,7 @@ class Test_set_get_config(hunitest.TestCase):
         config[key_tuple] = 0.01
         # Check output: get via tuple.
         value = config[key_tuple]
-        self.assert_equal(value, 0.01)
+        self.assertEqual(value, 0.01)
 
     def test3(self) -> None:
         """
@@ -331,8 +334,8 @@ class Test_diff_configs(hunitest.TestCase):
             k: (flat1[k], flat2[k]) for k in flat1 if flat1[k] != flat2[k]
         }
         # Check output.
-        self.assert_equal(len(differences), 1)
-        self.assert_equal(differences[("b",)], (2, 20))
+        self.assertEqual(len(differences), 1)
+        self.assertEqual(differences[("b",)], (2, 20))
 
     def test3(self) -> None:
         """
@@ -356,7 +359,7 @@ class Test_diff_configs(hunitest.TestCase):
             if v1 != v2:
                 different_keys.append(k)
         # Check output.
-        self.assert_equal(len(different_keys), 2)
+        self.assertEqual(len(different_keys), 2)
 
 
 # #############################################################################
@@ -381,9 +384,9 @@ class Test_sweep_configs(hunitest.TestCase):
         # Run test.
         grid_keys = list(grid_data.keys())
         grid_values = [grid_data[k] for k in grid_keys]
-        combinations = list(product(*grid_values))
+        combinations = list(itertools.product(*grid_values))
         # Check output.
-        self.assert_equal(len(combinations), 4)
+        self.assertEqual(len(combinations), 4)
 
     def test2(self) -> None:
         """
@@ -398,9 +401,9 @@ class Test_sweep_configs(hunitest.TestCase):
         # Run test.
         grid_keys = list(grid_data.keys())
         grid_values = [grid_data[k] for k in grid_keys]
-        combinations = list(product(*grid_values))
+        combinations = list(itertools.product(*grid_values))
         # Check output: 2 x 2 x 2 = 8.
-        self.assert_equal(len(combinations), 8)
+        self.assertEqual(len(combinations), 8)
 
     def test3(self) -> None:
         """
@@ -423,9 +426,9 @@ class Test_sweep_configs(hunitest.TestCase):
         key_tuple = tuple(key_parts)
         sweep_config[key_tuple] = combination
         # Check outputs: base values preserved, grid value updated.
-        self.assert_equal(sweep_config["model", "name"], "linear")
-        self.assert_equal(sweep_config["data", "path"], "/tmp")
-        self.assert_equal(sweep_config["model", "alpha"], 0.1)
+        self.assertEqual(sweep_config["model", "name"], "linear")
+        self.assertEqual(sweep_config["data", "path"], "/tmp")
+        self.assertEqual(sweep_config["model", "alpha"], 0.1)
 
 
 # #############################################################################
@@ -474,8 +477,8 @@ class Test_config_file_io(hunitest.TestCase):
         yaml_read = hio.from_file(config_file)
         config_restored = _load_config_from_yaml(yaml_read)
         # Check output.
-        self.assert_equal(
+        self.assertEqual(
             config_restored["model", "params", "alpha"],
             0.01,
         )
-        self.assert_equal(config_restored["model", "params", "beta"], 0.5)
+        self.assertEqual(config_restored["model", "params", "beta"], 0.5)
