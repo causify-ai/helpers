@@ -1,0 +1,89 @@
+#!/bin/bash
+# """
+# Wrapper around ripgrep (rg) to search files by pattern and extension.
+# """
+
+set -e
+
+_show_help() {
+    cat << 'EOF'
+rig - Utility for ripgrep searches and directory operations
+
+USAGE:
+    rig <pattern> <dir> [<extension>] [<rg OPTS>]
+
+COMMANDS:
+    Search mode:
+        rig <pattern> <dir> [<extension>] [<rg OPTS>]
+        Search for pattern in files with optional extension filter
+
+ARGUMENTS:
+    <pattern>      Search pattern (supports regex)
+    <dir>          Directory to search in (for search)
+    [<extension>]  File extension filter (e.g., py, js, txt), optional
+    [<rg OPTS>]    Additional ripgrep options (optional)
+
+EXAMPLES:
+    # Search for "TODO" in Python files in src directory
+    rig "TODO" src py
+
+    # Search for "TODO" in all files in src directory
+    rig "TODO" src
+
+    # Search in JavaScript files with case-insensitive matching
+    rig "import" . js -i
+
+DEFAULT OPTIONS (for search):
+    When no additional options are provided, these defaults are used:
+      -n              Line numbers
+      --no-heading    Suppress file path headings
+      --color=never   No colored output
+
+NOTES:
+    - The extension parameter is optional; omit it to search all files
+    - If provided, the extension should not include a dot (use 'py' not '.py')
+    - If the third argument starts with '-', it is treated as an rg option, not an extension
+    - Provide custom ripgrep options to override defaults
+    - For full ripgrep documentation: rg --help
+
+EOF
+}
+
+# Show help if requested.
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    _show_help
+    exit 0
+fi
+
+# Search mode - validate minimum arguments (pattern and dir).
+if [ $# -lt 2 ]; then
+    _show_help
+    exit 1
+fi
+
+pattern="$1"
+dir="$2"
+shift 2
+
+# Check if third argument is an extension (doesn't start with '-') or an option.
+ext=""
+if [ $# -gt 0 ] && [[ "$1" != -* ]]; then
+    ext="$1"
+    shift 1
+fi
+
+# If no additional params, use default OPTS.
+if [ $# -eq 0 ]; then
+    OPTS="-n --no-heading --color=never"
+else
+    OPTS="$@"
+fi
+
+# Build and run the ripgrep command.
+if [ -z "$ext" ]; then
+    # No extension filter specified, search all files.
+    rg "$pattern" "$dir" $OPTS
+else
+    # Extension filter specified, search only files with that extension.
+    rg -g "*.${ext}" "$pattern" "$dir" $OPTS
+fi
