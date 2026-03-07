@@ -53,6 +53,35 @@ _VALID_ACTIONS = [
 # #############################################################################
 
 
+def _colorize_backticks(in_line: str, *, color: str = "blue") -> str:
+    r"""
+    Convert backtick-wrapped strings to LaTeX color format.
+
+    E.g., `store` into `\textcolor{blue}{\texttt{store}}`
+    E.g., `weeks_to_xmas` into `\textcolor{blue}{\texttt{weeks\_to\_xmas}}`
+
+    :param in_line: input line to process
+    :param color: LaTeX color name (default: 'blue')
+    :return: transformed line with backticks replaced
+    """
+    line = in_line
+    # Pattern to match single backticks (not triple backticks).
+    # This matches backtick-wrapped text that doesn't contain triple backticks.
+    pattern = r"(?<!`)`(?!`)([^`]+?)(?<!`)`(?!`)"
+
+    def replace_func(m: re.Match) -> str:
+        """Replace function that escapes underscores in the matched text."""
+        matched_text = m.group(1)
+        # Escape underscores for LaTeX.
+        escaped_text = matched_text.replace("_", r"\_")
+        return rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
+
+    line = re.sub(pattern, replace_func, line)
+    if line != in_line:
+        _LOG.debug("    -> line=%s", line)
+    return line
+
+
 def _process_abbreviations(in_line: str) -> str:
     r"""
     Transform some abbreviations into LaTeX.
@@ -172,6 +201,8 @@ def _transform_lines(
         txt = hprint.dedent(txt)
         out.append(txt)
     # b) Process text.
+    # TODO(gp): We should use the approach of replacing chunks of text
+    # that doesn't have to be transformed with placeholders.
     # True inside a block to skip.
     in_skip_block = False
     # True inside a code block.
@@ -214,7 +245,16 @@ def _transform_lines(
         if _TRACE:
             _LOG.debug("# Process enumerated list.")
         line = _process_enumerated_list(line)
-        # 6) Process color commands.
+        # 6) Colorize backticks (skip if inside code block).
+        if _TRACE:
+            _LOG.debug("# Colorize backticks.")
+        if not in_code_block:
+            line = _colorize_backticks(line)
+        # TODO(gp): Not sure about this.
+        # Update code block status based on triple backticks.
+        if line.startswith("```"):
+            in_code_block = not in_code_block
+        # 7) Process color commands.
         if _TRACE:
             _LOG.debug("# Process color commands.")
         line = hmarkdo.process_color_commands(line)

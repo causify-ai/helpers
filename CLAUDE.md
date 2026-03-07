@@ -145,14 +145,15 @@ import config_root.config.config_ as crococon
 ### Code Conventions
 
 - For writing any Python code you MUST follow instructions in
-  `docs/ai_prompts/coding.format_rules.md` and `docs/ai_coding/code_template.py`
+  @.claude/skills/coding.format_rules/SKILL.md and 
+  @docs/ai_templates/code_template.py
 - For writing unit tests you MUST follow instructions in
-  `docs/ai_prompts/testing.format_rules.md` and
-  `docs/ai_coding/unit_test_template.py`
+  @.claude/skills/testing.format_rules/SKILL.md and
+  @docs/ai_templates/unit_test_template.py
 - For writing a notebook you MUST follow instructions in
-  `docs/ai_prompts/notebooks.format_rules.md` and
-  `docs/ai_coding/notebook_template.ipynb`
+  @.claude/skills/notebooks.format_rules/SKILL.md and
+  @docs/ai_templates/notebook_template.ipynb
 - For writing a blog you MUST follow instructions in
-  `./helpers_root/docs/ai_prompts/blog.format_rules.md`
+  @.claude/skills/blog.format_rules/SKILL.md
 - For writing markdown text you MUST follow instructions in
-  `./helpers_root/docs/ai_prompts/markdown.format_rules.md`
+  @.claude/skills/markdown.format_rules/SKILL.md

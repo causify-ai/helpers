@@ -1,5 +1,4 @@
 ---
-name: notebooks.lint_numbered_cells
 description: Lint a Jupyter notebook and ensure cells are numbered consecutively with matching function names
 ---
 

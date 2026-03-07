@@ -9,7 +9,7 @@
 
 - Use the template in `ai.instruction_template.md`
   ```
-  > cp docs/ai_coding/ai.instruction_template.md instr.md
+  > cp docs/ai_templates/ai.instruction_template.md instr.md
   ```
 
 - Modify `instr.md` like below
@@ -41,7 +41,7 @@ reads a markdown file --input file.md
 
 # Create a README.md
 
-claude> Execute the prompt in docs/ai_coding/ai.readme_template.md on the directory ./helpers_root/dev_scripts_helpers/llms/
+claude> Execute the prompt in docs/ai_templates/ai.readme_template.md on the directory ./helpers_root/dev_scripts_helpers/llms/
 
 > ccp Execute the prompt in docs/ai_prompts/readme.create.md on the directory ./docs/ai_coding/README.md
 

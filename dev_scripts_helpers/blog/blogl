@@ -1,0 +1,13 @@
+#!/bin/bash -e
+# """
+# List the blog posts.
+# """
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+BLOG_DIR="$REPO_ROOT/website/docs/blog/posts"
+
+if [[ -n "$1" ]]; then
+    ls -1 "$BLOG_DIR" | grep "$1"
+else
+    ls -1 "$BLOG_DIR"
+fi

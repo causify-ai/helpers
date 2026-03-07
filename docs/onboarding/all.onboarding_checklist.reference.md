@@ -209,7 +209,7 @@
   - [ ] [tutorials](https://github.com/causify-ai/tutorials)
   - [ ] [cmamp](https://github.com/causify-ai/cmamp)
   - [ ] [orange](https://github.com/causify-ai/orange) (On per-need basis)
-  - [ ] [UMD_data605](https://github.com/gpsaggese/umd_data605) (On per-need
+  - [ ] [UMD_classes](https://github.com/gpsaggese/umd_classes) (On per-need
         basis)
 
 - [ ] **Team member**: Confirm access to GitHub repos

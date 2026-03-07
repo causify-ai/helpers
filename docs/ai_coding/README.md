@@ -15,16 +15,16 @@ tool guides, and workflow templates for Claude Code and other AI coding tools.
 
 ## Templates
 
-- `code_template.py`
+- `../ai_templates/code_template.py`
   - Template demonstrating Causify coding style with logging, docstrings, REST
     comments, and helper patterns
-- `unit_test_template.py`
+- `../ai_templates/unit_test_template.py`
   - Template showing unit test structure with helper methods, test cases, and
     assertion patterns
-- `notebook_template.py`
+- `../ai_templates/notebook_template.py`
   - Jupyter notebook template in py:percent format with standard setup cells
     and imports
-- `notebook_template.ipynb`
+- `../ai_templates/notebook_template.ipynb`
   - Jupyter notebook template in ipynb format with standard cells and structure
 
 ## Tool Guides

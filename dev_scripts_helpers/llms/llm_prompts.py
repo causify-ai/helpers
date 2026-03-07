@@ -595,10 +595,10 @@ def code_transform_remove_redundancy() -> _PROMPT_OUT:
 
 def code_transform_apply_csfy_style() -> _PROMPT_OUT:
     """
-    Apply the style to the code using template code in `docs/ai_coding/code_template.py`.
+    Apply the style to the code using template code in `docs/ai_templates/code_template.py`.
     """
     system = _CODING_CONTEXT
-    file_name = "docs/ai_coding/code_template.py"
+    file_name = "docs/ai_templates/code_template.py"
     file_name = os.path.join(hgit.find_helpers_root(), file_name)
     file_content = hio.from_file(file_name)
     system += rf"""
@@ -1653,8 +1653,8 @@ def text_summarize() -> _PROMPT_OUT:
     """
     system = ""
     system += r"""
-    You are an expert academic summarizer. 
-    
+    You are an expert academic summarizer.
+
     Your task is to read the following text and produce a concise, structured
     summary of the text.
 
@@ -1687,8 +1687,8 @@ def text_to_notes() -> _PROMPT_OUT:
     """
     system = ""
     system += r"""
-    You are an expert academic summarizer. 
-    
+    You are an expert academic summarizer.
+
     Your task is to read the following text and produce a concise, structured
     summary in Markdown bullet format.
 
@@ -1810,8 +1810,8 @@ def text_to_one_bullet() -> _PROMPT_OUT:
     """
     system = ""
     system += r"""
-    You are an expert academic summarizer. 
-    
+    You are an expert academic summarizer.
+
     Your task is to read the following text and produce a concise, structured
     summary in Markdown bullet format with only one bullet point.
     The bullet point should be a single concept or idea and a single sentence.
@@ -2041,7 +2041,7 @@ def figure_create_blog_figure() -> _PROMPT_OUT:
     system += r"""
     Given the text of a blog post, generate 3 visual concepts that illustrate or
     comment on its themes, ideas, or emotions.
-    
+
     For each concept, create a precise DALL·E prompt suitable for generating the
     image following the guidelines below.
     - Each image prompt should be clear, vivid, and detailed enough for an image
@@ -2053,7 +2053,7 @@ def figure_create_blog_figure() -> _PROMPT_OUT:
 	- Avoid generic or literal depictions — aim for creative visual metaphors
       that enrich the text.
     - Avoid to suggest any text in the picture
-    
+
     The format the output as follows:
 
     1) Description of the image 1
@@ -2078,7 +2078,7 @@ def figure_create_blog_figure2() -> _PROMPT_OUT:
     system += r"""
     Given the text of a blog post, generate 3 visual concepts that illustrate or
     comment on its themes, ideas, or emotions.
-    
+
     For each concept, create a precise DALL·E prompt suitable for generating the
     image following the guidelines below.
     - Each image prompt should be clear, vivid, and detailed enough for an image
@@ -2090,12 +2090,12 @@ def figure_create_blog_figure2() -> _PROMPT_OUT:
 	- Avoid generic or literal depictions — aim for creative visual metaphors
       that enrich the text.
     - You MUST avoid to suggest any text in the picture
-    
+
     Follow this template:
     A conceptual digital illustration showing a scientist or data analyst
     The environment is sleek and futuristic, representing AI-driven business
     intelligence
-    
+
     The format the output as follows:
 
     1) Description of the image 1

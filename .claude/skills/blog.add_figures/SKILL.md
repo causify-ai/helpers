@@ -15,7 +15,7 @@ the concepts in the blog post
   - An graphic image with minimal or numbers or writings
 
 - A graphviz diagram, any TikZ image, any graphic image should conform to the
-  template in @helpers_root/docs/ai_coding/ai.diagram_template.md
+  template in @docs/ai_templates/ai.diagram_template.md
 
 - Any causal knowledge graph should follow the style described in
   @.claude/skills/graphviz.causal_kg_style/SKILL.md

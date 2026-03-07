@@ -16,10 +16,290 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_colorize_backticks
+# #############################################################################
+
+
+class Test_colorize_backticks(hunitest.TestCase):
+    """
+    Test the `_colorize_backticks()` function.
+    """
+
+    def helper(self, txt_in: str, expected: str) -> None:
+        """
+        Helper method to test the _colorize_backticks function.
+
+        :param txt_in: input text
+        :param expected: expected output text
+        """
+        actual = dshdprno._colorize_backticks(txt_in)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test single backtick-wrapped word.
+        """
+        # Prepare inputs.
+        txt_in = "The `store` variable is used."
+        expected = r"The \textcolor{blue}{\texttt{store}} variable is used."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test2(self) -> None:
+        """
+        Test multiple backtick-wrapped words in one line.
+        """
+        # Prepare inputs.
+        txt_in = "Use `function1` and `function2` to process data."
+        expected = r"Use \textcolor{blue}{\texttt{function1}} and \textcolor{blue}{\texttt{function2}} to process data."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test3(self) -> None:
+        """
+        Test backtick-wrapped multi-word phrase.
+        """
+        # Prepare inputs.
+        txt_in = "The `main function` is important."
+        expected = r"The \textcolor{blue}{\texttt{main function}} is important."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test4(self) -> None:
+        """
+        Test line with no backticks should remain unchanged.
+        """
+        # Prepare inputs.
+        txt_in = "This line has no special formatting."
+        expected = txt_in
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test5(self) -> None:
+        """
+        Test triple backticks (code block) should not be processed.
+        """
+        # Prepare inputs.
+        txt_in = "```python\nprint('hello')\n```"
+        expected = txt_in
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test6(self) -> None:
+        """
+        Test backticks at the beginning of the line.
+        """
+        # Prepare inputs.
+        txt_in = "`config` is a parameter"
+        expected = r"\textcolor{blue}{\texttt{config}} is a parameter"
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test7(self) -> None:
+        """
+        Test backticks at the end of the line.
+        """
+        # Prepare inputs.
+        txt_in = "Import the module called `helpers`"
+        expected = r"Import the module called \textcolor{blue}{\texttt{helpers}}"
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test8(self) -> None:
+        """
+        Test backticks containing special characters (underscores).
+        """
+        # Prepare inputs.
+        txt_in = "Use the `_private_func` or `__dunder__` naming."
+        expected = r"Use the \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{\_\_dunder\_\_}} naming."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test9(self) -> None:
+        """
+        Test backticks containing numbers.
+        """
+        # Prepare inputs.
+        txt_in = "Call `func42` to compute result."
+        expected = r"Call \textcolor{blue}{\texttt{func42}} to compute result."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test10(self) -> None:
+        """
+        Test empty backticks should not match.
+        """
+        # Prepare inputs.
+        txt_in = "Text with `` empty backticks here."
+        # Empty backticks should not match due to pattern requiring at least one character.
+        expected = txt_in
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test11(self) -> None:
+        """
+        Test backticks inside a line with multiple sentences.
+        """
+        # Prepare inputs.
+        txt_in = "First sentence with `var1`. Second sentence with `var2`. Third sentence."
+        expected = r"First sentence with \textcolor{blue}{\texttt{var1}}. Second sentence with \textcolor{blue}{\texttt{var2}}. Third sentence."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test12(self) -> None:
+        """
+        Test backticks containing dots (like package names).
+        """
+        # Prepare inputs.
+        txt_in = "Import `numpy.array` for matrix operations."
+        expected = r"Import \textcolor{blue}{\texttt{numpy.array}} for matrix operations."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test13(self) -> None:
+        """
+        Test backticks containing underscores (escaped in LaTeX).
+        """
+        # Prepare inputs.
+        txt_in = "The `weeks_to_xmas` variable stores the countdown."
+        expected = r"The \textcolor{blue}{\texttt{weeks\_to\_xmas}} variable stores the countdown."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test14(self) -> None:
+        """
+        Test multiple backtick-wrapped words with underscores.
+        """
+        # Prepare inputs.
+        txt_in = (
+            "Use `_private_func` or `public_var` for different access levels."
+        )
+        expected = r"Use \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{public\_var}} for different access levels."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test15(self) -> None:
+        """
+        Test backticks with leading and trailing underscores.
+        """
+        # Prepare inputs.
+        txt_in = "Call `__init__` or `__dunder__` methods in Python."
+        expected = r"Call \textcolor{blue}{\texttt{\_\_init\_\_}} or \textcolor{blue}{\texttt{\_\_dunder\_\_}} methods in Python."
+        # Run test.
+        self.helper(txt_in, expected)
+
+
+# #############################################################################
+# Test_colorize_backticks_integration
+# #############################################################################
+
+
+class Test_colorize_backticks_integration(hunitest.TestCase):
+    """
+    Test backtick colorization as part of the full preprocessing pipeline.
+    """
+
+    def test1(self) -> None:
+        """
+        Test backtick colorization in full pipeline with type="pdf".
+        """
+        # Prepare inputs.
+        txt_in = r"""
+        # Chapter 1
+        The `variable` is used here.
+        And `function_name` is called next.
+        """
+        txt_in = txt_in.split("\n")
+        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        # Execute function.
+        type_ = "pdf"
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = "\n".join(actual)
+        # Check.
+        expected = r"""
+        ---
+        fontsize: 10pt
+        ---
+        \let\emph\textit
+        \let\uline\underline
+        \let\ul\underline
+        # Chapter 1
+        The \textcolor{blue}{\texttt{variable}} is used here.
+        And \textcolor{blue}{\texttt{function\_name}} is called next.
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test backtick colorization with type="slides".
+        """
+        # Prepare inputs.
+        txt_in = r"""
+        # Slide Title
+        Use `method1` and `method2` for processing.
+        """
+        txt_in = txt_in.split("\n")
+        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        # Execute function.
+        type_ = "slides"
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = "\n".join(actual)
+        # Check.
+        expected = r"""
+        ---
+        fontsize: 10pt
+        ---
+        \let\emph\textit
+        \let\uline\underline
+        \let\ul\underline
+        # Slide Title
+        Use \textcolor{blue}{\texttt{method1}} and \textcolor{blue}{\texttt{method2}} for processing.
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test backtick colorization doesn't affect code blocks.
+        """
+        # Prepare inputs.
+        txt_in = r"""
+        Example code:
+        ```python
+        variable = `store`
+        ```
+        The `variable` name is important.
+        """
+        txt_in = txt_in.split("\n")
+        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        # Execute function.
+        type_ = "pdf"
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = "\n".join(actual)
+        # Check.
+        expected = r"""
+        ---
+        fontsize: 10pt
+        ---
+        \let\emph\textit
+        \let\uline\underline
+        \let\ul\underline
+        Example code:
+        ```python
+        variable = `store`
+        ```
+        The \textcolor{blue}{\texttt{variable}} name is important.
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
 
 # #############################################################################
 # Test_process_question1
 # #############################################################################
+
 
 class Test_process_question1(hunitest.TestCase):
     """
@@ -71,10 +351,10 @@ class Test_process_question1(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
 
-
 # #############################################################################
 # Test_remove_headers1
 # #############################################################################
+
 
 class Test_remove_headers1(hunitest.TestCase):
     """
@@ -189,10 +469,10 @@ class Test_remove_headers1(hunitest.TestCase):
         self.helper(lines_in, expected)
 
 
-
 # #############################################################################
 # Test_preprocess_notes_end_to_end1
 # #############################################################################
+
 
 class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
     """
@@ -261,10 +541,10 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
         self.assert_equal(actual, expected)
 
 
-
 # #############################################################################
 # Test_preprocess_notes_end_to_end2
 # #############################################################################
+
 
 class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
     """
@@ -309,10 +589,10 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
             self.check_string(actual, tag=tag)
 
 
-
 # #############################################################################
 # Test_preprocess_notes_end_to_end3
 # #############################################################################
+
 
 class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
     """
@@ -357,10 +637,10 @@ class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
             self.check_string(actual, tag=tag)
 
 
-
 # #############################################################################
 # Test_preprocess_notes_executable1
 # #############################################################################
+
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
@@ -425,10 +705,10 @@ class Test_preprocess_notes_executable1(hunitest.TestCase):
         self.check_string(act)
 
 
-
 # #############################################################################
 # Test_preprocess_notes_remove_headers1
 # #############################################################################
+
 
 class Test_preprocess_notes_remove_headers1(hunitest.TestCase):
     """

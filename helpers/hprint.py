@@ -12,10 +12,10 @@ import re
 import sys
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
-# This module can depend only on:
-# - Python standard modules
 import helpers.hdbg as hdbg
 
+# This module can depend only on:
+# - Python standard modules
 # - a few helpers as described in `helpers/dependencies.txt`
 
 
