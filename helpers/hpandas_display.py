@@ -245,18 +245,19 @@ def convert_df_to_png(
     hdbg.dassert_isinstance(file_path, str)
     # Ensure the output directory exists.
     hio.create_enclosing_dir(file_path, incremental=True)
-    _LOG.info("Converting dataframe to PNG: %s", file_path)
     # Prepare dataframe for export, handling index parameter.
     export_df = df
     if not index:
         # Reset index to exclude it from the image.
         export_df = df.reset_index(drop=True)
     dfi.export(export_df, file_path, table_conversion=table_conversion, dpi=dpi)
-    _LOG.info("PNG image saved to: %s", file_path)
+    # Use print instead of _LOG.info.
+    print(f"PNG image saved to: '{file_path}'")
     if print_markdown:
         # Construct the markdown path.
         markdown_path = file_path
         if markdown_path_prefix:
             markdown_path = os.path.join(markdown_path_prefix, file_path)
         markdown_ref = f"![]({markdown_path})"
+        # Use print instead of _LOG.info.
         print(markdown_ref)
