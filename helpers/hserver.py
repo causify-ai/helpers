@@ -13,7 +13,6 @@ import shutil
 import subprocess
 from typing import Dict, List, Optional, Tuple
 
-import helpers.hprint as hprint
 import helpers.repo_config_utils as hrecouti
 
 # This module should depend only on:
@@ -703,7 +702,7 @@ def get_docker_info() -> str:
         f"has_sibling_containers_support={has_sibling_containers_support_}"
     )
     txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
-    #
+    # TODO(ai_gp): Print without using hprint.to_info
     txt = hprint.to_info("Docker info", txt_tmp)
     return txt
 

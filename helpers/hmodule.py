@@ -9,9 +9,7 @@ import os
 from typing import Any, Dict, Optional
 
 import helpers.hdbg as hdbg
-import helpers.hprint as hprint
 import helpers.hserver as hserver
-import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
@@ -35,6 +33,7 @@ def has_module(module: str) -> bool:
         _LOG.warning("%s: %s", _WARNING, str(e))
         has_module_ = False
     """
+    # TODO(ai_gp): Replace this call to dedent with a simpler version of the code.
     code = hprint.dedent(code)
     # To make the linter happy.
     has_module_ = True
@@ -96,5 +95,7 @@ def install_module_if_not_present(
         cmd = f"pip install {quiet_flag} {package_name}"
     if use_sudo:
         cmd = f"sudo {cmd}"
+        # TODO(ai_gp): Create a function equivalent to hsystem.system_to_string
+        # so that we don't need to import hsystem.
     _, output = hsystem.system_to_string(cmd)
     print(output)
