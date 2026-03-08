@@ -6,7 +6,7 @@ Provides a single interface to manage markdown files across multiple directories
 - skill: .claude/skills/ directory
 - blog: blog/posts/ directory
 - research: research/ideas/ directory
-- story: notes1/short_stories/ directory
+- story: short_stories/ directory
 
 Usage:
   md.py <type> <action> [name]
@@ -124,56 +124,55 @@ def _get_template(type_: str, name: str) -> str:
     :param name: the name to include in the template
     :return: template string
     """
+    # TODO(ai_gp): Use hprint.dedent and have a single return 
     if type_ == "blog":
         today = date.today().isoformat()
-        return f"""---
-title: "{name}"
-authors:
-  - gpsaggese
-date: {today}
-description:
-categories:
-  - Causal AI
----
+        txt = f"""
+        ---
+        title: "{name}"
+        authors:
+          - gpsaggese
+        date: {today}
+        description:
+        categories:
+          - Causal AI
+        ---
 
-TL;DR: <Summary here>
+        TL;DR: <Summary here>
 
-<!-- more -->
+        <!-- more -->
 
-## Introduction
+        ## Introduction
 
-<Your content here>
-"""
+        <Your content here>
+        """
     elif type_ == "skill":
-        return f"""# Summary
+        text = f"""
+        # Summary
 
-<Brief description of what this skill does>
+        <Brief description of what this skill does>
 
-## Usage
+        ## Usage
 
-<Usage examples and patterns>
+        <Usage examples and patterns>
 
-## Implementation Details
+        ## Implementation Details
 
-<Technical details>
-"""
+        <Technical details>
+        """
     elif type_ == "research":
         return f"# {name}\n\n<Research notes here>\n"
     elif type_ == "story":
         today = date.today().isoformat()
-        return f"""---
-title: ""
-author:
-date: {today}
----
-
-<Story content here>
-"""
-    hdbg.dfatal("Unknown type", type_)
+        return ""
+    else:
+        hdbg.dfatal("Unknown type", type_)
+    text = hprint.dedent(text)
+    return text
 
 
 def _list_markdown_files(
-    dir_: str, type_: str, pattern: Optional[str] = None, full_path: bool = False
+    dir_: str, type_: str, *, pattern: Optional[str] = None, full_path: bool = False
 ) -> None:
     """
     List markdown files in a directory, optionally filtered by pattern.
@@ -261,7 +260,7 @@ def _find_file_for_edit(type_: str, dir_: str, name: str) -> str:
     hdbg.dfatal("Unknown type", type_)
 
 
-def _action_list(type_: str, dir_: str, pattern: Optional[str] = None) -> None:
+def _action_list(type_: str, dir_: str, *, pattern: Optional[str] = None) -> None:
     """
     List markdown files in a directory (concise format).
 
@@ -275,7 +274,7 @@ def _action_list(type_: str, dir_: str, pattern: Optional[str] = None) -> None:
     _list_markdown_files(dir_, type_, pattern, full_path=False)
 
 
-def _action_full_list(type_: str, dir_: str, pattern: Optional[str] = None) -> None:
+def _action_full_list(type_: str, dir_: str, *, pattern: Optional[str] = None) -> None:
     """
     List markdown files in a directory (full paths).
 
