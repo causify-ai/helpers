@@ -1,7 +1,0 @@
-#!/bin/bash -e
-
-# Find the git repository root.
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
-
-vi "$REPO_ROOT/.claude/skills/$1/SKILL.md"
