@@ -35,6 +35,7 @@ from typing import List, Optional
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -92,27 +93,46 @@ def _get_directory(type_: str) -> str:
     :param type_: the type (research, blog, story, skill)
     :return: absolute path to the directory
     """
+    repo_root = _get_repo_root()
+    workspace_root = os.path.dirname(repo_root)
     if type_ == "skill":
-        repo_root = _get_repo_root()
         return os.path.join(repo_root, ".claude", "skills")
     elif type_ == "blog":
-        cmd = "find ../.. -maxdepth 3 -type d -name 'posts' 2>/dev/null | head -1"
-        _, result = hsystem.system_to_string(cmd)
-        result = result.strip()
-        hdbg.dassert_ne(result, "", "Could not find posts directory")
-        return os.path.abspath(result)
+        target_dir = os.path.join(workspace_root, "blog", "posts")
+        if not os.path.isdir(target_dir):
+            cmd = (
+                f"find {workspace_root} -maxdepth 3 -type d -name 'posts'"
+                " 2>/dev/null | head -1"
+            )
+            _, result = hsystem.system_to_string(cmd)
+            result = result.strip()
+            hdbg.dassert_ne(result, "", "Could not find posts directory")
+            target_dir = result
+        return os.path.abspath(target_dir)
     elif type_ == "research":
-        cmd = "find ../.. -maxdepth 3 -type d -path '*/research/ideas' 2>/dev/null | head -1"
-        _, result = hsystem.system_to_string(cmd)
-        result = result.strip()
-        hdbg.dassert_ne(result, "", "Could not find research/ideas directory")
-        return os.path.abspath(result)
+        target_dir = os.path.join(workspace_root, "research", "ideas")
+        if not os.path.isdir(target_dir):
+            cmd = (
+                f"find {workspace_root} -maxdepth 3 -type d"
+                " -path '*/research/ideas' 2>/dev/null | head -1"
+            )
+            _, result = hsystem.system_to_string(cmd)
+            result = result.strip()
+            hdbg.dassert_ne(result, "", "Could not find research/ideas directory")
+            target_dir = result
+        return os.path.abspath(target_dir)
     elif type_ == "story":
-        cmd = "find ../.. -maxdepth 3 -type d -name 'short_stories' 2>/dev/null | head -1"
-        _, result = hsystem.system_to_string(cmd)
-        result = result.strip()
-        hdbg.dassert_ne(result, "", "Could not find short_stories directory")
-        return os.path.abspath(result)
+        target_dir = os.path.join(workspace_root, "short_stories")
+        if not os.path.isdir(target_dir):
+            cmd = (
+                f"find {workspace_root} -maxdepth 3 -type d"
+                " -name 'short_stories' 2>/dev/null | head -1"
+            )
+            _, result = hsystem.system_to_string(cmd)
+            result = result.strip()
+            hdbg.dassert_ne(result, "", "Could not find short_stories directory")
+            target_dir = result
+        return os.path.abspath(target_dir)
     hdbg.dfatal("Unknown type", type_)
 
 
@@ -124,10 +144,9 @@ def _get_template(type_: str, name: str) -> str:
     :param name: the name to include in the template
     :return: template string
     """
-    # TODO(ai_gp): Use hprint.dedent and have a single return 
     if type_ == "blog":
         today = date.today().isoformat()
-        txt = f"""
+        text = f"""
         ---
         title: "{name}"
         authors:
@@ -146,6 +165,7 @@ def _get_template(type_: str, name: str) -> str:
 
         <Your content here>
         """
+        return hprint.dedent(text)
     elif type_ == "skill":
         text = f"""
         # Summary
@@ -160,15 +180,12 @@ def _get_template(type_: str, name: str) -> str:
 
         <Technical details>
         """
+        return hprint.dedent(text)
     elif type_ == "research":
         return f"# {name}\n\n<Research notes here>\n"
     elif type_ == "story":
-        today = date.today().isoformat()
         return ""
-    else:
-        hdbg.dfatal("Unknown type", type_)
-    text = hprint.dedent(text)
-    return text
+    hdbg.dfatal("Unknown type", type_)
 
 
 def _list_markdown_files(
@@ -271,7 +288,7 @@ def _action_list(type_: str, dir_: str, *, pattern: Optional[str] = None) -> Non
     :param dir_: the directory to list
     :param pattern: optional filter pattern
     """
-    _list_markdown_files(dir_, type_, pattern, full_path=False)
+    _list_markdown_files(dir_, type_, pattern=pattern, full_path=False)
 
 
 def _action_full_list(type_: str, dir_: str, *, pattern: Optional[str] = None) -> None:
@@ -282,7 +299,7 @@ def _action_full_list(type_: str, dir_: str, *, pattern: Optional[str] = None) -
     :param dir_: the directory to list
     :param pattern: optional filter pattern
     """
-    _list_markdown_files(dir_, type_, pattern, full_path=True)
+    _list_markdown_files(dir_, type_, pattern=pattern, full_path=True)
 
 
 def _action_edit(type_: str, dir_: str, name: str) -> None:
@@ -342,9 +359,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     action = _match_prefix(args.action, _VALID_ACTIONS)
     dir_ = _get_directory(type_)
     if action == "list":
-        _action_list(type_, dir_, args.name)
+        _action_list(type_, dir_, pattern=args.name)
     elif action == "full_list":
-        _action_full_list(type_, dir_, args.name)
+        _action_full_list(type_, dir_, pattern=args.name)
     elif action == "edit":
         hdbg.dassert_ne(
             args.name,
