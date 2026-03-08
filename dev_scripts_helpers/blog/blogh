@@ -3,14 +3,9 @@
 # Open the blog README.
 # """
 
-# Find the blog directory.
-BLOG_DIR=$(find . -type d -path "*/blog" -not -path "*/blog/posts" 2>/dev/null | head -1)
-if [[ -z "$BLOG_DIR" ]]; then
-    echo "ERROR: Could not find blog directory" >&2
-    exit 1
-fi
-
-README="$BLOG_DIR/README.md"
+# Find the script directory and look for README.md there.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+README="$SCRIPT_DIR/README.md"
 if [[ ! -f "$README" ]]; then
     echo "ERROR: Could not find $README" >&2
     exit 1
