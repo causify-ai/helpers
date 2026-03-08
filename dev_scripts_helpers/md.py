@@ -75,6 +75,20 @@ def _match_prefix(value: str, valid_options: List[str]) -> str:
     return matches[0]
 
 
+def _normalize_name(name: Optional[str]) -> Optional[str]:
+    """
+    Normalize a name by stripping .md suffix if present.
+
+    :param name: the name to normalize
+    :return: the normalized name (with .md suffix removed if it was present)
+    """
+    if name is None:
+        return None
+    if name.endswith(".md"):
+        return name[:-3]
+    return name
+
+
 def _get_repo_root() -> str:
     """
     Get the path to helpers_root directory (2 levels up from this script).
@@ -168,6 +182,10 @@ def _get_template(type_: str, name: str) -> str:
         return hprint.dedent(text)
     elif type_ == "skill":
         text = f"""
+        ---
+        description: <Brief description of what this skill does>
+        ---
+
         # Summary
 
         <Brief description of what this skill does>
@@ -312,7 +330,7 @@ def _action_edit(type_: str, dir_: str, name: str) -> None:
     """
     file_path = _find_file_for_edit(type_, dir_, name)
     _LOG.info("Opening file in vim: %s", file_path)
-    hsystem.system(f"vim {file_path}")
+    os.system(f"vim {file_path}")
 
 
 def _action_directory(dir_: str) -> None:
@@ -357,6 +375,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     logging.basicConfig(level=args.log_level)
     type_ = _match_prefix(args.type, _VALID_TYPES)
     action = _match_prefix(args.action, _VALID_ACTIONS)
+    args.name = _normalize_name(args.name)
     dir_ = _get_directory(type_)
     if action == "list":
         _action_list(type_, dir_, pattern=args.name)
