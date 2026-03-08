@@ -10,9 +10,12 @@ if [[ -z "$1" ]]; then
 fi
 BLOG_NAME="$1"
 
-# Find the repo root (where website/ lives).
-REPO_ROOT=$(git rev-parse --show-toplevel)
-BLOG_DIR="$REPO_ROOT/website/docs/blog/posts"
+# Find the blog/posts directory.
+BLOG_DIR=$(find . -type d -path "*/blog/posts" 2>/dev/null | head -1)
+if [[ -z "$BLOG_DIR" ]]; then
+    echo "ERROR: Could not find blog/posts directory" >&2
+    exit 1
+fi
 
 # Build the file path with draft prefix.
 BLOG_FILE="$BLOG_DIR/draft.$BLOG_NAME.md"

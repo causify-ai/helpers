@@ -1,6 +1,6 @@
 #!/bin/bash -e
 # """
-# List the blog posts.
+# Report the blog directory.
 # """
 
 # Find the blog/posts directory.
@@ -9,9 +9,4 @@ if [[ -z "$BLOG_DIR" ]]; then
     echo "ERROR: Could not find blog/posts directory" >&2
     exit 1
 fi
-
-if [[ -n "$1" ]]; then
-    ls -1 "$BLOG_DIR" | grep "$1"
-else
-    ls -1 "$BLOG_DIR"
-fi
+echo "$BLOG_DIR"
