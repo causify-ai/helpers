@@ -16,6 +16,11 @@ show_help() {
     grep '^# ' "$0" | sed 's/^# //' | sed '1d'
 }
 
+# Find the git repository root.
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+skills_dir="$REPO_ROOT/.claude/skills"
+
 full_path=false
 pattern=""
 
@@ -36,8 +41,6 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
-
-skills_dir=".claude/skills"
 
 if [[ ! -d "$skills_dir" ]]; then
     echo "Error: $skills_dir directory not found" >&2

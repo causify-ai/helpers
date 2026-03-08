@@ -7,8 +7,12 @@ if [[ -z "$1" ]]; then
 fi
 SKILL="$1"
 
+# Find the git repository root.
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+
 # Check that the corresponding dir doesn't exist (e.g., `.claude/skills/git.move`)
-SKILL_DIR=".claude/skills/$SKILL"
+SKILL_DIR="$REPO_ROOT/.claude/skills/$SKILL"
 if [[ -d "$SKILL_DIR" ]]; then
     echo "ERROR: Skill dir already exists: $SKILL_DIR" >&2
     exit 1
@@ -27,4 +31,4 @@ description:
 EOF
 
 # Print the full path of the SKILL.md.
-echo "$(pwd)/$SKILL_MD"
+echo "$SKILL_MD"
