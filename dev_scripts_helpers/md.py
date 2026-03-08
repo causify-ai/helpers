@@ -110,44 +110,37 @@ def _get_directory(type_: str) -> str:
     repo_root = _get_repo_root()
     workspace_root = os.path.dirname(repo_root)
     if type_ == "skill":
-        return os.path.join(repo_root, ".claude", "skills")
+        target_dir = os.path.join(repo_root, ".claude", "skills")
     elif type_ == "blog":
-        target_dir = os.path.join(workspace_root, "blog", "posts")
-        if not os.path.isdir(target_dir):
-            cmd = (
-                f"find {workspace_root} -maxdepth 3 -type d -name 'posts'"
-                " 2>/dev/null | head -1"
-            )
-            _, result = hsystem.system_to_string(cmd)
-            result = result.strip()
-            hdbg.dassert_ne(result, "", "Could not find posts directory")
-            target_dir = result
-        return os.path.abspath(target_dir)
+        cmd = (
+            f"find {workspace_root} -maxdepth 5 -type d -path '*/posts'"
+            " 2>/dev/null | head -1"
+        )
+        _, result = hsystem.system_to_string(cmd)
+        result = result.strip()
+        hdbg.dassert_ne(result, "", "Could not find posts directory")
+        target_dir = result
     elif type_ == "research":
-        target_dir = os.path.join(workspace_root, "research", "ideas")
-        if not os.path.isdir(target_dir):
-            cmd = (
-                f"find {workspace_root} -maxdepth 3 -type d"
-                " -path '*/research/ideas' 2>/dev/null | head -1"
-            )
-            _, result = hsystem.system_to_string(cmd)
-            result = result.strip()
-            hdbg.dassert_ne(result, "", "Could not find research/ideas directory")
-            target_dir = result
-        return os.path.abspath(target_dir)
+        cmd = (
+            f"find {workspace_root} -maxdepth 3 -type d"
+            " -path '*/research/ideas' 2>/dev/null | head -1"
+        )
+        _, result = hsystem.system_to_string(cmd)
+        result = result.strip()
+        hdbg.dassert_ne(result, "", "Could not find 'research/ideas' directory")
+        target_dir = result
     elif type_ == "story":
-        target_dir = os.path.join(workspace_root, "short_stories")
-        if not os.path.isdir(target_dir):
-            cmd = (
-                f"find {workspace_root} -maxdepth 3 -type d"
-                " -name 'short_stories' 2>/dev/null | head -1"
-            )
-            _, result = hsystem.system_to_string(cmd)
-            result = result.strip()
-            hdbg.dassert_ne(result, "", "Could not find short_stories directory")
-            target_dir = result
-        return os.path.abspath(target_dir)
-    hdbg.dfatal("Unknown type", type_)
+        cmd = (
+            f"find {workspace_root} -maxdepth 3 -type d"
+            " -name 'short_stories' 2>/dev/null | head -1"
+        )
+        _, result = hsystem.system_to_string(cmd)
+        result = result.strip()
+        hdbg.dassert_ne(result, "", "Could not find 'short_stories' directory")
+        target_dir = result
+    else:
+        hdbg.dfatal("Unknown type '%s'" % type_)
+    return os.path.abspath(target_dir)
 
 
 def _get_template(type_: str, name: str) -> str:
@@ -236,9 +229,13 @@ def _list_markdown_files(
             files = [f for f in files if pattern_lower in os.path.basename(f).lower()]
     if files:
         for f in files:
-            if type_ == "skill" and not full_path:
-                skill_name = os.path.basename(os.path.dirname(f))
-                print(skill_name)
+            if not full_path:
+                if type_ == "skill":
+                    skill_name = os.path.basename(os.path.dirname(f))
+                    print(skill_name)
+                else:
+                    basename = os.path.basename(f)
+                    print(basename)
             else:
                 print(f)
     else:
