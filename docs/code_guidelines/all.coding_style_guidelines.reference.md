@@ -1,72 +1,3 @@
-<!-- toc -->
-
-- [All Style Guide](#all-style-guide)
-  * [Summary](#summary)
-- [General](#general)
-  * [Spelling](#spelling)
-    + [LLM](#llm)
-    + [Linter](#linter)
-- [Python](#python)
-  * [Naming](#naming)
-    + [LLM](#llm-1)
-    + [Linter](#linter-1)
-  * [Docstrings](#docstrings)
-    + [LLM](#llm-2)
-    + [Linter](#linter-2)
-  * [Comments](#comments)
-    + [LLM](#llm-3)
-    + [Linter](#linter-3)
-  * [Code Implementation](#code-implementation)
-    + [LLM](#llm-4)
-    + [Linter](#linter-4)
-  * [Code Design](#code-design)
-    + [LLM](#llm-5)
-    + [Linter](#linter-5)
-  * [Imports](#imports)
-    + [LLM](#llm-6)
-    + [Linter](#linter-6)
-  * [Type Annotations](#type-annotations)
-    + [LLM](#llm-7)
-    + [Linter](#linter-7)
-  * [Functions](#functions)
-    + [LLM](#llm-8)
-    + [Linter](#linter-8)
-  * [Scripts](#scripts)
-    + [LLM](#llm-9)
-    + [Linter](#linter-9)
-  * [Logging](#logging)
-    + [LLM](#llm-10)
-    + [Linter](#linter-10)
-  * [Misc](#misc)
-    + [LLM](#llm-11)
-    + [Linter](#linter-11)
-- [Unit Tests](#unit-tests)
-  * [Rules](#rules)
-    + [LLM](#llm-12)
-    + [Linter](#linter-12)
-- [Notebooks](#notebooks)
-  * [General](#general-1)
-    + [LLM](#llm-13)
-    + [Linter](#linter-13)
-  * [Plotting](#plotting)
-    + [LLM](#llm-14)
-    + [Linter](#linter-14)
-  * [Jupytext](#jupytext)
-    + [LLM](#llm-15)
-    + [Linter](#linter-15)
-- [Markdown](#markdown)
-  * [General](#general-2)
-    + [LLM](#llm-16)
-    + [Linter](#linter-16)
-  * [Headers](#headers)
-    + [LLM](#llm-17)
-    + [Linter](#linter-17)
-  * [Text](#text)
-    + [LLM](#llm-18)
-    + [Linter](#linter-18)
-
-<!-- tocstop -->
-
 # All Style Guide
 
 ## Summary
@@ -298,29 +229,10 @@
 
 ### Linter
 
-- Avoid empty comments and line inside the code when possible
-- Every comment should start with a capital letter
-- Every comment should start with a verb in the imperative form
-- Every comment should end with a period
-- Comments with TODOs should have the format of `# TODO(username): ...`
-
 ## Code Implementation
 
 ### LLM
 
-- Encode the assumptions made in the code using assertions and report as much
-  information as possible in an assertion to make it easy to debug the output
-  - Good:
-    ```
-    hdbg.dassert_lt(start_date, end_date,
-      msg="start_date needs to be before end_date")
-    ```
-  - Ensure that assertions provide detailed information for debugging
-  - Use assertions to validate input parameters and preconditions
-- Do not use f-strings in `hdbg.dassert()`, but use traditional string
-  formatting methods in assertions
-  - Good:
-    `hdbg.dassert_eq(len(list1), len(list2), "Lists must be of equal length: %d vs %d" % (len(list1), len(list2)))`
 
 - Add type hints only to the function definitions, if they are missing.
   - Good:
@@ -595,9 +507,6 @@
 
 ### Linter
 
-- Make a function private (e.g., `_foo_bar()`) when it is a helper of another
-  private or public function
-
 ## Scripts
 
 ### LLM
@@ -618,23 +527,6 @@
 ## Logging
 
 ### LLM
-
-- Use logging `_LOG.debug()` and not `print()` for tracing execution
-  - Good: `_LOG.debug("value=%s", value)`
-  - Bad: `print("value=%s", value)`
-- Use positional args in logging and not inline formatting
-  - Good: `_LOG.debug("cmd=%s", cmd1)`
-  - Bad: `_LOG.debug(f"cmd={cmd1}")`
-- Use the following idiom to configure logging:
-
-  ```python
-  import helpers.hdbg as hdbg
-
-  _LOG = logging.getLogger(__name__)
-  ...
-
-  hdbg.init_logger(verbosity=logging.DEBUG)
-  ```
 
 ### Linter
 
@@ -659,14 +551,6 @@
 - A test method should only test a single case to ensures clarity and precision
   in testing
   - E.g., "for these inputs the function responds with this output"
-- Adhere to the following conventions for naming:
-  - Class `TestFooBar` tests the class `FooBar` and its methods
-    - `TestFooBar.test_method_a`, `TestFooBar.test_method_b` test the methods
-      `FooBar.method_a` and `FooBar.method_b`
-  - Class `Test_foo_bar` tests the function `foo_bar()`
-    - E.g., `Test_foo_bar.test_valid_input`, `Test_foo_bar.test_invalid_input`
-      for different cases / inputs
-  - `Test_foo_bar.test1`, `Test_foo_bar.test2` for different cases / inputs
 - A unit test should be independent of all the other unit tests
   - Ensures that tests do not affect each other and can be run in isolation
 - If there is a lot of common code across individual test methods, it should be
@@ -734,16 +618,6 @@
 
 ### Linter
 
-- Unit tests should be placed in a `test_*.py` file in the `test` directory,
-  close to the library / code it tests
-  - Test file `test_file_name.py` testing the library `file_name.py`
-- Every test class should inherit from `hunitest.TestCase`
-- We use `pytest` as test harness so do not add the following idiom in the
-  testing file
-  ```python
-  if __name__ == "__main__":
-      unittest.main()
-  ```
 - If a unit test is renamed or removed in a PR, the corresponding files in the
   `outcomes` dir should also be renamed or removed
 
@@ -874,24 +748,6 @@
     - Serves as the main title of the document
     - Should be the first line and located above the table of contents
 
-- Wrap file paths, names of variables, functions, and classes in backticks
-  - E.g., `file_path`, `variable_name`, `function_name()`, `ClassName`
-- Commands should be prepended by `>`
-  - Example
-    ```
-    > notes_to_pdf.py \
-      --input lectures_source/Lesson5-Theory_Statistical_learning.txt \
-      --output Lesson5.pdf \
-      --type slides \
-      --toc_type navigation \
-      --debug_on_error \
-      --skip_action cleanup_after
-    ```
-- Commands should be prepended by `docker>` if they need to be run inside Docker
-- Avoid using screenshots whenever possible and instead copy-and-paste text with
-  the right highlighting
-  - E.g., instead of a screenshot of a terminal command, provide the command
-    text: `> ls -la`
 
 ## Headers
 
@@ -913,39 +769,11 @@
 
 ### LLM
 
-- We use bullet point lists
-  - For the items, `-` should be used instead of `*` or circles
-  - Items in bullet point lists should not end with a period
-
-- Boldface and italics should be used sparingly throughout the text
-
-- Structure the text so that bullet points of higher level correspond to
-  "nesting" in the concept
-
-- Examples should go in a sub-bullet
-  - Good
-    ```
-    - We typically increment the revision, likely a minor one
-      - E.g., from `v0.3` to `v0.3.1`
-    ```
-
 - Use "you" and not "we" or "one"
   - Let's just be direct: no need to be passive-aggressive
 
 - Text should be reflowed to the maximum of 80 columns per line
   - The linter performs this operation automatically
-
-- Use active voice most of the time and use passive voice sparingly
-  - Good: "The user updates the file"
-  - Bad: "The file is updated by the user"
-
-- Be efficient
-  - Do not explain things in a repetitive way
-  - Rewrite long-winded AI-generated texts in a concise way
-  - E.g.,
-    - Good: "Update the software by following these steps"
-    - Bad: "The process of updating the software can be done by following these
-      steps"
 
 - When describing a tool the format should be the following:
   - A description of what the tool does
@@ -954,18 +782,6 @@
     - The command line
     - Its output if possible
   - A copy-paste version of the tool interface running `-h`
-
-- When nesting code blocks under list items in Markdown, we align the code block
-  to the previous block without empty lines
-  ````text
-  - Clone the super-repo locally
-    ```bash
-    > git clone --recursive git@github.com:causify-ai/{repo_name}.git ~/src/{repo_name}{index}
-    ```
-  - Line2
-  ````
-  - The rendering stage makes sure that the output is correctly indented and
-    spaced
 
 ### Linter
 
