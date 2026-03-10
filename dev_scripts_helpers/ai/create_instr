@@ -4,4 +4,4 @@
 SUFFIX="${1:-}"
 INSTR_FILE="instr${SUFFIX}.md"
 
-vimdiff docs/ai_coding/ai.instruction_template.md "$INSTR_FILE"
+vimdiff ./helpers_root/docs/ai_templates/ai.instruction_template.md "$INSTR_FILE"
