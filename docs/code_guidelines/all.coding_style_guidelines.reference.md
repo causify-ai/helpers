@@ -9,8 +9,6 @@
 
 ## Spelling
 
-### LLM
-
 ### Linter
 
 - Spell commands in lower case and programs with the first letter in upper case
@@ -227,12 +225,9 @@
   - E.g., "This section is commented out due to a known bug that needs fixing"
     or "Temporarily disabled for performance testing"
 
-### Linter
-
 ## Code Implementation
 
 ### LLM
-
 
 - Add type hints only to the function definitions, if they are missing.
   - Good:
@@ -335,8 +330,6 @@
   - Good: `import myproject.module.submodule`
   - Bad: `from submodule import my_function`
 
-### Linter
-
 ## Code Design
 
 ### LLM
@@ -377,8 +370,6 @@
     period
 
 ## Imports
-
-### LLM
 
 ### Linter
 
@@ -505,11 +496,7 @@
   - Good: `func(10, 20, param3=30)`
   - Bad: `func(10, 20, 30)`
 
-### Linter
-
 ## Scripts
-
-### LLM
 
 ### Linter
 
@@ -524,15 +511,7 @@
     ```
   - Use `argparse` for argument parsing
 
-## Logging
-
-### LLM
-
-### Linter
-
 ## Misc
-
-### LLM
 
 ### Linter
 
@@ -646,8 +625,6 @@
 - Progress bars should be added where applicable
   - Use libraries like `tqdm` to show progress in loops or data processing tasks
 
-### Linter
-
 ## Plotting
 
 ### LLM
@@ -707,8 +684,6 @@
 
 ## Jupytext
 
-### LLM
-
 ### Linter
 
 - Each notebook must have an accompanying Python file, linked via `jupytext`,
@@ -723,8 +698,6 @@
 # Markdown
 
 ## General
-
-### LLM
 
 ### Linter
 
@@ -747,7 +720,6 @@
     - Should clearly convey the primary topic or purpose of the document
     - Serves as the main title of the document
     - Should be the first line and located above the table of contents
-
 
 ## Headers
 
