@@ -25,77 +25,78 @@ suggestions and prioritizes issues by severity.
 Read the text carefully and identify factual errors, incorrect statements, or
 broken logic.
 
-**Criteria for mistakes:**
+- **Criteria for mistakes:**
+  - Factual inaccuracy (wrong information, outdated claims)
+  - Logical contradiction or inconsistency
+  - Technical error (code doesn't work, command is wrong, API is misrepresented)
+  - Broken reference (link is dead, file path is wrong, name is misspelled)
+  - Only report issues you are absolutely certain about
 
-- Factual inaccuracy (wrong information, outdated claims)
-- Logical contradiction or inconsistency
-- Technical error (code doesn't work, command is wrong, API is misrepresented)
-- Broken reference (link is dead, file path is wrong, name is misspelled)
-- Only report issues you are absolutely certain about
+- **Ranking severity:**
+  - **Critical**: Blocks understanding, causes wrong action, or is factually false
+  - **High**: Misleads reader or causes confusion
+  - **Medium**: Could improve clarity or accuracy
+  - **Low**: Minor inconsistency or incomplete statement
 
-**Ranking severity:**
+- **Output format:**
+  ```markdown
+  # Mistakes
 
-- **Critical**: Blocks understanding, causes wrong action, or is factually false
-- **High**: Misleads reader or causes confusion
-- **Medium**: Could improve clarity or accuracy
-- **Low**: Minor inconsistency or incomplete statement
+  1. <file>:<line_number> [CRITICAL/HIGH/MEDIUM/LOW] Short description of error
+  2. <file>:<line_number> [CRITICAL/HIGH/MEDIUM/LOW] Why this is wrong and what the correct statement should be
+  ...
+  ```
 
-**Output format:**
-```markdown
-# Mistakes
+- Example:
+  ```markdown
+  # Mistakes
 
-- <file>:<line_number> [CRITICAL/HIGH/MEDIUM/LOW] Short description of error
-- <file>:<line_number> [CRITICAL/HIGH/MEDIUM/LOW] Why this is wrong and what the correct statement should be
-```
-
-Example:
-```markdown
-# Mistakes
-
-- README.md:12 [CRITICAL] Claims "pip install X" but pip package is named "X-lib"
-- tutorial.md:45 [HIGH] Says Python 3.9 is required, but code uses 3.11+ syntax
-- docs.md:8 [MEDIUM] Link to API docs is outdated (2023 version, current is 2024)
-```
+  1. README.md:12 [CRITICAL] Claims "pip install X" but pip package is named "X-lib"
+  2. tutorial.md:45 [HIGH] Says Python 3.9 is required, but code uses 3.11+ syntax
+  3. docs.md:8 [MEDIUM] Link to API docs is outdated (2023 version, current is 2024)
+  ```
 
 ## Step 2: Suggest Improvements
 Identify opportunities to improve clarity, structure, or completeness without
 changing facts.
 
-**Types of improvements:**
+- **Types of improvements:**
+  - Clarity: Making text easier to understand
+  - Completeness: Adding missing context or examples
+  - Consistency: Aligning terminology or formatting
+  - Readability: Breaking up dense sections or improving flow
 
-- Clarity: Making text easier to understand
-- Completeness: Adding missing context or examples
-- Consistency: Aligning terminology or formatting
-- Readability: Breaking up dense sections or improving flow
+- **Ranking severity:**
+  - **High**: Significantly improves comprehension or prevents misunderstanding
+  - **Medium**: Moderately improves clarity or adds useful detail
+  - **Low**: Minor improvement in readability or polish
 
-**Ranking severity:**
+- **Output format:**
+  ```markdown
+  # Improvements
 
-- **High**: Significantly improves comprehension or prevents misunderstanding
-- **Medium**: Moderately improves clarity or adds useful detail
-- **Low**: Minor improvement in readability or polish
+  1. <file>:<line_number> [HIGH/MEDIUM/LOW] Specific suggestion for how to improve
+  2. ...
+  ```
 
-**Output format:**
-```markdown
-# Improvements
+- Example:
+  ```markdown
+  # Improvements
 
-- <file>:<line_number> [HIGH/MEDIUM/LOW] Specific suggestion for how to improve
-```
-
-Example:
-```markdown
-# Improvements
-
-- README.md:5 [HIGH] Add example of basic usage after the description
-- tutorial.md:22 [MEDIUM] Break this paragraph into two—too much information in one block
-- docs.md:15 [MEDIUM] Define "caching strategy" before using the term
-```
+  1. README.md:5 [HIGH] Add example of basic usage after the description
+  2. tutorial.md:22 [MEDIUM] Break this paragraph into two—too much information in one block
+  3. docs.md:15 [MEDIUM] Define "caching strategy" before using the term
+  ```
 
 ## Step 3: Wait for User Approval
 Present both sections to the user. Wait for them to:
 
-- Select which mistakes to fix
-- Select which improvements to implement
+- Select which mistakes and improvements using the index to fix
 - Provide any additional context or corrections
 
 Once approved, implement the selected changes using the Edit or Read tools as
 appropriate.
+
+## Step 4: Run lint_txt.py
+
+Finally run `lint_txt.py -i file` to reformat it

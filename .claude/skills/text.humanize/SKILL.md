@@ -1,5 +1,4 @@
 ---
-name: text.humanize
 description: Remove AI-style writing patterns from text to make it sound more natural and human
 ---
 

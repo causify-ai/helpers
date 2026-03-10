@@ -25,4 +25,6 @@ original document structure.
 
 Then run
 
-lint_txt.py -i explanation.md
+```
+> lint_txt.py -i explanation.md
+```
