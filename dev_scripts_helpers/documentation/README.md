@@ -915,7 +915,7 @@ The supported File types and code blocks are:
   ```bash
   > IN_FILE="/Users/saggese/Downloads/Document.docx"
   > OUT_FILE="paper/paper.md"
-  > convert_docx_to_markdown.py --docx_file $IN_FILE --md_file $OUT_FILE
+  > convert_docx_to_markdown.py --input $IN_FILE --output $OUT_FILE
   ```
 - The script will:
   - Create a `paper_figs/` directory for extracted images
