@@ -13,6 +13,7 @@ Supported formats (inferred from output file extension):
 - .rtf: Rich Text format
 - .txt: Plain text format
 - .html: HTML format
+- .md: Markdown format
 - .epub: EPUB format
 - .zip: ZIP format (for web archive)
 
@@ -28,10 +29,13 @@ Export as different formats:
 > gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \\
 >                     --to_file document.docx
 > gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \\
+>                     --to_file document.md
+> gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \\
 >                     --to_file document.txt
 """
 
 import argparse
+import json
 import logging
 import os
 import re
@@ -43,7 +47,7 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
-# Mapping of file extensions to gws export MIME types.
+# Mapping of file extensions to gws drive files export MIME types.
 _FORMAT_MAP = {
     "pdf": "application/pdf",
     "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -51,6 +55,7 @@ _FORMAT_MAP = {
     "rtf": "application/rtf",
     "txt": "text/plain",
     "html": "text/html",
+    "md": "text/markdown",
     "epub": "application/epub+zip",
     "zip": "application/zip",
 }
@@ -107,7 +112,6 @@ def _check_gws_authentication() -> None:
     If not authenticated, log an error and abort with instructions.
     """
     _LOG.debug("Checking gws authentication")
-    # Try a gws command to check authentication.
     try:
         hsystem.system("gws auth status", suppress_output=True)
         _LOG.debug("gws authentication verified")
@@ -116,28 +120,34 @@ def _check_gws_authentication() -> None:
             "gws authentication check failed; please run: gws auth login"
         )
         hdbg.dfatal(
-            "gws is not authenticated; cannot proceed: %s",
-            str(e),
+            f"gws is not authenticated; cannot proceed: {e}"
         )
 
 
 def _download_doc(doc_id: str, mime_type: str, output_file: str) -> None:
     """
-    Download Google Doc using gws docs get command.
+    Download Google Doc using gws drive files export command.
 
     :param doc_id: Google Docs document ID
     :param mime_type: MIME type for export format
     :param output_file: path to save downloaded file
     """
     _LOG.info("Downloading document %s to %s", doc_id, output_file)
+    # Build params JSON.
+    params = {
+        "fileId": doc_id,
+        "mimeType": mime_type,
+    }
+    params_json = json.dumps(params)
     # Build gws command.
-    cmd = f'gws docs get "{doc_id}" --mime-type "{mime_type}"'
+    cmd = (
+        f"gws drive files export "
+        f"--params '{params_json}' "
+        f"--output {output_file}"
+    )
     _LOG.debug("Running command: %s", cmd)
-    # Execute command and capture output.
-    # abort_on_error=True will raise exception if command fails.
-    _, output = hsystem.system_to_string(cmd, abort_on_error=True)
-    # Write output to file.
-    hio.to_file(output_file, output)
+    # Execute command (abort_on_error=True will raise exception if command fails).
+    hsystem.system(cmd, abort_on_error=True)
     _LOG.info("Document successfully saved to: %s", output_file)
 
 
@@ -157,7 +167,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     mime_type = _get_format_from_suffix(args.to_file)
     _LOG.info("Exporting as format: %s", mime_type)
     # Create parent directories if needed.
-    hio.create_dir(parent_dir, incremental=True)
+    parent_dir = os.path.dirname(args.to_file)
+    if parent_dir:
+        hio.create_dir(parent_dir, incremental=True)
     # Download the document.
     _download_doc(doc_id, mime_type, args.to_file)
     _LOG.info("Download complete")
