@@ -33,13 +33,14 @@ dst_filename="${file_dir}/${file_base}.rendered.pdf"
 
 pandoc $filename \
   -o $dst_filename \
-    --resource-path=$file_dir \
+  --resource-path=$file_dir \
   --pdf-engine=xelatex \
   -V papersize=A4 \
   -V fontsize=11pt \
   -V geometry:margin=1in \
   -V linestretch=1.15 \
-  -V mainfont="Helvetica Neue"
+  -V mainfont="Helvetica Neue" \
+  --verbose
 
 echo "Saved to $dst_filename"
 open $dst_filename
