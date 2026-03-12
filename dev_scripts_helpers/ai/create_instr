@@ -1,7 +1,27 @@
 #!/bin/bash -e
 
+# This script creates a new instruction file by copying from the template.
+# It searches for the instruction template file using find and opens a vimdiff
+# to compare the template with the new instruction file being created.
+# Usage: create_instr [suffix]
+# Example:
+# ```
+# > create_instr 2
+# ```
+# creates instr2.md
+
 # Use a number suffix if provided (e.g., `instr 2` creates instr2.md).
 SUFFIX="${1:-}"
 INSTR_FILE="instr${SUFFIX}.md"
 
-vimdiff ./helpers_root/docs/ai_templates/ai.instruction_template.md "$INSTR_FILE"
+# Search for the template file.
+TEMPLATE_FILE=$(find . -name "ai.instruction_template.md" -type f)
+
+# Assert that exactly one template file exists.
+NUM_TEMPLATES=$(echo "$TEMPLATE_FILE" | grep -c . || true)
+if [ "$NUM_TEMPLATES" -ne 1 ]; then
+  echo "ERROR: Expected 1 template file, found $NUM_TEMPLATES"
+  exit 1
+fi
+
+vimdiff "$TEMPLATE_FILE" "$INSTR_FILE"

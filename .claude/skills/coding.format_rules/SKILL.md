@@ -12,23 +12,56 @@ description: Format Python code according to project coding conventions and styl
 
 ## Use Assertions From `helpers/hdbg.py`
 
-- Use one of the `hdbg.dassert_*` functions in `helpers/hdbg.py` to check for
-  invariants
+- Use specialized `hdbg.dassert_*` functions instead of generic `hdbg.dassert()`
+- Choose the most specific assertion function for your check
 
-- Pass parameters using lazing formatting
+- Common specialized assertion functions:
+  - `hdbg.dassert_in(value, container)` - Check membership
+  - `hdbg.dassert_not_in(value, container)` - Check non-membership
+  - `hdbg.dassert_eq(val1, val2)` - Check equality
+  - `hdbg.dassert_ne(val1, val2)` - Check inequality
+  - `hdbg.dassert_lt(val1, val2)` - Check less than
+  - `hdbg.dassert_lte(val1, val2)` - Check less than or equal
+  - `hdbg.dassert_isinstance(obj, type)` - Check type
+  - `hdbg.dassert_file_exists(path)` - Check file existence
+  - `hdbg.dassert_dir_exists(path)` - Check directory existence
+
+- Example: Use `dassert_in()` instead of generic `dassert()`
+  - Good: Check if value is in container
+    ```python
+    hdbg.dassert_in(
+        ext,
+        _FORMAT_MAP,
+        "Unsupported file format; supported formats are: %s",
+        ", ".join(_FORMAT_MAP.keys()),
+    )
+    ```
+  - Bad: Generic assertion with membership check
+    ```python
+    hdbg.dassert(
+        ext in _FORMAT_MAP,
+        "Unsupported file format; supported formats are: %s",
+        ", ".join(_FORMAT_MAP.keys()),
+    )
+    ```
+
+- Pass parameters using lazy formatting (not f-strings)
   - Good
     ```python
-    hdbg.dassert...(
-          ...
-          "Target directory does not exist:", target_dir
-      )
+    hdbg.dassert_ne(
+        name,
+        "",
+        "Name cannot be empty:",
+        name,
+    )
     ```
   - Bad
     ```python
-    hdbg.dassert...(
-          ...
-          f"Target directory does not exist: {target_dir}",
-      )
+    hdbg.dassert_ne(
+        name,
+        "",
+        f"Name cannot be empty: {name}",
+    )
     ```
 
 ## Use `hsystem`
@@ -105,12 +138,32 @@ description: Format Python code according to project coding conventions and styl
   def _main(parser: argparse.ArgumentParser) -> None:
   ```
 
+## Use Standard Argument Helpers from `hparser`
+
+- Use `hparser` helper functions to add standard arguments instead of defining them manually
+- This ensures consistency across all scripts in the project
+
+- For verbosity/logging level:
+  ```python
+  import helpers.hparser as hparser
+  hparser.add_verbosity_arg(parser)
+  # In _main(): hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+  ```
+
 ## Use Action Idiom
 - When using `--action`
 
   ```python
   actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
   hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+  ```
+
+## Use Limit Range Idiom
+
+- For limit range arguments:
+  ```python
+  hparser.add_limit_range_arg(parser)
+  # In _main(): limit_range = hparser.parse_limit_range_args(args)
   ```
 
 ## Create Dirs
