@@ -618,6 +618,224 @@ class Test_add_blank_lines_between_headers(hunitest.TestCase):
         self.helper(txt, expected)
 
 
+# #############################################################################
+# Test_convert_asterisk_bullets_to_dashes
+# #############################################################################
+
+
+class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
+    """
+    Test the _convert_asterisk_bullets_to_dashes function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _convert_asterisk_bullets_to_dashes.
+
+        :param txt: Input text to process
+        :param expected: Expected output after converting asterisk bullets
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._convert_asterisk_bullets_to_dashes(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test converting single asterisk bullet to dash.
+        """
+        # Prepare inputs.
+        txt = """
+        * First item
+        """
+        # Prepare outputs.
+        expected = """
+        - First item
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test converting multiple asterisk bullets to dashes.
+        """
+        # Prepare inputs.
+        txt = """
+        * First item
+        * Second item
+        * Third item
+        """
+        # Prepare outputs.
+        expected = """
+        - First item
+        - Second item
+        - Third item
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test converting nested asterisk bullets with indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        * Main item
+          * Nested item 1
+          * Nested item 2
+        * Another main item
+        """
+        # Prepare outputs.
+        expected = """
+        - Main item
+          - Nested item 1
+          - Nested item 2
+        - Another main item
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test mixed asterisk and dash bullets.
+        """
+        # Prepare inputs.
+        txt = """
+        * Asterisk item
+        - Dash item
+        * Another asterisk
+        """
+        # Prepare outputs.
+        expected = """
+        - Asterisk item
+        - Dash item
+        - Another asterisk
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test asterisk bullet with tab indentation.
+        """
+        # Prepare inputs.
+        txt = """
+\t* First item with tab
+\t* Second item with tab
+        """
+        # Prepare outputs.
+        expected = """
+\t- First item with tab
+\t- Second item with tab
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test that text without asterisk bullets remains unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        - Dash item
+        Regular text
+        More text
+        """
+        # Prepare outputs.
+        expected = """
+        - Dash item
+        Regular text
+        More text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test with empty input.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test with multiple levels of nested indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        * Level 1
+          * Level 2
+            * Level 3
+              * Level 4
+        """
+        # Prepare outputs.
+        expected = """
+        - Level 1
+          - Level 2
+            - Level 3
+              - Level 4
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test9(self) -> None:
+        """
+        Test that asterisks not at line start are preserved.
+        """
+        # Prepare inputs.
+        txt = """
+        * Item with asterisk *inside* text
+        - Item with asterisk * somewhere
+        Regular text with * asterisk
+        """
+        # Prepare outputs.
+        expected = """
+        - Item with asterisk *inside* text
+        - Item with asterisk * somewhere
+        Regular text with * asterisk
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test10(self) -> None:
+        """
+        Test asterisk bullets mixed with other content.
+        """
+        # Prepare inputs.
+        txt = """
+        Some introduction text.
+
+        * First point
+        * Second point
+
+        Some conclusion text.
+
+        * Another point
+        """
+        # Prepare outputs.
+        expected = """
+        Some introduction text.
+
+        - First point
+        - Second point
+
+        Some conclusion text.
+
+        - Another point
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+
 def _get_text1() -> str:
     """
     Get sample text containing mathematical equations in LaTeX format.

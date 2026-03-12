@@ -21,7 +21,7 @@ Prerequisites:
 - gws CLI tool installed: https://github.com/googleworkspace/cli
 - gws authentication configured (run 'gws auth login' if not authenticated)
 
-Basic usage:
+Basic usage (with explicit file path):
 > gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \\
 >                     --to_file document.pdf
 
@@ -30,8 +30,12 @@ Export as different formats:
 >                     --to_file document.docx
 > gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \\
 >                     --to_file document.md
+
+Auto-generate filename from document name:
 > gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \\
->                     --to_file document.txt
+>                     --to_dir ./output
+> gws_download_doc.py --from_url https://docs.google.com/document/d/ABC123/edit \\
+>                     --to_dir ./output --extension docx
 """
 
 import argparse
@@ -39,6 +43,7 @@ import json
 import logging
 import os
 import re
+import string
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -105,6 +110,62 @@ def _get_format_from_suffix(file_path: str) -> str:
     return mime_type
 
 
+def _sanitize_filename(filename: str) -> str:
+    """
+    Sanitize filename by replacing non-bash-friendly characters with underscores.
+
+    :param filename: original filename
+    :return: sanitized filename
+    """
+    # Keep only alphanumeric characters, dots, and hyphens.
+    # Replace everything else (spaces, special chars, etc) with underscores.
+    allowed_chars = set(string.ascii_letters + string.digits + ".-")
+    sanitized = ""
+    for char in filename:
+        if char in allowed_chars:
+            sanitized += char
+        else:
+            sanitized += "_"
+    # Replace multiple consecutive underscores with single underscore.
+    while "__" in sanitized:
+        sanitized = sanitized.replace("__", "_")
+    # Remove leading/trailing underscores.
+    sanitized = sanitized.strip("_")
+    return sanitized
+
+
+def _get_document_name(doc_id: str) -> str:
+    """
+    Get the document name from Google Drive metadata.
+
+    :param doc_id: Google Docs document ID
+    :return: document name
+    """
+    _LOG.debug("Fetching document metadata for ID: %s", doc_id)
+    # Build params to fetch metadata.
+    params = {
+        "fileId": doc_id,
+        "fields": "name",
+    }
+    params_json = json.dumps(params)
+    # Use gws drive files get to fetch metadata.
+    cmd = (
+        f"gws drive files get "
+        f"--params '{params_json}'"
+    )
+    _LOG.debug("Running command: %s", cmd)
+    _, output = hsystem.system_to_string(cmd, abort_on_error=True)
+    # Parse JSON output to extract name.
+    try:
+        metadata = json.loads(output)
+        doc_name = metadata.get("name", "document")
+    except json.JSONDecodeError:
+        _LOG.warning("Failed to parse document metadata; using default name")
+        doc_name = "document"
+    _LOG.info("Document name: %s", doc_name)
+    return doc_name
+
+
 def _check_gws_authentication() -> None:
     """
     Check if gws is authenticated.
@@ -163,15 +224,29 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Validate and extract document ID from URL.
     doc_id = _extract_doc_id(args.from_url)
     _LOG.info("Extracted document ID: %s", doc_id)
+    # Determine output file path.
+    if args.to_file:
+        output_file = args.to_file
+    else:
+        # Get document name and sanitize it.
+        doc_name = _get_document_name(doc_id)
+        sanitized_name = _sanitize_filename(doc_name)
+        # Use extension or default to .md.
+        ext = args.extension or "md"
+        if not ext.startswith("."):
+            ext = f".{ext}"
+        filename = f"{sanitized_name}{ext}"
+        output_file = os.path.join(args.to_dir, filename)
+        _LOG.info("Output filename: %s", filename)
     # Get export format from file extension.
-    mime_type = _get_format_from_suffix(args.to_file)
+    mime_type = _get_format_from_suffix(output_file)
     _LOG.info("Exporting as format: %s", mime_type)
     # Create parent directories if needed.
-    parent_dir = os.path.dirname(args.to_file)
+    parent_dir = os.path.dirname(output_file)
     if parent_dir:
         hio.create_dir(parent_dir, incremental=True)
     # Download the document.
-    _download_doc(doc_id, mime_type, args.to_file)
+    _download_doc(doc_id, mime_type, output_file)
     _LOG.info("Download complete")
 
 
@@ -189,11 +264,23 @@ def _parse() -> argparse.ArgumentParser:
         required=True,
         help="Google Docs URL to download from",
     )
-    parser.add_argument(
+    # Create mutually exclusive group for output options.
+    output_group = parser.add_mutually_exclusive_group(required=True)
+    output_group.add_argument(
         "--to_file",
         action="store",
-        required=True,
         help="Output file path (format inferred from extension)",
+    )
+    output_group.add_argument(
+        "--to_dir",
+        action="store",
+        help="Output directory (filename derived from document name)",
+    )
+    parser.add_argument(
+        "--extension",
+        action="store",
+        default="md",
+        help="File extension when using --to_dir (default: md)",
     )
     hparser.add_verbosity_arg(parser)
     return parser

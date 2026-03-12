@@ -208,6 +208,30 @@ def _add_blank_lines_between_headers(lines: List[str]) -> List[str]:
     return lines_new
 
 
+def _convert_asterisk_bullets_to_dashes(lines: List[str]) -> List[str]:
+    """
+    Convert bullet points from asterisk format to dash format.
+
+    Converts lines starting with `* ` or `*\t` (with optional leading
+    whitespace) to use `- ` instead. This ensures consistent bullet point
+    formatting across the document.
+
+    :param lines: The lines to be processed.
+    :return: The lines with asterisk bullets converted to dash bullets.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    for line in lines:
+        # Convert asterisk bullets to dash bullets.
+        # Match: optional whitespace + * + space/tab + content.
+        m = re.match(r"^(\s*)\*(\s+.*)$", line)
+        if m:
+            line = m.group(1) + "-" + m.group(2)
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 def _check_links(in_file_name: str) -> None:
     """
     Check if all URLs in the file are reachable by calling check_links.py.
@@ -359,6 +383,10 @@ def _perform_actions(
     action = "add_blank_lines_between_headers"
     if _to_execute_action(action, actions):
         lines = _add_blank_lines_between_headers(lines)
+    # Convert asterisk bullets to dashes.
+    action = "convert_asterisk_bullets_to_dashes"
+    if _to_execute_action(action, actions):
+        lines = _convert_asterisk_bullets_to_dashes(lines)
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
@@ -414,6 +442,8 @@ _VALID_ACTIONS = [
     # _add_blank_lines_between_headers(): add blank lines between consecutive
     # headers.
     "add_blank_lines_between_headers",
+    # _convert_asterisk_bullets_to_dashes(): convert `* ` bullets to `- `.
+    "convert_asterisk_bullets_to_dashes",
     #
     "frame_chapters",
     "capitalize_header",
