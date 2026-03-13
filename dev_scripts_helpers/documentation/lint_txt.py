@@ -253,6 +253,74 @@ def _check_links(in_file_name: str) -> None:
     hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
 
+def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
+    """
+    Remove extra indentation from code block lines.
+
+    Prettier may add unwanted indentation to lines inside code blocks,
+    especially in indented contexts (lists, nested blocks). This function
+    detects and removes that extra indentation while preserving the block's
+    base indentation.
+
+    :param lines: The lines to be processed
+    :return: Lines with extra indentation removed from code blocks
+    """
+    _LOG.debug("remove_code_block_extra_indentation: Processing %d lines", len(lines))
+    lines_new: List[str] = []
+    in_code_block = False
+    base_indent = 0
+    first_code_line = True
+    #
+    for line in lines:
+        # Handle case where code and opening delimiter are on same line
+        # due to inline placeholder restoration (prettier put them together).
+        if "\n" in line and "```" in line:
+            m = re.match(r"^(\s*```[^\n]*)\n(.*)", line, re.DOTALL)
+            if m:
+                delim = m.group(1)
+                rest = m.group(2)
+                base_indent = len(delim) - len(delim.lstrip())
+                # Fix indentation in the rest of the content.
+                rest_lines = rest.split("\n")
+                fixed_lines = []
+                for i, rest_line in enumerate(rest_lines):
+                    if i == 0 and rest_line.strip():
+                        # First code line in the block
+                        rest_indent = len(rest_line) - len(rest_line.lstrip())
+                        if rest_indent > base_indent and rest_indent >= base_indent + 2:
+                            # Remove extra indentation.
+                            content = rest_line.lstrip()
+                            fixed_lines.append(" " * base_indent + content)
+                        else:
+                            fixed_lines.append(rest_line)
+                    else:
+                        fixed_lines.append(rest_line)
+                line = delim + "\n" + "\n".join(fixed_lines)
+        # Track code blocks that span multiple lines.
+        if re.match(r"^\s*```", line):
+            in_code_block = not in_code_block
+            if in_code_block:
+                base_indent = len(line) - len(line.lstrip())
+                first_code_line = True
+            lines_new.append(line)
+            continue
+        # Fix indentation for code lines on separate lines.
+        if in_code_block and first_code_line and line.strip() and not re.match(r"^\s*```", line):
+            line_indent = len(line) - len(line.lstrip())
+            if line_indent > base_indent and line_indent >= base_indent + 2:
+                # Remove extra 2 spaces of indentation
+                content = line.lstrip()
+                line = " " * base_indent + content
+            first_code_line = False
+        elif in_code_block and line.strip():
+            first_code_line = False
+
+        lines_new.append(line)
+    #
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 # TODO(gp): Clarify what are the transformations for this.
 # TODO(gp): Reuse the code in htext_protect
 def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
@@ -419,6 +487,10 @@ def _perform_actions(
             _LOG.debug("Skipping link check for non-text file type")
     # Restore protected content.
     lines = htexprot.restore_protected_content(lines, protected_map)
+    # Remove extra indentation from code blocks (after restore).
+    action = "remove_code_block_extra_indentation"
+    if _to_execute_action(action, actions):
+        lines = _remove_code_block_extra_indentation(lines)
     # Reattach YAML front matter if it was extracted.
     lines = hmartoc.reattach_yaml_frontmatter(yaml_frontmatter, lines)
     return lines
@@ -434,6 +506,9 @@ _VALID_ACTIONS = [
     "prettier",
     # _postprocess(): post-process the given text.
     "postprocess",
+    # _remove_code_block_extra_indentation(): remove unwanted indentation
+    # added by prettier to code block lines starting with `>`.
+    "remove_code_block_extra_indentation",
     # _remove_page_separators(): remove page separator lines (---).
     "remove_page_separators",
     # _handle_empty_lines(): remove empty lines after headers and before code

@@ -104,6 +104,56 @@ description: Refactor unit test files by aligning strings, renaming methods, and
       self.helper(content, position, expected)
   ```
 
+## Avoid Replicated Assignment
+
+- If a variable `var` and `expected` need to always be the same (e.g., to show
+  that a variable doesn't change), instead of replicating the assignment, do an
+  assignment
+  ```python
+  expected = var
+  ```
+  - **Bad**
+    ```python
+    def test2(self) -> None:
+        """
+        Test indented code block with correct indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Delete unused reference files
+          ```bash
+          > rm Dockerfile.ubuntu
+          ```
+        """
+        # Expected: no changes needed.
+        expected = """
+        - Delete unused reference files
+          ```bash
+          > rm Dockerfile.ubuntu
+          ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+    ```
+  - **Good**
+    ```python
+    def test2(self) -> None:
+        """
+        Test indented code block with correct indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Delete unused reference files
+          ```bash
+          > rm Dockerfile.ubuntu
+          ```
+        """
+        # Expected: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+    ```
+
 # Important
 
 - For all the code you must follow the instructions in

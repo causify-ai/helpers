@@ -18,6 +18,201 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# Test__remove_code_block_extra_indentation
+# #############################################################################
+
+
+class Test__remove_code_block_extra_indentation(hunitest.TestCase):
+    """
+    Test the _remove_code_block_extra_indentation function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _remove_code_block_extra_indentation.
+
+        :param txt: Input text to process
+        :param expected: Expected output after removing extra indentation
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._remove_code_block_extra_indentation(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test simple (non-indented) code block with no extra indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        # Test Document
+        Some text here:
+        ```bash
+        > docker_jupyter.sh -p 8890 -u
+        # Go to localhost:8890
+        ```
+        More text after.
+        """
+        # Expected: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test indented code block with correct indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Delete unused reference files
+          ```bash
+          > rm Dockerfile.ubuntu
+          ```
+        """
+        # Expected: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test code block with Dockerfile content that has extra indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Wrong: Embed everything in the Dockerfile
+          ```dockerfile
+            RUN pip install my-package
+          ```
+        """
+        # Prepare outputs.
+        expected = """
+        - Wrong: Embed everything in the Dockerfile
+          ```dockerfile
+          RUN pip install my-package
+          ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test multiple code blocks with different types of content.
+        """
+        # Prepare inputs.
+        txt = """
+        - Example 1:
+          ```bash
+            > docker run -it ubuntu
+          ```
+
+        - Example 2:
+          ```dockerfile
+            RUN apt-get update
+          ```
+        """
+        # Prepare outputs - removes extra indentation from both blocks.
+        expected = """
+        - Example 1:
+          ```bash
+          > docker run -it ubuntu
+          ```
+
+        - Example 2:
+          ```dockerfile
+          RUN apt-get update
+          ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test deeply indented code block in nested list.
+        """
+        # Prepare inputs.
+        txt = """
+        - Level 1
+          - Level 2
+            ```python
+              print("hello")
+            ```
+        """
+        # Prepare outputs.
+        expected = """
+        - Level 1
+          - Level 2
+            ```python
+            print("hello")
+            ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test code block with multiple lines of content.
+        """
+        # Prepare inputs.
+        txt = """
+        - Instructions:
+          ```bash
+            > docker run image
+            > docker exec
+          ```
+        """
+        # Prepare outputs.
+        expected = """
+        - Instructions:
+          ```bash
+          > docker run image
+            > docker exec
+          ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test code block with correct indentation already present.
+        """
+        # Prepare inputs.
+        txt = """
+        - Example:
+          ```python
+          def foo():
+              return 42
+          ```
+        """
+        # Expected: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test that code blocks without extra indentation are unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        Code example:
+        ```javascript
+        console.log("test");
+        const x = 42;
+        ```
+        """
+        # Expected: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+
+
+# #############################################################################
 # Test__handle_empty_lines
 # #############################################################################
 
@@ -889,10 +1084,10 @@ class Test_lint_txt1(hunitest.TestCase):
         :param expected: Expected output after preprocessing
         """
         # Prepare inputs.
-        txt = txt.split("\n")
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         # Run.
-        actual = dshdlitx._preprocess_txt(txt)
+        actual = dshdlitx._preprocess_txt(lines)
         # Check.
         actual = "\n".join(actual)
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
@@ -1008,18 +1203,18 @@ class Test_lint_txt2(hunitest.TestCase):
         :return: The processed text.
         """
         # Prepare inputs.
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        txt = txt.split("\n")
+        txt_str = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt_str.split("\n")
         file_name = os.path.join(self.get_scratch_space(), file_name)
         # Run function.
-        actual = dshdlitx._perform_actions(txt, file_name)
+        actual = dshdlitx._perform_actions(lines, file_name)
         # Check.
         actual = "\n".join(actual)
         if expected:
-            expected = hprint.dedent(
+            expected_str = hprint.dedent(
                 expected, remove_lead_trail_empty_lines_=True
             )
-            self.assert_equal(actual, expected)
+            self.assert_equal(actual, expected_str)
         return actual
 
     # //////////////////////////////////////////////////////////////////////////
