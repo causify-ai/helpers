@@ -1063,6 +1063,130 @@ def _get_text1() -> str:
 
 
 # #############################################################################
+# Test_capitalize_header
+# #############################################################################
+
+
+class Test_capitalize_header(hunitest.TestCase):
+    """
+    Test the capitalize_header function handling of apostrophes.
+
+    The capitalize_header function should properly handle words with apostrophes,
+    like "won't" -> "Won't" (not "Won'T"). This tests the fix for the bug where
+    Python's str.title() capitalizes letters after apostrophes.
+    """
+
+    def helper(self, input_lines: str, expected: str) -> None:
+        """
+        Test helper for capitalize_header.
+
+        :param input_lines: Input markdown lines to process
+        :param expected: Expected output after capitalize_header processing
+        """
+        import helpers.hmarkdown_headers as hmarhead
+
+        # Prepare inputs.
+        lines = input_lines.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = hmarhead.capitalize_header(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test word with apostrophe: "won't" -> "Won't" (not "Won'T").
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### Jupyter won't connect
+        """
+        # Prepare outputs.
+        expected = """
+        ### Jupyter Won't Connect
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+    def test2(self) -> None:
+        """
+        Test correcting wrongly capitalized apostrophe: "Won'T" -> "Won't".
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### Jupyter Won'T Connect
+        """
+        # Prepare outputs.
+        expected = """
+        ### Jupyter Won't Connect
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+    def test3(self) -> None:
+        """
+        Test normal word capitalization still works.
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### Jupyter connect test
+        """
+        # Prepare outputs.
+        expected = """
+        ### Jupyter Connect Test
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+    def test4(self) -> None:
+        """
+        Test all-caps acronym is preserved.
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### ML theory and API usage
+        """
+        # Prepare outputs.
+        expected = """
+        ### ML Theory and API Usage
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+    def test5(self) -> None:
+        """
+        Test internal-capital words like "SimpleFeedForward" are preserved.
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### SimpleFeedForward network
+        """
+        # Prepare outputs.
+        expected = """
+        ### SimpleFeedForward Network
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+    def test6(self) -> None:
+        """
+        Test multiple apostrophes: "don't won't" -> "Don't Won't".
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### don't won't shouldn't
+        """
+        # Prepare outputs.
+        expected = """
+        ### Don't Won't Shouldn't
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+
+# #############################################################################
 # Test_lint_txt1
 # #############################################################################
 
@@ -1593,3 +1717,58 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test_tex1.
         self.check_string(output_txt, test_method_name="test_tex1")
+
+    # TODO(ai_gp): Make it a class
+    # TODO(ai_gp): This test just checks that files are not modified.
+    def test_idempotency(self) -> None:
+        """
+        Test that lint_txt.py does not modify already formatted files.
+
+        Runs lint_txt on all files in the input directory and verifies that
+        running it twice produces identical output (idempotency). This ensures
+        that the formatter is stable and does not introduce unnecessary changes.
+        """
+        # Prepare inputs.
+        input_dir = self.get_input_dir()
+        hdbg.dassert_dir_exists(input_dir)
+        # Get all markdown files from input directory.
+        input_files = []
+        for file in os.listdir(input_dir):
+            file_path = os.path.join(input_dir, file)
+            if os.path.isfile(file_path) and file.endswith(".md"):
+                input_files.append(file_path)
+        # TODO(ai_gp): -> dassert_lt
+        hdbg.dassert(
+            len(input_files) > 0,
+            "No markdown files found in input directory"
+        )
+        # Test idempotency for each file.
+        for in_file in input_files:
+            _LOG.info("Testing idempotency for file: %s", in_file)
+            # Prepare outputs.
+            type_ = "md"
+            use_script = False
+            cmd_opts = ""
+            # Run the script once.
+            output_txt_1 = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
+            # TODO(ai_gp): Use the right dassert_is_not
+            hdbg.dassert(
+                output_txt_1 is not None,
+                "First pass produced None output"
+            )
+            hdbg.dassert_ne(output_txt_1, "", "First pass produced empty output")
+            # Create temporary file with the output from the first pass.
+            tmp_file = os.path.join(self.get_scratch_space(), "tmp.idempotency.md")
+            hio.to_file(tmp_file, output_txt_1)
+            # Run the script twice on the formatted output.
+            output_txt_2 = self.run_lint_txt(tmp_file, type_, use_script, cmd_opts)
+            hdbg.dassert(
+                output_txt_2 is not None,
+                "Second pass produced None output"
+            )
+            hdbg.dassert_ne(output_txt_2, "", "Second pass produced empty output")
+            # Check outputs.
+            self.assert_equal(output_txt_1, output_txt_2, fuzzy_match=True)
+
+    # TODO(ai_gp): Add another test method that converts files from the dir
+    # and checks against a golden outcome and and then checks idempotency.

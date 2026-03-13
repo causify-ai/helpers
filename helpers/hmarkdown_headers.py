@@ -77,15 +77,24 @@ def _has_internal_capitals(word: str) -> bool:
     This function detects words like `SimpleFeedForward`, `DeepNPTS` that
     should be preserved without title case transformation.
 
+    Note: uppercase letters immediately after an apostrophe are excluded
+    from this check, since they are not "internal capitals" but rather
+    normal English capitalization (e.g., "Won'T" has a capital T that is
+    not internal but rather a grammatical artifact of title case tools).
+
     :param word: word to check
     :return: `True` if the word has internal capitals, `False` otherwise
     """
     hdbg.dassert_isinstance(word, str)
     # A word has internal capitals if it contains at least one uppercase letter
-    # after the first character.
+    # after the first character, excluding uppercase letters immediately after
+    # an apostrophe.
     if len(word) <= 1:
         return False
-    return any(char.isupper() for char in word[1:])
+    for i in range(1, len(word)):
+        if word[i].isupper() and word[i - 1] != "'":
+            return True
+    return False
 
 
 def frame_chapters(lines: List[str], *, max_lev: int = 4) -> List[str]:
@@ -137,6 +146,31 @@ def has_mixed_case(word: str) -> bool:
     return any(c.isupper() for c in word[1:])
 
 
+def _capitalize_title_word(word: str) -> str:
+    """
+    Capitalize the first letter of a word without capitalizing after apostrophes.
+
+    Python's `str.title()` capitalizes the first letter after ANY non-alphanumeric
+    character, including apostrophes. For example, `"won't".title()` returns
+    `"Won'T"` instead of the expected `"Won't"`.
+
+    This function instead capitalizes only the first letter of the word and
+    lowercases any uppercase letters that follow an apostrophe.
+
+    :param word: word to capitalize
+    :return: word with proper title case (first letter capitalized, no capitals
+        after apostrophes)
+    """
+    if not word:
+        return word
+    chars = list(word)
+    chars[0] = chars[0].upper()
+    for i in range(1, len(chars)):
+        if chars[i - 1] == "'":
+            chars[i] = chars[i].lower()
+    return "".join(chars)
+
+
 def capitalize_header(lines: List[str]) -> List[str]:
     """
     Improve the header and slide titles.
@@ -152,9 +186,12 @@ def capitalize_header(lines: List[str]) -> List[str]:
         - Establish a phased, collaborative approach ->
             Establish a Phased, Collaborative Approach
 
-    - Strings inside backticks, single quotes, and double quotes are preserved.
+    - Strings inside backticks, single quotes, and double quotes are preserved,
+      with careful handling to avoid matching apostrophes in contractions.
     - Words with internal capital letters are preserved (e.g., SimpleFeedForward,
       DeepNPTS).
+    - Contractions and words with apostrophes are properly capitalized
+      (e.g., "won't" becomes "Won't", not "Won'T").
     - Headers inside fenced code blocks are not processed.
     """
     import helpers.hmarkdown_fenced_blocks as hmafeblo
@@ -195,7 +232,12 @@ def capitalize_header(lines: List[str]) -> List[str]:
             quoted_strings = []
             placeholders = []
             # Pattern to match strings inside backticks, single quotes, or double quotes.
-            quote_pattern = r'(`[^`]*`|\'[^\']*\'|"[^"]*")'
+            # Single quotes are matched only when not preceded or followed by word
+            # characters, to avoid matching apostrophes in contractions like "don't".
+            # Backtick and double-quote patterns are simpler since they're less likely
+            # to be used in natural text.
+            # TODO(ai_gp): Add a verbose explanation of this 
+            quote_pattern = r"(`[^`]*`|(?<!\w)'[^']*'(?!\w)|\"[^\"]*\")"
 
             def replace_quoted(match: re.Match) -> str:
                 quoted_strings.append(match.group(0))
@@ -220,7 +262,7 @@ def capitalize_header(lines: List[str]) -> List[str]:
                         # Preserve words with internal capitals.
                         pass
                     else:
-                        words[i] = word.title()
+                        words[i] = _capitalize_title_word(word)
                 elif word.isupper():
                     # Skip words that are all caps (e.g. ML, API).
                     continue
@@ -232,7 +274,7 @@ def capitalize_header(lines: List[str]) -> List[str]:
                     words[i] = word.lower()
                 else:
                     # Capitalize other words.
-                    words[i] = word.title()
+                    words[i] = _capitalize_title_word(word)
             title = " ".join(words)
             # Restore quoted strings.
             for i, placeholder in enumerate(placeholders):

@@ -179,3 +179,30 @@ description: Format Python code according to project coding conventions and styl
 ## Use Progress Bar
 - When there are expensive for loop, use a progress bar using `tqdm` to track
   the progress
+
+## Explain Complex Regex
+- When using complex regex, use comments and `re.VERBOSE`
+  - **Bad**
+    ```python
+    quote_pattern = r"(`[^`]*`|(?<!\w)'[^']*'(?!\w)|\"[^\"]*\")"
+    ```
+  - **Good**
+    ```python
+    quote_pattern = r"""
+    (
+        `[^`]*`          # backtick quotes: `anything except backtick`
+
+      |                 # OR
+
+        (?<!\w)         # left side is NOT a word character
+        '[^']*'         # single quoted text
+        (?!\w)          # right side is NOT a word character
+
+      |                 # OR
+
+        "[^"]*"         # double quoted text
+    )
+    """
+
+    pattern = re.compile(quote_pattern, re.VERBOSE)
+    ```
