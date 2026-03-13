@@ -252,13 +252,24 @@ def _find_file_for_edit(type_: str, dir_: str, name: str) -> str:
     :return: absolute path to the file
     """
     if type_ == "skill":
+        # Check if there are multiple matching skill directories.
+        candidates = glob.glob(os.path.join(dir_, f"*{name}*", "SKILL.md"))
+        if candidates:
+            if len(candidates) > 1:
+                msg = f"Multiple skills match pattern '{name}':\n"
+                for candidate in candidates:
+                    skill_name = os.path.basename(os.path.dirname(candidate))
+                    msg += f"  - {skill_name}\n"
+                hdbg.dfatal(msg)
+            # Exact match found.
+            return candidates[0]
+        # Create new skill with exact name.
         skill_dir = os.path.join(dir_, name)
         file_path = os.path.join(skill_dir, "SKILL.md")
-        if not os.path.exists(file_path):
-            hio.create_dir(skill_dir, incremental=True)
-            template = _get_template(type_, name)
-            hio.to_file(file_path, template)
-            _LOG.info("Created new skill: %s", file_path)
+        hio.create_dir(skill_dir, incremental=True)
+        template = _get_template(type_, name)
+        hio.to_file(file_path, template)
+        _LOG.info("Created new skill: %s", file_path)
         return file_path
     elif type_ == "research":
         idea_dir = os.path.join(dir_, name)
