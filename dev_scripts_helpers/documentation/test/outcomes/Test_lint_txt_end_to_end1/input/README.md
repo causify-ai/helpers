@@ -1,21 +1,18 @@
 # Summary
 This directory contains a Docker-based development environment template with:
-
 - Utility scripts for Docker operations (build, run, clean, push)
 - Configuration files for Dockerfile and environment setup
 - Jupyter notebook templates for standardized project development
 - Shell utilities and Python helpers for container-based workflows
-
 A guide to set up Docker-based projects using the template, customize it for
 your needs, and maintain it over time.
 
 ## Description of Files
 - `bashrc`
   - Bash configuration file enabling `vi` mode for command-line editing
-
 - `copy_docker_files.py`
   - Python script for copying Docker configuration files to destination
-    directories
+ directories
 
 - `docker_build.version.log`
   - Log file containing Python, `pip`, Jupyter, and package version information
@@ -58,12 +55,11 @@ your needs, and maintain it over time.
 
 ## Workflows
 - All commands should be run from inside the project directory
-  ```bash
+ ```bash
   > cd tutorials/FilterPy
-  ```
-
+```
 - To build the container for a project
-  ```bash
+```bash
   > cd $PROJECT
   # Build the container.
   > docker_build.sh
@@ -113,11 +109,10 @@ your needs, and maintain it over time.
   - Launches an interactive bash shell inside a Docker container
   - Mounts the current working directory as `/data` inside the container
   - Exposes port 8889 for potential services running in the container
-
 - Launch bash shell in the container:
   ```bash
   > ./docker_bash.sh
-  ```
+```
 
 ### `docker_build.sh`
 - **What It Does**
@@ -253,31 +248,28 @@ your needs, and maintain it over time.
 # Template Customization and Maintenance
 
 ## Quick Start for New Projects
-
 ### Step 1: Copy the Template
 ```bash
 > cd class_project/project_template
 > cp -r . /path/to/your/new/project
 > cd /path/to/your/new/project
 ```
-
 ### Step 2: Choose a Base Image
 The template includes three Dockerfile options. Choose the one that best fits
 your project:
 
 | Option                     | File                     | Best For                                                         |
-| -------------------------- | ------------------------ | ---------------------------------------------------------------- |
+| --- | --- | --- |
 | **Standard**               | `Dockerfile.ubuntu`      | Full Ubuntu environment with system tools                        |
 | **Lightweight**            | `Dockerfile.python_slim` | Minimal Python environment; reduced image size                   |
 | **Modern Package Manager** | `Dockerfile.uv`          | Fast dependency resolution with [uv](https://docs.astral.sh/uv/) |
-
 **How to choose:**
 
 - **Use Standard** if you need system-level tools (git, curl, graphviz, etc.)
 - **Use Python Slim** to minimize image size and build time
 - **Use uv** if you want faster, more reliable dependency management
 
-### Step 3: Set Up Your Dockerfile
+ ### Step 3: Set Up Your Dockerfile
 - Delete unused reference files
   ```bash
   > rm Dockerfile.ubuntu Dockerfile.python_slim Dockerfile.uv
@@ -303,14 +295,12 @@ your project:
 
 ## Understanding the Dockerfile Flow
 Each Dockerfile follows the same structure. Here are the key stages:
-
 ### Stage 1: Base Image and System Setup
 ```dockerfile
 FROM ubuntu:24.04  # or python:3.12-slim, depending on your requirement
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get -y update && apt-get -y upgrade
-```
-
+ ```
 - **Purpose**: Start with a clean base image and disable interactive
   installation prompts
 
@@ -520,10 +510,9 @@ Docker build context:
   *.pyc
   *.pyo
   *.pyd
-  ```
+```
   - Why: Compiled bytecode generated at runtime. Regenerated in container, adds
     bloat
-
 - Virtual Environments (Always Exclude)
   ```verbatim
   venv/
@@ -570,10 +559,8 @@ Docker build context:
   *.h5
   *.parquet
   ```
-  - Why: Don't ship large training and test data in the image. Mount via volume
-    instead
-  - Best practice: `bash     > docker run -v /path/to/data:/data my-image     `
-
+  - Why: Don't ship large training and test data in the image. Mount via volume instead
+  - Best practice: `bash > docker run -v /path/to/data:/data my-image`
 - Test Files (Project-Dependent)
   ```verbatim
   tests/
@@ -690,18 +677,15 @@ Example improvements:
 - Security hardening (non-root user setup)
 
 ## Troubleshooting
-
 ### Build Is Slow
 - Check `.dockerignore`: Ensure large directories (data/, .git/) are excluded
 - Check Docker daemon: Verify Docker is running properly
 - Check layer caching: Docker reuses cached layers; avoid changing early layers
-
 ### Image Is Too Large
 - Check layer sizes:
   ```bash
   > docker history my-project:latest
-  ```
-
+ ```
 - Remove unnecessary packages or use `python_slim` base image
 
 ### Package Not Found Error
@@ -717,7 +701,6 @@ Example improvements:
 - Run Jupyter
   ```bash
   > ./docker_jupyter.sh -p 8888
-  ```
-
+```
 - Verify http://localhost:8888 (not https). Check firewall if remote access
   needed
