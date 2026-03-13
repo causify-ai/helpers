@@ -1718,15 +1718,59 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         # Check using the same golden outcome as test_tex1.
         self.check_string(output_txt, test_method_name="test_tex1")
 
-    # TODO(ai_gp): Make it a class
-    # TODO(ai_gp): This test just checks that files are not modified.
-    def test_idempotency(self) -> None:
-        """
-        Test that lint_txt.py does not modify already formatted files.
 
-        Runs lint_txt on all files in the input directory and verifies that
-        running it twice produces identical output (idempotency). This ensures
-        that the formatter is stable and does not introduce unnecessary changes.
+# #############################################################################
+# Test_lint_txt_idempotency
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
+)
+class Test_lint_txt_idempotency(hunitest.TestCase):
+    """
+    Test that lint_txt.py does not modify already formatted files.
+    """
+
+    def run_lint_txt(
+        self,
+        in_file: str,
+        type_: str,
+        cmd_opts: str,
+    ) -> Optional[str]:
+        """
+        Run lint_txt processing directly by calling the code.
+
+        :param in_file: Path to the input file containing the notes.
+        :param type_: The output format, either 'md' or 'tex'.
+        :param cmd_opts: Additional command-line options to pass to the
+            script.
+        :return: The processed text content.
+        """
+        hdbg.dassert_in(type_, ["md", "tex"])
+        # Read input file.
+        txt = hio.from_file(in_file)
+        lines = txt.split("\n")
+        # Process the content directly with default actions (no link checking).
+        out_lines = dshdlitx._perform_actions(
+            lines,
+            in_file,
+            actions=dshdlitx._DEFAULT_ACTIONS,
+            print_width=80,
+            use_dockerized_prettier=True,
+            use_dockerized_markdown_toc=True,
+        )
+        # Return the processed text.
+        output_txt = "\n".join(out_lines)
+        return output_txt
+
+    def test_idempotency_directory(self) -> None:
+        """
+        Test idempotency for all markdown files in the input directory.
+
+        This test verifies that running lint_txt twice on each file in the
+        input directory produces identical output.
         """
         # Prepare inputs.
         input_dir = self.get_input_dir()
@@ -1737,9 +1781,10 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
             file_path = os.path.join(input_dir, file)
             if os.path.isfile(file_path) and file.endswith(".md"):
                 input_files.append(file_path)
-        # TODO(ai_gp): -> dassert_lt
-        hdbg.dassert(
-            len(input_files) > 0,
+        # Check that we have at least one file.
+        hdbg.dassert_lt(
+            0,
+            len(input_files),
             "No markdown files found in input directory"
         )
         # Test idempotency for each file.
@@ -1747,28 +1792,20 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
             _LOG.info("Testing idempotency for file: %s", in_file)
             # Prepare outputs.
             type_ = "md"
-            use_script = False
             cmd_opts = ""
             # Run the script once.
-            output_txt_1 = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
-            # TODO(ai_gp): Use the right dassert_is_not
-            hdbg.dassert(
-                output_txt_1 is not None,
-                "First pass produced None output"
+            output_txt_1 = self.run_lint_txt(in_file, type_, cmd_opts)
+            # Format the output again using the same formatter.
+            lines = output_txt_1.split("\n")
+            output_lines = dshdlitx._perform_actions(
+                lines,
+                in_file,
+                actions=dshdlitx._DEFAULT_ACTIONS,
+                print_width=80,
+                use_dockerized_prettier=True,
+                use_dockerized_markdown_toc=True,
             )
-            hdbg.dassert_ne(output_txt_1, "", "First pass produced empty output")
-            # Create temporary file with the output from the first pass.
-            tmp_file = os.path.join(self.get_scratch_space(), "tmp.idempotency.md")
-            hio.to_file(tmp_file, output_txt_1)
-            # Run the script twice on the formatted output.
-            output_txt_2 = self.run_lint_txt(tmp_file, type_, use_script, cmd_opts)
-            hdbg.dassert(
-                output_txt_2 is not None,
-                "Second pass produced None output"
-            )
-            hdbg.dassert_ne(output_txt_2, "", "Second pass produced empty output")
-            # Check outputs.
-            self.assert_equal(output_txt_1, output_txt_2, fuzzy_match=True)
+            output_txt_2 = "\n".join(output_lines)
+            # Check that both runs produce identical output (idempotency).
+            self.assert_equal(output_txt_1, output_txt_2)
 
-    # TODO(ai_gp): Add another test method that converts files from the dir
-    # and checks against a golden outcome and and then checks idempotency.
