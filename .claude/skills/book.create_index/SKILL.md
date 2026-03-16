@@ -8,15 +8,13 @@ $DST_DIR=/Users/saggese/src/notes1/books
 
 ## Step 1: Convert to Markdown, if needed
 
-If the file is still a PDF use the script
-
-> convert_pdf_to_md.py
-
-to convert it into markdown and save it to $DST_DIR
+- If the file is still a PDF use the script
+  > convert_pdf_to_md.py
+  to convert it into markdown and save it to $DST_DIR
 
 ## Step 2: Create index
 
-Given the markdown file $DST_DIR/XYZ.md
+- Given the markdown file $DST_DIR/XYZ.md
 
 - Create a table of content with chapters and subchapters, together with the line
   in the $DST_DIR/XYZ.md where the chapter / subchapter starts
@@ -33,4 +31,3 @@ Given the markdown file $DST_DIR/XYZ.md
     - Causal Models (line 938)
     - The Independence Assumption (line 1621)
     ```
-

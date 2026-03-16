@@ -64,24 +64,24 @@ specific sections or concepts from the chapter summary.
 # Example
 
 - Input
-```
-User: "Read Chapter 3 from the Facure Causal Inference book"
-```
+  ```
+  User: "Read Chapter 3 from the Facure Causal Inference book"
+  ```
 
 - Output
-```
-# Chapters to read:
-- Chapter 3: Graphical Models
-  - 3.1 Directed Acyclic Graphs (DAGs)
-  - 3.2 d-separation and Conditional Independence
+  ```
+  # Chapters to read:
+  - Chapter 3: Graphical Models
+    - 3.1 Directed Acyclic Graphs (DAGs)
+    - 3.2 d-separation and Conditional Independence
 
-# Summary:
+  # Summary:
 
-- **Chapter 3: Graphical Models**: DAGs represent causal relationships through
-  nodes and directed edges; d-separation criterion determines conditional
-  independence from graph structure
-  - **3.1 DAGs**: Nodes represent variables, edges represent direct causal
-    effects, acyclicity prevents circular reasoning
-  - **3.2 d-separation**: Variables are d-separated if no open path exists;
-    d-separation implies conditional independence under causal model assumptions
-```
+  - **Chapter 3: Graphical Models**: DAGs represent causal relationships through
+    nodes and directed edges; d-separation criterion determines conditional
+    independence from graph structure
+    - **3.1 DAGs**: Nodes represent variables, edges represent direct causal
+      effects, acyclicity prevents circular reasoning
+    - **3.2 d-separation**: Variables are d-separated if no open path exists;
+      d-separation implies conditional independence under causal model assumptions
+  ```

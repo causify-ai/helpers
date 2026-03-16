@@ -55,7 +55,7 @@ Edit or create a blog post (creates with YAML template if new).
 Edit or create a short story.
 
 ```bash
-> python dev_scripts_helpers/md.py story edit buzzati.una_cosa
+> python dev_scripts_helpers/md.py story edit ...
 ```
 
 Print the research ideas directory path.
