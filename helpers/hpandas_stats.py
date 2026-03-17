@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import pandas as pd
-import IPython.display
 
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
@@ -16,6 +15,12 @@ import helpers.hlogging as hloggin
 import helpers.hpandas_dassert as hpandass
 import helpers.hpandas_transform as hpantran
 import helpers.hprint as hprint
+
+try:
+    import IPython.display
+    _IPYTHON_AVAILABLE = True
+except ModuleNotFoundError:
+    _IPYTHON_AVAILABLE = False
 
 _LOG = hloggin.getLogger(__name__)
 
@@ -280,7 +285,11 @@ def display_value_counts_stats_df(
     hdbg.dassert_isinstance(col_names, str)
     _LOG.info("# %s", col_names)
     stats_df = get_value_counts_stats_df(df, col_names, num_rows=num_rows)
-    IPython.display.display(stats_df)
+    if _IPYTHON_AVAILABLE:
+        IPython.display.display(stats_df)
+    else:
+        # Fall back to print if IPython is not available.
+        print(stats_df)
 
 
 # #############################################################################
