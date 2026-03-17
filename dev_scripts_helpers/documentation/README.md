@@ -120,7 +120,7 @@
 - Short Classification of Tools
 
   - Core Documentation Tools
-    - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides
+    - `notes_to_pdf.py`: Main tool for converting notes to PDF/HTML/slides with automatic PDF compression
     - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
     - `lint_txt.py`: Lints and formats Markdown/LaTeX/txt notes
     - `preprocess_notes.py`: Converts Causify notes to Pandoc Markdown
@@ -170,11 +170,14 @@
 ### What It Does
 
 - Convert plain‑text notes into polished **PDF**, **HTML**, or **Beamer slides**
-  with a single command:
+  with a single command, including automatic PDF compression:
 
   ```bash
   > notes_to_pdf.py --input <infile.txt> --output <outfile.[pdf|html]> --type [pdf|html|slides]
   ```
+
+- For PDF files, automatically compresses the output using ghostscript with `/printer` quality
+  setting to reduce file size while maintaining readability
 
 ### Examples
 
@@ -190,6 +193,11 @@
   ```
   > notes_to_pdf.py -i paper.txt -o paper.pdf --type pdf
   ```
+- Skip PDF compression (for larger file sizes but faster processing)
+  ```bash
+  > notes_to_pdf.py -i paper.txt -o paper.pdf --type pdf --skip_action compress_pdf
+  ```
+
 - Skip the final viewer **open** step
   ```
   > ... --skip_action open`

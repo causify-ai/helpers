@@ -481,6 +481,38 @@ def _copy_to_gdrive(
 # #############################################################################
 
 
+def _compress_pdf(file_name: str) -> str:
+    """
+    Compress a PDF file using ghostscript.
+
+    :param file_name: The PDF file to compress
+    :return: The path to the compressed PDF file
+    """
+    hdbg.dassert_path_exists(file_name)
+    hdbg.dassert(
+        file_name.endswith(".pdf"),
+        "Input file must be a PDF; got file_name='%s'",
+        file_name,
+    )
+    # Create a temporary output file.
+    out_dir = os.path.dirname(file_name)
+    basename = os.path.basename(file_name)
+    compressed_file = os.path.join(out_dir, f"compressed-{basename}")
+    # Compress the PDF using ghostscript.
+    quality = "/printer"
+    cmd = (
+        f"/opt/homebrew/bin/gs -sDEVICE=pdfwrite"
+        f" -dPDFSETTINGS={quality}"
+        f" -dNOPAUSE -dQUIET -dBATCH"
+        f" -sOutputFile={compressed_file} {file_name}"
+    )
+    _ = _system(cmd)
+    # Replace original with compressed version.
+    cmd = f"mv {compressed_file} {file_name}"
+    _ = _system(cmd)
+    return file_name
+
+
 def _cleanup_after(prefix: str) -> None:
     cmd = f"rm -rf {prefix}*"
     _ = _system(cmd)
@@ -493,6 +525,7 @@ _VALID_ACTIONS = [
     "preprocess_notes",
     "render_images",
     "run_pandoc",
+    "compress_pdf",
     "copy_to_gdrive",
     "open",
     "cleanup_after",
@@ -504,6 +537,7 @@ _DEFAULT_ACTIONS = [
     "preprocess_notes",
     "render_images",
     "run_pandoc",
+    #"compress_pdf",
     "open",
     #"cleanup_after",
 ]
@@ -611,6 +645,14 @@ def _run_all(args: argparse.Namespace) -> None:
         else:
             raise ValueError(f"Invalid type='{args.type}'")
     file_in = file_out  # pylint: disable=possibly-used-before-assignment
+    # - Compress_pdf
+    action = "compress_pdf"
+    to_execute, actions = _mark_action(action, actions)
+    if to_execute:
+        if args.type == "pdf":
+            file_in = _compress_pdf(file_in)
+        else:
+            _LOG.warning("Compression is only supported for PDF files")
     file_final = _copy_to_output(file_in, args.output)
     # - Copy_to_gdrive
     action = "copy_to_gdrive"

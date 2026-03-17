@@ -1108,13 +1108,20 @@ def get_modified_files_in_branch(
     return files
 
 
-def get_modified_and_untracked_files(repo_path: str = ".") -> List[str]:
+def get_modified_and_untracked_files(
+    repo_path: str = ".", *, mode: str = "all"
+) -> List[str]:
     """
     Get list of modified and untracked files in a git repository.
 
     Excludes files from submodules and deleted files.
 
-    This includes:
+    Mode options:
+    - "all": Both modified and untracked files (default, current behavior)
+    - "modified": Only files with changes (staged, modified, added, renamed, copied)
+    - "untracked": Only untracked files
+
+    This includes (when mode="all"):
     - Modified files (both staged and unstaged)
     - Untracked files
     - Cached/staged files
@@ -1123,34 +1130,78 @@ def get_modified_and_untracked_files(repo_path: str = ".") -> List[str]:
     including cached (staged) files.
 
     :param repo_path: Path to the git repository
+    :param mode: Filter mode: "all", "modified", or "untracked"
     :return: List of file paths relative to repo_path
     """
     hdbg.dassert_dir_exists(repo_path)
+    # Validate mode.
+    valid_modes = ["all", "modified", "untracked"]
+    hdbg.dassert_in(
+        mode,
+        valid_modes,
+        "Invalid mode '%s'; must be one of: %s",
+        mode,
+        ", ".join(valid_modes),
+    )
     # Get modified and untracked files, excluding submodules.
     # The command uses:
     # - git status --porcelain -u: Get status in machine-readable format with untracked files
     #   This includes both cached (staged) and modified files
-    # - cut -c4-: Remove the first 3 characters (status flags and space)
-    # - grep -vFf: Filter out submodule paths from .gitmodules
+    #   Status codes: ?? = untracked, M/A/R/C/D = modified/added/renamed/copied/deleted
     cmd = (
         f"cd {repo_path} && "
-        "git status --porcelain -u | cut -c4- | "
-        "grep -vFf <(git config -f .gitmodules --get-regexp path | awk '{print $2}' 2>/dev/null || true) 2>/dev/null || true"
+        "git status --porcelain -u"
     )
     _, output = hsystem.system_to_string(cmd, abort_on_error=False)
+    # Get submodule paths to exclude.
+    submodule_cmd = (
+        f"cd {repo_path} && "
+        "git config -f .gitmodules --get-regexp path 2>/dev/null || true"
+    )
+    _, submodule_output = hsystem.system_to_string(
+        submodule_cmd, abort_on_error=False
+    )
+    submodule_paths = set()
+    for line in submodule_output.strip().split("\n"):
+        if line:
+            # Format: "submodule.<name>.path <path>"
+            parts = line.split()
+            if len(parts) >= 2:
+                submodule_paths.add(parts[-1])
     # Parse output.
     files = []
     for line in output.strip().split("\n"):
         line = line.strip()
-        if line:
-            # Check if file exists (exclude deleted files).
-            file_path = os.path.join(repo_path, line)
-            if os.path.exists(file_path) and os.path.isfile(file_path):
-                files.append(line)
-            else:
-                _LOG.debug(
-                    "Skipping non-existent or non-file: %s", file_path
-                )
+        if not line:
+            continue
+        # Extract status code (first 2 characters) and filename (from position 3).
+        status_code = line[:2] if len(line) >= 2 else ""
+        file_name = line[3:].strip() if len(line) > 3 else ""
+        # Filter by mode.
+        if mode == "untracked":
+            # Untracked files have status "??"
+            if status_code != "??":
+                continue
+        elif mode == "modified":
+            # Modified files have any status other than "??"
+            if status_code == "??":
+                continue
+        # Skip submodule paths.
+        is_in_submodule = any(
+            file_name.startswith(subpath + "/") or file_name == subpath
+            for subpath in submodule_paths
+        )
+        if is_in_submodule:
+            _LOG.debug("Skipping submodule file: %s", file_name)
+            continue
+        # Check if file exists (exclude deleted files).
+        file_path = os.path.join(repo_path, file_name)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            files.append(file_name)
+        else:
+            _LOG.debug(
+                "Skipping non-existent or non-file: %s", file_path
+            )
     return files
 
 
