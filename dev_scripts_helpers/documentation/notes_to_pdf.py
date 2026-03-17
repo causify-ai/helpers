@@ -90,11 +90,14 @@ def _mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
 
 def _cleanup_before(prefix: str) -> None:
     """
-    Remove all intermediate files.
+    Remove all intermediate files and cache files.
 
     :param prefix: The prefix used to identify the files to be removed.
     """
     cmd = f"rm -rf {prefix}*"
+    _ = _system(cmd)
+    # Remove cache files that may have been created by render_images.py.
+    cmd = "rm -f tmp.cache_simple.*.json tmp.*.pkl"
     _ = _system(cmd)
 
 
@@ -497,12 +500,12 @@ _VALID_ACTIONS = [
 
 
 _DEFAULT_ACTIONS = [
-    "cleanup_before",
+    #"cleanup_before",
     "preprocess_notes",
     "render_images",
     "run_pandoc",
     "open",
-    "cleanup_after",
+    #"cleanup_after",
 ]
 
 
