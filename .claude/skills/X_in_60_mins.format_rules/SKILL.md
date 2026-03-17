@@ -13,7 +13,10 @@ description: Format a directory to follow the "Learn X in 60 Minutes" tutorial c
 # Step 1: Read the Spec and Reference
 
 - Read the spec in `class_project/X_in_60_mins.format_rules.md` 
-- Use `tutorials/TensorFlow/` as a reference of how a tutorial looks like
+- Use as a reference of how a tutorial looks like
+  - `tutorials/AutoGen` 
+  - `tutorials/BambooAI` 
+  - `tutorials/TensorFlow` 
 
 # Step 2: Improve Docker Build System
 
@@ -24,12 +27,18 @@ description: Format a directory to follow the "Learn X in 60 Minutes" tutorial c
 
 - Organize the content of the directory `tutorials/{XYZ}` following the
   directions of `class_project/X_in_60_mins.format_rules.md` 
-- Use `tutorials/TensorFlow` as a reference
+- Use as a reference of how a tutorial looks like
+  - `tutorials/AutoGen` 
+  - `tutorials/BambooAI` 
+  - `tutorials/TensorFlow` 
 
 # Step 4: Improve Content of the README.md
 
 - Create or improve a file `tutorials/{XYZ}/README.md`
-- Use `tutorials/TensorFlow/README.md` as reference
+- Use as reference
+  - `tutorials/AutoGen/README.md` 
+  - `tutorials/BambooAI/README.md` 
+  - `tutorials/TensorFlow/README.md` 
 - Run `lint_txt.py -i` to format the file
 
 # Step 5: Improve Blog Entry
@@ -43,8 +52,8 @@ description: Format a directory to follow the "Learn X in 60 Minutes" tutorial c
   ```
   the categories are chosen from `categories_allowed` in `website/mkdocs.yml`
   based on what makes sense
-
-- Use `website/docs/blog/posts/Autogen_in_60_mins.md` as a reference
-
+- Use as a reference
+  - `website/docs/blog/posts/Autogen_in_60_mins.md`,
+  - `website/docs/blog/posts/BambooAI_in_60_mins.md`,
+  - `website/docs/blog/posts/TensorFlow_in_60_mins.md`,
 - Run `lint_txt.py -i` to format the file
-
