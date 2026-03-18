@@ -1,11 +1,12 @@
 ---
-name: text.humanize
 description: Remove AI-style writing patterns from text to make it sound more natural and human
 ---
 
 ## Usage
-Paste your draft text at the end of this prompt. The skill returns the cleaned
-text. Do not add commentary. Do not summarize what you did beyond the change log.
+Update the file with the changed content.
+
+At the end of the answer summarize the changes without summarizing what you did
+beyond the change log.
 
 ## Quick Reference Checklist
 Use this checklist to spot AI-writing patterns at a glance before applying

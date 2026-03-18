@@ -4,7 +4,7 @@ SRC_FILE='/Users/saggese/Library/CloudStorage/GoogleDrive-saggese@gmail.com/My D
 DST_FILE1="paper.epub"
 DST_FILE2="paper.md"
 
-#"$EXEC" "$SRC_FILE" "$DST_FILE1" --enable-heuristics --chapter "//*[name()='h1' or name()='h2']"
+"$EXEC" "$SRC_FILE" "$DST_FILE1" --enable-heuristics --chapter "//*[name()='h1' or name()='h2']"
 
 pandoc $DST_FILE1 \
   --to gfm \

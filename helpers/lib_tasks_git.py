@@ -1069,19 +1069,46 @@ def git_branch_is_merged(ctx):  # type: ignore
 
 
 @task
-def git_backup(ctx, dry_run=False):  # type: ignore
+def git_backup(
+    ctx,
+    file_mode="all",
+    backup_dir=None,
+    include_subrepos=True,
+    dry_run=False,
+):  # type: ignore
     """
-    Create a zip file with all modified and untracked files from the current
-    repository and its submodules.
+    Create a zip file with modified and/or untracked files from the current
+    repository and optionally its submodules.
 
-    The zip file is created with a timestamp-based name in the current
-    directory. Example: `modified_files.helpers_root.20251119_130034.zip`
+    The zip file is created with a timestamp-based name in the specified
+    backup directory (default: $HOME/src/backups).
+    Example: `modified_files.helpers_root.20251119_130034.zip`
 
+    :param file_mode: which files to include: "all" (default), "modified", or
+        "untracked"
+    :param backup_dir: directory where to save the zip file (default:
+        $HOME/src/backups)
+    :param include_subrepos: whether to include submodule files (default: True)
     :param dry_run: if True, only print the files that would be included
         without creating the zip
     """
-    hlitauti.report_task(txt=hprint.to_str("dry_run"))
+    hlitauti.report_task(
+        txt=hprint.to_str("file_mode, backup_dir, include_subrepos, dry_run")
+    )
     _ = ctx
+    # Validate file_mode.
+    valid_modes = ["all", "modified", "untracked"]
+    hdbg.dassert_in(
+        file_mode,
+        valid_modes,
+        "Invalid file_mode '%s'; must be one of: %s",
+        file_mode,
+        ", ".join(valid_modes),
+    )
+    # Set default backup directory.
+    if backup_dir is None:
+        backup_dir = os.path.join(os.path.expanduser("~"), "src", "backups")
+    hio.create_dir(backup_dir, incremental=True)
     # Get current repo root.
     super_module = False
     git_client_root = hgit.get_client_root(super_module)
@@ -1090,39 +1117,42 @@ def git_backup(ctx, dry_run=False):  # type: ignore
     repo_name = os.path.basename(git_client_root)
     zip_file_name = f"modified_files.{repo_name}.{timestamp}.zip"
     # Collect all files from current repo.
-    _LOG.info("Collecting modified/untracked files from main repository...")
-    main_repo_files = hgit.get_modified_and_untracked_files(".")
+    _LOG.info("Collecting %s files from main repository...", file_mode)
+    main_repo_files = hgit.get_modified_and_untracked_files(".", mode=file_mode)
     _LOG.info("Found %d files in main repository", len(main_repo_files))
     all_files = []
     for file_path in main_repo_files:
         all_files.append((".", file_path))
-    # Collect files from submodules.
-    submodule_paths = _get_submodule_paths()
-    if submodule_paths:
-        _LOG.info(
-            "Found %d submodule(s), collecting files...", len(submodule_paths)
-        )
-        for submodule_path in submodule_paths:
-            hdbg.dassert_dir_exists(
-                submodule_path,
-                msg=f"Submodule path does not exist: {submodule_path}",
-            )
-            _LOG.info("Checking submodule: %s", submodule_path)
-            submodule_files = hgit.get_modified_and_untracked_files(
-                submodule_path
-            )
+    # Collect files from submodules if requested.
+    if include_subrepos:
+        submodule_paths = _get_submodule_paths()
+        if submodule_paths:
             _LOG.info(
-                "Found %d files in submodule %s",
-                len(submodule_files),
-                submodule_path,
+                "Found %d submodule(s), collecting files...", len(submodule_paths)
             )
-            for file_path in submodule_files:
-                all_files.append((submodule_path, file_path))
+            for submodule_path in submodule_paths:
+                hdbg.dassert_dir_exists(
+                    submodule_path,
+                    msg=f"Submodule path does not exist: {submodule_path}",
+                )
+                _LOG.info("Checking submodule: %s", submodule_path)
+                submodule_files = hgit.get_modified_and_untracked_files(
+                    submodule_path, mode=file_mode
+                )
+                _LOG.info(
+                    "Found %d files in submodule %s",
+                    len(submodule_files),
+                    submodule_path,
+                )
+                for file_path in submodule_files:
+                    all_files.append((submodule_path, file_path))
+        else:
+            _LOG.info("No submodules found")
     else:
-        _LOG.info("No submodules found")
+        _LOG.info("Skipping submodules (include_subrepos=False)")
     # Check if there are any files to zip.
     if not all_files:
-        _LOG.warning("No modified or untracked files found. Nothing to zip.")
+        _LOG.warning("No %s files found. Nothing to zip.", file_mode)
         return
     # Print summary.
     _LOG.info(
@@ -1144,10 +1174,11 @@ def git_backup(ctx, dry_run=False):  # type: ignore
         _LOG.warning("Dry-run mode: not creating zip file")
         return
     # Create the zip file.
-    _LOG.info("Creating zip file: %s", zip_file_name)
+    zip_file_path = os.path.join(backup_dir, zip_file_name)
+    _LOG.info("Creating zip file: %s", zip_file_path)
     import zipfile
 
-    with zipfile.ZipFile(zip_file_name, "w", zipfile.ZIP_DEFLATED) as zipf:
+    with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as zipf:
         for repo_path, file_path in all_files:
             full_path = os.path.join(repo_path, file_path)
             # Preserve directory structure in zip.
@@ -1161,9 +1192,9 @@ def git_backup(ctx, dry_run=False):  # type: ignore
                 _LOG.debug("Added to zip: %s", arcname)
             except Exception as e:
                 _LOG.warning("Failed to add %s to zip: %s", full_path, e)
-    _LOG.info("Successfully created zip file: %s", zip_file_name)
+    _LOG.info("Successfully created zip file: %s", zip_file_path)
     # Print absolute path for easy access.
-    abs_zip_path = os.path.abspath(zip_file_name)
+    abs_zip_path = os.path.abspath(zip_file_path)
     print(f"\nZip file created at: {abs_zip_path}")
 
 

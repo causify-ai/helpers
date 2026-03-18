@@ -145,7 +145,7 @@ def extract_protected_content(
                 lines_new.append(line)
                 fenced_block_lines = []
             else:
-                # Closing delimiter.
+                # Closing delimiter: protect only content, keep delimiters visible.
                 placeholder = f"<<<PROTECTED_BLOCK_{counter:03d}>>>"
                 protected_map[placeholder] = "\n".join(fenced_block_lines)
                 counter += 1
@@ -166,7 +166,7 @@ def extract_protected_content(
                 lines_new.append(line)
                 math_block_lines = []
             else:
-                # Closing delimiter.
+                # Closing delimiter: protect only content, keep delimiters visible.
                 placeholder = f"<<<PROTECTED_MATH_{counter:03d}>>>"
                 protected_map[placeholder] = "\n".join(math_block_lines)
                 counter += 1

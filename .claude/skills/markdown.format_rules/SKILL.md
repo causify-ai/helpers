@@ -43,8 +43,6 @@ description: Format markdown files according to conventions for clarity, structu
 - Use only basic text
   - **Good**: A -> B
   - **Bad**: A → B
-  - **Good**: "hello"
-  - **Bad**: "hello"
 
 ### Use Bullets
 
@@ -179,12 +177,15 @@ description: Format markdown files according to conventions for clarity, structu
 
 ### Use Fenced Code Blocks
 
-- When using fenced code blocks, make sure there are valid programming language
+- Every fenced code blocks must have a valid programming language
   (e.g., `python`, `bash`, `latex`, `verbatim`)
-- E.g.,
-  ````
-  ```python
-  ````
+  - E.g.,
+    ````
+    ```python
+    ````
+  - If it doesn't have a valid tag, then infer it from the content of the
+    fenced block. If you are not sure, do not modify, but leave it empty
+
 - The fenced code block should be aligned with the text and the bullet points
   ````
   - Do this and that:
@@ -213,3 +214,80 @@ description: Format markdown files according to conventions for clarity, structu
   - Mermaid
   - Tikz-style charts
 - Add annotation arrows and layered explanations
+
+### Try to avoid level 4 headers
+
+- Avoid level 4 headers, especially when they are just short, and convert them
+  into a list
+  - **Bad**
+    ```markdown
+    #### 9. Generated Files (Always Exclude)
+
+    ```markdown
+    *.log
+    *.tmp
+    *.cache
+    build/
+    dist/
+    ```
+
+    - **Why**: Generated at runtime, not needed in the image
+    ```
+  - **Good**
+    ```markdown
+    - Generated Files (Always Exclude)
+      ```markdown
+      *.log
+      *.tmp
+      *.cache
+      build/
+      dist/
+      ```
+      - **Why**: Generated at runtime, not needed in the image
+    ```
+
+### Keep Number Lists
+
+- If there are numbered lists, make sure they are in order starting from 1
+  - **Bad**
+    ```markdown
+    ## 2. First
+    ## 2. Second
+    ## 3. Third
+    ```
+  - **Good**
+    ```markdown
+    ## 1. First
+    ## 2. Second
+    ## 3. Third
+    ```
+
+### Limit Use of Bold
+
+- Use bold sparingly and to highlight parts of text and not entire phrases
+  - **Good**
+    ```markdown
+    **How to choose:**
+
+    - **Use Standard** if you need system-level tools (git, curl, graphviz, etc.)
+    - **Use Python Slim** to minimize image size and build time
+    - **Use uv** if you want faster, more reliable dependency management
+    ```
+  - **Bad**
+    ````markdown
+    - **Delete unused reference files**
+      ```bash
+      > Dockerfile.ubuntu
+      ```
+
+    - **Create your working Dockerfile**
+      ```bash
+      > cp Dockerfile.ubuntu Dockerfile
+      ```
+
+    - **Add your dependencies**
+      ```bash
+      > echo "numpy\npandas\nscikit-learn" > requirements.in
+      > pip-compile requirements.in > requirements.txt
+      ```
+    ````

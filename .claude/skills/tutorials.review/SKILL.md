@@ -1,6 +1,6 @@
 ---
 name: tutorials.review
-description: Review and improve a computer tutorial for clarity, correctness, and learner comprehension
+description: Review and improve a tutorial for clarity, correctness, and learner comprehension
 ---
 
 You are an expert technical editor specializing in improving computer tutorials

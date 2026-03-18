@@ -1,7 +1,9 @@
 import logging
 import os
-from typing import List
+from typing import List, Optional
+from unittest import mock
 
+import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
 import dev_scripts_helpers.slides.process_lessons as dshsprle
@@ -384,3 +386,164 @@ class Test_find_lecture_files(hunitest.TestCase):
             dshsprle._find_lecture_files(class_dir, is_range, patterns_or_range)
         expected_error = "Range must have exactly two elements"
         self.assertIn(expected_error, str(cm.exception))
+
+# #############################################################################
+# Test_generate_tex
+# #############################################################################
+
+class Test_generate_tex(hunitest.TestCase):
+    """
+    Test _generate_tex function for generating TeX files.
+    """
+
+    def _helper(
+        self,
+        class_dir: str,
+        source_path: str,
+        source_name: str,
+        limit: Optional[str] = None,
+    ) -> None:
+        """
+        Helper to test _generate_tex function.
+
+        :param class_dir: class directory
+        :param source_path: path to source file
+        :param source_name: name of source file
+        :param limit: optional limit parameter
+        """
+        # Run test.
+        with mock.patch("helpers.hsystem.system") as mock_system:
+            dshsprle._generate_tex(
+                class_dir, source_path, source_name, limit=limit
+            )
+            # Check outputs.
+            mock_system.assert_called_once()
+            cmd_str = mock_system.call_args[0][0]
+            self.assertIn("notes_to_pdf.py", cmd_str)
+            self.assertIn("--tex_only", cmd_str)
+            self.assertIn(source_path, cmd_str)
+
+    def test1(self) -> None:
+        """
+        Test _generate_tex with basic inputs generates correct command.
+
+        Input:
+        - class_dir: 'data605'
+        - source_path: '.../Lesson01.1-Intro.txt'
+        - source_name: 'Lesson01.1-Intro.txt'
+
+        Expected: Command includes notes_to_pdf.py, --tex_only, and source path.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        class_dir = os.path.join(scratch_dir, "data605")
+        lectures_tex_dir = os.path.join(class_dir, "lectures_tex")
+        os.makedirs(lectures_tex_dir, exist_ok=True)
+        source_path = os.path.join(scratch_dir, "Lesson01.1-Intro.txt")
+        source_name = "Lesson01.1-Intro.txt"
+        hio.to_file(source_path, "Test content")
+        # Run test.
+        self._helper(class_dir, source_path, source_name)
+
+    def test2(self) -> None:
+        """
+        Test _generate_tex with limit parameter includes limit in command.
+
+        Input:
+        - class_dir: 'data605'
+        - source_path: '.../Lesson01.1-Intro.txt'
+        - source_name: 'Lesson01.1-Intro.txt'
+        - limit: '1:3'
+
+        Expected: Command includes limit parameter.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        class_dir = os.path.join(scratch_dir, "data605")
+        lectures_tex_dir = os.path.join(class_dir, "lectures_tex")
+        os.makedirs(lectures_tex_dir, exist_ok=True)
+        source_path = os.path.join(scratch_dir, "Lesson01.1-Intro.txt")
+        source_name = "Lesson01.1-Intro.txt"
+        hio.to_file(source_path, "Test content")
+        limit = "1:3"
+        # Run test.
+        with mock.patch("helpers.hsystem.system") as mock_system:
+            dshsprle._generate_tex(
+                class_dir, source_path, source_name, limit=limit
+            )
+            # Check outputs.
+            mock_system.assert_called_once()
+            cmd_str = mock_system.call_args[0][0]
+            self.assertIn(f"--limit {limit}", cmd_str)
+
+# #############################################################################
+# Test_generate_pdf
+# #############################################################################
+
+class Test_generate_pdf(hunitest.TestCase):
+    """
+    Test _generate_pdf function for generating PDF slides.
+    """
+
+    def test1(self) -> None:
+        """
+        Test _generate_pdf with basic inputs generates correct command.
+
+        Input:
+        - class_dir: 'msml610'
+        - source_path: '.../Lesson01.1-Intro.txt'
+        - source_name: 'Lesson01.1-Intro.txt'
+
+        Expected: Command includes notes_to_pdf.py and completes successfully.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        class_dir = os.path.join(scratch_dir, "msml610")
+        lectures_dir = os.path.join(class_dir, "lectures")
+        os.makedirs(lectures_dir, exist_ok=True)
+        source_path = os.path.join(scratch_dir, "Lesson01.1-Intro.txt")
+        source_name = "Lesson01.1-Intro.txt"
+        hio.to_file(source_path, "Test content")
+        # Run test.
+        with mock.patch("helpers.hsystem.system") as mock_system:
+            dshsprle._generate_pdf(
+                class_dir, source_path, source_name, skip_action="open"
+            )
+            # Check outputs.
+            mock_system.assert_called_once()
+            cmd_str = mock_system.call_args[0][0]
+            self.assertIn("notes_to_pdf.py", cmd_str)
+            self.assertIn(source_path, cmd_str)
+            self.assertIn("--type slides", cmd_str)
+
+    def test2(self) -> None:
+        """
+        Test _generate_pdf with limit parameter includes limit in command.
+
+        Input:
+        - class_dir: 'msml610'
+        - source_path: '.../Lesson01.1-Intro.txt'
+        - source_name: 'Lesson01.1-Intro.txt'
+        - limit: '1:5'
+
+        Expected: Command includes limit parameter and completes successfully.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        class_dir = os.path.join(scratch_dir, "msml610")
+        lectures_dir = os.path.join(class_dir, "lectures")
+        os.makedirs(lectures_dir, exist_ok=True)
+        source_path = os.path.join(scratch_dir, "Lesson01.1-Intro.txt")
+        source_name = "Lesson01.1-Intro.txt"
+        hio.to_file(source_path, "Test content")
+        limit = "1:5"
+        # Run test.
+        with mock.patch("helpers.hsystem.system") as mock_system:
+            dshsprle._generate_pdf(
+                class_dir, source_path, source_name, limit=limit
+            )
+            # Check outputs.
+            mock_system.assert_called_once()
+            cmd_str = mock_system.call_args[0][0]
+            self.assertIn(f"--limit {limit}", cmd_str)
+            self.assertIn("notes_to_pdf.py", cmd_str)

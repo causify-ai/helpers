@@ -72,6 +72,21 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md
   <start> and <end> of $script
 - Update $notebook
 
+# Test code
+
+Given the passed code
+
+## Step 1)
+- Generate unit tests for the code following the instructions in
+  @.claude/skills/testing.format_rules.md
+- Focus on writing test class and methods and their docstring without implement
+  testing code
+
+## Step 2)
+- Once the user has approved the testing code, implement the testing code
+- For all the code you must follow the instructions in
+  @.claude/skills/coding.format_rules.md
+
 # Rename Files
 
 ## Step 1)
