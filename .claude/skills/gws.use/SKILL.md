@@ -1,5 +1,4 @@
 ---
-name: gws.use
 description: Help users work with Google Workspace CLI (gws) from https://github.com/googleworkspace/cli
 ---
 
