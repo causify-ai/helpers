@@ -1,31 +1,14 @@
-#!/usr/bin/env python
 """
-Unified markdown file manager for research, blog, story, and skill content.
+Utility functions for the markdown file manager.
 
-Provides a single interface to manage markdown files across multiple directories:
-- skill: .claude/skills/ directory
-- blog: blog/posts/ directory
-- research: research/ideas/ directory
-- story: short_stories/ directory
-
-Usage:
-  md.py <type> <action> [name]
-    type:   research, blog, story, skill (prefix matching supported)
-    action: list, edit, directory (prefix matching supported)
-    name:   optional for 'list' action (filter pattern), required for 'edit'
-
-Examples:
-  md.py sk list                     # List all skills
-  md.py blog edit My_Post           # Edit or create a blog post
-  md.py res l causal                # List research items containing 'causal'
-  md.py story dir                   # Print short stories directory path
+Provides helpers for managing markdown files across research, blog, story,
+and skill content types.
 
 Import as:
 
-import dev_scripts_helpers.md as devmd
+import dev_scripts_helpers.system_tools.md_utils as devmduti
 """
 
-import argparse
 import glob
 import logging
 import os
@@ -34,7 +17,6 @@ from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
-import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 
@@ -43,6 +25,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 # Constants
 # #############################################################################
+
 
 _VALID_TYPES = ["research", "blog", "story", "skill"]
 _VALID_ACTIONS = ["list", "edit", "directory", "full_list"]
@@ -54,7 +37,8 @@ _VALID_ACTIONS = ["list", "edit", "directory", "full_list"]
 
 def _match_prefix(value: str, valid_options: List[str]) -> str:
     """
-    Match a value to the first valid option that starts with it (case-insensitive).
+    Match a value to the first valid option that starts with it
+    (case-insensitive).
 
     :param value: the prefix to match
     :param valid_options: list of valid full option names
@@ -91,12 +75,12 @@ def _normalize_name(name: Optional[str]) -> Optional[str]:
 
 def _get_repo_root() -> str:
     """
-    Get the path to helpers_root directory (2 levels up from this script).
+    Get the path to helpers_root directory (3 levels up from this script).
 
     :return: absolute path to helpers_root
     """
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    repo_root = os.path.dirname(script_dir)
+    repo_root = os.path.dirname(os.path.dirname(script_dir))
     return repo_root
 
 
@@ -200,19 +184,24 @@ def _get_template(type_: str, name: str) -> str:
 
 
 def _list_markdown_files(
-    dir_: str, type_: str, *, pattern: Optional[str] = None, full_path: bool = False
+    dir_: str,
+    type_: str,
+    *,
+    pattern: Optional[str] = None,
+    full_path: bool = False,
 ) -> None:
     """
     List markdown files in a directory, optionally filtered by pattern.
 
-    For skills, 'list' mode shows skill names only, 'full_path' mode shows full paths.
-    For other types, both modes show full paths.
-    Pattern matching matches against skill names for skills, and filenames for other types.
+    For skills, 'list' mode shows skill names only, 'full_path' mode shows
+    full paths. For other types, both modes show full paths. Pattern matching
+    matches against skill names for skills, and filenames for other types.
 
     :param dir_: the directory to search
     :param type_: the type (research, blog, story, skill)
     :param pattern: optional filter pattern
-    :param full_path: if True, show full paths; if False, show skill names for skills
+    :param full_path: if True, show full paths; if False, show skill names for
+        skills
     """
     hdbg.dassert_dir_exists(dir_)
     files = glob.glob(os.path.join(dir_, "**/*.md"), recursive=True)
@@ -223,10 +212,13 @@ def _list_markdown_files(
             files = [
                 f
                 for f in files
-                if pattern_lower in os.path.basename(os.path.dirname(f)).lower()
+                if pattern_lower
+                in os.path.basename(os.path.dirname(f)).lower()
             ]
         else:
-            files = [f for f in files if pattern_lower in os.path.basename(f).lower()]
+            files = [
+                f for f in files if pattern_lower in os.path.basename(f).lower()
+            ]
     if files:
         for f in files:
             if not full_path:
@@ -317,7 +309,9 @@ def _action_list(type_: str, dir_: str, *, pattern: Optional[str] = None) -> Non
     _list_markdown_files(dir_, type_, pattern=pattern, full_path=False)
 
 
-def _action_full_list(type_: str, dir_: str, *, pattern: Optional[str] = None) -> None:
+def _action_full_list(
+    type_: str, dir_: str, *, pattern: Optional[str] = None
+) -> None:
     """
     List markdown files in a directory (full paths).
 
@@ -348,59 +342,3 @@ def _action_directory(dir_: str) -> None:
     :param dir_: the directory path
     """
     print(dir_)
-
-
-# #############################################################################
-# Parser and main
-# #############################################################################
-
-
-def _parse() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "type",
-        help="Type: research, blog, story, skill (supports prefix matching)",
-    )
-    parser.add_argument(
-        "action",
-        help="Action: list, edit, directory (supports prefix matching)",
-    )
-    parser.add_argument(
-        "name",
-        nargs="?",
-        default=None,
-        help="Name/pattern (optional for list, required for edit)",
-    )
-    hparser.add_verbosity_arg(parser)
-    return parser
-
-
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    logging.basicConfig(level=args.log_level)
-    type_ = _match_prefix(args.type, _VALID_TYPES)
-    action = _match_prefix(args.action, _VALID_ACTIONS)
-    args.name = _normalize_name(args.name)
-    dir_ = _get_directory(type_)
-    if action == "list":
-        _action_list(type_, dir_, pattern=args.name)
-    elif action == "full_list":
-        _action_full_list(type_, dir_, pattern=args.name)
-    elif action == "edit":
-        hdbg.dassert_ne(
-            args.name,
-            None,
-            "Name is required for edit action",
-        )
-        _action_edit(type_, dir_, args.name)
-    elif action == "directory":
-        _action_directory(dir_)
-    else:
-        hdbg.dfatal("Unknown action", action)
-
-
-if __name__ == "__main__":
-    _main(_parse())

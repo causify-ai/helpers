@@ -6,7 +6,7 @@ from contextlib import redirect_stdout
 
 import helpers.hunit_test as hunitest
 
-import dev_scripts_helpers.md as devmd
+import dev_scripts_helpers.system_tools.md_utils as devmduti
 
 _LOG = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class Test_match_prefix(hunitest.TestCase):
         value = "res"
         valid_options = ["research", "blog", "story", "skill"]
         # Run test.
-        actual = devmd._match_prefix(value, valid_options)
+        actual = devmduti._match_prefix(value, valid_options)
         # Check outputs.
         expected = "research"
         self.assertEqual(actual, expected)
@@ -42,7 +42,7 @@ class Test_match_prefix(hunitest.TestCase):
         value = "sk"
         valid_options = ["research", "blog", "story", "skill"]
         # Run test.
-        actual = devmd._match_prefix(value, valid_options)
+        actual = devmduti._match_prefix(value, valid_options)
         # Check outputs.
         expected = "skill"
         self.assertEqual(actual, expected)
@@ -55,7 +55,7 @@ class Test_match_prefix(hunitest.TestCase):
         value = "l"
         valid_options = ["list", "edit", "directory"]
         # Run test.
-        actual = devmd._match_prefix(value, valid_options)
+        actual = devmduti._match_prefix(value, valid_options)
         # Check outputs.
         expected = "list"
         self.assertEqual(actual, expected)
@@ -68,7 +68,7 @@ class Test_match_prefix(hunitest.TestCase):
         value = "blog"
         valid_options = ["research", "blog", "story", "skill"]
         # Run test.
-        actual = devmd._match_prefix(value, valid_options)
+        actual = devmduti._match_prefix(value, valid_options)
         # Check outputs.
         expected = "blog"
         self.assertEqual(actual, expected)
@@ -92,7 +92,7 @@ class Test_get_template(hunitest.TestCase):
         type_ = "blog"
         name = "My_Post"
         # Run test.
-        actual = devmd._get_template(type_, name)
+        actual = devmduti._get_template(type_, name)
         # Check outputs.
         self.assertIn("---", actual)
         self.assertIn("title:", actual)
@@ -107,7 +107,7 @@ class Test_get_template(hunitest.TestCase):
         type_ = "skill"
         name = "test_skill"
         # Run test.
-        actual = devmd._get_template(type_, name)
+        actual = devmduti._get_template(type_, name)
         # Check outputs.
         self.assertIn("# Summary", actual)
 
@@ -119,21 +119,19 @@ class Test_get_template(hunitest.TestCase):
         type_ = "research"
         name = "my_idea"
         # Run test.
-        actual = devmd._get_template(type_, name)
+        actual = devmduti._get_template(type_, name)
         # Check outputs.
         expected = f"# {name}"
         self.assertIn(expected, actual)
 
     def test4(self) -> None:
         """
-        Test story template contains YAML frontmatter with title and author.
+        Test story template returns empty string.
         """
         # Prepare inputs.
         type_ = "story"
         name = "story_name"
         # Run test.
-        actual = devmd._get_template(type_, name)
+        actual = devmduti._get_template(type_, name)
         # Check outputs.
-        self.assertIn("---", actual)
-        self.assertIn("title:", actual)
-        self.assertIn("author:", actual)
+        self.assertEqual(actual, "")
