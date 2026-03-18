@@ -490,13 +490,50 @@ def get_completion(
     return txt_response
 
 
-# TODO(*): Add caching, similar to `get_completion()`.
+def _call_structured_api_sync(
+    # pylint: disable=unused-argument
+    # This is needed to support caching.
+    cache_mode: str,
+    client: openai.OpenAI,
+    model: str,
+    user_prompt: str,
+    system_prompt: str,
+    temperature: float,
+    response_format: type[T],
+    *,
+    images_as_base64: Optional[Tuple[str, ...]] = None,
+    **create_kwargs,
+) -> Any:
+    """
+    Make a non-streaming structured API call.
+
+    See `get_structured_completion()` for parameter descriptions.
+
+    :param client: LLM client
+    :param response_format: expected structured output format
+    :return: OpenAI Response object with parsed output
+    """
+    user_input = build_responses_input(
+        user_prompt, images_as_base64=images_as_base64
+    )
+    response = client.responses.parse(
+        model=model,
+        instructions=system_prompt,
+        input=user_input,
+        temperature=temperature,
+        text_format=response_format,
+        **create_kwargs,
+    )
+    return response
+
+
 def get_structured_completion(
     user_prompt: str,
     response_format: type[T],
     *,
     system_prompt: str = "",
     model: str = "",
+    cache_mode: str = "DISABLE_CACHE",
     temperature: float = 0.1,
     images_as_base64: Optional[Tuple[str, ...]] = None,
     cost_tracker: Optional[hllmcost.LLMCostTracker] = None,
@@ -509,8 +546,20 @@ def get_structured_completion(
     See `get_completion()` for other parameter descriptions.
 
     :param response_format: expected structured output format
+    :param cache_mode:
+        - "DISABLE_CACHE": No caching
+        - "REFRESH_CACHE": Make API calls and save responses to cache
+        - "HIT_CACHE_OR_ABORT": Use cached responses, fail if not in cache
+        - "NORMAL": Use cached responses if available, otherwise make API call
     :return: output parsed into the specified format
     """
+    hdbg.dassert_in(
+        cache_mode,
+        ("DISABLE_CACHE", "REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"),
+    )
+    update_llm_cache = get_update_llm_cache()
+    if update_llm_cache:
+        cache_mode = "REFRESH_CACHE"
     # Initialize LLM client.
     llm_client = LLMClient(model=model)
     llm_client.create_client()
@@ -524,12 +573,15 @@ def get_structured_completion(
     user_input = build_responses_input(
         user_prompt, images_as_base64=images_as_base64
     )
-    response = llm_client.client.responses.parse(
+    response = _call_structured_api_sync(
+        cache_mode=cache_mode,
+        client=llm_client.client,
         model=llm_client.model,
-        instructions=system_prompt,
-        input=user_input,
+        user_prompt=user_prompt,
+        system_prompt=system_prompt,
         temperature=temperature,
-        text_format=response_format,
+        response_format=response_format,
+        images_as_base64=images_as_base64,
         **create_kwargs,
     )
     parsed_output: T = response.output_parsed
