@@ -187,6 +187,8 @@ def _run_pandoc_to_pdf(
     use_host_tools: bool,
     dockerized_force_rebuild: bool,
     dockerized_use_sudo: bool,
+    *,
+    tex_only: bool = False,
 ) -> str:
     """
     Convert the input file to PDF using Pandoc.
@@ -199,7 +201,8 @@ def _run_pandoc_to_pdf(
         E.g., '/app/helpers_root/tmp.notes_to_pdf.render_image2.txt'
     :param prefix: The prefix used for the output file
         E.g., '/app/helpers_root/tmp.notes_to_pdf'
-    :return: The path to the generated PDF file
+    :param tex_only: If True, return the .tex file instead of compiling to PDF
+    :return: The path to the generated output file (.tex or .pdf)
     """
     _LOG.debug(hprint.func_signature_to_str())
     file1 = file_name
@@ -238,6 +241,10 @@ def _run_pandoc_to_pdf(
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
     _ = _system(cmd)
     file_name = file2
+    # Return the .tex file if tex_only mode is requested.
+    if tex_only:
+        _LOG.info("tex_only=True: skipping pdflatex, returning .tex file")
+        return file2
     # - Run latex.
     _report_phase("latex")
     # pdflatex needs to run in the same dir of latex_abbrevs.sty so we copy
@@ -381,12 +388,14 @@ def _run_pandoc_to_slides(
     dockerized_use_sudo: bool,
     *,
     debug: bool = False,
+    tex_only: bool = False,
 ) -> str:
     """
     Convert the input file to PDF slides using Pandoc.
 
     :param file_name: The input file to be converted
-    :return: The path to the generated PDF file
+    :param tex_only: If True, return the .tex file instead of compiling to PDF
+    :return: The path to the generated PDF or .tex file
     """
     cmd, file_out = _build_pandoc_cmd(
         file_name,
@@ -394,11 +403,18 @@ def _run_pandoc_to_slides(
         use_host_tools,
         dockerized_force_rebuild,
         dockerized_use_sudo,
+        use_tex=tex_only,
     )
     rc, txt = _system_to_string(cmd, abort_on_error=False)
     # We want to print to screen.
     print(txt)
     # rc = _system(cmd)
+    # Return the .tex file if tex_only mode is requested.
+    if tex_only:
+        _LOG.info("tex_only=True: skipping PDF compilation, returning .tex file")
+        _LOG.debug("file_out=%s", file_out)
+        hdbg.dassert_path_exists(file_out)
+        return file_out
     if rc != 0:
         _LOG.error("Log is in %s", file_out + ".log")
         if debug:
@@ -626,6 +642,7 @@ def _run_all(args: argparse.Namespace) -> None:
                 args.use_host_tools,
                 args.dockerized_force_rebuild,
                 args.dockerized_use_sudo,
+                tex_only=args.tex_only,
             )
         elif args.type == "html":
             file_out = _run_pandoc_to_html(
@@ -641,6 +658,7 @@ def _run_all(args: argparse.Namespace) -> None:
                 args.dockerized_force_rebuild,
                 args.dockerized_use_sudo,
                 debug=args.debug_on_error,
+                tex_only=args.tex_only,
             )
         else:
             raise ValueError(f"Invalid type='{args.type}'")
@@ -738,6 +756,12 @@ def _parse() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--no_run_latex_again", action="store_true", default=False
+    )
+    parser.add_argument(
+        "--tex_only",
+        action="store_true",
+        default=False,
+        help="Generate only the .tex file without compiling to PDF",
     )
     parser.add_argument("--debug_on_error", action="store_true", default=False)
     parser.add_argument(
