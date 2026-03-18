@@ -256,6 +256,44 @@ def _call_api_sync(
     return completion_obj
 
 
+@hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
+def _call_structured_api_sync(
+    # pylint: disable=unused-argument
+    # This is needed to support caching.
+    cache_mode: str,
+    client: openai.OpenAI,
+    model: str,
+    user_prompt: str,
+    system_prompt: str,
+    temperature: float,
+    response_format: type[T],
+    *,
+    images_as_base64: Optional[Tuple[str, ...]] = None,
+    **create_kwargs,
+) -> Any:
+    """
+    Make a non-streaming structured API call.
+
+    See `get_structured_completion()` for parameter descriptions.
+
+    :param client: LLM client
+    :param response_format: expected structured output format
+    :return: OpenAI Response object with parsed output
+    """
+    user_input = build_responses_input(
+        user_prompt, images_as_base64=images_as_base64
+    )
+    response = client.responses.parse(
+        model=model,
+        instructions=system_prompt,
+        input=user_input,
+        temperature=temperature,
+        text_format=response_format,
+        **create_kwargs,
+    )
+    return response
+
+
 # #############################################################################
 # LLMClient
 # #############################################################################
@@ -490,43 +528,7 @@ def get_completion(
     return txt_response
 
 
-def _call_structured_api_sync(
-    # pylint: disable=unused-argument
-    # This is needed to support caching.
-    cache_mode: str,
-    client: openai.OpenAI,
-    model: str,
-    user_prompt: str,
-    system_prompt: str,
-    temperature: float,
-    response_format: type[T],
-    *,
-    images_as_base64: Optional[Tuple[str, ...]] = None,
-    **create_kwargs,
-) -> Any:
-    """
-    Make a non-streaming structured API call.
-
-    See `get_structured_completion()` for parameter descriptions.
-
-    :param client: LLM client
-    :param response_format: expected structured output format
-    :return: OpenAI Response object with parsed output
-    """
-    user_input = build_responses_input(
-        user_prompt, images_as_base64=images_as_base64
-    )
-    response = client.responses.parse(
-        model=model,
-        instructions=system_prompt,
-        input=user_input,
-        temperature=temperature,
-        text_format=response_format,
-        **create_kwargs,
-    )
-    return response
-
-
+@functools.lru_cache(maxsize=1024)
 def get_structured_completion(
     user_prompt: str,
     response_format: type[T],
@@ -570,9 +572,6 @@ def get_structured_completion(
             f"Got provider_name='{llm_client.provider_name}'."
         )
     # Retrieve a structured response.
-    user_input = build_responses_input(
-        user_prompt, images_as_base64=images_as_base64
-    )
     response = _call_structured_api_sync(
         cache_mode=cache_mode,
         client=llm_client.client,
