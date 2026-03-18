@@ -31,6 +31,7 @@ _LOG = logging.getLogger(__name__)
 
 _VALID_ACTIONS = [
     "generate_pdf",
+    "generate_tex",
     "generate_script",
     "reduce_slide",
     "check_slide",
@@ -215,6 +216,49 @@ def _generate_pdf(
         "--type slides",
         "--toc_type navigation",
         f"--skip_action {skip_action}",
+        "--debug_on_error",
+    ]
+    if limit:
+        cmd.extend([f"--limit {limit}"])
+    # Execute command.
+    cmd_str = " ".join(cmd)
+    _LOG.info("Executing: %s", cmd_str)
+    hsystem.system(cmd_str, suppress_output=False)
+
+
+def _generate_tex(
+    class_dir: str,
+    source_path: str,
+    source_name: str,
+    *,
+    limit: Optional[str] = None,
+) -> None:
+    """
+    Generate TeX files from a lecture source file.
+
+    Calls notes_to_pdf.py with tex_only and skip_action open to generate
+    TeX files without opening them.
+
+    :param class_dir: class directory (data605 or msml610)
+    :param source_path: path to source .txt file
+    :param source_name: name of source file
+    :param limit: optional slide range to process (e.g., '1:3')
+    """
+    # Compute output path.
+    dst_name = source_name.replace(".txt", ".tex")
+    lectures_tex_dir = os.path.join(class_dir, "lectures_tex")
+    hio.create_dir(lectures_tex_dir, incremental=True)
+    output_path = os.path.join(lectures_tex_dir, dst_name)
+    # Build command.
+    _LOG.info("Processing %s -> %s", source_name, dst_name)
+    cmd = [
+        "notes_to_pdf.py",
+        f"--input {source_path}",
+        f"--output {output_path}",
+        "--type slides",
+        "--toc_type navigation",
+        "--tex_only",
+        "--skip_action open",
         "--debug_on_error",
     ]
     if limit:
@@ -442,6 +486,8 @@ def _process_lecture_file(
     for action in actions:
         if action == "generate_pdf":
             _generate_pdf(class_dir, source_path, source_name, limit=limit)
+        elif action == "generate_tex":
+            _generate_tex(class_dir, source_path, source_name, limit=limit)
         elif action == "generate_script":
             _generate_script(class_dir, source_path, source_name, limit=limit)
         elif action == "reduce_slide":

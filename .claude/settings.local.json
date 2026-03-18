@@ -18,33 +18,7 @@
     ],
     "deny": []
   },
-  "statusLine": {
-    "type": "command",
-    "command": ".claude/statusline.sh"
-  },
   "hooks": {
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "notify.sh"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "notify.sh"
-          }
-        ]
-      }
-    ],
     "Notification": [
       {
         "matcher": "idle_prompt",
@@ -64,6 +38,22 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "notify.sh"
+          }
+        ]
+      }
     ]
-  }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": ".claude/statusline.sh"
+  },
+  "spinnerTipsEnabled": false
 }

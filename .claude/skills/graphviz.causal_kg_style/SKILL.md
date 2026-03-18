@@ -1,20 +1,19 @@
 ---
-name: graphviz.causal_kg_style
-description: Represent a Causal Knowledge Graph in Graphviz DOT format following visual conventions for causal inference
+description: Represent a causal knowledge graph in Graphviz DOT format following visual conventions for causal inference
 ---
-
-# Task: Represent a Causal Knowledge Graph (CKG)
 
 You are an expert in causal inference and graphical models.
 
-I will give you a Graphviz DOT graph and your task is to produce a Graphviz/DOT
-representation of that graph that follows the rules below exactly.
+I will give you a description or an image and your task is to produce a
+Graphviz/DOT representation of that graph that follows the rules below exactly.
 
 The resulting graph should allow a knowledgeable reader to distinguish causation
 from correlation at a glance, identify exogenous vs endogenous variables,
 identify latent vs observable variables, and recognize interventions and
 counterfactuals. In addition, use color to distinguish variable types
 consistently.
+
+# Step 1: Generate DOT file
 
 ## General Graph Rules
 
@@ -131,8 +130,27 @@ Use these colors consistently for node borders/fills:
   - Different time slices or mechanisms
 - Ensure correlation edges do not affect node ranking (`constraint=false`)
 
+# Step 2: Save File
+
+- Save the output in a `causal_graph.dot` file
+
 ## Output Requirements
 
 - Output only valid Graphviz/DOT code without triple backticks
 - Do not explain the code in natural language
 - Follow all visual and semantic conventions above exactly
+
+# Step 3: Render Graph
+
+- After the graph is generated use 
+  ```
+  > dot -Tpng causal_graph.dot -o causal_graph.png
+  > open causal_graph.png
+  ```
+
+# Step 4: Read the PNG file
+
+- If an image was specified, read the PNG file
+- If the generated PNG image is very different from the input image:
+  - Find the differences in terms of layout
+  - Apply changes to the causal_graph.dot to approximate the input image

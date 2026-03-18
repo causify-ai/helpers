@@ -94,7 +94,8 @@ def save_fig(
     hdbg.dassert_isinstance(file_name, str)
     hio.create_enclosing_dir(file_name, incremental=True)
     fig.savefig(file_name, dpi=300, bbox_inches="tight")
-    _LOG.info("Saved figure to %s", file_name)
+    # Use print instead of _LOG.info.
+    print(f"Saved figure to '{file_name}'")
     #
     if print_markdown:
         if path_prefix:

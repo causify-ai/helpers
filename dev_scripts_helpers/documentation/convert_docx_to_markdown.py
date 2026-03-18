@@ -12,7 +12,7 @@ directory.
 
 > IN_FILE_NAME="/Users/saggese/Downloads/Blank.docx"; ls $FILE_NAME
 > OUT_FILE_NAME="paper/paper.md"
-> convert_docx_to_markdown.py --docx_file $IN_FILE_NAME --md_file $OUT_FILE_NAME
+> convert_docx_to_markdown.py --input $IN_FILE_NAME --output $OUT_FILE_NAME
 """
 
 import argparse
@@ -111,14 +111,16 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--docx_file",
+        "--input",
+        "-i",
         action="store",
         required=True,
         type=str,
         help="The Docx file to convert to Markdown",
     )
     parser.add_argument(
-        "--md_file",
+        "--output",
+        "-o",
         action="store",
         required=True,
         type=str,
@@ -131,8 +133,8 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    docx_file = args.docx_file
-    md_file = args.md_file
+    docx_file = args.input
+    md_file = args.output
     # Create the folder for the figures.
     md_file_figs = md_file.replace(".md", "_figs")
     hio.create_dir(md_file_figs, incremental=False)

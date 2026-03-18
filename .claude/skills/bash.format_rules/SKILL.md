@@ -1,5 +1,4 @@
 ---
-name: bash.format_rules
 description: Format a bash file according to conventions
 ---
 

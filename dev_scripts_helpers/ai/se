@@ -1,3 +1,0 @@
-#!/bin/bash -e
-
-vi .claude/skills/$1/SKILL.md

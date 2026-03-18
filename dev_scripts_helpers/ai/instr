@@ -1,7 +1,0 @@
-#!/bin/bash -e
-
-# Use a number suffix if provided (e.g., `instr 2` creates instr2.md).
-SUFFIX="${1:-}"
-INSTR_FILE="instr${SUFFIX}.md"
-
-vimdiff docs/ai_coding/ai.instruction_template.md "$INSTR_FILE"

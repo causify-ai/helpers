@@ -1,0 +1,7 @@
+#!/bin/bash
+# """
+# Run rig, capture output to quickfix file, and open in vim
+# """
+
+rig "$@" 2>&1 | tee cfile
+vim -c "cfile cfile"
