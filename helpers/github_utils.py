@@ -26,6 +26,7 @@ import helpers.hdbg as hdbg
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): Why not using helpers.hcache_simple as hcacsimp
 def github_cached(cache_type: str = "json", write_through: bool = True):
     """
     Cache decorator specifically for GitHub API functions.
