@@ -103,6 +103,20 @@ def run_docker_build(script_dir: str) -> None:
     hsystem.system(cmd)
 
 
+def run_docker_shell_cmd(shell_cmd: str, script_dir: str) -> None:
+    """
+    Run an arbitrary shell command inside Docker via docker_cmd.sh.
+
+    :param shell_cmd: shell command to run inside the container (e.g., 'ls /data')
+    :param script_dir: directory containing docker_cmd.sh
+    """
+    docker_cmd_script = os.path.join(script_dir, "docker_cmd.sh")
+    hdbg.dassert_file_exists(docker_cmd_script)
+    # cd into script_dir so docker_cmd.sh mounts the right directory.
+    cmd = f"cd {script_dir} && bash {docker_cmd_script} '{shell_cmd}'"
+    hsystem.system(cmd)
+
+
 def run_notebook_in_docker(notebook_name: str, script_dir: str) -> None:
     """
     Run a notebook inside Docker via docker_cmd.sh using jupyter nbconvert.
