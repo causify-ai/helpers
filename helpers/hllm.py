@@ -256,7 +256,9 @@ def _call_api_sync(
     return completion_obj
 
 
-@hcacsimp.simple_cache(write_through=True, exclude_keys=["client", "cache_mode"])
+@hcacsimp.simple_cache(
+    cache_type="pickle", write_through=True, exclude_keys=["client", "cache_mode"]
+)
 def _call_structured_api_sync(
     # pylint: disable=unused-argument
     # This is needed to support caching.
@@ -270,7 +272,7 @@ def _call_structured_api_sync(
     *,
     images_as_base64: Optional[Tuple[str, ...]] = None,
     **create_kwargs,
-) -> Any:
+) -> T:
     """
     Make a non-streaming structured API call.
 
@@ -278,7 +280,7 @@ def _call_structured_api_sync(
 
     :param client: LLM client
     :param response_format: expected structured output format
-    :return: OpenAI Response object with parsed output
+    :return: parsed output as the specified Pydantic model
     """
     user_input = build_responses_input(
         user_prompt, images_as_base64=images_as_base64
@@ -291,7 +293,9 @@ def _call_structured_api_sync(
         text_format=response_format,
         **create_kwargs,
     )
-    return response
+    # Extract the parsed output.
+    parsed_output: T = response.output_parsed
+    return parsed_output
 
 
 # #############################################################################
@@ -572,7 +576,7 @@ def get_structured_completion(
             f"Got provider_name='{llm_client.provider_name}'."
         )
     # Retrieve a structured response.
-    response = _call_structured_api_sync(
+    parsed_output: T = _call_structured_api_sync(
         cache_mode=cache_mode,
         client=llm_client.client,
         model=llm_client.model,
@@ -583,14 +587,13 @@ def get_structured_completion(
         images_as_base64=images_as_base64,
         **create_kwargs,
     )
-    parsed_output: T = response.output_parsed
-    # Track costs.
+    # Note: Cost tracking is not supported for structured completions when caching
+    # is enabled, since we only cache the parsed output, not the full response object
+    # with token usage information. Cached responses have zero cost anyway.
     if cost_tracker is not None:
-        hdbg.dassert_isinstance(cost_tracker, hllmcost.LLMCostTracker)
-        cost = cost_tracker.calculate_cost(response)
-        cost_tracker.accumulate_cost(cost)
-        if print_cost:
-            _LOG.info("cost=%.6f", cost)
+        _LOG.debug(
+            "Cost tracking not available for cached structured completions"
+        )
     return parsed_output
 
 
