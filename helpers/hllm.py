@@ -271,6 +271,8 @@ def _call_structured_api_sync(
     response_format: type[T],
     *,
     images_as_base64: Optional[Tuple[str, ...]] = None,
+    cost_tracker: Optional[hllmcost.LLMCostTracker] = None,
+    print_cost: bool = False,
     **create_kwargs,
 ) -> T:
     """
@@ -295,6 +297,13 @@ def _call_structured_api_sync(
     )
     # Extract the parsed output.
     parsed_output: T = response.output_parsed
+    # Track costs.
+    if cost_tracker is not None:
+        hdbg.dassert_isinstance(cost_tracker, hllmcost.LLMCostTracker)
+        cost = cost_tracker.calculate_cost(response)
+        cost_tracker.accumulate_cost(cost)
+        if print_cost:
+            _LOG.info("cost=%.6f", cost)
     return parsed_output
 
 
@@ -585,15 +594,10 @@ def get_structured_completion(
         temperature=temperature,
         response_format=response_format,
         images_as_base64=images_as_base64,
+        cost_tracker=cost_tracker,
+        print_cost=print_cost,
         **create_kwargs,
     )
-    # Note: Cost tracking is not supported for structured completions when caching
-    # is enabled, since we only cache the parsed output, not the full response object
-    # with token usage information. Cached responses have zero cost anyway.
-    if cost_tracker is not None:
-        _LOG.debug(
-            "Cost tracking not available for cached structured completions"
-        )
     return parsed_output
 
 
