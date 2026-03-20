@@ -257,7 +257,9 @@ def _call_api_sync(
 
 
 @hcacsimp.simple_cache(
-    cache_type="pickle", write_through=True, exclude_keys=["client", "cache_mode"]
+    cache_type="pickle",
+    write_through=True,
+    exclude_keys=["client", "cache_mode", "cost_tracker"],
 )
 def _call_structured_api_sync(
     # pylint: disable=unused-argument
