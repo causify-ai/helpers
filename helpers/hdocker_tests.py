@@ -45,7 +45,7 @@ def get_docker_test_files(test_dir: str) -> List[str]:
     return files
 
 
-def run_docker_cmd(
+def _run_docker_pytest_cmd(
     test_file: str, *, docker_cmd_script: str = "./docker_cmd.sh"
 ) -> int:
     """
@@ -79,7 +79,7 @@ def run_all_tests(
         return 0
     failed_tests = []
     for test_file in test_files:
-        return_code = run_docker_cmd(
+        return_code = _run_docker_pytest_cmd(
             test_file, docker_cmd_script=docker_cmd_script
         )
         if return_code != 0:
@@ -103,12 +103,14 @@ def run_docker_build(script_dir: str) -> None:
     hsystem.system(cmd)
 
 
-def run_docker_shell_cmd(shell_cmd: str, script_dir: str) -> None:
+def run_docker_cmd(
+    script_dir: str, *, shell_cmd: str = "ls /data"
+) -> None:
     """
     Run an arbitrary shell command inside Docker via docker_cmd.sh.
 
-    :param shell_cmd: shell command to run inside the container (e.g., 'ls /data')
     :param script_dir: directory containing docker_cmd.sh
+    :param shell_cmd: shell command to run inside the container
     """
     docker_cmd_script = os.path.join(script_dir, "docker_cmd.sh")
     hdbg.dassert_file_exists(docker_cmd_script)

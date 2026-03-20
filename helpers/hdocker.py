@@ -43,23 +43,6 @@ def get_use_sudo() -> bool:
     return use_sudo
 
 
-def get_force_rebuild() -> bool:
-    """
-    Check if Docker images should be rebuilt from scratch.
-
-    Reads the `DOCKER_FORCE_REBUILD` environment variable. Set it to `1` or
-    `true` to force a full rebuild, e.g.:
-
-    ```bash
-    > DOCKER_FORCE_REBUILD=1 pytest test_dockerized_typst.py
-    ```
-
-    :return: Whether to force rebuild Docker images.
-    """
-    val = os.environ.get("DOCKER_FORCE_REBUILD", "0")
-    return val.lower() in ("1", "true", "yes")
-
-
 # TODO(gp): use_sudo should be set to None and the correct value inferred from
 #  the repo config.
 def get_docker_executable(use_sudo: bool) -> str:
