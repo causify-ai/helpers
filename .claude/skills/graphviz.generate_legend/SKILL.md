@@ -1,5 +1,4 @@
 ---
-name: graphviz.generate_legend
 description: Generate a Graphviz legend template for causal knowledge graphs with node types and edge styles
 ---
 

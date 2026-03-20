@@ -1,5 +1,4 @@
 ---
-name: coding.update_file_readme
 description: Create or update the README.md corresponding to a given source file
 ---
 

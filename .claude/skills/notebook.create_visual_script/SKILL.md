@@ -1,5 +1,4 @@
 ---
-name: notebooks.create_visual_script
 description: Create a Jupyter notebook script description with visual and interactive cells for teaching concepts
 ---
 

@@ -1,5 +1,4 @@
 ---
-name: paper.fix_figures
 description: Fix figures in a LaTeX paper by ensuring every figure has a label, caption, and is referenced in the text
 ---
 

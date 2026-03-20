@@ -1,5 +1,4 @@
 ---
-name: coding.fix_from_imports
 description: Replace "from X import Y" style imports with "import X" and update usages throughout a file
 ---
 

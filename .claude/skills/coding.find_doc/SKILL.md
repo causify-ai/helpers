@@ -1,5 +1,4 @@
 ---
-name: coding.find_doc
 description: Find documentation files for a given dir, file, class, or function and summarize in 3 bullet points
 ---
 

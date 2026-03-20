@@ -1,5 +1,4 @@
 ---
-name: testing.format_rules
 description: Write or update Python unit tests following project conventions for structure, naming, and assertions
 ---
 

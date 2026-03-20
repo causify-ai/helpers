@@ -119,3 +119,35 @@ description: Format Jupyter notebooks according to conventions including jupytex
     `./msml610/tutorials/Lesson94_Information_Theory_utils.py`
 - Given the notebook, find and print the corresponding paired file and the
   `*_utils.py` file
+
+# Remove HTML Links in Cells
+
+- Remove HTML Links in Markdown cells like:
+  ```markdown
+  <a name='github-api-tutorial'></a>
+  <a name='1.-install-dependencies'></a>
+  <a name='setup'></a>
+  ```
+
+# Remove Cells to Install Jupyterlab-vim
+
+- Remove Markdown cells containing installation of Jupyterlab-vim extension
+  ```markdown
+  !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet jupyterlab-vim)"
+  !jupyter labextension enable
+  ```
+
+# Replace Cells Installing Packages with Installing in the Docker Container
+- Packages should be installed through Docker and `requirements.txt` not in
+  the notebook
+  ```markdown
+  !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet PyGithub)"
+  ```
+
+# Remove Cells Dealing with Secrets and Tokens
+
+- Remove all cells that assign tokens like:
+  ```
+  os.environ["GITHUB_ACCESS_TOKEN"] = ""
+  ```
+- Enforce that all the secrets are passed as read-only from environment variables

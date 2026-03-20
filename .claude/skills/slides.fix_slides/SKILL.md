@@ -1,5 +1,4 @@
 ---
-name: slides.fix_slides
 description: Fix and improve markdown slides by adding bullet points, examples, and correcting grammar
 ---
 

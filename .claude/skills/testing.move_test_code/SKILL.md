@@ -1,5 +1,4 @@
 ---
-name: testing.move_test_code
 description: Move test classes from a test file into the correct separate test files based on what they test
 ---
 

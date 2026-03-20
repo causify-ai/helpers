@@ -1,5 +1,4 @@
 ---
-name: coding.fix_gh_issue
 description: Analyze and fix a GitHub issue end-to-end including tests, linting, and PR creation
 ---
 

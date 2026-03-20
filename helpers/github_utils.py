@@ -4,6 +4,7 @@ Import as:
 import helpers.github_utils as hgitutil
 """
 
+import collections
 import datetime
 import functools
 import itertools
@@ -14,10 +15,8 @@ import time
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 
 import github
-import IPython
 import matplotlib.pyplot as plt
 import pandas as pd
-import tqdm as td
 from tqdm import tqdm
 
 import helpers.hcache_simple as hcacsimp
@@ -26,6 +25,7 @@ import helpers.hdbg as hdbg
 _LOG = logging.getLogger(__name__)
 
 
+# TODO(gp): Why not using helpers.hcache_simple as hcacsimp.
 def github_cached(cache_type: str = "json", write_through: bool = True):
     """
     Cache decorator specifically for GitHub API functions.
@@ -39,15 +39,14 @@ def github_cached(cache_type: str = "json", write_through: bool = True):
     """
 
     def decorator(func: Callable) -> Callable:
-        # Get function name for cache
+        # Get function name for cache.
         func_name = func.__name__
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
-        # SET CACHE TYPE PROPERTY (this was missing!)
-        existing_type = hcacsimp.get_cache_property("system", func_name, "type")
+        # Set cache type property.
+        existing_type = hcacsimp.get_cache_property(func_name, "type")
         if not existing_type:
-            hcacsimp.set_cache_property("system", func_name, "type", cache_type)
-
+            hcacsimp.set_cache_property(func_name, "type", cache_type)
         # Create a cached version that only uses args after client.
         @functools.wraps(func)
         def wrapper(client, *args, **kwargs):
@@ -145,7 +144,10 @@ def get_repo_names(client: github.Github, org_name: str) -> Dict[str, List[str]]
     """
     owner = client.get_organization(org_name)
     hdbg.dassert_is_not(
-        owner, None, f"'{org_name}' is not a valid GitHub organization"
+        owner,
+        None,
+        "'%s' is not a valid GitHub organization",
+        org_name,
     )
     repos = [repo.name for repo in owner.get_repos()]
     result = {"owner": org_name, "repositories": repos}
@@ -168,7 +170,7 @@ def get_github_contributors(
     result = {}
     for repo_name in repo_names:
         repo = client.get_repo(repo_name)
-        hdbg.dassert_is_not(repo, None, f"Could not fetch repo: {repo_name}")
+        hdbg.dassert_is_not(repo, None, "Could not fetch repo: %s", repo_name)
         contributors = [
             contributor.login for contributor in repo.get_contributors()
         ]
@@ -248,7 +250,9 @@ def get_total_commits(
         repositories, desc="Processing repositories", unit="repo"
     ):
         repo = client.get_repo(f"{org_name}/{repo_name}")
-        hdbg.dassert_is_not(repo, None, f"Could not retrieve repo: {repo_name}")
+        hdbg.dassert_is_not(
+            repo, None, "Could not retrieve repo: %s", repo_name
+        )
         repo_commit_count = 0
         if usernames:
             for username in usernames:
@@ -258,13 +262,15 @@ def get_total_commits(
                 hdbg.dassert_is_not(
                     commits,
                     None,
-                    f"Failed to get commits by '{username}' in {repo_name}",
+                    "Failed to get commits by '%s' in %s",
+                    username,
+                    repo_name,
                 )
                 repo_commit_count += commits.totalCount
         else:
             commits = repo.get_commits(since=since, until=until)
             hdbg.dassert_is_not(
-                commits, None, f"Failed to get commits in {repo_name}"
+                commits, None, "Failed to get commits in %s", repo_name
             )
             repo_commit_count = commits.totalCount
         commits_per_repository[repo_name] = repo_commit_count
@@ -316,13 +322,13 @@ def get_total_prs(
     ):
         repo = client.get_repo(f"{org_name}/{repo_name}")
         hdbg.dassert_is_not(
-            repo, None, f"Could not retrieve repository: {repo_name}"
+            repo, None, "Could not retrieve repository: %s", repo_name
         )
         repo_pr_count = 0
         pulls = repo.get_pulls(state=state)
         for pr in pulls:
             hdbg.dassert_is_not(
-                pr, None, f"PR could not be fetched in {repo_name}"
+                pr, None, "PR could not be fetched in %s", repo_name
             )
             if usernames and pr.user.login not in usernames:
                 continue
@@ -382,7 +388,11 @@ def get_prs_not_merged(
         # Fetch repo object.
         repo = client.get_repo(f"{org_name}/{repo_name}")
         hdbg.dassert_is_not(
-            repo, None, f"Could not fetch repo: {org_name}/{repo_name}"
+            repo,
+            None,
+            "Could not fetch repo: %s/%s",
+            org_name,
+            repo_name,
         )
         repo_unmerged_pr_count = 0
         issues = repo.get_issues(state="closed", since=since)
@@ -393,7 +403,9 @@ def get_prs_not_merged(
                 hdbg.dassert_is_not(
                     pull,
                     None,
-                    f"Could not fetch pull request #{issue.number} in {repo_name}",
+                    "Could not fetch pull request #%d in %s",
+                    issue.number,
+                    repo_name,
                 )
                 pulls.append(pull)
         for pr in pulls:
@@ -597,7 +609,7 @@ def get_commit_datetimes_by_repo_period_intrinsic(
     # Log the results summary.
     if not timestamps:
         _LOG.info(
-            "No commits found for %s/%s user=%s in %s to %s — possibly outdated or inactive.",
+            "No commits found for %s/%s user=%s in %s to %s - possibly outdated or inactive.",
             org,
             repo,
             username,
@@ -612,7 +624,6 @@ def get_commit_datetimes_by_repo_period_intrinsic(
             repo,
             username,
         )
-
     return timestamps
 
 
@@ -654,7 +665,7 @@ def get_pr_datetimes_by_repo_period_intrinsic(
     # Log the results summary.
     if not timestamps:
         _LOG.debug(
-            "No PRs found for %s/%s user=%s in %s to %s — possibly inactive or outdated.",
+            "No PRs found for %s/%s user=%s in %s to %s - possibly inactive or outdated.",
             org,
             repo,
             username,
@@ -669,7 +680,6 @@ def get_pr_datetimes_by_repo_period_intrinsic(
             repo,
             username,
         )
-
     return timestamps
 
 
@@ -795,7 +805,7 @@ def get_loc_stats_by_repo_period_intrinsic(
     # Log the results summary.
     if not stats_list:
         _LOG.info(
-            "No LOC stats found for %s/%s user=%s in %s to %s — possibly inactive or outdated.",
+            "No LOC stats found for %s/%s user=%s in %s to %s - possibly inactive or outdated.",
             org,
             repo,
             username,
@@ -810,7 +820,6 @@ def get_loc_stats_by_repo_period_intrinsic(
             username,
             len(stats_list),
         )
-
     return stats_list
 
 
@@ -868,7 +877,7 @@ def get_issue_comment_datetimes_by_repo_period_intrinsic(
     # Log the results summary.
     if not timestamps:
         _LOG.info(
-            "No issue comments found for %s/%s user=%s in %s to %s — possibly inactive or outdated.",
+            "No issue comments found for %s/%s user=%s in %s to %s - possibly inactive or outdated.",
             org,
             repo,
             username,
@@ -940,7 +949,7 @@ def get_pr_review_datetimes_by_repo_period_intrinsic(
     # Log the results summary.
     if not timestamps:
         _LOG.info(
-            "No PR reviews found for %s/%s user=%s in %s to %s — possibly inactive or outdated.",
+            "No PR reviews found for %s/%s user=%s in %s to %s - possibly inactive or outdated.",
             org,
             repo,
             username,
@@ -955,7 +964,6 @@ def get_pr_review_datetimes_by_repo_period_intrinsic(
             repo,
             username,
         )
-
     return timestamps
 
 
@@ -1214,8 +1222,8 @@ def prefetch_periodic_user_repo_data(
     count = 0
     since, until = period
     user_repo_pairs = list(itertools.product(repos, users))
-    # Prefetch and cache GitHub data for each user-repo pair
-    for repo, user in td.tqdm(user_repo_pairs, desc="Prefetching user-repo data"):
+    # Prefetch and cache GitHub data for each user-repo pair.
+    for repo, user in tqdm(user_repo_pairs, desc="Prefetching user-repo data"):
         commits = get_commit_datetimes_by_repo_period_intrinsic(
             client, org, repo, user, since, until
         )
@@ -1236,11 +1244,18 @@ def prefetch_periodic_user_repo_data(
         # )
         issue_comments = []
         pr_reviews = []
-        td.tqdm.write(
-            f"{repo}/{user}: {len(commits)} commits, {len(prs)} PRs, "
-            f"{len(locs)} LOC entries, {len(issues['assigned'])} issues assigned, "
-            f"{len(issues['closed'])} closed, {len(issue_comments)} issue comments, "
-            f"{len(pr_reviews)} PR reviews"
+        _LOG.info(
+            "%s/%s: %d commits, %d PRs, %d LOC entries, %d issues assigned, "
+            "%d closed, %d issue comments, %d PR reviews",
+            repo,
+            user,
+            len(commits),
+            len(prs),
+            len(locs),
+            len(issues["assigned"]),
+            len(issues["closed"]),
+            len(issue_comments),
+            len(pr_reviews),
         )
         count += 1
     # Report overall prefetch duration.
@@ -1326,6 +1341,7 @@ def collect_all_metrics(
     repos: List[str],
     users: List[str],
     period: Tuple[datetime.datetime, datetime.datetime],
+    *,
     skip_issue_comments: bool = True,
     skip_pr_reviews: bool = True,
 ) -> pd.DataFrame:
@@ -1356,7 +1372,9 @@ def collect_all_metrics(
             if not isinstance(user, str):
                 raise ValueError(f"Expected user to be a string but got {user!r}")
             current += 1
-            _LOG.info(f"Processing {current}/{total_combinations}: {repo}/{user}")
+            _LOG.info(
+                "Processing %d/%d: %s/%s", current, total_combinations, repo, user
+            )
             # Build each metric DataFrame.
             df_c = build_daily_commit_df(client, org, repo, user, period)
             df_p = build_daily_pr_df(client, org, repo, user, period)
@@ -1391,7 +1409,7 @@ def collect_all_metrics(
         if combined_frames
         else pd.DataFrame()
     )
-    _LOG.info(f"Collected metrics for {len(combined)} daily records")
+    _LOG.info("Collected metrics for %d daily records", len(combined))
     return combined
 
 
@@ -1636,7 +1654,7 @@ def plot_metrics_by_user(
         index_col="user",
         metrics=metrics,
         title=f"Metric comparison for {repo} "
-        f"({start.date() if start else 'ALL'} → {end.date() if end else 'ALL'})",
+        f"({start.date() if start else 'ALL'} -> {end.date() if end else 'ALL'})",
     )
 
 
@@ -1669,7 +1687,7 @@ def plot_metrics_by_repo(
         index_col="repo",
         metrics=metrics,
         title=f"Metric comparison for {user} "
-        f"({start.date() if start else 'ALL'} → {end.date() if end else 'ALL'})",
+        f"({start.date() if start else 'ALL'} -> {end.date() if end else 'ALL'})",
     )
 
 
@@ -1739,7 +1757,7 @@ def plot_multi_metrics_totals_by_user(
     ax.set_ylabel("Total count across repos")
     ax.set_title(
         f"Metric totals across repos by user "
-        f"({start.date() if start else 'ALL'} → {end.date() if end else 'ALL'})"
+        f"({start.date() if start else 'ALL'} -> {end.date() if end else 'ALL'})"
     )
     ax.legend()
     plt.tight_layout()
@@ -1872,6 +1890,8 @@ def visualize_user_metric_comparison(
             f"No columns ending with '{suffix}' found in input DataFrame."
         )
     # Stylized table.
+    import IPython
+
     IPython.display.display(
         stats[["user"] + score_cols]
         .set_index("user")
@@ -1938,5 +1958,145 @@ def compute_engagement_score(
         summary["engagement_score"] = (
             summary["engagement_score"] / max_score * 100
         ).round(2)
-    sum = summary.sort_values("engagement_score", ascending=False)
-    return sum
+    summary_sorted = summary.sort_values("engagement_score", ascending=False)
+    return summary_sorted
+
+
+# #############################################################################
+# PR Statistics
+# #############################################################################
+
+
+def count_open_prs_by_author(
+    repo_obj,
+) -> Dict[str, Dict[str, int]]:
+    """
+    Count open PRs grouped by author and draft/ready status.
+
+    :param repo_obj: PyGithub repository object
+    :return: dict mapping author -> {"ready": int, "draft": int}
+    """
+    stats: Dict[str, Dict[str, int]] = collections.defaultdict(
+        lambda: {"ready": 0, "draft": 0}
+    )
+    pulls = repo_obj.get_pulls(state="open")
+    for pr in pulls:
+        author = pr.user.login
+        status = "draft" if pr.draft else "ready"
+        stats[author][status] += 1
+        _LOG.debug(
+            "Open PR #%d by %s status=%s", pr.number, author, status
+        )
+    return dict(stats)
+
+
+def count_closed_prs_by_author(
+    repo_obj,
+    *,
+    period: Optional[Tuple[datetime.datetime, datetime.datetime]] = None,
+) -> Dict[str, int]:
+    """
+    Count closed PRs grouped by author, optionally filtered by period.
+
+    :param repo_obj: PyGithub repository object
+    :param period: optional (start, end) UTC-aware datetimes for filtering
+    :return: dict mapping author -> count of closed PRs
+    """
+    stats: Dict[str, int] = collections.defaultdict(int)
+    since, until = normalize_period_to_utc(period)
+    pulls = repo_obj.get_pulls(state="closed")
+    for pr in pulls:
+        # Normalize the PR closed_at timestamp to UTC.
+        closed_at = pr.closed_at
+        if closed_at is None:
+            continue
+        if closed_at.tzinfo is None:
+            closed_at = closed_at.replace(tzinfo=datetime.timezone.utc)
+        else:
+            closed_at = closed_at.astimezone(datetime.timezone.utc)
+        # Filter by period if specified.
+        if since is not None and until is not None:
+            if not (since <= closed_at <= until):
+                continue
+        author = pr.user.login
+        stats[author] += 1
+        _LOG.debug("Closed PR #%d by %s at %s", pr.number, author, closed_at)
+    return dict(stats)
+
+
+def print_open_pr_stats(
+    open_stats: Dict[str, Dict[str, int]],
+) -> None:
+    """
+    Print open PR statistics by author and draft/ready status.
+
+    :param open_stats: dict mapping author -> {"ready": int, "draft": int}
+    """
+    if not open_stats:
+        _LOG.info("No open PRs found.")
+        return
+    # Sort by total PR count descending.
+    sorted_authors = sorted(
+        open_stats.items(),
+        key=lambda item: item[1]["ready"] + item[1]["draft"],
+        reverse=True,
+    )
+    total_ready = 0
+    total_draft = 0
+    header = f"{'Author':<25} {'Ready':>7} {'Draft':>7} {'Total':>7}"
+    separator = "-" * len(header)
+    _LOG.info("Open PRs by author:")
+    _LOG.info(separator)
+    _LOG.info(header)
+    _LOG.info(separator)
+    for author, counts in sorted_authors:
+        ready = counts["ready"]
+        draft = counts["draft"]
+        total = ready + draft
+        total_ready += ready
+        total_draft += draft
+        _LOG.info("%-25s %7d %7d %7d", author, ready, draft, total)
+    _LOG.info(separator)
+    _LOG.info(
+        "%-25s %7d %7d %7d",
+        "TOTAL",
+        total_ready,
+        total_draft,
+        total_ready + total_draft,
+    )
+
+
+def print_closed_pr_stats(
+    closed_stats: Dict[str, int],
+    *,
+    period: Optional[Tuple[datetime.datetime, datetime.datetime]] = None,
+) -> None:
+    """
+    Print closed PR statistics by author.
+
+    :param closed_stats: dict mapping author -> count of closed PRs
+    :param period: optional period used for filtering (for display only)
+    """
+    if not closed_stats:
+        _LOG.info("No closed PRs found.")
+        return
+    # Sort by count descending.
+    sorted_authors = sorted(
+        closed_stats.items(), key=lambda item: item[1], reverse=True
+    )
+    period_str = "all time"
+    if period is not None:
+        since, until = period
+        period_str = f"{since.date()} to {until.date()}"
+    header = f"{'Author':<25} {'Closed':>7}"
+    separator = "-" * len(header)
+    _LOG.info("Closed PRs by author (%s):", period_str)
+    _LOG.info(separator)
+    _LOG.info(header)
+    _LOG.info(separator)
+    total = 0
+    for author, count in sorted_authors:
+        total += count
+        _LOG.info("%-25s %7d", author, count)
+    _LOG.info(separator)
+    _LOG.info("%-25s %7d", "TOTAL", total)
