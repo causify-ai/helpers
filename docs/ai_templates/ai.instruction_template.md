@@ -12,7 +12,7 @@
 .claude/skills/blog.format_rules.md
 .claude/skills/coding.format_rules.md
 .claude/skills/markdown.format_rules.md
-.claude/skills/notebooks.format_rules.md
+.claude/skills/notebook.format_rules.md
 .claude/skills/testing.format_rules.md
 
 # Implement Code
@@ -59,7 +59,7 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md
 
 ## Build the Notebook Script
 - Read $source and understand the bin analogy
-- Execute @.claude/skills/notebooks.create_visual_script.md to create the script
+- Execute @.claude/skills/notebook.create_visual_script.md to create the script
   for the concept
 
 ## Build the Notebook
@@ -68,7 +68,7 @@ script = `msml610/tutorials/L5_01_Learning_Theory.Bin_Analogy_ML.md
   > cp ./msml610/tutorials/template.ipynb $notebook
   > git add $notebook
   ```
-- Execute @.claude/skills/notebooks.implement_script.md for cells between
+- Execute @.claude/skills/notebook.implement_script.md for cells between
   <start> and <end> of $script
 - Update $notebook
 

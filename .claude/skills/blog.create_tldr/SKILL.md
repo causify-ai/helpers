@@ -1,5 +1,4 @@
 ---
-name: blog.create_tldr
 description: Create 3 catchy and controversial TLDR summaries for a blog post
 ---
 

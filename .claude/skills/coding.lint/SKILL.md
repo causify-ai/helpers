@@ -1,5 +1,4 @@
 ---
-name: coding.lint
 description: Lint and improve the appearance of a file (Python, tests, markdown, or blog) without changing behavior
 ---
 

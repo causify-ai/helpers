@@ -1,5 +1,4 @@
 ---
-name: coding.update_comments
 description: Update docstrings and comments in a Python file to be in sync with the code without changing logic
 ---
 

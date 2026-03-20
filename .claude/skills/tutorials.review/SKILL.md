@@ -1,5 +1,4 @@
 ---
-name: tutorials.review
 description: Review and improve a tutorial for clarity, correctness, and learner comprehension
 ---
 

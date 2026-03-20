@@ -1,5 +1,4 @@
 ---
-name: blog.write_tutorial2
 description: Write a blog post about a machine learning library or technique for a technical audience
 ---
 

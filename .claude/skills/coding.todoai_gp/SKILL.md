@@ -1,5 +1,4 @@
 ---
-name: coding.todoai_gp
 description: Implement all TODO(ai_gp) items in a file including renames, code updates, and references
 ---
 
@@ -20,4 +19,4 @@ description: Implement all TODO(ai_gp) items in a file including renames, code u
   you must apply the rules from @.claude/skills/testing.format_rules/SKILL.md
 
 - For a notebook ipynb and its paired Python file, you MUST apply the rules from
-  @.claude/skills/notebooks.format_rules/SKILL.md
+  @.claude/skills/notebook.format_rules/SKILL.md

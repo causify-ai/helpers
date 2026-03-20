@@ -1,5 +1,4 @@
 ---
-name: blog.format_rules
 description: Format a blog post according to conventions for structure, style, and markdown
 ---
 

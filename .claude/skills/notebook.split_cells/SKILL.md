@@ -1,5 +1,4 @@
 ---
-name: notebooks.split_cells
 description: Split Jupyter notebook cells so each cell contains only one concept or example
 ---
 

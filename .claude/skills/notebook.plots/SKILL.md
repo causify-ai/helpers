@@ -1,5 +1,4 @@
 ---
-name: notebooks.plots
 description: Apply plotting conventions using pandas and seaborn with proper information display in notebook plots
 ---
 

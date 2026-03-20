@@ -1,15 +1,14 @@
 ---
-name: notebooks.implement_script
 description: Implement Jupyter notebook cells from a visual script description following format and utility conventions
 ---
 
 - Given the passed description for a Jupyter notebook in the format described in
-  @.claude/skills/notebooks.create_visual_script/SKILL.md implement the cells
+  @.claude/skills/notebook.create_visual_script/SKILL.md implement the cells
   requested by the user
 
 # Conventions
 
-- Always use the conventions in @.claude/skills/notebooks.format_rules/SKILL.md
+- Always use the conventions in @.claude/skills/notebook.format_rules/SKILL.md
 
 # Save Code to the `*_utils.py`
 

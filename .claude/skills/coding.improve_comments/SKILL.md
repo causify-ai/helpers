@@ -1,5 +1,4 @@
 ---
-name: coding.improve_comments
 description: Improve code comments and docstrings to follow REST style conventions
 ---
 

@@ -1,5 +1,4 @@
 ---
-name: blog.write_tutorial
 description: Write a short technical tutorial on a given topic following markdown conventions
 ---
 

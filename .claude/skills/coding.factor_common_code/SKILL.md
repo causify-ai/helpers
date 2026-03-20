@@ -1,5 +1,4 @@
 ---
-name: coding.factor_common_code
 description: Identify and refactor duplicated code blocks into shared functions across Python files
 ---
 
