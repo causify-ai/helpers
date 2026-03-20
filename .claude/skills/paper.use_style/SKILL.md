@@ -1,5 +1,4 @@
 ---
-name: paper.use_style
 description: Write or edit an academic CS paper following formal, evidence-driven, and structured writing style
 ---
 

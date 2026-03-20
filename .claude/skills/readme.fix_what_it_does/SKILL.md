@@ -1,5 +1,4 @@
 ---
-name: readme.fix_what_it_does
 description: Convert "What It Does" and "Examples" sections in a README from headers to bullet point format
 ---
 

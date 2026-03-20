@@ -1,5 +1,4 @@
 ---
-name: readme.format
 description: Format README commands to use bullet-point descriptions followed by fenced bash code blocks
 ---
 

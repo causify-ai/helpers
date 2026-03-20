@@ -1,5 +1,4 @@
 ---
-name: git.move
 description: Move a file in git and use 
 ---
 

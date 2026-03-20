@@ -1,5 +1,4 @@
 ---
-name: skill.improve
 description: Improve a Claude skill
 ---
 

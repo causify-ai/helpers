@@ -14,4 +14,4 @@ changing its behavior
   rules in @.claude/skills/blog.format_rules/SKILL.md
 
 - For Jupyter notebook apply the rules from
-  @.claude/skills/notebooks.format_rules/SKILL.md and then run jupytext sync
+  @.claude/skills/notebook.format_rules/SKILL.md and then run jupytext sync

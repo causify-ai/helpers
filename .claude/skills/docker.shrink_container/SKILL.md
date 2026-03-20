@@ -1,5 +1,4 @@
 ---
-name: docker.shrink_container
 description: Propose solutions to make a Docker container faster and smaller without changing its functionality
 ---
 

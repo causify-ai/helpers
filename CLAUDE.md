@@ -151,7 +151,7 @@ import config_root.config.config_ as crococon
   @.claude/skills/testing.format_rules/SKILL.md and
   @docs/ai_templates/unit_test_template.py
 - For writing a notebook you MUST follow instructions in
-  @.claude/skills/notebooks.format_rules/SKILL.md and
+  @.claude/skills/notebook.format_rules/SKILL.md and
   @docs/ai_templates/notebook_template.ipynb
 - For writing a blog you MUST follow instructions in
   @.claude/skills/blog.format_rules/SKILL.md

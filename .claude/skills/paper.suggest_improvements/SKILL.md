@@ -1,5 +1,4 @@
 ---
-name: paper.suggest_improvements
 description: Suggest the top 5 improvements for an academic paper to increase its impact
 ---
 

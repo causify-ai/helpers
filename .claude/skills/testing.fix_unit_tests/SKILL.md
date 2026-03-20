@@ -1,5 +1,4 @@
 ---
-name: testing.fix_unit_tests
 description: Refactor unit test files by aligning strings, renaming methods, and factoring out common test code
 ---
 

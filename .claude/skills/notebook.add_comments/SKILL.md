@@ -4,7 +4,7 @@ description: Add comments in the markdown cells of a Jupyter notebook
 
 # Conventions
 
-- Always use the conventions in @.claude/skills/notebooks.format_rules/SKILL.md
+- Always use the conventions in @.claude/skills/notebook.format_rules/SKILL.md
 
 # Format of Code Cells
 

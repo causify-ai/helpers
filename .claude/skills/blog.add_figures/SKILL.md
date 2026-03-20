@@ -1,5 +1,4 @@
 ---
-name: blog.add_figures
 description: Add figures to a blog post
 ---
 

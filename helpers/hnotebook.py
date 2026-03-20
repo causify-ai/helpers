@@ -1,6 +1,3 @@
-# TODO(ai_gp): Move to helpers/hnotebook.py
-
-
 def config_notebook(sns_set: bool = True) -> None:
     """
     Configure the notebook for plotting.

@@ -1,5 +1,4 @@
 ---
-name: coding.make_function_private
 description: Identify functions not called externally and rename them with a leading underscore to make them private
 ---
 
