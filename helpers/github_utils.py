@@ -4,6 +4,7 @@ Import as:
 import helpers.github_utils as hgitutil
 """
 
+import collections
 import datetime
 import functools
 import itertools
@@ -43,9 +44,9 @@ def github_cached(cache_type: str = "json", write_through: bool = True):
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
         # Set cache type property.
-        existing_type = hcacsimp.get_cache_property("system", func_name, "type")
+        existing_type = hcacsimp.get_cache_property(func_name, "type")
         if not existing_type:
-            hcacsimp.set_cache_property("system", func_name, "type", cache_type)
+            hcacsimp.set_cache_property(func_name, "type", cache_type)
         # Create a cached version that only uses args after client.
         @functools.wraps(func)
         def wrapper(client, *args, **kwargs):
@@ -1959,3 +1960,143 @@ def compute_engagement_score(
         ).round(2)
     summary_sorted = summary.sort_values("engagement_score", ascending=False)
     return summary_sorted
+
+
+# #############################################################################
+# PR Statistics
+# #############################################################################
+
+
+def count_open_prs_by_author(
+    repo_obj,
+) -> Dict[str, Dict[str, int]]:
+    """
+    Count open PRs grouped by author and draft/ready status.
+
+    :param repo_obj: PyGithub repository object
+    :return: dict mapping author -> {"ready": int, "draft": int}
+    """
+    stats: Dict[str, Dict[str, int]] = collections.defaultdict(
+        lambda: {"ready": 0, "draft": 0}
+    )
+    pulls = repo_obj.get_pulls(state="open")
+    for pr in pulls:
+        author = pr.user.login
+        status = "draft" if pr.draft else "ready"
+        stats[author][status] += 1
+        _LOG.debug(
+            "Open PR #%d by %s status=%s", pr.number, author, status
+        )
+    return dict(stats)
+
+
+def count_closed_prs_by_author(
+    repo_obj,
+    *,
+    period: Optional[Tuple[datetime.datetime, datetime.datetime]] = None,
+) -> Dict[str, int]:
+    """
+    Count closed PRs grouped by author, optionally filtered by period.
+
+    :param repo_obj: PyGithub repository object
+    :param period: optional (start, end) UTC-aware datetimes for filtering
+    :return: dict mapping author -> count of closed PRs
+    """
+    stats: Dict[str, int] = collections.defaultdict(int)
+    since, until = normalize_period_to_utc(period)
+    pulls = repo_obj.get_pulls(state="closed")
+    for pr in pulls:
+        # Normalize the PR closed_at timestamp to UTC.
+        closed_at = pr.closed_at
+        if closed_at is None:
+            continue
+        if closed_at.tzinfo is None:
+            closed_at = closed_at.replace(tzinfo=datetime.timezone.utc)
+        else:
+            closed_at = closed_at.astimezone(datetime.timezone.utc)
+        # Filter by period if specified.
+        if since is not None and until is not None:
+            if not (since <= closed_at <= until):
+                continue
+        author = pr.user.login
+        stats[author] += 1
+        _LOG.debug("Closed PR #%d by %s at %s", pr.number, author, closed_at)
+    return dict(stats)
+
+
+def print_open_pr_stats(
+    open_stats: Dict[str, Dict[str, int]],
+) -> None:
+    """
+    Print open PR statistics by author and draft/ready status.
+
+    :param open_stats: dict mapping author -> {"ready": int, "draft": int}
+    """
+    if not open_stats:
+        _LOG.info("No open PRs found.")
+        return
+    # Sort by total PR count descending.
+    sorted_authors = sorted(
+        open_stats.items(),
+        key=lambda item: item[1]["ready"] + item[1]["draft"],
+        reverse=True,
+    )
+    total_ready = 0
+    total_draft = 0
+    header = f"{'Author':<25} {'Ready':>7} {'Draft':>7} {'Total':>7}"
+    separator = "-" * len(header)
+    _LOG.info("Open PRs by author:")
+    _LOG.info(separator)
+    _LOG.info(header)
+    _LOG.info(separator)
+    for author, counts in sorted_authors:
+        ready = counts["ready"]
+        draft = counts["draft"]
+        total = ready + draft
+        total_ready += ready
+        total_draft += draft
+        _LOG.info("%-25s %7d %7d %7d", author, ready, draft, total)
+    _LOG.info(separator)
+    _LOG.info(
+        "%-25s %7d %7d %7d",
+        "TOTAL",
+        total_ready,
+        total_draft,
+        total_ready + total_draft,
+    )
+
+
+def print_closed_pr_stats(
+    closed_stats: Dict[str, int],
+    *,
+    period: Optional[Tuple[datetime.datetime, datetime.datetime]] = None,
+) -> None:
+    """
+    Print closed PR statistics by author.
+
+    :param closed_stats: dict mapping author -> count of closed PRs
+    :param period: optional period used for filtering (for display only)
+    """
+    if not closed_stats:
+        _LOG.info("No closed PRs found.")
+        return
+    # Sort by count descending.
+    sorted_authors = sorted(
+        closed_stats.items(), key=lambda item: item[1], reverse=True
+    )
+    period_str = "all time"
+    if period is not None:
+        since, until = period
+        period_str = f"{since.date()} to {until.date()}"
+    header = f"{'Author':<25} {'Closed':>7}"
+    separator = "-" * len(header)
+    _LOG.info("Closed PRs by author (%s):", period_str)
+    _LOG.info(separator)
+    _LOG.info(header)
+    _LOG.info(separator)
+    total = 0
+    for author, count in sorted_authors:
+        total += count
+        _LOG.info("%-25s %7d", author, count)
+    _LOG.info(separator)
+    _LOG.info("%-25s %7d", "TOTAL", total)
