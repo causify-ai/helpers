@@ -277,6 +277,7 @@ def select_actions(
         not (args.action and args.skip_action),
         "You can't specify together --action and --skip_action",
     )
+    # TODO(ai_gp): Is this still needed?
     # Check for enable_action attribute (added for backward compatibility).
     has_enable = hasattr(args, "enable_action")
     if has_enable:
@@ -319,7 +320,9 @@ def select_actions(
                 skip_action,
             )
             # Validate that skip_action is in the current action list.
-            hdbg.dassert_in(skip_action, actions)
+            if skip_action not in actions:
+                _LOG.warning("Skipping action '%s' since it's already not in actions='%s'",
+                    skip_action, actions)
             actions = [a for a in actions if a != skip_action]
     # Add enabled actions on top of defaults.
     if has_enable and args.enable_action:
