@@ -1,5 +1,4 @@
 ---
-name: docker.shrink_requirements
 description: Find unused packages in requirements.txt that are not needed by the project code
 ---
 

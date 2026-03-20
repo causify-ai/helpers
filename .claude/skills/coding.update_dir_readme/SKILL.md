@@ -1,5 +1,4 @@
 ---
-name: coding.update_dir_readme
 description: Create or update a README.md for a given directory following readme conventions
 ---
 

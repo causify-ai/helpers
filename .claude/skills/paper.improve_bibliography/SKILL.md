@@ -1,5 +1,4 @@
 ---
-name: paper.improve_bibliography
 description: Add relevant bibliography entries to a LaTeX academic paper and reference them in the text
 ---
 

@@ -1,5 +1,4 @@
 ---
-name: graphviz.convert_image
 description: Convert a Graphviz DOT specification to match a reference figure by iterative rendering
 ---
 

@@ -1,5 +1,4 @@
 ---
-name: coding.update_expected_vars
 description: Run failing tests and update expected variables to match actual output from pytest
 ---
 

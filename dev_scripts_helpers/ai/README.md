@@ -7,6 +7,11 @@ the development workflow.
 - `cc`
 - `ccc`
 - `ccp`
+- `skillc`: create a new skill
+- `skilld`: list directory
+- `skille`: edit a skill
+- `skilll`: list stories
+- `skillh`: this help
 
 # Description of Executables
 
@@ -41,4 +46,15 @@ the development workflow.
 - Execute a single prompt:
   ```bash
   > ccp "Fix update_md.py -i docs/datapull/guide.md -a summarize -a apply_style"
+  ```
+
+## `skillh`
+
+- **What It Does**
+  - Opens the Claude Code skills README in vi editor
+  - Provides quick access to available skills documentation
+
+- Open skills help:
+  ```bash
+  > skillh
   ```

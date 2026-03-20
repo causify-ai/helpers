@@ -1,5 +1,4 @@
 ---
-name: notebooks.utils_library
 description: Add notebook code to a *_utils.py library file in the correct location following notebook structure
 ---
 

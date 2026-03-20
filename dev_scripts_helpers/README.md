@@ -5,7 +5,7 @@ blog posts, short stories, and Claude Code skills across multiple repositories.
 
 # Overview
 
-The `md` script provides a single, consistent interface for managing markdown
+The `md.py` script provides a single, consistent interface for managing markdown
 files across four different content types and repositories. It unifies and simplifies
 the existing bash script families (`skill*`, `blog*`, `res*`, `story*`) into one
 tool with prefix-matching CLI arguments.
@@ -31,37 +31,37 @@ tool with prefix-matching CLI arguments.
 List all skills (shows skill names only).
 
 ```bash
-> python dev_scripts_helpers/md skill list
+> python dev_scripts_helpers/md.py skill list
 ```
 
 List all skills with full file paths.
 
 ```bash
-> python dev_scripts_helpers/md skill full_list
+> python dev_scripts_helpers/md.py skill full_list
 ```
 
 List research items matching a pattern.
 
 ```bash
-> python dev_scripts_helpers/md research list causal
+> python dev_scripts_helpers/md.py research list causal
 ```
 
 Edit or create a blog post (creates with YAML template if new).
 
 ```bash
-> python dev_scripts_helpers/md blog edit My_Post
+> python dev_scripts_helpers/md.py blog edit My_Post
 ```
 
 Edit or create a short story.
 
 ```bash
-> python dev_scripts_helpers/md story edit ...
+> python dev_scripts_helpers/md.py story edit ...
 ```
 
 Print the research ideas directory path.
 
 ```bash
-> python dev_scripts_helpers/md research directory
+> python dev_scripts_helpers/md.py research directory
 ```
 
 # Prefix Matching
@@ -78,7 +78,7 @@ Type and action arguments support prefix matching (first match wins):
 
 # Unified Interface
 
-The `md` script replaces these individual bash script families:
+The `md.py` script replaces these individual bash script families:
 
 - `skillc`, `skilld`, `skille`, `skilll`: skill management
 - `blogc`, `blogd`, `bloge`, `blogl`: blog management
@@ -87,7 +87,7 @@ The `md` script replaces these individual bash script families:
 
 # Templates
 
-When creating a new file with the `edit` action, `md` automatically generates
+When creating a new file with the `edit` action, `md.py` automatically generates
 templates appropriate for each content type:
 
 - `blog`: YAML frontmatter with title, author, date, and TL;DR section

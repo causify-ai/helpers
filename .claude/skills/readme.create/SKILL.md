@@ -1,5 +1,4 @@
 ---
-name: readme.create
 description: Write a README.md for a directory with sections for structure, files, and executable descriptions
 ---
 

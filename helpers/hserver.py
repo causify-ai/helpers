@@ -113,7 +113,7 @@ def _get_host_name() -> str:
     through the `CSFY_HOST_NAME` env var.
     """
     if is_inside_docker():
-        host_name = os.environ["CSFY_HOST_NAME"]
+        host_name = os.environ.get("CSFY_HOST_NAME", "**CSFY_HOST_NAME_undef**")
     else:
         # sysname='Linux'
         # nodename='dev1'
@@ -134,7 +134,9 @@ def _get_host_os_name() -> str:
     through the `CSFY_HOST_OS_NAME` env var.
     """
     if is_inside_docker():
-        host_os_name = os.environ["CSFY_HOST_OS_NAME"]
+        host_os_name = os.environ.get(
+            "CSFY_HOST_OS_NAME", "**CSFY_HOST_OS_NAME_undef**"
+        )
     else:
         # sysname='Linux'
         # nodename='dev1'

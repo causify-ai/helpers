@@ -1,5 +1,4 @@
 ---
-name: slides.write_slides
 description: Write lecture slides for a graduate-level ML course following academic formatting and pedagogical style
 ---
 

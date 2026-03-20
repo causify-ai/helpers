@@ -30,7 +30,7 @@ def _create_test_file(self_: Any, txt: str, extension: str) -> str:
 # #############################################################################
 
 
-# TODO(gp): -> Test_dockerized_prettier1
+# TODO(ai_gp): -> Test_dockerized_prettier1
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
@@ -210,7 +210,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(gp): -> Test_dockerized_pandoc1
+# TODO(ai_gp): -> Test_dockerized_pandoc1
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
@@ -280,7 +280,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(gp): -> Test_dockerized_markdown_toc1
+# TODO(ai_gp): -> Test_dockerized_markdown_toc1
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
@@ -394,7 +394,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
             msg=f"Output file {out_file_path} not found",
         )
 
-    # TODO(gp): In theory this should go in test_dockerized_latex.py
+    # TODO(ai_gp): In theory this should go in test_dockerized_latex.py
     def test_cmd_line1(self) -> None:
         """
         Run `latex` using the command line.
@@ -503,7 +503,7 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
             msg=f"Output file {out_file_path} not found",
         )
 
-    # TODO(gp): In theory this should go in test_tikz_to_png.py
+    # TODO(ai_gp): In theory this should go in test_tikz_to_png.py
     def test_command_line1(self) -> None:
         """
         Run `dockerized_tikz_to_bitmap` through the command line.
@@ -570,7 +570,7 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
             msg=f"Output file {out_file_path} not found",
         )
 
-    # TODO(gp): In theory this should go in test_dockerized_graphviz.py
+    # TODO(ai_gp): In theory this should go in test_dockerized_graphviz.py
     def test_command_line1(self) -> None:
         """
         Run `dockerized_graphviz` through the command line.
@@ -580,6 +580,74 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
         in_file_path, out_file_path = self.create_input_file()
         # Run function.
         cmd = f"{exec_path} -i {in_file_path} -o {out_file_path}"
+        hsystem.system(cmd)
+        # Check output.
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
+
+
+# #############################################################################
+# Test_dockerized_typst1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
+)
+class Test_dockerized_typst1(hunitest.TestCase):
+
+    def create_input_file(self) -> Tuple[str, str]:
+        txt = r"""
+        #set page(width: 10cm, height: auto)
+        #set heading(numbering: "1.")
+
+        = Hello, Typst!
+
+        This is a simple Typst document.
+
+        == Section
+
+        Some content here.
+        """
+        in_file_path = _create_test_file(self, txt, extension="typ")
+        out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
+        return in_file_path, out_file_path
+
+    def test_dockerized1(self) -> None:
+        """
+        Run `typst` inside a Docker container.
+        """
+        # Prepare inputs.
+        in_file_path, out_file_path = self.create_input_file()
+        cmd_opts: List[str] = []
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        # Run function.
+        hdocexec.run_dockerized_typst(
+            in_file_path,
+            out_file_path,
+            cmd_opts,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
+        # Check output.
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
+        )
+
+    def test_command_line1(self) -> None:
+        """
+        Run `dockerized_typst` through the command line.
+        """
+        # Prepare inputs.
+        exec_path = hgit.find_file_in_git_tree("dockerized_typst.py")
+        in_file_path, out_file_path = self.create_input_file()
+        # Run function.
+        cmd = f"{exec_path} --input {in_file_path} --output {out_file_path}"
         hsystem.system(cmd)
         # Check output.
         self.assertTrue(

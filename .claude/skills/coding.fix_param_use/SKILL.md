@@ -1,5 +1,4 @@
 ---
-name: coding.fix_param_use
 description: Fix function call sites to pass positional args by position and assign constants to intermediate variables
 ---
 

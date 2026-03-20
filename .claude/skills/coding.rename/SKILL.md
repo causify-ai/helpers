@@ -1,5 +1,4 @@
 ---
-name: coding.rename
 description: Rename files, functions, and variables across a codebase and update all references
 ---
 

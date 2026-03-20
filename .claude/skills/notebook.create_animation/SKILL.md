@@ -1,5 +1,4 @@
 ---
-name: notebooks.create_animation
 description: Create an animation from an ipywidget interact function using the standard template
 ---
 
@@ -31,4 +30,4 @@ description: Create an animation from an ipywidget interact function using the s
   )
   ```
 
-- Always follow the instructions in @.claude/skills/notebooks.format_rules/SKILL.md
+- Always follow the instructions in @.claude/skills/notebook.format_rules/SKILL.md

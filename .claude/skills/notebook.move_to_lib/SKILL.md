@@ -1,5 +1,4 @@
 ---
-name: notebooks.move_to_lib
 description: Move notebook functions into a *_utils.py library file and update the notebook to call them
 ---
 

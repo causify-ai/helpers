@@ -1,5 +1,4 @@
 ---
-name: demo.create_script
 description: Create a 15-slide presentation storyboard script for a narrated explainer video
 ---
 

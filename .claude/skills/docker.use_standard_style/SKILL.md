@@ -1,5 +1,4 @@
 ---
-name: docker.use_standard_style
 description: Align Docker files in a project directory to the standard project template style
 ---
 
