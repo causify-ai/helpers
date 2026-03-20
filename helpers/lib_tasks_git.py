@@ -624,6 +624,9 @@ def git_branch_copy(  # type: ignore
         # Automatically generate branch name.
         new_branch_name = hgit.get_branch_next_name()
     _LOG.info("new_branch_name='%s'", new_branch_name)
+    # Scratch branches do not follow the standard naming convention.
+    if new_branch_name.startswith("gp_scratch"):
+        check_branch_name = False
     # Create or go to the new branch.
     mode = "all"
     new_branch_exists = hgit.does_branch_exist(new_branch_name, mode)
