@@ -618,6 +618,224 @@ class Test_add_blank_lines_between_headers(hunitest.TestCase):
         self.helper(txt, expected)
 
 
+# #############################################################################
+# Test_convert_asterisk_bullets_to_dashes
+# #############################################################################
+
+
+class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
+    """
+    Test the _convert_asterisk_bullets_to_dashes function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _convert_asterisk_bullets_to_dashes.
+
+        :param txt: Input text to process
+        :param expected: Expected output after converting asterisk bullets
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._convert_asterisk_bullets_to_dashes(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test converting single asterisk bullet to dash.
+        """
+        # Prepare inputs.
+        txt = """
+        * First item
+        """
+        # Prepare outputs.
+        expected = """
+        - First item
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test converting multiple asterisk bullets to dashes.
+        """
+        # Prepare inputs.
+        txt = """
+        * First item
+        * Second item
+        * Third item
+        """
+        # Prepare outputs.
+        expected = """
+        - First item
+        - Second item
+        - Third item
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test converting nested asterisk bullets with indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        * Main item
+          * Nested item 1
+          * Nested item 2
+        * Another main item
+        """
+        # Prepare outputs.
+        expected = """
+        - Main item
+          - Nested item 1
+          - Nested item 2
+        - Another main item
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test mixed asterisk and dash bullets.
+        """
+        # Prepare inputs.
+        txt = """
+        * Asterisk item
+        - Dash item
+        * Another asterisk
+        """
+        # Prepare outputs.
+        expected = """
+        - Asterisk item
+        - Dash item
+        - Another asterisk
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test asterisk bullet with tab indentation.
+        """
+        # Prepare inputs.
+        txt = """
+\t* First item with tab
+\t* Second item with tab
+        """
+        # Prepare outputs.
+        expected = """
+\t- First item with tab
+\t- Second item with tab
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test that text without asterisk bullets remains unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        - Dash item
+        Regular text
+        More text
+        """
+        # Prepare outputs.
+        expected = """
+        - Dash item
+        Regular text
+        More text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test with empty input.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test with multiple levels of nested indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        * Level 1
+          * Level 2
+            * Level 3
+              * Level 4
+        """
+        # Prepare outputs.
+        expected = """
+        - Level 1
+          - Level 2
+            - Level 3
+              - Level 4
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test9(self) -> None:
+        """
+        Test that asterisks not at line start are preserved.
+        """
+        # Prepare inputs.
+        txt = """
+        * Item with asterisk *inside* text
+        - Item with asterisk * somewhere
+        Regular text with * asterisk
+        """
+        # Prepare outputs.
+        expected = """
+        - Item with asterisk *inside* text
+        - Item with asterisk * somewhere
+        Regular text with * asterisk
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test10(self) -> None:
+        """
+        Test asterisk bullets mixed with other content.
+        """
+        # Prepare inputs.
+        txt = """
+        Some introduction text.
+
+        * First point
+        * Second point
+
+        Some conclusion text.
+
+        * Another point
+        """
+        # Prepare outputs.
+        expected = """
+        Some introduction text.
+
+        - First point
+        - Second point
+
+        Some conclusion text.
+
+        - Another point
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+
 def _get_text1() -> str:
     """
     Get sample text containing mathematical equations in LaTeX format.
@@ -650,6 +868,130 @@ def _get_text1() -> str:
 
 
 # #############################################################################
+# Test_capitalize_header
+# #############################################################################
+
+
+class Test_capitalize_header(hunitest.TestCase):
+    """
+    Test the capitalize_header function handling of apostrophes.
+
+    The capitalize_header function should properly handle words with apostrophes,
+    like "won't" -> "Won't" (not "Won'T"). This tests the fix for the bug where
+    Python's str.title() capitalizes letters after apostrophes.
+    """
+
+    def helper(self, input_lines: str, expected: str) -> None:
+        """
+        Test helper for capitalize_header.
+
+        :param input_lines: Input markdown lines to process
+        :param expected: Expected output after capitalize_header processing
+        """
+        import helpers.hmarkdown_headers as hmarhead
+
+        # Prepare inputs.
+        lines = input_lines.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = hmarhead.capitalize_header(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test word with apostrophe: "won't" -> "Won't" (not "Won'T").
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### Jupyter won't connect
+        """
+        # Prepare outputs.
+        expected = """
+        ### Jupyter Won't Connect
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+    def test2(self) -> None:
+        """
+        Test correcting wrongly capitalized apostrophe: "Won'T" -> "Won't".
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### Jupyter Won'T Connect
+        """
+        # Prepare outputs.
+        expected = """
+        ### Jupyter Won't Connect
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+    def test3(self) -> None:
+        """
+        Test normal word capitalization still works.
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### Jupyter connect test
+        """
+        # Prepare outputs.
+        expected = """
+        ### Jupyter Connect Test
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+    def test4(self) -> None:
+        """
+        Test all-caps acronym is preserved.
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### ML theory and API usage
+        """
+        # Prepare outputs.
+        expected = """
+        ### ML Theory and API Usage
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+    def test5(self) -> None:
+        """
+        Test internal-capital words like "SimpleFeedForward" are preserved.
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### SimpleFeedForward network
+        """
+        # Prepare outputs.
+        expected = """
+        ### SimpleFeedForward Network
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+    def test6(self) -> None:
+        """
+        Test multiple apostrophes: "don't won't" -> "Don't Won't".
+        """
+        # Prepare inputs.
+        input_lines = """
+        ### don't won't shouldn't
+        """
+        # Prepare outputs.
+        expected = """
+        ### Don't Won't Shouldn't
+        """
+        # Run test.
+        self.helper(input_lines, expected)
+
+
+# #############################################################################
 # Test_lint_txt1
 # #############################################################################
 
@@ -671,10 +1013,10 @@ class Test_lint_txt1(hunitest.TestCase):
         :param expected: Expected output after preprocessing
         """
         # Prepare inputs.
-        txt = txt.split("\n")
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         # Run.
-        actual = dshdlitx._preprocess_txt(txt)
+        actual = dshdlitx._preprocess_txt(lines)
         # Check.
         actual = "\n".join(actual)
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
@@ -790,18 +1132,18 @@ class Test_lint_txt2(hunitest.TestCase):
         :return: The processed text.
         """
         # Prepare inputs.
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        txt = txt.split("\n")
+        txt_str = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+        lines = txt_str.split("\n")
         file_name = os.path.join(self.get_scratch_space(), file_name)
         # Run function.
-        actual = dshdlitx._perform_actions(txt, file_name)
+        actual = dshdlitx._perform_actions(lines, file_name)
         # Check.
         actual = "\n".join(actual)
         if expected:
-            expected = hprint.dedent(
+            expected_str = hprint.dedent(
                 expected, remove_lead_trail_empty_lines_=True
             )
-            self.assert_equal(actual, expected)
+            self.assert_equal(actual, expected_str)
         return actual
 
     # //////////////////////////////////////////////////////////////////////////
@@ -1180,3 +1522,94 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test_tex1.
         self.check_string(output_txt, test_method_name="test_tex1")
+
+
+# #############################################################################
+# Test_lint_txt_idempotency
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
+)
+class Test_lint_txt_idempotency(hunitest.TestCase):
+    """
+    Test that lint_txt.py does not modify already formatted files.
+    """
+
+    def run_lint_txt(
+        self,
+        in_file: str,
+        type_: str,
+        cmd_opts: str,
+    ) -> Optional[str]:
+        """
+        Run lint_txt processing directly by calling the code.
+
+        :param in_file: Path to the input file containing the notes.
+        :param type_: The output format, either 'md' or 'tex'.
+        :param cmd_opts: Additional command-line options to pass to the
+            script.
+        :return: The processed text content.
+        """
+        hdbg.dassert_in(type_, ["md", "tex"])
+        # Read input file.
+        txt = hio.from_file(in_file)
+        lines = txt.split("\n")
+        # Process the content directly with default actions (no link checking).
+        out_lines = dshdlitx._perform_actions(
+            lines,
+            in_file,
+            actions=dshdlitx._DEFAULT_ACTIONS,
+            print_width=80,
+            use_dockerized_prettier=True,
+            use_dockerized_markdown_toc=True,
+        )
+        # Return the processed text.
+        output_txt = "\n".join(out_lines)
+        return output_txt
+
+    def test_idempotency_directory(self) -> None:
+        """
+        Test idempotency for all markdown files in the input directory.
+
+        This test verifies that running lint_txt twice on each file in the
+        input directory produces identical output.
+        """
+        # Prepare inputs.
+        input_dir = self.get_input_dir()
+        hdbg.dassert_dir_exists(input_dir)
+        # Get all markdown files from input directory.
+        input_files = []
+        for file in os.listdir(input_dir):
+            file_path = os.path.join(input_dir, file)
+            if os.path.isfile(file_path) and file.endswith(".md"):
+                input_files.append(file_path)
+        # Check that we have at least one file.
+        hdbg.dassert_lt(
+            0,
+            len(input_files),
+            "No markdown files found in input directory"
+        )
+        # Test idempotency for each file.
+        for in_file in input_files:
+            _LOG.info("Testing idempotency for file: %s", in_file)
+            # Prepare outputs.
+            type_ = "md"
+            cmd_opts = ""
+            # Run the script once.
+            output_txt_1 = self.run_lint_txt(in_file, type_, cmd_opts)
+            # Format the output again using the same formatter.
+            lines = output_txt_1.split("\n")
+            output_lines = dshdlitx._perform_actions(
+                lines,
+                in_file,
+                actions=dshdlitx._DEFAULT_ACTIONS,
+                print_width=80,
+                use_dockerized_prettier=True,
+                use_dockerized_markdown_toc=True,
+            )
+            output_txt_2 = "\n".join(output_lines)
+            # Check that both runs produce identical output (idempotency).
+            self.assert_equal(output_txt_1, output_txt_2)

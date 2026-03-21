@@ -213,6 +213,63 @@ def check_master(abort_on_error: bool = True) -> None:
 
 
 # #############################################################################
+# check_merged_branch
+# #############################################################################
+
+
+def check_merged_branch(abort_on_error: bool = True) -> None:
+    """
+    Check if the current branch has already been merged into the default branch.
+
+    Committing to an already-merged branch is usually a mistake (e.g., the
+    user forgot to switch to a new branch after the merge).
+    """
+    func_name = _report()
+    # Get the current branch name.
+    cmd = "git rev-parse --abbrev-ref HEAD"
+    rc, branch_name = _system_to_string(cmd)
+    _ = rc
+    branch_name = branch_name.strip()
+    print(f"Branch is '{branch_name}'")
+    # Determine the default branch (master or main).
+    cmd = "git branch --list master main"
+    rc, branches_txt = _system_to_string(cmd)
+    _ = rc
+    default_branch = None
+    for candidate in ("master", "main"):
+        if candidate in branches_txt:
+            default_branch = candidate
+            break
+    if default_branch is None:
+        print(
+            color_highlight(
+                "Could not determine default branch (master/main): skipping check",
+                "yellow",
+            )
+        )
+        _handle_error(func_name, False, abort_on_error)
+        return
+    print(f"Default branch is '{default_branch}'")
+    # List branches already merged into the default branch.
+    cmd = f"git branch --merged {default_branch}"
+    rc, merged_txt = _system_to_string(cmd)
+    _ = rc
+    # Each line looks like "  branch-name" or "* branch-name".
+    merged_branches = [b.lstrip("* ").strip() for b in merged_txt.splitlines()]
+    error = False
+    if branch_name in merged_branches:
+        _LOG.error(
+            "Branch '%s' has already been merged into '%s'."
+            " Please switch to a new branch before committing.",
+            branch_name,
+            default_branch,
+        )
+        error = True
+    # Handle error.
+    _handle_error(func_name, error, abort_on_error)
+
+
+# #############################################################################
 # check_author
 # #############################################################################
 
