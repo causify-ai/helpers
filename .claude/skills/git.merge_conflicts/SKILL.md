@@ -1,5 +1,5 @@
 ---
-description: <Brief description of what this skill does>
+description: Merge git conflicts
 ---
 
 # Step 1: Find the files with conflicts
