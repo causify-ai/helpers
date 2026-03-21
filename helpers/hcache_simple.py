@@ -73,7 +73,7 @@ def sanity_check_function_cache(
     for cache_key, cached_value in func_cache_data.items():
         hdbg.dassert_isinstance(cache_key, str)
         hdbg.dassert_ne(cache_key, "", "Cache key is empty")
-        # cached_value can be any type, so no type check needed
+        # cached_value can be any type, so no type check needed.
         _ = cached_value
 
 
@@ -98,6 +98,12 @@ def sanity_check_cache(
 
 
 def cache_data_to_str(cache_data: _CacheType) -> str:
+    """
+    Convert cache data to a human-readable string.
+
+    :param cache_data: The cache data to convert.
+    :return: A string representation of the cache data.
+    """
     txt = []
     txt.append(hprint.frame("Cache data"))
     hdbg.dassert_isinstance(cache_data, dict)
@@ -140,6 +146,11 @@ _SYSTEM_PROPERTIES = ["type", "write_through", "exclude_keys"]
 
 
 def get_main_cache_dir() -> str:
+    """
+    Get the main cache directory (git root).
+
+    :return: The absolute path to the main cache directory.
+    """
     git_dir = hgit.find_git_root()
     cache_dir = os.path.abspath(git_dir)
     return cache_dir
@@ -295,9 +306,9 @@ def reset_cache_property() -> None:
     # Empty the values excluding the system properties like `type` and
     # `write_through`.
     _LOG.trace("before cache_property=%s", cache_property)
-    # Iterate over a list of keys to avoid modifying the dictionary during iteration
+    # Iterate over a list of keys to avoid modifying the dictionary during iteration.
     for func_name_tmp in list(cache_property.keys()):
-        # Only remove non-system properties from the function's property dict
+        # Only remove non-system properties from the function's property dict.
         func_prop = cache_property[func_name_tmp]
         for property_name_tmp in list(func_prop.keys()):
             if property_name_tmp not in _SYSTEM_PROPERTIES:
@@ -531,7 +542,7 @@ def _save_func_cache_data_to_file(
             cache_type = "json"
     hio.create_enclosing_dir(file_name, incremental=True)
     _LOG.trace("Saving to '%s'", file_name)
-    # Load data.
+    # Save data.
     if cache_type == "pickle":
         with open(file_name, "wb") as file:
             pickle.dump(func_cache_data, file)
@@ -784,7 +795,6 @@ def reset_disk_cache(func_name: str = "", interactive: bool = True) -> None:
     :param interactive: If True, prompt the user for confirmation before
         resetting the disk cache.
     """
-
     _LOG.trace(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(func_name, str)
     hdbg.dassert_isinstance(interactive, bool)
@@ -879,8 +889,8 @@ def mock_cache_from_args_kwargs(
     :param kwargs: The keyword arguments for the function.
     :param value: The value to store in the cache.
     """
-    hdbg.dassert_isinstance(args, tuple), f"args is not a tuple: {args}"
-    hdbg.dassert_isinstance(kwargs, dict), f"kwargs is not a dict: {kwargs}"
+    hdbg.dassert_isinstance(args, tuple, "args is not a tuple: %s", args)
+    hdbg.dassert_isinstance(kwargs, dict, "kwargs is not a dict: %s", kwargs)
     # Get the cache key.
     cache_key = _get_cache_key(args, kwargs)
     # Mock the cache.
@@ -924,7 +934,7 @@ def simple_cache(
     *,
     cache_type: str = "json",
     write_through: bool = True,
-    exclude_keys: List[str] = None,
+    exclude_keys: Optional[List[str]] = None,
 ) -> Callable[..., Any]:
     """
     Decorate a function to cache its results.
@@ -950,9 +960,7 @@ def simple_cache(
         if not existing_type:
             set_cache_property(func_name, "type", cache_type)
         # Handle mutable default argument.
-        nonlocal exclude_keys
-        if exclude_keys is None:
-            exclude_keys = []
+        exclude_keys_list: List[str] = exclude_keys if exclude_keys is not None else []
 
         @functools.wraps(func)
         def wrapper(
@@ -984,7 +992,7 @@ def simple_cache(
             cache = get_cache(func_name)
             # Remove keys that should not be part of the cache key.
             # Also exclude cache_mode since it's a control parameter.
-            excluded_keys = set(exclude_keys) | {"cache_mode"}
+            excluded_keys = set(exclude_keys_list) | {"cache_mode"}
             kwargs_for_cache_key = {
                 k: v for k, v in kwargs.items() if k not in excluded_keys
             }
@@ -1026,7 +1034,7 @@ def simple_cache(
             if cache_key in cache and not force_refresh:
                 _LOG.trace("Cache hit for key='%s'", cache_key)
                 # Highlight that a function was cached with a _LOG.warning,
-                # even if a cache hit is not suprising.
+                # even if a cache hit is not surprising.
                 _LOG.warning("Cache hit for %s", func_name)
                 # Update the performance stats.
                 if cache_perf:
@@ -1061,7 +1069,6 @@ def simple_cache(
                 _LOG.trace(
                     "Updating cache with key='%s' value='%s'", cache_key, value
                 )
-                #
                 if write_through:
                     _LOG.trace("Writing through to disk")
                     flush_cache_to_disk(func_name)

@@ -1,15 +1,16 @@
 ---
-description: Increase unit test coverage toward 100 percent for a given function following a plan-then-implement workflow
+description: Increase unit test coverage toward 100 percent for a given function or file following a plan-then-implement workflow
 ---
 
-- Increase unit test coverage to approach 100 percent for a given file
+Given the passed file or the function increase unit test coverage to approach 100
+percent
 
-## Step 1: Establish Current Coverage
+# Step 1: Establish Current Coverage
 
 - Identify the test file corresponding to the target function
   - Example:
     ```
-    helpers/hllm_cli.py → helpers/test/test_hllm_cli.py
+    helpers/hllm_cli.py -> helpers/test/test_hllm_cli.py
     ```
 - Run the following command and record the results:
   ```
@@ -18,7 +19,7 @@ description: Increase unit test coverage toward 100 percent for a given function
 
 - Summarize which lines and branches are not covered.
 
-## Step 2: Design a Testing Plan
+# Step 2: Design a Testing Plan
 
 - Analyze uncovered code paths and behaviors.
 - Propose a clear testing plan that:
@@ -29,7 +30,7 @@ description: Increase unit test coverage toward 100 percent for a given function
     are critical to correctness.
 - Explicitly map each uncovered area to one or more proposed tests.
 
-## Step 3: Specify Tests Without Implementation
+# Step 3: Specify Tests Without Implementation
 
 - Define test classes and test method names.
 - For each proposed test:
@@ -37,7 +38,7 @@ description: Increase unit test coverage toward 100 percent for a given function
   - Describe the expected output or observable behavior.
 - Do not write executable test code at this stage.
 
-## Step 4: Implement After Approval
+# Step 4: Implement After Approval
 
 - Wait for user confirmation or feedback on the testing plan.
 - After approval:
@@ -46,7 +47,7 @@ description: Increase unit test coverage toward 100 percent for a given function
     percent.
   - Report final coverage results and remaining gaps, if any.
 
-Important rules:
+# Important Rules
 
 - Do not implement tests before the plan is approved.
 - Do not proceed if instructions or requirements are ambiguous.
