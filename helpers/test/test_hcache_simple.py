@@ -1226,6 +1226,566 @@ class Test_cache_mode_parameter(_BaseCacheTest):
         self.assertEqual(_test_cache_mode_kwarg.call_count, initial_count + 2)
 
 
+# #############################################################################
+# Module-level helpers for new tests.
+# #############################################################################
+
+
+@hcacsimp.simple_cache(cache_type="json")
+def _test_intrinsic_func_intrinsic(x: int) -> int:
+    """
+    Return x times 3. Named with `_intrinsic` suffix to test suffix stripping.
+
+    :param x: input integer
+    :return: x * 3
+    """
+    res = x * 3
+    return res
+
+
+@hcacsimp.simple_cache(cache_type="json", exclude_keys=["session_id"])
+def _test_exclude_keys_func(x: int, *, session_id: str = "") -> int:
+    """
+    Return x times 2, ignoring session_id for caching purposes.
+
+    :param x: input integer
+    :param session_id: session identifier (excluded from cache key)
+    :return: x * 2
+    """
+    res = x * 2
+    return res
+
+
+@hcacsimp.simple_cache(cache_type="json", write_through=False)
+def _test_no_write_through(x: int) -> int:
+    """
+    Return x plus 1, with write_through disabled.
+
+    :param x: input integer
+    :return: x + 1
+    """
+    res = x + 1
+    return res
+
+
+# #############################################################################
+# Test_sanity_check_function_cache
+# #############################################################################
+
+
+class Test_sanity_check_function_cache(_BaseCacheTest):
+    """
+    Test sanity_check_function_cache for validating function cache dicts.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that sanity_check_function_cache passes for valid cache data.
+        """
+        # Prepare inputs.
+        func_cache_data = {'{"args": [1], "kwargs": {}}': 2}
+        # Run test.
+        hcacsimp.sanity_check_function_cache(func_cache_data)
+        # Check outputs (no exception raised).
+
+    def test2(self) -> None:
+        """
+        Verify that sanity_check_function_cache passes for empty dict when
+        assert_on_empty=False.
+        """
+        # Prepare inputs.
+        func_cache_data: dict = {}
+        # Run test.
+        hcacsimp.sanity_check_function_cache(
+            func_cache_data, assert_on_empty=False
+        )
+        # Check outputs (no exception raised).
+
+
+# #############################################################################
+# Test_sanity_check_cache
+# #############################################################################
+
+
+class Test_sanity_check_cache(_BaseCacheTest):
+    """
+    Test sanity_check_cache for validating nested cache dicts.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that sanity_check_cache passes for valid nested cache data.
+        """
+        # Prepare inputs.
+        cache_data = {"my_func": {'{"args": [1], "kwargs": {}}': 42}}
+        # Run test.
+        hcacsimp.sanity_check_cache(cache_data)
+        # Check outputs (no exception raised).
+
+    def test2(self) -> None:
+        """
+        Verify that sanity_check_cache passes for empty dict when
+        assert_on_empty=False.
+        """
+        # Prepare inputs.
+        cache_data: dict = {}
+        # Run test.
+        hcacsimp.sanity_check_cache(cache_data, assert_on_empty=False)
+        # Check outputs (no exception raised).
+
+
+# #############################################################################
+# Test_cache_data_to_str
+# #############################################################################
+
+
+class Test_cache_data_to_str(_BaseCacheTest):
+    """
+    Test cache_data_to_str for converting cache data to a string.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that cache_data_to_str returns a string with the function name
+        and cache key.
+        """
+        # Prepare inputs.
+        cache_data = {"my_func": {'{"args": [1], "kwargs": {}}': 42}}
+        # Run test.
+        result = hcacsimp.cache_data_to_str(cache_data)
+        # Check outputs.
+        self.assertIn("my_func", result)
+        self.assertIn('{"args": [1], "kwargs": {}}', result)
+        self.assertIn("42", result)
+
+
+# #############################################################################
+# Test_get_cache_property_system
+# #############################################################################
+
+
+class Test_get_cache_property_system(_BaseCacheTest):
+    """
+    Test get_cache_property for system properties on unknown functions.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that get_cache_property returns None for a system property when
+        the function is not in the cache property dict.
+        """
+        # Run test.
+        val = hcacsimp.get_cache_property("_nonexistent_func_xyz", "type")
+        # Check outputs.
+        self.assertIsNone(val)
+
+
+# #############################################################################
+# Test_set_cache_property_new_func
+# #############################################################################
+
+
+class Test_set_cache_property_new_func(_BaseCacheTest):
+    """
+    Test set_cache_property for a brand new function not yet in cache property.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that set_cache_property creates a new entry for a function that
+        was not previously registered.
+        """
+        # Run test.
+        hcacsimp.set_cache_property(
+            "_brand_new_func_xyz", "force_refresh", True
+        )
+        # Check outputs.
+        val = hcacsimp.get_cache_property(
+            "_brand_new_func_xyz", "force_refresh"
+        )
+        self.assertTrue(val)
+
+
+# #############################################################################
+# Test_cache_property_to_str_no_props
+# #############################################################################
+
+
+class Test_cache_property_to_str_no_props(_BaseCacheTest):
+    """
+    Test cache_property_to_str for a function with no properties in the cache.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that cache_property_to_str returns the function name header even
+        when the function has no registered cache properties.
+        """
+        # Run test with a function name not in _CACHE_PROPERTY.
+        result = hcacsimp.cache_property_to_str("_nonexistent_func_xyz")
+        # Check outputs.
+        self.assertIn("_nonexistent_func_xyz", result)
+
+
+# #############################################################################
+# Test__get_cache_file_name_auto_detect
+# #############################################################################
+
+
+class Test__get_cache_file_name_auto_detect(_BaseCacheTest):
+    """
+    Test _get_cache_file_name when cache type is None (auto-detect from disk).
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that _get_cache_file_name infers .pkl extension when a .pkl
+        file exists on disk.
+        """
+        # Prepare inputs: create a valid .pkl file in the cache dir.
+        cache_dir = hcacsimp.get_cache_dir()
+        func_name = "_auto_detect_pkl_func"
+        pkl_path = os.path.join(
+            cache_dir, f"tmp.cache_simple.{func_name}.pkl"
+        )
+        hcacsimp._save_func_cache_data_to_file(pkl_path, "pickle", {})
+        # Run test.
+        file_name = hcacsimp._get_cache_file_name(func_name)
+        # Check outputs.
+        self.assertTrue(file_name.endswith(".pkl"))
+
+    def test2(self) -> None:
+        """
+        Verify that _get_cache_file_name infers .json extension when a .json
+        file exists on disk.
+        """
+        # Prepare inputs: create a valid .json file in the cache dir.
+        cache_dir = hcacsimp.get_cache_dir()
+        func_name = "_auto_detect_json_func"
+        json_path = os.path.join(
+            cache_dir, f"tmp.cache_simple.{func_name}.json"
+        )
+        hcacsimp._save_func_cache_data_to_file(json_path, "json", {})
+        # Run test.
+        file_name = hcacsimp._get_cache_file_name(func_name)
+        # Check outputs.
+        self.assertTrue(file_name.endswith(".json"))
+
+    def test3(self) -> None:
+        """
+        Verify that _get_cache_file_name defaults to .json when no file exists.
+        """
+        # Prepare inputs: use a brand new function name with no disk file.
+        func_name = "_no_file_func_xyz"
+        # Run test.
+        file_name = hcacsimp._get_cache_file_name(func_name)
+        # Check outputs.
+        self.assertTrue(file_name.endswith(".json"))
+
+
+# #############################################################################
+# Test__save_func_cache_data_to_file_infer
+# #############################################################################
+
+
+class Test__save_func_cache_data_to_file_infer(_BaseCacheTest):
+    """
+    Test _save_func_cache_data_to_file when cache_type is None (inferred from
+    file extension).
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that _save_func_cache_data_to_file infers pickle format from
+        .pkl extension when cache_type is None.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        file_name = os.path.join(scratch_dir, "tmp_test_infer.pkl")
+        data = {'{"args": [1], "kwargs": {}}': 42}
+        # Run test.
+        hcacsimp._save_func_cache_data_to_file(file_name, None, data)
+        # Check outputs.
+        self.assertTrue(os.path.exists(file_name))
+        loaded = hcacsimp._load_func_cache_data_from_file(file_name, "pickle")
+        self.assertEqual(loaded, data)
+
+
+# #############################################################################
+# Test__load_func_cache_data_from_file_infer
+# #############################################################################
+
+
+class Test__load_func_cache_data_from_file_infer(_BaseCacheTest):
+    """
+    Test _load_func_cache_data_from_file when cache_type is None (inferred
+    from file extension).
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that _load_func_cache_data_from_file infers pickle format from
+        .pkl extension when cache_type is None.
+        """
+        # Prepare inputs: save a pickle file.
+        scratch_dir = self.get_scratch_space()
+        file_name = os.path.join(scratch_dir, "tmp_test_load_infer.pkl")
+        data = {'{"args": [5], "kwargs": {}}': 25}
+        hcacsimp._save_func_cache_data_to_file(file_name, "pickle", data)
+        # Run test with None cache_type (should infer from .pkl).
+        result = hcacsimp._load_func_cache_data_from_file(file_name, None)
+        # Check outputs.
+        self.assertEqual(result, data)
+
+
+# #############################################################################
+# Test_reset_disk_cache_no_file
+# #############################################################################
+
+
+class Test_reset_disk_cache_no_file(_BaseCacheTest):
+    """
+    Test reset_disk_cache when the target function has no disk cache file.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that reset_disk_cache does not raise when the function has no
+        cache file on disk.
+        """
+        # Prepare inputs: use a function that has never been cached to disk.
+        func_name = "_cached_json_double"
+        # Ensure no disk file exists.
+        hcacsimp.reset_disk_cache(func_name, interactive=False)
+        cache_file = hcacsimp._get_cache_file_name(func_name)
+        self.assertFalse(os.path.exists(cache_file))
+        # Run test: reset again when no file exists (should not raise).
+        hcacsimp.reset_disk_cache(func_name, interactive=False)
+        # Check outputs (no exception raised).
+
+
+# #############################################################################
+# Test_mock_cache
+# #############################################################################
+
+
+class Test_mock_cache(_BaseCacheTest):
+    """
+    Test mock_cache for inserting values directly into the cache.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that mock_cache inserts a value into the function cache that can
+        be retrieved as a cache hit.
+        """
+        # Prepare inputs.
+        func_name = "_cached_json_double"
+        cache_key = '{"args": [99], "kwargs": {}}'
+        value = 198
+        # Run test.
+        hcacsimp.mock_cache(func_name, cache_key, value)
+        # Check outputs.
+        cache = hcacsimp.get_cache(func_name)
+        self.assertEqual(cache[cache_key], value)
+
+    def test2(self) -> None:
+        """
+        Verify that a mocked cache value causes a cache hit when the decorated
+        function is called.
+        """
+        # Prepare inputs.
+        func_name = "_cached_json_double"
+        cache_key = '{"args": [77], "kwargs": {}}'
+        value = 154
+        # Run test.
+        hcacsimp.mock_cache(func_name, cache_key, value)
+        result = _cached_json_double(77, abort_on_cache_miss=True)
+        # Check outputs.
+        self.assertEqual(result, value)
+
+
+# #############################################################################
+# Test_mock_cache_from_args_kwargs
+# #############################################################################
+
+
+class Test_mock_cache_from_args_kwargs(_BaseCacheTest):
+    """
+    Test mock_cache_from_args_kwargs for inserting values via args/kwargs.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that mock_cache_from_args_kwargs inserts the correct value into
+        the cache for the given args and kwargs.
+        """
+        # Prepare inputs.
+        func_name = "_cached_json_double"
+        args = (55,)
+        kwargs: dict = {}
+        value = 110
+        # Run test.
+        hcacsimp.mock_cache_from_args_kwargs(func_name, args, kwargs, value)
+        # Check outputs.
+        expected_key = '{"args": [55], "kwargs": {}}'
+        cache = hcacsimp.get_cache(func_name)
+        self.assertEqual(cache[expected_key], value)
+
+
+# #############################################################################
+# Test_mock_cache_from_disk
+# #############################################################################
+
+
+class Test_mock_cache_from_disk(_BaseCacheTest):
+    """
+    Test mock_cache_from_disk for bulk-inserting cache data from a dict.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that mock_cache_from_disk populates the cache from a dict of
+        pre-computed values.
+        """
+        # Prepare inputs.
+        func_name = "_cached_json_double"
+        func_cache_data = {
+            '{"args": [33], "kwargs": {}}': 66,
+            '{"args": [44], "kwargs": {}}': 88,
+        }
+        # Run test.
+        hcacsimp.mock_cache_from_disk(func_name, func_cache_data)
+        # Check outputs.
+        cache = hcacsimp.get_cache(func_name)
+        self.assertEqual(cache['{"args": [33], "kwargs": {}}'], 66)
+        self.assertEqual(cache['{"args": [44], "kwargs": {}}'], 88)
+
+
+# #############################################################################
+# Test_simple_cache_intrinsic
+# #############################################################################
+
+
+class Test_simple_cache_intrinsic(_BaseCacheTest):
+    """
+    Test simple_cache decorator with a function whose name ends in _intrinsic.
+    """
+
+    def tear_down_test(self) -> None:
+        """
+        Teardown including reset of the intrinsic function cache.
+        """
+        super().tear_down_test()
+        hcacsimp.reset_cache("_test_intrinsic_func", interactive=False)
+
+    def test1(self) -> None:
+        """
+        Verify that the _intrinsic suffix is stripped and the cache key uses
+        the base function name.
+        """
+        # Run test.
+        result = _test_intrinsic_func_intrinsic(5)
+        # Check outputs.
+        self.assertEqual(result, 15)
+        # Cache should be stored under the base name (without _intrinsic).
+        cache = hcacsimp.get_cache("_test_intrinsic_func")
+        self.assertIn('{"args": [5], "kwargs": {}}', cache)
+
+
+# #############################################################################
+# Test_simple_cache_existing_type
+# #############################################################################
+
+
+class Test_simple_cache_existing_type(_BaseCacheTest):
+    """
+    Test that simple_cache preserves a pre-existing cache type setting.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that applying simple_cache with cache_type='json' does not
+        override an existing 'pickle' type already set for the function.
+        """
+        # Prepare inputs: set the type before decoration.
+        hcacsimp.set_cache_property("_inline_type_func", "type", "pickle")
+
+        def _inline_type_func(x: int) -> int:
+            return x
+
+        # Apply decorator with a different cache_type.
+        hcacsimp.simple_cache(cache_type="json")(_inline_type_func)
+        # Check outputs: type should remain 'pickle'.
+        val = hcacsimp.get_cache_property("_inline_type_func", "type")
+        self.assertEqual(val, "pickle")
+
+
+# #############################################################################
+# Test_simple_cache_exclude_keys
+# #############################################################################
+
+
+class Test_simple_cache_exclude_keys(_BaseCacheTest):
+    """
+    Test simple_cache decorator with exclude_keys parameter.
+    """
+
+    def tear_down_test(self) -> None:
+        """
+        Teardown including reset of the exclude_keys test function cache.
+        """
+        super().tear_down_test()
+        hcacsimp.reset_cache("_test_exclude_keys_func", interactive=False)
+
+    def test1(self) -> None:
+        """
+        Verify that calls with the same primary arg but different excluded
+        kwargs produce a single cache entry (the excluded key is ignored).
+        """
+        # Run test: two calls with same x but different session_id.
+        result1 = _test_exclude_keys_func(5, session_id="abc")
+        result2 = _test_exclude_keys_func(5, session_id="xyz")
+        # Check outputs.
+        self.assertEqual(result1, 10)
+        self.assertEqual(result2, 10)
+        # Only one cache entry should exist.
+        cache = hcacsimp.get_cache("_test_exclude_keys_func")
+        self.assertEqual(len(cache), 1)
+
+
+# #############################################################################
+# Test_simple_cache_no_write_through
+# #############################################################################
+
+
+class Test_simple_cache_no_write_through(_BaseCacheTest):
+    """
+    Test simple_cache decorator with write_through=False.
+    """
+
+    def tear_down_test(self) -> None:
+        """
+        Teardown including reset of the no-write-through test function cache.
+        """
+        super().tear_down_test()
+        hcacsimp.reset_cache("_test_no_write_through", interactive=False)
+
+    def test1(self) -> None:
+        """
+        Verify that with write_through=False the computed value is not
+        automatically persisted to disk after a function call.
+        """
+        # Run test.
+        result = _test_no_write_through(7)
+        self.assertEqual(result, 8)
+        # Reset memory cache so that reading goes to disk.
+        hcacsimp.reset_mem_cache("_test_no_write_through")
+        # Check outputs: disk cache should not contain the computed value.
+        disk_cache = hcacsimp.get_disk_cache("_test_no_write_through")
+        self.assertNotIn('{"args": [7], "kwargs": {}}', disk_cache)
+
+
 # # #############################################################################
 # # Test_mock_cache
 # # #############################################################################
