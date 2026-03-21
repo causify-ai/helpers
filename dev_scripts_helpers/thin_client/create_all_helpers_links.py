@@ -46,6 +46,7 @@ _FILES_TO_LINK = [
     ".gitleaksignore",
     ".isort.cfg",
     ".pre-commit-config.yaml",
+    ".vscode",
     "CLAUDE.md",
     "conftest.py",
     "invoke.yaml",
