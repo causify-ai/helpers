@@ -889,8 +889,8 @@ def mock_cache_from_args_kwargs(
     :param kwargs: The keyword arguments for the function.
     :param value: The value to store in the cache.
     """
-    hdbg.dassert_isinstance(args, tuple), f"args is not a tuple: {args}"
-    hdbg.dassert_isinstance(kwargs, dict), f"kwargs is not a dict: {kwargs}"
+    hdbg.dassert_isinstance(args, tuple, "args is not a tuple: %s", args)
+    hdbg.dassert_isinstance(kwargs, dict, "kwargs is not a dict: %s", kwargs)
     # Get the cache key.
     cache_key = _get_cache_key(args, kwargs)
     # Mock the cache.
@@ -934,7 +934,7 @@ def simple_cache(
     *,
     cache_type: str = "json",
     write_through: bool = True,
-    exclude_keys: List[str] = None,
+    exclude_keys: Optional[List[str]] = None,
 ) -> Callable[..., Any]:
     """
     Decorate a function to cache its results.
@@ -960,9 +960,7 @@ def simple_cache(
         if not existing_type:
             set_cache_property(func_name, "type", cache_type)
         # Handle mutable default argument.
-        nonlocal exclude_keys
-        if exclude_keys is None:
-            exclude_keys = []
+        exclude_keys_list: List[str] = exclude_keys if exclude_keys is not None else []
 
         @functools.wraps(func)
         def wrapper(
@@ -994,7 +992,7 @@ def simple_cache(
             cache = get_cache(func_name)
             # Remove keys that should not be part of the cache key.
             # Also exclude cache_mode since it's a control parameter.
-            excluded_keys = set(exclude_keys) | {"cache_mode"}
+            excluded_keys = set(exclude_keys_list) | {"cache_mode"}
             kwargs_for_cache_key = {
                 k: v for k, v in kwargs.items() if k not in excluded_keys
             }
