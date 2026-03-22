@@ -41,8 +41,21 @@ description: Format markdown files according to conventions for clarity, structu
 - Avoid any decorative formatting
   - Do not use line separator like `---`
 - Use only basic text
-  - **Good**: A -> B
   - **Bad**: A → B
+  - **Good**: A -> B
+
+### Text is Formatted with Bullets
+
+- Every text should start with a bullet point
+
+- **Bad**
+  ```
+  Hello, my name is ...
+  ```
+- **Good**
+  ```
+  - Hello, my name is ...
+  ```
 
 ### Use Bullets
 
@@ -59,7 +72,7 @@ description: Format markdown files according to conventions for clarity, structu
   - Examples
 
 - Use `=` for definitions
-  - Example:
+  - **Good**:
     ```
     - Latency = the delay before a transfer of data begins after an instruction
     ```
@@ -113,9 +126,9 @@ description: Format markdown files according to conventions for clarity, structu
     - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
     ```
 
-### Use Verbatim for Programs
+### Use Verbatim
 
-- For libraries, executables, scripts use verbatim
+- Use verbatim for libraries, executables, scripts 
   - E.g., `notes_to_pdf.py`, `python`, `pandas`
 
 ### Use and Do Not Use &
@@ -128,51 +141,46 @@ description: Format markdown files according to conventions for clarity, structu
 ### Writing Style
 
 - Use explicit references instead of unclear ones
-  - **Good**: "TCP protocol"
   - **Bad**: "it"
-
+  - **Good**: "TCP protocol"
 - Maintain consistent labels for recurring ideas
-
 - Avoid redundancy in concepts
-
 - Prefer plain language over academic jargon
-
 - Make sure text is short and not unnecessarily long
 
 ### Avoid Long Prose
 
 - Prefer structured notes over narrative prose
-
 - Use a first-person, self-directed voice, e.g.,
   - **Good**: "Key thing to remember: entropy increases"
 
 ### Use Direct Statements
 
 - Convert abstract principles into short, direct statements, e.g.,
-  - **Good**: "Everyone takes responsibility: no blaming others if work isn't
-    finished."
   - **Bad**: "Everyone takes responsibility, owns their projects, and blames no
     one if something doesn't get finished."
+  - **Good**: "Everyone takes responsibility: no blaming others if work isn't
+    finished."
 
 ### Try to Use Lists
 
-- **Good**
-  ```
-  - This document covers how to publish:
-    - documents
-    - books
-    - blogs
-    across different repos, e.g.,
-    - `//helpers`
-    - `//csfy`
-    - `//tutorials`
-    - `//umd_classes`
-  ```
 - **Bad**
   ```
   This document covers how to publish documents, books, and blogs across
   different repos (e.g., `//helpers`, `//csfy`, `//tutorials`, and
   `//umd_classes`)
+  ```
+- **Good**
+  ```
+  - This document covers how to publish:
+    - Documents
+    - Books
+    - Blogs
+    across different repos, e.g.,
+    - `//helpers`
+    - `//csfy`
+    - `//tutorials`
+    - `//umd_classes`
   ```
 
 ### Use Fenced Code Blocks
@@ -183,8 +191,8 @@ description: Format markdown files according to conventions for clarity, structu
     ````
     ```python
     ````
-  - If it doesn't have a valid tag, then infer it from the content of the
-    fenced block. If you are not sure, do not modify, but leave it empty
+  - If it doesn't have a valid tag, then infer it from the content of the fenced
+    block. If you are not sure, do not modify it but leave it empty
 
 - The fenced code block should be aligned with the text and the bullet points
   ````
@@ -265,14 +273,6 @@ description: Format markdown files according to conventions for clarity, structu
 ### Limit Use of Bold
 
 - Use bold sparingly and to highlight parts of text and not entire phrases
-  - **Good**
-    ```markdown
-    **How to choose:**
-
-    - **Use Standard** if you need system-level tools (git, curl, graphviz, etc.)
-    - **Use Python Slim** to minimize image size and build time
-    - **Use uv** if you want faster, more reliable dependency management
-    ```
   - **Bad**
     ````markdown
     - **Delete unused reference files**
@@ -291,3 +291,39 @@ description: Format markdown files according to conventions for clarity, structu
       > pip-compile requirements.in > requirements.txt
       ```
     ````
+  - **Good**
+    ```markdown
+    **How to choose:**
+
+    - **Use Standard** if you need system-level tools (git, curl, graphviz, etc.)
+    - **Use Python Slim** to minimize image size and build time
+    - **Use uv** if you want faster, more reliable dependency management
+    ```
+
+### Complete Missing Markdowns
+
+- If a Markdown header doesn't have a title then complete it using the content of
+
+### Make sure that the first
+
+- The markdown headers should start from 1
+  - **Bad**
+    ```markdown
+    ## Level 1
+
+    - Hello
+
+    ### Level 2
+
+    - Good bye
+    ```
+  - **Good**
+    ```markdown
+    # Level 1
+
+    - Hello
+
+    ## Level 2
+
+    - Good bye
+    ```
