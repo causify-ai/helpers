@@ -1,5 +1,6 @@
 ---
 description: Format markdown files according to conventions for clarity, structure, and consistency
+model: haiku
 ---
 
 # Summary
