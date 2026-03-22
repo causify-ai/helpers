@@ -1538,6 +1538,42 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
+    def test13(self) -> None:
+        """
+        Test that the first word after a numeric prefix is capitalized.
+        """
+        txt = r"""
+        ## 4.4 the Victim Triangle
+        """
+        expected = r"""
+        ## 4.4 The Victim Triangle
+        """
+        self.helper(txt, expected)
+
+    def test14(self) -> None:
+        """
+        Test that "of", "a", "an" after a numeric prefix are capitalized.
+        """
+        txt = r"""
+        ## 1.1 of mice and men
+        """
+        expected = r"""
+        ## 1.1 Of Mice and Men
+        """
+        self.helper(txt, expected)
+
+    def test15(self) -> None:
+        """
+        Test that "of", "a", "an" are capitalized.
+        """
+        txt = r"""
+        ## of mice and men
+        """
+        expected = r"""
+        ## Of Mice and Men
+        """
+        self.helper(txt, expected)
+
 # #############################################################################
 # Test_capitalize_header2
 # #############################################################################

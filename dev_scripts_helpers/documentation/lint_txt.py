@@ -534,7 +534,7 @@ _VALID_ACTIONS = [
 _DEFAULT_ACTIONS = [
     action
     for action in _VALID_ACTIONS
-    if action not in ["refresh_toc", "check_links"]
+    if action not in ["frame_chapters", "refresh_toc", "check_links"]
 ]
 
 

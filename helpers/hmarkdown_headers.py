@@ -251,13 +251,27 @@ def capitalize_header(lines: List[str]) -> List[str]:
             )
             # Split into words.
             words = title_with_placeholders.split()
+            # Find the first non-numeric word index to always capitalize it,
+            # even if it's in non_cap_words (e.g., "4.4 the Victim" -> "4.4 The Victim").
+            first_text_word_idx = None
+            for j, word in enumerate(words):
+                if word.startswith("__QUOTED_") and word.endswith("__"):
+                    continue
+                # Skip numeric/punctuation-only prefixes like "4.4", "1.", "1.2.3".
+                if not re.match(r"^[\d\.\-]+$", word):
+                    first_text_word_idx = j
+                    break
+            # If all words are numeric, fall back to index 0.
+            if first_text_word_idx is None and words:
+                first_text_word_idx = 0
             # Process each word.
             for i, word in enumerate(words):
                 if word.startswith("__QUOTED_") and word.endswith("__"):
                     # Skip placeholder words, they will be restored later.
                     continue
-                elif i == 0 and not word.isupper():
-                    # Capitalize the first word if it doesn't have internal capitals.
+                elif i == first_text_word_idx and not word.isupper():
+                    # Capitalize the first text word (may follow numeric prefix
+                    # like "4.4") even if it's in non_cap_words.
                     if _has_internal_capitals(word):
                         # Preserve words with internal capitals.
                         pass
