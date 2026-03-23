@@ -119,6 +119,22 @@ def run_docker_cmd(
     hsystem.system(cmd)
 
 
+def run_docker_bash(
+    script_dir: str, *, shell_cmd: str = "ls /git_root"
+) -> None:
+    """
+    Run a command inside Docker via docker_bash.sh by piping it to stdin.
+
+    :param script_dir: directory containing docker_bash.sh
+    :param shell_cmd: shell command to pipe into the interactive bash session
+    """
+    docker_bash_script = os.path.join(script_dir, "docker_bash.sh")
+    hdbg.dassert_file_exists(docker_bash_script)
+    # Pipe the command followed by exit so the interactive session terminates.
+    cmd = f"echo '{shell_cmd}' | bash {docker_bash_script}"
+    hsystem.system(cmd)
+
+
 def run_notebook_in_docker(notebook_name: str, script_dir: str) -> None:
     """
     Run a notebook inside Docker via docker_cmd.sh using jupyter nbconvert.
