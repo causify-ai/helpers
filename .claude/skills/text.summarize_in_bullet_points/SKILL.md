@@ -16,11 +16,8 @@ model: haiku
   - Extract concrete examples
   - Be concise: remove narrative prose, keep only key facts and relationships
 
-- Save the results to summary.md
-- Run lint_txt.py -i summary.md to format
-
+- Save the results to summary.md in the same dir as Claude is running
 - Print summary.md
-- Do not print anything else
 
 ## Example 1
 

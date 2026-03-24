@@ -61,8 +61,10 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     # txt = re.sub(r"\n{2,}", "\n", txt)
     # Replace … with ...
     txt = re.sub(r"…", "...", txt)
-    # Replace \t with 2 spaces
+    # Replace \t with 2 spaces.
     txt = re.sub(r"\t", "  ", txt)
+    # Convert bullet points like `• ` to `- `.
+    txt = re.sub(r"^\s*•\s+", "- ", txt, flags=re.MULTILINE)
     txt_new: List[str] = []
     for line in txt.split("\n"):
         # 2) Skip frames for all the type formats.
