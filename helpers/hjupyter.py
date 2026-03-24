@@ -6,7 +6,7 @@ import helpers.hjupyter as hjupyte
 
 import logging
 import os
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -48,7 +48,7 @@ def run_notebook(
         notebook_name = f"{root}.ipynb"
     else:
         raise ValueError(
-            f"Unsupported file format for `file_name`='{file_name}'"
+            f"Unsupported file format for file_name='{file_name}'"
         )
     # Execute notebook.
     cmd.append(f"cd {scratch_dir} &&")
@@ -61,6 +61,58 @@ def run_notebook(
     # Execute.
     cmd_as_str = " ".join(cmd)
     hsystem.system(cmd_as_str, abort_on_error=True, suppress_output=False)
+
+
+def run_notebook_cells(
+    notebook_path: str,
+    dst_notebook_path: str,
+    *,
+    num_cells: Optional[int] = None,
+    kernel_name: str = "python3",
+    timeout: int = 30,
+) -> None:
+    """
+    Execute the first N cells of a notebook and save the result.
+
+    :param notebook_path: path to the source notebook to execute
+    :param dst_notebook_path: path where the executed notebook will be saved
+    :param num_cells: number of cells to execute from the beginning; if None,
+        execute all cells
+    :param kernel_name: name of the Jupyter kernel to use
+    :param timeout: execution timeout in seconds per cell
+    """
+    import nbformat
+    from nbconvert.preprocessors import ExecutePreprocessor
+
+    hdbg.dassert_path_exists(notebook_path)
+    # Read the notebook.
+    _LOG.info("Reading notebook '%s'", notebook_path)
+    with open(notebook_path) as f:
+        nb = nbformat.read(f, as_version=4)
+    # Truncate to first N cells if requested.
+    total_cells = len(nb.cells)
+    if num_cells is not None:
+        hdbg.dassert_lte(1, num_cells, "num_cells must be >= 1")
+        hdbg.dassert_lte(
+            num_cells,
+            total_cells,
+            "num_cells=%d exceeds total cells=%d in notebook",
+            num_cells,
+            total_cells,
+        )
+        _LOG.info(
+            "Executing first %d of %d cells", num_cells, total_cells
+        )
+        nb.cells = nb.cells[:num_cells]
+    else:
+        _LOG.info("Executing all %d cells", total_cells)
+    # Execute the cells.
+    ep = ExecutePreprocessor(timeout=timeout, kernel_name=kernel_name)
+    ep.preprocess(nb)
+    # Save the executed notebook.
+    _LOG.info("Saving executed notebook to '%s'", dst_notebook_path)
+    with open(dst_notebook_path, "w") as f:
+        nbformat.write(nb, f)
 
 
 def build_run_notebook_cmd(

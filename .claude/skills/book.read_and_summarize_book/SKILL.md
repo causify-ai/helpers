@@ -34,14 +34,11 @@ Given a markdown book ${input}.${extension} and an output file ${output}.md
 
 - Write a summary using the same structure of the chapter and subchapter in
   markdown headers
-- Use numbers of chapter (e.g., 1.) and subchapters (e.g., 1.1)
-- Use the chapter numbers that come from the book
+  - Use numbers of chapter (e.g., 1.) and subchapters (e.g., 1.1)
+  - Use the chapter numbers that come from the book
 
-For each chapter and subchapter:
-- Create 4-5 bullet points capturing the main ideas
-- Use nested markdown bullets with maximal clarity and fewer words
-- Use Latex notation for formulas
-- Avoid non-ASCII symbols
+- For each chapter and subchapter, summarize the text using rules from
+  @.claude/skills/text.summarize_in_bullet_points/SKILL.md
 
 - An example is like
   ```

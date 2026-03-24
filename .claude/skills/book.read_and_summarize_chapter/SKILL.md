@@ -1,10 +1,12 @@
 ---
 description: Extract and summarize specific chapters from a book
+model: haiku
 ---
 
 # Purpose
 
-Extract chapters from a markdown-based book file, summarize their content, and answer questions about the material.
+Extract chapters from a markdown-based book file, summarize their content, and
+answer questions about the material.
 
 # When to Use
 
@@ -22,10 +24,13 @@ Extract chapters from a markdown-based book file, summarize their content, and a
 
 ## Step 1: Locate the Index File
 
-Given a book markdown file (e.g., `/Users/saggese/src/notes1/books/2023.Facure.Causal_Inference.md`), find the corresponding index file by appending `.index.md` to the book filename.
+Given a book markdown file (e.g.,
+`/Users/saggese/src/notes1/books/2023.Facure.Causal_Inference.md`), find the
+corresponding index file by appending `.index.md` to the book filename.
 
 - Expected index file: `/Users/saggese/src/notes1/books/2023.Facure.Causal_Inference.index.md`
-- The index file contains a table of contents that maps chapter titles to line numbers in the book markdown file
+- The index file contains a table of contents that maps chapter titles to line
+  numbers in the book markdown file
 
 ## Step 2: Identify Requested Chapters
 
@@ -39,22 +44,20 @@ chapter hierarchy (chapters and subchapters).
 
 ## Step 3: Extract Chapter Content
 
-Use the line numbers from the index to extract the requested chapter text from the book markdown file.
+Use the line numbers from the index to extract the requested chapter text from
+the book markdown file.
 
 Return the content to the user for context.
 
 ## Step 4: Summarize Content
 
-Write a summary using the same structure of the chapter and subchapter in
-markdown headers
-- Use numbers of chapter (e.g., 1.) and subchapters (e.g., 1.1)
-- Use the chapter numbers that come from the book
+- Write a summary using the same structure of the chapter and subchapter in
+  markdown headers
+  - Use numbers of chapter (e.g., 1.) and subchapters (e.g., 1.1)
+  - Use the chapter numbers that come from the book
 
-For each chapter and subchapter read:
-- Create 2-3 bullet points capturing the main ideas
-- Use nested markdown bullets with maximal clarity and fewer words
-- Use Latex notation for formulas
-- Avoid non-ASCII symbols
+- For each chunk of text, summarize the text using rules from
+  @.claude/skills/text.summarize_in_bullet_points/SKILL.md
 
 ## Step 5: Answer Follow-up Questions
 
