@@ -389,14 +389,22 @@ def _action_describe(
                 f for f in files if pattern_lower in os.path.basename(f).lower()
             ]
     if files:
+        # Collect entries first to compute max name length for alignment.
+        entries = []
         for f in files:
             if type_ == "skill":
                 name = os.path.basename(os.path.dirname(f))
             else:
                 name = os.path.basename(f)
             desc = _get_description(f)
+            entries.append((name, desc))
+        # Align descriptions with dots.
+        max_name_len = max(len(name) for name, _ in entries)
+        min_dots = 4
+        for name, desc in entries:
             if desc:
-                print(f"{name}\t\t\t{desc}")
+                dots = "." * (max_name_len - len(name) + min_dots)
+                print(f"{name} {dots} {desc}")
             else:
                 print(name)
     else:
