@@ -184,6 +184,20 @@ model: haiku
     - `//umd_classes`
   ```
 
+- **Bad**
+  ```
+  - They appear everywhere: husbands with controlling wives, overly helpful
+    friends with chaotic lives, seemingly stable men who suddenly fall apart
+  ```
+- **Good**
+  ```
+  - They appear everywhere:
+    - Husbands with controlling wives
+    - Overly helpful
+    - Friends with chaotic lives
+    - Seemingly stable men who suddenly fall apart
+  ```
+
 ### Use Fenced Code Blocks
 
 - Every fenced code blocks must have a valid programming language
