@@ -1,6 +1,5 @@
 ---
-description: Make the Docker build system for the tutorials and research projects
-as similar to project_template
+description: Make the Docker build system for the tutorials and research projects as similar to project_template
 ---
 
 # Step 1
@@ -8,6 +7,7 @@ as similar to project_template
 - For each project / directory $DST_DIR in the following directories:
   - `class_project/project_template/`
   - `data605/tutorials/`
+  - `msml610/tutorials/`
   - `tutorials/`
   - `research/`
 - Make the Docker files in `$DST_DIR/docker_*.sh` as similar as possible to the

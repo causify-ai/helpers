@@ -12,6 +12,7 @@ import os
 from typing import List
 
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -104,7 +105,7 @@ def run_docker_build(script_dir: str) -> None:
 
 
 def run_docker_cmd(
-    script_dir: str, *, shell_cmd: str = "ls /curr_dir"
+    script_dir: str, *, shell_cmd: str = "ls /git_root"
 ) -> None:
     """
     Run an arbitrary shell command inside Docker via docker_cmd.sh.
@@ -114,7 +115,6 @@ def run_docker_cmd(
     """
     docker_cmd_script = os.path.join(script_dir, "docker_cmd.sh")
     hdbg.dassert_file_exists(docker_cmd_script)
-    # cd into script_dir so docker_cmd.sh mounts the right directory.
     cmd = f"cd {script_dir} && bash {docker_cmd_script} '{shell_cmd}'"
     hsystem.system(cmd)
 
@@ -146,12 +146,14 @@ def run_notebook_in_docker(notebook_name: str, script_dir: str) -> None:
     docker_cmd_script = os.path.join(script_dir, "docker_cmd.sh")
     notebook_path = os.path.join(script_dir, notebook_name)
     hdbg.dassert_file_exists(notebook_path)
-    # cd into script_dir so docker_cmd.sh mounts the right directory.
-    # Inside the container the notebooks are at /curr_dir/<notebook_name>.
+    # Compute the notebook path inside the container via /git_root.
+    git_root = hgit.find_git_root(script_dir)
+    rel_path = os.path.relpath(script_dir, git_root)
+    container_notebook_path = f"/git_root/{rel_path}/{notebook_name}"
     cmd = (
         f"cd {script_dir} && "
         f"bash {docker_cmd_script} "
         f"'jupyter nbconvert --execute --to html "
-        f"--ExecutePreprocessor.timeout=-1 /curr_dir/{notebook_name}'"
+        f"--ExecutePreprocessor.timeout=-1 {container_notebook_path}'"
     )
     hsystem.system(cmd)

@@ -9,16 +9,18 @@ Provides a single interface to manage markdown files across multiple directories
 - story: short_stories/ directory
 
 Usage:
-  md.py <type> <action> [name]
+  md <type> <action> [name]
     type:   research, blog, story, skill (prefix matching supported)
-    action: list, edit, directory (supports prefix matching)
+    action: list, edit, directory, describe (supports prefix matching)
     name:   optional for 'list' action (filter pattern), required for 'edit'
 
 Examples:
-  md.py sk list                     # List all skills
-  md.py blog edit My_Post           # Edit or create a blog post
-  md.py res l causal                # List research items containing 'causal'
-  md.py story dir                   # Print short stories directory path
+  md sk list                     # List all skills
+  md sk de                       # List all skills with descriptions
+  md blog edit My_Post           # Edit or create a blog post
+  md res l causal                # List research items containing 'causal'
+  md res de causal               # List research items with descriptions
+  md story dir                   # Print short stories directory path
 
 Import as:
 
@@ -74,6 +76,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         devmduti._action_list(type_, dir_, pattern=args.name)
     elif action == "full_list":
         devmduti._action_full_list(type_, dir_, pattern=args.name)
+    elif action == "describe":
+        devmduti._action_describe(type_, dir_, pattern=args.name)
     elif action == "edit":
         hdbg.dassert_ne(
             args.name,

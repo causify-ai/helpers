@@ -28,7 +28,7 @@ _LOG = logging.getLogger(__name__)
 
 
 _VALID_TYPES = ["research", "blog", "story", "skill"]
-_VALID_ACTIONS = ["list", "edit", "directory", "full_list"]
+_VALID_ACTIONS = ["list", "edit", "directory", "full_list", "describe"]
 
 # #############################################################################
 # Helper functions
@@ -333,6 +333,74 @@ def _action_edit(type_: str, dir_: str, name: str) -> None:
     file_path = _find_file_for_edit(type_, dir_, name)
     _LOG.info("Opening file in vim: %s", file_path)
     os.system(f"vim {file_path}")
+
+
+def _get_description(file_path: str) -> str:
+    """
+    Extract the description from the YAML front matter of a markdown file.
+
+    :param file_path: path to the markdown file
+    :return: description string, or empty string if not found
+    """
+    try:
+        content = hio.from_file(file_path)
+    except Exception:
+        return ""
+    lines = content.splitlines()
+    # Check for YAML front matter (starts with ---).
+    if not lines or lines[0].strip() != "---":
+        return ""
+    # Search for "description:" within the front matter.
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        if line.startswith("description:"):
+            desc = line[len("description:"):].strip()
+            return desc
+    return ""
+
+
+def _action_describe(
+    type_: str, dir_: str, *, pattern: Optional[str] = None
+) -> None:
+    """
+    List markdown files with their description from YAML front matter.
+
+    Like list, but also prints the description line from each file.
+
+    :param type_: the type (research, blog, story, skill)
+    :param dir_: the directory to list
+    :param pattern: optional filter pattern
+    """
+    hdbg.dassert_dir_exists(dir_)
+    files = glob.glob(os.path.join(dir_, "**/*.md"), recursive=True)
+    files.sort()
+    if pattern:
+        pattern_lower = pattern.lower()
+        if type_ == "skill":
+            files = [
+                f
+                for f in files
+                if pattern_lower
+                in os.path.basename(os.path.dirname(f)).lower()
+            ]
+        else:
+            files = [
+                f for f in files if pattern_lower in os.path.basename(f).lower()
+            ]
+    if files:
+        for f in files:
+            if type_ == "skill":
+                name = os.path.basename(os.path.dirname(f))
+            else:
+                name = os.path.basename(f)
+            desc = _get_description(f)
+            if desc:
+                print(f"{name}\t\t\t{desc}")
+            else:
+                print(name)
+    else:
+        _LOG.info("No markdown files found in %s", dir_)
 
 
 def _action_directory(dir_: str) -> None:
