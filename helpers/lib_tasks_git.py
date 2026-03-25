@@ -7,6 +7,7 @@ import helpers.lib_tasks_git as hlitagit
 import logging
 import os
 import re
+import stat
 from typing import Any, List
 
 from invoke import task
@@ -26,6 +27,73 @@ _LOG = logging.getLogger(__name__)
 
 # pylint: disable=protected-access
 
+# Bits matching `chmod a+w` / `chmod a-w` on the symlink inode (not the target).
+_SYMLINK_WRITE_BITS = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
+
+
+def _collect_symlinks(dir: str) -> List[str]:
+    """
+    Collect symlink paths under a given directory.
+
+    :param dir: directory to walk
+    :return: symlink paths under `dir`
+    """
+    out: List[str] = []
+    for dirpath, dirnames, filenames in os.walk(dir, topdown=True):
+        # Skips `.git` directories. Does not follow symlinked directories.
+        if ".git" in dirnames:
+            dirnames.remove(".git")
+        for name in filenames:
+            path = os.path.join(dirpath, name)
+            if os.path.islink(path):
+                out.append(path)
+        for name in dirnames:
+            path = os.path.join(dirpath, name)
+            if os.path.islink(path):
+                out.append(path)
+    return out
+
+
+def symlink_add_write_perm(dir: str) -> None:
+    """
+    Add write permission for all on each symlink under `dir`.
+
+    :param dir: directory to walk
+    """
+    _LOG.info("Adding write permission for all on each symlink under %s", dir)
+    for path in _collect_symlinks(dir):
+        try:
+            mode = os.lstat(path).st_mode
+            os.chmod(
+                path,
+                mode | _SYMLINK_WRITE_BITS,
+                follow_symlinks=False,
+            )
+        except OSError as exc:
+            _LOG.warning("chmod a+w symlink %s: %s", path, exc)
+
+
+def symlink_remove_write_perm(dir: str) -> None:
+    """
+    Remove write permission for all on each symlink under a given directory.
+
+    :param dir: directory to walk
+    """
+    _LOG.info("Removing write permission for all on each symlink under %s", dir)
+    for path in _collect_symlinks(dir):
+        if not os.path.exists(path):
+            _LOG.warning("Skipping broken symlink: %s", path)
+            continue
+        try:
+            mode = os.lstat(path).st_mode
+            os.chmod(
+                path,
+                mode & ~_SYMLINK_WRITE_BITS,
+                follow_symlinks=False,
+            )
+        except OSError as exc:
+            _LOG.warning("chmod a-w symlink %s: %s", path, exc)
+
 
 def run_git_recursively(ctx: Any, cmd_: str) -> None:
     cmd = cmd_
@@ -42,8 +110,13 @@ def git_pull(ctx):  # type: ignore
     """
     hlitauti.report_task()
     #
-    cmd = "git pull --autostash"
-    run_git_recursively(ctx, cmd)
+    root_dir = hgit.get_client_root(super_module=False)
+    symlink_add_write_perm(root_dir)
+    try:
+        cmd = "git pull --autostash"
+        run_git_recursively(ctx, cmd)
+    finally:
+        symlink_remove_write_perm(root_dir)
 
 
 @task
