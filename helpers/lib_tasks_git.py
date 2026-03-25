@@ -144,7 +144,8 @@ def git_merge_master(
     :param abort_if_not_ff: abort if fast-forward is not possible
     :param abort_if_not_clean: abort if the client is not clean
     :param skip_fetch: skip fetching master
-    :param auto_merge: automatically commit and push if merge is successful
+    :param auto_merge: automatically commit and push if merge is
+        successful
     """
     hlitauti.report_task()
     # Check that the Git client is clean.
@@ -763,9 +764,7 @@ def _git_diff_with_branch(
         cmd.append(f"--diff-filter={diff_type}")
     cmd.append(f"--name-only HEAD {hash_}")
     cmd = " ".join(cmd)
-    files = hsystem.system_to_files(
-        cmd, dir_name, remove_files_non_present=False
-    )
+    files = hsystem.system_to_files(cmd, dir_name, remove_files_non_present=False)
     files = sorted(files)
     _LOG.debug("%s", "\n".join(files))
     # Filter by `file_name`, if needed.
@@ -1241,9 +1240,11 @@ def git_backup(
         hprint.indent(
             "\n".join(
                 [
-                    os.path.join(repo_path, file_path)
-                    if repo_path != "."
-                    else file_path
+                    (
+                        os.path.join(repo_path, file_path)
+                        if repo_path != "."
+                        else file_path
+                    )
                     for repo_path, file_path in all_files
                 ]
             )
