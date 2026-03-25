@@ -468,31 +468,6 @@ set_up_docker_aws() {
 # Symlink utils.
 # #############################################################################
 
-WRITABLE_SYMLINKS=(
-    ".claude"
-    "docs"
-)
-
-set_symlink_write_permissions() {
-    # Add write permissions for specific symlinked directories.
-    local base_dir="$1"
-    shift
-    local targets=("$@")
-
-    for name in "${targets[@]}"; do
-        local path="$base_dir/$name"
-
-        if [ -L "$path" ]; then
-            if [ -e "$path" ]; then
-                chmod a+w "$path"
-                echo -e "${INFO}: Added write permissions for: '$path'"
-            else
-                echo -e "${WARNING}: Skipping broken symlink: '$path'"
-            fi
-        fi
-    done
-}
-
 set_symlink_permissions() {
     # Remove write permissions for symlinked files to prevent accidental
     # modifications before starting to develop.
@@ -514,11 +489,6 @@ set_symlink_permissions() {
             echo -e "${WARNING}: Skipping broken symlink: '$symlink'"
         fi
     done
-
-    # Re-enable write permissions for certain symlinked directories
-    # because Git complains about write permissions when pulling.
-    # See Csfy8551.
-    set_symlink_write_permissions "$directory" "${WRITABLE_SYMLINKS[@]}"
 
     return 0
 }
