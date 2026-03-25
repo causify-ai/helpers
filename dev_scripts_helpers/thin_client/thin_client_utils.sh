@@ -515,7 +515,7 @@ set_symlink_permissions() {
         fi
     done
 
-	# Re-enable write permissions for certain symlinked directories
+    # Re-enable write permissions for certain symlinked directories
     # because Git complains about write permissions when pulling.
     # See Csfy8551.
     set_symlink_write_permissions "$directory" "${WRITABLE_SYMLINKS[@]}"
