@@ -1,5 +1,5 @@
 ---
-description: Review Python files for bugs, suggest fixes, and provide test cases as a senior engineer
+description: Review Python files for bugs, suggest fixes, and provide test cases
 ---
 
 - You are a senior Python engineer.
