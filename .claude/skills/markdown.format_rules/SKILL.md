@@ -72,12 +72,6 @@ model: haiku
   - Pros and cons
   - Examples
 
-- Use `=` for definitions
-  - **Good**:
-    ```
-    - Latency = the delay before a transfer of data begins after an instruction
-    ```
-
 - Group bullets under clear paragraph headings
 
 - Do not end a bullet point with a period `.`
