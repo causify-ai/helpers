@@ -3,272 +3,289 @@ description: Remove AI-style writing patterns from text to make it sound more na
 model: Haiku
 ---
 
-## Usage
-Update the file with the changed content.
+## Purpose
 
-At the end of the answer summarize the changes without summarizing what you did
-beyond the change log.
+Remove recognizable AI-generated writing patterns and make text sound more natural and human. You are an editor, not a rewriter: preserve the author's voice, opinions, structure, and factual content. Only clean up pattern slop.
 
-## Quick Reference Checklist
-Use this checklist to spot AI-writing patterns at a glance before applying
-detailed rules.
+## When to Use
 
-- **Grandiose language** — "vital", "pivotal", "groundbreaking", "robust",
-  "comprehensive", "nuanced", "multifaceted", "transformative"
-- **Filler hedges** — "It's worth noting that", "It's important to remember",
-  "It should be noted", "Interestingly enough"
-- **Throat-clearing intros** — "Let's dive in", "Let's unpack", "In this
-  article, we'll"
-- **Gift-wrapped endings** — "In summary", "In conclusion", "Ultimately", "At
-  the end of the day"
-- **Dramatic pivots** — "But here's the thing", "Here's the catch", "Here's what
-  most people miss"
-- **Meta-verbs** — "highlights", "underscores", "emphasizes", "showcases"
-- **Overused transitions** — "Furthermore", "Moreover", "Additionally", "In
-  addition to the above"
-- **Vague attribution** — "some experts say", "widely covered", "significant
-  attention"
-- **Copy-paste metaphors** — repeating the same metaphor word-for-word 3+ times
-- **Exhaustive lists** — 7–10 bullet points when 3 would do
-- **Passive voice clusters** — multiple passive constructions in a row
-- **Rhetorical section openers** — "So what does this mean for you?"
-- **AI vocabulary** — "delve", "leverage" (as a verb), "reimagine", "empower",
-  "unpack", "synergy"
+- Blog posts, articles, or documentation that sound generic or corporate
+- Text with recognizable AI mannerisms (hedging, dramatic pivots, clichéd transitions)
+- Prose that needs more personality before publishing
+- Cleaning up AI-written content that's factually correct but tonally flat
 
-## Detailed Rules with Examples
-You are a writing editor. Your job is to remove AI-generated writing patterns
-from the text below.
+## When NOT to Use
 
-- Do not rewrite. Do not add ideas. Do not change meaning or voice. Just clean
-  up the slop. Preserve voice, opinions, and structure. You are an editor, not a
-  ghostwriter.
-- If a sentence sounds better with a "rule break" (e.g., a well-placed em dash
-  or a short sentence run for effect), leave it. Use judgment.
-- Apply every rule below. If a pattern appears, fix it. If it doesn't appear,
-  move on.
+- Technical documentation where corporate clarity is the actual goal
+- Academic papers (formal conventions are required and deliberate)
+- Text where the original voice should be preserved entirely
+- For structural changes, reordering, fact-checking, or adding new ideas (editor role only)
 
-**Output format:** Return the cleaned text only. After the text, add a short
-bulleted list of the specific patterns you fixed.
+## What This Skill Preserves
 
-## Phrasing
+- Author's opinions, arguments, and claims
+- Document structure and organization
+- Paragraph and section order
+- Core meaning and facts
+- Intentional stylistic choices (fragments, unconventional punctuation, etc.)
 
-### 1. Em Dashes
-- Remove em dashes (—). Rewrite using commas, full stops, or restructure the
-  sentence. One or two in a long piece is fine. Three or more is a pattern.
+## Workflow
 
-### 2. Corrective Antithesis
-- Remove **"Not X. But Y."** constructions where you set up something the reader
-  never assumed and then correct it for drama
-- Just say what you mean directly
+1. Read the Pattern Checklist to identify obvious AI markers
+2. Apply the 19 Detailed Rules systematically (below)
+3. Decide for each rule: remove the pattern OR keep it (if it serves the writing)
+4. Return cleaned text + concise changelog
 
-- **Bad:**
-  - "This isn't because they don't trust the technology. It's because they can't
-    predict it."
+## Output Format
 
-- **Good:**
-  - "They trust the technology fine. What they can't do is predict it."
+Return exactly two sections:
 
-### 3. Dramatic Pivot Phrases
-- Remove:
-  - _"But here's the thing."_
-  - _"Here's the catch."_
-  - _"Here's the bind."_
-  - _"Here's what most people miss."_ and similar theatrical pivots
-- Fold the point into the sentence naturally.
+1. **Cleaned text** — edited content with AI patterns removed
+2. **Changes** — bulleted list of specific patterns fixed
 
-- **Bad:**
-  - "The patterns are valuable. But here's the bind: building a tool cost more
-    than most could justify."
+Example:
+```
+[cleaned text here]
 
-- **Good:**
-  - "The patterns are valuable but building a tool to capture them cost more
-    than most could justify."
+Changes:
+- Removed dramatic pivot ("But here's the thing...")
+- Replaced "delve" → "explore"
+- Cut gift-wrapped conclusion ("In summary...")
+- Rewrote passive cluster in para 3 to active voice
+```
 
-### 4. Soft Hedging Language
-- Remove filler hedges. Just say the thing.
+## Pattern Checklist
 
-- Cut phrases like:
-  - "It's worth noting that"
-  - "Something we've observed"
-  - "This is where X really shines"
-  - "It's important to remember"
-  - "It should be noted"
-  - "Interestingly enough"
+Scan for these AI markers before applying detailed rules:
 
-- **Bad:**
-  - "It's worth noting that this approach has shown some promising results in
-    certain contexts."
+**Overused Words & Jargon**
+- Grandiose: "vital", "pivotal", "groundbreaking", "robust", "comprehensive", "nuanced", "multifaceted", "transformative"
+- AI vocabulary: "delve", "leverage" (verb), "reimagine", "empower", "unpack", "synergy"
 
-- **Good:**
-  - "This approach works."
+**Filler & Hedges**
+- "It's worth noting that", "It's important to remember", "It should be noted", "Interestingly enough"
+- "Something we've observed", "This is where X really shines"
 
-### 5. Overused Transition Words
-- Cut or vary "Furthermore", "Moreover", "Additionally", "In addition to the
-  above" when chained together. Real writers use them sparingly.
+**Theatrical Transitions & Pivots**
+- Throat-clearing: "Let's dive in", "Let's unpack", "In this article, we'll"
+- Dramatic pivots: "But here's the thing", "Here's the catch", "Here's what most people miss"
+- Overused connectors: "Furthermore", "Moreover", "Additionally", "In addition to the above"
+- Rhetorical openers: "So what does this mean for you?", "Why does this matter?"
 
-- **Bad:**
-  - "The system is fast. Furthermore, it is reliable. Moreover, it is easy to
-    use. Additionally, it integrates well."
+**Structural Patterns**
+- Gift-wrapped endings: "In summary", "In conclusion", "Ultimately", "At the end of the day", "Moving forward"
+- Exhaustive lists: 7–10 items when 3–4 would suffice
+- Passive voice clusters: 2+ passive sentences in a row
+- Corrective antithesis: "Not X. But Y." setup-payoff constructions
 
-- **Good:**
-  - "The system is fast, reliable, easy to use, and integrates without
-    friction."
+**Meta-Language & Vagueness**
+- Meta-verbs: "highlights", "underscores", "emphasizes", "showcases", "illustrates"
+- Vague attribution: "some experts say", "widely covered", "significant attention"
+- Copy-paste metaphors: same metaphor repeated word-for-word 3+ times
 
-### 6. AI Vocabulary
-- Replace words that AI overuses with plain alternatives:
-  - "delve" → explore, look at, examine
-  - "leverage" (verb) → use, apply, rely on
-  - "robust" → strong, solid, reliable
-  - "comprehensive" → thorough, complete, full
-  - "nuanced" → subtle, layered, specific
-  - "multifaceted" → complex, varied
-  - "transformative" → significant, major
-  - "unpack" → explain, break down
-  - "reimagine" → rethink, redesign
-  - "empower" → let, help, enable
+## Core Principles
 
-### 7. Meta-Verbs
-- Instead of saying something "highlights", "underscores", "emphasizes",
-  "showcases", or "illustrates" a point, just explain what it shows directly.
+- **Edit, don't rewrite** — Clean up pattern slop, preserve voice, opinions, structure, and meaning
+- **Apply systematically** — Check all 19 rules below; skip only if the rule doesn't apply to the text
+- **Use judgment on conflicts** — If a rule break serves the writing (e.g., a well-placed em dash for effect), keep it
+- **Change nothing else** — Don't reorder paragraphs, add ideas, rephrase core arguments, or alter facts
 
-- **Bad:**
-  - "This underscores the importance of clear communication."
+# Rules
 
-- **Good:**
-  - "Clear communication matters here."
+## Rule 1: Em Dashes
 
-### 8. Passive Voice Clusters
-- Flag sequences of two or more passive constructions in a row. Rewrite at least
-  one in active voice to restore momentum.
+Remove excessive em dashes (—). Rewrite using commas, full stops, or restructure the sentence. One or two in a long piece is fine. Three or more is a pattern worth fixing.
 
-- **Bad:**
-  - "The report was reviewed by the team. Errors were identified. Changes were
-    recommended."
+## Rule 2: Corrective Antithesis
 
-- **Good:**
-  - "The team reviewed the report, found errors, and recommended changes."
+Remove "Not X. But Y." constructions where you set up something the reader never assumed, then correct it for drama.
 
-### 9. Rhetorical Section Openers
-- Cut rhetorical questions used as section transitions ("So what does this mean
-  for you?", "Why does this matter?"). Either state the answer directly or
-  remove entirely.
+**Bad:**
+"This isn't because they don't trust the technology. It's because they can't predict it."
 
-- **Bad:**
-  - "So what does this mean for your team? It means you need to rethink your
-    process."
+**Good:**
+"They trust the technology fine. What they can't do is predict it."
 
-- **Good:**
-  - "Your team needs to rethink its process."
+## Rule 3: Dramatic Pivot Phrases
 
-## Rhythm
+Remove theatrical pivots:
+- "But here's the thing."
+- "Here's the catch."
+- "Here's the bind."
+- "Here's what most people miss."
 
-### 10. Staccato Rhythm
-- Break up runs of short, punchy sentences that stack without variation. Combine
-  some. Lengthen others. Let the rhythm follow the thinking, not a drumbeat.
+Fold the point into the sentence naturally.
 
-- **Bad:**
-  - "Now, agents act. They send emails. They modify code. They book
-    appointments."
+**Bad:**
+"The patterns are valuable. But here's the bind: building a tool cost more than most could justify."
 
-- **Good:**
-  - "Agents are starting to do real things now. They'll send an email on your
-    behalf or update a database, sometimes without you even realising it
-    happened."
+**Good:**
+"The patterns are valuable but building a tool to capture them cost more than most could justify."
 
-### 11. Cookie-Cutter Paragraphs
-- Vary paragraph length. If every paragraph is 3–4 sentences, break some into
-  one-liners and let others stretch. The shape of the text on the page should
-  look uneven, like real thinking.
+## Rule 4: Soft Hedging Language
 
-### 12. Gift-Wrapped Endings
-- Remove summary conclusions that restate the article's points
-- Cut:
-  - _"In summary"_
-  - _"In conclusion"_
-  - _"Ultimately"_
-  - _"Moving forward"_
-  - _"At the end of the day"_
-- End with something specific, human, or unresolved
+Cut filler hedges. Just say the thing.
 
-- **Bad:**
-  - "In summary, by focusing on clear communication, consistent feedback, and
-    mutual trust, teams can build stronger relationships."
+Remove:
+- "It's worth noting that"
+- "Something we've observed"
+- "This is where X really shines"
+- "It's important to remember"
+- "It should be noted"
+- "Interestingly enough"
 
-- **Good:**
-  - "The best teams I've worked with never talked about trust. They just had
-    it."
+**Bad:**
+"It's worth noting that this approach has shown some promising results in certain contexts."
 
-### 13. Throat-Clearing Intros
-- Remove:
-  - _"Let's explore"_
-  - _"Let's unpack"_
-  - _"Let's dive in"_
-  - _"Let's break it down"_
-  - _"In this article, we'll"_
-- Just start. The best first sentence puts the reader in the middle of
-  something.
+**Good:**
+"This approach works."
 
-- **Bad:**
-  - "In this article, we'll explore the hidden costs of micromanagement. Let's
-    dive in."
+## Rule 5: Overused Transition Words
 
-- **Good:**
-  - "I micromanaged someone last Tuesday."
+Cut or vary "Furthermore", "Moreover", "Additionally", "In addition to the above" when chained together. Real writers use them sparingly.
 
-### 14. Exhaustive Lists
-- Trim bullet lists that run to 7–10 items when 3–4 would cover the essential
-  points. Long lists signal AI comprehensiveness, not human judgment. Cut the
-  weakest items.
+**Bad:**
+"The system is fast. Furthermore, it is reliable. Moreover, it is easy to use. Additionally, it integrates well."
 
-## Authenticity
+**Good:**
+"The system is fast, reliable, easy to use, and integrates without friction."
 
-### 15. Perfect Punctuation
-- Don't correct every grammar "mistake" if it sounds more natural broken.
-  - Fragments are fine
-  - Starting with _And_ or _But_ is fine
-  - A comma splice can stay if it reads well
-- If the draft has personality in its punctuation, keep it.
+## Rule 6: AI Vocabulary
 
-### 16. Copy-Paste Metaphors
-- If the same metaphor or phrase appears more than twice, vary the language. Use
-  a pronoun, rephrase it, or trust the reader to remember.
-- Never repeat a metaphor word-for-word three times.
+Replace words AI overuses with plain alternatives:
 
-- **Bad:**
-  - "Trust is like a battery. When the trust battery is full... But when the
-    trust battery runs low... To recharge the trust battery..."
+- "delve" → explore, look at, examine
+- "leverage" (verb) → use, apply, rely on
+- "robust" → strong, solid, reliable
+- "comprehensive" → thorough, complete, full
+- "nuanced" → subtle, layered, specific
+- "multifaceted" → complex, varied
+- "transformative" → significant, major
+- "unpack" → explain, break down
+- "reimagine" → rethink, redesign
+- "empower" → let, help, enable
 
-- **Good:**
-  - "Trust is like a battery. When it's full, you barely think about it. But let
-    it drain and suddenly every interaction needs a charger."
+## Rule 7: Meta-Verbs
 
-### 17. Overexplaining the Obvious
-- Cut sentences that explain things the reader already understands. If you've
-  made a clear point, don't then re-explain how that point works.
+Don't say something "highlights", "underscores", "emphasizes", "showcases", or "illustrates" a point. Explain what it actually shows.
 
-- **Bad:**
-  - "Trust is earned over time. You give people small tasks, observe how they
-    handle them, then gradually expand their responsibilities."
+**Bad:**
+"This underscores the importance of clear communication."
 
-- **Good:**
-  - "Trust is earned. Everyone knows this. The question is whether you're
-    actually giving people the chance to earn it."
+**Good:**
+"Clear communication matters here."
 
-### 18. Generic Examples
-- Flag examples that could apply to any company or product. If an example
-  doesn't contain a specific, surprising, or insider detail, it's filler. Either
-  sharpen it or cut it.
+## Rule 8: Passive Voice Clusters
 
-- **Bad:**
-  - "Take Slack, for example. By focusing on seamless team communication, they
-    transformed how modern workplaces collaborate."
+Flag sequences of two or more passive constructions in a row. Rewrite at least one in active voice to restore momentum.
 
-- **Good:**
-  - "Slack solved the wrong problem brilliantly. Nobody needed another messaging
-    app, but everyone needed a place to dump links and pretend they'd read them
-    later."
+**Bad:**
+"The report was reviewed by the team. Errors were identified. Changes were recommended."
 
-### 19. Vague Attribution
-- Avoid vague references like "some experts say...", "widely covered",
-  "significant attention". Identify the actual critic, report, study, or author
-  when possible. If you can't name the source, cut the claim.
+**Good:**
+"The team reviewed the report, found errors, and recommended changes."
+
+## Rule 9: Rhetorical Section Openers
+
+Cut rhetorical questions used as transitions ("So what does this mean for you?", "Why does this matter?"). State the answer directly or remove entirely.
+
+**Bad:**
+"So what does this mean for your team? It means you need to rethink your process."
+
+**Good:**
+"Your team needs to rethink its process."
+
+## Rule 10: Staccato Rhythm
+
+Break up runs of short, punchy sentences that stack without variation. Combine some. Lengthen others. Let rhythm follow the thinking, not a drumbeat.
+
+**Bad:**
+"Now, agents act. They send emails. They modify code. They book appointments."
+
+**Good:**
+"Agents are starting to do real things now. They'll send an email on your behalf or update a database, sometimes without you even realizing it happened."
+
+## Rule 11: Cookie-Cutter Paragraphs
+
+Vary paragraph length. If every paragraph is 3–4 sentences, break some into one-liners and let others stretch. The shape on the page should look uneven, like real thinking.
+
+## Rule 12: Gift-Wrapped Endings
+
+Remove summary conclusions that restate the article's points. Cut:
+- "In summary"
+- "In conclusion"
+- "Ultimately"
+- "Moving forward"
+- "At the end of the day"
+
+End with something specific, human, or unresolved.
+
+**Bad:**
+"In summary, by focusing on clear communication, consistent feedback, and mutual trust, teams can build stronger relationships."
+
+**Good:**
+"The best teams I've worked with never talked about trust. They just had it."
+
+## Rule 13: Throat-Clearing Intros
+
+Remove:
+- "Let's explore"
+- "Let's unpack"
+- "Let's dive in"
+- "Let's break it down"
+- "In this article, we'll"
+
+Just start. The best first sentence puts the reader in the middle of something.
+
+**Bad:**
+"In this article, we'll explore the hidden costs of micromanagement. Let's dive in."
+
+**Good:**
+"I micromanaged someone last Tuesday."
+
+## Rule 14: Exhaustive Lists
+
+Trim bullet lists that run to 7–10 items when 3–4 would cover the essential points. Long lists signal AI comprehensiveness, not human judgment. Cut the weakest items.
+
+## Rule 15: Perfect Punctuation
+
+Don't correct every grammar "mistake" if it sounds more natural broken.
+- Fragments are fine
+- Starting with "And" or "But" is fine
+- A comma splice can stay if it reads well
+
+If the draft has personality in its punctuation, keep it.
+
+## Rule 16: Copy-Paste Metaphors
+
+If the same metaphor or phrase appears more than twice, vary the language. Use a pronoun, rephrase it, or trust the reader to remember. Never repeat a metaphor word-for-word three times.
+
+**Bad:**
+"Trust is like a battery. When the trust battery is full... But when the trust battery runs low... To recharge the trust battery..."
+
+**Good:**
+"Trust is like a battery. When it's full, you barely think about it. But let it drain and suddenly every interaction needs a charger."
+
+## Rule 17: Overexplaining the Obvious
+
+Cut sentences that explain things the reader already understands. If you've made a clear point, don't re-explain how it works.
+
+**Bad:**
+"Trust is earned over time. You give people small tasks, observe how they handle them, then gradually expand their responsibilities."
+
+**Good:**
+"Trust is earned. Everyone knows this. The question is whether you're actually giving people the chance to earn it."
+
+## Rule 18: Generic Examples
+
+Flag examples that could apply to any company or product. If an example doesn't contain a specific, surprising, or insider detail, it's filler. Either sharpen it or cut it.
+
+**Bad:**
+"Take Slack, for example. By focusing on seamless team communication, they transformed how modern workplaces collaborate."
+
+**Good:**
+"Slack solved the wrong problem brilliantly. Nobody needed another messaging app, but everyone needed a place to dump links and pretend they'd read them later."
+
+## Rule 19: Vague Attribution
+
+Avoid vague references like "some experts say", "widely covered", "significant attention". Identify the actual critic, report, study, or author when possible. If you can't name the source, cut the claim.
