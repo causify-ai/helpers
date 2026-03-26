@@ -16,90 +16,56 @@ This repo is useful in three common contexts:
 ## One-minute map (how the repo fits together)
 
 ```mermaid
-
----
-config:
-  flowchart:
-    curve: monotoneX
-    htmlLabels: true
-  layout: elk
-  themeVariables:
-    primaryColor: '#e8ebf0'
-    primaryTextColor: '#0f172a'
-    secondaryColor: '#f5f6f8'
-    tertiaryColor: '#f9fafb'
-    lineColor: '#94a3b8'
----
-
 flowchart LR
- subgraph Lib["🐍 Python Library (`helpers/`)"]
+  subgraph Lib["Python Library (helpers/)"]
     direction TB
-        Core["Core Helpers<br>(hdbg, hio, hsystem, hgit, hdocker, hdatetime, …)"]
-        Data["Data Helpers<br>(hpandas and related modules)"]
-        LLM["LLM &amp; Agentic Helpers<br>(hllm, hllm_cost, hllm_cli, hchatgpt, …)"]
+    Core["`**Core Helpers**
+    hdbg · hio · hsystem · hgit · hdocker · hdatetime`"]
+    Data["`**Data Helpers**
+    hpandas and related modules`"]
+    LLM["`**LLM and Agentic Helpers**
+    hllm · hllm_cost · hllm_cli · hchatgpt`"]
   end
- subgraph Config["⚙️ Configuration Patterns (`config_root/`)"]
-        Conf["Env-aware configuration objects<br>and builders"]
-  end
- subgraph Tooling["🛠️ Tooling & Automation"]
-        Scripts@{ label: "Dev Scripts<br/>(`dev_scripts_helpers/`)" }
-        Import@{ label: "Import Hygiene<br/>(`import_check/`)" }
-        Linters@{ label: "Linting Framework<br/>(`linters/`, `linters2/`)" }
-        Tasks@{ label: "Repo Tasks & Automation<br/>(`tasks.py`, `invoke.yaml`)" }
-  end
- subgraph Docs["Documentation & Examples"]
-        Human@{ label: "Human Docs<br/>(`docs/`)" }
-        Mk@{ label: "MkDocs Site<br/>(`docs_mkdocs/`)" }
-        NB@{ label: "Tutorial Notebooks<br/>(`helpers/notebooks/`)" }
-  end
- subgraph CI["Continuous Integration & Hygiene"]
-        GH@{ label: "GitHub Workflows<br/>(`.github/`)" }
-        PC@{ label: "Pre-commit & Scanning<br/>(`.pre-commit-config.yaml`, semgrep, …)" }
-  end
-    Core -- provides base utilities to --> Conf
-    Data -- feeds data into --> Conf
-    LLM -- adds AI logic to --> Conf
-    Scripts -- triggers tasks in --> GH
-    Import -- enforces rules in --> GH
-    Linters -- runs in --> GH
-    Tasks -- executes workflows in --> GH
-    Human -- documented in --> GH
-    Mk -- deployed via --> GH
-    NB -- tested in --> GH
-    PC -- validates via --> GH
 
-    Core@{ shape: rounded}
-    Data@{ shape: rounded}
-    LLM@{ shape: rounded}
-    Conf@{ shape: rect}
-    Scripts@{ shape: rect}
-    Import@{ shape: rect}
-    Linters@{ shape: rect}
-    Tasks@{ shape: rect}
-    Human@{ shape: doc}
-    Mk@{ shape: doc}
-    NB@{ shape: doc}
-    GH@{ shape: rect}
-    PC@{ shape: rect}
-     Core:::lib
-     Data:::lib
-     LLM:::lib
-     Conf:::config
-     Scripts:::tooling
-     Import:::tooling
-     Linters:::tooling
-     Tasks:::tooling
-     Human:::docs
-     Mk:::docs
-     NB:::docs
-     GH:::ci
-     PC:::ci
-    classDef lib fill:#e0f7fa,stroke:#0097a7,stroke-width:2px,color:#004d40
-    classDef config fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#795548
-    classDef tooling fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
-    classDef docs fill:#c5cae9,stroke:#3949ab,stroke-width:2px,color:#1a237e
-    classDef ci fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
-````
+  subgraph Config["Configuration Patterns (config_root/)"]
+    Conf["`Env-aware config objects and builders`"]
+  end
+
+  subgraph Tooling["Tooling and Automation"]
+    direction TB
+    Scripts["`Dev Scripts
+    dev_scripts_helpers/`"]
+    Import["`Import Hygiene
+    import_check/`"]
+    Linters["`Linting Framework
+    linters/ · linters2/`"]
+    Tasks["`Repo Tasks
+    tasks.py · invoke.yaml`"]
+  end
+
+  subgraph Docs["Documentation and Examples"]
+    direction TB
+    Human["`Human Docs
+    docs/`"]
+    Mk["`MkDocs Site
+    docs_mkdocs/`"]
+    NB["`Tutorial Notebooks
+    helpers/notebooks/`"]
+  end
+
+  subgraph CI["Continuous Integration and Hygiene"]
+    direction TB
+    GH["`GitHub Workflows
+    .github/`"]
+    PC["`Pre-commit and Scanning
+    .pre-commit-config.yaml · semgrep`"]
+  end
+
+  Lib --> Config
+  Config --> Tooling
+  Tooling --> CI
+  Docs -.-> CI
+```
 
 ## Why this exists (the philosophy)
 
@@ -325,4 +291,4 @@ This repo includes secret-scanning and standard hygiene.
 
 ## License
 
-See `LICENSE`.
+See [`LICENSE`](LICENSE).
