@@ -21,5 +21,25 @@ Tasks:
 - Suggest possible fixes
 - Suggest labels
 
+- Use bullet points, do not use page separator, limit the amount of markdown
+  formatting (e.g., bold)
+
+- The output should have the following format
+  ```
+  ## Status: **PARTIALLY RESOLVED**
+
+  ## Root Cause
+
+  ## Current State Analysis
+
+  ## Difficulty Estimate: **MEDIUM**
+
+  ## Recommended Fix Strategy
+
+  ## Suggested Labels
+
+  ## Additional Notes
+  ```
+
 - Do not solve or write any code, only study the problem and propose a solution
 - Do not update GitHub
