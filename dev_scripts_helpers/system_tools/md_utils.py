@@ -247,13 +247,18 @@ def _find_file_for_edit(type_: str, dir_: str, name: str) -> str:
         # Check if there are multiple matching skill directories.
         candidates = glob.glob(os.path.join(dir_, f"*{name}*", "SKILL.md"))
         if candidates:
+            # Check for exact match first.
+            exact_match = os.path.join(dir_, name, "SKILL.md")
+            if os.path.exists(exact_match):
+                return exact_match
+            # If multiple non-exact matches, fail.
             if len(candidates) > 1:
                 msg = f"Multiple skills match pattern '{name}':\n"
                 for candidate in candidates:
                     skill_name = os.path.basename(os.path.dirname(candidate))
                     msg += f"  - {skill_name}\n"
                 hdbg.dfatal(msg)
-            # Exact match found.
+            # Single non-exact match found.
             return candidates[0]
         # Create new skill with exact name.
         skill_dir = os.path.join(dir_, name)
