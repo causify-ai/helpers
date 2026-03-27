@@ -17,7 +17,8 @@ description: Format Jupyter notebooks according to conventions including jupytex
 
 - Each notebook has the following format
 
-- The first cell of a notebook is:
+- The first cell of a notebook contains basic initialization that is the same for
+  all notebooks
 
   ```python
   %load_ext autoreload
@@ -30,14 +31,15 @@ description: Format Jupyter notebooks according to conventions including jupytex
   import seaborn as sns
   import matplotlib.pyplot as plt
 
-  ut.config_notebook()
+  import helpers.hnotebook as hnotebo
+  hnotebo.config_notebook()
 
   # Initialize logger.
   logging.basicConfig(level=logging.INFO)
   _LOG = logging.getLogger(__name__)
   ```
 
-- The second cell is like:
+- The second cell contains imports specific of the notebook
 
   ```python
   import msml610_utils as ut
