@@ -6,7 +6,7 @@ description: Lint a Jupyter notebook and ensure cells are numbered consecutively
   appearance without changing its behavior using the rules from
   @.claude/skills/notebook.format_rules/SKILL.md
 
-## Workflow
+# Workflow
 
 1. Read all existing cell headers and identify the current numbering
 2. Identify gaps, duplicates, or out-of-order cell numbers
@@ -214,25 +214,25 @@ description: Lint a Jupyter notebook and ensure cells are numbered consecutively
 - When the code implementing the cells is in a `*_utils.py` Python file, make
   sure that:
 
-1. All the code must be in the right order according to the cells
-   - E.g., the code for `cell1_draw_bin_with_marbles_interactive` comes before
-     the code for `cell2_...`
-2. All the code for each chunk of cells is close to each other
-3. In the Python file, there are framed dividers between cells matching the
-   title of the cells
-   - Good
+  1. All the code must be in the right order according to the cells
+     - E.g., the code for `cell1_draw_bin_with_marbles_interactive` comes before
+       the code for `cell2_...`
+  2. All the code for each chunk of cells is close to each other
+  3. In the Python file, there are framed dividers between cells matching the
+     title of the cells
+     - Good
 
-     ```python
-     # ####################...
-     # Cell 1: Visual Bin: Population of Marbles.
-     # ####################...
+       ```python
+       # ####################...
+       # Cell 1: Visual Bin: Population of Marbles.
+       # ####################...
 
-     def cell1_calculate_entropy(
-     ...
+       def cell1_calculate_entropy(
+       ...
 
-     # ####################...
-     # Cell 2: ...
-     # ####################...
+       # ####################...
+       # Cell 2: ...
+       # ####################...
 
-     def cell2_plot_distribution_with_stats(
-     ```
+       def cell2_plot_distribution_with_stats(
+       ```

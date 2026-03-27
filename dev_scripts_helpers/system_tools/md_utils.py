@@ -322,17 +322,18 @@ def _action_full_list(
     _list_markdown_files(dir_, type_, pattern=pattern, full_path=True)
 
 
-def _action_edit(type_: str, dir_: str, name: str) -> None:
+def _action_edit(type_: str, dir_: str, names: List[str]) -> None:
     """
-    Open a file for editing (creating it if necessary).
+    Open file(s) for editing (creating if necessary).
 
     :param type_: the type (research, blog, story, skill)
     :param dir_: the base directory for this type
-    :param name: the file name to edit
+    :param names: list of file name(s) to edit
     """
-    file_path = _find_file_for_edit(type_, dir_, name)
-    _LOG.info("Opening file in vim: %s", file_path)
-    os.system(f"vim {file_path}")
+    file_paths = [_find_file_for_edit(type_, dir_, name) for name in names]
+    files_str = " ".join(f'"{path}"' for path in file_paths)
+    _LOG.info("Opening %d file(s) in vim", len(file_paths))
+    os.system(f"vim {files_str}")
 
 
 def _get_description(file_path: str) -> str:

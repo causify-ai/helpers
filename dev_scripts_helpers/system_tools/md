@@ -9,15 +9,16 @@ Provides a single interface to manage markdown files across multiple directories
 - story: short_stories/ directory
 
 Usage:
-  md <type> <action> [name]
+  md <type> <action> [names...]
     type:   research, blog, story, skill (prefix matching supported)
     action: list, edit, directory, describe (supports prefix matching)
-    name:   optional for 'list' action (filter pattern), required for 'edit'
+    names:  optional for 'list' action (filter pattern), multiple allowed for 'edit'
 
 Examples:
   md sk list                     # List all skills
   md sk de                       # List all skills with descriptions
   md blog edit My_Post           # Edit or create a blog post
+  md skill e notebook.utils_library notebook.split_cells  # Edit multiple skills
   md res l causal                # List research items containing 'causal'
   md res de causal               # List research items with descriptions
   md story dir                   # Print short stories directory path
@@ -56,10 +57,10 @@ def _parse() -> argparse.ArgumentParser:
         help="Action: list, edit, directory (supports prefix matching)",
     )
     parser.add_argument(
-        "name",
-        nargs="?",
-        default=None,
-        help="Name/pattern (optional for list, required for edit)",
+        "names",
+        nargs="*",
+        default=[],
+        help="Name(s)/pattern (optional for list, required for edit; multiple allowed for edit)",
     )
     hparser.add_verbosity_arg(parser)
     return parser
@@ -70,21 +71,26 @@ def _main(parser: argparse.ArgumentParser) -> None:
     logging.basicConfig(level=args.log_level)
     type_ = devmduti._match_prefix(args.type, devmduti._VALID_TYPES)
     action = devmduti._match_prefix(args.action, devmduti._VALID_ACTIONS)
-    args.name = devmduti._normalize_name(args.name)
+    # For non-edit actions, use first name as pattern if available.
+    pattern = None
+    if args.names:
+        pattern = devmduti._normalize_name(args.names[0])
     dir_ = devmduti._get_directory(type_)
     if action == "list":
-        devmduti._action_list(type_, dir_, pattern=args.name)
+        devmduti._action_list(type_, dir_, pattern=pattern)
     elif action == "full_list":
-        devmduti._action_full_list(type_, dir_, pattern=args.name)
+        devmduti._action_full_list(type_, dir_, pattern=pattern)
     elif action == "describe":
-        devmduti._action_describe(type_, dir_, pattern=args.name)
+        devmduti._action_describe(type_, dir_, pattern=pattern)
     elif action == "edit":
         hdbg.dassert_ne(
-            args.name,
-            None,
-            "Name is required for edit action",
+            args.names,
+            [],
+            "Name(s) required for edit action",
         )
-        devmduti._action_edit(type_, dir_, args.name)
+        # Normalize all names.
+        normalized_names = [devmduti._normalize_name(name) for name in args.names]
+        devmduti._action_edit(type_, dir_, normalized_names)
     elif action == "directory":
         devmduti._action_directory(dir_)
     else:

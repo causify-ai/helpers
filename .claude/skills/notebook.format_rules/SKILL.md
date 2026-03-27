@@ -8,23 +8,6 @@ description: Format Jupyter notebooks according to conventions including jupytex
   a `py:percent` format
   - E.g., `msml610/tutorials/Lesson94-Information_Theory.py`
 
-# Use Jupytext
-
-- When changing a notebook, you must only modify the Python file paired with the
-  given Jupyter notebook
-- If there is no Python file, but only the ipynb Jupyter notebook, you will run
-  a command to pair the notebook and the Python file:
-
-  ```bash
-  > uvx jupytext --set-formats ipynb,py:percent  <ipynb file>
-  ```
-
-- After you have modified the Python file corresponding to the Jupyter notebook,
-  you will run a command to pair the notebook and the Python file
-  ```
-  > uvx jupytext --sync <python file>
-  ```
-
 # Use Python Style
 
 - For all the Python code you must follow the rules from
@@ -81,33 +64,6 @@ description: Format Jupyter notebooks according to conventions including jupytex
   ax.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
   ```
 
-# Interactive Widgets Conventions
-
-- Interactive widgets must always have:
-  - The name of the variable (e.g., n, mu, nu)
-  - Value cell and "-" and "+" buttons
-- The widget to select the seed must always be the first widget
-
-- Use code in `msml610_utils.py` like `_create_slider_widget()`,
-  `build_widget_control()` to create the widgets
-
-# Logarithmic Widget Control
-
-- When asked to build a logarithmic widget control, use the following idiom
-  ```python
-  # Create N widget with logarithmic slider and +/- buttons.
-  # Uses exponents 2-10 for base 2: gives values 4, 8, 16, 32, 64, 128, 256, 512, 1024
-  # Initial exponent 4 gives initial value of 16
-  N_exp_slider, N_box = mtumsuti.build_log_widget_control(
-      name="log(N)",
-      description="N (total samples)",
-      min_exp=2,
-      max_exp=10,
-      initial_exp=4,
-      base=2,
-  )
-  ```
-
 # Notebook Pairing to Python File and Utility File
 
 - Each notebook is paired with Jupytext to a Python file and has a corresponding
@@ -151,3 +107,51 @@ description: Format Jupyter notebooks according to conventions including jupytex
   os.environ["GITHUB_ACCESS_TOKEN"] = ""
   ```
 - Enforce that all the secrets are passed as read-only from environment variables
+
+# Format of Code Cells calling Utils Functions
+
+- For code cells containing complex code
+  - Add comments explaining the code
+  - Avoid trivial comments, but focus on commenting the high level workings of
+    the code, e.g., a comment every 2-3 lines of code.
+  - Add a period at the end of each comment.
+
+- E.g.,
+  ```
+  # Create an agent that can use tools and follow a system prompt defining its behavior.
+  contract_agent = langchain.agents.create_agent(
+      model=llm,
+      tools=[ut.utc_now],
+      # The system prompt instructs the agent to call the utc_now tool when time is requested
+      # and to include the exact tool call inside a fenced Python block in the final response.
+      system_prompt=(
+          "When time is requested, call utc_now. "
+          "In your final answer, include a fenced python block with the exact tool call used."
+      ),
+  )
+
+  # Invoke the agent with a human message asking for the current UTC time,
+  # which should trigger the agent to use the provided utc_now tool.
+  contract_out = contract_agent.invoke(
+      {
+          "messages": [
+              langchain_core.messages.HumanMessage(content="What is the current UTC time? Use your tool.")
+          ]
+      }
+  )
+
+  # Extract and print the content of the last message returned by the agent,
+  # which should contain the final response including the tool call.
+  print(getattr(contract_out["messages"][-1], "content", ""))
+  ```
+
+# Break Cells with Too Much Code
+
+- If a cell has too much code, break it into multiple cells
+- Each cell should:
+  - Focus on building objects, explaining with comments what is done
+  - Remove the redundant `import` statements if needed from the generated cells
+  - Print the object to help the user understand what is done
+    ```
+    pprint.pprint(summary_chain)
+    ```
