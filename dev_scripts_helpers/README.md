@@ -1,24 +1,21 @@
 # Summary
-
-Unified markdown file manager script and documentation for managing research ideas,
-blog posts, short stories, and Claude Code skills across multiple repositories.
+- Unified markdown file manager script and documentation for managing research
+  ideas, blog posts, short stories, and Claude Code skills across multiple
+  repositories
 
 # Overview
-
-The `mdm` script provides a single, consistent interface for managing markdown
-files across four different content types and repositories. It unifies and simplifies
-the existing bash script families (`skill*`, `blog*`, `res*`, `story*`) into one
-tool with prefix-matching CLI arguments.
+- The `mdm` script provides a single, consistent interface for managing markdown
+  files across four different content types and repositories
+- Unifies and simplifies the existing bash script families (`skill*`, `blog*`,
+  `res*`, `story*`) into one tool with prefix-matching CLI arguments
 
 # Content Types
-
 - `research`: Research ideas stored in `<umd_classes1>/research/ideas/`
 - `blog`: Blog posts stored in `<blog_repo>/blog/posts/`
 - `story`: Short stories stored in `<notes1>/short_stories/`
 - `skill`: Claude Code skills stored in `<helpers_root>/.claude/skills/`
 
 # Actions
-
 - `list`: List markdown files in the directory (with optional name filter)
   - For skills: shows skill names only (e.g., `blog.add_figures`)
   - For other types: shows full file paths
@@ -27,45 +24,32 @@ tool with prefix-matching CLI arguments.
 - `directory`: Print the directory path for the given type
 
 # Usage Examples
+- List all skills (shows skill names only)
+  ```bash
+  > dev_scripts_helpers/mdm skill list
+  ```
 
-List all skills (shows skill names only).
+- List all skills with full file paths
+  ```bash
+  > dev_scripts_helpers/mdm skill full_list
+  ```
 
-```bash
-> python dev_scripts_helpers/mdm skill list
-```
+- List research items matching a pattern
+  ```bash
+  > dev_scripts_helpers/mdm research list causal
+  ```
 
-List all skills with full file paths.
+- Edit or create a blog post (creates with YAML template if new)
+  ```bash
+  > dev_scripts_helpers/mdm blog edit My_Post
+  ```
 
-```bash
-> python dev_scripts_helpers/mdm skill full_list
-```
-
-List research items matching a pattern.
-
-```bash
-> python dev_scripts_helpers/mdm research list causal
-```
-
-Edit or create a blog post (creates with YAML template if new).
-
-```bash
-> python dev_scripts_helpers/mdm blog edit My_Post
-```
-
-Edit or create a short story.
-
-```bash
-> python dev_scripts_helpers/mdm story edit ...
-```
-
-Print the research ideas directory path.
-
-```bash
-> python dev_scripts_helpers/mdm research directory
-```
+- Print the research ideas directory path
+  ```bash
+  > dev_scripts_helpers/mdm research directory
+  ```
 
 # Prefix Matching
-
 Type and action arguments support prefix matching (first match wins):
 
 - `sk` matches `skill`
@@ -75,11 +59,10 @@ Type and action arguments support prefix matching (first match wins):
 - `f` matches `full_list`
 - `e` matches `edit`
 - `d` matches `directory`
+
 # Templates
-
-When creating a new file with the `edit` action, `mdm` automatically generates
-templates appropriate for each content type:
-
-- `blog`: YAML frontmatter with title, author, date, and TL;DR section
-- `skill`: Summary section header
-- `research`: Header with the idea name
+- When creating a new file with the `edit` action, `mdm` automatically generates
+  templates appropriate for each content type
+  - `blog`: YAML frontmatter with title, author, date, and TL;DR section
+  - `skill`: Summary section header
+  - `research`: Header with the idea name
