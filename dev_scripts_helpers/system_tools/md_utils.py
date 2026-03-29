@@ -28,7 +28,7 @@ _LOG = logging.getLogger(__name__)
 
 
 _VALID_TYPES = ["research", "blog", "story", "skill"]
-_VALID_ACTIONS = ["list", "edit", "directory", "full_list", "describe"]
+_VALID_ACTIONS = ["list", "edit", "directory", "full_list", "describe", "types"]
 
 # #############################################################################
 # Helper functions
@@ -424,3 +424,52 @@ def _action_directory(dir_: str) -> None:
     :param dir_: the directory path
     """
     print(dir_)
+
+
+def _action_types(
+    type_: str, dir_: str, *, pattern: Optional[str] = None
+) -> None:
+    """
+    List unique prefixes before the first dot from markdown file names.
+
+    For example, skill names like 'blog.add_figures' and 'blog.create_tldr'
+    will both produce prefix 'blog'. Equivalent to cut -d'.' -f1 | sort -u.
+
+    :param type_: the type (research, blog, story, skill)
+    :param dir_: the directory to list
+    :param pattern: optional filter pattern
+    """
+    hdbg.dassert_dir_exists(dir_)
+    files = glob.glob(os.path.join(dir_, "**/*.md"), recursive=True)
+    if pattern:
+        pattern_lower = pattern.lower()
+        if type_ == "skill":
+            files = [
+                f
+                for f in files
+                if pattern_lower
+                in os.path.basename(os.path.dirname(f)).lower()
+            ]
+        else:
+            files = [
+                f for f in files if pattern_lower in os.path.basename(f).lower()
+            ]
+    # Extract prefixes (part before the first dot).
+    prefixes = set()
+    for f in files:
+        if type_ == "skill":
+            name = os.path.basename(os.path.dirname(f))
+        else:
+            name = os.path.basename(f)
+        # Remove .md extension if present.
+        if name.endswith(".md"):
+            name = name[:-3]
+        # Extract prefix before the dot.
+        prefix = name.split(".")[0]
+        prefixes.add(prefix)
+    # Print sorted prefixes.
+    if prefixes:
+        for prefix in sorted(prefixes):
+            print(prefix)
+    else:
+        _LOG.info("No markdown files found in %s", dir_)

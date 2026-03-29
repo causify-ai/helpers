@@ -1,27 +1,72 @@
 #!/usr/bin/env python
 """
-Unified markdown file manager for research, blog, story, and skill content.
+Unified markdown file manager script and documentation for managing research
+ideas, blog posts, short stories, and Claude Code skills across multiple
+repositories.
 
-Provides a single interface to manage markdown files across multiple directories:
-- skill: .claude/skills/ directory
-- blog: blog/posts/ directory
-- research: research/ideas/ directory
-- story: short_stories/ directory
+Overview
+- The `mdm` script provides a single, consistent interface for managing markdown
+  files across four different content types and repositories
+- Unifies and simplifies the existing bash script families (`skill*`, `blog*`,
+  `res*`, `story*`) into one tool with prefix-matching CLI arguments
+
+Content Types
+- `research`: Research ideas stored in `<umd_classes1>/research/ideas/`
+- `blog`: Blog posts stored in `<blog_repo>/blog/posts/`
+- `story`: Short stories stored in `<notes1>/short_stories/`
+- `skill`: Claude Code skills stored in `<helpers_root>/.claude/skills/`
+
+Actions
+- `list`: List markdown files in the directory (with optional name filter)
+  - For skills: shows skill names only (e.g., `blog.add_figures`)
+  - For other types: shows full file paths
+- `full_list`: List markdown files with full paths (with optional name filter)
+- `describe`: Show descriptions of markdown files (for skills with metadata)
+- `edit`: Open a file in vim for editing (creates with template if not found)
+- `directory`: Print the directory path for the given type
+- `types`: Print unique prefixes before the first dot (equivalent to `cut -d'.' -f1 | sort -u`)
 
 Usage:
   mdm <type> <action> [names...]
     type:   research, blog, story, skill (prefix matching supported)
-    action: list, edit, directory, describe (supports prefix matching)
+    action: list, full_list, edit, directory, describe (supports prefix matching)
     names:  optional for 'list' action (filter pattern), multiple allowed for 'edit'
 
-Examples:
-  mdm sk list                     # List all skills
-  mdm sk de                       # List all skills with descriptions
-  mdm blog edit My_Post           # Edit or create a blog post
-  mdm skill e notebook.utils_library notebook.split_cells  # Edit multiple skills
-  mdm res l causal                # List research items containing 'causal'
-  mdm res de causal               # List research items with descriptions
-  mdm story dir                   # Print short stories directory path
+Usage Examples
+- List all skills (shows skill names only)
+  mdm skill list
+
+- List all skills with full file paths
+  mdm skill full_list
+
+- List research items matching a pattern
+  mdm research list causal
+
+- Edit or create a blog post (creates with YAML template if new)
+  mdm blog edit My_Post
+
+- Print the research ideas directory path
+  mdm research directory
+
+Prefix Matching
+Type and action arguments support prefix matching (first match wins):
+
+- `sk` matches `skill`
+- `bl` matches `blog`
+- `res` matches `research`
+- `st` matches `story`
+- `l` matches `list`
+- `f` matches `full_list`
+- `d` matches `describe` or `directory` (first match)
+- `e` matches `edit`
+- `t` matches `types`
+
+Templates
+- When creating a new file with the `edit` action, `mdm` automatically generates
+  templates appropriate for each content type
+  - `blog`: YAML frontmatter with title, author, date, and TL;DR section
+  - `skill`: Summary section header
+  - `research`: Header with the idea name
 
 Import as:
 
@@ -54,7 +99,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "action",
-        help="Action: list, edit, directory (supports prefix matching)",
+        help="Action: list, edit, directory, describe, types (supports prefix matching)",
     )
     parser.add_argument(
         "names",
@@ -82,6 +127,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         devmduti._action_full_list(type_, dir_, pattern=pattern)
     elif action == "describe":
         devmduti._action_describe(type_, dir_, pattern=pattern)
+    elif action == "types":
+        devmduti._action_types(type_, dir_, pattern=pattern)
     elif action == "edit":
         hdbg.dassert_ne(
             args.names,
