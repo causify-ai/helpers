@@ -1,6 +1,8 @@
-import logging
+"""
+Import as:
 
-
+import helpers.hnotebook as hnotebo
+"""
 
 def config_notebook(sns_set: bool = True) -> None:
     """
@@ -79,6 +81,6 @@ def _info_print(msg: str, *args, **kwargs) -> None:
     print(msg)
 
 
-# 
+#
 def set_logger_to_print(log) -> None:
     log.info = _info_print

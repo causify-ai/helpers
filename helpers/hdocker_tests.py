@@ -3,7 +3,7 @@ Utilities for running docker tests.
 
 Import as:
 
-import helpers.hdocker_tests as hdtests
+import helpers.hdocker_tests as hdoctest
 """
 
 import glob
@@ -112,9 +112,7 @@ def run_docker_build(script_dir: str) -> None:
 
 
 # TODO(ai_gp): Inline
-def run_docker_cmd(
-    script_dir: str, *, shell_cmd: str = "ls /git_root"
-) -> None:
+def run_docker_cmd(script_dir: str, *, shell_cmd: str = "ls /git_root") -> None:
     """
     Run an arbitrary shell command inside Docker via docker_cmd.sh.
 
@@ -127,9 +125,7 @@ def run_docker_cmd(
     hsystem.system(cmd)
 
 
-def run_docker_bash(
-    script_dir: str, *, shell_cmd: str = "ls /git_root"
-) -> None:
+def run_docker_bash(script_dir: str, *, shell_cmd: str = "ls /git_root") -> None:
     """
     Run a command inside Docker via docker_bash.sh by piping it to stdin.
 
@@ -179,7 +175,7 @@ def run_notebook_in_docker(notebook_name: str, script_dir: str) -> None:
 
 
 # #############################################################################
-# Base test classes
+# DockerTestCase
 # #############################################################################
 
 

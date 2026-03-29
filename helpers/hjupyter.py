@@ -47,9 +47,7 @@ def run_notebook(
         cmd.append(f"jupytext --update --to notebook {file_name};")
         notebook_name = f"{root}.ipynb"
     else:
-        raise ValueError(
-            f"Unsupported file format for file_name='{file_name}'"
-        )
+        raise ValueError(f"Unsupported file format for file_name='{file_name}'")
     # Execute notebook.
     cmd.append(f"cd {scratch_dir} &&")
     cmd.append(f"jupyter nbconvert {notebook_name}")
@@ -100,9 +98,7 @@ def run_notebook_cells(
             num_cells,
             total_cells,
         )
-        _LOG.info(
-            "Executing first %d of %d cells", num_cells, total_cells
-        )
+        _LOG.info("Executing first %d of %d cells", num_cells, total_cells)
         nb.cells = nb.cells[:num_cells]
     else:
         _LOG.info("Executing all %d cells", total_cells)

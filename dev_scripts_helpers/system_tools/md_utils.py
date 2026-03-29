@@ -6,7 +6,7 @@ and skill content types.
 
 Import as:
 
-import dev_scripts_helpers.system_tools.md_utils as devmduti
+import dev_scripts_helpers.system_tools.md_utils as dshstmdut
 """
 
 import glob
@@ -45,7 +45,9 @@ def _match_prefix(value: str, valid_options: List[str]) -> str:
     :return: the first matching option
     """
     value_lower = value.lower()
-    matches = [opt for opt in valid_options if opt.lower().startswith(value_lower)]
+    matches = [
+        opt for opt in valid_options if opt.lower().startswith(value_lower)
+    ]
     hdbg.dassert_eq(
         len(matches),
         1,
@@ -158,7 +160,7 @@ def _get_template(type_: str, name: str) -> str:
         """
         return hprint.dedent(text)
     elif type_ == "skill":
-        text = f"""
+        text = """
         ---
         description: <Brief description of what this skill does>
         ---
@@ -212,8 +214,7 @@ def _list_markdown_files(
             files = [
                 f
                 for f in files
-                if pattern_lower
-                in os.path.basename(os.path.dirname(f)).lower()
+                if pattern_lower in os.path.basename(os.path.dirname(f)).lower()
             ]
         else:
             files = [
@@ -300,7 +301,9 @@ def _find_file_for_edit(type_: str, dir_: str, name: str) -> str:
     hdbg.dfatal("Unknown type", type_)
 
 
-def _action_list(type_: str, dir_: str, *, pattern: Optional[str] = None) -> None:
+def _action_list(
+    type_: str, dir_: str, *, pattern: Optional[str] = None
+) -> None:
     """
     List markdown files in a directory (concise format).
 
@@ -361,7 +364,7 @@ def _get_description(file_path: str) -> str:
         if line.strip() == "---":
             break
         if line.startswith("description:"):
-            desc = line[len("description:"):].strip()
+            desc = line[len("description:") :].strip()
             return desc
     return ""
 
@@ -387,8 +390,7 @@ def _action_describe(
             files = [
                 f
                 for f in files
-                if pattern_lower
-                in os.path.basename(os.path.dirname(f)).lower()
+                if pattern_lower in os.path.basename(os.path.dirname(f)).lower()
             ]
         else:
             files = [
@@ -447,8 +449,7 @@ def _action_types(
             files = [
                 f
                 for f in files
-                if pattern_lower
-                in os.path.basename(os.path.dirname(f)).lower()
+                if pattern_lower in os.path.basename(os.path.dirname(f)).lower()
             ]
         else:
             files = [

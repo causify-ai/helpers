@@ -267,7 +267,9 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     :param lines: The lines to be processed
     :return: Lines with extra indentation removed from code blocks
     """
-    _LOG.debug("remove_code_block_extra_indentation: Processing %d lines", len(lines))
+    _LOG.debug(
+        "remove_code_block_extra_indentation: Processing %d lines", len(lines)
+    )
     lines_new: List[str] = []
     in_code_block = False
     base_indent = 0
@@ -289,7 +291,10 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
                     if i == 0 and rest_line.strip():
                         # First code line in the block
                         rest_indent = len(rest_line) - len(rest_line.lstrip())
-                        if rest_indent > base_indent and rest_indent >= base_indent + 2:
+                        if (
+                            rest_indent > base_indent
+                            and rest_indent >= base_indent + 2
+                        ):
                             # Remove extra indentation.
                             content = rest_line.lstrip()
                             fixed_lines.append(" " * base_indent + content)
@@ -307,7 +312,12 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
             lines_new.append(line)
             continue
         # Fix indentation for code lines on separate lines.
-        if in_code_block and first_code_line and line.strip() and not re.match(r"^\s*```", line):
+        if (
+            in_code_block
+            and first_code_line
+            and line.strip()
+            and not re.match(r"^\s*```", line)
+        ):
             line_indent = len(line) - len(line.lstrip())
             if line_indent > base_indent and line_indent >= base_indent + 2:
                 # Remove extra 2 spaces of indentation

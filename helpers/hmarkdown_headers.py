@@ -372,9 +372,11 @@ def extract_section_from_markdown(
     hdbg.dassert_isinstance(extracted_lines, list)
     return extracted_lines
 
+
 # #############################################################################
 # HeaderInfo
 # #############################################################################
+
 
 @dataclasses.dataclass
 class HeaderInfo:

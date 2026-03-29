@@ -1783,9 +1783,7 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
                 input_files.append(file_path)
         # Check that we have at least one file.
         hdbg.dassert_lt(
-            0,
-            len(input_files),
-            "No markdown files found in input directory"
+            0, len(input_files), "No markdown files found in input directory"
         )
         # Test idempotency for each file.
         for in_file in input_files:
