@@ -1,4 +1,5 @@
 #!/usr/bin/env -S uv run
+
 # /// script
 # dependencies = [
 #   "python-pptx",
@@ -13,8 +14,9 @@ This script takes an input PowerPoint file and applies the design theme and
 master slides from a template file by manipulating the underlying XML structure.
 
 Example usage:
-    # Apply template to a presentation.
-    > apply_pptx_template.py --input presentation.pptx --template template.pptx --output output.pptx
+
+# Apply template to a presentation.
+> apply_pptx_template.py --input presentation.pptx --template template.pptx --output output.pptx
 
 Import as:
 

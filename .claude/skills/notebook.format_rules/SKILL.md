@@ -1,65 +1,119 @@
 ---
-description: Format Jupyter notebooks according to conventions including jupytext, cell structure, and widget patterns
+description: Conventions for Jupyter notebooks
 ---
 
-- You are an expert Python developer.
+- You are an expert Python developer
 
 - I will pass you a Python file paired with Jupyter notebook with jupytext using
   a `py:percent` format
-  - E.g., `msml610/tutorials/Lesson94-Information_Theory.py`
-
-# Use Jupytext
-
-- When changing a notebook, you must only modify the Python file paired with the
-  given Jupyter notebook
-- If there is no Python file, but only the ipynb Jupyter notebook, you will run
-  a command to pair the notebook and the Python file:
-
-  ```bash
-  > uvx jupytext --set-formats ipynb,py:percent  <ipynb file>
-  ```
-
-- After you have modified the Python file corresponding to the Jupyter notebook,
-  you will run a command to pair the notebook and the Python file
-  ```
-  > uvx jupytext --sync <python file>
-  ```
 
 # Use Python Style
 
 - For all the Python code you must follow the rules from
   @.claude/skills/coding.format_rules/SKILL.md
 
-# Format of a Jupyter Notebook
+# Format of First Cell
 
-- Each notebook has the following format
-
-- The first cell of a notebook is:
+- The first cell of a notebook contains basic initialization that is the same for
+  all notebooks
 
   ```python
   %load_ext autoreload
   %autoreload 2
 
+  # System libraries.
   import logging
 
+  # Third party libraries.
   import numpy as np
   import pandas as pd
   import seaborn as sns
   import matplotlib.pyplot as plt
-
-  ut.config_notebook()
-
-  # Initialize logger.
-  logging.basicConfig(level=logging.INFO)
-  _LOG = logging.getLogger(__name__)
   ```
 
-- The second cell is like:
-
+# Format of Second Cell
+- The second cell contains imports specific of the notebook
   ```python
   import msml610_utils as ut
   import Lesson94_Information_Theory_utils as utils
   ```
+
+# Format of Third Cell
+- For a Jupyter notebook always use the following idiom for logging
+  ```python
+  import logging
+  # Local utility.
+  import utils
+
+  _LOG = logging.getLogger(__name__)
+  utils.init_logger(_LOG)
+  ```
+
+- In the local utility `*_utils.py` there should be a function like
+  ```
+  import helpers.hnotebook as hnotebo
+
+  def init_logger(notebook_log: logging.Logger) -> None:
+      hnotebo.config_notebook()
+      hdbg.init_logger(verbosity=logging.INFO, use_exec_path=False)
+      # Init notebook logging.
+      hnotebo.set_logger_to_print(notebook_log)
+      # Init utils logging.
+      global _LOG
+      _LOG = hnotebo.set_logger_to_print(_LOG)
+      # Init module logging.
+      causalml_logger: logging.Logger = logging.getLogger("causalml")
+      hnotebo.set_logger_to_print(causalml_logger)
+  ```
+
+# Each Code Cell has a Single Purpose
+
+- Each cell should do one logical thing only
+  - Good examples:
+    -	Import libraries
+    -	Load data
+    -	Clean data
+    -	Plot data
+    -	Train model
+    -	Evaluate model
+  - Bad example:
+    - One giant cell that loads data, cleans it, trains a model, and plots results.
+
+- If a cell does more than one step, split it
+
+# Format of a Code Cell
+
+- Each cell has only one concept / group of statements and a comment on the
+  result
+- Keep cells short
+- Each cell has:
+  - A comment explaining what we want to do
+  - A group of commands
+  - A statement to show the result (e.g., `print()`, `display()`)
+  - A comment about the outcome
+  ```
+  # Comment explaining what we are trying to do.
+  operation
+
+  print results
+  # Comment on the result.
+  ```
+
+- Example:
+  ```python
+  # Test with broken coin.
+  biased_coin = [1.0, 0.0]
+  print(f"Biased coin (100-0) entropy: {utils.calculate_entropy(biased_coin):.4f} bits")
+  # If heads occurs 100% of the time → no uncertainty, $H = 0$ bit.
+  ```
+
+- Each cell should:
+  - Focus on building objects, explaining with comments what is done
+  - Remove the redundant `import` statements if needed from the generated cells
+  - Print the object to help the user understand what is done
+    ```
+    pprint.pprint(summary_chain)
+    ```
 
 # Do Not Use Emoji or Non-Ascii Characters
 
@@ -72,40 +126,6 @@ description: Format Jupyter notebooks according to conventions including jupytex
 - In Jupyter markdown cells remove separators like
   ```verbatim
   ---
-  ```
-
-# Title for the Comment Box
-
-- When using `add_fitted_text_box()` set the title
-  ```python
-  ax.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
-  ```
-
-# Interactive Widgets Conventions
-
-- Interactive widgets must always have:
-  - The name of the variable (e.g., n, mu, nu)
-  - Value cell and "-" and "+" buttons
-- The widget to select the seed must always be the first widget
-
-- Use code in `msml610_utils.py` like `_create_slider_widget()`,
-  `build_widget_control()` to create the widgets
-
-# Logarithmic Widget Control
-
-- When asked to build a logarithmic widget control, use the following idiom
-  ```python
-  # Create N widget with logarithmic slider and +/- buttons.
-  # Uses exponents 2-10 for base 2: gives values 4, 8, 16, 32, 64, 128, 256, 512, 1024
-  # Initial exponent 4 gives initial value of 16
-  N_exp_slider, N_box = mtumsuti.build_log_widget_control(
-      name="log(N)",
-      description="N (total samples)",
-      min_exp=2,
-      max_exp=10,
-      initial_exp=4,
-      base=2,
-  )
   ```
 
 # Notebook Pairing to Python File and Utility File
@@ -151,3 +171,40 @@ description: Format Jupyter notebooks according to conventions including jupytex
   os.environ["GITHUB_ACCESS_TOKEN"] = ""
   ```
 - Enforce that all the secrets are passed as read-only from environment variables
+
+# Format of Code Cells calling Utils Functions
+
+- For code cells containing complex code
+  - Add comments explaining the code
+  - Avoid trivial comments, but focus on commenting the high level workings of
+    the code, e.g., a comment every 2-3 lines of code.
+  - Add a period at the end of each comment.
+
+- E.g.,
+  ```
+  # Create an agent that can use tools and follow a system prompt defining its behavior.
+  contract_agent = langchain.agents.create_agent(
+      model=llm,
+      tools=[ut.utc_now],
+      # The system prompt instructs the agent to call the utc_now tool when time is requested
+      # and to include the exact tool call inside a fenced Python block in the final response.
+      system_prompt=(
+          "When time is requested, call utc_now. "
+          "In your final answer, include a fenced python block with the exact tool call used."
+      ),
+  )
+
+  # Invoke the agent with a human message asking for the current UTC time,
+  # which should trigger the agent to use the provided utc_now tool.
+  contract_out = contract_agent.invoke(
+      {
+          "messages": [
+              langchain_core.messages.HumanMessage(content="What is the current UTC time? Use your tool.")
+          ]
+      }
+  )
+
+  # Extract and print the content of the last message returned by the agent,
+  # which should contain the final response including the tool call.
+  print(getattr(contract_out["messages"][-1], "content", ""))
+  ```

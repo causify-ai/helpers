@@ -1,3 +1,9 @@
+"""
+Import as:
+
+import helpers.hnotebook as hnotebo
+"""
+
 def config_notebook(sns_set: bool = True) -> None:
     """
     Configure the notebook for plotting.
@@ -66,3 +72,15 @@ def config_notebook(sns_set: bool = True) -> None:
 
     # Force the linter to keep this import.
     _ = hwarnin
+
+
+# TODO(ai_gp): Add type hints.
+def _info_print(msg: str, *args, **kwargs) -> None:
+    if args:
+        msg = msg % args
+    print(msg)
+
+
+#
+def set_logger_to_print(log) -> None:
+    log.info = _info_print
