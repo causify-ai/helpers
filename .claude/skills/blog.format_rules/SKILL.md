@@ -22,7 +22,7 @@ description: Format a blog post according to conventions for structure, style, a
   - **title**: Use double quotes, capitalize major words
   - **authors**: List format with username(s)
   - **date**: Use YYYY-MM-DD format
-  - **description**: Usually left empty or contains a brief description
+  - **description**: Usually left empty
   - **categories**: Common categories include:
     - Business
     - Causal AI
@@ -47,9 +47,9 @@ description: Format a blog post according to conventions for structure, style, a
 ## Introduction
 
 - Begin with one or more paragraphs introducing the topic
-- Write in prose format - avoid bullet points in the introduction
+- Write in prose format: avoid bullet points in the introduction
 - Set up the context and the problem being addressed
-- Use a direct, conversational tone
+- Use a direct tone
 - Keep paragraphs short and punchy
 
 ## Body Structure
@@ -128,12 +128,6 @@ When mathematical formulas are needed:
   $$
   ```
 
-## Conclusion
-
-- Often ends with a call to action or summary
-- May reference Causify and invite engagement
-- Keep it actionable and forward-looking
-
 ## General Style Guidelines
 
 - Maintain consistent spacing between sections
@@ -142,3 +136,12 @@ When mathematical formulas are needed:
 - Be direct and avoid unnecessary jargon
 - Use concrete examples to illustrate abstract concepts
 - Aim for clarity and brevity
+
+## Tone
+- Avoid slang and overly casual language
+- Maintain a professional and informative tone
+- Aim for approximately 800–1,200 words
+- Include examples or real-world applications where relevant
+- Write for an audience that may be new to the topic but interested in learning
+- The blog should be engaging, informative, and suitable for publication on a
+  professional website or LinkedIn

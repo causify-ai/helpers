@@ -5,7 +5,7 @@ blog posts, short stories, and Claude Code skills across multiple repositories.
 
 # Overview
 
-The `md` script provides a single, consistent interface for managing markdown
+The `mdm` script provides a single, consistent interface for managing markdown
 files across four different content types and repositories. It unifies and simplifies
 the existing bash script families (`skill*`, `blog*`, `res*`, `story*`) into one
 tool with prefix-matching CLI arguments.
@@ -31,37 +31,37 @@ tool with prefix-matching CLI arguments.
 List all skills (shows skill names only).
 
 ```bash
-> python dev_scripts_helpers/md skill list
+> python dev_scripts_helpers/mdm skill list
 ```
 
 List all skills with full file paths.
 
 ```bash
-> python dev_scripts_helpers/md skill full_list
+> python dev_scripts_helpers/mdm skill full_list
 ```
 
 List research items matching a pattern.
 
 ```bash
-> python dev_scripts_helpers/md research list causal
+> python dev_scripts_helpers/mdm research list causal
 ```
 
 Edit or create a blog post (creates with YAML template if new).
 
 ```bash
-> python dev_scripts_helpers/md blog edit My_Post
+> python dev_scripts_helpers/mdm blog edit My_Post
 ```
 
 Edit or create a short story.
 
 ```bash
-> python dev_scripts_helpers/md story edit ...
+> python dev_scripts_helpers/mdm story edit ...
 ```
 
 Print the research ideas directory path.
 
 ```bash
-> python dev_scripts_helpers/md research directory
+> python dev_scripts_helpers/mdm research directory
 ```
 
 # Prefix Matching
@@ -75,22 +75,11 @@ Type and action arguments support prefix matching (first match wins):
 - `f` matches `full_list`
 - `e` matches `edit`
 - `d` matches `directory`
-
-# Unified Interface
-
-The `md` script replaces these individual bash script families:
-
-- `skillc`, `skilld`, `skille`, `skilll`: skill management
-- `blogc`, `blogd`, `bloge`, `blogl`: blog management
-- `resc`, `resd`, `rese`, `resl`: research management
-- `storyc`, `storyd`, `storye`, `storyl`: story management
-
 # Templates
 
-When creating a new file with the `edit` action, `md` automatically generates
+When creating a new file with the `edit` action, `mdm` automatically generates
 templates appropriate for each content type:
 
 - `blog`: YAML frontmatter with title, author, date, and TL;DR section
 - `skill`: Summary section header
 - `research`: Header with the idea name
-- `story`: YAML frontmatter with title, author, and date fields

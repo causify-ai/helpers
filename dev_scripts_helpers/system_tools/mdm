@@ -9,23 +9,23 @@ Provides a single interface to manage markdown files across multiple directories
 - story: short_stories/ directory
 
 Usage:
-  md <type> <action> [names...]
+  mdm <type> <action> [names...]
     type:   research, blog, story, skill (prefix matching supported)
     action: list, edit, directory, describe (supports prefix matching)
     names:  optional for 'list' action (filter pattern), multiple allowed for 'edit'
 
 Examples:
-  md sk list                     # List all skills
-  md sk de                       # List all skills with descriptions
-  md blog edit My_Post           # Edit or create a blog post
-  md skill e notebook.utils_library notebook.split_cells  # Edit multiple skills
-  md res l causal                # List research items containing 'causal'
-  md res de causal               # List research items with descriptions
-  md story dir                   # Print short stories directory path
+  mdm sk list                     # List all skills
+  mdm sk de                       # List all skills with descriptions
+  mdm blog edit My_Post           # Edit or create a blog post
+  mdm skill e notebook.utils_library notebook.split_cells  # Edit multiple skills
+  mdm res l causal                # List research items containing 'causal'
+  mdm res de causal               # List research items with descriptions
+  mdm story dir                   # Print short stories directory path
 
 Import as:
 
-import dev_scripts_helpers.system_tools.md as devmd
+import dev_scripts_helpers.system_tools.mdm as devmdm
 """
 
 import argparse
