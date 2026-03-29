@@ -12,11 +12,7 @@ $SRC_DIR=class_project/project_template
 
 # Step 2
 - Propagate the changes in the Docker system in directory from the dir $SRC_DIR
-  to all the projects in the directories below:
-  - `class_project/project_template/`
-  - `data605/tutorials/`
-  - `tutorials/`
-  - `research/`
+  to all the projects in the directories from `class_project/project_dirs.md`
 
 - Make sure not to change the behavior unless needed
 

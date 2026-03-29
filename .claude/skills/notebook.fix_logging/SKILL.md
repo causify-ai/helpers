@@ -2,8 +2,7 @@
 description: Use this idiom for controlling logging in Jupyter notebooks
 ---
 
-- For a Jupyter notebook always use the following 
-
+- For a Jupyter notebook always use the following idiom for logging
   ```python
   import logging
   # Local utility.
@@ -13,8 +12,7 @@ description: Use this idiom for controlling logging in Jupyter notebooks
   utils.init_logger(_LOG)
   ```
 
-- In the local utility there should be 
-
+- In the local utility `*_utils.py` there should be a function like
   ```
   import helpers.hnotebook as hnotebo
 

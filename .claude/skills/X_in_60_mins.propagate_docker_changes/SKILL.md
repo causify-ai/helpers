@@ -4,14 +4,11 @@ description: Make the Docker build system for the tutorials and research project
 
 # Step 1
 - $SRC_DIR=class_project/project_template
-- For each project / directory $DST_DIR in the following directories:
-  - `class_project/project_template/`
-  - `data605/tutorials/`
-  - `msml610/tutorials/`
-  - `tutorials/`
-  - `research/`
-- Make the Docker files in `$DST_DIR/docker_*.sh` as similar as possible to the
-  corresponding ones in $SRC_DIR
+- For each project / directory $DST_DIR in the directories from
+  `class_project/project_dirs.md`
+- Make the Docker files `$DST_DIR/docker_*.sh`, `$DST_DIR/Dockerfile`,
+  `$DST_DIR/run_jupyter.sh` as similar as possible to the corresponding ones in
+  $SRC_DIR
   - The goal is to reuse functions and factored out code (e.g., from
     `class_project/project_template/utils.sh`)
 - If you are not sure about what the changes are

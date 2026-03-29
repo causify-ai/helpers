@@ -1,5 +1,5 @@
 ---
-description: Apply plotting conventions using pandas and seaborn with proper information display in notebook plots
+description: Conventions for Jupyter notebook plots
 ---
 
 # Use Pandas and Seaborn
@@ -22,3 +22,10 @@ description: Apply plotting conventions using pandas and seaborn with proper inf
   - The theoretical data should have lighter and transparent colors and dotted
     lines
   - Empirical data should have darker colors and be solid lines
+
+# Title for the Comment Box
+
+- When using `add_fitted_text_box()` set the title
+  ```python
+  ax.set_title("Comments", fontsize=14, fontweight="bold", pad=20)
+  ```

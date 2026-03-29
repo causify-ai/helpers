@@ -1,5 +1,5 @@
 ---
-description: Implement Jupyter notebook cells from a visual script description following format and utility conventions
+description: Implement Jupyter notebook from a script description
 ---
 
 - Given the passed description for a Jupyter notebook in the format described in
@@ -28,7 +28,7 @@ description: Implement Jupyter notebook cells from a visual script description f
   # Changing the seed generates new realizations with different empirical values.
   ```
 
-# Format of Cells
+# Format of Interactive Cells
 
 - Each cell description of the Jupyter notebook has the format
   ```markdown

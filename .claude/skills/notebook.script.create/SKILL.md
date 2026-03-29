@@ -1,5 +1,5 @@
 ---
-description: Create a Jupyter notebook script description with visual and interactive cells for teaching concepts
+description: Create a script for a Jupyter notebook with visual and interactive cells for teaching concepts
 ---
 
 - Given the passed content, you need to create a Jupyter notebook that helps a

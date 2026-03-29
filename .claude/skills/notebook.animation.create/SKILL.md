@@ -1,5 +1,5 @@
 ---
-description: Create an animation from an ipywidget interact function using the standard template
+description: Create an animation from an ipywidget interact function using a description
 ---
 
 - Given the function passed that can go in `ipywidget.interact()` create an
