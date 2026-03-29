@@ -306,9 +306,11 @@ def _test_full_navigation_flow(self_: Any, txt: str) -> None:
     actual = "\n".join(res)
     self_.check_string(actual)
 
+
 # #############################################################################
 # Test_header_list_to_vim_cfile1
 # #############################################################################
+
 
 class Test_header_list_to_vim_cfile1(hunitest.TestCase):
     def test1(self) -> None:
@@ -336,9 +338,11 @@ class Test_header_list_to_vim_cfile1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True)
 
+
 # #############################################################################
 # Test_header_list_to_markdown1
 # #############################################################################
+
 
 class Test_header_list_to_markdown1(hunitest.TestCase):
     def helper(
@@ -403,9 +407,11 @@ class Test_header_list_to_markdown1(hunitest.TestCase):
         # Run test.
         self.helper(headers, mode, expected)
 
+
 # #############################################################################
 # Test_is_markdown_line_separator1
 # #############################################################################
+
 
 class Test_is_markdown_line_separator1(hunitest.TestCase):
     def helper(self, line: str, expected: bool) -> None:
@@ -566,9 +572,11 @@ class Test_is_markdown_line_separator1(hunitest.TestCase):
         # Run test.
         self.helper(line, expected)
 
+
 # #############################################################################
 # Test_extract_section_from_markdown1
 # #############################################################################
+
 
 class Test_extract_section_from_markdown1(hunitest.TestCase):
     def helper(self, content: str, header_name: str, expected: str) -> None:
@@ -661,9 +669,11 @@ class Test_extract_section_from_markdown1(hunitest.TestCase):
         expected = r"Header 'Header4' not found"
         self.assert_equal(actual, expected)
 
+
 # #############################################################################
 # Test_extract_headers_from_markdown1
 # #############################################################################
+
 
 class Test_extract_headers_from_markdown1(hunitest.TestCase):
     def helper(self, content: str, max_level: int, expected: str) -> None:
@@ -722,9 +732,11 @@ class Test_extract_headers_from_markdown1(hunitest.TestCase):
         expected: List[str] = []
         self.assert_equal(str(actual), str(expected))
 
+
 # #############################################################################
 # Test_extract_slides_from_markdown1
 # #############################################################################
+
 
 class Test_extract_slides_from_markdown1(hunitest.TestCase):
     def helper(self, content: str, expected: str) -> None:
@@ -772,9 +784,11 @@ class Test_extract_slides_from_markdown1(hunitest.TestCase):
         expected = r"""([], 1)"""
         self.assert_equal(str(actual), expected)
 
+
 # #############################################################################
 # Test_selected_navigation_to_str1
 # #############################################################################
+
 
 class Test_selected_navigation_to_str1(hunitest.TestCase):
     def test1(self) -> None:
@@ -821,9 +835,11 @@ class Test_selected_navigation_to_str1(hunitest.TestCase):
         txt = _get_markdown_example4()
         _test_full_navigation_flow(self, txt)
 
+
 # #############################################################################
 # Test_selected_navigation_to_str2
 # #############################################################################
+
 
 class Test_selected_navigation_to_str2(hunitest.TestCase):
     def test1(self) -> None:
@@ -864,9 +880,11 @@ class Test_selected_navigation_to_str2(hunitest.TestCase):
         txt = _get_markdown_example5()
         _test_full_navigation_flow(self, txt)
 
+
 # #############################################################################
 # Test_modify_header_level1
 # #############################################################################
+
 
 class Test_modify_header_level1(hunitest.TestCase):
     def helper(
@@ -1070,9 +1088,11 @@ class Test_modify_header_level1(hunitest.TestCase):
         # Call the helper.
         self.helper(input_lines, level, expected_lines)
 
+
 # #############################################################################
 # Test_format_headers1
 # #############################################################################
+
 
 class Test_format_headers1(hunitest.TestCase):
     def helper(
@@ -1182,9 +1202,11 @@ class Test_format_headers1(hunitest.TestCase):
         ]
         self.helper(input_text, expected, max_lev=3)
 
+
 # #############################################################################
 # Test_sanity_check_header_list1
 # #############################################################################
+
 
 class Test_sanity_check_header_list1(hunitest.TestCase):
     def test1(self) -> None:
@@ -1220,9 +1242,11 @@ class Test_sanity_check_header_list1(hunitest.TestCase):
         # Call function.
         hmarkdo.sanity_check_header_list(header_list)
 
+
 # #############################################################################
 # Test__has_internal_capitals1
 # #############################################################################
+
 
 class Test__has_internal_capitals1(hunitest.TestCase):
     """
@@ -1340,9 +1364,11 @@ class Test__has_internal_capitals1(hunitest.TestCase):
         # Run test.
         self.helper(word, expected)
 
+
 # #############################################################################
 # Test_capitalize_header1
 # #############################################################################
+
 
 class Test_capitalize_header1(hunitest.TestCase):
     def helper(self, txt: str, expected: str) -> None:
@@ -1538,9 +1564,47 @@ class Test_capitalize_header1(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
+    def test13(self) -> None:
+        """
+        Test that the first word after a numeric prefix is capitalized.
+        """
+        txt = r"""
+        ## 4.4 the Victim Triangle
+        """
+        expected = r"""
+        ## 4.4 The Victim Triangle
+        """
+        self.helper(txt, expected)
+
+    def test14(self) -> None:
+        """
+        Test that "of", "a", "an" after a numeric prefix are capitalized.
+        """
+        txt = r"""
+        ## 1.1 of mice and men
+        """
+        expected = r"""
+        ## 1.1 Of Mice and Men
+        """
+        self.helper(txt, expected)
+
+    def test15(self) -> None:
+        """
+        Test that "of", "a", "an" are capitalized.
+        """
+        txt = r"""
+        ## of mice and men
+        """
+        expected = r"""
+        ## Of Mice and Men
+        """
+        self.helper(txt, expected)
+
+
 # #############################################################################
 # Test_capitalize_header2
 # #############################################################################
+
 
 class Test_capitalize_header2(hunitest.TestCase):
     """
@@ -1815,9 +1879,11 @@ class Test_capitalize_header2(hunitest.TestCase):
         """
         self.helper(txt, expected)
 
+
 # #############################################################################
 # Test_has_mixed_case1
 # #############################################################################
+
 
 class Test_has_mixed_case1(hunitest.TestCase):
     """

@@ -1,21 +1,29 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
 
-"""
+# /// script
+# dependencies = [
+#   "pandas",
+#   "pyyaml",
+# ]
+# ///
+
+r"""
 Load a CSV file to a Google Sheets document.
 
 Example usage:
-    # Load CSV to a new tab
-    > to_gsheet.py \\
-        --input_file data.csv \\
-        --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \\
-        --tabname "my_data"
 
-    # Overwrite existing tab
-    > to_gsheet.py \\
-        --input_file data.csv \\
-        --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \\
-        --tabname "my_data" \\
-        --overwrite
+# Load CSV to a new tab
+> to_gsheet.py \
+    --input_file data.csv \
+    --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
+    --tabname "my_data"
+
+# Overwrite existing tab
+> to_gsheet.py \
+    --input_file data.csv \
+    --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
+    --tabname "my_data" \
+    --overwrite
 
 Import as:
 

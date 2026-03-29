@@ -1,26 +1,38 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
 
-"""
+# /// script
+# dependencies = [
+#   "google",
+#   "googleapi",
+#   "gspread",
+#   "pandas",
+#   "pyyaml",
+#   "tqdm",
+# ]
+# ///
+
+r"""
 Download data from a Google Sheets document and save it as a CSV file.
 
 Example usage:
-    # Download first tab to CSV
-    > from_gsheet.py \\
-        --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \\
-        --output_file data.csv
 
-    # Download specific tab to CSV
-    > from_gsheet.py \\
-        --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \\
-        --tabname "my_data" \\
-        --output_file data.csv
+# Download first tab to CSV
+> from_gsheet.py \
+    --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
+    --output_file data.csv
 
-    # Overwrite existing file
-    > from_gsheet.py \\
-        --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \\
-        --tabname "my_data" \\
-        --output_file data.csv \\
-        --overwrite
+# Download specific tab to CSV
+> from_gsheet.py \
+    --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
+    --tabname "my_data" \
+    --output_file data.csv
+
+# Overwrite existing file
+> from_gsheet.py \
+    --url "https://docs.google.com/spreadsheets/d/1UZiJlRqUhNiFEFhdmLzVkxQ1kll7hQhQE-rnzNuIz5c/edit" \
+    --tabname "my_data" \
+    --output_file data.csv \
+    --overwrite
 
 Import as:
 
@@ -79,8 +91,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Check if output file already exists.
     if os.path.exists(args.output_file) and not args.overwrite:
         hdbg.dfatal(
-            "Output file '%s' already exists. Use --overwrite to replace it.",
-            args.output_file,
+            f"Output file '{args.output_file}' already exists. Use --overwrite to replace it."
         )
     # Get credentials.
     _LOG.info("Loading Google API credentials")

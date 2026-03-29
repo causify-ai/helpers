@@ -61,8 +61,10 @@ def _preprocess_txt(lines: List[str]) -> List[str]:
     # txt = re.sub(r"\n{2,}", "\n", txt)
     # Replace … with ...
     txt = re.sub(r"…", "...", txt)
-    # Replace \t with 2 spaces
+    # Replace \t with 2 spaces.
     txt = re.sub(r"\t", "  ", txt)
+    # Convert bullet points like `• ` to `- `.
+    txt = re.sub(r"^\s*•\s+", "- ", txt, flags=re.MULTILINE)
     txt_new: List[str] = []
     for line in txt.split("\n"):
         # 2) Skip frames for all the type formats.
@@ -265,7 +267,9 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     :param lines: The lines to be processed
     :return: Lines with extra indentation removed from code blocks
     """
-    _LOG.debug("remove_code_block_extra_indentation: Processing %d lines", len(lines))
+    _LOG.debug(
+        "remove_code_block_extra_indentation: Processing %d lines", len(lines)
+    )
     lines_new: List[str] = []
     in_code_block = False
     base_indent = 0
@@ -287,7 +291,10 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
                     if i == 0 and rest_line.strip():
                         # First code line in the block
                         rest_indent = len(rest_line) - len(rest_line.lstrip())
-                        if rest_indent > base_indent and rest_indent >= base_indent + 2:
+                        if (
+                            rest_indent > base_indent
+                            and rest_indent >= base_indent + 2
+                        ):
                             # Remove extra indentation.
                             content = rest_line.lstrip()
                             fixed_lines.append(" " * base_indent + content)
@@ -305,7 +312,12 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
             lines_new.append(line)
             continue
         # Fix indentation for code lines on separate lines.
-        if in_code_block and first_code_line and line.strip() and not re.match(r"^\s*```", line):
+        if (
+            in_code_block
+            and first_code_line
+            and line.strip()
+            and not re.match(r"^\s*```", line)
+        ):
             line_indent = len(line) - len(line.lstrip())
             if line_indent > base_indent and line_indent >= base_indent + 2:
                 # Remove extra 2 spaces of indentation
@@ -534,7 +546,7 @@ _VALID_ACTIONS = [
 _DEFAULT_ACTIONS = [
     action
     for action in _VALID_ACTIONS
-    if action not in ["refresh_toc", "check_links"]
+    if action not in ["frame_chapters", "refresh_toc", "check_links"]
 ]
 
 

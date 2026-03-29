@@ -1,5 +1,6 @@
 ---
 description: Format markdown files according to conventions for clarity, structure, and consistency
+model: haiku
 ---
 
 # Summary
@@ -35,66 +36,6 @@ description: Format markdown files according to conventions for clarity, structu
   ## Header 2
   ```
 
-### Use Only Text
-
-- Avoid emojis and icons
-- Avoid any decorative formatting
-  - Do not use line separator like `---`
-- Use only basic text
-  - **Good**: A -> B
-  - **Bad**: A → B
-
-### Use Bullets
-
-- Use bullet points inside a paragraph
-
-- Each bullet should express one complete atomic idea
-  - Keep bullets concise but meaningful (1–3 lines)
-
-- Use bullets to show:
-  - Definitions
-  - Purpose
-  - Components
-  - Pros and cons
-  - Examples
-
-- Use `=` for definitions
-  - Example:
-    ```
-    - Latency = the delay before a transfer of data begins after an instruction
-    ```
-
-- Group bullets under clear paragraph headings
-
-- Do not end a bullet point with a period `.`
-
-### Use Nested Bullets
-
-- Use nested bullets to show:
-  - Dependencies and relationships
-    - E.g., cause -> effect
-  - Hierarchy of concepts, e.g.,
-    ```
-    - Technology
-      - Hardware
-        - Computers
-        - Mobile Devices
-      - Software
-        - Operating Systems
-        - Applications
-    ```
-  - Components and lists, e.g.,
-    ```
-    - Allowed formats:
-      - Graphviz
-      - Mermaid
-      - TikZ-style charts
-    ```
-  - Elaboration, not to extend main bullets, e.g., for
-    - Definitions
-    - Examples
-    - Implications
-
 ### List of Items
 
 - In lists of items
@@ -113,9 +54,9 @@ description: Format markdown files according to conventions for clarity, structu
     - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
     ```
 
-### Use Verbatim for Programs
+### Use Verbatim
 
-- For libraries, executables, scripts use verbatim
+- Use verbatim for libraries, executables, scripts 
   - E.g., `notes_to_pdf.py`, `python`, `pandas`
 
 ### Use and Do Not Use &
@@ -123,57 +64,36 @@ description: Format markdown files according to conventions for clarity, structu
 - **Bad**: Extraction & Conversion Tools
 - **Good**: Extraction and Conversion Tools
 
+# Use Bullet Lists
+
+- Write text using bullet lists following the directions in
+  `.claude/skills/text.use_bullet_lists/SKILL.md`
+
 # Writing Style
 
 ### Writing Style
 
 - Use explicit references instead of unclear ones
-  - **Good**: "TCP protocol"
   - **Bad**: "it"
-
+  - **Good**: "TCP protocol"
 - Maintain consistent labels for recurring ideas
-
 - Avoid redundancy in concepts
-
 - Prefer plain language over academic jargon
-
 - Make sure text is short and not unnecessarily long
 
 ### Avoid Long Prose
 
 - Prefer structured notes over narrative prose
-
 - Use a first-person, self-directed voice, e.g.,
   - **Good**: "Key thing to remember: entropy increases"
 
 ### Use Direct Statements
 
 - Convert abstract principles into short, direct statements, e.g.,
-  - **Good**: "Everyone takes responsibility: no blaming others if work isn't
-    finished."
   - **Bad**: "Everyone takes responsibility, owns their projects, and blames no
     one if something doesn't get finished."
-
-### Try to Use Lists
-
-- **Good**
-  ```
-  - This document covers how to publish:
-    - documents
-    - books
-    - blogs
-    across different repos, e.g.,
-    - `//helpers`
-    - `//csfy`
-    - `//tutorials`
-    - `//umd_classes`
-  ```
-- **Bad**
-  ```
-  This document covers how to publish documents, books, and blogs across
-  different repos (e.g., `//helpers`, `//csfy`, `//tutorials`, and
-  `//umd_classes`)
-  ```
+  - **Good**: "Everyone takes responsibility: no blaming others if work isn't
+    finished."
 
 ### Use Fenced Code Blocks
 
@@ -183,8 +103,8 @@ description: Format markdown files according to conventions for clarity, structu
     ````
     ```python
     ````
-  - If it doesn't have a valid tag, then infer it from the content of the
-    fenced block. If you are not sure, do not modify, but leave it empty
+  - If it doesn't have a valid tag, then infer it from the content of the fenced
+    block. If you are not sure, do not modify it but leave it empty
 
 - The fenced code block should be aligned with the text and the bullet points
   ````
@@ -246,33 +166,9 @@ description: Format markdown files according to conventions for clarity, structu
       - **Why**: Generated at runtime, not needed in the image
     ```
 
-### Keep Number Lists
-
-- If there are numbered lists, make sure they are in order starting from 1
-  - **Bad**
-    ```markdown
-    ## 2. First
-    ## 2. Second
-    ## 3. Third
-    ```
-  - **Good**
-    ```markdown
-    ## 1. First
-    ## 2. Second
-    ## 3. Third
-    ```
-
 ### Limit Use of Bold
 
 - Use bold sparingly and to highlight parts of text and not entire phrases
-  - **Good**
-    ```markdown
-    **How to choose:**
-
-    - **Use Standard** if you need system-level tools (git, curl, graphviz, etc.)
-    - **Use Python Slim** to minimize image size and build time
-    - **Use uv** if you want faster, more reliable dependency management
-    ```
   - **Bad**
     ````markdown
     - **Delete unused reference files**
@@ -291,3 +187,40 @@ description: Format markdown files according to conventions for clarity, structu
       > pip-compile requirements.in > requirements.txt
       ```
     ````
+  - **Good**
+    ```markdown
+    **How to choose:**
+
+    - **Use Standard** if you need system-level tools (git, curl, graphviz, etc.)
+    - **Use Python Slim** to minimize image size and build time
+    - **Use uv** if you want faster, more reliable dependency management
+    ```
+
+### Complete Missing Headers
+
+- If a Markdown header doesn't have a title then complete it using the content of
+  the following text
+
+### Make sure that the Headers Start from 1
+
+- The markdown headers should start from 1
+  - **Bad**
+    ```markdown
+    ## Level 1
+
+    - Hello
+
+    ### Level 2
+
+    - Good bye
+    ```
+  - **Good**
+    ```markdown
+    # Level 1
+
+    - Hello
+
+    ## Level 2
+
+    - Good bye
+    ```
