@@ -251,8 +251,22 @@ def check_merged_branch(abort_on_error: bool = True) -> None:
         _handle_error(func_name, False, abort_on_error)
         return
     print(f"Default branch is '{default_branch}'")
+    # Use remote tracking default branch if it exists.
+    cmd = f"git rev-parse --verify origin/{default_branch}"
+    rc, _ = _system_to_string(cmd, abort_on_error=False, verbose=False)
+    if rc == 0:
+        default_branch_ref = f"origin/{default_branch}"
+        print(f"Checking against remote tracking branch: {default_branch_ref}")
+    else:
+        default_branch_ref = default_branch
+        print(
+            color_highlight(
+                f"No remote tracking branch - checking against local {default_branch}",
+                "yellow",
+            )
+        )
     # List branches whose commits are also all in the default branch.
-    cmd = f"git branch --merged {default_branch}"
+    cmd = f"git branch --merged {default_branch_ref}"
     rc, merged_txt = _system_to_string(cmd)
     _ = rc
     # Each line looks like "  branch-name" or "* branch-name".
