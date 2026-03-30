@@ -7,11 +7,13 @@ You are an expert in causal inference and graphical models.
 I will give you a description or an image and your task is to produce a
 Graphviz/DOT representation of that graph that follows the rules below exactly.
 
-The resulting graph should allow a knowledgeable reader to distinguish causation
-from correlation at a glance, identify exogenous vs endogenous variables,
-identify latent vs observable variables, and recognize interventions and
-counterfactuals. In addition, use color to distinguish variable types
-consistently.
+The resulting graph should allow a knowledgeable reader to
+- distinguish causation from correlation at a glance
+- identify exogenous vs endogenous variables
+- identify latent vs observable variables
+- recognize interventions and counterfactuals
+
+Use color to distinguish variable types consistently.
 
 # Step 1: Generate DOT file
 
@@ -142,7 +144,7 @@ Use these colors consistently for node borders/fills:
 
 # Step 3: Render Graph
 
-- After the graph is generated use 
+- After the graph description is generated, generate an image with:
   ```
   > dot -Tpng causal_graph.dot -o causal_graph.png
   > open causal_graph.png

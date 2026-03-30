@@ -16,4 +16,12 @@ description: Replace "from X import Y" style imports with "import X" and update 
   from __future__ import annotations
   from typing import Any, Dict, List, Optional, Tuple, Union, ...  (any typing name)
   from IPython.display import display
+  from pathlib import Path
   ```
+
+- Do not use
+  ```
+  # Re-export get_chat_model for backward compatibility.
+  get_chat_model = langchain_API_utils.get_chat_model
+  ```
+  but replace all the callers

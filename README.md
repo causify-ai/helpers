@@ -16,21 +16,6 @@ This repo is useful in three common contexts:
 ## One-minute map (how the repo fits together)
 
 ```mermaid
-
----
-config:
-  flowchart:
-    curve: monotoneX
-    htmlLabels: true
-  layout: elk
-  themeVariables:
-    primaryColor: '#e8ebf0'
-    primaryTextColor: '#0f172a'
-    secondaryColor: '#f5f6f8'
-    tertiaryColor: '#f9fafb'
-    lineColor: '#94a3b8'
----
-
 flowchart LR
  subgraph Lib["`**Python Library** (helpers/)`"]
     direction TB

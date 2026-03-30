@@ -15,21 +15,14 @@ import re
 import sys
 from typing import List, Optional, Union
 
-# Try to import optional Google API dependencies.
-try:
-    # Authentication for Google API to produce credentials.
-    import google.oauth2.service_account as goasea
+# Authentication for Google API to produce credentials.
+import google.oauth2.service_account as goasea
 
-    # Google API client for service objects (e.g., Drive, Sheets, etc.)
-    import googleapiclient.discovery as godisc
+# Google API client for service objects (e.g., Drive, Sheets, etc.)
+import googleapiclient.discovery as godisc
 
-    # Built on top of Google API to simplify interactions with Google Sheets.
-    import gspread
-
-    _GOOGLE_API_AVAILABLE = True
-except ImportError:
-    # If Google API packages are not installed, set placeholders.
-    _GOOGLE_API_AVAILABLE = False
+# Built on top of Google API to simplify interactions with Google Sheets.
+import gspread
 
 import pandas as pd
 import helpers.hcache_simple as hcacsimp

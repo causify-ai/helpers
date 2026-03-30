@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy as np
 import pandas as pd
-import IPython.display
 
 import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
@@ -277,6 +276,8 @@ def display_value_counts_stats_df(
         for col_name in col_names:
             display_value_counts_stats_df(df, col_name, num_rows=num_rows)
         return
+    import IPython.display
+
     hdbg.dassert_isinstance(col_names, str)
     _LOG.info("# %s", col_names)
     stats_df = get_value_counts_stats_df(df, col_names, num_rows=num_rows)
