@@ -3,7 +3,7 @@ Utilities for running docker tests.
 
 Import as:
 
-import helpers.hdocker_tests as hdtests
+import helpers.hdocker_tests as hdoctest
 """
 
 import glob
@@ -11,8 +11,12 @@ import logging
 import os
 from typing import List
 
+import pytest
+
 import helpers.hdbg as hdbg
+import helpers.hgit as hgit
 import helpers.hsystem as hsystem
+import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
@@ -91,6 +95,10 @@ def run_all_tests(
     return 0
 
 
+# #############################################################################
+
+
+# TODO(ai_gp): Inline
 def run_docker_build(script_dir: str) -> None:
     """
     Build the Docker image by running docker_build.sh in script_dir.
@@ -103,9 +111,8 @@ def run_docker_build(script_dir: str) -> None:
     hsystem.system(cmd)
 
 
-def run_docker_cmd(
-    script_dir: str, *, shell_cmd: str = "ls /curr_dir"
-) -> None:
+# TODO(ai_gp): Inline
+def run_docker_cmd(script_dir: str, *, shell_cmd: str = "ls /git_root") -> None:
     """
     Run an arbitrary shell command inside Docker via docker_cmd.sh.
 
@@ -114,11 +121,35 @@ def run_docker_cmd(
     """
     docker_cmd_script = os.path.join(script_dir, "docker_cmd.sh")
     hdbg.dassert_file_exists(docker_cmd_script)
-    # cd into script_dir so docker_cmd.sh mounts the right directory.
     cmd = f"cd {script_dir} && bash {docker_cmd_script} '{shell_cmd}'"
     hsystem.system(cmd)
 
 
+def run_docker_bash(script_dir: str, *, shell_cmd: str = "ls /git_root") -> None:
+    """
+    Run a command inside Docker via docker_bash.sh by piping it to stdin.
+
+    :param script_dir: directory containing docker_bash.sh
+    :param shell_cmd: shell command to pipe into the interactive bash session
+    """
+    docker_bash_script = os.path.join(script_dir, "docker_bash.sh")
+    hdbg.dassert_file_exists(docker_bash_script)
+    # Pipe the command followed by exit so the interactive session terminates.
+    cmd = f"echo '{shell_cmd}' | bash {docker_bash_script}"
+    hsystem.system(cmd)
+
+
+def _get_script_dir(file_path: str) -> str:
+    """
+    Compute the script_dir from a test file path.
+
+    :param file_path: path to the test file (pass `__file__` from the caller)
+    :return: parent directory of the test directory
+    """
+    return os.path.dirname(os.path.dirname(os.path.abspath(file_path)))
+
+
+# TODO(ai_gp): Inline
 def run_notebook_in_docker(notebook_name: str, script_dir: str) -> None:
     """
     Run a notebook inside Docker via docker_cmd.sh using jupyter nbconvert.
@@ -130,12 +161,77 @@ def run_notebook_in_docker(notebook_name: str, script_dir: str) -> None:
     docker_cmd_script = os.path.join(script_dir, "docker_cmd.sh")
     notebook_path = os.path.join(script_dir, notebook_name)
     hdbg.dassert_file_exists(notebook_path)
-    # cd into script_dir so docker_cmd.sh mounts the right directory.
-    # Inside the container the notebooks are at /curr_dir/<notebook_name>.
+    # Compute the notebook path inside the container via /git_root.
+    git_root = hgit.find_git_root(script_dir)
+    rel_path = os.path.relpath(script_dir, git_root)
+    container_notebook_path = f"/git_root/{rel_path}/{notebook_name}"
     cmd = (
         f"cd {script_dir} && "
         f"bash {docker_cmd_script} "
         f"'jupyter nbconvert --execute --to html "
-        f"--ExecutePreprocessor.timeout=-1 /curr_dir/{notebook_name}'"
+        f"--ExecutePreprocessor.timeout=-1 {container_notebook_path}'"
     )
     hsystem.system(cmd)
+
+
+# #############################################################################
+# DockerTestCase
+# #############################################################################
+
+
+class DockerTestCase(hunitest.TestCase):
+    """
+    Base test class for Docker tests.
+
+    Subclasses must set `_test_file = __file__` and may add notebook test
+    methods that call `self._helper(notebook_name)`.
+    """
+
+    _test_file: str = ""
+
+    # TODO(ai_gp): Add test_docker_build_from_scratch marked as superslow
+    # to build the container from scratch.
+
+    @pytest.mark.slow
+    def test_docker_build(self) -> None:
+        """
+        Test that docker_build.sh runs without error.
+        """
+        # Prepare inputs.
+        script_dir = _get_script_dir(self._test_file)
+        # Run test.
+        run_docker_build(script_dir)
+
+    @pytest.mark.slow
+    def test_docker_cmd(self) -> None:
+        """
+        Test that docker_cmd.sh 'ls /git_root' runs without error.
+        """
+        # Prepare inputs.
+        script_dir = _get_script_dir(self._test_file)
+        # Run test.
+        run_docker_cmd(script_dir)
+
+    def test_docker_bash(self) -> None:
+        """
+        Test that docker_bash.sh runs 'ls /git_root' and exits without error.
+        """
+        # Prepare inputs.
+        script_dir = _get_script_dir(self._test_file)
+        docker_bash_script = os.path.join(script_dir, "docker_bash.sh")
+        if not os.path.exists(docker_bash_script):
+            pytest.skip("docker_bash.sh not found in " + script_dir)
+        # Run test.
+        run_docker_bash(script_dir, shell_cmd="ls /git_root")
+
+    # TODO(ai_gp): -> _run_notebook
+    def _helper(self, notebook_name: str) -> None:
+        """
+        Run a single notebook inside Docker.
+
+        :param notebook_name: notebook filename relative to the project dir
+        """
+        # Prepare inputs.
+        script_dir = _get_script_dir(self._test_file)
+        # Run test.
+        run_notebook_in_docker(notebook_name, script_dir)

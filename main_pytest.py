@@ -124,6 +124,10 @@ def _run_test(
         _ = subprocess.run(
             f"invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir
         )
+        # Prune the Docker images to free up disk space.
+        _ = subprocess.run(
+            f"docker system prune -a -f", shell=True, env=env, cwd=runnable_dir
+        )
     # pytest returns:
     # - 0 if all tests passed
     # - 5 if no tests are collected

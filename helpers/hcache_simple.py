@@ -279,6 +279,42 @@ def _check_valid_cache_property(property_name: str) -> None:
     hdbg.dassert_in(property_name, valid_properties)
 
 
+def _save_func_cache_data_to_file(
+    file_name: str,
+    cache_type: Optional[str],
+    func_cache_data: _FunctionCacheType,
+) -> None:
+    """
+    Save the function cache data to a file.
+
+    :param file_name: The name of the file.
+    :param func_cache_data: The function cache data to save.
+    """
+    # Infer cache type from file extension if not set.
+    if cache_type is None:
+        if file_name.endswith(".pkl"):
+            cache_type = "pickle"
+        else:
+            cache_type = "json"
+    hio.create_enclosing_dir(file_name, incremental=True)
+    _LOG.trace("Saving to '%s'", file_name)
+    # Save data.
+    if cache_type == "pickle":
+        with open(file_name, "wb") as file:
+            pickle.dump(func_cache_data, file)
+    elif cache_type == "json":
+        with open(file_name, "w", encoding="utf-8") as file:
+            json.dump(
+                func_cache_data,
+                file,
+                indent=4,
+                sort_keys=True,
+                ensure_ascii=False,
+            )
+    else:
+        raise ValueError(f"Invalid cache type '{cache_type}'")
+
+
 def set_cache_property(func_name: str, property_name: str, val: Any) -> None:
     """
     Set a property for the cache of a given function name.
@@ -557,42 +593,6 @@ def _get_cache_file_name(func_name: str) -> str:
     else:
         raise ValueError(f"Invalid cache type '{cache_type}'")
     return file_name
-
-
-def _save_func_cache_data_to_file(
-    file_name: str,
-    cache_type: Optional[str],
-    func_cache_data: _FunctionCacheType,
-) -> None:
-    """
-    Save the function cache data to a file.
-
-    :param file_name: The name of the file.
-    :param func_cache_data: The function cache data to save.
-    """
-    # Infer cache type from file extension if not set.
-    if cache_type is None:
-        if file_name.endswith(".pkl"):
-            cache_type = "pickle"
-        else:
-            cache_type = "json"
-    hio.create_enclosing_dir(file_name, incremental=True)
-    _LOG.trace("Saving to '%s'", file_name)
-    # Save data.
-    if cache_type == "pickle":
-        with open(file_name, "wb") as file:
-            pickle.dump(func_cache_data, file)
-    elif cache_type == "json":
-        with open(file_name, "w", encoding="utf-8") as file:
-            json.dump(
-                func_cache_data,
-                file,
-                indent=4,
-                sort_keys=True,
-                ensure_ascii=False,
-            )
-    else:
-        raise ValueError(f"Invalid cache type '{cache_type}'")
 
 
 def _save_cache_dict_to_disk(
@@ -1095,8 +1095,9 @@ def simple_cache(
                 if abort_on_cache_miss:
                     raise ValueError(f"Cache miss for key='{cache_key}'")
                 # Report on cache miss.
-                report_on_cache_miss = report_on_cache_miss or get_cache_property(
-                    func_name, "report_on_cache_miss"
+                report_on_cache_miss = (
+                    report_on_cache_miss
+                    or get_cache_property(func_name, "report_on_cache_miss")
                 )
                 _LOG.trace("report_on_cache_miss=%s", report_on_cache_miss)
                 if report_on_cache_miss:

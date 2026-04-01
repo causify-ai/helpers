@@ -15,7 +15,7 @@ import re
 import sys
 from typing import List, Optional, Union
 
-# Try to import optional Google API dependencies.
+# Keep try-except to avoid `ModuleNotFoundError` in CI/CD (HelpersTask #1183).
 try:
     # Authentication for Google API to produce credentials.
     import google.oauth2.service_account as goasea
@@ -32,6 +32,7 @@ except ImportError:
     _GOOGLE_API_AVAILABLE = False
 
 import pandas as pd
+
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
 import helpers.hmodule as hmodule
@@ -47,8 +48,8 @@ def install_needed_modules(
     Install needed modules for Google Drive API.
 
     :param use_sudo: whether to use sudo to install the module
-    :param venv_path: path to the virtual environment
-        E.g., /Users/saggese/src/venv/client_venv.helpers
+    :param venv_path: path to the virtual environment E.g.,
+        /Users/saggese/src/venv/client_venv.helpers
     """
     hmodule.install_module_if_not_present(
         "google",
@@ -293,9 +294,10 @@ def _freeze_rows_in_gsheet(
 
     :param credentials: Google credentials object.
     :param sheet_id: ID of the Google Sheet (spreadsheet ID).
-    :param num_rows_to_freeze: Number of rows to freeze (starting from row 0).
-    :param tab_name: Name of the sheet (tab) to freeze rows in.
-        Defaults to the first tab if not provided.
+    :param num_rows_to_freeze: Number of rows to freeze (starting from
+        row 0).
+    :param tab_name: Name of the sheet (tab) to freeze rows in. Defaults
+        to the first tab if not provided.
     :param bold: If True, make the frozen rows bold.
     """
     hdbg.dassert_lt(0, num_rows_to_freeze)
@@ -336,9 +338,7 @@ def _freeze_rows_in_gsheet(
                 }
             }
         )
-        _LOG.debug(
-            "Adding bold formatting to %s frozen rows", num_rows_to_freeze
-        )
+        _LOG.debug("Adding bold formatting to %s frozen rows", num_rows_to_freeze)
     # Execute the batch update.
     freeze_request = {"requests": requests}
     response = (
@@ -1074,7 +1074,8 @@ def save_df_to_tmp_gsheet(
     Save a DataFrame to a Google Sheet.
 
     :param df: The DataFrame to save.
-    :param url: URL of the Google Sheet (empty means default temp sheet).
+    :param url: URL of the Google Sheet (empty means default temp
+        sheet).
     :param tab_name: The name of the tab to save the DataFrame to.
     :param remove_empty_columns: Whether to remove empty columns.
     :param remove_stable_columns: Whether to remove stable columns.

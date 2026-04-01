@@ -219,10 +219,11 @@ def check_master(abort_on_error: bool = True) -> None:
 
 def check_merged_branch(abort_on_error: bool = True) -> None:
     """
-    Check if the current branch has already been merged into the default branch.
+    Check if the current branch has already been merged into the default
+    branch.
 
-    Committing to an already-merged branch is usually a mistake (e.g., the
-    user forgot to switch to a new branch after the merge).
+    Committing to an already-merged branch is usually a mistake (e.g.,
+    the user forgot to switch to a new branch after the merge).
     """
     func_name = _report()
     # Get the current branch name.
@@ -250,21 +251,56 @@ def check_merged_branch(abort_on_error: bool = True) -> None:
         _handle_error(func_name, False, abort_on_error)
         return
     print(f"Default branch is '{default_branch}'")
-    # List branches already merged into the default branch.
-    cmd = f"git branch --merged {default_branch}"
+    # Use remote tracking default branch if it exists.
+    cmd = f"git rev-parse --verify origin/{default_branch}"
+    rc, _ = _system_to_string(cmd, abort_on_error=False, verbose=False)
+    if rc == 0:
+        default_branch_ref = f"origin/{default_branch}"
+        print(f"Checking against remote tracking branch: {default_branch_ref}")
+    else:
+        default_branch_ref = default_branch
+        print(
+            color_highlight(
+                f"No remote tracking branch - checking against local {default_branch}",
+                "yellow",
+            )
+        )
+    # List branches whose commits are also all in the default branch.
+    cmd = f"git branch --merged {default_branch_ref}"
     rc, merged_txt = _system_to_string(cmd)
     _ = rc
     # Each line looks like "  branch-name" or "* branch-name".
     merged_branches = [b.lstrip("* ").strip() for b in merged_txt.splitlines()]
     error = False
     if branch_name in merged_branches:
-        _LOG.error(
-            "Branch '%s' has already been merged into '%s'."
-            " Please switch to a new branch before committing.",
-            branch_name,
-            default_branch,
-        )
-        error = True
+        # Check if commits were ever made on the branch to distinguish between
+        # a newly created branch and a merged one.
+        cmd = f"git reflog show {branch_name}"
+        rc, reflog = _system_to_string(cmd, abort_on_error=False, verbose=False)
+        # Look for commit operations in reflog (excluding branch creation).
+        reflog_lines = reflog.split("\n")
+        has_commits = False
+        for line in reflog_lines:
+            # Reflog format: "hash HEAD@{n}: operation: message"
+            # Look for "commit" or "commit (amend)" operations.
+            if ": commit" in line and "branch: Created from" not in line:
+                has_commits = True
+                break
+        if not has_commits:
+            # Allow commits since the branch appears newly created (no
+            # commits ever made on this branch).
+            pass
+        else:
+            # Block commits since the branch has likely already been
+            # merged (there were commits made on it besides branch
+            # creation).
+            _LOG.error(
+                "Branch '%s' has already been merged into '%s'."
+                " Please switch to a new branch before committing.",
+                branch_name,
+                default_branch,
+            )
+            error = True
     # Handle error.
     _handle_error(func_name, error, abort_on_error)
 
