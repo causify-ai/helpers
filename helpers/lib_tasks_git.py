@@ -7,6 +7,7 @@ import helpers.lib_tasks_git as hlitagit
 import logging
 import os
 import re
+import stat
 from typing import Any, List
 
 from invoke import task
@@ -26,6 +27,73 @@ _LOG = logging.getLogger(__name__)
 
 # pylint: disable=protected-access
 
+# Bits matching `chmod a+w` / `chmod a-w` on the symlink inode (not the target).
+_SYMLINK_WRITE_BITS = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
+
+
+def _collect_symlinks(dir: str) -> List[str]:
+    """
+    Collect symlink paths under a given directory.
+
+    :param dir: directory to walk
+    :return: symlink paths under `dir`
+    """
+    out: List[str] = []
+    for dirpath, dirnames, filenames in os.walk(dir, topdown=True):
+        # Skips `.git` directories. Does not follow symlinked directories.
+        if ".git" in dirnames:
+            dirnames.remove(".git")
+        for name in filenames:
+            path = os.path.join(dirpath, name)
+            if os.path.islink(path):
+                out.append(path)
+        for name in dirnames:
+            path = os.path.join(dirpath, name)
+            if os.path.islink(path):
+                out.append(path)
+    return out
+
+
+def symlink_add_write_perm(dir: str) -> None:
+    """
+    Add write permission for all on each symlink under `dir`.
+
+    :param dir: directory to walk
+    """
+    _LOG.info("Adding write permission for all on each symlink under %s", dir)
+    for path in _collect_symlinks(dir):
+        try:
+            mode = os.lstat(path).st_mode
+            os.chmod(
+                path,
+                mode | _SYMLINK_WRITE_BITS,
+                follow_symlinks=False,
+            )
+        except OSError as exc:
+            _LOG.warning("chmod a+w symlink %s: %s", path, exc)
+
+
+def symlink_remove_write_perm(dir: str) -> None:
+    """
+    Remove write permission for all on each symlink under a given directory.
+
+    :param dir: directory to walk
+    """
+    _LOG.info("Removing write permission for all on each symlink under %s", dir)
+    for path in _collect_symlinks(dir):
+        if not os.path.exists(path):
+            _LOG.warning("Skipping broken symlink: %s", path)
+            continue
+        try:
+            mode = os.lstat(path).st_mode
+            os.chmod(
+                path,
+                mode & ~_SYMLINK_WRITE_BITS,
+                follow_symlinks=False,
+            )
+        except OSError as exc:
+            _LOG.warning("chmod a-w symlink %s: %s", path, exc)
+
 
 def run_git_recursively(ctx: Any, cmd_: str) -> None:
     cmd = cmd_
@@ -42,8 +110,13 @@ def git_pull(ctx):  # type: ignore
     """
     hlitauti.report_task()
     #
-    cmd = "git pull --autostash"
-    run_git_recursively(ctx, cmd)
+    root_dir = hgit.get_client_root(super_module=False)
+    symlink_add_write_perm(root_dir)
+    try:
+        cmd = "git pull --autostash"
+        run_git_recursively(ctx, cmd)
+    finally:
+        symlink_remove_write_perm(root_dir)
 
 
 @task
@@ -71,7 +144,8 @@ def git_merge_master(
     :param abort_if_not_ff: abort if fast-forward is not possible
     :param abort_if_not_clean: abort if the client is not clean
     :param skip_fetch: skip fetching master
-    :param auto_merge: automatically commit and push if merge is successful
+    :param auto_merge: automatically commit and push if merge is
+        successful
     """
     hlitauti.report_task()
     # Check that the Git client is clean.
@@ -690,9 +764,7 @@ def _git_diff_with_branch(
         cmd.append(f"--diff-filter={diff_type}")
     cmd.append(f"--name-only HEAD {hash_}")
     cmd = " ".join(cmd)
-    files = hsystem.system_to_files(
-        cmd, dir_name, remove_files_non_present=False
-    )
+    files = hsystem.system_to_files(cmd, dir_name, remove_files_non_present=False)
     files = sorted(files)
     _LOG.debug("%s", "\n".join(files))
     # Filter by `file_name`, if needed.
@@ -1168,9 +1240,11 @@ def git_backup(
         hprint.indent(
             "\n".join(
                 [
-                    os.path.join(repo_path, file_path)
-                    if repo_path != "."
-                    else file_path
+                    (
+                        os.path.join(repo_path, file_path)
+                        if repo_path != "."
+                        else file_path
+                    )
                     for repo_path, file_path in all_files
                 ]
             )
