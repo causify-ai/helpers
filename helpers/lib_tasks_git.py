@@ -56,7 +56,7 @@ def _collect_symlinks(dir: str) -> List[str]:
 
 def symlink_add_write_perm(dir: str) -> None:
     """
-    Add write permission for all on each symlink under `dir`.
+    Add write permission for all on each symlink under the given directory.
 
     :param dir: directory to walk
     """
@@ -67,7 +67,6 @@ def symlink_add_write_perm(dir: str) -> None:
             os.chmod(
                 path,
                 mode | _SYMLINK_WRITE_BITS,
-                follow_symlinks=False,
             )
         except OSError as exc:
             _LOG.warning("chmod a+w symlink %s: %s", path, exc)
@@ -89,7 +88,6 @@ def symlink_remove_write_perm(dir: str) -> None:
             os.chmod(
                 path,
                 mode & ~_SYMLINK_WRITE_BITS,
-                follow_symlinks=False,
             )
         except OSError as exc:
             _LOG.warning("chmod a-w symlink %s: %s", path, exc)
