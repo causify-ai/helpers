@@ -66,6 +66,24 @@ flowchart LR
     NB@{ shape: doc}
     GH@{ shape: rect}
     PC@{ shape: rect}
+     Core:::lib
+     Data:::lib
+     LLM:::lib
+     Conf:::config
+     Scripts:::tooling
+     Import:::tooling
+     Linters:::tooling
+     Tasks:::tooling
+     Human:::docs
+     Mk:::docs
+     NB:::docs
+     GH:::ci
+     PC:::ci
+    classDef lib fill:#e0f7fa,stroke:#0097a7,stroke-width:2px,color:#004d40
+    classDef config fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#795548
+    classDef tooling fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
+    classDef docs fill:#c5cae9,stroke:#3949ab,stroke-width:2px,color:#1a237e
+    classDef ci fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
 ````
 
 ## Why this exists (the philosophy)
