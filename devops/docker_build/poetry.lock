@@ -3892,6 +3892,18 @@ files = [
 dev = ["black", "build", "mypy", "pytest", "pytest-cov", "setuptools", "tox", "twine", "wheel"]
 
 [[package]]
+name = "pytz"
+version = "2026.1.post1"
+description = "World timezone definitions, modern and historical"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "pytz-2026.1.post1-py2.py3-none-any.whl", hash = "sha256:f2fd16142fda348286a75e1a524be810bb05d444e5a081f37f7affc635035f7a"},
+    {file = "pytz-2026.1.post1.tar.gz", hash = "sha256:3378dde6a0c3d26719182142c56e60c7f9af7e968076f31aae569d72a0358ee1"},
+]
+
+[[package]]
 name = "pywinpty"
 version = "3.0.3"
 description = "Pseudo terminal support for Windows from Python."
@@ -5230,4 +5242,4 @@ test = ["pytest", "pytest-cov"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">= 3.12,<4.0"
-content-hash = "fd918392e2ec3b7392e699e437b1d0bc6ff858b874416343c81f6a4cb18188b0"
+content-hash = "a4751240841f6e73d9d6a00ec44a9577a3a003fb8ab791567ca955f2d37c88d6"
