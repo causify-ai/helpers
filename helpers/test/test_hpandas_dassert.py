@@ -419,7 +419,7 @@ class Test_dassert_index_is_datetime(hunitest.TestCase):
         actual = str(cm.exception)
         expected = r"""
         * Failed assertion *
-        Instance of 'RangeIndex(start=0, stop=0, step=1)' is '<class 'pandas.core.indexes.range.RangeIndex'>' instead of '<class 'pandas.core.indexes.datetimes.DatetimeIndex'>'
+        Instance of 'RangeIndex(start=0, stop=0, step=1)' is '<class 'pandas.RangeIndex'>' instead of '<class 'pandas.DatetimeIndex'>'
         """
         self.assert_equal(actual, expected, fuzzy_match=True)
 

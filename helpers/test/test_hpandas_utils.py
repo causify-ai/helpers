@@ -79,7 +79,7 @@ class Test_df_to_str(hunitest.TestCase):
                 col_name   dtype       num_unique       num_nans first_elem       type(first_elem)
         0          index   int64  3 / 3 = 100.00%  0 / 3 = 0.00%          0  <class 'numpy.int64'>
         1  dummy_value_1   int64  3 / 3 = 100.00%  0 / 3 = 0.00%          1  <class 'numpy.int64'>
-        2  dummy_value_2  object  3 / 3 = 100.00%  0 / 3 = 0.00%          A          <class 'str'>
+        2  dummy_value_2    str  3 / 3 = 100.00%  0 / 3 = 0.00%          A          <class 'str'>
         3  dummy_value_3   int64   1 / 3 = 33.33%  0 / 3 = 0.00%          0  <class 'numpy.int64'>
            dummy_value_1 dummy_value_2  dummy_value_3
         0              1             A              0
@@ -104,7 +104,7 @@ class Test_df_to_str(hunitest.TestCase):
                 col_name   dtype       num_unique       num_nans first_elem       type(first_elem)
         0          index   int64  3 / 3 = 100.00%  0 / 3 = 0.00%          0  <class 'numpy.int64'>
         1  dummy_value_1   int64  3 / 3 = 100.00%  0 / 3 = 0.00%          1  <class 'numpy.int64'>
-        2  dummy_value_2  object  3 / 3 = 100.00%  0 / 3 = 0.00%          A          <class 'str'>
+        2  dummy_value_2    str  3 / 3 = 100.00%  0 / 3 = 0.00%          A          <class 'str'>
         3  dummy_value_3   int64   1 / 3 = 33.33%  0 / 3 = 0.00%          0  <class 'numpy.int64'>
            dummy_value_1 dummy_value_2  dummy_value_3
         0              1             A              0
