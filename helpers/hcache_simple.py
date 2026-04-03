@@ -22,6 +22,7 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hs3 as hs3
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -215,6 +216,97 @@ def get_cache_file_prefix() -> str:
     return _CACHE_FILE_PREFIX
 
 
+# #############################################################################
+# S3 cache configuration.
+# #############################################################################
+
+# Create global variable for S3 bucket.
+if "_S3_BUCKET" not in globals():
+    _LOG.trace("Creating _S3_BUCKET")
+    _S3_BUCKET: Optional[str] = None
+
+# Create global variable for S3 prefix.
+if "_S3_PREFIX" not in globals():
+    _LOG.trace("Creating _S3_PREFIX")
+    _S3_PREFIX: str = "cache"
+
+# Create global variable for AWS profile.
+if "_AWS_PROFILE" not in globals():
+    _LOG.trace("Creating _AWS_PROFILE")
+    _AWS_PROFILE: Optional[str] = None
+
+
+def set_s3_bucket(bucket: str) -> None:
+    """
+    Set the S3 bucket for cache storage.
+
+    :param bucket: S3 bucket name (e.g., "my-bucket" or "s3://my-
+        bucket")
+    """
+    global _S3_BUCKET
+    hdbg.dassert_isinstance(bucket, str)
+    hdbg.dassert_ne(bucket, "", "S3 bucket cannot be empty")
+    # Keep s3:// prefix if present, otherwise add it.
+    if not bucket.startswith("s3://"):
+        bucket = f"s3://{bucket}"
+    _S3_BUCKET = bucket
+    _LOG.trace("Setting _S3_BUCKET to %s", _S3_BUCKET)
+
+
+def get_s3_bucket() -> Optional[str]:
+    """
+    Get the S3 bucket for cache storage.
+
+    :return: S3 bucket name with s3:// prefix, or None if not configured
+    """
+    return _S3_BUCKET
+
+
+def set_s3_prefix(prefix: str) -> None:
+    """
+    Set the S3 prefix for cache files.
+
+    :param prefix: S3 prefix path (e.g., "cache" or "app/cache")
+    """
+    global _S3_PREFIX
+    hdbg.dassert_isinstance(prefix, str)
+    # Remove leading/trailing slashes.
+    prefix = prefix.strip("/")
+    _S3_PREFIX = prefix
+    _LOG.trace("Setting _S3_PREFIX to %s", _S3_PREFIX)
+
+
+def get_s3_prefix() -> str:
+    """
+    Get the S3 prefix for cache files.
+
+    :return: S3 prefix path
+    """
+    return _S3_PREFIX
+
+
+def set_aws_profile(profile: str) -> None:
+    """
+    Set the AWS profile for S3 access.
+
+    :param profile: AWS profile name (e.g., "ck", "csfy")
+    """
+    global _AWS_PROFILE
+    hdbg.dassert_isinstance(profile, str)
+    hdbg.dassert_ne(profile, "", "AWS profile cannot be empty")
+    _AWS_PROFILE = profile
+    _LOG.trace("Setting _AWS_PROFILE to %s", _AWS_PROFILE)
+
+
+def get_aws_profile() -> Optional[str]:
+    """
+    Get the AWS profile for S3 access.
+
+    :return: AWS profile name or None if not configured
+    """
+    return _AWS_PROFILE
+
+
 def get_cache_property_file() -> str:
     """
     Get the cache property file name.
@@ -275,6 +367,18 @@ def _check_valid_cache_property(property_name: str) -> None:
         "type",
         # cache mode.
         "mode",
+        # Per-function cache directory.
+        "cache_dir",
+        # Per-function cache file prefix.
+        "cache_prefix",
+        # Per-function S3 bucket.
+        "s3_bucket",
+        # Per-function S3 prefix.
+        "s3_prefix",
+        # Per-function AWS profile.
+        "aws_profile",
+        # Auto-sync to S3 after cache updates.
+        "auto_sync_s3",
     ]
     hdbg.dassert_in(property_name, valid_properties)
 
@@ -573,8 +677,19 @@ def _get_cache_file_name(func_name: str) -> str:
     """
     _LOG.trace("func_name='%s'", func_name)
     hdbg.dassert_isinstance(func_name, str)
-    prefix = get_cache_file_prefix()
-    file_name = os.path.join(get_cache_dir(), f"{prefix}.{func_name}")
+    # Check for per-function cache_dir, otherwise use global.
+    func_cache_dir = get_cache_property(func_name, "cache_dir")
+    if func_cache_dir:
+        cache_dir = func_cache_dir
+    else:
+        cache_dir = get_cache_dir()
+    # Check for per-function cache_prefix, otherwise use global.
+    func_cache_prefix = get_cache_property(func_name, "cache_prefix")
+    if func_cache_prefix:
+        prefix = func_cache_prefix
+    else:
+        prefix = get_cache_file_prefix()
+    file_name = os.path.join(cache_dir, f"{prefix}.{func_name}")
     cache_type = get_cache_property(func_name, "type")
     _LOG.trace(hprint.to_str("cache_type"))
     if cache_type == "pickle":
@@ -663,6 +778,255 @@ def get_disk_cache(func_name: str) -> _FunctionCacheType:
 
 
 # #############################################################################
+# S3 cache.
+# #############################################################################
+
+# Functions to save and retrieve cache from S3.
+
+
+def _get_s3_cache_path(func_name: str) -> str:
+    """
+    Get the full S3 path for a cache file.
+
+    :param func_name: The name of the function.
+    :return: The S3 path (e.g., "s3://bucket/prefix/cache_file.json").
+    """
+    # Check for per-function s3_bucket, otherwise use global.
+    func_s3_bucket = get_cache_property(func_name, "s3_bucket")
+    if func_s3_bucket:
+        bucket = func_s3_bucket
+        # Ensure s3:// prefix.
+        if not bucket.startswith("s3://"):
+            bucket = f"s3://{bucket}"
+    else:
+        bucket = get_s3_bucket()
+    if bucket is None:
+        raise ValueError("S3 bucket not configured")
+    file_name = _get_cache_file_name(func_name)
+    # Get just the filename without the directory.
+    base_name = os.path.basename(file_name)
+    # Check for per-function s3_prefix, otherwise use global.
+    func_s3_prefix = get_cache_property(func_name, "s3_prefix")
+    if func_s3_prefix:
+        prefix = func_s3_prefix
+    else:
+        prefix = get_s3_prefix()
+    if prefix:
+        s3_path = f"{bucket}/{prefix}/{base_name}"
+    else:
+        s3_path = f"{bucket}/{base_name}"
+    return s3_path
+
+
+def _check_s3_configured(func_name: Optional[str] = None) -> bool:
+    """
+    Check if S3 is properly configured.
+
+    :param func_name: The name of the function to check per-function S3
+        settings.
+    :return: True if S3 is configured, False otherwise.
+    """
+    # Check for per-function s3_bucket first if func_name provided.
+    if func_name:
+        func_s3_bucket = get_cache_property(func_name, "s3_bucket")
+        if func_s3_bucket:
+            return True
+    # Check global bucket.
+    bucket = get_s3_bucket()
+    if bucket is None:
+        _LOG.warning("S3 bucket not configured - use set_s3_bucket()")
+        return False
+    return True
+
+
+def _upload_cache_to_s3(func_name: str) -> None:
+    """
+    Upload a cache file to S3.
+
+    :param func_name: The name of the function.
+    """
+    if not _check_s3_configured(func_name):
+        return
+    # Get local file and S3 path.
+    local_file = _get_cache_file_name(func_name)
+    if not os.path.exists(local_file):
+        _LOG.debug("No local cache file to upload for '%s'", func_name)
+        return
+    s3_path = _get_s3_cache_path(func_name)
+    # Check for per-function aws_profile, otherwise use global.
+    func_aws_profile = get_cache_property(func_name, "aws_profile")
+    if func_aws_profile:
+        aws_profile = func_aws_profile
+    else:
+        aws_profile = get_aws_profile()
+    _LOG.info("Uploading cache to %s", s3_path)
+    # Read local file and write to S3.
+    cache_type = get_cache_property(func_name, "type")
+    if cache_type == "pickle":
+        # For pickle files, read as bytes and write.
+        with open(local_file, "rb") as f:
+            data = f.read()
+        # hs3.to_file expects string, so we need to handle binary differently.
+        # Use the S3FileSystem directly for binary files.
+        s3fs_ = hs3.get_s3fs(aws_profile)
+        with s3fs_.open(s3_path, "wb") as f:
+            f.write(data)
+    else:
+        # For JSON files, read as string and write.
+        data = hio.from_file(local_file)
+        hs3.to_file(data, s3_path, aws_profile=aws_profile)
+
+
+def _download_cache_from_s3(func_name: str) -> bool:
+    """
+    Download a cache file from S3.
+
+    :param func_name: The name of the function.
+    :return: True if download successful, False otherwise.
+    """
+    if not _check_s3_configured(func_name):
+        return False
+    # Get local file and S3 path.
+    local_file = _get_cache_file_name(func_name)
+    s3_path = _get_s3_cache_path(func_name)
+    # Check for per-function aws_profile, otherwise use global.
+    func_aws_profile = get_cache_property(func_name, "aws_profile")
+    if func_aws_profile:
+        aws_profile = func_aws_profile
+    else:
+        aws_profile = get_aws_profile()
+    _LOG.info("Downloading cache from %s", s3_path)
+    # Check if S3 file exists.
+    s3fs_ = hs3.get_s3fs(aws_profile)
+    if not s3fs_.exists(s3_path):
+        _LOG.debug("No S3 cache found for '%s'", func_name)
+        return False
+    # Download from S3.
+    cache_type = get_cache_property(func_name, "type")
+    hio.create_enclosing_dir(local_file, incremental=True)
+    if cache_type == "pickle":
+        # For pickle files, read as bytes and write.
+        with s3fs_.open(s3_path, "rb") as f:
+            data = f.read()
+        with open(local_file, "wb") as f:
+            f.write(data)
+    else:
+        # For JSON files, read as string and write.
+        data = hs3.from_file(s3_path, aws_profile=aws_profile)
+        hio.to_file(local_file, data)
+    return True
+
+
+def push_cache_to_s3(func_name: str = "") -> None:
+    """
+    Push local cache to S3 for a given function.
+
+    :param func_name: The name of the function. If empty, push all
+        caches.
+    """
+    if func_name == "":
+        for func_name_tmp in get_cache_func_names("disk"):
+            push_cache_to_s3(func_name_tmp)
+        return
+    _LOG.info("Pushing cache to S3 for '%s'", func_name)
+    # Flush memory cache to disk first.
+    flush_cache_to_disk(func_name)
+    # Upload to S3.
+    _upload_cache_to_s3(func_name)
+
+
+def pull_cache_from_s3(func_name: str = "") -> None:
+    """
+    Pull cache from S3 to local for a given function.
+
+    :param func_name: The name of the function. If empty, pull all
+        caches.
+    """
+    if func_name == "":
+        # List all cache files in S3.
+        if not _check_s3_configured():
+            return
+        bucket = get_s3_bucket()
+        prefix = get_s3_prefix()
+        # Use global aws_profile for listing.
+        aws_profile = get_aws_profile()
+        # Build S3 directory path.
+        if prefix:
+            s3_dir = f"{bucket}/{prefix}"
+        else:
+            s3_dir = bucket
+        # List files in S3 directory.
+        try:
+            s3_files = hs3.listdir(
+                s3_dir,
+                pattern="*",
+                only_files=True,
+                use_relative_paths=False,
+                aws_profile=aws_profile,
+            )
+        except Exception as e:
+            _LOG.warning("Failed to list S3 directory '%s': %s", s3_dir, e)
+            return
+        if not s3_files:
+            _LOG.debug("No cache files found in S3")
+            return
+        # Extract function names from S3 file names.
+        cache_file_prefix = get_cache_file_prefix()
+        for s3_file in s3_files:
+            base_name = os.path.basename(s3_file)
+            # Extract func_name from cache file name.
+            # Format: cache_file_prefix.func_name.json/pkl
+            pattern = rf"{re.escape(cache_file_prefix)}\.(.*)\.(?:json|pkl)"
+            match = re.match(pattern, base_name)
+            if match:
+                func_name_tmp = match.group(1)
+                pull_cache_from_s3(func_name_tmp)
+        return
+    _LOG.info("Pulling cache from S3 for '%s'", func_name)
+    # Download from S3.
+    success = _download_cache_from_s3(func_name)
+    if success:
+        # Load into memory cache.
+        force_cache_from_disk(func_name)
+
+
+def sync_cache_with_s3(func_name: str = "") -> None:
+    """
+    Sync cache between local and S3 (bidirectional merge).
+
+    Downloads S3 cache, merges with local, and uploads result.
+    :param func_name: The name of the function. If empty, sync all
+        caches.
+    """
+    if func_name == "":
+        for func_name_tmp in get_cache_func_names("all"):
+            sync_cache_with_s3(func_name_tmp)
+        return
+    _LOG.info("Syncing cache with S3 for '%s'", func_name)
+    # Get current local cache.
+    local_cache = get_mem_cache(func_name).copy()
+    local_disk_cache = get_disk_cache(func_name).copy()
+    local_cache.update(local_disk_cache)
+    # Download from S3.
+    success = _download_cache_from_s3(func_name)
+    if success:
+        # Load S3 cache.
+        s3_cache = get_disk_cache(func_name)
+        # Merge: local takes precedence.
+        s3_cache.update(local_cache)
+        # Save merged cache.
+        _save_cache_dict_to_disk(func_name, s3_cache)
+        # Upload back to S3.
+        _upload_cache_to_s3(func_name)
+        # Update memory cache.
+        global _CACHE
+        _CACHE[func_name] = s3_cache
+    else:
+        # No S3 cache, just upload local.
+        push_cache_to_s3(func_name)
+
+
+# #############################################################################
 # Stats.
 # #############################################################################
 
@@ -689,8 +1053,8 @@ def cache_stats_to_str(
 
     if func_name == "":
         result = []
-        for func_name in get_cache_func_names("all"):
-            result_tmp = cache_stats_to_str(func_name)
+        for func_name_tmp in get_cache_func_names("all"):
+            result_tmp = cache_stats_to_str(func_name_tmp)
             result.append(result_tmp)
         if result:
             result = pd.concat(result)
@@ -973,15 +1337,31 @@ def simple_cache(
     cache_type: str = "json",
     write_through: bool = True,
     exclude_keys: Optional[List[str]] = None,
+    cache_dir: Optional[str] = None,
+    cache_prefix: Optional[str] = None,
+    s3_bucket: Optional[str] = None,
+    s3_prefix: Optional[str] = None,
+    aws_profile: Optional[str] = None,
+    auto_sync_s3: bool = False,
 ) -> Callable[..., Any]:
     """
     Decorate a function to cache its results.
 
-    The cache is stored in memory and on disk.
+    The cache is stored in memory and on disk, with optional S3 support.
     :param cache_type: The type of cache to use ('json' or 'pickle').
     :param write_through: If True, the cache is written to disk after
         each access.
     :param exclude_keys: A list of keys to exclude from the cache key.
+    :param cache_dir: Directory for this function's cache files. If
+        None, uses global cache directory.
+    :param cache_prefix: Prefix for this function's cache files. If
+        None, uses global cache prefix.
+    :param s3_bucket: S3 bucket for this function's cache (e.g.,
+        "s3://my-bucket"). If specified, enables S3 for this function.
+    :param s3_prefix: S3 prefix path for this function's cache.
+    :param aws_profile: AWS profile for S3 access.
+    :param auto_sync_s3: If True, automatically sync to S3 after each
+        cache update.
     :return: A decorator that can be applied to a function.
     """
 
@@ -993,10 +1373,24 @@ def simple_cache(
         func_name = getattr(func, "__name__", "unknown_function")
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
-        # Only set cache type if not already set (preserve existing setting).
+        # Store function-specific properties.
         existing_type = get_cache_property(func_name, "type")
         if not existing_type:
             set_cache_property(func_name, "type", cache_type)
+        # Store per-function cache settings.
+        if cache_dir is not None:
+            set_cache_property(func_name, "cache_dir", cache_dir)
+        if cache_prefix is not None:
+            set_cache_property(func_name, "cache_prefix", cache_prefix)
+        # Store per-function S3 settings.
+        if s3_bucket is not None:
+            set_cache_property(func_name, "s3_bucket", s3_bucket)
+        if s3_prefix is not None:
+            set_cache_property(func_name, "s3_prefix", s3_prefix)
+        if aws_profile is not None:
+            set_cache_property(func_name, "aws_profile", aws_profile)
+        if auto_sync_s3:
+            set_cache_property(func_name, "auto_sync_s3", auto_sync_s3)
         # Handle mutable default argument.
         exclude_keys_list: List[str] = (
             exclude_keys if exclude_keys is not None else []
@@ -1095,9 +1489,8 @@ def simple_cache(
                 if abort_on_cache_miss:
                     raise ValueError(f"Cache miss for key='{cache_key}'")
                 # Report on cache miss.
-                report_on_cache_miss = (
-                    report_on_cache_miss
-                    or get_cache_property(func_name, "report_on_cache_miss")
+                report_on_cache_miss = report_on_cache_miss or get_cache_property(
+                    func_name, "report_on_cache_miss"
                 )
                 _LOG.trace("report_on_cache_miss=%s", report_on_cache_miss)
                 if report_on_cache_miss:
@@ -1113,6 +1506,11 @@ def simple_cache(
                 if write_through:
                     _LOG.trace("Writing through to disk")
                     flush_cache_to_disk(func_name)
+                    # Check if auto-sync to S3 is enabled.
+                    auto_sync = get_cache_property(func_name, "auto_sync_s3")
+                    if auto_sync:
+                        _LOG.debug("Auto-syncing cache to S3 for '%s'", func_name)
+                        _upload_cache_to_s3(func_name)
             return value
 
         return wrapper
