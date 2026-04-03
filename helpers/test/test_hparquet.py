@@ -40,7 +40,7 @@ def _get_df(date: datetime.date, seed: int = 42) -> pd.DataFrame:
     date = pd.Timestamp(date, tz="America/New_York")
     start_date = date.replace(hour=9, minute=30)
     end_date = date.replace(hour=16, minute=0)
-    df_idx = pd.date_range(start_date, end_date, freq="5T")
+    df_idx = pd.date_range(start_date, end_date, freq="5min")
     _LOG.debug("df_idx=[%s, %s]", min(df_idx), max(df_idx))
     _LOG.debug("len(df_idx)=%s", len(df_idx))
     random.seed(seed)
@@ -883,7 +883,7 @@ class TestAddDatePartitionColumns(hunitest.TestCase):
         }
         start_timestamp = "2021-12-04 19:40:00+00:00"
         end_timestamp = "2021-12-04 19:42:00+00:00"
-        index = pd.date_range(start_timestamp, end_timestamp, freq="1T")
+        index = pd.date_range(start_timestamp, end_timestamp, freq="1min")
         df = pd.DataFrame(index=index, data=test_data)
         # Run.
         hparque.add_date_partition_columns(df, partition_mode)
