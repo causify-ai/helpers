@@ -293,7 +293,7 @@ def df_to_str(
             elif memory_usage_mode == "human_readable":
                 import helpers.hintrospection as hintros
 
-                mem_use_df = mem_use_df.applymap(hintros.format_size)
+                mem_use_df = mem_use_df.map(hintros.format_size)
             else:
                 raise ValueError(
                     f"Invalid memory_usage_mode='{memory_usage_mode}'"
