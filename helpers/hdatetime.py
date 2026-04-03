@@ -493,7 +493,7 @@ def find_bar_timestamp(
     )
     hdbg.dassert_isinstance(current_timestamp, pd.Timestamp)
     # Align.
-    reference_timestamp = f"{bar_duration_in_secs}S"
+    reference_timestamp = f"{bar_duration_in_secs}s"
     if mode == "round":
         bar_timestamp = current_timestamp.round(reference_timestamp)
     elif mode == "floor":

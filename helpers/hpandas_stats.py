@@ -139,9 +139,9 @@ def compute_weighted_sum(
     # TODO(Paul): Consider relaxing the NaN-handling.
     for col in weights.columns:
         weighted_combined_df = combined_df.multiply(weights[col], level=0)
-        weighted_sums = weighted_combined_df.groupby(axis=1, level=1).sum(
+        weighted_sums = weighted_combined_df.T.groupby(level=1).sum(
             min_count=len(dfs)
-        )
+        ).T
         weighted_dfs[col] = weighted_sums
     return weighted_dfs
 
