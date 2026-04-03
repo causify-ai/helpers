@@ -66,7 +66,7 @@ class Test_trim_df1(hunitest.TestCase):
         * type=
         col_name dtype num_unique num_nans first_elem type(first_elem)
         0 index int64 10 / 10 = 100.00% 0 / 10 = 0.00% 4 <class 'numpy.int64'>
-        1 start_time datetime64[ns] 5 / 10 = 50.00% 0 / 10 = 0.00% 2022-01-04T21:38:00.000000000 <class 'numpy.datetime64'>
+        1 start_time datetime64[us] 5 / 10 = 50.00% 0 / 10 = 0.00% 2022-01-04T21:38:00.000000 <class 'numpy.datetime64'>
         2 egid int64 2 / 10 = 20.00% 0 / 10 = 0.00% 13684 <class 'numpy.int64'>
         3 close float64 6 / 10 = 60.00% 0 / 10 = 0.00% 1146.48 <class 'numpy.float64'>
         start_time egid close

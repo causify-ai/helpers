@@ -249,6 +249,13 @@ def compute_points_per_year_for_given_freq(freq: str) -> float:
     :param freq: string identifier of date frequency
     :return: number of time points per year (approximate)
     """
+    # Map deprecated frequency strings to new ones.
+    freq_map = {
+        "T": "min",
+        "M": "ME",
+        "Y": "YE",
+    }
+    freq = freq_map.get(freq, freq)
     # `pd.date_range` breaks for zero-period frequencies, so we need to work
     # around that.
     try:
