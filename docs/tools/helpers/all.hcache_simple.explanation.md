@@ -90,10 +90,13 @@
       `_CACHE`, and then returns it
 
 - Interface:
-  - `get_cache(func_name)` returns the cache for a given function (loads from
-    disk if not in memory)
+  - `get_cache(func_name)` returns the cache for a given function
+    - Implements three-tier lookup: Memory → Disk → S3 (if configured)
+    - If cache not in memory/disk and S3 is configured, automatically pulls from
+      S3
+    - Returns complete cache after checking all storage layers
   - `get_mem_cache(func_name)` returns only the in-memory cache without loading
-    from disk
+    from disk or S3
   - `reset_mem_cache(func_name)` clears the in-memory cache for the function
 
 ## Disk Cache
@@ -138,9 +141,23 @@
 
 ## S3 Cache
 
-- The caching system supports storing cache files on Amazon S3 for:
-  - Sharing cache across multiple machines and team members
-  - Persistent storage independent of local file system
+- S3 serves as the third storage layer in the caching system:
+  - **Memory Cache** (fastest, volatile) → **Disk Cache** (persistent, local) →
+    **S3 Cache** (persistent, shared)
+  - When `get_cache()` is called, it checks all three layers automatically
+  - S3 enables sharing cache across multiple machines and team members
+
+- Cache lookup with S3:
+  - When a cached function is called, the system checks:
+    1. Memory cache first (fastest)
+    2. If not in memory, checks disk cache
+    3. If not on disk and S3 is configured, automatically pulls from S3
+       (one-time attempt per function per session)
+    4. Cache miss is only reported if key not found in ANY layer
+  - This design treats S3 as an integral part of the cache, not a "backup" or
+    "recovery" mechanism
+  - No manual `pull_cache_from_s3()` call needed - it's automatic and
+    transparent
 
 - Global S3 configuration:
   - `set_s3_bucket(bucket)` - set S3 bucket for cache storage
@@ -150,13 +167,14 @@
   - `set_aws_profile(profile)` - set AWS profile for S3 access
     - Example: `set_aws_profile("my-aws-profile")`
 
-- S3 operations:
+- S3 operations (manual control):
   - `push_cache_to_s3(func_name)` - upload local cache to S3
     - If `func_name` is empty, pushes all cached functions
     - First flushes memory cache to disk, then uploads to S3
-  - `pull_cache_from_s3(func_name)` - download cache from S3 to local
+  - `pull_cache_from_s3(func_name)` - manually download cache from S3 to local
     - If `func_name` is empty, pulls all cache files from S3
     - After download, loads cache into memory
+    - Usually not needed since auto-pull happens automatically
   - `sync_cache_with_s3(func_name)` - bidirectional merge between local and S3
     - Downloads S3 cache, merges with local (local takes precedence), uploads
       result
@@ -173,18 +191,6 @@
     after each update
   - Useful for immediately sharing results across team members or machines
   - Only works when `write_through=True` (default)
-
-- Auto-pull feature:
-  - On first cache miss, the system automatically attempts to download cache from
-    S3 if S3 is configured for the function
-  - This happens transparently - no manual `pull_cache_from_s3()` call needed
-  - Only attempts once per function to avoid repeated network calls on every miss
-  - If auto-pull succeeds and the key exists in S3 cache, it's returned
-    immediately
-  - If auto-pull fails or key doesn't exist in S3, the function computes the
-    value normally
-  - This makes S3 cache "just work" - when you call a cached function on a new
-    machine, it automatically pulls from S3 if available
 
 ## Per-Function Configuration
 
@@ -980,10 +986,12 @@ temporary_function(10)  # -> /tmp/temp_cache/, no S3 sync
   uploaded to S3 unless `auto_sync_s3=True` is set. Without this, you must
   manually call `push_cache_to_s3()`.
 
-- **S3 Auto-Pull Happens on First Cache Miss**: When S3 is configured, the
-  system automatically attempts to pull from S3 on the first cache miss. This
-  only happens once per function per session. If you need to refresh from S3
-  later, manually call `pull_cache_from_s3()` or `sync_cache_with_s3()`.
+- **S3 Is Part of Cache Lookup, Not "Recovery"**: When S3 is configured, the
+  system checks all three storage layers (memory → disk → S3) as part of the
+  normal cache lookup via `get_cache()`. A cache "miss" only occurs if the key
+  is not found in ANY layer. S3 is not checked "after" a miss - it's checked
+  BEFORE determining whether a miss occurred. This happens automatically and
+  transparently on the first call per function per session.
 
 ## Execution Flow Diagram
 
@@ -1004,13 +1012,10 @@ flowchart TD
         B2[Generate Cache Key<br>exclude configured keys]
         B3[Update Performance Totals]
         B4{force_refresh Enabled?}
-        B5{Key in Memory Cache?}
-        B6[Cache Hit: Return Cached Value]
-        B7[Cache Miss]
-        B7A{Try Auto-Pull from S3?}
-        B7B[Download from S3<br>one-time attempt]
-        B7C{Key Found in S3?}
-        B8[Call Original Function]
+        B5[Get Cache<br>checks memory → disk → S3 if configured<br>one-time S3 pull per function]
+        B6{Key in Cache?}
+        B7[Cache Hit: Return Cached Value]
+        B8[Cache Miss: Call Original Function]
         B9[Store Result in Memory Cache]
         B10{write_through Enabled?}
         B11[Flush Memory Cache to Disk]
@@ -1024,15 +1029,10 @@ flowchart TD
         B3 --> B4
         B4 -- Yes --> B8
         B4 -- No --> B5
-        B5 -- Yes --> B6
-        B5 -- No --> B7
-        B6 --> B14
-        B7 --> B7A
-        B7A -- S3 configured & first miss --> B7B
-        B7A -- No --> B8
-        B7B --> B7C
-        B7C -- Yes --> B14
-        B7C -- No --> B8
+        B5 --> B6
+        B6 -- Yes --> B7
+        B6 -- No --> B8
+        B7 --> B14
         B8 --> B9
         B9 --> B10
         B10 -- Yes --> B11

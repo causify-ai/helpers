@@ -286,16 +286,22 @@ print(f"Third call (different query, cache miss): {result3}")
 # **Note:** These examples are commented out because they require AWS credentials.
 # Uncomment and configure to use S3 caching.
 #
+# **S3 as Third Storage Layer:**
+# - S3 is integrated into the cache lookup as the third tier: Memory → Disk → S3
+# - When `get_cache()` is called, it automatically checks all three layers
+# - A cache "miss" only occurs if key not found in ANY layer
+# - This makes S3 transparent - no distinction between local and S3 cache hits
+#
 # **S3 Features:**
 # - `auto_sync_s3=True`: Automatically upload cache updates to S3
-# - Auto-pull: On first cache miss, automatically downloads from S3 (no manual pull needed!)
+# - Auto-pull: Automatically checks S3 as part of cache lookup (one-time per function)
 # - Team sharing: Multiple developers/machines share the same cache
 # - Backup: S3 serves as persistent backup for local caches
 #
 # **Usage:**
 # 1. Configure S3 globally or per-function
 # 2. First call on any machine computes and uploads to S3
-# 3. Other machines automatically pull from S3 on first cache miss
+# 3. Other machines automatically check S3 during cache lookup - completely transparent!
 # 4. Updates are automatically synced to S3 (if `auto_sync_s3=True`)
 
 # %%
@@ -319,10 +325,11 @@ print(f"Third call (different query, cache miss): {result3}")
 # result = expensive_llm_call("Summarize this document")
 # print(f"Result: {result}")
 #
-# # On another machine - auto-pulls from S3 on first call!
-# # No manual pull_cache_from_s3() needed.
+# # On another machine - S3 is automatically checked during cache lookup.
+# # get_cache() checks: memory → disk → S3 (transparent, automatic).
+# # No manual pull_cache_from_s3() needed!
 # result = expensive_llm_call("Summarize this document")
-# print(f"Result from S3 cache: {result}")
+# print(f"Result from cache (could be from S3): {result}")
 
 # %%
 # # Per-function S3 configuration (overrides global settings).
@@ -389,9 +396,12 @@ print(df)
 # - **Format support**: JSON (human-readable) or pickle (binary)
 #
 # **Key Design:**
-# - Memory cache for speed
-# - Disk cache for persistence across sessions
-# - S3 cache for team sharing and backup
-# - Auto-pull from S3 on first cache miss (no manual intervention needed)
+# - **Three-tier cache lookup**: get_cache() checks Memory → Disk → S3 automatically
+# - Memory cache for speed (volatile, fastest)
+# - Disk cache for persistence across sessions (local, persistent)
+# - S3 cache for team sharing and backup (remote, shared)
+# - S3 is part of the cache lookup, not a "recovery after miss"
+# - Cache miss only occurs if key not found in ALL three layers
+# - Completely transparent - no manual intervention needed
 #
 # For full documentation, see: `docs/tools/helpers/all.hcache_simple.explanation.md`

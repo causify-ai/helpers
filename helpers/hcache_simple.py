@@ -694,13 +694,13 @@ def _get_cache_file_name(func_name: str) -> str:
     """
     _LOG.trace("func_name='%s'", func_name)
     hdbg.dassert_isinstance(func_name, str)
-    # Check for per-function cache_dir, otherwise use global.
+    # Check for per-function cache dir, otherwise use global.
     func_cache_dir = get_cache_property(func_name, "cache_dir")
     if func_cache_dir:
         cache_dir = func_cache_dir
     else:
         cache_dir = get_cache_dir()
-    # Check for per-function cache_prefix, otherwise use global.
+    # Check for per-function cache file prefix, otherwise use global.
     func_cache_prefix = get_cache_property(func_name, "cache_prefix")
     if func_cache_prefix:
         prefix = func_cache_prefix
@@ -1007,40 +1007,6 @@ def pull_cache_from_s3(func_name: str = "") -> None:
         force_cache_from_disk(func_name)
 
 
-def _try_auto_pull_from_s3(func_name: str) -> bool:
-    """
-    Try to automatically pull cache from S3 on first cache miss.
-
-    This function is called automatically when a cache miss occurs for a
-    function with S3 configured. It only attempts to pull once per
-    function to avoid repeated network calls.
-    :param func_name: The name of the function.
-    :return: True if cache was successfully pulled from S3, False
-        otherwise.
-    """
-    global _S3_AUTO_PULL_ATTEMPTED
-    # Check if already attempted for this function.
-    if func_name in _S3_AUTO_PULL_ATTEMPTED:
-        _LOG.trace("Already attempted S3 auto-pull for '%s'", func_name)
-        return False
-    # Mark as attempted.
-    _S3_AUTO_PULL_ATTEMPTED.add(func_name)
-    # Check if S3 is configured for this function.
-    if not _check_s3_configured(func_name):
-        _LOG.trace("S3 not configured for '%s', skipping auto-pull", func_name)
-        return False
-    # Try to pull from S3.
-    _LOG.debug("Auto-pulling cache from S3 for '%s'", func_name)
-    success = _download_cache_from_s3(func_name)
-    if success:
-        # Load into memory cache.
-        force_cache_from_disk(func_name)
-        _LOG.info("Successfully auto-pulled cache from S3 for '%s'", func_name)
-        return True
-    _LOG.debug("No S3 cache found for '%s'", func_name)
-    return False
-
-
 def sync_cache_with_s3(func_name: str = "") -> None:
     """
     Sync cache between local and S3 (bidirectional merge).
@@ -1196,19 +1162,42 @@ def get_cache(func_name: str) -> _CacheType:
     """
     Retrieve the cache for a given function name.
 
+    This function implements a three-tier cache lookup:
+    1. Memory cache (fastest)
+    2. Disk cache (persistent)
+    3. S3 cache (shared, if configured)
+
+    If S3 is configured and cache is not in memory/disk, attempts to pull
+    from S3 automatically (once per function per session).
+
     :param func_name: The name of the function whose cache is to be
         retrieved.
     :return: A dictionary containing the cache data.
     """
     global _CACHE
+    global _S3_AUTO_PULL_ATTEMPTED
+    # Check if cache exists in memory.
     if func_name in _CACHE:
         _LOG.trace("Loading mem cache for '%s'", func_name)
         cache = get_mem_cache(func_name)
-    else:
-        _LOG.trace("Loading disk cache for '%s'", func_name)
-        func_cache_data = get_disk_cache(func_name)
-        _CACHE[func_name] = func_cache_data
-        cache = func_cache_data
+        # If memory cache is not empty, return it.
+        if cache:
+            return cache
+    # Memory cache doesn't exist or is empty - try S3 auto-pull if configured.
+    if func_name not in _S3_AUTO_PULL_ATTEMPTED:
+        _S3_AUTO_PULL_ATTEMPTED.add(func_name)
+        if _check_s3_configured(func_name):
+            _LOG.trace(
+                "Cache not in memory for '%s', attempting S3 pull", func_name
+            )
+            success = _download_cache_from_s3(func_name)
+            if success:
+                _LOG.trace("S3 pull succeeded for '%s'", func_name)
+    # Load from disk (may include S3 data if pull succeeded).
+    _LOG.trace("Loading disk cache for '%s'", func_name)
+    func_cache_data = get_disk_cache(func_name)
+    _CACHE[func_name] = func_cache_data
+    cache = func_cache_data
     return cache
 
 
@@ -1399,21 +1388,23 @@ def simple_cache(
     Decorate a function to cache its results.
 
     The cache is stored in memory and on disk, with optional S3 support.
-    :param cache_type: The type of cache to use ('json' or 'pickle').
-    :param write_through: If True, the cache is written to disk after
-        each access.
-    :param exclude_keys: A list of keys to exclude from the cache key.
-    :param cache_dir: Directory for this function's cache files. If
-        None, uses global cache directory.
-    :param cache_prefix: Prefix for this function's cache files. If
-        None, uses global cache prefix.
+
+    :param cache_type: type of cache to use ('json' or 'pickle')
+    :param write_through: if True, the cache is written to disk after
+        each access
+    :param exclude_keys: keys to exclude from the cache key
+    :param cache_dir: directory for this function's cache files. If
+        None, uses global cache directory
+    :param cache_prefix: prefix for this function's cache files. If
+        None, uses global cache prefix
     :param s3_bucket: S3 bucket for this function's cache (e.g.,
-        "s3://my-bucket"). If specified, enables S3 for this function.
-    :param s3_prefix: S3 prefix path for this function's cache.
-    :param aws_profile: AWS profile for S3 access.
-    :param auto_sync_s3: If True, automatically sync to S3 after each
-        cache update.
-    :return: A decorator that can be applied to a function.
+        "s3://my-bucket"). If specified, enables S3 cache syncing for
+        this function
+    :param s3_prefix: S3 prefix path for this function's cache
+    :param aws_profile: AWS profile for S3 access
+    :param auto_sync_s3: if True, automatically sync to S3 after each
+        cache update
+    :return: a decorator that can be applied to a function
     """
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
@@ -1505,10 +1496,9 @@ def simple_cache(
                     return value
             # Get the key.
             cache_key = _get_cache_key(args, kwargs_for_cache_key)
-            # Get the cache properties.
+            # Update the performance stats.
             cache_perf = get_cache_perf(func_name)
             _LOG.trace("cache_perf is None=%s", cache_perf is None)
-            # Update the performance stats.
             if cache_perf:
                 hdbg.dassert_in("tot", cache_perf)
                 cache_perf["tot"] += 1
@@ -1532,25 +1522,6 @@ def simple_cache(
                 # Update the performance stats.
                 if cache_perf:
                     cache_perf["misses"] += 1
-                # Try auto-pull from S3 on first cache miss.
-                if not force_refresh:
-                    auto_pull_success = _try_auto_pull_from_s3(func_name)
-                    if auto_pull_success:
-                        # Reload cache after S3 pull.
-                        cache = get_cache(func_name)
-                        # Check if key now exists.
-                        if cache_key in cache:
-                            _LOG.trace(
-                                "Cache hit after S3 auto-pull for key='%s'",
-                                cache_key,
-                            )
-                            # Update hit stats.
-                            if cache_perf:
-                                cache_perf["hits"] += 1
-                                cache_perf["misses"] -= 1
-                            # Return cached value.
-                            value = cache[cache_key]
-                            return value
                 # Abort on cache miss.
                 abort_on_cache_miss = abort_on_cache_miss or get_cache_property(
                     func_name, "abort_on_cache_miss"
