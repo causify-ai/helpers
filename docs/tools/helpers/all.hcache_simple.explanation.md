@@ -30,8 +30,6 @@
   supports tagged caches, automatic invalidation, and shared cache directories
   across multiple functions and users, using advanced tools
 
-- A tutorial of the cache is [`/helpers/notebooks/hcache_simple.tutorial.ipynb`](/helpers/notebooks/hcache_simple.tutorial.ipynb)
-
 ## Overview
 
 - The caching system supports three storage layers:
@@ -142,7 +140,6 @@
 
 - The caching system supports storing cache files on Amazon S3 for:
   - Sharing cache across multiple machines and team members
-  - Backing up expensive computation results (e.g., LLM calls, data processing)
   - Persistent storage independent of local file system
 
 - Global S3 configuration:
@@ -177,6 +174,18 @@
   - Useful for immediately sharing results across team members or machines
   - Only works when `write_through=True` (default)
 
+- Auto-pull feature:
+  - On first cache miss, the system automatically attempts to download cache from
+    S3 if S3 is configured for the function
+  - This happens transparently - no manual `pull_cache_from_s3()` call needed
+  - Only attempts once per function to avoid repeated network calls on every miss
+  - If auto-pull succeeds and the key exists in S3 cache, it's returned
+    immediately
+  - If auto-pull fails or key doesn't exist in S3, the function computes the
+    value normally
+  - This makes S3 cache "just work" - when you call a cached function on a new
+    machine, it automatically pulls from S3 if available
+
 ## Per-Function Configuration
 
 - Each cached function can have its own cache configuration independent of global
@@ -197,8 +206,10 @@
   - Share specific function caches while keeping others local
 
 - Configuration is persistent:
-  - Per-function settings are stored in cache properties
-  - Settings persist across sessions like other cache properties
+  - Per-function settings are stored as system properties
+  - Settings persist across sessions and are preserved when
+    `reset_cache_property()` is called
+  - These are decorator-level configuration, not runtime user controls
 
 ## Cache Performance Monitoring
 
@@ -264,7 +275,8 @@
 ## Cache Properties: User and System
 
 - There are two types of properties:
-  - `User Properties`: Configurable by the user to alter caching behavior. For
+  - `User Properties`: Configurable by the user at runtime to alter caching
+    behavior. These are typically temporary controls that can be reset. For
     example:
     - `abort_on_cache_miss`: Whether to raise an error if a cache miss occurs
     - `report_on_cache_miss`: Whether to return a special value ("_cache_miss_")
@@ -272,8 +284,18 @@
     - `enable_perf`: Whether to enable performance statistics tracking (hits,
       misses, total calls)
     - `force_refresh`: Whether to bypass the cache and refresh the value
-  - `System Properties`: Internal settings like `type` (e.g., "json" or
-    "pickle"), `write_through`, and `exclude_keys`
+  - `System Properties`: Internal settings configured via decorator parameters
+    that define how the cache operates. These are preserved when
+    `reset_cache_property()` is called. System properties include:
+    - `type`: Cache storage format ("json" or "pickle")
+    - `write_through`: Whether to flush cache to disk after each update
+    - `exclude_keys`: List of parameter names to exclude from cache key
+    - `cache_dir`: Per-function cache directory (overrides global)
+    - `cache_prefix`: Per-function cache file prefix (overrides global)
+    - `s3_bucket`: Per-function S3 bucket (overrides global)
+    - `s3_prefix`: Per-function S3 prefix path (overrides global)
+    - `aws_profile`: Per-function AWS profile (overrides global)
+    - `auto_sync_s3`: Whether to automatically sync cache to S3 after updates
 
 - Persistent storage:
   - All cache properties are stored on disk in a single pickle file:
@@ -294,7 +316,8 @@
   - `get_cache_property(func_name, property_name)`: get the value of a property
     for a function
   - `reset_cache_property()`: reset user properties for all functions (preserves
-    system properties like `type`, `write_through`, `exclude_keys`)
+    system properties including `type`, `write_through`, `exclude_keys`, and all
+    per-function configuration settings like `cache_dir`, `s3_bucket`, etc.)
   - `cache_property_to_str(func_name)`: convert cache properties to string
     representation
   - `get_cache_property_file()`: get the path to the cache property file
@@ -332,7 +355,7 @@
       - Default: `None` (uses global cache directory)
       - Example: `"/tmp/project1_cache"`
     - `cache_prefix`: Custom prefix for this function's cache file names
-      - Default: `None` (uses global prefix `"tmp.cache_simple"`)
+      - Default: `None` (uses global prefix)
       - Example: `"my_project_cache"`
 
   - **Per-function S3 parameters** (override global settings):
@@ -517,6 +540,8 @@
 
 This section demonstrates common caching scenarios and how to achieve different
 outcomes using `hcache_simple`.
+-See also: [`/helpers/notebooks/hcache_simple.tutorial.ipynb`](/helpers/notebooks/hcache_simple.tutorial.ipynb)
+
 
 ### Basic Local Caching
 
@@ -588,14 +613,14 @@ def call_expensive_llm(prompt: str, model: str) -> str:
 # First call on any machine - computes and uploads to S3
 result = call_expensive_llm("Summarize this document", "gpt-4")
 
-# On another machine - first pull cache from S3
-hcacsimp.pull_cache_from_s3("call_expensive_llm")
-# Then call uses cached result
-result = call_expensive_llm("Summarize this document", "gpt-4")
+# On another machine - cache automatically pulls from S3 on first call
+result = call_expensive_llm("Summarize this document", "gpt-4")  # Uses S3 cache!
 ```
 
 - `auto_sync_s3=True` automatically uploads after each cache update
-- Team members can pull cache to avoid redundant LLM calls
+- On new machines, first cache miss automatically pulls from S3 (no manual pull
+  needed!)
+- Team members automatically reuse cache from S3 to avoid redundant LLM calls
 - Saves API costs and time
 
 ### Per-Function Custom Cache Location
@@ -686,14 +711,17 @@ def batch_processing(data_id: str) -> dict:
 for data_id in data_ids:
     result = batch_processing(data_id)
 
-# Push all cache to S3 at once
+# Push all cache to S3 at once (manual batch upload)
 hcacsimp.push_cache_to_s3("batch_processing")
 
-# On another machine, pull before processing
-hcacsimp.pull_cache_from_s3("batch_processing")
+# On another machine - auto-pull happens on first call
+# No manual pull needed! First cache miss auto-pulls from S3
+result = batch_processing(data_ids[0])  # Auto-pulls from S3 if available
 ```
 
-- Reduces S3 operations by batching
+- Reduces S3 upload operations by batching (manual push after processing all
+  items)
+- Auto-pull handles downloads transparently on first cache miss
 - More efficient for large batch processing
 
 ### Bidirectional S3 Sync
@@ -952,9 +980,10 @@ temporary_function(10)  # -> /tmp/temp_cache/, no S3 sync
   uploaded to S3 unless `auto_sync_s3=True` is set. Without this, you must
   manually call `push_cache_to_s3()`.
 
-- **Pull from S3 Required for First Use**: On a new machine, cache must be
-  explicitly pulled from S3 using `pull_cache_from_s3()` before cached values
-  are available. Cache doesn't automatically download on first call.
+- **S3 Auto-Pull Happens on First Cache Miss**: When S3 is configured, the
+  system automatically attempts to pull from S3 on the first cache miss. This
+  only happens once per function per session. If you need to refresh from S3
+  later, manually call `pull_cache_from_s3()` or `sync_cache_with_s3()`.
 
 ## Execution Flow Diagram
 
@@ -977,7 +1006,10 @@ flowchart TD
         B4{force_refresh Enabled?}
         B5{Key in Memory Cache?}
         B6[Cache Hit: Return Cached Value]
-        B7[Cache Miss: Evaluate Properties]
+        B7[Cache Miss]
+        B7A{Try Auto-Pull from S3?}
+        B7B[Download from S3<br>one-time attempt]
+        B7C{Key Found in S3?}
         B8[Call Original Function]
         B9[Store Result in Memory Cache]
         B10{write_through Enabled?}
@@ -994,7 +1026,13 @@ flowchart TD
         B4 -- No --> B5
         B5 -- Yes --> B6
         B5 -- No --> B7
-        B7 --> B8
+        B6 --> B14
+        B7 --> B7A
+        B7A -- S3 configured & first miss --> B7B
+        B7A -- No --> B8
+        B7B --> B7C
+        B7C -- Yes --> B14
+        B7C -- No --> B8
         B8 --> B9
         B9 --> B10
         B10 -- Yes --> B11

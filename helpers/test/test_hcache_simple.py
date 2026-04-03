@@ -89,17 +89,19 @@ def _cached_add_100(x: int) -> int:
     res = x + 100
     return res
 
+
 # #############################################################################
 # _BaseCacheTest
 # #############################################################################
+
 
 class _BaseCacheTest(hunitest.TestCase):
     """
     Base test class to provide common setup and teardown functionality.
 
-    Instead of using setUp/tearDown, we use set_up_test/tear_down_test along
-    with a pytest fixture that ensures these methods run before and after each
-    test.
+    Instead of using setUp/tearDown, we use set_up_test/tear_down_test
+    along with a pytest fixture that ensures these methods run before
+    and after each test.
     """
 
     @pytest.fixture(autouse=True)
@@ -133,9 +135,11 @@ class _BaseCacheTest(hunitest.TestCase):
         hcacsimp.reset_cache_property()
         hcacsimp.set_cache_dir(self._cache_dir)
 
+
 # #############################################################################
 # Test_get_cache
 # #############################################################################
+
 
 class Test_get_cache(_BaseCacheTest):
     """
@@ -155,9 +159,11 @@ class Test_get_cache(_BaseCacheTest):
         self.assertIn('{"args": [2], "kwargs": {}}', cache)
         self.assertEqual(cache['{"args": [2], "kwargs": {}}'], 4)
 
+
 # #############################################################################
 # Test_flush_cache_to_disk
 # #############################################################################
+
 
 class Test_flush_cache_to_disk(_BaseCacheTest):
     """
@@ -198,9 +204,11 @@ class Test_flush_cache_to_disk(_BaseCacheTest):
         # Assert that the value for key '{"args": [3], "kwargs": {}}' is 6.
         self.assertEqual(disk_cache['{"args": [3], "kwargs": {}}'], 6)
 
+
 # #############################################################################
 # Test_reset_mem_cache
 # #############################################################################
+
 
 class Test_reset_mem_cache(_BaseCacheTest):
     """
@@ -222,9 +230,11 @@ class Test_reset_mem_cache(_BaseCacheTest):
         # Verify that the key '{"args": [5], "kwargs": {}}' is no longer in the cache.
         self.assertNotIn('{"args": [5], "kwargs": {}}', cache_after)
 
+
 # #############################################################################
 # Test_force_cache_from_disk
 # #############################################################################
+
 
 class Test_force_cache_from_disk(_BaseCacheTest):
     """
@@ -268,9 +278,11 @@ class Test_force_cache_from_disk(_BaseCacheTest):
             "After forcing, disk key should appear in memory.",
         )
 
+
 # #############################################################################
 # Test_get_cache_perf
 # #############################################################################
+
 
 class Test_get_cache_perf(_BaseCacheTest):
     """
@@ -305,9 +317,11 @@ class Test_get_cache_perf(_BaseCacheTest):
         # Assert that performance data is no longer available.
         self.assertIsNone(hcacsimp.get_cache_perf("_cached_json_double"))
 
+
 # #############################################################################
 # Test_set_cache_property
 # #############################################################################
+
 
 class Test_set_cache_property(_BaseCacheTest):
     """
@@ -371,13 +385,16 @@ class Test_set_cache_property(_BaseCacheTest):
         # Check output.
         self.assertIn("force_refresh: True", prop_str)
 
+
 # #############################################################################
 # Test_get_cache_func_names
 # #############################################################################
 
+
 class Test_get_cache_func_names(_BaseCacheTest):
     """
-    Test get_cache_func_names functionality for retrieving cached function names.
+    Test get_cache_func_names functionality for retrieving cached function
+    names.
     """
 
     def test1(self) -> None:
@@ -412,8 +429,8 @@ class Test_get_cache_func_names(_BaseCacheTest):
 
     def test3(self) -> None:
         """
-        Verify that disk cache function names include `_cached_json_double` after
-        flushing.
+        Verify that disk cache function names include `_cached_json_double`
+        after flushing.
         """
         # Flush JSON cache to disk and verify disk cache function names.
         _cached_json_double(2)
@@ -424,9 +441,11 @@ class Test_get_cache_func_names(_BaseCacheTest):
         # Check output.
         self.assertIn("_cached_json_double", disk_funcs)
 
+
 # #############################################################################
 # Test_cache_stats_to_str
 # #############################################################################
+
 
 class Test_cache_stats_to_str(_BaseCacheTest):
     """
@@ -447,9 +466,11 @@ class Test_cache_stats_to_str(_BaseCacheTest):
         self.assertIn("memory", stats_df.columns)
         self.assertIn("disk", stats_df.columns)
 
+
 # #############################################################################
 # Test__cached_kwarg_diff
 # #############################################################################
+
 
 class Test__cached_kwarg_diff(_BaseCacheTest):
     """
@@ -467,9 +488,11 @@ class Test__cached_kwarg_diff(_BaseCacheTest):
         # Both calls should return the different result as both args, kwargs are used for caching.
         self.assertNotEqual(res1, res2)
 
+
 # #############################################################################
 # Test__cached_multi_arg_sum
 # #############################################################################
+
 
 class Test__cached_multi_arg_sum(_BaseCacheTest):
     """
@@ -478,7 +501,8 @@ class Test__cached_multi_arg_sum(_BaseCacheTest):
 
     def test1(self) -> None:
         """
-        Verify that the cache for _cached_multi_arg_sum contains the correct key.
+        Verify that the cache for _cached_multi_arg_sum contains the correct
+        key.
         """
         # Populate the cache.
         _cached_multi_arg_sum(1, 2)
@@ -487,9 +511,11 @@ class Test__cached_multi_arg_sum(_BaseCacheTest):
         # Verify that the cache key is formatted as '{"args": [1, 2], "kwargs": {}}'.
         self.assertIn('{"args": [1, 2], "kwargs": {}}', cache)
 
+
 # #############################################################################
 # Test__cached_pickle_square
 # #############################################################################
+
 
 class Test__cached_pickle_square(_BaseCacheTest):
     """
@@ -516,9 +542,11 @@ class Test__cached_pickle_square(_BaseCacheTest):
         self.assertIn('{"args": [4], "kwargs": {}}', func_cache_data)
         self.assertEqual(func_cache_data['{"args": [4], "kwargs": {}}'], 16)
 
+
 # #############################################################################
 # Test__cached_refreshable_func
 # #############################################################################
+
 
 class Test__cached_refreshable_func(_BaseCacheTest):
     """
@@ -544,8 +572,8 @@ class Test__cached_refreshable_func(_BaseCacheTest):
 
     def test2(self) -> None:
         """
-        Verify that enabling `force_refresh` causes `_cached_refreshable_func` to
-        be re-called.
+        Verify that enabling `force_refresh` causes `_cached_refreshable_func`
+        to be re-called.
         """
         # Call the function normally.
         res: int = _cached_refreshable_func(3)
@@ -563,9 +591,11 @@ class Test__cached_refreshable_func(_BaseCacheTest):
             "Function should be re-called when force_refresh is enabled.",
         )
 
+
 # #############################################################################
 # Test_reset_cache_perf
 # #############################################################################
+
 
 class Test_reset_cache_perf(_BaseCacheTest):
     """
@@ -590,8 +620,7 @@ class Test_reset_cache_perf(_BaseCacheTest):
 
     def test2(self) -> None:
         """
-        Verify that reset_cache_perf with empty func_name resets all
-        functions.
+        Verify that reset_cache_perf with empty func_name resets all functions.
         """
         # Prepare inputs.
         hcacsimp.enable_cache_perf("_cached_json_double")
@@ -606,9 +635,11 @@ class Test_reset_cache_perf(_BaseCacheTest):
         self.assertEqual(perf1["tot"], 0)
         self.assertEqual(perf2["tot"], 0)
 
+
 # #############################################################################
 # Test_disable_cache_perf
 # #############################################################################
+
 
 class Test_disable_cache_perf(_BaseCacheTest):
     """
@@ -634,9 +665,11 @@ class Test_disable_cache_perf(_BaseCacheTest):
         self.assertIsNone(perf1)
         self.assertIsNone(perf2)
 
+
 # #############################################################################
 # Test_get_cache_perf_stats
 # #############################################################################
+
 
 class Test_get_cache_perf_stats(_BaseCacheTest):
     """
@@ -656,9 +689,11 @@ class Test_get_cache_perf_stats(_BaseCacheTest):
         # Check outputs.
         self.assertEqual(stats, "")
 
+
 # #############################################################################
 # Test_cache_property_to_str
 # #############################################################################
+
 
 class Test_cache_property_to_str(_BaseCacheTest):
     """
@@ -684,9 +719,11 @@ class Test_cache_property_to_str(_BaseCacheTest):
         self.assertIn("force_refresh: True", result)
         self.assertIn("enable_perf: True", result)
 
+
 # #############################################################################
 # Test_reset_mem_cache_all
 # #############################################################################
+
 
 class Test_reset_mem_cache_all(_BaseCacheTest):
     """
@@ -708,9 +745,11 @@ class Test_reset_mem_cache_all(_BaseCacheTest):
         self.assertEqual(len(cache1), 0)
         self.assertEqual(len(cache2), 0)
 
+
 # #############################################################################
 # Test_reset_disk_cache_all
 # #############################################################################
+
 
 class Test_reset_disk_cache_all(_BaseCacheTest):
     """
@@ -735,9 +774,11 @@ class Test_reset_disk_cache_all(_BaseCacheTest):
         cache_file2 = hcacsimp._get_cache_file_name("_cached_multi_arg_sum")
         self.assertFalse(os.path.exists(cache_file2))
 
+
 # #############################################################################
 # Test_force_cache_from_disk_all
 # #############################################################################
+
 
 class Test_force_cache_from_disk_all(_BaseCacheTest):
     """
@@ -763,9 +804,11 @@ class Test_force_cache_from_disk_all(_BaseCacheTest):
         self.assertGreater(len(cache1), 0)
         self.assertGreater(len(cache2), 0)
 
+
 # #############################################################################
 # Test_flush_cache_to_disk_all
 # #############################################################################
+
 
 class Test_flush_cache_to_disk_all(_BaseCacheTest):
     """
@@ -789,9 +832,11 @@ class Test_flush_cache_to_disk_all(_BaseCacheTest):
         cache_file2 = hcacsimp._get_cache_file_name("_cached_multi_arg_sum")
         self.assertTrue(os.path.exists(cache_file2))
 
+
 # #############################################################################
 # Test_cache_stats_to_str_all
 # #############################################################################
+
 
 class Test_cache_stats_to_str_all(_BaseCacheTest):
     """
@@ -813,9 +858,11 @@ class Test_cache_stats_to_str_all(_BaseCacheTest):
         self.assertIn("_cached_json_double", result.index)
         self.assertIn("_cached_multi_arg_sum", result.index)
 
+
 # #############################################################################
 # Test_get_cache_func_names_invalid
 # #############################################################################
+
 
 class Test_get_cache_func_names_invalid(_BaseCacheTest):
     """
@@ -831,9 +878,11 @@ class Test_get_cache_func_names_invalid(_BaseCacheTest):
             hcacsimp.get_cache_func_names("invalid_type")
         self.assertIn("Invalid type", str(cm.exception))
 
+
 # #############################################################################
 # Test__get_cache_file_name
 # #############################################################################
+
 
 class Test__get_cache_file_name(_BaseCacheTest):
     """
@@ -854,9 +903,11 @@ class Test__get_cache_file_name(_BaseCacheTest):
         # Reset type to valid value for teardown.
         hcacsimp.set_cache_property("_cached_json_double", "type", "json")
 
+
 # #############################################################################
 # Test__save_cache_dict_to_disk
 # #############################################################################
+
 
 class Test__save_cache_dict_to_disk(_BaseCacheTest):
     """
@@ -878,9 +929,11 @@ class Test__save_cache_dict_to_disk(_BaseCacheTest):
         # Reset type to valid value for teardown.
         hcacsimp.set_cache_property("_cached_json_double", "type", "json")
 
+
 # #############################################################################
 # Test_get_disk_cache_invalid
 # #############################################################################
+
 
 class Test_get_disk_cache_invalid(_BaseCacheTest):
     """
@@ -901,7 +954,6 @@ class Test_get_disk_cache_invalid(_BaseCacheTest):
         hcacsimp.set_cache_property("_cached_json_double", "type", "json")
 
 
-
 @hcacsimp.simple_cache(cache_type="json")
 def _cache_mode_function(x: int) -> int:
     """
@@ -920,6 +972,7 @@ _cache_mode_function.call_count = 0
 # #############################################################################
 # Test_cache_mode
 # #############################################################################
+
 
 class Test_cache_mode(_BaseCacheTest):
     """
@@ -949,9 +1002,7 @@ class Test_cache_mode(_BaseCacheTest):
         _cache_mode_function(10)
         initial_count = _cache_mode_function.call_count
         # Set force_refresh property.
-        hcacsimp.set_cache_property(
-            "_cache_mode_function", "force_refresh", True
-        )
+        hcacsimp.set_cache_property("_cache_mode_function", "force_refresh", True)
         # Run test.
         result = _cache_mode_function(10)
         # Check outputs.
@@ -987,7 +1038,6 @@ class Test_cache_mode(_BaseCacheTest):
         self.assertEqual(_cache_mode_function.call_count, initial_count + 2)
 
 
-
 @hcacsimp.simple_cache(cache_type="json")
 def _abort_test_function(x: int) -> int:
     """
@@ -999,9 +1049,11 @@ def _abort_test_function(x: int) -> int:
     res = x * 7
     return res
 
+
 # #############################################################################
 # Test_abort_on_cache_miss
 # #############################################################################
+
 
 class Test_abort_on_cache_miss(_BaseCacheTest):
     """
@@ -1032,7 +1084,6 @@ class Test_abort_on_cache_miss(_BaseCacheTest):
         self.assertIn("Cache miss", str(cm.exception))
 
 
-
 @hcacsimp.simple_cache(cache_type="json")
 def _report_test_function(x: int) -> int:
     """
@@ -1044,9 +1095,11 @@ def _report_test_function(x: int) -> int:
     res = x * 8
     return res
 
+
 # #############################################################################
 # Test_report_on_cache_miss
 # #############################################################################
+
 
 class Test_report_on_cache_miss(_BaseCacheTest):
     """
@@ -1077,7 +1130,6 @@ class Test_report_on_cache_miss(_BaseCacheTest):
         self.assertEqual(result, "_cache_miss_")
 
 
-
 @hcacsimp.simple_cache(cache_type="json", write_through=True)
 def _write_through_function(x: int) -> int:
     """
@@ -1089,9 +1141,11 @@ def _write_through_function(x: int) -> int:
     res = x * 9
     return res
 
+
 # #############################################################################
 # Test_write_through
 # #############################################################################
+
 
 class Test_write_through(_BaseCacheTest):
     """
@@ -1127,7 +1181,6 @@ class Test_write_through(_BaseCacheTest):
         self.assertEqual(disk_cache['{"args": [11], "kwargs": {}}'], 99)
 
 
-
 @hcacsimp.simple_cache(cache_type="json")
 def _test_cache_mode_kwarg(x: int, **kwargs) -> int:
     """
@@ -1147,6 +1200,7 @@ _test_cache_mode_kwarg.call_count = 0
 # #############################################################################
 # Test_cache_mode_parameter
 # #############################################################################
+
 
 class Test_cache_mode_parameter(_BaseCacheTest):
     """
@@ -1376,13 +1430,9 @@ class Test_set_cache_property_new_func(_BaseCacheTest):
         was not previously registered.
         """
         # Run test.
-        hcacsimp.set_cache_property(
-            "_brand_new_func_xyz", "force_refresh", True
-        )
+        hcacsimp.set_cache_property("_brand_new_func_xyz", "force_refresh", True)
         # Check outputs.
-        val = hcacsimp.get_cache_property(
-            "_brand_new_func_xyz", "force_refresh"
-        )
+        val = hcacsimp.get_cache_property("_brand_new_func_xyz", "force_refresh")
         self.assertTrue(val)
 
 
@@ -1419,15 +1469,13 @@ class Test__get_cache_file_name_auto_detect(_BaseCacheTest):
 
     def test1(self) -> None:
         """
-        Verify that _get_cache_file_name infers .pkl extension when a .pkl
-        file exists on disk.
+        Verify that _get_cache_file_name infers .pkl extension when a .pkl file
+        exists on disk.
         """
         # Prepare inputs: create a valid .pkl file in the cache dir.
         cache_dir = hcacsimp.get_cache_dir()
         func_name = "_auto_detect_pkl_func"
-        pkl_path = os.path.join(
-            cache_dir, f"tmp.cache_simple.{func_name}.pkl"
-        )
+        pkl_path = os.path.join(cache_dir, f"tmp.cache_simple.{func_name}.pkl")
         hcacsimp._save_func_cache_data_to_file(pkl_path, "pickle", {})
         # Run test.
         file_name = hcacsimp._get_cache_file_name(func_name)
@@ -1442,9 +1490,7 @@ class Test__get_cache_file_name_auto_detect(_BaseCacheTest):
         # Prepare inputs: create a valid .json file in the cache dir.
         cache_dir = hcacsimp.get_cache_dir()
         func_name = "_auto_detect_json_func"
-        json_path = os.path.join(
-            cache_dir, f"tmp.cache_simple.{func_name}.json"
-        )
+        json_path = os.path.join(cache_dir, f"tmp.cache_simple.{func_name}.json")
         hcacsimp._save_func_cache_data_to_file(json_path, "json", {})
         # Run test.
         file_name = hcacsimp._get_cache_file_name(func_name)
@@ -1498,8 +1544,8 @@ class Test__save_func_cache_data_to_file_infer(_BaseCacheTest):
 
 class Test__load_func_cache_data_from_file_infer(_BaseCacheTest):
     """
-    Test _load_func_cache_data_from_file when cache_type is None (inferred
-    from file extension).
+    Test _load_func_cache_data_from_file when cache_type is None (inferred from
+    file extension).
     """
 
     def test1(self) -> None:
@@ -1766,3 +1812,314 @@ class Test_simple_cache_no_write_through(_BaseCacheTest):
         self.assertNotIn('{"args": [7], "kwargs": {}}', disk_cache)
 
 
+# #############################################################################
+# Test helper functions for per-function configuration
+# #############################################################################
+
+
+@hcacsimp.simple_cache(
+    cache_type="json",
+    cache_dir="/tmp/custom_cache",
+    cache_prefix="custom_prefix",
+)
+def _test_per_function_cache_dir(x: int) -> int:
+    """
+    Test function with custom cache directory and prefix.
+
+    :param x: input integer
+    :return: x * 2
+    """
+    res = x * 2
+    return res
+
+
+@hcacsimp.simple_cache(
+    cache_type="json",
+    cache_dir=None,
+    cache_prefix="project_cache",
+)
+def _test_per_function_prefix_only(x: int) -> int:
+    """
+    Test function with custom prefix but default directory.
+
+    :param x: input integer
+    :return: x * 3
+    """
+    res = x * 3
+    return res
+
+
+# #############################################################################
+# Test_global_cache_file_prefix
+# #############################################################################
+
+
+class Test_global_cache_file_prefix(_BaseCacheTest):
+    """
+    Test global cache file prefix configuration.
+    """
+
+    def tear_down_test(self) -> None:
+        """
+        Teardown including restoring default cache file prefix.
+        """
+        super().tear_down_test()
+        # Restore default prefix.
+        hcacsimp.set_cache_file_prefix("tmp.cache_simple")
+
+    def test1(self) -> None:
+        """
+        Verify that set_cache_file_prefix changes the cache file prefix.
+        """
+        # Prepare inputs.
+        custom_prefix = "my_test_cache"
+        hcacsimp.set_cache_file_prefix(custom_prefix)
+        # Run test.
+        result = _cached_json_double(5)
+        # Check outputs.
+        self.assertEqual(result, 10)
+        # Verify cache file uses custom prefix.
+        cache_file = hcacsimp._get_cache_file_name("_cached_json_double")
+        self.assertIn(custom_prefix, cache_file)
+
+    def test2(self) -> None:
+        """
+        Verify that get_cache_file_prefix returns the configured prefix.
+        """
+        # Prepare inputs.
+        custom_prefix = "test_prefix"
+        hcacsimp.set_cache_file_prefix(custom_prefix)
+        # Run test.
+        actual = hcacsimp.get_cache_file_prefix()
+        # Check outputs.
+        self.assertEqual(actual, custom_prefix)
+
+
+# #############################################################################
+# Test_per_function_cache_dir
+# #############################################################################
+
+
+class Test_per_function_cache_dir(_BaseCacheTest):
+    """
+    Test per-function cache directory configuration.
+    """
+
+    def tear_down_test(self) -> None:
+        """
+        Teardown including reset of per-function cache.
+        """
+        super().tear_down_test()
+        hcacsimp.reset_cache("_test_per_function_cache_dir", interactive=False)
+
+    def test1(self) -> None:
+        """
+        Verify that cache file is created in custom directory.
+        """
+        # Prepare inputs.
+        custom_dir = self.get_scratch_space() + "/custom_cache"
+        # Update function's cache_dir property.
+        hcacsimp.set_cache_property(
+            "_test_per_function_cache_dir", "cache_dir", custom_dir
+        )
+        # Run test.
+        result = _test_per_function_cache_dir(10)
+        # Check outputs.
+        self.assertEqual(result, 20)
+        # Verify cache file is in custom directory.
+        cache_file = hcacsimp._get_cache_file_name("_test_per_function_cache_dir")
+        self.assertIn(custom_dir, cache_file)
+        # Flush to disk to verify file creation.
+        hcacsimp.flush_cache_to_disk("_test_per_function_cache_dir")
+        self.assertTrue(os.path.exists(cache_file))
+
+    def test2(self) -> None:
+        """
+        Verify that per-function cache_dir is stored as cache property.
+        """
+        # Prepare inputs.
+        custom_dir = "/tmp/test_cache_dir"
+        # Run test.
+        hcacsimp.set_cache_property(
+            "_test_per_function_cache_dir", "cache_dir", custom_dir
+        )
+        actual = hcacsimp.get_cache_property(
+            "_test_per_function_cache_dir", "cache_dir"
+        )
+        # Check outputs.
+        self.assertEqual(actual, custom_dir)
+
+
+# #############################################################################
+# Test_per_function_cache_prefix
+# #############################################################################
+
+
+class Test_per_function_cache_prefix(_BaseCacheTest):
+    """
+    Test per-function cache prefix configuration.
+    """
+
+    def tear_down_test(self) -> None:
+        """
+        Teardown including reset of per-function cache.
+        """
+        super().tear_down_test()
+        hcacsimp.reset_cache("_test_per_function_prefix_only", interactive=False)
+
+    def test1(self) -> None:
+        """
+        Verify that cache file uses custom prefix.
+        """
+        # Prepare inputs.
+        custom_prefix = "test_prefix"
+        # Update function's cache_prefix property.
+        hcacsimp.set_cache_property(
+            "_test_per_function_prefix_only", "cache_prefix", custom_prefix
+        )
+        # Run test.
+        result = _test_per_function_prefix_only(7)
+        # Check outputs.
+        self.assertEqual(result, 21)
+        # Verify cache file uses custom prefix.
+        cache_file = hcacsimp._get_cache_file_name(
+            "_test_per_function_prefix_only"
+        )
+        self.assertIn(custom_prefix, cache_file)
+
+    def test2(self) -> None:
+        """
+        Verify that per-function cache_prefix is stored as cache property.
+        """
+        # Prepare inputs.
+        custom_prefix = "my_project_cache"
+        # Run test.
+        hcacsimp.set_cache_property(
+            "_test_per_function_prefix_only", "cache_prefix", custom_prefix
+        )
+        actual = hcacsimp.get_cache_property(
+            "_test_per_function_prefix_only", "cache_prefix"
+        )
+        # Check outputs.
+        self.assertEqual(actual, custom_prefix)
+
+
+# #############################################################################
+# Test_s3_configuration
+# #############################################################################
+
+
+class Test_s3_configuration(_BaseCacheTest):
+    """
+    Test S3 configuration (global and per-function).
+    """
+
+    def tear_down_test(self) -> None:
+        """
+        Teardown including resetting S3 configuration.
+        """
+        super().tear_down_test()
+        # Reset S3 configuration by setting to None.
+        hcacsimp._S3_BUCKET = None
+        hcacsimp._S3_PREFIX = "cache"
+        hcacsimp._AWS_PROFILE = None
+
+    def test1(self) -> None:
+        """
+        Verify that set_s3_bucket stores bucket with s3:// prefix.
+        """
+        # Prepare inputs.
+        bucket = "my-test-bucket"
+        # Run test.
+        hcacsimp.set_s3_bucket(bucket)
+        actual = hcacsimp.get_s3_bucket()
+        # Check outputs.
+        self.assertEqual(actual, "s3://my-test-bucket")
+
+    def test2(self) -> None:
+        """
+        Verify that set_s3_bucket preserves existing s3:// prefix.
+        """
+        # Prepare inputs.
+        bucket = "s3://my-test-bucket"
+        # Run test.
+        hcacsimp.set_s3_bucket(bucket)
+        actual = hcacsimp.get_s3_bucket()
+        # Check outputs.
+        self.assertEqual(actual, "s3://my-test-bucket")
+
+    def test3(self) -> None:
+        """
+        Verify that set_s3_prefix and get_s3_prefix work correctly.
+        """
+        # Prepare inputs.
+        prefix = "cache/project1"
+        # Run test.
+        hcacsimp.set_s3_prefix(prefix)
+        actual = hcacsimp.get_s3_prefix()
+        # Check outputs.
+        self.assertEqual(actual, "cache/project1")
+
+    def test4(self) -> None:
+        """
+        Verify that set_aws_profile and get_aws_profile work correctly.
+        """
+        # Prepare inputs.
+        profile = "my-aws-profile"
+        # Run test.
+        hcacsimp.set_aws_profile(profile)
+        actual = hcacsimp.get_aws_profile()
+        # Check outputs.
+        self.assertEqual(actual, "my-aws-profile")
+
+    def test5(self) -> None:
+        """
+        Verify that per-function s3_bucket can be set and retrieved.
+        """
+        # Prepare inputs.
+        func_name = "_cached_json_double"
+        s3_bucket = "s3://function-specific-bucket"
+        # Run test.
+        hcacsimp.set_cache_property(func_name, "s3_bucket", s3_bucket)
+        actual = hcacsimp.get_cache_property(func_name, "s3_bucket")
+        # Check outputs.
+        self.assertEqual(actual, s3_bucket)
+
+    def test6(self) -> None:
+        """
+        Verify that per-function s3_prefix can be set and retrieved.
+        """
+        # Prepare inputs.
+        func_name = "_cached_json_double"
+        s3_prefix = "custom/prefix"
+        # Run test.
+        hcacsimp.set_cache_property(func_name, "s3_prefix", s3_prefix)
+        actual = hcacsimp.get_cache_property(func_name, "s3_prefix")
+        # Check outputs.
+        self.assertEqual(actual, s3_prefix)
+
+    def test7(self) -> None:
+        """
+        Verify that per-function aws_profile can be set and retrieved.
+        """
+        # Prepare inputs.
+        func_name = "_cached_json_double"
+        aws_profile = "function-aws-profile"
+        # Run test.
+        hcacsimp.set_cache_property(func_name, "aws_profile", aws_profile)
+        actual = hcacsimp.get_cache_property(func_name, "aws_profile")
+        # Check outputs.
+        self.assertEqual(actual, aws_profile)
+
+    def test8(self) -> None:
+        """
+        Verify that auto_sync_s3 property can be set and retrieved.
+        """
+        # Prepare inputs.
+        func_name = "_cached_json_double"
+        auto_sync = True
+        # Run test.
+        hcacsimp.set_cache_property(func_name, "auto_sync_s3", auto_sync)
+        actual = hcacsimp.get_cache_property(func_name, "auto_sync_s3")
+        # Check outputs.
+        self.assertEqual(actual, auto_sync)

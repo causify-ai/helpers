@@ -144,8 +144,20 @@ def cache_data_to_str(cache_data: _CacheType) -> str:
 #     - cache type (e.g., "json" or "pickle")
 #     - write through (e.g., True or False)
 #     - exclude keys (e.g., ["password", "api_key"])
+#     - per-function cache location (cache_dir, cache_prefix)
+#     - per-function S3 configuration (s3_bucket, s3_prefix, aws_profile, auto_sync_s3)
 
-_SYSTEM_PROPERTIES = ["type", "write_through", "exclude_keys"]
+_SYSTEM_PROPERTIES = [
+    "type",
+    "write_through",
+    "exclude_keys",
+    "cache_dir",
+    "cache_prefix",
+    "s3_bucket",
+    "s3_prefix",
+    "aws_profile",
+    "auto_sync_s3",
+]
 
 
 def get_main_cache_dir() -> str:
@@ -234,6 +246,11 @@ if "_S3_PREFIX" not in globals():
 if "_AWS_PROFILE" not in globals():
     _LOG.trace("Creating _AWS_PROFILE")
     _AWS_PROFILE: Optional[str] = None
+
+# Create global variable to track S3 auto-pull attempts.
+if "_S3_AUTO_PULL_ATTEMPTED" not in globals():
+    _LOG.trace("Creating _S3_AUTO_PULL_ATTEMPTED")
+    _S3_AUTO_PULL_ATTEMPTED: set = set()
 
 
 def set_s3_bucket(bucket: str) -> None:
@@ -990,6 +1007,40 @@ def pull_cache_from_s3(func_name: str = "") -> None:
         force_cache_from_disk(func_name)
 
 
+def _try_auto_pull_from_s3(func_name: str) -> bool:
+    """
+    Try to automatically pull cache from S3 on first cache miss.
+
+    This function is called automatically when a cache miss occurs for a
+    function with S3 configured. It only attempts to pull once per
+    function to avoid repeated network calls.
+    :param func_name: The name of the function.
+    :return: True if cache was successfully pulled from S3, False
+        otherwise.
+    """
+    global _S3_AUTO_PULL_ATTEMPTED
+    # Check if already attempted for this function.
+    if func_name in _S3_AUTO_PULL_ATTEMPTED:
+        _LOG.trace("Already attempted S3 auto-pull for '%s'", func_name)
+        return False
+    # Mark as attempted.
+    _S3_AUTO_PULL_ATTEMPTED.add(func_name)
+    # Check if S3 is configured for this function.
+    if not _check_s3_configured(func_name):
+        _LOG.trace("S3 not configured for '%s', skipping auto-pull", func_name)
+        return False
+    # Try to pull from S3.
+    _LOG.debug("Auto-pulling cache from S3 for '%s'", func_name)
+    success = _download_cache_from_s3(func_name)
+    if success:
+        # Load into memory cache.
+        force_cache_from_disk(func_name)
+        _LOG.info("Successfully auto-pulled cache from S3 for '%s'", func_name)
+        return True
+    _LOG.debug("No S3 cache found for '%s'", func_name)
+    return False
+
+
 def sync_cache_with_s3(func_name: str = "") -> None:
     """
     Sync cache between local and S3 (bidirectional merge).
@@ -1481,6 +1532,25 @@ def simple_cache(
                 # Update the performance stats.
                 if cache_perf:
                     cache_perf["misses"] += 1
+                # Try auto-pull from S3 on first cache miss.
+                if not force_refresh:
+                    auto_pull_success = _try_auto_pull_from_s3(func_name)
+                    if auto_pull_success:
+                        # Reload cache after S3 pull.
+                        cache = get_cache(func_name)
+                        # Check if key now exists.
+                        if cache_key in cache:
+                            _LOG.trace(
+                                "Cache hit after S3 auto-pull for key='%s'",
+                                cache_key,
+                            )
+                            # Update hit stats.
+                            if cache_perf:
+                                cache_perf["hits"] += 1
+                                cache_perf["misses"] -= 1
+                            # Return cached value.
+                            value = cache[cache_key]
+                            return value
                 # Abort on cache miss.
                 abort_on_cache_miss = abort_on_cache_miss or get_cache_property(
                     func_name, "abort_on_cache_miss"
