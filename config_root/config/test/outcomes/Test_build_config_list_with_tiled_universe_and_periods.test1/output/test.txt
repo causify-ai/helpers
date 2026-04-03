@@ -2,7 +2,7 @@
   # 1/2
     backtest_config:
       time_interval_str: 2020-01-01_2020-03-01
-      freq_as_pd_str: M
+      freq_as_pd_str: ME
       lookback_as_pd_str: 90D
       start_timestamp_with_lookback: 2019-10-03 00:00:00+00:00
       start_timestamp: 2020-01-01 00:00:00+00:00
@@ -12,7 +12,7 @@
   # 2/2
     backtest_config:
       time_interval_str: 2020-01-01_2020-03-01
-      freq_as_pd_str: M
+      freq_as_pd_str: ME
       lookback_as_pd_str: 90D
       start_timestamp_with_lookback: 2019-11-03 00:00:00+00:00
       start_timestamp: 2020-02-01 00:00:00+00:00

@@ -240,7 +240,7 @@ def build_config_list_varying_tiled_periods(
     `[a, b]`
 
     :param start_timestamp, end_timestamp: the interval of time to partition
-    :param freq_as_pd_str: the frequency of partitioning (e.g., `M`, `W`)
+    :param freq_as_pd_str: the frequency of partitioning (e.g., `ME`, `W`)
     :param lookback_as_pd_str: the extra period of time (e.g., `10D`) before the
         start of the interval, needed to warm up the period (e.g., compute
         features)
@@ -261,11 +261,11 @@ def build_config_list_varying_tiled_periods(
     configs = []
     # We want to cover the interval [start_timestamp, end_timestamp] with
     # `freq_as_pd_str` intervals (e.g., monthly).
-    # `pd.date_range()` samples with a given frequency (e.g., `M` for end of the
+    # `pd.date_range()` samples with a given frequency (e.g., `ME` for end of the
     # month) a closed interval like [a, b]. E.g.,
-    # `pd.date_range("2020-01-01", "2020-02-01", "M")` returns ["2020-01-31"]
-    # `pd.date_range("2020-01-01", "2020-01-31", "M")` returns ["2020-01-31"]
-    # `pd.date_range("2020-01-01", "2020-01-30", "M")` returns ["2020-01-31"]
+    # `pd.date_range("2020-01-01", "2020-02-01", "ME")` returns ["2020-01-31"]
+    # `pd.date_range("2020-01-01", "2020-01-31", "ME")` returns ["2020-01-31"]
+    # `pd.date_range("2020-01-01", "2020-01-30", "ME")` returns ["2020-01-31"]
     # Thus we need to add an extra interval at the end.
     end_timestamp_tmp = end_timestamp
     end_timestamp_tmp -= pd.Timedelta("1D")

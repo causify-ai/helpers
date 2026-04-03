@@ -250,7 +250,7 @@ def generate_parquet_files(
     asset_col_name: str,
     dst_dir: str,
     *,
-    freq: str = "1H",
+    freq: str = "1h",
     output_type: str = "basic",
     partition_mode: str = "by_date",
     custom_partition_cols: Optional[str] = None,
