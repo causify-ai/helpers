@@ -165,6 +165,7 @@
   - `set_s3_prefix(prefix)` - set S3 prefix path for cache files
     - Example: `set_s3_prefix("cache/project1")`
   - `set_aws_profile(profile)` - set AWS profile for S3 access
+    - Default is `"ck"`
     - Example: `set_aws_profile("my-aws-profile")`
 
 - S3 operations (manual control):

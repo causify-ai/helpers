@@ -969,6 +969,7 @@ def _cache_mode_function(x: int) -> int:
 
 _cache_mode_function.call_count = 0
 
+
 # #############################################################################
 # Test_cache_mode
 # #############################################################################
@@ -1196,6 +1197,7 @@ def _test_cache_mode_kwarg(x: int, **kwargs) -> int:
 
 
 _test_cache_mode_kwarg.call_count = 0
+
 
 # #############################################################################
 # Test_cache_mode_parameter
@@ -2019,10 +2021,10 @@ class Test_s3_configuration(_BaseCacheTest):
         Teardown including resetting S3 configuration.
         """
         super().tear_down_test()
-        # Reset S3 configuration by setting to None.
+        # Reset S3 configuration to defaults.
         hcacsimp._S3_BUCKET = None
         hcacsimp._S3_PREFIX = "cache"
-        hcacsimp._AWS_PROFILE = None
+        hcacsimp._AWS_PROFILE = "ck"
 
     def test1(self) -> None:
         """
