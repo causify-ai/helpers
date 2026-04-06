@@ -51,7 +51,12 @@ def compare_dataframe_rows(df1: pd.DataFrame, df2: pd.DataFrame) -> pd.DataFrame
                 data_difference.loc[index, column] = trimmed_second.loc[index][
                     column
                 ]
-        data_difference = data_difference.convert_dtypes()
+        # Use convert_dtypes with infer_objects=False to avoid strict type conversion errors.
+        try:
+            data_difference = data_difference.convert_dtypes(infer_objects=False)
+        except (TypeError, ValueError):
+            # If conversion fails, keep the original dtypes.
+            pass
     return data_difference
 
 
