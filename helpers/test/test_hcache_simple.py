@@ -387,13 +387,13 @@ class Test_set_cache_property(_BaseCacheTest):
 
 
 # #############################################################################
-# Test_get_cache_func_names
+# Test_get_cached_func_names
 # #############################################################################
 
 
-class Test_get_cache_func_names(_BaseCacheTest):
+class Test_get_cached_func_names(_BaseCacheTest):
     """
-    Test get_cache_func_names functionality for retrieving cached function
+    Test get_cached_func_names functionality for retrieving cached function
     names.
     """
 
@@ -404,7 +404,7 @@ class Test_get_cache_func_names(_BaseCacheTest):
         # Populate in-memory cache.
         _cached_json_double(9)
         # Retrieve function names from the memory cache.
-        mem_funcs = hcacsimp.get_cache_func_names("mem")
+        mem_funcs = hcacsimp.get_cached_func_names("mem")
         # Check output.
         self.assertIn("_cached_json_double", mem_funcs)
 
@@ -421,8 +421,8 @@ class Test_get_cache_func_names(_BaseCacheTest):
         _cached_pickle_square(2)
         # Flush _cached_pickle_square cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_pickle_square")
-        # Retrieve all cache function names (both memory and disk).
-        all_funcs = hcacsimp.get_cache_func_names("all")
+        # Retrieve all local cached function names (both memory and disk).
+        all_funcs = hcacsimp.get_cached_func_names("local")
         # Check output.
         self.assertIn("_cached_json_double", all_funcs)
         self.assertIn("_cached_pickle_square", all_funcs)
@@ -437,7 +437,7 @@ class Test_get_cache_func_names(_BaseCacheTest):
         # Flush _cached_json_double cache to disk.
         hcacsimp.flush_cache_to_disk("_cached_json_double")
         # Retrieve function names from the disk cache.
-        disk_funcs = hcacsimp.get_cache_func_names("disk")
+        disk_funcs = hcacsimp.get_cached_func_names("disk")
         # Check output.
         self.assertIn("_cached_json_double", disk_funcs)
 
@@ -464,7 +464,7 @@ class Test_get_cache_func_names(_BaseCacheTest):
         # Flush to disk.
         hcacsimp.flush_cache_to_disk("_custom_location_func")
         # Retrieve function names from disk cache.
-        disk_funcs = hcacsimp.get_cache_func_names("disk")
+        disk_funcs = hcacsimp.get_cached_func_names("disk")
         # Check outputs.
         self.assertIn("_custom_location_func", disk_funcs)
         # Verify cache file exists in custom location.
@@ -891,22 +891,22 @@ class Test_cache_stats_to_str_all(_BaseCacheTest):
 
 
 # #############################################################################
-# Test_get_cache_func_names_invalid
+# Test_get_cached_func_names_invalid
 # #############################################################################
 
 
-class Test_get_cache_func_names_invalid(_BaseCacheTest):
+class Test_get_cached_func_names_invalid(_BaseCacheTest):
     """
-    Test get_cache_func_names with invalid type parameter.
+    Test get_cached_func_names with invalid type parameter.
     """
 
     def test1(self) -> None:
         """
-        Verify that get_cache_func_names raises ValueError for invalid type.
+        Verify that get_cached_func_names raises ValueError for invalid type.
         """
         # Run test and check output.
         with self.assertRaises(ValueError) as cm:
-            hcacsimp.get_cache_func_names("invalid_type")
+            hcacsimp.get_cached_func_names("invalid_type")
         self.assertIn("Invalid type", str(cm.exception))
 
 

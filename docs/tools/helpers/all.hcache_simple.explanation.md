@@ -117,16 +117,16 @@
 - Flow example:
   - When a cache is flushed to disk:
     - The system determines the file name by checking the system cache property
-      `type` (set to `json` or `pickle`)
+      file for type (`json` or `pickle`), directory and prefix
     - The memory cache (a small dictionary of keys and values) is written to the
       file using the appropriate format
     - On subsequent runs, if the memory cache is empty, the system will load
       cached results from disk
 
 - Interface:
-  - `flush_cache_to_disk(func_name)` writes the current memory cache to the disk
-    file
-    - If `func_name` is empty, flushes all cached functions to disk
+  - `flush_cache_to_disk(func_name)` merges memory cache with disk cache (memory
+    takes precedence) and writes to disk, then updates memory with merged result
+    - If `func_name` is empty, flushes all functions with memory cache
   - `force_cache_from_disk(func_name)` loads the disk cache and updates the
     in-memory cache
     - If `func_name` is empty, loads all disk caches into memory
@@ -152,7 +152,7 @@
     2. If not in memory, checks disk cache
     3. If not on disk and S3 is configured, automatically pulls from S3
        (one-time attempt per function per session)
-    4. Cache miss is only reported if key not found in ANY layer
+    4. Cache miss is only reported if key is not found in ANY layer
 
 - Global S3 configuration:
   - `set_s3_bucket(bucket)` - set S3 bucket for cache storage
@@ -170,15 +170,14 @@
     - First flushes memory cache to disk, then uploads to S3
     - Respects per-function S3 bucket/prefix/profile configurations
   - `pull_cache_from_s3(func_name)` - manually download cache from S3 to local
-    - If `func_name` is empty, pulls from all discoverable S3 locations using a
-      two-phase approach:
-      - Phase 1: Pulls all functions in local `_CACHE_PROPERTY` file,
-        respecting each function's per-function S3 configuration
-        (bucket/prefix/profile)
-      - Phase 2: Lists global S3 bucket and pulls any cache files with ANY
-        prefix pattern
-        - This handles functions cached on other machines with custom
-          `cache_prefix`
+    - If `func_name` is empty, discovers and pulls all cached functions (using
+      shared discovery logic with `sync_cache_with_s3("")`)
+    - Two-phase discovery:
+      - Phase 1: Functions on local disk (includes both global cache directory
+        and custom cache directories from `_CACHE_PROPERTY`)
+      - Phase 2: Functions in global S3 bucket (cached on other machines)
+    - Respects per-function S3 configuration (bucket/prefix/profile)
+    - Handles functions cached on other machines with custom `cache_prefix`
     - IMPORTANT LIMITATION: Functions with custom `s3_bucket` on another
       machine are UNPULLABLE
       - The custom bucket location is stored only in `_CACHE_PROPERTY` on the
@@ -195,8 +194,13 @@
   - `sync_cache_with_s3(func_name)` - bidirectional merge between local and S3
     - Downloads S3 cache, merges with local (local takes precedence), uploads
       result
-    - If `func_name` is empty, syncs all cached functions
-    - Respects per-function S3 configurations
+    - If `func_name` is empty, discovers all cached functions (using shared
+      discovery logic with `pull_cache_from_s3("")`)
+    - Two-phase discovery:
+      - Phase 1: Functions on local disk (includes both global cache directory
+        and custom cache directories from `_CACHE_PROPERTY`)
+      - Phase 2: Functions in global S3 bucket (cached on other machines)
+    - Ensures local-only and S3-only functions are both discovered and synced
 
 - Per-function S3 configuration:
   - Each function can have its own S3 settings via decorator parameters
@@ -288,7 +292,9 @@
 
 - `cache_stats_to_str(func_name)`: Returns a pandas DataFrame showing cache
   statistics
-  - If `func_name` is empty, returns stats for all cached functions
+  - If `func_name` is empty, returns stats for all locally cached functions
+    (mem + disk)
+  - Does not include S3-only functions (as they have no local stats to report)
   - Shows both memory and disk cache sizes for each function
   - Example output:
     ```
@@ -297,17 +303,21 @@
     verify_email      -  2322
     ```
 
-- `get_cache_func_names(type_)`: Retrieves list of cached function names
-  - `type_='all'`: Returns all functions with either memory or disk cache
+- `get_cached_func_names(type_)`: Retrieves list of cached function names
   - `type_='mem'`: Returns only functions with memory cache
   - `type_='disk'`: Returns only functions with disk cache files
-    - Discovers caches in both global and custom locations:
-      - Searches global cache directory for ALL cache files (any prefix)
-      - Searches custom cache directories from `_CACHE_PROPERTY`
-    - This discovers functions cached on other machines with custom
-      `cache_prefix` (as long as they use global cache directory)
-    - Ensures operations like `push_cache_to_s3("")` work correctly for all
-      cached functions
+    - Discovers caches in both global and custom locations
+    - Searches global cache directory for ALL cache files (any prefix)
+    - Searches custom cache directories from `_CACHE_PROPERTY`
+  - `type_='s3'`: Returns only functions in S3
+    - Discovers caches in both global and custom S3 buckets
+    - Searches global S3 bucket for ALL cache files (any prefix)
+    - Searches custom S3 buckets from `_CACHE_PROPERTY`
+    - Groups by unique bucket/prefix/profile combinations to avoid duplicate
+      listings
+  - `type_='local'`: Returns all functions with local cache (mem + disk)
+  - `type_='all'`: Returns all cached functions (mem + disk + s3)
+    - Comprehensive discovery across all cache layers
 
 - `cache_property_to_str(func_name)`: Converts cache properties to string
   - If `func_name` is empty, returns properties for all cached functions
@@ -892,10 +902,18 @@ print(props)
 # s3_bucket: s3://my-bucket
 # auto_sync_s3: True
 
-# List all cached functions
-func_names = hcacsimp.get_cache_func_names("all")
+# List all cached functions (across mem, disk, and S3)
+func_names = hcacsimp.get_cached_func_names("all")
 print(func_names)
 # Output: ['expensive_function', 'another_function']
+
+# List only S3-cached functions
+s3_funcs = hcacsimp.get_cached_func_names("s3")
+print(s3_funcs)
+
+# List local functions only (mem + disk, not S3)
+local_funcs = hcacsimp.get_cached_func_names("local")
+print(local_funcs)
 
 # Reset specific function cache
 hcacsimp.reset_cache("expensive_function", interactive=False)
