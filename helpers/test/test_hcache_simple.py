@@ -441,6 +441,37 @@ class Test_get_cache_func_names(_BaseCacheTest):
         # Check output.
         self.assertIn("_cached_json_double", disk_funcs)
 
+    def test4(self) -> None:
+        """
+        Verify that disk cache function names include functions with custom
+        cache_dir and cache_prefix.
+        """
+        # Prepare inputs.
+        scratch_dir = self.get_scratch_space()
+        custom_cache_dir = os.path.join(scratch_dir, "custom_cache")
+
+        # Create a cached function with custom cache location.
+        @hcacsimp.simple_cache(
+            cache_type="json",
+            cache_dir=custom_cache_dir,
+            cache_prefix="custom_prefix",
+        )
+        def _custom_location_func(x: int) -> int:
+            return x * 3
+
+        # Run test.
+        _custom_location_func(5)
+        # Flush to disk.
+        hcacsimp.flush_cache_to_disk("_custom_location_func")
+        # Retrieve function names from disk cache.
+        disk_funcs = hcacsimp.get_cache_func_names("disk")
+        # Check outputs.
+        self.assertIn("_custom_location_func", disk_funcs)
+        # Verify cache file exists in custom location.
+        cache_file = hcacsimp._get_cache_file_name("_custom_location_func")
+        self.assertTrue(os.path.exists(cache_file))
+        self.assertTrue(cache_file.startswith(custom_cache_dir))
+
 
 # #############################################################################
 # Test_cache_stats_to_str

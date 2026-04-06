@@ -522,12 +522,14 @@ def reset_cache_property() -> None:
 
 def get_cache_func_names(type_: str) -> List[str]:
     """
-    Retrieve the cache function names based on the specified type.
+    Retrieve the function names cached with the specified type.
 
-    :param type_: The type of cache to retrieve ('all', 'mem', or
-        'disk').
-    :return: A list of function names corresponding to the specified
-        cache type.
+    For 'disk' type, this function discovers caches in:
+    - Global cache directory with global prefix
+    - Custom cache locations configured via per-function decorator options
+
+    :param type_: the type of cache to retrieve ('all', 'mem', or 'disk')
+    :return: names of functions cached with the specified type
     """
     if type_ == "all":
         mem_func_names = get_cache_func_names("mem")
@@ -537,8 +539,11 @@ def get_cache_func_names(type_: str) -> List[str]:
         mem_func_names = sorted(list(_CACHE.keys()))
         val = mem_func_names
     elif type_ == "disk":
+        all_func_names = set()
+        # Search global cache directory.
         prefix = get_cache_file_prefix()
-        disk_func_names = glob.glob(os.path.join(get_cache_dir(), f"{prefix}.*"))
+        cache_dir = get_cache_dir()
+        disk_func_names = glob.glob(os.path.join(cache_dir, f"{prefix}.*"))
         disk_func_names = [os.path.basename(cache) for cache in disk_func_names]
         # Exclude the cache property file.
         property_file_name = os.path.basename(get_cache_property_file())
@@ -550,8 +555,20 @@ def get_cache_func_names(type_: str) -> List[str]:
         disk_func_names = [
             re.sub(pattern, r"\1", cache) for cache in disk_func_names
         ]
-        disk_func_names = sorted(disk_func_names)
-        val = disk_func_names
+        all_func_names.update(disk_func_names)
+        # Search custom cache locations from _CACHE_PROPERTY.
+        cache_property = _CACHE_PROPERTY
+        for func_name_tmp in cache_property:
+            # Check if this function has custom cache location.
+            func_cache_dir = cache_property[func_name_tmp].get("cache_dir")
+            func_cache_prefix = cache_property[func_name_tmp].get("cache_prefix")
+            # If it has custom location, search there.
+            if func_cache_dir or func_cache_prefix:
+                # Check if cache file exists for this function.
+                file_name = _get_cache_file_name(func_name_tmp)
+                if os.path.exists(file_name):
+                    all_func_names.add(func_name_tmp)
+        val = sorted(list(all_func_names))
     else:
         raise ValueError(f"Invalid type '{type_}'")
     return val
@@ -689,8 +706,11 @@ def _get_cache_file_name(func_name: str) -> str:
     """
     Get the cache file name for a given function.
 
-    :param func_name: The name of the function.
-    :return: The cache file name with appropriate extension.
+    The function returns the full cache file path including the local
+    directory, configured globally or per-function.
+
+    :param func_name: the name of the function
+    :return: the cache file name with appropriate extension
     """
     _LOG.trace("func_name='%s'", func_name)
     hdbg.dassert_isinstance(func_name, str)
@@ -714,7 +734,7 @@ def _get_cache_file_name(func_name: str) -> str:
     elif cache_type == "json":
         file_name += ".json"
     elif cache_type is None:
-        # Cache type not set - try to infer from existing files.
+        # Try to infer cache type from existing files.
         if os.path.exists(file_name + ".pkl"):
             file_name += ".pkl"
         elif os.path.exists(file_name + ".json"):
@@ -749,9 +769,9 @@ def _load_func_cache_data_from_file(
     """
     Load the function cache data from a file.
 
-    :param file_name: The name of the file.
-    :param cache_type: The type of the cache.
-    :return: The function cache data.
+    :param file_name: the name of the file
+    :param cache_type: the type of the cache
+    :return: the function cache data
     """
     # Infer cache type from file extension if not set.
     if cache_type is None:
@@ -778,12 +798,11 @@ def get_disk_cache(func_name: str) -> _FunctionCacheType:
     """
     Retrieve the disk cache for a given function.
 
-    :param func_name: The name of the function.
-    :return: A dictionary containing the cache data, or empty dict if no
-        cache file exists.
+    :param func_name: the name of the function
+    :return: cache data, if it exists
     """
     file_name = _get_cache_file_name(func_name)
-    # If the disk cache doesn't exist, return empty cache.
+    # Return empty cache if the disk cache does not exist.
     if not os.path.exists(file_name):
         _LOG.trace("No cache file on disk")
         return {}
@@ -876,16 +895,14 @@ def _upload_cache_to_s3(func_name: str) -> None:
     # Read local file and write to S3.
     cache_type = get_cache_property(func_name, "type")
     if cache_type == "pickle":
-        # For pickle files, read as bytes and write.
+        # Read pickle files as bytes and write.
         with open(local_file, "rb") as f:
             data = f.read()
-        # hs3.to_file expects string, so we need to handle binary differently.
-        # Use the S3FileSystem directly for binary files.
         s3fs_ = hs3.get_s3fs(aws_profile)
         with s3fs_.open(s3_path, "wb") as f:
             f.write(data)
     else:
-        # For JSON files, read as string and write.
+        # Read JSON files as string and write.
         data = hio.from_file(local_file)
         hs3.to_file(data, s3_path, aws_profile=aws_profile)
 
@@ -893,6 +910,9 @@ def _upload_cache_to_s3(func_name: str) -> None:
 def _download_cache_from_s3(func_name: str) -> bool:
     """
     Download a cache file from S3.
+
+    The function downloads the cache file from S3 to the local cache
+    directory, configured globally or per-function.
 
     :param func_name: the name of the function
     :return: True if download successful, False otherwise
@@ -918,13 +938,13 @@ def _download_cache_from_s3(func_name: str) -> bool:
     cache_type = get_cache_property(func_name, "type")
     hio.create_enclosing_dir(local_file, incremental=True)
     if cache_type == "pickle":
-        # For pickle files, read as bytes and write.
+        # Read pickle files as bytes and write.
         with s3fs_.open(s3_path, "rb") as f:
             data = f.read()
         with open(local_file, "wb") as f:
             f.write(data)
     else:
-        # For JSON files, read as string and write.
+        # Read JSON files as string and write.
         data = hs3.from_file(s3_path, aws_profile=aws_profile)
         hio.to_file(local_file, data)
     return True
@@ -942,7 +962,7 @@ def push_cache_to_s3(func_name: str = "") -> None:
             push_cache_to_s3(func_name_tmp)
         return
     _LOG.info("Pushing cache to S3 for '%s'", func_name)
-    # Flush memory cache to disk first.
+    # Flush memory cache to disk.
     flush_cache_to_disk(func_name)
     # Upload to S3.
     _upload_cache_to_s3(func_name)
@@ -950,18 +970,42 @@ def push_cache_to_s3(func_name: str = "") -> None:
 
 def pull_cache_from_s3(func_name: str = "") -> None:
     """
-    Pull cache from S3 to local for a given function.
+    Pull cache from S3 to local storage for a given function.
+
+    If no function name is provided, pulls caches using a two-phase approach:
+    - Phase 1: Pulls all functions in local _CACHE_PROPERTY (respects
+      per-function S3 config)
+    - Phase 2: Lists global S3 bucket and pulls any functions found there
+
+    Functions cached with custom s3_bucket on another
+    machine are UNPULLABLE without sharing _CACHE_PROPERTY file.
+    - The custom bucket location is stored only in the originating machine's
+      _CACHE_PROPERTY
+    - Without it, the pull attempts to use global bucket and fails
+    - Workaround: Share _CACHE_PROPERTY file or use global S3 bucket for team
+      collaboration
 
     :param func_name: the name of the function. If empty, pull all
-        caches
+        discoverable caches
     """
-    if func_name == "":
-        # List all cache files in S3.
-        if not _check_s3_configured():
+    if func_name != "":
+        _LOG.info("Pulling cache from S3 for '%s'", func_name)
+        # Download from S3.
+        success = _download_cache_from_s3(func_name)
+        if success:
+            # Load into memory cache.
+            force_cache_from_disk(func_name)
             return
+    pulled_funcs = set()
+    # Pull caches for all functions in _CACHE_PROPERTY.
+    cache_property = _CACHE_PROPERTY
+    for func_name_tmp in cache_property:
+        pull_cache_from_s3(func_name_tmp)
+        pulled_funcs.add(func_name_tmp)
+    # List files from global S3 bucket for functions not in _CACHE_PROPERTY.
+    if _check_s3_configured():
         bucket = get_s3_bucket()
         prefix = get_s3_prefix()
-        # Use global aws_profile for listing.
         aws_profile = get_aws_profile()
         # Build S3 directory path.
         if prefix:
@@ -979,28 +1023,20 @@ def pull_cache_from_s3(func_name: str = "") -> None:
             )
         except Exception as e:
             _LOG.warning("Failed to list S3 directory '%s': %s", s3_dir, e)
-            return
-        if not s3_files:
-            _LOG.debug("No cache files found in S3")
-            return
+            s3_files = []
         # Extract function names from S3 file names.
-        cache_file_prefix = get_cache_file_prefix()
         for s3_file in s3_files:
             base_name = os.path.basename(s3_file)
-            # Extract func_name from cache file name.
-            # Format: cache_file_prefix.func_name.json/pkl
-            pattern = rf"{re.escape(cache_file_prefix)}\.(.*)\.(?:json|pkl)"
+            # Extract function name from cache file name with format
+            # <any_prefix>.func_name.json/pkl.
+            pattern = r"^(.+)\.([^\.]+)\.(?:json|pkl)$"
             match = re.match(pattern, base_name)
             if match:
-                func_name_tmp = match.group(1)
-                pull_cache_from_s3(func_name_tmp)
-        return
-    _LOG.info("Pulling cache from S3 for '%s'", func_name)
-    # Download from S3.
-    success = _download_cache_from_s3(func_name)
-    if success:
-        # Load into memory cache.
-        force_cache_from_disk(func_name)
+                func_name_tmp = match.group(2)
+                # Pull cache if not already pulled.
+                if func_name_tmp not in pulled_funcs:
+                    pull_cache_from_s3(func_name_tmp)
+                    pulled_funcs.add(func_name_tmp)
 
 
 def sync_cache_with_s3(func_name: str = "") -> None:
@@ -1097,8 +1133,8 @@ def force_cache_from_disk(func_name: str = "") -> None:
     """
     Force loading the cache from disk and update the memory cache.
 
-    :param func_name: The name of the function. If empty, apply to all
-        cached functions.
+    :param func_name: the name of the function. If empty, apply to all
+        cached functions
     """
     if func_name == "":
         _LOG.info("Before:\n%s", cache_stats_to_str())
@@ -1119,8 +1155,8 @@ def get_mem_cache(func_name: str) -> _CacheType:
     """
     Retrieve the memory cache for a given function.
 
-    :param func_name: The name of the function.
-    :return: A dictionary containing the memory cache data.
+    :param func_name: the name of the function
+    :return: memory cache data
     """
     mem_cache = _CACHE.get(func_name, {})
     return mem_cache
@@ -1130,8 +1166,8 @@ def flush_cache_to_disk(func_name: str = "") -> None:
     """
     Flush the memory cache to disk and update the memory cache.
 
-    :param func_name: The name of the function. If empty, apply to all
-        cached functions.
+    :param func_name: the name of the function. If empty, apply to all
+        cached functions
     """
     if func_name == "":
         _LOG.info("Before:\n%s", cache_stats_to_str())

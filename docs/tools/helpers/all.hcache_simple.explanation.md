@@ -109,11 +109,10 @@
     - `<func_name>`: The name of the cached function
     - `<extension>`: Depends on cache type (`.json` or `.pkl`)
   - Examples:
-    - Global default: `tmp.cache_simple.expensive_function.json`
-    - Custom global prefix: `my_cache.expensive_function.json`
-    - Per-function prefix: `project1.my_function.pkl`
+    - Default: `tmp.cache_simple.expensive_function.json`
+    - Customized: `my_cache.expensive_function.json`
   - Cache files are stored in the cache directory (configurable globally or
-    per-function)
+    per-function; git root by default)
 
 - Flow example:
   - When a cache is flushed to disk:
@@ -154,10 +153,6 @@
     3. If not on disk and S3 is configured, automatically pulls from S3
        (one-time attempt per function per session)
     4. Cache miss is only reported if key not found in ANY layer
-  - This design treats S3 as an integral part of the cache, not a "backup" or
-    "recovery" mechanism
-  - No manual `pull_cache_from_s3()` call needed - it's automatic and
-    transparent
 
 - Global S3 configuration:
   - `set_s3_bucket(bucket)` - set S3 bucket for cache storage
@@ -170,16 +165,38 @@
 
 - S3 operations (manual control):
   - `push_cache_to_s3(func_name)` - upload local cache to S3
-    - If `func_name` is empty, pushes all cached functions
+    - If `func_name` is empty, pushes all cached functions (including those with
+      custom cache locations)
     - First flushes memory cache to disk, then uploads to S3
+    - Respects per-function S3 bucket/prefix/profile configurations
   - `pull_cache_from_s3(func_name)` - manually download cache from S3 to local
-    - If `func_name` is empty, pulls all cache files from S3
+    - If `func_name` is empty, pulls from all discoverable S3 locations using a
+      two-phase approach:
+      - **Phase 1**: Pulls all functions in local `_CACHE_PROPERTY` file,
+        respecting each function's per-function S3 configuration
+        (bucket/prefix/profile)
+      - **Phase 2**: Lists global S3 bucket and pulls any cache files with ANY
+        prefix pattern
+        - This handles functions cached on other machines with custom
+          `cache_prefix`
+    - **IMPORTANT LIMITATION**: Functions with custom `s3_bucket` on another
+      machine are UNPULLABLE
+      - The custom bucket location is stored only in `_CACHE_PROPERTY` on the
+        originating machine
+      - Without that property file, the pull attempts global bucket and fails
+      - **Workaround options**:
+        - Share/sync `_CACHE_PROPERTY` file across team (e.g., commit to git)
+        - Use global S3 bucket for team collaboration (reserve custom buckets
+          for isolation)
+        - Manually set property before pulling:
+          `set_cache_property("func", "s3_bucket", "s3://custom-bucket")`
     - After download, loads cache into memory
     - Usually not needed since auto-pull happens automatically
   - `sync_cache_with_s3(func_name)` - bidirectional merge between local and S3
     - Downloads S3 cache, merges with local (local takes precedence), uploads
       result
     - If `func_name` is empty, syncs all cached functions
+    - Respects per-function S3 configurations
 
 - Per-function S3 configuration:
   - Each function can have its own S3 settings via decorator parameters
@@ -192,6 +209,19 @@
     after each update
   - Useful for immediately sharing results across team members or machines
   - Only works when `write_through=True` (default)
+
+- **Best practices for team collaboration**:
+  - **Recommended**: Use global S3 bucket for team-shared caches
+    - All team members can discover and pull automatically
+    - Custom `cache_prefix` or `s3_prefix` work fine for organization
+  - **Not recommended**: Custom `s3_bucket` per function for team sharing
+    - Creates unpullable caches on other machines (requires sharing property
+      file)
+    - Reserve custom buckets for isolation/separation, not collaboration
+  - **Property file sharing**: If using custom buckets, commit
+    `tmp.cache_simple_property.pkl` to git
+    - Allows team members to discover custom S3 locations
+    - Alternative: Use shared config file for S3 bucket mappings
 
 ## Per-Function Configuration
 
@@ -271,6 +301,12 @@
   - `type_='all'`: Returns all functions with either memory or disk cache
   - `type_='mem'`: Returns only functions with memory cache
   - `type_='disk'`: Returns only functions with disk cache files
+    - Discovers caches in both global and custom locations
+    - Searches the global cache directory first
+    - Also searches custom locations configured via per-function `cache_dir` or
+      `cache_prefix` decorator options
+    - This ensures operations like `push_cache_to_s3("")` work correctly for
+      all cached functions regardless of their configured location
 
 - `cache_property_to_str(func_name)`: Converts cache properties to string
   - If `func_name` is empty, returns properties for all cached functions
