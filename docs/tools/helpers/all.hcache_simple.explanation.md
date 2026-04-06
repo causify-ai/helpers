@@ -301,12 +301,13 @@
   - `type_='all'`: Returns all functions with either memory or disk cache
   - `type_='mem'`: Returns only functions with memory cache
   - `type_='disk'`: Returns only functions with disk cache files
-    - Discovers caches in both global and custom locations
-    - Searches the global cache directory first
-    - Also searches custom locations configured via per-function `cache_dir` or
-      `cache_prefix` decorator options
-    - This ensures operations like `push_cache_to_s3("")` work correctly for
-      all cached functions regardless of their configured location
+    - Discovers caches in both global and custom locations:
+      - Searches global cache directory for ALL cache files (any prefix)
+      - Searches custom cache directories from `_CACHE_PROPERTY`
+    - This discovers functions cached on other machines with custom
+      `cache_prefix` (as long as they use global cache directory)
+    - Ensures operations like `push_cache_to_s3("")` work correctly for all
+      cached functions
 
 - `cache_property_to_str(func_name)`: Converts cache properties to string
   - If `func_name` is empty, returns properties for all cached functions

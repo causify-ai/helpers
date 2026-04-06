@@ -245,7 +245,7 @@ if "_S3_PREFIX" not in globals():
 # Create global variable for AWS profile.
 if "_AWS_PROFILE" not in globals():
     _LOG.trace("Creating _AWS_PROFILE")
-    _AWS_PROFILE: Optional[str] = "ck"
+    _AWS_PROFILE: str = "ck"
 
 # Create global variable to track S3 auto-pull attempts.
 if "_S3_AUTO_PULL_ATTEMPTED" not in globals():
@@ -315,11 +315,11 @@ def set_aws_profile(profile: str) -> None:
     _LOG.trace("Setting _AWS_PROFILE to %s", _AWS_PROFILE)
 
 
-def get_aws_profile() -> Optional[str]:
+def get_aws_profile() -> str:
     """
     Get the AWS profile for S3 access.
 
-    :return: AWS profile name or None if not configured
+    :return: AWS profile name
     """
     return _AWS_PROFILE
 
@@ -525,8 +525,11 @@ def get_cache_func_names(type_: str) -> List[str]:
     Retrieve the function names cached with the specified type.
 
     For 'disk' type, this function discovers caches in:
-    - Global cache directory with global prefix
-    - Custom cache locations configured via per-function decorator options
+    - Global cache directory
+    - Custom cache directories configured per-function
+
+    This discovers functions cached on other machines with custom cache_prefix
+    as long as they use the global cache directory.
 
     :param type_: the type of cache to retrieve ('all', 'mem', or 'disk')
     :return: names of functions cached with the specified type
@@ -534,53 +537,48 @@ def get_cache_func_names(type_: str) -> List[str]:
     if type_ == "all":
         mem_func_names = get_cache_func_names("mem")
         disk_func_names = get_cache_func_names("disk")
-        val = sorted(set(mem_func_names + disk_func_names))
+        out = sorted(set(mem_func_names + disk_func_names))
     elif type_ == "mem":
         mem_func_names = sorted(list(_CACHE.keys()))
-        val = mem_func_names
+        out = mem_func_names
     elif type_ == "disk":
         all_func_names = set()
         # Search global cache directory.
-        prefix = get_cache_file_prefix()
         cache_dir = get_cache_dir()
-        disk_func_names = glob.glob(os.path.join(cache_dir, f"{prefix}.*"))
-        disk_func_names = [os.path.basename(cache) for cache in disk_func_names]
+        disk_files = glob.glob(os.path.join(cache_dir, "*.json"))
+        disk_files += glob.glob(os.path.join(cache_dir, "*.pkl"))
+        disk_func_names = [os.path.basename(f) for f in disk_files]
         # Exclude the cache property file.
         property_file_name = os.path.basename(get_cache_property_file())
         disk_func_names = [
             cache for cache in disk_func_names if cache != property_file_name
         ]
-        escaped_prefix = re.escape(prefix)
-        pattern = rf"{escaped_prefix}\.(.*)\.(json|pkl)"
-        disk_func_names = [
-            re.sub(pattern, r"\1", cache) for cache in disk_func_names
-        ]
-        all_func_names.update(disk_func_names)
-        # Search custom cache locations from _CACHE_PROPERTY.
+        # Extract function names with `<any_prefix>.func_name.json/pkl` format.
+        for base_name in disk_func_names:
+            pattern = r"^(.+)\.([^\.]+)\.(?:json|pkl)$"
+            match = re.match(pattern, base_name)
+            if match:
+                func_name_tmp = match.group(2)
+                all_func_names.add(func_name_tmp)
+        # Search custom cache directories from _CACHE_PROPERTY.
         cache_property = _CACHE_PROPERTY
         for func_name_tmp in cache_property:
-            # Check if this function has custom cache location.
-            func_cache_dir = cache_property[func_name_tmp].get("cache_dir")
-            func_cache_prefix = cache_property[func_name_tmp].get("cache_prefix")
-            # If it has custom location, search there.
-            if func_cache_dir or func_cache_prefix:
-                # Check if cache file exists for this function.
-                file_name = _get_cache_file_name(func_name_tmp)
-                if os.path.exists(file_name):
-                    all_func_names.add(func_name_tmp)
-        val = sorted(list(all_func_names))
+            file_name = _get_cache_file_name(func_name_tmp)
+            if os.path.exists(file_name):
+                all_func_names.add(func_name_tmp)
+        out = sorted(list(all_func_names))
     else:
         raise ValueError(f"Invalid type '{type_}'")
-    return val
+    return out
 
 
 def cache_property_to_str(func_name: str = "") -> str:
     """
     Convert cache properties to a string representation.
 
-    :param func_name: The name of the function whose cache properties
-        are to be converted.
-    :return: A string representation of the cache properties. E.g.,
+    :param func_name: the name of the function whose cache properties
+        are to be converted
+    :return: a string representation of the cache properties. E.g.,
         ```
         # func_name=slow_square
         type: json
@@ -1422,7 +1420,7 @@ def simple_cache(
     cache_prefix: Optional[str] = None,
     s3_bucket: Optional[str] = None,
     s3_prefix: Optional[str] = None,
-    aws_profile: Optional[str] = None,
+    aws_profile: str = "ck",
     auto_sync_s3: bool = False,
 ) -> Callable[..., Any]:
     """
