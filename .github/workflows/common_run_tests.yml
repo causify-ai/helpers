@@ -92,7 +92,7 @@ jobs:
       # Pull the latest Docker image from the GHCR registry instead of ECR for
       # cost saving purposes to run the regressions on.
       - name: Pull image from GHCR
-        run: invoke docker_pull --version 1.4.0
+        run: invoke docker_pull
 
       - name: Run tests
         env:
@@ -102,7 +102,7 @@ jobs:
           CSFY_AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
           CSFY_AWS_S3_BUCKET: ${{ vars.CSFY_AWS_S3_BUCKET }}
           GH_ACTION_ACCESS_TOKEN: ${{ secrets.GH_ACTION_ACCESS_TOKEN }}
-        run: invoke ${{ inputs.test-name }} --version 1.4.0
+        run: invoke ${{ inputs.test-name }}
 
       # In case of manual run, this workflow step will not be skipped and
       # info in the step will be in format as seen in `with` statement.

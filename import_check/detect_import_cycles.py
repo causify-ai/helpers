@@ -3,7 +3,6 @@
 # /// script
 # dependencies = ["pydeps", "networkx", "pyyaml", "graphviz"]
 # ///
-
 """
 Detect cyclic imports.
 
@@ -31,8 +30,9 @@ def _check_import_cycles(
     Detect import cycles in a module.
 
     :param module_path: path to the input module
-    :param exclude_unimported_dirs: if set to True, dirs with unit tests and notebooks,
-        trash and tmp cache dirs will be excluded from the module check
+    :param exclude_unimported_dirs: if set to True, dirs with unit tests
+        and notebooks, trash and tmp cache dirs will be excluded from
+        the module check
     :return: a list of lists of modules forming import cycles
     """
     # Retrieve the dependency information.
