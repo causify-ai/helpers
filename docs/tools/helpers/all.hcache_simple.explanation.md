@@ -44,7 +44,7 @@
   configure caching behavior via `user` and `system` properties
 
 - Cache files are stored in configurable locations:
-  - **Global configuration** (applies to all functions by default):
+  - Global configuration (applies to all functions by default):
     - Cache directory: Default is git root, configurable via
       `set_cache_dir(cache_dir)`
     - Cache file prefix: Default is `"tmp.cache_simple"`, configurable via
@@ -52,7 +52,7 @@
     - S3 bucket: Configured via `set_s3_bucket(bucket)`
     - S3 prefix: Configured via `set_s3_prefix(prefix)`
     - AWS profile: Configured via `set_aws_profile(profile)`
-  - **Per-function configuration** (overrides global settings):
+  - Per-function configuration (overrides global settings):
     - Each function can specify its own cache directory, prefix, and S3 settings
       via decorator parameters
     - Enables organizing cache by project, team, or security requirements
@@ -141,8 +141,8 @@
 ## S3 Cache
 
 - S3 serves as the third storage layer in the caching system:
-  - **Memory Cache** (fastest, volatile) → **Disk Cache** (persistent, local) →
-    **S3 Cache** (persistent, shared)
+  - Memory Cache (fastest, volatile) → Disk Cache (persistent, local) →
+    S3 Cache (persistent, shared)
   - When `get_cache()` is called, it checks all three layers automatically
   - S3 enables sharing cache across multiple machines and team members
 
@@ -172,19 +172,19 @@
   - `pull_cache_from_s3(func_name)` - manually download cache from S3 to local
     - If `func_name` is empty, pulls from all discoverable S3 locations using a
       two-phase approach:
-      - **Phase 1**: Pulls all functions in local `_CACHE_PROPERTY` file,
+      - Phase 1: Pulls all functions in local `_CACHE_PROPERTY` file,
         respecting each function's per-function S3 configuration
         (bucket/prefix/profile)
-      - **Phase 2**: Lists global S3 bucket and pulls any cache files with ANY
+      - Phase 2: Lists global S3 bucket and pulls any cache files with ANY
         prefix pattern
         - This handles functions cached on other machines with custom
           `cache_prefix`
-    - **IMPORTANT LIMITATION**: Functions with custom `s3_bucket` on another
+    - IMPORTANT LIMITATION: Functions with custom `s3_bucket` on another
       machine are UNPULLABLE
       - The custom bucket location is stored only in `_CACHE_PROPERTY` on the
         originating machine
       - Without that property file, the pull attempts global bucket and fails
-      - **Workaround options**:
+      - Workaround options:
         - Share/sync `_CACHE_PROPERTY` file across team (e.g., commit to git)
         - Use global S3 bucket for team collaboration (reserve custom buckets
           for isolation)
@@ -210,15 +210,15 @@
   - Useful for immediately sharing results across team members or machines
   - Only works when `write_through=True` (default)
 
-- **Best practices for team collaboration**:
-  - **Recommended**: Use global S3 bucket for team-shared caches
+- Best practices for team collaboration:
+  - Recommended: Use global S3 bucket for team-shared caches
     - All team members can discover and pull automatically
     - Custom `cache_prefix` or `s3_prefix` work fine for organization
-  - **Not recommended**: Custom `s3_bucket` per function for team sharing
+  - Not recommended: Custom `s3_bucket` per function for team sharing
     - Creates unpullable caches on other machines (requires sharing property
       file)
     - Reserve custom buckets for isolation/separation, not collaboration
-  - **Property file sharing**: If using custom buckets, commit
+  - Property file sharing: If using custom buckets, commit
     `tmp.cache_simple_property.pkl` to git
     - Allows team members to discover custom S3 locations
     - Alternative: Use shared config file for S3 bucket mappings
@@ -375,7 +375,7 @@
 
 - Decorator parameters:
 
-  - **Basic cache parameters**:
+  - Basic cache parameters:
     - `cache_type`: The type of cache storage to use (`"json"` or `"pickle"`)
       - Default: `"json"`
       - JSON is human-readable but limited to basic types
@@ -394,7 +394,7 @@
       - These parameters are still passed to the function but don't affect cache
         key matching
 
-  - **Per-function cache location parameters** (override global settings):
+  - Per-function cache location parameters (override global settings):
     - `cache_dir`: Custom directory for this function's cache files
       - Default: `None` (uses global cache directory)
       - Example: `"/tmp/project1_cache"`
@@ -402,7 +402,7 @@
       - Default: `None` (uses global prefix)
       - Example: `"my_project_cache"`
 
-  - **Per-function S3 parameters** (override global settings):
+  - Per-function S3 parameters (override global settings):
     - `s3_bucket`: S3 bucket for this function's cache
       - Default: `None` (uses global S3 bucket)
       - Example: `"s3://my-project-cache"`
@@ -589,8 +589,8 @@ outcomes using `hcache_simple`.
 
 ### Basic Local Caching
 
-- **Scenario**: Cache function results locally with JSON for human readability
-- **Use case**: Simple caching for debugging, development, or inspecting cached
+- Scenario: Cache function results locally with JSON for human readability
+- Use case: Simple caching for debugging, development, or inspecting cached
   values
 
 ```python
@@ -613,8 +613,8 @@ result = expensive_computation(1000000)
 
 ### Binary Data Caching
 
-- **Scenario**: Cache complex Python objects (DataFrames, models, etc.)
-- **Use case**: Caching ML models, large datasets, or objects that can't be
+- Scenario: Cache complex Python objects (DataFrames, models, etc.)
+- Use case: Caching ML models, large datasets, or objects that can't be
   JSON-serialized
 
 ```python
@@ -636,8 +636,8 @@ df = load_large_dataset("data.csv")
 
 ### Team Cache Sharing via S3
 
-- **Scenario**: Share cache across team members or CI/CD pipelines
-- **Use case**: Expensive LLM calls, data processing results that should be
+- Scenario: Share cache across team members or CI/CD pipelines
+- Use case: Expensive LLM calls, data processing results that should be
   reused
 
 ```python
@@ -669,8 +669,8 @@ result = call_expensive_llm("Summarize this document", "gpt-4")  # Uses S3 cache
 
 ### Per-Function Custom Cache Location
 
-- **Scenario**: Different functions need different cache locations
-- **Use case**: Organize cache by project, isolate sensitive data, or manage
+- Scenario: Different functions need different cache locations
+- Use case: Organize cache by project, isolate sensitive data, or manage
   storage quotas
 
 ```python
@@ -699,8 +699,8 @@ project2_function(10)  # Cache: /project2/cache/proj2_cache.project2_function.js
 
 ### Per-Function S3 Configuration
 
-- **Scenario**: Different functions need different S3 buckets or permissions
-- **Use case**: Separate public/private data, different AWS accounts, or
+- Scenario: Different functions need different S3 buckets or permissions
+- Use case: Separate public/private data, different AWS accounts, or
   security requirements
 
 ```python
@@ -736,8 +736,8 @@ internal_analysis_function("user data")   # -> s3://private-cache-bucket/confide
 
 ### Manual S3 Sync Workflow
 
-- **Scenario**: Control when to sync with S3 (batch operations)
-- **Use case**: Development with occasional syncs, or optimizing S3 operations
+- Scenario: Control when to sync with S3 (batch operations)
+- Use case: Development with occasional syncs, or optimizing S3 operations
 
 ```python
 import helpers.hcache_simple as hcacsimp
@@ -770,9 +770,9 @@ result = batch_processing(data_ids[0])  # Auto-pulls from S3 if available
 
 ### Bidirectional S3 Sync
 
-- **Scenario**: Multiple team members working independently, need to merge
+- Scenario: Multiple team members working independently, need to merge
   caches
-- **Use case**: Distributed team caching results, collaborative development
+- Use case: Distributed team caching results, collaborative development
 
 ```python
 import helpers.hcache_simple as hcacsimp
@@ -805,8 +805,8 @@ hcacsimp.sync_cache_with_s3("collaborative_function")
 
 ### Excluding Session-Specific Parameters
 
-- **Scenario**: Function has parameters that shouldn't affect cache key
-- **Use case**: API clients, database connections, logging objects
+- Scenario: Function has parameters that shouldn't affect cache key
+- Use case: API clients, database connections, logging objects
 
 ```python
 import helpers.hcache_simple as hcacsimp
@@ -831,8 +831,8 @@ result2 = fetch_with_client("user123", client2, logger2)  # Cache hit!
 
 ### Testing with Mock Cache
 
-- **Scenario**: Test cached functions without expensive operations
-- **Use case**: Unit tests for LLM-dependent code, API calls, database queries
+- Scenario: Test cached functions without expensive operations
+- Use case: Unit tests for LLM-dependent code, API calls, database queries
 
 ```python
 import helpers.hcache_simple as hcacsimp
@@ -869,8 +869,8 @@ def analyze_sentiment(prompt: str) -> str:
 
 ### Cache Management and Inspection
 
-- **Scenario**: Debug cache behavior, understand what's cached
-- **Use case**: Development, troubleshooting cache issues
+- Scenario: Debug cache behavior, understand what's cached
+- Use case: Development, troubleshooting cache issues
 
 ```python
 import helpers.hcache_simple as hcacsimp
@@ -910,8 +910,8 @@ hcacsimp.reset_cache("", interactive=False)
 
 ### Performance Monitoring
 
-- **Scenario**: Track cache effectiveness
-- **Use case**: Optimize cache strategy, identify cache misses
+- Scenario: Track cache effectiveness
+- Use case: Optimize cache strategy, identify cache misses
 
 ```python
 import helpers.hcache_simple as hcacsimp
@@ -939,8 +939,8 @@ print(stats)
 
 ### Global vs Per-Function Configuration
 
-- **Scenario**: Most functions share settings, few need custom config
-- **Use case**: Project with common S3 bucket but some functions need different
+- Scenario: Most functions share settings, few need custom config
+- Use case: Project with common S3 bucket but some functions need different
   settings
 
 ```python
