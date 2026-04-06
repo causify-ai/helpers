@@ -573,9 +573,13 @@ def get_cached_func_names(type_: str) -> List[str]:
             func_s3_bucket = get_cache_property(func_name_tmp, "s3_bucket")
             if func_s3_bucket:
                 func_s3_prefix = get_cache_property(func_name_tmp, "s3_prefix")
+                if not func_s3_prefix:
+                    func_s3_prefix = get_s3_prefix()
                 func_aws_profile = get_cache_property(
                     func_name_tmp, "aws_profile"
                 )
+                if not func_aws_profile:
+                    func_aws_profile = get_aws_profile()
                 config_key = (
                     func_s3_bucket,
                     func_s3_prefix,
