@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 from typing import Any, Dict
@@ -118,36 +119,31 @@ class _BaseCacheTest(hunitest.TestCase):
         """
         Setup operations to run before each test:
 
-        - Isolate global cache directory using monkeypatch.
+        - Isolate all global variables to prevent race conditions.
         - Set cache directory to test scratch space.
         """
         _LOG.debug("set_up_test")
         super().setUp()
-        # Use monkeypatch to isolate global _CACHE_DIR.
-        # Save original value for verification.
-        self._original_cache_dir = hcacsimp.get_cache_dir()
-        # Set isolated cache dir to scratch space.
+        # Isolate configuration globals.
         scratch_space = self.get_scratch_space()
         self.monkeypatch.setattr(hcacsimp, "_CACHE_DIR", scratch_space)
+        # Isolate data structure globals.
+        self.monkeypatch.setattr(hcacsimp, "_CACHE", {})
+        # Use deepcopy for _CACHE_PROPERTY to preserve decorator-set properties.
+        self.monkeypatch.setattr(
+            hcacsimp, "_CACHE_PROPERTY", copy.deepcopy(hcacsimp._CACHE_PROPERTY)
+        )
+        self.monkeypatch.setattr(hcacsimp, "_CACHE_PERF", {})
+        self.monkeypatch.setattr(hcacsimp, "_S3_AUTO_PULL_ATTEMPTED", set())
 
     def tear_down_test(self) -> None:
         """
-        Teardown operations to run after each test:
-        - Reset cache(in-memory, disk).
-        - Reset cache properties.
-        - Reset cache performance tracking.
-        - Clear S3 auto-pull tracking.
-        - Verify global state was not modified.
+        Teardown operations to run after each test.
+
+        All global variables are isolated via monkeypatch, so they are
+        automatically restored after each test.
         """
         _LOG.debug("tear_down_test")
-        hcacsimp.reset_cache("", interactive=False)
-        hcacsimp.reset_cache_property()
-        # Reset performance tracking to prevent state leakage.
-        hcacsimp.reset_cache_perf("")
-        # Clear S3 auto-pull tracking to prevent state leakage.
-        hcacsimp._S3_AUTO_PULL_ATTEMPTED.clear()
-        # Verify monkeypatch protected the original global state.
-        # Note: We don't need to manually restore - monkeypatch does it automatically.
 
 
 # #############################################################################
