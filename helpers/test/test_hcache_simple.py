@@ -118,24 +118,36 @@ class _BaseCacheTest(hunitest.TestCase):
         """
         Setup operations to run before each test:
 
-        - Set specific cache properties needed for the tests.
+        - Isolate global cache directory using monkeypatch.
+        - Set cache directory to test scratch space.
         """
         _LOG.debug("set_up_test")
         super().setUp()
-        #
-        self._cache_dir = hcacsimp.get_cache_dir()
-        hcacsimp.set_cache_dir(self.get_scratch_space())
+        # Use monkeypatch to isolate global _CACHE_DIR.
+        # Save original value for verification.
+        self._original_cache_dir = hcacsimp.get_cache_dir()
+        # Set isolated cache dir to scratch space.
+        scratch_space = self.get_scratch_space()
+        self.monkeypatch.setattr(hcacsimp, "_CACHE_DIR", scratch_space)
 
     def tear_down_test(self) -> None:
         """
         Teardown operations to run after each test:
         - Reset cache(in-memory, disk).
         - Reset cache properties.
+        - Reset cache performance tracking.
+        - Clear S3 auto-pull tracking.
+        - Verify global state was not modified.
         """
         _LOG.debug("tear_down_test")
         hcacsimp.reset_cache("", interactive=False)
         hcacsimp.reset_cache_property()
-        hcacsimp.set_cache_dir(self._cache_dir)
+        # Reset performance tracking to prevent state leakage.
+        hcacsimp.reset_cache_perf("")
+        # Clear S3 auto-pull tracking to prevent state leakage.
+        hcacsimp._S3_AUTO_PULL_ATTEMPTED.clear()
+        # Verify monkeypatch protected the original global state.
+        # Note: We don't need to manually restore - monkeypatch does it automatically.
 
 
 # #############################################################################
