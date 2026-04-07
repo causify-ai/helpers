@@ -168,38 +168,27 @@
     - If `func_name` is empty, pushes all cached functions (including those with
       custom cache locations)
     - First flushes memory cache to disk, then uploads to S3
-    - Respects per-function S3 bucket/prefix/profile configurations
   - `pull_cache_from_s3(func_name)` - manually download cache from S3 to local
-    - If `func_name` is empty, discovers and pulls all cached functions (using
-      shared discovery logic with `sync_cache_with_s3("")`)
-    - Two-phase discovery:
-      - Phase 1: Functions on local disk (includes both global cache directory
-        and custom cache directories from `_CACHE_PROPERTY`)
-      - Phase 2: Functions in global S3 bucket (cached on other machines)
-    - Respects per-function S3 configuration (bucket/prefix/profile)
-    - Handles functions cached on other machines with custom `cache_prefix`
-    - IMPORTANT LIMITATION: Functions with custom `s3_bucket` on another
-      machine are UNPULLABLE
+    - If `func_name` is empty, discovers and pulls all cached functions:
+      - On local disk (in both global and custom cache directories, as defined in
+        the `_CACHE_PROPERTY` file)
+      - In global S3 bucket (including those that were cached on other machines)
+    - IMPORTANT LIMITATION: Functions that were cached with custom `s3_bucket`
+      on another machine require extra care 
       - The custom bucket location is stored only in `_CACHE_PROPERTY` on the
         originating machine
-      - Without that property file, the pull attempts global bucket and fails
+      - Without that property file, the pull will not be able to find them
       - Workaround options:
         - Share/sync `_CACHE_PROPERTY` file across team (e.g., commit to git)
-        - Use global S3 bucket for team collaboration (reserve custom buckets
-          for isolation)
+        - Use global S3 bucket for cache that needs to be shared across machines
         - Manually set property before pulling:
           `set_cache_property("func", "s3_bucket", "s3://custom-bucket")`
     - After download, loads cache into memory
-    - Usually not needed since auto-pull happens automatically
   - `sync_cache_with_s3(func_name)` - bidirectional merge between local and S3
     - Downloads S3 cache, merges with local (local takes precedence), uploads
-      result
-    - If `func_name` is empty, discovers all cached functions (using shared
-      discovery logic with `pull_cache_from_s3("")`)
-    - Two-phase discovery:
-      - Phase 1: Functions on local disk (includes both global cache directory
-        and custom cache directories from `_CACHE_PROPERTY`)
-      - Phase 2: Functions in global S3 bucket (cached on other machines)
+      result back to S3
+    - If `func_name` is empty, discovers all cached functions (using the same
+      discovery logic as `pull_cache_from_s3("")`, see above)
     - Ensures local-only and S3-only functions are both discovered and synced
 
 - Per-function S3 configuration:
@@ -211,21 +200,7 @@
 - Auto-sync feature:
   - When `auto_sync_s3=True` in decorator, cache is automatically uploaded to S3
     after each update
-  - Useful for immediately sharing results across team members or machines
   - Only works when `write_through=True` (default)
-
-- Best practices for team collaboration:
-  - Recommended: Use global S3 bucket for team-shared caches
-    - All team members can discover and pull automatically
-    - Custom `cache_prefix` or `s3_prefix` work fine for organization
-  - Not recommended: Custom `s3_bucket` per function for team sharing
-    - Creates unpullable caches on other machines (requires sharing property
-      file)
-    - Reserve custom buckets for isolation/separation, not collaboration
-  - Property file sharing: If using custom buckets, commit
-    `tmp.cache_simple_property.pkl` to git
-    - Allows team members to discover custom S3 locations
-    - Alternative: Use shared config file for S3 bucket mappings
 
 ## Per-Function Configuration
 
@@ -294,7 +269,6 @@
   statistics
   - If `func_name` is empty, returns stats for all locally cached functions
     (mem + disk)
-  - Does not include S3-only functions (as they have no local stats to report)
   - Shows both memory and disk cache sizes for each function
   - Example output:
     ```
@@ -313,11 +287,8 @@
     - Discovers caches in both global and custom S3 buckets
     - Searches global S3 bucket for ALL cache files (any prefix)
     - Searches custom S3 buckets from `_CACHE_PROPERTY`
-    - Groups by unique bucket/prefix/profile combinations to avoid duplicate
-      listings
   - `type_='local'`: Returns all functions with local cache (mem + disk)
   - `type_='all'`: Returns all cached functions (mem + disk + s3)
-    - Comprehensive discovery across all cache layers
 
 - `cache_property_to_str(func_name)`: Converts cache properties to string
   - If `func_name` is empty, returns properties for all cached functions
@@ -532,20 +503,20 @@
 
 - Function signature:
   ```python
-  def mock_cache(func_name: str, args: Any, kwargs: Any, value: Any) -> None
+  def mock_cache_from_args_kwargs(func_name: str, args: Any, kwargs: Any, value: Any) -> None
   ```
 
 - Parameters:
   - `func_name`: The name of the cached function to mock
-  - `args`: The positional arguments for the function (as a list)
+  - `args`: The positional arguments for the function (as a tuple)
   - `kwargs`: The keyword arguments for the function (as a dict)
   - `value`: The value to store in the cache (the return value to mock)
 
 - Safety requirement:
-  - `mock_cache` requires using a temporary cache directory (not the main cache
+  - `mock_cache_from_args_kwargs` requires using a temporary cache directory (not the main cache
     directory) to prevent accidentally polluting the production cache
   - Use `set_cache_dir()` to configure a test-specific cache directory before
-    calling `mock_cache`
+    calling `mock_cache_from_args_kwargs`
 
 - Typical workflow:
   1. Set up a temporary cache directory (e.g., using `self.get_scratch_space()`
@@ -554,7 +525,7 @@
      real cached value
   3. (Optional) Read the cached value for later reuse
   4. Reset the cache to clear all cached data
-  5. Use `mock_cache()` to insert a known value for specific arguments
+  5. Use `mock_cache_from_args_kwargs()` to insert a known value for specific arguments
   6. Call the cached function with `abort_on_cache_miss=True` to verify the
      cache is hit
 
@@ -565,21 +536,21 @@
 
     @hcacsimp.simple_cache(cache_type="json")
     def call_llm(prompt: str) -> str:
-        # Expensive LLM API call
+        # Expensive LLM API call.
         return expensive_llm_api(prompt)
 
     # In test:
     def test_llm_function():
-        # Set up temporary cache directory
+        # Set up temporary cache directory.
         temp_dir = "/tmp/test_cache"
         hcacsimp.set_cache_dir(temp_dir)
 
-        # Mock the cache with a known response
+        # Mock the cache with a known response.
         test_prompt = "Hello, world!"
         mock_response = "Mocked LLM response"
-        hcacsimp.mock_cache("call_llm", [test_prompt], {}, mock_response)
+        hcacsimp.mock_cache_from_args_kwargs("call_llm", (test_prompt,), {}, mock_response)
 
-        # Verify cache hit (function not actually called)
+        # Verify cache hit (function not actually called).
         result = call_llm(test_prompt, abort_on_cache_miss=True)
         assert result == mock_response
     ```
@@ -594,7 +565,7 @@
 
 This section demonstrates common caching scenarios and how to achieve different
 outcomes using `hcache_simple`.
--See also: [`/helpers/notebooks/hcache_simple.tutorial.ipynb`](/helpers/notebooks/hcache_simple.tutorial.ipynb)
+- See also: [`/helpers/notebooks/hcache_simple.tutorial.ipynb`](/helpers/notebooks/hcache_simple.tutorial.ipynb)
 
 
 ### Basic Local Caching
@@ -608,18 +579,16 @@ import helpers.hcache_simple as hcacsimp
 
 @hcacsimp.simple_cache(cache_type="json")
 def expensive_computation(n: int) -> int:
-    # Expensive computation
+    # Expensive computation.
     return sum(range(n))
 
-# First call - cache miss, computes result
+# First call - cache miss, computes result.
+# Caching to `tmp.cache_simple.expensive_computation.json`.
 result = expensive_computation(1000000)
 
-# Second call - cache hit, returns instantly
+# Second call - cache hit, returns instantly.
 result = expensive_computation(1000000)
 ```
-
-- Cache file: `tmp.cache_simple.expensive_computation.json`
-- Human-readable JSON format allows inspection
 
 ### Binary Data Caching
 
@@ -633,16 +602,14 @@ import helpers.hcache_simple as hcacsimp
 
 @hcacsimp.simple_cache(cache_type="pickle")
 def load_large_dataset(file_path: str) -> pd.DataFrame:
-    # Load and process large dataset
+    # Load and process large dataset.
     df = pd.read_csv(file_path)
-    # Complex transformations
+    # Complex transformations.
     return df
 
+# Caching to `tmp.cache_simple.load_large_dataset.pkl`.
 df = load_large_dataset("data.csv")
 ```
-
-- Uses pickle to handle complex Python objects
-- Cache file: `tmp.cache_simple.load_large_dataset.pkl`
 
 ### Team Cache Sharing via S3
 
@@ -653,29 +620,27 @@ df = load_large_dataset("data.csv")
 ```python
 import helpers.hcache_simple as hcacsimp
 
-# Configure global S3 settings
+# Configure global S3 settings.
 hcacsimp.set_s3_bucket("s3://team-cache-bucket")
 hcacsimp.set_s3_prefix("cache/project1")
 hcacsimp.set_aws_profile("team-aws-profile")
 
 @hcacsimp.simple_cache(cache_type="json", auto_sync_s3=True)
 def call_expensive_llm(prompt: str, model: str) -> str:
-    # Expensive LLM API call
+    # Expensive LLM API call.
     response = llm_api.complete(prompt, model)
     return response
 
-# First call on any machine - computes and uploads to S3
+# First call on any machine - computes and uploads to S3.
 result = call_expensive_llm("Summarize this document", "gpt-4")
 
-# On another machine - cache automatically pulls from S3 on first call
-result = call_expensive_llm("Summarize this document", "gpt-4")  # Uses S3 cache!
+# On another machine - cache automatically pulls from S3 on first call.
+result = call_expensive_llm("Summarize this document", "gpt-4")
 ```
 
 - `auto_sync_s3=True` automatically uploads after each cache update
 - On new machines, first cache miss automatically pulls from S3 (no manual pull
   needed!)
-- Team members automatically reuse cache from S3 to avoid redundant LLM calls
-- Saves API costs and time
 
 ### Per-Function Custom Cache Location
 
@@ -700,12 +665,11 @@ def project1_function(x: int) -> int:
 def project2_function(x: int) -> int:
     return x * 3
 
-project1_function(10)  # Cache: /project1/cache/proj1_cache.project1_function.json
-project2_function(10)  # Cache: /project2/cache/proj2_cache.project2_function.json
+# Caching to `/project1/cache/proj1_cache.project1_function.json`.
+project1_function(10)
+# Caching to `/project2/cache/proj2_cache.project2_function.json`.
+project2_function(10)
 ```
-
-- Each function uses its own cache directory and prefix
-- Enables better organization and isolation
 
 ### Per-Function S3 Configuration
 
@@ -723,7 +687,7 @@ import helpers.hcache_simple as hcacsimp
     auto_sync_s3=True
 )
 def public_research_function(query: str) -> dict:
-    # Public research data that can be shared widely
+    # Public research data that can be shared widely.
     return fetch_public_data(query)
 
 @hcacsimp.simple_cache(
@@ -733,16 +697,14 @@ def public_research_function(query: str) -> dict:
     auto_sync_s3=True
 )
 def internal_analysis_function(sensitive_data: str) -> dict:
-    # Confidential analysis results
+    # Confidential analysis results.
     return analyze_sensitive_data(sensitive_data)
 
-# Each function uses its own S3 bucket with appropriate permissions
-public_research_function("climate data")  # -> s3://public-cache-bucket/public/research/
-internal_analysis_function("user data")   # -> s3://private-cache-bucket/confidential/internal/
+# Caching to `s3://public-cache-bucket/public/research/`.
+public_research_function("climate data")
+# Caching to `s3://private-cache-bucket/confidential/internal/`.
+internal_analysis_function("user data")
 ```
-
-- Different AWS profiles provide different permissions
-- Enables security isolation and compliance
 
 ### Manual S3 Sync Workflow
 
@@ -752,31 +714,25 @@ internal_analysis_function("user data")   # -> s3://private-cache-bucket/confide
 ```python
 import helpers.hcache_simple as hcacsimp
 
-# Configure S3 (without auto-sync)
+# Configure S3 (without auto-sync).
 hcacsimp.set_s3_bucket("s3://batch-cache")
 hcacsimp.set_aws_profile("batch-profile")
 
 @hcacsimp.simple_cache(cache_type="json")
 def batch_processing(data_id: str) -> dict:
-    # Process data
+    # Process data.
     return process_data(data_id)
 
-# Process multiple items (builds local cache)
+# Process multiple items (builds local cache).
 for data_id in data_ids:
     result = batch_processing(data_id)
 
-# Push all cache to S3 at once (manual batch upload)
+# Push all cache to S3 at once (manual batch upload).
 hcacsimp.push_cache_to_s3("batch_processing")
 
-# On another machine - auto-pull happens on first call
-# No manual pull needed! First cache miss auto-pulls from S3
-result = batch_processing(data_ids[0])  # Auto-pulls from S3 if available
+# On another machine - auto-pull happens on first call, no manual pull needed.
+result = batch_processing(data_ids[0])
 ```
-
-- Reduces S3 upload operations by batching (manual push after processing all
-  items)
-- Auto-pull handles downloads transparently on first cache miss
-- More efficient for large batch processing
 
 ### Bidirectional S3 Sync
 
@@ -794,24 +750,21 @@ hcacsimp.set_aws_profile("team-profile")
 def collaborative_function(param: str) -> str:
     return expensive_operation(param)
 
-# Team member A processes some data
+# Team member A processes some data.
 collaborative_function("task1")
 collaborative_function("task2")
 hcacsimp.push_cache_to_s3("collaborative_function")
 
-# Team member B processes different data
+# Team member B processes different data.
 collaborative_function("task3")
 collaborative_function("task4")
 
-# Sync merges both caches (local takes precedence on conflicts)
+# Team member B sync merges both caches (local takes precedence on conflicts).
 hcacsimp.sync_cache_with_s3("collaborative_function")
 
-# Now has results for task1, task2, task3, task4
+# Cache on S3 and on Team member B's local machine has results for task1, 
+# task2, task3, task4.
 ```
-
-- `sync_cache_with_s3()` performs bidirectional merge
-- Local results take precedence over S3
-- Avoids duplicate work across team
 
 ### Excluding Session-Specific Parameters
 
@@ -830,14 +783,12 @@ def fetch_with_client(
     logger.info("Fetching data for user: %s", user_id)
     return client.fetch_user_data(user_id)
 
-# Different client instances, same user_id - cache hit
+# Save cache for this user id, ignoring other parameters.
 result1 = fetch_with_client("user123", client1, logger1)
-result2 = fetch_with_client("user123", client2, logger2)  # Cache hit!
+# Hit existing cache because the user id matches, despite different client and
+# logger.
+result2 = fetch_with_client("user123", client2, logger2)
 ```
-
-- Cache key only includes `user_id`
-- Different `client` and `logger` objects don't cause cache misses
-- Improves cache hit rate
 
 ### Testing with Mock Cache
 
@@ -862,20 +813,19 @@ class TestLLMFunction(hunitest.TestCase):
             kwargs={},
             value=mock_response
         )
-        # Run test.
+        # Run.
         result = analyze_sentiment(test_prompt, abort_on_cache_miss=True)
-        # Check output.
+        # Check.
         self.assertEqual(result, mock_response)
 
 @hcacsimp.simple_cache(cache_type="json")
 def analyze_sentiment(prompt: str) -> str:
-    # Expensive LLM call
+    # Expensive LLM call.
     return llm_api.analyze(prompt)
 ```
 
-- Test runs without actual LLM API calls
-- Fast and deterministic tests
-- No API costs during testing
+- Fast and deterministic tests without actual expensive operations
+- Requires manually providing mock function outputs
 
 ### Cache Management and Inspection
 
@@ -885,7 +835,7 @@ def analyze_sentiment(prompt: str) -> str:
 ```python
 import helpers.hcache_simple as hcacsimp
 
-# Get cache statistics
+# Get cache statistics.
 stats = hcacsimp.cache_stats_to_str()
 print(stats)
 # Output:
@@ -893,7 +843,7 @@ print(stats)
 # expensive_function        5    10
 # another_function          -     3
 
-# Get cache properties
+# Get cache properties.
 props = hcacsimp.cache_property_to_str("expensive_function")
 print(props)
 # Output:
@@ -902,29 +852,25 @@ print(props)
 # s3_bucket: s3://my-bucket
 # auto_sync_s3: True
 
-# List all cached functions (across mem, disk, and S3)
+# List all cached functions (across mem, disk, and S3).
 func_names = hcacsimp.get_cached_func_names("all")
 print(func_names)
 # Output: ['expensive_function', 'another_function']
 
-# List only S3-cached functions
+# List only S3-cached functions.
 s3_funcs = hcacsimp.get_cached_func_names("s3")
 print(s3_funcs)
 
-# List local functions only (mem + disk, not S3)
+# List local functions only (mem + disk, not S3).
 local_funcs = hcacsimp.get_cached_func_names("local")
 print(local_funcs)
 
-# Reset specific function cache
+# Reset specific function cache.
 hcacsimp.reset_cache("expensive_function", interactive=False)
 
-# Reset all caches
+# Reset all local caches (mem + disk).
 hcacsimp.reset_cache("", interactive=False)
 ```
-
-- Inspect cache state during development
-- Understand which functions are cached
-- Clean up caches when needed
 
 ### Performance Monitoring
 
@@ -934,26 +880,22 @@ hcacsimp.reset_cache("", interactive=False)
 ```python
 import helpers.hcache_simple as hcacsimp
 
-# Enable performance tracking
+# Enable performance tracking.
 hcacsimp.enable_cache_perf("expensive_function")
 
 @hcacsimp.simple_cache(cache_type="json")
 def expensive_function(x: int) -> int:
     return x * x
 
-# Use the function
+# Use the function.
 for i in range(100):
-    expensive_function(i % 10)  # Only 10 unique values
+    expensive_function(i % 10)
 
-# Get performance stats
+# Get performance stats.
 stats = hcacsimp.get_cache_perf_stats("expensive_function")
 print(stats)
 # Output: expensive_function: hits=90 misses=10 tot=100 hit_rate=0.90
 ```
-
-- 90% hit rate indicates good cache effectiveness
-- Helps optimize cache strategy
-- Identifies functions that benefit from caching
 
 ### Global vs Per-Function Configuration
 
@@ -964,43 +906,44 @@ print(stats)
 ```python
 import helpers.hcache_simple as hcacsimp
 
-# Set global defaults for most functions
+# Set global defaults for most functions.
 hcacsimp.set_cache_dir("/project/cache")
 hcacsimp.set_s3_bucket("s3://project-cache")
+hcacsimp.set_s3_prefix("project-prefix")
 hcacsimp.set_aws_profile("project-profile")
 
-@hcacsimp.simple_cache(cache_type="json")
+@hcacsimp.simple_cache(cache_type="json", auto_sync_s3=True)
 def standard_function(x: int) -> int:
-    # Uses global settings
+    # Uses global settings.
     return x * 2
 
 @hcacsimp.simple_cache(
     cache_type="json",
-    s3_bucket="s3://special-cache",  # Override for this function
+    s3_bucket="s3://special-cache",
     s3_prefix="special",
     auto_sync_s3=True
 )
 def special_function(x: int) -> int:
-    # Uses custom S3 bucket
+    # Uses custom S3 bucket and prefix.
     return x * 3
 
 @hcacsimp.simple_cache(
     cache_type="pickle",
-    cache_dir="/tmp/temp_cache",  # Override for this function
-    auto_sync_s3=False  # Don't sync this one
+    cache_dir="/tmp/temp_cache",
+    auto_sync_s3=False
 )
 def temporary_function(x: int) -> int:
-    # Uses local temp directory, no S3
+    # Uses local temp directory, no auto sync to S3.
     return x * 4
 
-standard_function(10)   # -> /project/cache/, syncs to s3://project-cache
-special_function(10)    # -> /project/cache/, syncs to s3://special-cache/special/
-temporary_function(10)  # -> /tmp/temp_cache/, no S3 sync
+# Caches locally to `/project/cache/`, syncs to `s3://project-cache/project-prefix`.
+standard_function(10)
+# Caches locally to `/project/cache/`, syncs to `s3://special-cache/special`.
+special_function(10)
+# Caches locally to `/tmp/temp_cache/`, no automatic S3 sync (would upload to
+# `s3://project-cache/project-prefix` if synced manually).
+temporary_function(10)
 ```
-
-- Global settings provide defaults
-- Per-function settings override for specific needs
-- Flexible configuration for mixed requirements
 
 ## Common Misunderstandings
 
@@ -1039,15 +982,16 @@ temporary_function(10)  # -> /tmp/temp_cache/, no S3 sync
   fine-grained control but may cause confusion if not documented.
 
 - **S3 Sync Is Not Automatic by Default**: Cache files are not automatically
-  uploaded to S3 unless `auto_sync_s3=True` is set. Without this, you must
-  manually call `push_cache_to_s3()`.
+  uploaded to S3 unless `auto_sync_s3=True` is set (default is 
+  `auto_sync_s3=False`). Without this, you must manually call 
+  `push_cache_to_s3()`.
 
-- **S3 Is Part of Cache Lookup, Not "Recovery"**: When S3 is configured, the
+- **S3 Is Part of Cache Lookup**: When S3 is configured, the
   system checks all three storage layers (memory → disk → S3) as part of the
   normal cache lookup via `get_cache()`. A cache "miss" only occurs if the key
   is not found in ANY layer. S3 is not checked "after" a miss - it's checked
-  BEFORE determining whether a miss occurred. This happens automatically and
-  transparently on the first call per function per session.
+  BEFORE determining whether a miss occurred. This happens automatically on the
+  first call per function per session.
 
 ## Execution Flow Diagram
 
