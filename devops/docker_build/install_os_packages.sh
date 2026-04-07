@@ -30,6 +30,10 @@ echo "PIP VERSION="$(pip3 --version)
 pip3 install poetry --break-system-packages
 echo "POETRY VERSION="$(poetry --version)
 
+# - Install uv.
+pip3 install uv --break-system-packages
+echo "UV VERSION="$(uv --version)
+
 # - Install gcc and build tools.
 if [[ 0 == 1 ]]; then
   apt-get install $APT_GET_OPTS build-essential
