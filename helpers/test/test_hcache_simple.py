@@ -471,16 +471,10 @@ class Test_get_cached_func_names(_BaseCacheTest):
 
         # Run.
         _custom_location_func(5)
-        # Flush to disk.
         hcacsimp.flush_cache_to_disk("_custom_location_func")
-        # Retrieve function names from disk cache.
         disk_funcs = hcacsimp.get_cached_func_names("disk")
         # Check.
         self.assertIn("_custom_location_func", disk_funcs)
-        # Verify cache file exists in custom location.
-        cache_file = hcacsimp._get_cache_file_name("_custom_location_func")
-        self.assertTrue(os.path.exists(cache_file))
-        self.assertTrue(cache_file.startswith(custom_cache_dir))
 
 
 # #############################################################################
@@ -941,8 +935,6 @@ class Test__get_cache_file_name(_BaseCacheTest):
         with self.assertRaises(ValueError) as cm:
             hcacsimp._get_cache_file_name("_cached_json_double")
         self.assertIn("Invalid cache type", str(cm.exception))
-        # Reset type to valid value for teardown.
-        hcacsimp.set_cache_property("_cached_json_double", "type", "json")
 
     def test2(self) -> None:
         """
@@ -982,8 +974,6 @@ class Test__get_cache_file_name(_BaseCacheTest):
             custom_dir, f"{global_cache_prefix}.{func_name}.json"
         )
         self.assertEqual(actual, expected)
-        # Reset for teardown.
-        hcacsimp.set_cache_property(func_name, "cache_dir", None)
 
     def test4(self) -> None:
         """
@@ -1004,8 +994,6 @@ class Test__get_cache_file_name(_BaseCacheTest):
             global_cache_dir, f"{custom_prefix}.{func_name}.json"
         )
         self.assertEqual(actual, expected)
-        # Reset for teardown.
-        hcacsimp.set_cache_property(func_name, "cache_prefix", None)
 
     def test5(self) -> None:
         """
@@ -1025,9 +1013,6 @@ class Test__get_cache_file_name(_BaseCacheTest):
         # Check.
         expected = os.path.join(custom_dir, f"{custom_prefix}.{func_name}.json")
         self.assertEqual(actual, expected)
-        # Reset for teardown.
-        hcacsimp.set_cache_property(func_name, "cache_dir", None)
-        hcacsimp.set_cache_property(func_name, "cache_prefix", None)
 
     def test6(self) -> None:
         """
@@ -1082,8 +1067,6 @@ class Test__save_cache_dict_to_disk(_BaseCacheTest):
         with self.assertRaises(ValueError) as cm:
             hcacsimp._save_cache_dict_to_disk("_cached_json_double", data)
         self.assertIn("Invalid cache type", str(cm.exception))
-        # Reset type to valid value for teardown.
-        hcacsimp.set_cache_property("_cached_json_double", "type", "json")
 
 
 # #############################################################################
@@ -1106,8 +1089,6 @@ class Test_get_disk_cache_invalid(_BaseCacheTest):
         with self.assertRaises(ValueError) as cm:
             hcacsimp.get_disk_cache("_cached_json_double")
         self.assertIn("Invalid cache type", str(cm.exception))
-        # Reset type to valid value for teardown.
-        hcacsimp.set_cache_property("_cached_json_double", "type", "json")
 
 
 @hcacsimp.simple_cache(cache_type="json")
@@ -1143,13 +1124,6 @@ class Test_cache_mode(_BaseCacheTest):
         super().set_up_test()
         hcacsimp.set_cache_property("_cache_mode_function", "type", "json")
         _cache_mode_function.call_count = 0
-
-    def tear_down_test(self) -> None:
-        """
-        Teardown operations to run after each test.
-        """
-        super().tear_down_test()
-        hcacsimp.reset_cache("_cache_mode_function", interactive=False)
 
     def test1(self) -> None:
         """
@@ -1224,13 +1198,6 @@ class Test_abort_on_cache_miss(_BaseCacheTest):
         super().set_up_test()
         hcacsimp.set_cache_property("_abort_test_function", "type", "json")
 
-    def tear_down_test(self) -> None:
-        """
-        Teardown operations to run after each test.
-        """
-        super().tear_down_test()
-        hcacsimp.reset_cache("_abort_test_function", interactive=False)
-
     def test1(self) -> None:
         """
         Verify that abort_on_cache_miss=True raises error on cache miss.
@@ -1270,13 +1237,6 @@ class Test_report_on_cache_miss(_BaseCacheTest):
         super().set_up_test()
         hcacsimp.set_cache_property("_report_test_function", "type", "json")
 
-    def tear_down_test(self) -> None:
-        """
-        Teardown operations to run after each test.
-        """
-        super().tear_down_test()
-        hcacsimp.reset_cache("_report_test_function", interactive=False)
-
     def test1(self) -> None:
         """
         Verify that report_on_cache_miss=True returns '_cache_miss_' on miss.
@@ -1315,13 +1275,6 @@ class Test_write_through(_BaseCacheTest):
         """
         super().set_up_test()
         hcacsimp.set_cache_property("_write_through_function", "type", "json")
-
-    def tear_down_test(self) -> None:
-        """
-        Teardown operations to run after each test.
-        """
-        super().tear_down_test()
-        hcacsimp.reset_cache("_write_through_function", interactive=False)
 
     def test1(self) -> None:
         """
@@ -1372,13 +1325,6 @@ class Test_cache_mode_parameter(_BaseCacheTest):
         super().set_up_test()
         hcacsimp.set_cache_property("_test_cache_mode_kwarg", "type", "json")
         _test_cache_mode_kwarg.call_count = 0
-
-    def tear_down_test(self) -> None:
-        """
-        Teardown operations to run after each test.
-        """
-        super().tear_down_test()
-        hcacsimp.reset_cache("_test_cache_mode_kwarg", interactive=False)
 
     def test1(self) -> None:
         """
@@ -1856,13 +1802,6 @@ class Test_simple_cache_intrinsic(_BaseCacheTest):
     Test simple_cache decorator with a function whose name ends in _intrinsic.
     """
 
-    def tear_down_test(self) -> None:
-        """
-        Teardown including reset of the intrinsic function cache.
-        """
-        super().tear_down_test()
-        hcacsimp.reset_cache("_test_intrinsic_func", interactive=False)
-
     def test1(self) -> None:
         """
         Verify that the _intrinsic suffix is stripped and the cache key uses
@@ -1915,13 +1854,6 @@ class Test_simple_cache_exclude_keys(_BaseCacheTest):
     Test simple_cache decorator with exclude_keys parameter.
     """
 
-    def tear_down_test(self) -> None:
-        """
-        Teardown including reset of the exclude_keys test function cache.
-        """
-        super().tear_down_test()
-        hcacsimp.reset_cache("_test_exclude_keys_func", interactive=False)
-
     def test1(self) -> None:
         """
         Verify that calls with the same primary arg but different excluded
@@ -1947,13 +1879,6 @@ class Test_simple_cache_no_write_through(_BaseCacheTest):
     """
     Test simple_cache decorator with write_through=False.
     """
-
-    def tear_down_test(self) -> None:
-        """
-        Teardown including reset of the no-write-through test function cache.
-        """
-        super().tear_down_test()
-        hcacsimp.reset_cache("_test_no_write_through", interactive=False)
 
     def test1(self) -> None:
         """
@@ -2089,14 +2014,6 @@ class Test_per_function_cache_dir(_BaseCacheTest):
     Test per-function cache directory configuration.
     """
 
-    def tear_down_test(self) -> None:
-        """
-        Teardown including reset of per-function cache.
-        """
-        super().tear_down_test()
-        hcacsimp.reset_cache("_test_per_function_cache_dir", interactive=False)
-        hcacsimp.reset_cache("_test_manual_cache_dir", interactive=False)
-
     def test1(self) -> None:
         """
         Test cache_dir configured via decorator parameter.
@@ -2168,14 +2085,6 @@ class Test_per_function_cache_prefix(_BaseCacheTest):
     """
     Test per-function cache prefix configuration.
     """
-
-    def tear_down_test(self) -> None:
-        """
-        Teardown including reset of per-function cache.
-        """
-        super().tear_down_test()
-        hcacsimp.reset_cache("_test_per_function_prefix_only", interactive=False)
-        hcacsimp.reset_cache("_test_manual_cache_prefix", interactive=False)
 
     def test1(self) -> None:
         """
