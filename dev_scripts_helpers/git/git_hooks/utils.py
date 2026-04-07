@@ -224,6 +224,13 @@ def check_merged_branch(abort_on_error: bool = True) -> None:
 
     Committing to an already-merged branch is usually a mistake (e.g.,
     the user forgot to switch to a new branch after the merge).
+
+    Limitation:
+    This hook blocks a commit if the current branch has been merged into the
+    default branch (e.g., master) and then the local copy of the default branch
+    has been updated (e.g., by pulling). If it has not been updated to include
+    the latest changes from the current branch, then the hook may allow the
+    commit to go through.
     """
     func_name = _report()
     # Get the current branch name.
