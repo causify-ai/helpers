@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.1
+#       jupytext_version: 1.19.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -16,7 +16,7 @@
 # %% [markdown]
 # CONTENTS:
 # - [hcache_simple Tutorial](#hcache_simple-tutorial)
-#   - [Setup](#setup)
+#   - [Imports](#imports)
 #   - [1. Basic Caching](#1.-basic-caching)
 #   - [2. Cache Performance Monitoring](#2.-cache-performance-monitoring)
 #   - [3. Cache Management](#3.-cache-management)
@@ -24,7 +24,7 @@
 #   - [5. Configurable Cache Locations](#5.-configurable-cache-locations)
 #   - [6. Per-Function Configuration](#6.-per-function-configuration)
 #   - [7. Excluding Keys from Cache](#7.-excluding-keys-from-cache)
-#   - [8. S3 Integration (Team Cache Sharing)](#8.-s3-integration-(team-cache-sharing))
+#   - [8. S3 Integration](#8.-s3-integration)
 #   - [9. Binary Data with Pickle](#9.-binary-data-with-pickle)
 #   - [Summary](#summary)
 
@@ -43,12 +43,16 @@
 # - Auto-pull from S3 on first cache miss
 
 # %% [markdown]
-# <a name='setup'></a>
-# ## Setup
+# <a name='imports'></a>
+# ## Imports
 
 # %%
 import logging
+import os
+import tempfile
 import time
+
+import pandas as pd
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
@@ -81,12 +85,18 @@ def expensive_computation(x: int) -> int:
 # %%
 # First call - computes and caches.
 print("First call with x=5:")
+start_time = time.time()
 result = expensive_computation(5)
-print(f"Result: {result}\n")
+elapsed_time = time.time() - start_time
+print(f"Result: {result}")
+print(f"Time taken: {elapsed_time:.3f} seconds\n")
 # Second call - returns from cache instantly.
 print("Second call with x=5 (from cache):")
+start_time = time.time()
 result = expensive_computation(5)
+elapsed_time = time.time() - start_time
 print(f"Result: {result}")
+print(f"Time taken: {elapsed_time:.6f} seconds (much faster!)")
 
 # %% [markdown]
 # <a name='2.-cache-performance-monitoring'></a>
@@ -159,8 +169,15 @@ def data_processor(data: str) -> str:
 
 # %%
 # Normal call - caches result.
+start_time = time.time()
 result = data_processor("hello")
-print(f"First call: {result}")
+elapsed_time = time.time() - start_time
+print(f"First call: {result} (time: {elapsed_time:.3f}s)")
+# Cached call - returns instantly.
+start_time = time.time()
+result = data_processor("hello")
+elapsed_time = time.time() - start_time
+print(f"Cached call: {result} (time: {elapsed_time:.6f}s - from cache!)")
 # Force refresh - recomputes even though cached.
 result = data_processor("hello", force_refresh=True)
 print(f"Force refresh: {result}")
@@ -178,9 +195,6 @@ print(f"With report: {result}")
 
 # %%
 # Set custom cache directory.
-import os
-import tempfile
-
 cache_dir = tempfile.mkdtemp()
 hcacsimp.set_cache_dir(cache_dir)
 print(f"Cache directory set to: {cache_dir}")
@@ -238,9 +252,11 @@ print(f"function_a(5) = {result_a}")
 print(f"function_b(5) = {result_b}")
 # Verify separate cache files.
 print("\nfunction_a cache location:")
-print(hcacsimp.cache_stats_to_str("function_a"))
+cache_file_a = hcacsimp._get_cache_file_name("function_a")
+print(f"  Cache file: {cache_file_a}")
 print("\nfunction_b cache location:")
-print(hcacsimp.cache_stats_to_str("function_b"))
+cache_file_b = hcacsimp._get_cache_file_name("function_b")
+print(f"  Cache file: {cache_file_b}")
 
 # %% [markdown]
 # <a name='7.-excluding-keys-from-cache'></a>
@@ -271,17 +287,24 @@ def api_call(query: str, session_id: str, timestamp: float) -> str:
 
 # %%
 # These calls have different session_id and timestamp but return cached result.
+start_time = time.time()
 result1 = api_call("search python", session_id="abc123", timestamp=1.0)
-print(f"First call: {result1}")
+elapsed_time = time.time() - start_time
+print(f"First call: {result1} (time: {elapsed_time:.3f}s)")
+start_time = time.time()
 result2 = api_call("search python", session_id="xyz789", timestamp=2.0)
-print(f"Second call (from cache despite different session/timestamp): {result2}")
+elapsed_time = time.time() - start_time
+print(
+    f"Second call (from cache despite different session/timestamp): {result2} (time: {elapsed_time:.6f}s)"
+)
 # Different query triggers cache miss.
 result3 = api_call("search java", session_id="abc123", timestamp=1.0)
 print(f"Third call (different query, cache miss): {result3}")
 
+
 # %% [markdown]
-# <a name='8.-s3-integration-(team-cache-sharing)'></a>
-# ## 8. S3 Integration (Team Cache Sharing)
+# <a name='8.-s3-integration'></a>
+# ## 8. S3 Integration
 #
 # **Note:** These examples are commented out because they require AWS credentials.
 # Uncomment and configure to use S3 caching.
@@ -290,18 +313,16 @@ print(f"Third call (different query, cache miss): {result3}")
 # - S3 is integrated into the cache lookup as the third tier: Memory → Disk → S3
 # - When `get_cache()` is called, it automatically checks all three layers
 # - A cache "miss" only occurs if key not found in ANY layer
-# - This makes S3 transparent - no distinction between local and S3 cache hits
 #
 # **S3 Features:**
 # - `auto_sync_s3=True`: Automatically upload cache updates to S3
 # - Auto-pull: Automatically checks S3 as part of cache lookup (one-time per function)
-# - Team sharing: Multiple developers/machines share the same cache
-# - Backup: S3 serves as persistent backup for local caches
+# - Manual cache operations: Use `push_cache_to_s3()` to manually upload, `pull_cache_from_s3()` to manually download and `sync_cache_with_s3()` to manually cache files between S3 and disk
 #
 # **Usage:**
 # 1. Configure S3 globally or per-function
 # 2. First call on any machine computes and uploads to S3
-# 3. Other machines automatically check S3 during cache lookup - completely transparent!
+# 3. Other machines automatically check S3 during cache lookup
 # 4. Updates are automatically synced to S3 (if `auto_sync_s3=True`)
 
 # %%
@@ -312,7 +333,7 @@ print(f"Third call (different query, cache miss): {result3}")
 #
 # @hcacsimp.simple_cache(
 #     cache_type="json",
-#     auto_sync_s3=True,  # Auto-upload to S3 after updates.
+#     auto_sync_s3=True,  # Auto-upload to S3 after cache updates on disk.
 # )
 # def expensive_llm_call(prompt: str) -> str:
 #     """
@@ -326,10 +347,9 @@ print(f"Third call (different query, cache miss): {result3}")
 # print(f"Result: {result}")
 #
 # # On another machine - S3 is automatically checked during cache lookup.
-# # get_cache() checks: memory → disk → S3 (transparent, automatic).
-# # No manual pull_cache_from_s3() needed!
+# # get_cache() checks: memory → disk → S3.
 # result = expensive_llm_call("Summarize this document")
-# print(f"Result from cache (could be from S3): {result}")
+# print(f"Result from cache: {result}")
 
 # %%
 # # Per-function S3 configuration (overrides global settings).
@@ -354,10 +374,8 @@ print(f"Third call (different query, cache miss): {result3}")
 # - Supports DataFrames, numpy arrays, custom classes, etc.
 # - Trade-off: Not human-readable like JSON
 
+
 # %%
-import pandas as pd
-
-
 @hcacsimp.simple_cache(cache_type="pickle")
 def create_dataframe(rows: int) -> pd.DataFrame:
     """
@@ -375,13 +393,19 @@ def create_dataframe(rows: int) -> pd.DataFrame:
 
 # %%
 # First call - computes and caches DataFrame.
+start_time = time.time()
 df = create_dataframe(5)
+elapsed_time = time.time() - start_time
 print("First call:")
 print(df)
+print(f"Time taken: {elapsed_time:.3f} seconds")
 # Second call - returns cached DataFrame instantly.
+start_time = time.time()
 df = create_dataframe(5)
+elapsed_time = time.time() - start_time
 print("\nSecond call (from cache):")
 print(df)
+print(f"Time taken: {elapsed_time:.6f} seconds (from cache!)")
 
 # %% [markdown]
 # <a name='summary'></a>
@@ -394,14 +418,5 @@ print(df)
 # - **Performance monitoring**: Track cache efficiency
 # - **Team collaboration**: Share caches via S3 with auto-pull
 # - **Format support**: JSON (human-readable) or pickle (binary)
-#
-# **Key Design:**
-# - **Three-tier cache lookup**: get_cache() checks Memory → Disk → S3 automatically
-# - Memory cache for speed (volatile, fastest)
-# - Disk cache for persistence across sessions (local, persistent)
-# - S3 cache for team sharing and backup (remote, shared)
-# - S3 is part of the cache lookup, not a "recovery after miss"
-# - Cache miss only occurs if key not found in ALL three layers
-# - Completely transparent - no manual intervention needed
 #
 # For full documentation, see: `docs/tools/helpers/all.hcache_simple.explanation.md`
