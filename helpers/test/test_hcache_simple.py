@@ -127,6 +127,12 @@ class _BaseCacheTest(hunitest.TestCase):
         # Isolate configuration globals.
         scratch_space = self.get_scratch_space()
         self.monkeypatch.setattr(hcacsimp, "_CACHE_DIR", scratch_space)
+        self.monkeypatch.setattr(
+            hcacsimp, "_CACHE_FILE_PREFIX", hcacsimp._CACHE_FILE_PREFIX
+        )
+        self.monkeypatch.setattr(hcacsimp, "_S3_BUCKET", hcacsimp._S3_BUCKET)
+        self.monkeypatch.setattr(hcacsimp, "_S3_PREFIX", hcacsimp._S3_PREFIX)
+        self.monkeypatch.setattr(hcacsimp, "_AWS_PROFILE", hcacsimp._AWS_PROFILE)
         # Isolate data structure globals.
         self.monkeypatch.setattr(hcacsimp, "_CACHE", {})
         # Use deepcopy for _CACHE_PROPERTY to preserve decorator-set properties.
@@ -1903,46 +1909,32 @@ class Test_simple_cache_no_write_through(_BaseCacheTest):
 class Test_global_cache_file_prefix(_BaseCacheTest):
     """
     Test global cache file prefix configuration.
-
-    Uses monkeypatch to isolate global state and prevent race
-    conditions.
     """
 
     def test1(self) -> None:
         """
         Verify that set_cache_file_prefix changes the cache file prefix.
         """
-        # Prepare inputs: Create isolated global variable.
-        original_prefix = hcacsimp.get_cache_file_prefix()
+        # Prepare inputs.
         custom_prefix = "my_test_cache"
-        # Use monkeypatch to isolate the global state.
-        test_prefix = custom_prefix
-        self.monkeypatch.setattr(hcacsimp, "_CACHE_FILE_PREFIX", test_prefix)
+        hcacsimp._CACHE_FILE_PREFIX = custom_prefix
         # Run.
         _ = _cached_json_double(5)
         # Check.
         cache_file = hcacsimp._get_cache_file_name("_cached_json_double")
         self.assertIn(custom_prefix, cache_file)
-        # Verify original global state was not modified.
-        self.monkeypatch.undo()
-        self.assertEqual(hcacsimp.get_cache_file_prefix(), original_prefix)
 
     def test2(self) -> None:
         """
         Verify that get_cache_file_prefix returns the configured prefix.
         """
-        # Prepare inputs: Create isolated global variable.
-        original_prefix = hcacsimp.get_cache_file_prefix()
+        # Prepare inputs.
         custom_prefix = "test_prefix"
-        # Use monkeypatch to isolate the global state.
-        self.monkeypatch.setattr(hcacsimp, "_CACHE_FILE_PREFIX", custom_prefix)
+        hcacsimp._CACHE_FILE_PREFIX = custom_prefix
         # Run.
         actual = hcacsimp.get_cache_file_prefix()
         # Check.
         self.assertEqual(actual, custom_prefix)
-        # Verify original global state was not modified.
-        self.monkeypatch.undo()
-        self.assertEqual(hcacsimp.get_cache_file_prefix(), original_prefix)
 
 
 # #############################################################################
@@ -2149,78 +2141,55 @@ class Test_per_function_cache_prefix(_BaseCacheTest):
 class Test_s3_configuration(_BaseCacheTest):
     """
     Test S3 configuration (global and per-function).
-
-    Uses monkeypatch to isolate global state and prevent race
-    conditions.
     """
 
     def test1(self) -> None:
         """
         Verify that set_s3_bucket stores bucket with s3:// prefix.
         """
-        # Prepare inputs: Isolate global S3 bucket.
-        original_bucket = hcacsimp._S3_BUCKET
-        self.monkeypatch.setattr(hcacsimp, "_S3_BUCKET", None)
+        # Prepare inputs.
         bucket = "my-test-bucket"
         # Run.
         hcacsimp.set_s3_bucket(bucket)
         actual = hcacsimp.get_s3_bucket()
         # Check.
         self.assertEqual(actual, "s3://my-test-bucket")
-        # Verify original global state was not modified.
-        self.monkeypatch.undo()
-        self.assertEqual(hcacsimp._S3_BUCKET, original_bucket)
 
     def test2(self) -> None:
         """
         Verify that set_s3_bucket preserves existing s3:// prefix.
         """
-        # Prepare inputs: Isolate global S3 bucket.
-        original_bucket = hcacsimp._S3_BUCKET
-        self.monkeypatch.setattr(hcacsimp, "_S3_BUCKET", None)
+        # Prepare inputs.
         bucket = "s3://my-test-bucket"
         # Run.
         hcacsimp.set_s3_bucket(bucket)
         actual = hcacsimp.get_s3_bucket()
         # Check.
         self.assertEqual(actual, "s3://my-test-bucket")
-        # Verify original global state was not modified.
-        self.monkeypatch.undo()
-        self.assertEqual(hcacsimp._S3_BUCKET, original_bucket)
 
     def test3(self) -> None:
         """
         Verify that set_s3_prefix and get_s3_prefix work correctly.
         """
-        # Prepare inputs: Isolate global S3 prefix.
-        original_prefix = hcacsimp._S3_PREFIX
-        self.monkeypatch.setattr(hcacsimp, "_S3_PREFIX", "cache")
+        # Prepare inputs.
         prefix = "cache/project1"
         # Run.
         hcacsimp.set_s3_prefix(prefix)
         actual = hcacsimp.get_s3_prefix()
         # Check.
         self.assertEqual(actual, "cache/project1")
-        # Verify original global state was not modified.
-        self.monkeypatch.undo()
-        self.assertEqual(hcacsimp._S3_PREFIX, original_prefix)
 
     def test4(self) -> None:
         """
         Verify that set_aws_profile and get_aws_profile work correctly.
         """
-        # Prepare inputs: Isolate global AWS profile.
-        original_profile = hcacsimp._AWS_PROFILE
-        self.monkeypatch.setattr(hcacsimp, "_AWS_PROFILE", "ck")
+        # Prepare inputs.
         profile = "my-aws-profile"
         # Run.
         hcacsimp.set_aws_profile(profile)
         actual = hcacsimp.get_aws_profile()
         # Check.
         self.assertEqual(actual, "my-aws-profile")
-        # Verify original global state was not modified.
-        self.monkeypatch.undo()
-        self.assertEqual(hcacsimp._AWS_PROFILE, original_profile)
 
     def test5(self) -> None:
         """
