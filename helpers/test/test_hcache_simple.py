@@ -1917,8 +1917,8 @@ class Test_global_cache_file_prefix(_BaseCacheTest):
         """
         # Prepare inputs.
         custom_prefix = "my_test_cache"
-        hcacsimp._CACHE_FILE_PREFIX = custom_prefix
         # Run.
+        hcacsimp.set_cache_file_prefix(custom_prefix)
         _ = _cached_json_double(5)
         # Check.
         cache_file = hcacsimp._get_cache_file_name("_cached_json_double")
@@ -1945,9 +1945,9 @@ class Test_global_cache_file_prefix(_BaseCacheTest):
 @hcacsimp.simple_cache(
     cache_type="json",
     cache_dir="/tmp/custom_cache",
-    cache_prefix="custom_prefix",
+    cache_prefix="project_cache",
 )
-def _test_per_function_cache_dir(x: int) -> int:
+def _test_per_function_cache_dir_and_prefix(x: int) -> int:
     """
     Test function with custom cache directory and prefix.
 
@@ -1960,12 +1960,26 @@ def _test_per_function_cache_dir(x: int) -> int:
 
 @hcacsimp.simple_cache(
     cache_type="json",
-    cache_dir=None,
+    cache_dir="/tmp/custom_cache",
+)
+def _test_per_function_cache_dir(x: int) -> int:
+    """
+    Test function with custom cache directory and default prefix.
+
+    :param x: input integer
+    :return: x * 2
+    """
+    res = x * 2
+    return res
+
+
+@hcacsimp.simple_cache(
+    cache_type="json",
     cache_prefix="project_cache",
 )
-def _test_per_function_prefix_only(x: int) -> int:
+def _test_per_function_prefix(x: int) -> int:
     """
-    Test function with custom prefix but default directory.
+    Test function with custom prefix and default directory.
 
     :param x: input integer
     :return: x * 3
@@ -1974,26 +1988,20 @@ def _test_per_function_prefix_only(x: int) -> int:
     return res
 
 
-@hcacsimp.simple_cache(cache_type="json")
-def _test_manual_cache_dir(x: int) -> int:
+@hcacsimp.simple_cache(
+    cache_type="json",
+    s3_bucket="s3://decorator-bucket",
+    s3_prefix="decorator/prefix",
+    aws_profile="decorator-profile",
+)
+def _test_per_function_s3_configs(x: int) -> int:
     """
-    Test function for manual cache_dir configuration (no decorator param).
+    Test function with all S3 parameters set via decorator.
 
     :param x: input integer
-    :return: x * 4
+    :return: x * 6
     """
-    return x * 4
-
-
-@hcacsimp.simple_cache(cache_type="json")
-def _test_manual_cache_prefix(x: int) -> int:
-    """
-    Test function for manual cache_prefix configuration (no decorator param).
-
-    :param x: input integer
-    :return: x * 5
-    """
-    return x * 5
+    return x * 6
 
 
 # #############################################################################
@@ -2026,6 +2034,20 @@ class Test_per_function_cache_dir(_BaseCacheTest):
 
     def test2(self) -> None:
         """
+        Test that cache_dir can be retrieved.
+
+        Verifies that cache_dir property set via decorator can be
+        retrieved using get_cache_property.
+        """
+        # Run.
+        cache_dir = hcacsimp.get_cache_property(
+            "_test_per_function_cache_dir", "cache_dir"
+        )
+        # Check.
+        self.assertEqual(cache_dir, "/tmp/custom_cache")
+
+    def test3(self) -> None:
+        """
         Test cache_dir configured via set_cache_property() function call.
 
         Verifies that cache_dir can be set manually via
@@ -2036,19 +2058,19 @@ class Test_per_function_cache_dir(_BaseCacheTest):
         custom_dir = self.get_scratch_space() + "/manual_cache"
         # Set cache_dir manually.
         hcacsimp.set_cache_property(
-            "_test_manual_cache_dir", "cache_dir", custom_dir
+            "_cached_json_double", "cache_dir", custom_dir
         )
         # Run.
-        _ = _test_manual_cache_dir(10)
+        _ = _cached_json_double(10)
         # Check.
         # Verify cache file is in manually-set directory.
-        cache_file = hcacsimp._get_cache_file_name("_test_manual_cache_dir")
+        cache_file = hcacsimp._get_cache_file_name("_cached_json_double")
         self.assertIn(custom_dir, cache_file)
         # Flush to disk to verify file creation.
-        hcacsimp.flush_cache_to_disk("_test_manual_cache_dir")
+        hcacsimp.flush_cache_to_disk("_cached_json_double")
         self.assertTrue(os.path.exists(cache_file))
 
-    def test3(self) -> None:
+    def test4(self) -> None:
         """
         Test get/set cache_dir property API.
 
@@ -2059,11 +2081,9 @@ class Test_per_function_cache_dir(_BaseCacheTest):
         custom_dir = "/tmp/test_cache_dir"
         # Run.
         hcacsimp.set_cache_property(
-            "_test_manual_cache_dir", "cache_dir", custom_dir
+            "_cached_json_double", "cache_dir", custom_dir
         )
-        actual = hcacsimp.get_cache_property(
-            "_test_manual_cache_dir", "cache_dir"
-        )
+        actual = hcacsimp.get_cache_property("_cached_json_double", "cache_dir")
         # Check.
         self.assertEqual(actual, custom_dir)
 
@@ -2086,14 +2106,26 @@ class Test_per_function_cache_prefix(_BaseCacheTest):
         decorator, the cache file name uses the specified custom prefix.
         """
         # Run.
-        _ = _test_per_function_prefix_only(7)
+        _ = _test_per_function_prefix(7)
         # Check.
-        cache_file = hcacsimp._get_cache_file_name(
-            "_test_per_function_prefix_only"
-        )
+        cache_file = hcacsimp._get_cache_file_name("_test_per_function_prefix")
         self.assertIn("project_cache", cache_file)
 
     def test2(self) -> None:
+        """
+        Test that cache_prefix can be retrieved.
+
+        Verifies that cache_prefix property set via decorator can be
+        retrieved using get_cache_property.
+        """
+        # Run.
+        cache_prefix = hcacsimp.get_cache_property(
+            "_test_per_function_prefix", "cache_prefix"
+        )
+        # Check.
+        self.assertEqual(cache_prefix, "project_cache")
+
+    def test3(self) -> None:
         """
         Test cache_prefix configured via set_cache_property() function call.
 
@@ -2105,15 +2137,15 @@ class Test_per_function_cache_prefix(_BaseCacheTest):
         custom_prefix = "test_prefix"
         # Set cache_prefix manually.
         hcacsimp.set_cache_property(
-            "_test_manual_cache_prefix", "cache_prefix", custom_prefix
+            "_cached_json_double", "cache_prefix", custom_prefix
         )
         # Run.
-        _ = _test_manual_cache_prefix(7)
+        _ = _cached_json_double(7)
         # Check.
-        cache_file = hcacsimp._get_cache_file_name("_test_manual_cache_prefix")
+        cache_file = hcacsimp._get_cache_file_name("_cached_json_double")
         self.assertIn(custom_prefix, cache_file)
 
-    def test3(self) -> None:
+    def test4(self) -> None:
         """
         Test get/set cache_prefix property API.
 
@@ -2124,13 +2156,64 @@ class Test_per_function_cache_prefix(_BaseCacheTest):
         custom_prefix = "my_project_cache"
         # Run.
         hcacsimp.set_cache_property(
-            "_test_manual_cache_prefix", "cache_prefix", custom_prefix
+            "_cached_json_double", "cache_prefix", custom_prefix
         )
         actual = hcacsimp.get_cache_property(
-            "_test_manual_cache_prefix", "cache_prefix"
+            "_cached_json_double", "cache_prefix"
         )
         # Check.
         self.assertEqual(actual, custom_prefix)
+
+
+# #############################################################################
+# Test_per_function_cache_dir_and_prefix
+# #############################################################################
+
+
+class Test_per_function_cache_dir_and_prefix(_BaseCacheTest):
+    """
+    Test per-function cache directory and prefix configured together.
+    """
+
+    def test1(self) -> None:
+        """
+        Test both cache_dir and cache_prefix configured via decorator.
+
+        Verifies that when both cache_dir and cache_prefix are set in
+        the @simple_cache decorator, both are applied correctly to the
+        cache file path.
+        """
+        # Run.
+        _ = _test_per_function_cache_dir_and_prefix(10)
+        # Check.
+        cache_file = hcacsimp._get_cache_file_name(
+            "_test_per_function_cache_dir_and_prefix"
+        )
+        # Verify custom directory is used.
+        self.assertIn("/tmp/custom_cache", cache_file)
+        # Verify custom prefix is used.
+        self.assertIn("project_cache", cache_file)
+        # Flush to disk to verify file creation.
+        hcacsimp.flush_cache_to_disk("_test_per_function_cache_dir_and_prefix")
+        self.assertTrue(os.path.exists(cache_file))
+
+    def test2(self) -> None:
+        """
+        Test that cache_dir and cache_prefix can be retrieved.
+
+        Verifies that both cache_dir and cache_prefix properties set via
+        decorator can be retrieved using get_cache_property.
+        """
+        # Run.
+        cache_dir = hcacsimp.get_cache_property(
+            "_test_per_function_cache_dir_and_prefix", "cache_dir"
+        )
+        cache_prefix = hcacsimp.get_cache_property(
+            "_test_per_function_cache_dir_and_prefix", "cache_prefix"
+        )
+        # Check.
+        self.assertEqual(cache_dir, "/tmp/custom_cache")
+        self.assertEqual(cache_prefix, "project_cache")
 
 
 # #############################################################################
@@ -2177,7 +2260,7 @@ class Test_s3_configuration(_BaseCacheTest):
         hcacsimp.set_s3_prefix(prefix)
         actual = hcacsimp.get_s3_prefix()
         # Check.
-        self.assertEqual(actual, "cache/project1")
+        self.assertEqual(actual, prefix)
 
     def test4(self) -> None:
         """
@@ -2189,7 +2272,7 @@ class Test_s3_configuration(_BaseCacheTest):
         hcacsimp.set_aws_profile(profile)
         actual = hcacsimp.get_aws_profile()
         # Check.
-        self.assertEqual(actual, "my-aws-profile")
+        self.assertEqual(actual, profile)
 
     def test5(self) -> None:
         """
@@ -2242,3 +2325,277 @@ class Test_s3_configuration(_BaseCacheTest):
         actual = hcacsimp.get_cache_property(func_name, "auto_sync_s3")
         # Check.
         self.assertEqual(actual, auto_sync)
+
+
+# #############################################################################
+# Test_per_function_s3_decorator
+# #############################################################################
+
+
+class Test_per_function_s3_decorator(_BaseCacheTest):
+    """
+    Test S3 configuration set via decorator parameters.
+    """
+
+    def test1(self) -> None:
+        """
+        Test that all S3 decorator parameters are stored correctly.
+        """
+        # Run.
+        s3_bucket = hcacsimp.get_cache_property(
+            "_test_per_function_s3_configs", "s3_bucket"
+        )
+        s3_prefix = hcacsimp.get_cache_property(
+            "_test_per_function_s3_configs", "s3_prefix"
+        )
+        aws_profile = hcacsimp.get_cache_property(
+            "_test_per_function_s3_configs", "aws_profile"
+        )
+        # Check.
+        self.assertEqual(s3_bucket, "s3://decorator-bucket")
+        self.assertEqual(s3_prefix, "decorator/prefix")
+        self.assertEqual(aws_profile, "decorator-profile")
+
+
+# #############################################################################
+# Test__get_s3_cache_path
+# #############################################################################
+
+
+class Test__get_s3_cache_path(_BaseCacheTest):
+    """
+    Test _get_s3_cache_path function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test S3 path with global bucket and no prefix.
+        """
+        # Prepare inputs.
+        hcacsimp.set_s3_bucket("s3://my-bucket")
+        # Run.
+        actual = hcacsimp._get_s3_cache_path("_cached_json_double")
+        # Check.
+        self.assertIn("s3://my-bucket", actual)
+        self.assertIn("_cached_json_double", actual)
+
+    def test2(self) -> None:
+        """
+        Test S3 path with global bucket and prefix.
+        """
+        # Prepare inputs.
+        hcacsimp.set_s3_bucket("s3://my-bucket")
+        hcacsimp.set_s3_prefix("cache/data")
+        # Run.
+        actual = hcacsimp._get_s3_cache_path("_cached_json_double")
+        # Check.
+        self.assertIn("s3://my-bucket/cache/data", actual)
+        self.assertIn("_cached_json_double", actual)
+
+    def test3(self) -> None:
+        """
+        Test S3 path with per-function bucket overriding global.
+        """
+        # Prepare inputs.
+        hcacsimp.set_s3_bucket("s3://global-bucket")
+        hcacsimp.set_cache_property(
+            "_cached_json_double", "s3_bucket", "s3://function-bucket"
+        )
+        # Run.
+        actual = hcacsimp._get_s3_cache_path("_cached_json_double")
+        # Check.
+        self.assertIn("s3://function-bucket", actual)
+        self.assertNotIn("global-bucket", actual)
+
+    def test4(self) -> None:
+        """
+        Test S3 path with per-function prefix overriding global.
+        """
+        # Prepare inputs.
+        hcacsimp.set_s3_bucket("s3://my-bucket")
+        hcacsimp.set_s3_prefix("global/prefix")
+        hcacsimp.set_cache_property(
+            "_cached_json_double", "s3_prefix", "function/prefix"
+        )
+        # Run.
+        actual = hcacsimp._get_s3_cache_path("_cached_json_double")
+        # Check.
+        self.assertIn("s3://my-bucket/function/prefix", actual)
+        self.assertNotIn("global/prefix", actual)
+
+    def test5(self) -> None:
+        """
+        Test S3 path with decorator-configured bucket and prefix.
+        """
+        # Run.
+        actual = hcacsimp._get_s3_cache_path("_test_per_function_s3_configs")
+        # Check.
+        self.assertIn("s3://decorator-bucket/decorator/prefix", actual)
+        self.assertIn("_test_per_function_s3_configs", actual)
+
+    def test6(self) -> None:
+        """
+        Test that ValueError is raised when S3 bucket is not configured.
+        """
+        # Run and check.
+        with self.assertRaises(ValueError) as cm:
+            hcacsimp._get_s3_cache_path("_cached_json_double")
+        self.assertEqual(str(cm.exception), "S3 bucket not configured")
+
+
+# #############################################################################
+# Test__extract_func_name_from_cache_file
+# #############################################################################
+
+
+class Test__extract_func_name_from_cache_file(_BaseCacheTest):
+    """
+    Test _extract_func_name_from_cache_file function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test extraction from JSON cache file with standard prefix.
+        """
+        # Prepare inputs.
+        cache_file_name = "tmp.cache_simple._cached_json_double.json"
+        # Run.
+        actual = hcacsimp._extract_func_name_from_cache_file(cache_file_name)
+        # Check.
+        self.assertEqual(actual, "_cached_json_double")
+
+    def test2(self) -> None:
+        """
+        Test extraction from pickle cache file.
+        """
+        # Prepare inputs.
+        cache_file_name = "tmp.cache_simple._cached_pickle_square.pkl"
+        # Run.
+        actual = hcacsimp._extract_func_name_from_cache_file(cache_file_name)
+        # Check.
+        self.assertEqual(actual, "_cached_pickle_square")
+
+    def test3(self) -> None:
+        """
+        Test extraction with custom prefix.
+        """
+        # Prepare inputs.
+        cache_file_name = "my_project_cache._my_function.json"
+        # Run.
+        actual = hcacsimp._extract_func_name_from_cache_file(cache_file_name)
+        # Check.
+        self.assertEqual(actual, "_my_function")
+
+    def test4(self) -> None:
+        """
+        Test extraction returns None for invalid file name.
+        """
+        # Prepare inputs.
+        cache_file_name = "invalid_filename"
+        # Run.
+        actual = hcacsimp._extract_func_name_from_cache_file(cache_file_name)
+        # Check.
+        self.assertIsNone(actual)
+
+    def test5(self) -> None:
+        """
+        Test extraction returns None for file without extension.
+        """
+        # Prepare inputs.
+        cache_file_name = "cache.function_name"
+        # Run.
+        actual = hcacsimp._extract_func_name_from_cache_file(cache_file_name)
+        # Check.
+        self.assertIsNone(actual)
+
+    def test6(self) -> None:
+        """
+        Test extraction with custom prefix and dir.
+        """
+        # Prepare inputs.
+        cache_file_name = "my_dir/my_project_cache._my_function.json"
+        # Run.
+        actual = hcacsimp._extract_func_name_from_cache_file(cache_file_name)
+        # Check.
+        self.assertEqual(actual, "_my_function")
+
+    def test7(self) -> None:
+        """
+        Test extraction when custom prefix has dots in it.
+        """
+        # Prepare inputs.
+        cache_file_name = "dir1/dir2/my.project.cache._my_function.json"
+        # Run.
+        actual = hcacsimp._extract_func_name_from_cache_file(cache_file_name)
+        # Check.
+        self.assertEqual(actual, "_my_function")
+
+
+# #############################################################################
+# Test__check_s3_configured
+# #############################################################################
+
+
+class Test__check_s3_configured(_BaseCacheTest):
+    """
+    Test _check_s3_configured function.
+    """
+
+    def test1(self) -> None:
+        """
+        Test returns False when S3 bucket is not explicitly configured.
+        """
+        # Run.
+        actual = hcacsimp._check_s3_configured()
+        # Check.
+        self.assertFalse(actual)
+
+    def test2(self) -> None:
+        """
+        Test returns True when global S3 bucket is configured.
+        """
+        # Prepare inputs.
+        hcacsimp.set_s3_bucket("s3://my-bucket")
+        # Run.
+        actual = hcacsimp._check_s3_configured()
+        # Check.
+        self.assertTrue(actual)
+
+    def test3(self) -> None:
+        """
+        Test returns True when per-function S3 bucket is configured.
+        """
+        # Prepare inputs.
+        func_name = "_cached_json_double"
+        hcacsimp.set_cache_property(
+            func_name, "s3_bucket", "s3://function-bucket"
+        )
+        # Run.
+        actual = hcacsimp._check_s3_configured(func_name)
+        # Check.
+        self.assertTrue(actual)
+
+    def test4(self) -> None:
+        """
+        Test per-function bucket overrides missing global bucket.
+        """
+        # Prepare inputs.
+        func_name = "_cached_json_double"
+        hcacsimp.set_cache_property(
+            func_name, "s3_bucket", "s3://function-bucket"
+        )
+        # Run.
+        actual_with_func = hcacsimp._check_s3_configured(func_name)
+        actual_without_func = hcacsimp._check_s3_configured()
+        # Check.
+        self.assertTrue(actual_with_func)
+        self.assertFalse(actual_without_func)
+
+    def test5(self) -> None:
+        """
+        Test with decorator-configured S3 bucket.
+        """
+        # Run.
+        actual = hcacsimp._check_s3_configured("_test_per_function_s3_configs")
+        # Check.
+        self.assertTrue(actual)
