@@ -49,20 +49,18 @@ the book markdown file.
 
 Return the content to the user for context.
 
-## Step 4: Summarize Content
+## Step 4: Print Content Structure
 
-- Write a summary using the same structure of the chapter and subchapter in
-  markdown headers
+- Write a structure of the chapter and subchapter in markdown headers
   - Use numbers of chapter (e.g., 1.) and subchapters (e.g., 1.1)
   - Use the chapter numbers that come from the book
 
-- For each chunk of text, summarize the text using rules from
-  @.claude/skills/text.summarize_in_bullet_points/SKILL.md
-
 ## Step 5: Answer Follow-up Questions
 
-Answer any questions the user asks about the content just read, referencing
-specific sections or concepts from the chapter summary.
+- Do not do anything else (e.g., summarize the content), but wait for the user
+  to ask questions
+- Answer any questions the user asks about the content just read, referencing
+  specific sections or concepts from the chapter summary.
 
 # Example
 
@@ -77,14 +75,4 @@ specific sections or concepts from the chapter summary.
   - Chapter 3: Graphical Models
     - 3.1 Directed Acyclic Graphs (DAGs)
     - 3.2 d-separation and Conditional Independence
-
-  # Summary:
-
-  - **Chapter 3: Graphical Models**: DAGs represent causal relationships through
-    nodes and directed edges; d-separation criterion determines conditional
-    independence from graph structure
-    - **3.1 DAGs**: Nodes represent variables, edges represent direct causal
-      effects, acyclicity prevents circular reasoning
-    - **3.2 d-separation**: Variables are d-separated if no open path exists;
-      d-separation implies conditional independence under causal model assumptions
   ```

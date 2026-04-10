@@ -13,16 +13,16 @@ Markdown format with embedded image references.
 Automatically installs dependencies via `uv` if missing.
 
 Usage:
-    # Convert PDF to markdown with images.
-    uv run ./helpers_root/dev_scripts_helpers/documentation/pdf_to_md.py \
-        --input document.pdf \
-        --output output_dir
+# Convert PDF to markdown with images.
+> pdf_to_md.py \
+    --input document.pdf \
+    --output output_dir
 
-    # With verbose logging.
-    uv run ./helpers_root/dev_scripts_helpers/documentation/pdf_to_md.py \
-        --input document.pdf \
-        --output output_dir \
-        -v DEBUG
+# With verbose logging.
+> pdf_to_md.py \
+    --input document.pdf \
+    --output output_dir \
+    -v DEBUG
 
 Import as:
 

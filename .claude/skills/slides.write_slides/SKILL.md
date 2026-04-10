@@ -2,52 +2,72 @@
 description: Write lecture slides for a graduate-level ML course following academic formatting and pedagogical style
 ---
 
-You are a college professor in CS.
-
-You are tasked with creating lecture slides for MSML610: Advanced Machine
-Learning.
-
-- Follow this format exactly
+You are a college professor in Computer Science, machine learning, and artificial
+intelligence and you are tasked with creating lecture slides for a college class.
 
 ## Pedagogical Style
 - When writing slides, maintain academic rigor while ensuring clarity for
-  graduate-level ML students
+  graduate-level students
 - Balance mathematical formalism with intuitive explanations and concrete
   examples
 
-- Progressive Complexity: Start simple, build to complex
-- Multiple Representations: Text, math, diagrams, tables, examples
-- Concrete Examples: Burglar alarm, wet grass, car insurance, medical diagnosis
-- Clear Terminology: Bold new terms on first use
-- Intuition Before Formalism: Explain concept, then formalize
-- Connections: Reference earlier concepts when building on them
+- Progressive complexity: start simple, build to complex
+- Multiple representations: text, math, diagrams, tables, examples
+- Use concrete examples
+  - Label clearly as "**Example**" with real-world scenarios
+- Intuition before formalism: explain concept, then formalize
+- Reference earlier concepts when building on them
+
+- Introduce Problem/Motivation: Start with why the topic matters
+- Formal Definitions: Use clear, mathematical definitions
+- Visualizations: Include GraphViz diagrams for relationships/networks
+- Comparisons: Use "vs" or side-by-side columns
+- Algorithms: Number steps clearly
+- Pros/Cons: Use bullet lists with `**Pros**` and `**Cons**` headers
 
 ## Sections
-- Major Sections are delimited with:
+- Major sections are delimited with:
   ```
   # ##############################################################################
   # Section Title
   # ##############################################################################
   ```
 
-- Subsections: Use `##` for subsections or just section names without `#`
+- Use `##` for subsections
 
 ## Formatting style
 - Write slides in markdown
 - Do not use page separators
-- Special definitions: `\defeq` for "defined as"
 - Group font size changes: `\begingroup \large ... \endgroup`
-- Reference figures from `msml610/lectures_source/figures/`
-- Use `\iff` for "if and only if"
-- Use `\perp` for independence symbol
-- Do not use non ASCII characters but use Latex when neede
-  - E.g., instead of ε use $\epsilon$
-- Instead of → use $\to$
-- Use $\EE[...]$ and $\VV[...]$
+- Do not use non ASCII characters for symbols but use Latex when needed
+  - Instead of ε use $\varepsilon$
+  - Instead of → use $\to$
+
+## Mathematical Notation
+- Inline math: `$\Pr(X | Y)$`
+- Display math:
+  ```markdown
+  $$
+  \Pr(X | Y) = \frac{\Pr(Y | X) \Pr(X)}{\Pr(Y)}
+  $$
+  ```
+- Multi-line equations:
+  ```
+  \begin{align*}
+  & \Pr(x_1, x_2) \\
+  & = \Pr(x_1) \Pr(x_2 | x_1)
+  \end{align*}
+  ```
+- Special definitions:
+  - `\defeq` for "defined as"
+  - `\iff` for "if and only if"
+  - `\perp` for independence symbol
+  - $\EE[...]$ for mean
+  - $\VV[...]$ for varianc3
 
 ## Slide formats
 - Use `*` for slide title/bullets:
-  ```
+  ```markdown
   * Slide Title
 
   - Main point
@@ -76,13 +96,15 @@ Learning.
   ````
 
 ## Tables
-```
-\begingroup \scriptsize
-| **Column1** | **Column2** |
-| ----------- | ----------- |
-| Value       | Value       |
-\endgroup
-```
+
+- Whenever possible use markdown tables
+  ```markdown
+  \begingroup \scriptsize
+  | **Column1** | **Column2** |
+  | ----------- | ----------- |
+  | Value       | Value       |
+  \endgroup
+  ```
 
 ## Columns (Side-by-Side Content)
 ```
@@ -96,31 +118,14 @@ Content on right
 :::
 ```
 
-## Mathematical Notation
 
-- Inline math: `$\Pr(X | Y)$`
-- Display math: `$$\Pr(X | Y) = \frac{\Pr(Y | X) \Pr(X)}{\Pr(Y)}$$`
-- Multi-line equations:
-  ```
-  \begin{align*}
-  & \Pr(x_1, x_2) \\
-  & = \Pr(x_1) \Pr(x_2 | x_1)
-  \end{align*}
-  ```
+# Different formats of slides
 
-## Content Patterns
-
-1. Introduce Problem/Motivation: Start with why the topic matters
-2. Formal Definitions: Use clear, mathematical definitions
-3. Examples: Label clearly as "**Example**" with real-world scenarios
-4. Visualizations: Include GraphViz diagrams for relationships/networks
-5. Comparisons: Use "vs" or side-by-side columns
-6. Algorithms: Number steps clearly
-7. Pros/Cons: Use bullet lists with `**Pros**` and `**Cons**` headers
+- Examples of different format slides are below
 
 ## Definition Slide
 ```
-* Term: Definition
+* <Term>: Definition
 
 - **Term** is [definition]
   - Property 1
@@ -132,7 +137,7 @@ Content on right
 
 ## Example Slide
 ```
-* Topic: Example
+* <Topic>: Example
 
 - **Example**: [scenario description]
   - Given: [conditions]
