@@ -768,3 +768,57 @@ class Test_find_git_root5(hunitest.TestCase):
         Top-level .git directory not found.
         """
         self.assert_equal(actual, expected, purify_text=True, fuzzy_match=True)
+
+
+# #############################################################################
+# Test_find_git_root6
+# #############################################################################
+
+
+class Test_find_git_root6(hunitest.TestCase):
+    """
+    Check that the function returns the correct git root if:
+    - the repo is a worktree
+
+    Directory structure:
+    main_repo/
+    `-- .git/
+        |-- config
+        `-- worktrees/
+            `-- csfy2/
+                |-- HEAD
+                `-- config
+    csfy2/ (worktree)
+    `-- .git (points to /main_repo/.git/worktrees/csfy2)
+    """
+
+    def set_up_test(self) -> None:
+        temp_dir = self.get_scratch_space()
+        # Create main repo with a .git directory.
+        self.main_repo_dir = os.path.join(temp_dir, "main_repo")
+        hio.create_dir(self.main_repo_dir, incremental=False)
+        self.git_dir = os.path.join(self.main_repo_dir, ".git")
+        hio.create_dir(self.git_dir, incremental=False)
+        # Create worktree git metadata directory.
+        self.worktree_git_dir = os.path.join(
+            self.git_dir, "worktrees", "csfy2"
+        )
+        hio.create_dir(self.worktree_git_dir, incremental=False)
+        # Create worktree directory.
+        self.worktree_dir = os.path.join(temp_dir, "csfy2")
+        hio.create_dir(self.worktree_dir, incremental=False)
+        # Create pointer from worktree to the git directory.
+        worktree_git_file = os.path.join(self.worktree_dir, ".git")
+        txt = f"gitdir: {self.worktree_git_dir}\n"
+        hio.to_file(worktree_git_file, txt)
+
+    def test1(self) -> None:
+        """
+        Check that the function returns the worktree root when called from a worktree.
+        """
+        self.set_up_test()
+        with hsystem.cd(self.worktree_dir):
+            git_root = hgit.find_git_root(".")
+            # For worktrees, the function should return the worktree root,
+            # not the main repository root.
+            self.assert_equal(git_root, self.worktree_dir)
