@@ -10,6 +10,7 @@ sigterm = True
 omit =
     */devops/compose/*
     */helpers/test/outcomes/*/tmp.scratch/*
+    */test/outcomes/*/tmp.scratch/*
     */site-packages/*
     */dist-packages/*
     */.venv/*

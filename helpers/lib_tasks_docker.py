@@ -84,7 +84,7 @@ def docker_remove_image(ctx, base_image="") -> None:  # type: ignore
     cmd = f"{docker_exec} rmi -f {image}"
     _LOG.info("Running: %s", cmd)
     try:
-        result = hsystem.system(cmd, suppress_output=False)
+        result = hsystem.system(cmd, abort_on_error=False, suppress_output=False)
         if result != 0:
             _LOG.warning(
                 "Docker image deletion failed with exit code %s for image: %s",
