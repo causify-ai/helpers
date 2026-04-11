@@ -202,31 +202,39 @@ def find_git_root(path: str = ".") -> str:
             lines = txt.split("\n")
             for line in lines:
                 # Look for a `gitdir:` line that specifies the linked directory.
-                # Example: `gitdir: ../.git/modules/helpers_root`.
+                # Example: `gitdir: ../.git/modules/helpers_root` (submodule)
+                # or `gitdir: /path/to/.git/worktrees/name` (worktree).
                 if line.startswith("gitdir:"):
                     git_dir_path = line.split(":", 1)[1].strip()
                     _LOG.debug("git_dir_path=%s", git_dir_path)
-                    # Resolve the relative path to the absolute path of the Git directory.
-                    abs_git_dir = os.path.abspath(
-                        os.path.join(path, git_dir_path)
-                    )
-                    # Traverse up to find the top-level `.git` directory.
-                    while True:
-                        # Check if the current directory is a `.git` directory.
-                        if os.path.basename(abs_git_dir) == ".git":
-                            git_root_dir = os.path.dirname(abs_git_dir)
-                            # Found the root.
-                            break
-                        # Move one level up in the directory structure.
-                        parent = os.path.dirname(abs_git_dir)
-                        # Reached the filesystem root without finding the `.git` directory.
-                        hdbg.dassert_ne(
-                            parent,
-                            abs_git_dir,
-                            "Top-level .git directory not found.",
+                    # For worktrees, the current path is the root of the worktree.
+                    # The worktree's `.git` file points to the shared git directory
+                    # (e.g., main_repo/.git/worktrees/worktree_name).
+                    if ".git/worktrees/" in git_dir_path:
+                        git_root_dir = path
+                    else:
+                        # For other linked setups (submodules, custom .git directory),
+                        # traverse up to find the root of the target repository.
+                        abs_git_dir = os.path.abspath(
+                            os.path.join(path, git_dir_path)
                         )
-                        # Continue traversing up.
-                        abs_git_dir = parent
+                        # Traverse up to find the top-level `.git` directory.
+                        while True:
+                            # Check if the current directory is a `.git` directory.
+                            if os.path.basename(abs_git_dir) == ".git":
+                                git_root_dir = os.path.dirname(abs_git_dir)
+                                # Found the root.
+                                break
+                            # Move one level up in the directory structure.
+                            parent = os.path.dirname(abs_git_dir)
+                            # Reached the filesystem root without finding the `.git` directory.
+                            hdbg.dassert_ne(
+                                parent,
+                                abs_git_dir,
+                                "Top-level .git directory not found.",
+                            )
+                            # Continue traversing up.
+                            abs_git_dir = parent
                     break
         # Exit the loop if the Git root directory is found.
         if git_root_dir is not None:
