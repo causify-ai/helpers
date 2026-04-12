@@ -1,15 +1,13 @@
 ---
-description: Fix and improve markdown slides by adding bullet points, examples, and correcting grammar
+description: Fix slides without changing their structure
 ---
 
-- Given the slides in Markdown
-  - Each slide titles are prepended with `*`
+- Given a markdown file with slides for a college class, where each slide title
+  is prepended with `*`
 
-- You will:
-  - Maintain the structure of the text and keep the content of the existing text
-  - Add bullet points to the text that are important or missing
-  - Add examples to clarify the text and help intuition
-  - Fix the English grammar
-  - Fix any mistake only if you are sure about the correction
+# Leave structure unchanged
+- Maintain the structure of the text and keep the content of the existing text
 
-Print only the markdown without any explanation.
+# Fix mistakes
+- Fix English grammar
+- Fix any mistake only if you are sure about the correction

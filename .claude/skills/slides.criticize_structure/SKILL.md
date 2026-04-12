@@ -33,5 +33,12 @@ description: Criticize and suggest improvements for class slides
 ## Fix content of slides
 - If a slide content is incorrect, propose how to fix it
 
+## Ignore TODOs and comments
+- Leave the TODOs or comments in the format
+  ```
+  // ...
+  ```
+  untouched
+
 # Ask the user which improvement needs to be done
 - After the user approves a subset of changes, perform the changes in place
