@@ -20,10 +20,28 @@ You are an expert writer of slides and presentations for a college audience
 - Maintain the sequence of slides, the comments, and the headers
 - Maintain the structure of the text in terms of bullet and sub-bullet points
 - Keep all the figures
+- Leave bold lines untouched
+  - E.g.,
+    ```
+    - **Collections of data**
+      - Aggregated, organized data sets for analysis
+      - E.g., customer purchase histories in a CRM system
+    ```
+  - Good
+    ```
+    - **Collections of data**
+      - Organized datasets for analysis
+      - E.g., customer purchase histories in CRM
+    ```
+  - Bad
+    ```
+    - **Collections of data**: organized datasets for analysis
+      - E.g., customer purchase histories in CRM
+    ```
 
 ## Reduce text
-- Reduce text below keeping the structure of the bullets untouched
-  - Write directly to the audience using "you”
+- Reduce text keeping the structure of the bullets untouched
+  - Write directly to the audience using "you"
   - Be concise: remove filler words (e.g., "the", "that", "very")
   - Use active voice (e.g., "Improve accuracy," not "Accuracy can be improved")
   - Prefer short phrases over full sentences
