@@ -3,10 +3,6 @@ description: Format markdown files according to conventions for clarity, structu
 model: haiku
 ---
 
-# Summary
-
-- This file contains conventions for writing markdown files
-
 # Goals and Philosophy
 
 - Make the text easy to consume for both humans and AI

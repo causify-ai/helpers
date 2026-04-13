@@ -5,10 +5,12 @@ Extract article information from Hacker News submissions using the HN API.
 
 This script processes Hacker News item URLs from CSV files and uses the
 Firebase API to extract selected fields:
-- The submission title (--extract_title)
-- The original article URL that the submission links to (--extract_url)
-- The submission timestamp converted to date format YYYY-MM-DD in UTC (--extract_timestamp)
-- Optionally, classify articles into categories using LLM (--tag_articles, requires --extract_title)
+- `--extract_title`: The submission title
+- `--extract_url`: The original article URL that the submission links
+- `--extract_timestamp`: The submission timestamp converted to date format
+  YYYY-MM-DD in UTC
+- `--tag_articles`: classify articles into categories using LLM (requires
+  --extract_title)
 
 All extraction options are opt-in and must be explicitly enabled.
 
