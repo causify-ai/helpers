@@ -918,8 +918,8 @@ def use_docker_sibling_containers() -> bool:
     # if is_dev_csfy():
     #     val = True
     # else:
-    val = is_dev4() or _is_mac_version_with_sibling_containers()
-    return val
+    # val = is_dev4() or _is_mac_version_with_sibling_containers()
+    # return val
 
 
 # TODO(gp): -> use_docker_main_network
