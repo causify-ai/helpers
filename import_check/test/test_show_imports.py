@@ -4,6 +4,9 @@ from typing import Dict, List, Optional
 
 import pytest
 
+# Skip this test suite if graphviz is not installed (skip for tutorials).
+pytest.importorskip("graphviz")
+
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_purification as huntepur
@@ -19,7 +22,6 @@ _LOG = logging.getLogger(__name__)
 
 @pytest.mark.slow()
 class Test_show_imports(hunitest.TestCase):
-
     def create_io_dirs(self) -> None:
         dir_name = self.get_input_dir()
         hio.create_dir(dir_name, incremental=True)
@@ -255,12 +257,12 @@ class Test_show_imports(hunitest.TestCase):
         # Run and check the outcome.
         with self.assertRaises(ichshimp.NotModuleError) as e:
             self.execute_script(files, dirs=dirs)
-        act = str(e.exception)
-        exp = (
+        actual = str(e.exception)
+        expected = (
             "The following dirs have to be modules (add `__init__.py`): "
             "['/app/import_check/test/outcomes/Test_show_imports.test10/input']"
         )
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test11(self) -> None:
         """

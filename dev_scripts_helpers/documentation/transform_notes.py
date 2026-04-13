@@ -84,20 +84,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if cmd == "test":
         # Compute the hash of a string to test the flow.
-        txt = hparser.read_file(in_file_name)
+        txt = hparser.from_file(in_file_name)
         txt = "\n".join(txt)
         txt = hashlib.sha256(txt.encode("utf-8")).hexdigest()
-        hparser.write_file(txt, out_file_name)
+        hparser.to_file(txt, out_file_name)
     elif cmd == "format_headers":
-        hmarkdo.format_headers(in_file_name, out_file_name, max_lev)
+        txt = hparser.from_file(in_file_name)
+        hmarkdo.format_headers(txt, out_file_name, max_lev)
     elif cmd == "increase_headers_level":
-        txt = hparser.read_file(in_file_name)
+        txt = hparser.from_file(in_file_name)
         txt = "\n".join(txt)
         modified_txt = hmarkdo.modify_header_level(txt, 1)
-        hparser.write_file(modified_txt.split("\n"), out_file_name)
+        hparser.to_file(modified_txt.split("\n"), out_file_name)
     else:
         # Read the input.
-        txt = hparser.read_file(in_file_name)
+        txt = hparser.from_file(in_file_name)
         txt = "\n".join(txt)
         # Process the input.
         if cmd == "toc":
@@ -120,10 +121,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
         elif cmd == "md_only_format":
             txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_bold_bullets":
-            txt = hmarkdo.bold_first_level_bullets(txt)
+            lines = txt.split("\n")
+            lines = hmarkdo.bold_first_level_bullets(lines)
+            txt = "\n".join(lines)
             txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_colorize_bold_text":
-            txt = hmarkdo.colorize_bold_text(txt)
+            color_sequence = "fixed"
+            txt = hmarkdo.colorize_bold_text(txt, color_sequence)
             txt = hmarkdo.format_markdown(txt)
         elif cmd == "md_format":
             txt = hmarkdo.md_clean_up(txt)
@@ -132,7 +136,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         else:
             raise ValueError(f"Invalid cmd='{cmd}'")
         # Write the output.
-        hparser.write_file(txt, out_file_name)
+        hparser.to_file(txt, out_file_name)
 
 
 if __name__ == "__main__":

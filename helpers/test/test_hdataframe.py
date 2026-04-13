@@ -124,12 +124,12 @@ class TestFilterDataByMethod(hunitest.TestCase):
         mode = "and"
         info: collections.OrderedDict = collections.OrderedDict()
         # Call function to test.
-        act = hdatafr.filter_data_by_method(
+        actual = hdatafr.filter_data_by_method(
             df=data, filters=filters, mode=mode, info=info
         )
-        act = hpandas.df_to_str(act, precision=3)
+        actual = hpandas.df_to_str(actual, precision=3)
         # Check output.
-        self.check_string(act, fuzzy_match=True)
+        self.check_string(actual, fuzzy_match=True)
 
 
 # #############################################################################

@@ -15,7 +15,9 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdocexec
+import helpers.hio as hio
+import helpers.hmarkdown_toc as hmarkdo
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -36,6 +38,12 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--container_type", action="store", default="pandoc_only"
     )
+    parser.add_argument(
+        "--remove_md_toc",
+        action="store_true",
+        default=False,
+        help="Remove the markdown TOC block (<!-- toc --> ... <!-- tocstop -->) before converting",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -51,8 +59,16 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("cmd_opts: %s", cmd_opts)
     if not args.output:
         args.output = args.input
-    cmd = "pandoc {args.input} -o {args.output} {cmd_opts}"
-    hdocker.run_dockerized_pandoc(
+    # Optionally strip the markdown TOC block before converting.
+    input_file = args.input
+    if args.remove_md_toc:
+        txt = hio.from_file(input_file)
+        txt = hmarkdo.remove_table_of_contents(txt)
+        input_file = "tmp.dockerized_pandoc.no_toc.md"
+        hio.to_file(input_file, txt)
+        _LOG.info("TOC removed; preprocessed input written to '%s'", input_file)
+    cmd = f"pandoc {input_file} -o {args.output} {' '.join(cmd_opts)}"
+    hdocexec.run_dockerized_pandoc(
         cmd,
         args.container_type,
         force_rebuild=args.dockerized_force_rebuild,

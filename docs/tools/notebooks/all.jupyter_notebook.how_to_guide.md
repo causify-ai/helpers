@@ -131,7 +131,7 @@
   _LOG.info("%s", henv.get_system_signature()[0])
 
   # Configure the notebook style.
-  hprint.config_notebook()
+  hnotebook.config_notebook()
   ```
 
 - The output of the cell looks like:
@@ -519,7 +519,7 @@
 
 - We use Jupytext as standard part of our development flow
 - See
-  [`all.jupytext.how_to_guide.md`](/docs/work_tools/jupyter_notebooks/all.jupytext.how_to_guide.md)
+  [`all.jupytext.how_to_guide.md`](/docs/tools/notebooks/all.jupytext.how_to_guide.md)
 
 ### Gspread
 

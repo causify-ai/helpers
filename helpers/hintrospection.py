@@ -62,7 +62,7 @@ def get_function_name(count: int = 0) -> str:
     return func_name
 
 
-def get_name_from_function(func: callable) -> str:
+def get_name_from_function(func: Callable) -> str:
     """
     Return the name of the passed function.
 
@@ -71,6 +71,8 @@ def get_name_from_function(func: callable) -> str:
     func_name = func.__name__
     #
     module = inspect.getmodule(func)
+    hdbg.dassert_is_not(module, None, f"Could not get module for function {func}")
+    assert module is not None
     module_name = module.__name__
     # Remove `app.` if needed from the module name, e.g.,
     # `app.amp.helpers.test.test_hintrospection`.
@@ -100,7 +102,7 @@ def get_function_from_string(func_as_str: str) -> Callable:
     _ = imp
     python_code = f"imp.{function}"
     func: Callable = eval(python_code)
-    _LOG.debug("{txt} -> func=%s", func)
+    _LOG.debug("%s -> func=%s", func_as_str, func)
     return func
 
 
@@ -228,9 +230,7 @@ def get_size_in_bytes(obj: object, seen: Optional[set] = None) -> int:
         for cls in obj.__class__.__mro__:
             if "__dict__" in cls.__dict__:
                 d = cls.__dict__["__dict__"]
-                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(
-                    d
-                ):
+                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
                     size += get_size_in_bytes(obj.__dict__, seen)
                 break
     if isinstance(obj, dict):
@@ -241,11 +241,13 @@ def get_size_in_bytes(obj: object, seen: Optional[set] = None) -> int:
     ):
         size += sum((get_size_in_bytes(i, seen) for i in obj))
     if hasattr(obj, "__slots__"):  # can have __slots__ with __dict__
-        size += sum(
-            get_size_in_bytes(getattr(obj, s), seen)
-            for s in obj.__slots__
-            if hasattr(obj, s)
-        )
+        slots = getattr(obj, "__slots__", None)
+        if slots is not None:
+            size += sum(
+                get_size_in_bytes(getattr(obj, s), seen)
+                for s in slots
+                if hasattr(obj, s)
+            )
     return size
 
 

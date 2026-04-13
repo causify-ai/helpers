@@ -73,5 +73,5 @@ https://news.ycombinator.com/item?id=23209142
     for url in url_list:
         # title = get_page_title(url)
         title: str = get_title_streaming(url)
-        print("%s,%s" % (url, title))
+        print(f"{url},{title}")
         time.sleep(2)

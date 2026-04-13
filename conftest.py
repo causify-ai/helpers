@@ -88,7 +88,7 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
         _WARNING = "\033[33mWARNING\033[0m"
         try:
             print(henv.get_system_signature()[0])
-        except:
+        except Exception:
             print(f"\n{_WARNING}: Can't print system_signature")
         if config.getoption("--update_outcomes"):
             print(f"\n{_WARNING}: Updating test outcomes")
@@ -111,10 +111,11 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             if config.getoption("--dbg_verbosity", None):
                 level = config.getoption("--dbg_verbosity")
             elif config.getoption("--dbg", None):
-                level = logging.TRACE
+                # Use 5 as fallback TRACE level.
+                level = getattr(logging, "TRACE", 5)
             else:
                 raise ValueError("Can't get here")
-            print(f"\n{_WARNING}: Setting verbosity level to %s" % level)
+            print(f"\n{_WARNING}: Setting verbosity level to {level}")
             # When we specify the debug verbosity we monkey patch the command
             # line to add the '-s' option to pytest to not suppress the output.
             # NOTE: monkey patching sys.argv is often fragile.
@@ -124,6 +125,17 @@ if not hasattr(hut, "_CONFTEST_ALREADY_PARSED"):
             sys.argv.append("-o log_cli=true")
         # TODO(gp): redirect also the stderr to file.
         dbg.init_logger(level, in_pytest=True, log_filename="tmp.pytest.log")
+        # Force skipped tests to be executed when --runxfail is used.
+        if config.getoption("--runxfail"):
+            for item in items:
+                # Remove `skip` mark applied to unittest.TestCase methods
+                skip_mark = item.get_closest_marker("skip")
+                if skip_mark:
+                    # Remove the skip marker so pytest won't skip it
+                    item.own_markers = [
+                        mark for mark in item.iter_markers() if mark.name != "skip"
+                    ]
+
 
     def pytest_ignore_collect(
         collection_path: pathlib.Path, path: Any, config: Any

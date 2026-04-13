@@ -11,7 +11,7 @@ import json
 import logging
 import os
 import re
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from invoke import task
 
@@ -137,7 +137,6 @@ def release_dags_to_airflow(
 # ECS Task Definition
 # #############################################################################
 
-_AWS_PROFILE = "ck"
 _TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {
     "awslogs-create-group": "true",
     "awslogs-group": "/ecs/{}",
@@ -145,39 +144,64 @@ _TASK_DEFINITION_LOG_OPTIONS_TEMPLATE = {
     "awslogs-stream-prefix": "ecs",
 }
 _IMAGE_URL_TEMPLATE = "{}/{}:prod-xyz"
-_SHARED_CONFIGS_DIR = "s3://causify-shared-configs"
 
 
-def _get_ecs_task_definition_template() -> Dict[str, Any]:
+def _get_shared_configs_s3_bucket(environment: str) -> str:
+    """
+    Get the shared configs S3 bucket.
+
+    :param environment: environment to get the shared configs for
+    :return: shared configs S3 bucket
+    """
+    hdbg.dassert_in(environment, ["prod", "preprod", "test"])
+    bucket_name = hrecouti.get_repo_config().get_shared_configs_bucket_name(
+        environment
+    )
+    hdbg.dassert_is_not(
+        bucket_name,
+        None,
+        f"Shared configs bucket is not defined in `repo_config.yaml` for environment: {environment}",
+    )
+    return bucket_name
+
+
+def _get_ecs_task_definition_template(environment: str) -> Dict[str, Any]:
     """
     Get the ECS task definition template.
 
     :return: ECS task definition template
     """
-    # TODO(heanh): Read the path from repo config.
-    s3_path = f"{_SHARED_CONFIGS_DIR}/preprod/templates/ecs/ecs_task_definition_template.json"
+    s3_bucket = _get_shared_configs_s3_bucket(environment)
+    s3_path = f"{s3_bucket}/{environment}/templates/ecs/ecs_task_definition_template.json"
     hs3.dassert_is_s3_path(s3_path)
-    task_definition_config = hs3.from_file(s3_path, aws_profile=_AWS_PROFILE)
+    task_definition_config = hs3.from_file(
+        s3_path, aws_profile=haws.AWS_PROFILE[environment]
+    )
     task_definition_config = json.loads(task_definition_config)
     return task_definition_config
 
 
-def _get_efs_mount_config_template() -> Dict[str, Any]:
+def _get_efs_mount_config_template(environment: str) -> Dict[str, Any]:
     """
     Get the EFS mount config template.
 
     :return: EFS mount config template
     """
-    # TODO(heanh): Read the path from repo config.
-    s3_path = f"{_SHARED_CONFIGS_DIR}/preprod/templates/efs/efs_mount_config_template.json"
+    s3_bucket = _get_shared_configs_s3_bucket(environment)
+    s3_path = (
+        f"{s3_bucket}/{environment}/templates/efs/efs_mount_config_template.json"
+    )
     hs3.dassert_is_s3_path(s3_path)
-    efs_config = hs3.from_file(s3_path, aws_profile=_AWS_PROFILE)
+    efs_config = hs3.from_file(s3_path, aws_profile=haws.AWS_PROFILE[environment])
     efs_config = json.loads(efs_config)
     return efs_config
 
 
 def _set_task_definition_config(
-    task_definition_config: Dict, task_definition_name: str, region: str
+    task_definition_config: Dict,
+    task_definition_name: str,
+    region: str,
+    environment: str,
 ) -> Dict[str, Any]:
     """
     Update template of ECS task definition with concrete values.
@@ -196,12 +220,15 @@ def _set_task_definition_config(
         "name"
     ] = task_definition_name
     # Set placeholder image URL.
-    registry_url = hrecouti.get_repo_config().get_container_registry_url()
+    # Get the base registry URL in the base region.
+    base_registry_url = hrecouti.get_repo_config().get_container_registry_url()
+    # Build the region-specific ECR registry URL for the target region.
+    # ECR registry URL format: `{account_id}.dkr.ecr.{region}.amazonaws.com`.
+    account_id = base_registry_url.split(".")[0]
+    registry_url = f"{account_id}.dkr.ecr.{region}.amazonaws.com"
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
-    # TODO(heanh): Consider replicating the image to the ECR in the region
-    # where the task definition is created.
-    # We can use the image from ECR in the base region for now to avoid
-    # unnecessary image replications.
+    # Make sure that the ECR replication is configured for the target region,
+    # so images are available in any new regions.
     task_definition_config["containerDefinitions"][0]["image"] = (
         _IMAGE_URL_TEMPLATE.format(registry_url, image_name)
     )
@@ -214,12 +241,17 @@ def _set_task_definition_config(
     task_definition_config["containerDefinitions"][0]["logConfiguration"][
         "options"
     ] = log_config_opts
+    # Index is based on the order of the environment variables in the template.
+    # Set environment variable `CSFY_ECR_BASE_PATH`.
+    task_definition_config["containerDefinitions"][0]["environment"][0][
+        "value"
+    ] = registry_url
     # Set environment variable `CSFY_AWS_DEFAULT_REGION`.
     task_definition_config["containerDefinitions"][0]["environment"][1][
         "value"
     ] = region
     # Configure access to EFS.
-    efs_config = _get_efs_mount_config_template()
+    efs_config = _get_efs_mount_config_template(environment)
     task_definition_config["volumes"] = efs_config[region]["volumes"]
     task_definition_config["containerDefinitions"][0]["mountPoints"] = efs_config[
         region
@@ -227,7 +259,9 @@ def _set_task_definition_config(
     return task_definition_config
 
 
-def _register_task_definition(task_definition_name: str, region: str) -> None:
+def _register_task_definition(
+    task_definition_name: str, region: str, environment: str
+) -> None:
     """
     Register a new ECS task definition.
 
@@ -235,9 +269,10 @@ def _register_task_definition(task_definition_name: str, region: str) -> None:
     :param config_file: path to the JSON file containing the task
         definition configuration.
     :param region: region to create the task definition in
+    :param environment: environment to create the task definition in
     """
-    task_definition_config = _get_ecs_task_definition_template()
-    client = haws.get_ecs_client(_AWS_PROFILE, region=region)
+    task_definition_config = _get_ecs_task_definition_template(environment)
+    client = haws.get_ecs_client(haws.AWS_PROFILE[environment], region=region)
     # Prevent overwriting existing task definition if it exists.
     if haws.is_task_definition_exists(task_definition_name, region=region):
         _LOG.info(
@@ -248,7 +283,7 @@ def _register_task_definition(task_definition_name: str, region: str) -> None:
         return
     #
     task_definition_config = _set_task_definition_config(
-        task_definition_config, task_definition_name, region
+        task_definition_config, task_definition_name, region, environment
     )
     client.register_task_definition(
         family=task_definition_name,
@@ -275,7 +310,8 @@ def aws_update_ecs_task_definition(
     *,
     task_definition: str,
     image_tag: str,
-    region: str = hs3.AWS_EUROPE_REGION_1,
+    region: str,
+    environment: str,
 ) -> None:
     """
     Update an existing ECS task definition.
@@ -288,17 +324,19 @@ def aws_update_ecs_task_definition(
     """
     hdbg.dassert_in(region, hs3.AWS_REGIONS)
     old_image_url = haws.get_task_definition_image_url(
-        task_definition, region=region
+        task_definition, environment=environment, region=region
     )
     # Edit container version, e.g. cmamp:prod-12a45 - > cmamp:prod-12b46`.
     new_image_url = re.sub("prod-(.+)$", f"prod-{image_tag}", old_image_url)
-    haws.update_task_definition(task_definition, new_image_url, region=region)
+    haws.update_task_definition(
+        task_definition, new_image_url, region=region, environment=environment
+    )
 
 
 @task
 def aws_create_test_task_definition(
     ctx,
-    issue_id: int = None,
+    issue_id: Optional[int] = None,
     region: str = hs3.AWS_EUROPE_REGION_1,
 ) -> None:
     """
@@ -318,13 +356,36 @@ def aws_create_test_task_definition(
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-test-{issue_id}"
     # Register task definition.
-    _register_task_definition(task_definition_name, region=region)
+    _register_task_definition(
+        task_definition_name, region=region, environment="test"
+    )
+
+
+@task
+def aws_create_preprod_task_definition(
+    ctx,
+    region: str = hs3.AWS_EUROPE_REGION_1,
+) -> None:
+    """
+    Create a new ECS task definition for preprod environment.
+
+    :param region: region to create the task definition in
+    """
+    _ = ctx
+    hlitauti.report_task()
+    hdbg.dassert_in(region, hs3.AWS_REGIONS)
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    task_definition_name = f"{image_name}-preprod"
+    # Register task definition.
+    _register_task_definition(
+        task_definition_name, region=region, environment="preprod"
+    )
 
 
 @task
 def aws_create_prod_task_definition(
     ctx,
-    region: str = hs3.AWS_EUROPE_REGION_1,
+    region: str = hs3.AWS_US_REGION_1,
 ) -> None:
     """
     Create a new ECS task definition.
@@ -337,4 +398,6 @@ def aws_create_prod_task_definition(
     image_name = hrecouti.get_repo_config().get_docker_base_image_name()
     task_definition_name = f"{image_name}-prod"
     # Register task definition.
-    _register_task_definition(task_definition_name, region=region)
+    _register_task_definition(
+        task_definition_name, region=region, environment="prod"
+    )

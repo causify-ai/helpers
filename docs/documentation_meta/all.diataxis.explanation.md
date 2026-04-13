@@ -2,15 +2,15 @@
 
 <!-- toc -->
 
-- [Diataxis: a framework to write documentation](#diataxis-a-framework-to-write-documentation)
+- [Diataxis: a Framework to Write Documentation](#diataxis-a-framework-to-write-documentation)
 - [Tutorial](#tutorial)
-- [How-to guide](#how-to-guide)
+- [How-To Guide](#how-to-guide)
 - [Reference](#reference)
 - [Explanation](#explanation)
 
 <!-- tocstop -->
 
-## Diataxis: a framework to write documentation
+## Diataxis: a Framework to Write Documentation
 
 For more information look [https://diataxis.fr/](https://diataxis.fr/)
 
@@ -37,7 +37,7 @@ There are 4 modes of documentation
 - Example:
   [datapull/ck.create_airflow_dag.tutorial.md](https://github.com/cryptokaizen/cmamp/blob/master/docs/datapull/ck.create_airflow_dag.tutorial.md)
 
-## How-to guide
+## How-To Guide
 
 - Goal oriented
 - Is a guide to complete a real-world task

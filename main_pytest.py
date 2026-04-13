@@ -18,8 +18,29 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hparser as hparser
 import helpers.hpytest as hpytest
+import helpers.hserver as hserver
 
 _LOG = logging.getLogger(__name__)
+
+
+def _add_common_test_arguments(parser: argparse.ArgumentParser) -> None:
+    """
+    Add common arguments shared by all test commands.
+
+    :param parser: The parser to add arguments to
+    """
+    parser.add_argument(
+        "--dir",
+        action="store",
+        required=False,
+        type=str,
+        help="Name of runnable dir",
+    )
+    parser.add_argument(
+        "--remove-docker-images",
+        action="store_true",
+        help="Remove all Docker images after running tests (default in CI)",
+    )
 
 
 def _parse() -> argparse.ArgumentParser:
@@ -32,35 +53,17 @@ def _parse() -> argparse.ArgumentParser:
     run_fast_tests_parser = subparsers.add_parser(
         "run_fast_tests", help="Run fast tests"
     )
-    run_fast_tests_parser.add_argument(
-        "--dir",
-        action="store",
-        required=False,
-        type=str,
-        help="Name of runnable dir",
-    )
+    _add_common_test_arguments(run_fast_tests_parser)
     # Add command for running slow tests.
     run_slow_tests_parser = subparsers.add_parser(
         "run_slow_tests", help="Run slow tests"
     )
-    run_slow_tests_parser.add_argument(
-        "--dir",
-        action="store",
-        required=False,
-        type=str,
-        help="Name of runnable dir",
-    )
+    _add_common_test_arguments(run_slow_tests_parser)
     # Add command for running superslow tests.
     run_superslow_tests_parser = subparsers.add_parser(
         "run_superslow_tests", help="Run superslow tests"
     )
-    run_superslow_tests_parser.add_argument(
-        "--dir",
-        action="store",
-        required=False,
-        type=str,
-        help="Name of runnable dir",
-    )
+    _add_common_test_arguments(run_superslow_tests_parser)
     parser = hparser.add_verbosity_arg(parser)
     return parser
 
@@ -79,23 +82,27 @@ def _is_runnable_dir(runnable_dir: str) -> bool:
     changelog_path = os.path.join(runnable_dir, "changelog.txt")
     devops_path = os.path.join(runnable_dir, "devops")
     if not os.path.exists(changelog_path) or not os.path.isdir(devops_path):
-        _LOG.warning(f"{runnable_dir} is not a runnable directory")
+        _LOG.warning("%s is not a runnable directory", runnable_dir)
         return False
     return True
 
 
-def _run_test(runnable_dir: str, command: str) -> bool:
+def _run_test(
+    runnable_dir: str, command: str, remove_docker_images: bool = False
+) -> bool:
     """
     Run test in for specified runnable directory.
 
     :param runnable_dir: directory to run tests in
     :param command: command to run tests (e.g. run_fast_tests,
         run_slow_tests, run_superslow_tests)
+    :param remove_docker_images: whether to remove Docker images after
+        test
     :return: True if the tests were run successfully, False otherwise
     """
     is_runnable_dir = _is_runnable_dir(runnable_dir)
-    hdbg.dassert(is_runnable_dir, f"{runnable_dir} is not a runnable dir.")
-    _LOG.info(f"Running tests in {runnable_dir}")
+    hdbg.dassert(is_runnable_dir, "%s is not a runnable dir.", runnable_dir)
+    _LOG.info("Running tests in %s", runnable_dir)
     # Make sure the `invoke` command is referencing to the correct
     # devops and helpers directory.
     env = os.environ.copy()
@@ -107,29 +114,43 @@ def _run_test(runnable_dir: str, command: str) -> bool:
     # TODO(heanh): Use hsystem.
     # We cannot use `hsystem.system` because it does not support passing of env
     # variables yet.
-    result = subprocess.run(
+    test_run_result = subprocess.run(
         f"invoke {command}", shell=True, env=env, cwd=runnable_dir
     )
+    # Clean up the Docker image used in the test run if requested.
+    if remove_docker_images:
+        _LOG.info("Cleaning up Docker image")
+        # Delete the Docker image (disk space reporting is now handled by the task itself).
+        _ = subprocess.run(
+            f"invoke docker_remove_image", shell=True, env=env, cwd=runnable_dir
+        )
+        # Prune the Docker images to free up disk space.
+        _ = subprocess.run(
+            f"docker system prune -a -f", shell=True, env=env, cwd=runnable_dir
+        )
     # pytest returns:
     # - 0 if all tests passed
     # - 5 if no tests are collected
-    if result.returncode in [0, 5]:
+    if test_run_result.returncode in [0, 5]:
         return True
     return False
 
 
-def _run_tests(runnable_dirs: List[str], command: str) -> bool:
+def _run_tests(
+    runnable_dirs: List[str], command: str, remove_docker_images: bool = False
+) -> bool:
     """
     Run tests for all runnable directories.
 
     :param runnable_dirs: list of runnable directories
     :param command: command to run tests (e.g. `run_fast_tests`,
         `run_slow_tests`, `run_superslow_tests`)
+    :param remove_docker_images: whether to remove Docker images after each test
     :return: True if all tests for all runnable directories passed, False otherwise
     """
     results = []
     for runnable_dir in runnable_dirs:
-        res = _run_test(runnable_dir, command)
+        res = _run_test(runnable_dir, command, remove_docker_images)
         results.append(res)
     return all(results)
 
@@ -156,6 +177,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     command = args.command
     runnable_dir = args.dir
+    remove_docker_images_flag = getattr(args, "remove_docker_images", False)
+    if remove_docker_images_flag:
+        # Flag explicitly specified - always remove.
+        remove_docker_images = True
+        _LOG.info("Docker image cleanup enabled (explicitly requested)")
+    elif hserver.is_inside_ci():
+        # In CI - remove by default.
+        remove_docker_images = True
+        _LOG.info("Docker image cleanup enabled (running in CI)")
+    else:
+        # Not in CI and flag not specified - don't remove.
+        remove_docker_images = False
+        _LOG.info(
+            "Docker image cleanup disabled (not in CI, use --remove-docker-images to force)"
+        )
     all_tests_passed = False
     try:
         if runnable_dir:
@@ -167,15 +203,21 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Run tests.
         if command == "run_fast_tests":
             all_tests_passed = _run_tests(
-                runnable_dirs=runnable_dirs, command=command
+                runnable_dirs=runnable_dirs,
+                command=command,
+                remove_docker_images=remove_docker_images,
             )
         elif command == "run_slow_tests":
             all_tests_passed = _run_tests(
-                runnable_dirs=runnable_dirs, command=command
+                runnable_dirs=runnable_dirs,
+                command=command,
+                remove_docker_images=remove_docker_images,
             )
         elif command == "run_superslow_tests":
             all_tests_passed = _run_tests(
-                runnable_dirs=runnable_dirs, command=command
+                runnable_dirs=runnable_dirs,
+                command=command,
+                remove_docker_images=remove_docker_images,
             )
         else:
             _LOG.error("Invalid command.")
@@ -184,7 +226,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Combine the junit xml files into a single file.
         combined_junit_xml = junitparser.JUnitXml()
         for junit_xml_file in junit_xml_files:
-            _LOG.debug(f"Processing {junit_xml_file}.")
+            _LOG.debug("Processing %s.", junit_xml_file)
             junit_xml = junitparser.JUnitXml.fromfile(junit_xml_file)
             combined_junit_xml += junit_xml
         combined_junit_xml_file = "tmp.combined_junit.xml"
@@ -194,7 +236,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         reporter.parse()
         reporter.print_summary()
     except Exception as e:
-        _LOG.error(f"Error: {e}")
+        _LOG.error("Error: %s", e)
         sys.exit(1)
     finally:
         if not all_tests_passed:

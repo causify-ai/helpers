@@ -8,31 +8,31 @@ class Test_check_notebook_dir(hunitest.TestCase):
         The notebook is not under 'notebooks': invalid.
         """
         file_name = "hello/world/notebook.ipynb"
-        exp = (
+        expected = (
             "hello/world/notebook.ipynb:1: "
             "each notebook should be under a 'notebooks' directory to not confuse pytest"
         )
-        self._helper_check_notebook_dir(file_name, exp)
+        self._helper_check_notebook_dir(file_name, expected)
 
     def test_check_notebook_dir2(self) -> None:
         """
         The notebook is under 'notebooks': valid.
         """
         file_name = "hello/world/notebooks/notebook.ipynb"
-        exp = ""
-        self._helper_check_notebook_dir(file_name, exp)
+        expected = ""
+        self._helper_check_notebook_dir(file_name, expected)
 
     def test_check_notebook_dir3(self) -> None:
         """
         It's not a notebook: valid.
         """
         file_name = "hello/world/notebook.py"
-        exp = ""
-        self._helper_check_notebook_dir(file_name, exp)
+        expected = ""
+        self._helper_check_notebook_dir(file_name, expected)
 
-    def _helper_check_notebook_dir(self, file_name: str, exp: str) -> None:
+    def _helper_check_notebook_dir(self, file_name: str, expected: str) -> None:
         msg = lamchfil._check_notebook_dir(file_name)
-        self.assert_equal(msg, exp)
+        self.assert_equal(msg, expected)
 
 
 class Test_check_test_file_dir(hunitest.TestCase):
@@ -41,42 +41,42 @@ class Test_check_test_file_dir(hunitest.TestCase):
         Test is under `test`: valid.
         """
         file_name = "hello/world/test/test_all.py"
-        exp = ""
-        self._helper_check_test_file_dir(file_name, exp)
+        expected = ""
+        self._helper_check_test_file_dir(file_name, expected)
 
     def test_check_test_file_dir2(self) -> None:
         """
         Test is not under `test`: invalid.
         """
         file_name = "hello/world/test_all.py"
-        exp = (
+        expected = (
             "hello/world/test_all.py:1: "
             "test files should be under 'test' directory to be discovered by pytest"
         )
-        self._helper_check_test_file_dir(file_name, exp)
+        self._helper_check_test_file_dir(file_name, expected)
 
     def test_check_test_file_dir3(self) -> None:
         """
         Test is not under `test`: invalid.
         """
         file_name = "hello/world/tests/test_all.py"
-        exp = (
+        expected = (
             "hello/world/tests/test_all.py:1: "
             "test files should be under 'test' directory to be discovered by pytest"
         )
-        self._helper_check_test_file_dir(file_name, exp)
+        self._helper_check_test_file_dir(file_name, expected)
 
     def test_check_test_file_dir4(self) -> None:
         """
         It's a notebook: valid.
         """
         file_name = "hello/world/tests/test_all.ipynb"
-        exp = ""
-        self._helper_check_test_file_dir(file_name, exp)
+        expected = ""
+        self._helper_check_test_file_dir(file_name, expected)
 
-    def _helper_check_test_file_dir(self, file_name: str, exp: str) -> None:
+    def _helper_check_test_file_dir(self, file_name: str, expected: str) -> None:
         msg = lamchfil._check_test_file_dir(file_name)
-        self.assert_equal(msg, exp)
+        self.assert_equal(msg, expected)
 
 
 class Test_check_notebook_filename(hunitest.TestCase):
@@ -118,12 +118,12 @@ class Test_check_notebook_filename(hunitest.TestCase):
         - When function runs
         - Then a warning message is returned"""
         file_name = "linter/notebook.ipynb"
-        exp = (
+        expected = (
             f"{file_name}:1: "
             r"All notebook filenames start with `Master_` or match: `\S+Task\d+_...`"
         )
         actual = lamchfil._check_notebook_filename(file_name)
-        self.assertEqual(exp, actual)
+        self.assertEqual(expected, actual)
 
     def test5(self) -> None:
         r"""Check filename rules
@@ -133,12 +133,12 @@ class Test_check_notebook_filename(hunitest.TestCase):
         - When function runs
         - Then a warning message is returned"""
         file_name = "linter/Task400.ipynb"
-        exp = (
+        expected = (
             f"{file_name}:1: "
             r"All notebook filenames start with `Master_` or match: `\S+Task\d+_...`"
         )
         actual = lamchfil._check_notebook_filename(file_name)
-        self.assertEqual(exp, actual)
+        self.assertEqual(expected, actual)
 
     def test6(self) -> None:
         r"""Check filename rules
@@ -148,9 +148,9 @@ class Test_check_notebook_filename(hunitest.TestCase):
         - When function runs
         - Then a warning message is returned"""
         file_name = "linter/MegaTask200.ipynb"
-        exp = (
+        expected = (
             f"{file_name}:1: "
             r"All notebook filenames start with `Master_` or match: `\S+Task\d+_...`"
         )
         actual = lamchfil._check_notebook_filename(file_name)
-        self.assertEqual(exp, actual)
+        self.assertEqual(expected, actual)

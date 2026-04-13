@@ -1,5 +1,3 @@
-# Writing Docs
-
 <!-- toc -->
 
 - [Conventions](#conventions)
@@ -32,13 +30,57 @@
 
 <!-- tocstop -->
 
+# Writing Docs
+
+## Summary
+- This document describes how to write markdown for:
+  - Internal documentation
+  - Blog entries
+  - Tutorials
+
+- This document is geared towards humans, while the style guide 
+  [`//helpers/docs/code_guidelines/all.coding_style_guidelines.reference.md`]
+  is for non-human users (e.g., `linter` and `ai_review.py`)
+
+## Meta
+- Each of the suggestions below should be a level 3 heading so that it's easy to
+  point to it with a link
+
 ## Conventions
+
+### Layout Rules
+
+- Visual Structure
+  - Use clear headings
+  - Use nested bullets for hierarchy
+    - 1 idea per bullet
+  - Separate sections logically
+
+- Clarity
+  - Use simple language
+  - Define terms immediately
+  - Avoid ambiguous phrasing
+
+- Headings
+  - Use `#` for main topics
+  - Use `##` for subtopics
+  - Keep headings short and descriptive
+
+- Bullets
+  - `-` for main bullets
+  - Indent for sub-bullets
+  - Each bullet = 1 idea
+
+- Diagrams
+  - Use diagrams instead of wordy explanations
+  - Use `mermaid`, `graphviz`, or `tikz` fenced code blocks
+  - Prefer flowcharts, sequence diagrams, or graphs
 
 ### Make no assumptions on the user's knowledge
 
 - Nothing is obvious to somebody who doesn't know
 
-### Verify that things worked
+### Hold user's hand
 
 - Add ways to verify if a described process worked
   - E.g., "do this and that, if this and that is correct should see this"
@@ -47,63 +89,76 @@
 
 ### Always use Linter
 
-- Most cosmetic things described further can be taken care of automatically by
-  our Linter, so make sure to run it after implementing the changes
-- Run with `i lint --files="your_file_name"`
-- Do not mix manual edits and Linter runs. Best practice is to run Linter and
-  commit the changes it made as a separate commit
-- If Linter messes up the text, file an issue with examples of what it does
-  incorrectly
+- Most cosmetic suggestions are handled by our Linter
+  - Run it after changes
+  - Use `i lint --files="your_file_name"`
 
-### Add a table of contents
+- Avoid mixing manual edits and Linter runs
+  - Run Linter and commit changes separately
 
-- Unfortunately both markdown and GitHub don't support automatically generating
-  a TOC for a document
-- To generate a table of contents, run Linter on the Markdown file, which will
-  build the TOC automatically and place it at the top of the file
+- Add a table of contents
+  - Markdown doesn't auto-generate TOC
+  - Run Linter to build TOC and place it at the top
 
-## Add one level 1 heading
+- If Linter errors occur, file an issue with examples
 
-- Make sure the headings structure contains exactly one level 1 heading
-  (`# This one`)
-  - This is important for displaying MkDocs documentation correctly via browser
+### Format of each doc
 
-## Use 80 columns formatting for md files
+- There should be only one level 1 header with the title of the document
+  - The title is used by `mkdocs`
+- There should be a summary with a short summary in bullets of the document
 
-- Our Linter takes care of reflowing the text
-- Vim has a `:gq` command to reflow the comments
+- Good:
+  ```text
+  <!-- toc -->
+  <!-- tocstop -->
+
+  # <Title>
+
+  ## Summary
+  - This document contains ...
+
+  ## Resources
+
+  ## Last review
+  - GP on 2024-04-20
+  - Paul on 2024-03-10
+  ```
+
+### Use 80 columns formatting for markdown files
+
+- The `linter` takes care of reflowing the text
+- `vim` has a `:gq` command to reflow the comments
 - There are plugins for PyCharm and VisualStudio
 
 ### Use good vs bad
 
 - Make examples of "good" ways of doing something and contrast them with "bad"
-  ways
+  ways using the following format, e.g.,
 
-  **_Good_**
+  ````
+  - Good:
+    ```markdown
+    ...
+    ```
 
-  ```markdown
-  ...
-  ```
-
-  **_Bad_**
-
-  ```markdown
-  ...
-  ```
+  - Bad:
+    ```markdown
+    ...
+    ```
+  ````
 
 ### Use an empty line after heading
 
 - Leave an empty line after a heading to make it more visible, e.g.,
 
-  **Good**
-
+  - Good
   ```markdown
   # Very important title
   - Less important text
   ```
 
-  **Bad**
-
+  - Bad
   ```markdown
   # Coming through! I've big important things to do!
   - ... and his big important wheels got STUCK!
@@ -113,9 +168,9 @@
 
 ### Bullet lists
 
-- We like using bullet list since they represent the thought process, force
-  people to focus on short sentences (instead of rambling wall-of-text), and
-  relation between sentences
+- Use bullet lists since they represent the thought process, force people to
+  focus on short sentences (instead of rambling wall-of-text), and relation
+  between sentences
 - E.g.,
   ```markdown
   - This is thought #1
@@ -124,7 +179,7 @@
     - Well, that was cool!
     - But this is even better
   ```
-- We use `-` instead of `*` or circles
+- Use `-` instead of `*` or circles
 - Linter automatically enforces this
 
 ### Use the right syntax highlighting
@@ -161,11 +216,11 @@
 
 - Avoid to use screenshots whenever possible and use copy-paste of text with the
   right highlighting
-- However, sometimes we need to use screenshots (e.g., plots, website interface)
+- Sometimes you need to use screenshots (e.g., plots, website interface)
 
 ### Improve your written English
 
-- Use English spell-checker, but unfortunately this is not enough
+- Use English spell-checker
 - Type somewhere where you can use several choices:
   - [Grammarly](https://www.grammarly.com/)
   - ChatGPT
@@ -180,17 +235,20 @@
 
 - You can:
   - Check in the code in a branch and use GitHub to render it
-  - Use Pycharm to edit, which also renders it side-by-side
+  - Use IDEs to edit, which also renders it side-by-side
 
-### Do not overcapitalize headings
+### Capitalize headings
 
-- Paragraph titles should be like `Data schema` not `Data Schema`
+- Headings titles should be like `Data Schema` not `Data schema`
+  - This is automatically enforced by the `linter`
 
 ### Update the `Last review` tag
 
 - When you read/refresh a file update the last line of the text
   ```verbatim
-  Last review: GP on 2024-04-20, Paul on 2024-03-10
+  ## Last review
+    - GP on 2024-04-20
+    - Paul on 2024-03-10
   ```
 
 ### Comment the code structure
@@ -237,17 +295,8 @@
 - Active voice is shorter than passive voice
 - Readers convert passive voice to active voice
 
-**Good**
-
-- You can change these configuration by ...
-
-**Bad**
-
-- These configurations can be changed by ...
-
-### Use simple short sentences
-
-- Use Grammarly/ChatGPT
+- Good: "You can change these configuration by ..."
+- Bad: "These configurations can be changed by ..."
 
 ### Format for easy reading
 
@@ -258,24 +307,19 @@
 
 - Use tables and diagrams, together with text, whenever possible
 
-### Mind your spelling
-
-- Always, always, always spell check for typos and grammar check
-- Use Grammarly/ChatGPT
-
 ### Be efficient
 
 - Nobody wants to read meandering paragraphs in documentation
 - Engineers want to get technical information as efficiently as possible
 - Do not add "fluff"
 - Do not explain things in a repetitive way
+- Focus on how we do, why we do, rather than writing AI-generated essays
 
-### Do not add fluff
+### Do not add redundancy
 
 - Always point to documentation on the web instead of summarizing it
 - If you want to summarize some doc (e.g., so that people don't have to read too
   much), add it to a different document instead of mixing with our documentation
-- Focus on how we do, why we do, rather than writing AI-generated essays
 
 ## Resources
 
@@ -283,3 +327,6 @@
 - [Markdown cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 - [Google guide to Markdown](https://github.com/google/styleguide/blob/gh-pages/docguide/style.md)
   - TODO(gp): Make sure it's compatible with our Linter
+
+## Last review
+- GP on 2025-07-15

@@ -1,10 +1,4 @@
 #!/usr/bin/env python
-"""
-Import as:
-
-import dev_scripts_helpers.old.linter.process_jupytext as dsolprju
-"""
-
 # pylint: disable=line-too-long
 r"""
 Automate some common workflows with jupytext.
@@ -20,6 +14,10 @@ Automate some common workflows with jupytext.
 
 # Sync
 > process_jupytext.py -f im.kibot/data_exploratory_analysis.ipynb --action sync
+
+Import as:
+
+import dev_scripts_helpers.old.linter.process_jupytext as dsolprju
 """
 # pylint: enable=line-too-long
 
@@ -46,10 +44,7 @@ def _pair(file_name: str) -> None:
     if lin.is_paired_jupytext_file(file_name):
         _LOG.warning("The file '%s' seems already paired", file_name)
     # It is a ipynb and it is unpaired: create the python file.
-    msg = (
-        "There was no paired notebook for '%s': created and added to git"
-        % file_name
-    )
+    msg = f"There was no paired notebook for '{file_name}': created and added to git"
     _LOG.warning(msg)
     # Convert a notebook into jupytext.
     cmd = []
@@ -60,21 +55,21 @@ def _pair(file_name: str) -> None:
     cmd = " ".join(cmd)
     hsystem.system(cmd)
     # Test the ipynb -> py:percent -> ipynb round trip conversion.
-    cmd = _EXECUTABLE + " --test --stop --to py:percent %s" % file_name
+    cmd = _EXECUTABLE + f" --test --stop --to py:percent {file_name}"
     hsystem.system(cmd)
     # Add the .py file.
-    cmd = _EXECUTABLE + " --to py:percent %s" % file_name
+    cmd = _EXECUTABLE + f" --to py:percent {file_name}"
     hsystem.system(cmd)
     # Add to git.
     py_file_name = lin.from_ipynb_to_python_file(file_name)
-    cmd = "git add %s" % py_file_name
+    cmd = f"git add {py_file_name}"
     hsystem.system(cmd)
 
 
 def _sync(file_name: str) -> None:
     if lin.is_paired_jupytext_file(file_name):
         # cmd = _EXECUTABLE + " --sync --update --to py:percent %s" % file_name
-        cmd = _EXECUTABLE + " --sync --to py:percent %s" % file_name
+        cmd = _EXECUTABLE + f" --sync --to py:percent {file_name}"
         hsystem.system(cmd)
     else:
         _LOG.warning("The file '%s' is not paired: run --pair", file_name)
@@ -122,8 +117,8 @@ def _test(file_name: str, action: str) -> None:
     elif action == "test_strict":
         opts = "--test-strict"
     else:
-        raise ValueError("Invalid action='%s'" % action)
-    cmd = [_EXECUTABLE, opts, "--stop --to py:percent %s" % file_name]
+        raise ValueError(f"Invalid action='{action}'")
+    cmd = [_EXECUTABLE, opts, f"--stop --to py:percent {file_name}"]
     cmd = " ".join(cmd)
     rc, txt = hsystem.system_to_string(cmd, abort_on_error=False)
     if rc != 0:
@@ -175,7 +170,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     elif args.action in ("test", "test_strict"):
         _test(file_name, args.action)
     else:
-        raise ValueError("Invalid action '%s'" % args.action)
+        raise ValueError(f"Invalid action '{args.action}'")
 
 
 if __name__ == "__main__":

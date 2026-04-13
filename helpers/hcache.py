@@ -22,13 +22,14 @@ import helpers.hdatetime as hdateti
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hintrospection as hintros
+import helpers.hlogging as hlogging
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hs3 as hs3
 import helpers.hsystem as hsystem
 import helpers.htimer as htimer
 
-_LOG = logging.getLogger(__name__)
+_LOG = hlogging.getLogger(__name__)
 # Enable extra verbose debugging. Do not commit.
 _TRACE = False
 
@@ -162,7 +163,7 @@ def _get_global_cache_path(cache_type: str, tag: Optional[str] = None) -> str:
     elif cache_type == "disk":
         root_path = hgit.get_client_root(super_module=True)
     else:
-        raise ValueError("Invalid cache type '%s'" % cache_type)
+        raise ValueError(f"Invalid cache type '{cache_type}'")
     # Compute path.
     file_name = os.path.join(root_path, cache_name)
     file_name = os.path.abspath(file_name)
@@ -181,7 +182,10 @@ def _get_cache_size(path: str, description: str) -> str:
     else:
         if os.path.exists(path):
             size_in_bytes = hsystem.du(path)
-            size_as_str = hintros.format_size(size_in_bytes)
+            if isinstance(size_in_bytes, str):
+                size_as_str = size_in_bytes
+            else:
+                size_as_str = hintros.format_size(size_in_bytes)
         else:
             size_as_str = "nan"
         # TODO(gp): Compute number of files.
@@ -244,6 +248,8 @@ def get_global_cache(
             if _DISK_CACHE is None:
                 _DISK_CACHE = _create_global_cache_backend(cache_type)
             global_cache = _DISK_CACHE
+        else:
+            raise ValueError(f"Invalid cache type '{cache_type}'")
     else:
         # Build a one-off cache using tag.
         global_cache = _create_global_cache_backend(cache_type, tag)

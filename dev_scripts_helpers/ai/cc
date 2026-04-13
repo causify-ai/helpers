@@ -1,0 +1,22 @@
+#!/bin/bash -e
+# """
+# Start Claude Code CLI in interactive mode.
+# - Renames the tmux pane to "*CC*" while running and restores the original
+#   name on exit (when inside a tmux session).
+# - Runs with --dangerously-skip-permissions flag.
+# - Passes all arguments to the claude command.
+# - Usage: cc [claude_options]
+# """
+
+# Rename tmux pane to CC if inside tmux, and restore on exit.
+if [ -n "$TMUX" ]; then
+    OLD_PANE_TITLE=$(tmux display-message -p '#W')
+    #echo "OLD_PANE_TITLE="$OLD_PANE_TITLE
+    tmux rename-window "*CC*"
+fi
+
+claude --dangerously-skip-permissions $*
+
+if [ -n "$TMUX" ]; then
+    tmux rename-window $OLD_PANE_TITLE
+fi

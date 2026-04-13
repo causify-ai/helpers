@@ -11,11 +11,12 @@ import sys
 import time
 from typing import Dict, List, Optional
 
+import helpers.hdbg as hdbg
 import helpers.henv as henv
 import helpers.hio as hio
 
-henv.install_module_if_not_present("openai")
-import openai
+#henv.install_module_if_not_present("openai")
+import openai  # noqa: E402
 
 _LOG = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ def create_assistant(
     model: str = "gpt-3.5-turbo-1106",
     use_retrieval: bool = True,
     use_code_interpreter: bool = True,
-    use_function: Dict = None,
+    use_function: Optional[Dict] = None,
 ) -> str:
     """
     Create an OpenAI Assistant for your OpenAI Organization. All configs can
@@ -153,6 +154,11 @@ def get_assistant_id_by_name(assistant_name) -> str:
     for cur_assistant in assistants:
         if cur_assistant.name == assistant_name:
             assistant = cur_assistant
+            break
+    hdbg.dassert_is_not(
+        assistant, None, f"Assistant '{assistant_name}' not found"
+    )
+    assert assistant is not None
     return assistant.id
 
 
@@ -169,6 +175,7 @@ def _path_to_dict(path: str) -> Dict:
         tree = {d: _path_to_dict(os.path.join(root, d)) for d in dirs}
         tree.update({f: {"name": f} for f in files})
         return tree
+    return {}
 
 
 # TODO(Henry): We use fileIO here to store the directory structure, which may
@@ -261,7 +268,7 @@ def _upload_to_gpt_no_set_id(path_from_root: str) -> str:
 
     This method will NOT set File ID to cache.
     """
-    _LOG.info(f"Uploading file {path_from_root} to chatgpt.")
+    _LOG.info("Uploading file %s to chatgpt", path_from_root)
     upload_file_response = client.files.create(
         # Must use 'rb' regardless of file type.
         file=open(os.path.join(prefix_to_root, path_from_root), "rb"),
@@ -475,7 +482,7 @@ def wait_for_run_result(thread_id: str, run_id: str, timeout: int = 180) -> List
     finished = False
     _LOG.info("Waiting for chatgpt response...")
     for i in range(math.ceil(timeout / 5)):
-        _LOG.info(f"{i * 5}/{timeout} seconds before timeout.")
+        _LOG.info("%s/%s seconds before timeout", i * 5, timeout)
         time.sleep(5)
         run = client.beta.threads.runs.retrieve(
             thread_id=thread_id, run_id=run_id
@@ -527,9 +534,7 @@ def e2e_assistant_runner(
         thread_id, user_input, input_file_names
     )
     if model:
-        run_id = run_thread_on_assistant_by_name(
-            assistant_name, thread_id, model
-        )
+        run_id = run_thread_on_assistant_by_name(assistant_name, thread_id, model)
     else:
         run_id = run_thread_on_assistant_by_name(assistant_name, thread_id)
     messages = wait_for_run_result(thread_id, run_id)

@@ -17,6 +17,23 @@ import pyarrow as pa
 import pyarrow.dataset as ds
 import pyarrow.fs as pafs
 import pyarrow.parquet as pq
+
+# Check if S3FileSystem is available in `pyarrow.fs`.
+if hasattr(pafs, "S3FileSystem"):
+    S3FileSystemAvailable = True
+    PyArrowS3FileSystem = pafs.S3FileSystem
+else:
+    S3FileSystemAvailable = False
+
+    # Define a dummy class for type hints when S3FileSystem is not available.
+    class PyArrowS3FileSystem:
+
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                "S3FileSystem is not available in this version of pyarrow.fs"
+            )
+
+
 from tqdm.autonotebook import tqdm
 
 import helpers.hdataframe as hdatafr
@@ -30,6 +47,11 @@ import helpers.hserver as hserver
 import helpers.htimer as htimer
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# ParquetDataFrameGenerator
+# #############################################################################
 
 
 class ParquetDataFrameGenerator:
@@ -119,9 +141,7 @@ class ParquetDataFrameGenerator:
                 index=self._dataframe_index,
             )
             _LOG.debug(
-                hpandas.df_to_str(
-                    asset_df, print_shape_info=True, tag="asset_df"
-                )
+                hpandas.df_to_str(asset_df, print_shape_info=True, tag="asset_df")
             )
             df.append(asset_df)
         return df
@@ -233,7 +253,7 @@ def generate_parquet_files(
     freq: str = "1H",
     output_type: str = "basic",
     partition_mode: str = "by_date",
-    custom_partition_cols: str = None,
+    custom_partition_cols: Optional[str] = None,
     reset_index: bool = False,
 ) -> None:
     """
@@ -281,22 +301,27 @@ def generate_parquet_files(
     to_partitioned_parquet(df, partition_cols, dst_dir)
 
 
-def get_pyarrow_s3fs(*args: Any, **kwargs: Any) -> pafs.S3FileSystem:
+def get_pyarrow_s3fs(*args: Any, **kwargs: Any) -> PyArrowS3FileSystem:
     """
     Return an Pyarrow S3Fs object from a given AWS profile.
 
     Same as `hs3.get_s3fs`, used specifically for accessing Parquet
     datasets.
     """
+    # Check if S3FileSystem is available
+    hdbg.dassert(
+        S3FileSystemAvailable,
+        "S3FileSystem is not available in this version of pyarrow.fs",
+    )
     # When deploying jobs via ECS the container obtains credentials based on passed
     #  task role specified in the ECS task-definition, refer to:
     #  https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
     if hserver.is_inside_ecs_container():
         _LOG.info("Fetching credentials from task IAM role")
-        s3fs_ = pafs.S3FileSystem()
+        s3fs_ = PyArrowS3FileSystem()
     else:
         aws_credentials = hs3.get_aws_credentials(*args, **kwargs)
-        s3fs_ = pafs.S3FileSystem(
+        s3fs_ = PyArrowS3FileSystem(
             access_key=aws_credentials["aws_access_key_id"],
             secret_key=aws_credentials["aws_secret_access_key"],
             session_token=aws_credentials["aws_session_token"],
@@ -380,6 +405,11 @@ def from_parquet(
     ) as ts:
         if n_rows:
             # Get the latest parquet file in the directory.
+            hdbg.dassert_isinstance(
+                aws_profile,
+                str,
+                "aws_profile must be a string for S3 operations",
+            )
             last_pq_file = hs3.get_latest_pq_in_s3_dir(file_name, aws_profile)
             file = s3_filesystem.open(last_pq_file, "rb")
             # Load the data.
@@ -542,7 +572,7 @@ def to_parquet(
 
 def _yield_parquet_tile(
     file_name: str,
-    columns: List[str],
+    columns: Optional[List[str]],
     filters: List[Any],
     asset_id_col: str,
 ) -> Iterator[pd.DataFrame]:
@@ -972,6 +1002,7 @@ def get_parquet_filters_from_timestamp_interval(
             # the years (i.e., `year > 2020`).
             operator = ">" if start_timestamp else "<"
             timestamp = start_timestamp if start_timestamp else end_timestamp
+            hdbg.dassert_is_not(timestamp, None, "timestamp should not be None")
             extra_filter = [("year", operator, timestamp.year)]
             or_and_filter.append(extra_filter)
         else:
@@ -988,6 +1019,11 @@ def get_parquet_filters_from_timestamp_interval(
         # Include last week in the interval.
         end_timestamp += pd.DateOffset(weeks=1)
         # Get all weeks in the interval.
+        hdbg.dassert_is_not(
+            start_timestamp,
+            None,
+            "start_timestamp should not be None for by_year_week partition mode",
+        )
         dates = pd.date_range(
             start_timestamp.date(), end_timestamp.date(), freq="W"
         )
@@ -1073,6 +1109,7 @@ def to_partitioned_parquet(
     dst_dir: str,
     *,
     aws_profile: hs3.AwsProfile = None,
+    basename_template: str = None,
 ) -> None:
     """
     Save the given dataframe as Parquet file partitioned along the given
@@ -1138,6 +1175,7 @@ def to_partitioned_parquet(
             dst_dir,
             partition_cols=partition_columns,
             filesystem=filesystem,
+            basename_template=basename_template,
         )
 
 
@@ -1193,7 +1231,7 @@ def list_and_merge_pq_files(
         parquet_files = glob.glob(f"{root_dir}/**/*.parquet", recursive=True)
     _LOG.debug("Parquet files: '%s'", parquet_files)
     # Get paths only to the lowest level of dataset folders.
-    dataset_folders = set(f.rsplit("/", 1)[0] for f in parquet_files)
+    dataset_folders = {f.rsplit("/", 1)[0] for f in parquet_files}
     for folder in dataset_folders:
         # Get files per folder and merge if there are multiple ones.
         if filesystem:

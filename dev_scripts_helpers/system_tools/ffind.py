@@ -8,6 +8,9 @@
 # Look for files / dirs with name containing "stocktwits" in "this_dir"
 > ffind.py stocktwits this_dir
 
+# Look for files with name containing "stocktwits" in "this_dir" with ".py" extension
+> ffind.py stocktwits this_dir .py
+
 # Look only for files.
 > ffind.py stocktwits --only_files
 
@@ -40,7 +43,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "positional",
         nargs="*",
-        help="First param is regex, optional second param is dirname",
+        help="First param is regex, optional second param is dirname, optional third param is file extension (e.g., .py)",
     )
     parser.add_argument("--only_files", action="store_true", help="Only files")
     parser.add_argument("--log", action="store_true", help="Report logging")
@@ -57,16 +60,19 @@ def _main(parser: argparse.ArgumentParser) -> None:
     if len(positional) < 1:
         print("Error: not enough parameters")
         _print_help(parser)
-    if len(positional) > 2:
+    if len(positional) > 3:
         print("Error: too many parameters")
         _print_help(parser)
-    # Parse.
-    if len(positional) == 2:
-        dir_name = positional[1]
-    else:
-        dir_name = "."
+    # Parse positional arguments: pattern [dir [extension]].
+    pattern = positional[0]
+    dir_name = positional[1] if len(positional) >= 2 else "."
+    extension = positional[2] if len(positional) >= 3 else None
     hdbg.dassert_path_exists(dir_name)
-    name = "*" + positional[0].rstrip("").lstrip("") + "*"
+    name = "*" + pattern.rstrip("").lstrip("") + "*"
+    # Append extension filter if provided (e.g., ".py" or "py").
+    if extension is not None:
+        ext = extension.lstrip(".")
+        name = f"{name}.{ext}"
     #
     cmd = []
     cmd.append(f"find {dir_name}")
@@ -76,7 +82,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if args.only_files:
         cmd.append("-type f")
-    cmd.append('-iname "%s"' % name)
+    cmd.append(f'-iname "{name}"')
     # Guarantee that only non-pruned files are printed.
     cmd.append("-print")
     cmd.append("| grep -v __pycache__")

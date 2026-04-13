@@ -1,17 +1,16 @@
 import logging
 import os
 import unittest.mock as umock
-from typing import Any, List, Tuple
+from typing import List, Optional, Tuple
 
-import pytest
-
+import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
-import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_purification as huntepur
 
 _LOG = logging.getLogger(__name__)
 
@@ -22,6 +21,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_replace_shared_root_path1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test replacing shared root path.
@@ -83,6 +83,7 @@ class Test_replace_shared_root_path1(hunitest.TestCase):
 
 
 class Test_convert_to_docker_path1(hunitest.TestCase):
+
     @staticmethod
     def convert_caller_to_callee_docker_path(
         in_file_path: str,
@@ -200,567 +201,371 @@ class Test_convert_to_docker_path1(hunitest.TestCase):
         )
 
 
-def _create_test_file(self_: Any, txt: str, extension: str) -> str:
-    file_path = os.path.join(self_.get_scratch_space(), f"input.{extension}")
-    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-    _LOG.debug("txt=\n%s", txt)
-    hio.to_file(file_path, txt)
-    return file_path
-
-
 # #############################################################################
-# Test_run_dockerized_prettier1
+# Test_is_path1
 # #############################################################################
 
 
-# TODO(gp): -> Test_dockerized_prettier1
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
-class Test_run_dockerized_prettier1(hunitest.TestCase):
-    """
-    Test running the `prettier` command inside a Docker container.
-    """
+class Test_is_path1(hunitest.TestCase):
 
-    def helper(self, txt: str, exp: str) -> None:
+    def helper(self, path: str, expected: bool) -> None:
         """
-        Test running the `prettier` command in a Docker container.
+        Test helper for `is_path()` function.
+        """
+        # Run test.
+        actual = hdocker.is_path(path)
+        # Check outputs.
+        _LOG.debug(hprint.to_str("path actual expected"))
+        self.assertEqual(actual, expected)
 
-        This test creates a test file, runs the command inside a Docker
-        container with specified command options, and checks if the
-        output matches the expected result.
+    def test_file_with_extension(self) -> None:
         """
-        cmd_opts: List[str] = []
-        cmd_opts.append("--parser markdown")
-        cmd_opts.append("--prose-wrap always")
-        tab_width = 2
-        cmd_opts.append(f"--tab-width {tab_width}")
-        # Run `prettier` in a Docker container.
-        in_file_path = _create_test_file(self, txt, extension="txt")
-        out_file_path = os.path.join(self.get_scratch_space(), "output.txt")
-        force_rebuild = False
-        use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_prettier(
-            in_file_path,
+        Test paths with file extensions.
+        """
+        # Prepare inputs.
+        test_cases = [
+            ("file.txt", True),
+            ("document.pdf", True),
+            ("script.py", True),
+            ("data.csv", True),
+            ("image.jpg", True),
+            ("config.json", True),
+            ("readme.md", True),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_absolute_paths(self) -> None:
+        """
+        Test absolute paths.
+        """
+        # Prepare inputs.
+        test_cases = [
+            ("/path/to/file.py", True),
+            ("/usr/bin/python", True),
+            ("/etc/config", True),
+            ("/home/user", True),
+            ("/", True),
+            ("/data/shared", True),
+        ]
+        # Check outputs.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_relative_paths(self) -> None:
+        """
+        Test relative paths starting with ./ or ../.
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            ("./file.txt", True),
+            ("../data.csv", True),
+            ("./folder/subfolder", True),
+            ("../parent/file", True),
+            ("./", True),
+            ("../", True),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_trailing_slash_paths(self) -> None:
+        """
+        Test paths ending with slash (indicating directories).
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            ("folder/", True),
+            ("data/", True),
+            ("my_directory/", True),
+            ("nested/folder/", True),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_non_path_strings(self) -> None:
+        """
+        Test strings that should not be considered paths.
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            ("readme", False),
+            ("hello", False),
+            ("command", False),
+            ("data", False),
+            ("test", False),
+            ("python", False),
+            ("docker", False),
+            ("", False),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+    def test_edge_cases(self) -> None:
+        """
+        Test edge cases and complex scenarios.
+        """
+        # Prepare inputs and run tests.
+        test_cases = [
+            # - Files with multiple extensions.
+            ("file.tar.gz", True),
+            ("backup.sql.bz2", True),
+            # - Hidden files.
+            (".hidden", True),
+            (".gitignore", True),
+            # - Complex paths.
+            ("./nested/folder/file.txt", True),
+            ("../parent/folder/", True),
+            ("/absolute/path/file.py", True),
+            # - Files without extension in paths.
+            # True because it contains a slash.
+            ("folder/README", True),
+            # True because starts with "./".
+            ("./config", True),
+            # True because starts with "/".
+            ("/usr/bin/python", True),
+            # - Strings that might be confused with paths.
+            # True because has extension.
+            ("folder.name", True),
+            # False because no extension, slash, or path prefix.
+            ("file-name", False),
+            # False because no extension, slash, or path prefix.
+            ("under_score", False),
+        ]
+        # Run tests.
+        for path, expected in test_cases:
+            self.helper(path, expected)
+
+
+# #############################################################################
+# Test_convert_all_paths_from_caller_to_callee_docker_path1
+# #############################################################################
+
+
+class Test_convert_all_paths_from_caller_to_callee_docker_path1(
+    hunitest.TestCase
+):
+
+    def helper(
+        self,
+        cmd_opts: List[str],
+        expected_str: str,
+        *,
+        is_caller_host: bool = True,
+        use_sibling_container_for_callee: bool = True,
+        create_files: Optional[List[str]] = None,
+    ) -> None:
+        """
+        Helper for `convert_all_paths_from_caller_to_callee_docker_path()`.
+        """
+        hdbg.dassert_isinstance(cmd_opts, list)
+        hdbg.dassert_isinstance(expected_str, str)
+        # Prepare inputs.
+        if create_files:
+            # Create temporary files for testing existing file paths.
+            for file_path in create_files:
+                dir_name = os.path.dirname(file_path)
+                if dir_name:
+                    hio.create_dir(dir_name, incremental=True)
+                hio.to_file(file_path, "test content")
+        # Get docker mount info for the test.
+        (
+            caller_mount_path,
+            callee_mount_path,
+            _,
+        ) = hdocker.get_docker_mount_info(
+            is_caller_host, use_sibling_container_for_callee
+        )
+        # Run test.
+        actual = hdocker.convert_all_paths_from_caller_to_callee_docker_path(
             cmd_opts,
-            out_file_path,
-            file_type="md",
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
+            caller_mount_path,
+            callee_mount_path,
+            is_caller_host,
+            use_sibling_container_for_callee,
         )
-        # Check.
-        act = hio.from_file(out_file_path)
-        self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        _LOG.debug("actual=\n%s", str(actual))
+        # Check outputs.
+        actual_str = "\n".join(actual)
+        actual_str = huntepur.purify_text(actual_str)
+        expected_str = huntepur.purify_text(expected_str)
+        self.assert_equal(actual_str, expected_str, dedent=True)
 
-    def test1(self) -> None:
-        txt = """
-        - A
-          - B
-              - C
-                """
-        exp = """
-        - A
-          - B
-            - C
+    # /////////////////////////////////////////////////////////////////////////////
+
+    def test_mixed_options_with_paths_and_non_paths(self) -> None:
         """
-        self.helper(txt, exp)
-
-    def test2(self) -> None:
-        txt = r"""
-        *  Good time management
-
-        1. choose the right tasks
-            -   avoid non-essential tasks
-        """
-        exp = r"""
-        - Good time management
-
-        1. choose the right tasks
-           - avoid non-essential tasks
-        """
-        self.helper(txt, exp)
-
-
-# #############################################################################
-# Test_parse_pandoc_arguments1
-# #############################################################################
-
-
-class Test_parse_pandoc_arguments1(hunitest.TestCase):
-    def test1(self) -> None:
-        # Prepare inputs.
-        cmd = r"""
-        pandoc input.md -o output.pdf --data-dir /data --toc --toc-depth 2
-        """
-        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
-        # Call tested function.
-        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
-        # Check output.
-        exp = {
-            "input": "input.md",
-            "output": "output.pdf",
-            "in_dir_params": {
-                "data-dir": "/data",
-                "template": None,
-                "extract-media": None,
-            },
-            "cmd_opts": ["--toc", "--toc-depth", "2"],
-        }
-        self.assert_equal(str(act), str(exp))
-
-    def test2(self) -> None:
-        # Prepare inputs.
-        cmd = r"""
-        pandoc input.md -o output.pdf --toc
-        """
-        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
-        # Call tested function.
-        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
-        # Check output.
-        exp = {
-            "input": "input.md",
-            "output": "output.pdf",
-            "in_dir_params": {
-                "data-dir": None,
-                "template": None,
-                "extract-media": None,
-            },
-            "cmd_opts": ["--toc"],
-        }
-        self.assert_equal(str(act), str(exp))
-
-    def test3(self) -> None:
-        # Prepare inputs.
-        cmd = r"""
-        pandoc test/outcomes/tmp.pandoc.preprocess_notes.txt \
-            -V geometry:margin=1in -f markdown --number-sections \
-            --highlight-style=tango -s -t latex \
-            --template documentation/pandoc.latex \
-            -o test/outcomes/tmp.pandoc.tex \
-            --toc --toc-depth 2
-        """
-        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
-        # Call tested function.
-        act = hdocker.convert_pandoc_cmd_to_arguments(cmd)
-        # Check output.
-        exp = {
-            "input": "test/outcomes/tmp.pandoc.preprocess_notes.txt",
-            "output": "test/outcomes/tmp.pandoc.tex",
-            "in_dir_params": {
-                "data-dir": None,
-                "template": "documentation/pandoc.latex",
-                "extract-media": None,
-            },
-            "cmd_opts": [
-                "-V",
-                "geometry:margin=1in",
-                "-f",
-                "markdown",
-                "--number-sections",
-                "--highlight-style=tango",
-                "-s",
-                "-t",
-                "latex",
-                "--toc",
-                "--toc-depth",
-                "2",
-            ],
-        }
-        self.assert_equal(str(act), str(exp))
-
-    def test_parse_and_convert1(self) -> None:
-        # Prepare inputs.
-        cmd = r"""
-        pandoc input.md --output output.pdf --data-dir /data --toc --toc-depth 2
-        """
-        cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
-        # Parse the command.
-        parsed_args = hdocker.convert_pandoc_cmd_to_arguments(cmd)
-        # Convert back to command.
-        converted_cmd = hdocker.convert_pandoc_arguments_to_cmd(parsed_args)
-        # Check that the converted command matches the original command.
-        act = "pandoc " + converted_cmd
-        exp = cmd
-        self.assert_equal(act, exp)
-
-
-# #############################################################################
-# Test_run_dockerized_pandoc1
-# #############################################################################
-
-
-# TODO(gp): -> Test_dockerized_pandoc1
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
-class Test_run_dockerized_pandoc1(hunitest.TestCase):
-    """
-    Test running the `pandoc` command inside a Docker container.
-    """
-
-    def run_pandoc(self, txt: str, exp: str) -> None:
-        """
-        Test running the `pandoc` command in a Docker container.
-
-        This test creates a test file, runs the command inside a Docker
-        container with specified command options, and checks if the
-        output matches the expected result.
-        """
-        cmd_opts = ["pandoc"]
-        in_file_path = _create_test_file(self, txt, extension="md")
-        cmd_opts.append(f"{in_file_path}")
-        out_file_path = os.path.join(self.get_scratch_space(), "output.md")
-        cmd_opts.append(f"-o {out_file_path}")
-        # Generate the table of contents.
-        cmd_opts.append("-s --toc")
-        cmd = " ".join(cmd_opts)
-        container_type = "pandoc_only"
-        use_sudo = hdocker.get_use_sudo()
-        hdocker.run_dockerized_pandoc(cmd, container_type, use_sudo=use_sudo)
-        # Check.
-        act = hio.from_file(out_file_path)
-        self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
-        )
-
-    def test1(self) -> None:
-        txt = """
-        # Good
-        - Good time management
-          1. choose the right tasks
-            - Avoid non-essential tasks
-
-        ## Bad
-        -  Hello
-            - World
-        """
-        exp = r"""
-        - [Good](#good){#toc-good}
-          - [Bad](#bad){#toc-bad}
-
-        # Good
-
-        - Good time management
-          1.  choose the right tasks
-
-          - Avoid non-essential tasks
-
-        ## Bad
-
-        - Hello
-          - World
-        """
-        self.run_pandoc(txt, exp)
-
-
-# #############################################################################
-# Test_run_markdown_toc1
-# #############################################################################
-
-
-# TODO(gp): -> Test_dockerized_markdown_toc1
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
-class Test_run_markdown_toc1(hunitest.TestCase):
-    def run_markdown_toc(self, txt: str, exp: str) -> None:
-        """
-        Test running the `markdown-toc` command in a Docker container.
-        """
-        cmd_opts: List[str] = []
-        # Run `markdown-toc` in a Docker container.
-        in_file_path = _create_test_file(self, txt, extension="md")
-        use_sudo = hdocker.get_use_sudo()
-        force_rebuild = False
-        hdocker.run_dockerized_markdown_toc(
-            in_file_path,
-            cmd_opts,
-            use_sudo=use_sudo,
-            force_rebuild=force_rebuild,
-        )
-        # Check.
-        act = hio.from_file(in_file_path)
-        self.assert_equal(
-            act, exp, dedent=True, remove_lead_trail_empty_lines=True
-        )
-
-    def test1(self) -> None:
-        """
-        Test running the `markdown-toc` command inside a Docker container.
-        """
-        txt = """
-        <!-- toc -->
-
-        # Good
-        - Good time management
-          1. choose the right tasks
-            - Avoid non-essential tasks
-
-        ## Bad
-        -  Hello
-            - World
-        """
-        exp = r"""
-        <!-- toc -->
-
-        - [Good](#good)
-          * [Bad](#bad)
-
-        <!-- tocstop -->
-
-        # Good
-        - Good time management
-          1. choose the right tasks
-            - Avoid non-essential tasks
-
-        ## Bad
-        -  Hello
-            - World
-        """
-        self.run_markdown_toc(txt, exp)
-
-
-# #############################################################################
-# Test_dockerized_latex1
-# #############################################################################
-
-
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
-class Test_dockerized_latex1(hunitest.TestCase):
-    def create_input_file(self) -> Tuple[str, str]:
-        txt = r"""
-        \documentclass{article}
-
-        \begin{document}
-
-        Hello, World!
-
-        \end{document}
-        """
-        in_file_path = _create_test_file(self, txt, extension="tex")
-        out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
-        return in_file_path, out_file_path
-
-    def test_dockerized1(self) -> None:
-        """
-        Run `latex` inside a Docker container.
+        Test converting mixed command options with paths and non-paths.
         """
         # Prepare inputs.
-        in_file_path, out_file_path = self.create_input_file()
-        cmd_opts: List[str] = []
-        run_latex_again = True
-        force_rebuild = False
-        use_sudo = hdocker.get_use_sudo()
-        # Run function.
-        hdocker.run_basic_latex(
-            in_file_path,
-            cmd_opts,
-            run_latex_again,
-            out_file_path,
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
-        )
-        # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
+        cmd_opts = [
+            "--verbose",
+            "file.txt",  # Path-like (has extension)
+            "--output",
+            "./output.log",  # Path-like (relative path)
+            "command",  # Not a path
+            # "/absolute/path",  # Path-like (absolute)
+            "--flag",
+            "folder/",  # Path-like (trailing slash)
+        ]
+        expected_output = [
+            "--verbose",
+            "/app/file.txt",  # Converted
+            "--output",
+            "/app/output.log",  # Converted
+            "command",  # Not converted
+            # "/app/absolute/path",  # Converted
+            "--flag",
+            "/app/folder",  # Converted
+        ]
+        expected_output = "\n".join(expected_output)
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
 
-    # TODO(gp): In theory this should go in test_dockerized_latex.py
-    def test_cmd_line1(self) -> None:
+    def test_existing_files_get_converted(self) -> None:
         """
-        Run `latex` using the command line.
-        """
-        # Prepare inputs.
-        exec_path = hgit.find_file_in_git_tree("dockerized_latex.py")
-        in_file_path, out_file_path = self.create_input_file()
-        out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
-        # Run function.
-        cmd = f"{exec_path} -i {in_file_path} -o {out_file_path}"
-        hsystem.system(cmd)
-        # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
-
-    # TODO(gp): This doesn't work since:
-    # 1) `convert_latex_cmd_to_arguments()` is monkey patching with parsing the
-    # arguments. Maybe we need to pass multiple arguments to the mocking since
-    # it's called multiple times.
-    # 2) we re-execute `hdbg.init_logger()` which messes up the global state.
-    # def test3(self) -> None:
-    #     """
-    #     Test the code to run `latex` using the parser.
-    #     """
-    #     from unittest.mock import patch
-    #     import argparse
-    #     # Prepare inputs.
-    #     in_file_path = self.create_input_file()
-    #     out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
-    #     # Run function.
-    #     mock_args = argparse.Namespace(
-    #             input=in_file_path,
-    #             output=out_file_path,
-    #             run_latex_again=False,
-    #             dockerized_force_rebuild=False,
-    #             dockerized_use_sudo=hdocker.get_use_sudo(),
-    #             log_level=logging.INFO
-    #     )
-    #     with patch("argparse.ArgumentParser.parse_known_args", return_value=(mock_args, [])):
-    #         hdl._main(hdl._parse())
-    #     # Check output.
-    #     self.assertTrue(os.path.exists(out_file_path), msg=f"Output file {out_file_path} not found")
-
-
-# #############################################################################
-# Test_dockerized_tikz_to_bitmap1
-# #############################################################################
-
-
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
-class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
-    def create_input_file(self) -> Tuple[str, str]:
-        txt = r"""
-        \documentclass[tikz, border=10pt]{standalone}
-        \usepackage{tikz}
-
-        \begin{document}
-
-        \begin{tikzpicture}[scale=0.8]
-            % Define the sets as circles with transparency
-            \draw[thick, fill=blue!20, opacity=0.6] (0,0) circle (1.5cm);
-            \node at (0,0) {$A$};
-
-            \draw[thick, fill=red!20, opacity=0.6] (4,0) circle (1.5cm);
-            \node at (4,0) {$B$};
-
-            \draw[thick, fill=green!20, opacity=0.6] (2,3.5) circle (1.5cm);
-            \node at (2,3.5) {$C$};
-            % Add a title
-            \node[font=\bfseries] at (2,-2.5) {Pairwise Exclusive Sets};
-            \node[align=center] at (2,-3.3) {No overlap between any pair of sets};
-        \end{tikzpicture}
-
-        \end{document}
-        """
-        in_file_path = _create_test_file(self, txt, extension="tex")
-        out_file_path = os.path.join(self.get_scratch_space(), "output.png")
-        return in_file_path, out_file_path
-
-    def test_dockerized1(self) -> None:
-        """
-        Run `tikz_to_bitmap` inside a Docker container.
+        Test that existing files are converted even without path-like
+        appearance.
         """
         # Prepare inputs.
-        in_file_path, out_file_path = self.create_input_file()
-        cmd_opts = ["-density 300", "-quality 10"]
-        force_rebuild = False
-        use_sudo = hdocker.get_use_sudo()
-        # Run function.
-        hdocker.run_dockerized_tikz_to_bitmap(
-            in_file_path,
-            cmd_opts,
-            out_file_path,
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
-        )
-        # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
+        temp_dir = self.get_scratch_space()
+        existing_file = os.path.join(temp_dir, "testfile")
+        cmd_opts = [
+            "--input",
+            existing_file,  # Will exist, should be converted
+            "nonexistent",  # Doesn't exist and not path-like, won't be converted
+        ]
+        expected_output = [
+            "--input",
+            f"/app/{os.path.relpath(existing_file, hgit.find_git_root())}",  # Converted
+            "nonexistent",  # Not converted
+        ]
+        expected_output = "\n".join(expected_output)
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output, create_files=[existing_file])
 
-    # TODO(gp): In theory this should go in test_tikz_to_png.py
-    def test_command_line1(self) -> None:
+    def test_path_like_strings_without_existing_files(self) -> None:
         """
-        Run `dockerized_tikz_to_bitmap` through the command line.
+        Test that path-like strings are converted even if files don't exist.
         """
         # Prepare inputs.
-        exec_path = hgit.find_file_in_git_tree("dockerized_tikz_to_bitmap.py")
-        in_file_path, out_file_path = self.create_input_file()
-        # Run function.
-        cmd = f"{exec_path} -i {in_file_path} -o {out_file_path} -density 300 -quality 10"
-        hsystem.system(cmd)
-        # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
+        cmd_opts = [
+            "script.py",  # Path-like (extension) but doesn't exist
+            "./config.json",  # Path-like (relative) but doesn't exist
+            # "/usr/bin/tool",  # Path-like (absolute) but doesn't exist
+            "plain_word",  # Not path-like and doesn't exist
+        ]
+        expected_output = [
+            "/app/script.py",  # Converted (has extension)
+            "/app/config.json",  # Converted (relative path)
+            # "/app/usr/bin/tool",  # Converted (absolute path)
+            "plain_word",  # Not converted
+        ]
+        expected_output = "\n".join(expected_output)
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
 
-
-# #############################################################################
-# Test_dockerized_graphviz1
-# #############################################################################
-
-
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
-class Test_dockerized_graphviz1(hunitest.TestCase):
-    def create_input_file(self) -> Tuple[str, str]:
-        txt = r"""
-        digraph {
-            a -> b[label="0.2",weight="0.2"];
-            a -> c[label="0.4",weight="0.4"];
-            c -> b[label="0.6",weight="0.6"];
-            c -> e[label="0.6",weight="0.6"];
-            e -> e[label="0.1",weight="0.1"];
-            e -> b[label="0.7",weight="0.7"];
-        }
+    def test_empty_command_options(self) -> None:
         """
-        in_file_path = _create_test_file(self, txt, extension="dot")
-        out_file_path = os.path.join(self.get_scratch_space(), "output.png")
-        return in_file_path, out_file_path
-
-    def test_dockerized1(self) -> None:
-        """
-        Run `graphviz` inside a Docker container.
+        Test handling of empty command options list.
         """
         # Prepare inputs.
-        in_file_path, out_file_path = self.create_input_file()
         cmd_opts = []
-        force_rebuild = False
-        use_sudo = hdocker.get_use_sudo()
-        # Run function.
-        hdocker.run_dockerized_graphviz(
-            in_file_path,
-            cmd_opts,
-            out_file_path,
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
-        )
-        # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
+        expected_output = []
+        expected_output = "\n".join(expected_output)
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
 
-    # TODO(gp): In theory this should go in test_dockerized_graphviz.py
-    def test_command_line1(self) -> None:
+    def test_only_non_path_options(self) -> None:
         """
-        Run `dockerized_graphviz` through the command line.
+        Test command options with no paths.
         """
         # Prepare inputs.
-        exec_path = hgit.find_file_in_git_tree("dockerized_graphviz.py")
-        in_file_path, out_file_path = self.create_input_file()
-        # Run function.
-        cmd = f"{exec_path} -i {in_file_path} -o {out_file_path}"
-        hsystem.system(cmd)
-        # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
+        cmd_opts = [
+            "--verbose",
+            "--debug",
+            "command",
+            "argument",
+            "--flag",
+        ]
+        expected_output = [
+            "--verbose",
+            "--debug",
+            "command",
+            "argument",
+            "--flag",
+        ]
+        expected_output = "\n".join(expected_output)
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
+
+    def test_only_path_options(self) -> None:
+        """
+        Test command options with only paths.
+        """
+        # Prepare inputs.
+        cmd_opts = [
+            "input.txt",
+            "./config.yaml",
+            # "/var/log/app.log",
+            "data/",
+            "./output.json",
+        ]
+        expected_output = [
+            "/app/input.txt",
+            "/app/config.yaml",
+            # "/app/var/log/app.log",
+            "/app/data",
+            "/app/output.json",
+        ]
+        expected_output = "\n".join(expected_output)
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
+
+    def test_complex_paths_with_extensions(self) -> None:
+        """
+        Test complex paths with multiple extensions and special cases.
+        """
+        # Prepare inputs.
+        cmd_opts = [
+            "archive.tar.gz",  # Multiple extensions
+            ".hidden",  # Hidden file
+            "backup.sql.bz2",  # Multiple extensions
+            ".gitignore",  # Hidden config file
+        ]
+        expected_output = """
+        $GIT_ROOT/archive.tar.gz
+        $GIT_ROOT/.hidden
+        $GIT_ROOT/backup.sql.bz2
+        $GIT_ROOT/.gitignore
+        """
+        # Run test and check outputs.
+        self.helper(cmd_opts, expected_output)
+
+    def test_sibling_vs_child_container_modes(self) -> None:
+        """
+        Test different container modes (sibling vs child).
+        """
+        # Prepare inputs.
+        cmd_opts = ["input.txt", "output/"]
+        # Test sibling container mode.
+        expected_output = ["/app/input.txt", "/app/output"]
+        expected_output = "\n".join(expected_output)
+        self.helper(
+            cmd_opts,
+            expected_output,
+            is_caller_host=True,
+            use_sibling_container_for_callee=True,
+        )
+        # Test child container mode.
+        expected_output = ["/app/input.txt", "/app/output"]
+        expected_output = "\n".join(expected_output)
+        self.helper(
+            cmd_opts,
+            expected_output,
+            is_caller_host=True,
+            use_sibling_container_for_callee=False,
         )

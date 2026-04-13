@@ -6,33 +6,28 @@
   * [Memory Cache](#memory-cache)
   * [Disk Cache](#disk-cache)
   * [Cache Performance Monitoring](#cache-performance-monitoring)
+  * [Cache Inspection and Statistics](#cache-inspection-and-statistics)
   * [Cache Properties: User and System](#cache-properties-user-and-system)
   * [Decorator](#decorator)
+  * [Mock Cache](#mock-cache)
   * [Common Misunderstandings](#common-misunderstandings)
   * [Execution Flow Diagram](#execution-flow-diagram)
-  * [Proposal: Pluggable Cache Backends for `simple_cache`](#proposal-pluggable-cache-backends-for-simple_cache)
-    + [1. Define a `CacheBackend` Protocol](#1-define-a-cachebackend-protocol)
-    + [2. Extend `simple_cache` Signature](#2-extend-simple_cache-signature)
-    + [3. Update the Wrapper Logic](#3-update-the-wrapper-logic)
-    + [Backward Compatibility](#backward-compatibility)
-  * [GP Comments](#gp-comments)
 
 <!-- tocstop -->
 
 # Cache Simple
 
-- This document explains the design and flow of a caching system implemented in
+- This document explains the design and flow of the caching system implemented in
   [`/helpers/hcache_simple.py`](/helpers/hcache_simple.py).
 
 - `hcache_simple` is a lightweight, decorator-based module designed for
   individual function caching, offering basic in‑memory and disk storage (via
-  JSON or pickle) with manual management and simple performance tracking.
+  JSON or pickle) with manual management and performance tracking.
 - In contrast to `hcache` which is a robust, global caching solution that
   supports tagged caches, automatic invalidation, and shared cache directories
   across multiple functions and users, using advanced tools
-- Use `hcache` for robust, global caching in complex projects, and
-  `hcache_simple` for lightweight, function-specific caching in simpler
-  applications or notebooks.
+
+- A tutorial of the cache is `/helpers/notebooks/hcache_simple.tutorial.ipynb`
 
 ## Overview
 
@@ -45,6 +40,11 @@
 - Additionally, the system monitors cache performance and allows users to
   configure caching behavior via `user` and `system` properties
 
+- Cache files are stored in a configurable cache directory:
+  - Default: Current working directory (`.`)
+  - Can be set using `set_cache_dir(cache_dir)`
+  - Retrieved using `get_cache_dir()`
+
 ## Design Rationale and Trade-offs
 
 - **Memory vs Disk**: Memory cache provides fast access but is volatile and
@@ -55,9 +55,9 @@
   objects, sets, etc.), while JSON is more portable and human-readable but
   limited to basic types. The user can choose based on their use case.
 
-- **Property Storage**: Properties are stored in separate `user` and `system`
-  pickle files to separate runtime configuration (user behavior) from
-  infrastructure-level settings (e.g., storage format).
+- **Property Storage**: Properties are stored in a single pickle file
+  (`tmp.cache.property.pkl`) that contains both user and system properties for
+  all cached functions.
 
 - **Performance Tracking is Optional**: Monitoring is off by default to avoid
   runtime overhead and is opt-in via `enable_cache_perf`.
@@ -78,15 +78,18 @@
       `_CACHE`, and then returns it
 
 - Interface:
-  - `get_cache(func_name)` returns the `in-memory cache` for a given function
-  - `reset_mem_cache(func_name)` clears the `in-memory cache` for the function
+  - `get_cache(func_name)` returns the cache for a given function (loads from
+    disk if not in memory)
+  - `get_mem_cache(func_name)` returns only the in-memory cache without loading
+    from disk
+  - `reset_mem_cache(func_name)` clears the in-memory cache for the function
 
 ## Disk Cache
 
 - File naming convention:
   - Disk cache files are named using the pattern
-    `cache.<func_name>.<extension>`, where the extension depends on the cache
-    type:
+    `tmp.cache.<func_name>.<extension>`, where the extension depends on the
+    cache type:
     - `JSON`: `.json`
     - `Pickle`: `.pkl`
 
@@ -100,10 +103,19 @@
       cached results from disk
 
 - Interface:
-  - `flush_cache_to_disk` writes the current memory cache to the disk file
-  - `force_cache_from_disk` loads the disk cache and updates the in-memory cache
-  - `reset_disk_cache` is intended to remove disk cache files
-    - It is marked with an `assert 0` to disable this functionality
+  - `flush_cache_to_disk(func_name)` writes the current memory cache to the disk
+    file
+    - If `func_name` is empty, flushes all cached functions to disk
+  - `force_cache_from_disk(func_name)` loads the disk cache and updates the
+    in-memory cache
+    - If `func_name` is empty, loads all disk caches into memory
+  - `reset_disk_cache(func_name, interactive)` removes disk cache files
+    - If `func_name` is empty, resets all disk cache files
+    - If `interactive=True`, prompts for confirmation before resetting
+  - `reset_mem_cache(func_name)` clears the in-memory cache
+    - If `func_name` is empty, resets all in-memory caches
+  - `reset_cache(func_name, interactive)` resets both memory and disk cache
+    - Combines `reset_mem_cache` and `reset_disk_cache`
 
 ## Cache Performance Monitoring
 
@@ -127,9 +139,44 @@
       summary string
 
 - Interface:
-  - `enable_cache_perf`: to enable the cache performance
-  - `disable_cache_perf`: to disable the cache performance
-  - `get_cache_perf_stats` prints performance metrics
+  - `enable_cache_perf(func_name)`: enable cache performance tracking for a
+    specific function
+  - `disable_cache_perf(func_name)`: disable cache performance tracking
+    - If `func_name` is empty, disables for all cached functions
+  - `reset_cache_perf(func_name)`: reset performance counters to zero
+    - If `func_name` is empty, resets all functions
+  - `get_cache_perf(func_name)`: returns the performance dict (tot, hits,
+    misses) or None
+  - `get_cache_perf_stats(func_name)`: returns a formatted string with
+    performance metrics including hit rate
+
+## Cache Inspection and Statistics
+
+- The system provides several utility functions for inspecting and debugging the
+  cache state
+
+- `cache_stats_to_str(func_name)`: Returns a pandas DataFrame showing cache
+  statistics
+  - If `func_name` is empty, returns stats for all cached functions
+  - Shows both memory and disk cache sizes for each function
+  - Example output:
+    ```
+                 memory  disk
+    find_email        -  1044
+    verify_email      -  2322
+    ```
+
+- `get_cache_func_names(type_)`: Retrieves list of cached function names
+  - `type_='all'`: Returns all functions with either memory or disk cache
+  - `type_='mem'`: Returns only functions with memory cache
+  - `type_='disk'`: Returns only functions with disk cache files
+
+- `cache_property_to_str(func_name)`: Converts cache properties to string
+  - If `func_name` is empty, returns properties for all cached functions
+  - Shows all configured properties (both user and system) for each function
+
+- `get_mem_cache(func_name)`: Directly retrieves the memory cache dictionary for
+  a function
 
 ## Cache Properties: User and System
 
@@ -139,27 +186,36 @@
     - `abort_on_cache_miss`: Whether to raise an error if a cache miss occurs
     - `report_on_cache_miss`: Whether to return a special value ("_cache_miss_")
       on a cache miss
+    - `enable_perf`: Whether to enable performance statistics tracking (hits,
+      misses, total calls)
     - `force_refresh`: Whether to bypass the cache and refresh the value
-  - `System Properties`: These include internal settings such as the cache type
-    (e.g., "json" or "pickle")
+  - `System Properties`: Internal settings like `type` (e.g., "json" or
+    "pickle"), `write_through`, and `exclude_keys`
 
 - Persistent storage:
-  - Cache properties are stored on disk as pickle files:
-    - User properties in `cache_property.user.pkl`
-    - System properties in `cache_property.system.pkl`
+  - All cache properties are stored on disk in a single pickle file:
+    `tmp.cache.property.pkl`
+  - This file contains a nested dictionary: `func_name -> property_name ->
+    value`
 
 - Flow example:
   - When a function is decorated, the system sets its system property (e.g., the
-    cache type) using `set_cache_property(system, func_name, type, cache_type)`
+    cache type) using `set_cache_property(func_name, "type", cache_type)`
   - Later, when retrieving a cached value, it checks user properties (like
     `force_refresh`) to decide whether to use the cached value or to recompute
     the result
 
 - Interface:
-  - `set_cache_property(type, func_name, property_name, value)`: set a property
-  - `get_cache_property(type, func_name, property_name)`: get the value of a
-    property
-  - `reset_cache_property(type)`: reset Properties
+  - `set_cache_property(func_name, property_name, value)`: set a property for a
+    function and persist to disk
+  - `get_cache_property(func_name, property_name)`: get the value of a property
+    for a function
+  - `reset_cache_property()`: reset user properties for all functions (preserves
+    system properties like `type`, `write_through`, `exclude_keys`)
+  - `cache_property_to_str(func_name)`: convert cache properties to string
+    representation
+  - `get_cache_property_file()`: get the path to the cache property file
+    (`tmp.cache.property.pkl`)
 
 ## Decorator
 
@@ -167,14 +223,35 @@
   - The decorator simplifies caching by wrapping any function so that its
     results are automatically stored and retrieved from cache
 
-- Decorator flow:
+- Decorator parameters:
+  - `cache_type`: The type of cache storage to use (`"json"` or `"pickle"`)
+    - Default: `"json"`
+    - JSON is human-readable but limited to basic types
+    - Pickle supports any Python object but is not human-readable
+  - `write_through`: If True, flush cache to disk immediately after each update
+    - Default: `True`
+    - Ensures persistence across sessions but may impact performance for
+      frequently called functions
+    - Set to `False` for better performance when persistence is not critical
+  - `exclude_keys`: List of keyword argument names to exclude from cache key
+    generation
+    - Default: `None` (empty list)
+    - Useful for excluding session-specific or non-deterministic parameters like
+      API clients, database connections, or logging objects
+    - These parameters are still passed to the function but don't affect cache
+      key matching
+
+- Flow:
   - Initialization:
     - When the function is decorated with, for example,
       `@simple_cache(cache_type="json")`, the decorator sets the system property
       for the cache type
   - Wrapper execution:
-    - Key generation: The wrapper generates a `cache key` from both
-      arguments and keyword arguments.
+    - Key generation: The wrapper generates a `cache key` from both arguments
+      and keyword arguments.
+      - Exclude Keys: The wrapper excludes certain keys from the cache key by
+        using the `exclude_keys` argument in the decorator. These keys are
+        omitted from `kwargs` when forming the cache key.
     - Cache lookup:
       - If the key exists in the memory cache (and no force refresh is
         requested), it returns the cached value
@@ -186,6 +263,23 @@
     - Cache update:
       - After computing the value, the result is stored in the memory cache (and
         optionally written through to disk if `write_through` is set)
+
+- Runtime parameters:
+  - Decorated functions accept special keyword arguments to control caching
+    behavior at call time:
+    - `force_refresh=True`: Bypass cache and recompute the result even if it
+      exists in cache
+    - `abort_on_cache_miss=True`: Raise a `ValueError` if cache miss occurs
+      instead of computing the value
+    - `report_on_cache_miss=True`: Return the sentinel string `"_cache_miss_"`
+      instead of computing on cache miss
+  - Alternative: Use `cache_mode` parameter with predefined modes:
+    - `cache_mode="REFRESH_CACHE"`: Force cache refresh (equivalent to
+      `force_refresh=True`)
+    - `cache_mode="HIT_CACHE_OR_ABORT"`: Abort on cache miss (equivalent to
+      `abort_on_cache_miss=True`)
+    - `cache_mode="DISABLE_CACHE"`: Completely bypass caching for this call
+      only, compute fresh result without reading from or writing to cache
 
 - Flow Example:
   - Suppose we have a function defined as follows:
@@ -211,9 +305,104 @@
   - Set Force Refresh:
     - With this property set, each call to `multiply_by_two(4)` will recompute
       the result and update the cache.
-  - Enable Write-Through:
+  - Using runtime parameters:
+    - Force a single cache refresh without changing global properties:
+      ```python
+      result = multiply_by_two(4, force_refresh=True)
+      ```
+    - Use cache_mode to control behavior:
+      ```python
+      # Disable cache for this specific call
+      result = multiply_by_two(4, cache_mode="DISABLE_CACHE")
+      # Ensure cache is hit or abort
+      result = multiply_by_two(4, cache_mode="HIT_CACHE_OR_ABORT")
+      ```
+  - Enable `write_through`:
     - When using `@simple_cache(write_through=True)`, the decorator will flush
       the memory cache to disk immediately after updating.
+  - Exclude certain keys from cache key:
+    - Suppose we have a function that uses an OpenAI client to fetch
+      completions, but the actual output depends only on the prompt. The
+      `client` object should be excluded from the cache key because it varies
+      per session:
+      ```python
+      @simple_cache(exclude_keys=["client"])
+      def get_summary(prompt: str, client: Any):
+          return client.complete(prompt=prompt)
+      ```
+    - Without `exclude_keys=["client"]`, each call with a different `client`
+      instance (even for the same prompt) would result in a cache miss. This
+      exclusion ensures the cache key is based only on the `prompt`, improving
+      hit rates.
+
+## Mock Cache
+
+- Purpose:
+  - The `mock_cache` function allows testing of cached functions without
+    executing expensive operations (e.g., API calls, database queries, LLM
+    calls)
+  - Useful for unit testing when you want to simulate cached values without
+    actually calling the real function
+
+- Function signature:
+  ```python
+  def mock_cache(func_name: str, args: Any, kwargs: Any, value: Any) -> None
+  ```
+
+- Parameters:
+  - `func_name`: The name of the cached function to mock
+  - `args`: The positional arguments for the function (as a list)
+  - `kwargs`: The keyword arguments for the function (as a dict)
+  - `value`: The value to store in the cache (the return value to mock)
+
+- Safety requirement:
+  - `mock_cache` requires using a temporary cache directory (not the main cache
+    directory) to prevent accidentally polluting the production cache
+  - Use `set_cache_dir()` to configure a test-specific cache directory before
+    calling `mock_cache`
+
+- Typical workflow:
+  1. Set up a temporary cache directory (e.g., using `self.get_scratch_space()`
+     in tests)
+  2. (Optional) Warm up the cache by calling the function once to capture the
+     real cached value
+  3. (Optional) Read the cached value for later reuse
+  4. Reset the cache to clear all cached data
+  5. Use `mock_cache()` to insert a known value for specific arguments
+  6. Call the cached function with `abort_on_cache_miss=True` to verify the
+     cache is hit
+
+- Flow example:
+  - Testing an expensive LLM call:
+    ```python
+    import helpers.hcache_simple as hcacsimp
+
+    @hcacsimp.simple_cache(cache_type="json")
+    def call_llm(prompt: str) -> str:
+        # Expensive LLM API call
+        return expensive_llm_api(prompt)
+
+    # In test:
+    def test_llm_function():
+        # Set up temporary cache directory
+        temp_dir = "/tmp/test_cache"
+        hcacsimp.set_cache_dir(temp_dir)
+
+        # Mock the cache with a known response
+        test_prompt = "Hello, world!"
+        mock_response = "Mocked LLM response"
+        hcacsimp.mock_cache("call_llm", [test_prompt], {}, mock_response)
+
+        # Verify cache hit (function not actually called)
+        result = call_llm(test_prompt, abort_on_cache_miss=True)
+        assert result == mock_response
+    ```
+
+- Use cases:
+  - Testing functions that call expensive external APIs (OpenAI, AWS, etc.)
+  - Testing functions with non-deterministic behavior by providing fixed values
+  - Creating reproducible test scenarios without network dependencies
+  - Speeding up test suites by avoiding actual expensive computations
 
 ## Common Misunderstandings
 
@@ -222,16 +411,22 @@
   non-deterministic behavior (e.g., randomness, time-based logic) may yield
   inconsistent results.
 
-- **force_refresh Must Be Reset**: Once `force_refresh` is set, every call
+- **`force_refresh` Must Be Reset**: Once `force_refresh` is set, every call
   recomputes the result. Users must manually unset this flag if they want to
   resume normal caching.
 
 - **Disk Cache Is Persistent**: Cache files on disk are not automatically
   cleaned up or rotated. Old or unused caches may accumulate over time.
 
-- **write_through Only Applies to Disk**: Setting `write_through=True` will
-  update the disk immediately after each cache write, which is useful for
-  persistency but may impact performance.
+- **write_through Default is True**: By default, `write_through=True` causes
+  cache updates to be immediately written to disk. This ensures persistence but
+  may impact performance for frequently cached operations. Set to `False` if you
+  plan to manually flush caches.
+
+- **Cache Keys Include Both Args and Kwargs**: The cache key is generated from
+  both positional arguments and keyword arguments. Two calls with the same
+  values but different parameter passing styles (positional vs keyword) may
+  create different cache entries unless normalized.
 
 ## Execution Flow Diagram
 
@@ -297,105 +492,3 @@ flowchart TD
     D2 --- A2
     D3 --- B3
 ```
-
-## Proposal: Pluggable Cache Backends for `simple_cache`
-
-- This enables `simple_cache` to work with custom storage backends, key
-  generators, and serialization hooks, while preserving existing in-memory and
-  disk-based behavior by default.
-
-### 1. Define a `CacheBackend` Protocol
-
-```python
-from typing import Protocol, Any
-
-class CacheBackend(Protocol):
-    def has(self, key: str) -> bool: ...
-    def load(self, key: str) -> Any: ...
-    def save(self, key: str, value: Any) -> None: ...
-```
-
-### 2. Extend `simple_cache` Signature
-
-- Add three optional parameters:
-  - `cache_backend`: an instance of `CacheBackend`
-  - `key_fn`: callable `(*args, **kwargs) -> str` to generate cache keys
-  - `serialize` / `deserialize`: hooks to convert values for storage and
-    retrieval
-
-```python
-def simple_cache(
-    cache_type: str = "json",
-    write_through: bool = False,
-    *,
-    cache_backend: CacheBackend = None,
-    key_fn: Callable[[Tuple[Any, ...], Dict[str, Any]], str] = None,
-    serialize: Callable[[Any], Any] = None,
-    deserialize: Callable[[Any], Any] = None,
-) -> Callable[..., Any]:
-```
-
-### 3. Update the Wrapper Logic
-
-Inside the wrapper, branch on `cache_backend`. If provided, use the custom flow;
-otherwise, fall back to the existing in-memory/disk implementation:
-
-```python
-@functools.wraps(func)
-def wrapper(*args, **kwargs):
-    if cache_backend:
-        key = key_fn(args, kwargs) if key_fn else repr(args)
-        if cache_backend.has(key):
-            raw = cache_backend.load(key)
-            return deserialize(raw) if deserialize else raw
-        result = func(*args, **kwargs)
-        to_store = serialize(result) if serialize else result
-        cache_backend.save(key, to_store)
-        return result
-
-    # Legacy memory + disk cache logic...
-    func_name = func.__name__
-    if func_name.endswith("_intrinsic"):
-        func_name = func_name[:-len("_intrinsic")]
-    cache = get_cache(func_name)
-    ...
-```
-
-### Backward Compatibility
-
-- **Default behavior unchanged:** Existing calls to `@simple_cache()` without
-  `cache_backend` continue using the current memory + disk storage.
-- **Opt-in custom storage:** Pass a `cache_backend` to use any storage mechanism
-  (e.g., Redis, database, remote service).
-
-> **Note:** This proposal focuses on generic caching. It does not integrate
-> specialized modes like `DISABLED`, `CAPTURE`, `REPLAY`, or `FALLBACK`
-> (specific to `hopenai.get_completion`). Those can be layered on top if needed.
-
-## GP Comments
-
-**Question:** Why not using class hierarchy here? It looks like you are just
-forwarding calls to a separate class, while you could just derive and customize.
-In general, composition is better than derivation, but this (at first sight)
-seems a classical case of class derivation.
-
-Let's start with documenting the use cases we want to cover and then we can
-think about all of them.
-
-**Use Cases to Support:**
-
-1. **Standard Function Caching:** In-memory and disk caching for pure functions.
-2. **`hopenai.get_completion`:** Modes like `DISABLED`, `CAPTURE`, `REPLAY`, and
-   `FALLBACK` requiring specialized behavior.
-3. **Binary File Generation:** Functions that create files (e.g., images, PDFs)
-   from input data.
-4. **Generators / Iterators / Streams:** Lazy or streaming outputs where caching
-   sequences or chunks is needed.
-5. **Asynchronous Functions:** `async def` functions whose awaitable results
-   must be cached.
-6. **Database Cursors / Connections:** Functions returning DB cursors or
-   connections requiring special handling.
-7. **Binary Blobs:** Functions returning raw byte arrays (e.g., serialized
-   objects, compressed data).
-8. **Side-Effect Functions:** Functions returning `None` but performing actions
-   (e.g., sending emails, HTTP requests).

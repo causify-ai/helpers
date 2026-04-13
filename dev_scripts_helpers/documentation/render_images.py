@@ -4,21 +4,24 @@
 Replace sections of image code with rendered images, commenting out the
 original code, if needed.
 
+Supports diagram types (plantuml, mermaid, tikz, graphviz, latex) and
+AI-generated images using OpenAI's DALL-E API (image blocks).
+
 See `docs/work_tools/documentation_toolchain/all.render_images.explanation.md`.
 
 Usage:
 
 # Create a new Markdown file with rendered images:
-> render_images.py -i ABC.md -o XYZ.md --action render --run_dockerized
+> render_images.py -i ABC.md -o XYZ.md --action render
 
 # Render images in place in the original Markdown file:
-> render_images.py -i ABC.md --action render --run_dockerized
+> render_images.py -i ABC.md --action render
 
 # Render images in place in the original LaTeX file:
-> render_images.py -i ABC.tex --action render --run_dockerized
+> render_images.py -i ABC.tex --action render
 
 # Open rendered images from a Markdown file in HTML to preview:
-> render_images.py -i ABC.md --action open --run_dockerized
+> render_images.py -i ABC.md --action open
 """
 
 import argparse
@@ -28,9 +31,11 @@ import re
 import tempfile
 from typing import List, Tuple
 
+from tqdm import tqdm
+
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
@@ -38,12 +43,18 @@ import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
 
+# Number of AI-generated images to create per prompt.
+_AI_IMAGE_COUNT = 1
+
 
 # #############################################################################
 
 
 def _get_rendered_file_paths(
-    template_out_file: str, image_code_idx: int, dst_ext: str
+    template_out_file: str,
+    image_code_idx: int,
+    dst_ext: str,
+    dst_dir: str,
 ) -> Tuple[str, str, str]:
     """
     Generate paths to files for image rendering.
@@ -60,12 +71,12 @@ def _get_rendered_file_paths(
     :param image_code_idx: order number of the image code block in the input
         file
     :param dst_ext: extension of the target image file
+    :param dst_dir: absolute path to directory for storing rendered images
     :return:
         - path to the temporary file with the image code (e.g., `readme.1.txt`)
         - absolute path to the dir with rendered images (e.g., `/usr/docs/figs`)
         - relative path to the image to be rendered (e.g., `figs/readme.1.png`)
     """
-    sub_dir = "figs"
     # E.g., "docs/readme.md" -> "/usr/docs", "readme.md".
     out_file_dir, out_file_name = os.path.split(
         os.path.abspath(template_out_file)
@@ -74,45 +85,119 @@ def _get_rendered_file_paths(
     out_file_name_body = os.path.splitext(out_file_name)[0]
     # Create the name for the image file, e.g., "readme.1.png".
     img_name = f"{out_file_name_body}.{image_code_idx}.{dst_ext}"
-    # Get the absolute path to the dir with images, e.g., "/usr/docs/figs".
-    abs_img_dir_path = os.path.join(out_file_dir, sub_dir)
-    # Get the relative path to the image, e.g., "figs/readme.1.png".
-    rel_img_path = os.path.join(sub_dir, img_name)
+    # Determine the absolute path to the images directory.
+    abs_img_dir_path = os.path.abspath(dst_dir)
+    # Compute the relative path from the output file to the image.
+    rel_img_path = os.path.relpath(
+        os.path.join(abs_img_dir_path, img_name), out_file_dir
+    )
     # Get the path to a temporary file with the image code, e.g., "readme.1.txt".
     dir_name = "tmp.render_images"
     code_file_path = f"{dir_name}/{out_file_name_body}.{image_code_idx}.txt"
+    _LOG.debug(hprint.to_str("code_file_path abs_img_dir_path rel_img_path"))
     return (code_file_path, abs_img_dir_path, rel_img_path)
+
+
+@hcacsimp.simple_cache(
+    # Save cache to disk for persistence.
+    write_through=True
+)
+def _generate_ai_images_from_prompt(
+    prompt: str,
+    abs_img_dir_path: str,
+    image_name_base: str,
+    *,
+    dry_run: bool = False,
+) -> List[str]:
+    """
+    Generate AI images using the generate_images.py script.
+
+    :param prompt: text description for the AI to generate images from
+    :param abs_img_dir_path: absolute path to directory where images should be
+        saved
+    :param image_name_base: base name for the image files (without extension)
+    :param dry_run: if True, the generation command is not executed
+    :return: list of relative paths to the generated images (3 images)
+    """
+    _LOG.debug(hprint.func_signature_to_str("prompt abs_img_dir_path"))
+    # Ensure the destination directory exists.
+    hio.create_dir(abs_img_dir_path, incremental=True)
+    # Create a temporary file with the prompt in the format expected by
+    # generate_images.py: "# prompt_name\nprompt text".
+    prompt_name = image_name_base.replace(".", "_")
+    prompt_file = "tmp.render_images.ai_prompt.txt"
+    prompt_content = f"# {prompt_name}\n{prompt}"
+    hio.to_file(prompt_file, prompt_content)
+    # Get the path to generate_images.py script.
+    cur_path = os.path.abspath(os.path.dirname(__file__))
+    generate_script = os.path.join(cur_path, "generate_images.py")
+    hdbg.dassert_path_exists(generate_script)
+    # Build the command to generate images.
+    cmd = (
+        f"{generate_script} "
+        f"--input {prompt_file} "
+        f"--dst_dir {abs_img_dir_path} "
+        f"--count {_AI_IMAGE_COUNT} "
+        f"--no_backup"
+    )
+    _LOG.info("Generating AI images with command: %s", cmd)
+    # The generated files follow the naming pattern from generate_images.py:
+    # image.{prompt_name}.{i + 1:02d}.high_res.png.
+    generated_files = [
+        f"image.{prompt_name}.{i + 1:02d}.high_res.png"
+        for i in range(_AI_IMAGE_COUNT)
+    ]
+    if dry_run:
+        _LOG.warning("Skipping AI image generation because dry_run is set")
+        # Return dummy paths for dry run matching the actual naming pattern.
+    else:
+        # Execute the command.
+        _LOG.debug("cmd=%s", cmd)
+        hsystem.system(cmd)
+        _LOG.debug("Generated AI image files: %s", generated_files)
+    if False:
+        # Clean up the temporary prompt file.
+        if os.path.exists(prompt_file):
+            os.remove(prompt_file)
+    return generated_files
 
 
 # #############################################################################
 
 
-# Save cache to disk for persistence.
-@hcacsimp.simple_cache(write_through=True)
+@hcacsimp.simple_cache(
+    # Save cache to disk for persistence.
+    write_through=True
+)
 def _render_image_code(
     image_code_txt: str,
     image_code_idx: int,
     image_code_type: str,
     out_file: str,
     dst_ext: str,
+    dst_dir: str,
     *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
-) -> str:
+) -> List[str]:
     """
-    Render the image code into an image file.
+    Render the image code into one or more image files.
 
-    :param image_code_txt: the code of the image
+    :param image_code_txt: the code of the image (or AI prompt for "image" type)
     :param image_code_idx: order number of the image code block in the
         file
     :param image_code_type: type of the image code according to its
-        language, e.g., "plantuml", "mermaid"
+        language, e.g., "plantuml", "mermaid", "image"
     :param out_file: path to the output file where the image will be
         inserted
     :param dst_ext: extension of the rendered image, e.g., "svg", "png"
+    :param force_rebuild: rebuild the Docker image before rendering
+    :param use_sudo: run Docker with sudo
     :param dry_run: if True, the rendering command is not executed
-    :return: path to the rendered image
+    :param dst_dir: absolute path to directory for storing rendered images
+    :return: list of paths to the rendered images (usually 1 image, but 3 for
+        "image" type)
     """
     _LOG.debug(hprint.func_signature_to_str("image_code_txt"))
     if image_code_type == "plantuml":
@@ -163,13 +248,24 @@ def _render_image_code(
         """
         )
         image_code_txt = "\n".join([start_tag, image_code_txt, end_tag])
+    elif image_code_type == "raw_latex":
+        pass
+    elif image_code_type == "image":
+        # For AI-generated images, the image_code_txt is the prompt.
+        pass
     # Get paths for rendered files.
     # TODO(gp): The fact that we compute the image file path here makes it
     # not possible to use a decorator to implement the caching.
     in_code_file_path, abs_img_dir_path, out_img_file_path = (
-        _get_rendered_file_paths(out_file, image_code_idx, dst_ext)
+        _get_rendered_file_paths(
+            out_file,
+            image_code_idx,
+            dst_ext,
+            dst_dir,
+        )
     )
     hio.create_dir(abs_img_dir_path, incremental=True)
+    hio.create_dir(os.path.dirname(in_code_file_path), incremental=True)
     # Save the image code to a temporary file.
     hio.to_file(in_code_file_path, image_code_txt)
     # Run the rendering.
@@ -178,11 +274,36 @@ def _render_image_code(
         in_code_file_path,
         abs_img_dir_path,
     )
+    # Build absolute path for the image file (docker runner needs host-absolute).
+    abs_img_file_path = (
+        out_img_file_path
+        if os.path.isabs(out_img_file_path)
+        else os.path.join(abs_img_dir_path, os.path.basename(out_img_file_path))
+    )
     if dry_run:
         _LOG.warning("Skipping image generation because dry_run is set")
     else:
-        if image_code_type == "plantuml":
-            hdocker.run_dockerized_plantuml(
+        if image_code_type == "image":
+            # For AI-generated images, use the generate_images.py script.
+            # Extract base name from out_img_file_path for naming.
+            base_name = os.path.splitext(os.path.basename(out_img_file_path))[0]
+            # Generate AI images from the prompt.
+            generated_files = _generate_ai_images_from_prompt(
+                image_code_txt,
+                abs_img_dir_path,
+                base_name,
+                dry_run=dry_run,
+            )
+            # Build relative paths for the generated images.
+            out_img_file_paths = [
+                os.path.join(abs_img_dir_path, img_file)
+                for img_file in generated_files
+            ]
+            # Remove the temp file.
+            os.remove(in_code_file_path)
+            return out_img_file_paths
+        elif image_code_type == "plantuml":
+            hdocexec.run_dockerized_plantuml(
                 in_code_file_path,
                 abs_img_dir_path,
                 dst_ext,
@@ -190,27 +311,27 @@ def _render_image_code(
                 use_sudo=use_sudo,
             )
         elif image_code_type == "mermaid":
-            hdocker.run_dockerized_mermaid(
+            hdocexec.run_dockerized_mermaid(
                 in_code_file_path,
-                out_img_file_path,
+                abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
-        elif image_code_type in ("tikz", "latex"):
-            cmd_opts: List[str] = ["-density 300", "-quality 20"]
-            hdocker.run_dockerized_tikz_to_bitmap(
+        elif image_code_type in ("tikz", "latex", "raw_latex"):
+            cmd_opts: List[str] = ["-density 600", "-quality 95"]
+            hdocexec.run_dockerized_tikz_to_bitmap(
                 in_code_file_path,
                 cmd_opts,
-                out_img_file_path,
+                abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
         elif image_code_type == "graphviz":
             cmd_opts: List[str] = []
-            hdocker.run_dockerized_graphviz(
+            hdocexec.run_dockerized_graphviz(
                 in_code_file_path,
                 cmd_opts,
-                out_img_file_path,
+                abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
@@ -218,14 +339,22 @@ def _render_image_code(
             raise ValueError(f"Invalid type: {image_code_type}")
     # Remove the temp file.
     os.remove(in_code_file_path)
-    return out_img_file_path
+    # Return list of image paths (single image for most types).
+    return [out_img_file_path]
+
+
+# #############################################################################
 
 
 def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
-    # Define the character that comments out a line depending on the file type.
+    """
+    Define the character that comments out a line depending on the file type.
+    """
     if extension == ".md":
-        comment_prefix = "[//]: # ("
-        comment_postfix = ")"
+        # comment_prefix = "[//]: # ("
+        # comment_postfix = " )"
+        comment_prefix = "<!-- "
+        comment_postfix = " -->"
     elif extension == ".tex":
         comment_prefix = "%"
         comment_postfix = ""
@@ -237,74 +366,212 @@ def _get_comment_prefix_postfix(extension: str) -> Tuple[str, str]:
     return comment_prefix, comment_postfix
 
 
+def _comment_line(
+    line: str,
+    extension: str,
+) -> str:
+    """
+    Comment a line by adding the comment prefix and postfix based on the file
+    extension.
+    """
+    comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
+    # The line should not start with the comment.
+    # hdbg.dassert_not_in(comment_prefix, line)
+    ret = f"{comment_prefix} {line}{comment_postfix}"
+    return ret
+
+
+def _uncomment_line(
+    line: str,
+    extension: str,
+) -> str:
+    """
+    Uncomment a line by removing the comment prefix and postfix based on the
+    file extension.
+    """
+    comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
+    # Remove the comment prefix and postfix leaving the content in between and
+    # the spaces.
+    ret = line.replace(comment_prefix + " ", "").replace(comment_postfix, "")
+    ret = ret.replace(comment_prefix, "")
+    return ret
+
+
+# #############################################################################
+
+
+def _remove_image_code(
+    lines: List[str],
+    extension: str,
+) -> List[str]:
+    """
+    Remove all rendered image code blocks from the file.
+    This is the opposite of `_insert_image_code()` in that it removes the
+    comments and the rendered image code blocks.
+
+    This function:
+    - uncomments blocks between `rendered_images:begin` and
+      `rendered_images:end`
+    - removes blocks between `render_images:begin` and
+      `render_images:end` markers to allow re-rendering images without
+      accumulating old rendered blocks.
+
+    :param in_lines: lines of the input file
+    :param extension: file extension (e.g., ".md", ".tex", ".txt")
+    :return: lines with rendered image blocks removed
+    """
+    # Uncomment the lines between `rendered_images:begin` and
+    # `rendered_images:end` markers.
+    out_lines: List[str] = []
+    in_render_block = False
+    for line in lines:
+        if "rendered_images:begin" in line:
+            in_render_block = True
+            continue
+        if "rendered_images:end" in line:
+            in_render_block = False
+            continue
+        if in_render_block:
+            out_lines.append(_uncomment_line(line, extension))
+        else:
+            out_lines.append(line)
+    lines = out_lines
+    # Remove the rendered image blocks between `rendered_images:begin` and
+    # `rendered_images:end` markers.
+    out_lines: List[str] = []
+    in_render_block = False
+    for line in lines:
+        # Check for begin marker.
+        if "render_images:begin" in line:
+            in_render_block = True
+            continue
+        # Check for end marker.
+        if "render_images:end" in line:
+            in_render_block = False
+            continue
+        # Only keep lines outside render blocks.
+        if not in_render_block:
+            out_lines.append(line)
+    return out_lines
+
+
 def _insert_image_code(
-    extension: str, rel_img_path: str, user_img_size: str
+    extension: str,
+    rel_img_path: str,
+    user_img_size: str,
+    *,
+    label: str = "",
+    caption: str = "",
 ) -> str:
     """
     Insert the code to display the image in the output file.
+
+    :param extension: file extension (e.g., ".md", ".tex")
+    :param rel_img_path: relative path to the image
+    :param user_img_size: optional user-specified image size
+    :param label: optional label for the image (e.g., "fig:my_label")
+    :param caption: optional caption for the image
+    :return: formatted image code as a string
     """
+    out_lines: List[str] = []
+    out_lines.append(_comment_line("render_images:begin", extension))
     # Add the code to insert the image in the file.
     if extension in (".md", ".txt"):
-        # Use the Markdown syntax.
-        txt = f"![]({rel_img_path})"
-        # Add the size, if specified.
+        # Use the Markdown/Pandoc syntax.
+        # Format: ![Caption](image.png){#fig:Label}
+        caption_text = caption if caption else ""
+        txt = f"![{caption_text}]({rel_img_path})"
+        # Add label and/or size if specified.
+        attributes = []
+        if label:
+            attributes.append(f"#{label}")
         if user_img_size:
-            # E.g., "![](path/to/image.png){ height=100% }"
-            txt += "{ " + user_img_size + " }"
+            attributes.append(user_img_size)
+        if attributes:
+            txt += "{" + " ".join(attributes) + "}"
+        out_lines.append(txt)
     elif extension == ".tex":
-        # Use the LaTeX syntax.
-        # We need to leave it on a single line to make it easy to find and
-        # replace it.
-        txt = rf"""\begin{{figure}} \includegraphics[width=\linewidth]{{{rel_img_path}}} \end{{figure}}"""
+        # Use the LaTeX syntax with tagged markers to make it easier to do a
+        # replacement.
+        # out_lines.append(r"\begin{figure}[!ht]")
+        out_lines.append(r"\begin{figure}[H]")
+        out_lines.append(
+            r"  \includegraphics[width=\linewidth]{" + rel_img_path + "}"
+        )
+        if caption:
+            out_lines.append(r"  \caption{" + caption + "}")
+        if label:
+            out_lines.append(r"  \label{" + label + "}")
+        out_lines.append(r"\end{figure}")
     else:
         raise ValueError(f"Unsupported file extension: {extension}")
+    out_lines.append(_comment_line("render_images:end", extension))
+    txt = "\n".join(out_lines)
     return txt
-
-
-def _comment_if_needed(
-    state: str, line: str, comment_prefix: str, comment_postfix: str
-) -> str:
-    if state == "found_image_code":
-        if line.startswith(comment_prefix):
-            ret = line
-        else:
-            ret = f"{comment_prefix} {line}{comment_postfix}"
-    else:
-        ret = line
-    return ret
 
 
 def _render_images(
     in_lines: List[str],
     out_file: str,
     dst_ext: str,
+    dst_dir: str,
     *,
     force_rebuild: bool = False,
     use_sudo: bool = False,
     dry_run: bool = False,
 ) -> List[str]:
-    """
+    r"""
     Insert rendered images instead of image code blocks.
 
     "image code" refers to code that defines the content of the image, e.g.,
-    plantUML/mermaid code for diagrams.
+    plantUML/mermaid/graphviz/tikz code for diagrams.
 
     This method:
     - comments out the image code if it is not already commented out
     - renders the image code into an image file
+    - parses optional metadata (label, caption) after the image code block
     - inserts the include for the rendered image after the image code block
+      with optional label and caption
+
+    The parsed text format should look like:
+    ```plantuml
+       ... image code ...
+    ```
+    label=fig:my_label
+    caption=This is a caption
+    that can span multiple lines
+
+    After this function the text should look like:
+
+    % rendered_image:begin
+    % ```plantuml
+    %    ... image code ...
+    % ```
+    % label=fig:my_label
+    % caption=This is a caption
+    % that can span multiple lines
+    % rendered_image:end
+    % render_images:begin
+    \begin{figure}
+      \includegraphics[width=\linewidth]{figs/out.1.png}
+      \caption{Test diagram showing communication}
+      \label{fig:test_diagram}
+    \end{figure}
+    % render_images:end
 
     :param in_lines: lines of the input file
     :param out_file: path to the output file
     :param dst_ext: extension for rendered images
     :param dry_run: if True, the text of the file is updated but the images are
         not actually created
+    :param dst_dir: absolute path to directory for storing rendered images
     :return: updated lines of the file
     """
     _LOG.debug(hprint.func_signature_to_str("in_lines"))
     # Get the extension of the output file.
     extension = os.path.splitext(out_file)[1]
-    #
+    # Remove all the previously rendered image code blocks from the file.
+    in_lines = _remove_image_code(in_lines, extension)
     comment_prefix, comment_postfix = _get_comment_prefix_postfix(extension)
     # Store the output of the code
     out_lines: List[str] = []
@@ -317,25 +584,30 @@ def _render_images(
     # Image size explicitly set by the user with `plantuml[...]` syntax.
     user_img_size = ""
     # Store the state of the parser.
+    # Parser states:
+    # - "search_image_code": Looking for the start of an image code block
+    # - "found_image_code": Inside an uncommented image code block
+    # - "parse_metadata": After closing ```, parsing optional label/caption
     state = "search_image_code"
-    # The code should look like:
-    # ```plantuml
-    #    ...
-    # ```
+    # Store parsed metadata.
+    metadata_label = ""
+    metadata_caption = ""
+    # Store the current metadata field being parsed (for multi-line values).
+    current_metadata_field = ""
     comment = re.escape(comment_prefix)
-    start_regex = re.compile(
+    start_image_regex = re.compile(
         rf"""
         ^\s*                # Start of the line and any leading whitespace
         ({comment}\s*)?     # Optional comment prefix
         ```                 # Opening backticks for code block
-        (plantuml|mermaid|tikz|graphviz|latex*)  # Image code type
+        (plantuml|mermaid|tikz|graphviz|latex|raw_latex|image)  # Image code type
         (\((.*)\))?         # Optional user-specified image name as (...)
         (\[(.*)\])?         # Optional user-specified image size as [...]
         \s*$                # Any trailing whitespace and end of the line
         """,
         re.VERBOSE,
     )
-    end_regex = re.compile(
+    end_image_regex = re.compile(
         rf"""
         ^\s*                # Start of the line and any leading whitespace
         ({comment}\s*)?     # Optional comment prefix
@@ -344,24 +616,43 @@ def _render_images(
         """,
         re.VERBOSE,
     )
+    # Regex for metadata lines (label=... or caption=...).
+    metadata_start_regex = re.compile(
+        r"""
+        ^\s*                # Start of the line and any leading whitespace
+        (label|caption)     # Metadata field name
+        \s*=\s*             # Equals sign with optional whitespace
+        (.*)$               # Value (rest of the line)
+        """,
+        re.VERBOSE,
+    )
+    # Regex to detect continuation lines for multi-line metadata values.
+    # A line is a continuation if it starts with whitespace and doesn't start
+    # a new metadata field or image code block.
+    metadata_continuation_regex = re.compile(r"^\s+\S")
     for i, line in enumerate(in_lines):
         _LOG.debug("%d %s: '%s'", i, state, line)
-        m = start_regex.search(line)
+        m = start_image_regex.search(line)
         if m:
             # Found the beginning of an image code block.
             hdbg.dassert_eq(state, "search_image_code")
-            if m.group(1):
-                state = "found_commented_image_code"
-            else:
-                state = "found_image_code"
+            state = "found_image_code"
             _LOG.debug(" -> state=%s", state)
             image_code_lines = []
             image_code_idx += 1
-            # E.g., "plantuml" or "mermaid".
+            # E.g., "plantuml" or "mermaid" or "image".
             image_code_type = m.group(2)
             hdbg.dassert_in(
                 image_code_type,
-                ["plantuml", "mermaid", "tikz", "graphviz", "latex"],
+                [
+                    "plantuml",
+                    "mermaid",
+                    "tikz",
+                    "graphviz",
+                    "latex",
+                    "raw_latex",
+                    "image",
+                ],
             )
             if m.group(3):
                 hdbg.dassert_eq(user_rel_img_path, "")
@@ -371,64 +662,117 @@ def _render_images(
                 hdbg.dassert_eq(user_img_size, "")
                 user_img_size = m.group(6)
                 _LOG.debug(hprint.to_str("user_img_size"))
+            # Add
+            out_lines.append(_comment_line("rendered_images:begin", extension))
             # Comment out the beginning of the image code.
-            out_lines.append(
-                _comment_if_needed(state, line, comment_prefix, comment_postfix)
-            )
-        elif state in ("found_image_code", "found_commented_image_code"):
-            m = end_regex.search(line)
+            out_lines.append(_comment_line(line, extension))
+        elif state == "found_image_code":
+            m = end_image_regex.search(line)
             if m:
                 # Found the end of an image code block.
                 image_code_txt = "\n".join(image_code_lines)
-                rel_img_path = _render_image_code(
+                rel_img_paths = _render_image_code(
                     image_code_txt,
                     image_code_idx,
                     image_code_type,
                     out_file,
                     dst_ext,
+                    dst_dir,
                     force_rebuild=force_rebuild,
                     use_sudo=use_sudo,
                     dry_run=dry_run,
                 )
                 # Override the image name if explicitly set by the user.
                 if user_rel_img_path != "":
-                    rel_img_path = user_rel_img_path
+                    rel_img_paths = [user_rel_img_path]
                     user_rel_img_path = ""
                 # Comment out the end of the image code, if needed.
-                out_lines.append(
-                    _comment_if_needed(
-                        state, line, comment_prefix, comment_postfix
-                    )
-                )
-                out_lines.append(
-                    _insert_image_code(extension, rel_img_path, user_img_size)
-                )
-                user_img_size = ""
-                # Set the parser to search for a new image code block.
-                if state == "found_image_code":
-                    state = "search_image_code"
-                else:
-                    state = "replace_image_code"
+                out_lines.append(_comment_line(line, extension))
+                # Reset metadata for this image.
+                metadata_label = ""
+                metadata_caption = ""
+                current_metadata_field = ""
+                # Transition to parse_metadata state to check for optional metadata.
+                state = "parse_metadata"
                 _LOG.debug(" -> state=%s", state)
             else:
                 # Record the line from inside the image code block.
                 image_code_lines.append(line)
                 # Comment out the inside of the image code.
-                out_lines.append(
-                    _comment_if_needed(
-                        state, line, comment_prefix, comment_postfix
+                out_lines.append(_comment_line(line, extension))
+        elif state == "parse_metadata":
+            # Check if this line starts a new metadata field (label= or caption=).
+            m_metadata = metadata_start_regex.search(line)
+            if m_metadata:
+                # Found a metadata field.
+                field_name = m_metadata.group(1)
+                field_value = m_metadata.group(2).strip()
+                current_metadata_field = field_name
+                if field_name == "label":
+                    metadata_label = field_value
+                elif field_name == "caption":
+                    metadata_caption = field_value
+                # Comment out the metadata line.
+                out_lines.append(_comment_line(line, extension))
+            elif current_metadata_field and metadata_continuation_regex.search(
+                line
+            ):
+                # This is a continuation line for the current metadata field.
+                continuation_value = line.strip()
+                if current_metadata_field == "label":
+                    metadata_label += " " + continuation_value
+                elif current_metadata_field == "caption":
+                    metadata_caption += " " + continuation_value
+                # Comment out the continuation line.
+                out_lines.append(_comment_line(line, extension))
+            else:
+                # Add marker.
+                out_lines.append(_comment_line("rendered_images:end", extension))
+                # End of metadata section, insert the image code with metadata.
+                # Insert all images (usually 1, but 3 for AI-generated images).
+                for idx, rel_img_path in enumerate(rel_img_paths):
+                    # For multiple images, only add caption/label to the first one.
+                    img_label = metadata_label if idx == 0 else ""
+                    img_caption = metadata_caption if idx == 0 else ""
+                    out_lines.append(
+                        _insert_image_code(
+                            extension,
+                            rel_img_path,
+                            user_img_size,
+                            label=img_label,
+                            caption=img_caption,
+                        )
                     )
-                )
-        elif state == "replace_image_code":
-            # Replace the line with the image code, which should be the next
-            # line.
-            if line.rstrip().lstrip() != "":
-                # Replace the line.
+                user_img_size = ""
+                # Reset current field.
+                current_metadata_field = ""
+                # Transition back to search state.
                 state = "search_image_code"
                 _LOG.debug(" -> state=%s", state)
+                # Process the current line as a regular line.
+                out_lines.append(line)
         else:
             # Keep a regular line.
             out_lines.append(line)
+    # Handle end of file while in parse_metadata state.
+    if state == "parse_metadata":
+        # Add marker.
+        out_lines.append(_comment_line("rendered_images:end", extension))
+        # Insert the image code with whatever metadata was collected.
+        # Insert all images (usually 1, but 3 for AI-generated images).
+        for idx, rel_img_path in enumerate(rel_img_paths):
+            # For multiple images, only add caption/label to the first one.
+            img_label = metadata_label if idx == 0 else ""
+            img_caption = metadata_caption if idx == 0 else ""
+            out_lines.append(
+                _insert_image_code(
+                    extension,
+                    rel_img_path,
+                    user_img_size,
+                    label=img_label,
+                    caption=img_caption,
+                )
+            )
     return out_lines
 
 
@@ -467,23 +811,29 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    # Add input and output file arguments.
-    parser.add_argument(
-        "-i",
-        "--in_file_name",
-        required=True,
-        type=str,
-        help="Path to the input file",
-    )
     parser.add_argument(
         "-o",
-        "--out_file_name",
+        "--output",
         type=str,
         default=None,
         help="Path to the output file",
     )
+    # Add multi-file arguments.
+    hparser.add_multi_file_args(parser)
     # Add actions arguments.
     hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    parser.add_argument(
+        "--dst_dir",
+        type=str,
+        default=None,
+        help="Directory where rendered images will be saved. If not specified, "
+        "defaults to <input_file>.figs (e.g., 'doc.md' -> 'doc.md.figs')",
+    )
+    parser.add_argument(
+        "--remove_figs",
+        action="store_true",
+        help="Remove rendered images and uncomment original image code",
+    )
     # Add an argument for debugging.
     parser.add_argument(
         "--dry_run",
@@ -495,11 +845,28 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
-    # Get the paths to the input and output files.
-    in_file, out_file = hparser.parse_input_output_args(args)
+def _process_single_file(
+    in_file: str,
+    out_file: str,
+    actions: List[str],
+    dst_dir: str,
+    *,
+    force_rebuild: bool,
+    use_sudo: bool,
+    dry_run: bool,
+) -> None:
+    """
+    Process a single file for image rendering.
+
+    :param in_file: input file path
+    :param out_file: output file path
+    :param actions: list of actions to execute
+    :param force_rebuild: rebuild the Docker image before rendering
+    :param use_sudo: run Docker with sudo
+    :param dry_run: if True, the rendering command is not executed
+    :param dst_dir: absolute path to directory for storing rendered images
+    """
+    _LOG.info(hprint.func_signature_to_str())
     # Verify that the input and output file types are valid and equal.
     hdbg.dassert_file_extension(in_file, ["md", "tex", "txt"])
     hdbg.dassert_eq(
@@ -507,9 +874,6 @@ def _main(parser: argparse.ArgumentParser) -> None:
         os.path.splitext(out_file)[1],
         msg="Input and output files should have the same extension.",
     )
-    # Get the selected actions.
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    _LOG.info("Selected actions: %s", actions)
     # Set the extension for the rendered images.
     dst_ext = "png"
     if actions == [_ACTION_OPEN]:
@@ -525,15 +889,129 @@ def _main(parser: argparse.ArgumentParser) -> None:
         in_lines,
         out_file,
         dst_ext,
-        force_rebuild=args.dockerized_force_rebuild,
-        use_sudo=args.dockerized_use_sudo,
-        dry_run=args.dry_run,
+        dst_dir,
+        force_rebuild=force_rebuild,
+        use_sudo=use_sudo,
+        dry_run=dry_run,
+    )
+    # Remove empty consecutive lines.
+    out_lines = hprint.remove_empty_lines(
+        out_lines, mode="no_consecutive_empty_lines"
     )
     # Save the output into a file.
     hio.to_file(out_file, "\n".join(out_lines))
     # Open if needed.
     if _ACTION_OPEN in actions:
         _open_html(out_file)
+
+
+def _process_single_file_remove_figs(
+    in_file: str,
+    out_file: str,
+) -> None:
+    """
+    Process a single file to remove rendered images and uncomment original code.
+
+    :param in_file: input file path
+    :param out_file: output file path
+    """
+    _LOG.info(hprint.func_signature_to_str("in_file out_file"))
+    # Verify that the input and output file types are valid and equal.
+    hdbg.dassert_file_extension(in_file, ["md", "tex", "txt"])
+    hdbg.dassert_eq(
+        os.path.splitext(in_file)[1],
+        os.path.splitext(out_file)[1],
+        msg="Input and output files should have the same extension.",
+    )
+    # Get the file extension.
+    extension = os.path.splitext(in_file)[1]
+    # Read the input file.
+    in_lines = hio.from_file(in_file).split("\n")
+    # Remove rendered image code and uncomment original code.
+    out_lines = _remove_image_code(in_lines, extension)
+    # Remove empty consecutive lines.
+    out_lines = hprint.remove_empty_lines(
+        out_lines, mode="no_consecutive_empty_lines"
+    )
+    # Save the output into a file.
+    hio.to_file(out_file, "\n".join(out_lines))
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    hparser.init_logger_for_input_output_transform(args)
+    # Get list of input files using multi-file parsing.
+    in_files = hparser.parse_multi_file_args(args)
+    # Handle output file for multi-file mode.
+    if len(in_files) > 1:
+        # Multi-file mode.
+        hdbg.dassert_eq(
+            args.output,
+            None,
+            "You can't specify output file with multiple input files",
+        )
+    else:
+        # Get output file name.
+        if args.output:
+            out_file = args.output
+        else:
+            # Render in-place.
+            out_file = in_files[0]
+    # Compute default dst_dir if not specified.
+    if args.dst_dir is None:
+        # For multi-file mode, use first input file to determine default.
+        default_dst_dir = f"{in_files[0]}.figs"
+        _LOG.info("No --dst_dir specified, using default: %s", default_dst_dir)
+    else:
+        default_dst_dir = args.dst_dir
+        _LOG.info("Using specified --dst_dir: %s", default_dst_dir)
+    # Process each file with progress bar.
+    _LOG.info("Processing %s files", len(in_files))
+    if len(in_files) > 1:
+        iterator = tqdm(in_files, desc="Processing files")
+    else:
+        iterator = [in_files[0]]
+    # Check if remove_figs mode is enabled.
+    if args.remove_figs:
+        # Remove rendered figures and uncomment original image code.
+        _LOG.info("Removing rendered figures and uncommenting original code")
+        for in_file in iterator:
+            _LOG.info("Processing file '%s' to '%s'", in_file, out_file)
+            # For multi-file mode, always process in-place.
+            if len(in_files) > 1:
+                out_file = in_file
+            _process_single_file_remove_figs(in_file, out_file)
+    else:
+        # Standard rendering mode.
+        # Get the selected actions.
+        actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+        _LOG.info("Selected actions: %s", actions)
+        for in_file in iterator:
+            # For multi-file mode, compute dst_dir per file if using default.
+            if len(in_files) > 1:
+                out_file = in_file
+                if args.dst_dir is None:
+                    dst_dir = f"{in_file}.figs"
+                else:
+                    hdbg.dfatal(
+                        "You can't specify dst_dir for multiple input files"
+                    )
+            else:
+                dst_dir = default_dst_dir
+            _LOG.info("Processing file '%s' to '%s'", in_file, out_file)
+            _process_single_file(
+                in_file,
+                out_file,
+                actions,
+                dst_dir,
+                force_rebuild=args.dockerized_force_rebuild,
+                use_sudo=args.dockerized_use_sudo,
+                dry_run=args.dry_run,
+            )
+    if len(in_files) > 1:
+        _LOG.info("%s Files saved in place", len(in_files))
+    else:
+        _LOG.info("Result saved in '%s'", out_file)
 
 
 if __name__ == "__main__":

@@ -13,8 +13,6 @@ from typing import Callable, Optional, Union
 
 _LOG = logging.getLogger(__name__)
 
-# TODO(gp): Consider adding a `import pandas as pd` to use the type hints.
-
 # #############################################################################
 # Simulated real time
 # #############################################################################
@@ -23,7 +21,7 @@ _LOG = logging.getLogger(__name__)
 #
 # Function returning the current (true, replayed, simulated) wall-clock time as a
 # timestamp.
-_GetWallClockTime = Callable[[], "pd.Timestamp"]
+_GetWallClockTime = Callable[[], "pd.Timestamp"]  # noqa: F821
 
 _get_wall_clock_time_func: Optional[_GetWallClockTime] = None
 
@@ -45,7 +43,7 @@ def get_wall_clock_time_func() -> Optional[_GetWallClockTime]:
 
 
 # We don't want to import `Pandas` just for a type.
-def get_wall_clock_time() -> Optional["pd.Timestamp"]:
+def get_wall_clock_time() -> Optional["pd.Timestamp"]:  # noqa: F821
     """
     Return the wall clock time (according to the set function) or `None` if no
     function was set.
@@ -65,7 +63,8 @@ def get_wall_clock_time() -> Optional["pd.Timestamp"]:
 
 # TODO(Sameep): Redundant fuction replace by `hdatetime.timestamp_to_str()`.
 def to_timestamp_str(
-    timestamp: "pd.Timestamp", include_msec: bool = False
+    timestamp: "pd.Timestamp",  # noqa: F821
+    include_msec: bool = False,
 ) -> str:
     if include_msec:
         # Chop the last 4 miliseconds digits. This is needed for CcxtBroker_v2.
@@ -93,7 +92,7 @@ def get_machine_wall_clock_time(
 # #############################################################################
 
 
-_CURR_BAR_TIMESTAMP: Optional["pd.Timestamp"] = None
+_CURR_BAR_TIMESTAMP: Optional["pd.Timestamp"] = None  # noqa: F821
 
 
 def reset_current_bar_timestamp() -> None:
@@ -102,7 +101,7 @@ def reset_current_bar_timestamp() -> None:
     _CURR_BAR_TIMESTAMP = None
 
 
-def set_current_bar_timestamp(timestamp: "pd.Timestamp") -> None:
+def set_current_bar_timestamp(timestamp: "pd.Timestamp") -> None:  # noqa: F821
     _LOG.debug("timestamp=%s", timestamp)
     global _CURR_BAR_TIMESTAMP
     if _CURR_BAR_TIMESTAMP is not None:
@@ -119,7 +118,7 @@ def get_current_bar_timestamp(
     *,
     as_str: bool = False,
     include_msec: bool = False,
-) -> Optional[Union[str, "pd.Timestamp"]]:
+) -> Optional[Union[str, "pd.Timestamp"]]:  # noqa: F821
     ret = _CURR_BAR_TIMESTAMP
     if _CURR_BAR_TIMESTAMP and as_str:
         ret = to_timestamp_str(ret, include_msec=include_msec)

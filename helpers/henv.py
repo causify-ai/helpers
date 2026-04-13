@@ -6,7 +6,7 @@ import helpers.henv as henv
 
 import logging
 import os
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, List, Tuple, Union
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -23,63 +23,7 @@ import helpers.repo_config_utils as hrecouti
 _LOG = logging.getLogger(__name__)
 
 
-# #############################################################################
-
-
 _WARNING = "\033[33mWARNING\033[0m"
-
-
-# TODO(gp): Is this the right place for this function?
-def has_module(module: str) -> bool:
-    """
-    Return whether a Python module can be imported or not.
-    """
-    if module == "gluonts" and hserver.is_host_mac():
-        # Gluonts and mxnet modules are not properly supported on the ARM
-        # architecture yet, see CmTask4886 for details.
-        return False
-    code = f"""
-    try:
-        import {module}
-        has_module_ = True
-    except ImportError as e:
-        _LOG.warning("%s: %s", _WARNING, str(e))
-        has_module_ = False
-    """
-    code = hprint.dedent(code)
-    # To make the linter happy.
-    has_module_ = True
-    locals_: Dict[str, Any] = {}
-    # Need to explicitly declare and pass `locals_`:
-    # https://docs.python.org/3/library/functions.html#exec
-    # `Pass an explicit locals dictionary if you need to see effects
-    # of the code on locals after function exec() returns.`
-    exec(code, globals(), locals_)
-    has_module_ = locals_["has_module_"]
-    return has_module_
-
-
-def install_module_if_not_present(
-    import_name: str, package_name: Optional[str] = None
-) -> None:
-    """
-    Install a Python module if it is not already installed.
-
-    :param import_name: name used to import the module
-    :param package_name: name of the package on PyPI (if different from `import_name`)
-    """
-    _has_module = has_module(import_name)
-    if _has_module:
-        print(f"Module '{import_name}' is already installed.")
-        return
-    # Sometime the package name is different from the import name.
-    # e.g., we import using `import dash_bootstrap_components`
-    # but the package name is `dash-bootstrap-components`.
-    package_name = package_name or import_name
-    _, output = hsystem.system_to_string(
-        f"sudo /venv/bin/pip install {package_name}"
-    )
-    print(output)
 
 
 # All printing functions should:
@@ -99,7 +43,7 @@ def get_env_var(
     as_bool: bool = False,
     default_value: Any = None,
     abort_on_missing: bool = True,
-) -> Union[str, bool]:
+) -> Union[str, bool, Any]:
     """
     Get an environment variable by name.
 
@@ -280,8 +224,8 @@ def env_vars_to_string() -> str:
             else:
                 # Not a secret var: print the value.
                 txt.append(f"{env_name}='{os.environ[env_name]}'")
-    txt = "\n".join(txt)
-    return txt
+    result = "\n".join(txt)
+    return result
 
 
 # #############################################################################
@@ -348,9 +292,9 @@ def _get_git_signature(git_commit_type: str = "all") -> str:
     else:
         raise ValueError(f"Invalid value='{git_commit_type}'")
     #
-    txt = "\n".join(txt) + "\n"
-    hdbg.dassert(txt.endswith("\n"), "txt_tmp='%s'", txt)
-    return txt
+    result = "\n".join(txt) + "\n"
+    hdbg.dassert(result.endswith("\n"), "result='%s'", result)
+    return result
 
 
 # def _get_submodule_signature(
@@ -421,7 +365,10 @@ def _get_psutil_info() -> str:
     txt_tmp = []
     if has_psutil:
         txt_tmp.append(f"cpu count={psutil.cpu_count()}")
-        txt_tmp.append(f"cpu freq={str(psutil.cpu_freq())}")
+        if hasattr(psutil, "cpu_freq") and psutil.cpu_freq is not None:
+            txt_tmp.append(f"cpu freq={str(psutil.cpu_freq())}")
+        else:
+            txt_tmp.append("cpu freq=unavailable")
         # TODO(gp): Report in MB or GB.
         txt_tmp.append(f"memory={str(psutil.virtual_memory())}")
         txt_tmp.append(f"disk usage={str(psutil.disk_usage('/'))}")
@@ -450,7 +397,7 @@ def _get_library_version(lib_name: str) -> str:
     return version
 
 
-def _get_package_info() -> Tuple[List[str], int]:
+def _get_package_info() -> Tuple[str, int]:
     """
     Get package version information.
 
@@ -494,7 +441,7 @@ def _get_package_info() -> Tuple[List[str], int]:
         if version.startswith("ERROR"):
             failed_imports += 1
         packages.append((lib, version))
-    txt_tmp.extend([f"{l}: {v}" for (l, v) in packages])
+    txt_tmp.extend([f"{lib}: {version}" for (lib, version) in packages])
     #
     txt = hprint.to_info("Packages", txt_tmp)
     return txt, failed_imports
@@ -556,8 +503,8 @@ def get_system_signature(git_commit_type: str = "all") -> Tuple[str, int]:
     hprint.dassert_one_trailing_newline(txt_tmp)
     txt.append(txt_tmp)
     #
-    txt = hprint.to_info("System signature", txt)
-    return txt, failed_imports
+    txt_str: str = hprint.to_info("System signature", txt)
+    return txt_str, failed_imports
 
 
 # #############################################################################

@@ -77,12 +77,12 @@ class TestFloorWithPrecision(hunitest.TestCase):
         with self.assertRaises(AssertionError) as cm:
             hnumpy.floor_with_precision(value, amount_precision)
         # Check.
-        act = str(cm.exception)
-        exp = """
+        actual = str(cm.exception)
+        expected = """
         * Failed assertion *
         0 <= -2
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_floor_with_precision4(self) -> None:
         """
@@ -168,33 +168,33 @@ class Test_OrderedDict_repr_str(hunitest.TestCase):
         Test that the __str__ method on a single item in OrderedDict returns the expected string.
         """
         d = collections.OrderedDict({"test": np.int64(42)})
-        act = str(d["test"])
-        exp = "42"
-        self.assert_equal(act, exp)
+        actual = str(d["test"])
+        expected = "42"
+        self.assert_equal(actual, expected)
 
     def test_repr_single1(self) -> None:
         """
         Test that the __repr__ method on a single item in OrderedDict returns the expected string.
         """
         d = collections.OrderedDict({"test": np.int64(42)})
-        act = repr(d["test"])
-        exp = "np.int64(42)"
-        self.assert_equal(act, exp)
+        actual = repr(d["test"])
+        expected = "np.int64(42)"
+        self.assert_equal(actual, expected)
 
     def test_str_full1(self) -> None:
         """
         Test that the __str__ method of OrderedDict returns the expected string.
         """
         d = collections.OrderedDict({"test": np.int64(42)})
-        act = str(d)
-        exp = "OrderedDict({'test': np.int64(42)})"
-        self.assert_equal(act, exp)
+        actual = str(d)
+        expected = "OrderedDict({'test': np.int64(42)})"
+        self.assert_equal(actual, expected)
 
     def test_repr_full1(self) -> None:
         """
         Test that the __repr__ method of OrderedDict returns the expected string.
         """
         d = collections.OrderedDict({"test": np.int64(42)})
-        act = repr(d)
-        exp = "OrderedDict({'test': np.int64(42)})"
-        self.assert_equal(act, exp)
+        actual = repr(d)
+        expected = "OrderedDict({'test': np.int64(42)})"
+        self.assert_equal(actual, expected)

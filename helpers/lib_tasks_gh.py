@@ -4,12 +4,14 @@ Import as:
 import helpers.lib_tasks_gh as hlitagh
 """
 
+import datetime
 import json
 import logging
 import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
+import invoke.exceptions as invexc
 from invoke import task
 
 # We want to minimize the dependencies from non-standard Python packages since
@@ -89,6 +91,22 @@ def _get_branch_name(branch_mode: str) -> Optional[str]:
     return branch_name
 
 
+def _get_org_name(org_name: str) -> str:
+    """
+    Get organization name, inferring from current repo if not provided.
+
+    :param org_name: organization name or empty string
+    :return: organization name
+    """
+    if not org_name:
+        # Infer organization from current repo.
+        full_repo_name = hgit.get_repo_full_name_from_dirname(
+            ".", include_host_name=False
+        )
+        org_name = full_repo_name.split("/")[0]
+    return org_name
+
+
 def _get_workflow_table() -> htable.TableType:
     """
     Get a table with the status of the GH workflow for the current repo.
@@ -115,7 +133,7 @@ def _get_workflow_table() -> htable.TableType:
         "completed",
         # E.g., success, failure.
         "status",
-        # Aka title.
+        # Aka title: parse but don't use.
         "name",
         "workflow",
         "branch",
@@ -128,6 +146,8 @@ def _get_workflow_table() -> htable.TableType:
     # Build the table.
     table = htable.Table.from_text(cols, txt, delimiter="\t")
     _LOG.debug(hprint.to_str("table"))
+    # Remove the "name" column as it's redundant with "workflow".
+    table = table.remove_column("name")
     return table
 
 
@@ -209,13 +229,13 @@ def gh_workflow_list(  # type: ignore
             status_column = table_tmp.get_column("status")
             _LOG.debug("status_column=%s", str(status_column))
             hdbg.dassert_lt(
-                i, len(status_column), msg="status_column=%s" % status_column
+                i, len(status_column), "status_column=", status_column
             )
             status = status_column[i]
             if status == "success":
                 print(f"Workflow '{workflow}' for '{branch_name}' is ok")
                 break
-            if status in ("failure", "startup_failure", "cancelled"):
+            if status in ("failure", "startup_failure", "cancelled", "skipped"):
                 _LOG.error(
                     "Workflow '%s' for '%s' is broken", workflow, branch_name
                 )
@@ -251,9 +271,9 @@ def gh_workflow_list(  # type: ignore
                     # #########################################################
                     # Superslow tests
                     # #########################################################
-                    # completed   | status | name            | workflow        | branch | event             | id         | elapsed | age |
-                    # ----------- | ------ | --------------- | --------------- | ------ | ----------------- | ---------- | ------- | --- |
-                    # in_progress |        | Superslow tests | Superslow tests | master | workflow_dispatch | 5421740561 | 13m25s  | 13m |
+                    # completed   | status | workflow        | branch | event             | id         | elapsed | age |
+                    # ----------- | ------ | --------------- | ------ | ----------------- | ---------- | ------- | --- |
+                    # in_progress |        | Superslow tests | master | workflow_dispatch | 5421740561 | 13m25s  | 13m |
                     _LOG.warning(
                         "No failed/successful run found for workflow=%s for branch=%s, all runs are in progress, exiting.",
                         workflow,
@@ -402,6 +422,84 @@ def gh_issue_title(ctx, issue_id, repo_short_name="current", pbcopy=True):  # ty
     hsystem.to_pbcopy(msg, pbcopy=pbcopy)
 
 
+@task
+def gh_issue_create(  # type: ignore
+    ctx,
+    title="",
+    body="",
+    labels="",
+    assignees="",
+    project="",
+    repo_short_name="current",
+):
+    """
+    Create a new GitHub issue in the specified repository.
+
+    ```
+    # Create a simple issue
+    > invoke gh_issue_create --title "Fix bug in parser"
+
+    # Create an issue with body and labels
+    > invoke gh_issue_create --title "Add new feature" --body "Description here" --labels "enhancement,priority-high"
+
+    # Create an issue with assignees
+    > invoke gh_issue_create --title "Review PR" --assignees "user1,user2"
+
+    # Create an issue and add to a project
+    > invoke gh_issue_create --title "Implement feature" --project "Development Board"
+    ```
+
+    :param title: title of the issue (required)
+    :param body: body/description of the issue
+    :param labels: comma-separated list of labels to apply
+    :param assignees: comma-separated list of GitHub usernames to assign
+    :param project: GitHub project name or number to add the issue to
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
+    :return: issue ID (integer) of the created issue
+    """
+    hlitauti.report_task(txt=hprint.to_str("title repo_short_name"))
+    # Login.
+    gh_login(ctx)
+    #
+    hdbg.dassert(title, "Title is required")
+    hdbg.dassert_eq(repo_short_name, "current")
+    repo_full_name_with_host, repo_short_name = _get_repo_full_name_from_cmd(
+        repo_short_name
+    )
+    _LOG.info(
+        "Creating issue with title '%s' in %s",
+        title,
+        repo_full_name_with_host,
+    )
+    # Build the command.
+    cmd = (
+        "gh issue create"
+        + f" --repo {repo_full_name_with_host}"
+        + f' --title "{title}"'
+    )
+    if body:
+        cmd += f' --body "{body}"'
+    if labels:
+        cmd += f' --label "{labels}"'
+    if assignees:
+        cmd += f' --assignee "{assignees}"'
+    if project:
+        cmd += f' --project "{project}"'
+    # Execute the command and capture output.
+    # gh issue create outputs the URL of the created issue, e.g.,
+    # https://github.com/cryptokaizen/csfy/issues/7572
+    _, output = hsystem.system_to_string(cmd)
+    _LOG.debug("gh issue create output: %s", output)
+    # Extract the issue ID from the URL.
+    # The URL format is: https://github.com/org/repo/issues/123
+    match = re.search(r"/issues/(\d+)", output)
+    hdbg.dassert(match, f"Could not extract issue ID from output: {output}")
+    issue_id = int(match.group(1))
+    _LOG.info("Created issue #%s", issue_id)
+    return issue_id
+
+
 # #############################################################################
 
 
@@ -425,6 +523,9 @@ def gh_create_pr(  # type: ignore
     auto_merge=False,
     repo_short_name="current",
     title="",
+    reviewer="",
+    labels="",
+    assignee="",
 ):
     """
     Create a draft PR for the current branch in the corresponding
@@ -441,7 +542,12 @@ def gh_create_pr(  # type: ignore
     :param body: the body of the PR
     :param draft: draft or ready-to-review PR
     :param auto_merge: enable auto merging PR
+    :param repo_short_name: `current` refer to the repo where we are in,
+        otherwise a `repo_short_name` (e.g., "amp")
     :param title: title of the PR or the branch name, if title is empty
+    :param reviewer: GitHub username to request review from
+    :param labels: comma-separated list of labels to apply
+    :param assignee: GitHub username to assign the PR to
     """
     hlitauti.report_task()
     # Login.
@@ -482,6 +588,14 @@ def gh_create_pr(  # type: ignore
             + f' --title "{title}"'
             + f' --body "{body}"'
         )
+        if reviewer:
+            cmd += f" --reviewer {reviewer}"
+            _LOG.info("Added reviewer %s to the PR", reviewer)
+        if labels:
+            cmd += f' --label "{labels}"'
+            _LOG.info("Added labels %s to the PR", labels)
+        if assignee:
+            cmd += f" --assignee {assignee}"
         # TODO(gp): Use _to_single_line_cmd
         hlitauti.run(ctx, cmd)
     if auto_merge:
@@ -526,7 +640,7 @@ def gh_publish_buildmeister_dashboard_to_s3(ctx, mark_as_latest=True):  # type: 
         f"--notebook {notebook_path}",
         # The notebook does not require a config, so using a random dummy config.
         # TODO(Grisha): consider creating a separate config builder for the notebook.
-        "--config_builder 'datapull.common.data.qa.qa_check.build_dummy_data_reconciliation_config()'",
+        "--config_builder 'datapull.optima.qa.qa_check.build_dummy_data_reconciliation_config()'",
         f"--dst_dir '{dst_local_dir}'",
         "--publish",
         "--num_threads serial",
@@ -631,7 +745,9 @@ def _get_best_workflow_run(
     return run_status
 
 
-def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
+def gh_get_details_for_all_workflows(
+    repo_list: List[str],
+) -> "pd.DataFrame":  # noqa: F821
     """
     Get status for all the workflows.
 
@@ -644,11 +760,11 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
     cryptokaizen/cmamp  Allure slow tests  https://github.com/cryptokaizen/cmamp/actions/...  completed
     ```
     """
+    import pandas as pd
+
     # TODO(Grisha): expose cols to the interface, i.e. a caller decides what to do.
     gh_cols = ["workflowName", "url", "status", "conclusion", "event"]
     # Import locally in order not to introduce external dependencies to the lib.
-    import pandas as pd
-
     repo_dfs = []
     for repo_name in repo_list:
         # Get all workflows for the given repo.
@@ -703,7 +819,7 @@ def gh_get_details_for_all_workflows(repo_list: List[str]) -> "pd.DataFrame":
 
 
 def gh_get_overall_build_status_for_repo(
-    repo_df: "pd.Dataframe",
+    repo_df: "pd.Dataframe",  # noqa: F821
     *,
     use_colors: bool = True,
 ) -> str:
@@ -753,7 +869,7 @@ def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str
     # Check for duplicate workflow names.
     hdbg.dassert_no_duplicates(
         workflow_names,
-        "Found duplicate workflow names in repo '%s'" % repo_name,
+        f"Found duplicate workflow names in repo '{repo_name}'",
     )
     return workflow_names
 
@@ -829,6 +945,64 @@ def gh_get_workflow_details(
     return workflow_statuses
 
 
+def gh_get_org_team_names(org_name: str = "", *, sort: bool = True) -> List[str]:
+    """
+    Get a list of team names for a GitHub organization.
+
+    :param org_name: organization name, e.g., "causify-ai". If empty,
+        infers from the current repo
+    :param sort: if True, sort team names alphabetically
+    :return: list of team names (slugs)
+        Example output:
+        ```
+        ["dev_system", "dev_frontend", "qa_team"]
+        ```
+    """
+    org_name = _get_org_name(org_name)
+    _LOG.debug(hprint.to_str("org_name"))
+    # Get the team list using GitHub API.
+    cmd = f"gh api /orgs/{org_name}/teams --paginate"
+    teams_data = _gh_run_and_get_json(cmd)
+    # Extract team slugs from the response.
+    team_names = [team["slug"] for team in teams_data]
+    # Sort team names if requested.
+    if sort:
+        team_names = sorted(team_names)
+    _LOG.debug("Found %s teams for org '%s'", len(team_names), org_name)
+    return team_names
+
+
+def gh_get_team_member_names(team_slug: str, *, org_name: str = "") -> List[str]:
+    """
+    Get a list of member usernames for a specific team in a GitHub
+    organization.
+
+    :param team_slug: team slug (URL-friendly team name), e.g., "dev_system"
+    :param org_name: organization name, e.g., "causify-ai". If empty,
+        infers from the current repo
+    :return: list of member usernames (login names)
+        Example output:
+        ```
+        ["username1", "username2", "username3"]
+        ```
+    """
+    org_name = _get_org_name(org_name)
+    hdbg.dassert_isinstance(team_slug, str)
+    _LOG.debug(hprint.to_str("org_name team_slug"))
+    # Get the team members using GitHub API.
+    cmd = f"gh api /orgs/{org_name}/teams/{team_slug}/members --paginate"
+    members_data = _gh_run_and_get_json(cmd)
+    # Extract usernames from the response.
+    usernames = [member["login"] for member in members_data]
+    _LOG.debug(
+        "Found %s members in team '%s' (org: '%s')",
+        len(usernames),
+        team_slug,
+        org_name,
+    )
+    return usernames
+
+
 def _gh_run_and_get_json(cmd: str) -> List[Dict[str, Any]]:
     """
     Run a `gh` command and remove colors when running inside a notebook.
@@ -873,7 +1047,7 @@ def color_format(val: str, status_color_mapping: Dict[str, str]) -> str:
 
 
 def render_repo_workflow_status_table(
-    workflow_df: "pd.DataFrame",
+    workflow_df: "pd.DataFrame",  # noqa: F821
     status_color_mapping: Dict[str, str],
     timezone: str = "America/New_York",
 ) -> None:
@@ -906,6 +1080,158 @@ def render_repo_workflow_status_table(
                 subset=["conclusion"],
             )
         )
+
+
+def get_workflow_run_ids(
+    repo_path: str, workflow_id: str, *, older_than_days: Optional[int] = None
+) -> List[str]:
+    """
+    Get workflow run IDs, optionally filtering by age.
+
+    :param repo_path: repository path in format "org/repo"
+    :param workflow_id: GitHub workflow ID
+    :param older_than_days: if specified, only return runs older than
+        this many days
+    :return: list of run IDs
+    """
+    # See GitHub CLI API documentation: https://cli.github.com/manual/gh_api
+    # We use the -q/--jq option to filter results using jq syntax.
+    if older_than_days is not None:
+        # Use jq to filter runs by age directly in the gh api command.
+        # jq date filtering breakdown:
+        # - `fromdateiso8601` converts ISO 8601 date to Unix timestamp (seconds since epoch)
+        # - `now` returns current Unix timestamp
+        # - Days are converted to seconds (days * 86400 seconds/day)
+        # - Example: if older_than_days=30, cutoff = now - (30 * 86400)
+        #   Only runs where created_at timestamp < cutoff are selected
+        cutoff_seconds = older_than_days * 86400
+        # Log the cutoff date for debugging.
+        cutoff_date = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
+            days=older_than_days
+        )
+        _LOG.debug("Filtering runs created before: %s", cutoff_date.isoformat())
+        jq_filter = (
+            f".workflow_runs[] | "
+            f"select((.created_at | fromdateiso8601) < (now - {cutoff_seconds})) | "
+            f".id"
+        )
+        # WARNING: Using --paginate to fetch all workflow runs can be slow
+        # for workflows with a large number of runs (e.g., 1000+ runs).
+        # The GitHub API paginates results, and jq filters each page.
+        cmd = (
+            f"gh api /repos/{repo_path}/actions/workflows/{workflow_id}/runs "
+            f"--paginate -q '{jq_filter}'"
+        )
+    else:
+        # Get all run IDs without date filtering.
+        # Example API output (one ID per line):
+        # 11758293857
+        # 11758293856
+        # 11758293855
+        cmd = (
+            f"gh api /repos/{repo_path}/actions/workflows/{workflow_id}/runs "
+            "--paginate -q '.workflow_runs[].id'"
+        )
+    # Execute command and parse output.
+    _, run_ids_output = hsystem.system_to_string(cmd)
+    run_ids = [
+        run_id.strip()
+        for run_id in run_ids_output.strip().split("\n")
+        if run_id.strip()
+    ]
+    return run_ids
+
+
+@task
+def gh_delete_workflow_runs(  # type: ignore
+    ctx, workflow_name, older_than_days=None, dry_run=False, confirmation=True
+):
+    """
+    Delete all workflow runs for a given workflow.
+
+    :param workflow_name: name of the workflow to delete runs for
+    :param older_than_days: only delete runs older than this many days
+        (optional). If None, delete all runs. Example:
+        older_than_days=30 deletes runs created more than 30 days ago
+    :param dry_run: if True, show what would be deleted without actually
+        deleting
+    :param confirmation: if True, prompt user for confirmation before
+        deletion (default: True)
+    """
+    hlitauti.report_task(
+        txt=hprint.to_str("workflow_name older_than_days dry_run confirmation")
+    )
+    # Convert older_than_days to int if provided (invoke passes strings).
+    if older_than_days is not None:
+        older_than_days = int(older_than_days)
+        hdbg.dassert_lte(1, older_than_days)
+    # Login.
+    gh_login(ctx)
+    #
+    repo_full_name_with_host, _ = _get_repo_full_name_from_cmd("current")
+    # Get workflow ID by name.
+    repo_path = repo_full_name_with_host.replace("github.com/", "")
+    workflows = gh_get_workflows(repo_path)
+    workflow_id = None
+    for workflow in workflows:
+        if workflow["name"] == workflow_name:
+            workflow_id = workflow["id"]
+            break
+    if not workflow_id:
+        available_workflows = [w["name"] for w in workflows]
+        raise ValueError(
+            f"Workflow '{workflow_name}' not found. "
+            f"Available workflows: {available_workflows}"
+        )
+    _LOG.info("Found workflow '%s' with ID: %s", workflow_name, workflow_id)
+    # Get all run IDs for this workflow, optionally filtering by date.
+    run_ids = get_workflow_run_ids(
+        repo_path, workflow_id, older_than_days=older_than_days
+    )
+    # Check if any runs were found.
+    age_filter_msg = (
+        f" older than {older_than_days} days"
+        if older_than_days is not None
+        else ""
+    )
+    if not run_ids:
+        _LOG.info(
+            "No workflow runs%s found for '%s'", age_filter_msg, workflow_name
+        )
+        return
+    _LOG.info("Found %d workflow runs%s to delete", len(run_ids), age_filter_msg)
+    # Prompt for confirmation if required.
+    if confirmation and not dry_run:
+        confirmation_msg = (
+            f"\nAre you sure you want to delete {len(run_ids)} workflow run(s)"
+            f"{age_filter_msg} for '{workflow_name}'?\n"
+            f"Repository: {repo_full_name_with_host}\n"
+            f"Type 'yes' or 'y' to confirm: "
+        )
+        user_input = input(confirmation_msg).strip().lower()
+        if user_input not in ("yes", "y"):
+            _LOG.info("Deletion cancelled by user")
+            return
+        _LOG.info("User confirmed deletion, proceeding...")
+    # Delete each run.
+    deleted_count = 0
+    failed_count = 0
+    for run_id in run_ids:
+        try:
+            cmd = f"gh api -X DELETE /repos/{repo_path}/actions/runs/{run_id}"
+            _LOG.info("Deleting run %s", run_id)
+            hlitauti.run(ctx, cmd, dry_run=dry_run)
+            deleted_count += 1
+        except (invexc.UnexpectedExit, RuntimeError) as e:
+            _LOG.error("Failed to delete run %s: %s", run_id, str(e))
+            failed_count += 1
+    _LOG.info(
+        "Deletion complete: %d successful, %d failed out of %d total runs",
+        deleted_count,
+        failed_count,
+        len(run_ids),
+    )
+
 
 # #############################################################################
 

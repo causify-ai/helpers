@@ -1,72 +1,6 @@
-<!-- toc -->
-
-- [General](#general)
-  * [Spelling](#spelling)
-    + [LLM](#llm)
-    + [Linter](#linter)
-- [Python](#python)
-  * [Naming](#naming)
-    + [LLM](#llm-1)
-    + [Linter](#linter-1)
-  * [Docstrings](#docstrings)
-    + [LLM](#llm-2)
-    + [Linter](#linter-2)
-  * [Comments](#comments)
-    + [LLM](#llm-3)
-    + [Linter](#linter-3)
-  * [Code implementation](#code-implementation)
-    + [LLM](#llm-4)
-    + [Linter](#linter-4)
-  * [Code design](#code-design)
-    + [LLM](#llm-5)
-    + [Linter](#linter-5)
-  * [Imports](#imports)
-    + [LLM](#llm-6)
-    + [Linter](#linter-6)
-  * [Type annotations](#type-annotations)
-    + [LLM](#llm-7)
-    + [Linter](#linter-7)
-  * [Functions](#functions)
-    + [LLM](#llm-8)
-    + [Linter](#linter-8)
-  * [Scripts](#scripts)
-    + [LLM](#llm-9)
-    + [Linter](#linter-9)
-  * [Logging](#logging)
-    + [LLM](#llm-10)
-    + [Linter](#linter-10)
-  * [Misc](#misc)
-    + [LLM](#llm-11)
-    + [Linter](#linter-11)
-- [Unit tests](#unit-tests)
-  * [Rules](#rules)
-    + [LLM](#llm-12)
-    + [Linter](#linter-12)
-- [Notebooks](#notebooks)
-  * [General](#general-1)
-    + [LLM](#llm-13)
-    + [Linter](#linter-13)
-  * [Plotting](#plotting)
-    + [LLM](#llm-14)
-    + [Linter](#linter-14)
-  * [Jupytext](#jupytext)
-    + [LLM](#llm-15)
-    + [Linter](#linter-15)
-- [Markdown](#markdown)
-  * [Naming](#naming-1)
-    + [LLM](#llm-16)
-    + [Linter](#linter-16)
-  * [General](#general-2)
-    + [LLM](#llm-17)
-    + [Linter](#linter-17)
-
-<!-- tocstop -->
-
 # General
 
 ## Spelling
-
-### LLM
 
 ### Linter
 
@@ -156,7 +90,7 @@
     def add(a, b):
       return a + b
     ```
-- The docstring must describe the goal of the function, the interface and what
+- The docstring must describe the goal of the function, the interface, and what
   the user needs to know to use the function
   - Good: "Calculate the sum of two numbers and return the result."
   - Good
@@ -170,6 +104,12 @@
         :param repo: GitHub repository object
         :return: dictionary containing repository settings
         """
+    ```
+  - When the output is a tuple indent like:
+    ```
+    :param mode: format of the output:
+        - `list`: indents headers to create a nested list
+        - `headers`: uses Markdown header syntax (e.g., '#', '##', '###'`)
     ```
 
 - The docstring must use imperative form, whenever possible
@@ -200,6 +140,8 @@
   wrapped in backticks
   - Good: "The `add_numbers()` function takes two arguments `a` and `b`."
   - Bad: "The add_numbers() function takes two arguments a and b."
+- References to values should be wrapped in single ticks
+  - Good '//' with '# '
 - Multi-line representations of data structures (e.g., an output example) should
   be wrapped in triple backticks
   - Good
@@ -213,22 +155,13 @@
   a longer description (possibly on multiple lines) with a more detailed
   explanation of what the function does
 - The more detailed description is followed by a blank line and then the param
-  and return description section in REST style
-- The more detailed description is followed by a blank line and then the param
-  and return description section in REST style
+  and return description section in reST style
   - Use lowercase after `:param XYZ: ...` / `:return:` unless the description
     starts with a proper noun
 - Do not mention default values of parameters in parameter descriptions
 - Docstrings should be wrapped in triple quotation marks (`"""`)
   - The opening and closing triple quotation marks should be located on their
     own separate lines
-- Every docstring should start with a capital letter
-- Every docstring should start with a verb in the imperative form
-- Every docstring should begin with a one-line description of what the function
-  does, fit into a single line and end with a period
-- Adding examples (e.g., of input and output) to the docstring is encouraged
-- References to variables, file paths, functions, classes, etc. should be
-  wrapped in backticks
 
 ## Comments
 
@@ -285,31 +218,9 @@
   - E.g., "This section is commented out due to a known bug that needs fixing"
     or "Temporarily disabled for performance testing"
 
-### Linter
-
-- Avoid empty comments and line inside the code when possible
-- Every comment should start with a capital letter
-- Every comment should start with a verb in the imperative form
-- Every comment should end with a period
-- Comments with TODOs should have the format of `# TODO(username): ...`
-
-## Code implementation
+## Code Implementation
 
 ### LLM
-
-- Encode the assumptions made in the code using assertions and report as much
-  information as possible in an assertion to make it easy to debug the output
-  - Good:
-    ```
-    hdbg.dassert_lt(start_date, end_date,
-      msg="start_date needs to be before end_date")
-    ```
-  - Ensure that assertions provide detailed information for debugging
-  - Use assertions to validate input parameters and preconditions
-- Do not use f-strings in `hdbg.dassert()`, but use traditional string
-  formatting methods in assertions
-  - Good:
-    `hdbg.dassert_eq(len(list1), len(list2), "Lists must be of equal length: %d vs %d" % (len(list1), len(list2)))`
 
 - Add type hints only to the function definitions, if they are missing.
   - Good:
@@ -404,9 +315,6 @@
 - Use `isinstance()` instead of `type()` to check the type of an object
   - Good: `if isinstance(obj, str):`
   - Bad: `if type(obj) == str:`
-- Do not use `import *`
-  - Good: `from math import sqrt, pi`
-  - Bad: `from math import *`
 - Do not use `from ... import ...`, unless it is the `typing` package, e.g.,
   `from typing import Iterable, List`
   - Good: `from typing import Dict, Tuple`
@@ -415,9 +323,7 @@
   - Good: `import myproject.module.submodule`
   - Bad: `from submodule import my_function`
 
-### Linter
-
-## Code design
+## Code Design
 
 ### LLM
 
@@ -458,8 +364,6 @@
 
 ## Imports
 
-### LLM
-
 ### Linter
 
 - All imports should be located at the top of the file
@@ -468,7 +372,7 @@
   - Linter adds it automatically
 - No import cycles should be introduced by the changes in the PR
 
-## Type annotations
+## Type Annotations
 
 ### LLM
 
@@ -585,14 +489,7 @@
   - Good: `func(10, 20, param3=30)`
   - Bad: `func(10, 20, 30)`
 
-### Linter
-
-- Make a function private (e.g., `_foo_bar()`) when it is a helper of another
-  private or public function
-
 ## Scripts
-
-### LLM
 
 ### Linter
 
@@ -607,32 +504,7 @@
     ```
   - Use `argparse` for argument parsing
 
-## Logging
-
-### LLM
-
-- Use logging `_LOG.debug()` and not `print()` for tracing execution
-  - Good: `_LOG.debug("value=%s", value)`
-  - Bad: `print("value=%s", value)`
-- Use positional args in logging and not inline formatting
-  - Good: `_LOG.debug("cmd=%s", cmd1)`
-  - Bad: `_LOG.debug(f"cmd={cmd1}")`
-- Use the following idiom to configure logging:
-
-  ```python
-  import helpers.hdbg as hdbg
-
-  _LOG = logging.getLogger(__name__)
-  ...
-
-  hdbg.init_logger(verbosity=logging.DEBUG)
-  ```
-
-### Linter
-
 ## Misc
-
-### LLM
 
 ### Linter
 
@@ -640,7 +512,7 @@
   then all the instances and references to it throughout the codebase should be
   updated
 
-# Unit tests
+# Unit Tests
 
 ## Rules
 
@@ -651,14 +523,6 @@
 - A test method should only test a single case to ensures clarity and precision
   in testing
   - E.g., "for these inputs the function responds with this output"
-- Adhere to the following conventions for naming:
-  - Class `TestFooBar` tests the class `FooBar` and its methods
-    - `TestFooBar.test_method_a`, `TestFooBar.test_method_b` test the methods
-      `FooBar.method_a` and `FooBar.method_b`
-  - Class `Test_foo_bar` tests the function `foo_bar()`
-    - E.g., `Test_foo_bar.test_valid_input`, `Test_foo_bar.test_invalid_input`
-      for different cases / inputs
-  - `Test_foo_bar.test1`, `Test_foo_bar.test2` for different cases / inputs
 - A unit test should be independent of all the other unit tests
   - Ensures that tests do not affect each other and can be run in isolation
 - If there is a lot of common code across individual test methods, it should be
@@ -726,16 +590,6 @@
 
 ### Linter
 
-- Unit tests should be placed in a `test_*.py` file in the `test` directory,
-  close to the library / code it tests
-  - Test file `test_file_name.py` testing the library `file_name.py`
-- Every test class should inherit from `hunitest.TestCase`
-- We use `pytest` as test harness so do not add the following idiom in the
-  testing file
-  ```python
-  if __name__ == "__main__":
-      unittest.main()
-  ```
 - If a unit test is renamed or removed in a PR, the corresponding files in the
   `outcomes` dir should also be renamed or removed
 
@@ -763,8 +617,6 @@
   - Provides insight into data cleaning and filtering processes
 - Progress bars should be added where applicable
   - Use libraries like `tqdm` to show progress in loops or data processing tasks
-
-### Linter
 
 ## Plotting
 
@@ -816,7 +668,7 @@
   # Print system signature.
   _LOG.info("%s", henv.get_system_signature()[0])
   # Configure the notebook style.
-  hprint.config_notebook()
+  hnotebook.config_notebook()
   ```
 - The rest of the notebook should be clearly organized using Markdown cells with
   headings of different levels
@@ -824,8 +676,6 @@
 - Ideally, there should be no warnings in the executed notebook
 
 ## Jupytext
-
-### LLM
 
 ### Linter
 
@@ -842,105 +692,63 @@
 
 ## General
 
-### LLM
-
 ### Linter
 
 - Names of documentation files should follow the format
   `docs/{component}/{audience}.{topic}.{diataxis_tag}.md` to help in organizing
-  and categorizing documentation files effectively
-  - E.g., `docs/documentation_meta/all.diataxis.explanation.md`
+  and categorizing documentation files effectively where:
   - The `{component}` part specifies the part of the project the documentation
     is related to
   - The `{audience}` part indicates who the documentation is intended for
   - The `{topic}` part describes the subject matter of the documentation
   - The `{diataxis_tag}` part categorizes the documentation according to the
     Diátaxis framework (e.g., explanation, tutorial)
+  - E.g., `docs/documentation_meta/all.diataxis.explanation.md`
 
 - All Markdown files should have a table of contents
   - The linter automatically adds and updates the table of contents
 
 - There should be one and only one level 1 heading (with one `#`) in a Markdown
-  - The level 1 heading serves as the main title of the document
-  - It should clearly convey the primary topic or purpose of the document
-  - The level 1 heading should be located above the table of contents
-
-- Wrap file paths, names of variables, functions, and classes in backticks
-  - E.g., `file_path`, `variable_name`, `function_name()`, `ClassName`
-- Use `>` to indicate a command line
-  - E.g., `> git push` or `docker> pytest`
-- Commands should be prepended by `>`
-  - Example
-    ```
-    > notes_to_pdf.py \
-      --input MSML610/Lesson5-Theory_Statistical_learning.txt \
-      --output Lesson5.pdf \
-      --type slides \
-      --toc_type navigation \
-      --debug_on_error \
-      --skip_action cleanup_after
-    ```
-- Commands should be prepended by `docker>` if they need to be run inside Docker
-- Avoid using screenshots whenever possible and instead copy-and-paste text with
-  the right highlighting
-  - E.g., instead of a screenshot of a terminal command, provide the command
-    text: `> ls -la`
+  - The level 1 heading:
+    - Should clearly convey the primary topic or purpose of the document
+    - Serves as the main title of the document
+    - Should be the first line and located above the table of contents
 
 ## Headers
 
 ### LLM
 
 - Do not use bold or italics in headings
-- Headings should not be overcapitalized
-  - E.g., `Data schema` instead of `Data Schema`
-  - TODO(gp): Need to decide
 - Use headers so that it's easy to refer to something by link
-- We want to use level 2 headers 
+- Do not make the chunk of text in a header too small since we don't want to
+  have too many headers
+  - E.g., there should be at least 5-10 lines in each header
 
 ### Linter
+
+- Headings are capitalized as a title
+  - E.g., `Data schema` instead of `Data Schema`
+  - The linter automatically formats them
 
 ## Text
 
 ### LLM
-
-- We use bullet point lists
-  - For the items, `-` should be used instead of `*` or circles
-  - Items in bullet point lists should not end with a period
-
-- Boldface and italics should be used sparingly throughout the text
-
-- Structure the text so that bullet points of higher level correspond to
-  "nesting" int he concept
-
-- Examples should go in a sub-bullet
-  - Good
-    ```
-    - We typically increment the revision, likely a minor one
-      - E.g., from `v0.3` to `v0.3.1`
-    ```
 
 - Use "you" and not "we" or "one"
   - Let's just be direct: no need to be passive-aggressive
 
 - Text should be reflowed to the maximum of 80 columns per line
   - The linter performs this operation automatically
-- Fenced code blocks should always be accompanied by language markers
-  - E.g., `bash`, `python`
-  - Fenced code blocks should be indented at the same level as the previous line
 
-- Use active voice most of the time and use passive voice sparingly
-  - Good: "The user updates the file."
-  - Bad: "The file is updated by the user."
-- Be efficient
-  - Do not explain things in a repetitive way
-  - Rewrite long-winded AI-generated texts in a concise way
-  - E.g., instead of "The process of updating the software can be done by
-    following these steps," use "Update the software by following these steps"
-
-- When describing a tool the format should be the following
+- When describing a tool the format should be the following:
   - A description of what the tool does
-  - A list of examples of invocations of a tool, with a comment on the command
-    line, the command line, and its output if possible
+  - A list of examples of invocations of a tool with:
+    - A comment on the command line
+    - The command line
+    - Its output if possible
   - A copy-paste version of the tool interface running `-h`
 
 ### Linter
+
+- Code blocks should always be accompanied by language markers
+  - E.g., `bash`, `python`, `text`, `markdown`

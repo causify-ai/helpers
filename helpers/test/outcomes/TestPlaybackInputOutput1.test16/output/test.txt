@@ -13,9 +13,9 @@ class TestGetResultAssertEqual(hunitest.TestCase):
         a = cconfig.Config.from_python("Config({'meta': 'meta value 1', 'list': [1, 2]})")
         b = cconfig.Config.from_python("Config({'meta': 'meta value 2'})")
         # Call function to test.
-        act = get_result_assert_equal(a=a, b=b)
+        actual = get_result_assert_equal(a=a, b=b)
         # Define expected output.
-        exp = cconfig.Config.from_python("Config({'meta': 'meta value 2', 'list': [1, 2]})")
-        exp = jsonpickle.decode(exp)
+        expected = cconfig.Config.from_python("Config({'meta': 'meta value 2', 'list': [1, 2]})")
+        expected = jsonpickle.decode(expected)
         # Compare actual and expected output.
-        self.assertEqual(act, exp)
+        self.assertEqual(actual, expected)

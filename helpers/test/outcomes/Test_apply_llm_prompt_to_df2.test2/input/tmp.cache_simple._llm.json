@@ -1,0 +1,10 @@
+{
+    "{\"args\": [\"You are a calculator. Given input in the format \\\"a + b\\\", return only\\nthe sum as a number.\\n\\nReturn ONLY the numeric result, nothing else.\", \"10 + 15\", \"gpt-5-nano\"], \"kwargs\": {}}": [
+        "25",
+        3.195e-05
+    ],
+    "{\"args\": [\"You are a calculator. Given input in the format \\\"a + b\\\", return only\\nthe sum as a number.\\n\\nReturn ONLY the numeric result, nothing else.\", \"2 + 3\", \"gpt-5-nano\"], \"kwargs\": {}}": [
+        "5",
+        3.195e-05
+    ]
+}

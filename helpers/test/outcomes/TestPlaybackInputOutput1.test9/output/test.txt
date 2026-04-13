@@ -13,7 +13,7 @@ class TestGetResultCheckString(hunitest.TestCase):
         a = [1, 2, 3]
         b = [4, 5, 6]
         # Call function to test.
-        act = get_result_check_string(a=a, b=b)
-        act = str(act)
+        actual = get_result_check_string(a=a, b=b)
+        actual = str(actual)
         # Check output.
-        self.check_string(act)
+        self.check_string(actual)

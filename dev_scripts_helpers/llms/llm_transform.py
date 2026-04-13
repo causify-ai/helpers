@@ -20,19 +20,19 @@ Examples
 > llm_transform.py -i input.txt -o output.txt -p uppercase
 
 # List of transforms
-> llm_transform.py -i input.txt -o output.txt -p list
+> llm_transform.py --list
 
 # Code review
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_review
+> llm_transform.py -i render_images.py -o cfile -p code_review
 
 # Propose refactoring
-> llm_transform.py -i dev_scripts_helpers/documentation/render_images.py -o cfile -p code_propose_refactoring
+> llm_transform.py -i render_images.py -o cfile -p code_propose_refactoring
 """
 
 import argparse
 import logging
 import os
-from typing import List, Optional, cast
+from typing import List, Optional, Tuple, cast
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import dev_scripts_helpers.llms.llm_utils as dshlllut
@@ -40,12 +40,12 @@ import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
+import helpers.hlatex as hlatex
 import helpers.hmarkdown as hmarkdo
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
-import helpers.hlatex as hlatex
 
 _LOG = logging.getLogger(__name__)
 
@@ -62,10 +62,17 @@ def _parse() -> argparse.ArgumentParser:
     hparser.add_input_output_args(
         parser,
         in_default="-",
+        out_default="-",
         in_required=False,
     )
-    hparser.add_llm_prompt_arg(parser)
+    hparser.add_llm_prompt_arg(parser, is_required=False)
     hparser.add_dockerized_script_arg(parser)
+    parser.add_argument(
+        "-l",
+        "--list",
+        action="store_true",
+        help="List available prompts and contexts",
+    )
     parser.add_argument(
         "-c",
         "--compare",
@@ -83,6 +90,7 @@ def _parse() -> argparse.ArgumentParser:
     return parser
 
 
+# TODO(gp): Make it public and move it to `hdockerized_executables.py`.
 def _run_dockerized_llm_transform(
     in_file_path: str,
     cmd_opts: List[str],
@@ -191,38 +199,110 @@ def _run_dockerized_llm_transform(
     return ret
 
 
+def _get_input_transforms() -> List[Tuple[str, str]]:
+    input_transforms = [
+        ("md_to_latex", "Convert Markdown to LaTeX using pandoc and format"),
+        ("md_clean_up", "Clean up and format Markdown source text"),
+        ("md_bold_bullets", "Bold the first level bullets in Markdown and format"),
+        ("md_remove_bullets", "Remove bullets from Markdown"),
+        ("slide_format_figures", "Format Markdown figure blocks for slides"),
+        ("slide_add_figure", "Add column structure for figures in slide Markdown"),
+    ]
+    return input_transforms
+
+
+def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> bool:
+    """
+    Process a transform that doesn't require LLMs.
+
+    :param prompt: Prompt used to generate the transformed text
+    :param in_file_name: Original input file name
+    :param out_file_name: Temporary output file name
+    :return: True if the transform was processed, False otherwise
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    #
+    input_transforms_names = [transform[0] for transform in _get_input_transforms()]
+    if prompt in input_transforms_names:
+        # Read the input.
+        _LOG.debug("Reading input file: %s", in_file_name)
+        txt = hparser.from_file(in_file_name)
+        txt = "\n".join(txt)
+        if prompt == "md_to_latex":
+            txt = hlatex.convert_pandoc_md_to_latex(txt)
+            txt = hlatex.format_latex(txt)
+        elif prompt == "md_clean_up":
+            txt = hmarkdo.md_clean_up(txt)
+            txt = hmarkdo.format_markdown(txt)
+        elif prompt == "md_bold_bullets":
+            lines = txt.split("\n")
+            lines = hmarkdo.bold_first_level_bullets(lines)
+            txt = "\n".join(lines)
+            txt = hmarkdo.format_markdown(txt)
+        elif prompt == "md_remove_bullets":
+            txt = hmarkdo.remove_bullets(txt)
+        elif prompt == "slide_format_figures":
+            lines = txt.split("\n")
+            lines = hmarkdo.format_figures(lines)
+            txt = "\n".join(lines)
+            # txt = hmarkdo.format_markdown(txt)
+        elif prompt == "slide_add_figure":
+            lines = txt.split("\n")
+            lines_out = []
+            lines_out.append(hprint.dedent("""
+            ::: columns
+            :::: {.column width=50%}
+            """))
+            lines_out.extend(lines)
+            lines_out.append(hprint.dedent("""
+            ::::
+            :::: {.column width=45%}
+            ::::
+            :::
+            """))
+            txt = "\n".join(lines_out)
+            txt = hmarkdo.format_markdown(txt)
+        else:
+            raise ValueError(f"Invalid prompt='{prompt}'")
+        #
+        _LOG.debug("Writing output file: %s", out_file_name)
+        hparser.to_file(txt, out_file_name)
+        return True
+    return False
+
+
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hparser.init_logger_for_input_output_transform(args, verbose=False)
-    #
-    if args.prompt == "list":
+    # Handle --list option.
+    if args.list:
+        print("# Available contexts:")
+        print("""
+        - code_*: Python code
+        - latex_*: latex
+        - md_*: markdown / txt notes (e.g., blog posts, documentation, etc.)
+        - review_*: review Python code
+        - scratch_*: misc and one-off transforms
+        - slide_*: markdown for slides
+        - text_*: free form text (e.g., notes, emails, etc.)
+
+        """)
         print("# Available prompt tags:")
-        prompt_tags = dshlllpr.get_prompt_tags()
+        prompt_tags = []
+        prompt_tags.extend(dshlllpr.get_prompt_tags())
+        prompt_tags.extend(_get_input_transforms())
         print(dshlllpr.prompt_tags_to_str(prompt_tags))
+        return
+    # Process targets that don't require LLMs.
+    done = process_transform(args.prompt, args.input, args.output)
+    if done:
         return
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     tag = "llm_transform"
     tmp_in_file_name, tmp_out_file_name = (
-        hparser.adapt_input_output_args_for_dockerized_scripts(in_file_name, tag)
+        hparser.adapt_input_output_args_for_dockerized_scripts(args.input, tag)
     )
-    if args.prompt in ("md_to_latex", "md_clean_up", "md_bold_bullets"):
-        # Read the input.
-        txt = hparser.read_file(tmp_in_file_name)
-        txt = "\n".join(txt)
-        if args.prompt == "md_to_latex":
-            txt = hlatex.convert_pandoc_md_to_latex(txt)
-            txt = hmarkdo.format_latex(txt)
-        elif args.prompt == "md_clean_up":
-            txt = hmarkdo.md_clean_up(txt)
-            txt = hmarkdo.format_markdown(txt)
-        elif args.prompt == "md_bold_bullets":
-            txt = hmarkdo.bold_first_level_bullets(txt)
-            txt = hmarkdo.format_markdown(txt)
-        else:
-            raise ValueError(f"Invalid prompt='{args.prompt}'")
-        hparser.write_file(txt, out_file_name)
-        return
     # TODO(gp): We should just automatically pass-through the options.
     cmd_line_opts = [f"-p {args.prompt}", f"-v {args.log_level}"]
     if args.fast_model:
@@ -252,7 +332,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Run post-transforms outside the container.
     if not args.skip_post_transforms:
         out_txt = dshlllut.run_post_transforms(
-            args,
+            args.prompt,
+            args.compare,
             in_file_name,
             tmp_in_file_name,
             tmp_out_file_name,
@@ -262,7 +343,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         out_txt = hio.from_file(tmp_out_file_name)
     # Read the output from the container and write it to the output file from
     # command line (e.g., `-` for stdout).
-    hparser.write_file(out_txt, out_file_name)
+    hparser.to_file(out_txt, out_file_name)
     if os.path.basename(out_file_name) == "cfile":
         print(out_txt)
 

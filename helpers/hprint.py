@@ -10,18 +10,7 @@ import logging
 import pprint
 import re
 import sys
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Match,
-    Optional,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import helpers.hdbg as hdbg
 
@@ -152,6 +141,7 @@ def frame(
         # #######...
         ```
     """
+    hdbg.dassert_isinstance(message, str)
     # Fill in the default values.
     if char1 is None:
         # User didn't specify any char.
@@ -184,44 +174,7 @@ def frame(
     return ret
 
 
-def prepend(txt: str, prefix: str) -> str:
-    """
-    Add `prefix` before each line of the string `txt`.
-    """
-    lines = [prefix + curr_line for curr_line in txt.split("\n")]
-    res = "\n".join(lines)
-    return res
-
-
-def indent(txt: Optional[str], *, num_spaces: int = 2) -> str:
-    """
-    Add `num_spaces` spaces before each line of the passed string.
-    """
-    if txt is None:
-        return ""
-    hdbg.dassert_isinstance(txt, str)
-    hdbg.dassert_isinstance(num_spaces, int)
-    hdbg.dassert_lte(0, num_spaces)
-    spaces = " " * num_spaces
-    txt_out = []
-    for curr_line in txt.split("\n"):
-        if curr_line.lstrip().rstrip() == "":
-            # Do not prepend any space to a line with only white characters.
-            txt_out.append("")
-            continue
-        txt_out.append(spaces + curr_line)
-    res = "\n".join(txt_out)
-    return res
-
-
-def strict_split(text: str, max_length: int) -> str:
-    """
-    Split a string into chunks of `max_length` characters.
-    """
-    hdbg.dassert_lte(1, max_length)
-    lines = [text[i : i + max_length] for i in range(0, len(text), max_length)]
-    out = "\n".join(lines)
-    return out
+# #############################################################################
 
 
 StrOrList = Union[str, List[str]]
@@ -232,7 +185,7 @@ StrOrList = Union[str, List[str]]
 def split_lines(func: Callable) -> Callable:
     """
     A decorator that splits a string input into lines before passing it to the
-    decorated function.
+    decorated function which expects a list of lines.
     """
 
     @functools.wraps(func)
@@ -242,7 +195,7 @@ def split_lines(func: Callable) -> Callable:
             lines = txt.splitlines()
             is_str = True
         else:
-            # The txt is already a list of lines.
+            # The txt is already a list of lines: pass it as is.
             hdbg.dassert_isinstance(txt, list)
             lines = txt
             is_str = False
@@ -253,6 +206,7 @@ def split_lines(func: Callable) -> Callable:
             out = "\n".join(lines)
         else:
             # The output is already a list of lines.
+            hdbg.dassert_isinstance(lines, list)
             out = lines
         return out
 
@@ -260,20 +214,71 @@ def split_lines(func: Callable) -> Callable:
 
 
 @split_lines
-def remove_lead_trail_empty_lines(lines: StrOrList) -> StrOrList:
+def prepend(lines: List[str], prefix: str) -> List[str]:
+    """
+    Add `prefix` before each line of the string `txt`.
+    """
+    hdbg.dassert_isinstance(lines, list)
+    lines_out = [prefix + curr_line for curr_line in lines]
+    hdbg.dassert_isinstance(lines_out, list)
+    return lines_out
+
+
+@split_lines
+def indent(lines: List[str], *, num_spaces: int = 2) -> List[str]:
+    """
+    Add `num_spaces` spaces before each line of the passed string.
+    """
+    hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_isinstance(num_spaces, int)
+    hdbg.dassert_lte(0, num_spaces)
+    spaces = " " * num_spaces
+    txt_out = []
+    for curr_line in lines:
+        if curr_line.lstrip().rstrip() == "":
+            # Do not prepend any space to a line with only white characters.
+            txt_out.append("")
+            continue
+        txt_out.append(spaces + curr_line)
+    hdbg.dassert_isinstance(txt_out, list)
+    return txt_out
+
+
+@split_lines
+def strict_split(lines: List[str], max_length: int) -> List[str]:
+    """
+    Split a string into chunks of `max_length` characters.
+    """
+    hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_lte(1, max_length)
+    lines_out = []
+    for line in lines:
+        for i in range(0, len(line), max_length):
+            lines_out.append(line[i : i + max_length])
+    hdbg.dassert_isinstance(lines_out, list)
+    return lines_out
+
+
+@split_lines
+def remove_lead_trail_empty_lines(lines: List[str]) -> List[str]:
     """
     Remove consecutive empty lines only at the beginning / end of a string.
     """
+    hdbg.dassert_isinstance(lines, list)
     # Remove leading empty lines.
     while lines and not lines[0].strip():
         lines.pop(0)
     # Remove trailing empty lines.
     while lines and not lines[-1].strip():
         lines.pop()
+    hdbg.dassert_isinstance(lines, list)
     return lines
 
 
-def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
+@split_lines
+def dedent(
+    lines: List[str], *, remove_lead_trail_empty_lines_: bool = True
+) -> List[str]:
     """
     Remove from each line the minimum number of spaces to align the text on the
     left.
@@ -286,26 +291,30 @@ def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
         lines at the beginning and at the end
     """
     if remove_lead_trail_empty_lines_:
-        txt = remove_lead_trail_empty_lines(txt)
+        lines = remove_lead_trail_empty_lines(lines)
     # Find the minimum number of leading spaces.
     min_num_spaces = None
-    for curr_line in txt.split("\n"):
-        _LOG.debug("min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line)
+    for curr_line in lines:
+        _LOG.debug(
+            "min_num_spaces=%s: curr_line='%s'", min_num_spaces, curr_line
+        )
         # Skip empty lines.
         if curr_line.lstrip().rstrip() == "":
             _LOG.debug("  -> Skipping empty line")
             continue
         m = re.search(r"^(\s*)", curr_line)
         hdbg.dassert(m)
-        m: Match[Any]
+        # The linter doesn't understand that `dassert` is equivalent to an
+        # `assert`.
+        assert m is not None
         curr_num_spaces = len(m.group(1))
         _LOG.debug("  -> curr_num_spaces=%s", curr_num_spaces)
         if min_num_spaces is None or curr_num_spaces < min_num_spaces:
             min_num_spaces = curr_num_spaces
     _LOG.debug("min_num_spaces=%s", min_num_spaces)
-    #
+    # Process each line and remove the minimum indentation.
     txt_out = []
-    for curr_line in txt.split("\n"):
+    for curr_line in lines:
         _LOG.debug("curr_line='%s'", curr_line)
         # Skip empty lines.
         if curr_line.lstrip().rstrip() == "":
@@ -313,42 +322,56 @@ def dedent(txt: str, *, remove_lead_trail_empty_lines_: bool = True) -> str:
             continue
         hdbg.dassert_lte(min_num_spaces, len(curr_line))
         txt_out.append(curr_line[min_num_spaces:])
-    res = "\n".join(txt_out)
-    return res
+    hdbg.dassert_isinstance(txt_out, list)
+    return txt_out
 
 
-def align_on_left(txt: str) -> str:
+@split_lines
+def align_on_left(lines: List[str]) -> List[str]:
     """
     Remove all leading/trailing spaces for each line.
     """
+    hdbg.dassert_isinstance(lines, list)
     txt_out = []
-    for curr_line in txt.split("\n"):
+    for curr_line in lines:
         curr_line = curr_line.rstrip(" ").lstrip(" ")
         txt_out.append(curr_line)
-    res = "\n".join(txt_out)
-    return res
+    hdbg.dassert_isinstance(txt_out, list)
+    return txt_out
 
 
-# TODO(gp): Is this used? It looks very thin.
-def remove_empty_lines_from_string_list(arr: List[str]) -> List[str]:
-    """
-    Remove empty lines from a list of strings.
-    """
-    arr = [line for line in arr if line.rstrip().lstrip()]
-    return arr
-
-
-# TODO(gp): It would be nice to have a decorator to go from / to array of
-#  strings.
-def remove_empty_lines(txt: str) -> str:
+@split_lines
+def remove_empty_lines(
+    lines: List[str], *, mode: str = "no_empty_lines"
+) -> List[str]:
     """
     Remove empty lines from a multi-line string.
+
+    :param lines: list of input lines to process
+    :param mode:
+        - no_empty_lines: remove all empty lines
+        - no_consecutive_empty_lines: remove consecutive empty lines
+    :return: lines with empty lines removed
     """
-    hdbg.dassert_isinstance(txt, str)
-    arr = txt.split("\n")
-    arr = remove_empty_lines_from_string_list(arr)
-    txt = "\n".join(arr)
-    return txt
+    hdbg.dassert_isinstance(lines, list)
+    if mode == "no_empty_lines":
+        lines_out = [line for line in lines if line.rstrip().lstrip() != ""]
+    elif mode == "no_consecutive_empty_lines":
+        # If there are two or more consecutive empty lines, remove all but the last one.
+        lines_out = []
+        prev_empty = False
+        for line in lines:
+            if re.search(r"^\s*$", line):
+                if prev_empty:
+                    continue
+                prev_empty = True
+            else:
+                prev_empty = False
+            lines_out.append(line)
+    else:
+        raise ValueError(f"Invalid mode='{mode}'")
+    hdbg.dassert_isinstance(lines_out, list)
+    return lines_out
 
 
 def vars_to_debug_string(vars_as_str: List[str], locals_: Dict[str, Any]) -> str:
@@ -370,18 +393,16 @@ def vars_to_debug_string(vars_as_str: List[str], locals_: Dict[str, Any]) -> str
 
 
 def to_object_str(obj: Any) -> str:
-    return "%s at %s" % (
-        obj.__class__.__name__,
-        hex(id(obj)),
-    )
+    class_name = str(obj.__class__.__name__)
+    hex_str = str(hex(id(obj)))
+    return f"{class_name} at {hex_str}"
 
 
 def to_object_repr(obj: Any) -> str:
-    return "<%s.%s at %s>" % (
-        obj.__class__.__module__,
-        obj.__class__.__name__,
-        hex(id(obj)),
-    )
+    class_module = str(obj.__class__.__module__)
+    class_name = str(obj.__class__.__name__)
+    hex_str = str(hex(id(obj)))
+    return f"<{class_module}.{class_name} at {hex_str}>"
 
 
 def thousand_separator(v: float) -> str:
@@ -430,7 +451,7 @@ def perc(
     else:
         a_str = str(a)
         b_str = str(b)
-    #
+    # Validate and format the percentage.
     hdbg.dassert_lte(0, num_digits)
     if only_perc:
         fmt = "%." + str(num_digits) + "f"
@@ -444,7 +465,7 @@ def perc(
             ret += "%"
     elif only_fraction:
         # 4225 / 7377
-        ret = "%s / %s" % (a_str, b_str)
+        ret = f"{a_str} / {b_str}"
     else:
         # 4225 / 7377 = 57.27%
         fmt = "%s / %s = %." + str(num_digits) + "f%%"
@@ -595,7 +616,15 @@ def _func_signature_to_str(
     # Get the caller's frame (i.e., the function that called this function).
     caller_frame = inspect.currentframe()
     for _ in range(frame_level):
+        hdbg.dassert_is_not(
+            caller_frame, None, "caller_frame should not be None"
+        )
         caller_frame = caller_frame.f_back
+    hdbg.dassert_is_not(
+        caller_frame,
+        None,
+        "caller_frame should not be None after traversing frames",
+    )
     caller_function_name = caller_frame.f_code.co_name
     # _LOG.debug("caller_function_name=%s", caller_function_name)
     # Retrieve the function object from the caller's frame.
@@ -767,7 +796,6 @@ def format_list(
     # sep = ", "
     if max_n is None:
         max_n = 10
-    max_n = cast(int, max_n)
     hdbg.dassert_lte(1, max_n)
     n = len(list_)
     txt = ""
@@ -819,6 +847,44 @@ def list_to_str(
     else:
         raise ValueError(f"Invalid axis='{axis}'")
     return txt
+
+
+def list_to_str2(
+    vals: List[Any],
+    *,
+    sep_char: str = ", ",
+    enclose_str_char: str = "'",
+    max_num: Optional[int] = 10,
+) -> str:
+    """
+    Convert a list of values into a formatted string representation.
+
+    E.g., [1, "two", 3, 4, 5] -> "5 ['1', 'two', '3', '4', '5']"
+
+    :param vals: values to be converted
+    :param sep_char: separator to use between elements
+    :param enclose_str_char: character to enclose each element's string
+        representation; if empty, elements are not enclosed
+    :param max_num: maximum number of elements to display in the output
+    :return: the formatted string representing the list
+    """
+    vals_as_str = list(map(str, vals))
+    # Add a str around.
+    if enclose_str_char:
+        vals_as_str = [
+            enclose_str_char + v + enclose_str_char for v in vals_as_str
+        ]
+    # Build the output string with optional truncation.
+    ret = f"{len(vals)} ["
+    if max_num is not None and len(vals) > max_num:
+        hdbg.dassert_lt(1, max_num)
+        ret += sep_char.join(vals_as_str[: int(max_num / 2)])
+        ret += sep_char + "..." + sep_char
+        ret += sep_char.join(vals_as_str[-int(max_num / 2) :])
+    else:
+        ret += sep_char.join(vals_as_str)
+    ret += "]"
+    return ret
 
 
 def set_diff_to_str(
@@ -892,9 +958,9 @@ def set_diff_to_str(
     res.append(f"* {obj2_name}-{obj1_name}=({len(diff)}) {_to_string(diff)}")
     if add_space:
         res.append("")
-    #
-    res = "\n".join(res)
-    return res
+    # Join all result lines.
+    result = "\n".join(res)
+    return result
 
 
 # #############################################################################
@@ -975,13 +1041,23 @@ def filter_text(regex: str, txt: str) -> str:
 
 
 def dassert_one_trailing_newline(txt: str) -> None:
-    num_newlines = len(re.search(r"\n*$", txt).group())
+    match = re.search(r"\n*$", txt)
+    hdbg.dassert(match)
+    assert match is not None
+    num_newlines = len(match.group())
     hdbg.dassert_eq(
         num_newlines, 0, "num_newlines='%s' txt='%s'", num_newlines, txt
     )
 
 
 def to_info(tag: str, txt: Union[str, List[str]]) -> str:
+    """
+    Return a string with a tag and the text indented.
+
+    :param tag: the tag to add to the text
+    :param txt: the text to indent
+    :return: the string with the tag and the text indented
+    """
     hdbg.dassert_isinstance(tag, str)
     hdbg.dassert_isinstance(txt, (str, list))
     txt_tmp = ""
@@ -998,62 +1074,3 @@ def to_info(tag: str, txt: Union[str, List[str]]) -> str:
     # _dassert_one_trailing_newline(txt_tmp)
     _LOG.debug("'%s'", txt_tmp)
     return txt_tmp
-
-
-# #############################################################################
-# Notebook output
-# #############################################################################
-
-# TODO(gp): Move to explore.py or notebook.py
-
-
-def config_notebook(sns_set: bool = True) -> None:
-    # Matplotlib.
-    import matplotlib.pyplot as plt
-
-    # plt.rcParams
-    plt.rcParams["figure.figsize"] = (20, 5)
-    plt.rcParams["legend.fontsize"] = 14
-    plt.rcParams["font.size"] = 14
-    plt.rcParams["image.cmap"] = "rainbow"
-    if False:
-        # Tweak the size of the plots to make it more readable when embedded in
-        # documents or presentations.
-        # font = {'family' : 'normal',
-        #         #'weight' : 'bold',
-        #         'size'   : 32}
-        # matplotlib.rc('font', **font)
-        scale = 3
-        small_size = 8 * scale
-        medium_size = 10 * scale
-        bigger_size = 12 * scale
-        # Default text sizes.
-        plt.rc("font", size=small_size)
-        # Fontsize of the axes title.
-        plt.rc("axes", titlesize=small_size)
-        # Fontsize of the x and y labels.
-        plt.rc("axes", labelsize=medium_size)
-        # Fontsize of the tick labels.
-        plt.rc("xtick", labelsize=small_size)
-        # Fontsize of the tick labels.
-        plt.rc("ytick", labelsize=small_size)
-        # Legend fontsize.
-        plt.rc("legend", fontsize=small_size)
-        # Fontsize of the figure title.
-        plt.rc("figure", titlesize=bigger_size)
-    # Seaborn.
-    import seaborn as sns
-
-    if sns_set:
-        sns.set()
-    # Pandas.
-    import pandas as pd
-
-    pd.set_option("display.max_rows", 500)
-    pd.set_option("display.max_columns", 500)
-    pd.set_option("display.width", 1000)
-    # Warnings.
-    import helpers.hwarnings as hwarnin
-
-    # Force the linter to keep this import.
-    _ = hwarnin

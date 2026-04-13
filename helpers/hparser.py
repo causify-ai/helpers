@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
@@ -171,18 +172,49 @@ def add_action_arg(
     valid_actions: List[str],
     default_actions: Optional[List[str]],
 ) -> argparse.ArgumentParser:
+    """
+    Add command line options to select actions to execute, skip, or enable.
+
+    The function creates a mutually exclusive group with three options:
+    - `-a/--action`: specify exact actions to execute
+    - `-sa/--skip_action`: skip specific actions from default set
+    - `-e/--enable`: enable additional actions on top of defaults
+
+    Available actions are listed once in the help epilog to avoid repetition.
+
+    :param parser: parser to add the option to
+    :param valid_actions: list of valid actions
+    :param default_actions: list of default actions to execute
+    :return: parser with the option added
+    """
+    # Add epilog with list of available actions to avoid repeating them.
+    actions_list = ", ".join(valid_actions)
+    if parser.epilog:
+        parser.epilog += f"\n\nAvailable actions: {actions_list}"
+    else:
+        parser.epilog = f"Available actions: {actions_list}"
+    # Create mutually exclusive group for action selection.
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
+        "-a",
         "--action",
         action="append",
-        choices=valid_actions,
-        help="Actions to execute",
+        dest="action",
+        help="Actions to execute (see available actions below)",
     )
     group.add_argument(
+        "-sa",
         "--skip_action",
         action="append",
-        choices=valid_actions,
-        help="Actions to skip",
+        dest="skip_action",
+        help="Actions to skip from default set (see available actions below)",
+    )
+    group.add_argument(
+        "-e",
+        "--enable",
+        action="append",
+        dest="enable_action",
+        help="Enable additional actions on top of defaults (see available actions below)",
     )
     if default_actions is not None:
         hdbg.dassert_is_subset(default_actions, valid_actions)
@@ -197,6 +229,14 @@ def add_action_arg(
 def actions_to_string(
     actions: List[str], valid_actions: List[str], add_frame: bool
 ) -> str:
+    """
+    Convert a list of actions to a string.
+
+    :param actions: list of actions to convert
+    :param valid_actions: list of valid actions
+    :param add_frame: if `True`, add a frame around the actions
+    :return: string of the actions
+    """
     space = max(len(a) for a in valid_actions) + 2
     format_ = "%" + str(space) + "s: %s"
     actions = [
@@ -216,6 +256,19 @@ def select_actions(
     valid_actions: List[str],
     default_actions: List[str],
 ) -> List[str]:
+    """
+    Select actions based on the command line arguments.
+
+    Supports three mutually exclusive modes:
+    - `--action`: run only specified actions
+    - `--skip_action`: run default actions minus specified ones
+    - `--enable`: run default actions plus specified additional ones
+
+    :param args: command line arguments
+    :param valid_actions: list of valid actions
+    :param default_actions: list of default actions to execute
+    :return: list of selected actions
+    """
     hdbg.dassert(
         not (args.action and args.all),
         "You can't specify together --action and --all",
@@ -224,6 +277,18 @@ def select_actions(
         not (args.action and args.skip_action),
         "You can't specify together --action and --skip_action",
     )
+    # TODO(ai_gp): Is this still needed?
+    # Check for enable_action attribute (added for backward compatibility).
+    has_enable = hasattr(args, "enable_action")
+    if has_enable:
+        hdbg.dassert(
+            not (args.action and args.enable_action),
+            "You can't specify together --action and --enable",
+        )
+        hdbg.dassert(
+            not (args.skip_action and args.enable_action),
+            "You can't specify together --skip_action and --enable",
+        )
     # Select actions.
     if not args.action or args.all:
         if default_actions is None:
@@ -232,29 +297,67 @@ def select_actions(
         # Convert it into list since through some code paths it can be a tuple.
         actions = list(default_actions)
     else:
+        # Validate actions specified by user.
+        for action in args.action:
+            hdbg.dassert_in(
+                action,
+                valid_actions,
+                "Invalid action '%s'",
+                action,
+            )
         actions = args.action[:]
     hdbg.dassert_isinstance(actions, list)
     hdbg.dassert_no_duplicates(actions)
-    # Validate actions.
-    for action in set(actions):
-        if action not in valid_actions:
-            raise ValueError(f"Invalid action '{action}'")
     # Remove actions, if needed.
     if args.skip_action:
         hdbg.dassert_isinstance(args.skip_action, list)
         for skip_action in args.skip_action:
-            hdbg.dassert_in(skip_action, actions)
+            # Validate that skip_action is a valid action.
+            hdbg.dassert_in(
+                skip_action,
+                valid_actions,
+                "Invalid action '%s'",
+                skip_action,
+            )
+            # Validate that skip_action is in the current action list.
+            if skip_action not in actions:
+                _LOG.warning("Skipping action '%s' since it's already not in actions='%s'",
+                    skip_action, actions)
             actions = [a for a in actions if a != skip_action]
+    # Add enabled actions on top of defaults.
+    if has_enable and args.enable_action:
+        hdbg.dassert_isinstance(args.enable_action, list)
+        for enable_action in args.enable_action:
+            hdbg.dassert_in(
+                enable_action,
+                valid_actions,
+                "Invalid action '%s'",
+                enable_action,
+            )
+            if enable_action not in actions:
+                actions.append(enable_action)
     # Reorder actions according to 'valid_actions'.
     actions = [action for action in valid_actions if action in actions]
     return actions
 
 
-def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
-    to_execute = action in actions
+def mark_action(action: str, actions: Optional[List[str]]) -> Tuple[bool, Optional[List[str]]]:
+    """
+    Mark an action as to be executed or skipped.
+
+    :param action: action to mark
+    :param actions: list of actions, or None to execute all actions
+    :return: tuple of (to_execute, actions)
+    """
+    if actions is None:
+        # If actions is None, execute all actions.
+        to_execute = True
+    else:
+        to_execute = action in actions
     _LOG.debug("\n%s", hprint.frame(f"action={action}"))
     if to_execute:
-        actions = [a for a in actions if a != action]
+        if actions is not None:
+            actions = [a for a in actions if a != action]
     else:
         _LOG.warning("Skip action='%s'", action)
     return to_execute, actions
@@ -273,10 +376,10 @@ def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
 # in_file_name, out_file_name = hparser.parse_input_output_args(args)
 # ...
 # # Read input file, handling stdin.
-# in_lines = hparser.read_file(in_file_name)
+# in_lines = hparser.from_file(in_file_name)
 # ...
 # # Write output, handling stdout.
-# hparser.write_file(txt, out_file_name)
+# hparser.to_file(txt, out_file_name)
 # ```
 # See helpers_root/dev_scripts_helpers/coding_tools/transform_template.py as an
 # example.
@@ -305,7 +408,7 @@ def mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
 # )
 # ...
 # # Write output, handling stdout.
-# hparser.write_file(txt, out_file_name)
+# hparser.to_file(txt, out_file_name)
 # ```
 #
 # See helpers_root/dev_scripts_helpers/llms/llm_transform.py as an example.
@@ -331,7 +434,8 @@ def add_input_output_args(
     """
     parser.add_argument(
         "-i",
-        "--in_file_name",
+        "--input",
+        dest="input",
         required=in_required,
         type=str,
         default=in_default,
@@ -339,7 +443,8 @@ def add_input_output_args(
     )
     parser.add_argument(
         "-o",
-        "--out_file_name",
+        "--output",
+        dest="output",
         required=out_required,
         type=str,
         default=out_default,
@@ -356,8 +461,8 @@ def parse_input_output_args(
 
     :return input and output file name.
     """
-    in_file_name = args.in_file_name
-    out_file_name = args.out_file_name
+    in_file_name = args.input
+    out_file_name = args.output
     if out_file_name is None:
         # If the output file is not specified, use the input file name, i.e.,
         # in place.
@@ -384,7 +489,7 @@ def init_logger_for_input_output_transform(
         ```
         09:34:24 - INFO  hdbg.py init_logger:1013                 Saving log to file '/User...
         09:34:24 - INFO  hdbg.py init_logger:1018                 > cmd='/Users/saggese/src...
-        09:34:24 - INFO  hparser.py parse_input_output_args:368   in_file_name='MSML610/Les...
+        09:34:24 - INFO  hparser.py parse_input_output_args:368   in_file_name='lectures_source/Les...
         09:34:24 - INFO  hparser.py parse_input_output_args:369   out_file_name='-'
     ```
     """
@@ -397,44 +502,64 @@ def init_logger_for_input_output_transform(
     else:
         # If the input is stdin, we don't want to print the command line or any
         # other log messages, unless the user specified a more verbose log level.
-        if args.in_file_name == "-":
+        if args.input == "-":
             if args.log_level == "INFO":
                 verbosity = "CRITICAL"
         else:
-            print("cmd line: %s" % hdbg.get_command_line())
+            print("cmd line: " + hdbg.get_command_line())
     hdbg.init_logger(verbosity=verbosity, use_exec_path=True, force_white=False)
 
 
-# TODO(gp): GFI -> from_file for symmetry for hio.
-def read_file(file_name: str) -> List[str]:
+def from_file(file_name: str) -> List[str]:
     """
     Read file or stdin (represented by `-`), returning an array of lines.
+
+    If file_name is "pb" and the platform is macOS, read from clipboard.
     """
     if file_name == "-":
         _LOG.info("Reading from stdin")
-        f = sys.stdin
         # Read.
         txt = []
-        for line in f:
-            line = line.rstrip("\n")
-            txt.append(line)
-        f.close()
+        for line in sys.stdin:
+            txt.append(line.rstrip("\n"))
+    elif file_name == "pb":
+        # Read from clipboard (macOS only).
+        if hserver.is_host_mac():
+            _LOG.info("Reading from clipboard")
+            cmd = "pbpaste"
+            rc, txt_str = hsystem.system_to_string(cmd)
+            txt = txt_str.split("\n")
+        else:
+            hdbg.dfatal("Reading from clipboard (pb) only works on macOS")
     else:
         txt = hio.from_file(file_name)
         txt = txt.split("\n")
     return txt
 
 
-# TODO(gp): GFI -> to_file for symmetry for hio.
-def write_file(txt: Union[str, List[str]], file_name: str) -> None:
+def to_file(txt: Union[str, List[str]], file_name: str) -> None:
     """
     Write txt in a file or stdout (represented by `-`).
+
+    If file_name is "pb" and the platform is macOS, write to clipboard.
     """
     if isinstance(txt, str):
         txt = [txt]
     if file_name == "-":
         _LOG.debug("Saving to stdout")
         print("\n".join(txt))
+    elif file_name == "pb":
+        # Write to clipboard (macOS only).
+        if hserver.is_host_mac():
+            _LOG.info("Writing to clipboard")
+            txt_str = "\n".join(txt)
+            # Use echo with pbcopy, escaping single quotes.
+            txt_str_escaped = txt_str.replace("'", "'\\''")
+            cmd = f"echo -n '{txt_str_escaped}' | pbcopy"
+            hsystem.system(cmd)
+            _LOG.info("Written to clipboard")
+        else:
+            hdbg.dfatal("Writing to clipboard (pb) only works on macOS")
     else:
         _LOG.debug("Saving to file")
         with open(file_name, "w") as f:
@@ -455,7 +580,7 @@ def adapt_input_output_args_for_dockerized_scripts(
     """
     # Since we need to call a container and passing stdin/stdout is tricky,
     # we read the input and save it in a temporary file.
-    in_lines = read_file(in_file_name)
+    in_lines = from_file(in_file_name)
     if in_file_name == "-":
         tmp_in_file_name = f"tmp.{tag}.in.txt"
         in_txt = "\n".join(in_lines)
@@ -476,6 +601,8 @@ def adapt_input_output_args_for_dockerized_scripts(
 # TODO(gp): These should go in hjoblib.py
 def add_parallel_processing_arg(
     parser: argparse.ArgumentParser,
+    *,
+    num_threads_default: Optional[str] = None,
 ) -> argparse.ArgumentParser:
     """
     Add parallel processing args.
@@ -512,17 +639,26 @@ def add_parallel_processing_arg(
         help="Confirm that one wants to remove the previous results. It works only together with --no_incremental",
     )
     #
-    parser.add_argument(
-        "--num_threads",
-        action="store",
-        help="""
-Number of threads to use:
-- '-1' to use all CPUs;
-- '1' to use one-thread at the time but using the parallel execution (mainly used
-  for debugging)
-- 'serial' to serialize the execution without using parallel execution""",
-        required=True,
-    )
+    help = """
+    Number of threads to use:
+    - '-1' to use all CPUs;
+    - '1' to use one-thread at the time but using the parallel execution (mainly used
+    for debugging)
+    - 'serial' to serialize the execution without using parallel execution"""
+    if num_threads_default is None:
+        parser.add_argument(
+            "--num_threads",
+            action="store",
+            help=help,
+            required=True,
+        )
+    else:
+        parser.add_argument(
+            "--num_threads",
+            action="store",
+            help=help,
+            default=num_threads_default,
+        )
     parser.add_argument("--no_keep_order", action="store_true", help="")
     parser.add_argument(
         "--num_func_per_task",
@@ -677,17 +813,23 @@ def add_dockerized_script_arg(
 
 
 def add_llm_prompt_arg(
-    parser: argparse.ArgumentParser, *, default_prompt: str = ""
+    parser: argparse.ArgumentParser, *, default_prompt: str = "",
+    is_required: bool = True,
 ) -> argparse.ArgumentParser:
     """
     Add common command line arguments for `*llm_transform.py` scripts.
+
+    :param default_prompt: default prompt to use
+    :param is_required: whether the prompt is required
+    :return: parser with the option added
     """
     parser.add_argument(
         "--debug",
         action="store_true",
         help="Print before/after the transform",
     )
-    is_required = default_prompt == ""
+    if default_prompt != "":
+        is_required = False
     parser.add_argument(
         "-p",
         "--prompt",
@@ -703,3 +845,220 @@ def add_llm_prompt_arg(
         help="Use a fast LLM model vs a high-quality one",
     )
     return parser
+
+
+# #############################################################################
+# Command line options for limit range processing.
+# #############################################################################
+
+
+def add_limit_range_arg(
+    parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
+    """
+    Add argument for limiting processing to a range of items.
+
+    The range format is X:Y where X and Y are 1-indexed integers.
+    """
+    parser.add_argument(
+        "--limit",
+        action="store",
+        help="Limit processing to item range X:Y (integers >= 1, inclusive)",
+    )
+    return parser
+
+
+def parse_limit_range(limit_str: str) -> Tuple[int, int]:
+    """
+    Parse limit string in format "X:Y" and return tuple (start, end).
+
+    :param limit_str: string in format "X:Y" where X and Y are integers >= 1
+    :return: tuple in [start_index, end_index]
+    """
+    hdbg.dassert(":" in limit_str, "Limit format must be X:Y, got: %s", limit_str)
+    parts = limit_str.split(":")
+    hdbg.dassert_eq(len(parts), 2, "Limit format must be X:Y, got: %s", limit_str)
+    try:
+        start = int(parts[0])
+        end = int(parts[1])
+    except ValueError as e:
+        hdbg.dfatal("Invalid limit format, must be integers: %s" % str(e))
+    hdbg.dassert_lte(1, start, "Start index must be >= 1, got: %s", start)
+    hdbg.dassert_lte(1, end, "End index must be >= 1, got: %s", end)
+    hdbg.dassert_lte(
+        start, end, "Start index must be <= end index, got: %s:%s", start, end
+    )
+    return start, end
+
+
+def parse_limit_range_args(args: argparse.Namespace) -> Optional[Tuple[int, int]]:
+    """
+    Parse limit range from command line arguments and log the result.
+
+    :param args: parsed command line arguments containing 'limit'
+        attribute
+    :return: tuple of (start_index, end_index) as 0-indexed integers, or
+        None if no limit
+    """
+    limit_range = None
+    if args.limit:
+        limit_range = parse_limit_range(args.limit)
+        _LOG.warning("Using limit range: [%s:%s]", limit_range[0], limit_range[1])
+    return limit_range
+
+
+def apply_limit_range(
+    items: List[Any],
+    limit_range: Optional[Tuple[int, int]] = None,
+    *,
+    item_name: str = "items",
+) -> List[Any]:
+    """
+    Apply limit range filtering to a list of items.
+
+    :param items: list of items to filter
+    :param limit_range: optional tuple (start, end) for 0-indexed range
+        filtering
+    :param item_name: name of items for logging purposes
+    :return: filtered list of items
+    """
+    if limit_range is not None:
+        start_idx, end_idx = limit_range
+        total_items = len(items)
+        hdbg.dassert_lt(
+            start_idx,
+            total_items,
+            "Start index %s exceeds available %s %s",
+            start_idx,
+            item_name,
+            total_items,
+        )
+        hdbg.dassert_lt(
+            end_idx,
+            total_items,
+            "End index %s exceeds available %s %s",
+            end_idx,
+            item_name,
+            total_items,
+        )
+        items = items[start_idx : end_idx + 1]
+        _LOG.warning(
+            "Found %s %s, limited to range %s:%s (%s %s)",
+            total_items,
+            item_name,
+            start_idx,
+            end_idx,
+            len(items),
+            item_name,
+        )
+    else:
+        _LOG.info("Found %s %s to process", len(items), item_name)
+    # Print the items that will be processed.
+    _LOG.debug("Items to process:")
+    for i, item in enumerate(items):
+        _LOG.debug("  [%s]: %s", i, item)
+    return items
+
+
+# #############################################################################
+# Command line options for multiple file input.
+# #############################################################################
+
+
+def add_multi_file_args(
+    parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
+    """
+    Add command line options for specifying multiple input files.
+
+    Three mutually exclusive methods are supported:
+    - `--files="file1,file2,..."`: comma-separated list of files
+    - `--from_files="file.txt"`: file containing one file per line
+    - `--input file1 --input file2`: repeated argument
+
+    These options work alongside the existing `-i/--input` for backward
+    compatibility.
+
+    :param parser: parser to add the options to
+    :return: parser with the options added
+    """
+    group = parser.add_mutually_exclusive_group(required=False)
+    group.add_argument(
+        "--files",
+        type=str,
+        help="Comma-separated list of files to process (e.g., 'file1.txt,file2.txt,file3.txt')",
+    )
+    group.add_argument(
+        "--from_files",
+        type=str,
+        help="Path to file containing one file path per line",
+    )
+    group.add_argument(
+        "-i",
+        "--input",
+        action="append",
+        help="File to process (can be specified multiple times)",
+    )
+    return parser
+
+
+def parse_multi_file_args(
+    args: argparse.Namespace,
+) -> List[str]:
+    """
+    Parse multi-file command line arguments and return list of file paths.
+
+    Handles three input methods:
+    - `--files="file1,file2,..."`: comma-separated list
+    - `--from_files="file.txt"`: file containing one file per line
+    - `--input file1 --input file2`: repeated argument
+
+    If none of the multi-file options are specified, falls back to the single
+    `-i/--input` argument for backward compatibility.
+
+    :param args: parsed command line arguments
+    :return: list of file paths to process
+    """
+    file_list: List[str] = []
+    # Check which multi-file option was specified.
+    if hasattr(args, "files") and args.files:
+        # Parse comma-separated list.
+        _LOG.debug("Using --files option")
+        file_list = [f.strip() for f in args.files.split(",")]
+        # Remove empty strings.
+        file_list = [f for f in file_list if f]
+    elif hasattr(args, "from_files") and args.from_files:
+        # Read file containing list of files.
+        _LOG.debug("Using --from_files option")
+        hdbg.dassert_path_exists(args.from_files)
+        content = hio.from_file(args.from_files)
+        lines = content.split("\n")
+        for line in lines:
+            # Strip whitespace.
+            line = line.strip()
+            # Skip empty lines and comments.
+            if line and not line.startswith("#"):
+                file_list.append(line)
+    elif hasattr(args, "input") and args.input:
+        # Check if args.input is a list (from --input repeated argument) or a string (from -i/--input single file).
+        if isinstance(args.input, list):
+            # Use repeated argument from add_multi_file_args.
+            _LOG.debug("Using --input option (repeated argument)")
+            file_list = args.input
+        else:
+            # Backward compatibility: support single file via -i/--input from add_input_output_args.
+            _LOG.debug("Using -i/--input option (single file, backward compatibility)")
+            file_list = [args.input]
+    else:
+        # No file specified.
+        hdbg.dfatal("No input files specified")
+    # Validate that we have at least one file.
+    hdbg.dassert_isinstance(file_list, list)
+    hdbg.dassert_lt(
+        0, len(file_list), "No input files specified after parsing arguments"
+    )
+    # Validate that all files exist.
+    for file_path in file_list:
+        hdbg.dassert_path_exists(file_path)
+    _LOG.info("Found %s file(s) to process", len(file_list))
+    return file_list

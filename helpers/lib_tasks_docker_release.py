@@ -4,6 +4,7 @@ Import as:
 import helpers.lib_tasks_docker_release as hltadore
 """
 
+import datetime
 import logging
 import os
 from operator import attrgetter
@@ -15,16 +16,22 @@ from invoke import task
 # this code needs to run with minimal dependencies and without Docker.
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
+import helpers.hio as hio
 import helpers.hs3 as hs3
+import helpers.hserver as hserver
 import helpers.hsystem as hsystem
+import helpers.hversion as hversio
 import helpers.lib_tasks_aws as hlitaaws
 import helpers.lib_tasks_docker as hlitadoc
+import helpers.lib_tasks_gh as hlitagh
+import helpers.lib_tasks_git as hlitagit
 import helpers.lib_tasks_pytest as hlitapyt
 import helpers.lib_tasks_utils as hlitauti
 import helpers.repo_config_utils as hrecouti
 
 _DEFAULT_TARGET_REGISTRY = "aws_ecr.ck"
 _LOG = logging.getLogger(__name__)
+_AUTO_RELEASE_LABEL = "Automated release"
 
 # pylint: disable=protected-access
 
@@ -40,17 +47,31 @@ def _to_abs_path(filename: str) -> str:
     return filename
 
 
-def _prepare_docker_ignore(ctx: Any, docker_ignore: str) -> None:
+def _prepare_docker_ignore(
+    ctx: Any,
+    docker_ignore: str,
+    *,
+    copy_to_git_root: bool = True,
+) -> None:
     """
     Copy the target `docker_ignore` in the proper position for `docker build`.
 
     :param ctx: invoke context
     :param docker_ignore: path to the `.dockerignore` file
+    :param copy_to_git_root: if True, copy the `.dockerignore` file to the
+        git root directory; otherwise, copy it to the current directory
     """
     # Currently there is no built-in way to control which `.dockerignore` to
     # use (https://stackoverflow.com/questions/40904409).
     hdbg.dassert_path_exists(docker_ignore)
-    cmd = f"cp -f {docker_ignore} .dockerignore"
+    # Since all the runnable dirs copy the entire repo content, we use
+    # the Git root dir as a docker context so we need to copy the `.dockerignore`
+    # file to the Git root dir.
+    if copy_to_git_root:
+        dest_docker_ignore = os.path.join(hgit.find_git_root(), ".dockerignore")
+    else:
+        dest_docker_ignore = ".dockerignore"
+    cmd = f"cp -f {docker_ignore} {dest_docker_ignore}"
     hlitauti.run(ctx, cmd)
 
 
@@ -1292,12 +1313,14 @@ def docker_create_candidate_image(ctx, container_dir_name=".", user_tag=""):  # 
 @task
 def docker_release_test_task_definition(
     ctx,
-    task_definition: str = None,
-    user_tag: str = None,
+    task_definition: Optional[str] = None,
+    user_tag: Optional[str] = None,
     region: str = hs3.AWS_EUROPE_REGION_1,
 ):  # type: ignore
     """
     Release candidate image to test ECS task definition.
+
+    :param region: region to create the task definition in
     """
     hdbg.dassert_in(region, hs3.AWS_REGIONS)
     # Verify that task definition is provided.
@@ -1310,15 +1333,49 @@ def docker_release_test_task_definition(
         task_definition=task_definition,
         image_tag=image_tag,
         region=region,
+        environment="test",
+    )
+
+
+@task
+def docker_release_preprod_task_definition(
+    ctx, region: str = hs3.AWS_EUROPE_REGION_1
+):  # type: ignore
+    """
+    Release candidate image to preprod ECS task definition.
+
+    :param region: region to create the task definition in
+    """
+    hdbg.dassert_in(region, hs3.AWS_REGIONS)
+    # Preprod release should be done from master branch and the client should be
+    # clean.
+    curr_branch = hgit.get_branch_name()
+    hdbg.dassert_eq(
+        curr_branch, "master", msg="You should release from master branch"
+    )
+    _ = hgit.is_client_clean(abort_if_not_clean=True)
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    task_definition_name = f"{image_name}-preprod"
+    # Create candidate image.
+    current_dir = os.getcwd()
+    image_tag = docker_create_candidate_image(ctx, current_dir)
+    # Update ECS task definition with new image URL.
+    hlitaaws.aws_update_ecs_task_definition(
+        task_definition=task_definition_name,
+        image_tag=image_tag,
+        region=region,
+        environment="preprod",
     )
 
 
 @task
 def docker_release_prod_task_definition(
-    ctx, region: str = hs3.AWS_EUROPE_REGION_1
+    ctx, region: str = hs3.AWS_US_REGION_1
 ):  # type: ignore
     """
     Release candidate image to prod ECS task definition.
+
+    :param region: region to create the task definition in
     """
     hdbg.dassert_in(region, hs3.AWS_REGIONS)
     # Prod release should be done from master branch and the client should be
@@ -1338,6 +1395,7 @@ def docker_release_prod_task_definition(
         task_definition=task_definition_name,
         image_tag=image_tag,
         region=region,
+        environment="prod",
     )
 
 
@@ -1449,7 +1507,9 @@ def docker_update_prod_task_definition(
     successful_uploads = []
     try:
         # Update prod task definition to the latest prod tag.
-        haws.update_task_definition(task_definition, new_prod_image_url)
+        haws.update_task_definition(
+            task_definition, new_prod_image_url, environment="prod"
+        )
         # Add prod DAGs to airflow s3 bucket after all checks are passed.
         for dag_path in dag_paths:
             # Update prod DAGs.
@@ -1464,7 +1524,9 @@ def docker_update_prod_task_definition(
     except Exception as ex:
         _LOG.info("Rollback started!")
         # Rollback prod task definition image URL.
-        haws.update_task_definition(task_definition, original_prod_image_url)
+        haws.update_task_definition(
+            task_definition, original_prod_image_url, environment="prod"
+        )
         _LOG.info(
             "Reverted prod task definition image url to `%s`!",
             original_prod_image_url,
@@ -1475,7 +1537,14 @@ def docker_update_prod_task_definition(
             # Prepare bucket resource.
             s3 = haws.get_service_resource(aws_profile="ck", service_name="s3")
             bucket_name, _ = hs3.split_path(airflow_dags_s3_path)
-            bucket = s3.Bucket(bucket_name)
+            if hasattr(s3, "Bucket"):
+                bucket = s3.Bucket(bucket_name)
+            else:
+                # We'll need to handle this differently since client doesn't
+                # have object_versions.
+                raise NotImplementedError(
+                    "S3 resource Bucket attribute not available, fallback implementation needed"
+                )
             for successful_upload in successful_uploads:
                 # TODO(Nikola): Maybe even Telegram notification?
                 # Rollback successful upload.
@@ -1509,3 +1578,306 @@ def docker_update_prod_task_definition(
         )
         _LOG.info("Rollback completed! %s", s3_rollback_message)
         raise ex
+
+
+@task
+def docker_build_frontend_feature_image(
+    ctx,
+    stage,
+    dev_image_version=None,
+    app_version=None,
+):
+    """
+    Build frontend image for releasing the features.
+
+    :param stage: stage to release the image
+    :param dev_image_version: base dev image version to use
+    :param app_version: app version for feature releases
+    """
+    hdbg.dassert_in(stage, ["test", "preprod", "prod"])
+    # Get changelog paths.
+    current_dir = os.getcwd()
+    # Get image and app version.
+    if not dev_image_version:
+        dev_image_version = hversio.get_changelog_version(current_dir)
+    if not app_version:
+        errors = []
+        # Here we assume FE has its own runnable dir or the app changelog file
+        # is inside `app` dir of a parent runnable dir.
+        for file_name in [
+            "app_changelog.txt",
+            os.path.join("app", "app_changelog.txt"),
+        ]:
+            try:
+                app_version = hversio.get_changelog_version(
+                    current_dir, file_name=file_name
+                )
+                break
+            except AssertionError as e:
+                errors.append(str(e))
+        else:
+            raise FileNotFoundError(
+                f"App changelog file not found. Provide app version explicitly. Errors: {errors}"
+            )
+    # Set ECR base path.
+    if stage in ("test", "preprod"):
+        ecr_base_path = "623860924167.dkr.ecr.eu-north-1.amazonaws.com"
+    else:
+        ecr_base_path = "726416904550.dkr.ecr.us-east-1.amazonaws.com"
+    # Set prod docker file name.
+    dockerfile = "devops/docker_build/prod.Dockerfile"
+    dockerfile = _to_abs_path(dockerfile)
+    # Set image tag.
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    image_tag = f"{ecr_base_path}/{image_name}:{stage}-{app_version}"
+    git_root_dir = hgit.find_git_root()
+    # Docker build command.
+    cmd = rf"""
+    docker build --no-cache \
+    --file {dockerfile} \
+    --build-arg VERSION={dev_image_version} \
+    --build-arg ECR_BASE_PATH={ecr_base_path} \
+    --build-arg IMAGE_NAME={image_name} \
+    --tag {image_tag} \
+    {git_root_dir}
+    """
+    hlitauti.run(ctx, cmd)
+    _list_image(ctx, image_tag)
+
+
+# #############################################################################
+# Test dev image flow
+# #############################################################################
+
+
+@task
+def docker_build_test_dev_image(  # type: ignore
+    ctx,
+    assignee="",
+    reviewers="",
+    container_dir_name=".",
+):
+    """
+    Automate the complete periodic release workflow for the dev image.
+
+    This task performs:
+    1) Bump version (e.g., 2.2.0 -> 2.3.0)
+    2) Get release team members
+    3) Create branch with date-based name
+    4) Build image locally with the bumped version number
+    5) Run tests (fast, slow, superslow)
+    6) Add changelog entry for the release
+    7) Stage poetry.lock and pip_list.txt files
+    8) Commit changes with versioned message
+    9) Push changes
+    10) Create PR
+    11) Tag and push image to GHCR
+
+    :param ctx: invoke context
+    :param assignee: GitHub username to assign the PR to
+    :param reviewers: GitHub username(s) to request PR review. If not
+        specified, uses the release team members from GitHub team
+        configured in repo_config.yaml
+    :param container_dir_name: directory where the Dockerfile is located
+    """
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    # 1) Bump version.
+    _LOG.info("Step 1: Bumping version")
+    current_version = hversio.get_changelog_version(container_dir_name)
+    hdbg.dassert(current_version, "Could not find current version in changelog")
+    _LOG.info("Current version: %s", current_version)
+    version = hversio.bump_version(current_version, bump_type="minor")
+    _LOG.info("Bumped version: %s -> %s", current_version, version)
+    # 2) Get release team members.
+    _LOG.info("Step 2: Getting release team members")
+    if not reviewers:
+        release_team_name = hrecouti.get_repo_config().get_release_team()
+        # Get team members from GitHub team.
+        team_members = hlitagh.gh_get_team_member_names(release_team_name)
+        reviewers = ",".join(team_members)
+        _LOG.info("Release team '%s' members: %s", release_team_name, reviewers)
+    # 3) Create branch with date-based name.
+    _LOG.info("Step 3: Creating branch with date-based name")
+    issue_prefix = hrecouti.get_repo_config().get_issue_prefix()
+    # Get current date in YYYYMMDD format.
+    today = datetime.date.today().strftime("%Y%m%d")
+    branch_name = f"{issue_prefix}_Periodic_image_release_{today}"
+    _LOG.info("Branch name: %s", branch_name)
+    cmd = f"git checkout -b {branch_name}"
+    hlitauti.run(ctx, cmd)
+    # 4) Build image locally.
+    _LOG.info("Step 4: Building local image with version %s", version)
+    docker_build_local_image(
+        ctx,
+        version=version,
+        cache=True,
+        poetry_mode="update",
+        container_dir_name=container_dir_name,
+    )
+    # 5) Run tests.
+    _LOG.info("Step 5: Running tests")
+    dev_version = _get_dev_version(version, container_dir_name)
+    stage = "dev"
+    _run_tests(
+        ctx,
+        stage,
+        dev_version,
+        skip_tests=False,
+        fast_tests=True,
+        slow_tests=True,
+        superslow_tests=True,
+        qa_tests=False,
+    )
+    # 6) Add changelog entry.
+    _LOG.info("Step 6: Adding changelog entry")
+    supermodule = True
+    root_dir = hversio._get_client_root(supermodule)
+    image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    changelog_file = os.path.join(root_dir, container_dir_name, "changelog.txt")
+    hdbg.dassert_file_exists(changelog_file)
+    # Read the current changelog.
+    changelog_content = hio.from_file(changelog_file)
+    # Prepare new entry.
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    new_entry = f"""# {image_name}-{version}
+- {today}
+- Periodic release: {today}
+
+"""
+    # Prepend new entry to changelog.
+    updated_changelog = new_entry + changelog_content
+    # Write back to file.
+    hio.to_file(changelog_file, updated_changelog)
+    _LOG.info("Added changelog entry for version %s", version)
+    # 7) Stage files.
+    _LOG.info("Step 7: Staging files")
+    # Fix git permissions in CI to avoid "insufficient permission" errors.
+    if hserver.is_inside_ci():
+        _LOG.info("Running in CI, fixing git permissions")
+        cmd = "sudo chmod -R 777 .git/objects/"
+        hlitauti.run(ctx, cmd)
+    files_to_stage = [
+        "devops/docker_build/poetry.lock",
+        "devops/docker_build/pip_list.txt",
+        "changelog.txt",
+    ]
+    for file_path in files_to_stage:
+        full_path = os.path.join(root_dir, container_dir_name, file_path)
+        if os.path.exists(full_path):
+            cmd = f"git add {full_path}"
+            hlitauti.run(ctx, cmd)
+            _LOG.info("Staged %s", full_path)
+        else:
+            _LOG.warning("File not found, skipping: %s", full_path)
+    # 8) Commit changes.
+    _LOG.info("Step 8: Committing changes")
+    commit_message = f"Poetry output from the v{version} build"
+    # --no-verify to skip pre-commit checks since the `poetry.lock` file is
+    # too big and the `check_file_size` is failed.
+    cmd = f'git commit -m "{commit_message}" --no-verify'
+    hlitauti.run(ctx, cmd)
+    # 9) Push changes.
+    _LOG.info("Step 9: Pushing changes")
+    cmd = f"git push origin {branch_name}"
+    hlitauti.run(ctx, cmd)
+    # 10) Create PR.
+    _LOG.info("Step 10: Creating pull request")
+    pr_body = f"- Periodic release of {image_name} dev image version {version}"
+    label = _AUTO_RELEASE_LABEL
+    hlitagh.gh_create_pr(
+        ctx,
+        body=pr_body,
+        draft=False,
+        reviewer=reviewers,
+        labels=label,
+        assignee=assignee,
+    )
+    _LOG.info("PR submitted for branch %s", branch_name)
+    # 11) Tag and push to GHCR.
+    _LOG.info("Step 11: Tagging and pushing image to GHCR")
+    # Get GHCR base image path from repo config.
+    ghcr_base = hrecouti.get_repo_config().get_container_registry_url("ghcr")
+    ghcr_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+    ghcr_base_image = f"{ghcr_base}/{ghcr_image_name}"
+    _LOG.info("GHCR base image: %s", ghcr_base_image)
+    # Get local image name.
+    local_stage = "local"
+    image_local = hlitadoc.get_image("", local_stage, dev_version)
+    # Tag local image as versioned GHCR dev image (e.g., ghcr.io/causify-ai/csfy:dev-2.3.0).
+    ghcr_image_versioned = f"{ghcr_base_image}:dev-{version}"
+    cmd = f"docker tag {image_local} {ghcr_image_versioned}"
+    hlitauti.run(ctx, cmd)
+    _LOG.info("Tagged as versioned GHCR dev image: %s", ghcr_image_versioned)
+    # Push versioned GHCR dev image.
+    cmd = f"docker push {ghcr_image_versioned}"
+    hlitauti.run(ctx, cmd, pty=True)
+    _LOG.info("Pushed versioned GHCR dev image: %s", ghcr_image_versioned)
+    _LOG.info("==> SUCCESS <==" )
+
+
+@task
+def docker_tag_push_dev_image(
+    ctx,
+    version="",
+    base_image="",
+    target_registries="ghcr,ecr",
+    container_dir_name=".",
+    dry_run=False,
+):
+    """
+    Pulls a versioned dev image from a base registry, then tags and pushes
+    it to the specified target registries (both as versioned and latest).
+
+    :param ctx: invoke context
+    :param version: version to tag the image and code with. If empty, reads
+        from changelog
+    :param base_image: base image path to pull from (e.g.,
+        ghcr.io/causify-ai/csfy). If empty, uses GHCR from repo config
+    :param target_registries: comma separated list of target Docker
+        image registries to push the image to. E.g., "ghcr,ecr".
+        See the `helpers.repo_config_utils.RepoConfig.get_container_registry_url()`
+        for supported registry names
+    :param container_dir_name: directory where the Dockerfile is located
+    :param dry_run: if True, only print the commands without executing
+        them
+    """
+    hlitauti.report_task(container_dir_name=container_dir_name)
+    # Get version.
+    if not version:
+        version = hversio.get_changelog_version(container_dir_name)
+    # Get base image if not provided.
+    if not base_image:
+        ghcr_base = hrecouti.get_repo_config().get_container_registry_url("ghcr")
+        ghcr_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+        base_image = f"{ghcr_base}/{ghcr_image_name}"
+    # Pull the image.
+    stage = "dev"
+    source_dev_image_versioned = hlitadoc.get_image(base_image, stage, version)
+    cmd = f"docker pull {source_dev_image_versioned}"
+    hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
+    # Tag and push to target registries.
+    for registry in target_registries.split(","):
+        # Strip whitespace from registry name.
+        registry = registry.strip()
+        # Tag and push the image to the target registry as latest dev image.
+        target_base = hrecouti.get_repo_config().get_container_registry_url(
+            registry
+        )
+        target_image_name = hrecouti.get_repo_config().get_docker_base_image_name()
+        target_base_image = f"{target_base}/{target_image_name}"
+        latest_version = None
+        target_dev_image_latest = hlitadoc.get_image(
+            target_base_image, stage, latest_version
+        )
+        cmd = f"docker tag {source_dev_image_versioned} {target_dev_image_latest}"
+        hlitauti.run(ctx, cmd, dry_run=dry_run)
+        cmd = f"docker push {target_dev_image_latest}"
+        hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)
+        # Tag and push versioned dev image to target registry.
+        target_dev_image_versioned = hlitadoc.get_image(
+            target_base_image, stage, version
+        )
+        cmd = f"docker tag {source_dev_image_versioned} {target_dev_image_versioned}"
+        hlitauti.run(ctx, cmd, dry_run=dry_run)
+        cmd = f"docker push {target_dev_image_versioned}"
+        hlitauti.run(ctx, cmd, pty=True, dry_run=dry_run)

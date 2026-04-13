@@ -1,3 +1,4 @@
+import glob
 import logging
 import os
 
@@ -15,170 +16,284 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
-# TODO(gp): Pass through the function and not only executable.
-def _run_preprocess_notes(in_file: str, out_file: str) -> str:
+# #############################################################################
+# Test_colorize_backticks
+# #############################################################################
+
+
+class Test_colorize_backticks(hunitest.TestCase):
     """
-    Execute the end-to-end flow for `preprocess_notes.py` returning the output
-    as string.
+    Test the `_colorize_backticks()` function.
     """
-    exec_path = hgit.find_file_in_git_tree("preprocess_notes.py")
-    hdbg.dassert_path_exists(exec_path)
-    #
-    hdbg.dassert_path_exists(in_file)
-    #
-    cmd = []
-    cmd.append(exec_path)
-    cmd.append(f"--input {in_file}")
-    cmd.append(f"--output {out_file}")
-    cmd.append("--type pdf")
-    cmd_as_str = " ".join(cmd)
-    hsystem.system(cmd_as_str)
-    # Check.
-    act = hio.from_file(out_file)
-    return act  # type: ignore
 
+    def helper(self, txt_in: str, expected: str) -> None:
+        """
+        Helper method to test the _colorize_backticks function.
 
-# #############################################################################
-# Test_process_color_commands1
-# #############################################################################
-
-
-class Test_process_color_commands1(hunitest.TestCase):
-    def test_text_content1(self) -> None:
+        :param txt_in: input text
+        :param expected: expected output text
         """
-        Test with plain text content.
-        """
-        txt_in = r"\red{Hello world}"
-        exp = r"\textcolor{red}{\text{Hello world}}"
-        act = dshdprno._process_color_commands(txt_in)
-        self.assert_equal(act, exp)
-
-    def test_math_content1(self) -> None:
-        """
-        Test color command with mathematical content.
-        """
-        txt_in = r"\blue{x + y = z}"
-        exp = r"\textcolor{blue}{x + y = z}"
-        act = dshdprno._process_color_commands(txt_in)
-        self.assert_equal(act, exp)
-
-    def test_multiple_colors1(self) -> None:
-        """
-        Test multiple color commands in the same line.
-        """
-        txt_in = r"The \red{quick} \blue{fox} \green{jumps}"
-        exp = r"The \textcolor{red}{\text{quick}} \textcolor{blue}{\text{fox}} \textcolor{darkgreen}{\text{jumps}}"
-        act = dshdprno._process_color_commands(txt_in)
-        self.assert_equal(act, exp)
-
-    def test_mixed_content1(self) -> None:
-        """
-        Test color commands with both text and math content.
-        """
-        txt_in = r"\red{Result: x^2 + y^2}"
-        exp = r"\textcolor{red}{Result: x^2 + y^2}"
-        act = dshdprno._process_color_commands(txt_in)
-        self.assert_equal(act, exp)
-
-    def test_nested_braces1(self) -> None:
-        """
-        Test color command with nested braces.
-        """
-        txt_in = r"\blue{f(x) = {x + 1}}"
-        exp = r"\textcolor{blue}{f(x) = {x + 1}}"
-        act = dshdprno._process_color_commands(txt_in)
-        self.assert_equal(act, exp)
-
-
-# #############################################################################
-# Test_colorize_bullet_points1
-# #############################################################################
-
-
-@pytest.mark.skip(reason="Broken for now")
-class Test_colorize_bullet_points1(hunitest.TestCase):
-    def helper(self, txt_in: str, exp: str) -> None:
-        """
-        Test colorize bullet points.
-        """
-        txt_in = hprint.dedent(txt_in)
-        act = dshdprno._colorize_bullet_points(txt_in)
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp)
+        actual = dshdprno._colorize_backticks(txt_in)
+        self.assert_equal(actual, expected)
 
     def test1(self) -> None:
         """
-        Test colorize bullet points.
+        Test single backtick-wrapped word.
         """
+        # Prepare inputs.
+        txt_in = "The `store` variable is used."
+        expected = r"The \textcolor{blue}{\texttt{store}} variable is used."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test2(self) -> None:
+        """
+        Test multiple backtick-wrapped words in one line.
+        """
+        # Prepare inputs.
+        txt_in = "Use `function1` and `function2` to process data."
+        expected = r"Use \textcolor{blue}{\texttt{function1}} and \textcolor{blue}{\texttt{function2}} to process data."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test3(self) -> None:
+        """
+        Test backtick-wrapped multi-word phrase.
+        """
+        # Prepare inputs.
+        txt_in = "The `main function` is important."
+        expected = r"The \textcolor{blue}{\texttt{main function}} is important."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test4(self) -> None:
+        """
+        Test line with no backticks should remain unchanged.
+        """
+        # Prepare inputs.
+        txt_in = "This line has no special formatting."
+        expected = txt_in
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test5(self) -> None:
+        """
+        Test triple backticks (code block) should not be processed.
+        """
+        # Prepare inputs.
+        txt_in = "```python\nprint('hello')\n```"
+        expected = txt_in
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test6(self) -> None:
+        """
+        Test backticks at the beginning of the line.
+        """
+        # Prepare inputs.
+        txt_in = "`config` is a parameter"
+        expected = r"\textcolor{blue}{\texttt{config}} is a parameter"
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test7(self) -> None:
+        """
+        Test backticks at the end of the line.
+        """
+        # Prepare inputs.
+        txt_in = "Import the module called `helpers`"
+        expected = r"Import the module called \textcolor{blue}{\texttt{helpers}}"
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test8(self) -> None:
+        """
+        Test backticks containing special characters (underscores).
+        """
+        # Prepare inputs.
+        txt_in = "Use the `_private_func` or `__dunder__` naming."
+        expected = r"Use the \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{\_\_dunder\_\_}} naming."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test9(self) -> None:
+        """
+        Test backticks containing numbers.
+        """
+        # Prepare inputs.
+        txt_in = "Call `func42` to compute result."
+        expected = r"Call \textcolor{blue}{\texttt{func42}} to compute result."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test10(self) -> None:
+        """
+        Test empty backticks should not match.
+        """
+        # Prepare inputs.
+        txt_in = "Text with `` empty backticks here."
+        # Empty backticks should not match due to pattern requiring at least one character.
+        expected = txt_in
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test11(self) -> None:
+        """
+        Test backticks inside a line with multiple sentences.
+        """
+        # Prepare inputs.
+        txt_in = "First sentence with `var1`. Second sentence with `var2`. Third sentence."
+        expected = r"First sentence with \textcolor{blue}{\texttt{var1}}. Second sentence with \textcolor{blue}{\texttt{var2}}. Third sentence."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test12(self) -> None:
+        """
+        Test backticks containing dots (like package names).
+        """
+        # Prepare inputs.
+        txt_in = "Import `numpy.array` for matrix operations."
+        expected = r"Import \textcolor{blue}{\texttt{numpy.array}} for matrix operations."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test13(self) -> None:
+        """
+        Test backticks containing underscores (escaped in LaTeX).
+        """
+        # Prepare inputs.
+        txt_in = "The `weeks_to_xmas` variable stores the countdown."
+        expected = r"The \textcolor{blue}{\texttt{weeks\_to\_xmas}} variable stores the countdown."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test14(self) -> None:
+        """
+        Test multiple backtick-wrapped words with underscores.
+        """
+        # Prepare inputs.
+        txt_in = (
+            "Use `_private_func` or `public_var` for different access levels."
+        )
+        expected = r"Use \textcolor{blue}{\texttt{\_private\_func}} or \textcolor{blue}{\texttt{public\_var}} for different access levels."
+        # Run test.
+        self.helper(txt_in, expected)
+
+    def test15(self) -> None:
+        """
+        Test backticks with leading and trailing underscores.
+        """
+        # Prepare inputs.
+        txt_in = "Call `__init__` or `__dunder__` methods in Python."
+        expected = r"Call \textcolor{blue}{\texttt{\_\_init\_\_}} or \textcolor{blue}{\texttt{\_\_dunder\_\_}} methods in Python."
+        # Run test.
+        self.helper(txt_in, expected)
+
+
+# #############################################################################
+# Test_colorize_backticks_integration
+# #############################################################################
+
+
+class Test_colorize_backticks_integration(hunitest.TestCase):
+    """
+    Test backtick colorization as part of the full preprocessing pipeline.
+    """
+
+    def test1(self) -> None:
+        """
+        Test backtick colorization in full pipeline with type="pdf".
+        """
+        # Prepare inputs.
         txt_in = r"""
-        - **VC Theory**
-            - Measures model
-
-        - **Bias-Variance Decomposition**
-            - Prediction error
-                - **Bias**
-                - **Variance**
-
-        - **Computation Complexity**
-            - Balances model
-            - Related to
-            - E.g., Minimum
-
-        - **Bayesian Approach**
-            - Treats ML as probability
-            - Combines prior knowledge with observed data to update belief about a model
-
-        - **Problem in ML Theory:**
-            - Assumptions may not align with practical problems
+        # Chapter 1
+        The `variable` is used here.
+        And `function_name` is called next.
         """
-        exp = r"""
-        - **\red{VC Theory}**
-            - Measures model
-
-        - **\orange{Bias-Variance Decomposition}**
-            - Prediction error
-                - **\yellow{Bias}**
-                - **\lime{Variance}**
-
-        - **\green{Computation Complexity}**
-            - Balances model
-            - Related to
-            - E.g., Minimum
-
-        - **\teal{Bayesian Approach}**
-            - Treats ML as probability
-            - Combines prior knowledge with observed data to update belief about a model
-
-        - **\cyan{Problem in ML Theory:}**
-            - Assumptions may not align with practical problems
-        """
-        self.helper(txt_in, exp)
-
-# #############################################################################
-# Test_preprocess_notes1
-# #############################################################################
-
-
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
-class Test_preprocess_notes1(hunitest.TestCase):
-    """
-    Test `preprocess_notes.py` using the executable and checked in files.
-    """
-
-    def test1(self) -> None:
-        self._helper()
-
-    def _helper(self) -> None:
-        # Set up.
-        in_file = os.path.join(self.get_input_dir(), "input1.txt")
-        out_file = os.path.join(self.get_scratch_space(), "output.txt")
-        # Run.
-        act = _run_preprocess_notes(in_file, out_file)
+        txt_in = txt_in.split("\n")
+        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        # Execute function.
+        type_ = "pdf"
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = "\n".join(actual)
         # Check.
-        self.check_string(act)
+        expected = r"""
+        ---
+        fontsize: 10pt
+        ---
+        \let\emph\textit
+        \let\uline\underline
+        \let\ul\underline
+        # Chapter 1
+        The \textcolor{blue}{\texttt{variable}} is used here.
+        And \textcolor{blue}{\texttt{function\_name}} is called next.
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Test backtick colorization with type="slides".
+        """
+        # Prepare inputs.
+        txt_in = r"""
+        # Slide Title
+        Use `method1` and `method2` for processing.
+        """
+        txt_in = txt_in.split("\n")
+        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        # Execute function.
+        type_ = "slides"
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = "\n".join(actual)
+        # Check.
+        expected = r"""
+        ---
+        fontsize: 10pt
+        ---
+        \let\emph\textit
+        \let\uline\underline
+        \let\ul\underline
+        # Slide Title
+        Use \textcolor{blue}{\texttt{method1}} and \textcolor{blue}{\texttt{method2}} for processing.
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test3(self) -> None:
+        """
+        Test backtick colorization doesn't affect code blocks.
+        """
+        # Prepare inputs.
+        txt_in = r"""
+        Example code:
+        ```python
+        variable = `store`
+        ```
+        The `variable` name is important.
+        """
+        txt_in = txt_in.split("\n")
+        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        # Execute function.
+        type_ = "pdf"
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = "\n".join(actual)
+        # Check.
+        expected = r"""
+        ---
+        fontsize: 10pt
+        ---
+        \let\emph\textit
+        \let\uline\underline
+        \let\ul\underline
+        Example code:
+        ```python
+        variable = `store`
+        ```
+        The \textcolor{blue}{\texttt{variable}} name is important.
+        """
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -186,10 +301,6 @@ class Test_preprocess_notes1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_process_question1(hunitest.TestCase):
     """
     Check that the output of `preprocess_notes.py` is the expected one calling
@@ -200,64 +311,178 @@ class Test_process_question1(hunitest.TestCase):
         txt_in = "* Hope is not a strategy"
         do_continue_exp = True
         exp = "- **Hope is not a strategy**"
-        self._helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
     def test_process_question2(self) -> None:
         txt_in = "** Hope is not a strategy"
         do_continue_exp = True
         exp = "- **Hope is not a strategy**"
-        self._helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
     def test_process_question3(self) -> None:
         txt_in = "*: Hope is not a strategy"
         do_continue_exp = True
         exp = "- **Hope is not a strategy**"
-        self._helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
     def test_process_question4(self) -> None:
         txt_in = "- Systems don't run themselves, they need to be run"
         do_continue_exp = False
         exp = txt_in
-        self._helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
     def test_process_question5(self) -> None:
         space = "   "
         txt_in = "*" + space + "Hope is not a strategy"
         do_continue_exp = True
         exp = "-" + space + "**Hope is not a strategy**"
-        self._helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
     def test_process_question6(self) -> None:
         space = "   "
         txt_in = "**" + space + "Hope is not a strategy"
         do_continue_exp = True
         exp = "-" + " " * len(space) + "**Hope is not a strategy**"
-        self._helper_process_question(txt_in, do_continue_exp, exp)
+        self.helper(txt_in, do_continue_exp, exp)
 
-    def _helper_process_question(
-        self, txt_in: str, do_continue_exp: bool, exp: str
-    ) -> None:
-        do_continue, act = dshdprno._process_question_to_markdown(txt_in)
+    def helper(self, txt_in: str, do_continue_exp: bool, expected: str) -> None:
+        do_continue, actual = dshdprno._process_question_to_markdown(txt_in)
         self.assertEqual(do_continue, do_continue_exp)
-        self.assert_equal(act, exp)
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
-# Test_preprocess_notes3
+# Test_remove_headers1
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
-class Test_preprocess_notes3(hunitest.TestCase):
+class Test_remove_headers1(hunitest.TestCase):
     """
-    Check that the output of `preprocess_notes.py` is the expected one calling
-    the library function directly.
+    Test the `_remove_headers()` function.
+    """
+
+    def helper(
+        self, lines_in: list, expected: list, max_level: int = 999
+    ) -> None:
+        """
+        Helper method to test the _remove_headers function.
+
+        :param lines_in: input lines
+        :param expected: expected output lines
+        :param max_level: maximum level of headers to consider (default: 999 to remove all headers)
+        """
+        actual = dshdprno._remove_headers(lines_in, max_level)
+        # Convert lists to strings for comparison.
+        actual_str = "\n".join(actual)
+        expected_str = "\n".join(expected)
+        self.assert_equal(actual_str, expected_str)
+
+    def test1(self) -> None:
+        """
+        Test removing a single level 1 header.
+        """
+        lines_in = ["# Chapter 1", "Some content here"]
+        expected = ["Some content here"]
+        self.helper(lines_in, expected)
+
+    def test2(self) -> None:
+        """
+        Test removing headers of various levels.
+        """
+        lines_in = [
+            "# Chapter 1",
+            "Content line 1",
+            "## Section 1.1",
+            "Content line 2",
+            "### Subsection",
+            "Content line 3",
+            "#### Sub-subsection",
+            "Content line 4",
+        ]
+        expected = [
+            "Content line 1",
+            "Content line 2",
+            "Content line 3",
+            "Content line 4",
+        ]
+        self.helper(lines_in, expected)
+
+    def test3(self) -> None:
+        """
+        Test headers mixed with regular text and bullet points.
+        """
+        lines_in = [
+            "# Header",
+            "- Bullet point 1",
+            "- Bullet point 2",
+            "## Subheader",
+            "Regular text",
+        ]
+        expected = [
+            "- Bullet point 1",
+            "- Bullet point 2",
+            "Regular text",
+        ]
+        self.helper(lines_in, expected)
+
+    def test4(self) -> None:
+        """
+        Test input with no headers (should return unchanged).
+        """
+        lines_in = [
+            "This is some text",
+            "- Bullet point",
+            "More text",
+        ]
+        expected = lines_in
+        self.helper(lines_in, expected)
+
+    def test5(self) -> None:
+        """
+        Test input with only headers (should return empty list).
+        """
+        lines_in = [
+            "# Header 1",
+            "## Header 2",
+            "### Header 3",
+        ]
+        expected = []
+        self.helper(lines_in, expected)
+
+    def test6(self) -> None:
+        """
+        Test that empty lines around headers are preserved.
+        """
+        lines_in = [
+            "",
+            "# Header",
+            "",
+            "Content",
+            "",
+        ]
+        expected = [
+            "",
+            "",
+            "Content",
+            "",
+        ]
+        self.helper(lines_in, expected)
+
+
+# #############################################################################
+# Test_preprocess_notes_end_to_end1
+# #############################################################################
+
+
+class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
+    """
+    Test `preprocess_notes.py` by calling the library function directly.
     """
 
     def test_run_all1(self) -> None:
+        """
+        Test type_="pdf".
+        """
         # Prepare inputs.
         txt_in = r"""
         # #############################################################################
@@ -274,17 +499,20 @@ class Test_preprocess_notes3(hunitest.TestCase):
                     except:
                         return False
 
+
                 for v in values:
                     if _is_integer(v):
                         print(v)
             ```
         """
+        txt_in = txt_in.split("\n")
         txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
         # Execute function.
         type_ = "pdf"
-        act = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
+        actual = "\n".join(actual)
         # Check.
-        exp = r"""
+        expected = r"""
         ---
         fontsize: 10pt
         ---
@@ -303,10 +531,234 @@ class Test_preprocess_notes3(hunitest.TestCase):
                     except:
                         return False
 
+
                 for v in values:
                     if _is_integer(v):
                         print(v)
             ```
         """
-        exp = hprint.dedent(exp, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(act, exp)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+
+# #############################################################################
+# Test_preprocess_notes_end_to_end2
+# #############################################################################
+
+
+class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
+    """
+    Test `preprocess_notes.py` by calling the library function directly.
+
+    # To update the outcomes:
+    > cd /Users/saggese/src/umd_msml6101
+    > cp -r lectures_source/Lesson*.txt ./helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2/input/
+
+    # To compare inputs and outputs:
+    > vimdiff dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2.test_run_all1/{input,output}/Lesson01-Intro.txt
+    """
+
+    @pytest.mark.skip(
+        reason="Requires external input files to be manually copied"
+    )
+    def test_run_all1(self) -> None:
+        input_dir = self.get_input_dir()
+        _LOG.debug("input_dir=%s", input_dir)
+        # Find all the files in the `test/input` directory.
+        files = glob.glob(os.path.join(input_dir, "*.txt"))
+        _LOG.debug("Found %s files", len(files))
+        hdbg.dassert_lt(0, len(files))
+        for file in files:
+            # Read the file.
+            text = hio.from_file(file)
+            # Run the function.
+            # > preprocess_notes.py \
+            #     --input lectures_source/Lesson02-Techniques.txt \
+            #     --output tmp.notes_to_pdf.preprocess_notes.txt \
+            #     --type slides \
+            #     --toc_type navigation
+            lines = text.split("\n")
+            type_ = "slides"
+            toc_type = "navigation"
+            is_qa = False
+            actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
+            # Check.
+            actual = "\n".join(actual)
+            tag = os.path.basename(file)
+            tag = hio.remove_extension(tag, ".txt", check_file_exists=False)
+            self.check_string(actual, tag=tag)
+
+
+# #############################################################################
+# Test_preprocess_notes_end_to_end3
+# #############################################################################
+
+
+class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
+    """
+    Test `preprocess_notes.py` by calling the library function directly.
+
+    # To update the outcomes:
+    > cd /Users/saggese/src/umd_msml6101
+    > cp -r lectures_source/Lesson*.txt ./helpers_root/dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2/input/
+
+    # To compare inputs and outputs:
+    > vimdiff dev_scripts_helpers/documentation/test/outcomes/Test_preprocess_notes_end_to_end2.test_run_all1/{input,output}/Lesson01-Intro.txt
+    """
+
+    @pytest.mark.skip(
+        reason="Requires external input files to be manually copied"
+    )
+    def test_run_all1(self) -> None:
+        input_dir = self.get_input_dir()
+        _LOG.debug("input_dir=%s", input_dir)
+        # Find all the files in the `test/input` directory.
+        files = glob.glob(os.path.join(input_dir, "*.txt"))
+        _LOG.debug("Found %s files", len(files))
+        hdbg.dassert_lt(0, len(files))
+        for file in files:
+            # Read the file.
+            text = hio.from_file(file)
+            # Run the function.
+            # > preprocess_notes.py \
+            #     --input lectures_source/Lesson02-Techniques.txt \
+            #     --output tmp.notes_to_pdf.preprocess_notes.txt \
+            #     --type slides \
+            #     --toc_type navigation
+            lines = text.split("\n")
+            type_ = "slides"
+            toc_type = "navigation"
+            is_qa = False
+            actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
+            # Check.
+            actual = "\n".join(actual)
+            tag = os.path.basename(file)
+            tag = hio.remove_extension(tag, ".txt", check_file_exists=False)
+            self.check_string(actual, tag=tag)
+
+
+# #############################################################################
+# Test_preprocess_notes_executable1
+# #############################################################################
+
+
+@pytest.mark.skipif(
+    hserver.is_inside_ci() or hserver.is_dev_csfy(),
+    reason="Disabled because of CmampTask10710",
+)
+class Test_preprocess_notes_executable1(hunitest.TestCase):
+    """
+    Test `preprocess_notes.py` using the executable and checked in files.
+    """
+
+    @staticmethod
+    def helper(in_file: str, out_file: str, type_: str) -> str:
+        """
+        Execute the end-to-end flow for `preprocess_notes.py` returning the
+        output as string.
+        """
+        hdbg.dassert_path_exists(in_file)
+        # Find executable.
+        exec_path = hgit.find_file_in_git_tree("preprocess_notes.py")
+        hdbg.dassert_path_exists(exec_path)
+        # Prepare command.
+        cmd = []
+        cmd.append(exec_path)
+        cmd.append(f"--input {in_file}")
+        cmd.append(f"--output {out_file}")
+        cmd.append(f"--type {type_}")
+        cmd_as_str = " ".join(cmd)
+        # Run.
+        hsystem.system(cmd_as_str)
+        # Check.
+        act = hio.from_file(out_file)
+        return act  # type: ignore
+
+    def test1(self) -> None:
+        # Prepare inputs.
+        in_file = os.path.join(self.get_input_dir(), "input1.txt")
+        out_file = os.path.join(self.get_scratch_space(), "output.txt")
+        type_ = "pdf"
+        # Run.
+        act = self.helper(in_file, out_file, type_)
+        # Check.
+        self.check_string(act)
+
+    def test2(self) -> None:
+        # Prepare inputs.
+        in_file = os.path.join(self.get_input_dir(), "input1.txt")
+        out_file = os.path.join(self.get_scratch_space(), "output.txt")
+        type_ = "pdf"
+        # Run.
+        act = self.helper(in_file, out_file, type_)
+        # Check.
+        self.check_string(act)
+
+    def test3(self) -> None:
+        # Prepare inputs.
+        in_file = os.path.join(self.get_input_dir(), "input1.txt")
+        out_file = os.path.join(self.get_scratch_space(), "output.txt")
+        type_ = "pdf"
+        # Run.
+        act = self.helper(in_file, out_file, type_)
+        # Check.
+        self.check_string(act)
+
+
+# #############################################################################
+# Test_preprocess_notes_remove_headers1
+# #############################################################################
+
+
+class Test_preprocess_notes_remove_headers1(hunitest.TestCase):
+    """
+    Test `preprocess_notes.py` with `--toc_type remove_headers`.
+    """
+
+    def test1(self) -> None:
+        """
+        Test the full preprocessing flow with header removal.
+        """
+        # Prepare inputs.
+        txt_in = r"""
+        # Chapter 1: Introduction
+        This is some introductory content.
+
+        ## Section 1.1: Background
+        More content here with some details.
+
+        * What is the main concept?
+        The main concept is to understand how preprocessing works.
+
+        ### Subsection 1.1.1
+        - Bullet point 1
+        - Bullet point 2
+        - Bullet point 3
+
+        Some regular text after bullets.
+
+        ## Section 1.2: Examples
+
+        Here is a code block:
+        ```python
+        def foo():
+            # This is a comment with # symbol
+            pass
+        ```
+
+        # Chapter 2: Advanced Topics
+
+        More advanced content goes here.
+
+        * Another question?
+        Answer to the question.
+        """
+        txt_in = txt_in.split("\n")
+        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
+        # Execute function.
+        type_ = "pdf"
+        toc_type = "remove_headers"
+        actual = dshdprno._preprocess_lines(txt_in, type_, toc_type, is_qa=False)
+        actual = "\n".join(actual)
+        # Check.
+        self.check_string(actual)

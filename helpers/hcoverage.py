@@ -4,6 +4,7 @@ Import as:
 import helpers.hcoverage as hcovera
 """
 
+import glob
 import logging
 import os
 import pathlib
@@ -48,10 +49,8 @@ def inject(coveragerc: str = ".coveragerc") -> None:
     Install the coverage startup hook into this env site-packages.
     """
     rc = pathlib.Path(coveragerc).resolve()
-    hdbg.dassert(rc.is_file(), f".coveragerc not found at {rc}")
-    # TODO(Maddy): IMO this doesn't work since the var is created in a bash
-    # that is then killed. It's not persistent.
-    hsystem.system(f"export COVERAGE_PROCESS_START={rc}")
+    os.environ["COVERAGE_PROCESS_START"] = str(rc)
+    _LOG.debug("Set COVERAGE_PROCESS_START to %s", rc)
     sp = _detect_site_packages()
     target = sp / "coverage.pth"
     hook_line = "import coverage; coverage.process_startup()"
@@ -83,8 +82,7 @@ def remove() -> None:
     # Remove coverage environment variables.
     try:
         if "COVERAGE_PROCESS_START" in os.environ:
-            # TODO(Maddy): This is not persistent, so it doesn't work.
-            hsystem.system("unset COVERAGE_PROCESS_START")
+            del os.environ["COVERAGE_PROCESS_START"]
             _LOG.info("Removed COVERAGE_PROCESS_START from environment")
         else:
             _LOG.debug("COVERAGE_PROCESS_START not found in environment")
@@ -135,6 +133,8 @@ def coverage_commands_subprocess() -> None:
       - coverage_data/ is the mounted folder inside the container.
     """
     commands = [
+        "mkdir -p coverage_data",
+        "chmod 777 coverage_data",
         "cp .coveragerc coverage_data/.coveragerc",
         "chmod 644 coverage_data/.coveragerc",
     ]
@@ -147,13 +147,37 @@ def coverage_combine() -> None:
     Execute shell commands to combine coverage data.
 
     Assumes:
-      - .coverage.* files are present in the current directory.
+      - .coverage.* files are present in the current directory or coverage_data/.
     """
-    commands = [
-        "cp coverage_data/.coverage.* .",
-        "rm -rf coverage_data/.coverage.*",
-        "coverage combine",
-        "coverage report",
-    ]
-    for cmd in commands:
-        hsystem.system(cmd, suppress_output=False)
+    # Check if there are any coverage files in coverage_data/ and copy them.
+    if os.path.exists("coverage_data"):
+        coverage_files_cmd = (
+            "find coverage_data -name '.coverage.*' 2>/dev/null | wc -l"
+        )
+        rc = hsystem.system(coverage_files_cmd, abort_on_error=False)
+        if rc == 0:
+            # Use a simple existence check instead of parsing command output.
+            coverage_files = glob.glob("coverage_data/.coverage.*")
+            if coverage_files:
+                _LOG.info(
+                    "Found coverage files in coverage_data/, copying to current directory"
+                )
+                commands = [
+                    "cp coverage_data/.coverage.* . 2>/dev/null || true",
+                    "rm -rf coverage_data/.coverage.* 2>/dev/null || true",
+                ]
+                for cmd in commands:
+                    hsystem.system(cmd, suppress_output=False)
+    # Check if there are any .coverage.* files to combine.
+    coverage_files = glob.glob(".coverage.*")
+    num_files = len(coverage_files)
+    if num_files > 0:
+        _LOG.info("Found %d coverage data files to combine", num_files)
+        commands = [
+            "coverage combine",
+            "coverage report --skip-empty",
+        ]
+        for cmd in commands:
+            hsystem.system(cmd, suppress_output=False)
+    else:
+        _LOG.warning("No .coverage.* files found to combine")

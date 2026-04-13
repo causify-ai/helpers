@@ -22,7 +22,7 @@ _LOG = logging.getLogger(__name__)
 # E.g.,
 #   ("test/test_lib_tasks.py",
 #    27,
-#    "test_get_gh_issue_title2:act = ltasks._get_gh_issue_title(issue_id, repo)"
+#    "test_get_gh_issue_title2:actual = ltasks._get_gh_issue_title(issue_id, repo)"
 #    )
 CfileRow = Tuple[str, int, str]
 
@@ -51,12 +51,12 @@ def parse_traceback(
       ```
       ("test/test_lib_tasks.py",
        27,
-       "test_get_gh_issue_title2:act = ltasks._get_gh_issue_title(issue_id, repo)")
+       "test_get_gh_issue_title2:actual = ltasks._get_gh_issue_title(issue_id, repo)")
     - a string storing the traceback, like:
       ```
       Traceback (most recent call last):
         File "/app/amp/test/test_lib_tasks.py", line 27, in test_get_gh_issue_title2
-          act = ltasks._get_gh_issue_title(issue_id, repo)
+          actual = ltasks._get_gh_issue_title(issue_id, repo)
         File "/app/amp/lib_tasks.py", line 1265, in _get_gh_issue_title
           task_prefix = hgit.get_task_prefix_from_repo_short_name(repo_short_name)
         File "/app/amp/helpers/git.py", line 397, in get_task_prefix_from_repo_short_name
@@ -99,7 +99,7 @@ def parse_traceback(
         elif state == "parse":
             # The file looks like:
             #   File "/app/amp/test/test_lib_tasks.py", line 27, in test_get_gh
-            #     act = ltasks._get_gh_issue_title(issue_id, repo)
+            #     actual = ltasks._get_gh_issue_title(issue_id, repo)
             regex = r"^\s*File \"(.+)\", line (\d+), in (\S+)$"
             m = re.match(regex, line)
             hdbg.dassert(m, "Can't parse '%s'", line)

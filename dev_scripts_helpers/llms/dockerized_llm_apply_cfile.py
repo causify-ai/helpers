@@ -15,6 +15,7 @@ from typing import Dict, List, Tuple
 import tqdm
 
 import dev_scripts_helpers.llms.llm_prompts as dshlllpr
+import helpers.hcfile as hcfile
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
@@ -128,7 +129,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         model = "gpt-4o"
     # Apply the transforms.
-    cfile_lines = _parse_cfile(args.cfile)
+    cfile_lines = hcfile.parse_cfile(args.cfile)
     _apply_transforms(cfile_lines, args.prompt, model)
 
 

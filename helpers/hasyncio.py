@@ -198,7 +198,7 @@ def _poll_iterate(
         num_iter,
         max_num_iter,
     )
-    hdbg.dassert_isinstance(get_wall_clock_time, Callable)
+    hdbg.dassert_callable(get_wall_clock_time)
     # Poll.
     success, value = polling_func()
     _LOG.debug("success=%s, value=%s", success, value)
@@ -307,7 +307,7 @@ def get_poll_kwargs(
 ) -> Dict[str, Any]:
     hdbg.dassert_lt(0, sleep_in_secs)
     hdbg.dassert_lt(0, timeout_in_secs)
-    hdbg.dassert_isinstance(get_wall_clock_time, Callable)
+    hdbg.dassert_callable(get_wall_clock_time)
     poll_kwargs = {
         "sleep_in_secs": sleep_in_secs,
         "timeout_in_secs": timeout_in_secs,

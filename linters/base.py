@@ -16,6 +16,7 @@ E.g.,
 import argparse
 import itertools
 import logging
+import shlex
 from typing import List, Tuple, Type
 
 import joblib
@@ -285,14 +286,14 @@ def _lint(
         cur_action_lints = action_class.execute(file_path, pedantic)
         hdbg.dassert_list_of_strings(cur_action_lints)
         # Annotate each lint with a [tag] specifying the action name.
-        cur_action_lints = [
-            lnt + f" [{action_name}]" for lnt in cur_action_lints
-        ]
+        cur_action_lints = [lnt + f" [{action_name}]" for lnt in cur_action_lints]
         lints.extend(cur_action_lints)
     in_tmp_scratch_dir = liutils.is_under_tmp_scratch_dir(file_path)
     if not hserver.is_inside_ci() and not in_tmp_scratch_dir:
         # Stage the linted file for commit if Linter was run manually (not within CI).
         # Skip staging files in `tmp.scratch` dir as they are temporary.
+        # Escape the file path.
+        file_path = shlex.quote(file_path)
         cmd = f"git add {file_path}"
         hsystem.system(cmd)
     return lints
@@ -340,7 +341,7 @@ def _run_linter(
             for file_path in file_paths
         )
         lints.extend(list(itertools.chain.from_iterable(lints_tmp)))
-    lints = hprint.remove_empty_lines_from_string_list(lints)
+    lints = hprint.remove_empty_lines(lints)
     return lints  # type: ignore
 
 
@@ -357,6 +358,9 @@ def _parse() -> argparse.ArgumentParser:
     # File selection.
     parser.add_argument(
         "-f", "--files", nargs="+", type=str, help="Files to process"
+    )
+    parser.add_argument(
+        "--from_file", type=str, help="File containing files to process"
     )
     parser.add_argument(
         "-d",
@@ -422,6 +426,7 @@ def _main(args: argparse.Namespace) -> None:
     # Get the files to be linted.
     file_paths = liutils.get_files_to_check(
         args.files,
+        args.from_file,
         args.skip_files,
         args.dir_name,
         args.modified,

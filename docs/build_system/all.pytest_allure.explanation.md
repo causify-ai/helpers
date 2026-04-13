@@ -1,19 +1,19 @@
-# Pytest Allure - Explanation
-
 <!-- toc -->
 
 - [Overview](#overview)
-- [Core features](#core-features)
-  * [Rich and Interactive Reports:](#rich-and-interactive-reports)
-  * [Annotations and Labels:](#annotations-and-labels)
+- [Core Features](#core-features)
+  * [Rich and Interactive Reports](#rich-and-interactive-reports)
+  * [Annotations and Labels](#annotations-and-labels)
   * [Test History and Trends](#test-history-and-trends)
 - [Key Components](#key-components)
-  * [Pytest plugin for the Allure output generation](#pytest-plugin-for-the-allure-output-generation)
-  * [Allure reporting tool](#allure-reporting-tool)
-- [How it works](#how-it-works)
+  * [Pytest Plugin for the Allure Output Generation](#pytest-plugin-for-the-allure-output-generation)
+  * [Allure Reporting Tool](#allure-reporting-tool)
+- [How It Works](#how-it-works)
 - [Historical Trends](#historical-trends)
 
 <!-- tocstop -->
+
+# Pytest Allure - Explanation
 
 ## Overview
 
@@ -39,7 +39,7 @@ end
 A1 ==> B1 ==> C1[View the report in the browser]
 ```
 
-## Core features
+## Core Features
 
 ### Rich and Interactive Reports
 
@@ -64,7 +64,7 @@ A1 ==> B1 ==> C1[View the report in the browser]
 
 ## Key Components
 
-### Pytest plugin for the Allure output generation
+### Pytest Plugin for the Allure Output Generation
 
 In order to generate the Allure output, we need to install the `allure-pytest`
 plugin. For the time and efforts saving reasons, we will install it on-the-fly
@@ -73,13 +73,13 @@ in the container where we will run the tests. This feature is introduced as the
 `allure-pytest` plugin will be installed and the results will be stored in the
 specified directory.
 
-### Allure reporting tool
+### Allure Reporting Tool
 
 The CLI utility for generating Allure reports creates an HTML report from the
 Allure output. We'll install this utility using GitHub Actions workflow to
 generate the HTML report.
 
-## How it works
+## How It Works
 
 - Allure Report is composed of a framework(pytest) adapter and the allure
   command-line utility

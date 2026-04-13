@@ -7,23 +7,100 @@ import helpers.lib_tasks_git as hlitagit
 import logging
 import os
 import re
-from typing import Any
+import stat
+from typing import Any, List
 
 from invoke import task
 
+import helpers.hdbg as hdbg
+import helpers.hsystem as hsystem
+
 # We want to minimize the dependencies from non-standard Python packages since
 # this code needs to run with minimal dependencies and without Docker.
-import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hsystem as hsystem
 import helpers.lib_tasks_gh as hlitagh
 import helpers.lib_tasks_utils as hlitauti
 
 _LOG = logging.getLogger(__name__)
 
 # pylint: disable=protected-access
+
+# Bits matching `chmod a+w` / `chmod a-w` on the symlink inode (not the target).
+_SYMLINK_WRITE_BITS = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
+
+
+def _collect_symlinks(dir: str) -> List[str]:
+    """
+    Collect symlink paths under a given directory.
+
+    :param dir: directory to walk
+    :return: symlink paths under `dir`
+    """
+    out: List[str] = []
+    for dirpath, dirnames, filenames in os.walk(dir, topdown=True):
+        # Skips `.git` directories. Does not follow symlinked directories.
+        if ".git" in dirnames:
+            dirnames.remove(".git")
+        for name in filenames:
+            path = os.path.join(dirpath, name)
+            if os.path.islink(path):
+                out.append(path)
+        for name in dirnames:
+            path = os.path.join(dirpath, name)
+            if os.path.islink(path):
+                out.append(path)
+    return out
+
+
+def _add_write_perm_to_symlink(dir: str) -> None:
+    """
+    Add write permission for all on each symlink under the given directory.
+
+    :param dir: directory to walk
+    """
+    _LOG.info("Adding write permission for all on each symlink under %s", dir)
+    for path in _collect_symlinks(dir):
+        try:
+            mode = os.lstat(path).st_mode
+            os.chmod(
+                path,
+                mode | _SYMLINK_WRITE_BITS,
+            )
+        except OSError as exc:
+            hdbg.dassert(
+                False,
+                "chmod a+w symlink %s failed: %s",
+                path,
+                exc,
+            )
+
+
+def _remove_write_perm_from_symlink(dir: str) -> None:
+    """
+    Remove write permission for all on each symlink under a given directory.
+
+    :param dir: directory to walk
+    """
+    _LOG.info("Removing write permission for all on each symlink under %s", dir)
+    for path in _collect_symlinks(dir):
+        if not os.path.exists(path):
+            _LOG.warning("Skipping broken symlink: %s", path)
+            continue
+        try:
+            mode = os.lstat(path).st_mode
+            os.chmod(
+                path,
+                mode & ~_SYMLINK_WRITE_BITS,
+            )
+        except OSError as exc:
+            hdbg.dassert(
+                False,
+                "chmod a-w symlink %s failed: %s",
+                path,
+                exc,
+            )
 
 
 def run_git_recursively(ctx: Any, cmd_: str) -> None:
@@ -41,8 +118,13 @@ def git_pull(ctx):  # type: ignore
     """
     hlitauti.report_task()
     #
-    cmd = "git pull --autostash"
-    run_git_recursively(ctx, cmd)
+    root_dir = hgit.get_client_root(super_module=False)
+    _add_write_perm_to_symlink(root_dir)
+    try:
+        cmd = "git pull --autostash"
+        run_git_recursively(ctx, cmd)
+    finally:
+        _remove_write_perm_from_symlink(root_dir)
 
 
 @task
@@ -58,14 +140,20 @@ def git_fetch_master(ctx):  # type: ignore
 
 @task
 def git_merge_master(
-    ctx, abort_if_not_ff=False, abort_if_not_clean=True, skip_fetch=False  # type: ignore
-):  
+    ctx,
+    abort_if_not_ff=False,
+    abort_if_not_clean=True,
+    skip_fetch=False,
+    auto_merge=False,  # type: ignore
+):
     """
     Merge `origin/master` into the current branch.
 
     :param abort_if_not_ff: abort if fast-forward is not possible
     :param abort_if_not_clean: abort if the client is not clean
     :param skip_fetch: skip fetching master
+    :param auto_merge: automatically commit and push if merge is
+        successful
     """
     hlitauti.report_task()
     # Check that the Git client is clean.
@@ -78,6 +166,11 @@ def git_merge_master(
     if abort_if_not_ff:
         cmd += " --ff-only"
     hlitauti.run(ctx, cmd)
+    # Auto-commit and push if requested and merge was successful.
+    if auto_merge:
+        _LOG.info("Auto-merge enabled: committing and pushing changes")
+        cmd = 'git commit -am "Merge master" && git push'
+        hlitauti.run(ctx, cmd)
 
 
 @task
@@ -117,13 +210,18 @@ def git_clean(ctx, fix_perms_=False, dry_run=False):  # type: ignore
         r"*\.pyc",
         r"*\.pyo",
         r".coverage",
+        r".DS_Store",
         r".ipynb_checkpoints",
         r".mypy_cache",
         r".pytest_cache",
+        r".ruff_cache",
+        r".venv",
         r"__pycache__",
         r"cfile",
         r"tmp.*",
         r"*.tmp",
+        r".*_cache",
+        "htmlcov",
     ]
     opts = [f"-name '{opt}'" for opt in to_delete]
     opts = " -o ".join(opts)
@@ -139,7 +237,8 @@ def git_add_all_untracked(ctx):  # type: ignore
     Add all untracked files to Git.
     """
     hlitauti.report_task()
-    cmd = "git add $(git ls-files -o --exclude-standard)"
+    # cmd = "git add $(git ls-files -o --exclude-standard)"
+    cmd = "git ls-files -o --exclude-standard -z | xargs -0 git add"
     hlitauti.run(ctx, cmd)
 
 
@@ -432,12 +531,17 @@ def git_branch_create(  # type: ignore
         branch_name,
     )
     # Make sure we are branching from `master`, unless that's what the user wants.
+    # TODO(Vlad): Remove before merging - temporarily allowing branching from non-master.
     curr_branch = hgit.get_branch_name()
     if curr_branch != "master":
         if only_branch_from_master:
-            hdbg.dfatal(
-                f"You should branch from master and not from '{curr_branch}'"
+            _LOG.warning(
+                f"Branching from '{curr_branch}' instead of 'master'. "
+                "This is temporarily allowed but should be reviewed before merging."
             )
+            # hdbg.dfatal(
+            #     f"You should branch from master and not from '{curr_branch}'"
+            # )
     # Fetch master.
     cmd = "git pull --autostash --rebase"
     hlitauti.run(ctx, cmd)
@@ -568,7 +672,6 @@ def git_branch_next_name(ctx, branch_name=None):  # type: ignore
     print(f"branch_next_name='{branch_next_name}'")
 
 
-# TODO(gp): @all Improve docstring
 @task
 def git_branch_copy(  # type: ignore
     ctx,
@@ -606,6 +709,9 @@ def git_branch_copy(  # type: ignore
         # Automatically generate branch name.
         new_branch_name = hgit.get_branch_next_name()
     _LOG.info("new_branch_name='%s'", new_branch_name)
+    # Scratch branches do not follow the standard naming convention.
+    if new_branch_name.startswith("gp_scratch"):
+        check_branch_name = False
     # Create or go to the new branch.
     mode = "all"
     new_branch_exists = hgit.does_branch_exist(new_branch_name, mode)
@@ -733,7 +839,7 @@ def _git_diff_with_branch(
         _LOG.info("After filtering by subdir: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
     # Done filtering.
-    _LOG.info("\n" + hprint.frame("# files=%s" % len(files)))
+    _LOG.info("\n" + hprint.frame(f"# files={len(files)}"))
     _LOG.info("\n" + "\n".join(files))
     if len(files) == 0:
         _LOG.warning("Nothing to diff: exiting")
@@ -958,17 +1064,230 @@ def git_repo_copy(ctx, file_name, src_git_dir, dst_git_dir):  # type: ignore
     hsystem.system_to_string(f"cp {file_name} {dst_file_path}")
 
 
-# pylint: disable=line-too-long
+# #############################################################################
+
+
+def _get_submodule_paths() -> List[str]:
+    """
+    Get list of submodule paths from .gitmodules file.
+
+    :return: List of submodule directory paths, empty if no submodules
+        found
+    """
+    gitmodules_path = ".gitmodules"
+    if not os.path.exists(gitmodules_path):
+        _LOG.info("No .gitmodules file found")
+        return []
+    # Use git config to list submodule paths.
+    cmd = "git config --file .gitmodules --get-regexp path"
+    _, output = hsystem.system_to_string(cmd)
+    submodule_paths = []
+    for line in output.strip().split("\n"):
+        if line:
+            # Format: "submodule.<name>.path <path>"
+            path = line.split(" ", 1)[1]
+            submodule_paths.append(path)
+    return submodule_paths
+
+
+def _get_branch_name(submodule_path: str) -> str:
+    """
+    Get the current branch name for a git repository.
+
+    :param submodule_path: Path to the git repository directory
+    :return: Branch name or error message
+    """
+    hdbg.dassert_dir_exists(submodule_path)
+    hdbg.dassert_path_exists(os.path.join(submodule_path, ".git"))
+    # Get current branch name
+    cmd = f"cd {submodule_path} && git rev-parse --abbrev-ref HEAD"
+    _, branch_name = hsystem.system_to_string(cmd)
+    return branch_name.strip()
+
+
+@task
+def git_branches(ctx):  # type: ignore
+    """
+    Print the branch name for the main repository and each git submodule
+    directory.
+
+    Example usage::
+    > dev_scripts_helpers/git/print_git_branches.py
+    . (main): master
+    submodule1: feature/new-feature
+    submodule2: develop
+    submodule3: main
+    """
+    _ = ctx
+    submodule_paths = hgit.get_submodule_paths()
+    # Print main repository branch first.
+    main_branch = _get_branch_name(".")
+    print(f". -> {main_branch}")
+    # Check for submodules.
+    submodule_paths = _get_submodule_paths()
+    if not submodule_paths:
+        _LOG.debug("No git submodules found in this repository")
+        return
+    # Check each submodule.
+    for path in submodule_paths:
+        branch_name = _get_branch_name(path)
+        print(f"{path} -> {branch_name}")
+
+
+@task
+def git_branch_is_merged(ctx):  # type: ignore
+    """
+    Check if the current branch was merged into master.
+
+    :return: True if the branch was merged, False otherwise
+    """
+    _ = ctx
+    hlitauti.report_task()
+    branch_name = hgit.get_branch_name()
+    print(f"branch_name='{branch_name}'")
+    #
+    # Check with GitHub.
+    cmd = f"gh pr list --base master --head {branch_name}"
+    ctx.run(cmd, pty=True)
+    # Check if the branch exists in remote.
+    cmd = f"git ls-remote --heads origin {branch_name}"
+    ctx.run(cmd, pty=True)
+
+
+@task
+def git_backup(
+    ctx,
+    file_mode="all",
+    backup_dir=None,
+    include_subrepos=True,
+    dry_run=False,
+):  # type: ignore
+    """
+    Create a zip file with modified and/or untracked files from the current
+    repository and optionally its submodules.
+
+    The zip file is created with a timestamp-based name in the specified
+    backup directory (default: $HOME/src/backups).
+    Example: `modified_files.helpers_root.20251119_130034.zip`
+
+    :param file_mode: which files to include: "all" (default), "modified", or
+        "untracked"
+    :param backup_dir: directory where to save the zip file (default:
+        $HOME/src/backups)
+    :param include_subrepos: whether to include submodule files (default: True)
+    :param dry_run: if True, only print the files that would be included
+        without creating the zip
+    """
+    hlitauti.report_task(
+        txt=hprint.to_str("file_mode, backup_dir, include_subrepos, dry_run")
+    )
+    _ = ctx
+    # Validate file_mode.
+    valid_modes = ["all", "modified", "untracked"]
+    hdbg.dassert_in(
+        file_mode,
+        valid_modes,
+        "Invalid file_mode '%s'; must be one of: %s",
+        file_mode,
+        ", ".join(valid_modes),
+    )
+    # Set default backup directory.
+    if backup_dir is None:
+        backup_dir = os.path.join(os.path.expanduser("~"), "src", "backups")
+    hio.create_dir(backup_dir, incremental=True)
+    # Get current repo root.
+    super_module = False
+    git_client_root = hgit.get_client_root(super_module)
+    # Get timestamp for zip file name.
+    timestamp = hlitauti.get_ET_timestamp()
+    repo_name = os.path.basename(git_client_root)
+    zip_file_name = f"modified_files.{repo_name}.{timestamp}.zip"
+    # Collect all files from current repo.
+    _LOG.info("Collecting %s files from main repository...", file_mode)
+    main_repo_files = hgit.get_modified_and_untracked_files(".", mode=file_mode)
+    _LOG.info("Found %d files in main repository", len(main_repo_files))
+    all_files = []
+    for file_path in main_repo_files:
+        all_files.append((".", file_path))
+    # Collect files from submodules if requested.
+    if include_subrepos:
+        submodule_paths = _get_submodule_paths()
+        if submodule_paths:
+            _LOG.info(
+                "Found %d submodule(s), collecting files...", len(submodule_paths)
+            )
+            for submodule_path in submodule_paths:
+                hdbg.dassert_dir_exists(
+                    submodule_path,
+                    msg=f"Submodule path does not exist: {submodule_path}",
+                )
+                _LOG.info("Checking submodule: %s", submodule_path)
+                submodule_files = hgit.get_modified_and_untracked_files(
+                    submodule_path, mode=file_mode
+                )
+                _LOG.info(
+                    "Found %d files in submodule %s",
+                    len(submodule_files),
+                    submodule_path,
+                )
+                for file_path in submodule_files:
+                    all_files.append((submodule_path, file_path))
+        else:
+            _LOG.info("No submodules found")
+    else:
+        _LOG.info("Skipping submodules (include_subrepos=False)")
+    # Check if there are any files to zip.
+    if not all_files:
+        _LOG.warning("No %s files found. Nothing to zip.", file_mode)
+        return
+    # Print summary.
+    _LOG.info(
+        "\n%s\nFound %d total files to include:\n%s",
+        hprint.frame("Files to include in zip"),
+        len(all_files),
+        hprint.indent(
+            "\n".join(
+                [
+                    (
+                        os.path.join(repo_path, file_path)
+                        if repo_path != "."
+                        else file_path
+                    )
+                    for repo_path, file_path in all_files
+                ]
+            )
+        ),
+    )
+    if dry_run:
+        _LOG.warning("Dry-run mode: not creating zip file")
+        return
+    # Create the zip file.
+    zip_file_path = os.path.join(backup_dir, zip_file_name)
+    _LOG.info("Creating zip file: %s", zip_file_path)
+    import zipfile
+
+    with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for repo_path, file_path in all_files:
+            full_path = os.path.join(repo_path, file_path)
+            # Preserve directory structure in zip.
+            arcname = (
+                os.path.join(repo_path, file_path)
+                if repo_path != "."
+                else file_path
+            )
+            try:
+                zipf.write(full_path, arcname=arcname)
+                _LOG.debug("Added to zip: %s", arcname)
+            except Exception as e:
+                _LOG.warning("Failed to add %s to zip: %s", full_path, e)
+    _LOG.info("Successfully created zip file: %s", zip_file_path)
+    # Print absolute path for easy access.
+    abs_zip_path = os.path.abspath(zip_file_path)
+    print(f"\nZip file created at: {abs_zip_path}")
+
 
 # TODO(gp): Add the following scripts:
-# dev_scripts/git/git_backup.sh
 # dev_scripts/git/gcl
 # dev_scripts/git/git_branch.sh
 # dev_scripts/git/git_branch_point.sh
 # dev_scripts/create_class_diagram.sh
-
-# How to find out if the current branch was merged
-# ```
-# > git branch --merged master | grep "$(git rev-parse --abbrev-ref HEAD)"
-# ```
-# If the output is empty it was merged, otherwise it was not merged.

@@ -51,7 +51,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Parse files.
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     # Read file.
-    txt = hparser.read_file(in_file_name)
+    txt = hparser.from_file(in_file_name)
     # Transform.
     txt_tmp = "\n".join(txt)
     if args.action == "convert_md_to_latex":
@@ -59,7 +59,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         hdbg.dfatal("Invalid action='%s'", args.action)
     # Write file.
-    hparser.write_file(txt_out.split("\n"), out_file_name)
+    hparser.to_file(txt_out.split("\n"), out_file_name)
 
 
 if __name__ == "__main__":

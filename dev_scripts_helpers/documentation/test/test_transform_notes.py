@@ -10,16 +10,28 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+
 # #############################################################################
 # Test_markdown_to_latex1
 # #############################################################################
-
 
 @pytest.mark.skipif(
     hserver.is_inside_ci() or hserver.is_dev_csfy(),
     reason="Disabled because of CmampTask10710",
 )
 class Test_markdown_to_latex1(hunitest.TestCase):
+    def _check(self, markdown: str, expected: str) -> None:
+        """
+        Check the markdown to latex transformation.
+        """
+        # 1) Prepare inputs.
+        markdown = hprint.dedent(markdown)
+        # 2) Run tests.
+        actual = hlatex.markdown_list_to_latex(markdown)
+        # 3) Check.
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
+
     def test1(self) -> None:
         """
         Test a simple nested list with no frame title.
@@ -30,7 +42,7 @@ class Test_markdown_to_latex1(hunitest.TestCase):
           - Subitem 1.2
         - Item 2
         """
-        exp = r"""
+        expected = r"""
         \begin{itemize}
         \item
           Item 1
@@ -44,7 +56,7 @@ class Test_markdown_to_latex1(hunitest.TestCase):
           Item 2
         \end{itemize}"""
         # Run the test.
-        self._check(markdown, exp)
+        self._check(markdown, expected)
 
     def test2(self) -> None:
         """
@@ -56,7 +68,7 @@ class Test_markdown_to_latex1(hunitest.TestCase):
             - Subitem 1.1
           - Item 2
         """
-        exp = r"""
+        expected = r"""
         \begin{frame}{Title of Frame}
         \begin{itemize}
         \item
@@ -70,7 +82,7 @@ class Test_markdown_to_latex1(hunitest.TestCase):
         \end{itemize}
         \end{frame}"""
         # Run the test.
-        self._check(markdown, exp)
+        self._check(markdown, expected)
 
     def test3(self) -> None:
         """
@@ -82,7 +94,7 @@ class Test_markdown_to_latex1(hunitest.TestCase):
             - Level 3
               - Level 4
         """
-        exp = r"""
+        expected = r"""
         \begin{itemize}
         \item
           Level 1
@@ -100,7 +112,7 @@ class Test_markdown_to_latex1(hunitest.TestCase):
           \end{itemize}
         \end{itemize}"""
         # Run the test.
-        self._check(markdown, exp)
+        self._check(markdown, expected)
 
     def test4(self) -> None:
         markdown = """
@@ -113,7 +125,7 @@ class Test_markdown_to_latex1(hunitest.TestCase):
           - Ordered Subitem 2.1
           - Ordered Subitem 2.2
         """
-        exp = r"""
+        expected = r"""
         \begin{frame}{Title of Frame}
         \begin{itemize}
         \item
@@ -139,16 +151,4 @@ class Test_markdown_to_latex1(hunitest.TestCase):
         \end{itemize}
         \end{frame}"""
         # Run the test.
-        self._check(markdown, exp)
-
-    def _check(self, markdown: str, exp: str) -> None:
-        """
-        Check the markdown to latex transformation.
-        """
-        # 1) Prepare inputs.
-        markdown = hprint.dedent(markdown)
-        # 2) Run tests.
-        act = hlatex.markdown_list_to_latex(markdown)
-        # 3) Check.
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp)
+        self._check(markdown, expected)

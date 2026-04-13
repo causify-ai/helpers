@@ -93,9 +93,9 @@ class _CheckDryRunTestCase(hunitest.TestCase):
         """
         `check_string()` the sequence of commands issued in the context.
         """
-        act = "\n".join(map(str, ctx.run.mock_calls))
-        act = hprint.remove_non_printable_chars(act)
-        self.check_string(act)
+        actual = "\n".join(map(str, ctx.run.mock_calls))
+        actual = hprint.remove_non_printable_chars(actual)
+        self.check_string(actual)
 
     def _check_output(self, target: str, check: bool = True) -> None:
         """
@@ -144,22 +144,22 @@ class TestDryRunTasks1(hunitest.TestCase):
         # we disable the check in the unit tests. Remove `SKIP_VERSION_CHECK=1`
         # after CmampTask570 is fixed.
         cmd = f"SKIP_VERSION_CHECK=1 invoke {opts} {target} | grep -v INFO | grep -v '>>ENV<<:'"
-        _, act = hsystem.system_to_string(cmd)
+        _, actual = hsystem.system_to_string(cmd)
         #
-        act = hprint.remove_non_printable_chars(act)
+        actual = hprint.remove_non_printable_chars(actual)
         # docker_ps: sudo=False
         regex = r"# \S+:"
-        act = hunitest.filter_text(regex, act)
+        actual = hunitest.filter_text(regex, actual)
         #
         regex = r"(WARN|INFO)\s+hcache.py"
-        act = hunitest.filter_text(regex, act)
+        actual = hunitest.filter_text(regex, actual)
         # Filter out `no module` warnings.
         # TODO(Grisha): add the "no module warning" filtering
         # to `purify_text()` in `check_string()`.
         regex = "WARN.*No module"
-        act = hunitest.filter_text(regex, act)
+        actual = hunitest.filter_text(regex, actual)
         if check_string:
-            self.check_string(act)
+            self.check_string(actual)
 
     # #########################################################################
 
@@ -377,6 +377,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
             target = "gh_create_pr(ctx, draft=False, title='test')"
             self._check_output(target)
 
+    #TODO(*): Remove skip after migration to `csfy`.`
+    @pytest.mark.skip(
+        reason="migration to new repo "
+        "ref: https://github.com/causify-ai/cmamp/issues/13063"
+    )
     def test_gh_issue_title(self) -> None:
         target = "gh_issue_title(ctx, 1)"
         self._check_output(target)
@@ -412,6 +417,11 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         )
         self._check_output(target)
 
+    #TODO(*): Remove skip after migration to `csfy`.`
+    @pytest.mark.skip(
+        reason="migration to new repo "
+        "ref: https://github.com/causify-ai/cmamp/issues/13063"
+    )
     def test_git_branch_create2(self) -> None:
         # Difference between `cmamp` and `kaizenflow`.
         target = (

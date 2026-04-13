@@ -36,7 +36,6 @@ def get_tunnel_info() -> Tuple[list, str]:
 def tunnel_info_to_string(tunnel_info: list) -> str:
     ret = "\n".join(map(str, tunnel_info))
     ret = hprint.indent(ret)
-    ret = cast(str, ret)
     return ret
 
 
@@ -108,7 +107,6 @@ def _get_tunnel_info() -> Tuple[Any, str]:
 def _tunnel_info_to_string(tunnel_info: list) -> str:
     ret = "\n".join(map(str, tunnel_info))
     ret = hprint.indent(ret)
-    ret = cast(str, ret)
     return ret
 
 

@@ -1,0 +1,15 @@
+import itertools as itools
+import os
+from typing import List, Set
+
+import bs4
+import numpy as npy
+import pandas as pd
+
+import helpers.hgit as hgit
+import helpers.hs3
+import helpers.hsql as hsql
+import helpers.hsystem as hsystem
+
+wrong_module_usage = hsql.test()
+correct_module_usage = hgit.get_client_root()

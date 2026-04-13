@@ -1,12 +1,10 @@
-
-
 <!-- toc -->
 
   * [Tikz](#tikz)
   * [Pgfplots](#pgfplots)
   * [Asymptote](#asymptote)
-- [Plotting in markdown](#plotting-in-markdown)
-  * [How to draw in markdown](#how-to-draw-in-markdown)
+- [Plotting in Markdown](#plotting-in-markdown)
+  * [How to Draw in Markdown](#how-to-draw-in-markdown)
 
 <!-- tocstop -->
 
@@ -59,9 +57,9 @@ For technical drawing there are several solutions, as described below
   - Asymptote web application
     - Http://asymptote.ualberta.ca/
 
-# Plotting in markdown
+# Plotting in Markdown
 
-## How to draw in markdown
+## How to Draw in Markdown
 
 We would like to use the same plots for both Latex and Markdown documents
 

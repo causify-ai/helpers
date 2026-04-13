@@ -1,0 +1,84 @@
+site_name: Causify Helpers Documentation
+site_url: https://causify-ai.github.io/helpers/
+theme:
+  name: material
+  palette:
+    primary: black
+    accent: cyan
+  logo: assets/logo.png
+  favicon: assets/favicon.ico
+  features:
+    #- navigation.tabs
+    #- navigation.top
+    - content.action.edit  # This shows the "Edit this page" link
+docs_dir: docs
+# Helps render images and other assets correctly.
+use_directory_urls: false
+
+extra:
+  social:
+    - icon: fontawesome/solid/globe
+      link: https://causify.ai/
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/causify-ai/
+    - icon: fontawesome/brands/github
+      link: https://github.com/causify-ai/
+  generator: false
+copyright: Copyright &copy; 2025 CAUSIFY.AI. All rights reserved.
+
+# The search plugin is enabled by default
+# but if we specify plugins, we need to include it
+# explicitly.
+plugins:
+  - search
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - admonition
+  - pymdownx.blocks.caption
+  - pymdownx.details
+  - meta
+  - toc:
+      permalink: "#"
+      baselevel: 2
+      separator: "_"
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.arithmatex:
+      generic: true
+  - mkdocs_graphviz:
+      # https://gitlab.com/rod2ik/mkdocs-graphviz
+      light_theme: 000000      # Any HTML Color Name or any HTML Hexadecimal color code WITHOUT the `#` sign
+      dark_theme: FFFFFF       # Any HTML Color Name or any HTML Hexadecimal color code WITHOUT the `#` sign
+      color: 789ABC            # Any HTML Color Name or any HTML Hexadecimal color code WITHOUT the `#` sign
+      bgcolor: none            # Any HTML Color Name or any HTML Hexadecimal color code WITHOUT the `#` sign
+      graph_color: 789ABC      # Any HTML Color Name or any HTML Hexadecimal color code WITHOUT the `#` sign
+      graph_fontcolor: 789ABC  # Any HTML Color Name or any HTML Hexadecimal color code WITHOUT the `#` sign
+      node_color: 789ABC       # Any HTML Color Name or any HTML Hexadecimal color code WITHOUT the `#` sign
+      node_fontcolor: 789ABC   # Any HTML Color Name or any HTML Hexadecimal color code WITHOUT the `#` sign
+      edge_color: 789ABC       # Any HTML Color Name or any HTML Hexadecimal color code WITHOUT the `#` sign
+      edge_fontcolor: 789ABC   # Any HTML Color Name or any HTML Hexadecimal color code WITHOUT the `#` sign
+      priority: 75             # The priority for this Markdown Extension (DEFAULT : 75)
+
+
+extra_css:
+  - styles/styles.css
+  # Extra for `katex`.
+  - https://unpkg.com/katex@0/dist/katex.min.css
+
+extra_javascript:
+  # Extra for `mkdocs_graphviz`.
+  - https://cdn.jsdelivr.net/gh/rod2ik/cdn@main/mkdocs/javascripts/mkdocs-graphviz.js
+  # Extra for `mathjax`.
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  # Extra for `katex`.
+  - https://unpkg.com/katex@0/dist/katex.min.js
+  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js

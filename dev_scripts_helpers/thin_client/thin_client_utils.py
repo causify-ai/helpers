@@ -136,7 +136,7 @@ def _create_repo_windows(
     """
     Create windows for the given module.
     """
-    windows = ["dbash", "regr", "jupyter"]
+    windows = ["dbash1", "dbash2", "dbash3", "regr", "jupyter"]
     tmux_cmd = f"source {setenv_path}"
     # We create the first named named window only for submodule, for root
     # one it's created upon session creation.
@@ -283,7 +283,9 @@ def create_tmux_session(
     # cmamp1: 4 windows (created Sun Aug  4 09:54:53 2024) (attached)
     # ...
     # ```
-    tmux_sessions = [l.split(":")[0] for l in tmux_session_str.splitlines()]
+    tmux_sessions = [
+        line.split(":")[0] for line in tmux_session_str.splitlines()
+    ]
     tmux_exists = tmux_name in tmux_sessions
     _LOG.debug("tmux_exists=%s", tmux_exists)
     if tmux_exists:

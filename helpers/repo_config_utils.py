@@ -60,8 +60,7 @@ def _find_config_file(file_name: str) -> str:
         if parent == curr_dir:
             # We cannot use helpers since it creates circular import.
             raise FileNotFoundError(
-                "Could not find '%s' in current directory or any parent directories"
-                % file_name
+                f"Could not find '{file_name}' in current directory or any parent directories"
             )
         curr_dir = parent
     return path
@@ -134,7 +133,7 @@ class RepoConfig:
                     type(data),
                 )
         except Exception as e:
-            raise f"Error reading YAML file {file_name}: {e}"
+            raise ValueError(f"Error reading YAML file {file_name}: {e}")
         return cls(data)
 
     # TODO(gp): -> __str__?
@@ -151,6 +150,7 @@ class RepoConfig:
         ret.append(
             f"get_docker_base_image_name='{self.get_docker_base_image_name()}'"
         )
+        ret.append(f"get_release_team='{self.get_release_team()}'")
         txt = "\n".join(ret)
         return txt
 
@@ -262,6 +262,15 @@ class RepoConfig:
         value = self._data["docker_info"]["docker_image_name"]
         return value
 
+    def get_release_team(self) -> str:
+        """
+        Return the release team name for docker image.
+
+        E.g., `dev_system`.
+        """
+        value = self._data["docker_info"].get("release_team")
+        return value
+
     # s3_bucket_info
 
     def get_unit_test_bucket_path(self) -> str:
@@ -317,6 +326,18 @@ class RepoConfig:
             self.get_html_bucket_path_v2(): self.get_html_ip_v2(),
         }
         return dir_to_url
+
+    def get_shared_configs_bucket_name(self, environment: str) -> str:
+        """
+        Return the name of the shared configs bucket.
+        """
+        if "shared_configs_bucket_name" not in self._data["s3_bucket_info"]:
+            return None
+        value: Dict[str, str] = self._data["s3_bucket_info"][
+            "shared_configs_bucket_name"
+        ]
+        bucket_name = value.get(environment, None)
+        return bucket_name
 
     def get_dir_suffix(self) -> str:
         """
@@ -374,7 +395,7 @@ class RepoConfig:
         # Check if path exists.
         # We can't use helpers since it creates circular import.
         if not os.path.exists(file_path):
-            raise FileNotFoundError("File '%s' doesn't exist" % file_path)
+            raise FileNotFoundError(f"File '{file_path}' doesn't exist")
         return file_path
 
 

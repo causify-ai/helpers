@@ -13,12 +13,16 @@ The full list of transformations is:
 - Remove empty lines in the questions and answers
 - Remove all the lines with only spaces
 - Add TOC
+
+Import as:
+
+import dev_scripts_helpers.documentation.preprocess_notes as dsdoprno
 """
 
 import argparse
 import logging
 import re
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -28,9 +32,54 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
+# #############################################################################
+# Constants
+# #############################################################################
+
+
 _NUM_SPACES = 2
 
 _TRACE = False
+
+
+_DEFAULT_ACTIONS = None
+_VALID_ACTIONS = [
+    "process_links",
+    "colorize_bullets",
+]
+
+# #############################################################################
+# Helper functions
+# #############################################################################
+
+
+def _colorize_backticks(in_line: str, *, color: str = "blue") -> str:
+    r"""
+    Convert backtick-wrapped strings to LaTeX color format.
+
+    E.g., `store` into `\textcolor{blue}{\texttt{store}}`
+    E.g., `weeks_to_xmas` into `\textcolor{blue}{\texttt{weeks\_to\_xmas}}`
+
+    :param in_line: input line to process
+    :param color: LaTeX color name (default: 'blue')
+    :return: transformed line with backticks replaced
+    """
+    line = in_line
+    # Pattern to match single backticks (not triple backticks).
+    # This matches backtick-wrapped text that doesn't contain triple backticks.
+    pattern = r"(?<!`)`(?!`)([^`]+?)(?<!`)`(?!`)"
+
+    def replace_func(m: re.Match) -> str:
+        """Replace function that escapes underscores in the matched text."""
+        matched_text = m.group(1)
+        # Escape underscores for LaTeX.
+        escaped_text = matched_text.replace("_", r"\_")
+        return rf"\textcolor{{{color}}}{{\texttt{{{escaped_text}}}}}"
+
+    line = re.sub(pattern, replace_func, line)
+    if line != in_line:
+        _LOG.debug("    -> line=%s", line)
+    return line
 
 
 def _process_abbreviations(in_line: str) -> str:
@@ -38,6 +87,9 @@ def _process_abbreviations(in_line: str) -> str:
     Transform some abbreviations into LaTeX.
 
     E.g., - `->` into `$\rightarrow$`
+
+    :param in_line: input line to process
+    :return: transformed line with abbreviations replaced
     """
     line = in_line
     for x, y in [
@@ -45,133 +97,13 @@ def _process_abbreviations(in_line: str) -> str:
         # TODO(gp): This collides with the arrow in graphviz commands. We
         # should skip this transformation if we are in a graphviz block.
         # (r"->", r"\rightarrow"),
-        (r"-^", r"\uparrow"),
-        (r"-v", r"\downarrow"),
+        # (r"-^", r"\uparrow"),
+        # (r"-v", r"\downarrow"),
     ]:
-        line = re.sub(
-            r"(\s)%s(\s)" % re.escape(x), r"\1$%s$\2" % re.escape(y), line
-        )
+        line = re.sub(rf"(\s){re.escape(x)}(\s)", rf"\1${re.escape(y)}$\2", line)
     if line != in_line:
         _LOG.debug("    -> line=%s", line)
     return line
-
-
-# Define colors and their LaTeX equivalents.
-_COLORS = {
-    "red": "red",
-    "orange": "orange",
-    "yellow": "yellow",
-    "lime": "lime",
-    # 
-    "green": "darkgreen",
-    "teal": "teal",
-    "cyan": "cyan",
-    "blue": "blue",
-    "purple": "purple",
-    "violet": "violet",
-    "magenta": "magenta",
-    "pink": "pink",
-    "brown": "brown",
-    "olive": "olive",
-    "gray": "gray",
-    "darkgray": "darkgray",
-    "lightgray": "lightgray",
-    "black": "black",
-    "white": "white",
-}
-
-
-def _process_color_commands(in_line: str) -> str:
-    r"""
-    Transform color commands like `\red{xyz}` into valid LaTeX syntax.
-
-    If the content is text (not math), wraps it in `\text{}`.
-
-    E.g.:
-    - \red{abc} -> \textcolor{red}{\text{abc}}
-    - \blue{x + y} -> \textcolor{blue}{x + y}
-    """
-    for color, value in _COLORS.items():
-        # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
-        pattern = re.compile(
-            rf"""
-            \\{color}    # Match the color command (e.g., \red, \blue, etc.).
-            \{{          # Match the opening curly brace.
-            ([^}}]*)     # Capture everything inside the curly braces.
-            \}}          # Match the closing curly brace.
-            """,
-            re.VERBOSE,
-        )
-
-        def _replacement(match: re.Match, value: str) -> str:
-            content = match.group(1)
-            # Check if content appears to be math expression.
-            is_math = any(c in content for c in "+-*/=<>{}[]()^_")
-            if is_math:
-                return rf"\textcolor{{{value}}}{{{content}}}"
-            else:
-                return rf"\textcolor{{{value}}}{{\text{{{content}}}}}"
-
-        # Replace the color command with the LaTeX color command.
-        in_line = re.sub(pattern, lambda m: _replacement(m, value), in_line)
-    return in_line
-    
-
-def _has_color_command(line: str) -> bool:
-    hdbg.dassert_isinstance(line, str)
-    hdbg.dassert_not_in("\n", line)
-    for color in _COLORS.keys():
-        # This regex matches LaTeX color commands like \red{content}, \blue{content}, etc.
-        pattern = re.compile(
-            rf"""
-            \\{color}    # Match the color command (e.g., \red, \blue, etc.).
-            \{{          # Match the opening curly brace.
-            ([^}}]*)     # Capture everything inside the curly braces.
-            \}}          # Match the closing curly brace.
-            """,
-            re.VERBOSE,
-        )
-        if re.search(pattern, line):
-            return True
-    return False
-
-
-def _colorize_bullet_points(txt: str) -> str:
-    """
-    Given a string with bold text (but no color), colorize the bold text.
-    """
-    tot_bold = 0
-    # Scan the text line by line and count how many bold items there are.
-    for line in txt.split("\n"):
-        # Count the number of bold items.
-        num_bold = len(re.findall(r"\*\*", line))
-        tot_bold += num_bold
-    _LOG.debug("tot_bold=%s", tot_bold)
-    if tot_bold == 0:
-        return txt
-    hdbg.dassert_eq(tot_bold % 2, 0, "tot_bold=%s needs to be even", tot_bold)
-    # Use the colors in the order of the list of colors.
-    num_bolds = tot_bold // 2
-    hdbg.dassert_lte(num_bolds, len(_COLORS))
-    colors = list(_COLORS.keys())[:num_bolds]
-    _LOG.debug("colors=%s", colors)
-    # Colorize the bold items.
-    color_idx = 0
-    out_txt = ""
-    for line in txt.split("\n"):
-        # Replace the strings like "**foo**" with a string like "**\red{foo}**".
-        # Find all bold text patterns and wrap them with color commands
-        # Keep track of which color to use for each match
-        def color_replacer(match):
-            nonlocal color_idx
-            text = match.group(1)
-            hdbg.dassert_lte(color_idx, len(colors))
-            color_to_use = colors[color_idx]
-            color_idx += 1
-            return f"**\\{color_to_use}{{{text}}}**"
-        line = re.sub(r"\*\*([^*]+)\*\*", color_replacer, line)
-        txt += line + "\n"
-    return txt
 
 
 def _process_enumerated_list(in_line: str) -> str:
@@ -179,6 +111,9 @@ def _process_enumerated_list(in_line: str) -> str:
     Transform enumerated list with parenthesis to `.`.
 
     E.g., "1) foo bar" is transformed into "1. foo bar".
+
+    :param in_line: input line to process
+    :return: transformed line with enumerated lists updated
     """
     line = re.sub(r"^(\s*)(\d+)\)\s", r"\1\2. ", in_line)
     return line
@@ -187,6 +122,9 @@ def _process_enumerated_list(in_line: str) -> str:
 def _process_question_to_markdown(line: str) -> Tuple[bool, str]:
     """
     Transform `* foo bar` into `- **foo bar**`.
+
+    :param line: input line to process
+    :return: tuple of (should_continue, transformed_line)
     """
     # Bold.
     meta = "**"
@@ -211,6 +149,10 @@ def _process_question_to_slides(
 ) -> Tuple[bool, str]:
     """
     Transform `* foo bar` into `#### foo bar`.
+
+    :param line: input line to process
+    :param level: header level to use (default: 4)
+    :return: tuple of (should_continue, transformed_line)
     """
     hdbg.dassert_lte(1, level)
     prefix = "#" * level
@@ -224,18 +166,27 @@ def _process_question_to_slides(
     return do_continue, line
 
 
-def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
+# TODO(gp): Use hmarkdown.process_lines().
+# TODO(gp): Add a way to control the list of transformations.
+def _transform_lines(
+    lines: List[str],
+    type_: str,
+    is_qa: bool,
+    *,
+    actions: Optional[List[str]] = None,
+) -> List[str]:
     """
     Process the notes to convert them into a format suitable for pandoc.
 
-    :param lines: List of lines of the notes.
-    :param type_: Type of output to generate (e.g., `pdf`, `html`, `slides`).
-    :param is_qa: True if the input is a QA file.
-    :return: List of lines of the notes.
+    :param lines: list of lines of the notes
+    :param type_: type of output to generate (e.g., `pdf`, `html`, `slides`)
+    :param is_qa: True if the input is a QA file
+    :param actions: optional list of actions to perform
+    :return: list of processed lines
     """
-    _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
-    hdbg.dassert_isinstance(txt, str)
-    lines = [line.rstrip("\n") for line in txt.split("\n")]
+    _LOG.debug("\n%s", hprint.frame("transform_lines"))
+    hdbg.dassert_isinstance(lines, list)
+    lines = [line.rstrip("\n") for line in lines]
     out: List[str] = []
     # a) Prepend some directive for pandoc, if they are missing.
     if lines[0] != "---":
@@ -250,6 +201,8 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         txt = hprint.dedent(txt)
         out.append(txt)
     # b) Process text.
+    # TODO(gp): We should use the approach of replacing chunks of text
+    # that doesn't have to be transformed with placeholders.
     # True inside a block to skip.
     in_skip_block = False
     # True inside a code block.
@@ -266,7 +219,7 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         #   do_continue, in_skip_block)
         if do_continue:
             continue
-        # 2) Remove code block.
+        # 2) Process code block.
         if _TRACE:
             _LOG.debug("# Process code block.")
         # TODO(gp): Not sure why this is needed. For sure the extra spacing
@@ -292,10 +245,19 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
         if _TRACE:
             _LOG.debug("# Process enumerated list.")
         line = _process_enumerated_list(line)
-        # 6) Process color commands.
+        # 6) Colorize backticks (skip if inside code block).
+        if _TRACE:
+            _LOG.debug("# Colorize backticks.")
+        if not in_code_block:
+            line = _colorize_backticks(line)
+        # TODO(gp): Not sure about this.
+        # Update code block status based on triple backticks.
+        if line.startswith("```"):
+            in_code_block = not in_code_block
+        # 7) Process color commands.
         if _TRACE:
             _LOG.debug("# Process color commands.")
-        line = _process_color_commands(line)
+        line = hmarkdo.process_color_commands(line)
         # 7) Process question.
         if _TRACE:
             _LOG.debug("# Process question.")
@@ -345,8 +307,56 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
                     or next_line_is_verbatim
                 ):
                     out.append(" " * _NUM_SPACES + line)
+    #
+    if type_ == "slides":
+        # Colorize links.
+        to_execute, actions = hparser.mark_action("process_links", actions)
+        # to_execute = False
+        if to_execute:
+            out = hmarkdo.format_md_links_to_latex_format(out)
+
+        # Colorize bullets in the slides.
+
+        def _colorize_bullets(slide_text: List[str]) -> str:
+            """
+            Color bullet points in the slide.
+
+            :param slide_text: list of lines in the slide
+            :return: colorized slide text
+            """
+            slide_text = "\n".join(slide_text)
+            if not hmarkdo.has_color_command(slide_text):
+                text_out = hmarkdo.colorize_bullet_points_in_slide(
+                    slide_text, use_abbreviations=False
+                )
+            else:
+                text_out = slide_text
+            text_out = text_out.split("\n")
+            return text_out
+
+        out = "\n".join(out)
+        to_execute, actions = hparser.mark_action("colorize_bullets", actions)
+        if to_execute:
+            out = hmarkdo.process_slides(out, _colorize_bullets)
+        out = out.split("\n")
+
+        # Colorize verbatim.
+
+    # out = out.split("\n")
+    out_tmp = []
+    for line in out:
+        if type_ == "slides":
+            do_continue, line = _process_question_to_slides(line)
+        else:
+            do_continue, line = _process_question_to_markdown(line)
+        if do_continue:
+            out_tmp.append(line)
+            continue
+        out_tmp.append(line)
+    out = out_tmp
     # c) Clean up.
     _LOG.debug("Clean up")
+    hdbg.dassert_isinstance(out, list)
     # Remove all the lines with only spaces.
     out_tmp = []
     for line in out:
@@ -354,34 +364,35 @@ def _transform_lines(txt: str, type_: str, *, is_qa: bool = False) -> str:
             line = ""
         out_tmp.append(line)
     # Return result.
-    out = "\n".join(out_tmp)
-    return out
+    hdbg.dassert_isinstance(out_tmp, list)
+    return out_tmp
 
 
+# TODO(ai): Move to helpers/hmarkdown_toc.py
 def _add_navigation_slides(
-    txt: str, max_level: int, *, sanity_check: bool = False
-) -> str:
+    lines: List[str], max_level: int, *, sanity_check: bool = False
+) -> List[str]:
     """
     Add the navigation slides to the notes.
 
-    :param txt: The notes text.
-    :param max_level: The maximum level of headers to consider (e.g., 3
-        create a navigation slide for headers of level 1, 2, and 3).
-    :param sanity_check: If True, perform sanity checks.
-    :return: The notes text with the navigation slides.
+    :param lines: list of lines of the notes
+    :param max_level: maximum level of headers to consider (e.g., 3 creates a
+        navigation slide for headers of level 1, 2, and 3)
+    :param sanity_check: if True, perform sanity checks
+    :return: list of lines with the navigation slides added
     """
     _LOG.debug("\n%s", hprint.frame("Add navigation slides"))
-    hdbg.dassert_isinstance(txt, str)
+    hdbg.dassert_isinstance(lines, list)
     header_list = hmarkdo.extract_headers_from_markdown(
-        txt, max_level, sanity_check=sanity_check
+        lines, max_level, sanity_check=sanity_check
     )
     _LOG.debug("header_list=\n%s", header_list)
     tree = hmarkdo.build_header_tree(header_list)
     _LOG.debug("tree=\n%s", tree)
     out: List[str] = []
-    open_modifier = r"**\textcolor{purple}{"
-    close_modifier = r"}**"
-    for line in txt.split("\n"):
+    open_modifier = r"_**\textcolor{red}{"
+    close_modifier = r"}**_"
+    for line in lines:
         is_header, level, description = hmarkdo.is_header(line)
         if is_header and level <= max_level:
             _LOG.debug(hprint.to_str("line level description"))
@@ -396,7 +407,8 @@ def _add_navigation_slides(
             _LOG.debug("nav_str=\n%s", nav_str)
             # Replace the header slide with the navigation slide.
             # TODO(gp): We assume the slide level is 4.
-            line_tmp = f"#### {description}\n"
+            # line_tmp = f"#### {description}\n"
+            line_tmp = "####\n"
             # line_tmp += '<span style="color:blue">\n' + nav_str
             line_tmp += nav_str
             # line_tmp += "\n</span>\n"
@@ -406,14 +418,72 @@ def _add_navigation_slides(
             out.append(line_tmp)
         else:
             out.append(line)
-    txt_out = "\n".join(out)
-    return txt_out
+    hdbg.dassert_isinstance(out, list)
+    return out
+
+
+def _remove_headers(lines: List[str], max_level: int) -> List[str]:
+    """
+    Remove all markdown headers from the lines that are smaller than level 3.
+
+    :param lines: list of lines to process
+    :param max_level: maximum level of headers to consider (default: 3)
+    :return: list of lines with relevant headers removed
+    """
+    _LOG.debug("\n%s", hprint.frame("Remove headers smaller than level 3"))
+    hdbg.dassert_isinstance(lines, list)
+    out: List[str] = []
+    for line in lines:
+        is_header_line, level, _ = hmarkdo.is_header(line)
+        # Exclude header lines with level 1 or 2 (i.e., smaller than level 3).
+        if not (is_header_line and level < max_level):
+            out.append(line)
+    hdbg.dassert_isinstance(out, list)
+    return out
+
+
+def _preprocess_lines(
+    lines: List[str],
+    type_: str,
+    toc_type: str,
+    is_qa: bool,
+    *,
+    actions: Optional[List[str]] = None,
+) -> List[str]:
+    """
+    Preprocess the lines of the notes.
+
+    :param lines: list of lines of the notes
+    :param type_: type of output to generate
+    :param toc_type: type of table of contents to add
+    :param is_qa: True if the input is a QA file
+    :param actions: optional list of actions to perform
+    :return: list of preprocessed lines
+    """
+    hdbg.dassert_isinstance(lines, list)
+    # Apply transformations.
+    out = _transform_lines(lines, type_, is_qa=is_qa, actions=actions)
+    # Add TOC, if needed.
+    if toc_type == "navigation":
+        hdbg.dassert_eq(type_, "slides")
+        max_level = 2
+        out = _add_navigation_slides(out, max_level, sanity_check=True)
+    elif toc_type == "remove_headers":
+        # Remove headers smaller than level 4 so that we leave only the `*`.
+        out = _remove_headers(out, max_level=4)
+    hdbg.dassert_isinstance(out, list)
+    return out
 
 
 # #############################################################################
 
 
 def _parse() -> argparse.ArgumentParser:
+    """
+    Parse command line arguments.
+
+    :return: argument parser
+    """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -431,29 +501,37 @@ def _parse() -> argparse.ArgumentParser:
         "--toc_type",
         action="store",
         default="none",
-        choices=["none", "pandoc_native", "navigation"],
+        choices=["none", "pandoc_native", "navigation", "remove_headers"],
     )
-    # TODO(gp): Unclear what it doesn.
+    # TODO(gp): Unclear what it does.
     parser.add_argument(
         "--qa", action="store_true", default=False, help="The input file is QA"
     )
+    hparser.add_action_arg(parser, _VALID_ACTIONS, _DEFAULT_ACTIONS)
     hparser.add_verbosity_arg(parser)
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
+    """
+    Execute the main preprocessing logic.
+
+    :param parser: argument parser
+    """
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     _LOG.info("cmd line=%s", hdbg.get_command_line())
+    # Get the selected actions.
+    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    _LOG.info("Selected actions: %s", actions)
     # Read file.
     txt = hio.from_file(args.input)
-    # Apply transformations.
-    out = _transform_lines(txt, args.type, is_qa=args.qa)
-    # Add TOC, if needed.
-    if args.toc_type == "navigation":
-        hdbg.dassert_eq(args.type, "slides")
-        max_level = 2
-        out = _add_navigation_slides(out, max_level, sanity_check=True)
+    # Process.
+    lines = txt.split("\n")
+    out = _preprocess_lines(
+        lines, args.type, args.toc_type, args.qa, actions=actions
+    )
+    out = "\n".join(out)
     # Save results.
     hio.to_file(args.output, out)
 

@@ -341,13 +341,13 @@ dependencies:
 #    # #########################################################################
 #
 #    def _helper_check_shebang(
-#        self, file_name: str, txt: str, is_executable: bool, exp: str,
+#        self, file_name: str, txt: str, is_executable: bool, expected: str,
 #    ) -> None:
 #        txt_array = txt.split("\n")
 #        msg = lntr._CustomPythonChecks._check_shebang(
 #            file_name, txt_array, is_executable
 #        )
-#        self.assert_equal(msg, exp)
+#        self.assert_equal(msg, expected)
 #
 #    def test_check_shebang1(self) -> None:
 #        """Executable with wrong shebang: error."""
@@ -357,8 +357,8 @@ dependencies:
 # world
 # """
 #        is_executable = True
-#        exp = "exec.py:1: any executable needs to start with a shebang '#!/usr/bin/env python'"
-#        self._helper_check_shebang(file_name, txt, is_executable, exp)
+#        expected = "exec.py:1: any executable needs to start with a shebang '#!/usr/bin/env python'"
+#        self._helper_check_shebang(file_name, txt, is_executable, expected)
 #
 #    def test_check_shebang2(self) -> None:
 #        """Executable with the correct shebang: correct."""
@@ -368,8 +368,8 @@ dependencies:
 # world
 # """
 #        is_executable = True
-#        exp = ""
-#        self._helper_check_shebang(file_name, txt, is_executable, exp)
+#        expected = ""
+#        self._helper_check_shebang(file_name, txt, is_executable, expected)
 #
 #    def test_check_shebang3(self) -> None:
 #        """Non executable with a shebang: error."""
@@ -379,8 +379,8 @@ dependencies:
 # world
 # """
 #        is_executable = False
-#        exp = "exec.py:1: any executable needs to start with a shebang '#!/usr/bin/env python'"
-#        self._helper_check_shebang(file_name, txt, is_executable, exp)
+#        expected = "exec.py:1: any executable needs to start with a shebang '#!/usr/bin/env python'"
+#        self._helper_check_shebang(file_name, txt, is_executable, expected)
 #
 #    def test_check_shebang4(self) -> None:
 #        """Library without a shebang: correct."""
@@ -391,15 +391,15 @@ dependencies:
 # import _setenv_lib as selib
 #'''
 #        is_executable = False
-#        exp = ""
-#        self._helper_check_shebang(file_name, txt, is_executable, exp)
+#        expected = ""
+#        self._helper_check_shebang(file_name, txt, is_executable, expected)
 #
 #    # #########################################################################
 #
-#    def _helper_was_baptized(self, file_name: str, txt: str, exp: str) -> None:
+#    def _helper_was_baptized(self, file_name: str, txt: str, expected: str) -> None:
 #        txt_array = txt.split("\n")
 #        msg = lntr._CustomPythonChecks._was_baptized(file_name, txt_array)
-#        self.assert_equal(msg, exp)
+#        self.assert_equal(msg, expected)
 #
 #    def test_was_baptized1(self) -> None:
 #        """Correct import."""
@@ -409,8 +409,8 @@ dependencies:
 #
 # import _setenv_lib as selib
 #'''
-#        exp = ""
-#        self._helper_was_baptized(file_name, txt, exp)
+#        expected = ""
+#        self._helper_was_baptized(file_name, txt, expected)
 #
 #    def test_was_baptized2(self) -> None:
 #        """Invalid."""
@@ -419,18 +419,18 @@ dependencies:
 # Import as:
 #
 # """
-#        exp = '''lib.py:1: every library needs to describe how to be imported:
+#        expected = '''lib.py:1: every library needs to describe how to be imported:
 # """
 # Import as:
 #
 # import foo.bar as fba
 # """'''
-#        self._helper_was_baptized(file_name, txt, exp)
+#        self._helper_was_baptized(file_name, txt, expected)
 #
 #    # #########################################################################
 #
 #    def _helper_check_line_by_line(
-#        self, file_name: str, txt: str, exp: str
+#        self, file_name: str, txt: str, expected: str
 #    ) -> None:
 #        txt_array = txt.split("\n")
 #        output, txt_new = lntr._CustomPythonChecks._check_line_by_line(
@@ -442,40 +442,40 @@ dependencies:
 #        actual.append("# txt_new")
 #        actual.extend(txt_new)
 #        actual_as_str = "\n".join(actual)
-#        self.assert_equal(actual_as_str, exp)
+#        self.assert_equal(actual_as_str, expected)
 #
 #    def test_check_line_by_line1(self) -> None:
 #        """Valid import."""
 #        file_name = "lib.py"
 #        txt = "from typing import List"
-#        exp = """# output
+#        expected = """# output
 ## txt_new
 # from typing import List"""
-#        self._helper_check_line_by_line(file_name, txt, exp)
+#        self._helper_check_line_by_line(file_name, txt, expected)
 #
 #    def test_check_line_by_line2(self) -> None:
 #        """Invalid import."""
 #        file_name = "lib.py"
 #        txt = "from pandas import DataFrame"
-#        exp = """# output
+#        expected = """# output
 # lib.py:1: do not use 'from pandas import DataFrame' use 'import foo.bar as fba'
 ## txt_new
 # f-r-o-m pandas import DataFrame"""
 #        # To avoid the linter to complain.
-#        exp = exp.replace("-", "")
-#        self._helper_check_line_by_line(file_name, txt, exp)
+#        expected = expected.replace("-", "")
+#        self._helper_check_line_by_line(file_name, txt, expected)
 #
 #    def test_check_line_by_line3(self) -> None:
 #        """Invalid import."""
 #        file_name = "lib.py"
 #        txt = "import pandas as a_very_long_name"
-#        exp = """# output
+#        expected = """# output
 # lib.py:1: the import shortcut 'a_very_long_name' in 'import pandas as a_very_long_name' is longer than 8 characters
 ## txt_new
 # i-m-p-o-r-t pandas as a_very_long_name"""
 #        # To avoid the linter to complain.
-#        exp = exp.replace("-", "")
-#        self._helper_check_line_by_line(file_name, txt, exp)
+#        expected = expected.replace("-", "")
+#        self._helper_check_line_by_line(file_name, txt, expected)
 #
 #    def test_check_line_by_line4(self) -> None:
 #        """Conflict markers."""
@@ -488,7 +488,7 @@ dependencies:
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # """
 #        txt = txt.replace("-", "")
-#        exp = """# output
+#        expected = """# output
 # lib.py:2: there are conflict markers
 # lib.py:4: there are conflict markers
 # lib.py:6: there are conflict markers
@@ -500,8 +500,8 @@ dependencies:
 # world
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # """
-#        exp = exp.replace("-", "")
-#        self._helper_check_line_by_line(file_name, txt, exp)
+#        expected = expected.replace("-", "")
+#        self._helper_check_line_by_line(file_name, txt, expected)
 #
 #    def test_check_line_by_line5(self) -> None:
 #        file_name = "lib.py"
@@ -514,7 +514,7 @@ dependencies:
 ## =_=_=_=_=_=
 # """
 #        txt = txt.replace("_", "")
-#        exp = """# output
+#        expected = """# output
 ## txt_new
 #
 # from typing import List
@@ -523,7 +523,7 @@ dependencies:
 ## hello
 ## =============================================================================
 # """
-#        self._helper_check_line_by_line(file_name, txt, exp)
+#        self._helper_check_line_by_line(file_name, txt, expected)
 #
 #    def test_check_line_by_line6(self) -> None:
 #        """Check that it doesn't replace if the bar is not until the end of the
@@ -538,7 +538,7 @@ dependencies:
 ## =_=_=_=_=_='''
 # """
 #        txt = txt.replace("_", "")
-#        exp = """# output
+#        expected = """# output
 ## txt_new
 #
 # from typing import List
@@ -547,67 +547,67 @@ dependencies:
 ## hello
 ## ======'''
 # """
-#        self._helper_check_line_by_line(file_name, txt, exp)
+#        self._helper_check_line_by_line(file_name, txt, expected)
 #
 #    # #########################################################################
 #
-#    def _helper_check_notebook_dir(self, file_name: str, exp: str) -> None:
+#    def _helper_check_notebook_dir(self, file_name: str, expected: str) -> None:
 #        msg = lntr._CheckFileProperty._check_notebook_dir(file_name)
-#        self.assert_equal(msg, exp)
+#        self.assert_equal(msg, expected)
 #
 #    def test_check_notebook_dir1(self) -> None:
 #        """The notebook is not under 'notebooks': invalid."""
 #        file_name = "hello/world/notebook.ipynb"
 #        # pylint: disable=line-too-long
-#        exp = "hello/world/notebook.ipynb:1: each notebook should be under a 'notebooks' directory to not confuse pytest"
+#        expected = "hello/world/notebook.ipynb:1: each notebook should be under a 'notebooks' directory to not confuse pytest"
 #        # pylint: enable=line-too-long
-#        self._helper_check_notebook_dir(file_name, exp)
+#        self._helper_check_notebook_dir(file_name, expected)
 #
 #    def test_check_notebook_dir2(self) -> None:
 #        """The notebook is under 'notebooks': valid."""
 #        file_name = "hello/world/notebooks/notebook.ipynb"
-#        exp = ""
-#        self._helper_check_notebook_dir(file_name, exp)
+#        expected = ""
+#        self._helper_check_notebook_dir(file_name, expected)
 #
 #    def test_check_notebook_dir3(self) -> None:
 #        """It's not a notebook: valid."""
 #        file_name = "hello/world/notebook.py"
-#        exp = ""
-#        self._helper_check_notebook_dir(file_name, exp)
+#        expected = ""
+#        self._helper_check_notebook_dir(file_name, expected)
 #
 #    # #########################################################################
 #
-#    def _helper_check_test_file_dir(self, file_name: str, exp: str) -> None:
+#    def _helper_check_test_file_dir(self, file_name: str, expected: str) -> None:
 #        msg = lntr._CheckFileProperty._check_test_file_dir(file_name)
-#        self.assert_equal(msg, exp)
+#        self.assert_equal(msg, expected)
 #
 #    def test_check_test_file_dir1(self) -> None:
 #        """Test is under `test`: valid."""
 #        file_name = "hello/world/test/test_all.py"
-#        exp = ""
-#        self._helper_check_test_file_dir(file_name, exp)
+#        expected = ""
+#        self._helper_check_test_file_dir(file_name, expected)
 #
 #    def test_check_test_file_dir2(self) -> None:
 #        """Test is not under `test`: invalid."""
 #        file_name = "hello/world/test_all.py"
 #        # pylint: disable=line-too-long
-#        exp = "hello/world/test_all.py:1: test files should be under 'test' directory to be discovered by pytest"
+#        expected = "hello/world/test_all.py:1: test files should be under 'test' directory to be discovered by pytest"
 #        # pylint: enable=line-too-long
-#        self._helper_check_test_file_dir(file_name, exp)
+#        self._helper_check_test_file_dir(file_name, expected)
 #
 #    def test_check_test_file_dir3(self) -> None:
 #        """Test is not under `test`: invalid."""
 #        file_name = "hello/world/tests/test_all.py"
 #        # pylint: disable=line-too-long
-#        exp = "hello/world/tests/test_all.py:1: test files should be under 'test' directory to be discovered by pytest"
+#        expected = "hello/world/tests/test_all.py:1: test files should be under 'test' directory to be discovered by pytest"
 #        # pylint: enable=line-too-long
-#        self._helper_check_test_file_dir(file_name, exp)
+#        self._helper_check_test_file_dir(file_name, expected)
 #
 #    def test_check_test_file_dir4(self) -> None:
 #        """It's a notebook: valid."""
 #        file_name = "hello/world/tests/test_all.ipynb"
-#        exp = ""
-#        self._helper_check_test_file_dir(file_name, exp)
+#        expected = ""
+#        self._helper_check_test_file_dir(file_name, expected)
 #
 #
 # @pytest.mark.amp

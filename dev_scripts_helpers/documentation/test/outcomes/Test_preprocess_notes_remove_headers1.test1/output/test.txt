@@ -1,0 +1,32 @@
+---
+fontsize: 10pt
+---
+\let\emph\textit
+\let\uline\underline
+\let\ul\underline
+This is some introductory content.
+
+More content here with some details.
+
+- **What is the main concept?**
+The main concept is to understand how preprocessing works.
+
+- Bullet point 1
+- Bullet point 2
+- Bullet point 3
+
+Some regular text after bullets.
+
+
+Here is a code block:
+```python
+def foo():
+    # This is a comment with # symbol
+    pass
+```
+
+
+More advanced content goes here.
+
+- **Another question?**
+Answer to the question.

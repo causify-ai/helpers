@@ -209,9 +209,9 @@ class Test_Mock_Class1(_TestCase):
         with self.assertRaises(KeyError) as cm:
             obj.get_a()
         #
-        act = str(cm.exception)
-        exp = "'foo'"
-        self.assert_equal(act, exp)
+        actual = str(cm.exception)
+        expected = "'foo'"
+        self.assert_equal(actual, expected)
         obj.get_a.assert_called()
 
 

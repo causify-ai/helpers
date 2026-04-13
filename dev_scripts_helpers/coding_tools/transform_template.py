@@ -39,13 +39,13 @@ def _main(parser: argparse.ArgumentParser) -> None:
     in_file_name, out_file_name = hparser.parse_input_output_args(args)
     _ = in_file_name, out_file_name
     # # Read file.
-    # txt = hparser.read_file(in_file_name)
+    # txt = hparser.from_file(in_file_name)
     # # Transform.
     # txt_tmp = "\n".join(txt)
     # cfile = htrace.parse_traceback(txt_tmp)
     # cfile_as_str = htrace.cfile_to_str(cfile)
     # # Write file.
-    # hparser.write_file(cfile_as_str.split("\n"), out_file_name)
+    # hparser.to_file(cfile_as_str.split("\n"), out_file_name)
 
 
 if __name__ == "__main__":

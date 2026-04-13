@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import re
+import shlex
 import shutil
 import time
 import uuid
@@ -70,6 +71,8 @@ def listdir(
     :param maxdepth: limit the depth of directory traversal
     """
     hdbg.dassert_dir_exists(dir_name)
+    # Escape the directory path.
+    dir_name = shlex.quote(dir_name)
     cmd = [f"find {dir_name}", f'-name "{pattern}"']
     if maxdepth is not None:
         cmd.append(f'-maxdepth "{maxdepth}"')
@@ -233,6 +236,29 @@ def delete_dir(
                 raise e
 
 
+def backup_file_or_dir_if_exists(path: str) -> None:
+    """
+    Create a timestamped backup of a file or directory if it exists.
+
+    If the path exists, it is moved to a new location with a timestamp
+    appended to the name (e.g., path.20231003_080000.backup).
+
+    :param path: path to the file or directory to back up
+    """
+    if not os.path.exists(path):
+        # Nothing to back up.
+        return
+    _LOG.warning("Path '%s' already exists: making a backup", path)
+    # Get current timestamp.
+    timestamp = datetime.datetime.now()
+    timestamp_str = timestamp.strftime("%Y%m%d_%H%M%S")
+    # Build backup path.
+    backup_path = f"{path}.{timestamp_str}.backup"
+    # Move the file or directory to backup.
+    shutil.move(path, backup_path)
+    _LOG.info("Backed up '%s' -> '%s'", path, backup_path)
+
+
 def create_dir(
     dir_name: str,
     incremental: bool,
@@ -336,6 +362,7 @@ def _create_dir(
         if os.path.islink(dir_name):
             delete_file(dir_name)
         else:
+            hdbg.dassert_ne(os.path.normpath(dir_name), ".")
             shutil.rmtree(dir_name)
     _LOG.debug("Creating directory '%s'", dir_name)
     # NOTE: `os.makedirs` raises `OSError` if the target directory already exists.
@@ -518,6 +545,45 @@ def is_valid_filename_extension(ext: str) -> bool:
     return valid
 
 
+def remove_extension(
+    filename: str,
+    extension: str,
+    *,
+    check_file_exists: bool = False,
+    check_has_extension: bool = True,
+) -> Optional[str]:
+    """
+    Attempt to remove `extension` from `filename`.
+
+    :param filename: str filename
+    :param extension: file extension starting with a dot. E.g., ".csv"
+    :return: filename without `extension`, if applicable, else returns `None`.
+    """
+    hdbg.dassert_isinstance(filename, str)
+    hdbg.dassert(filename)
+    if check_file_exists:
+        hdbg.dassert_file_exists(filename)
+    #
+    hdbg.dassert_isinstance(extension, str)
+    hdbg.dassert(
+        extension.startswith("."),
+        "Filename extension=`%s` expected to start with `.`",
+        extension,
+    )
+    #
+    ret: Optional[str] = None
+    if check_has_extension:
+        hdbg.dassert(
+            filename.endswith(extension),
+            "Filename '%s' doesn't have extension=`%s`",
+            filename,
+            extension,
+        )
+    if filename.endswith(extension):
+        ret = filename[: -len(extension)]
+    return ret
+
+
 def change_filename_extension(filename: str, old_ext: str, new_ext: str) -> str:
     """
     Change extension of a filename (e.g. "data.csv" to "data.json").
@@ -679,13 +745,13 @@ def wait_for_file(
     :param check_interval_in_secs: Time in seconds between checks
     :param timeout_in_secs: Maximum time to wait for the file in seconds
     """
-    _LOG.debug(f"Waiting for file: {file_path}")
+    _LOG.debug("Waiting for file: %s", file_path)
     start_time = time.time()
     while not os.path.exists(file_path):
         if time.time() - start_time > timeout_in_secs:
             raise ValueError(f"Timeout reached. File not found: {file_path}")
         time.sleep(check_interval_in_secs)
-    _LOG.debug(f"File generated: {file_path}")
+    _LOG.debug("File generated: %s", file_path)
 
 
 # #############################################################################
@@ -790,7 +856,7 @@ def from_json(file_name: str, *, use_types: bool = False) -> Dict:
 
 
 # TODO(gp): -> pandas_helpers.py
-def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # type: ignore
+def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # noqa: F821
     """
     Load a dataframe from a json file.
 
@@ -812,23 +878,103 @@ def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # type: ignore
 # Directory operations
 # #############################################################################
 
+# Copied from `hgit.py` to avoid import cycles.
+
+
+def _find_git_root(path: str = ".") -> str:
+    """
+    Find recursively the dir of the outermost super module.
+
+    This function traverses the directory hierarchy upward from a specified
+    starting path to find the root directory of a Git repository.
+    It supports:
+    - standard git repository: where a `.git` directory exists at the root
+    - submodule: where repository is nested inside another, and the `.git` file contains
+      a `gitdir:` reference to the submodule's actual Git directory
+    - linked repositories: where the `.git` file points to a custom Git directory
+      location, such as in Git worktrees or relocated `.git` directories
+
+    :param path: starting file system path. Defaults to the current directory (".")
+    :return: absolute path to the top-level Git repository directory
+    """
+    path = os.path.abspath(path)
+    git_root_dir = None
+    while True:
+        git_dir = os.path.join(path, ".git")
+        _LOG.debug("git_dir=%s", git_dir)
+        # Check if `.git` is a directory which indicates a standard Git repository.
+        if os.path.isdir(git_dir):
+            # Found the Git root directory.
+            git_root_dir = path
+            break
+        # Check if `.git` is a file which indicates submodules or linked setups.
+        if os.path.isfile(git_dir):
+            # Using the `open()` to avoid import cycles with the `hio` module.
+            with open(git_dir, "r") as f:
+                txt = f.read()
+            lines = txt.split("\n")
+            for line in lines:
+                # Look for a `gitdir:` line that specifies the linked directory.
+                # Example: `gitdir: ../.git/modules/helpers_root`.
+                if line.startswith("gitdir:"):
+                    git_dir_path = line.split(":", 1)[1].strip()
+                    _LOG.debug("git_dir_path=%s", git_dir_path)
+                    # Resolve the relative path to the absolute path of the Git directory.
+                    abs_git_dir = os.path.abspath(
+                        os.path.join(path, git_dir_path)
+                    )
+                    # Traverse up to find the top-level `.git` directory.
+                    while True:
+                        # Check if the current directory is a `.git` directory.
+                        if os.path.basename(abs_git_dir) == ".git":
+                            git_root_dir = os.path.dirname(abs_git_dir)
+                            # Found the root.
+                            break
+                        # Move one level up in the directory structure.
+                        parent = os.path.dirname(abs_git_dir)
+                        # Reached the filesystem root without finding the `.git` directory.
+                        hdbg.dassert_ne(
+                            parent,
+                            abs_git_dir,
+                            "Top-level .git directory not found.",
+                        )
+                        # Continue traversing up.
+                        abs_git_dir = parent
+                    break
+        # Exit the loop if the Git root directory is found.
+        if git_root_dir is not None:
+            break
+        # Move up one level in the directory hierarchy.
+        parent = os.path.dirname(path)
+        # Reached the filesystem root without finding `.git`.
+        hdbg.dassert_ne(
+            parent,
+            path,
+            "No .git directory or file found in any parent directory.",
+        )
+        # Update the path to the parent directory for the next iteration.
+        path = parent
+    return git_root_dir
+
+
+# End copy.
+
 
 def safe_rm_file(dir_path: str) -> None:
     """
     Safely remove a file after ensuring it's within our Git client.
 
-    This function provides a safety check to prevent accidental deletion of
-    files outside our Git repository.
+    This function provides a safety check to prevent accidental deletion
+    of files outside our Git repository.
 
     :param dir_path: Path to the directory to delete
     :raises AssertionError: If dir_path is not within the Git client
     :raises OSError: If directory doesn't exist or can't be deleted
     """
-    import helpers.hgit as hgit
     # Convert to absolute path for comparison.
     dir_path = os.path.abspath(dir_path)
     # Get the Git client root.
-    git_root = hgit.find_git_root()
+    git_root = _find_git_root()
     git_root = os.path.abspath(git_root)
     # Ensure the directory is within our Git client.
     hdbg.dassert(
@@ -859,3 +1005,21 @@ def safe_rm_file(dir_path: str) -> None:
     _LOG.debug("Safely removing directory: %s", dir_path)
     shutil.rmtree(dir_path)
     _LOG.debug("Successfully removed directory: %s", dir_path)
+
+
+# TODO(ai): Add unit tests.
+def is_subdir(dir1: str, dir2: str) -> bool:
+    """
+    Check if `dir1` is a subdirectory of `dir2`.
+
+    :param dir1: First directory
+    :param dir2: Second directory
+    :return: True if `dir1` is a subdirectory of `dir2`, False otherwise
+    """
+    # Resolve to absolute and normalized paths.
+    abs_dir1 = os.path.abspath(dir1)
+    abs_dir2 = os.path.abspath(dir2)
+    # Get the common path prefix.
+    common = os.path.commonpath([abs_dir1, abs_dir2])
+    # It's a subdir if they share the same common path as the parent.
+    return common == abs_dir2

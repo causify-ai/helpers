@@ -89,23 +89,23 @@ class Test_git_hooks_utils1(hunitest.TestCase):
         txt = hprint.dedent(txt)
         file_name = "foobar.txt"
         lines = txt.split("\n")
-        act = "\n".join(
+        actual = "\n".join(
             dsgghout._check_words_in_text(file_name, lines, decaesarify=False)
         )
         # Check.
-        exp = r"""
+        expected = r"""
         foobar.txt:1: Found 'SU'
         foobar.txt:3: Found 'SU'
         foobar.txt:4: Found 'SU'"""
-        exp = hprint.dedent(exp)
-        self.assert_equal(act, exp)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected)
 
-    def _helper(self, txt: str, decaesarify: bool, exp: bool) -> None:
-        _LOG.debug(hprint.to_str("txt decaesarify exp"))
+    def _helper(self, txt: str, decaesarify: bool, expected: bool) -> None:
+        _LOG.debug(hprint.to_str("txt decaesarify expected"))
         regex = dsgghout._get_regex(decaesarify)
         m = regex.search(txt)
         _LOG.debug("  -> m=%s", bool(m))
         if m:
             val = m.group(1)
             _LOG.debug("  -> val=%s", val)
-        self.assertEqual(bool(m), exp)
+        self.assertEqual(bool(m), expected)

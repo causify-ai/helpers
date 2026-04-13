@@ -81,7 +81,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     elif args.workload == "failure":
         workload = helpers.test.test_joblib_helpers.get_workload2()
     else:
-        hdbg.dfatal("Invalid workload='%s'" % args.workload)
+        hdbg.dfatal(f"Invalid workload='{args.workload}'")
     # Handle the dst dir.
     # dst_dir, clean_dst_dir = hparser.parse_dst_dir_arg(args)
     # _ = clean_dst_dir
@@ -105,9 +105,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
         log_file,
     )
     if res is None:
-        print("res=%s" % res)
+        print(f"res={res}")
     else:
-        print("res=\n%s" % "\n".join(map(str, res)))
+        print("res=\n" + "\n".join(map(str, res)))
 
 
 if __name__ == "__main__":

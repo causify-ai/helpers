@@ -5,11 +5,12 @@ from typing import Generator, List, Optional
 
 import pytest
 
+pytest.importorskip("github")
+
 import dev_scripts_helpers.github.dockerized_sync_gh_issue_labels as dshgdsgil
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 
-pytest.importorskip("github")
 
 _LOG = logging.getLogger(__name__)
 
@@ -125,8 +126,15 @@ class TestDockerizedSyncGitHubIssueLabels(hunitest.TestCase):
         self.mock_repo = umock.Mock()
         self.mock_client = umock.Mock()
         self.mock_client.get_repo.return_value = self.mock_repo
-        self.github_patch = umock.patch(
-            "github.Github", return_value=self.mock_client
+        # Create a mock Github class constructor.
+        mock_github_class = umock.Mock(return_value=self.mock_client)
+        # Create a mock github module with Github attribute.
+        mock_github_module = umock.Mock()
+        mock_github_module.Github = mock_github_class
+        # Patch the github module reference in the dockerized script's
+        # namespace.
+        self.github_patch = umock.patch.object(
+            dshgdsgil, "github", mock_github_module
         )
         self.env_patch = umock.patch.dict(
             os.environ, {"GITHUB_TOKEN": "fake_token"}

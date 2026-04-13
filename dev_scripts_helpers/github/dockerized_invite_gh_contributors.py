@@ -17,6 +17,7 @@ executed in a Docker container.
     --org_name causify-ai \
     --repo_name tutorials
 """
+
 import argparse
 import csv
 import datetime
@@ -48,7 +49,7 @@ def extract_usernames_from_gsheet(gsheet_url: str) -> List[str]:
     credentials = hgodrapi.get_credentials(
         service_key_path="/app/DATA605/google_secret.json"
     )
-    df = hgodrapi.read_google_file(gsheet_url, credentials=credentials)
+    df = hgodrapi.from_gsheet(gsheet_url, credentials=credentials)
     usernames = [
         user for user in df["GitHub user"].tolist() if user and user.strip()
     ]

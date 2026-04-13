@@ -1,0 +1,159 @@
+---
+description: Refactor unit test files by aligning strings, renaming methods, and factoring out common test code
+---
+
+- When I pass you a test file apply the following transformations to the code,
+  making sure that there is no change in behavior.
+
+## Align Strings to the Code
+
+- Instead of this
+
+  ```python
+    def hello()
+      ...
+      content = """<start:file1.txt>
+  Content for file1
+  <start:file2.txt>
+  Content for file2
+  """
+  ```
+
+  align the content of the string to the rest of the code
+
+  ```python
+    def hello()
+      ...
+      content = """
+      <start:file1.txt>
+      Content for file1
+      <start:file2.txt>
+      Content for file2
+      """
+      content = hprint.dedent(content)
+  ```
+
+## Rename the Test Methods as `test1`, `test2`, ...
+
+## Factor Out Common Coded
+
+- Aggressively factor out common code in helper code so that each test method
+  sets the inputs and the expected value and then calls the helper function with
+  the common code
+
+- Instead of:
+
+  ```python
+  def test_first_line(self) -> None:
+      """
+      Test position in first line returns line 1.
+      """
+      # Prepare inputs.
+      content = "Line 1\nLine 2\nLine 3"
+      position = 3
+      # Run test.
+      actual = dshctsifi._get_line_number(content, position)
+      # Check outputs.
+      expected = 1
+      self.assertEqual(actual, expected)
+
+  def test_second_line(self) -> None:
+      """
+      Test position in second line returns line 2.
+      """
+      # Prepare inputs.
+      content = "Line 1\nLine 2\nLine 3"
+      position = 10
+      # Run test.
+      actual = dshctsifi._get_line_number(content, position)
+      # Check outputs.
+      expected = 2
+      self.assertEqual(actual, expected)
+  ```
+
+- Do
+
+  ```python
+  def helper(self, content: str, position: int, expected: int) -> None:
+      # Run test.
+      actual = dshctsifi._get_line_number(content, position)
+      # Check outputs.
+      self.assertEqual(actual, expected)
+
+  def test1(self) -> None:
+      """
+      Test position in first line returns line 1.
+      """
+      # Prepare inputs.
+      content = "Line 1\nLine 2\nLine 3"
+      position = 3
+      expected = 1
+      # Run test.
+      self.helper(content, position, expected)
+
+  def test2(self) -> None:
+      """
+      Test position in second line returns line 2.
+      """
+      # Prepare inputs.
+      content = "Line 1\nLine 2\nLine 3"
+      position = 10
+      expected = 2
+      # Run test.
+      self.helper(content, position, expected)
+  ```
+
+## Avoid Replicated Assignment
+
+- If a variable `var` and `expected` need to always be the same (e.g., to show
+  that a variable doesn't change), instead of replicating the assignment, do an
+  assignment
+  ```python
+  expected = var
+  ```
+  - **Bad**
+    ```python
+    def test2(self) -> None:
+        """
+        Test indented code block with correct indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Delete unused reference files
+          ```bash
+          > rm Dockerfile.ubuntu
+          ```
+        """
+        # Expected: no changes needed.
+        expected = """
+        - Delete unused reference files
+          ```bash
+          > rm Dockerfile.ubuntu
+          ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+    ```
+  - **Good**
+    ```python
+    def test2(self) -> None:
+        """
+        Test indented code block with correct indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Delete unused reference files
+          ```bash
+          > rm Dockerfile.ubuntu
+          ```
+        """
+        # Expected: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+    ```
+
+# Important
+
+- For all the code you must follow the instructions in
+  @.claude/skills/coding.format_rules/SKILL.md

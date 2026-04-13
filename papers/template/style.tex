@@ -1,0 +1,237 @@
+\documentclass[11pt, reqno]{amsart}
+\usepackage{amsfonts, amssymb, amscd, amsrefs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{slashed}
+\usepackage{fullpage}
+% Prevent table repositioning.
+\usepackage{float}
+% For customizing list environments.
+\usepackage{enumitem}
+% For textcolor and cell colors
+\usepackage[table]{xcolor}
+\usepackage{colortbl}
+% For blackboard bold `1`.
+\usepackage{bbold}
+% Settings for better figure placement
+\usepackage{placeins}
+\usepackage{afterpage}
+
+\usepackage{multirow}
+% Increase tolerance for figure placement
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{4}
+\setcounter{totalnumber}{6}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.9}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable, array}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\usepackage{makecell}
+
+%\usepackage{titlesec}
+
+%\titleformat*{\section}{\LARGE\bfseries}
+%\titleformat*{\subsection}{\Large\bfseries}
+%\titleformat*{\subsubsection}{\large\bfseries}
+%\titleformat*{\paragraph}{\large\bfseries}
+%\titleformat*{\subparagraph}{\large\bfseries}
+
+% If you need math, theorems, etc.
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{tikz}
+\usetikzlibrary{
+  positioning,
+  calc,
+  arrows.meta,
+  decorations.pathreplacing,
+  shapes.geometric,
+  fit
+}
+
+% TikZ setup
+\tikzset{
+% Default arrow style
+arrow/.style={->, >=stealth, thick},
+% Global settings for all pictures
+every picture/.style={ transform shape, scale=0.85, every node/.style={ scale=0.85, inner sep=2pt, outer sep=1pt } },
+% Common node styles
+box/.style={ rectangle, draw, minimum width=3cm, minimum height=1cm, text centered, align=center },
+% Default text style
+every text node part/.style={ font=\sffamily } }
+
+\usepackage{pgf}
+\usepackage[pdf]{graphviz}
+\usepackage{uniquecounter}
+
+% Code listings with minted.
+% \usepackage{minted}
+
+% define a light yellow
+\definecolor{codebg}{RGB}{245, 245, 230} % very light yellow
+
+% set defaults for python minted listings
+% \setminted[python]{
+%   bgcolor=codebg,
+%   fontsize=\small,
+% }
+
+\usepackage[useregional]{datetime2}
+\DTMlangsetup[en-US]{zone=eastern,mapzone}
+
+% --- Theorem environments (acmart loads amsthm; this is safe) ---
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newtheorem{assumption}{Assumption}[section]
+
+% Symbols
+\newcommand{\cmark}{\textcolor{green!60!black}{\ensuremath{\checkmark}}}
+\newcommand{\xmark}{\textcolor{red!70!black}{\ensuremath{\times}}}
+
+% Qualitative strengths on a red→green scale
+\newcommand{\Weak}{\textcolor{red!70!black}{Weak}}              % most red
+\newcommand{\Limited}{\textcolor{red!50!orange}{Limited}}       % red-orange
+\newcommand{\Partial}{\textcolor{orange!80!black}{Partial}}     % orange
+\newcommand{\Moderate}{\textcolor{yellow!60!black}{Moderate}}   % yellow
+\newcommand{\Strong}{\textcolor{green!60!black}{Strong}}        % green
+\newcommand{\None}{\textcolor{gray}{None}}                      % neutral
+
+% Custom data/code commands
+\newcommand{\nan}{\textnormal{\texttt{nan}}}
+\newcommand{\NaN}{\textnormal{\texttt{NaN}}}
+% Dataframe.
+\newcommand{\df}{\textnormal{\texttt{df}}}
+\newcommand{\dtype}{\textnormal{\texttt{dtype}}}
+%
+% Table icons.
+\newcommand{\trm}{\textcolor{red}{-}}
+\newcommand{\tyo}{\textcolor{yellow}{o}}
+\newcommand{\tgp}{\textcolor{green}{+}}
+
+\input{./helpers_root/dev_scripts_helpers/documentation/latex_abbrevs.sty}
+
+% Python style for highlighting
+\usepackage{listings}
+
+\newcommand{\pythonstyle}{\lstset{ language=Python, basicstyle=\ttm, morekeywords={self}, % Add keywords here
+keywordstyle=\ttb
+\color{deepblue}
+, emph={MyClass,__init__}, % Custom highlighting
+emphstyle=\ttb
+\color{deepred}
+, % Custom highlighting style
+stringstyle=
+\color{deepgreen}
+, frame=tb, % Any extra options here
+showstringspaces=false }}
+
+% Python environment.
+\lstnewenvironment{python}[1][]{ \pythonstyle \lstset{#1} }{}
+
+% Python for external files.
+\newcommand{\pythonexternal}[2][]{{ \pythonstyle \lstinputlisting[#1]{#2}}}
+
+% Python for inline.
+\newcommand{\pythoninline}[1]{{\pythonstyle\lstinline!#1!}}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{redbackground}{rgb}{1,0.9,0.9}
+\definecolor{greenbackground}{rgb}{0.9,1,0.9}
+
+\lstdefinestyle{mystyle}{ backgroundcolor=
+\color{backcolour}
+, commentstyle=
+\color{codegreen}
+, keywordstyle=
+\color{magenta}
+, numberstyle=\tiny
+\color{codegray}
+, stringstyle=
+\color{codepurple}
+, basicstyle=\ttfamily\footnotesize, breakatwhitespace=false, breaklines=true, captionpos=b,
+keepspaces=true, numbers=left, numbersep=5pt, showspaces=false, showstringspaces=false,
+showtabs=false, tabsize=2 }
+
+\lstdefinestyle{redstyle}{ backgroundcolor=
+\color{redbackground}
+, commentstyle=
+\color{codegreen}
+, keywordstyle=
+\color{magenta}
+, numberstyle=\tiny
+\color{codegray}
+, stringstyle=
+\color{codepurple}
+, basicstyle=\ttfamily\small, breakatwhitespace=false, breaklines=true, captionpos=b,
+keepspaces=true, showspaces=false, showstringspaces=false,
+showtabs=false, tabsize=2 }
+
+\lstdefinestyle{greenstyle}{ backgroundcolor=
+\color{greenbackground}
+, commentstyle=
+\color{codegreen}
+, keywordstyle=
+\color{magenta}
+, numberstyle=\tiny
+\color{codegray}
+, stringstyle=
+\color{codepurple}
+, basicstyle=\ttfamily\small, breakatwhitespace=false, breaklines=true, captionpos=b,
+keepspaces=true, showspaces=false, showstringspaces=false,
+showtabs=false, tabsize=2 }
+
+\lstdefinestyle{codebgstyle}{ backgroundcolor=
+\color{codebg}
+, commentstyle=
+\color{codegreen}
+, keywordstyle=
+\color{magenta}
+, numberstyle=\tiny
+\color{codegray}
+, stringstyle=
+\color{codepurple}
+, basicstyle=\ttfamily\small, breakatwhitespace=false, breaklines=true, captionpos=b,
+keepspaces=true, numbers=left, numbersep=5pt, showspaces=false, showstringspaces=false,
+showtabs=false, tabsize=2 }
+
+\lstset{style=mystyle}
+
+% end python
+
+%
+
+\providecommand{\tightlist}{%
+\setlength{\itemsep}{0pt}
+\setlength{\parskip}{0pt}}
+
+% Use this if using `\contrib[]{...}`.
+%\makeatletter\let\@wraptoccontribs\wraptoccontribs\makeatother
+% https://tex.stackexchange.com/questions/418547/equal-contribution-using-thanks-with-llncs-class#418563
+\makeatletter
+\newcommand{\printfnsymbol}[1]{%
+\textsuperscript{\@fnsymbol{#1}}%
+}
+\makeatother

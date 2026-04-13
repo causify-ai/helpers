@@ -1,4 +1,4 @@
 #!/bin/bash
 # Equivalent to `alias i = "invoke"`.
 
-invoke $*
+invoke "$@"

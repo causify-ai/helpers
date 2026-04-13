@@ -13,10 +13,10 @@ class TestPlbckSum(hunitest.TestCase):
         a = 0
         b = 1
         # Call function to test.
-        act = plbck_sum(a=a, b=b)
-        act = str(act)
+        actual = plbck_sum(a=a, b=b)
+        actual = str(actual)
         # Check output.
-        self.check_string(act)
+        self.check_string(actual)
 
 class TestPlbckSum(hunitest.TestCase):
     def test2(self) -> None:
@@ -24,7 +24,7 @@ class TestPlbckSum(hunitest.TestCase):
         a = 1
         b = 2
         # Call function to test.
-        act = plbck_sum(a=a, b=b)
-        act = str(act)
+        actual = plbck_sum(a=a, b=b)
+        actual = str(actual)
         # Check output.
-        self.check_string(act)
+        self.check_string(actual)

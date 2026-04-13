@@ -489,7 +489,7 @@ def find_tables_common_columns(
     connection: DbConnection,
     tables: List[str],
     as_df: bool = False,
-) -> Union[None, pd.DataFrame]:
+) -> Optional[pd.DataFrame]:
     limit = 5
     df = []
     for i, table in enumerate(tables):

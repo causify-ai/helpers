@@ -121,12 +121,15 @@ def _get_client_root(super_module: bool) -> str:
 # End copy.
 
 
-def get_changelog_version(container_dir_name: str) -> Optional[str]:
+def get_changelog_version(
+    container_dir_name: str, *, file_name: str = None
+) -> Optional[str]:
     """
     Return latest version from changelog.txt file.
 
     :param container_dir_name: container directory relative to the root
         directory
+    :param file_name: changelog file name
     """
     version: Optional[str] = None
     supermodule = True
@@ -134,13 +137,55 @@ def get_changelog_version(container_dir_name: str) -> Optional[str]:
     # Note: for `amp` as submodule one should pass `container_dir_name` relative
     # to the root, e.g., `amp/optimizer` and not just `optimizer`.
     hdbg.dassert_ne(container_dir_name, "")
-    changelog_file = os.path.join(root_dir, container_dir_name, "changelog.txt")
+    if file_name is None:
+        file_name = "changelog.txt"
+    changelog_file = os.path.join(root_dir, container_dir_name, file_name)
     hdbg.dassert_file_exists(changelog_file)
     changelog = hio.from_file(changelog_file)
     match = re.search(_VERSION_RE, changelog)
     if match:
         version = match.group()
     return version
+
+
+def get_latest_changelog_entry(
+    changelog_path: str,
+) -> dict:
+    """
+    Parse the latest changelog entry from a changelog file.
+
+    :param changelog_path: path to the changelog.txt file
+    :return: dict with keys: 'version', 'date', 'changes' (list of
+        change lines)
+    """
+    hdbg.dassert_file_exists(changelog_path)
+    changelog = hio.from_file(changelog_path)
+    lines = changelog.split("\n")
+    version = None
+    date = None
+    changes = []
+    in_entry = False
+    for line in lines:
+        line = line.rstrip()
+        # Check for version header (e.g., "# csfy-2.2.0").
+        version_match = re.match(r"^#\s+(.+)$", line)
+        if version_match:
+            if version is None:
+                # This is the first (latest) entry.
+                version = version_match.group(1)
+                in_entry = True
+            else:
+                # We've reached the next entry, stop.
+                break
+        elif in_entry:
+            # Check for date (e.g., "- 2025-10-06").
+            date_match = re.match(r"^-\s+(\d{4}-\d{2}-\d{2})$", line)
+            if date_match and date is None:
+                date = date_match.group(1)
+            # Collect change lines.
+            elif line.startswith("- ") and not date_match:
+                changes.append(line)
+    return {"version": version, "date": date, "changes": changes}
 
 
 def get_container_version() -> Optional[str]:
@@ -210,6 +255,35 @@ def _check_version(code_version: str, container_version: str) -> bool:
         if False:
             raise RuntimeError(msg)
     return is_ok
+
+
+def bump_version(version: str, *, bump_type: str = "minor") -> str:
+    """
+    Bump a semantic version number.
+
+    :param version: version string in format X.Y.Z (e.g., "2.2.0")
+    :param bump_type: type of version bump - "major", "minor", or "patch"
+    :return: bumped version string
+    """
+    hdbg.dassert_in(bump_type, ("major", "minor", "patch"))
+    # Parse version using regex.
+    match = re.match(r"^(\d+)\.(\d+)\.(\d+)$", version)
+    hdbg.dassert(
+        match,
+        f"Invalid version format: '{version}'. Expected X.Y.Z format.",
+    )
+    major, minor, patch = map(int, match.groups())
+    # Bump according to type.
+    if bump_type == "major":
+        major += 1
+        minor = 0
+        patch = 0
+    elif bump_type == "minor":
+        minor += 1
+        patch = 0
+    else:  # patch
+        patch += 1
+    return f"{major}.{minor}.{patch}"
 
 
 def get_container_version_info() -> str:

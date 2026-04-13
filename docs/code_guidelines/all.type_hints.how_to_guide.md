@@ -1,27 +1,27 @@
 # Type Hints
 
-## Type hints
+## Type Hints
 
 <!-- toc -->
 
-- [Why we use type hints](#why-we-use-type-hints)
-- [What to annotate with type hints](#what-to-annotate-with-type-hints)
+- [Why We Use Type Hints](#why-we-use-type-hints)
+- [What to Annotate with Type Hints](#what-to-annotate-with-type-hints)
 - [Conventions](#conventions)
-  * [Empty return](#empty-return)
-  * [Invoke tasks](#invoke-tasks)
+  * [Empty Return](#empty-return)
+  * [Invoke Tasks](#invoke-tasks)
   * [Annotation for `kwargs`](#annotation-for-kwargs)
   * [`Any`](#any)
   * [`np.array` and `np.ndarray`](#nparray-and-npndarray)
-- [Handling the annoying `Incompatible types in assignment`](#handling-the-annoying-incompatible-types-in-assignment)
-- [Handling the annoying `"None" has no attribute`](#handling-the-annoying-none-has-no-attribute)
-- [Disabling `mypy` errors](#disabling-mypy-errors)
-- [What to do when you don't know what to do](#what-to-do-when-you-dont-know-what-to-do)
-- [Library without types](#library-without-types)
-- [Inferring types using unit tests](#inferring-types-using-unit-tests)
+- [Handling the Annoying `Incompatible types in assignment`](#handling-the-annoying-incompatible-types-in-assignment)
+- [Handling the Annoying `"None" has no attribute`](#handling-the-annoying-none-has-no-attribute)
+- [Disabling `mypy` Errors](#disabling-mypy-errors)
+- [What to Do When You Don'T Know What to Do](#what-to-do-when-you-dont-know-what-to-do)
+- [Library Without Types](#library-without-types)
+- [Inferring Types Using Unit Tests](#inferring-types-using-unit-tests)
 
 <!-- tocstop -->
 
-## Why we use type hints
+## Why We Use Type Hints
 
 - We use Python 3 type hints to:
   - Improve documentation
@@ -29,7 +29,7 @@
   - Enforce the type checks at run-time, through automatic assertions (not
     implemented yet)
 
-## What to annotate with type hints
+## What to Annotate with Type Hints
 
 - We expect all new library code (i.e., that is not in a notebook) to have type
   annotations
@@ -40,7 +40,7 @@
 
 ## Conventions
 
-### Empty return
+### Empty Return
 
 - Return `-> None` if your function doesn't return
   - Pros:
@@ -50,7 +50,7 @@
   - Cons:
     - `None` is the default value and so it might seem redundant
 
-### Invoke tasks
+### Invoke Tasks
 
 - For some reason `invoke` does not like type hints, so we
   - Omit type hints for `invoke` tasks, i.e. functions with the `@task`
@@ -93,7 +93,7 @@
   `x_vals: np.array` -> `x_vals: np.ndarray`
   ```
 
-## Handling the annoying `Incompatible types in assignment`
+## Handling the Annoying `Incompatible types in assignment`
 
 - `mypy` assigns a single type to each variable for its entire scope
 - The problem is in common idioms where we use the same variable to store
@@ -136,7 +136,7 @@
   test_func(arg=cast(bool, var))
   ```
 
-## Handling the annoying `"None" has no attribute`
+## Handling the Annoying `"None" has no attribute`
 
 - In some model classes `self._model` parameter is being assigned to `None` in
   ctor and being set after calling `set_fit_state` method
@@ -161,7 +161,7 @@
     self._model = cast(sklearn.base.BaseEstimator, self._model)
     ```
 
-## Disabling `mypy` errors
+## Disabling `mypy` Errors
 
 - If `mypy` reports an error and you don't understand why, please ping one of
   the Python experts asking for help
@@ -178,7 +178,7 @@
     from pyannotate_runtime import collect_types # type: ignore
     ```
 
-## What to do when you don't know what to do
+## What to Do When You Don'T Know What to Do
 
 - Go to the
   [`mypy` official cheat sheet](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html)
@@ -190,7 +190,7 @@
   - See
     [the official `mypy` documentation](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html#when-you-re-puzzled-or-when-things-are-complicated)
 
-## Library without types
+## Library Without Types
 
 - `mypy` is unhappy when a library doesn't have types
 - Lots of libraries are starting to add type hints now that Python 2 has been
@@ -208,7 +208,7 @@
   > cp mypy.ini amp/mypy.ini
   ```
 
-## Inferring types using unit tests
+## Inferring Types Using Unit Tests
 
 - Sometimes it is possible to infer types directly from unit tests. We have used
   this flow to annotate the code when we switched to Python3 and it worked fine

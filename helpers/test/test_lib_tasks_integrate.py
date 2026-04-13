@@ -7,16 +7,16 @@ class Test_infer_dst_dir1(hunitest.TestCase):
         # Define input variables.
         src_dir = "/src/cmamp1/oms/broker/broker.py"
         # Call function to test.
-        act = hlitaint._infer_dst_file_path(
+        actual = hlitaint._infer_dst_file_path(
             src_dir,
             default_src_dir_basename="cmamp1",
             default_dst_dir_basename="amp1",
             check_exists=False,
         )
         # Define expected output.
-        exp = (
+        expected = (
             "/src/amp1/oms/broker/broker.py",
             "oms/broker/broker.py",
         )
         # Compare actual and expected output.
-        self.assertEqual(act, exp)
+        self.assertEqual(actual, expected)

@@ -123,8 +123,8 @@ class TestParquet1(hunitest.TestCase):
         # Prepare data.
         df = _get_df_example1()
         # Check.
-        act = hpandas.df_to_str(df, print_shape_info=True, tag="df")
-        exp = r"""# df=
+        actual = hpandas.df_to_str(df, print_shape_info=True, tag="df")
+        expected = r"""# df=
         index=[2020-01-01 09:30:00-05:00, 2020-01-01 16:00:00-05:00]
         columns=idx,instr,val1,val2
         shape=(395, 4)
@@ -136,7 +136,7 @@ class TestParquet1(hunitest.TestCase):
         2020-01-01 15:50:00-05:00    4     E    57     3
         2020-01-01 15:55:00-05:00    4     E    33    50
         2020-01-01 16:00:00-05:00    4     E    96    75"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     # //////////////////////////////////////////////////////////////////////////////
 
@@ -223,8 +223,8 @@ class TestParquet1(hunitest.TestCase):
         filters.append([("idx", "=", 0)])
         df2 = self.read_filtered_parquet(file_name, filters)
         # Check.
-        act = hpandas.df_to_str(df2, print_shape_info=True, tag="df")
-        exp = r"""# df=
+        actual = hpandas.df_to_str(df2, print_shape_info=True, tag="df")
+        expected = r"""# df=
         index=[2020-01-01 09:30:00-05:00, 2020-01-01 16:00:00-05:00]
         columns=idx,instr,val1,val2
         shape=(79, 4)
@@ -236,7 +236,7 @@ class TestParquet1(hunitest.TestCase):
         2020-01-01 15:50:00-05:00    0     A    29    76
         2020-01-01 15:55:00-05:00    0     A    12     8
         2020-01-01 16:00:00-05:00    0     A    48    49"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test_write_and_read_partition_parquet_files_with_unit(self) -> None:
         """
@@ -475,7 +475,7 @@ class TestPartitionedParquet1(hunitest.TestCase):
         df_as_str = self.write_and_read_helper(
             df, partition_cols, exp_dir_signature, columns_to_read
         )
-        exp = r"""# =
+        expected = r"""# =
         index=[2020-01-01 09:30:00-05:00, 2020-01-01 16:00:00-05:00]
         columns=idx,instr
         shape=(395, 2)
@@ -487,7 +487,7 @@ class TestPartitionedParquet1(hunitest.TestCase):
         2020-01-01 15:50:00-05:00    4     E
         2020-01-01 15:55:00-05:00    4     E
         2020-01-01 16:00:00-05:00    4     E"""
-        self.assert_equal(df_as_str, exp, fuzzy_match=True)
+        self.assert_equal(df_as_str, expected, fuzzy_match=True)
 
     def test_write_and_read4(self) -> None:
         """
@@ -522,7 +522,7 @@ class TestPartitionedParquet1(hunitest.TestCase):
         df2 = table.to_pandas()
         # Compare.
         df_as_str = hpandas.df_to_str(df2, print_shape_info=True, tag="df")
-        exp = r"""# df=
+        expected = r"""# df=
         index=[0, 78]
         columns=idx,instr
         shape=(79, 2)
@@ -534,7 +534,7 @@ class TestPartitionedParquet1(hunitest.TestCase):
         76   0     A
         77   0     A
         78   0     A"""
-        self.assert_equal(df_as_str, exp, fuzzy_match=True)
+        self.assert_equal(df_as_str, expected, fuzzy_match=True)
 
     # //////////////////////////////////////////////////////////////////////////////
 
@@ -588,7 +588,7 @@ class TestPartitionedParquet1(hunitest.TestCase):
         hdbg.dassert_set_eq(df.columns, df2.columns)
         df2 = df2[df.columns]
         df_as_str = _compare_dfs(self, df, df2)
-        exp = r"""
+        expected = r"""
         # =
         index=[2020-01-01 09:30:00-05:00, 2020-01-01 16:00:00-05:00]
         columns=idx,instr,val1,val2
@@ -601,8 +601,8 @@ class TestPartitionedParquet1(hunitest.TestCase):
         2020-01-01 15:50:00-05:00    4     E    57     3
         2020-01-01 15:55:00-05:00    4     E    33    50
         2020-01-01 16:00:00-05:00    4     E    96    75"""
-        self.assert_equal(df_as_str, exp, fuzzy_match=True)
-        self.assert_equal(df_as_str, exp, fuzzy_match=True)
+        self.assert_equal(df_as_str, expected, fuzzy_match=True)
+        self.assert_equal(df_as_str, expected, fuzzy_match=True)
 
     def test_write_and_read_mixed_units_partition_dataset_1(self) -> None:
         """
@@ -946,13 +946,13 @@ class TestToPartitionedDataset(hunitest.TestCase):
 
     def test_get_test_data1(self) -> None:
         test_data = self.get_test_data1()
-        act = hpandas.df_to_str(test_data)
-        exp = r"""
+        actual = hpandas.df_to_str(test_data)
+        expected = r"""
            dummy_value_1 dummy_value_2  dummy_value_3
         0              1             A              0
         1              2             B              0
         2              3             C              0"""
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     @pytest.mark.skip(
         reason="CmTask1305: after removing circular dependencies in "
@@ -974,7 +974,7 @@ class TestToPartitionedDataset(hunitest.TestCase):
         dir_signature = hunitest.get_dir_signature(
             test_dir, include_file_content, remove_dir_name=remove_dir_name
         )
-        exp = r"""
+        expected = r"""
         # Dir structure
         .
         dummy_value_1=1
@@ -986,7 +986,9 @@ class TestToPartitionedDataset(hunitest.TestCase):
         dummy_value_1=3
         dummy_value_1=3/dummy_value_2=C
         dummy_value_1=3/dummy_value_2=C/data.parquet"""
-        self.assert_equal(dir_signature, exp, purify_text=True, fuzzy_match=True)
+        self.assert_equal(
+            dir_signature, expected, purify_text=True, fuzzy_match=True
+        )
         #
         include_file_content = True
         dir_signature = hunitest.get_dir_signature(
@@ -1006,15 +1008,15 @@ class TestToPartitionedDataset(hunitest.TestCase):
         # Check output.
         with self.assertRaises(AssertionError) as cm:
             hparque.to_partitioned_parquet(df, partition_cols, test_dir)
-        act = str(cm.exception)
-        exp = r"""
+        actual = str(cm.exception)
+        expected = r"""
         * Failed assertion *
         val1=['dummy_value_2', 'void_column']
         issubset
         val2=['dummy_value_1', 'dummy_value_2', 'dummy_value_3']
         val1 - val2=['void_column']
         """
-        self.assert_equal(act, exp, fuzzy_match=True)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################

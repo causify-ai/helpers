@@ -11,17 +11,29 @@ import sys
 from io import BytesIO
 from typing import List
 
-import helpers.henv as henv
-
-henv.install_module_if_not_present("pysftp")
-
-import pysftp
-
 import helpers.haws as haws
+import helpers.hmodule as hmodule
 import helpers.hsecrets as hsecret
+
+hmodule.install_module_if_not_present("pysftp")
+
+import pysftp  # noqa: E402
 
 # Create a logger instance.
 _LOG = logging.getLogger(__name__)
+
+
+def install_lftp():
+    """
+    Install `lftp` using the system package manager.
+    """
+    try:
+        subprocess.run(["sudo", "apt-get", "update"], check=True)
+        subprocess.run(["sudo", "apt-get", "install", "-y", "lftp"], check=True)
+        _LOG.info("`lftp` successfully installed using `apt`.")
+    except Exception as e:
+        _LOG.error("Failed to install `lftp`: %s", e)
+        sys.exit(1)
 
 
 def check_lftp_connection():
@@ -45,19 +57,6 @@ def check_lftp_connection():
     except FileNotFoundError:
         _LOG.warning("`lftp` is not installed. Attempting to install it...")
         install_lftp()
-
-
-def install_lftp():
-    """
-    Install `lftp` using the system package manager.
-    """
-    try:
-        subprocess.run(["sudo", "apt-get", "update"], check=True)
-        subprocess.run(["sudo", "apt-get", "install", "-y", "lftp"], check=True)
-        _LOG.info("`lftp` successfully installed using `apt`.")
-    except Exception as e:
-        _LOG.error("Failed to install `lftp`: %s", e)
-        sys.exit(1)
 
 
 def download_file_using_lftp(
@@ -103,7 +102,7 @@ def download_file_using_lftp(
     )
     try:
         _LOG.info("Executing lftp command: %s", lftp_cmd)
-        result = subprocess.run(
+        subprocess.run(
             lftp_cmd,
             shell=True,
             check=True,

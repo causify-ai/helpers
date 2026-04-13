@@ -1,5 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
 
+# /// script
+# dependencies = ["pydeps", "networkx", "pyyaml", "graphviz"]
+# ///
 """
 Detect cyclic imports.
 
@@ -27,8 +30,9 @@ def _check_import_cycles(
     Detect import cycles in a module.
 
     :param module_path: path to the input module
-    :param exclude_unimported_dirs: if set to True, dirs with unit tests and notebooks,
-        trash and tmp cache dirs will be excluded from the module check
+    :param exclude_unimported_dirs: if set to True, dirs with unit tests
+        and notebooks, trash and tmp cache dirs will be excluded from
+        the module check
     :return: a list of lists of modules forming import cycles
     """
     # Retrieve the dependency information.
@@ -52,7 +56,7 @@ def _check_import_cycles(
     dependence_graph_computer.collect_graph_data()
     graph = dependence_graph_computer.structured_graph
     # Detect cycles.
-    cycles = set(tuple(g) for g in nx.simple_cycles(graph))
+    cycles = {tuple(g) for g in nx.simple_cycles(graph)}
     cycles = sorted([sorted(x) for x in cycles])
     return cycles
 

@@ -136,10 +136,10 @@ class _ResetGlobalCacheHelper(hunitest.TestCase):
         # or not when we call the cached function.
         _reset_add_function(f)
         # Call the cached function.
-        act = cf(val1, val2)
-        exp = val1 + val2
+        actual = cf(val1, val2)
+        expected = val1 + val2
         # Check the result.
-        self.assertEqual(act, exp)
+        self.assertEqual(actual, expected)
         # Check which function was executed and what caches were used.
         _LOG.debug(
             "f.executed=%s vs %s",
@@ -182,16 +182,16 @@ class TestGlobalCache1(_ResetGlobalCacheHelper):
         f = _get_add_function()
         self.assertFalse(f.executed)  # type: ignore[attr-defined]
         # Execute.
-        act = f(3, 4)
-        self.assertEqual(act, 7)
+        actual = f(3, 4)
+        self.assertEqual(actual, 7)
         # The function was executed.
         self.assertTrue(f.executed)  # type: ignore[attr-defined]
         # Reset.
         _reset_add_function(f)
         self.assertFalse(f.executed)  # type: ignore[attr-defined]
         # Execute again.
-        act = f(3, 4)
-        self.assertEqual(act, 7)
+        actual = f(3, 4)
+        self.assertEqual(actual, 7)
         # Check that the function is executed again, since there is no caching.
         self.assertTrue(f.executed)  # type: ignore[attr-defined]
 
@@ -834,8 +834,8 @@ class TestCacheEnableReadOnly1(_ResetGlobalCacheHelper):
         # This is not cached so it should raise.
         with self.assertRaises(hcache.NotCachedValueException) as cm:
             self._execute_and_check_state(f, cf, 4, 4, exp_cf_state="no_cache")
-        act = str(cm.exception)
-        self.check_string(act)
+        actual = str(cm.exception)
+        self.check_string(actual)
         #
         # Disable the read-only mode.
         #
@@ -924,8 +924,8 @@ class TestCacheEnableCheckOnlyIfPresent1(_ResetGlobalCacheHelper):
         # Since the value was cached, we should get an assertion.
         with self.assertRaises(hcache.CachedValueException) as cm:
             self._execute_and_check_state(f, cf, 1, 2, exp_cf_state=cache_from)
-        act = str(cm.exception)
-        self.check_string(act)
+        actual = str(cm.exception)
+        self.check_string(actual)
         # 4) Try with a new value.
         _LOG.debug("\n%s", hprint.frame("Execute the 3rd time"))
         self._execute_and_check_state(f, cf, 2, 2, exp_cf_state="no_cache")

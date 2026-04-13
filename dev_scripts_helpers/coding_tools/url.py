@@ -72,7 +72,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     rel_file_name = hnetwor.get_file_name(url)
     _print("rel_file_name", rel_file_name, verbosity)
     if not rel_file_name:
-        msg = "Can't extract the name of a file from '%s'" % url
+        msg = f"Can't extract the name of a file from '{url}'"
         raise ValueError(msg)
     #
     _print("file_name", rel_file_name, verbosity)
@@ -87,7 +87,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _print("jupyter_url", jupyter_url, verbosity)
     #
     if rel_file_name.endswith(".ipynb"):
-        cmd = "publish_notebook.py --file %s --action open" % abs_file_name
+        cmd = f"publish_notebook.py --file {abs_file_name} --action open"
         _print("read notebook", cmd, verbosity)
 
     #

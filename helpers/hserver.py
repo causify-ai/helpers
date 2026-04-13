@@ -13,7 +13,6 @@ import shutil
 import subprocess
 from typing import Dict, List, Optional, Tuple
 
-import helpers.hprint as hprint
 import helpers.repo_config_utils as hrecouti
 
 # This module should depend only on:
@@ -30,6 +29,23 @@ def _print(msg: str) -> None:
     # _LOG.info(msg)
     if False:
         print(msg)
+
+
+# Copied from hprint to avoid import cycles.
+def _indent(txt: str, *, num_spaces: int = 2) -> str:
+    """
+    Add `num_spaces` spaces before each line of the passed string.
+    """
+    spaces = " " * num_spaces
+    txt_out = []
+    for curr_line in txt.split("\n"):
+        if curr_line.lstrip().rstrip() == "":
+            # Do not prepend any space to a line with only white characters.
+            txt_out.append("")
+            continue
+        txt_out.append(spaces + curr_line)
+    res = "\n".join(txt_out)
+    return res
 
 
 # We can't use `hsystem` to avoid import cycles.
@@ -85,8 +101,8 @@ def get_dev_csfy_host_names() -> Tuple[str]:
     """
     Return the names of the Causify dev servers.
     """
-    host_names = ["dev1", "dev2", "dev3"]
-    return host_names
+    host_names = ("dev1", "dev2", "dev3")
+    return list(host_names)
 
 
 def _get_host_name() -> str:
@@ -165,16 +181,6 @@ _MAC_OS_VERSION_MAPPING = {
     "Ventura": "22.",
     "Sequoia": "24.",
 }
-
-
-def is_host_mac() -> bool:
-    """
-    Return whether we are running on macOS.
-    """
-    host_os_name = _get_host_os_name()
-    #
-    ret = host_os_name == "Darwin"
-    return ret
 
 
 def get_host_mac_version() -> str:
@@ -571,24 +577,6 @@ def _dassert_setup_consistency() -> None:
     This is used to ensure that the setup configuration is one of the
     expected ones and uniquely defined.
     """
-
-    # We don't want to import `hprint` here because it will cause a circular
-    # import.
-    def _indent(txt: str, *, num_spaces: int = 2) -> str:
-        """
-        Add `num_spaces` spaces before each line of the passed string.
-        """
-        spaces = " " * num_spaces
-        txt_out = []
-        for curr_line in txt.split("\n"):
-            if curr_line.lstrip().rstrip() == "":
-                # Do not prepend any space to a line with only white characters.
-                txt_out.append("")
-                continue
-            txt_out.append(spaces + curr_line)
-        res = "\n".join(txt_out)
-        return res
-
     setups = _get_setup_settings()
     # One and only one set-up should be true.
     sum_ = sum([value for _, value in setups])
@@ -685,7 +673,7 @@ def has_docker_privileged_mode() -> bool:
     docker_executable = get_docker_executable()
     cmd = f"{docker_executable} run --privileged hello-world 2>&1 >/dev/null"
     rc = os.system(cmd)
-    _print("cmd=%s -> rc=%s" % (cmd, rc))
+    _print(f"cmd={cmd} -> rc={rc}")
     has_privileged_mode = rc == 0
     return has_privileged_mode
 
@@ -760,8 +748,9 @@ def get_docker_info() -> str:
     txt_tmp.append(
         f"has_docker_children_containers_support={has_docker_children_containers_support_}"
     )
-    #
-    txt = hprint.to_info("Docker info", txt_tmp)
+    txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
+    # Format as title with indented items.
+    txt = "Docker info" + "\n" + _indent("\n".join(txt_tmp))
     return txt
 
 
@@ -775,56 +764,56 @@ def get_docker_info() -> str:
 # the system.
 
 
-# # TODO(gp): -> has_docker_privileged_mode
-# @functools.lru_cache()
-# def has_dind_support() -> bool:
-#     """
-#     Return whether the current container supports privileged mode.
+# TODO(gp): -> has_docker_privileged_mode
+@functools.lru_cache()
+def has_dind_support() -> bool:
+    """
+    Return whether the current container supports privileged mode.
 
-#     This is needed to use Docker-in-Docker.
-#     """
-#     _print("is_inside_docker()=%s" % is_inside_docker())
-#     if not is_inside_docker():
-#         # Outside Docker there is no privileged mode.
-#         _print("-> ret = False")
-#         return False
-#     # TODO(gp): Not sure this is really needed since we do this check
-#     #  after enable_privileged_mode controls if we have dind or not.
-#     if _is_mac_version_with_sibling_containers():
-#         return False
-#     # TODO(gp): This part is not multi-process friendly. When multiple
-#     # processes try to run this code they interfere. A solution is to run `ip
-#     # link` in the entrypoint and create a `has_docker_privileged_mode` file
-#     # which contains the value.
-#     # We rely on the approach from https://stackoverflow.com/questions/32144575
-#     # to check if there is support for privileged mode.
-#     # Sometimes there is some state left, so we need to clean it up.
-#     # TODO(Juraj): this is slow and inefficient, but works for now.
-#     cmd = "sudo docker run hello-world"
-#     rc = os.system(cmd)
-#     _print("cmd=%s -> rc=%s" % (cmd, rc))
-#     has_dind = rc == 0
-#     # dind is supported on both Mac and GH Actions.
-#     # TODO(Juraj): HelpersTask16.
-#     # if check_repo:
-#     #    if hserver.is_inside_ci():
-#     #        # Docker-in-docker is needed for GH actions. For all other builds is optional.
-#     #        assert has_dind, (
-#     #            f"Expected privileged mode: has_dind={has_dind}\n"
-#     #            + hserver.setup_to_str()
-#     #        )
-#     #    else:
-#     #        only_warning = True
-#     #        _raise_invalid_host(only_warning)
-#     #        return False
-#     # else:
-#     #    csfy_repo_config = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True")
-#     #    print(
-#     #        _WARNING
-#     #        + ": Skip checking since CSFY_REPO_CONFIG_CHECK="
-#     #        + f"'{csfy_repo_config}'"
-#     #    )
-#     return has_dind
+    This is needed to use Docker-in-Docker.
+    """
+    _print(f"is_inside_docker()={is_inside_docker()}")
+    if not is_inside_docker():
+        # Outside Docker there is no privileged mode.
+        _print("-> ret = False")
+        return False
+    # TODO(gp): Not sure this is really needed since we do this check
+    #  after enable_privileged_mode controls if we have dind or not.
+    if _is_mac_version_with_sibling_containers():
+        return False
+    # TODO(gp): This part is not multi-process friendly. When multiple
+    # processes try to run this code they interfere. A solution is to run `ip
+    # link` in the entrypoint and create a `has_docker_privileged_mode` file
+    # which contains the value.
+    # We rely on the approach from https://stackoverflow.com/questions/32144575
+    # to check if there is support for privileged mode.
+    # Sometimes there is some state left, so we need to clean it up.
+    # TODO(Juraj): this is slow and inefficient, but works for now.
+    cmd = "sudo docker run hello-world"
+    rc = os.system(cmd)
+    _print(f"cmd={cmd} -> rc={rc}")
+    has_dind = rc == 0
+    # dind is supported on both Mac and GH Actions.
+    # TODO(Juraj): HelpersTask16.
+    # if check_repo:
+    #    if hserver.is_inside_ci():
+    #        # Docker-in-docker is needed for GH actions. For all other builds is optional.
+    #        assert has_dind, (
+    #            f"Expected privileged mode: has_dind={has_dind}\n"
+    #            + hserver.setup_to_str()
+    #        )
+    #    else:
+    #        only_warning = True
+    #        _raise_invalid_host(only_warning)
+    #        return False
+    # else:
+    #    csfy_repo_config = os.environ.get("CSFY_REPO_CONFIG_CHECK", "True")
+    #    print(
+    #        _WARNING
+    #        + ": Skip checking since CSFY_REPO_CONFIG_CHECK="
+    #        + f"'{csfy_repo_config}'"
+    #    )
+    return has_dind
 
 
 def _raise_invalid_host(only_warning: bool) -> None:
@@ -950,6 +939,7 @@ def get_shared_data_dirs() -> Optional[Dict[str, str]]:
             "/data/shared": "/shared_data",
             "/data/shared2": "/shared_data2",
             "/data/shared_k8s": "/shared_k8s",
+            "/data/shared_test": "/shared_test",
         }
     elif is_external_dev() or is_inside_ci() or is_prod_csfy():
         shared_data_dirs = None
@@ -1100,28 +1090,6 @@ def is_CK_S3_available() -> bool:
 # #############################################################################
 
 
-# Copied from hprint to avoid import cycles.
-
-
-def _indent(txt: str, *, num_spaces: int = 2) -> str:
-    """
-    Add `num_spaces` spaces before each line of the passed string.
-    """
-    spaces = " " * num_spaces
-    txt_out = []
-    for curr_line in txt.split("\n"):
-        if curr_line.lstrip().rstrip() == "":
-            # Do not prepend any space to a line with only white characters.
-            txt_out.append("")
-            continue
-        txt_out.append(spaces + curr_line)
-    res = "\n".join(txt_out)
-    return res
-
-
-# End copy.
-
-
 def config_func_to_str() -> str:
     """
     Print the value of all the config functions.
@@ -1165,5 +1133,5 @@ def config_func_to_str() -> str:
         msg = f"{func_name}='{func_value}'"
         ret.append(msg)
     # Package.
-    ret = "\n".join(ret)
-    return ret
+    result = "\n".join(ret)
+    return result

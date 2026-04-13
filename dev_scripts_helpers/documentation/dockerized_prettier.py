@@ -7,31 +7,33 @@ This script builds the container dynamically if necessary and formats the
 specified file using the provided `prettier` options.
 
 Examples
-# Basic usage:
-> dockerized_prettier.py --parser markdown --prose-wrap always --write \
-    --tab-width 2 test.md
-
-# Use sudo for Docker commands:
-> dockerized_prettier.py --use_sudo --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md
-
-# Set logging verbosity:
-> dockerized_prettier.py -v DEBUG --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md </pre>
 
 # Process a file:
 > cat test.md
 - a
   - b
         - c
-> dockerized_prettier.py --parser markdown --prose-wrap always \
-    --write --tab-width 2 test.md
+> dockerized_prettier.py \
+    --parser markdown \
+    --prose-wrap always \
+    --tab-width 2 \
+    test.md
+
+# Use sudo for Docker commands:
+> dockerized_prettier.py \
+    --use_sudo \
+    ...
+
+# Set logging verbosity:
+> dockerized_prettier.py \
+    -v DEBUG \
+    ...
 """
 
 import argparse
 import logging
 
-import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdocexec
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -61,11 +63,11 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("cmd_opts: %s", cmd_opts)
     # TODO(gp): This should be passed or inferred.
     file_type = "md"
-    hdocker.run_dockerized_prettier(
+    hdocexec.prettier(
         in_file_name,
-        cmd_opts,
         out_file_name,
         file_type=file_type,
+        use_dockerized_prettier=True,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )

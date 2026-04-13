@@ -62,7 +62,7 @@ def _load_review_guidelines(
         # Extract the section under the header.
         section = hmarkdo.extract_section_from_markdown(guidelines_doc, category)
         # Extract individual guidelines from bullet points.
-        individual_guidelines = _extract_bullet_points(section)
+        individual_guidelines = hmarkdo.parse_rules_from_txt(section)
         guidelines[category] = individual_guidelines
     return guidelines
 
@@ -167,7 +167,7 @@ def _process_comments(comments: List[str], log_filepath: str) -> None:
     # Clean up.
     hdbg.dassert_list_of_strings(comments)
     comments = sorted(comments)
-    comments = hprint.remove_empty_lines_from_string_list(comments)
+    comments = hprint.remove_empty_lines(comments)
     comments = hlist.remove_duplicates(comments)
     # Write into a file.
     hio.to_file(log_filepath, "\n".join(comments))

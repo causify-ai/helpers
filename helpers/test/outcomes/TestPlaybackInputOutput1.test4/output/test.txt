@@ -13,8 +13,8 @@ class TestGetResultAssertEqual(hunitest.TestCase):
         a = {"1": 2}
         b = {"3": 4}
         # Call function to test.
-        act = get_result_assert_equal(a=a, b=b)
+        actual = get_result_assert_equal(a=a, b=b)
         # Define expected output.
-        exp = {"1": 2, "3": 4}
+        expected = {"1": 2, "3": 4}
         # Compare actual and expected output.
-        self.assertEqual(act, exp)
+        self.assertEqual(actual, expected)

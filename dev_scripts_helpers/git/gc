@@ -1,0 +1,10 @@
+#!/bin/bash -e
+# """
+# > git commit -am ...; git push
+# """
+
+source helpers.sh
+
+commit_msg="Update"
+execute "git commit -am '$commit_msg'"
+execute "git push"

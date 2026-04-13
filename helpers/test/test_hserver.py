@@ -104,7 +104,7 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
         self.exp_config_func_to_str = None
         self.exp_get_docker_info = hprint.dedent(
             r"""
-            # Docker info
+            Docker info
               has_docker=True
               docker_needs_sudo=False
               has_privileged_mode=True

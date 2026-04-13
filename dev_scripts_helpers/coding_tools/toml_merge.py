@@ -43,8 +43,7 @@ def _update(dict_merged: _DepDict, dict_new: _DepDict) -> _DepDict:
         if k in dict_merged:
             if v != dict_merged[k]:
                 raise ValueError(
-                    "Key '%s' is assigned to different values '%s' and '%s'"
-                    % (k, v, dict_merged[k])
+                    f"Key '{k}' is assigned to different values '{v}' and '{dict_merged[k]}'"
                 )
         else:
             dict_merged[k] = v

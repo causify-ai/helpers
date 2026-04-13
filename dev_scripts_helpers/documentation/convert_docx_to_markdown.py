@@ -12,7 +12,7 @@ directory.
 
 > IN_FILE_NAME="/Users/saggese/Downloads/Blank.docx"; ls $FILE_NAME
 > OUT_FILE_NAME="paper/paper.md"
-> convert_docx_to_markdown.py --docx_file $IN_FILE_NAME --md_file $OUT_FILE_NAME
+> convert_docx_to_markdown.py --input $IN_FILE_NAME --output $OUT_FILE_NAME
 """
 
 import argparse
@@ -21,7 +21,7 @@ import os
 import shutil
 
 import helpers.hdbg as hdbg
-import helpers.hdocker as hdocker
+import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hsystem as hsystem
@@ -111,14 +111,16 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--docx_file",
+        "--input",
+        "-i",
         action="store",
         required=True,
         type=str,
         help="The Docx file to convert to Markdown",
     )
     parser.add_argument(
-        "--md_file",
+        "--output",
+        "-o",
         action="store",
         required=True,
         type=str,
@@ -131,8 +133,8 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
-    docx_file = args.docx_file
-    md_file = args.md_file
+    docx_file = args.input
+    md_file = args.output
     # Create the folder for the figures.
     md_file_figs = md_file.replace(".md", "_figs")
     hio.create_dir(md_file_figs, incremental=False)
@@ -142,7 +144,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         f"-f docx -t markdown_strict --output {md_file}"
     )
     container_type = "pandoc_only"
-    hdocker.run_dockerized_pandoc(cmd, container_type)
+    hdocexec.run_dockerized_pandoc(cmd, container_type)
     _move_media(md_file_figs)
     _clean_up_artifacts(md_file, md_file_figs)
     _LOG.info("Finished converting '%s' to '%s'.", docx_file, md_file)

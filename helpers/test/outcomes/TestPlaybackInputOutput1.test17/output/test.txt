@@ -10,6 +10,6 @@ import config_root.config as cconfi
 class TestGetResultCheckStringNone(hunitest.TestCase):
     def test1(self) -> None:
         # Call function to test.
-        act = get_result_check_string_none()
+        actual = get_result_check_string_none()
         # Check output.
-        self.check_string(act)
+        self.check_string(actual)

@@ -1,4 +1,3 @@
-import argparse
 import logging
 import re
 
@@ -7,7 +6,6 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown as hmarkdo
 import helpers.hprint as hprint
-
 
 _LOG = logging.getLogger(__name__)
 
@@ -60,9 +58,7 @@ def run_post_transforms(
     :param tmp_out_file_name: Temporary output file name
     :return: Text after applying post-transforms
     """
-    post_container_transforms = dshlllpr.get_post_container_transforms(
-        prompt
-    )
+    post_container_transforms = dshlllpr.get_post_container_transforms(prompt)
     #
     if dshlllpr.to_run("convert_file_names", post_container_transforms):
         _convert_file_names(in_file_name, tmp_out_file_name)
@@ -80,14 +76,16 @@ def run_post_transforms(
         out_txt = hmarkdo.format_markdown(out_txt)
     #
     if dshlllpr.to_run("format_latex", post_container_transforms):
-        # Same as `prettier_markdown`.
+        # TODO(gp): Is this needed?
         out_txt = hmarkdo.md_clean_up(out_txt)
-        out_txt = hmarkdo.format_markdown(out_txt)
+        out_txt = hlatex.format_latex(out_txt)
     #
     if dshlllpr.to_run("format_slide", post_container_transforms):
         # Same as `prettier_markdown`.
         out_txt = hmarkdo.md_clean_up(out_txt)
-        out_txt = hmarkdo.format_markdown_slide(out_txt)
+        lines = out_txt.split("\n")
+        out_txt = hmarkdo.format_markdown_slide(lines)
+        out_txt = "\n".join(out_txt)
     #
     if dshlllpr.to_run("append_to_text", post_container_transforms):
         out_txt_tmp = []

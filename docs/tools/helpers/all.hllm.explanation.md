@@ -11,6 +11,7 @@
   * [Entire Flow](#entire-flow)
 - [How Testing Works](#how-testing-works)
   * [Cache Refreshing](#cache-refreshing)
+- [Proposal for integrating `hcache_simple.simple_cache()`](#proposal-for-integrating-hcache_simplesimple_cache)
 
 <!-- tocstop -->
 
@@ -36,13 +37,14 @@
   )
   ```
 
-- The parameter used are:
+- The parameters used in the example are:
   - `user_prompt`: User's message to the LLM.
   - `system_prompt`: Context-setting instruction for the assistant.
   - `model`: OpenAI or OpenRouter model to use.
   - `cache_mode`: One of:
     - `"DISABLE_CACHE"`: No caching.
-    - `"HIT_CACHE_OR_ABORT"`: Only use cached response; raise error if not found.
+    - `"HIT_CACHE_OR_ABORT"`: Only use cached response; raise error if not
+      found.
     - `"NORMAL"`: Use cache if available, else make an API call.
     - `"REFRESH_CACHE"`: Always make an API call and update the cache.
   - `cache_file`: Path to JSON cache file.
@@ -134,7 +136,7 @@ This section summarizes how `get_completion()` operates internally.
 1. **Input Handling**
    - Accepts `user_prompt`, `system_prompt`, `model`, `cache_mode`, and other
      parameters.
-   - Builds OpenAI-compatible `messages` list.
+   - Builds OpenAI-compatible input according to the API specifications.
 
 2. **Cache Key Creation**
    - Calls `_CompletionCache.hash_key_generator()` using model, prompts, and
@@ -155,7 +157,7 @@ This section summarizes how `get_completion()` operates internally.
 
 4. **API Call Execution**
    - Calls OpenAI API synchronously (with or without streaming).
-   - Collects the completion output and underlying response object.
+   - Collects the full LLM output and underlying text response.
 
 5. **Cost Estimation**
    - Uses `_calculate_cost()` to compute token usage cost.
@@ -167,15 +169,17 @@ This section summarizes how `get_completion()` operates internally.
    - Cost and response metadata are saved in JSON.
 
 7. **Return**
-   - Returns only the final text content from the model.
+   - Returns either the full LLM output including metadata, or only its text 
+     contents.
+   - The type of returned value is controlled by the `return_raw` flag.
 
 - All caching operations are handled by the `_CompletionCache` class.
 
 # How Testing Works
 
 - During unit tests, the cache:
-  - Is set in `HIT_CACHE_OR_ABORT` mode to avoid real API calls (tests raise error if the
-    required response is not cached)
+  - Is set in `HIT_CACHE_OR_ABORT` mode to avoid real API calls (tests raise
+    error if the required response is not cached)
   - Uses for cache a file that is checked into the repo
   - Expected prompts and responses are cached beforehand or as tests are
     executed
@@ -209,3 +213,62 @@ This section summarizes how `get_completion()` operates internally.
 
 - Once the cache is refreshed, the cache should be reviewed and committed the
   updated cache file to version control
+
+# Proposal for integrating `hcache_simple.simple_cache()`
+
+- Consolidating the bespoke `_CompletionCache` logic in `hllm.get_completion()`
+  by adopting the `simple_cache()` decorator from `helpers.hcache_simple`.
+
+- Instead of wrapping the top‐level `get_completion()`, apply caching directly
+  to the internal `_call_api_sync` function where the actual OpenAI/OpenRouter
+  API call is made:
+
+  ```python
+  from helpers import hcache_simple as hcacsimp
+
+  @hcacsimp.simple_cache(
+      write_through=True,
+      exclude_keys=["client", "cache_mode"],
+  )
+  def _call_api_sync_cached(
+      cache_mode: str,
+      client: openai.OpenAI,
+      user_prompt: str,
+      system_prompt: str,
+      temperature: float,
+      model: str,
+      *,
+      images_as_base64: Optional[Tuple[str, ...]] = None,
+      cost_tracker: Optional[LLMCostTracker] = None,
+      use_responses_api: bool = False,
+      **create_kwargs,
+  ) -> Dict[str, Any]:
+      hdbg.dassert_in(cache_mode, ("REFRESH_CACHE", "HIT_CACHE_OR_ABORT", "NORMAL"))
+      return _call_api_sync(
+          client=client,
+          user_prompt=user_prompt,
+          system_prompt=system_prompt,
+          temperature=temperature,
+          model=model,
+          images_as_base64=images_as_base64,
+          cost_tracker=cost_tracker,
+          use_responses_api=use_responses_api,
+          **create_kwargs,
+      )
+  ```
+
+- In `get_completion()`, map the existing `cache_mode` values to the
+  `simple_cache()`'s parameters:
+  - `REFRESH_CACHE` → `force_refresh=True`
+  - `HIT_CACHE_OR_ABORT` → `abort_on_cache_miss=True`
+
+- Benefits
+  - Leverages `hcache_simple`'s tested in‐memory and disk caching.
+  - Eliminates custom JSON serialization and metadata management.
+  - Simplifies `hllm.py` by removing the `_CompletionCache` class.
+
+- Trade-offs
+  - The legacy prompt normalization (lowercasing and whitespace trimming) must
+    be handled upstream if still required.
+  - Cache metadata format and statistics will follow `hcache_simple` conventions
+    rather than the custom JSON schema.

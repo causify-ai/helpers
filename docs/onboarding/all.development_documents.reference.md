@@ -47,14 +47,14 @@ This contains the absolute minimal amount of info to start developing
 - [Code review](/docs/coding/all.code_review.how_to_guide.md)
   - PR review workflow from the code author and code reviewer points of view
 
-- [Development workflow](/docs/work_tools/all.development.how_to_guide.md)
+- [Development workflow](/docs/onboarding/all.development.how_to_guide.md)
   - Extended instructions on how to deploy your working environment and interact
     with it
 
 - [GitHub workflows](/docs/work_organization/all.use_github.how_to_guide.md)
   - How to use GitHub, file a PR, review GitHub workflows
 
-- [Git workflow and best practices](/docs/work_tools/git/all.git.how_to_guide.md)
+- [Git workflow and best practices](/docs/tools/git/all.git.how_to_guide.md)
   - `git` workflows, branch management, troubleshooting, common procedures
 
 - [Documentation about guidelines](/docs/documentation_meta/all.writing_docs.how_to_guide.md)
@@ -71,13 +71,13 @@ This contains the absolute minimal amount of info to start developing
 
 This contains a set of resources that over time will make 10x more productive
 
-- [Docker](/docs/work_tools/all.devops_docker.how_to_guide.md)
+- [Docker](/docs/tools/dev_system/all.devops_docker.how_to_guide.md)
 
 - [Reading List](/docs/general_background/all.reading_list.reference.md)
 
 - [Design Philosophy](/docs/coding/all.code_design.how_to_guide.md)
 
-- [Codebase Clean-up](/docs/work_tools/all.codebase_clean_up.how_to_guide.md)
+- [Codebase Clean-up](/docs/tools/all.codebase_clean_up.how_to_guide.md)
 
 - [Scrum Methodology](/docs/work_organization/all.scrum.explanation.md)
 
@@ -87,7 +87,7 @@ This contains a set of resources that over time will make 10x more productive
 
 - [Profiling](/docs/coding/all.profiling.how_to_guide.md)
 
-- [Visual Studio Code](/docs/work_tools/all.visual_studio_code.how_to_guide.md)
+- [Visual Studio Code](/docs/tools/all.visual_studio_code.how_to_guide.md)
 
 - [Gsheet into pandas](/docs/coding/all.gsheet_into_pandas.how_to_guide.md)
 
@@ -97,7 +97,7 @@ This contains a set of resources that over time will make 10x more productive
 
 - [Type Hints](/docs/coding/all.type_hints.how_to_guide.md)
 
-- [PyCharm](/docs/work_tools/all.pycharm.how_to_guide.md)
+- [PyCharm](/docs/tools/all.pycharm.how_to_guide.md)
 
 ## DeFi
 

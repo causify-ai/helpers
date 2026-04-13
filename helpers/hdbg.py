@@ -453,9 +453,9 @@ def _set_to_str(set_: Set[Any], thr: Optional[int] = 20) -> str:
     ```
     with self.assertRaises(AssertionError) as cm:
         ...
-    act = str(cm.exception)
-    exp = r
-    self.assert_equal(act, exp, fuzzy_match=True)
+    actual = str(cm.exception)
+    expected = r
+    self.assert_equal(actual, expected, fuzzy_match=True)
     ```
     """
     try:
@@ -544,14 +544,38 @@ def dassert_not_intersection(
         _dfatal(txt, msg, *args, only_warning=only_warning)
 
 
+def dassert_is_iterable(
+    val: Any,
+    msg: Optional[str] = None,
+    *args: Any,
+    only_warning: bool = False,
+) -> None:
+    """
+    Check that `val` is an iterable (excluding strings, bytes), raise otherwise.
+    """
+    cond = isinstance(val, Iterable) and not isinstance(
+        val, (str, bytes, bytearray)
+    )
+    if not cond:
+        txt = f"Val '{val}' of type '{type(val)}' is not an iterable"
+        _dfatal(txt, msg, *args, only_warning=only_warning)
+
+
 # #############################################################################
 # Array related.
 # #############################################################################
 
 
 def dassert_no_duplicates(
-    val1: Any, msg: Optional[str] = None, *args: Any, only_warning: bool = False
+    val1: Iterable[Any],
+    msg: Optional[str] = None,
+    *args: Any,
+    only_warning: bool = False,
 ) -> None:
+    """
+    Check that `val1` has no duplicates, raise otherwise.
+    """
+    dassert_is_iterable(val1)
     cond = len(set(val1)) == len(val1)
     if not cond:
         # Count the occurrences of each element of the seq.
@@ -572,6 +596,9 @@ def dassert_is_sorted(
     *args: Any,
     only_warning: bool = False,
 ) -> None:
+    """
+    Check that `val` is sorted, raise otherwise.
+    """
     # TODO(gp): Extend for pd.Series using the proper method.
     dassert_isinstance(val1, (list, tuple))
     sort_kwargs = {} if sort_kwargs is None else sort_kwargs
@@ -586,13 +613,18 @@ def dassert_is_sorted(
 
 
 def dassert_eq_all(
-    val1: Any,
-    val2: Any,
+    val1: Iterable[Any],
+    val2: Iterable[Any],
     msg: Optional[str] = None,
     *args: Any,
     only_warning: bool = False,
 ) -> None:
+    """
+    Check that two iterables `val1` and `val2` are equal, raise otherwise.
+    """
+    dassert_is_iterable(val1)
     val1 = list(val1)
+    dassert_is_iterable(val2)
     val2 = list(val2)
     cond = val1 == val2
     if not cond:
@@ -607,7 +639,7 @@ def dassert_eq_all(
 
 
 def _get_first_type(obj: Iterable, tag: str) -> Type:
-    obj_types = set(type(v) for v in obj)
+    obj_types = {type(v) for v in obj}
     dassert_eq(
         len(obj_types),
         1,
@@ -850,16 +882,18 @@ def dassert_file_extension(
     )
 
 
-def dassert_is_path_abs(
-    path: str, only_warning: bool = False
-) -> None:
+def dassert_is_path_abs(path: str, only_warning: bool = False) -> None:
     """
     Assert that `path` is an absolute path.
     """
     dassert_isinstance(path, str)
     dassert_ne(path, "")
-    dassert(os.path.isabs(path), "Path '%s' is not absolute", path,
-        only_warning=only_warning)
+    dassert(
+        os.path.isabs(path),
+        "Path '%s' is not absolute",
+        path,
+        only_warning=only_warning,
+    )
 
 
 def dassert_related_params(
@@ -887,10 +921,7 @@ def dassert_related_params(
         one_is_non_null = functools.reduce(lambda x, y: x or y, is_non_null)
         for k, v in params.items():
             if bool(v) != one_is_non_null:
-                txt = (
-                    "All or none parameter should be non-null:\n%s=%s\nparams=%s\n"
-                    % (k, v, pprint.pformat(params))
-                )
+                txt = f"All or none parameter should be non-null:\n{k}={v}\nparams={pprint.pformat(params)}\n"
                 _dfatal(txt, msg, *args, only_warning=only_warning)
     elif mode == "all_or_none_non_None":
         # Find out if at least one value is not None.
@@ -898,13 +929,24 @@ def dassert_related_params(
         one_is_non_None = functools.reduce(lambda x, y: x or y, is_non_None)
         for k, v in params.items():
             if (v is not None) != one_is_non_None:
-                txt = (
-                    "All or none parameter should be non-None:\n%s=%s\nparams=%s\n"
-                    % (k, v, pprint.pformat(params))
-                )
+                txt = f"All or none parameter should be non-None:\n{k}={v}\nparams={pprint.pformat(params)}\n"
                 _dfatal(txt, msg, *args, only_warning=only_warning)
     else:
         raise ValueError(f"Invalid mode='{mode}'")
+
+
+# #############################################################################
+# Command line.
+# #############################################################################
+
+
+# Sample at the beginning of time before we start fiddling with command line
+# args.
+_CMD_LINE = " ".join(arg for arg in sys.argv)
+
+
+def get_command_line() -> str:
+    return _CMD_LINE
 
 
 # #############################################################################
@@ -928,6 +970,7 @@ def init_logger(
     in_pytest: bool = False,
     report_memory_usage: bool = False,
     report_cpu_usage: bool = False,
+    report_command_line: bool = True,
 ) -> None:
     """
     Send stderr and stdout to logging (optionally teeing the logs to file).
@@ -947,6 +990,7 @@ def init_logger(
         can overwrite the default logger from pytest
     :param report_memory_usage: turn on reporting memory usage
     :param report_cpu_usage: turn on reporting CPU usage
+    :param report_command_line: turn on reporting command line
     """
     # Try to minimize dependencies.
     import helpers.hlogging as hloggin
@@ -956,6 +1000,8 @@ def init_logger(
         sys.stdout.write("\033[0m")
     if isinstance(verbosity, str):
         # pylint: disable=protected-access
+        dassert(hasattr(logging, "_checkLevel"))
+        assert hasattr(logging, "_checkLevel")
         verbosity = logging._checkLevel(verbosity)
     # From https://stackoverflow.com/questions/14058453
     root_logger = logging.getLogger()
@@ -985,6 +1031,8 @@ def init_logger(
     ch.setLevel(verbosity)
     # Set the formatter.
     # formatter = hloggin.set_v1_formatter(
+    dassert(hasattr(hloggin, "set_v2_formatter"))
+    assert hasattr(hloggin, "set_v2_formatter")
     formatter = hloggin.set_v2_formatter(
         ch,
         root_logger,
@@ -1031,8 +1079,11 @@ def init_logger(
     #
     _LOG.debug("Effective logging level=%s", _LOG.getEffectiveLevel())
     # Shut up chatty modules.
+    dassert(hasattr(hloggin, "shutup_chatty_modules"))
+    assert hasattr(hloggin, "shutup_chatty_modules")
     hloggin.shutup_chatty_modules(verbose=False)
-    _LOG.info("> cmd='%s'", get_command_line())
+    if report_command_line:
+        _LOG.info("> cmd='%s'", get_command_line())
     #
     # test_logger()
 

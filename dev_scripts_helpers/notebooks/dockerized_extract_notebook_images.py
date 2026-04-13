@@ -16,11 +16,9 @@ import helpers.hprint as hprint
 
 _LOG = logging.getLogger(__name__)
 
-
 # #############################################################################
-# NotebookImageExtractor
+# _NotebookImageExtractor
 # #############################################################################
-
 
 class _NotebookImageExtractor:
     """
@@ -145,7 +143,9 @@ class _NotebookImageExtractor:
                 )
                 current_out_filename = m.group(2)
                 in_extract = True
-                _LOG.debug(hprint.to_str("current_mode current_out_filename in_extract"))
+                _LOG.debug(
+                    hprint.to_str("current_mode current_out_filename in_extract")
+                )
                 # Remove the start marker from the cell, since we don't want
                 # to show it in the captured picture.
                 cell.source = start_marker_regex.sub("", cell.source).strip()
@@ -232,7 +232,7 @@ class _NotebookImageExtractor:
         The function orchestrates the extraction of all marked regions from a
         Jupyter notebook
         - Process each region independently: adjusting cells according to its
-        extraction mode
+          extraction mode
         - Convert the region to an HTML file
         - Capture a screenshot using Playwright
         - Clean up the temporary HTML file

@@ -11,11 +11,11 @@ class Test_format_separating_lines(hunitest.TestCase):
         line_width = 78
 
         line = f"# {'#' * min_num_chars}"
-        exp = f"# {'#' * (line_width - 1)}"
+        expected = f"# {'#' * (line_width - 1)}"
         actual = lafoseli._format_separating_line(
             line, min_num_chars=min_num_chars, line_width=line_width
         )
-        self.assertEqual(exp, actual)
+        self.assertEqual(expected, actual)
 
     def test2(self) -> None:
         """
@@ -24,12 +24,12 @@ class Test_format_separating_lines(hunitest.TestCase):
         min_num_chars = 10
 
         line = f"# {'#' * (min_num_chars - 1)}"
-        exp = line
+        expected = line
         actual = lafoseli._format_separating_line(
             line,
             min_num_chars=min_num_chars,
         )
-        self.assertEqual(exp, actual)
+        self.assertEqual(expected, actual)
 
     def test3(self) -> None:
         """
@@ -39,11 +39,11 @@ class Test_format_separating_lines(hunitest.TestCase):
         line_width = 78
 
         line = f"# {'=' * min_num_chars}"
-        exp = f"# {'=' * (line_width - 1)}"
+        expected = f"# {'=' * (line_width - 1)}"
         actual = lafoseli._format_separating_line(
             line, min_num_chars=min_num_chars, line_width=line_width
         )
-        self.assertEqual(exp, actual)
+        self.assertEqual(expected, actual)
 
     def test4(self) -> None:
         """
@@ -54,8 +54,8 @@ class Test_format_separating_lines(hunitest.TestCase):
         line_width = 78
 
         line = f"# {'=' * min_num_chars} '''"
-        exp = line
+        expected = line
         actual = lafoseli._format_separating_line(
             line, min_num_chars=min_num_chars, line_width=line_width
         )
-        self.assertEqual(exp, actual)
+        self.assertEqual(expected, actual)

@@ -13,10 +13,10 @@ class TestGetResultAssertEqual(hunitest.TestCase):
         a = pd.DataFrame.from_dict({'Price': [700, 250, 800, 1200]})
         b = pd.DataFrame.from_dict({'Price': [1, 1, 1, 1]})
         # Call function to test.
-        act = get_result_assert_equal(a=a, b=b)
+        actual = get_result_assert_equal(a=a, b=b)
         # Define expected output.
-        exp = pd.DataFrame.from_dict({'Price': [701, 251, 801, 1201]})
-        act = hpandas.df_to_str(act, num_rows=None)
-        exp = hpandas.df_to_str(exp, num_rows=None)
+        expected = pd.DataFrame.from_dict({'Price': [701, 251, 801, 1201]})
+        actual = hpandas.df_to_str(actual, num_rows=None)
+        expected = hpandas.df_to_str(expected, num_rows=None)
         # Compare actual and expected output.
-        self.assertEqual(act, exp)
+        self.assertEqual(actual, expected)

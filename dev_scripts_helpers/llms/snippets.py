@@ -1,22 +1,17 @@
+import ast
 import logging
+import re
+import textwrap
 from dataclasses import dataclass
 from typing import List, Tuple
 
+import tqdm
+
+import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 
 _LOG = logging.getLogger(__name__)
-
-
-# #############################################################################
-# Manipulate code.
-# #############################################################################
-
-
-import ast
-import re
-import textwrap
-
-import helpers.hio as hio
 
 
 def remove_docstring(code: str) -> str:
@@ -95,7 +90,7 @@ def _extract(obj: Dict[str, Any], keys: List[str]) -> Dict[str, Any]:
 
 
 def build_few_shot_learning() -> str:
-    functions = get_functions1()
+    functions = get_functions("code_snippets1")
     text = """
 You are a proficient Python coder.
 
@@ -130,10 +125,10 @@ class InOut:
     # Input (e.g., code without comments).
     in_: str
     # Desired output (e.g., code with comments).
-    # TODO(gp): exp?
+    # TODO(gp): expected?
     out: str
     # Actual output (e.g., code with comments from LLM).
-    act: str
+    actual: str
 
     def __str__(self) -> str:
         text = ""
@@ -197,7 +192,7 @@ def _extract_values(
     for in_out in in_outs:
         ins.append(in_out.in_)
         outs.append(in_out.out)
-        acts.append(in_out.act)
+        acts.append(in_out.actual)
     return acts, ins, outs
 
 
@@ -208,7 +203,7 @@ def in_outs_to_files(in_outs: List[InOut]) -> None:
 
     This function iterates over a list of InOut instances, extracting
     the input, output, and action from each. These are then saved to
-    'in.txt', 'out.txt', and 'act.txt' files respectively.
+    'in.txt', 'out.txt', and 'actual.txt' files respectively.
 
     :param in_outs: A list of InOut instances to be processed
     """
@@ -222,7 +217,7 @@ def in_outs_to_files(in_outs: List[InOut]) -> None:
 
     _functions_to_file(ins, "in.txt")
     _functions_to_file(outs, "out.txt")
-    _functions_to_file(acts, "act.txt")
+    _functions_to_file(acts, "actual.txt")
 
 
 # def in_outs_to_str(in_outs: List[InOut]) -> str:
@@ -233,7 +228,7 @@ def in_outs_to_str(in_outs):
     ret += "\n\n".join(ins)
     ret += "\n\n### out.txt ###\n"
     ret += "\n\n".join(outs)
-    ret += "\n\n### act.txt ###\n"
+    ret += "\n\n### actual.txt ###\n"
     ret += "\n\n".join(acts)
     return ret
 
@@ -242,14 +237,13 @@ def in_outs_to_str(in_outs):
 # Eval.
 # #############################################################################
 
-import tqdm
-
 
 def eval_prompt(
     function_tag: str,
     transform_tag: str,
     prompt_tag: str,
     *,
+    model: str = "gpt-4o-mini",
     save_to_file: bool = True,
 ) -> List[InOut]:
     """
@@ -274,10 +268,10 @@ def eval_prompt(
     _LOG.info("Processing %s examples", len(in_outs))
     in_outs_tmp = []
     for in_out in tqdm.tqdm(in_outs):
-        txt = apply_prompt(prompt_tag, in_out.in_)
+        txt = dshlllpr.run_prompt(prompt_tag, in_out.in_, model)
         # Update the example.
         hdbg.dassert_ne(txt, "")
-        in_out.act = txt
+        in_out.actual = txt
         in_outs_tmp.append(in_out)
     # Save to files, if needed.
     if save_to_file:

@@ -1,0 +1,369 @@
+import logging
+from typing import List
+
+import helpers.hmarkdown as hmarkdo
+import helpers.hprint as hprint
+import helpers.hunit_test as hunitest
+
+_LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_process_slides
+# #############################################################################
+
+
+class Test_process_slides(hunitest.TestCase):
+    @staticmethod
+    def transform(slide_text: List[str]) -> str:
+        """
+        Example adding a `@` to the beginning of each line of the slide.
+        """
+        _LOG.debug("input=\n%s", "\n".join(slide_text))
+        # Transform.
+        text_out = [f"@{line}" for line in slide_text]
+        _LOG.debug("output=\n%s", "\n".join(text_out))
+        return text_out
+
+    def helper(self, text: str, expected: str) -> None:
+        # Prepare inputs.
+        text = hprint.dedent(text, remove_lead_trail_empty_lines_=False)
+        # Process.
+        actual = hmarkdo.process_slides(text, self.transform)
+        # Check output.
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test multiple slides.
+        """
+        text = """
+        * Slide 1
+            - Point 1
+            - Point 2
+
+        * Slide 2
+            - Point A
+            - Point B
+        """
+        expected = """
+        @* Slide 1
+        @    - Point 1
+        @    - Point 2
+        @
+        @* Slide 2
+        @    - Point A
+        @    - Point B
+        """
+        self.helper(text, expected)
+
+    def test2(self) -> None:
+        """
+        Test single line slide.
+        """
+        text = """
+        * Single line slide
+        """
+        expected = """
+        @* Single line slide
+        """
+        self.helper(text, expected)
+
+    def test3(self) -> None:
+        """
+        Test slide with inline comment.
+        """
+        text = """
+        * Slide with comment
+            # This is a comment
+            - Point 1
+        """
+        expected = """
+        @* Slide with comment
+        @    # This is a comment
+        @    - Point 1
+        """
+        self.helper(text, expected)
+
+    def test4(self) -> None:
+        """
+        Test slide with comment block.
+        """
+        text = """
+        * Slide with block
+            <!--
+            This is a comment block
+            spanning multiple lines
+            -->
+            - Point 1
+        """
+        expected = """
+        @* Slide with block
+        @    <!--
+        @    This is a comment block
+        @    spanning multiple lines
+        @    -->
+        @    - Point 1
+        """
+        self.helper(text, expected)
+
+    def test5(self) -> None:
+        text = """
+        * Slide 1
+        * Slide 2
+        """
+        expected = """
+        @* Slide 1
+        @* Slide 2
+        """
+        self.helper(text, expected)
+
+    def test6(self) -> None:
+        text = """
+
+        * Slide 1
+        * Slide 2
+        """
+        expected = """
+
+        @* Slide 1
+        @* Slide 2
+        """
+        self.helper(text, expected)
+
+    def test7(self) -> None:
+        text = """
+
+        * Slide 1
+        * Slide 2
+
+        """
+        expected = """
+
+        @* Slide 1
+        @* Slide 2
+        @
+        """
+        self.helper(text, expected)
+
+    def test8(self) -> None:
+        text = """
+        //* Slide 1
+        * Slide 2
+
+        """
+        expected = """
+        //* Slide 1
+        @* Slide 2
+        @
+        """
+        self.helper(text, expected)
+
+
+# #############################################################################
+# Test_convert_slide_to_markdown
+# #############################################################################
+
+
+class Test_convert_slide_to_markdown(hunitest.TestCase):
+    def helper(self, input_text, expected_text) -> None:
+        """
+        Test converting slide bullets to markdown headers.
+        """
+        # Prepare inputs.
+        lines = hprint.dedent(input_text).strip().split("\n")
+        # Run test.
+        actual = hmarkdo.convert_slide_to_markdown(lines)
+        actual = "\n".join(actual)
+        # Check outputs.
+        expected = hprint.dedent(expected_text).strip()
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test converting a simple slide bullet to markdown header.
+        """
+        input_text = """* This is a slide title"""
+        expected_text = """##### This is a slide title"""
+        self.helper(input_text, expected_text)
+
+    def test2(self) -> None:
+        """
+        Test converting multiple slide bullets.
+        """
+        input_text = """
+        * First slide
+          - Some content
+        * Second slide
+          - More content
+        """
+        expected_text = """
+        ##### First slide
+          - Some content
+        ##### Second slide
+          - More content
+        """
+        self.helper(input_text, expected_text)
+
+    def test3(self) -> None:
+        """
+        Test converting slides mixed with other content.
+        """
+        input_text = """
+        Some intro text
+        * Slide title
+          - Point 1
+          - Point 2
+        Regular markdown text
+        * Another slide
+        """
+        expected_text = """
+        Some intro text
+        ##### Slide title
+          - Point 1
+          - Point 2
+        Regular markdown text
+        ##### Another slide
+        """
+        self.helper(input_text, expected_text)
+
+    def test4(self) -> None:
+        """
+        Test converting text with no slide bullets.
+        """
+        input_text = """
+        Regular text
+        More text
+        - Regular bullet point
+        """
+        expected_text = """
+        Regular text
+        More text
+        - Regular bullet point
+        """
+        self.helper(input_text, expected_text)
+
+    def test5(self) -> None:
+        """
+        Test converting empty input.
+        """
+        input_text = ""
+        expected_text = ""
+        self.helper(input_text, expected_text)
+
+
+# #############################################################################
+# Test_convert_markdown_to_slide
+# #############################################################################
+
+
+class Test_convert_markdown_to_slide(hunitest.TestCase):
+    def helper(self, input_text: str, expected_text: str) -> None:
+        """
+        Test converting markdown headers to slide bullets.
+        """
+        # Prepare inputs.
+        lines = hprint.dedent(input_text).strip().split("\n")
+        # Run test.
+        actual = hmarkdo.convert_markdown_to_slide(lines)
+        actual = "\n".join(actual)
+        # Check outputs.
+        expected = hprint.dedent(expected_text).strip()
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test converting a simple h5 header to slide bullet.
+        """
+        input_text = """
+        ##### This is a slide title
+        """
+        expected_text = """
+        * This is a slide title
+        """
+        self.helper(input_text, expected_text)
+
+    def test2(self) -> None:
+        """
+        Test converting multiple h5 headers.
+        """
+        input_text = """
+        ##### First slide
+          - Some content
+        ##### Second slide
+          - More content
+        """
+        expected_text = """
+        * First slide
+          - Some content
+        * Second slide
+          - More content
+        """
+        self.helper(input_text, expected_text)
+
+    def test3(self) -> None:
+        """
+        Test converting headers mixed with other content.
+        """
+        input_text = """
+        Some intro text
+        ##### Slide title
+          - Point 1
+          - Point 2
+        Regular markdown text
+        ##### Another slide
+        """
+        expected_text = """
+        Some intro text
+        * Slide title
+          - Point 1
+          - Point 2
+        Regular markdown text
+        * Another slide
+        """
+        self.helper(input_text, expected_text)
+
+    def test4(self) -> None:
+        """
+        Test converting text with no h5 headers.
+        """
+        input_text = """
+        Regular text
+        # H1 header
+        ## H2 header
+        #### H4 header
+        """
+        expected_text = """
+        Regular text
+        # H1 header
+        ## H2 header
+        #### H4 header
+        """
+        self.helper(input_text, expected_text)
+
+    def test5(self) -> None:
+        """
+        Test converting empty input.
+        """
+        input_text = ""
+        expected_text = ""
+        self.helper(input_text, expected_text)
+
+    def test6(self) -> None:
+        """
+        Test that converting slide to markdown and back gives original result.
+        """
+        # Prepare inputs.
+        input_text = """
+        * First slide
+          - Some content
+        * Second slide
+        Regular text
+        """
+        original_lines = hprint.dedent(input_text).strip().split("\n")
+        # Run test.
+        markdown_lines = hmarkdo.convert_slide_to_markdown(original_lines)
+        roundtrip_lines = hmarkdo.convert_markdown_to_slide(markdown_lines)
+        # Check outputs.
+        self.assert_equal(str(roundtrip_lines), str(original_lines))

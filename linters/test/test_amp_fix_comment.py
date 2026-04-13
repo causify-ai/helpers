@@ -1,4 +1,6 @@
 import pytest
+# Skip this test suite if `more_itertools`` is not installed (skip for tutorials).
+pytest.importorskip("more_itertools")
 
 import helpers.hunit_test as hunitest
 import linters.amp_fix_comments as lamficom
@@ -44,8 +46,7 @@ class Test_fix_comment_style(hunitest.TestCase):
         self.assertEqual(expected, actual)
 
     @pytest.mark.skip(
-        reason="""Inline comments are not allowed, as they are hard to maintain
-        """
+        reason="Inline comments are not allowed, as they are hard to maintain"
     )
     def test4(self) -> None:
         """

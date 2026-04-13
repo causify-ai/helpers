@@ -29,25 +29,25 @@ class Test_to_str1(hunitest.TestCase):
         x = 1
         # To disable linter complaints.
         _ = x
-        act = hprint.to_str("x")
-        exp = "x=1"
-        self.assertEqual(act, exp)
+        actual = hprint.to_str("x")
+        expected = "x=1"
+        self.assertEqual(actual, expected)
 
     def test2(self) -> None:
         x = "hello world"
         # To disable linter complaints.
         _ = x
-        act = hprint.to_str("x")
-        exp = "x='hello world'"
-        self.assertEqual(act, exp)
+        actual = hprint.to_str("x")
+        expected = "x='hello world'"
+        self.assertEqual(actual, expected)
 
     def test3(self) -> None:
         x = 2
         # To disable linter complaints.
         _ = x
-        act = hprint.to_str("x*2")
-        exp = "x*2=4"
-        self.assertEqual(act, exp)
+        actual = hprint.to_str("x*2")
+        expected = "x*2=4"
+        self.assertEqual(actual, expected)
 
     def test4(self) -> None:
         """
@@ -57,9 +57,9 @@ class Test_to_str1(hunitest.TestCase):
         y = "hello"
         # To disable linter complaints.
         _ = x, y
-        act = hprint.to_str("x y")
-        exp = "x=1, y='hello'"
-        self.assertEqual(act, exp)
+        actual = hprint.to_str("x y")
+        expected = "x=1, y='hello'"
+        self.assertEqual(actual, expected)
 
     def test5(self) -> None:
         """
@@ -69,9 +69,9 @@ class Test_to_str1(hunitest.TestCase):
         y = "hello"
         # To disable linter complaints.
         _ = x, y
-        act = hprint.to_str("x y")
-        exp = "x='1', y='hello'"
-        self.assertEqual(act, exp)
+        actual = hprint.to_str("x y")
+        expected = "x='1', y='hello'"
+        self.assertEqual(actual, expected)
 
     def test6(self) -> None:
         """
@@ -80,9 +80,9 @@ class Test_to_str1(hunitest.TestCase):
         x = [1, "hello", "world"]
         # To disable linter complaints.
         _ = x
-        act = hprint.to_str("x")
-        exp = "x=[1, 'hello', 'world']"
-        self.assertEqual(act, exp)
+        actual = hprint.to_str("x")
+        expected = "x=[1, 'hello', 'world']"
+        self.assertEqual(actual, expected)
 
 
 # #############################################################################
@@ -124,29 +124,29 @@ def example_func5(x: int, y: str, z: float) -> str:
 
 class Test_func_signature_to_str1(hunitest.TestCase):
     def test1(self) -> None:
-        act = example_func1(1, "hello")
-        exp = "# example_func1: x=1, y='hello'"
-        self.assert_equal(act, exp)
+        actual = example_func1(1, "hello")
+        expected = "# example_func1: x=1, y='hello'"
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
-        act = example_func2()
-        exp = "# example_func2:"
-        self.assert_equal(act, exp)
+        actual = example_func2()
+        expected = "# example_func2:"
+        self.assert_equal(actual, expected)
 
     def test3(self) -> None:
-        act = example_func3(1, "hello")
-        exp = "# example_func3: x=1"
-        self.assert_equal(act, exp)
+        actual = example_func3(1, "hello")
+        expected = "# example_func3: x=1"
+        self.assert_equal(actual, expected)
 
     def test4(self) -> None:
-        act = example_func4(1, "hello", 3.14)
-        exp = "# example_func4: y='hello'"
-        self.assert_equal(act, exp)
+        actual = example_func4(1, "hello", 3.14)
+        expected = "# example_func4: y='hello'"
+        self.assert_equal(actual, expected)
 
     def test5(self) -> None:
-        act = example_func5(1, "hello", 3.14)
-        exp = "# example_func5: x=1"
-        self.assert_equal(act, exp)
+        actual = example_func5(1, "hello", 3.14)
+        expected = "# example_func5: x=1"
+        self.assert_equal(actual, expected)
 
 
 # #############################################################################
@@ -242,8 +242,8 @@ class Test_sort_dictionary(hunitest.TestCase):
                 "build-backend": "poetry.masonry.api",
             },
         }
-        act = hprint.sort_dictionary(dict_)
-        self.check_string(pprint.pformat(act))
+        actual = hprint.sort_dictionary(dict_)
+        self.check_string(pprint.pformat(actual))
 
 
 # #############################################################################
@@ -259,13 +259,13 @@ klass TestHelloWorld(hunitest.TestCase):
     bar
 """
         num_spaces = 2
-        act = hprint.indent(txt, num_spaces=num_spaces)
-        exp = """  foo
+        actual = hprint.indent(txt, num_spaces=num_spaces)
+        expected = """  foo
 
   klass TestHelloWorld(hunitest.TestCase):
       bar
 """
-        self.assert_equal(act, exp, fuzzy_match=False)
+        self.assert_equal(actual, expected, fuzzy_match=False)
 
 
 # #############################################################################
@@ -281,12 +281,12 @@ class Test_dedent1(hunitest.TestCase):
         klass TestHelloWorld(hunitest.TestCase):
             bar
 """
-        act = hprint.dedent(txt)
-        exp = """foo
+        actual = hprint.dedent(txt)
+        expected = """foo
 
 klass TestHelloWorld(hunitest.TestCase):
     bar"""
-        self.assert_equal(act, exp, fuzzy_match=False)
+        self.assert_equal(actual, expected, fuzzy_match=False)
 
     def test2(self) -> None:
         txt = r"""
@@ -297,15 +297,15 @@ klass TestHelloWorld(hunitest.TestCase):
         zscore:
           style: gaz
           com: 28"""
-        act = hprint.dedent(txt)
-        exp = """read_data:
+        actual = hprint.dedent(txt)
+        expected = """read_data:
   file_name: foo_bar.txt
   nrows: 999
 single_val: hello
 zscore:
   style: gaz
   com: 28"""
-        self.assert_equal(act, exp, fuzzy_match=False)
+        self.assert_equal(actual, expected, fuzzy_match=False)
 
     def test_roundtrip1(self) -> None:
         """
@@ -337,13 +337,13 @@ class Test_align_on_left1(hunitest.TestCase):
 klass TestHelloWorld(hunitest.TestCase):
     bar
 """
-        act = hprint.align_on_left(txt)
-        exp = """foo
+        actual = hprint.align_on_left(txt)
+        expected = """foo
 
 klass TestHelloWorld(hunitest.TestCase):
 bar
 """
-        self.assert_equal(act, exp, fuzzy_match=False)
+        self.assert_equal(actual, expected, fuzzy_match=False)
 
 
 # #############################################################################
@@ -380,13 +380,13 @@ class Test_remove_lead_trail_empty_lines1(hunitest.TestCase):
             expected_output = ["line1", "", "", "line2"]
         """
         # Test as string.
-        act = hprint.remove_lead_trail_empty_lines(input_str)
-        exp = "\n".join(expected_output)
-        self.assertEqual(act, exp)
+        actual = hprint.remove_lead_trail_empty_lines(input_str)
+        expected = "\n".join(expected_output)
+        self.assertEqual(actual, expected)
         # Test as list of strings.
         input_str = input_str.splitlines()
-        act = hprint.remove_lead_trail_empty_lines(input_str)
-        self.assertEqual(act, expected_output)
+        actual = hprint.remove_lead_trail_empty_lines(input_str)
+        self.assertEqual(actual, expected_output)
 
     def test_empty_string_returns_empty_list(self) -> None:
         input_str: str = ""
@@ -463,3 +463,380 @@ class Test_remove_lead_trail_empty_lines1(hunitest.TestCase):
         input_str: str = "line1\n\n!@#$%^&*()\n\nline2"
         expected_output = ["line1", "", "!@#$%^&*()", "", "line2"]
         self.helper(input_str, expected_output)
+
+
+# #############################################################################
+# Test_remove_empty_lines
+# #############################################################################
+
+
+class Test_remove_empty_lines(hunitest.TestCase):
+    """
+    Test remove_empty_lines function with different modes.
+    """
+
+    def helper(self, lines: str, mode: str, expected: str) -> None:
+        """
+        Test helper for remove_empty_lines.
+
+        :param lines: Input text as string (will be split into list)
+        :param mode: Mode parameter for remove_empty_lines
+        :param expected: Expected output as string (will be split into list)
+        """
+        # Prepare inputs.
+        lines_str = hprint.dedent(lines)
+        if lines_str:
+            lines_list = lines_str.split("\n")
+        else:
+            lines_list = []
+        # Prepare outputs.
+        expected_str = hprint.dedent(expected)
+        if expected_str:
+            expected_list = expected_str.split("\n")
+        else:
+            expected_list = []
+        # Run test.
+        actual = hprint.remove_empty_lines(lines_list, mode=mode)
+        # Check outputs.
+        self.assert_equal(str(actual), str(expected_list))
+
+    def test1(self) -> None:
+        """
+        Test no_empty_lines mode with an empty list.
+        """
+        # Prepare inputs.
+        lines = ""
+        mode = "no_empty_lines"
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test2(self) -> None:
+        """
+        Test no_empty_lines mode with no empty lines in the input.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+        line2
+        line3
+        """
+        mode = "no_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+        line2
+        line3
+        """
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test3(self) -> None:
+        """
+        Test no_empty_lines mode with all lines being empty.
+        """
+        # Prepare inputs.
+        lines = """
+
+
+        """
+        mode = "no_empty_lines"
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test4(self) -> None:
+        """
+        Test no_empty_lines mode removes leading empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+
+        line1
+        line2
+        """
+        mode = "no_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+        line2
+        """
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test5(self) -> None:
+        """
+        Test no_empty_lines mode removes trailing empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+        line2
+
+        """
+        mode = "no_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+        line2
+        """
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test6(self) -> None:
+        """
+        Test no_empty_lines mode removes empty lines in the middle.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+        line2
+
+        line3
+        """
+        mode = "no_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+        line2
+        line3
+        """
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test7(self) -> None:
+        """
+        Test no_empty_lines mode removes lines with only whitespace.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+        line2
+        \t
+        line3
+        """
+        mode = "no_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+        line2
+        line3
+        """
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test8(self) -> None:
+        """
+        Test no_consecutive_empty_lines mode with empty list.
+        """
+        # Prepare inputs.
+        lines = ""
+        mode = "no_consecutive_empty_lines"
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test9(self) -> None:
+        """
+        Test no_consecutive_empty_lines mode with no empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+        line2
+        line3
+        """
+        mode = "no_consecutive_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+        line2
+        line3
+        """
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test10(self) -> None:
+        """
+        Test no_consecutive_empty_lines mode keeps single empty line.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+        line2
+        """
+        mode = "no_consecutive_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+
+        line2
+        """
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test11(self) -> None:
+        """
+        Test no_consecutive_empty_lines mode keeps one of two consecutive empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+
+        line2
+        """
+        mode = "no_consecutive_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+
+        line2
+        """
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test12(self) -> None:
+        """
+        Test no_consecutive_empty_lines mode keeps one of multiple consecutive empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+
+
+
+        line2
+        """
+        mode = "no_consecutive_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+
+        line2
+        """
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test13(self) -> None:
+        """
+        Test no_consecutive_empty_lines mode with multiple groups of consecutive empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+
+        line2
+
+
+
+        line3
+        """
+        mode = "no_consecutive_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+
+        line2
+
+        line3
+        """
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test14(self) -> None:
+        """
+        Test no_consecutive_empty_lines mode keeps all non-consecutive empty lines.
+        """
+        # Prepare inputs.
+        lines = """
+        line1
+
+        line2
+
+        line3
+        """
+        mode = "no_consecutive_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+
+        line2
+
+        line3
+        """
+        # Run test.
+        self.helper(lines, mode, expected)
+
+    def test15(self) -> None:
+        """
+        Test that invalid mode raises ValueError.
+        """
+        # Prepare inputs.
+        lines = ["line1", "line2"]
+        mode = "invalid_mode"
+        # Run test and check output.
+        with self.assertRaises(ValueError) as cm:
+            hprint.remove_empty_lines(lines, mode=mode)
+        actual = str(cm.exception)
+        expected = "Invalid mode='invalid_mode'"
+        self.assert_equal(actual, expected)
+
+    def test16(self) -> None:
+        """
+        Test remove_empty_lines with string input (decorator functionality).
+        """
+        # Prepare inputs.
+        text = """
+        line1
+
+        line2
+
+        line3
+        """
+        text = hprint.dedent(text)
+        mode = "no_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+        line2
+        line3
+        """
+        expected = hprint.dedent(expected)
+        # Run test.
+        actual = hprint.remove_empty_lines(text, mode=mode)
+        # Check outputs.
+        self.assert_equal(actual, expected)
+
+    def test17(self) -> None:
+        """
+        Test no_consecutive_empty_lines with string input (decorator functionality).
+        """
+        # Prepare inputs.
+        text = """
+        line1
+
+
+        line2
+        """
+        text = hprint.dedent(text)
+        mode = "no_consecutive_empty_lines"
+        # Prepare outputs.
+        expected = """
+        line1
+
+        line2
+        """
+        expected = hprint.dedent(expected)
+        # Run test.
+        actual = hprint.remove_empty_lines(text, mode=mode)
+        # Check outputs.
+        self.assert_equal(actual, expected)

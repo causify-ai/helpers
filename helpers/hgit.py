@@ -11,10 +11,9 @@ import os
 import random
 import re
 import string
-from typing import List, Match, Optional, Tuple, cast
+from typing import List, Optional, Tuple
 
 import helpers.hdbg as hdbg
-import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hserver as hserver
 import helpers.hsystem as hsystem
@@ -70,7 +69,6 @@ def extract_gh_issue_number_from_branch(branch_name: str) -> Optional[int]:
     return None
 
 
-@functools.lru_cache()
 def get_branch_name(dir_name: str = ".") -> str:
     """
     Return the name of the Git branch including a certain dir.
@@ -106,7 +104,7 @@ def get_branch_next_name(
     max_num_ids = 100
     for i in range(1, max_num_ids):
         new_branch_name = f"{curr_branch_name}_{i}"
-        _LOG.log(log_verb, "Trying branch name '%s'", new_branch_name)
+        _LOG.info("Trying branch name '%s' ...", new_branch_name)
         mode = "all"
         exists = does_branch_exist(new_branch_name, mode, dir_name=dir_name)
         _LOG.log(log_verb, "-> exists=%s", exists)
@@ -131,7 +129,6 @@ def get_branch_hash(dir_name: str = ".") -> str:
     cmd = f"cd {dir_name} && git merge-base master {curr_branch_name}"
     _, hash_ = hsystem.system_to_string(cmd)
     hash_ = hash_.rstrip("\n").lstrip("\n")
-    hash_ = cast(str, hash_)
     hdbg.dassert_eq(len(hash_.split("\n")), 1)
     return hash_
 
@@ -187,6 +184,8 @@ def find_git_root(path: str = ".") -> str:
     :param path: starting file system path. Defaults to the current directory (".")
     :return: absolute path to the top-level Git repository directory
     """
+    import helpers.hio as hio
+
     path = os.path.abspath(path)
     git_root_dir = None
     while True:
@@ -203,31 +202,39 @@ def find_git_root(path: str = ".") -> str:
             lines = txt.split("\n")
             for line in lines:
                 # Look for a `gitdir:` line that specifies the linked directory.
-                # Example: `gitdir: ../.git/modules/helpers_root`.
+                # Example: `gitdir: ../.git/modules/helpers_root` (submodule)
+                # or `gitdir: /path/to/.git/worktrees/name` (worktree).
                 if line.startswith("gitdir:"):
                     git_dir_path = line.split(":", 1)[1].strip()
                     _LOG.debug("git_dir_path=%s", git_dir_path)
-                    # Resolve the relative path to the absolute path of the Git directory.
-                    abs_git_dir = os.path.abspath(
-                        os.path.join(path, git_dir_path)
-                    )
-                    # Traverse up to find the top-level `.git` directory.
-                    while True:
-                        # Check if the current directory is a `.git` directory.
-                        if os.path.basename(abs_git_dir) == ".git":
-                            git_root_dir = os.path.dirname(abs_git_dir)
-                            # Found the root.
-                            break
-                        # Move one level up in the directory structure.
-                        parent = os.path.dirname(abs_git_dir)
-                        # Reached the filesystem root without finding the `.git` directory.
-                        hdbg.dassert_ne(
-                            parent,
-                            abs_git_dir,
-                            "Top-level .git directory not found.",
+                    # For worktrees, the current path is the root of the worktree.
+                    # The worktree's `.git` file points to the shared git directory
+                    # (e.g., main_repo/.git/worktrees/worktree_name).
+                    if ".git/worktrees/" in git_dir_path:
+                        git_root_dir = path
+                    else:
+                        # For other linked setups (submodules, custom .git directory),
+                        # traverse up to find the root of the target repository.
+                        abs_git_dir = os.path.abspath(
+                            os.path.join(path, git_dir_path)
                         )
-                        # Continue traversing up.
-                        abs_git_dir = parent
+                        # Traverse up to find the top-level `.git` directory.
+                        while True:
+                            # Check if the current directory is a `.git` directory.
+                            if os.path.basename(abs_git_dir) == ".git":
+                                git_root_dir = os.path.dirname(abs_git_dir)
+                                # Found the root.
+                                break
+                            # Move one level up in the directory structure.
+                            parent = os.path.dirname(abs_git_dir)
+                            # Reached the filesystem root without finding the `.git` directory.
+                            hdbg.dassert_ne(
+                                parent,
+                                abs_git_dir,
+                                "Top-level .git directory not found.",
+                            )
+                            # Continue traversing up.
+                            abs_git_dir = parent
                     break
         # Exit the loop if the Git root directory is found.
         if git_root_dir is not None:
@@ -242,7 +249,10 @@ def find_git_root(path: str = ".") -> str:
         )
         # Update the path to the parent directory for the next iteration.
         path = parent
-    return git_root_dir
+    hdbg.dassert_is_not(
+        git_root_dir, None, "Git root directory should have been found"
+    )
+    return str(git_root_dir)
 
 
 # #############################################################################
@@ -270,7 +280,6 @@ def find_file(file_name: str, *, dir_path: Optional[str] = None) -> str:
     _LOG.debug(hprint.to_str("cmd"))
     _, res = hsystem.system_to_one_line(cmd)
     hdbg.dassert_ne(res, "Can't find file '%s' in '%s'", file_name, dir_path)
-    res = cast(str, res)
     return res
 
 
@@ -299,9 +308,7 @@ def find_helpers_root(dir_path: str = ".") -> str:
         # Make sure the dir and that `helpers` subdir exists.
         hdbg.dassert_dir_exists(helpers_root)
         hdbg.dassert_dir_exists(os.path.join(helpers_root), "helpers")
-    # TODO(gp): Unclear why this happens.
-    helpers_root_ = cast(str, helpers_root)
-    return helpers_root_
+    return helpers_root
 
 
 # #############################################################################
@@ -708,13 +715,18 @@ def _parse_github_repo_name(repo_name: str) -> Tuple[str, str]:
         # Try tp parse the HTTPS format, e.g., `https://github.com/alphamatic/amp`
         m = re.match(r"^https://(\S+.com)/(\S+)$", repo_name)
     hdbg.dassert(m, "Can't parse '%s'", repo_name)
-    m: Match[str]
+    # The linter doesn't understand that `dassert` is equivalent to an
+    # `assert`.
+    assert m is not None
     host_name = m.group(1)
     repo_name = m.group(2)
     _LOG.debug("host_name=%s repo_name=%s", host_name, repo_name)
     # We expect something like "alphamatic/amp".
     m = re.match(r"^\S+/\S+$", repo_name)
     hdbg.dassert(m, "repo_name='%s'", repo_name)
+    # The linter doesn't understand that `dassert` is equivalent to an
+    # `assert`.
+    assert m is not None
     # origin  git@github.com:.../ORG_....git (fetch)
     suffix_to_remove = ".git"
     if repo_name.endswith(suffix_to_remove):
@@ -851,7 +863,7 @@ def get_path_from_git_root(
         super_module,
         ret,
     )
-    return ret
+    return str(ret)
 
 
 # TODO(gp): Rewrite this function in a better way.
@@ -1104,6 +1116,103 @@ def get_modified_files_in_branch(
     return files
 
 
+def get_modified_and_untracked_files(
+    repo_path: str = ".", *, mode: str = "all"
+) -> List[str]:
+    """
+    Get list of modified and untracked files in a git repository.
+
+    Excludes files from submodules and deleted files.
+
+    Mode options:
+    - "all": Both modified and untracked files (default, current behavior)
+    - "modified": Only files with changes (staged, modified, added, renamed, copied)
+    - "untracked": Only untracked files
+
+    This includes (when mode="all"):
+    - Modified files (both staged and unstaged)
+    - Untracked files
+    - Cached/staged files
+
+    The function uses `git status --porcelain -u` which shows all changes
+    including cached (staged) files.
+
+    :param repo_path: Path to the git repository
+    :param mode: Filter mode: "all", "modified", or "untracked"
+    :return: List of file paths relative to repo_path
+    """
+    hdbg.dassert_dir_exists(repo_path)
+    # Validate mode.
+    valid_modes = ["all", "modified", "untracked"]
+    hdbg.dassert_in(
+        mode,
+        valid_modes,
+        "Invalid mode '%s'; must be one of: %s",
+        mode,
+        ", ".join(valid_modes),
+    )
+    # Get modified and untracked files, excluding submodules.
+    # The command uses:
+    # - git status --porcelain -u: Get status in machine-readable format with untracked files
+    #   This includes both cached (staged) and modified files
+    #   Status codes: ?? = untracked, M/A/R/C/D = modified/added/renamed/copied/deleted
+    cmd = (
+        f"cd {repo_path} && "
+        "git status --porcelain -u"
+    )
+    _, output = hsystem.system_to_string(cmd, abort_on_error=False)
+    # Get submodule paths to exclude.
+    submodule_cmd = (
+        f"cd {repo_path} && "
+        "git config -f .gitmodules --get-regexp path 2>/dev/null || true"
+    )
+    _, submodule_output = hsystem.system_to_string(
+        submodule_cmd, abort_on_error=False
+    )
+    submodule_paths = set()
+    for line in submodule_output.strip().split("\n"):
+        if line:
+            # Format: "submodule.<name>.path <path>"
+            parts = line.split()
+            if len(parts) >= 2:
+                submodule_paths.add(parts[-1])
+    # Parse output.
+    files = []
+    for line in output.strip().split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+        # Extract status code (first 2 characters) and filename (from position 3).
+        status_code = line[:2] if len(line) >= 2 else ""
+        file_name = line[3:].strip() if len(line) > 3 else ""
+        # Filter by mode.
+        if mode == "untracked":
+            # Untracked files have status "??"
+            if status_code != "??":
+                continue
+        elif mode == "modified":
+            # Modified files have any status other than "??"
+            if status_code == "??":
+                continue
+        # Skip submodule paths.
+        is_in_submodule = any(
+            file_name.startswith(subpath + "/") or file_name == subpath
+            for subpath in submodule_paths
+        )
+        if is_in_submodule:
+            _LOG.debug("Skipping submodule file: %s", file_name)
+            continue
+        # Check if file exists (exclude deleted files).
+        file_path = os.path.join(repo_path, file_name)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            files.append(file_name)
+        else:
+            _LOG.debug(
+                "Skipping non-existent or non-file: %s", file_path
+            )
+    return files
+
+
 def get_summary_files_in_branch(
     dst_branch: str,
     *,
@@ -1292,7 +1401,6 @@ def git_describe(
         cmd = f"{cmd} --match '{match}'"
     num, tag = hsystem.system_to_one_line(cmd, log_level=log_level)
     _ = num
-    tag = cast(str, tag)
     return tag
 
 
@@ -1373,7 +1481,6 @@ def _get_gh_pr_list() -> str:
     cmd = "gh pr list -s all --limit 1000"
     rc, txt = hsystem.system_to_string(cmd)
     _ = rc
-    txt = cast(str, txt)
     return txt
 
 
@@ -1394,7 +1501,7 @@ def does_branch_exist(
             exists_tmp = does_branch_exist(
                 branch_name, mode_tmp, dir_name=dir_name
             )
-            exists |= exists_tmp
+            exists = exists or exists_tmp
         return exists
     #
     hdbg.dassert_in(mode, ("git_local", "git_remote", "github"))

@@ -89,11 +89,11 @@ def get_function_name(count: int = 0) -> str:
 # End copy-paste.
 
 
-# Start copy-paste from helpers/system_interaction.py
+# Start copy-paste from helpers/hsystem.py
 def _system_to_string(
     cmd: str, abort_on_error: bool = True, verbose: bool = False
 ) -> Tuple[int, str]:
-    assert isinstance(cmd, str), "Type of '%s' is %s" % (str(cmd), type(cmd))
+    assert isinstance(cmd, str), f"Type of '{str(cmd)}' is {type(cmd)}"
     if verbose:
         print(f"> {cmd}")
     stdout = subprocess.PIPE
@@ -111,15 +111,36 @@ def _system_to_string(
         p.stdout.close()  # type: ignore
         rc = p.wait()
     if abort_on_error and rc != 0:
-        msg = (
-            "cmd='%s' failed with rc='%s'" % (cmd, rc)
-        ) + "\nOutput of the failing command is:\n%s" % output
+        msg = f"cmd='{cmd}' failed with rc='{rc}'"
+        msg += "\nOutput of the failing command is:\n"
+        msg += output
         _LOG.error(msg)
         sys.exit(-1)
     return rc, output
 
 
 # End copy-paste.
+
+
+def _system(cmd: str, abort_on_error: bool = True, verbose: bool = False) -> int:
+    """
+    Execute a system call and return the return code.
+
+    :param cmd: command to execute
+    :param abort_on_error: if True, abort execution if command fails
+    :param verbose: if True, print the command before execution
+    :return: return code of the command
+    """
+    assert isinstance(cmd, str), f"Type of '{str(cmd)}' is {type(cmd)}"
+    if verbose:
+        print(f"> {cmd}")
+    rc = subprocess.call(cmd, shell=True, executable="/bin/bash")
+    if abort_on_error and rc != 0:
+        msg = f"cmd='{cmd}' failed with rc='{rc}'"
+        _LOG.error(msg)
+        sys.exit(-1)
+    return rc
+
 
 # #############################################################################
 # Utils.
@@ -192,6 +213,106 @@ def check_master(abort_on_error: bool = True) -> None:
 
 
 # #############################################################################
+# check_merged_branch
+# #############################################################################
+
+
+def check_merged_branch(abort_on_error: bool = True) -> None:
+    """
+    Check if the current branch has already been merged into the default
+    branch.
+
+    Committing to an already-merged branch is usually a mistake (e.g.,
+    the user forgot to switch to a new branch after the merge).
+
+    Limitation:
+    This hook blocks a commit if the current branch has been merged into the
+    default branch (e.g., master) and then the local copy of the default branch
+    has been updated (e.g., by pulling). If it has not been updated to include
+    the latest changes from the current branch, then the hook may allow the
+    commit to go through.
+    """
+    func_name = _report()
+    # Get the current branch name.
+    cmd = "git rev-parse --abbrev-ref HEAD"
+    rc, branch_name = _system_to_string(cmd)
+    _ = rc
+    branch_name = branch_name.strip()
+    print(f"Branch is '{branch_name}'")
+    # Determine the default branch (master or main).
+    cmd = "git branch --list master main"
+    rc, branches_txt = _system_to_string(cmd)
+    _ = rc
+    default_branch = None
+    for candidate in ("master", "main"):
+        if candidate in branches_txt:
+            default_branch = candidate
+            break
+    if default_branch is None:
+        print(
+            color_highlight(
+                "Could not determine default branch (master/main): skipping check",
+                "yellow",
+            )
+        )
+        _handle_error(func_name, False, abort_on_error)
+        return
+    print(f"Default branch is '{default_branch}'")
+    # Use remote tracking default branch if it exists.
+    cmd = f"git rev-parse --verify origin/{default_branch}"
+    rc, _ = _system_to_string(cmd, abort_on_error=False, verbose=False)
+    if rc == 0:
+        default_branch_ref = f"origin/{default_branch}"
+        print(f"Checking against remote tracking branch: {default_branch_ref}")
+    else:
+        default_branch_ref = default_branch
+        print(
+            color_highlight(
+                f"No remote tracking branch - checking against local {default_branch}",
+                "yellow",
+            )
+        )
+    # List branches whose commits are also all in the default branch.
+    cmd = f"git branch --merged {default_branch_ref}"
+    rc, merged_txt = _system_to_string(cmd)
+    _ = rc
+    # Each line looks like "  branch-name" or "* branch-name".
+    merged_branches = [b.lstrip("* ").strip() for b in merged_txt.splitlines()]
+    error = False
+    if branch_name in merged_branches:
+        # Check if commits were ever made on the branch to distinguish between
+        # a newly created branch and a merged one.
+        cmd = f"git reflog show {branch_name}"
+        rc, reflog = _system_to_string(cmd, abort_on_error=False, verbose=False)
+        # Look for commit operations in reflog (excluding branch creation).
+        reflog_lines = reflog.split("\n")
+        has_commits = False
+        for line in reflog_lines:
+            # Reflog format: "hash HEAD@{n}: operation: message"
+            # Look for "commit" or "commit (amend)" operations.
+            if ": commit" in line and "branch: Created from" not in line:
+                has_commits = True
+                break
+        if not has_commits:
+            # Allow commits since the branch appears newly created (no
+            # commits ever made on this branch).
+            pass
+        else:
+            # Block commits since the branch has likely already been
+            # merged (there were commits made on it besides branch
+            # creation).
+            _LOG.error(
+                "Branch '%s' has already been merged into '%s'."
+                " Please switch to a new branch before committing.",
+                branch_name,
+                default_branch,
+            )
+            error = True
+    # Handle error.
+    _handle_error(func_name, error, abort_on_error)
+
+
+# #############################################################################
 # check_author
 # #############################################################################
 
@@ -218,9 +339,9 @@ def check_author(abort_on_error: bool = True) -> None:
     verbose = True
     var = "user.name"
     cmd = f"{_GIT_BINARY_PATH} config {var}"
-    _system_to_string(cmd, verbose=verbose)
+    _system(cmd, verbose=verbose)
     cmd = f"{_GIT_BINARY_PATH} config --show-origin {var}"
-    _system_to_string(cmd, verbose=verbose)
+    _system(cmd, verbose=verbose)
     #
     var = "user.email"
     cmd = f"{_GIT_BINARY_PATH} config {var}"
@@ -228,7 +349,7 @@ def check_author(abort_on_error: bool = True) -> None:
     _ = rc
     user_email = user_email.lstrip().rstrip()
     cmd = f"{_GIT_BINARY_PATH} config --show-origin {var}"
-    _system_to_string(cmd, verbose=verbose)
+    _system(cmd, verbose=verbose)
     print(f"user_email='{user_email}'")
     # Check.
     error = False
@@ -254,7 +375,7 @@ def _sizeof_fmt(num: float) -> str:
         if num < 1024.0:
             return "%3.1f %s" % (num, x)
         num /= 1024.0
-    assert 0, "Invalid num='%s'" % num
+    assert 0, f"Invalid num='{num}'"
 
 
 # End copy-paste.
@@ -501,10 +622,10 @@ def check_gitleaks(abort_on_error: bool = True) -> None:
     docker run -v {git_root_dir}:/app zricethezav/gitleaks:latest -c {config_path}/gitleaks-rules.toml git /app --pre-commit --staged --verbose
     """
     _LOG.debug("cmd='%s'", cmd)
-    rc, txt = _system_to_string(cmd, abort_on_error=False)
+    rc = _system(cmd, abort_on_error=False)
     error = False
     if rc != 0:
         error = True
-        _LOG.error(txt)
+        _LOG.error("Gitleaks check failed with rc=%s", rc)
     # Handle error.
     _handle_error(func_name, error, abort_on_error)

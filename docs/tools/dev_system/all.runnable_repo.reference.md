@@ -244,6 +244,46 @@ graph TD
   to be customized, it should first be staged for modification by replacing the
   symlink with a copy of the file
 
+### Automated linking for standard configuration files
+
+- For thin client repositories using `helpers_root` as a submodule, the script
+  [`create_all_helpers_links.py`](/dev_scripts_helpers/thin_client/create_all_helpers_links.py)
+  automates the creation of symbolic links for standard configuration files
+- This script maintains a predefined list of common configuration files that
+  should be linked from `helpers_root` to the repository root:
+  - `.claude/` - Claude Code configuration
+  - `.coveragerc` - Test coverage configuration
+  - `.gitignore` - Git ignore patterns
+  - `.gitleaksignore` - Gitleaks scan exclusions
+  - `.isort.cfg` - Import sorting configuration
+  - `.pre-commit-config.yaml` - Pre-commit hooks
+  - `CLAUDE.md` - Claude Code project context
+  - `conftest.py` - Pytest configuration
+  - `linters2/` - Linting scripts
+  - `pyproject.toml` - Python project configuration
+  - `pytest.ini` - Pytest settings
+
+- The script provides three modes of operation:
+  - Default: Create only missing links (skips existing files)
+  - `--force`: Recreate all links even if they already exist
+  - `--dry_run`: Preview what would be done without making changes
+
+- Example usage:
+  ```bash
+  # Create missing links
+  > helpers_root/dev_scripts_helpers/thin_client/create_all_helpers_links.py
+
+  # Force recreate all links
+  > helpers_root/dev_scripts_helpers/thin_client/create_all_helpers_links.py --force
+
+  # Preview changes
+  > helpers_root/dev_scripts_helpers/thin_client/create_all_helpers_links.py --dry_run
+  ```
+
+- For more complex scenarios requiring custom source and destination directories,
+  use [`create_links.py`](/helpers/create_links.py) as described in
+  [Managing symbolic links between directories](/docs/tools/dev_system/all.replace_common_files_with_script_links.md)
+
 ## Managing repo configurations
 
 - Centralizing configurations eliminates duplication, reduces maintenance

@@ -29,7 +29,9 @@ class Test_run_dockerized_notebook_image_extractor1(hunitest.TestCase):
         """
         # Prepare the input and output.
         input_dir = self.get_input_dir()
-        src_test_notebook = os.path.join(input_dir, "test_notebook_image_extractor.ipynb")
+        src_test_notebook = os.path.join(
+            input_dir, "test_notebook_image_extractor.ipynb"
+        )
         output_dir = self.get_output_dir()
         # Run the container.
         dshnbe._run_dockerized_extract_notebook_images(

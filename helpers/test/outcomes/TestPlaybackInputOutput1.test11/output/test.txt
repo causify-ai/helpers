@@ -13,8 +13,8 @@ class TestGetResultCheckString(hunitest.TestCase):
         a = pd.DataFrame.from_dict({'Price': [700, 250, 800, 1200]})
         b = pd.DataFrame.from_dict({'Price': [1, 1, 1, 1]})
         # Call function to test.
-        act = get_result_check_string(a=a, b=b)
-        act = hpandas.df_to_str(act, num_rows=None)
-        act = str(act)
+        actual = get_result_check_string(a=a, b=b)
+        actual = hpandas.df_to_str(actual, num_rows=None)
+        actual = str(actual)
         # Check output.
-        self.check_string(act)
+        self.check_string(actual)

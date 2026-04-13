@@ -1,12 +1,22 @@
 import logging
 from typing import Dict, List, Union
 
+import pytest
+
+# Skip this test suite if graphviz is not installed (skip for tutorials).
+pytest.importorskip("graphviz")
+
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import import_check.detect_import_cycles as icdeimcy
 import import_check.show_imports as ichshimp
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_detect_import_cycles
+# #############################################################################
 
 
 class Test_detect_import_cycles(hunitest.TestCase):

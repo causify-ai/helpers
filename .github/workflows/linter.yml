@@ -1,10 +1,20 @@
 name: Check if the Linter was run
 on:
   pull_request:
-    types: [ opened, synchronize, reopened, ready_for_review ]
+    types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - master
   workflow_dispatch:
+# Set up permissions for OIDC authentication.
+permissions:
+  # This is required for requesting the OIDC JWT.
+  id-token: write
+  # This is required for actions/checkout.
+  contents: read
+  # This is required for pulling the Docker image from GHCR.
+  packages: read
+  # This is required for posting the status of the job when triggered manually.
+  statuses: write
 jobs:
   Run_linter:
     uses: ./.github/workflows/common_linter.yml

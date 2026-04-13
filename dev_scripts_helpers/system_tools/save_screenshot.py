@@ -49,18 +49,18 @@ def _main(parser: argparse.ArgumentParser) -> None:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = "screenshot." + timestamp + ".png"
     if args.dst_dir:
-        # E.g., notes/MSML610/tutorial_msml610/notebooks/figures
+        # E.g., lectures_source/tutorial_msml610/notebooks/figures
         filename = os.path.join(args.dst_dir, filename)
     _LOG.info("filename: %s", filename)
     if not args.override:
         hdbg.dassert_path_not_exists(filename)
     # Take a screenshot to the clipboard.
     _LOG.info("Take screenshot with Command (⌘) + Control + 4 ...")
-    cmd = "screencapture -i -t png %s" % filename
+    cmd = f"screencapture -i -t png {filename}"
     _LOG.info("cmd: %s", cmd)
     hsystem.system(cmd)
     # Print the info about the screenshot.
-    txt = "![](%s)" % filename
+    txt = f"![]({filename})"
     _LOG.info("%s", txt)
     # <img src="image.jpg" alt="A tree" width="300" title="This is a tree">
     if hserver.is_host_mac():

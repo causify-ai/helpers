@@ -73,6 +73,6 @@ def chunk(list_: List[Any], n: int) -> List[Any]:
     hdbg.dassert_lte(1, n)
     hdbg.dassert_lte(n, len(list_))
     k, m = divmod(len(list_), n)
-    return list(
+    return [
         list_[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(n)
-    )
+    ]

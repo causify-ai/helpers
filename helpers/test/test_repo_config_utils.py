@@ -49,17 +49,17 @@ class Test_repo_config1(hunitest.TestCase):
     def test1(self) -> None:
         file_name = self.create_test_file()
         repo_config = hrecouti.RepoConfig.from_file(file_name)
-        act = repo_config.get_name()
-        exp = "//helpers"
-        self.assert_equal(act, exp)
+        actual = repo_config.get_name()
+        expected = "//helpers"
+        self.assert_equal(actual, expected)
 
     def test2(self) -> None:
         file_name = self.create_test_file()
         repo_config = hrecouti.RepoConfig.from_file(file_name)
-        act = repo_config.get_repo_map()
-        exp = {
+        actual = repo_config.get_repo_map()
+        expected = {
             "helpers": "causify-ai/helpers",
         }
-        self.assert_equal(str(act), str(exp))
+        self.assert_equal(str(actual), str(expected))
 
     # TODO(gp): Test all the methods of the RepoConfig class.

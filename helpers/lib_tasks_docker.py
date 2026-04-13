@@ -9,7 +9,7 @@ import getpass
 import logging
 import os
 import re
-from typing import Any, Dict, List, Match, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 # TODO(gp): We should use `pip install types-PyYAML` to get the mypy stubs.
 import yaml
@@ -60,6 +60,45 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
     ecr_base_path = hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
     docker_exec = _get_docker_exec(sudo)
     hlitauti.run(ctx, f"{docker_exec} image ls {ecr_base_path}")
+
+
+@task
+def docker_remove_image(ctx, base_image="") -> None:  # type: ignore
+    """
+    Delete the current dev image to free up disk space.
+
+    :param base_image: base name of the image (e.g., `*****.dkr.ecr.us-
+        east-1.amazonaws.com/amp`)
+    """
+    # Display disk space before cleanup.
+    _LOG.info("Disk space before cleanup:")
+    hsystem.system("df -h", suppress_output=False)
+    # Handle the image.
+    stage = "dev"
+    version = ""
+    image = get_image(base_image, stage, version)
+    _LOG.info("Deleting Docker image: %s", image)
+    # Get Docker executable configuration.
+    use_sudo = hdocker.get_use_sudo()
+    docker_exec = hdocker.get_docker_executable(use_sudo)
+    # Delete the specific image.
+    cmd = f"{docker_exec} rmi -f {image}"
+    _LOG.info("Running: %s", cmd)
+    try:
+        result = hsystem.system(cmd, abort_on_error=False, suppress_output=False)
+        if result != 0:
+            _LOG.warning(
+                "Docker image deletion failed with exit code %s for image: %s",
+                result,
+                image,
+            )
+        else:
+            _LOG.info("Successfully deleted Docker image: %s", image)
+    except Exception as e:
+        _LOG.error("Error during Docker image deletion: %s", e)
+    # Display disk space after cleanup.
+    _LOG.info("Disk space after cleanup:")
+    hsystem.system("df -h", suppress_output=False)
 
 
 @task
@@ -281,8 +320,8 @@ def _get_aws_cli_version() -> int:
     res = hsystem.system_to_one_line(cmd)[1]
     # Parse the output.
     m = re.match(r"aws-cli/((\d+)\.\d+\.\d+)\s", res)
-    hdbg.dassert(m, "Can't parse '%s'", res)
-    m: Match[Any]
+    hdbg.dassert_is_not(m, None, "Can't parse '%s'", res)
+    assert m is not None
     version = m.group(1)
     _LOG.debug("version=%s", version)
     major_version = int(m.group(2))
@@ -371,7 +410,7 @@ def _docker_login_ecr() -> None:
         # TODO(Nikola): Remove `_get_aws_cli_version()` and use only `aws ecr get-login-password`
         #  as it is present in both versions of `awscli`.
         cmd = (
-            f"docker login -u AWS -p "
+            "docker login -u AWS -p "
             f"$(aws ecr get-login-password --profile {profile}) "
             f"https://{ecr_base_path}"
         )
@@ -553,9 +592,7 @@ def _generate_docker_compose_file(
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
-    use_helpers_as_nested_module = (
-        0 if hgit.is_in_helpers_as_supermodule() else 1
-    )
+    use_helpers_as_nested_module = 0 if hgit.is_in_helpers_as_supermodule() else 1
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
@@ -732,9 +769,7 @@ def _generate_docker_compose_file(
             """
             Override the method to modify YAML indentation behavior.
             """
-            return super(_Dumper, self_).increase_indent(
-                flow=False, indentless=False
-            )
+            return super().increase_indent(flow=False, indentless=False)
 
     # Convert the dictionary to YAML format.
     yaml_str = yaml.dump(
@@ -1340,9 +1375,7 @@ def _docker_cmd(
         hs3.generate_aws_files()
     docker_pull(ctx, skip_pull=skip_pull)
     _LOG.debug("cmd=%s", docker_cmd_)
-    rc: Optional[int] = hlitauti.run(
-        ctx, docker_cmd_, pty=True, **ctx_run_kwargs
-    )
+    rc: Optional[int] = hlitauti.run(ctx, docker_cmd_, pty=True, **ctx_run_kwargs)
     return rc
 
 

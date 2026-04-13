@@ -176,7 +176,8 @@ def _parse() -> argparse.Namespace:
 def _main(args: argparse.Namespace) -> None:
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
     hdbg.dassert(
-        os.getenv("GITHUB_TOKEN"), "Environment variable GITHUB_TOKEN must be set"
+        os.getenv("GITHUB_TOKEN"),
+        "Environment variable GITHUB_TOKEN must be set",
     )
     _run_dockerized_invite(args)
 
