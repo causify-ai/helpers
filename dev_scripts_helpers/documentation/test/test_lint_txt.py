@@ -1191,10 +1191,6 @@ class Test_capitalize_header(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_lint_txt1(hunitest.TestCase):
     """
     Test the text preprocessing functionality.
@@ -1293,10 +1289,6 @@ class Test_lint_txt1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_lint_txt2(hunitest.TestCase):
     @staticmethod
     def get_text_problematic_for_prettier1() -> str:
@@ -1582,10 +1574,6 @@ class Test_lint_txt2(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_lint_txt_cmd_line1(hunitest.TestCase):
     """
     Test the lint_txt.py command-line script with different file types.
@@ -1724,10 +1712,6 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_lint_txt_idempotency(hunitest.TestCase):
     """
     Test that lint_txt.py does not modify already formatted files.
