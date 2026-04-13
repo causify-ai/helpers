@@ -30,11 +30,11 @@ def _create_test_file(self_: Any, txt: str, extension: str) -> str:
 # #############################################################################
 
 
-# TODO(ai_gp): -> Test_dockerized_prettier1
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
+# # TODO(ai_gp): -> Test_dockerized_prettier1
+# @pytest.mark.skipif(
+#     hserver.is_inside_ci() or hserver.is_dev_csfy(),
+#     reason="Disabled because of CmampTask10710",
+# )
 class Test_run_dockerized_prettier1(hunitest.TestCase):
     """
     Test running the `prettier` command inside a Docker container.

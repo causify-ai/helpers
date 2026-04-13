@@ -284,63 +284,63 @@ def is_dev4() -> bool:
     return is_dev4_
 
 
-# def is_host_mac(*, version: Optional[str] = None) -> bool:
-#     """
-#     Return whether we are running on macOS and, optionally, on a specific
-#     version.
+def is_host_mac(*, version: Optional[str] = None) -> bool:
+    """
+    Return whether we are running on macOS and, optionally, on a specific
+    version.
 
-#     :param version: check whether we are running on a certain macOS version (e.g.,
-#         `Catalina`, `Monterey`)
-#     """
-#     _LOG.debug("version=%s", version)
-#     host_os_name = os.uname()[0]
-#     _LOG.debug("os.uname()=%s", str(os.uname()))
-#     csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
-#     _LOG.debug(
-#         "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
-#     )
-#     is_mac_ = host_os_name == "Darwin" or csfy_host_os_name == "Darwin"
-#     if version is None:
-#         # The user didn't request a specific version, so we return whether we
-#         # are running on a Mac or not.
-#         _LOG.debug("is_mac_=%s", is_mac_)
-#         return is_mac_
-#     else:
-#         # The user specified a version: if we are not running on a Mac then we
-#         # return False, since we don't even have to check the macOS version.
-#         if not is_mac_:
-#             _LOG.debug("is_mac_=%s", is_mac_)
-#             return False
-#     # Check the macOS version we are running.
-#     if version == "Catalina":
-#         # Darwin gpmac.local 19.6.0 Darwin Kernel Version 19.6.0:
-#         # root:xnu-6153.141.2~1/RELEASE_X86_64 x86_64
-#         macos_tag = "19.6"
-#     elif version == "Monterey":
-#         # Darwin alpha.local 21.5.0 Darwin Kernel Version 21.5.0:
-#         # root:xnu-8020.121.3~4/RELEASE_ARM64_T6000 arm64
-#         macos_tag = "21."
-#     elif version == "Ventura":
-#         macos_tag = "22."
-#     elif version == "Sequoia":
-#         # Darwin gpmac.local 24.4.0 Darwin Kernel Version 24.4.0:
-#         # root:xnu-11417.101.15~1/RELEASE_ARM64_T8112 arm64
-#         macos_tag = "24."
-#     else:
-#         raise ValueError(f"Invalid version='{version}'")
-#     _LOG.debug("macos_tag=%s", macos_tag)
-#     host_os_version = os.uname()[2]
-#     # 'Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
-#     #   root:xnu-6153.141.2~1/RELEASE_X86_64'
-#     csfy_host_os_version = os.environ.get("CSFY_HOST_VERSION", "")
-#     _LOG.debug(
-#         "host_os_version=%s csfy_host_os_version=%s",
-#         host_os_version,
-#         csfy_host_os_version,
-#     )
-#     is_mac_ = macos_tag in host_os_version or macos_tag in csfy_host_os_version
-#     _LOG.debug("is_mac_=%s", is_mac_)
-#     return is_mac_
+    :param version: check whether we are running on a certain macOS version (e.g.,
+        `Catalina`, `Monterey`)
+    """
+    _LOG.debug("version=%s", version)
+    host_os_name = os.uname()[0]
+    _LOG.debug("os.uname()=%s", str(os.uname()))
+    csfy_host_os_name = os.environ.get("CSFY_HOST_OS_NAME", None)
+    _LOG.debug(
+        "host_os_name=%s csfy_host_os_name=%s", host_os_name, csfy_host_os_name
+    )
+    is_mac_ = host_os_name == "Darwin" or csfy_host_os_name == "Darwin"
+    if version is None:
+        # The user didn't request a specific version, so we return whether we
+        # are running on a Mac or not.
+        _LOG.debug("is_mac_=%s", is_mac_)
+        return is_mac_
+    else:
+        # The user specified a version: if we are not running on a Mac then we
+        # return False, since we don't even have to check the macOS version.
+        if not is_mac_:
+            _LOG.debug("is_mac_=%s", is_mac_)
+            return False
+    # Check the macOS version we are running.
+    if version == "Catalina":
+        # Darwin gpmac.local 19.6.0 Darwin Kernel Version 19.6.0:
+        # root:xnu-6153.141.2~1/RELEASE_X86_64 x86_64
+        macos_tag = "19.6"
+    elif version == "Monterey":
+        # Darwin alpha.local 21.5.0 Darwin Kernel Version 21.5.0:
+        # root:xnu-8020.121.3~4/RELEASE_ARM64_T6000 arm64
+        macos_tag = "21."
+    elif version == "Ventura":
+        macos_tag = "22."
+    elif version == "Sequoia":
+        # Darwin gpmac.local 24.4.0 Darwin Kernel Version 24.4.0:
+        # root:xnu-11417.101.15~1/RELEASE_ARM64_T8112 arm64
+        macos_tag = "24."
+    else:
+        raise ValueError(f"Invalid version='{version}'")
+    _LOG.debug("macos_tag=%s", macos_tag)
+    host_os_version = os.uname()[2]
+    # 'Darwin Kernel Version 19.6.0: Mon Aug 31 22:12:52 PDT 2020;
+    #   root:xnu-6153.141.2~1/RELEASE_X86_64'
+    csfy_host_os_version = os.environ.get("CSFY_HOST_VERSION", "")
+    _LOG.debug(
+        "host_os_version=%s csfy_host_os_version=%s",
+        host_os_version,
+        csfy_host_os_version,
+    )
+    is_mac_ = macos_tag in host_os_version or macos_tag in csfy_host_os_version
+    _LOG.debug("is_mac_=%s", is_mac_)
+    return is_mac_
 
 
 def is_prod_csfy() -> bool:
@@ -702,6 +702,14 @@ def has_docker_children_containers_support() -> bool:
     return has_docker_privileged_mode()
 
 
+def is_csfy_dind_enabled() -> bool:
+    """
+    Return whether `CSFY_ENABLE_DIND` is enabled (e.g. users opt-in to use Docker-in-Docker).
+    """
+    val = os.environ.get("CSFY_ENABLE_DIND", "0")
+    return val == "1" or val.lower() in ("true", "yes")
+
+
 def can_run_docker_from_docker() -> bool:
     """
     Return whether we can run docker from docker, either as children or sibling
@@ -748,7 +756,6 @@ def get_docker_info() -> str:
     txt_tmp.append(
         f"has_docker_children_containers_support={has_docker_children_containers_support_}"
     )
-    txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
     # Format as title with indented items.
     txt = "Docker info" + "\n" + _indent("\n".join(txt_tmp))
     return txt
@@ -893,6 +900,8 @@ def has_docker_sudo() -> bool:
 
 
 def _is_mac_version_with_sibling_containers() -> bool:
+    if not is_host_mac():
+        return False
     mac_version = get_host_mac_version()
     return mac_version in ("Monterey", "Ventura", "Sequoia")
 
@@ -1107,6 +1116,7 @@ def config_func_to_str() -> str:
         "has_docker_sudo",
         "is_AM_S3_available",
         "is_CK_S3_available",
+        "is_csfy_dind_enabled",
         "is_dev4",
         "is_dev_csfy",
         "is_external_linux",
