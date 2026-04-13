@@ -642,10 +642,6 @@ class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_preprocess_notes_executable1(hunitest.TestCase):
     """
     Test `preprocess_notes.py` using the executable and checked in files.

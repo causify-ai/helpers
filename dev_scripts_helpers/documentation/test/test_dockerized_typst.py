@@ -41,10 +41,6 @@ def _create_typst_file(self_: hunitest.TestCase) -> str:
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_build_typst_container(hunitest.TestCase):
     """
     Test running the `typst compile` command inside a Docker container.
@@ -100,10 +96,6 @@ class Test_build_typst_container(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_run_dockerized_typst(hunitest.TestCase):
     """
     Test running the `typst compile` command inside a Docker container.

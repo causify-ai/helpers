@@ -303,10 +303,6 @@ class Test_remove_image_code1(hunitest.TestCase):
 # Test_render_image_code1
 # #############################################################################
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_render_image_code1(hunitest.TestCase):
     """
     Test `_render_image_code()`.
@@ -618,10 +614,6 @@ class Test_insert_image_code2(hunitest.TestCase):
 # Test_render_images1
 # #############################################################################
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_render_images1(hunitest.TestCase):
     """
     Test _render_images() with dry run enabled (updating file text without
@@ -1249,10 +1241,6 @@ class Test_render_images1(hunitest.TestCase):
 # Test_render_images2
 # #############################################################################
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_render_images2(hunitest.TestCase):
     def helper(self, file_name: str) -> None:
         """

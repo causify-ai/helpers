@@ -18,10 +18,6 @@ _LOG = logging.getLogger(__name__)
 # Test_notes_to_pdf1
 # #############################################################################
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_notes_to_pdf1(hunitest.TestCase):
     """
     Test `notes_to_pdf.py` with a simple input file.
