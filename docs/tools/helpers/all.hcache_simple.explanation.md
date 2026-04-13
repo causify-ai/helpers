@@ -306,8 +306,6 @@
     - `abort_on_cache_miss`: Whether to raise an error if a cache miss occurs
     - `report_on_cache_miss`: Whether to return a special value ("_cache_miss_")
       on a cache miss
-    - `enable_perf`: Whether to enable performance statistics tracking (hits,
-      misses, total calls)
     - `force_refresh`: Whether to bypass the cache and refresh the value
   - `System Properties`: Internal settings configured via decorator parameters
     that define how the cache operates. These are preserved when

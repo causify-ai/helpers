@@ -751,14 +751,16 @@ class Test_cache_property_to_str(_BaseCacheTest):
         _cached_json_double(1)
         _cached_multi_arg_sum(1, 2)
         hcacsimp.set_cache_property("_cached_json_double", "force_refresh", True)
-        hcacsimp.set_cache_property("_cached_multi_arg_sum", "enable_perf", True)
+        hcacsimp.set_cache_property(
+            "_cached_multi_arg_sum", "write_through", True
+        )
         # Run test.
         result = hcacsimp.cache_property_to_str("")
         # Check outputs.
         self.assertIn("_cached_json_double", result)
         self.assertIn("_cached_multi_arg_sum", result)
         self.assertIn("force_refresh: True", result)
-        self.assertIn("enable_perf: True", result)
+        self.assertIn("write_through: True", result)
 
 
 # #############################################################################
