@@ -54,7 +54,7 @@ def _collect_symlinks(dir: str) -> List[str]:
     return out
 
 
-def symlink_add_write_perm(dir: str) -> None:
+def _add_write_perm_to_symlink(dir: str) -> None:
     """
     Add write permission for all on each symlink under the given directory.
 
@@ -69,10 +69,15 @@ def symlink_add_write_perm(dir: str) -> None:
                 mode | _SYMLINK_WRITE_BITS,
             )
         except OSError as exc:
-            _LOG.warning("chmod a+w symlink %s: %s", path, exc)
+            hdbg.dassert(
+                False,
+                "chmod a+w symlink %s failed: %s",
+                path,
+                exc,
+            )
 
 
-def symlink_remove_write_perm(dir: str) -> None:
+def _remove_write_perm_from_symlink(dir: str) -> None:
     """
     Remove write permission for all on each symlink under a given directory.
 
@@ -90,7 +95,12 @@ def symlink_remove_write_perm(dir: str) -> None:
                 mode & ~_SYMLINK_WRITE_BITS,
             )
         except OSError as exc:
-            _LOG.warning("chmod a-w symlink %s: %s", path, exc)
+            hdbg.dassert(
+                False,
+                "chmod a-w symlink %s failed: %s",
+                path,
+                exc,
+            )
 
 
 def run_git_recursively(ctx: Any, cmd_: str) -> None:
@@ -109,12 +119,12 @@ def git_pull(ctx):  # type: ignore
     hlitauti.report_task()
     #
     root_dir = hgit.get_client_root(super_module=False)
-    symlink_add_write_perm(root_dir)
+    _add_write_perm_to_symlink(root_dir)
     try:
         cmd = "git pull --autostash"
         run_git_recursively(ctx, cmd)
     finally:
-        symlink_remove_write_perm(root_dir)
+        _remove_write_perm_from_symlink(root_dir)
 
 
 @task
