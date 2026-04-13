@@ -70,10 +70,6 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
 # #############################################################################
 
 class Test_run_dockerized_pandoc(hunitest.TestCase):
-    @pytest.mark.skipif(
-        hserver.is_inside_ci() or hserver.is_dev_csfy(),
-        reason="Disabled because of CmampTask10710",
-    )
     def test1(self) -> None:
         """
         Test Dockerized Pandoc reads an externally provided input file,
