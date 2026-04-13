@@ -90,7 +90,7 @@ def _run_dockerized_llm_apply_cfile(
     )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = True
+    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
     caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
