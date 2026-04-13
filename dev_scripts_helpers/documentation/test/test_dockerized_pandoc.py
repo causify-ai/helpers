@@ -69,7 +69,7 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
 # Test_run_dockerized_pandoc
 # #############################################################################
 
-@pytest.mark.superslow
+@pytest.mark.superslow("~457 seconds.")
 class Test_run_dockerized_pandoc(hunitest.TestCase):
     def test1(self) -> None:
         """

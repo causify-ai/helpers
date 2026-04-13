@@ -177,6 +177,7 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    @pytest.mark.superslow("~95 seconds.")
     def test7(self) -> None:
         """
         Test code block with correct indentation already present.
@@ -194,6 +195,7 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
         # Run test.
         self.helper(txt, expected)
 
+    @pytest.mark.superslow("~25 seconds.")
     def test8(self) -> None:
         """
         Test that code blocks without extra indentation are unchanged.
