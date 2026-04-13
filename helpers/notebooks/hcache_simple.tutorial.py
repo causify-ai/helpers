@@ -24,6 +24,7 @@
 #   - [5. Configurable Cache Locations](#5.-configurable-cache-locations)
 #   - [6. Per-Function Configuration](#6.-per-function-configuration)
 #   - [7. Excluding Keys from Cache](#7.-excluding-keys-from-cache)
+#     - [Runtime Modification of Excluded Keys](#runtime-modification-of-excluded-keys)
 #   - [8. S3 Integration](#8.-s3-integration)
 #   - [9. Binary Data with Pickle](#9.-binary-data-with-pickle)
 #   - [Summary](#summary)
@@ -300,6 +301,57 @@ print(
 # Different query triggers cache miss.
 result3 = api_call("search java", session_id="abc123", timestamp=1.0)
 print(f"Third call (different query, cache miss): {result3}")
+
+# %% [markdown]
+# <a name='runtime-modification-of-excluded-keys'></a>
+# ### Runtime Modification of Excluded Keys
+#
+# Both `exclude_keys` and `write_through` can be modified at runtime using
+# `set_cache_property()`. This allows you to change caching behavior without
+# redefining the function.
+#
+# **Important**: Runtime modifications persist across imports. Once you set a
+# property using `set_cache_property()`, that value takes precedence over the
+# decorator argument, even if the module is re-imported.
+
+
+# %%
+# Create a function with initial exclude_keys.
+@hcacsimp.simple_cache(cache_type="json", exclude_keys=["debug"])
+def data_query(query: str, debug: bool = False) -> str:
+    """
+    Query data, with optional debug parameter.
+    """
+    _LOG.info("Executing query: %s", query)
+    time.sleep(1)
+    return f"Data for: {query}"
+
+
+# %%
+# Initially, debug is excluded from cache key.
+print("Initial behavior (debug excluded):")
+start_time = time.time()
+result1 = data_query("users", debug=False)
+elapsed_time = time.time() - start_time
+print(f"First call: {result1} (time: {elapsed_time:.3f}s)")
+start_time = time.time()
+result2 = data_query("users", debug=True)
+elapsed_time = time.time() - start_time
+print(
+    f"Second call with debug=True: {result2} (time: {elapsed_time:.6f}s - from cache!)"
+)
+# Modify exclude_keys at runtime to make debug matter.
+print("\nModifying exclude_keys at runtime to []:")
+hcacsimp.set_cache_property("data_query", "exclude_keys", [])
+# Clear memory cache to demonstrate the change.
+hcacsimp.reset_mem_cache("data_query")
+# Now debug should affect cache lookup.
+start_time = time.time()
+result3 = data_query("users", debug=True)
+elapsed_time = time.time() - start_time
+print(
+    f"Third call with debug=True: {result3} (time: {elapsed_time:.3f}s - cache miss!)"
+)
 
 
 # %% [markdown]

@@ -1549,6 +1549,144 @@ class Test_set_cache_property_new_func(_BaseCacheTest):
 
 
 # #############################################################################
+# Test_runtime_write_through
+# #############################################################################
+
+
+class Test_runtime_write_through(_BaseCacheTest):
+    """
+    Test that modifying write_through at runtime affects behavior.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that setting write_through=False at runtime prevents disk
+        writes.
+        """
+        # Prepare inputs.
+        # Call function to populate cache with first value.
+        result1 = _cached_json_double(10)
+        # Verify result.
+        self.assertEqual(result1, 20)
+        # Flush to ensure it's on disk.
+        hcacsimp.flush_cache_to_disk("_cached_json_double")
+        # Set write_through to False at runtime.
+        hcacsimp.set_cache_property("_cached_json_double", "write_through", False)
+        # Clear memory cache.
+        hcacsimp.reset_mem_cache("_cached_json_double")
+        # Call again with different input.
+        result2 = _cached_json_double(20)
+        self.assertEqual(result2, 40)
+        # Check outputs.
+        # Disk should not have been updated with second call.
+        disk_cache = hcacsimp.get_disk_cache("_cached_json_double")
+        # Only first call should be on disk.
+        self.assertEqual(len(disk_cache), 1)
+
+    def test2(self) -> None:
+        """
+        Verify that setting write_through=True at runtime enables disk writes.
+        """
+        # Prepare inputs.
+        # First set write_through to False.
+        hcacsimp.set_cache_property("_cached_json_double", "write_through", False)
+        # Call function (won't write to disk).
+        result1 = _cached_json_double(15)
+        self.assertEqual(result1, 30)
+        # Verify nothing on disk yet.
+        disk_cache = hcacsimp.get_disk_cache("_cached_json_double")
+        self.assertEqual(len(disk_cache), 0)
+        # Set write_through to True at runtime.
+        hcacsimp.set_cache_property("_cached_json_double", "write_through", True)
+        # Call with new input (should write to disk).
+        result2 = _cached_json_double(25)
+        self.assertEqual(result2, 50)
+        # Check outputs.
+        # Now disk should have the second call.
+        disk_cache = hcacsimp.get_disk_cache("_cached_json_double")
+        self.assertEqual(len(disk_cache), 2)
+
+
+# #############################################################################
+# Test_runtime_exclude_keys
+# #############################################################################
+
+
+class Test_runtime_exclude_keys(_BaseCacheTest):
+    """
+    Test that modifying exclude_keys at runtime affects cache key generation.
+    """
+
+    def test1(self) -> None:
+        """
+        Verify that modifying exclude_keys at runtime changes which parameters
+        affect cache lookup.
+        """
+
+        # Prepare inputs.
+        # Create a test function with exclude_keys.
+        @hcacsimp.simple_cache(cache_type="json", exclude_keys=["x"])
+        def _test_exclude_runtime(a: int, x: int = 0) -> int:
+            return a * 2
+
+        # Run test.
+        # First call caches result for a=5 (x is excluded).
+        result1 = _test_exclude_runtime(5, x=10)
+        # Second call with different x returns cached result.
+        result2 = _test_exclude_runtime(5, x=20)
+        # Check outputs.
+        self.assertEqual(result1, 10)
+        self.assertEqual(result2, 10)
+        # Modify exclude_keys at runtime to empty list.
+        hcacsimp.set_cache_property("_test_exclude_runtime", "exclude_keys", [])
+        # Clear memory cache to force recomputation.
+        hcacsimp.reset_mem_cache("_test_exclude_runtime")
+        # Now x should matter - this should compute new value.
+        result3 = _test_exclude_runtime(5, x=30)
+        # Should compute new value since x is now part of cache key.
+        self.assertEqual(result3, 10)
+
+    def test2(self) -> None:
+        """
+        Verify that adding keys to exclude_keys at runtime makes them ignored
+        in cache lookup.
+        """
+
+        # Prepare inputs.
+        # Create a test function with no exclude_keys initially.
+        @hcacsimp.simple_cache(cache_type="json", exclude_keys=[])
+        def _test_exclude_runtime2(a: int, y: int = 0) -> int:
+            return a * 3
+
+        # Run test.
+        # First call with y=10.
+        result1 = _test_exclude_runtime2(7, y=10)
+        self.assertEqual(result1, 21)
+        # Second call with different y should cache miss.
+        result2 = _test_exclude_runtime2(7, y=20)
+        self.assertEqual(result2, 21)
+        # Verify we have 2 cache entries (y was part of key).
+        cache = hcacsimp.get_cache("_test_exclude_runtime2")
+        self.assertEqual(len(cache), 2)
+        # Modify exclude_keys to exclude y.
+        hcacsimp.set_cache_property(
+            "_test_exclude_runtime2", "exclude_keys", ["y"]
+        )
+        # Clear memory and disk cache.
+        hcacsimp.reset_mem_cache("_test_exclude_runtime2")
+        hcacsimp.reset_disk_cache("_test_exclude_runtime2", interactive=False)
+        # Now calls with different y should return same cached result.
+        result3 = _test_exclude_runtime2(7, y=100)
+        result4 = _test_exclude_runtime2(7, y=200)
+        # Check outputs.
+        self.assertEqual(result3, 21)
+        self.assertEqual(result4, 21)
+        # Should only have 1 cache entry now.
+        cache = hcacsimp.get_cache("_test_exclude_runtime2")
+        self.assertEqual(len(cache), 1)
+
+
+# #############################################################################
 # Test_cache_property_to_str_no_props
 # #############################################################################
 
