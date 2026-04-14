@@ -2,20 +2,21 @@ import logging
 import os
 
 import pytest
+
+import dev_scripts_helpers.notebooks.extract_notebook_images as dshnenoim
 import helpers.hunit_test as hunitest
-import helpers.hserver as hserver
-import dev_scripts_helpers.notebooks.extract_notebook_images as dshnbe
 
 _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# TestNotebookImageExtractor1
+# Test_run_dockerized_notebook_image_extractor1
 # #############################################################################
 
 
 @pytest.mark.superslow("~42 sec.")
 class Test_run_dockerized_notebook_image_extractor1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test the `_run_dockerized_notebook_image_extractor()` function.
@@ -31,7 +32,7 @@ class Test_run_dockerized_notebook_image_extractor1(hunitest.TestCase):
         )
         output_dir = self.get_output_dir()
         # Run the container.
-        dshnbe._run_dockerized_extract_notebook_images(
+        dshnenoim._run_dockerized_extract_notebook_images(
             notebook_path=src_test_notebook,
             output_dir=output_dir,
             force_rebuild=False,

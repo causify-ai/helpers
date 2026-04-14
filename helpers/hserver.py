@@ -704,7 +704,8 @@ def has_docker_children_containers_support() -> bool:
 
 def is_csfy_dind_enabled() -> bool:
     """
-    Return whether `CSFY_ENABLE_DIND` is enabled (e.g. users opt-in to use Docker-in-Docker).
+    Return whether `CSFY_ENABLE_DIND` is enabled (e.g. users opt-in to use
+    Docker-in-Docker).
     """
     val = os.environ.get("CSFY_ENABLE_DIND", "0")
     return val == "1" or val.lower() in ("true", "yes")
@@ -911,8 +912,8 @@ def use_docker_sibling_containers() -> bool:
     """
     Return whether to use Docker sibling containers.
 
-    Using sibling containers requires that all Docker containers are in the
-    same network so that they can communicate with each other.
+    Using sibling containers requires that all Docker containers are in
+    the same network so that they can communicate with each other.
     """
     return has_docker_sibling_containers_support()
     # if is_dev_csfy():

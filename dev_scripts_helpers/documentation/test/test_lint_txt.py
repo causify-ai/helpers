@@ -10,7 +10,6 @@ import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -32,7 +31,8 @@ class Test__remove_code_block_extra_indentation(hunitest.TestCase):
         Test helper for _remove_code_block_extra_indentation.
 
         :param txt: Input text to process
-        :param expected: Expected output after removing extra indentation
+        :param expected: Expected output after removing extra
+            indentation
         """
         # Prepare inputs.
         lines = txt.split("\n")
@@ -830,7 +830,8 @@ class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
         Test helper for _convert_asterisk_bullets_to_dashes.
 
         :param txt: Input text to process
-        :param expected: Expected output after converting asterisk bullets
+        :param expected: Expected output after converting asterisk
+            bullets
         """
         # Prepare inputs.
         lines = txt.split("\n")
@@ -1073,9 +1074,10 @@ class Test_capitalize_header(hunitest.TestCase):
     """
     Test the capitalize_header function handling of apostrophes.
 
-    The capitalize_header function should properly handle words with apostrophes,
-    like "won't" -> "Won't" (not "Won'T"). This tests the fix for the bug where
-    Python's str.title() capitalizes letters after apostrophes.
+    The capitalize_header function should properly handle words with
+    apostrophes, like "won't" -> "Won't" (not "Won'T"). This tests the
+    fix for the bug where Python's str.title() capitalizes letters after
+    apostrophes.
     """
 
     def helper(self, input_lines: str, expected: str) -> None:
@@ -1083,7 +1085,8 @@ class Test_capitalize_header(hunitest.TestCase):
         Test helper for capitalize_header.
 
         :param input_lines: Input markdown lines to process
-        :param expected: Expected output after capitalize_header processing
+        :param expected: Expected output after capitalize_header
+            processing
         """
         import helpers.hmarkdown_headers as hmarhead
 
@@ -1292,6 +1295,7 @@ class Test_lint_txt1(hunitest.TestCase):
 
 
 class Test_lint_txt2(hunitest.TestCase):
+
     @staticmethod
     def get_text_problematic_for_prettier1() -> str:
         txt = r"""
@@ -1314,8 +1318,8 @@ class Test_lint_txt2(hunitest.TestCase):
         the expected output.
 
         :param txt: The text to be processed.
-        :param expected: The expected output after processing the text. If
-            None, no comparison is made.
+        :param expected: The expected output after processing the text.
+            If None, no comparison is made.
         :param file_name: The name of the file to be used for
             processing.
         :return: The processed text.
@@ -1537,7 +1541,8 @@ class Test_lint_txt2(hunitest.TestCase):
     @pytest.mark.superslow
     def test8(self) -> None:
         """
-        Test that page separators are removed but YAML front matter is preserved.
+        Test that page separators are removed but YAML front matter is
+        preserved.
         """
         txt = r"""
         ---
@@ -1597,8 +1602,8 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         Run lint_txt processing directly by calling the code.
 
         :param in_file: Path to the input file containing the notes.
-        :param type_: The output format, either 'md' or 'tex'.
-        :param use_script
+        :param type_: The output format, either 'md' or 'tex'. :param
+            use_script
         :param cmd_opts: Additional command-line options to pass to the
             script.
         :return: The processed text content.
@@ -1664,9 +1669,9 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         """
         Run lint_to_txt.py on a markdown file using the command-line script.
 
-        This test uses the same input file as test_md1 and should produce
-        the same output. It uses test_method_name to reuse the golden
-        outcome from test_md1.
+        This test uses the same input file as test_md1 and should
+        produce the same output. It uses test_method_name to reuse the
+        golden outcome from test_md1.
         """
         # Prepare inputs.
         in_file = os.path.join(
@@ -1695,13 +1700,14 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         # Check.
         self.check_string(output_txt)
 
+    @pytest.mark.slow
     def test_tex2(self) -> None:
         """
         Run lint_to_txt.py on a latex file using the command-line script.
 
-        This test uses the same input file as test_tex1 and should produce
-        the same output. It uses test_method_name to reuse the golden
-        outcome from test_tex1.
+        This test uses the same input file as test_tex1 and should
+        produce the same output. It uses test_method_name to reuse the
+        golden outcome from test_tex1.
         """
         # Prepare inputs.
         in_file = os.path.join(
@@ -1762,8 +1768,8 @@ class Test_lint_txt_idempotency(hunitest.TestCase):
         """
         Test idempotency for all markdown files in the input directory.
 
-        This test verifies that running lint_txt twice on each file in the
-        input directory produces identical output.
+        This test verifies that running lint_txt twice on each file in
+        the input directory produces identical output.
         """
         # Prepare inputs.
         input_dir = self.get_input_dir()

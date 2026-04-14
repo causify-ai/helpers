@@ -8,7 +8,6 @@ import dev_scripts_helpers.llms.llm_prompts as dshlllpr
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -83,6 +82,7 @@ class Test_llm_transform1(hunitest.TestCase):
             """
             self.assert_equal(actual, expected, dedent=True)
 
+    @pytest.mark.slow
     def test_test1(self) -> None:
         """
         Run the `llm_transform.py` script with the prompt `test` and verify the
@@ -101,6 +101,7 @@ class Test_llm_transform1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True)
 
+    @pytest.mark.slow
     def test_test2(self) -> None:
         """
         Run the `llm_transform.py` script with the prompt `test` through stdin.
@@ -135,9 +136,7 @@ class Test_llm_transform1(hunitest.TestCase):
             hsystem.system(cmd)
             hdbg.dassert(not os.path.exists(out_file_name))
             # Run the test.
-            cmd = (
-                f"{script} -i {in_file_name} -o {out_file_name} -p {prompt_tag}"
-            )
+            cmd = f"{script} -i {in_file_name} -o {out_file_name} -p {prompt_tag}"
             hsystem.system(cmd)
             # Check.
             hdbg.dassert_file_exists(out_file_name)

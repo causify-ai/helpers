@@ -184,9 +184,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Select files modified in the current branch with respect to master",
     )
-    parser.add_argument(
-        "--skip_files", nargs="+", type=str, help="Files to skip"
-    )
+    parser.add_argument("--skip_files", nargs="+", type=str, help="Files to skip")
     # Reviewer guidelines file.
     parser.add_argument(
         "--guidelines_doc_filename",

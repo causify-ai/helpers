@@ -8,7 +8,6 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -17,6 +16,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 # Test_notes_to_pdf1
 # #############################################################################
+
 
 class Test_notes_to_pdf1(hunitest.TestCase):
     """

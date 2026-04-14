@@ -1,13 +1,10 @@
 import os
 
-import pytest
-
 import helpers.hdocker as hdocker
 import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -47,7 +44,7 @@ class Test_build_typst_container(hunitest.TestCase):
     """
 
     # TODO(gp): Add pytest-order to the container.
-    #@pytest.mark.order(1)
+    # @pytest.mark.order(1)
     def test1(self) -> None:
         """
         Test that the Typst Docker container is built correctly and `typst
@@ -60,7 +57,7 @@ class Test_build_typst_container(hunitest.TestCase):
         """
         # Prepare inputs.
         use_sudo = hdocker.get_use_sudo()
-        force_rebuild = hdocker.get_force_rebuild()
+        force_rebuild = True
         # Build the container using the exported constants (no compile needed).
         image_name = hdocker.build_container_image(
             hdocexec.TYPST_CONTAINER_IMAGE,
