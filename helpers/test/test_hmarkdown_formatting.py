@@ -1,13 +1,10 @@
 import logging
 import os
 
-import pytest
-
 import helpers.hio as hio
 import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hmarkdown_formatting as hmarform
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -574,7 +571,7 @@ class Test_format_markdown_slide(hunitest.TestCase):
         """
         expected_text = r"""
         * Incremental vs Iterative
-        ::: columns 
+        ::: columns
         :::: {.column width=55%}
 
         - **Incremental Development**

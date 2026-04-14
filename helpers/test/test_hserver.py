@@ -102,8 +102,7 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = None
-        self.exp_get_docker_info = hprint.dedent(
-            r"""
+        self.exp_get_docker_info = hprint.dedent(r"""
             Docker info
               has_docker=True
               docker_needs_sudo=False
@@ -111,10 +110,8 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
               is_inside_docker=True
               has_docker_sibling_containers_support=True
               has_docker_children_containers_support=True
-            """
-        )
-        self.exp_get_setup_settings = hprint.dedent(
-            r"""
+            """)
+        self.exp_get_setup_settings = hprint.dedent(r"""
             is_inside_docker_container_on_csfy_server     False
             is_outside_docker_container_on_csfy_server    False
             is_inside_docker_container_on_host_mac        False
@@ -125,8 +122,7 @@ class Test_hserver_inside_ci1(_TestCase1, hunitest.TestCase):
             is_ig_prod                                    False
             is_prod_csfy                                  False
             is_inside_ci                                  True
-            """
-        )
+            """)
         self.exp_get_setup_signature = None
         self.exp_is_host_csfy_server = False
         self.exp_is_host_mac = False
@@ -152,8 +148,7 @@ class Test_hserver_inside_docker_container_on_csfy_server1(
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
-        self.exp_get_docker_info = hprint.dedent(
-            r"""
+        self.exp_get_docker_info = hprint.dedent(r"""
             # Docker info
               has_docker=True
               docker_needs_sudo=False
@@ -161,10 +156,8 @@ class Test_hserver_inside_docker_container_on_csfy_server1(
               is_inside_docker=True
               has_docker_sibling_containers_support=True
               has_docker_children_containers_support=True
-            """
-        )
-        self.exp_get_setup_settings = hprint.dedent(
-            r"""
+            """)
+        self.exp_get_setup_settings = hprint.dedent(r"""
             is_inside_docker_container_on_csfy_server     True
             is_outside_docker_container_on_csfy_server    False
             is_inside_docker_container_on_host_mac        False
@@ -175,8 +168,7 @@ class Test_hserver_inside_docker_container_on_csfy_server1(
             is_ig_prod                                    False
             is_prod_csfy                                  False
             is_inside_ci                                  False
-            """
-        )
+            """)
         self.exp_get_setup_signature = ""
         self.exp_is_host_csfy_server = True
         self.exp_is_host_mac = False
@@ -202,8 +194,7 @@ class Test_hserver_outside_docker_container_on_csfy_server1(
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
-        self.exp_get_docker_info = hprint.dedent(
-            r"""
+        self.exp_get_docker_info = hprint.dedent(r"""
             # Docker info
               has_docker=True
               docker_needs_sudo=False
@@ -211,10 +202,8 @@ class Test_hserver_outside_docker_container_on_csfy_server1(
               is_inside_docker=False
               has_docker_sibling_containers_support=*undef*
               has_docker_children_containers_support=*undef*
-            """
-        )
-        self.exp_get_setup_settings = hprint.dedent(
-            r"""
+            """)
+        self.exp_get_setup_settings = hprint.dedent(r"""
             is_inside_docker_container_on_csfy_server     False
             is_outside_docker_container_on_csfy_server    True
             is_inside_docker_container_on_host_mac        False
@@ -225,8 +214,7 @@ class Test_hserver_outside_docker_container_on_csfy_server1(
             is_ig_prod                                    False
             is_prod_csfy                                  False
             is_inside_ci                                  False
-            """
-        )
+            """)
         self.exp_get_setup_signature = ""
         self.exp_is_host_csfy_server = True
         self.exp_is_host_mac = False
@@ -252,8 +240,7 @@ class Test_hserver_inside_docker_container_on_gp_mac1(
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
-        self.exp_get_docker_info = hprint.dedent(
-            r"""
+        self.exp_get_docker_info = hprint.dedent(r"""
             # Docker info
               has_docker=True
               docker_needs_sudo=False
@@ -261,10 +248,8 @@ class Test_hserver_inside_docker_container_on_gp_mac1(
               is_inside_docker=True
               has_docker_sibling_containers_support=True
               has_docker_children_containers_support=True
-            """
-        )
-        self.exp_get_setup_settings = hprint.dedent(
-            r"""
+            """)
+        self.exp_get_setup_settings = hprint.dedent(r"""
             is_inside_docker_container_on_csfy_server     False
             is_outside_docker_container_on_csfy_server    False
             is_inside_docker_container_on_host_mac        True
@@ -275,8 +260,7 @@ class Test_hserver_inside_docker_container_on_gp_mac1(
             is_ig_prod                                    False
             is_prod_csfy                                  False
             is_inside_ci                                  False
-            """
-        )
+            """)
         self.exp_get_setup_signature = ""
         self.exp_is_host_csfy_server = False
         self.exp_is_host_mac = True
@@ -302,8 +286,7 @@ class Test_hserver_outside_docker_container_on_gp_mac1(
     def setUp(self) -> None:
         super().setUp()
         self.exp_config_func_to_str = ""
-        self.exp_get_docker_info = hprint.dedent(
-            r"""
+        self.exp_get_docker_info = hprint.dedent(r"""
             # Docker info
               has_docker=True
               docker_needs_sudo=False
@@ -311,10 +294,8 @@ class Test_hserver_outside_docker_container_on_gp_mac1(
               is_inside_docker=False
               has_docker_sibling_containers_support=*undef*
               has_docker_children_containers_support=*undef*
-            """
-        )
-        self.exp_get_setup_settings = hprint.dedent(
-            r"""
+            """)
+        self.exp_get_setup_settings = hprint.dedent(r"""
             is_inside_docker_container_on_csfy_server     False
             is_outside_docker_container_on_csfy_server    False
             is_inside_docker_container_on_host_mac        False
@@ -325,8 +306,7 @@ class Test_hserver_outside_docker_container_on_gp_mac1(
             is_ig_prod                                    False
             is_prod_csfy                                  False
             is_inside_ci                                  False
-            """
-        )
+            """)
         self.exp_get_setup_signature = ""
         self.exp_is_host_csfy_server = False
         self.exp_is_host_mac = True

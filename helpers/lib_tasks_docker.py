@@ -1201,10 +1201,8 @@ def _get_docker_base_cmd(
         for env_var in extra_env_vars:
             docker_cmd_.append(f"{env_var}")
     #
-    docker_cmd_.append(
-        r"""
-        docker compose"""
-    )
+    docker_cmd_.append(r"""
+        docker compose""")
     docker_compose_files = _get_docker_compose_files(
         stage,
         generate_docker_compose_file,
@@ -1214,16 +1212,12 @@ def _get_docker_base_cmd(
     file_opts = " ".join([f"--file {dcf}" for dcf in docker_compose_files])
     _LOG.debug(hprint.to_str("file_opts"))
     # TODO(gp): Use something like `.append(rf"{space}{...}")`
-    docker_cmd_.append(
-        rf"""
-        {file_opts}"""
-    )
+    docker_cmd_.append(rf"""
+        {file_opts}""")
     # - Handle the env file.
     env_file = "devops/env/default.env"
-    docker_cmd_.append(
-        rf"""
-        --env-file {env_file}"""
-    )
+    docker_cmd_.append(rf"""
+        --env-file {env_file}""")
     return docker_cmd_
 
 
@@ -1286,57 +1280,41 @@ def _get_docker_compose_cmd(
     # - Add the `config` command for debugging purposes.
     docker_config_cmd: List[str] = docker_cmd_[:]
     # TODO(gp): Use yaml approach like done for other parts of the code.
-    docker_config_cmd.append(
-        r"""
-        config"""
-    )
+    docker_config_cmd.append(r"""
+        config""")
     # - Add the `run` command.
-    docker_cmd_.append(
-        r"""
+    docker_cmd_.append(r"""
         run \
-        --rm"""
-    )
+        --rm""")
     # - Add a name to the container.
     container_name = _get_container_name(service_name)
-    docker_cmd_.append(
-        rf"""
-        --name {container_name}"""
-    )
+    docker_cmd_.append(rf"""
+        --name {container_name}""")
     # - Handle the user.
     as_user = _run_docker_as_user(as_user)
     if as_user:
-        docker_cmd_.append(
-            r"""
-        --user $(id -u):$(id -g)"""
-        )
+        docker_cmd_.append(r"""
+        --user $(id -u):$(id -g)""")
     # - Handle the extra docker options.
     if extra_docker_run_opts:
         hdbg.dassert_isinstance(extra_docker_run_opts, list)
         extra_opts = " ".join(extra_docker_run_opts)
-        docker_cmd_.append(
-            rf"""
-        {extra_opts}"""
-        )
+        docker_cmd_.append(rf"""
+        {extra_opts}""")
     # - Handle entrypoint.
     if use_entrypoint:
-        docker_cmd_.append(
-            rf"""
-        {service_name}"""
-        )
+        docker_cmd_.append(rf"""
+        {service_name}""")
         if cmd:
             if use_bash:
                 cmd = f"bash -c '{cmd}'"
-            docker_cmd_.append(
-                rf"""
-        {cmd}"""
-            )
+            docker_cmd_.append(rf"""
+        {cmd}""")
     else:
         # No entrypoint.
-        docker_cmd_.append(
-            rf"""
+        docker_cmd_.append(rf"""
         --entrypoint bash \
-        {service_name}"""
-        )
+        {service_name}""")
     # Print the config for debugging purpose.
     if print_docker_config:
         docker_config_cmd_as_str = hlitauti.to_multi_line_cmd(docker_config_cmd)

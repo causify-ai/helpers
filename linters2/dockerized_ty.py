@@ -3,10 +3,11 @@
 # TODO(ai_gp): Add explanation.
 """
 > ty check \
-    --output-format concise \
-    --color never \
-    --exclude '**/outcomes/**' \
-    --exclude '**/import_check/example/**' .
+
+--output-format concise \
+--color never \
+--exclude '**/outcomes/**' \
+--exclude '**/import_check/example/**' .
 """
 
 import argparse

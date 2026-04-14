@@ -605,7 +605,8 @@ class Test_get_docker_mount_info1(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Without DinD, sibling mode uses CSFY_HOST_GIT_ROOT_PATH for bind source.
+        Without DinD, sibling mode uses CSFY_HOST_GIT_ROOT_PATH for bind
+        source.
         """
         # - Prepare inputs.
         host_root = "/tmp/explicit_host_git_root_for_test"
