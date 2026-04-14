@@ -51,6 +51,8 @@ class Test_llm_transform1(hunitest.TestCase):
         hio.to_file(in_file_name, txt)
         script = hsystem.find_file_in_repo("llm_transform.py")
         out_file_name = os.path.join(self.get_scratch_space(), "output.md")
+        # Set the OpenAI API key to a placeholder value.
+        os.environ["OPENAI_API_KEY"] = "sk-mock-helpers-llm-transform-test"
         return script, in_file_name, out_file_name
 
     def test_md_rewrite1(self) -> None:
