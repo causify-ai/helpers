@@ -221,13 +221,6 @@
   - Isolate expensive functions to separate storage
   - Share specific function caches while keeping others local
 
-- Configuration is session-scoped:
-  - Per-function settings are stored in memory only
-  - Settings are lost when process restarts (e.g., kernel restart)
-  - Decorator arguments define baseline configuration
-  - Runtime calls to `set_cache_property()` create temporary overrides
-  - This prevents hidden state between sessions
-
 ## Cache Performance Monitoring
 
 - This tracks how effective the caching is by recording total `calls`,

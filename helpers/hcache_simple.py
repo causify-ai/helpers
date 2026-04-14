@@ -16,7 +16,7 @@ import logging
 import os
 import pickle
 import re
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union, cast
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -343,23 +343,26 @@ def get_cache_property_file() -> str:
     return val
 
 
-def _get_initial_cache_property() -> _CachePropertyType:
+def _get_initial_cache_property() -> _CacheType:
     """
-    Get the initial cache property (empty dict for session-scoped storage).
+    Get the initial cache property from disk or create an empty one.
 
-    Properties are not loaded from disk - they are set by decorators
-    and runtime calls within the current session only.
-
-    :return: An empty dictionary for cache properties.
+    :return: A dictionary containing cache properties.
     """
-    # func_name -> property_name -> property_value.
-    # Start empty - decorators will populate on import.
-    val: _CachePropertyType = {}
+    file_name_ = get_cache_property_file()
+    if os.path.exists(file_name_):
+        _LOG.trace("Loading from %s", file_name_)
+        # TODO(gp): Use _load_data_from_file, if possible.
+        with open(file_name_, "rb") as file:
+            val = pickle.load(file)
+    else:
+        # func_name -> key -> value properties.
+        val = {}
+    val = cast(_CacheType, val)
     return val
 
 
 # Create global variables for the cache properties.
-# Properties are session-scoped (in-memory only, not persisted to disk).
 if "_CACHE_PROPERTY" not in globals():
     _LOG.trace("Creating _CACHE_PROPERTY")
     _CACHE_PROPERTY: _CachePropertyType = _get_initial_cache_property()
@@ -445,38 +448,39 @@ def set_cache_property(func_name: str, property_name: str, val: Any) -> None:
     """
     Set a property for the cache of a given function name.
 
-    Properties are session-scoped (lost on process restart). This allows
-    temporary configuration changes without affecting other processes or
-    persisting state across restarts.
-
     :param func_name: The name of the function whose cache property is
         to be set.
     :param property_name: The name of the property to set.
     :param val: The value to set for the property.
     """
-    global _CACHE_PROPERTY
     _LOG.trace(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(func_name, str)
     hdbg.dassert_isinstance(property_name, str)
     _check_valid_cache_property(property_name)
-    # Store in memory only (session-scoped).
+    # Assign value.
     cache_property = _CACHE_PROPERTY
     if func_name not in cache_property:
         cache_property[func_name] = {}
-    cache_property[func_name][property_name] = val
-    _LOG.trace(
-        "Setting property %s='%s' for '%s' (session-scoped)",
-        property_name,
-        val,
-        func_name,
-    )
+    dict_ = cache_property[func_name]
+    dict_[property_name] = val
+    # Update values on the disk.
+    file_name = get_cache_property_file()
+    _LOG.trace("Updating %s", file_name)
+    # Make sure the dict is well-formed.
+    for func_name_tmp in cache_property:
+        hdbg.dassert_isinstance(func_name_tmp, str)
+        _LOG.trace(
+            "func_name_tmp='%s' -> %s",
+            func_name_tmp,
+            cache_property[func_name_tmp],
+        )
+    hio.create_enclosing_dir(file_name, incremental=True)
+    _save_func_cache_data_to_file(file_name, "pickle", cache_property)
 
 
-def get_cache_property(func_name: str, property_name: str) -> Any:
+def get_cache_property(func_name: str, property_name: str) -> Union[bool, Any]:
     """
     Get the value of a property for the cache of a given function name.
-
-    Properties are session-scoped (stored in memory only).
 
     :return: The property value, which can be of any type depending on
         the property. Returns None if the property is not set (for
@@ -497,15 +501,10 @@ def get_cache_property(func_name: str, property_name: str) -> Any:
 
 def reset_cache_property() -> None:
     """
-    Reset cache properties (clear runtime overrides).
-
-    Removes all user properties (non-system properties like
-    force_refresh, abort_on_cache_miss). System properties (type,
-    cache_dir, etc.) are preserved as they come from decorators.
-
-    This is useful for clearing temporary runtime configuration.
+    Reset the cache property for the given type.
     """
-    _LOG.warning("Resetting cache properties")
+    file_name = get_cache_property_file()
+    _LOG.warning("Resetting %s", file_name)
     # Empty the values.
     global _CACHE_PROPERTY
     cache_property = _CACHE_PROPERTY
@@ -520,6 +519,10 @@ def reset_cache_property() -> None:
             if property_name_tmp not in _SYSTEM_PROPERTIES:
                 del func_prop[property_name_tmp]
     _LOG.trace("after cache_property=%s", cache_property)
+    # Update values on the disk.
+    _LOG.trace("Updating %s", file_name)
+    hio.create_enclosing_dir(file_name, incremental=True)
+    _save_func_cache_data_to_file(file_name, "pickle", cache_property)
 
 
 # #############################################################################
@@ -1697,54 +1700,14 @@ def simple_cache(
         func_name = getattr(func, "__name__", "unknown_function")
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
-        # Store function-specific properties.
-        # Only set properties if not already set by runtime calls.
-        # This allows runtime overrides to persist across module reloads
-        # within the same session (e.g., notebook autoreload).
+        # Only set cache type if not already set (preserve existing setting).
         existing_type = get_cache_property(func_name, "type")
         if not existing_type:
             set_cache_property(func_name, "type", cache_type)
-        # Store per-function cache settings only if not already set.
-        if (
-            cache_dir is not None
-            and get_cache_property(func_name, "cache_dir") is None
-        ):
-            set_cache_property(func_name, "cache_dir", cache_dir)
-        if (
-            cache_prefix is not None
-            and get_cache_property(func_name, "cache_prefix") is None
-        ):
-            set_cache_property(func_name, "cache_prefix", cache_prefix)
-        # Store per-function S3 settings only if not already set.
-        if (
-            s3_bucket is not None
-            and get_cache_property(func_name, "s3_bucket") is None
-        ):
-            set_cache_property(func_name, "s3_bucket", s3_bucket)
-        if (
-            s3_prefix is not None
-            and get_cache_property(func_name, "s3_prefix") is None
-        ):
-            set_cache_property(func_name, "s3_prefix", s3_prefix)
-        if (
-            aws_profile is not None
-            and get_cache_property(func_name, "aws_profile") is None
-        ):
-            set_cache_property(func_name, "aws_profile", aws_profile)
-        # Only set auto_sync_s3 if not already set.
-        # Runtime value takes precedence over decorator argument.
-        if get_cache_property(func_name, "auto_sync_s3") is None:
-            set_cache_property(func_name, "auto_sync_s3", auto_sync_s3)
-        # Only set write_through if not already set.
-        if get_cache_property(func_name, "write_through") is None:
-            set_cache_property(func_name, "write_through", write_through)
-        # Only set exclude_keys if not already set.
-        if get_cache_property(func_name, "exclude_keys") is None:
-            # Handle mutable default argument.
-            exclude_keys_list: List[str] = (
-                exclude_keys if exclude_keys is not None else []
-            )
-            set_cache_property(func_name, "exclude_keys", exclude_keys_list)
+        # Handle mutable default argument.
+        exclude_keys_list: List[str] = (
+            exclude_keys if exclude_keys is not None else []
+        )
 
         @functools.wraps(func)
         def wrapper(

@@ -309,17 +309,6 @@ print(f"Third call (different query, cache miss): {result3}")
 # Both `exclude_keys` and `write_through` can be modified at runtime using
 # `set_cache_property()`. This allows you to change caching behavior without
 # redefining the function.
-#
-# **Important - Session-Scoped**: Runtime modifications are **session-scoped**,
-# meaning they only last until the process ends (e.g., kernel restart in notebooks).
-# This prevents hidden state between sessions - after restart, decorator values
-# are used again.
-#
-# Benefits:
-# - No hidden state across sessions
-# - Decorator values in source code remain authoritative
-# - Temporary overrides for testing/debugging
-# - Changes persist across module reloads within same session (e.g., %autoreload)
 
 
 # %%
