@@ -1355,7 +1355,7 @@ class Test_lint_txt2(hunitest.TestCase):
             -   avoid non-essential tasks
         """
         expected = r"""
-        * Good Time Management
+        - Good time management
 
         1. Choose the right tasks
            - Avoid non-essential tasks
@@ -1487,10 +1487,10 @@ class Test_lint_txt2(hunitest.TestCase):
            ```
         """
         expected = r"""
-        * `str.format`
+        - `str.format`
         - Python 3 allows to format multiple values, e.g.,
           ```python
-             key = 'my_var'
+          key = 'my_var'
            value = 1.234
           ```
         """

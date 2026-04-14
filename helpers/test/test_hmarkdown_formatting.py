@@ -574,7 +574,8 @@ class Test_format_markdown_slide(hunitest.TestCase):
         """
         expected_text = r"""
         * Incremental vs Iterative
-        ::: columns :::: {.column width=55%}
+        ::: columns 
+        :::: {.column width=55%}
 
         - **Incremental Development**
           - Each increment adds functional components
@@ -588,7 +589,8 @@ class Test_format_markdown_slide(hunitest.TestCase):
           - Uncover and adjust for unknown requirements
 
         - **Incremental $\gg$ Iterative**
-        :::: :::: {.column width=40%}
+        ::::
+        :::: {.column width=40%}
         ![](msml610/lectures_source/figures/Lesson02_Monalisa_incremental.png){width=90%}
         \small \_Incremental
         \vspace{0.5cm}
@@ -596,7 +598,9 @@ class Test_format_markdown_slide(hunitest.TestCase):
         \small _Iterative_
         \vspace{0.5cm}
         ![](msml610/lectures_source/figures/Lesson02_Skateboard.png){width=90%}
-        \small _Incremental vs Iterative_ :::: :::
+        \small _Incremental vs Iterative_
+        ::::
+        :::
         """
         self.helper(input_text, expected_text)
 
