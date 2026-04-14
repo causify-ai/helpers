@@ -305,6 +305,8 @@
     that define how the cache operates. These are preserved when
     `reset_cache_property()` is called. System properties include:
     - `type`: Cache storage format ("json" or "pickle")
+    - `write_through`: Whether to flush cache to disk after each update
+    - `exclude_keys`: List of parameter names to exclude from cache key
     - `cache_dir`: Per-function cache directory (overrides global)
     - `cache_prefix`: Per-function cache file prefix (overrides global)
     - `s3_bucket`: Per-function S3 bucket (overrides global)
@@ -331,8 +333,8 @@
   - `get_cache_property(func_name, property_name)`: get the value of a property
     for a function
   - `reset_cache_property()`: reset user properties for all functions (preserves
-    system properties including `type` and all per-function configuration
-    settings like `cache_dir`, `s3_bucket`, etc.)
+    system properties including `type`, `write_through`, `exclude_keys`, and all
+    per-function configuration settings like `cache_dir`, `s3_bucket`, etc.)
   - `cache_property_to_str(func_name)`: convert cache properties to string
     representation
   - `get_cache_property_file()`: get the path to the cache property file
