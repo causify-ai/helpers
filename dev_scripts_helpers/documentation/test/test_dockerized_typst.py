@@ -1,3 +1,4 @@
+import pytest
 import os
 
 import helpers.hdocker as hdocker
@@ -45,6 +46,7 @@ class Test_build_typst_container(hunitest.TestCase):
 
     # TODO(gp): Add pytest-order to the container.
     # @pytest.mark.order(1)
+    @pytest.mark.slow
     def test1(self) -> None:
         """
         Test that the Typst Docker container is built correctly and `typst
