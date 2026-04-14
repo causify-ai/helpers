@@ -221,11 +221,12 @@
   - Isolate expensive functions to separate storage
   - Share specific function caches while keeping others local
 
-- Configuration is persistent:
-  - Per-function settings are stored as system properties
-  - Settings persist across sessions and are preserved when
-    `reset_cache_property()` is called
-  - These are decorator-level configuration, not runtime user controls
+- Configuration is session-scoped:
+  - Per-function settings are stored in memory only
+  - Settings are lost when process restarts (e.g., kernel restart)
+  - Decorator arguments define baseline configuration
+  - Runtime calls to `set_cache_property()` create temporary overrides
+  - This prevents hidden state between sessions
 
 ## Cache Performance Monitoring
 

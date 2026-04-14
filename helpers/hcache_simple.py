@@ -16,7 +16,7 @@ import logging
 import os
 import pickle
 import re
-from typing import Any, Callable, Dict, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hgit as hgit
@@ -345,24 +345,21 @@ def get_cache_property_file() -> str:
 
 def _get_initial_cache_property() -> _CachePropertyType:
     """
-    Get the initial cache property from disk or create an empty one.
+    Get the initial cache property (empty dict for session-scoped storage).
 
-    :return: A dictionary containing cache properties.
+    Properties are not loaded from disk - they are set by decorators
+    and runtime calls within the current session only.
+
+    :return: An empty dictionary for cache properties.
     """
-    file_name_ = get_cache_property_file()
-    if os.path.exists(file_name_):
-        _LOG.trace("Loading from %s", file_name_)
-        # TODO(gp): Use _load_data_from_file, if possible.
-        with open(file_name_, "rb") as file:
-            val = pickle.load(file)
-    else:
-        # func_name -> property_name -> property_value.
-        val = {}
-    val = cast(_CachePropertyType, val)
+    # func_name -> property_name -> property_value.
+    # Start empty - decorators will populate on import.
+    val: _CachePropertyType = {}
     return val
 
 
 # Create global variables for the cache properties.
+# Properties are session-scoped (in-memory only, not persisted to disk).
 if "_CACHE_PROPERTY" not in globals():
     _LOG.trace("Creating _CACHE_PROPERTY")
     _CACHE_PROPERTY: _CachePropertyType = _get_initial_cache_property()
@@ -448,39 +445,38 @@ def set_cache_property(func_name: str, property_name: str, val: Any) -> None:
     """
     Set a property for the cache of a given function name.
 
+    Properties are session-scoped (lost on process restart). This allows
+    temporary configuration changes without affecting other processes or
+    persisting state across restarts.
+
     :param func_name: The name of the function whose cache property is
         to be set.
     :param property_name: The name of the property to set.
     :param val: The value to set for the property.
     """
+    global _CACHE_PROPERTY
     _LOG.trace(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(func_name, str)
     hdbg.dassert_isinstance(property_name, str)
     _check_valid_cache_property(property_name)
-    # Assign value.
+    # Store in memory only (session-scoped).
     cache_property = _CACHE_PROPERTY
     if func_name not in cache_property:
         cache_property[func_name] = {}
-    dict_ = cache_property[func_name]
-    dict_[property_name] = val
-    # Update values on the disk.
-    file_name = get_cache_property_file()
-    _LOG.trace("Updating %s", file_name)
-    # Make sure the dict is well-formed.
-    for func_name_tmp in cache_property:
-        hdbg.dassert_isinstance(func_name_tmp, str)
-        _LOG.trace(
-            "func_name_tmp='%s' -> %s",
-            func_name_tmp,
-            cache_property[func_name_tmp],
-        )
-    hio.create_enclosing_dir(file_name, incremental=True)
-    _save_func_cache_data_to_file(file_name, "pickle", cache_property)
+    cache_property[func_name][property_name] = val
+    _LOG.trace(
+        "Setting property %s='%s' for '%s' (session-scoped)",
+        property_name,
+        val,
+        func_name,
+    )
 
 
 def get_cache_property(func_name: str, property_name: str) -> Any:
     """
     Get the value of a property for the cache of a given function name.
+
+    Properties are session-scoped (stored in memory only).
 
     :return: The property value, which can be of any type depending on
         the property. Returns None if the property is not set (for
@@ -488,7 +484,7 @@ def get_cache_property(func_name: str, property_name: str) -> Any:
     """
     _LOG.trace(hprint.func_signature_to_str())
     _check_valid_cache_property(property_name)
-    # Read data.
+    # Read from in-memory property storage.
     cache_property = _CACHE_PROPERTY
     if property_name in _SYSTEM_PROPERTIES:
         if func_name not in cache_property:
@@ -501,15 +497,15 @@ def get_cache_property(func_name: str, property_name: str) -> Any:
 
 def reset_cache_property() -> None:
     """
-    Reset the cache property for the given type.
+    Reset cache properties (clear runtime overrides).
 
-    Note that resetting might cause cache files with custom prefixes to
-    not be auto-discovered by `get_cached_func_names("disk")`. Only
-    files with the global prefix or custom prefixes currently in
-    _CACHE_PROPERTY will be discovered.
+    Removes all user properties (non-system properties like
+    force_refresh, abort_on_cache_miss). System properties (type,
+    cache_dir, etc.) are preserved as they come from decorators.
+
+    This is useful for clearing temporary runtime configuration.
     """
-    file_name = get_cache_property_file()
-    _LOG.warning("Resetting %s", file_name)
+    _LOG.warning("Resetting cache properties")
     # Empty the values.
     global _CACHE_PROPERTY
     cache_property = _CACHE_PROPERTY
@@ -524,10 +520,6 @@ def reset_cache_property() -> None:
             if property_name_tmp not in _SYSTEM_PROPERTIES:
                 del func_prop[property_name_tmp]
     _LOG.trace("after cache_property=%s", cache_property)
-    # Update values on the disk.
-    _LOG.trace("Updating %s", file_name)
-    hio.create_enclosing_dir(file_name, incremental=True)
-    _save_func_cache_data_to_file(file_name, "pickle", cache_property)
 
 
 # #############################################################################
@@ -535,6 +527,46 @@ def reset_cache_property() -> None:
 # #############################################################################
 
 # Functions to retrieve cache (both memory and disk).
+
+
+def _get_valid_cache_prefixes() -> set:
+    """
+    Get all valid cache file prefixes.
+
+    :return: set of valid prefixes (global + per-function custom
+        prefixes)
+    """
+    global_prefix = get_cache_file_prefix()
+    valid_prefixes = {global_prefix}
+    for func_name_tmp in _CACHE_PROPERTY:
+        func_prefix = get_cache_property(func_name_tmp, "cache_prefix")
+        if func_prefix:
+            valid_prefixes.add(func_prefix)
+    return valid_prefixes
+
+
+def _extract_func_names_from_cache_files(
+    file_paths: List[str], valid_prefixes: set
+) -> set:
+    """
+    Extract function names from cache file paths.
+
+    :param file_paths: list of file paths to process
+    :param valid_prefixes: set of valid cache prefixes to filter by
+    :return: set of function names
+    """
+    func_names = set()
+    pattern = r"^(.+)\.([^\.]+)\.(?:json|pkl)$"
+    for file_path in file_paths:
+        base_name = os.path.basename(file_path)
+        match = re.match(pattern, base_name)
+        if match:
+            file_prefix = match.group(1)
+            # Only include if prefix is valid for this project.
+            if file_prefix in valid_prefixes:
+                func_name = match.group(2)
+                func_names.add(func_name)
+    return func_names
 
 
 def get_cached_func_names(type_: str) -> List[str]:
@@ -556,32 +588,20 @@ def get_cached_func_names(type_: str) -> List[str]:
     elif type_ == "disk":
         all_func_names = set()
         cache_dir = get_cache_dir()
-        global_prefix = get_cache_file_prefix()
         # Collect all valid prefixes.
-        valid_prefixes = {global_prefix}
-        for func_name_tmp in _CACHE_PROPERTY:
-            func_prefix = get_cache_property(func_name_tmp, "cache_prefix")
-            if func_prefix:
-                valid_prefixes.add(func_prefix)
+        valid_prefixes = _get_valid_cache_prefixes()
         # Search global cache directory.
         disk_files = glob.glob(os.path.join(cache_dir, "*.json"))
         disk_files += glob.glob(os.path.join(cache_dir, "*.pkl"))
         property_file_name = os.path.basename(get_cache_property_file())
-        # Filter by valid prefixes.
-        for file_path in disk_files:
-            base_name = os.path.basename(file_path)
-            # Exclude the cache property file.
-            if base_name == property_file_name:
-                continue
-            # Extract prefix and function name from file.
-            pattern = r"^(.+)\.([^\.]+)\.(?:json|pkl)$"
-            match = re.match(pattern, base_name)
-            if match:
-                file_prefix = match.group(1)
-                # Only include if prefix is valid for this project.
-                if file_prefix in valid_prefixes:
-                    func_name_tmp = match.group(2)
-                    all_func_names.add(func_name_tmp)
+        # Filter out property file.
+        disk_files = [
+            f for f in disk_files if os.path.basename(f) != property_file_name
+        ]
+        # Extract function names from disk files.
+        all_func_names.update(
+            _extract_func_names_from_cache_files(disk_files, valid_prefixes)
+        )
         # Search custom cache directories.
         for func_name_tmp in _CACHE_PROPERTY:
             func_cache_dir = get_cache_property(func_name_tmp, "cache_dir")
@@ -889,11 +909,7 @@ def get_disk_cache(func_name: str) -> _FunctionCacheType:
 
 def _build_s3_cache_path_for_type(func_name: str, cache_type: str) -> str:
     """
-    Build S3 cache path for a specific cache type without mutating properties.
-
-    This is a pure function that constructs the S3 path for a given
-    cache type without reading or writing the "type" property. Used for
-    probing S3 for cache files when the type is unknown.
+    Build S3 cache path for a specific cache type.
 
     :param func_name: the name of the function
     :param cache_type: the cache type ("json" or "pickle")
@@ -941,25 +957,12 @@ def _get_s3_cache_path(func_name: str) -> str:
     :param func_name: the name of the function
     :return: the S3 path (e.g., "s3://bucket/prefix/cache_file.json")
     """
-    # Check for per-function S3 bucket, otherwise use global.
-    bucket = get_cache_property(func_name, "s3_bucket")
-    if bucket:
-        # Ensure s3:// prefix.
-        if not bucket.startswith("s3://"):
-            bucket = f"s3://{bucket}"
-    else:
-        bucket = get_s3_bucket()
-    if bucket is None:
-        raise ValueError("S3 bucket not configured")
-    # Check for per-function S3 prefix, otherwise use global.
-    s3_prefix = get_cache_property(func_name, "s3_prefix")
-    if not s3_prefix:
-        s3_prefix = get_s3_prefix()
-    base_name = os.path.basename(_get_cache_file_name(func_name))
-    if s3_prefix:
-        s3_path = f"{bucket}/{s3_prefix}/{base_name}"
-    else:
-        s3_path = f"{bucket}/{base_name}"
+    # Get cache type from properties.
+    cache_type = get_cache_property(func_name, "type")
+    if cache_type is None:
+        raise ValueError(f"Cache type not set for function '{func_name}'")
+    # Build the path.
+    s3_path = _build_s3_cache_path_for_type(func_name, cache_type)
     return s3_path
 
 
@@ -1011,24 +1014,9 @@ def _list_s3_cached_func_names(
         _LOG.warning("Failed to list S3 directory '%s': %s", s3_dir, e)
         return []
     # Collect all valid cache file prefixes.
-    global_prefix = get_cache_file_prefix()
-    valid_prefixes = {global_prefix}
-    for func_name_tmp in _CACHE_PROPERTY:
-        func_prefix = get_cache_property(func_name_tmp, "cache_prefix")
-        if func_prefix:
-            valid_prefixes.add(func_prefix)
-    # Extract function names from S3 file names, filtering by valid prefixes.
-    func_names = set()
-    pattern = r"^(.+)\.([^\.]+)\.(?:json|pkl)$"
-    for s3_file in s3_files:
-        base_name = os.path.basename(s3_file)
-        match = re.match(pattern, base_name)
-        if match:
-            file_prefix = match.group(1)
-            # Only include if prefix is valid for this project.
-            if file_prefix in valid_prefixes:
-                func_name_tmp = match.group(2)
-                func_names.add(func_name_tmp)
+    valid_prefixes = _get_valid_cache_prefixes()
+    # Extract function names from S3 file names.
+    func_names = _extract_func_names_from_cache_files(s3_files, valid_prefixes)
     out = sorted(func_names)
     return out
 
@@ -1122,15 +1110,14 @@ def _download_cache_from_s3(func_name: str) -> bool:
     cache_type = get_cache_property(func_name, "type")
     # If type is unknown, try both extensions in S3.
     if cache_type is None:
-        # Try both .json and .pkl extensions without mutating properties.
+        # Try both .json and .pkl extensions.
         for ext_type in ["json", "pickle"]:
-            # Build S3 path for this type without setting property.
+            # Build S3 path for this type.
             s3_path_candidate = _build_s3_cache_path_for_type(func_name, ext_type)
             if s3fs_.exists(s3_path_candidate):
-                # Found the file, set type and use this path.
+                # Set type property and use this path.
                 cache_type = ext_type
                 s3_path = s3_path_candidate
-                # Set the type property now that we know it.
                 set_cache_property(func_name, "type", cache_type)
                 _LOG.debug("Found S3 cache with type=%s", ext_type)
                 break
@@ -1144,7 +1131,7 @@ def _download_cache_from_s3(func_name: str) -> bool:
         if not s3fs_.exists(s3_path):
             _LOG.debug("No S3 cache found for '%s'", func_name)
             return False
-    # Get local file path (now that type is set).
+    # Get local file path.
     local_file = _get_cache_file_name(func_name)
     _LOG.info("Downloading cache from %s", s3_path)
     # Download from S3.
@@ -1711,8 +1698,9 @@ def simple_cache(
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
         # Store function-specific properties.
-        # Only set properties if not already persisted.
-        # This makes persisted properties authoritative across imports.
+        # Only set properties if not already set by runtime calls.
+        # This allows runtime overrides to persist across module reloads
+        # within the same session (e.g., notebook autoreload).
         existing_type = get_cache_property(func_name, "type")
         if not existing_type:
             set_cache_property(func_name, "type", cache_type)
@@ -1744,7 +1732,7 @@ def simple_cache(
         ):
             set_cache_property(func_name, "aws_profile", aws_profile)
         # Only set auto_sync_s3 if not already set.
-        # Persisted value takes precedence over decorator argument.
+        # Runtime value takes precedence over decorator argument.
         if get_cache_property(func_name, "auto_sync_s3") is None:
             set_cache_property(func_name, "auto_sync_s3", auto_sync_s3)
         # Only set write_through if not already set.
