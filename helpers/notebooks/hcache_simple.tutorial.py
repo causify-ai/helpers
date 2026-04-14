@@ -24,8 +24,9 @@
 #   - [5. Configurable Cache Locations](#5.-configurable-cache-locations)
 #   - [6. Per-Function Configuration](#6.-per-function-configuration)
 #   - [7. Excluding Keys from Cache](#7.-excluding-keys-from-cache)
-#   - [8. S3 Integration](#8.-s3-integration)
-#   - [9. Binary Data with Pickle](#9.-binary-data-with-pickle)
+#   - [8. Runtime Property Modification](#8.-runtime-property-modification)
+#   - [9. S3 Integration](#9.-s3-integration)
+#   - [10. Binary Data with Pickle](#10.-binary-data-with-pickle)
 #   - [Summary](#summary)
 
 # %% [markdown]
@@ -303,8 +304,59 @@ print(f"Third call (different query, cache miss): {result3}")
 
 
 # %% [markdown]
-# <a name='8.-s3-integration'></a>
-# ## 8. S3 Integration
+# <a name='8.-runtime-property-modification'></a>
+# ## 8. Runtime Property Modification
+#
+# All decorator parameters are stored as properties and can be modified at runtime.
+# This allows you to change cache behavior without redecorating functions.
+#
+# **Common use cases:**
+# - Disable write-through temporarily for performance
+# - Add/remove keys from exclusion list
+# - Enable/disable S3 sync dynamically
+
+
+# %%
+@hcacsimp.simple_cache(cache_type="json", write_through=True, exclude_keys=["debug"])
+def runtime_example(x: int, debug: bool = False) -> int:
+    """
+    Example function with runtime-modifiable properties.
+    """
+    _LOG.info("Computing result for x=%s", x)
+    return x ** 2
+
+
+# %%
+# Call function with initial settings.
+result = runtime_example(4, debug=True)
+print(f"Result: {result}")
+# Check current write_through setting.
+write_through = hcacsimp.get_cache_property("runtime_example", "write_through")
+print(f"write_through: {write_through}")
+# Check current exclude_keys.
+exclude_keys = hcacsimp.get_cache_property("runtime_example", "exclude_keys")
+print(f"exclude_keys: {exclude_keys}")
+
+# %%
+# Modify write_through at runtime.
+hcacsimp.set_cache_property("runtime_example", "write_through", False)
+print("\\nDisabled write_through")
+# Verify change.
+write_through_after = hcacsimp.get_cache_property("runtime_example", "write_through")
+print(f"write_through now: {write_through_after}")
+
+# %%
+# Modify exclude_keys at runtime.
+hcacsimp.set_cache_property("runtime_example", "exclude_keys", ["debug", "verbose"])
+print("\\nAdded 'verbose' to exclude_keys")
+# Verify change.
+exclude_keys_after = hcacsimp.get_cache_property("runtime_example", "exclude_keys")
+print(f"exclude_keys now: {exclude_keys_after}")
+
+
+# %% [markdown]
+# <a name='9.-s3-integration'></a>
+# ## 9. S3 Integration
 #
 # **Note:** These examples are commented out because they require AWS credentials.
 # Uncomment and configure to use S3 caching.
@@ -366,8 +418,8 @@ print(f"Third call (different query, cache miss): {result3}")
 # result = project_specific_cache("test data")
 
 # %% [markdown]
-# <a name='9.-binary-data-with-pickle'></a>
-# ## 9. Binary Data with Pickle
+# <a name='10.-binary-data-with-pickle'></a>
+# ## 10. Binary Data with Pickle
 #
 # For complex Python objects (DataFrames, models, etc.), use pickle format:
 # - `cache_type="pickle"`: Stores any Python object
@@ -415,6 +467,7 @@ print(f"Time taken: {elapsed_time:.6f} seconds (from cache!)")
 # - **Easy caching**: Just add `@simple_cache` decorator
 # - **Multiple storage layers**: Memory (fast) → Disk (persistent) → S3 (shared)
 # - **Flexible configuration**: Global and per-function settings
+# - **Runtime modification**: Change cache behavior without redecorating functions
 # - **Performance monitoring**: Track cache efficiency
 # - **Team collaboration**: Share caches via S3 with auto-pull
 # - **Format support**: JSON (human-readable) or pickle (binary)

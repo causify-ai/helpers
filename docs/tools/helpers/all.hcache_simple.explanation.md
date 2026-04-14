@@ -320,12 +320,24 @@
   - This file contains a nested dictionary: `func_name -> property_name ->
     value`
 
+- Runtime modification:
+  - All decorator parameters are stored as properties when the function is
+    decorated
+  - Properties can be modified at runtime using
+    `set_cache_property(func_name, property_name, value)`
+  - Changes take effect immediately on the next function call
+  - Example: `set_cache_property("my_func", "write_through", False)` will
+    disable write-through for `my_func`
+  - Backward compatibility: If a property is not set, the system falls back to
+    the decorator parameter value
+
 - Flow example:
-  - When a function is decorated, the system sets its system property (e.g., the
-    cache type) using `set_cache_property(func_name, "type", cache_type)`
-  - Later, when retrieving a cached value, it checks user properties (like
-    `force_refresh`) to decide whether to use the cached value or to recompute
-    the result
+  - When a function is decorated, the system stores all decorator parameters as
+    properties using `set_cache_property(func_name, property_name, value)`
+  - When the function is called, it reads properties using
+    `get_cache_property(func_name, property_name)` with fallback to decorator
+    values
+  - This allows runtime modification of cache behavior without redecorating
 
 - Interface:
   - `set_cache_property(func_name, property_name, value)`: set a property for a
@@ -353,6 +365,10 @@
       - Default: `"json"`
       - JSON is human-readable but limited to basic types
       - Pickle supports any Python object but is not human-readable
+      - **Special behavior**: Only set on first decoration to prevent accidental
+        cache corruption. To change cache type for an existing function, first
+        clear the property via `reset_cache_property()` or manually set it via
+        `set_cache_property()`
     - `write_through`: If True, flush cache to disk immediately after each
       update
       - Default: `True`

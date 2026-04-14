@@ -343,7 +343,7 @@ def get_cache_property_file() -> str:
     return val
 
 
-def _get_initial_cache_property() -> _CacheType:
+def _get_initial_cache_property() -> _CachePropertyType:
     """
     Get the initial cache property from disk or create an empty one.
 
@@ -356,9 +356,9 @@ def _get_initial_cache_property() -> _CacheType:
         with open(file_name_, "rb") as file:
             val = pickle.load(file)
     else:
-        # func_name -> key -> value properties.
+        # func_name -> property_name -> value.
         val = {}
-    val = cast(_CacheType, val)
+    val = cast(_CachePropertyType, val)
     return val
 
 
@@ -960,12 +960,25 @@ def _get_s3_cache_path(func_name: str) -> str:
     :param func_name: the name of the function
     :return: the S3 path (e.g., "s3://bucket/prefix/cache_file.json")
     """
-    # Get cache type from properties.
-    cache_type = get_cache_property(func_name, "type")
-    if cache_type is None:
-        raise ValueError(f"Cache type not set for function '{func_name}'")
-    # Build the path.
-    s3_path = _build_s3_cache_path_for_type(func_name, cache_type)
+    # Check for per-function S3 bucket, otherwise use global.
+    bucket = get_cache_property(func_name, "s3_bucket")
+    if bucket:
+        # Ensure s3:// prefix.
+        if not bucket.startswith("s3://"):
+            bucket = f"s3://{bucket}"
+    else:
+        bucket = get_s3_bucket()
+    if bucket is None:
+        raise ValueError("S3 bucket not configured")
+    # Check for per-function S3 prefix, otherwise use global.
+    s3_prefix = get_cache_property(func_name, "s3_prefix")
+    if not s3_prefix:
+        s3_prefix = get_s3_prefix()
+    base_name = os.path.basename(_get_cache_file_name(func_name))
+    if s3_prefix:
+        s3_path = f"{bucket}/{s3_prefix}/{base_name}"
+    else:
+        s3_path = f"{bucket}/{base_name}"
     return s3_path
 
 
@@ -1674,21 +1687,38 @@ def simple_cache(
 
     The cache is stored in memory and on disk, with optional S3 support.
 
-    :param cache_type: type of cache to use ('json' or 'pickle')
+    All decorator parameters are stored as properties and persisted to disk.
+    This allows runtime modification via `set_cache_property(func_name,
+    property_name, value)`.
+
+    Note: The cache type is only set during first decoration to prevent
+    accidental cache corruption (e.g., changing from json to pickle would
+    orphan existing cache files). To change cache type for an existing
+    function, first clear the property via reset_cache_property() or
+    manually set it via set_cache_property().
+
+    :param cache_type: type of cache to use ('json' or 'pickle'). Stored
+        as property on first decoration only (not updated on subsequent
+        imports)
     :param write_through: if True, the cache is written to disk after
-        each access
-    :param exclude_keys: keys to exclude from the cache key
+        each access. Stored as property and can be modified at runtime
+    :param exclude_keys: keys to exclude from the cache key. Stored as
+        property and can be modified at runtime
     :param cache_dir: directory for this function's cache files. If
-        None, uses global cache directory
+        None, uses global cache directory. Stored as property and can be
+        modified at runtime
     :param cache_prefix: prefix for this function's cache files. If
-        None, uses global cache prefix
+        None, uses global cache prefix. Stored as property and can be
+        modified at runtime
     :param s3_bucket: S3 bucket for this function's cache (e.g.,
         "s3://my-bucket"). If specified, enables S3 cache syncing for
-        this function
-    :param s3_prefix: S3 prefix path for this function's cache
-    :param aws_profile: AWS profile for S3 access
+        this function. Stored as property and can be modified at runtime
+    :param s3_prefix: S3 prefix path for this function's cache. Stored
+        as property and can be modified at runtime
+    :param aws_profile: AWS profile for S3 access. Stored as property
+        and can be modified at runtime
     :param auto_sync_s3: if True, automatically sync to S3 after each
-        cache update
+        cache update. Stored as property and can be modified at runtime
     :return: a decorator that can be applied to a function
     """
 
@@ -1701,9 +1731,20 @@ def simple_cache(
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
         # Store function-specific properties.
+        # Note: cache type is only set if not already set to prevent accidental
+        # cache corruption (e.g., changing from json to pickle would orphan
+        # existing cache files). To change cache type, use reset_cache_property()
+        # first or manually set it via set_cache_property().
         existing_type = get_cache_property(func_name, "type")
         if not existing_type:
             set_cache_property(func_name, "type", cache_type)
+        # Store caching behavior settings.
+        set_cache_property(func_name, "write_through", write_through)
+        # Store exclude_keys as empty list if None for consistency.
+        exclude_keys_list: List[str] = (
+            exclude_keys if exclude_keys is not None else []
+        )
+        set_cache_property(func_name, "exclude_keys", exclude_keys_list)
         # Store per-function cache settings.
         if cache_dir is not None:
             set_cache_property(func_name, "cache_dir", cache_dir)
@@ -1716,12 +1757,7 @@ def simple_cache(
             set_cache_property(func_name, "s3_prefix", s3_prefix)
         if aws_profile is not None:
             set_cache_property(func_name, "aws_profile", aws_profile)
-        if auto_sync_s3:
-            set_cache_property(func_name, "auto_sync_s3", auto_sync_s3)
-        # Handle mutable default argument.
-        exclude_keys_list: List[str] = (
-            exclude_keys if exclude_keys is not None else []
-        )
+        set_cache_property(func_name, "auto_sync_s3", auto_sync_s3)
 
         @functools.wraps(func)
         def wrapper(
@@ -1753,8 +1789,13 @@ def simple_cache(
             # Get the cache.
             cache = get_cache(func_name)
             # Remove keys that should not be part of the cache key.
+            # Read from properties first, fall back to closure for backward compatibility.
+            exclude_keys_prop = get_cache_property(func_name, "exclude_keys")
+            exclude_keys_to_use = (
+                exclude_keys_prop if exclude_keys_prop is not None else exclude_keys_list
+            )
             # Also exclude cache_mode since it's a control parameter.
-            excluded_keys = set(exclude_keys_list) | {"cache_mode"}
+            excluded_keys = set(exclude_keys_to_use) | {"cache_mode"}
             kwargs_for_cache_key = {
                 k: v for k, v in kwargs.items() if k not in excluded_keys
             }
@@ -1840,7 +1881,12 @@ def simple_cache(
                 _LOG.trace(
                     "Updating cache with key='%s' value='%s'", cache_key, value
                 )
-                if write_through:
+                # Check if write-through is enabled.
+                write_through_prop = get_cache_property(func_name, "write_through")
+                write_through_enabled = (
+                    write_through_prop if write_through_prop is not None else write_through
+                )
+                if write_through_enabled:
                     _LOG.trace("Writing through to disk")
                     flush_cache_to_disk(func_name)
                     # Check if auto-sync to S3 is enabled.
