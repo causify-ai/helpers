@@ -55,6 +55,7 @@ class Test_llm_transform1(hunitest.TestCase):
         os.environ["OPENAI_API_KEY"] = "sk-mock-helpers-llm-transform-test"
         return script, in_file_name, out_file_name
 
+    @pytest.mark.skip(reason="Run manually since it needs OpenAI credentials")
     def test_md_rewrite1(self) -> None:
         """
         Run the `llm_transform.py` script with the prompt `md_rewrite` and
