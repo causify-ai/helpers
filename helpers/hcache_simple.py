@@ -1700,10 +1700,24 @@ def simple_cache(
         func_name = getattr(func, "__name__", "unknown_function")
         if func_name.endswith("_intrinsic"):
             func_name = func_name[: -len("_intrinsic")]
-        # Only set cache type if not already set (preserve existing setting).
+        # Store function-specific properties.
         existing_type = get_cache_property(func_name, "type")
         if not existing_type:
             set_cache_property(func_name, "type", cache_type)
+        # Store per-function cache settings.
+        if cache_dir is not None:
+            set_cache_property(func_name, "cache_dir", cache_dir)
+        if cache_prefix is not None:
+            set_cache_property(func_name, "cache_prefix", cache_prefix)
+        # Store per-function S3 settings.
+        if s3_bucket is not None:
+            set_cache_property(func_name, "s3_bucket", s3_bucket)
+        if s3_prefix is not None:
+            set_cache_property(func_name, "s3_prefix", s3_prefix)
+        if aws_profile is not None:
+            set_cache_property(func_name, "aws_profile", aws_profile)
+        if auto_sync_s3:
+            set_cache_property(func_name, "auto_sync_s3", auto_sync_s3)
         # Handle mutable default argument.
         exclude_keys_list: List[str] = (
             exclude_keys if exclude_keys is not None else []
@@ -1739,12 +1753,8 @@ def simple_cache(
             # Get the cache.
             cache = get_cache(func_name)
             # Remove keys that should not be part of the cache key.
-            # Read exclude_keys from property at runtime.
-            exclude_keys_prop = get_cache_property(func_name, "exclude_keys")
-            if exclude_keys_prop is None:
-                exclude_keys_prop = []
             # Also exclude cache_mode since it's a control parameter.
-            excluded_keys = set(exclude_keys_prop) | {"cache_mode"}
+            excluded_keys = set(exclude_keys_list) | {"cache_mode"}
             kwargs_for_cache_key = {
                 k: v for k, v in kwargs.items() if k not in excluded_keys
             }
@@ -1830,13 +1840,7 @@ def simple_cache(
                 _LOG.trace(
                     "Updating cache with key='%s' value='%s'", cache_key, value
                 )
-                # Read write_through from property at runtime.
-                write_through_prop = get_cache_property(
-                    func_name, "write_through"
-                )
-                if write_through_prop is None:
-                    write_through_prop = write_through
-                if write_through_prop:
+                if write_through:
                     _LOG.trace("Writing through to disk")
                     flush_cache_to_disk(func_name)
                     # Check if auto-sync to S3 is enabled.
