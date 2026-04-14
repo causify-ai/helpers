@@ -211,14 +211,6 @@ class TestImOmsDbHelper(TestDbHelper, abc.ABC):
         idx = cls.get_id()
         host_port = 5432 + idx
         txt = f"""version: '3.5'
-
-
-
-
-
-
-
-
 services:
   # Docker container running Postgres DB.
   {service_name}:
