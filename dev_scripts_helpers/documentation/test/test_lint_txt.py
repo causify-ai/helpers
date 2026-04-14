@@ -1711,7 +1711,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         """
         # Prepare inputs.
         in_file = os.path.join(
-            self.get_input_dir(test_method_name="test_tex1"), "text.tex"
+            self.get_input_dir(test_method_name="test_tex2"), "text.tex"
         )
         type_ = "tex"
         use_script = True
@@ -1719,7 +1719,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         # Run the script.
         output_txt = self.run_lint_txt(in_file, type_, use_script, cmd_opts)
         # Check using the same golden outcome as test_tex1.
-        self.check_string(output_txt, test_method_name="test_tex1")
+        self.check_string(output_txt, test_method_name="test_tex2")
 
 
 # #############################################################################
