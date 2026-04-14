@@ -332,7 +332,7 @@ class Test_render_image_code1(hunitest.TestCase):
         # Check output.
         self.assertEqual(rel_img_paths[0], "figs/test.1.png")
 
-    @pytest.mark.slow
+    @pytest.mark.superslow
     def test_md2(self) -> None:
         """
         Check rendering of an image code in a Markdown file with a different

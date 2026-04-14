@@ -1645,7 +1645,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
-    @pytest.mark.slow
+    @pytest.mark.superslow
     def test_md1(self) -> None:
         """
         Run lint_to_txt.py on a markdown file by calling the function directly.
