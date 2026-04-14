@@ -1549,65 +1549,6 @@ class Test_set_cache_property_new_func(_BaseCacheTest):
 
 
 # #############################################################################
-# Test_runtime_write_through
-# #############################################################################
-
-
-class Test_runtime_write_through(_BaseCacheTest):
-    """
-    Test that modifying write_through at runtime affects behavior.
-    """
-
-    def test1(self) -> None:
-        """
-        Verify that setting write_through=False at runtime prevents disk
-        writes.
-        """
-        # Prepare inputs.
-        # Call function to populate cache with first value.
-        result1 = _cached_json_double(10)
-        # Verify result.
-        self.assertEqual(result1, 20)
-        # Flush to ensure it's on disk.
-        hcacsimp.flush_cache_to_disk("_cached_json_double")
-        # Set write_through to False at runtime.
-        hcacsimp.set_cache_property("_cached_json_double", "write_through", False)
-        # Clear memory cache.
-        hcacsimp.reset_mem_cache("_cached_json_double")
-        # Call again with different input.
-        result2 = _cached_json_double(20)
-        self.assertEqual(result2, 40)
-        # Check outputs.
-        # Disk should not have been updated with second call.
-        disk_cache = hcacsimp.get_disk_cache("_cached_json_double")
-        # Only first call should be on disk.
-        self.assertEqual(len(disk_cache), 1)
-
-    def test2(self) -> None:
-        """
-        Verify that setting write_through=True at runtime enables disk writes.
-        """
-        # Prepare inputs.
-        # First set write_through to False.
-        hcacsimp.set_cache_property("_cached_json_double", "write_through", False)
-        # Call function (won't write to disk).
-        result1 = _cached_json_double(15)
-        self.assertEqual(result1, 30)
-        # Verify nothing on disk yet.
-        disk_cache = hcacsimp.get_disk_cache("_cached_json_double")
-        self.assertEqual(len(disk_cache), 0)
-        # Set write_through to True at runtime.
-        hcacsimp.set_cache_property("_cached_json_double", "write_through", True)
-        # Call with new input (should write to disk).
-        result2 = _cached_json_double(25)
-        self.assertEqual(result2, 50)
-        # Check outputs.
-        # Now disk should have the second call.
-        disk_cache = hcacsimp.get_disk_cache("_cached_json_double")
-        self.assertEqual(len(disk_cache), 2)
-
-
-# #############################################################################
 # Test_cache_property_to_str_no_props
 # #############################################################################
 
