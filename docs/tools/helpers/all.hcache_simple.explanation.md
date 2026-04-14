@@ -305,12 +305,6 @@
     that define how the cache operates. These are preserved when
     `reset_cache_property()` is called. System properties include:
     - `type`: Cache storage format ("json" or "pickle")
-    - `write_through`: Whether to flush cache to disk after each update
-      - Can be modified at runtime via `set_cache_property()`
-      - Changes take effect immediately on next cache update
-    - `exclude_keys`: List of parameter names to exclude from cache key
-      - Can be modified at runtime via `set_cache_property()`
-      - Changes take effect immediately on next function call
     - `cache_dir`: Per-function cache directory (overrides global)
     - `cache_prefix`: Per-function cache file prefix (overrides global)
     - `s3_bucket`: Per-function S3 bucket (overrides global)
@@ -337,8 +331,8 @@
   - `get_cache_property(func_name, property_name)`: get the value of a property
     for a function
   - `reset_cache_property()`: reset user properties for all functions (preserves
-    system properties including `type`, `write_through`, `exclude_keys`, and all
-    per-function configuration settings like `cache_dir`, `s3_bucket`, etc.)
+    system properties including `type` and all per-function configuration
+    settings like `cache_dir`, `s3_bucket`, etc.)
   - `cache_property_to_str(func_name)`: convert cache properties to string
     representation
   - `get_cache_property_file()`: get the path to the cache property file
@@ -363,9 +357,6 @@
       - Ensures persistence across sessions but may impact performance for
         frequently called functions
       - Set to `False` for better performance when persistence is not critical
-      - **Runtime configurable**: Can be modified via
-        `set_cache_property(func_name, "write_through", value)` and changes
-        take effect on the next cache update
     - `exclude_keys`: List of keyword argument names to exclude from cache key
       generation
       - Default: `None` (empty list)
@@ -373,9 +364,6 @@
         like API clients, database connections, or logging objects
       - These parameters are still passed to the function but don't affect cache
         key matching
-      - **Runtime configurable**: Can be modified via
-        `set_cache_property(func_name, "exclude_keys", value)` and changes take
-        effect on the next function call
 
   - Per-function cache location parameters (override global settings):
     - `cache_dir`: Custom directory for this function's cache files
