@@ -1645,6 +1645,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
 
     # ///////////////////////////////////////////////////////////////////////////
 
+    @pytest.mark.slow
     def test_md1(self) -> None:
         """
         Run lint_to_txt.py on a markdown file by calling the function directly.
@@ -1679,6 +1680,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         # Check using the same golden outcome as test_md1.
         self.check_string(output_txt, test_method_name="test_md1")
 
+    @pytest.mark.slow
     def test_tex1(self) -> None:
         """
         Run lint_to_txt.py on a latex file by calling the function directly.
