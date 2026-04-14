@@ -213,6 +213,8 @@ class TestImOmsDbHelper(TestDbHelper, abc.ABC):
         txt = f"""version: '3.5'
 
 
+
+
 services:
   # Docker container running Postgres DB.
   {service_name}:

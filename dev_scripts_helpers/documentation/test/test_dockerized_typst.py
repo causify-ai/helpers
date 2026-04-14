@@ -1,5 +1,6 @@
-import pytest
 import os
+
+import pytest
 
 import helpers.hdocker as hdocker
 import helpers.hdockerized_executables as hdocexec
