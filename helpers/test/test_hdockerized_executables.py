@@ -296,6 +296,7 @@ class Test_run_markdown_toc1(hunitest.TestCase):
             actual, expected, dedent=True, remove_lead_trail_empty_lines=True
         )
 
+    @pytest.mark.superslow
     def test1(self) -> None:
         """
         Test running the `markdown-toc` command inside a Docker container.
@@ -353,6 +354,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
         return in_file_path, out_file_path
 
+    @pytest.mark.superslow
     def test_dockerized1(self) -> None:
         """
         Run `latex` inside a Docker container.
@@ -379,6 +381,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
         )
 
     # TODO(ai_gp): In theory this should go in test_dockerized_latex.py
+    @pytest.mark.superslow
     def test_cmd_line1(self) -> None:
         """
         Run `latex` using the command line.
@@ -460,6 +463,7 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.png")
         return in_file_path, out_file_path
 
+    @pytest.mark.superslow
     def test_dockerized1(self) -> None:
         """
         Run `tikz_to_bitmap` inside a Docker container.
@@ -484,6 +488,7 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
         )
 
     # TODO(ai_gp): In theory this should go in test_tikz_to_png.py
+    @pytest.mark.superslow
     def test_command_line1(self) -> None:
         """
         Run `dockerized_tikz_to_bitmap` through the command line.

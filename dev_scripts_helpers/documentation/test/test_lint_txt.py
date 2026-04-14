@@ -1363,6 +1363,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.superslow
     def test_process3(self) -> None:
         """
         Run the text linter on a md file.
@@ -1397,6 +1398,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.superslow
     def test_process4(self) -> None:
         """
         Check that no replacement happens inside a ``` block.
@@ -1453,6 +1455,7 @@ class Test_lint_txt2(hunitest.TestCase):
         expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.assert_equal(actual, expected)
 
+    @pytest.mark.superslow
     def test_process5(self) -> None:
         """
         Run the text linter on a txt file.
@@ -1494,6 +1497,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.txt"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.superslow
     def test7(self) -> None:
         """
         Test that YAML front matter is preserved in markdown files.
@@ -1530,6 +1534,7 @@ class Test_lint_txt2(hunitest.TestCase):
         file_name = "test.md"
         self.helper(txt, expected, file_name)
 
+    @pytest.mark.superslow
     def test8(self) -> None:
         """
         Test that page separators are removed but YAML front matter is preserved.

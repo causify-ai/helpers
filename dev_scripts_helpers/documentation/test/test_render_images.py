@@ -308,6 +308,7 @@ class Test_render_image_code1(hunitest.TestCase):
     Test `_render_image_code()`.
     """
 
+    @pytest.mark.slow
     def test_md1(self) -> None:
         """
         Check rendering of an image code in a Markdown file.

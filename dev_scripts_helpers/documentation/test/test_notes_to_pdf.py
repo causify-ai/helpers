@@ -131,6 +131,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         self.assertEqual(script_txt, None)
         self.assertEqual(output_txt, None)
 
+    @pytest.mark.superslow
     def test2(self) -> None:
         """
         Run:
@@ -147,6 +148,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         txt += f"output_txt:\n{output_txt}\n"
         self.check_string(txt, purify_text=True)
 
+    @pytest.mark.superslow
     def test3(self) -> None:
         """
         Run:
@@ -165,6 +167,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 
     # #########################################################################
 
+    @pytest.mark.superslow
     def test4(self) -> None:
         """
         Run:
