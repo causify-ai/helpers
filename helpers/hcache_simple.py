@@ -408,6 +408,23 @@ def _check_valid_cache_property(property_name: str) -> None:
     hdbg.dassert_in(property_name, valid_properties)
 
 
+def _infer_cache_type_from_path(file_path: str) -> str:
+    """
+    Infer cache type from file path extension.
+
+    :param file_path: path to cache file (local or S3)
+    :return: inferred type ("pickle" or "json")
+    """
+    if file_path.endswith(".pkl"):
+        out = "pickle"
+    elif file_path.endswith(".json"):
+        out = "json"
+    else:
+        # Default to json.
+        out = "json"
+    return out
+
+
 def _save_func_cache_data_to_file(
     file_name: str,
     cache_type: Optional[str],
@@ -421,10 +438,7 @@ def _save_func_cache_data_to_file(
     """
     # Infer cache type from file extension if not set.
     if cache_type is None:
-        if file_name.endswith(".pkl"):
-            cache_type = "pickle"
-        else:
-            cache_type = "json"
+        cache_type = _infer_cache_type_from_path(file_name)
     hio.create_enclosing_dir(file_name, incremental=True)
     _LOG.trace("Saving to '%s'", file_name)
     # Save data.
@@ -478,7 +492,9 @@ def set_cache_property(func_name: str, property_name: str, val: Any) -> None:
     _save_func_cache_data_to_file(file_name, "pickle", cache_property)
 
 
-def get_cache_property(func_name: str, property_name: str) -> Union[bool, Any]:
+def get_cache_property(
+    func_name: str, property_name: str
+) -> Optional[Union[bool, Any]]:
     """
     Get the value of a property for the cache of a given function name.
 
@@ -865,10 +881,7 @@ def _load_func_cache_data_from_file(
     """
     # Infer cache type from file extension if not set.
     if cache_type is None:
-        if file_name.endswith(".pkl"):
-            cache_type = "pickle"
-        else:
-            cache_type = "json"
+        cache_type = _infer_cache_type_from_path(file_name)
     # Load data.
     _LOG.trace("Loading from '%s'", file_name)
     hdbg.dassert_file_exists(file_name)
@@ -1084,12 +1097,7 @@ def _upload_cache_to_s3(func_name: str) -> None:
     cache_type = get_cache_property(func_name, "type")
     # Infer cache type from file extension if not set.
     if cache_type is None:
-        if local_file.endswith(".pkl"):
-            cache_type = "pickle"
-        elif local_file.endswith(".json"):
-            cache_type = "json"
-        else:
-            cache_type = "json"
+        cache_type = _infer_cache_type_from_path(local_file)
     if cache_type == "pickle":
         # Read pickle files as bytes and write.
         with open(local_file, "rb") as f:
@@ -1154,12 +1162,7 @@ def _download_cache_from_s3(func_name: str) -> bool:
     cache_type = get_cache_property(func_name, "type")
     # Infer cache type from file extension if not set.
     if cache_type is None:
-        if s3_path.endswith(".pkl"):
-            cache_type = "pickle"
-        elif s3_path.endswith(".json"):
-            cache_type = "json"
-        else:
-            cache_type = "json"
+        cache_type = _infer_cache_type_from_path(s3_path)
     hio.create_enclosing_dir(local_file, incremental=True)
     if cache_type == "pickle":
         # Read pickle files as bytes and write.
@@ -1697,28 +1700,21 @@ def simple_cache(
     function, first clear the property via reset_cache_property() or
     manually set it via set_cache_property().
 
-    :param cache_type: type of cache to use ('json' or 'pickle'). Stored
-        as property on first decoration only (not updated on subsequent
-        imports)
+    :param cache_type: type of cache to use ('json' or 'pickle')
     :param write_through: if True, the cache is written to disk after
-        each access. Stored as property and can be modified at runtime
-    :param exclude_keys: keys to exclude from the cache key. Stored as
-        property and can be modified at runtime
+        each access
+    :param exclude_keys: keys to exclude from the cache key
     :param cache_dir: directory for this function's cache files. If
-        None, uses global cache directory. Stored as property and can be
-        modified at runtime
+        None, uses global cache directory
     :param cache_prefix: prefix for this function's cache files. If
-        None, uses global cache prefix. Stored as property and can be
-        modified at runtime
+        None, uses global cache prefix
     :param s3_bucket: S3 bucket for this function's cache (e.g.,
         "s3://my-bucket"). If specified, enables S3 cache syncing for
-        this function. Stored as property and can be modified at runtime
-    :param s3_prefix: S3 prefix path for this function's cache. Stored
-        as property and can be modified at runtime
-    :param aws_profile: AWS profile for S3 access. Stored as property
-        and can be modified at runtime
+        this function
+    :param s3_prefix: S3 prefix path for this function's cache
+    :param aws_profile: AWS profile for S3 access
     :param auto_sync_s3: if True, automatically sync to S3 after each
-        cache update. Stored as property and can be modified at runtime
+        cache update
     :return: a decorator that can be applied to a function
     """
 
@@ -1789,10 +1785,12 @@ def simple_cache(
             # Get the cache.
             cache = get_cache(func_name)
             # Remove keys that should not be part of the cache key.
-            # Read from properties first, fall back to closure for backward compatibility.
+            # Read from properties first, fall back to closure.
             exclude_keys_prop = get_cache_property(func_name, "exclude_keys")
             exclude_keys_to_use = (
-                exclude_keys_prop if exclude_keys_prop is not None else exclude_keys_list
+                exclude_keys_prop
+                if exclude_keys_prop is not None
+                else exclude_keys_list
             )
             # Also exclude cache_mode since it's a control parameter.
             excluded_keys = set(exclude_keys_to_use) | {"cache_mode"}
@@ -1882,9 +1880,13 @@ def simple_cache(
                     "Updating cache with key='%s' value='%s'", cache_key, value
                 )
                 # Check if write-through is enabled.
-                write_through_prop = get_cache_property(func_name, "write_through")
+                write_through_prop = get_cache_property(
+                    func_name, "write_through"
+                )
                 write_through_enabled = (
-                    write_through_prop if write_through_prop is not None else write_through
+                    write_through_prop
+                    if write_through_prop is not None
+                    else write_through
                 )
                 if write_through_enabled:
                     _LOG.trace("Writing through to disk")

@@ -328,8 +328,8 @@
   - Changes take effect immediately on the next function call
   - Example: `set_cache_property("my_func", "write_through", False)` will
     disable write-through for `my_func`
-  - Backward compatibility: If a property is not set, the system falls back to
-    the decorator parameter value
+  - If a property is not set, the system falls back to the decorator parameter
+    value
 
 - Flow example:
   - When a function is decorated, the system stores all decorator parameters as

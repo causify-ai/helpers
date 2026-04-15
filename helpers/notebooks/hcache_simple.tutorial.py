@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.17.1
+#       jupytext_version: 1.19.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -317,42 +317,46 @@ print(f"Third call (different query, cache miss): {result3}")
 
 
 # %%
-@hcacsimp.simple_cache(cache_type="json", write_through=True, exclude_keys=["debug"])
-def runtime_example(x: int, debug: bool = False) -> int:
+@hcacsimp.simple_cache(cache_type="json", exclude_keys=["session_id"])
+def api_call(query: str, session_id: str) -> str:
     """
-    Example function with runtime-modifiable properties.
+    Simulate API call where session_id doesn't affect result.
     """
-    _LOG.info("Computing result for x=%s", x)
-    return x ** 2
+    _LOG.info("Making API call for query=%s", query)
+    time.sleep(1)
+    return f"Result for: {query}"
 
 
 # %%
-# Call function with initial settings.
-result = runtime_example(4, debug=True)
-print(f"Result: {result}")
-# Check current write_through setting.
-write_through = hcacsimp.get_cache_property("runtime_example", "write_through")
-print(f"write_through: {write_through}")
-# Check current exclude_keys.
-exclude_keys = hcacsimp.get_cache_property("runtime_example", "exclude_keys")
-print(f"exclude_keys: {exclude_keys}")
+# Demonstrate initial exclude_keys behavior.
+print("Initial exclude_keys: ['session_id']")
+print("Calling with query='python', session_id='abc'...")
+start_time = time.time()
+result1 = api_call("python", session_id="abc")
+elapsed1 = time.time() - start_time
+print(f"Result: {result1} (time: {elapsed1:.3f}s)")
+# Same query, different session_id - should hit cache.
+print("\nCalling with query='python', session_id='xyz' (different session_id)...")
+start_time = time.time()
+result2 = api_call("python", session_id="xyz")
+elapsed2 = time.time() - start_time
+print(f"Result: {result2} (time: {elapsed2:.6f}s - cache hit!)")
 
 # %%
-# Modify write_through at runtime.
-hcacsimp.set_cache_property("runtime_example", "write_through", False)
-print("\\nDisabled write_through")
+# Now modify exclude_keys to REMOVE session_id from exclusion.
+print("\nModifying exclude_keys to [] (empty - don't exclude session_id)")
+hcacsimp.set_cache_property("api_call", "exclude_keys", [])
 # Verify change.
-write_through_after = hcacsimp.get_cache_property("runtime_example", "write_through")
-print(f"write_through now: {write_through_after}")
-
-# %%
-# Modify exclude_keys at runtime.
-hcacsimp.set_cache_property("runtime_example", "exclude_keys", ["debug", "verbose"])
-print("\\nAdded 'verbose' to exclude_keys")
-# Verify change.
-exclude_keys_after = hcacsimp.get_cache_property("runtime_example", "exclude_keys")
+exclude_keys_after = hcacsimp.get_cache_property("api_call", "exclude_keys")
 print(f"exclude_keys now: {exclude_keys_after}")
-
+# Now same query with different session_id creates NEW cache entry.
+print(
+    "\nCalling with query='python', session_id='new123' (after modification)..."
+)
+start_time = time.time()
+result3 = api_call("python", session_id="new123")
+elapsed3 = time.time() - start_time
+print(f"Result: {result3} (time: {elapsed3:.3f}s - cache miss, computed new!)")
 
 # %% [markdown]
 # <a name='9.-s3-integration'></a>
