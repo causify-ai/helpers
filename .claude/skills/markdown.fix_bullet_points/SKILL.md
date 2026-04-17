@@ -40,9 +40,9 @@ description: Reorganize a markdown file to use bullet points and ensure all fenc
   - `docker>` when they are commands run inside Docker
   - `claude>` when they are commands run inside Claude
 
-# Do not abuse level 3 headers
-- Do not use header level 3, but use bold when there are too many of them with
-  too small of content
+# Do not abuse level 4 headers
+- Do not use header level 3 (i.e., ###), but use bold when there are too many of
+  them with too small of content
 - E.g., convert
   ```
   ### What It Does

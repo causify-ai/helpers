@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 
 # /// script
-# dependencies = ["beautifulsoup4", "lxml", "pandas", "requests", "tqdm"]
+# dependencies = ["beautifulsoup4", "lxml", "pandas", "requests", "tqdm", "pyyaml"]
 # ///
 
 
@@ -33,6 +33,8 @@ Examples:
 > ./process_hn_article.py --input_file input.csv --output_file output.csv --extract_title --tag_articles --batch_size 5
 
 > ./process_hn_article.py --url https://news.ycombinator.com/item?id=47796469 --output_dir /tmp
+
+> ./process_hn_article.py --input_file input.csv --output_file output.csv --extract_title --refresh_cache
 
 Import as:
 
@@ -719,6 +721,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         help="LLM model name to use for tagging (e.g., gpt-4, claude-3-opus)",
     )
+    parser.add_argument(
+        "--refresh_cache",
+        action="store_true",
+        help="Clear cache before processing to force fresh API calls and update cache",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -726,6 +733,11 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Clear cache if refresh flag is set.
+    if args.refresh_cache:
+        _LOG.info("Clearing cache to force fresh API calls")
+        hcacsimp.clear_cache(_extract_article_info)
+        hcacsimp.clear_cache(_fetch_hn_item)
     # Process single HN URL (JSON mode).
     if args.url:
         _create_hn_json(args.url, output_dir=args.output_dir)

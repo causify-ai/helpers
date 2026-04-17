@@ -275,7 +275,7 @@ Use these commands consistently across all slides:
   ```
 
 - **For asymmetric content** (text + diagram):
-  ````markdown
+  ```markdown
   ::: columns
   :::: {.column width=65%}
   - Main content with text
@@ -288,231 +288,228 @@ Use these commands consistently across all slides:
   ```
   ::::
   :::
-  ````
+  ```
 
 # Slide Format Templates
 
 ## Definition Slide
-Use for introducing a new concept or term.
-```markdown
-* <Term>: Definition
+- Use for introducing a new concept or term.
+  ```markdown
+  * <Term>: Definition
 
-- **Term** is [concise definition in plain language]
-  - Property or characteristic 1
-  - Property or characteristic 2
-  - Property or characteristic 3
+  - **Term** is [concise definition in plain language]
+    - Property or characteristic 1
+    - Property or characteristic 2
+    - Property or characteristic 3
 
-- Mathematically:
-  $$
-  [mathematical formula or equation]
-  $$
+  - Mathematically:
+    $$
+    [mathematical formula or equation]
+    $$
 
-- **Example**: [concrete, real-world scenario that demonstrates the concept]
-```
+  - **Example**: [concrete, real-world scenario that demonstrates the concept]
+  ```
 
-**Real example** (from Lesson 01.1):
-```markdown
-* Machine Learning: Definition
+- **Real example** (from Lesson 01.1):
+  ```markdown
+  * Machine Learning: Definition
 
-- **Machine learning** is building machines to do useful things without being 
-  explicitly programmed
-  - Learns from experience
-  - Improves with data
-  - Performs tasks without hardcoded rules
+  - **Machine learning** is building machines to do useful things without being 
+    explicitly programmed
+    - Learns from experience
+    - Improves with data
+    - Performs tasks without hardcoded rules
 
-- Formally: _"A computer program is said to learn from experience E with respect 
-  to some task T and some performance measure P, if P(T) improves with experience E"_
-  (Mitchell, 1998)
+  - Formally: _"A computer program is said to learn from experience E with respect 
+    to some task T and some performance measure P, if P(T) improves with experience E"_
+    (Mitchell, 1998)
 
-- **Example**: Computer vision system that learns to recognize cats from labeled 
-  image datasets without being programmed with cat detection rules
-```
+  - **Example**: Computer vision system that learns to recognize cats from labeled 
+    image datasets without being programmed with cat detection rules
+  ```
 
 ## Example Slide
-Use for illustrating a concept with a structured walkthrough.
-```markdown
-* <Topic>: Example
+- Use for illustrating a concept with a structured walkthrough.
+  ```markdown
+  * <Topic>: Example
 
-- **Example**: [scenario description]
-  - Given: [what information we have]
-  - Question: [what we want to find or determine]
-  - Solution: [step-by-step approach]
-    1. First step
-    2. Second step
-    3. Final result or conclusion
-```
+  - **Example**: [scenario description]
+    - Given: [what information we have]
+    - Question: [what we want to find or determine]
+    - Solution: [step-by-step approach]
+      1. First step
+      2. Second step
+      3. Final result or conclusion
+  ```
 
 ## Comparison Slide
-Use for contrasting two or more approaches.
-```markdown
-* <Topic>: <Approach A> vs <Approach B>
+- Use for contrasting two or more approaches.
+  ```markdown
+  * <Topic>: <Approach A> vs <Approach B>
 
-::: columns
-:::: {.column width=50%}
-**Approach A**
-- Characteristic 1
-- Characteristic 2
+  ::: columns
+  :::: {.column width=50%}
+  **Approach A**
+  - Characteristic 1
+  - Characteristic 2
 
-- **Pros**
-  - Advantage 1
-  - Advantage 2
+  - **Pros**
+    - Advantage 1
+    - Advantage 2
 
-- **Cons**
-  - Disadvantage 1
-  - Disadvantage 2
-::::
-:::: {.column width=50%}
-**Approach B**
-- Characteristic 1
-- Characteristic 2
+  - **Cons**
+    - Disadvantage 1
+    - Disadvantage 2
+  ::::
+  :::: {.column width=50%}
+  **Approach B**
+  - Characteristic 1
+  - Characteristic 2
 
-- **Pros**
-  - Advantage 1
-  - Advantage 2
+  - **Pros**
+    - Advantage 1
+    - Advantage 2
 
-- **Cons**
-  - Disadvantage 1
-  - Disadvantage 2
-::::
-:::
-```
+  - **Cons**
+    - Disadvantage 1
+    - Disadvantage 2
+  ::::
+  :::
+  ```
 
 ## List of Paradigms/Techniques Slide
-Use when introducing multiple related items. Break into multiple slides if the
-list is long (use numbering like "1/3", "2/3", "3/3").
-```markdown
-* Machine Learning Paradigms with Examples (1/3)
+- Use when introducing multiple related items. Break into multiple slides if the
+  list is long (use numbering like "1/3", "2/3", "3/3").
+  ```markdown
+  * Machine Learning Paradigms with Examples (1/3)
 
-- **Paradigm 1**
-  - Brief description of what it is
-  - E.g., concrete example with real-world application
+  - **Paradigm 1**
+    - Brief description of what it is
+    - E.g., concrete example with real-world application
 
-- **Paradigm 2**
-  - Brief description of what it is
-  - E.g., concrete example with real-world application
+  - **Paradigm 2**
+    - Brief description of what it is
+    - E.g., concrete example with real-world application
 
-- **Paradigm 3**
-  - Brief description of what it is
-  - E.g., concrete example with real-world application
-```
+  - **Paradigm 3**
+    - Brief description of what it is
+    - E.g., concrete example with real-world application
+  ```
 
-**Real example** (from Lesson 02.2):
-```markdown
-* Machine Learning Paradigms with Examples (1/3)
+- **Real example** (from Lesson 02.2):
+  ```markdown
+  * Machine Learning Paradigms with Examples (1/3)
 
-- **Supervised Learning**
-  - Learn from labeled data to predict labels for new inputs
-  - E.g., image classification using ResNet on ImageNet
+  - **Supervised Learning**
+    - Learn from labeled data to predict labels for new inputs
+    - E.g., image classification using ResNet on ImageNet
 
-- **Unsupervised Learning**
-  - Discover hidden patterns or structure in unlabeled data
-  - E.g., K-means clustering for customer segmentation
+  - **Unsupervised Learning**
+    - Discover hidden patterns or structure in unlabeled data
+    - E.g., K-means clustering for customer segmentation
 
-- **Reinforcement Learning**
-  - Learn through interaction with an environment, receiving rewards/punishments
-  - E.g., deep Q-Learning for playing Atari games
-```
+  - **Reinforcement Learning**
+    - Learn through interaction with an environment, receiving rewards/punishments
+    - E.g., deep Q-Learning for playing Atari games
+  ```
 
 ## Algorithm Slide
-Use for describing a step-by-step procedure or algorithm.
-```markdown
-* <Algorithm Name>
+- Use for describing a step-by-step procedure or algorithm.
+  ```markdown
+  * <Algorithm Name>
 
-- **Input**: [describe what data/values go in]
-- **Output**: [describe what the algorithm produces]
+  - **Input**: [describe what data/values go in]
+  - **Output**: [describe what the algorithm produces]
 
-- **Steps**:
-  1. Initialize parameters or setup phase
-  2. Main algorithm step or iteration
-  3. Update or transform values
-  4. Convergence check or termination condition
+  - **Steps**:
+    1. Initialize parameters or setup phase
+    2. Main algorithm step or iteration
+    3. Update or transform values
+    4. Convergence check or termination condition
 
-- **Complexity**:
-  - Time: $O(...)$
-  - Space: $O(...)$
-```
+  - **Complexity**:
+    - Time: $O(...)$
+    - Space: $O(...)$
+  ```
 
 ## Flow Diagram Slide
-Use for showing process sequences or pipelines.
-````markdown
-* <Process Name> Flow (1/2)
+- Use for showing process sequences or pipelines.
+  ````markdown
+  * <Process Name> Flow (1/2)
 
-- **Step 1**: [description]
-- **Step 2**: [description]
-- **Step 3**: [description]
+  - **Step 1**: [description]
+  - **Step 2**: [description]
+  - **Step 3**: [description]
 
-* <Process Name> Flow (2/2)
+  * <Process Name> Flow (2/2)
 
-```graphviz[height=80%]
-digraph ProcessFlow {
-    rankdir=LR;
-    splines=true;
-    nodesep=1.0;
-    ranksep=0.75;
-    node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
+  ```graphviz[height=80%]
+  digraph ProcessFlow {
+      rankdir=LR;
+      splines=true;
+      nodesep=1.0;
+      ranksep=0.75;
+      node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=12, penwidth=1.4];
 
-    "Step1" [fillcolor="#F4A6A6"];
-    "Step2" [fillcolor="#FFD1A6"];
-    "Step3" [fillcolor="#B2E2B2"];
-    "Step4" [fillcolor="#A6C8F4"];
+      "Step1" [fillcolor="#F4A6A6"];
+      "Step2" [fillcolor="#FFD1A6"];
+      "Step3" [fillcolor="#B2E2B2"];
+      "Step4" [fillcolor="#A6C8F4"];
 
-    "Step1" -> "Step2" -> "Step3" -> "Step4";
-}
-```
+      "Step1" -> "Step2" -> "Step3" -> "Step4";
+  }
+  ```
 
-
-````
-
-- **Key insight 1**: [observation about the flow]
-- **Key insight 2**: [observation about the flow]
-````
+  - **Key insight 1**: [observation about the flow]
+  - **Key insight 2**: [observation about the flow]
+  ````
 
 ## Pros/Cons Slide
-Use for evaluating approaches or concepts against criteria.
-```markdown
-- <Topic>: Advantages and Disadvantages
+- Use for evaluating approaches or concepts against criteria.
+  ```markdown
+  - <Topic>: Advantages and Disadvantages
 
-- **Pros**
-  - Advantage 1: [why it's good]
-  - Advantage 2: [why it's good]
-  - Advantage 3: [why it's good]
+  - **Pros**
+    - Advantage 1: [why it's good]
+    - Advantage 2: [why it's good]
+    - Advantage 3: [why it's good]
 
-- **Cons**
-  - Disadvantage 1: [why it's problematic]
-  - Disadvantage 2: [why it's problematic]
-  - Disadvantage 3: [why it's problematic]
-````
+  - **Cons**
+    - Disadvantage 1: [why it's problematic]
+    - Disadvantage 2: [why it's problematic]
+    - Disadvantage 3: [why it's problematic]
+  ```
 
 
-**Real example** (from Lesson 01.1):
-```markdown
-- AI as Thinking Humanly: Pros and Cons
+- **Real example** (from Lesson 01.1):
+  ```markdown
+  - AI as Thinking Humanly: Pros and Cons
 
-- **Pros**
-  - Express precise theory of the human mind as a computer program
+  - **Pros**
+    - Express precise theory of the human mind as a computer program
 
-- **Cons**
-  - Unknown workings of the human mind
-  - Anthropocentric definition (not applicable to non-human intelligence)
-```
+  - **Cons**
+    - Unknown workings of the human mind
+    - Anthropocentric definition (not applicable to non-human intelligence)
+  ```
 
 
 ## Question/Discussion Slide
-Use for posing rhetorical or engagement questions.
-```markdown
-- <Question or Topic>
+- Use for posing rhetorical or engagement questions.
+  ```markdown
+  * <Question or Topic>
 
-- **Q**: [specific question that engages the audience]
+  - **Q**: [specific question that engages the audience]
 
-- Consider these options:
-  - Option A: [description]
-  - Option B: [description]
-  - Option C: [description]
+  - Consider these options:
+    - Option A: [description]
+    - Option B: [description]
+    - Option C: [description]
 
-- **Answer**: Option X because [reasoning]
+  - **Answer**: Option X because [reasoning]
 
-- **Key takeaway**: [what students should learn from this]
-```
+  - **Key takeaway**: [what students should learn from this]
+  ```
 
 
 # Content Guidelines
@@ -541,57 +538,76 @@ Use for posing rhetorical or engagement questions.
 - Use diagrams instead of long text descriptions
 - Break complex topics across multiple slides
 
-# Examples (Real From MSML610)
+# Examples
 
 ## Good Example: Definition with Context
-```markdown
-- AI Formal Definition
+  ```markdown
+  * AI Formal Definition
 
-- AI is defined around **two axes**:
-  - Thinking vs. Acting
-  - Human vs. Rational (ideal performance)
+  - AI is defined around **two axes**:
+    - Thinking vs. Acting
+    - Human vs. Rational (ideal performance)
 
-- Four possible definitions of AI as a machine that can:
-  1. Think humanly
-  2. Think rationally
-  3. Act humanly
-  4. Act rationally
+  - Four possible definitions of AI as a machine that can:
+    1. Think humanly
+    2. Think rationally
+    3. Act humanly
+    4. Act rationally
 
-- **Q**: Which one do you think is the best definition?
+  - **Q**: Which one do you think is the best definition?
 
-- We will see that building machines that can **"act rationally"** should be the
-  ultimate goal of AI
-```
+  - We will see that building machines that can **"act rationally"** should be the
+    ultimate goal of AI
+  ```
 
 
 ## Good Example: Paradigm List
-```markdown
-- Supervised Learning
+  ```markdown
+  * Supervised Learning
 
-- Learn a function $f: X \to Y$ that maps inputs to correct outputs
-  - Training examples $(\vx, y)$ with pairs of inputs and correct outputs
-  - Requires labeled data for training
-  - Measure performance with error on a separate test set
+  - Learn a function $f: X \to Y$ that maps inputs to correct outputs
+    - Training examples $(\vx, y)$ with pairs of inputs and correct outputs
+    - Requires labeled data for training
+    - Measure performance with error on a separate test set
 
-- **Classification**: output is a discrete label
-  - E.g., Spam vs Not Spam, Digit recognition
+  - **Classification**: output is a discrete label
+    - E.g., Spam vs Not Spam, Digit recognition
 
-- **Regression**: output is a continuous value
-  - E.g., House prices, Stock prices
-```
+  - **Regression**: output is a continuous value
+    - E.g., House prices, Stock prices
+  ```
 
 
 ## Good Example: Comparison
-```markdown
-- Turing Test: Pros and Cons
+  ```markdown
+  * Turing Test: Pros and Cons
 
-- **Pros**
-  - Operational definition of intelligence
-  - Sidestep philosophical vagueness (consciousness, machine thinking, etc.)
+  - **Pros**
+    - Operational definition of intelligence
+    - Sidestep philosophical vagueness (consciousness, machine thinking, etc.)
 
-- **Cons**
-  - **Anthropomorphic** criteria define intelligence in human terms
-  - Intelligence in terms of Turing test is **fooling humans** into thinking
-    it's human
-  - E.g., aeronautical engineering focuses on aerodynamics, not imitating birds
-```
+  - **Cons**
+    - **Anthropomorphic** criteria define intelligence in human terms
+    - Intelligence in terms of Turing test is **fooling humans** into thinking
+      it's human
+    - E.g., aeronautical engineering focuses on aerodynamics, not imitating birds
+  ```
+
+# Writing Checklist
+Before finishing lecture slides, verify:
+
+- [ ] Title slide includes UMD logo, lesson number, course code, instructor
+      info, references
+- [ ] Each major concept has intuitive explanation before mathematical formalism
+- [ ] All non-ASCII symbols use LaTeX (ε, →, ∝, etc.)
+- [ ] All GraphViz diagrams use standard color palette consistently
+- [ ] Examples are concrete and labeled "**Example**"
+- [ ] Complex comparisons use side-by-side columns
+- [ ] Algorithms have numbered steps
+- [ ] Pros/Cons use structured lists with bold headers
+- [ ] Section headers follow the `# ######...` and `## ######...` pattern
+- [ ] No page separators (`---`) are used
+- [ ] All slides have descriptive titles starting with `*`
+- [ ] Spacing uses `\vspace{}` commands appropriately
+- [ ] Mathematical notation is consistent throughout
+- [ ] References are cited with author and year
