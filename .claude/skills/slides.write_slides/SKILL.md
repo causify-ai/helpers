@@ -125,6 +125,7 @@ Create professional, pedagogically sound lecture slides that:
 
 ## Symbol and Character Rules
 **Do NOT use non-ASCII characters**. Use LaTeX instead:
+
 - ε → `$\varepsilon$`
 - → → `$\to$`
 - ∝ → `$\propto$`
@@ -230,73 +231,64 @@ Use these commands consistently across all slides:
   ```
 
 ## Mermaid Diagrams
-**When to use**: Mind maps, hierarchical taxonomies, classification structures.
-
-**Mind map example**:
-````markdown
-
-```mermaid
-mindmap
-  root((**Machine Learning**))
-    (**Paradigms**)
-      Supervised
-      Unsupervised
-      RL
-    (**Models**)
-      Linear
-      Neural networks
-      SVM
-```
-````
-
-
-````
+- **When to use**: Mind maps, hierarchical taxonomies, classification structures
+- **Mind map example**:
+  ```mermaid
+  mindmap
+    root((**Machine Learning**))
+      (**Paradigms**)
+        Supervised
+        Unsupervised
+        RL
+      (**Models**)
+        Linear
+        Neural networks
+        SVM
+  ```
 
 ## Tables
-Use markdown tables for structured data comparisons.
-```markdown
-\begingroup \scriptsize
-| **Column1** | **Column2** | **Column3** |
-| ----------- | ----------- | ----------- |
-| Value 1     | Value 2     | Value 3     |
-| Value 4     | Value 5     | Value 6     |
-\endgroup
-````
+- Use markdown tables for structured data comparisons
+  ```markdown
+  \begingroup \scriptsize
+  | **Column1** | **Column2** | **Column3** |
+  | ----------- | ----------- | ----------- |
+  | Value 1     | Value 2     | Value 3     |
+  | Value 4     | Value 5     | Value 6     |
+  \endgroup
+  ```
 
 ## Side-by-Side Content
-**For symmetric content** (two equal columns):
-```markdown
-::: columns
-:::: {.column width=50%}
-**Left Heading**
-- Point 1
-- Point 2
-::::
-:::: {.column width=50%}
-**Right Heading**
-- Point 1
-- Point 2
-::::
-:::
-```
+- **For symmetric content** (two equal columns):
+  ```markdown
+  ::: columns
+  :::: {.column width=50%}
+  **Left Heading**
+  - Point 1
+  - Point 2
+  ::::
+  :::: {.column width=50%}
+  **Right Heading**
+  - Point 1
+  - Point 2
+  ::::
+  :::
+  ```
 
-**For asymmetric content** (text + diagram):
-````markdown
-::: columns
-:::: {.column width=65%}
-- Main content with text
-- Multiple bullet points
-- Detailed explanation
-::::
-:::: {.column width=35%}
-```graphviz
-[diagram code here]
-```
-````
-
-::::
-:::
-````
+- **For asymmetric content** (text + diagram):
+  ````markdown
+  ::: columns
+  :::: {.column width=65%}
+  - Main content with text
+  - Multiple bullet points
+  - Detailed explanation
+  ::::
+  :::: {.column width=35%}
+  ```graphviz
+  [diagram code here]
+  ```
+  ::::
+  :::
+  ````
 
 # Slide Format Templates
 
@@ -316,7 +308,7 @@ Use for introducing a new concept or term.
   $$
 
 - **Example**: [concrete, real-world scenario that demonstrates the concept]
-````
+```
 
 **Real example** (from Lesson 01.1):
 ```markdown
@@ -467,8 +459,9 @@ digraph ProcessFlow {
     "Step1" -> "Step2" -> "Step3" -> "Step4";
 }
 ```
-````
 
+
+````
 
 - **Key insight 1**: [observation about the flow]
 - **Key insight 2**: [observation about the flow]
@@ -477,7 +470,7 @@ digraph ProcessFlow {
 ## Pros/Cons Slide
 Use for evaluating approaches or concepts against criteria.
 ```markdown
-* <Topic>: Advantages and Disadvantages
+- <Topic>: Advantages and Disadvantages
 
 - **Pros**
   - Advantage 1: [why it's good]
@@ -490,9 +483,10 @@ Use for evaluating approaches or concepts against criteria.
   - Disadvantage 3: [why it's problematic]
 ````
 
+
 **Real example** (from Lesson 01.1):
 ```markdown
-* AI as Thinking Humanly: Pros and Cons
+- AI as Thinking Humanly: Pros and Cons
 
 - **Pros**
   - Express precise theory of the human mind as a computer program
@@ -502,10 +496,11 @@ Use for evaluating approaches or concepts against criteria.
   - Anthropocentric definition (not applicable to non-human intelligence)
 ```
 
+
 ## Question/Discussion Slide
 Use for posing rhetorical or engagement questions.
 ```markdown
-* <Question or Topic>
+- <Question or Topic>
 
 - **Q**: [specific question that engages the audience]
 
@@ -518,6 +513,7 @@ Use for posing rhetorical or engagement questions.
 
 - **Key takeaway**: [what students should learn from this]
 ```
+
 
 # Content Guidelines
 
@@ -549,7 +545,7 @@ Use for posing rhetorical or engagement questions.
 
 ## Good Example: Definition with Context
 ```markdown
-* AI Formal Definition
+- AI Formal Definition
 
 - AI is defined around **two axes**:
   - Thinking vs. Acting
@@ -563,13 +559,14 @@ Use for posing rhetorical or engagement questions.
 
 - **Q**: Which one do you think is the best definition?
 
-- We will see that building machines that can **"act rationally"** should be 
-  the ultimate goal of AI
+- We will see that building machines that can **"act rationally"** should be the
+  ultimate goal of AI
 ```
+
 
 ## Good Example: Paradigm List
 ```markdown
-* Supervised Learning
+- Supervised Learning
 
 - Learn a function $f: X \to Y$ that maps inputs to correct outputs
   - Training examples $(\vx, y)$ with pairs of inputs and correct outputs
@@ -583,9 +580,10 @@ Use for posing rhetorical or engagement questions.
   - E.g., House prices, Stock prices
 ```
 
+
 ## Good Example: Comparison
 ```markdown
-* Turing Test: Pros and Cons
+- Turing Test: Pros and Cons
 
 - **Pros**
   - Operational definition of intelligence
@@ -593,26 +591,7 @@ Use for posing rhetorical or engagement questions.
 
 - **Cons**
   - **Anthropomorphic** criteria define intelligence in human terms
-  - Intelligence in terms of Turing test is **fooling humans** into thinking 
+  - Intelligence in terms of Turing test is **fooling humans** into thinking
     it's human
   - E.g., aeronautical engineering focuses on aerodynamics, not imitating birds
 ```
-
-# Writing Checklist
-Before finishing lecture slides, verify:
-
-- [ ] Title slide includes UMD logo, lesson number, course code, instructor
-      info, references
-- [ ] Each major concept has intuitive explanation before mathematical formalism
-- [ ] All non-ASCII symbols use LaTeX (ε, →, ∝, etc.)
-- [ ] All GraphViz diagrams use standard color palette consistently
-- [ ] Examples are concrete and labeled "**Example**"
-- [ ] Complex comparisons use side-by-side columns
-- [ ] Algorithms have numbered steps
-- [ ] Pros/Cons use structured lists with bold headers
-- [ ] Section headers follow the `# ######...` and `## ######...` pattern
-- [ ] No page separators (`---`) are used
-- [ ] All slides have descriptive titles starting with `*`
-- [ ] Spacing uses `\vspace{}` commands appropriately
-- [ ] Mathematical notation is consistent throughout
-- [ ] References are cited with author and year
