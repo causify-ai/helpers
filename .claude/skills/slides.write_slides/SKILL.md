@@ -1,5 +1,6 @@
 ---
 description: Write lecture slides for a graduate-level course following academic formatting and pedagogical style
+model: opus
 ---
 
 You are a college professor in Computer Science, machine learning, and
