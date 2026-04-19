@@ -138,6 +138,19 @@ description: Format Python code according to project coding conventions and styl
   def _main(parser: argparse.ArgumentParser) -> None:
   ```
 
+## Script Shebang and Dependencies
+
+- For scripts with external package dependencies, use the `uv run` shebang with inline script dependencies:
+  ```python
+  #!/usr/bin/env -S uv run
+
+  # /// script
+  # dependencies = ["pydeps", "networkx", "pyyaml", "graphviz"]
+  # ///
+  ```
+- List all external (non-stdlib, non-helpers) packages required by the script in the `dependencies` array
+- This allows scripts to be run directly without pre-installing packages: `./script.py`
+
 ## Use Standard Argument Helpers from `hparser`
 
 - Use `hparser` helper functions to add standard arguments instead of defining them manually
@@ -165,6 +178,13 @@ description: Format Python code according to project coding conventions and styl
   hparser.add_limit_range_arg(parser)
   # In _main(): limit_range = hparser.parse_limit_range_args(args)
   ```
+
+## Command Line Argument Naming
+
+- Use only underscores as separators in command line arguments, not dashes
+- Good: `--cache_reset`, `--max_iterations`, `--output_dir`
+- Bad: `--cache-reset`, `--max-iterations`, `--output-dir`
+- This applies to both long-form argument names and the attribute names assigned by argparse (which converts `_` to `_` in the namespace)
 
 ## Create Dirs
 - If directory doesn't exist create it using `hio.create_dir`

@@ -494,7 +494,6 @@ Use these commands consistently across all slides:
     - Anthropocentric definition (not applicable to non-human intelligence)
   ```
 
-
 ## Question/Discussion Slide
 - Use for posing rhetorical or engagement questions.
   ```markdown
@@ -511,7 +510,6 @@ Use these commands consistently across all slides:
 
   - **Key takeaway**: [what students should learn from this]
   ```
-
 
 # Content Guidelines
 
