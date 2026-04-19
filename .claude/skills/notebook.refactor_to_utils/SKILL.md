@@ -6,7 +6,7 @@ You are an expert Python developer.
 
 I will pass you a Python file paired with a Jupyter notebook using jupytext in `py:percent` format.
 
-For all the code follow the rules from @.claude/skills/coding.format_rules/SKILL.md
+For all the code follow the rules from @.claude/skills/coding.rules.md
 
 # Scenarios
 

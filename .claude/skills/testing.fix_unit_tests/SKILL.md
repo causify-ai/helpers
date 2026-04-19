@@ -156,4 +156,4 @@ description: Refactor unit test files by aligning strings, renaming methods, and
 # Important
 
 - For all the code you must follow the instructions in
-  @.claude/skills/coding.format_rules/SKILL.md
+  @.claude/skills/coding.rules.md

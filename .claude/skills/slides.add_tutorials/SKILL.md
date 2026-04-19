@@ -27,7 +27,7 @@ The target audience is data scientists and ML practitioners
 # Step 3
 - Add a high level description of the tutorial at the beginning of $FILE
   ```
-  // Tutorial Outline
+  // Tutorial outline:
   // - Load data and explore conditional dependencies
   // - Run PC/GES algorithms comparing outputs
   // - Validate with refutation tests (placebo, random treatment)

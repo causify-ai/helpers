@@ -10,4 +10,4 @@ Given the passed Python file
 - Update the comments that are not in sync with the code
 
 - For all the code you must follow the instructions in
-  @.claude/skills/coding.format_rules/SKILL.md
+  @.claude/skills/coding.rules.md

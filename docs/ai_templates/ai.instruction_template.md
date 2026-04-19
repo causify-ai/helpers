@@ -5,12 +5,12 @@
   clarifications
 
 - For all the code you must follow the instructions in
-  @.claude/skills/coding.format_rules.md
+  @.claude/skills/coding.rules.md
 
 # Rules
 
 .claude/skills/blog.format_rules.md
-.claude/skills/coding.format_rules.md
+.claude/skills/coding.rules.md
 .claude/skills/markdown.format_rules.md
 .claude/skills/notebook.format_rules.md
 .claude/skills/testing.format_rules.md
@@ -33,7 +33,7 @@ next step
   the plan is
 
 - For all the code you must follow the instructions in
-  @.claude/skills/coding.format_rules.md
+  @.claude/skills/coding.rules.md
 
 ## Step 2)
 - Update the file README.md in the same directory of the script following the
@@ -85,7 +85,7 @@ Given the passed code
 ## Step 2)
 - Once the user has approved the testing code, implement the testing code
 - For all the code you must follow the instructions in
-  @.claude/skills/coding.format_rules.md
+  @.claude/skills/coding.rules.md
 
 # Rename Files
 
@@ -125,7 +125,7 @@ Given the passed code
 
 ## Step 3) Implement code
   - Implement the code following the instructions in
-    @.claude/skills/coding.format_rules.md
+    @.claude/skills/coding.rules.md
 
 ## Step 4) Come up with a plan for the tests
   - Implement unit tests following the instructions in 

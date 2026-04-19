@@ -55,7 +55,7 @@ percent
 - Focus on meaningful behavior and correctness rather than superficial
   coverage.
 - All tests and code must strictly follow:
-  - @.claude/skills/coding.format_rules/SKILL.md for any Python code
+  - @.claude/skills/coding.rules.md for any Python code
   - @.claude/skills/testing.format_rules/SKILL.md for tests
 - If any part of the task is unclear or underspecified, stop and ask for
   clarification before proceeding.

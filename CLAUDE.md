@@ -145,7 +145,7 @@ import config_root.config.config_ as crococon
 ### Code Conventions
 
 - For writing any Python code you MUST follow instructions in
-  @.claude/skills/coding.format_rules/SKILL.md and 
+  @.claude/skills/coding.rules.md and 
   @docs/ai_templates/code_template.py
 - For writing unit tests you MUST follow instructions in
   @.claude/skills/testing.format_rules/SKILL.md and
