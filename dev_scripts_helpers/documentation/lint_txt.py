@@ -255,6 +255,37 @@ def _check_links(in_file_name: str) -> None:
     hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
 
+def _remove_trailing_periods(lines: List[str]) -> List[str]:
+    """
+    Remove trailing periods from bullet points, headers, and numbered lists.
+
+    Periods are removed from the end of lines that match these patterns:
+    - Bullet points (lines starting with `- `)
+    - Headers (lines starting with `#`)
+    - Numbered lists (lines starting with digits followed by `.` or `)`)
+
+    This improves consistency in markdown and text formatting where punctuation
+    at the end of list items is often not needed.
+
+    :param lines: The lines to be processed.
+    :return: The lines with trailing periods removed from appropriate contexts.
+    """
+    _LOG.debug("lines=%s", lines)
+    lines_new: List[str] = []
+    for line in lines:
+        # Check if line is a bullet point, header, or numbered list.
+        if (
+            re.match(r"^\s*-\s+", line)
+            or re.match(r"^#+\s+", line)
+            or re.match(r"^\s*\d+[\)\.]\s+", line)
+        ):
+            # Remove trailing period if present.
+            line = re.sub(r"\.\s*$", "", line)
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
 def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     """
     Remove extra indentation from code block lines.
@@ -467,6 +498,10 @@ def _perform_actions(
     action = "convert_asterisk_bullets_to_dashes"
     if _to_execute_action(action, actions):
         lines = _convert_asterisk_bullets_to_dashes(lines)
+    # Remove trailing periods.
+    action = "remove_trailing_periods"
+    if _to_execute_action(action, actions):
+        lines = _remove_trailing_periods(lines)
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
@@ -531,6 +566,9 @@ _VALID_ACTIONS = [
     "add_blank_lines_between_headers",
     # _convert_asterisk_bullets_to_dashes(): convert `* ` bullets to `- `.
     "convert_asterisk_bullets_to_dashes",
+    # _remove_trailing_periods(): remove trailing periods from bullet points,
+    # headers, and numbered lists.
+    "remove_trailing_periods",
     #
     "frame_chapters",
     "capitalize_header",

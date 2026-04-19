@@ -4,4 +4,4 @@ model: haiku
 ---
 
 For detailed bullet point formatting rules, refer to
-`@.claude/skills/text.rules.bullet_points`
+`@.claude/skills/text.rules.bullet_points.md`

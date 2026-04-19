@@ -1,5 +1,5 @@
 ---
-description: Extract and summarize specific chapters from a book
+description: Extract and summarize specific chapters from a book or a paper
 model: haiku
 ---
 
@@ -7,7 +7,8 @@ Given a markdown book ${input}.${extension} and an output file ${output}.md
 
 # Step 1: Extract the Markdown
 
-- If the file is epub, convert ${input}.epub to tmp.md
+1. If the file is `epub`, convert `${input}.epub` to a file `tmp.md` in the current
+   dir
 
   ```bash
   > pandoc ${input}.epub -t gfm \
@@ -17,13 +18,14 @@ Given a markdown book ${input}.${extension} and an output file ${output}.md
       -o tmp.md
   ```
 
-- If the file is PDF convert IN.pdf to tmp.md
+2. If the file is PDF convert `${input}.pdf` to `tmp.md` in the current dir
 
   ```bash
-  > convert_pdf_to_md.py --input ${input}.pdf --output tmp.md
+  > pdf_to_md.py --input ${input}.pdf --output tmp.md
   ```
 
-- If the file is already markdown, don't to anything
+3. If the file is already markdown, don't to anything but use the markdown file
+   directly
 
 # Step 2: Extract the Index
 
@@ -38,7 +40,7 @@ Given a markdown book ${input}.${extension} and an output file ${output}.md
   - Use the chapter numbers that come from the book
 
 - For each chapter and subchapter, summarize the text using rules from
-  @.claude/skills/text.summarize_in_bullet_points/SKILL.md
+  `@.claude/skills/text.rules.bullet_points.md`
 
 - An example is like
   ```
@@ -59,3 +61,6 @@ Given a markdown book ${input}.${extension} and an output file ${output}.md
 # Step 4: Write Output
 
 - Write the result in the file {output}.md
+
+# Step 5: Run lint
+- Run `lint_txt.py -i {output}.md`
