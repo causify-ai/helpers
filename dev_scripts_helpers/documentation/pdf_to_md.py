@@ -344,12 +344,14 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
+        "-i",
         "--input",
         required=True,
         type=str,
         help="Path to input PDF file",
     )
     parser.add_argument(
+        "-o",
         "--output",
         required=True,
         type=str,
