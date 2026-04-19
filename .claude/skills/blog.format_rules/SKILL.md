@@ -2,7 +2,8 @@
 description: Format a blog post according to conventions for structure, style, and markdown
 ---
 
-For blog formatting rules refer to `@.claude/skills/blog.rules`
-
-For comprehensive markdown formatting rules refer to
-`@.claude/skills/markdown.rules`
+Apply the following rules:
+- `@.claude/skills/blog.rules.md`: for blog formatting rules
+- `@.claude/skills/markdown.rules.md`: for markdown formatting rules
+- `@.claude/skills/text.rules.bullet_points.md`: for formatting rules of text in
+  bullet points
