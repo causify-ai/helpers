@@ -10,3 +10,7 @@ Create professional, pedagogically sound lecture slides that:
 - Use multiple representations (text, math, diagrams, examples)
 - Build engagement through motivation and real-world examples
 
+## Slide-specific formatting
+
+- Use a `*` for top-level topic headers
+  - E.g., `* Markov Chains`
