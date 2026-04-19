@@ -1,5 +1,6 @@
 ---
 description: Create a blog about the desired topic
+model: Opus
 ---
 
 - Create a blog expanding the notes in the passed $FILE
