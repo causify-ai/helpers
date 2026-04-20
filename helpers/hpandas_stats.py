@@ -409,3 +409,70 @@ def format_ols_regress_results(regr_res: Optional[pd.DataFrame]) -> pd.DataFrame
     col_names = regr_res["param_names"] + ["R^2 [%]", "Adj R^2 [%]"]
     df = pd.DataFrame([row], columns=col_names)
     return df
+
+
+# #############################################################################
+# Exploratory analysis functions
+# #############################################################################
+
+
+def explore_dataframe(
+    df: pd.DataFrame,
+    *,
+    show_distributions: bool = False,
+    num_top_cols: int = 6,
+    show_correlations: bool = False,
+    zero_threshold: float = 1e-9,
+) -> pd.DataFrame:
+    """
+    Perform comprehensive exploratory analysis of a DataFrame.
+
+    Computes data quality metrics (zeros, NaNs, infinities, valid data),
+    optionally plots distributions of high-variability columns, and
+    optionally displays a correlation matrix.
+
+    :param df: Input dataframe to analyze
+    :param show_distributions: If True, plots distributions of top-variability
+        columns in a 3-column grid
+    :param num_top_cols: Number of columns with highest variability to plot
+        (only used if show_distributions=True)
+    :param show_correlations: If True, displays correlation matrix as a heatmap
+    :param zero_threshold: Threshold for classifying values as "zero" in
+        quality report
+    :return: Statistics DataFrame from report_zero_nan_inf_stats with columns:
+        num_rows, zeros [%], nans [%], infs [%], valid [%]
+    """
+    import matplotlib.pyplot as plt
+
+    hdbg.dassert_lt(0, len(df), "Dataframe is empty")
+    # Compute and display data quality statistics.
+    stats_df = report_zero_nan_inf_stats(df, zero_threshold)
+    # Plot distributions if requested.
+    if show_distributions:
+        numeric_cols = df.select_dtypes(include="number").columns.tolist()
+        if len(numeric_cols) > 0:
+            # Compute standard deviation and select top columns.
+            std_vals = df[numeric_cols].std().sort_values(ascending=False)
+            num_to_plot = min(num_top_cols, len(numeric_cols))
+            top_cols = std_vals.head(num_to_plot).index.tolist()
+            # Create grid of subplots.
+            import helpers.hmatplotlib as hmatplo
+
+            fig, axes = hmatplo.get_multiple_plots(
+                num_to_plot, 3, y_scale=3.5
+            )
+            for i, col in enumerate(top_cols):
+                ax = axes[i]
+                ax.hist(df[col].dropna(), bins=30, edgecolor="k")
+                ax.set_title(f"{col} (std={std_vals[col]:.2f})")
+                ax.set_xlabel("Value")
+                ax.set_ylabel("Frequency")
+            plt.tight_layout()
+    # Display correlation matrix if requested.
+    if show_correlations:
+        numeric_df = df.select_dtypes(include="number")
+        if len(numeric_df.columns) >= 2:
+            corr_matrix = numeric_df.corr()
+            _LOG.info("Correlation matrix:")
+            heatmap_df(corr_matrix)
+    return stats_df
