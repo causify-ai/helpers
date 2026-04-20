@@ -32,8 +32,8 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_dockerized_script_arg(parser)
-    parser.add_argument("--input", action="store")
-    parser.add_argument("--output", action="store", default="")
+    parser.add_argument("-i", "--input", action="store")
+    parser.add_argument("-o", "--output", action="store", default="")
     parser.add_argument("--data_dir", action="store")
     parser.add_argument(
         "--container_type", action="store", default="pandoc_only"

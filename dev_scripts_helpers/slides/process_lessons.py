@@ -30,15 +30,15 @@ import helpers.hsystem as hsystem
 _LOG = logging.getLogger(__name__)
 
 _VALID_ACTIONS = [
-    "generate_pdf",
-    "generate_tex",
-    "generate_script",
-    "reduce_slide",
     "check_slide",
-    "improve_slide",
-    "book_chapter",
+    "generate_book_chapter",
     "generate_class_quizzes",
     "generate_class_recap",
+    "generate_pdf",
+    "generate_script",
+    "generate_tex",
+    "improve_slide",
+    "reduce_slide",
 ]
 _DEFAULT_ACTIONS = ["generate_pdf"]
 
@@ -497,7 +497,7 @@ def _process_lecture_file(
         elif action == "improve_slide":
             # TODO: Implement _slide_improve function.
             hdbg.dfatal("improve_slide action not yet implemented")
-        elif action == "book_chapter":
+        elif action == "generate_book_chapter":
             _generate_book_chapter(class_dir, source_path, source_name)
         elif action == "generate_class_quizzes":
             _generate_class_quizzes(class_dir, source_path, source_name)

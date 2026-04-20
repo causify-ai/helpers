@@ -31,8 +31,8 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     hparser.add_dockerized_script_arg(parser)
-    parser.add_argument("--input", action="store", required=True)
-    parser.add_argument("--output", action="store", default="")
+    parser.add_argument("-i", "--input", action="store", required=True)
+    parser.add_argument("-o", "--output", action="store", default="")
     hparser.add_verbosity_arg(parser)
     return parser
 

@@ -6,7 +6,7 @@ You are an expert Python developer.
 
 I will pass you a Python file paired with a Jupyter notebook using jupytext in `py:percent` format.
 
-For all the code follow the rules from @.claude/skills/coding.format_rules/SKILL.md
+For all the code follow the rules from @.claude/skills/coding.rules.md
 
 # Scenarios
 
@@ -111,5 +111,5 @@ When you need to add new functions or code to an existing utils file correspondi
 - Always sync before editing: `uvx jupytext --sync notebook.py`
 - Always sync after editing: `uvx jupytext --sync notebook.py`
 - Never edit .ipynb files directly when a paired .py file exists
-- See @.claude/skills/notebook.working_with_jupyter for detailed Jupytext workflow
-- See @.claude/skills/notebook.lint_numbered_cells for function naming conventions that match cell numbers
+- See @.claude/skills/notebook.working_with_jupyter/SKILL.md for detailed Jupytext workflow
+- See @.claude/skills/notebook.lint_numbered_cells/SKILL.md for function naming conventions that match cell numbers

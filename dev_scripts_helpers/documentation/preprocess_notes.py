@@ -488,8 +488,8 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--input", action="store", type=str, required=True)
-    parser.add_argument("--output", action="store", type=str, default=None)
+    parser.add_argument("-i", "--input", action="store", type=str, required=True)
+    parser.add_argument("-o", "--output", action="store", type=str, default=None)
     parser.add_argument(
         "--type",
         required=True,

@@ -1,50 +1,29 @@
 # Summary
+This directory contains tools for processing lecture slides and generating
+images using AI services.
 
-This directory contains tools for processing lecture slides and generating images
-using AI services.
-
-# Structure of the Dir
-
-- No subdirectories in this directory
-
-# Description of Files
-
-- `extract_png_from_pdf.py`
-  - Extracts PNG images from PDF files with one image per page using sequential
-    numbering
-- `generate_book_chapter.py`
-  - Generates book chapter from markdown with PNG or PDF, YAML preamble with
-    title, and centered headers
-- `header-style.tex`
-  - LaTeX header customization file for pandoc PDF conversion with styled
-    section headers
-- `generate_class_images.py`
-  - Generates multiple images using OpenAI's DALL-E API from text prompts with
-    quality options
-- `generate_slide_script.py`
-  - Generates presentation scripts from markdown slides using LLM processing
-- `process_lessons.py`
-  - Orchestrates generation of PDF slides, scripts, and book chapters with
-    pattern and range support
-- `process_slides.py`
-  - Processes markdown slides using LLM prompts for transformation and quality
-    checks
-- `slides_utils.py`
-  - Utility functions for extracting slides from markdown and processing slide
-    images
 
 # Description of Executables
+| Script                     | Description                                                        |
+| :------------------------- | :----------------------------------------------------------------- |
+| `extract_png_from_pdf.py`  | Extracts PNG images from PDF files with sequential numbering       |
+| `generate_book_chapter.py` | Generates book chapters from markdown and PDF/PNG images           |
+| `generate_class_images.py` | Generates images using OpenAI's DALL-E API from text prompts       |
+| `generate_slide_script.py` | Generates presentation scripts from markdown slides using LLM      |
+| `header-style.tex`         | LaTeX header customization file for pandoc PDF conversion          |
+| `process_lessons.py`       | Orchestrates PDF, script, and book chapter generation for lectures |
+| `process_slides.py`        | Processes markdown slides with LLM transformations and validations |
+| `slides_utils.py`          | Utility functions for extracting and processing slide content      |
 
 ## `extract_png_from_pdf.py`
-
-### What It Does
+**What it does**:
 
 - Extracts each page of a PDF file as a separate PNG image
 - Numbers output files sequentially (slides001.png, slides002.png, etc.)
 - Supports customizable DPI for image quality control
 - Creates output directory automatically with optional from-scratch mode
 
-### Examples
+**Examples**:
 
 - Extract all pages from a PDF with default settings:
   ```bash
@@ -67,20 +46,19 @@ using AI services.
   ```
 
 ## `generate_book_chapter.py`
-
-### What It Does
+**What it does**:
 
 - Processes markdown slides with PNG images or PDF file to create book chapter
   format
-- Extracts title from markdown file (e.g., from `\text{\blue{Lesson 2.1:
-  Git}}`) and adds YAML preamble for pandoc metadata
+- Extracts title from markdown file (e.g., from `\text{\blue{Lesson 2.1: Git}}`)
+  and adds YAML preamble for pandoc metadata
 - Extracts PNG images from PDF automatically when --input_pdf_file is provided
 - Validates that the number of slides in markdown matches the number of PNG
   files (expects num_slides + 1 = num_pngs to account for title slide)
 - Properly aligns title slide (first PNG) with content slides (remaining PNGs)
   to ensure header, slide image, and commentary are synchronized
-- First slide (PNG 1) is treated as title slide with only the image (no title
-  or commentary)
+- First slide (PNG 1) is treated as title slide with only the image (no title or
+  commentary)
 - Content slides (PNG 2+) are paired with corresponding markdown slides, with
   centered headers formatted as "idx / tot: title" and LLM-based commentary
 - Supports optional page breaks via --add_new_page flag to insert `\newpage`
@@ -91,7 +69,7 @@ using AI services.
 - Creates markdown output with PNG references and detailed commentary for each
   slide
 
-### Examples
+**Examples**:
 
 - Generate book chapter from markdown and PNG directory:
   ```bash
@@ -123,7 +101,7 @@ using AI services.
   > ./generate_book_chapter.py --input_file lecture.txt --input_pdf_file lecture.pdf --output_dir ./book_chapters/ --add_new_page
   ```
 
-### Converting to PDF with pandoc
+**Converting to PDF with pandoc**:
 
 After generating the book chapter markdown, convert it to PDF using pandoc with
 custom header styling:
@@ -139,15 +117,14 @@ custom header styling:
   ```
 
 ## `generate_class_images.py`
-
-### What It Does
+**What it does**:
 
 - Generates multiple images using OpenAI's DALL-E 3 API from text prompts
 - Supports both standard and HD quality image generation in 1024x1024 resolution
 - Includes special workload mode for generating predefined image sets for course
   materials
 
-### Examples
+**Examples**:
 
 - Generate 5 HD quality images from a prompt:
   ```bash
@@ -170,14 +147,13 @@ custom header styling:
   ```
 
 ## `generate_slide_script.py`
-
-### What It Does
+**What it does**:
 
 - Processes markdown slides and generates presentation scripts using LLM
 - Groups slides for batch processing to optimize LLM API calls
 - Supports limiting slide ranges and customizable grouping strategies
 
-### Examples
+**Examples**:
 
 - Generate script from markdown slides with default settings:
   ```bash
@@ -200,16 +176,15 @@ custom header styling:
   ```
 
 ## `process_lessons.py`
-
-### What It Does
+**What it does**:
 
 Orchestrates the generation of multiple outputs from lecture source files for
 educational materials. This is the main entry point for processing lecture
 content into various formats.
 
-**Key Features:**
+**Key features**:
 
-- Converts lecture text source files to PDF slides using notes_to_pdf.py
+- Converts lecture text source files to PDF slides using `notes_to_pdf.py`
 - Generates reading scripts from lecture materials with transition text
 - Applies LLM-based transformations for slide reduction and quality checking
 - Generates book chapters from lecture content
@@ -217,7 +192,7 @@ content into various formats.
 - Provides slide range limiting for focused processing
 - Includes dry-run mode for previewing commands
 
-**Supported Actions:**
+**Supported actions**:
 
 - `generate_pdf`: Generate presentation slides from text source files
 - `generate_script`: Generate instructor reading scripts with commentary
@@ -225,15 +200,15 @@ content into various formats.
 - `check_slide`: Apply LLM validation to check slide quality
 - `improve_slide`: Apply LLM transformation to improve slide content
 - `book_chapter`: Generate book chapter PDF from lecture content
-- `generate_class_quizzes`: Generate multiple choice quizzes from lecture content
-  using LLM
+- `generate_class_quizzes`: Generate multiple choice quizzes from lecture
+  content using LLM
 - `generate_class_recap`: Generate open-ended discussion/review questions from
   lecture content using LLM
 
-**Workflow:**
+**Workflow**:
 
-1. Parse lecture patterns or ranges from command line arguments (e.g., '01\*',
-   '01.1', '01\*:03\*', '01.1-03.2')
+1. Parse lecture patterns or ranges from command line arguments (e.g., '01*',
+   '01.1', '01*:03\*', '01.1-03.2')
 2. Find matching lecture source files in `<class>/lectures_source/` directory
 3. For each matching file, execute specified actions in sequence
 4. Output generated files to appropriate directories:
@@ -243,11 +218,11 @@ content into various formats.
    - Multiple choice quizzes → `<class>/lectures_quizzes/`
    - Discussion/recap questions → `<class>/lectures_recap/`
 
-**Command Line Arguments:**
+**Command line arguments**:
 
 - `--lectures`: Lecture(s) to process (required)
   - Single pattern: '01.1' or '01\*'
-  - Union of patterns (colon-separated): '01\*:02\*:03.1'
+  - Union of patterns (colon-separated): '01*:02*:03.1'
   - Continuous range (hyphen-separated): '01.1-03.2' (inclusive)
   - Note: Range and union syntax cannot be mixed
 - `--class`: Class directory name (required, choices: data605, msml610)
@@ -258,7 +233,7 @@ content into various formats.
 - `--dry_run`: Print commands without executing them
 - `-v/--log_level`: Set logging verbosity (DEBUG, INFO, WARNING, ERROR)
 
-**Dependencies:**
+**Dependencies**:
 
 - `notes_to_pdf.py`: Converts text source to PDF slides
 - `generate_slide_script.py`: Creates instructor scripts
@@ -267,7 +242,7 @@ content into various formats.
 - `class_scripts/gen_quizzes.py`: Generates quizzes from lecture content
 - `lint_txt.py`: Lints generated text files
 
-### Examples
+**Examples**:
 
 - Generate PDF slides for all lectures in lesson 01:
   ```bash
@@ -335,15 +310,14 @@ content into various formats.
   ```
 
 ## `process_slides.py`
-
-### What It Does
+**What it does**:
 
 - Extracts individual slides from markdown files and processes each with LLM
   prompts
 - Supports various actions like slide reduction, text checking, and improvement
 - Provides parallel processing with incremental execution and error recovery
 
-### Examples
+**Examples**:
 
 - Process slides with LLM transformation:
   ```bash

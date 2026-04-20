@@ -1,5 +1,9 @@
 % From https://tex.stackexchange.com/questions/75667/change-colour-on-chapter-section-headings-lyx
 \usepackage{xcolor}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+
+\usepackage{cancel}
+
 %\usepackage{sectsty}
 %\chapterfont{\color{blue}}
 %\sectionfont{\color{red}}
@@ -18,16 +22,38 @@
 % Work-around for too deeply nested error.
 \usepackage{enumitem}
 \setlistdepth{9}
-\setlist[itemize,1]{label=\textbullet}
+\setlist[itemize,1]{label=\textendash}
 \setlist[itemize,2]{label=\textendash}
-\setlist[itemize,3]{label=\textasteriskcentered}
-\setlist[itemize,4]{label=\textperiodcentered}
-\setlist[itemize,5]{label=\textbullet}
-\setlist[itemize,6]{label=\textbullet}
-\setlist[itemize,7]{label=\textbullet}
-\setlist[itemize,8]{label=\textbullet}
-\setlist[itemize,9]{label=\textbullet}
+\setlist[itemize,3]{label=\textendash}
+\setlist[itemize,4]{label=\textendash}
+\setlist[itemize,5]{label=\textendash}
+\setlist[itemize,6]{label=\textendash}
+\setlist[itemize,7]{label=\textendash}
+\setlist[itemize,8]{label=\textendash}
+\setlist[itemize,9]{label=\textendash}
 \renewlist{itemize}{itemize}{9}
+
+% \setlist[itemize,1]{label=\textbullet}
+% \setlist[itemize,2]{label=\textendash}
+% \setlist[itemize,3]{label=\textasteriskcentered}
+% \setlist[itemize,4]{label=\textperiodcentered}
+% setlist[itemize,5]{label=\textbullet}
+% \setlist[itemize,6]{label=\textbullet}
+% \setlist[itemize,7]{label=\textbullet}
+% \setlist[itemize,8]{label=\textbullet}
+% \setlist[itemize,9]{label=\textbullet}
+
+% Configure enumerate lists to prevent infinite recursion in Beamer themes.
+\setlist[enumerate,1]{label=\arabic*.,ref=\arabic*}
+\setlist[enumerate,2]{label=\alph*.,ref=\theenumi.\alph*}
+\setlist[enumerate,3]{label=\roman*.,ref=\theenumi.\theenumii.\roman*}
+\setlist[enumerate,4]{label=\Alph*.,ref=\theenumi.\theenumii.\theenumiii.\Alph*}
+\setlist[enumerate,5]{label=\Roman*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\Roman*}
+\setlist[enumerate,6]{label=\arabic*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\arabic*}
+\setlist[enumerate,7]{label=\alph*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\theenumvi.\alph*}
+\setlist[enumerate,8]{label=\roman*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\theenumvi.\theenumvii.\roman*}
+\setlist[enumerate,9]{label=\arabic*.,ref=\theenumi.\theenumii.\theenumiii.\theenumiv.\theenumv.\theenumvi.\theenumvii.\theenumviii.\arabic*}
+\renewlist{enumerate}{enumerate}{9}
 
 % #############################################################################
 % Vector / matrix notation
