@@ -131,7 +131,7 @@ def _run_dockerized_llm_transform(
     )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = True
+    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
     caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )
@@ -203,10 +203,16 @@ def _get_input_transforms() -> List[Tuple[str, str]]:
     input_transforms = [
         ("md_to_latex", "Convert Markdown to LaTeX using pandoc and format"),
         ("md_clean_up", "Clean up and format Markdown source text"),
-        ("md_bold_bullets", "Bold the first level bullets in Markdown and format"),
+        (
+            "md_bold_bullets",
+            "Bold the first level bullets in Markdown and format",
+        ),
         ("md_remove_bullets", "Remove bullets from Markdown"),
         ("slide_format_figures", "Format Markdown figure blocks for slides"),
-        ("slide_add_figure", "Add column structure for figures in slide Markdown"),
+        (
+            "slide_add_figure",
+            "Add column structure for figures in slide Markdown",
+        ),
     ]
     return input_transforms
 
@@ -222,7 +228,9 @@ def process_transform(prompt: str, in_file_name: str, out_file_name: str) -> boo
     """
     _LOG.debug(hprint.func_signature_to_str())
     #
-    input_transforms_names = [transform[0] for transform in _get_input_transforms()]
+    input_transforms_names = [
+        transform[0] for transform in _get_input_transforms()
+    ]
     if prompt in input_transforms_names:
         # Read the input.
         _LOG.debug("Reading input file: %s", in_file_name)

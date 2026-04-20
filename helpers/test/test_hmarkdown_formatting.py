@@ -1,13 +1,10 @@
 import logging
 import os
 
-import pytest
-
 import helpers.hio as hio
 import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hmarkdown_formatting as hmarform
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -333,10 +330,6 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_format_markdown_slide(hunitest.TestCase):
 
     def helper(self, input_text: str, expected_text: str) -> None:
@@ -578,7 +571,8 @@ class Test_format_markdown_slide(hunitest.TestCase):
         """
         expected_text = r"""
         * Incremental vs Iterative
-        ::: columns :::: {.column width=55%}
+        ::: columns
+        :::: {.column width=55%}
 
         - **Incremental Development**
           - Each increment adds functional components
@@ -592,7 +586,8 @@ class Test_format_markdown_slide(hunitest.TestCase):
           - Uncover and adjust for unknown requirements
 
         - **Incremental $\gg$ Iterative**
-        :::: :::: {.column width=40%}
+        ::::
+        :::: {.column width=40%}
         ![](msml610/lectures_source/figures/Lesson02_Monalisa_incremental.png){width=90%}
         \small \_Incremental
         \vspace{0.5cm}
@@ -600,7 +595,9 @@ class Test_format_markdown_slide(hunitest.TestCase):
         \small _Iterative_
         \vspace{0.5cm}
         ![](msml610/lectures_source/figures/Lesson02_Skateboard.png){width=90%}
-        \small _Incremental vs Iterative_ :::: :::
+        \small _Incremental vs Iterative_
+        ::::
+        :::
         """
         self.helper(input_text, expected_text)
 

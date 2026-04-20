@@ -7,7 +7,6 @@ import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -41,17 +40,14 @@ def _create_typst_file(self_: hunitest.TestCase) -> str:
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_build_typst_container(hunitest.TestCase):
     """
     Test running the `typst compile` command inside a Docker container.
     """
 
     # TODO(gp): Add pytest-order to the container.
-    #@pytest.mark.order(1)
+    # @pytest.mark.order(1)
+    @pytest.mark.slow
     def test1(self) -> None:
         """
         Test that the Typst Docker container is built correctly and `typst
@@ -64,7 +60,7 @@ class Test_build_typst_container(hunitest.TestCase):
         """
         # Prepare inputs.
         use_sudo = hdocker.get_use_sudo()
-        force_rebuild = hdocker.get_force_rebuild()
+        force_rebuild = True
         # Build the container using the exported constants (no compile needed).
         image_name = hdocker.build_container_image(
             hdocexec.TYPST_CONTAINER_IMAGE,
@@ -100,10 +96,6 @@ class Test_build_typst_container(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_run_dockerized_typst(hunitest.TestCase):
     """
     Test running the `typst compile` command inside a Docker container.

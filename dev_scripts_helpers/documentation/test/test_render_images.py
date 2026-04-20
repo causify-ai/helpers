@@ -8,17 +8,19 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
 # Test_get_rendered_file_paths1
 # #############################################################################
 
+
 class Test_get_rendered_file_paths1(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Check generation of file paths for rendering images.
@@ -63,9 +65,11 @@ class Test_get_rendered_file_paths1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True)
 
+
 # #############################################################################
 # Test_remove_image_code1
 # #############################################################################
+
 
 class Test_remove_image_code1(hunitest.TestCase):
     """
@@ -197,7 +201,8 @@ class Test_remove_image_code1(hunitest.TestCase):
 
     def test_tex2(self) -> None:
         """
-        Test with both rendered_images and render_images markers (LaTeX extension).
+        Test with both rendered_images and render_images markers (LaTeX
+        extension).
         """
         in_text = r"""
         Before
@@ -299,19 +304,18 @@ class Test_remove_image_code1(hunitest.TestCase):
         """
         self.helper(in_text, extension, expected)
 
+
 # #############################################################################
 # Test_render_image_code1
 # #############################################################################
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
+
 class Test_render_image_code1(hunitest.TestCase):
     """
     Test `_render_image_code()`.
     """
 
+    @pytest.mark.slow
     def test_md1(self) -> None:
         """
         Check rendering of an image code in a Markdown file.
@@ -335,6 +339,7 @@ class Test_render_image_code1(hunitest.TestCase):
         # Check output.
         self.assertEqual(rel_img_paths[0], "figs/test.1.png")
 
+    @pytest.mark.superslow
     def test_md2(self) -> None:
         """
         Check rendering of an image code in a Markdown file with a different
@@ -386,9 +391,11 @@ class Test_render_image_code1(hunitest.TestCase):
         # Check output.
         self.assertEqual(rel_img_paths[0], "figs/test2.1.svg")
 
+
 # #############################################################################
 # Test_insert_image_code1
 # #############################################################################
+
 
 class Test_insert_image_code1(hunitest.TestCase):
     """
@@ -505,9 +512,11 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
+
 # #############################################################################
 # Test_insert_image_code2
 # #############################################################################
+
 
 class Test_insert_image_code2(hunitest.TestCase):
     """
@@ -614,14 +623,12 @@ class Test_insert_image_code2(hunitest.TestCase):
         """
         self.assert_equal(actual, expected, dedent=True, fuzzy_match=True)
 
+
 # #############################################################################
 # Test_render_images1
 # #############################################################################
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
+
 class Test_render_images1(hunitest.TestCase):
     """
     Test _render_images() with dry run enabled (updating file text without
@@ -1223,7 +1230,8 @@ class Test_render_images1(hunitest.TestCase):
 
     def test_tex_graphviz_with_metadata4(self) -> None:
         """
-        Check that already-rendered graphviz code with metadata remains unchanged.
+        Check that already-rendered graphviz code with metadata remains
+        unchanged.
         """
         in_lines = r"""
         % rendered_images:begin
@@ -1245,15 +1253,14 @@ class Test_render_images1(hunitest.TestCase):
         expected = in_lines
         self.helper(in_lines, file_ext, expected)
 
+
 # #############################################################################
 # Test_render_images2
 # #############################################################################
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
+
 class Test_render_images2(hunitest.TestCase):
+
     def helper(self, file_name: str) -> None:
         """
         Helper function to test rendering images from a file.
@@ -1301,16 +1308,18 @@ class Test_render_images2(hunitest.TestCase):
         """
         self.helper("sample_file_mermaid.tex")
 
+
 # #############################################################################
 # Test_render_images_script1
 # #############################################################################
+
 
 class Test_render_images_script1(hunitest.TestCase):
     """
     Light end-to-end tests for the render_images.py script.
 
-    These tests verify the script can be invoked successfully with different
-    arguments and produces expected behavior.
+    These tests verify the script can be invoked successfully with
+    different arguments and produces expected behavior.
     """
 
     def test_script_help(self) -> None:

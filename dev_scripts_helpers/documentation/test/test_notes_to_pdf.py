@@ -8,20 +8,17 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
 
+
 # #############################################################################
 # Test_notes_to_pdf1
 # #############################################################################
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
+
 class Test_notes_to_pdf1(hunitest.TestCase):
     """
     Test `notes_to_pdf.py` with a simple input file.
@@ -135,6 +132,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         self.assertEqual(script_txt, None)
         self.assertEqual(output_txt, None)
 
+    @pytest.mark.superslow
     def test2(self) -> None:
         """
         Run:
@@ -151,6 +149,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
         txt += f"output_txt:\n{output_txt}\n"
         self.check_string(txt, purify_text=True)
 
+    @pytest.mark.superslow
     def test3(self) -> None:
         """
         Run:
@@ -169,6 +168,7 @@ class Test_notes_to_pdf1(hunitest.TestCase):
 
     # #########################################################################
 
+    @pytest.mark.superslow
     def test4(self) -> None:
         """
         Run:

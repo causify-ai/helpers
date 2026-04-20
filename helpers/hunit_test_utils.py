@@ -323,9 +323,7 @@ class UnitTestRenamer:
         new_content = "\n".join(lines)
         return new_content, num_replaced
 
-    def _process_outcomes_dir(
-        self, outcome_dir: str, outcomes_path: str
-    ) -> bool:
+    def _process_outcomes_dir(self, outcome_dir: str, outcomes_path: str) -> bool:
         """
         Process the directory containing target test outcomes.
 
@@ -419,9 +417,7 @@ class Obj_to_str_TestCase(abc.ABC):
         method_name = "to_config_str"
         self._test_method(obj, method_name, expected_str)
 
-    def _test_method(
-        self, obj: Any, method_name: str, expected_str: str
-    ) -> None:
+    def _test_method(self, obj: Any, method_name: str, expected_str: str) -> None:
         """
         Common method for testing `__repr__` and `__str__`.
         """
@@ -472,7 +468,9 @@ def execute_only_on_dev_csfy() -> None:
 
 
 def execute_only_on_mac(*, version: Optional[str] = None) -> None:
-    is_host_mac_ = hserver.is_host_mac(version=version)
+    is_host_mac_ = hserver.is_host_mac()
+    if version:
+        is_host_mac_ = hserver.is_host_mac_version(version)
     if not is_host_mac_:
         pytest.skip(f"Only run on Mac with version={version}")
 

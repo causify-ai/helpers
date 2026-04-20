@@ -7,7 +7,6 @@ import pytest
 import dev_scripts_helpers.github.dockerized_sync_gh_issue_labels as dshgdsgil
 import dev_scripts_helpers.github.sync_gh_issue_labels as dshgsgila
 import helpers.hgit as hgit
-import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -19,12 +18,8 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_sync_gh_issue_labels1(hunitest.TestCase):
+
     @pytest.mark.skip("Enable after HelpersTask753")
-    # TODO(sandeep): Check the dockerized executable once the CmampTask10710 is fixed.
-    @pytest.mark.skipif(
-        hserver.is_inside_ci() or hserver.is_dev_csfy(),
-        reason="Disabled because of CmampTask10710",
-    )
     @umock.patch.dict(os.environ, {"GITHUB_TEST_TOKEN": "fake_token"})
     @umock.patch(
         "dev_scripts_helpers.github.dockerized_sync_gh_issue_labels.github.Github"
@@ -36,7 +31,7 @@ class Test_sync_gh_issue_labels1(hunitest.TestCase):
         directory.
         """
         # Set up mock labels.
-        input_label = dshgdsgil.Label("bug", "Something isn't working", "f29513")
+        dshgdsgil.Label("bug", "Something isn't working", "f29513")
         mock_label = umock.Mock()
         mock_label.name = input_label.name
         mock_label.color = input_label.color

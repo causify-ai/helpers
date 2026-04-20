@@ -27,12 +27,9 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-# TODO(Grisha): Why does it require `ck_infra`?
-@pytest.mark.requires_ck_infra
 @pytest.mark.requires_docker_in_docker
 @pytest.mark.skipif(
-    not hserver.has_dind_support()
-    and not hserver.use_docker_sibling_containers(),
+    not hserver.can_run_docker_from_docker(),
     reason="Need docker children / sibling support",
 )
 class TestDbHelper(hunitest.TestCase, abc.ABC):
@@ -214,7 +211,6 @@ class TestImOmsDbHelper(TestDbHelper, abc.ABC):
         idx = cls.get_id()
         host_port = 5432 + idx
         txt = f"""version: '3.5'
-
 services:
   # Docker container running Postgres DB.
   {service_name}:

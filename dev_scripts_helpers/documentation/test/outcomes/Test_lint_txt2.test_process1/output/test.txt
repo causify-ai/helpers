@@ -1,4 +1,4 @@
-* Gradient Descent for Logistic Regression
+- Gradient descent for logistic regression
 - The typical implementations of gradient descent (basic or advanced) need two
   inputs:
   - The cost function $E_{in}(\vw)$ (to monitor convergence)

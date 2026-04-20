@@ -9,7 +9,6 @@ import helpers.hdbg as hdbg
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -369,7 +368,8 @@ class Test_remove_headers1(hunitest.TestCase):
 
         :param lines_in: input lines
         :param expected: expected output lines
-        :param max_level: maximum level of headers to consider (default: 999 to remove all headers)
+        :param max_level: maximum level of headers to consider (default:
+            999 to remove all headers)
         """
         actual = dshdprno._remove_headers(lines_in, max_level)
         # Convert lists to strings for comparison.
@@ -498,8 +498,6 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
                         return value == int(value)
                     except:
                         return False
-
-
                 for v in values:
                     if _is_integer(v):
                         print(v)
@@ -530,8 +528,6 @@ class Test_preprocess_notes_end_to_end1(hunitest.TestCase):
                         return value == int(value)
                     except:
                         return False
-
-
                 for v in values:
                     if _is_integer(v):
                         print(v)
@@ -642,10 +638,6 @@ class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_preprocess_notes_executable1(hunitest.TestCase):
     """
     Test `preprocess_notes.py` using the executable and checked in files.
