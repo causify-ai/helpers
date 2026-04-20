@@ -309,12 +309,12 @@ def report_zero_nan_inf_stats(
     from helpers.hpandas_display import display_df as hpd_display_df
 
     hpd_display_df(df, max_lines=5, as_txt=as_txt)
-    #
-    num_days = len(set(df.index.date))
-    _LOG.info("num_days=%s", num_days)
-    #
-    num_weekdays = len(set(d for d in df.index.date if d.weekday() < 5))
-    _LOG.info("num_weekdays=%s", num_weekdays)
+    # Compute date-based stats only if index is datetime.
+    if isinstance(df.index, pd.DatetimeIndex):
+        num_days = len(set(df.index.date))
+        _LOG.info("num_days=%s", num_days)
+        num_weekdays = len(set(d for d in df.index.date if d.weekday() < 5))
+        _LOG.info("num_weekdays=%s", num_weekdays)
     #
     stats_df = pd.DataFrame(None, index=df.columns)
     if False:
