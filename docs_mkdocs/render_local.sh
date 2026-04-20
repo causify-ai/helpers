@@ -1,34 +1,33 @@
 #!/bin/bash -xe
 
 # """
-# This script preprocesses markdown files from a source directory and serves
+# This script preprocesses markdown files from the docs directory and serves
 # them locally using mkdocs for preview during development.
 #
-# Usage: ./render_local.sh <source_directory>
+# Usage: ./helpers_root/docs_mkdocs/render_local.sh [port]
 #
 # Example:
-# > cd //csfy
-# > helpers_root/docs/mkdocs/render_local.sh blog/docs/posts
+# > cd /Users/VedanshuJoshi/Downloads/csfy-master
+# > helpers_root/docs_mkdocs/render_local.sh
+# > helpers_root/docs_mkdocs/render_local.sh 8003
 # """
 
-# Validate that a directory argument was provided.
-if [ -z "$1" ]; then
-  echo "Error: No directory provided"
-  echo "Usage: $0 <source_directory>"
-  exit 1
+PORT=${1:-8002}
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$REPO_ROOT"
+
+# Copy helpers docs into the csfy docs tree (mirrors CI step).
+mkdir -p docs/helpers
+if [ -d "helpers_root/docs" ]; then
+    cp -rL helpers_root/docs/* docs/helpers/ 2>/dev/null || true
 fi
 
-# Assert that the provided path is a valid directory.
-if [ ! -d "$1" ]; then
-  echo "Error: '$1' is not a valid directory"
-  exit 1
-fi
+# Preprocess docs into tmp.mkdocs.
+source "$HOME/src/venv/mkdocs/bin/activate"
+PYTHONPATH="$REPO_ROOT:$REPO_ROOT/helpers_root" \
+    python helpers_root/docs_mkdocs/preprocess_mkdocs.py \
+    --input_dir docs --output_dir tmp.mkdocs -v INFO
 
-#export SRC_DIR=blog/docs/posts
-export SRC_DIR=$1
-export DST_DIR=tmp.mkdocs
-./helpers_root/docs/mkdocs/preprocess_mkdocs.py --input $SRC_DIR --output_dir $DST_DIR
-
-#source mkdocs.venv/bin/activate
-
-(cd dev_scripts_helpers/documentation/mkdocs; uvx mkdocs serve --dev-addr localhost:8001 -o)
+# Serve.
+cd tmp.mkdocs
+mkdocs serve --dev-addr "0.0.0.0:$PORT"

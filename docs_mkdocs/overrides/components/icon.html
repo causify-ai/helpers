@@ -1,0 +1,11 @@
+{% if config.theme.icon %}
+{% if (config.theme.icon | file_exists) or (config.theme.icon | is_http_url) %}
+<img style="height:28px;width:auto;object-fit:contain;" src="{{ config.theme.icon | url }}" alt="{{ config.site_name }}">
+{% else %}
+{{ config.theme.icon | iconify }}
+{% endif %}
+{% else %}
+{% with override_class="size-5" %}
+{% include "icons/shadcn.svg" %}
+{% endwith %}
+{% endif %}

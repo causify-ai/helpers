@@ -4,6 +4,8 @@ Import as:
 import helpers.hmkdocs as hmkdocs
 """
 
+import re
+
 import helpers.hdbg as hdbg
 import helpers.hmarkdown as hmarkdo
 
@@ -30,20 +32,28 @@ def dedent_python_code_blocks(txt: str) -> str:
     in_python_block = False
     # Store the current Python code block.
     code_block_lines = []
+    # Track whether current block is indented (inside a list item).
+    block_is_indented = False
     for line in lines:
         if line.strip() == "```python":
             in_python_block = True
+            # Only dedent top-level blocks (fence at column 0).
+            block_is_indented = line != line.lstrip()
             result.append(line)
         elif line.strip() == "```" and in_python_block:
-            # Process the accumulated code block.
-            if code_block_lines:
-                # Dedent the code block.
+            if code_block_lines and not block_is_indented:
+                # Dedent only top-level code blocks.
                 code_text = "\n".join(code_block_lines)
                 dedented_code = textwrap.dedent(code_text)
                 result.extend(dedented_code.split("\n"))
                 code_block_lines = []
+            elif code_block_lines:
+                # Indented block: pass through unchanged.
+                result.extend(code_block_lines)
+                code_block_lines = []
             result.append(line)
             in_python_block = False
+            block_is_indented = False
         elif in_python_block:
             code_block_lines.append(line)
         else:
@@ -113,6 +123,30 @@ def convert_slides_to_markdown(txt: str, level: int) -> str:
     return "\n".join(result)
 
 
+def rewrite_absolute_doc_links(txt: str) -> str:
+    """
+    Rewrite absolute /docs/ markdown links to root-relative HTML links.
+
+    MkDocs only converts relative `.md` links to `.html`. Absolute links
+    like `/docs/path/file.md` are left unchanged and 404 at serve time.
+    This converts them to `/path/file.html` so they resolve correctly.
+
+    :param txt: Input markdown text
+    :return: Text with absolute /docs/ links rewritten
+    """
+
+    def _replace(m: re.Match) -> str:
+        path = m.group(1)
+        # Strip /docs/ prefix and convert .md → .html.
+        path = re.sub(r"^/docs/", "/", path)
+        path = re.sub(r"\.md(#[^)]*)?$", lambda h: ".html" + (h.group(1) or ""), path)
+        return f"({path})"
+
+    # Match markdown links: ([text](/docs/...md)) including optional anchors.
+    txt = re.sub(r"\((/docs/[^)]+\.md(?:#[^)]*)?)\)", _replace, txt)
+    return txt
+
+
 def preprocess_mkdocs_markdown(txt: str) -> str:
     """
     Preprocess markdown text for mkdocs.
@@ -121,6 +155,7 @@ def preprocess_mkdocs_markdown(txt: str) -> str:
     1. Remove table of contents
     2. Dedent Python code blocks
     3. Replace 2 spaces indentation with 4 spaces
+    4. Rewrite absolute /docs/ links to root-relative HTML links
 
     :param txt: Input markdown text
     :return: Preprocessed markdown text
@@ -129,4 +164,5 @@ def preprocess_mkdocs_markdown(txt: str) -> str:
     txt = dedent_python_code_blocks(txt)
     txt = replace_indentation_with_four_spaces(txt)
     txt = convert_slides_to_markdown(txt, level=4)
+    txt = rewrite_absolute_doc_links(txt)
     return txt
