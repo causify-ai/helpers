@@ -82,6 +82,66 @@ def parse_verbosity_args(
 
 
 # #############################################################################
+# Command line for `@hcache_simple.simple_cache` functions.
+# #############################################################################
+
+
+# TODO(gp): Use the ones from hcache_simple.py for DRY.
+_CACHE_MODE_CHOICES = ("REFRESH_CACHE", "DISABLE_CACHE", "HIT_CACHE_OR_ABORT")
+
+
+def add_cache_control_arg(
+    parser: argparse.ArgumentParser,
+) -> argparse.ArgumentParser:
+    """
+    Add `--cache_mode` switch controlling every
+    `@hcache_simple.simple_cache`-decorated function in the process.
+
+    The resolved mode is applied globally via
+    `hcache_simple.set_global_cache_mode` in `parse_cache_control_args()`.
+    """
+    parser.add_argument(
+        "--cache_mode",
+        action="store",
+        default=None,
+        choices=list(_CACHE_MODE_CHOICES),
+        help=(
+            "Override cache behavior for all @simple_cache functions. "
+            "REFRESH_CACHE repopulates, DISABLE_CACHE bypasses, "
+            "HIT_CACHE_OR_ABORT raises on miss."
+        ),
+    )
+    parser.add_argument(
+        "--cache_debug",
+        action="store_true",
+        help=(
+            "Log at WARNING level for every @simple_cache call whether the "
+            "result was served from cache, computed on miss, or recomputed "
+            "because of `cache_mode`"
+        ),
+    )
+    return parser
+
+
+def parse_cache_control_args(args: argparse.Namespace) -> None:
+    """
+    Apply `--cache_mode`,  `--cache_debug` by setting the `hcache_simple`
+    process-wide globals.
+    """
+    # Import lazily to avoid a circular dependency at module load time.
+    import helpers.hcache_simple as hcacsimp
+
+    mode = getattr(args, "cache_mode", None)
+    if mode is not None:
+        _LOG.info("Setting global cache_mode=%s", mode)
+    hcacsimp.set_global_cache_mode(mode)
+    cache_debug = bool(getattr(args, "cache_debug", False))
+    if cache_debug:
+        _LOG.info("Enabling cache_debug logging")
+    hcacsimp.set_cache_debug(cache_debug)
+
+
+# #############################################################################
 # Command line options for handling the destination dir.
 # #############################################################################
 

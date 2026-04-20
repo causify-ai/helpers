@@ -357,7 +357,9 @@ def system(
 
 def system_to_string(
     cmd: str,
+    *,
     abort_on_error: bool = True,
+    suppress_output: Union[bool, str] = "ON_DEBUG_LEVEL",
     wrapper: Optional[Any] = None,
     dry_run: bool = False,
     log_level: Union[int, str] = logging.DEBUG,
@@ -371,7 +373,7 @@ def system_to_string(
         cmd,
         abort_on_error=abort_on_error,
         suppress_error=None,
-        suppress_output="ON_DEBUG_LEVEL",
+        suppress_output=suppress_output,
         # If we want to see the output the system call must be blocking.
         blocking=True,
         wrapper=wrapper,

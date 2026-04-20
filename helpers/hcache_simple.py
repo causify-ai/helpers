@@ -57,6 +57,55 @@ if "_CACHE" not in globals():
     _LOG.trace("Creating _CACHE")
     _CACHE: _CacheType = {}
 
+# Process-wide default `cache_mode` applied to every `@simple_cache` function
+# when no explicit `cache_mode` is passed at the call site. Used by CLI scripts
+# to flip all cached functions into refresh/disable/hit-or-abort mode from a
+# single switch (see `hparser.add_cache_control_arg`).
+_VALID_CACHE_MODES = ("REFRESH_CACHE", "DISABLE_CACHE", "HIT_CACHE_OR_ABORT")
+_GLOBAL_CACHE_MODE: Optional[str] = None
+
+
+def set_global_cache_mode(mode: Optional[str]) -> None:
+    """
+    Set the process-wide default `cache_mode`.
+
+    :param mode: one of `REFRESH_CACHE`, `DISABLE_CACHE`,
+        `HIT_CACHE_OR_ABORT`, or `None` to clear
+    """
+    global _GLOBAL_CACHE_MODE
+    if mode is not None:
+        hdbg.dassert_in(mode, _VALID_CACHE_MODES)
+    _GLOBAL_CACHE_MODE = mode
+
+
+def get_global_cache_mode() -> Optional[str]:
+    """
+    Return the process-wide default `cache_mode`, or `None` if unset.
+    """
+    return _GLOBAL_CACHE_MODE
+
+
+# When enabled, every `@simple_cache` call emits a WARNING describing whether
+# the result came from the cache, was computed on miss, or was recomputed
+# because of an active `cache_mode`.
+_CACHE_DEBUG: bool = False
+
+
+def set_cache_debug(enabled: bool) -> None:
+    """
+    Enable or disable process-wide cache-decision logging at WARNING level.
+    """
+    global _CACHE_DEBUG
+    hdbg.dassert_isinstance(enabled, bool)
+    _CACHE_DEBUG = enabled
+
+
+def get_cache_debug() -> bool:
+    """
+    Return True if cache-decision logging is enabled.
+    """
+    return _CACHE_DEBUG
+
 
 def sanity_check_function_cache(
     func_cache_data: _FunctionCacheType, *, assert_on_empty: bool = True
@@ -1040,10 +1089,17 @@ def simple_cache(
             # Prepare kwargs for the actual function call.
             # Keep cache_mode since the wrapped function may need it in its signature.
             kwargs_for_func = kwargs.copy()
-            # `cache_mode` is a special keyword argument to control caching
-            # behavior.
+            # Resolve effective cache_mode: explicit kwarg wins, otherwise
+            # fall back to the process-wide global (set via
+            # `set_global_cache_mode`). Do NOT inject into kwargs_for_func, as
+            # the wrapped function may not accept a `cache_mode` parameter.
             if "cache_mode" in kwargs:
                 cache_mode = kwargs.get("cache_mode")
+            else:
+                cache_mode = _GLOBAL_CACHE_MODE
+            # `cache_mode` is a special keyword argument to control caching
+            # behavior.
+            if cache_mode is not None:
                 _LOG.trace("cache_mode=%s", cache_mode)
                 if cache_mode == "REFRESH_CACHE":
                     # Force to refresh the cache.
@@ -1056,6 +1112,11 @@ def simple_cache(
                 if cache_mode == "DISABLE_CACHE":
                     # Disable the cache.
                     _LOG.trace("Disabling cache")
+                    if _CACHE_DEBUG:
+                        _LOG.warning(
+                            "cache[%s]: COMPUTE (cache disabled by cache_mode=DISABLE_CACHE)",
+                            func_name,
+                        )
                     value = func(*args, **kwargs_for_func)
                     return value
             # Get the key.
@@ -1074,9 +1135,8 @@ def simple_cache(
             _LOG.trace("force_refresh=%s", force_refresh)
             if cache_key in cache and not force_refresh:
                 _LOG.trace("Cache hit for key='%s'", cache_key)
-                # Highlight that a function was cached with a _LOG.warning,
-                # even if a cache hit is not surprising.
-                _LOG.warning("Cache hit for %s", func_name)
+                if _CACHE_DEBUG:
+                    _LOG.warning("cache[%s]: HIT", func_name)
                 # Update the performance stats.
                 if cache_perf:
                     cache_perf["hits"] += 1
@@ -1103,6 +1163,14 @@ def simple_cache(
                 if report_on_cache_miss:
                     _LOG.trace("Cache miss for key='%s'", cache_key)
                     return "_cache_miss_"
+                if _CACHE_DEBUG:
+                    if force_refresh:
+                        _LOG.warning(
+                            "cache[%s]: RECOMPUTE (cache_mode=REFRESH_CACHE)",
+                            func_name,
+                        )
+                    else:
+                        _LOG.warning("cache[%s]: COMPUTE (miss)", func_name)
                 # Access the intrinsic function.
                 value = func(*args, **kwargs_for_func)
                 # Update cache.

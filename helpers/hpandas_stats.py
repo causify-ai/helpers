@@ -4,6 +4,7 @@ Import as:
 import helpers.hpandas_stats as hpanstat
 """
 
+import logging
 from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 import numpy as np
@@ -15,6 +16,7 @@ import helpers.hlogging as hloggin
 import helpers.hpandas_dassert as hpandass
 import helpers.hpandas_transform as hpantran
 import helpers.hprint as hprint
+import helpers.hsystem as hsystem
 
 _LOG = hloggin.getLogger(__name__)
 
@@ -30,9 +32,10 @@ def compute_duration_df(
 
     E.g.,
     ```
-                   min_index   max_index   min_valid_index   max_valid_index
-    tag1
-    tag2
+                         min_index   max_index  min_valid_index  max_valid_index
+    tag1 2022-01-01 21:00:00+00:00  ...
+    tag2 2022-01-01 21:02:00+00:00  ...
+    tag3 2022-01-01 21:01:00+00:00  ...
     ```
 
     :param intersect_dfs: return a transformed dict with the intersection of
@@ -291,30 +294,39 @@ def display_value_counts_stats_df(
 
 def report_zero_nan_inf_stats(
     df: pd.DataFrame,
+    *,
     zero_threshold: float = 1e-9,
     verbose: bool = False,
     as_txt: bool = False,
+    dbg_log_level: int = logging.DEBUG,
 ) -> pd.DataFrame:
     """
     Report count and percentage about zeros, nans, infs for a df.
+
+    :param df: dataframe to report the stats of
+    :param zero_threshold: threshold for classifying values as "zero"
+    :param verbose: if True, print the stats
+    :param as_txt: if True, print the stats as text
+    :param dbg_log_level: log level at which to print the debug info
+    :return: a DataFrame with the stats
     """
     # Convert Series to DataFrame if needed.
     if isinstance(df, pd.Series):
         df = pd.DataFrame(df)
-    _LOG.info("index in [%s, %s]", df.index.min(), df.index.max())
-    #
+    # Print stats about the input dataframe.
+    _LOG.log(dbg_log_level, "index in [%s, %s]", df.index.min(), df.index.max())
     num_rows = df.shape[0]
-    _LOG.info("num_rows=%s", hprint.thousand_separator(num_rows))
-    _LOG.info("data=")
-    from helpers.hpandas_display import display_df as hpd_display_df
+    _LOG.log(dbg_log_level, "num_rows=%s", hprint.thousand_separator(num_rows))
+    _LOG.log(dbg_log_level, "data=")
+    import helpers.hpandas_display as hpanddis
 
-    hpd_display_df(df, max_lines=5, as_txt=as_txt)
-    #
-    num_days = len(set(df.index.date))
-    _LOG.info("num_days=%s", num_days)
-    #
-    num_weekdays = len(set(d for d in df.index.date if d.weekday() < 5))
-    _LOG.info("num_weekdays=%s", num_weekdays)
+    hpanddis.display_df(df, as_txt=as_txt, log_level=dbg_log_level)
+    # Compute date-based stats only if index is datetime.
+    if isinstance(df.index, pd.DatetimeIndex):
+        num_days = len(set(df.index.date))
+        _LOG.log(dbg_log_level, "num_days=%s", num_days)
+        num_weekdays = len(set(d for d in df.index.date if d.weekday() < 5))
+        _LOG.log(dbg_log_level, "num_weekdays=%s", num_weekdays)
     #
     stats_df = pd.DataFrame(None, index=df.columns)
     if False:
@@ -355,7 +367,7 @@ def report_zero_nan_inf_stats(
         hprint.round_digits
     )
     #
-    hpd_display_df(stats_df, as_txt=as_txt)
+    _LOG.log(dbg_log_level, "stats_df=\n%s", stats_df)
     return stats_df
 
 
@@ -409,3 +421,83 @@ def format_ols_regress_results(regr_res: Optional[pd.DataFrame]) -> pd.DataFrame
     col_names = regr_res["param_names"] + ["R^2 [%]", "Adj R^2 [%]"]
     df = pd.DataFrame([row], columns=col_names)
     return df
+
+
+# #############################################################################
+# Exploratory analysis functions
+# #############################################################################
+
+
+def explore_dataframe(
+    df: pd.DataFrame,
+    *,
+    show_distributions: bool = False,
+    num_top_cols: int = 6,
+    show_correlations: bool = False,
+    zero_threshold: float = 1e-9,
+    dbg_log_level: int = logging.DEBUG,
+) -> Optional[pd.DataFrame]:
+    """
+    Perform comprehensive exploratory analysis of a DataFrame.
+
+    Computes data quality metrics (zeros, NaNs, infinities, valid data),
+    optionally plots distributions of high-variability columns, and
+    optionally displays a correlation matrix.
+
+    :param df: Input dataframe to analyze
+    :param show_distributions: If True, plots distributions of top-variability
+        columns in a 3-column grid
+    :param num_top_cols: Number of columns with highest variability to plot
+        (only used if show_distributions=True)
+    :param show_correlations: If True, displays correlation matrix as a heatmap
+    :param zero_threshold: Threshold for classifying values as "zero" in
+        quality report
+    :return: Statistics DataFrame from report_zero_nan_inf_stats with columns:
+        num_rows, zeros [%], nans [%], infs [%], valid [%]
+    """
+    import matplotlib.pyplot as plt
+    from IPython.display import display
+
+    hdbg.dassert_lt(0, len(df), "Dataframe is empty")
+    # Compute and display data quality statistics.
+    stats_df = report_zero_nan_inf_stats(df, zero_threshold=zero_threshold, dbg_log_level=dbg_log_level)
+    # TODO(ai_gp): Add information about the number of unique values and percentage of unique values for each column.
+    # Create a function if needed to compute the stats_df.
+    # Concat the stats_df.
+    if hsystem.is_running_in_ipynb():
+        _LOG.info("stats_df=")
+        display(stats_df)
+    _LOG.debug("stats_df=\n%s", stats_df)
+    # Plot distributions if requested.
+    if hsystem.is_running_in_ipynb():
+        if show_distributions:
+            numeric_cols = df.select_dtypes(include="number").columns.tolist()
+            if len(numeric_cols) > 0:
+                # Compute standard deviation and select top columns.
+                std_vals = df[numeric_cols].std().sort_values(ascending=False)
+                num_to_plot = min(num_top_cols, len(numeric_cols))
+                top_cols = std_vals.head(num_to_plot).index.tolist()
+                # Create grid of subplots.
+                import helpers.hmatplotlib as hmatplo
+
+                fig, axes = hmatplo.get_multiple_plots(
+                    num_to_plot, 3, y_scale=3.5
+                )
+                fig = _
+                for i, col in enumerate(top_cols):
+                    ax = axes[i]
+                    ax.hist(df[col].dropna(), bins=30, edgecolor="k")
+                    ax.set_title(f"{col} (std={std_vals[col]:.2f})")
+                    ax.set_xlabel("Value")
+                    ax.set_ylabel("Frequency")
+                plt.tight_layout()
+        # Display correlation matrix if requested.
+        if show_correlations:
+            numeric_df = df.select_dtypes(include="number")
+            if len(numeric_df.columns) >= 2:
+                corr_matrix = numeric_df.corr()
+                _LOG.info("Correlation matrix:")
+                heatmap_df(corr_matrix)
+    if hsystem.is_running_in_ipynb():
+        return None
+    return stats_df

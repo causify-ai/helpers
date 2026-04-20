@@ -1,33 +1,44 @@
-#!/usr/bin/env python
+#!/usr/bin/env -S uv run
+
+# /// script
+# dependencies = ["beautifulsoup4", "lxml", "pandas", "requests", "tqdm", "pyyaml"]
+# ///
+
 
 """
 Extract article information from Hacker News submissions using the HN API.
 
 This script processes Hacker News item URLs from CSV files and uses the
 Firebase API to extract selected fields:
-- The submission title (--extract_title)
-- The original article URL that the submission links to (--extract_url)
-- The submission timestamp converted to date format YYYY-MM-DD in UTC (--extract_timestamp)
-- Optionally, classify articles into categories using LLM (--tag_articles, requires --extract_title)
+- `--extract_title`: The submission title
+- `--extract_url`: The original article URL that the submission links
+- `--extract_timestamp`: The submission timestamp converted to date format
+  YYYY-MM-DD in UTC
+- `--tag_articles`: classify articles into categories using LLM (requires
+  --extract_title)
 
 All extraction options are opt-in and must be explicitly enabled.
 
 The script uses the official HN API: https://hacker-news.firebaseio.com/v0/
 
 Examples:
-> ./extract_hn_article.py --input_file input.csv --output_file output.csv --extract_title --extract_url
+> ./process_hn_article.py --input_file input.csv --output_file output.csv --extract_title --extract_url
 
-> ./extract_hn_article.py --input_file input.csv --output_file output.csv --extract_title --extract_timestamp
+> ./process_hn_article.py --input_file input.csv --output_file output.csv --extract_title --extract_timestamp
 
-> ./extract_hn_article.py --input_file input.csv --output_file output.csv --extract_title --extract_url --extract_timestamp
+> ./process_hn_article.py --input_file input.csv --output_file output.csv --extract_title --extract_url --extract_timestamp
 
-> ./extract_hn_article.py --input_file input.csv --output_file output.csv --extract_title --tag_articles
+> ./process_hn_article.py --input_file input.csv --output_file output.csv --extract_title --tag_articles
 
-> ./extract_hn_article.py --input_file input.csv --output_file output.csv --extract_title --tag_articles --batch_size 5
+> ./process_hn_article.py --input_file input.csv --output_file output.csv --extract_title --tag_articles --batch_size 5
+
+> ./process_hn_article.py --url https://news.ycombinator.com/item?id=47796469 --output_dir /tmp
+
+> ./process_hn_article.py --input_file input.csv --output_file output.csv --extract_title --cache_mode=REFRESH_CACHE
 
 Import as:
 
-import dev_scripts_helpers.scraping_script.extract_hn_article as dsscehar
+import dev_scripts_helpers.scraping_script.process_hn_article as dssprar
 """
 
 import argparse
@@ -35,13 +46,14 @@ import datetime
 import logging
 import os
 import re
-from typing import Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import requests
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
+import helpers.hio as hio
 import helpers.hllm_cli as hllmcli
 import helpers.hparser as hparser
 import helpers.hcache_simple as hcacsimp
@@ -225,6 +237,204 @@ def _extract_article_info(
     except Exception as e:
         _LOG.warning("Error processing %s: %s", hn_url, e)
         return None, None, None
+
+
+@hcacsimp.simple_cache(cache_type="json", write_through=True)
+def _fetch_hn_item(item_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Fetch a Hacker News item from the API.
+
+    :param item_id: HN item ID
+    :return: Item data dict or None if fetch fails
+    """
+    try:
+        api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
+        _LOG.debug("Fetching HN item: %s", api_url)
+        response = requests.get(api_url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        if not data:
+            _LOG.warning("No data returned for item: %s", item_id)
+            return None
+        return data
+    except requests.RequestException as e:
+        _LOG.warning("API request failed for item %s: %s", item_id, e)
+        return None
+    except Exception as e:
+        _LOG.warning("Error fetching item %s: %s", item_id, e)
+        return None
+
+
+def _fetch_hn_comments(
+    item_id: str,
+    *,
+    max_depth: int = 3,
+    current_depth: int = 0,
+) -> List[Dict[str, Any]]:
+    """
+    Recursively fetch HN comments for an item.
+
+    :param item_id: HN item ID
+    :param max_depth: Maximum recursion depth
+    :param current_depth: Current recursion depth (internal use)
+    :return: List of comment dicts with nested replies
+    """
+    if current_depth >= max_depth:
+        return []
+    # Fetch the item.
+    item_data = _fetch_hn_item(item_id)
+    if not item_data:
+        return []
+    # Prepare comment dict.
+    comment = {
+        "id": item_data.get("id"),
+        "by": item_data.get("by"),
+        "text": item_data.get("text", ""),
+        "time": item_data.get("time"),
+        "score": item_data.get("score"),
+    }
+    # Recursively fetch child comments.
+    kids = item_data.get("kids", [])
+    if kids:
+        replies = []
+        for kid_id in kids[:10]:
+            kid_comments = _fetch_hn_comments(
+                str(kid_id),
+                max_depth=max_depth,
+                current_depth=current_depth + 1,
+            )
+            replies.extend(kid_comments)
+        comment["replies"] = replies
+    return [comment]
+
+
+def _download_article_content(url: str) -> Optional[str]:
+    """
+    Download and extract article content from a URL.
+
+    :param url: Article URL
+    :return: Article text or None if download fails
+    """
+    if not url:
+        return None
+    _LOG.debug("Downloading article from: %s", url)
+    # Use a browser User-Agent to avoid 403 Forbidden errors.
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+    response = requests.get(url, timeout=15, headers=headers)
+    response.raise_for_status()
+    html = response.text
+    # Try to extract text from <p> tags using BeautifulSoup.
+    text = None
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(html, "html.parser")
+    paragraphs = soup.find_all("p")
+    if paragraphs:
+        text = "\n\n".join(p.get_text() for p in paragraphs)
+    # Fallback to raw text if extraction failed.
+    if not text:
+        text = html
+    return text
+
+
+def _sanitize_title_for_filename(title: str) -> str:
+    """
+    Sanitize a title for use in a filename.
+
+    Replaces non-alphanumeric chars with underscores, collapses repeated
+    underscores, and strips leading/trailing underscores.
+
+    :param title: Title string
+    :return: Sanitized filename slug
+    """
+    # Replace non-alphanumeric chars (except underscore) with underscore.
+    sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", title)
+    # Collapse repeated underscores.
+    sanitized = re.sub(r"_+", "_", sanitized)
+    # Strip leading/trailing underscores.
+    sanitized = sanitized.strip("_")
+    return sanitized[:50]
+
+
+def _create_hn_json(hn_url: str, *, output_dir: str = ".") -> Optional[str]:
+    """
+    Fetch HN article and comments, write JSON file.
+
+    :param hn_url: Hacker News item URL
+    :param output_dir: Output directory for JSON file
+    :return: Output file path or None if processing fails
+    """
+    hdbg.dassert_isinstance(hn_url, str)
+    if not _is_hackernews_url(hn_url):
+        _LOG.error("Invalid Hacker News URL: %s", hn_url)
+        return None
+    # Extract item ID.
+    item_id = _extract_item_id(hn_url)
+    if not item_id:
+        _LOG.error("Could not extract item ID from: %s", hn_url)
+        return None
+    # Fetch HN item.
+    hn_item = _fetch_hn_item(item_id)
+    if not hn_item:
+        _LOG.error("Failed to fetch HN item: %s", item_id)
+        return None
+    # Get HN metadata.
+    hn_title = hn_item.get("title", "")
+    hn_timestamp_unix = hn_item.get("time")
+    article_url = hn_item.get("url")
+    # Format timestamp for filename: YYYYMMDD_HHMMSS.
+    if hn_timestamp_unix:
+        dt = datetime.datetime.fromtimestamp(
+            hn_timestamp_unix, tz=datetime.timezone.utc
+        )
+        timestamp_str = dt.strftime("%Y%m%d_%H%M%S")
+        timestamp_date = dt.strftime("%Y-%m-%d")
+    else:
+        timestamp_str = "unknown"
+        timestamp_date = None
+    # Sanitize title for filename.
+    sanitized_title = _sanitize_title_for_filename(hn_title)
+    if not sanitized_title:
+        sanitized_title = item_id
+    # Build output path.
+    output_filename = f"{timestamp_str}_{sanitized_title}.json"
+    output_path = os.path.join(output_dir, output_filename)
+    _LOG.info("Output will be written to: %s", output_path)
+    # Fetch article content (if URL is from external source).
+    article_title = None
+    article_content = None
+    article_timestamp = None
+    if article_url and not "news.ycombinator.com" in article_url:
+        _LOG.info("Downloading article from: %s", article_url)
+        article_content = _download_article_content(article_url)
+        # For external articles, we'd need to scrape the page for title/timestamp.
+        # For now, leave them as HN info.
+        article_title = hn_title
+        article_timestamp = timestamp_date
+    else:
+        article_url = hn_url
+        article_title = hn_title
+        article_timestamp = timestamp_date
+        article_content = hn_item.get("text", "")
+    # Fetch HN comments.
+    _LOG.info("Fetching HN comments for item: %s", item_id)
+    hn_comments = _fetch_hn_comments(item_id, max_depth=3)
+    # Build output JSON.
+    output_data = {
+        "Article_title": article_title,
+        "Article_url": article_url,
+        "Article_content": article_content or "",
+        "Article_timestamp": article_timestamp,
+        "Hn_title": hn_title,
+        "Hn_url": hn_url,
+        "Hn_content": hn_comments,
+        "Hn_timestamp": timestamp_date,
+    }
+    # Write JSON file.
+    hio.to_json(output_path, output_data)
+    _LOG.info("Wrote HN article data to: %s", output_path)
+    return output_path
 
 
 def _tag_articles_with_llm(
@@ -446,18 +656,28 @@ def _parse() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    # URL mode or CSV mode.
+    parser.add_argument(
+        "--url",
+        action="store",
+        help="Single Hacker News item URL to process (creates JSON file)",
+    )
+    parser.add_argument(
+        "--output_dir",
+        action="store",
+        default=".",
+        help="Output directory for JSON file (default: current directory)",
+    )
     # CSV mode.
     parser.add_argument(
         "--input_file",
         action="store",
-        required=True,
-        help="Input CSV file with 'url' column",
+        help="Input CSV file with 'url' column (required for CSV mode)",
     )
     parser.add_argument(
         "--output_file",
         action="store",
-        required=True,
-        help="Output CSV file with selected columns based on extraction flags",
+        help="Output CSV file with selected columns based on extraction flags (required for CSV mode)",
     )
     # URL extraction options.
     parser.add_argument(
@@ -501,6 +721,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store",
         help="LLM model name to use for tagging (e.g., gpt-4, claude-3-opus)",
     )
+    hparser.add_cache_control_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -508,7 +729,17 @@ def _parse() -> argparse.ArgumentParser:
 def _main(parser: argparse.ArgumentParser) -> None:
     args = parser.parse_args()
     hdbg.init_logger(verbosity=args.log_level, use_exec_path=True)
+    # Apply --cache_mode to every @simple_cache function.
+    hparser.parse_cache_control_args(args)
+    # Process single HN URL (JSON mode).
+    if args.url:
+        _create_hn_json(args.url, output_dir=args.output_dir)
+        return
     # Process CSV file.
+    hdbg.dassert(
+        args.input_file and args.output_file,
+        "Either --url or both --input_file and --output_file must be provided",
+    )
     _process_csv_file(
         args.input_file,
         args.output_file,

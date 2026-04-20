@@ -8,10 +8,10 @@ I will give you a description or an image and your task is to produce a
 Graphviz/DOT representation of that graph that follows the rules below exactly.
 
 The resulting graph should allow a knowledgeable reader to
-- distinguish causation from correlation at a glance
-- identify exogenous vs endogenous variables
-- identify latent vs observable variables
-- recognize interventions and counterfactuals
+- Distinguish causation from correlation at a glance
+- Identify exogenous vs endogenous variables
+- Identify latent vs observable variables
+- Recognize interventions and counterfactuals
 
 Use color to distinguish variable types consistently.
 
@@ -22,7 +22,6 @@ Use color to distinguish variable types consistently.
 - Use Graphviz DOT syntax
 - Use a directed graph (`digraph`)
 - Set `rankdir=LR` for left-to-right causal flow
-- Prefer readability over compactness
 - Use both `color` (border) and `fillcolor` + `style=filled` to encode variable
   type (do not rely on color alone; keep shape conventions too)
 

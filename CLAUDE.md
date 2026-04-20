@@ -12,7 +12,7 @@ components:
 
 ### Core Structure
 
-- **`helpers/`** - Core utility modules (65+ modules) following `h<name>` naming
+- **`helpers/`** - Core utility modules (100+ modules) following `h<name>` naming
   convention organized into categories:
   - **Core Infrastructure**: `hdbg`, `hio`, `hsystem`, `hserver`, `henv` -
     debugging, I/O, system operations
@@ -24,6 +24,9 @@ components:
     `hllm` - cloud and tool integrations
   - **Caching & Performance**: `hcache`, `hcache_simple`, `hjoblib`, `htimer` -
     performance optimization
+  - **Command-line & Parsing**: `hparser` - argument parsing and CLI utilities
+  - **Text & Markdown**: `hmarkdown*` family, `hstring`, `htext_protect` -
+    text processing and markdown utilities
 - **`config_root/`** - Configuration system with `Config` class and builders for
   hierarchical configuration management
 - **`linters/`** - Pluggable linting framework with custom linters for code
@@ -42,12 +45,16 @@ The repository uses `pyinvoke` for task automation with a modular task system:
 
 ### Testing Architecture
 
-- Uses pytest with custom markers: `fast`, `slow`, `superslow`,
-  `requires_docker_in_docker`
+- Uses pytest with custom markers: `slow`, `superslow`, `requires_docker_in_docker`,
+  `requires_ck_infra`, `requires_ck_aws`, `no_container`
+- **Note**: "fast" tests are those without `slow` or `superslow` markers
 - **[`/helpers/hunit_test.py`](/helpers/hunit_test.py)** - Base test class with
   helpers for golden file testing and test utilities
 - Tests are categorized by speed and infrastructure requirements
-- Timeout-based test classification with different timeouts per category
+- Timeout-based test classification:
+  - Fast tests (5s)
+  - Slow tests (30s)
+  - Superslow tests (3600s)
 
 ## Common Development Commands
 
@@ -70,11 +77,11 @@ The repository uses `pyinvoke` for task automation with a modular task system:
   # Run single test method
   invoke docker_cmd --cmd "pytest path/to/test_file.py::TestClass::test_method -v"
 
-  ## Run coverage for fast tests only
+  # Run coverage for fast tests only
   invoke run_coverage --suite fast --generate-html-report
-  ## Run coverage for fast tests only
+  # Run coverage for slow tests only
   invoke run_coverage --suite slow --generate-html-report
-  ## Run test coverage superslow tests only
+  # Run coverage for superslow tests only
   invoke run_coverage --suite superslow --generate-html-report
   ```
 
@@ -110,7 +117,8 @@ The repository uses `pyinvoke` for task automation with a modular task system:
 - **`repo_config.yaml`** - Repository metadata including Docker image names, S3
   buckets, GitHub settings, ECR configuration
 - **`pytest.ini`** - Test configuration with custom markers (`slow`,
-  `superslow`, `requires_docker_in_docker`, `requires_ck_infra`) and options
+  `superslow`, `requires_docker_in_docker`, `requires_ck_infra`, `requires_ck_aws`,
+  `no_container`) and options
 - **`pyproject.toml`** - Ruff linting configuration (line length 81, Python 3.11
   target) and Fixit settings
 - **`mypy.ini`** - Type checking configuration with library-specific ignore
@@ -132,12 +140,15 @@ import config_root.config.config_ as crococon
 
 - Inherit from `hunitest.TestCase` for enhanced test utilities
 - Use golden file pattern via `check_string()` method
-- Mark tests with appropriate speed markers: `@pytest.mark.slow`,
-  `@pytest.mark.superslow`
-- Use `pytest.mark.requires_docker_in_docker` for tests requiring Docker
+- Mark tests with appropriate speed markers:
+  - `@pytest.mark.slow` - slow tests (~30s timeout)
+  - `@pytest.mark.superslow` - very slow tests (~3600s timeout)
+  - Unmarked tests are considered "fast" (~5s timeout)
+- Use `@pytest.mark.requires_docker_in_docker` for tests requiring Docker
   children/sibling containers
-- Use `pytest.mark.requires_ck_infra` for tests requiring CK infrastructure
-- Use `pytest.mark.no_container` for invoke target tests that run outside
+- Use `@pytest.mark.requires_ck_infra` for tests requiring CK infrastructure
+- Use `@pytest.mark.requires_ck_aws` for tests requiring CK AWS connection
+- Use `@pytest.mark.no_container` for invoke target tests that run outside
   containers
 - Test outcomes stored in `test/outcomes/` directories following module
   structure
@@ -145,15 +156,19 @@ import config_root.config.config_ as crococon
 ### Code Conventions
 
 - For writing any Python code you MUST follow instructions in
-  @.claude/skills/coding.format_rules/SKILL.md and 
-  @docs/ai_templates/code_template.py
+  `@.claude/skills/coding.rules.md` and 
+  `@docs/ai_templates/code_template.py`
 - For writing unit tests you MUST follow instructions in
-  @.claude/skills/testing.format_rules/SKILL.md and
-  @docs/ai_templates/unit_test_template.py
+  `@.claude/skills/testing.format_rules/SKILL.md` and
+  `@docs/ai_templates/unit_test_template.py`
 - For writing a notebook you MUST follow instructions in
-  @.claude/skills/notebook.format_rules/SKILL.md and
-  @docs/ai_templates/notebook_template.ipynb
+  `@.claude/skills/notebook.format_rules/SKILL.md` and
+  `@docs/ai_templates/notebook_template.ipynb`
 - For writing a blog you MUST follow instructions in
-  @.claude/skills/blog.format_rules/SKILL.md
+  `@.claude/skills/blog.format_rules/SKILL.md`
 - For writing markdown text you MUST follow instructions in
-  @.claude/skills/markdown.format_rules/SKILL.md
+  `@.claude/skills/markdown.format_rules/SKILL.md`
+
+# Notes for Claude
+
+- NEVER commit code to git without being explicitly asked to do it

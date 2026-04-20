@@ -654,12 +654,16 @@ def git_branch_rename(ctx, new_branch_name):  # type: ignore
 
 
 @task
-def git_branch_next_name(ctx, branch_name=None):  # type: ignore
+def git_branch_next_name(ctx, branch_name=None, method="auto"):  # type: ignore
     """
     Return a name derived from the current branch so that the branch doesn't
     exist.
 
     :param branch_name: if `None` use the current branch name, otherwise specify it
+    :param method: method to use ('auto', 'github_api', 'linear_scan')
+        - 'auto' (default): tries GitHub API first, falls back to linear scan
+        - 'github_api': use only GitHub API method (fast)
+        - 'linear_scan': use only linear scan method (always works)
 
     E.g., `AmpTask1903_Implemented_system_Portfolio` ->
         `AmpTask1903_Implemented_system_Portfolio_3`
@@ -667,7 +671,7 @@ def git_branch_next_name(ctx, branch_name=None):  # type: ignore
     hlitauti.report_task()
     _ = ctx
     branch_next_name = hgit.get_branch_next_name(
-        curr_branch_name=branch_name, log_verb=logging.INFO
+        curr_branch_name=branch_name, method=method, log_verb=logging.INFO
     )
     print(f"branch_next_name='{branch_next_name}'")
 
@@ -705,10 +709,11 @@ def git_branch_copy(  # type: ignore
     if use_patch:
         # TODO(gp): Create a patch or do a `git merge`.
         pass
-    if new_branch_name == "":
+    if new_branch_name is None or new_branch_name == "":
         # Automatically generate branch name.
         new_branch_name = hgit.get_branch_next_name()
     _LOG.info("new_branch_name='%s'", new_branch_name)
+    hdbg.dassert_ne(new_branch_name, None)
     # Scratch branches do not follow the standard naming convention.
     if new_branch_name.startswith("gp_scratch"):
         check_branch_name = False

@@ -10,7 +10,7 @@ description: Conventions for Jupyter notebooks
 # Use Python Style
 
 - For all the Python code you must follow the rules from
-  @.claude/skills/coding.format_rules/SKILL.md
+  @.claude/skills/coding.rules.md
 
 # Format of First Cell
 

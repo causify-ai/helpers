@@ -1034,6 +1034,634 @@ class Test_convert_asterisk_bullets_to_dashes(hunitest.TestCase):
         self.helper(txt, expected)
 
 
+# #############################################################################
+# Test_remove_trailing_periods
+# #############################################################################
+
+
+class Test_remove_trailing_periods(hunitest.TestCase):
+    """
+    Test the _remove_trailing_periods function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _remove_trailing_periods.
+
+        :param txt: Input text to process
+        :param expected: Expected output after removing trailing periods
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._remove_trailing_periods(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test removing period from simple bullet point.
+        """
+        # Prepare inputs.
+        txt = """
+        - Bullet point with period.
+        """
+        # Prepare outputs.
+        expected = """
+        - Bullet point with period
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test removing periods from multiple bullet points.
+        """
+        # Prepare inputs.
+        txt = """
+        - First item with period.
+        - Second item with period.
+        - Third item with period.
+        """
+        # Prepare outputs.
+        expected = """
+        - First item with period
+        - Second item with period
+        - Third item with period
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test removing period from header.
+        """
+        # Prepare inputs.
+        txt = """
+        # Main Header with period.
+        """
+        # Prepare outputs.
+        expected = """
+        # Main Header with period
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test removing periods from multiple headers at different levels.
+        """
+        # Prepare inputs.
+        txt = """
+        # Main Header.
+        ## Subheader.
+        ### Sub-subheader.
+        #### Deep header.
+        """
+        # Prepare outputs.
+        expected = """
+        # Main Header
+        ## Subheader
+        ### Sub-subheader
+        #### Deep header
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test removing period from numbered list items.
+        """
+        # Prepare inputs.
+        txt = """
+        1. First numbered item with period.
+        2. Second numbered item with period.
+        3. Third numbered item with period.
+        """
+        # Prepare outputs.
+        expected = """
+        1. First numbered item with period
+        2. Second numbered item with period
+        3. Third numbered item with period
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test removing period from numbered list with closing parenthesis.
+        """
+        # Prepare inputs.
+        txt = """
+        1) Item with closing parenthesis.
+        2) Another item with closing parenthesis.
+        """
+        # Prepare outputs.
+        expected = """
+        1) Item with closing parenthesis
+        2) Another item with closing parenthesis
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test that regular text trailing periods are removed.
+        """
+        # Prepare inputs.
+        txt = """
+        Regular text with a period. More text here.
+        Another line with a period.
+        """
+        # Prepare outputs.
+        expected = """
+        Regular text with a period. More text here
+        Another line with a period
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test mixed bullet points, headers, and regular text.
+        """
+        # Prepare inputs.
+        txt = """
+        # Main Section.
+        - Bullet point with period.
+        Regular text with period.
+        1. Numbered item.
+        More regular text.
+        """
+        # Prepare outputs.
+        expected = """
+        # Main Section
+        - Bullet point with period
+        Regular text with period
+        1. Numbered item
+        More regular text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test9(self) -> None:
+        """
+        Test nested bullet points with indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Main bullet.
+          - Nested bullet.
+            - Deep nested bullet.
+        - Another main bullet.
+        """
+        # Prepare outputs.
+        expected = """
+        - Main bullet
+          - Nested bullet
+            - Deep nested bullet
+        - Another main bullet
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test10(self) -> None:
+        """
+        Test that bullet points without periods are unchanged.
+        """
+        # Prepare inputs.
+        txt = """
+        - Bullet point without period
+        - Another without period
+        - Yet another without
+        """
+        # Prepare outputs.
+        expected = """
+        - Bullet point without period
+        - Another without period
+        - Yet another without
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test11(self) -> None:
+        """
+        Test with trailing spaces after period.
+        """
+        # Prepare inputs.
+        txt = """
+        - Bullet point with period and trailing space.
+        # Header with trailing space.
+        """
+        # Prepare outputs.
+        expected = """
+        - Bullet point with period and trailing space
+        # Header with trailing space
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test12(self) -> None:
+        """
+        Test empty input.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(txt, expected)
+
+    def test13(self) -> None:
+        """
+        Test that periods in URLs are preserved (in regular text).
+        """
+        # Prepare inputs.
+        txt = """
+        - Visit example.com for more info.
+        - Check https://example.com/path.html.
+        """
+        # Prepare outputs.
+        expected = """
+        - Visit example.com for more info
+        - Check https://example.com/path.html
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test14(self) -> None:
+        """
+        Test multiple periods at the end (edge case).
+        """
+        # Prepare inputs.
+        txt = """
+        - Bullet with multiple periods...
+        # Header with multiple periods...
+        """
+        # Prepare outputs.
+        expected = """
+        - Bullet with multiple periods
+        # Header with multiple periods
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test15(self) -> None:
+        """
+        Test combination of all patterns: headers, bullets, and numbered lists.
+        """
+        # Prepare inputs.
+        txt = """
+        # Feature List.
+        ## Implementation Steps.
+        1. First step in process.
+        2. Second step in process.
+           - Sub-item for step 2.
+           - Another sub-item.
+        ## Results.
+        - Positive result.
+        - Negative result.
+        Regular conclusion text.
+        """
+        # Prepare outputs.
+        expected = """
+        # Feature List
+        ## Implementation Steps
+        1. First step in process
+        2. Second step in process
+           - Sub-item for step 2
+           - Another sub-item
+        ## Results
+        - Positive result
+        - Negative result
+        Regular conclusion text
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test16(self) -> None:
+        """
+        Test removing periods from regular text lines (user's example case).
+        """
+        # Prepare inputs.
+        txt = """
+        Some applications of decision-making include:
+        Decision-making applications (medical diagnosis, terrorism detection).
+        Another example with more details.
+        """
+        # Prepare outputs.
+        expected = """
+        Some applications of decision-making include:
+        Decision-making applications (medical diagnosis, terrorism detection)
+        Another example with more details
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+
+# #############################################################################
+# Test_remove_markdown_formatting
+# #############################################################################
+
+
+class Test_remove_markdown_formatting(hunitest.TestCase):
+    """
+    Test the _remove_markdown_formatting function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _remove_markdown_formatting.
+
+        :param txt: Input text to process
+        :param expected: Expected output after removing markdown formatting
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._remove_markdown_formatting(lines)
+        # Check outputs.
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test removing bold formatting with double asterisks.
+        """
+        # Prepare inputs.
+        txt = """
+        This is **bold text** in a sentence.
+        """
+        # Prepare outputs.
+        expected = """
+        This is bold text in a sentence.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test removing bold formatting with double underscores.
+        """
+        # Prepare inputs.
+        txt = """
+        This is __bold text__ in a sentence.
+        """
+        # Prepare outputs.
+        expected = """
+        This is bold text in a sentence.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test removing italic formatting with single asterisks.
+        """
+        # Prepare inputs.
+        txt = """
+        This is *italic text* in a sentence.
+        """
+        # Prepare outputs.
+        expected = """
+        This is italic text in a sentence.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test4(self) -> None:
+        """
+        Test removing italic formatting with single underscores.
+        """
+        # Prepare inputs.
+        txt = """
+        This is _italic text_ in a sentence.
+        """
+        # Prepare outputs.
+        expected = """
+        This is italic text in a sentence.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test5(self) -> None:
+        """
+        Test removing strikethrough formatting.
+        """
+        # Prepare inputs.
+        txt = """
+        This is ~~strikethrough text~~ in a sentence.
+        """
+        # Prepare outputs.
+        expected = """
+        This is strikethrough text in a sentence.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test6(self) -> None:
+        """
+        Test removing inline code formatting.
+        """
+        # Prepare inputs.
+        txt = """
+        Use the `function_name()` to do something.
+        """
+        # Prepare outputs.
+        expected = """
+        Use the function_name() to do something.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test7(self) -> None:
+        """
+        Test removing link formatting, keeping the text.
+        """
+        # Prepare inputs.
+        txt = """
+        Visit [Google](https://google.com) for more info.
+        """
+        # Prepare outputs.
+        expected = """
+        Visit Google for more info.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test8(self) -> None:
+        """
+        Test removing image formatting, keeping the alt text.
+        """
+        # Prepare inputs.
+        txt = """
+        ![alt text](image.png) is shown above.
+        """
+        # Prepare outputs.
+        expected = """
+        alt text is shown above.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test9(self) -> None:
+        """
+        Test removing header formatting.
+        """
+        # Prepare inputs.
+        txt = """
+        # Main Header
+        ## Subheader
+        ### Sub-subheader
+        """
+        # Prepare outputs.
+        expected = """
+        Main Header
+        Subheader
+        Sub-subheader
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test10(self) -> None:
+        """
+        Test mixed markdown formatting.
+        """
+        # Prepare inputs.
+        txt = """
+        The **bold** and *italic* text with a [link](http://example.com).
+        # Header with **bold**.
+        """
+        # Prepare outputs.
+        expected = """
+        The bold and italic text with a link.
+        Header with bold.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test11(self) -> None:
+        """
+        Test that code blocks are preserved.
+        """
+        # Prepare inputs.
+        txt = """
+        Here is a code example:
+        ```python
+        result = **bold** and *italic*
+        # This is a comment with [link](url)
+        ```
+        After the code block.
+        """
+        # Prepare outputs.
+        expected = """
+        Here is a code example:
+        ```python
+        result = **bold** and *italic*
+        # This is a comment with [link](url)
+        ```
+        After the code block.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test12(self) -> None:
+        """
+        Test multiple formatting types on single line.
+        """
+        # Prepare inputs.
+        txt = """
+        **Bold**, *italic*, ~~strikethrough~~, and `code` together.
+        """
+        # Prepare outputs.
+        expected = """
+        Bold, italic, strikethrough, and code together.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test13(self) -> None:
+        """
+        Test empty input.
+        """
+        # Prepare inputs.
+        txt = ""
+        # Prepare outputs.
+        expected = ""
+        # Run test.
+        self.helper(txt, expected)
+
+    def test14(self) -> None:
+        """
+        Test text without any markdown formatting.
+        """
+        # Prepare inputs.
+        txt = """
+        This is plain text without any markdown formatting.
+        It has multiple lines and sentences.
+        """
+        # Prepare outputs.
+        expected = """
+        This is plain text without any markdown formatting.
+        It has multiple lines and sentences.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test15(self) -> None:
+        """
+        Test nested code blocks with different languages.
+        """
+        # Prepare inputs.
+        txt = """
+        Text before code.
+        ```javascript
+        const x = **bold** and *italic*;
+        ```
+        ```python
+        def function(**kwargs):
+            pass
+        ```
+        Text after code.
+        """
+        # Prepare outputs.
+        expected = """
+        Text before code.
+        ```javascript
+        const x = **bold** and *italic*;
+        ```
+        ```python
+        def function(**kwargs):
+            pass
+        ```
+        Text after code.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test16(self) -> None:
+        """
+        Test variable names with underscores are preserved.
+        """
+        # Prepare inputs.
+        txt = """
+        The variable _my_variable should not be modified.
+        Use _some_function() for processing.
+        """
+        # Prepare outputs.
+        expected = """
+        The variable _my_variable should not be modified.
+        Use _some_function() for processing.
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+
 def _get_text1() -> str:
     """
     Get sample text containing mathematical equations in LaTeX format.
