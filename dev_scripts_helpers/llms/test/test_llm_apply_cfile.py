@@ -1,8 +1,5 @@
 import logging
 
-import pytest
-
-import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -13,10 +10,6 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_llm_apply_cfile1(hunitest.TestCase):
     """
     Run the script `llm_transform.py` in a Docker container.

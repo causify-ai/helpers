@@ -20,6 +20,7 @@ from invoke import task
 import helpers.hdbg as hdbg
 import helpers.hdict as hdict
 import helpers.hdocker as hdocker
+import helpers.henv as henv
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -402,7 +403,7 @@ def _docker_login_ecr() -> None:
         cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
     elif major_version == 2:
         if profile == "ck":
-            env_var = "CSFY_ECR_BASE_PATH"
+            env_var = f"CSFY_ECR_BASE_PATH"
         else:
             env_var = f"{profile.upper()}_ECR_BASE_PATH"
         ecr_base_path = hlitauti.get_default_param(env_var)
@@ -595,47 +596,55 @@ def _generate_docker_compose_file(
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
-    base_app_spec = {
-        "cap_add": ["SYS_ADMIN"],
-        "environment": [
-            f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
-            "CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
-            f"CSFY_HOST_NAME={csfy_host_name}",
-            f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
-            f"CSFY_HOST_OS_VERSION={csfy_host_os_version}",
-            f"CSFY_HOST_USER_NAME={csfy_host_user_name}",
-            "CSFY_REPO_CONFIG_CHECK=True",
-            # Use inferred path for `repo_config.py`.
-            "CSFY_REPO_CONFIG_PATH=",
-            "CSFY_AWS_ACCESS_KEY_ID=$CSFY_AWS_ACCESS_KEY_ID",
-            "CSFY_AWS_DEFAULT_REGION=$CSFY_AWS_DEFAULT_REGION",
-            "CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE",
-            "CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET",
-            "CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY",
-            "CSFY_AWS_SESSION_TOKEN=$CSFY_AWS_SESSION_TOKEN",
-            "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
-            # The path of the outermost Git root on the host.
-            f"CSFY_HOST_GIT_ROOT_PATH={git_host_root_path}",
-            # The path of the outermost Git root in the Docker container.
-            f"CSFY_GIT_ROOT_PATH={git_root_path}",
-            # The path of the helpers dir in the Docker container (e.g.,
-            # `/app`, `/app/helpers_root`)
-            f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
-            f"CSFY_USE_HELPERS_AS_NESTED_MODULE={use_helpers_as_nested_module}",
-            "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
-            # This env var is used by GH Action to signal that we are inside the
-            # CI. It's set up by default by the GH Action runner. See:
-            # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
-            "CSFY_CI=$CSFY_CI",
-            "OPENAI_API_KEY=$OPENAI_API_KEY",
-            # TODO(Vlad): consider removing, locally we use our personal tokens
-            # from files and inside GitHub actions we use the `GH_TOKEN`
-            # environment variable.
+    # TODO(gp): Use henv.get_env_vars() to get the env vars.
+    environment = [
+        f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
+        f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
+        f"CSFY_HOST_NAME={csfy_host_name}",
+        f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
+        f"CSFY_HOST_OS_VERSION={csfy_host_os_version}",
+        f"CSFY_HOST_USER_NAME={csfy_host_user_name}",
+        "CSFY_REPO_CONFIG_CHECK=True",
+        # Use inferred path for `repo_config.py`.
+        "CSFY_REPO_CONFIG_PATH=",
+        "CSFY_AWS_ACCESS_KEY_ID=$CSFY_AWS_ACCESS_KEY_ID",
+        "CSFY_AWS_DEFAULT_REGION=$CSFY_AWS_DEFAULT_REGION",
+        "CSFY_AWS_PROFILE=$CSFY_AWS_PROFILE",
+        "CSFY_AWS_S3_BUCKET=$CSFY_AWS_S3_BUCKET",
+        "CSFY_AWS_SECRET_ACCESS_KEY=$CSFY_AWS_SECRET_ACCESS_KEY",
+        "CSFY_AWS_SESSION_TOKEN=$CSFY_AWS_SESSION_TOKEN",
+        "CSFY_ECR_BASE_PATH=$CSFY_ECR_BASE_PATH",
+        # The path of the outermost Git root on the host.
+        f"CSFY_HOST_GIT_ROOT_PATH={git_host_root_path}",
+        # The path of the outermost Git root in the Docker container.
+        f"CSFY_GIT_ROOT_PATH={git_root_path}",
+        # The path of the helpers dir in the Docker container (e.g.,
+        # `/app`, `/app/helpers_root`)
+        f"CSFY_HELPERS_ROOT_PATH={helper_root_path}",
+        f"CSFY_USE_HELPERS_AS_NESTED_MODULE={use_helpers_as_nested_module}",
+        "CSFY_TELEGRAM_TOKEN=$CSFY_TELEGRAM_TOKEN",
+        # This env var is used by GH Action to signal that we are inside the
+        # CI. It's set up by default by the GH Action runner. See:
+        # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
+        "CSFY_CI=$CSFY_CI",
+        # TODO(Vlad): consider removing, locally we use our personal tokens
+        # from files and inside GitHub actions we use the `GH_TOKEN`
+        # environment variable.
+    ]
+    environment.extend(
+        [
             "GH_ACTION_ACCESS_TOKEN=$GH_ACTION_ACCESS_TOKEN",
             # Inside GitHub Actions we use `GH_TOKEN` environment variable,
             # see https://cli.github.com/manual/gh_auth_login.
             "GH_TOKEN=$GH_ACTION_ACCESS_TOKEN",
-        ],
+        ]
+    )
+    api_key_env_vars = henv.get_api_key_env_vars()
+    environment.extend([f"{env_var}=${env_var}" for env_var in api_key_env_vars])
+    #
+    base_app_spec = {
+        "cap_add": ["SYS_ADMIN"],
+        "environment": environment,
         "image": "${IMAGE}",
         "restart": "no",
         "volumes": [
@@ -1192,10 +1201,8 @@ def _get_docker_base_cmd(
         for env_var in extra_env_vars:
             docker_cmd_.append(f"{env_var}")
     #
-    docker_cmd_.append(
-        r"""
-        docker compose"""
-    )
+    docker_cmd_.append(r"""
+        docker compose""")
     docker_compose_files = _get_docker_compose_files(
         stage,
         generate_docker_compose_file,
@@ -1205,16 +1212,12 @@ def _get_docker_base_cmd(
     file_opts = " ".join([f"--file {dcf}" for dcf in docker_compose_files])
     _LOG.debug(hprint.to_str("file_opts"))
     # TODO(gp): Use something like `.append(rf"{space}{...}")`
-    docker_cmd_.append(
-        rf"""
-        {file_opts}"""
-    )
+    docker_cmd_.append(rf"""
+        {file_opts}""")
     # - Handle the env file.
     env_file = "devops/env/default.env"
-    docker_cmd_.append(
-        rf"""
-        --env-file {env_file}"""
-    )
+    docker_cmd_.append(rf"""
+        --env-file {env_file}""")
     return docker_cmd_
 
 
@@ -1277,57 +1280,41 @@ def _get_docker_compose_cmd(
     # - Add the `config` command for debugging purposes.
     docker_config_cmd: List[str] = docker_cmd_[:]
     # TODO(gp): Use yaml approach like done for other parts of the code.
-    docker_config_cmd.append(
-        r"""
-        config"""
-    )
+    docker_config_cmd.append(r"""
+        config""")
     # - Add the `run` command.
-    docker_cmd_.append(
-        r"""
+    docker_cmd_.append(r"""
         run \
-        --rm"""
-    )
+        --rm""")
     # - Add a name to the container.
     container_name = _get_container_name(service_name)
-    docker_cmd_.append(
-        rf"""
-        --name {container_name}"""
-    )
+    docker_cmd_.append(rf"""
+        --name {container_name}""")
     # - Handle the user.
     as_user = _run_docker_as_user(as_user)
     if as_user:
-        docker_cmd_.append(
-            r"""
-        --user $(id -u):$(id -g)"""
-        )
+        docker_cmd_.append(r"""
+        --user $(id -u):$(id -g)""")
     # - Handle the extra docker options.
     if extra_docker_run_opts:
         hdbg.dassert_isinstance(extra_docker_run_opts, list)
         extra_opts = " ".join(extra_docker_run_opts)
-        docker_cmd_.append(
-            rf"""
-        {extra_opts}"""
-        )
+        docker_cmd_.append(rf"""
+        {extra_opts}""")
     # - Handle entrypoint.
     if use_entrypoint:
-        docker_cmd_.append(
-            rf"""
-        {service_name}"""
-        )
+        docker_cmd_.append(rf"""
+        {service_name}""")
         if cmd:
             if use_bash:
                 cmd = f"bash -c '{cmd}'"
-            docker_cmd_.append(
-                rf"""
-        {cmd}"""
-            )
+            docker_cmd_.append(rf"""
+        {cmd}""")
     else:
         # No entrypoint.
-        docker_cmd_.append(
-            rf"""
+        docker_cmd_.append(rf"""
         --entrypoint bash \
-        {service_name}"""
-        )
+        {service_name}""")
     # Print the config for debugging purpose.
     if print_docker_config:
         docker_config_cmd_as_str = hlitauti.to_multi_line_cmd(docker_config_cmd)

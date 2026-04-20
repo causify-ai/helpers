@@ -1,24 +1,17 @@
 import os
 
-import pytest
-
 import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hunit_test as hunitest
-
-
 
 # #############################################################################
 # Test_run_dockerized_prettier
 # #############################################################################
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
+
 class Test_run_dockerized_prettier(hunitest.TestCase):
+
     def test1(self) -> None:
         """
         Test that Dockerized Prettier reads an input file, formats it, and

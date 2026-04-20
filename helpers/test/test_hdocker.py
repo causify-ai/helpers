@@ -569,3 +569,61 @@ class Test_convert_all_paths_from_caller_to_callee_docker_path1(
             is_caller_host=True,
             use_sibling_container_for_callee=False,
         )
+
+
+# #############################################################################
+# Test_get_docker_mount_info1
+# #############################################################################
+
+
+class Test_get_docker_mount_info1(hunitest.TestCase):
+
+    def test1(self) -> None:
+        """
+        With CSFY_ENABLE_DIND, sibling-style docker.sock must still bind the
+        repo root inside this container, not CSFY_HOST_GIT_ROOT_PATH.
+        """
+        # - Prepare inputs.
+        git_root = hgit.find_git_root()
+        env = {
+            "CSFY_ENABLE_DIND": "1",
+            "CSFY_HOST_GIT_ROOT_PATH": "/path/only/on/outer/host",
+        }
+        # - Prepare outputs.
+        exp_target = "/app"
+        exp_mount = f"type=bind,source={git_root},target=/app"
+        # Run test.
+        with umock.patch.dict(os.environ, env, clear=False):
+            source, target, mount = hdocker.get_docker_mount_info(
+                is_caller_host=False,
+                use_sibling_container_for_callee=True,
+            )
+        # Check outputs.
+        self.assert_equal(source, git_root)
+        self.assert_equal(target, exp_target)
+        self.assert_equal(mount, exp_mount)
+
+    def test2(self) -> None:
+        """
+        Without DinD, sibling mode uses CSFY_HOST_GIT_ROOT_PATH for bind
+        source.
+        """
+        # - Prepare inputs.
+        host_root = "/tmp/explicit_host_git_root_for_test"
+        env = {
+            "CSFY_ENABLE_DIND": "0",
+            "CSFY_HOST_GIT_ROOT_PATH": host_root,
+        }
+        # - Prepare outputs.
+        exp_target = "/app"
+        exp_mount = f"type=bind,source={host_root},target=/app"
+        # Run test.
+        with umock.patch.dict(os.environ, env, clear=False):
+            source, target, mount = hdocker.get_docker_mount_info(
+                is_caller_host=False,
+                use_sibling_container_for_callee=True,
+            )
+        # Check outputs.
+        self.assert_equal(source, host_root)
+        self.assert_equal(target, exp_target)
+        self.assert_equal(mount, exp_mount)

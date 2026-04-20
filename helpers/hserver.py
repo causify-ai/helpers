@@ -97,7 +97,7 @@ def get_host_user_name() -> Optional[str]:
     return os.environ.get("CSFY_HOST_USER_NAME", None)
 
 
-def get_dev_csfy_host_names() -> List[str]:
+def get_dev_csfy_host_names() -> Tuple[str]:
     """
     Return the names of the Causify dev servers.
     """
@@ -516,6 +516,20 @@ def _get_setup_settings() -> List[Tuple[str, bool]]:
     """
     Return a list of tuples with the name and value of the current server
     setup.
+
+    E.g.,
+    ```bash
+    is_inside_docker_container_on_csfy_server=True
+    is_outside_docker_container_on_csfy_server=False
+    is_inside_docker_container_on_host_mac=False
+    is_outside_docker_container_on_host_mac=True
+    is_inside_docker_container_on_external_linux=False
+    is_outside_docker_container_on_external_linux=True
+    is_dev4=False
+    is_ig_prod=False
+    is_prod_csfy=False
+    is_inside_ci=False
+    ```
     """
     func_names = [
         "is_inside_docker_container_on_csfy_server",
@@ -619,8 +633,6 @@ def docker_needs_sudo() -> bool:
     """
     if not has_docker():
         return False
-    if not has_dind_support() and not use_docker_sibling_containers():
-        return False
     # Another way to check is to see if your user is in the docker group:
     # > groups | grep docker
     rc = os.system("docker run hello-world 2>&1 >/dev/null")
@@ -633,6 +645,17 @@ def docker_needs_sudo() -> bool:
     assert False, "Failed to run docker"
 
 
+def get_docker_executable() -> str:
+    """
+    Return the docker executable, wrapper with `sudo` if needed.
+    """
+    docker_needs_sudo_ = docker_needs_sudo()
+    executable = "docker"
+    if docker_needs_sudo_:
+        executable = "sudo " + executable
+    return executable
+
+
 @functools.lru_cache()
 def has_docker_privileged_mode() -> bool:
     """
@@ -640,18 +663,25 @@ def has_docker_privileged_mode() -> bool:
 
     Docker privileged mode gives containers nearly all the same capabilities as
     the host system's kernel.
+
     Privileged mode allows to:
     - run Docker-in-Docker
     - mount filesystems
     """
-    cmd = "docker run --privileged hello-world 2>&1 >/dev/null"
+    if not has_docker():
+        return False
+    docker_executable = get_docker_executable()
+    cmd = f"{docker_executable} run --privileged hello-world 2>&1 >/dev/null"
     rc = os.system(cmd)
     _print(f"cmd={cmd} -> rc={rc}")
     has_privileged_mode = rc == 0
     return has_privileged_mode
 
 
-def has_sibling_containers_support() -> bool:
+def has_docker_sibling_containers_support() -> bool:
+    """
+    Return whether the current container supports running sibling containers.
+    """
     # We need to be inside a container to run sibling containers.
     if not is_inside_docker():
         return False
@@ -661,7 +691,7 @@ def has_sibling_containers_support() -> bool:
     return False
 
 
-def has_docker_dind_support() -> bool:
+def has_docker_children_containers_support() -> bool:
     """
     Return whether the current container supports Docker-in-Docker.
     """
@@ -670,6 +700,26 @@ def has_docker_dind_support() -> bool:
         return False
     # We assume that if we have privileged mode then we can run docker-in-docker.
     return has_docker_privileged_mode()
+
+
+def is_csfy_dind_enabled() -> bool:
+    """
+    Return whether `CSFY_ENABLE_DIND` is enabled (e.g. users opt-in to use
+    Docker-in-Docker).
+    """
+    val = os.environ.get("CSFY_ENABLE_DIND", "0")
+    return val == "1" or val.lower() in ("true", "yes")
+
+
+def can_run_docker_from_docker() -> bool:
+    """
+    Return whether we can run docker from docker, either as children or sibling
+    container.
+    """
+    return (
+        has_docker_children_containers_support()
+        or has_docker_sibling_containers_support()
+    )
 
 
 def get_docker_info() -> str:
@@ -692,15 +742,21 @@ def get_docker_info() -> str:
     txt_tmp.append(f"is_inside_docker={is_inside_docker_}")
     #
     if is_inside_docker_:
-        has_sibling_containers_support_ = has_sibling_containers_support()
-        has_docker_dind_support_ = has_docker_dind_support()
+        has_docker_sibling_containers_support_ = (
+            has_docker_sibling_containers_support()
+        )
+        has_docker_children_containers_support_ = (
+            has_docker_children_containers_support()
+        )
     else:
-        has_sibling_containers_support_ = "*undef*"
-        has_docker_dind_support_ = "*undef*"
+        has_docker_sibling_containers_support_ = "*undef*"
+        has_docker_children_containers_support_ = "*undef*"
     txt_tmp.append(
-        f"has_sibling_containers_support={has_sibling_containers_support_}"
+        f"has_docker_sibling_containers_support={has_docker_sibling_containers_support_}"
     )
-    txt_tmp.append(f"has_docker_dind_support={has_docker_dind_support_}")
+    txt_tmp.append(
+        f"has_docker_children_containers_support={has_docker_children_containers_support_}"
+    )
     # Format as title with indented items.
     txt = "Docker info" + "\n" + _indent("\n".join(txt_tmp))
     return txt
@@ -798,14 +854,16 @@ def enable_privileged_mode() -> bool:
             ret = True
         elif is_external_linux():
             ret = True
-        elif is_host_mac(version="Catalina"):
-            # Docker for macOS Catalina supports dind.
-            ret = True
-        elif (
-            is_host_mac(version="Monterey")
-            or is_host_mac(version="Ventura")
-            or is_host_mac(version="Sequoia")
-        ):
+        elif is_host_mac():
+            mac_version = get_host_mac_version()
+            if mac_version == "Catalina":
+                # Docker for macOS Catalina supports dind.
+                ret = True
+            elif mac_version in ("Monterey", "Ventura", "Sequoia"):
+                # Docker doesn't seem to support dind for these versions of macOS.
+                ret = False
+            else:
+                raise ValueError(f"Invalid version='{version}'")
             # Docker doesn't seem to support dind for these versions of macOS.
             ret = False
         elif is_prod_csfy():
@@ -843,11 +901,10 @@ def has_docker_sudo() -> bool:
 
 
 def _is_mac_version_with_sibling_containers() -> bool:
-    return (
-        is_host_mac(version="Monterey")
-        or is_host_mac(version="Ventura")
-        or is_host_mac(version="Sequoia")
-    )
+    if not is_host_mac():
+        return False
+    mac_version = get_host_mac_version()
+    return mac_version in ("Monterey", "Ventura", "Sequoia")
 
 
 # TODO(gp): -> use_docker_sibling_container_support
@@ -855,11 +912,15 @@ def use_docker_sibling_containers() -> bool:
     """
     Return whether to use Docker sibling containers.
 
-    Using sibling containers requires that all Docker containers in the
-    same network so that they can communicate with each other.
+    Using sibling containers requires that all Docker containers are in
+    the same network so that they can communicate with each other.
     """
-    val = is_dev4() or _is_mac_version_with_sibling_containers()
-    return val
+    return has_docker_sibling_containers_support()
+    # if is_dev_csfy():
+    #     val = True
+    # else:
+    # val = is_dev4() or _is_mac_version_with_sibling_containers()
+    # return val
 
 
 # TODO(gp): -> use_docker_main_network
@@ -1056,6 +1117,7 @@ def config_func_to_str() -> str:
         "has_docker_sudo",
         "is_AM_S3_available",
         "is_CK_S3_available",
+        "is_csfy_dind_enabled",
         "is_dev4",
         "is_dev_csfy",
         "is_external_linux",

@@ -3,10 +3,11 @@
 # TODO(ai_gp): Add explanation.
 """
 > ty check \
-    --output-format concise \
-    --color never \
-    --exclude '**/outcomes/**' \
-    --exclude '**/import_check/example/**' .
+
+--output-format concise \
+--color never \
+--exclude '**/outcomes/**' \
+--exclude '**/import_check/example/**' .
 """
 
 import argparse
@@ -46,7 +47,7 @@ def _run_dockerized_ty(
     )
     # Convert files to Docker paths.
     is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = True
+    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
     caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
         is_caller_host, use_sibling_container_for_callee
     )

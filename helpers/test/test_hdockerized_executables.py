@@ -10,7 +10,6 @@ import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hprint as hprint
-import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 
@@ -31,10 +30,6 @@ def _create_test_file(self_: Any, txt: str, extension: str) -> str:
 
 
 # TODO(ai_gp): -> Test_dockerized_prettier1
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_run_dockerized_prettier1(hunitest.TestCase):
     """
     Test running the `prettier` command inside a Docker container.
@@ -211,10 +206,6 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 
 
 # TODO(ai_gp): -> Test_dockerized_pandoc1
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_run_dockerized_pandoc1(hunitest.TestCase):
     """
     Test running the `pandoc` command inside a Docker container.
@@ -281,10 +272,6 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 
 
 # TODO(ai_gp): -> Test_dockerized_markdown_toc1
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_run_markdown_toc1(hunitest.TestCase):
 
     def run_markdown_toc(self, txt: str, expected: str) -> None:
@@ -308,6 +295,7 @@ class Test_run_markdown_toc1(hunitest.TestCase):
             actual, expected, dedent=True, remove_lead_trail_empty_lines=True
         )
 
+    @pytest.mark.superslow
     def test1(self) -> None:
         """
         Test running the `markdown-toc` command inside a Docker container.
@@ -349,10 +337,6 @@ class Test_run_markdown_toc1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_dockerized_latex1(hunitest.TestCase):
 
     def create_input_file(self) -> Tuple[str, str]:
@@ -369,6 +353,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
         return in_file_path, out_file_path
 
+    @pytest.mark.superslow
     def test_dockerized1(self) -> None:
         """
         Run `latex` inside a Docker container.
@@ -395,6 +380,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
         )
 
     # TODO(ai_gp): In theory this should go in test_dockerized_latex.py
+    @pytest.mark.superslow
     def test_cmd_line1(self) -> None:
         """
         Run `latex` using the command line.
@@ -446,10 +432,6 @@ class Test_dockerized_latex1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 
     def create_input_file(self) -> Tuple[str, str]:
@@ -480,6 +462,7 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.png")
         return in_file_path, out_file_path
 
+    @pytest.mark.superslow
     def test_dockerized1(self) -> None:
         """
         Run `tikz_to_bitmap` inside a Docker container.
@@ -504,6 +487,7 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
         )
 
     # TODO(ai_gp): In theory this should go in test_tikz_to_png.py
+    @pytest.mark.superslow
     def test_command_line1(self) -> None:
         """
         Run `dockerized_tikz_to_bitmap` through the command line.
@@ -526,10 +510,6 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_dockerized_graphviz1(hunitest.TestCase):
 
     def create_input_file(self) -> Tuple[str, str]:
@@ -593,10 +573,6 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
 # #############################################################################
 
 
-@pytest.mark.skipif(
-    hserver.is_inside_ci() or hserver.is_dev_csfy(),
-    reason="Disabled because of CmampTask10710",
-)
 class Test_dockerized_typst1(hunitest.TestCase):
 
     def create_input_file(self) -> Tuple[str, str]:
