@@ -2,7 +2,7 @@ import datetime
 import logging
 import unittest.mock
 import uuid
-from typing import Optional, Union
+from typing import Union
 
 import pandas as pd
 
@@ -11,36 +11,39 @@ import helpers.hpandas_display as hpandisp
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
-_LOG = logging.getLogger(__name__)
-
 # #############################################################################
 # TestDataframeToJson
 # #############################################################################
 
 
 class TestDataframeToJson(hunitest.TestCase):
-    def test_dataframe_to_json(self) -> None:
+    """
+    Test dataframe to JSON conversion.
+    """
+
+    def test1(self) -> None:
         """
         Verify correctness of dataframe to JSON transformation.
         """
-        # Initialize a dataframe.
+        # Prepare inputs.
         test_dataframe = pd.DataFrame(
             {
                 "col_1": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
                 "col_2": [1, 2, 3, 4, 5, 6, 7],
             }
         )
-        # Convert dataframe to JSON.
+        # Run test.
         output_str = hpandas.convert_df_to_json_string(
             test_dataframe, n_head=3, n_tail=3
         )
+        # Check output.
         self.check_string(output_str)
 
-    def test_dataframe_to_json_uuid(self) -> None:
+    def test2(self) -> None:
         """
         Verify correctness of UUID-containing dataframe transformation.
         """
-        # Initialize a dataframe.
+        # Prepare inputs.
         test_dataframe = pd.DataFrame(
             {
                 "col_1": [
@@ -50,17 +53,18 @@ class TestDataframeToJson(hunitest.TestCase):
                 "col_2": [1, 2],
             }
         )
-        # Convert dataframe to JSON.
+        # Run test.
         output_str = hpandas.convert_df_to_json_string(
             test_dataframe, n_head=None, n_tail=None
         )
+        # Check output.
         self.check_string(output_str)
 
-    def test_dataframe_to_json_timestamp(self) -> None:
+    def test3(self) -> None:
         """
         Verify correctness of transformation of a dataframe with Timestamps.
         """
-        # Initialize a dataframe.
+        # Prepare inputs.
         test_dataframe = pd.DataFrame(
             {
                 "col_1": [
@@ -70,17 +74,18 @@ class TestDataframeToJson(hunitest.TestCase):
                 "col_2": [1.0, 2.0],
             }
         )
-        # Convert dataframe to JSON.
+        # Run test.
         output_str = hpandas.convert_df_to_json_string(
             test_dataframe, n_head=None, n_tail=None
         )
+        # Check output.
         self.check_string(output_str)
 
-    def test_dataframe_to_json_datetime(self) -> None:
+    def test4(self) -> None:
         """
         Verify correctness of transformation of a dataframe with datetime.
         """
-        # Initialize a dataframe.
+        # Prepare inputs.
         test_dataframe = pd.DataFrame(
             {
                 "col_1": [
@@ -90,10 +95,11 @@ class TestDataframeToJson(hunitest.TestCase):
                 "col_2": [1.0, 2.0],
             }
         )
-        # Convert dataframe to JSON.
+        # Run test.
         output_str = hpandas.convert_df_to_json_string(
             test_dataframe, n_head=None, n_tail=None
         )
+        # Check output.
         self.check_string(output_str)
 
 
@@ -103,15 +109,19 @@ class TestDataframeToJson(hunitest.TestCase):
 
 
 class Test_list_to_str(hunitest.TestCase):
+    """
+    Test list to string conversion.
+    """
+
     def test1(self) -> None:
         """
         Check that a list is converted to string correctly.
         """
         # Prepare inputs.
-        input = [1, "two", 3, 4, "five"]
-        # Run.
-        actual = hprint.list_to_str2(input, enclose_str_char="|", sep_char=" ; ")
-        # Check.
+        items = [1, "two", 3, 4, "five"]
+        # Run test.
+        actual = hprint.list_to_str2(items, enclose_str_char="|", sep_char=" ; ")
+        # Check output.
         expected = "5 [|1| ; |two| ; |3| ; |4| ; |five|]"
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -120,10 +130,10 @@ class Test_list_to_str(hunitest.TestCase):
         Check that a list is converted to string and truncated correctly.
         """
         # Prepare inputs.
-        input = list(range(15))
-        # Run.
-        actual = hprint.list_to_str2(input, enclose_str_char="", sep_char=" - ")
-        # Check.
+        items = list(range(15))
+        # Run test.
+        actual = hprint.list_to_str2(items, enclose_str_char="", sep_char=" - ")
+        # Check output.
         expected = "15 [0 - 1 - 2 - 3 - 4 - ... - 10 - 11 - 12 - 13 - 14]"
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -133,10 +143,10 @@ class Test_list_to_str(hunitest.TestCase):
         parameters.
         """
         # Prepare inputs.
-        input = [1, 2, 3, 4, "five"]
-        # Run.
-        actual = hprint.list_to_str2(input)
-        # Check.
+        items = [1, 2, 3, 4, "five"]
+        # Run test.
+        actual = hprint.list_to_str2(items)
+        # Check output.
         expected = "5 ['1', '2', '3', '4', 'five']"
         self.assert_equal(actual, expected, fuzzy_match=True)
 
@@ -244,6 +254,8 @@ class Test_display_df(hunitest.TestCase):
           </tbody>
         </table>
         """
+        # TODO(ai_gp): Pass expected to helper_test_display_df and do the comparison in
+        # that functin. Make this change for all the methods in this class.
         expected = hprint.dedent(expected)
         # Run test.
         actual = self.helper_test_display_df(df)

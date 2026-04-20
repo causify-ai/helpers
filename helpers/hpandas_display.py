@@ -27,7 +27,7 @@ _LOG = hloggin.getLogger(__name__)
 #
 # - When we are not in a notebook we want to:
 #   - Use `_LOG.info()` and `_LOG.debug()` to log messages
-#   - Print the dataframe with `_LOG.debug()``
+#   - Print the dataframe with `_LOG.debug()`
 #   - Return the result through a `return` statement
 #
 # - Each function should have a `log_level` parameter to control the logging level.
@@ -175,11 +175,13 @@ def convert_df_to_png(
 # #############################################################################
 
 
-def print_or_display(df: pd.DataFrame,
-                    *,
-                    index: bool = True,
-                    as_txt: bool = False,
-                     log_level: int = logging.INFO) -> None:
+def print_or_display(
+    df: pd.DataFrame,
+    *,
+    index: bool = True,
+    as_txt: bool = False,
+    log_level: int = logging.INFO,
+) -> None:
     """
     Print or display a dataframe in a notebook at the given log level.
 
