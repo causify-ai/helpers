@@ -4,6 +4,9 @@ Import as:
 import helpers.hnotebook as hnotebo
 """
 
+import logging
+
+
 def config_notebook(sns_set: bool = True) -> None:
     """
     Configure the notebook for plotting.
@@ -90,3 +93,13 @@ def set_logger_to_print(log) -> None:
     :param log: logger object to modify
     """
     log.info = _info_print
+
+
+def set_all_loggers_to_print() -> None:
+    """
+    Replace all loggers' info method with a print function.
+    """
+    for name in logging.root.manager.loggerDict:
+        logger = logging.getLogger(name)
+        # print("Setting logger %s to print" % name)
+        set_logger_to_print(logger)
