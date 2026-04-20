@@ -257,30 +257,79 @@ def _check_links(in_file_name: str) -> None:
 
 def _remove_trailing_periods(lines: List[str]) -> List[str]:
     """
-    Remove trailing periods from bullet points, headers, and numbered lists.
+    Remove trailing periods from all lines.
 
-    Periods are removed from the end of lines that match these patterns:
-    - Bullet points (lines starting with `- `)
-    - Headers (lines starting with `#`)
-    - Numbered lists (lines starting with digits followed by `.` or `)`)
+    Periods are removed from the end of any line that ends with one or more
+    periods (e.g., "text.", "text..."). Trailing whitespace after the periods
+    is also removed.
 
-    This improves consistency in markdown and text formatting where punctuation
-    at the end of list items is often not needed.
+    This improves consistency in markdown and text formatting where periods
+    at the end of list items and standalone lines are often not needed.
 
     :param lines: The lines to be processed.
-    :return: The lines with trailing periods removed from appropriate contexts.
+    :return: The lines with trailing periods removed.
     """
     _LOG.debug("lines=%s", lines)
     lines_new: List[str] = []
     for line in lines:
-        # Check if line is a bullet point, header, or numbered list.
-        if (
-            re.match(r"^\s*-\s+", line)
-            or re.match(r"^#+\s+", line)
-            or re.match(r"^\s*\d+[\)\.]\s+", line)
-        ):
-            # Remove trailing period if present.
-            line = re.sub(r"\.\s*$", "", line)
+        # Remove trailing periods (one or more) from any line.
+        line = re.sub(r"\.+\s*$", "", line)
+        lines_new.append(line)
+    hdbg.dassert_isinstance(lines_new, list)
+    return lines_new
+
+
+def _remove_markdown_formatting(lines: List[str]) -> List[str]:
+    """
+    Remove markdown formatting from text while preserving content.
+
+    Removes the following markdown syntax:
+    - Bold formatting: **text** or __text__ -> text
+    - Italic formatting: *text* or _text_ -> text (outside of code blocks)
+    - Strikethrough: ~~text~~ -> text
+    - Inline code: `text` -> text
+    - Links: [text](url) -> text
+    - Images: ![alt](url) -> alt
+    - Headers: # text -> text
+
+    Code blocks (triple backticks) and their content are preserved unchanged.
+
+    :param lines: The lines to be processed.
+    :return: The lines with markdown formatting removed.
+    """
+    _LOG.debug("lines=%s", lines)
+    txt = "\n".join(lines)
+    in_code_block = False
+    lines_new: List[str] = []
+    # Process line by line to preserve code blocks.
+    for line in txt.split("\n"):
+        # Check for code block markers.
+        if re.match(r"^\s*```", line):
+            in_code_block = not in_code_block
+            lines_new.append(line)
+            continue
+        # Skip markdown removal inside code blocks.
+        if in_code_block:
+            lines_new.append(line)
+            continue
+        # Remove markdown formatting from non-code-block lines.
+        # Remove bold: **text** or __text__ -> text.
+        line = re.sub(r"\*\*(.+?)\*\*", r"\1", line)
+        line = re.sub(r"__(.+?)__", r"\1", line)
+        # Remove italic: *text* or _text_ -> text (but not _variable_).
+        line = re.sub(r"\*(.+?)\*", r"\1", line)
+        line = re.sub(r"(?<!\w)_(.+?)_(?!\w)", r"\1", line)
+        # Remove strikethrough: ~~text~~ -> text.
+        line = re.sub(r"~~(.+?)~~", r"\1", line)
+        # Remove inline code: `text` -> text.
+        line = re.sub(r"`(.+?)`", r"\1", line)
+        # Remove images before links: ![alt](url) -> alt.
+        # Must be done before link removal to avoid orphaned ! characters.
+        line = re.sub(r"!\[(.+?)\]\(.+?\)", r"\1", line)
+        # Remove links: [text](url) -> text.
+        line = re.sub(r"\[(.+?)\]\(.+?\)", r"\1", line)
+        # Remove headers: # text -> text.
+        line = re.sub(r"^(#+)\s+(.*)$", r"\2", line)
         lines_new.append(line)
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
@@ -502,6 +551,10 @@ def _perform_actions(
     action = "remove_trailing_periods"
     if _to_execute_action(action, actions):
         lines = _remove_trailing_periods(lines)
+    # Remove markdown formatting.
+    action = "remove_markdown_formatting"
+    if _to_execute_action(action, actions):
+        lines = _remove_markdown_formatting(lines)
     # Frame chapters.
     action = "frame_chapters"
     if _to_execute_action(action, actions):
@@ -569,6 +622,9 @@ _VALID_ACTIONS = [
     # _remove_trailing_periods(): remove trailing periods from bullet points,
     # headers, and numbered lists.
     "remove_trailing_periods",
+    # _remove_markdown_formatting(): remove markdown syntax from text (bold,
+    # italic, links, images, etc.).
+    "remove_markdown_formatting",
     #
     "frame_chapters",
     "capitalize_header",
@@ -579,12 +635,17 @@ _VALID_ACTIONS = [
 ]
 
 
-# By default, exclude refresh_toc and check_links actions. Users can
-# explicitly enable them via --action.
+# By default, exclude refresh_toc, check_links, and remove_markdown_formatting
+# actions. Users can explicitly enable them via --action.
 _DEFAULT_ACTIONS = [
     action
     for action in _VALID_ACTIONS
-    if action not in ["frame_chapters", "refresh_toc", "check_links"]
+    if action not in [
+        "frame_chapters",
+        "refresh_toc",
+        "check_links",
+        "remove_markdown_formatting",
+    ]
 ]
 
 
