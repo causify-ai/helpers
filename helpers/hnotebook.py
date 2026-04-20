@@ -74,13 +74,19 @@ def config_notebook(sns_set: bool = True) -> None:
     _ = hwarnin
 
 
-# TODO(ai_gp): Add type hints.
 def _info_print(msg: str, *args, **kwargs) -> None:
+    """
+    Print a message with optional formatting arguments.
+    """
     if args:
         msg = msg % args
     print(msg)
 
 
-#
 def set_logger_to_print(log) -> None:
+    """
+    Replace logger.info method with a print function.
+
+    :param log: logger object to modify
+    """
     log.info = _info_print

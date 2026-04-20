@@ -106,6 +106,7 @@ def convert_df_to_json_string(
 
 def display_df(
     df: pd.DataFrame,
+    *,
     index: bool = True,
     inline_index: bool = False,
     max_lines: int = 5,
@@ -174,11 +175,9 @@ def display_df(
         if as_txt:
             print(df.to_string(index=index))
         else:
-            import IPython.core.display
+            from IPython.display import display, HTML
 
-            IPython.core.display.display(
-                IPython.core.display.HTML(df.to_html(index=index))
-            )
+            display(HTML(df.to_html(index=index)))
 
     if mode is None:
         _print_display()
