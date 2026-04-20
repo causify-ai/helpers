@@ -124,7 +124,7 @@ res2 = expensive_compute(3, 4)
 
 - Because Cons outweighed Pros, we decided to implement `Memory` level as
   [joblib.Memory](https://joblib.readthedocs.io/en/latest/generated/joblib.Memory.html)
-  over [`tmpfs`](https://uk.wikipedia.org/wiki/Tmpfs)
+  over [`tmpfs`](https://en.wikipedia.org/wiki/Tmpfs)
 - In this way we reuse the same code for `Disk` level cache but over a RAM-based
   disk
   - This implementation overcomes the Cons listed above, although it is slightly
@@ -135,7 +135,7 @@ res2 = expensive_compute(3, 4)
 - By default, all cached functions save their cached values in the default
   global cache
 - The cache is "global" in the sense that:
-  - It is unique per-user and per Git client
+  - It is unique per user and per Git client
   - It serves all the functions of a Git client
 - The cached data stored in a folder `$GIT_ROOT/tmp.cache.{mem,disk}.[tag]`
 - This global cache is being managed via global functions named
