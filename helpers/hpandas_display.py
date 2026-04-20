@@ -82,7 +82,7 @@ def convert_df_to_json_string(
     shape = f"original shape={df.shape}"
     # Reorder columns.
     if columns_order is not None:
-        hdbg.dassert_set_eq(columns_order, df.cols)
+        hdbg.dassert_set_eq(columns_order, df.columns)
         df = df[columns_order]
     # Select head.
     if n_head is not None:

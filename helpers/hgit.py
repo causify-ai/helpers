@@ -84,24 +84,77 @@ def get_branch_name(dir_name: str = ".") -> str:
     return output
 
 
-def get_branch_next_name(
-    dir_name: str = ".",
+def _get_branch_next_name_via_github_api(
+    curr_branch_name: str,
     *,
-    curr_branch_name: Optional[str] = None,
+    max_num_ids: int = 100,
+) -> Optional[str]:
+    """
+    Find the next available branch name using GitHub API (fast method).
+
+    Uses `gh pr list` to query merged branches and extract the highest number.
+
+    :param curr_branch_name: current branch name (e.g., "gp_scratch")
+    :param max_num_ids: maximum number of IDs to check
+    :return: next available branch name or None if GitHub API is not available
+    """
+    try:
+        # Query merged PRs and extract branch names matching pattern.
+        cmd = (
+            "gh pr list --state merged --json headRefName "
+            "| jq -r '.[].headRefName | select(test(\"^{branch}_[0-9]+$\"))' "
+            "| sed 's/.*_//' | sort -rn | head -1"
+        ).format(
+            branch=re.escape(curr_branch_name)
+        )
+        _LOG.debug("Running GitHub API query: %s", cmd)
+        ret, output = hsystem.system_to_one_line(cmd, suppress_output=True)
+        if ret != 0:
+            _LOG.debug("GitHub API query failed, falling back to linear scan")
+            return None
+        # Extract the highest number from merged branches.
+        output = output.strip()
+        if output:
+            highest_num = int(output)
+            next_num = highest_num + 1
+            new_branch_name = f"{curr_branch_name}_{next_num}"
+            _LOG.info(
+                "Found highest number '%s' in merged branches, next is '%s'",
+                highest_num,
+                next_num,
+            )
+            return new_branch_name
+        # No existing numbered branches found.
+        _LOG.debug(
+            "No existing numbered branches found, starting at 1"
+        )
+        return f"{curr_branch_name}_1"
+    except Exception as e:
+        _LOG.debug(
+            "Error querying GitHub API: %s, falling back to linear scan",
+            e,
+        )
+        return None
+
+
+def _get_branch_next_name_linear_scan(
+    dir_name: str,
+    curr_branch_name: str,
+    *,
+    max_num_ids: int = 100,
     log_verb: int = logging.DEBUG,
 ) -> str:
     """
-    Return a name derived from the branch so that the branch doesn't exist.
+    Find the next available branch name using linear scanning (fallback method).
 
-    E.g., `AmpTask1903_Implemented_system_Portfolio` ->
-    `AmpTask1903_Implemented_system_Portfolio_3`
+    Tries branch names sequentially until finding one that doesn't exist.
+
+    :param dir_name: directory containing the git repository
+    :param curr_branch_name: current branch name (e.g., "gp_scratch")
+    :param max_num_ids: maximum number of IDs to check
+    :param log_verb: logging verbosity level
+    :return: next available branch name
     """
-    if curr_branch_name is None:
-        curr_branch_name = get_branch_name(dir_name=dir_name)
-    hdbg.dassert_ne(curr_branch_name, "master")
-    _LOG.log(log_verb, "curr_branch_name='%s'", curr_branch_name)
-    #
-    max_num_ids = 100
     for i in range(1, max_num_ids):
         new_branch_name = f"{curr_branch_name}_{i}"
         _LOG.info("Trying branch name '%s' ...", new_branch_name)
@@ -112,9 +165,58 @@ def get_branch_next_name(
             _LOG.log(log_verb, "new_branch_name='%s'", new_branch_name)
             return new_branch_name
     raise ValueError(
-        f"Can't find the next branch name for '{curr_branch_name}' within %s ids",
-        max_num_ids,
+        f"Can't find the next branch name for '{curr_branch_name}' "
+        f"within {max_num_ids} ids"
     )
+
+
+def get_branch_next_name(
+    dir_name: str = ".",
+    *,
+    curr_branch_name: Optional[str] = None,
+    log_verb: int = logging.DEBUG,
+    method: str = "auto",
+) -> str:
+    """
+    Return a name derived from the branch so that the branch doesn't exist.
+
+    E.g., `AmpTask1903_Implemented_system_Portfolio` ->
+    `AmpTask1903_Implemented_system_Portfolio_3`
+
+    :param dir_name: directory containing the git repository
+    :param curr_branch_name: branch name to use (if None, gets current branch)
+    :param log_verb: logging verbosity level
+    :param method: method to use ('auto' tries fast first, 'github_api', 'linear_scan')
+    :return: next available branch name
+    """
+    if curr_branch_name is None:
+        curr_branch_name = get_branch_name(dir_name=dir_name)
+    hdbg.dassert_ne(curr_branch_name, "master")
+    _LOG.log(log_verb, "curr_branch_name='%s'", curr_branch_name)
+    #
+    max_num_ids = 100
+    hdbg.dassert_in(
+        method,
+        ["auto", "github_api", "linear_scan"],
+        "Invalid method: %s",
+        method,
+    )
+    # Try GitHub API method if requested or on auto.
+    if method in ("auto", "github_api"):
+        next_name = _get_branch_next_name_via_github_api(
+            curr_branch_name,
+            max_num_ids=max_num_ids,
+        )
+        hdb.dassert_is_not(next_name, None)
+    else:
+        # Use linear scanning method.
+        next_name = _get_branch_next_name_linear_scan(
+            dir_name,
+            curr_branch_name,
+            max_num_ids=max_num_ids,
+            log_verb=log_verb,
+        )
+    return next_name
 
 
 def get_branch_hash(dir_name: str = ".") -> str:

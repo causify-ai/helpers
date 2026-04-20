@@ -2,7 +2,7 @@ import datetime
 import logging
 import unittest.mock
 import uuid
-from typing import Union
+from typing import Optional, Union
 
 import pandas as pd
 
@@ -164,14 +164,15 @@ class Test_display_df(hunitest.TestCase):
     def helper_test_display_df(
         self,
         df: Union[pd.DataFrame, pd.Series],
+        expected: Optional[str],
         **kwargs,
-    ) -> str:
+    ) -> None:
         """
         Test helper for display_df.
 
         :param df: Input dataframe or series
+        :param expected: Expected output to compare with actual output
         :param kwargs: Keyword arguments to pass to display_df
-        :return: Captured output from display_df
         """
         # Capture the output from print_or_display and logging.
         outputs = []
@@ -211,8 +212,11 @@ class Test_display_df(hunitest.TestCase):
                     for call in mock_log.call_args_list:
                         if "tag=" in str(call):
                             outputs.append(f"tag={tag}")
-        # Return captured output.
-        return "\n".join(outputs)
+        # Check output if expected is provided.
+        if expected is not None:
+            expected = hprint.dedent(expected)
+            actual = "\n".join(outputs)
+            self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test1(self) -> None:
         """
@@ -254,13 +258,8 @@ class Test_display_df(hunitest.TestCase):
           </tbody>
         </table>
         """
-        # TODO(ai_gp): Pass expected to helper_test_display_df and do the comparison in
-        # that functin. Make this change for all the methods in this class.
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(df)
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(df, expected=expected)
 
     def test2(self) -> None:
         """
@@ -312,11 +311,8 @@ class Test_display_df(hunitest.TestCase):
           </tbody>
         </table>
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(df, max_lines=5)
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(df, expected=expected, max_lines=5)
 
     def test3(self) -> None:
         """
@@ -336,11 +332,10 @@ class Test_display_df(hunitest.TestCase):
          1      2     b
          2      3     c
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(df, inline_index=True, index=True)
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(
+            df, expected=expected, inline_index=True, index=True
+        )
 
     def test4(self) -> None:
         """
@@ -360,11 +355,8 @@ class Test_display_df(hunitest.TestCase):
              2     b
              3     c
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(df, index=False)
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(df, expected=expected, index=False)
 
     def test5(self) -> None:
         """
@@ -385,11 +377,10 @@ class Test_display_df(hunitest.TestCase):
                 1      2     b
                 2      3     c
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(df, inline_index=True, index=False)
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(
+            df, expected=expected, inline_index=True, index=False
+        )
 
     def test6(self) -> None:
         """
@@ -407,11 +398,10 @@ class Test_display_df(hunitest.TestCase):
          4          5
 
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(series, inline_index=True, index=False)
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(
+            series, expected=expected, inline_index=True, index=False
+        )
 
     def test7(self) -> None:
         """
@@ -427,11 +417,10 @@ class Test_display_df(hunitest.TestCase):
          2      3
         tag=my_tag
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(df, tag="my_tag", inline_index=True, index=False)
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(
+            df, expected=expected, tag="my_tag", inline_index=True, index=False
+        )
 
     def test8(self) -> None:
         """
@@ -483,11 +472,8 @@ class Test_display_df(hunitest.TestCase):
           </tbody>
         </table>
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(df, mode="all_rows")
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(df, expected=expected, mode="all_rows")
 
     def test9(self) -> None:
         """
@@ -534,11 +520,8 @@ class Test_display_df(hunitest.TestCase):
           </tbody>
         </table>
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(df, mode="all_cols")
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(df, expected=expected, mode="all_cols")
 
     def test10(self) -> None:
         """
@@ -590,11 +573,8 @@ class Test_display_df(hunitest.TestCase):
           </tbody>
         </table>
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(df, mode="all")
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(df, expected=expected, mode="all")
 
     def test11(self) -> None:
         """
@@ -647,11 +627,8 @@ class Test_display_df(hunitest.TestCase):
           </tbody>
         </table>
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(df, max_lines=5)
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(df, expected=expected, max_lines=5)
 
     def test14(self) -> None:
         """
@@ -703,8 +680,5 @@ class Test_display_df(hunitest.TestCase):
           </tbody>
         </table>
         """
-        expected = hprint.dedent(expected)
         # Run test.
-        actual = self.helper_test_display_df(df, mode="all")
-        # Check output.
-        self.assert_equal(actual, expected, fuzzy_match=True)
+        self.helper_test_display_df(df, expected=expected, mode="all")
