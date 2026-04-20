@@ -91,6 +91,45 @@ Given the passed Python file
                 f"Expected number of results doesn't match the passed one")
     ```
 
+- When adding a comment try to not repeat information already present in the
+  assertion
+  - **Bad** since `dassert_in()` will already print the valid values
+    ```python
+    hdbg.dassert_in(
+      method,
+      ["auto", "github_api", "linear_scan"],
+      f"Invalid method '{method}'; must be one of: auto, github_api, linear_scan",
+    )
+    ```
+  - **Good**
+    ```python
+    hdbg.dassert_in(
+      method,
+      ["auto", "github_api", "linear_scan"],
+      "Invalid method specified"
+    )
+    ```
+
+- When adding a comment do not use the f-string formatting, but use the
+  printf-style string formatting
+  - **Bad**
+    ```python
+    hdbg.dassert(
+        branch.startswith(prefix),
+        f"Remote branch '{branch}' must start with '{prefix}' prefix",
+    )
+    ```
+  - **Good**
+    ```python
+    hdbg.dassert(
+      branch.startswith(prefix),
+        "Remote branch '%s' needs to start with '%s'",
+        branch,
+        prefix,
+    )
+    ```
+
+# Constraints
 - You must not change the actual intention or behavior of the Python code
 - For all the code you must follow the instructions in
   `@.claude/skills/coding.rules.md`
