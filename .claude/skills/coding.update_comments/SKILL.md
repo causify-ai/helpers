@@ -4,6 +4,8 @@ description: Update docstrings, comments, and assertions in a Python file to be 
 
 Given the passed Python file
 
+# Docstrings
+
 - Update the docstring to functions and file that are not in sync with the code
   - **Bad**:
   ```python
@@ -22,10 +24,13 @@ Given the passed Python file
       return sum(item.price for item in items if item.active)
   ```
 
-- Add docstrings to functions and file that are missing
+- Make sure all the functions have a REST comments in docstrings
+  - Add docstrings to functions and file that are missing
+
+# Comments
 
 - Update and clarify the comments that are not in sync with the code, explaining
-  the logic (why) rather than what is done (what and how)
+  the logic ("why") rather than what is done ("what" and "how")
   - **Bad** (redundant/obvious)
     ```python
     # Loop through each user.
@@ -39,6 +44,33 @@ Given the passed Python file
     users_sorted = sorted(users, key=lambda u: (not u.active, u.registered_at))
     ```
 
+- Use periods at the end of all comments
+
+- Make sure that there are comments in large chunks of code explaining the "why"
+  of each chunk of code
+
+- Do not use empty lines within functions but use comments to separate chunks of
+  code
+
+# Leave Existing Comments Untouched
+
+- Leave untouched comments that represent examples of input-output relationships
+  - E.g.,
+    ```python
+    # Transform:
+    #   ('a2bfc704', ['head_hash', 'remh_hash'])
+    # into
+    #   'head_hash = remh_hash = a2bfc704'
+    ```
+
+- Leave comments that represent running a command and getting a result
+  - E.g.,
+    ```python
+    # > git config --file /Users/saggese/src/.../.gitmodules --get-regexp path
+    # submodule.amp.path amp
+    ```
+
+# Assertions
 - For each `dassert_*()` assertion make sure there is a message explaining why
   the assertion is important
   - **Bad**

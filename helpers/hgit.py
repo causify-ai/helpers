@@ -528,13 +528,13 @@ def is_inside_submodule(git_dir: str = ".") -> bool:
     """
     Return whether a dir is inside a Git submodule or a Git supermodule.
 
-    We determine this checking if the current Git repo is included
-    inside another Git repo.
+    We determine this by checking if the current Git repo is included inside another Git repo.
+
+    :param git_dir: directory to check
+    :return: True if the directory is inside a submodule
     """
     cmd = []
-    # - Find the git root of the current directory
-    # - Check if the dir one level up is a valid Git repo
-    # Go to the dir.
+    # Go to the directory.
     cmd.append(f"cd {git_dir}")
     # > cd im/
     # > git rev-parse --show-toplevel
@@ -543,6 +543,7 @@ def is_inside_submodule(git_dir: str = ".") -> bool:
     # > git rev-parse --is-inside-work-tree
     # true
     cmd.append("(git rev-parse --is-inside-work-tree | grep -q true)")
+    # Execute the command chain and check the return code.
     cmd_as_str = " && ".join(cmd)
     rc = hsystem.system(cmd_as_str, abort_on_error=False)
     ret: bool = rc == 0
@@ -551,7 +552,10 @@ def is_inside_submodule(git_dir: str = ".") -> bool:
 
 def _is_repo(repo_short_name: str) -> bool:
     """
-    Return whether we are inside the module `repo_short_name`.
+    Return whether we are inside the module with the given short name.
+
+    :param repo_short_name: the short name of the repository to check
+    :return: True if the current directory is in the specified repository
     """
     curr_repo_short_name = hrecouti.get_repo_config().get_repo_short_name()
     is_repo = bool(curr_repo_short_name == repo_short_name)
@@ -649,19 +653,25 @@ def is_lime() -> bool:
 
 def _get_submodule_hash(dir_name: str) -> str:
     """
-    Report the Git hash that a submodule (e.g., amp) is at from the point of
-    view of a supermodule.
+    Report the Git hash that a submodule is at from the supermodule perspective.
 
+    Uses git ls-tree to get the submodule commit hash from the parent repository.
     > git ls-tree master | grep <dir_name>
+    160000 commit 0011776388b4c0582161eb2749b665fc45b87e7e  amp
+
+    :param dir_name: the name of the submodule directory
+    :return: the git commit hash of the submodule
     """
     hdbg.dassert_path_exists(dir_name)
+    # Use git ls-tree to get the submodule entry which includes its hash.
     cmd = f"git ls-tree master | grep {dir_name}"
     data: Tuple[int, str] = hsystem.system_to_one_line(cmd)
     _, output = data
-    # 160000 commit 0011776388b4c0582161eb2749b665fc45b87e7e  amp
     _LOG.debug("output=%s", output)
+    # Parse the output; format is: "160000 commit <hash>  <dir_name>".
     data: List[str] = output.split()
     _LOG.debug("data=%s", data)
+    # Extract the hash from the third field (index 2).
     git_hash = data[2]
     return git_hash
 
@@ -669,13 +679,16 @@ def _get_submodule_hash(dir_name: str) -> str:
 @functools.lru_cache()
 def get_path_from_supermodule() -> Tuple[str, str]:
     """
-    Return the path to the Git repo including the Git submodule for a
-    submodule, and return empty for a supermodule. See AmpTask1017.
+    Return the path to the Git repo including the Git submodule for a submodule.
 
+    Returns the superproject path and submodule path, or empty for a supermodule.
     E.g.,
     - for amp included in another repo returns 'amp'
     - for amp without supermodule returns ''
+
+    :return: tuple of (superproject_path, submodule_path)
     """
+    # Get the superproject working tree path.
     cmd = "git rev-parse --show-superproject-working-tree"
     # > cd /Users/saggese/src/.../lm/amp
     # > git rev-parse --show-superproject-working-tree
@@ -686,7 +699,7 @@ def get_path_from_supermodule() -> Tuple[str, str]:
     # (No result)
     superproject_path: str = hsystem.system_to_one_line(cmd)[1]
     _LOG.debug("superproject_path='%s'", superproject_path)
-    #
+    # Query the .gitmodules file to get the path for the current submodule.
     cmd = (
         f"git config --file {superproject_path}/.gitmodules --get-regexp path"
         '| grep $(basename "$(pwd)")'
@@ -702,13 +715,17 @@ def get_path_from_supermodule() -> Tuple[str, str]:
 @functools.lru_cache()
 def get_submodule_paths() -> List[str]:
     """
-    Return the path of the submodules in this repo, e.g., `["amp"]` or `[]`.
+    Return the path of the submodules in this repo.
+
+    :return: list of submodule paths, e.g., ["amp"] or []
     """
+    # Query .gitmodules to get submodule paths.
     # > git config --file .gitmodules --get-regexp path
     # submodule.amp.path amp
     cmd = "git config --file .gitmodules --get-regexp path | awk '{ print $2 }'"
     _, txt = hsystem.system_to_string(cmd)
     _LOG.debug("txt=%s", txt)
+    # Convert the output string to a list of paths.
     files: List[str] = hsystem.text_to_list(txt)
     _LOG.debug("files=%s", files)
     return files
@@ -722,7 +739,16 @@ def has_submodules() -> bool:
 
 
 def _get_hash(git_hash: str, short_hash: bool, num_digits: int = 8) -> str:
+    """
+    Return the git hash, optionally shortened.
+
+    :param git_hash: the full git hash
+    :param short_hash: if True, return only the first num_digits characters
+    :param num_digits: number of digits for short hash
+    :return: the git hash or shortened version
+    """
     hdbg.dassert_lte(1, num_digits)
+    # Return shortened hash if requested, otherwise return full hash.
     if short_hash:
         ret = git_hash[:num_digits]
     else:
@@ -732,23 +758,30 @@ def _get_hash(git_hash: str, short_hash: bool, num_digits: int = 8) -> str:
 
 def _group_hashes(head_hash: str, remh_hash: str, subm_hash: str) -> str:
     """
-    head_hash: a
-    remh_hash: b
-    subm_hash: c
+    Group multiple hashes and display which ones are equal.
+
+    Transform three hashes into a string that shows which ones are identical.
+    For example, if head_hash == remh_hash, display "head_hash = remh_hash = <hash>".
+
+    :param head_hash: the head hash
+    :param remh_hash: the remote head hash
+    :param subm_hash: the submodule hash
+    :return: formatted string showing hash equality
     """
+    # Build a mapping from hash names to their values.
     map_ = collections.OrderedDict()
     map_["head_hash"] = head_hash
     map_["remh_hash"] = remh_hash
     if subm_hash:
         map_["subm_hash"] = subm_hash
-    #
+    # Invert the mapping to group identical hashes together.
     inv_map = collections.OrderedDict()
     for k, v in map_.items():
         if v not in inv_map:
             inv_map[v] = [k]
         else:
             inv_map[v].append(k)
-    #
+    # Format the output so equal hashes are grouped together.
     txt = []
     for k, v in inv_map.items():
         # Transform:
@@ -1080,8 +1113,13 @@ def get_head_hash(dir_name: str = ".", short_hash: bool = False) -> str:
     > git rev-parse HEAD
     4759b3685f903e6c669096e960b248ec31c63b69
     ```
+
+    :param dir_name: directory containing the git repository
+    :param short_hash: if True, return abbreviated hash
+    :return: the git commit hash with amp submodule hash or random suffix
     """
     hdbg.dassert_path_exists(dir_name)
+    # Get the commit hash, optionally shortened.
     opts = "--short " if short_hash else " "
     cmd = f"cd {dir_name} && git rev-parse {opts}HEAD"
     data: Tuple[int, str] = hsystem.system_to_one_line(cmd)
