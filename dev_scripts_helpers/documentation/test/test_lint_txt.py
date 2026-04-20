@@ -2119,7 +2119,7 @@ class Test_lint_txt2(hunitest.TestCase):
            ```
         """
         expected = r"""
-        - `str.format`
+        - str.format
         - Python 3 allows to format multiple values, e.g.,
           ```python
           key = 'my_var'
