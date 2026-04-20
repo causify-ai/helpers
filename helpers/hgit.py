@@ -207,7 +207,7 @@ def get_branch_next_name(
             curr_branch_name,
             max_num_ids=max_num_ids,
         )
-        hdb.dassert_is_not(next_name, None)
+        hdbg.dassert_is_not(next_name, None)
     else:
         # Use linear scanning method.
         next_name = _get_branch_next_name_linear_scan(
