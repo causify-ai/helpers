@@ -705,7 +705,7 @@ def git_branch_copy(  # type: ignore
     if use_patch:
         # TODO(gp): Create a patch or do a `git merge`.
         pass
-    if new_branch_name == "":
+    if new_branch_name is None or new_branch_name == "":
         # Automatically generate branch name.
         new_branch_name = hgit.get_branch_next_name()
     _LOG.info("new_branch_name='%s'", new_branch_name)
