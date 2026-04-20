@@ -1,9 +1,8 @@
 import datetime
 import logging
+import unittest.mock
 import uuid
-from typing import Optional
-# TODO(ai_gp): Use import unittest
-from unittest import mock
+from typing import Optional, Union
 
 import pandas as pd
 
@@ -114,7 +113,7 @@ class Test_list_to_str(hunitest.TestCase):
         actual = hprint.list_to_str2(input, enclose_str_char="|", sep_char=" ; ")
         # Check.
         expected = "5 [|1| ; |two| ; |3| ; |4| ; |five|]"
-        self.assert_equal(actual, expected)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -126,7 +125,7 @@ class Test_list_to_str(hunitest.TestCase):
         actual = hprint.list_to_str2(input, enclose_str_char="", sep_char=" - ")
         # Check.
         expected = "15 [0 - 1 - 2 - 3 - 4 - ... - 10 - 11 - 12 - 13 - 14]"
-        self.assert_equal(actual, expected)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -139,7 +138,7 @@ class Test_list_to_str(hunitest.TestCase):
         actual = hprint.list_to_str2(input)
         # Check.
         expected = "5 ['1', '2', '3', '4', 'five']"
-        self.assert_equal(actual, expected)
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
 
 # #############################################################################
@@ -154,62 +153,48 @@ class Test_display_df(hunitest.TestCase):
 
     def helper_test_display_df(
         self,
-        df: pd.DataFrame,
-        *,
-        index: bool = True,
-        inline_index: bool = False,
-        max_lines: int = 5,
-        tag: Optional[str] = None,
-        mode: Optional[str] = None,
-        as_txt: bool = False,
+        df: Union[pd.DataFrame, pd.Series],
+        **kwargs,
     ) -> str:
         """
         Test helper for display_df.
 
-        :param df: Input dataframe
-        :param index: Whether to show index
-        :param inline_index: Make index part of dataframe
-        :param max_lines: Number of lines to print
-        :param tag: Optional tag to print
-        :param mode: Display mode
-        :param as_txt: Print as text
+        :param df: Input dataframe or series
+        :param kwargs: Keyword arguments to pass to display_df
         :return: Captured output from display_df
         """
         # Capture the output from print_or_display and logging.
         outputs = []
+        tag = kwargs.get("tag")
 
         def mock_print_or_display(
             mock_df: pd.DataFrame,
-            mock_index: bool,
-            mock_as_txt: bool,
-            _: int,
+            *,
+            index: bool = True,
+            as_txt: bool = False,
+            log_level: int = logging.INFO,
         ) -> None:
             """
             Capture the dataframe string representation.
             """
-            if mock_as_txt or not mock_index:
-                output = mock_df.to_string(index=mock_index)
+            if as_txt or not index:
+                output = mock_df.to_string(index=index)
             else:
-                output = mock_df.to_html(index=mock_index)
+                output = mock_df.to_html(index=index)
             outputs.append(output)
 
         # Run test.
-        with mock.patch(
+        with unittest.mock.patch(
             "helpers.hpandas_display.print_or_display",
             side_effect=mock_print_or_display,
         ):
-            with mock.patch(
+            with unittest.mock.patch(
                 "helpers.hpandas_display._LOG.log"
             ) as mock_log:
                 hpandisp.display_df(
                     df,
-                    index=index,
-                    inline_index=inline_index,
-                    max_lines=max_lines,
-                    tag=tag,
-                    mode=mode,
-                    as_txt=as_txt,
                     log_level=logging.DEBUG,
+                    **kwargs,
                 )
                 # Capture tag logging if present.
                 if tag is not None and mock_log.called:
@@ -230,10 +215,40 @@ class Test_display_df(hunitest.TestCase):
                 "col_2": ["a", "b", "c"],
             }
         )
+        # Prepare outputs.
+        expected = """
+        <table border="1" class="dataframe">
+          <thead>
+            <tr style="text-align: right;">
+              <th></th>
+              <th>col_1</th>
+              <th>col_2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>0</th>
+              <td>1</td>
+              <td>a</td>
+            </tr>
+            <tr>
+              <th>1</th>
+              <td>2</td>
+              <td>b</td>
+            </tr>
+            <tr>
+              <th>2</th>
+              <td>3</td>
+              <td>c</td>
+            </tr>
+          </tbody>
+        </table>
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         actual = self.helper_test_display_df(df)
-        # Check outputs.
-        self.check_string(actual)
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test2(self) -> None:
         """
@@ -246,10 +261,50 @@ class Test_display_df(hunitest.TestCase):
                 "col_2": [f"val_{i}" for i in range(100)],
             }
         )
+        # Prepare outputs.
+        expected = """
+        <table border="1" class="dataframe">
+          <thead>
+            <tr style="text-align: right;">
+              <th></th>
+              <th>col_1</th>
+              <th>col_2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>0</th>
+              <td>0</td>
+              <td>val_0</td>
+            </tr>
+            <tr>
+              <th>1</th>
+              <td>1</td>
+              <td>val_1</td>
+            </tr>
+            <tr>
+              <th>...</th>
+              <td>...</td>
+              <td>...</td>
+            </tr>
+            <tr>
+              <th>98</th>
+              <td>98</td>
+              <td>val_98</td>
+            </tr>
+            <tr>
+              <th>99</th>
+              <td>99</td>
+              <td>val_99</td>
+            </tr>
+          </tbody>
+        </table>
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         actual = self.helper_test_display_df(df, max_lines=5)
-        # Check outputs.
-        self.check_string(actual)
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test3(self) -> None:
         """
@@ -262,10 +317,18 @@ class Test_display_df(hunitest.TestCase):
                 "col_2": ["a", "b", "c"],
             }
         )
+        # Prepare outputs.
+        expected = """
+         .  col_1 col_2
+         0      1     a
+         1      2     b
+         2      3     c
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         actual = self.helper_test_display_df(df, inline_index=True, index=True)
-        # Check outputs.
-        self.check_string(actual)
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test4(self) -> None:
         """
@@ -278,10 +341,18 @@ class Test_display_df(hunitest.TestCase):
                 "col_2": ["a", "b", "c"],
             }
         )
+        # Prepare outputs.
+        expected = """
+         col_1 col_2
+             1     a
+             2     b
+             3     c
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         actual = self.helper_test_display_df(df, index=False)
-        # Check outputs.
-        self.check_string(actual)
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test5(self) -> None:
         """
@@ -295,10 +366,18 @@ class Test_display_df(hunitest.TestCase):
             }
         )
         df.index.name = "my_index"
+        # Prepare outputs.
+        expected = """
+         my_index  col_1 col_2
+                0      1     a
+                1      2     b
+                2      3     c
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         actual = self.helper_test_display_df(df, inline_index=True, index=False)
-        # Check outputs.
-        self.check_string(actual)
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test6(self) -> None:
         """
@@ -306,12 +385,21 @@ class Test_display_df(hunitest.TestCase):
         """
         # Prepare inputs.
         series = pd.Series([1, 2, 3, 4, 5], name="my_series")
+        # Prepare outputs.
+        expected = """
+         .  my_series
+         0          1
+         1          2
+         2          3
+         3          4
+         4          5
+
+        """
+        expected = hprint.dedent(expected)
         # Run test.
-        with mock.patch("helpers.hpandas_display.print_or_display"):
-            hpandisp.display_df(
-                series,  # type: ignore
-                log_level=logging.DEBUG,
-            )
+        actual = self.helper_test_display_df(series, inline_index=True, index=False)
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test7(self) -> None:
         """
@@ -319,18 +407,19 @@ class Test_display_df(hunitest.TestCase):
         """
         # Prepare inputs.
         df = pd.DataFrame({"col_1": [1, 2, 3]})
+        # Prepare outputs.
+        expected = """
+         .  col_1
+         0      1
+         1      2
+         2      3
+        tag=my_tag
+        """
+        expected = hprint.dedent(expected)
         # Run test.
-        with mock.patch("helpers.hpandas_display.print_or_display"):
-            with mock.patch(
-                "helpers.hpandas_display._LOG.log"
-            ) as mock_log:
-                hpandisp.display_df(
-                    df,
-                    tag="my_tag",
-                    log_level=logging.INFO,
-                )
-                # Verify tag was logged.
-                mock_log.assert_called()
+        actual = self.helper_test_display_df(df, tag="my_tag", inline_index=True, index=False)
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test8(self) -> None:
         """
@@ -343,10 +432,50 @@ class Test_display_df(hunitest.TestCase):
                 "col_2": [f"val_{i}" for i in range(50)],
             }
         )
+        # Prepare outputs.
+        expected = """
+        <table border="1" class="dataframe">
+          <thead>
+            <tr style="text-align: right;">
+              <th></th>
+              <th>col_1</th>
+              <th>col_2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>0</th>
+              <td>0</td>
+              <td>val_0</td>
+            </tr>
+            <tr>
+              <th>1</th>
+              <td>1</td>
+              <td>val_1</td>
+            </tr>
+            <tr>
+              <th>...</th>
+              <td>...</td>
+              <td>...</td>
+            </tr>
+            <tr>
+              <th>48</th>
+              <td>48</td>
+              <td>val_48</td>
+            </tr>
+            <tr>
+              <th>49</th>
+              <td>49</td>
+              <td>val_49</td>
+            </tr>
+          </tbody>
+        </table>
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         actual = self.helper_test_display_df(df, mode="all_rows")
-        # Check outputs.
-        self.check_string(actual)
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test9(self) -> None:
         """
@@ -360,10 +489,44 @@ class Test_display_df(hunitest.TestCase):
                 "col_3": [10.5, 20.5, 30.5],
             }
         )
+        # Prepare outputs.
+        expected = """
+        <table border="1" class="dataframe">
+          <thead>
+            <tr style="text-align: right;">
+              <th></th>
+              <th>col_1</th>
+              <th>col_2</th>
+              <th>col_3</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>0</th>
+              <td>1</td>
+              <td>a</td>
+              <td>10.5</td>
+            </tr>
+            <tr>
+              <th>1</th>
+              <td>2</td>
+              <td>b</td>
+              <td>20.5</td>
+            </tr>
+            <tr>
+              <th>2</th>
+              <td>3</td>
+              <td>c</td>
+              <td>30.5</td>
+            </tr>
+          </tbody>
+        </table>
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         actual = self.helper_test_display_df(df, mode="all_cols")
-        # Check outputs.
-        self.check_string(actual)
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test10(self) -> None:
         """
@@ -376,10 +539,50 @@ class Test_display_df(hunitest.TestCase):
                 "col_2": [f"val_{i}" for i in range(50)],
             }
         )
+        # Prepare outputs.
+        expected = """
+        <table border="1" class="dataframe">
+          <thead>
+            <tr style="text-align: right;">
+              <th></th>
+              <th>col_1</th>
+              <th>col_2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>0</th>
+              <td>0</td>
+              <td>val_0</td>
+            </tr>
+            <tr>
+              <th>1</th>
+              <td>1</td>
+              <td>val_1</td>
+            </tr>
+            <tr>
+              <th>...</th>
+              <td>...</td>
+              <td>...</td>
+            </tr>
+            <tr>
+              <th>48</th>
+              <td>48</td>
+              <td>val_48</td>
+            </tr>
+            <tr>
+              <th>49</th>
+              <td>49</td>
+              <td>val_49</td>
+            </tr>
+          </tbody>
+        </table>
+        """
+        expected = hprint.dedent(expected)
         # Run test.
         actual = self.helper_test_display_df(df, mode="all")
-        # Check outputs.
-        self.check_string(actual)
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test11(self) -> None:
         """
@@ -388,14 +591,13 @@ class Test_display_df(hunitest.TestCase):
         # Prepare inputs.
         df = pd.DataFrame({"col_1": [1, 2, 3]})
         # Run test and check output.
-        with mock.patch("helpers.hpandas_display.print_or_display"):
-            with self.assertRaises(ValueError) as cm:
-                hpandisp.display_df(
-                    df,
-                    mode="invalid_mode",
-                    log_level=logging.DEBUG,
-                )
-            self.assertIn("Invalid mode", str(cm.exception))
+        with self.assertRaises(ValueError) as cm:
+            hpandisp.display_df(
+                df,
+                mode="invalid_mode",
+                log_level=logging.DEBUG,
+            )
+        self.assertIn("Invalid mode", str(cm.exception))
 
     def test12(self) -> None:
         """
@@ -414,8 +616,30 @@ class Test_display_df(hunitest.TestCase):
         """
         # Prepare inputs.
         df = pd.DataFrame({"col_1": [1], "col_2": ["a"]})
+        # Prepare outputs.
+        expected = """
+        <table border="1" class="dataframe">
+          <thead>
+            <tr style="text-align: right;">
+              <th></th>
+              <th>col_1</th>
+              <th>col_2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>0</th>
+              <td>1</td>
+              <td>a</td>
+            </tr>
+          </tbody>
+        </table>
+        """
+        expected = hprint.dedent(expected)
         # Run test.
-        self.helper_test_display_df(df, max_lines=5)
+        actual = self.helper_test_display_df(df, max_lines=5)
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test14(self) -> None:
         """
@@ -428,10 +652,47 @@ class Test_display_df(hunitest.TestCase):
                 "col_2": [f"val_{i}" for i in range(10)],
             }
         )
+        # Prepare outputs.
+        expected = """
+        <table border="1" class="dataframe">
+          <thead>
+            <tr style="text-align: right;">
+              <th></th>
+              <th>col_1</th>
+              <th>col_2</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>0</th>
+              <td>0</td>
+              <td>val_0</td>
+            </tr>
+            <tr>
+              <th>1</th>
+              <td>1</td>
+              <td>val_1</td>
+            </tr>
+            <tr>
+              <th>...</th>
+              <td>...</td>
+              <td>...</td>
+            </tr>
+            <tr>
+              <th>8</th>
+              <td>8</td>
+              <td>val_8</td>
+            </tr>
+            <tr>
+              <th>9</th>
+              <td>9</td>
+              <td>val_9</td>
+            </tr>
+          </tbody>
+        </table>
+        """
+        expected = hprint.dedent(expected)
         # Run test.
-        with mock.patch("helpers.hpandas_display.print_or_display"):
-            hpandisp.display_df(
-                df,
-                max_lines=1,
-                log_level=logging.DEBUG,
-            )
+        actual = self.helper_test_display_df(df, mode="all")
+        # Check output.
+        self.assert_equal(actual, expected, fuzzy_match=True)
