@@ -11,7 +11,7 @@ import os
 import random
 import re
 import string
-from typing import List, Optional, Tuple
+from typing import cast, List, Optional, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -206,6 +206,7 @@ def get_branch_next_name(
         "Invalid method specified"
     )
     # Try GitHub API method first (faster) if requested or on auto mode.
+    next_name: Optional[str] = None
     if method in ("auto", "github_api"):
         next_name = _get_branch_next_name_via_github_api(
             curr_branch_name,
@@ -213,15 +214,27 @@ def get_branch_next_name(
         )
         if next_name is None and method == "github_api":
             raise ValueError("GitHub API method requested but failed")
+        # Fall back to linear scanning if GitHub API failed in auto mode.
+        if next_name is None and method == "auto":
+            _LOG.warning(
+                "GitHub API method failed, falling back to linear scan"
+            )
+            next_name = _get_branch_next_name_linear_scan(
+                dir_name,
+                curr_branch_name,
+                max_num_ids=max_num_ids,
+                log_verb=log_verb,
+            )
     else:
-        # Fall back to linear scanning method when GitHub API is unavailable.
+        # Fall back to linear scanning method when explicitly requested.
         next_name = _get_branch_next_name_linear_scan(
             dir_name,
             curr_branch_name,
             max_num_ids=max_num_ids,
             log_verb=log_verb,
         )
-    return next_name
+    hdbg.dassert_ne(next_name, None)
+    return cast(str, next_name)
 
 
 def get_branch_hash(dir_name: str = ".") -> str:
