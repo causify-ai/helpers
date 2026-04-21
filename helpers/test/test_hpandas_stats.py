@@ -3,7 +3,9 @@ from typing import Dict, List
 
 import pandas as pd
 
+import helpers.hprint as hprint
 import helpers.hpandas as hpandas
+import helpers.hpandas_stats as hpanstat
 import helpers.hunit_test as hunitest
 
 _LOG = logging.getLogger(__name__)
@@ -61,6 +63,7 @@ class Test_compute_duration_df(hunitest.TestCase):
         }
         return tag_to_df
 
+    # TODO(ai_gp): -> helper
     def intersection_helper(
         self,
         valid_intersect: bool,
@@ -109,15 +112,17 @@ class Test_compute_duration_df(hunitest.TestCase):
             "min_valid_index",
         ]
         expected_column_unique_values = None
-        expected_signature = r"""# df=
+        expected_signature = r"""
+        # df=
         index=[tag1, tag3]
         columns=min_index,max_index,min_valid_index,max_valid_index
         shape=(3, 4)
-                            min_index                  max_index            min_valid_index            max_valid_index
+                                min_index                  max_index            min_valid_index            max_valid_index
         tag1  2022-01-01 21:00:00+00:00  2022-01-01 21:06:00+00:00  2022-01-01 21:02:00+00:00  2022-01-01 21:06:00+00:00
         tag2  2022-01-01 21:02:00+00:00  2022-01-01 21:05:00+00:00  2022-01-01 21:02:00+00:00  2022-01-01 21:04:00+00:00
         tag3  2022-01-01 21:01:00+00:00  2022-01-01 21:04:00+00:00  2022-01-01 21:03:00+00:00  2022-01-01 21:04:00+00:00
         """
+        expected_signature = hprint.dedent(expected_signature)
         self.check_df_output(
             df_stats,
             expected_length,
@@ -126,7 +131,7 @@ class Test_compute_duration_df(hunitest.TestCase):
             expected_signature,
         )
 
-    def test_intersection1(self) -> None:
+    def test2(self) -> None:
         """
         Modify initial DataFrames in dictionary with non-valid intersection
         (incl NaNs).
@@ -138,7 +143,7 @@ class Test_compute_duration_df(hunitest.TestCase):
             valid_intersect, expected_start_timestamp, expected_end_timestamp
         )
 
-    def test_intersection2(self) -> None:
+    def test3(self) -> None:
         """
         Modify initial DataFrames in dictionary with valid intersection
         (excluding NaNs).
@@ -183,7 +188,7 @@ class Test_compute_weighted_sum(hunitest.TestCase):
         actual_signature = str(weighted_sums)
         self.assert_equal(actual_signature, expected_signature, fuzzy_match=True)
 
-    def test_compute_weighted_sum1(self) -> None:
+    def test1(self) -> None:
         """
         Check that weighted sums are computed correctly.
 
@@ -194,13 +199,14 @@ class Test_compute_weighted_sum(hunitest.TestCase):
         weights_data = {"w1": [0.2, 0.8]}
         index_mode = "assert_equal"
         expected_signature = r"""
-            {'w1':      A    B
-            0  4.2  6.2
-            1  5.2  7.2}
-            """
+        {'w1':      A    B
+        0  4.2  6.2
+        1  5.2  7.2}
+        """
+        expected_signature = hprint.dedent(expected_signature)
         self.helper(index1, index2, weights_data, index_mode, expected_signature)
 
-    def test_compute_weighted_sum2(self) -> None:
+    def test2(self) -> None:
         """
         Check that weighted sums are computed correctly.
 
@@ -211,17 +217,18 @@ class Test_compute_weighted_sum(hunitest.TestCase):
         weights_data = {"w1": [0.2, 0.8], "w2": [0.5, 0.5]}
         index_mode = "intersect"
         expected_signature = r"""
-            {'w1':      A    B
-            0  4.2  6.2
-            1  NaN  NaN
-            2  NaN  NaN, 'w2':      A    B
-            0  3.0  5.0
-            1  NaN  NaN
-            2  NaN  NaN}
-            """
+        {'w1':      A    B
+        0  4.2  6.2
+        1  NaN  NaN
+        2  NaN  NaN, 'w2':      A    B
+        0  3.0  5.0
+        1  NaN  NaN
+        2  NaN  NaN}
+        """
+        expected_signature = hprint.dedent(expected_signature)
         self.helper(index1, index2, weights_data, index_mode, expected_signature)
 
-    def test_compute_weighted_sum3(self) -> None:
+    def test3(self) -> None:
         """
         Check that weighted sums are computed correctly.
 
@@ -232,15 +239,16 @@ class Test_compute_weighted_sum(hunitest.TestCase):
         weights_data = {"w1": [0.2, 0.8]}
         index_mode = "leave_unchanged"
         expected_signature = r"""
-            {'w1':      A    B
-                0  NaN  NaN
-                1  NaN  NaN
-                2  NaN  NaN
-                3  NaN  NaN}
-            """
+        {'w1':      A    B
+            0  NaN  NaN
+            1  NaN  NaN
+            2  NaN  NaN
+            3  NaN  NaN}
+        """
+        expected_signature = hprint.dedent(expected_signature)
         self.helper(index1, index2, weights_data, index_mode, expected_signature)
 
-    def test_compute_weighted_sum4(self) -> None:
+    def test4(self) -> None:
         """
         Check that an assertion is raised if input is an empty dict.
         """
@@ -255,10 +263,11 @@ class Test_compute_weighted_sum(hunitest.TestCase):
             )
         actual_signature = str(cm.exception)
         expected_signature = r"""
-            * Failed assertion *
-            cond={}
-            dictionary of dfs must be nonempty
-            """
+        * Failed assertion *
+        cond={}
+        dictionary of dfs must be nonempty
+        """
+        expected_signature = hprint.dedent(expected_signature)
         self.assert_equal(actual_signature, expected_signature, fuzzy_match=True)
 
 
@@ -268,73 +277,145 @@ class Test_compute_weighted_sum(hunitest.TestCase):
 
 
 class Test_get_value_counts_stats_df(hunitest.TestCase):
+
+
+# # TODO(ai_gp): Use a self.assert_equal instead of checking expected_index expected_count expected_pcts
+# expected = """
+# """
+# # Run test.
+# result_df = hpanstat._get_unique_values_stats(df)
+# # Check outputs.
+# actual = str(result_df)
+# self.assert_equal(actual, expected, dedent=True)
+
+    def _helper(
+        self,
+        category_data: List[str],
+        num_rows: int,
+        expected_index: List[str],
+        expected_count: List[int],
+        expected_pcts: List[float],
+    ) -> None:
+        """
+        Test value counts with given parameters.
+        """
+        # Prepare input.
+        df = pd.DataFrame({"category": category_data})
+        # Call function to test.
+        result_df = hpandas.get_value_counts_stats_df(
+            df, "category", num_rows=num_rows
+        )
+        # Check output.
+        # TODO(ai_gp): Use a self.assert_equal
+        expected = """
+        """
+        # Run test.
+        result_df = hpanstat._get_unique_values_stats(df)
+        # Check outputs.
+        actual = str(result_df)
+        self.assert_equal(actual, expected, dedent=True)
+
     def test1(self) -> None:
         """
         Test basic value counts with default parameters.
         """
-        # Prepare input.
-        df = pd.DataFrame(
-            {
-                "category": [
-                    "A",
-                    "B",
-                    "A",
-                    "C",
-                    "A",
-                    "B",
-                    "D",
-                    "A",
-                    "C",
-                    "A",
-                ]
-            }
-        )
-        # Call function to test.
-        result_df = hpandas.get_value_counts_stats_df(df, "category", num_rows=10)
-        # Check output.
-        self.assertEqual(result_df.index.tolist(), ["A", "B", "C", "D"])
-        self.assertEqual(result_df["count"].tolist(), [5, 2, 2, 1])
+        category_data = ["A", "B", "A", "C", "A", "B", "D", "A", "C", "A"]
+        num_rows = 10
+        expected_index = ["A", "B", "C", "D"]
+        expected_count = [5, 2, 2, 1]
         expected_pcts = [50.0, 20.0, 20.0, 10.0]
-        actual_pcts = result_df["pct [%]"].tolist()
-        self.assertAlmostEqual(actual_pcts[0], expected_pcts[0])
-        self.assertAlmostEqual(actual_pcts[1], expected_pcts[1])
-        self.assertAlmostEqual(actual_pcts[2], expected_pcts[2])
-        self.assertAlmostEqual(actual_pcts[3], expected_pcts[3])
+        self._helper(category_data, num_rows, expected_index, expected_count, expected_pcts)
 
     def test2(self) -> None:
         """
         Test limiting the number of rows returned.
         """
-        # Prepare input.
-        df = pd.DataFrame(
-            {
-                "category": [
-                    "A",
-                    "B",
-                    "A",
-                    "C",
-                    "A",
-                    "B",
-                    "D",
-                    "A",
-                    "C",
-                    "A",
-                ]
-            }
-        )
-        # Call function to test.
-        result_df = hpandas.get_value_counts_stats_df(df, "category", num_rows=2)
-        # Check output - should only return top 2.
-        self.assertEqual(result_df.shape[0], 2)
-        self.assertEqual(result_df.index.tolist(), ["A", "B"])
+        category_data = ["A", "B", "A", "C", "A", "B", "D", "A", "C", "A"]
+        num_rows = 2
+        expected_index = ["A", "B"]
+        expected_count = [5, 2]
+        expected_pcts = [50.0, 20.0]
+        self._helper(category_data, num_rows, expected_index, expected_count, expected_pcts)
 
     def test3(self) -> None:
         """
         Test with num_rows=0 to return all rows.
         """
-        # Prepare input.
-        df = pd.DataFrame({"category": ["A", "B", "A", "C", "A", "B"]})
-        # Call function to test.
-        result_df = hpandas.get_value_counts_stats_df(df, "category", num_rows=0)
-        # Check output - should return all unique values.
-        self.assertEqual(result_df.shape[0], 3)
+        category_data = ["A", "B", "A", "C", "A", "B"]
+        num_rows = 0
+        expected_index = ["A", "B", "C"]
+        expected_count = [3, 2, 1]
+        expected_pcts = [50.0, 33.333333, 16.666667]
+        self._helper(category_data, num_rows, expected_index, expected_count, expected_pcts)
+
+
+# #############################################################################
+# Test__get_unique_values_stats
+# #############################################################################
+
+
+class Test__get_unique_values_stats(hunitest.TestCase):
+    """
+    Test unique values count and percentage computation.
+    """
+
+    # TODO(ai_gp): Rename helper
+    def _helper(self, df_data: Dict, expected: str) -> None:
+        """
+        Test unique values stats computation.
+        """
+        # Prepare inputs.
+        df = pd.DataFrame(df_data)
+        # Run test.
+        result_df = hpanstat._get_unique_values_stats(df)
+        # Check outputs.
+        actual = str(result_df)
+        expected = hprint.dedent(expected)
+        self.assert_equal(actual, expected, dedent=True)
+
+    def test1(self) -> None:
+        """
+        Test basic unique values computation.
+        """
+        df_data = {
+            "col1": [1, 2, 1, 3, 1],
+            "col2": ["a", "b", "a", "c", "d"],
+            "col3": [1.0, 1.0, 1.0, 1.0, 1.0],
+        }
+        expected = """
+        num_unique unique [%]
+        col1           3       60.0
+        col2           4       80.0
+        col3           1       20.0
+        """
+        self._helper(df_data, expected)
+
+    def test2(self) -> None:
+        """
+        Test with NaN values.
+        """
+        df_data = {
+            "col1": [1, 2, 1, None, 1],
+            "col2": ["a", "b", "a", None, "c"],
+        }
+        expected = """
+        num_unique unique [%]
+        col1           2       40.0
+        col2           3       60.0
+        """
+        self._helper(df_data, expected)
+
+    def test3(self) -> None:
+        """
+        Test with single unique value.
+        """
+        df_data = {
+            "col1": [5, 5, 5, 5],
+            "col2": ["x", "x", "x", "x"],
+        }
+        expected = """
+        num_unique unique [%]
+        col1           1       25.0
+        col2           1       25.0
+        """
+        self._helper(df_data, expected)

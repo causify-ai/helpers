@@ -428,6 +428,22 @@ def format_ols_regress_results(regr_res: Optional[pd.DataFrame]) -> pd.DataFrame
 # #############################################################################
 
 
+def _get_unique_values_stats(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Get unique values count and percentage for each column.
+
+    :param df: dataframe to analyze
+    :return: DataFrame with num_unique and unique [%] columns
+    """
+    stats_df = pd.DataFrame(None, index=df.columns)
+    num_unique = df.nunique()
+    stats_df["num_unique"] = num_unique
+    stats_df["unique [%]"] = (100.0 * num_unique / df.shape[0]).apply(
+        hprint.round_digits
+    )
+    return stats_df
+
+
 def explore_dataframe(
     df: pd.DataFrame,
     *,
@@ -461,9 +477,9 @@ def explore_dataframe(
     hdbg.dassert_lt(0, len(df), "Dataframe is empty")
     # Compute and display data quality statistics.
     stats_df = report_zero_nan_inf_stats(df, zero_threshold=zero_threshold, dbg_log_level=dbg_log_level)
-    # TODO(ai_gp): Add information about the number of unique values and percentage of unique values for each column.
-    # Create a function if needed to compute the stats_df.
-    # Concat the stats_df.
+    # Add information about the number of unique values and percentage of unique values for each column.
+    unique_stats_df = _get_unique_values_stats(df)
+    stats_df = pd.concat([stats_df, unique_stats_df], axis=1)
     if hsystem.is_running_in_ipynb():
         _LOG.info("stats_df=")
         display(stats_df)
@@ -483,13 +499,15 @@ def explore_dataframe(
                 fig, axes = hmatplo.get_multiple_plots(
                     num_to_plot, 3, y_scale=3.5
                 )
-                fig = _
+                _ = fig
                 for i, col in enumerate(top_cols):
                     ax = axes[i]
-                    ax.hist(df[col].dropna(), bins=30, edgecolor="k")
+                    col_data = df[col].dropna()
+                    weights = np.ones_like(col_data) / len(col_data) * 100
+                    ax.hist(col_data, bins=30, weights=weights, edgecolor="k")
                     ax.set_title(f"{col} (std={std_vals[col]:.2f})")
                     ax.set_xlabel("Value")
-                    ax.set_ylabel("Frequency")
+                    ax.set_ylabel("Percentage [%]")
                 plt.tight_layout()
         # Display correlation matrix if requested.
         if show_correlations:
@@ -497,7 +515,8 @@ def explore_dataframe(
             if len(numeric_df.columns) >= 2:
                 corr_matrix = numeric_df.corr()
                 _LOG.info("Correlation matrix:")
-                heatmap_df(corr_matrix)
+                corr_heatmap = heatmap_df(corr_matrix)
+                display(corr_heatmap)
     if hsystem.is_running_in_ipynb():
         return None
     return stats_df
