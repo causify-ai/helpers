@@ -63,8 +63,7 @@ class Test_compute_duration_df(hunitest.TestCase):
         }
         return tag_to_df
 
-    # TODO(ai_gp): -> helper
-    def intersection_helper(
+    def helper(
         self,
         valid_intersect: bool,
         expected_start_timestamp: pd.Timestamp,
@@ -139,7 +138,7 @@ class Test_compute_duration_df(hunitest.TestCase):
         valid_intersect = False
         expected_start_timestamp = pd.Timestamp("2022-01-01 21:02:00+00:00")
         expected_end_timestamp = pd.Timestamp("2022-01-01 21:04:00+00:00")
-        self.intersection_helper(
+        self.helper(
             valid_intersect, expected_start_timestamp, expected_end_timestamp
         )
 
@@ -151,7 +150,7 @@ class Test_compute_duration_df(hunitest.TestCase):
         valid_intersect = True
         expected_start_timestamp = pd.Timestamp("2022-01-01 21:03:00+00:00")
         expected_end_timestamp = pd.Timestamp("2022-01-01 21:04:00+00:00")
-        self.intersection_helper(
+        self.helper(
             valid_intersect, expected_start_timestamp, expected_end_timestamp
         )
 
@@ -277,76 +276,83 @@ class Test_compute_weighted_sum(hunitest.TestCase):
 
 
 class Test_get_value_counts_stats_df(hunitest.TestCase):
+    """
+    Test value counts statistics computation.
+    """
 
-
-# # TODO(ai_gp): Use a self.assert_equal instead of checking expected_index expected_count expected_pcts
-# expected = """
-# """
-# # Run test.
-# result_df = hpanstat._get_unique_values_stats(df)
-# # Check outputs.
-# actual = str(result_df)
-# self.assert_equal(actual, expected, dedent=True)
-
-    def _helper(
+    def helper(
         self,
         category_data: List[str],
         num_rows: int,
-        expected_index: List[str],
-        expected_count: List[int],
-        expected_pcts: List[float],
+        expected: str,
     ) -> None:
         """
         Test value counts with given parameters.
         """
-        # Prepare input.
+        # Prepare inputs.
         df = pd.DataFrame({"category": category_data})
-        # Call function to test.
+        # Run test.
         result_df = hpandas.get_value_counts_stats_df(
             df, "category", num_rows=num_rows
         )
-        # Check output.
-        # TODO(ai_gp): Use a self.assert_equal
-        expected = """
-        """
-        # Run test.
-        result_df = hpanstat._get_unique_values_stats(df)
         # Check outputs.
         actual = str(result_df)
+        expected = hprint.dedent(expected)
         self.assert_equal(actual, expected, dedent=True)
 
     def test1(self) -> None:
         """
         Test basic value counts with default parameters.
         """
+        # Prepare inputs.
         category_data = ["A", "B", "A", "C", "A", "B", "D", "A", "C", "A"]
         num_rows = 10
-        expected_index = ["A", "B", "C", "D"]
-        expected_count = [5, 2, 2, 1]
-        expected_pcts = [50.0, 20.0, 20.0, 10.0]
-        self._helper(category_data, num_rows, expected_index, expected_count, expected_pcts)
+        # Prepare outputs.
+        expected = """
+                  count  pct [%]
+        category
+        A             5     50.0
+        B             2     20.0
+        C             2     20.0
+        D             1     10.0
+        """
+        # Run test.
+        self.helper(category_data, num_rows, expected)
 
     def test2(self) -> None:
         """
         Test limiting the number of rows returned.
         """
+        # Prepare inputs.
         category_data = ["A", "B", "A", "C", "A", "B", "D", "A", "C", "A"]
         num_rows = 2
-        expected_index = ["A", "B"]
-        expected_count = [5, 2]
-        expected_pcts = [50.0, 20.0]
-        self._helper(category_data, num_rows, expected_index, expected_count, expected_pcts)
+        # Prepare outputs.
+        expected = """
+                  count  pct [%]
+        category
+        A             5     50.0
+        B             2     20.0
+        """
+        # Run test.
+        self.helper(category_data, num_rows, expected)
 
     def test3(self) -> None:
         """
         Test with num_rows=0 to return all rows.
         """
+        # Prepare inputs.
         category_data = ["A", "B", "A", "C", "A", "B"]
         num_rows = 0
-        expected_index = ["A", "B", "C"]
-        expected_count = [3, 2, 1]
-        expected_pcts = [50.0, 33.333333, 16.666667]
-        self._helper(category_data, num_rows, expected_index, expected_count, expected_pcts)
+        # Prepare outputs.
+        expected = """
+                  count    pct [%]
+        category
+        A             3  50.000000
+        B             2  33.333333
+        C             1  16.666667
+        """
+        # Run test.
+        self.helper(category_data, num_rows, expected)
 
 
 # #############################################################################
@@ -359,8 +365,7 @@ class Test__get_unique_values_stats(hunitest.TestCase):
     Test unique values count and percentage computation.
     """
 
-    # TODO(ai_gp): Rename helper
-    def _helper(self, df_data: Dict, expected: str) -> None:
+    def helper(self, df_data: Dict, expected: str) -> None:
         """
         Test unique values stats computation.
         """
@@ -388,7 +393,7 @@ class Test__get_unique_values_stats(hunitest.TestCase):
         col2           4       80.0
         col3           1       20.0
         """
-        self._helper(df_data, expected)
+        self.helper(df_data, expected)
 
     def test2(self) -> None:
         """
@@ -403,7 +408,7 @@ class Test__get_unique_values_stats(hunitest.TestCase):
         col1           2       40.0
         col2           3       60.0
         """
-        self._helper(df_data, expected)
+        self.helper(df_data, expected)
 
     def test3(self) -> None:
         """
@@ -418,4 +423,4 @@ class Test__get_unique_values_stats(hunitest.TestCase):
         col1           1       25.0
         col2           1       25.0
         """
-        self._helper(df_data, expected)
+        self.helper(df_data, expected)
