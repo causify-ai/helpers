@@ -54,7 +54,8 @@ def compute_duration_df(
     # Collect timestamp info from all dfs.
     for tag in tag_to_df.keys():
         # Check that the passed timestamp has timezone info.
-        hdateti.dassert_has_tz(tag_to_df[tag].index[0])
+        first_idx = tag_to_df[tag].index[0]
+        hdateti.dassert_has_tz(cast(pd.Timestamp, first_idx))
         hpandass.dassert_index_is_datetime(tag_to_df[tag])
         # Compute timestamp stats.
         data_stats.loc[tag, min_col] = tag_to_df[tag].index.min()
@@ -74,9 +75,9 @@ def compute_duration_df(
             min_col = min_valid_index_col
             max_col = max_valid_index_col
         # The start of the intersection will be the max value amongt all start dates.
-        intersection_start_date = data_stats[min_col].max()
+        intersection_start_date = cast(pd.Timestamp, data_stats[min_col].max())
         # The end of the intersection will be the min value amongt all end dates.
-        intersection_end_date = data_stats[max_col].min()
+        intersection_end_date = cast(pd.Timestamp, data_stats[max_col].min())
         for tag in tag_to_df_updated.keys():
             df = hpantran.trim_df(
                 tag_to_df_updated[tag],
@@ -169,7 +170,7 @@ def remap_obj(
     # Check that every element of the object is in the mapping.
     hdbg.dassert_is_subset(obj, map_.keys())
     new_srs = obj.map(map_, **kwargs)
-    return new_srs
+    return cast(pd.Series, new_srs)
 
 
 def get_random_df(
@@ -187,6 +188,8 @@ def get_random_df(
     """
     if seed:
         np.random.seed(seed)
+    if date_range_kwargs is None:
+        date_range_kwargs = {}
     dt = pd.date_range(**date_range_kwargs)
     df = pd.DataFrame(np.random.rand(len(dt), num_cols), index=dt)
     return df
@@ -195,7 +198,7 @@ def get_random_df(
 # #############################################################################
 
 
-def heatmap_df(df: pd.DataFrame, *, axis: Any = None) -> pd.DataFrame:
+def heatmap_df(df: pd.DataFrame, *, axis: Any = None) -> Any:
     """
     Colorize a df with a heatmap depending on the numeric values.
 
@@ -208,11 +211,10 @@ def heatmap_df(df: pd.DataFrame, *, axis: Any = None) -> pd.DataFrame:
     import seaborn as sns
 
     cm = sns.diverging_palette(5, 250, as_cmap=True)
-    df = df.style.background_gradient(axis=axis, cmap=cm)
-    return df
+    return df.style.background_gradient(axis=axis, cmap=cm)
 
 
-def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Dict[str, Any]) -> str:
+def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Any) -> str:
     """
     Report percentage of True values in a list or series.
 
@@ -223,7 +225,7 @@ def to_perc(vals: Union[List, pd.Series], **perc_kwargs: Dict[str, Any]) -> str:
     if isinstance(vals, list):
         vals = pd.Series(vals)
     ret = hprint.perc(vals.sum(), len(vals), **perc_kwargs)
-    return ret
+    return cast(str, ret)
 
 
 def add_end_download_timestamp(
@@ -323,9 +325,11 @@ def report_zero_nan_inf_stats(
     hpanddis.display_df(df, as_txt=as_txt, log_level=dbg_log_level)
     # Compute date-based stats only if index is datetime.
     if isinstance(df.index, pd.DatetimeIndex):
-        num_days = len(set(df.index.date))
+        # TODO(gp): Can we do this faster?
+        dates = [d.date() for d in df.index]
+        num_days = len(set(dates))
         _LOG.log(dbg_log_level, "num_days=%s", num_days)
-        num_weekdays = len(set(d for d in df.index.date if d.weekday() < 5))
+        num_weekdays = len(set(d for d in dates if d.weekday() < 5))
         _LOG.log(dbg_log_level, "num_weekdays=%s", num_weekdays)
     #
     stats_df = pd.DataFrame(None, index=df.columns)
@@ -378,12 +382,11 @@ def pvalue_to_stars(pval: Optional[float]) -> str:
     :param pval: p-value to convert
     :return: star notation (* to ****) or ? for non-significant, NA for NaN
     """
-    if np.isnan(pval):
+    if pval is None or np.isnan(pval):
         stars = "NA"
     else:
         hdbg.dassert_lte(0.0, pval)
         hdbg.dassert_lte(pval, 1.0)
-        pval = cast(float, pval)
         if pval < 0.005:
             # More than 99.5% confidence.
             stars = "****"
@@ -490,7 +493,8 @@ def explore_dataframe(
             numeric_cols = df.select_dtypes(include="number").columns.tolist()
             if len(numeric_cols) > 0:
                 # Compute standard deviation and select top columns.
-                std_vals = df[numeric_cols].std().sort_values(ascending=False)
+                std_vals = cast(pd.Series, df[numeric_cols].std())
+                std_vals = std_vals.sort_values(ascending=False)
                 num_to_plot = min(num_top_cols, len(numeric_cols))
                 top_cols = std_vals.head(num_to_plot).index.tolist()
                 # Create grid of subplots.
