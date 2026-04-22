@@ -32,6 +32,35 @@ FILES_TO_EXCLUDE = [
 ]
 
 
+# #############################################################################
+
+
+# TODO(gp): Move in a more general file: probably system_interaction.
+def _is_under_dir(file_name: str, dir_name: str) -> bool:
+    """
+    Return whether a file is under the given directory.
+    """
+    subdir_names = file_name.split("/")
+    return dir_name in subdir_names
+
+
+def is_under_test_dir(file_name: str) -> bool:
+    """
+    Return whether a file is under a test directory (which is called "test").
+    """
+    return _is_under_dir(file_name, "test")
+
+
+def is_test_input_output_file(file_name: str) -> bool:
+    """
+    Return whether a file is used as input or output in a unit test.
+    """
+    ret = is_under_test_dir(file_name)
+    ret &= file_name.endswith(".txt")
+    ret &= not _is_under_dir(file_name, "tmp.scratch")
+    return ret
+
+
 def _filter_files(
     file_paths: List[str], file_paths_to_skip: List[str]
 ) -> List[str]:
@@ -223,40 +252,11 @@ def tee(
     return rc, output2
 
 
-# #############################################################################
-
-
-# TODO(gp): Move in a more general file: probably system_interaction.
-def _is_under_dir(file_name: str, dir_name: str) -> bool:
-    """
-    Return whether a file is under the given directory.
-    """
-    subdir_names = file_name.split("/")
-    return dir_name in subdir_names
-
-
 def is_under_tmp_scratch_dir(file_name: str) -> bool:
     """
     Return whether a file is under the temporary scratch directory.
     """
     return _is_under_dir(file_name, "tmp.scratch")
-
-
-def is_under_test_dir(file_name: str) -> bool:
-    """
-    Return whether a file is under a test directory (which is called "test").
-    """
-    return _is_under_dir(file_name, "test")
-
-
-def is_test_input_output_file(file_name: str) -> bool:
-    """
-    Return whether a file is used as input or output in a unit test.
-    """
-    ret = is_under_test_dir(file_name)
-    ret &= file_name.endswith(".txt")
-    ret &= not _is_under_dir(file_name, "tmp.scratch")
-    return ret
 
 
 def is_test_code(file_name: str) -> bool:

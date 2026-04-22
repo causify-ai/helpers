@@ -31,6 +31,7 @@ Examples:
 
 import argparse
 import logging
+import sys
 from typing import List
 
 import helpers.hdbg as hdbg
@@ -46,53 +47,99 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _lint_python(file_paths: List[str]) -> None:
+def _lint_python(
+    file_paths: List[str],
+    *,
+    abort_on_error: bool = True,
+) -> int:
     """
     Lint Python files using pre-commit, normalize_import, and add_class_frames.
 
     :param file_paths: Python files to lint
+    :param abort_on_error: whether to abort on first error
+    :return: combined return code (OR of all command return codes)
     """
     if not file_paths:
-        return
+        return 0
     _LOG.info("Linting %d Python files", len(file_paths))
     files_str = " ".join(file_paths)
-    hsystem.system(f"pre-commit run --files {files_str}")
-    hsystem.system(f"linters2/normalize_import.py {files_str}")
-    hsystem.system(f"linters2/add_class_frames.py {files_str}")
+    ret = 0
+    ret |= hsystem.system(
+        f"pre-commit run --files {files_str}",
+        abort_on_error=abort_on_error,
+    )
+    ret |= hsystem.system(
+        f"linters2/normalize_import.py {files_str}",
+        abort_on_error=abort_on_error,
+    )
+    ret |= hsystem.system(
+        f"linters2/add_class_frames.py {files_str}",
+        abort_on_error=abort_on_error,
+    )
+    return ret
 
 
-def _lint_jupyter(file_paths: List[str]) -> None:
+def _lint_jupyter(
+    file_paths: List[str],
+    *,
+    abort_on_error: bool = True,
+) -> int:
     """
     Lint Jupyter notebooks (same as Python) then sync with jupytext.
 
     :param file_paths: Jupyter notebook files to lint
+    :param abort_on_error: whether to abort on first error
+    :return: combined return code (OR of all command return codes)
     """
     if not file_paths:
-        return
+        return 0
     _LOG.info("Linting %d Jupyter notebooks", len(file_paths))
     files_str = " ".join(file_paths)
-    hsystem.system(f"pre-commit run --files {files_str}")
-    hsystem.system(f"linters2/normalize_import.py {files_str}")
-    hsystem.system(f"linters2/add_class_frames.py {files_str}")
+    ret = 0
+    ret |= hsystem.system(
+        f"pre-commit run --files {files_str}",
+        abort_on_error=abort_on_error,
+    )
+    ret |= hsystem.system(
+        f"linters2/normalize_import.py {files_str}",
+        abort_on_error=abort_on_error,
+    )
+    ret |= hsystem.system(
+        f"linters2/add_class_frames.py {files_str}",
+        abort_on_error=abort_on_error,
+    )
     for file_path in file_paths:
         _LOG.debug("Syncing jupytext: %s", file_path)
-        hsystem.system(f"jupytext --sync {file_path}")
+        ret |= hsystem.system(
+            f"jupytext --sync {file_path}",
+            abort_on_error=abort_on_error,
+        )
+    return ret
 
 
-def _lint_markdown(file_paths: List[str]) -> None:
+def _lint_markdown(
+    file_paths: List[str],
+    *,
+    abort_on_error: bool = True,
+) -> int:
     """
     Lint Markdown files using lint_txt.py.
 
     :param file_paths: Markdown files to lint
+    :param abort_on_error: whether to abort on first error
+    :return: combined return code (OR of all command return codes)
     """
     if not file_paths:
-        return
+        return 0
     _LOG.info("Linting %d Markdown files", len(file_paths))
+    ret = 0
     for file_path in file_paths:
         _LOG.debug("Linting markdown: %s", file_path)
-        hsystem.system(
-            f"dev_scripts_helpers/documentation/lint_txt.py -i {file_path}"
+        ret |= hsystem.system(
+            f"dev_scripts_helpers/documentation/lint_txt.py -i {file_path}",
+            abort_on_error=abort_on_error,
         )
+    return ret
 
 
 def _filter_files_by_type(
@@ -212,6 +259,11 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         help="Files to skip during linting",
     )
+    parser.add_argument(
+        "--abort_on_error",
+        action="store_true",
+        help="Abort on first linting error (default: collect all errors and exit with combined code)",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -221,9 +273,11 @@ def _parse() -> argparse.ArgumentParser:
 # #############################################################################
 
 
-def _main(args: argparse.Namespace) -> None:
+def _main(args: argparse.Namespace) -> int:
     """
     Main entry point for the linter.
+
+    :return: combined return code from all linting operations
     """
     hdbg.init_logger(args.log_level)
     # Validate that at least one file selection option is provided.
@@ -260,18 +314,30 @@ def _main(args: argparse.Namespace) -> None:
         ipynb=args.ipynb,
         md=args.md,
     )
-    # Lint each file type.
+    # Lint each file type and collect return codes.
+    ret = 0
     if python_files:
-        _lint_python(python_files)
+        ret |= _lint_python(
+            python_files,
+            abort_on_error=args.abort_on_error,
+        )
     if jupyter_files:
-        _lint_jupyter(jupyter_files)
+        ret |= _lint_jupyter(
+            jupyter_files,
+            abort_on_error=args.abort_on_error,
+        )
     if markdown_files:
-        _lint_markdown(markdown_files)
+        ret |= _lint_markdown(
+            markdown_files,
+            abort_on_error=args.abort_on_error,
+        )
     if not (python_files or jupyter_files or markdown_files):
         _LOG.warning("No files matched the selection and type filters")
+    return ret
 
 
 if __name__ == "__main__":
     parser_ = _parse()
     args_ = parser_.parse_args()
-    _main(args_)
+    ret_ = _main(args_)
+    sys.exit(ret_)
