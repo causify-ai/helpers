@@ -227,7 +227,7 @@ def write_file_back(
         hio.to_file(file_name, txt_new_as_str)
 
 
-# TODO(saggese): should this be moved to system interactions?
+# TODO(gp): should this be moved to system interactions?
 def tee(
     cmd: str, executable: str, abort_on_error: bool
 ) -> Tuple[int, List[str]]:

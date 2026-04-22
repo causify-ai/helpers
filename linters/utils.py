@@ -97,9 +97,9 @@ def get_files_to_check(
         file_paths = files
     elif from_file:
         # Get the files from a file.
-        file_paths = hio.from_file(from_file)
-        file_paths = file_paths.replace("\n", " ")
-        file_paths = file_paths.split(" ")
+        file_content = hio.from_file(from_file)
+        file_content = file_content.replace("\n", " ")
+        file_paths = file_content.split(" ")
         _LOG.info("Read %d files from '%s'", len(file_paths), from_file)
         hdbg.dassert_list_of_strings(file_paths)
     elif modified:
@@ -186,7 +186,11 @@ def write_file_back(
     file_name: str, txt_old: List[str], txt_new: List[str]
 ) -> None:
     """
-    Compare old text and new text and, if different, write into file.
+    Compare old and new text and write file if contents differ.
+
+    :param file_name: Path to the file to write
+    :param txt_old: Original file content as list of strings
+    :param txt_new: New file content as list of strings
     """
     hdbg.dassert_list_of_strings(txt_old)
     txt_as_str = "\n".join(txt_old)
@@ -198,7 +202,7 @@ def write_file_back(
         hio.to_file(file_name, txt_new_as_str)
 
 
-# TODO(saggese): should this be moved to system interactions?
+# TODO(saggese): Should this be moved to system interactions?
 def tee(
     cmd: str, executable: str, abort_on_error: bool
 ) -> Tuple[int, List[str]]:

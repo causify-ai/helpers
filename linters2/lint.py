@@ -148,14 +148,13 @@ def _filter_files_by_type(
 
 def _parse() -> argparse.ArgumentParser:
     """
-    Parse command-line arguments.
+    Parse command-line arguments for linting file selection and type filtering.
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-
-    # File selection arguments (mutually exclusive)
+    # File selection arguments (mutually exclusive).
     file_selection = parser.add_mutually_exclusive_group()
     file_selection.add_argument(
         "--modified",
@@ -190,8 +189,7 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Lint files from last commit",
     )
-
-    # File type filters (can be combined)
+    # File type filters (can be combined).
     parser.add_argument(
         "--py",
         action="store_true",
@@ -207,17 +205,14 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Lint only Markdown files",
     )
-
-    # Other options
+    # Other options.
     parser.add_argument(
         "--skip_files",
         nargs="+",
         type=str,
         help="Files to skip during linting",
     )
-
     hparser.add_verbosity_arg(parser)
-
     return parser
 
 
@@ -228,11 +223,10 @@ def _parse() -> argparse.ArgumentParser:
 
 def _main(args: argparse.Namespace) -> None:
     """
-    Main entry point.
+    Main entry point for the linter.
     """
     hdbg.init_logger(args.log_level)
-
-    # Validate that at least one file selection option is provided
+    # Validate that at least one file selection option is provided.
     has_selection = any(
         [
             args.modified,
@@ -248,8 +242,7 @@ def _main(args: argparse.Namespace) -> None:
         "Must specify one of: --modified, --branch, --dir, --files, "
         "--from_file, --last_commit",
     )
-
-    # Get files based on selection mode
+    # Get files based on selection mode.
     file_paths = llinutil.get_files_to_check(
         files=args.files,
         from_file=args.from_file,
@@ -259,25 +252,21 @@ def _main(args: argparse.Namespace) -> None:
         last_commit=args.last_commit,
         branch=args.branch,
     )
-
     _LOG.info("Selected %d files for linting", len(file_paths))
-
-    # Filter by file type
+    # Filter by file type.
     python_files, jupyter_files, markdown_files = _filter_files_by_type(
         file_paths,
         py=args.py,
         ipynb=args.ipynb,
         md=args.md,
     )
-
-    # Lint each file type
+    # Lint each file type.
     if python_files:
         _lint_python(python_files)
     if jupyter_files:
         _lint_jupyter(jupyter_files)
     if markdown_files:
         _lint_markdown(markdown_files)
-
     if not (python_files or jupyter_files or markdown_files):
         _LOG.warning("No files matched the selection and type filters")
 
