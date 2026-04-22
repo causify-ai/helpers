@@ -1,9 +1,11 @@
 ---
-description: Convert formulas to Latex
+description: Convert formulas in text to their Latex equivalent
 ---
 
 - Convert formulas to Latex leaving the structure of the text exactly the
   same
+
+- Use the rules and conventions in `@.claude/skills/latex.rules.md`
 
 # Step 1: Convert mathematical formulas
 
@@ -16,7 +18,7 @@ description: Convert formulas to Latex
   - **Good**
     ```
     $$
-    P(M \mid D) \propto P(D \mid M)\, P(M)
+    \Pr(M | D) \propto \Pr(D | M)\, \Pr(M)
     $$
     ```
 
@@ -28,8 +30,9 @@ description: Convert formulas to Latex
     ```
     $$
     a^* = \arg\max_a
-      \mathbb{E}_{M \sim P(M \mid D)}\left[
-        \text{Goal} \mid do(a), M
+      \EE_{M | \Pr(M | D)}
+      \left[
+        \text{Goal} | do(a), M
       \right]
     $$
     ```

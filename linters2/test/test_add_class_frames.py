@@ -6,6 +6,7 @@ import linters2.add_class_frames as ladclfra
 # Test_add_class_frame
 # #############################################################################
 
+
 class Test_add_class_frame(hunitest.TestCase):
     def helper(self, content: str, expected: str) -> None:
         # Initialize the input file contents.

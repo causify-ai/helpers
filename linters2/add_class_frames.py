@@ -217,9 +217,11 @@ def update_class_frames(file_content: str) -> List[str]:
         updated_lines = _insert_frame(lines, line_num, updated_lines)
     return updated_lines
 
+
 # #############################################################################
 # _ClassFramer
 # #############################################################################
+
 
 class _ClassFramer(liaction.Action):
     def check_if_possible(self) -> bool:

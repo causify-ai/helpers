@@ -655,7 +655,23 @@ def _parser() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(parser)
+    hparser.add_input_output_args(
+        parser, in_required=False, out_required=False
+    )
+    parser.add_argument(
+        "--files",
+        action="store",
+        type=str,
+        default=None,
+        help="Space or comma-separated list of files to process",
+    )
+    parser.add_argument(
+        "--from_file",
+        action="store",
+        type=str,
+        default=None,
+        help="Path to a file containing a list of files to process (one per line)",
+    )
     parser.add_argument(
         "--type",
         action="store",
@@ -699,26 +715,48 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _main(parser: argparse.ArgumentParser) -> None:
-    args = parser.parse_args()
-    hparser.init_logger_for_input_output_transform(args)
-    #
-    in_file_name, out_file_name = hparser.parse_input_output_args(
-        args, clear_screen=False
-    )
+def _get_files_from_args(args: argparse.Namespace) -> Optional[List[str]]:
+    """
+    Parse files from --files or --from_file arguments.
+
+    :param args: Parsed arguments.
+    :return: List of files to process, or None if neither option is provided.
+    """
+    if args.files:
+        # Support both space and comma-separated lists.
+        files = args.files.replace(",", " ").split()
+        return files
+    elif args.from_file:
+        # Read files from the specified file.
+        if not os.path.exists(args.from_file):
+            _LOG.error("File not found: %s", args.from_file)
+            raise FileNotFoundError(f"File not found: {args.from_file}")
+        with open(args.from_file, "r") as f:
+            files = [line.strip() for line in f if line.strip()]
+        return files
+    return None
+
+
+def _process_single_file(
+    in_file_name: str,
+    out_file_name: str,
+    args: argparse.Namespace,
+    actions: Optional[List[str]],
+) -> None:
+    """
+    Process a single file.
+
+    :param in_file_name: Input file name.
+    :param out_file_name: Output file name.
+    :param args: Parsed arguments.
+    :param actions: List of actions to perform.
+    """
     # If the input is stdin, then user needs to specify the type.
     if in_file_name == "-":
         hdbg.dassert_ne(args.type, "")
     # Read input.
     lines = hparser.from_file(in_file_name)
     _LOG.debug("in_file_name=%s", in_file_name)
-    # Print actions.
-    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
-    add_frame = True
-    actions_as_str = hparser.actions_to_string(
-        actions, _VALID_ACTIONS, add_frame
-    )
-    _LOG.info("\n%s", actions_as_str)
     # Process.
     out_lines = _perform_actions(
         lines,
@@ -730,6 +768,35 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     # Write output.
     hparser.to_file(out_lines, out_file_name)
+
+
+def _main(parser: argparse.ArgumentParser) -> None:
+    args = parser.parse_args()
+    hparser.init_logger_for_input_output_transform(args)
+    # Print actions (once for all files).
+    actions = hparser.select_actions(args, _VALID_ACTIONS, _DEFAULT_ACTIONS)
+    add_frame = True
+    actions_as_str = hparser.actions_to_string(
+        actions, _VALID_ACTIONS, add_frame
+    )
+    _LOG.info("\n%s", actions_as_str)
+    # Check if processing multiple files or a single file.
+    files = _get_files_from_args(args)
+    if files:
+        # Process multiple files.
+        _LOG.info("Processing %d file(s)", len(files))
+        for file_path in files:
+            if not os.path.exists(file_path):
+                _LOG.error("File not found: %s", file_path)
+                continue
+            _LOG.info("Processing: %s", file_path)
+            _process_single_file(file_path, file_path, args, actions)
+    else:
+        # Process single file (original behavior).
+        in_file_name, out_file_name = hparser.parse_input_output_args(
+            args, clear_screen=False
+        )
+        _process_single_file(in_file_name, out_file_name, args, actions)
 
 
 if __name__ == "__main__":
