@@ -655,9 +655,7 @@ def _parser() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    hparser.add_input_output_args(
-        parser, in_required=False, out_required=False
-    )
+    hparser.add_input_output_args(parser, in_required=False, out_required=False)
     parser.add_argument(
         "--files",
         action="store",
