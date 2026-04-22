@@ -381,8 +381,11 @@ def select_actions(
             )
             # Validate that skip_action is in the current action list.
             if skip_action not in actions:
-                _LOG.warning("Skipping action '%s' since it's already not in actions='%s'",
-                    skip_action, actions)
+                _LOG.warning(
+                    "Skipping action '%s' since it's already not in actions='%s'",
+                    skip_action,
+                    actions,
+                )
             actions = [a for a in actions if a != skip_action]
     # Add enabled actions on top of defaults.
     if has_enable and args.enable_action:
@@ -401,7 +404,9 @@ def select_actions(
     return actions
 
 
-def mark_action(action: str, actions: Optional[List[str]]) -> Tuple[bool, Optional[List[str]]]:
+def mark_action(
+    action: str, actions: Optional[List[str]]
+) -> Tuple[bool, Optional[List[str]]]:
     """
     Mark an action as to be executed or skipped.
 
@@ -873,7 +878,9 @@ def add_dockerized_script_arg(
 
 
 def add_llm_prompt_arg(
-    parser: argparse.ArgumentParser, *, default_prompt: str = "",
+    parser: argparse.ArgumentParser,
+    *,
+    default_prompt: str = "",
     is_required: bool = True,
 ) -> argparse.ArgumentParser:
     """
@@ -935,9 +942,13 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
     :param limit_str: string in format "X:Y" where X and Y are integers >= 1
     :return: tuple in [start_index, end_index]
     """
-    hdbg.dassert(":" in limit_str, "Limit format must be X:Y, got: %s", limit_str)
+    hdbg.dassert(
+        ":" in limit_str, "Limit format must be X:Y, got: %s", limit_str
+    )
     parts = limit_str.split(":")
-    hdbg.dassert_eq(len(parts), 2, "Limit format must be X:Y, got: %s", limit_str)
+    hdbg.dassert_eq(
+        len(parts), 2, "Limit format must be X:Y, got: %s", limit_str
+    )
     try:
         start = int(parts[0])
         end = int(parts[1])
@@ -951,7 +962,9 @@ def parse_limit_range(limit_str: str) -> Tuple[int, int]:
     return start, end
 
 
-def parse_limit_range_args(args: argparse.Namespace) -> Optional[Tuple[int, int]]:
+def parse_limit_range_args(
+    args: argparse.Namespace,
+) -> Optional[Tuple[int, int]]:
     """
     Parse limit range from command line arguments and log the result.
 
@@ -963,7 +976,9 @@ def parse_limit_range_args(args: argparse.Namespace) -> Optional[Tuple[int, int]
     limit_range = None
     if args.limit:
         limit_range = parse_limit_range(args.limit)
-        _LOG.warning("Using limit range: [%s:%s]", limit_range[0], limit_range[1])
+        _LOG.warning(
+            "Using limit range: [%s:%s]", limit_range[0], limit_range[1]
+        )
     return limit_range
 
 
@@ -1107,7 +1122,9 @@ def parse_multi_file_args(
             file_list = args.input
         else:
             # Backward compatibility: support single file via -i/--input from add_input_output_args.
-            _LOG.debug("Using -i/--input option (single file, backward compatibility)")
+            _LOG.debug(
+                "Using -i/--input option (single file, backward compatibility)"
+            )
             file_list = [args.input]
     else:
         # No file specified.
