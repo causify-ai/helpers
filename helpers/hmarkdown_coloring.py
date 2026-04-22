@@ -3,7 +3,7 @@ Utilities for colorizing markdown and LaTeX text with color commands.
 
 Import as:
 
-import helpers.hmarkdown_coloring as hmarkcoloring
+import helpers.hmarkdown_coloring as hmarcolo
 """
 
 import logging
@@ -137,7 +137,9 @@ def process_color_commands(in_line: str) -> str:
             return ret
 
         # Replace the color command with the LaTeX color command.
-        in_line = re.sub(pattern, lambda m: _replacement(m, latex_color), in_line)
+        in_line = re.sub(
+            pattern, lambda m: _replacement(m, latex_color), in_line
+        )
     return in_line
 
 
@@ -243,8 +245,9 @@ def colorize_bullet_points_in_slide(
         else:
             colors = all_md_colors[:num_bolds]
     _LOG.debug("colors=%s", colors)
-    hdbg.dassert_lte(num_bolds, len(colors),
-        "Number of bold items exceeds available colors")
+    hdbg.dassert_lte(
+        num_bolds, len(colors), "Number of bold items exceeds available colors"
+    )
     color_idx = 0
     txt_out = []
     for line in lines:
@@ -255,11 +258,17 @@ def colorize_bullet_points_in_slide(
             """
             nonlocal color_idx
             text = match.group(1)
-            hdbg.dassert_lte(color_idx, len(colors),
-                "Color index out of bounds; not enough colors assigned")
+            hdbg.dassert_lte(
+                color_idx,
+                len(colors),
+                "Color index out of bounds; not enough colors assigned",
+            )
             color_to_use = colors[color_idx]
-            hdbg.dassert_in(color_to_use, get_md_colors_latex_mapping(),
-                "Selected color is not in the color mapping")
+            hdbg.dassert_in(
+                color_to_use,
+                get_md_colors_latex_mapping(),
+                "Selected color is not in the color mapping",
+            )
             latex_color = get_md_colors_latex_mapping()[color_to_use]
             color_idx += 1
             if use_abbreviations:

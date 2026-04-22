@@ -320,9 +320,9 @@ def report_zero_nan_inf_stats(
     num_rows = df.shape[0]
     _LOG.log(dbg_log_level, "num_rows=%s", hprint.thousand_separator(num_rows))
     _LOG.log(dbg_log_level, "data=")
-    import helpers.hpandas_display as hpanddis
+    import helpers.hpandas_display as hpandisp
 
-    hpanddis.display_df(df, as_txt=as_txt, log_level=dbg_log_level)
+    hpandisp.display_df(df, as_txt=as_txt, log_level=dbg_log_level)
     # Compute date-based stats only if index is datetime.
     if isinstance(df.index, pd.DatetimeIndex):
         # TODO(gp): Can we do this faster?
@@ -451,7 +451,6 @@ def explore_dataframe(
     df: pd.DataFrame,
     *,
     show_distributions: bool = False,
-    #num_top_cols: int = 6,
     show_correlations: bool = False,
     zero_threshold: float = 1e-9,
     dbg_log_level: int = logging.DEBUG,
@@ -466,8 +465,6 @@ def explore_dataframe(
     :param df: Input dataframe to analyze
     :param show_distributions: If True, plots distributions of top-variability
         columns in a 3-column grid
-    :param num_top_cols: Number of columns with highest variability to plot
-        (only used if show_distributions=True)
     :param show_correlations: If True, displays correlation matrix as a heatmap
     :param zero_threshold: Threshold for classifying values as "zero" in
         quality report
@@ -479,7 +476,9 @@ def explore_dataframe(
 
     hdbg.dassert_lt(0, len(df), "Dataframe is empty")
     # Compute and display data quality statistics.
-    stats_df = report_zero_nan_inf_stats(df, zero_threshold=zero_threshold, dbg_log_level=dbg_log_level)
+    stats_df = report_zero_nan_inf_stats(
+        df, zero_threshold=zero_threshold, dbg_log_level=dbg_log_level
+    )
     # Add information about the number of unique values and percentage of unique values for each column.
     unique_stats_df = _get_unique_values_stats(df)
     stats_df = pd.concat([stats_df, unique_stats_df], axis=1)
@@ -495,7 +494,6 @@ def explore_dataframe(
             if len(numeric_cols) > 0:
                 # Compute standard deviation and select top columns.
                 std_vals = df[numeric_cols].std().sort_values(ascending=False)
-                #num_to_plot = min(num_top_cols, len(numeric_cols))
                 num_to_plot = len(numeric_cols)
                 top_cols = std_vals.head(num_to_plot).index.tolist()
                 # Create grid of subplots.
@@ -510,7 +508,6 @@ def explore_dataframe(
                     col_data = df[col].dropna()
                     weights = np.ones_like(col_data) / len(col_data) * 100
                     ax.hist(col_data, bins=30, weights=weights, edgecolor="k")
-                    #ax.set_title(f"{col} (std={std_vals[col]:.2f})")
                     ax.set_title(col)
                     ax.set_xlabel("Value")
                     ax.set_ylabel("Percentage [%]")

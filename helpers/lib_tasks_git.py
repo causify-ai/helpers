@@ -68,7 +68,7 @@ def _add_write_perm_to_symlink(dir: str) -> None:
                 path,
                 mode | _SYMLINK_WRITE_BITS,
             )
-        except OSError as exc:
+        except OSError:
             hdbg.dassert(
                 False,
                 "Failed to add write permissions to symlink; manual intervention may be needed",
@@ -92,7 +92,7 @@ def _remove_write_perm_from_symlink(dir: str) -> None:
                 path,
                 mode & ~_SYMLINK_WRITE_BITS,
             )
-        except OSError as exc:
+        except OSError:
             hdbg.dassert(
                 False,
                 "Failed to remove write permissions from symlink; manual intervention may be needed",
@@ -846,7 +846,9 @@ def _git_diff_with_branch(
         cmd.append(f"--diff-filter={diff_type}")
     cmd.append(f"--name-only HEAD {hash_}")
     cmd = " ".join(cmd)
-    files = hsystem.system_to_files(cmd, dir_name, remove_files_non_present=False)
+    files = hsystem.system_to_files(
+        cmd, dir_name, remove_files_non_present=False
+    )
     files = sorted(files)
     _LOG.debug("%s", "\n".join(files))
     # Filter to a single specific file if requested.
@@ -1096,11 +1098,7 @@ def git_branch_diff_with(  # type: ignore
     """
     # Determine the comparison target based on user preference.
     dir_name = "."
-    hdbg.dassert_in(
-        target,
-        ("base", "master", "head", "hash"),
-        "Invalid target"
-    )
+    hdbg.dassert_in(target, ("base", "master", "head", "hash"), "Invalid target")
     # Resolve target to a specific git hash for consistent diffing.
     if target == "base":
         # Compare against the point where this branch diverged from master.
@@ -1335,7 +1333,8 @@ def git_backup(
         submodule_paths = _get_submodule_paths()
         if submodule_paths:
             _LOG.info(
-                "Found %d submodule(s), collecting files...", len(submodule_paths)
+                "Found %d submodule(s), collecting files...",
+                len(submodule_paths),
             )
             for submodule_path in submodule_paths:
                 hdbg.dassert_dir_exists(
