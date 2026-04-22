@@ -1,23 +1,24 @@
 ---
-description: Add academic references to slides
+description: Enrich a slide with references to academic papers and books
 ---
 
-Act as a senior academic researcher in Data Science, Machine Learning, Artificial
-Intelligence, and Computer Science.
+# Role
+- Your role is specified in `@.claude/skills/role.md`
 
-Your task is to review the content of the file with slides and add references
-to related material
+# Goal
+- Your task is to review the content of the file with slides and add references
+  to related material
 
-For each section at level 1 (#) and level 2 (##)
-- Add supporting academic references (papers, journals, conference papers,
-  books, or authoritative articles).
-  - Prefer sources from Google Scholar, arXiv, IEEE, ACM, Springer, Elsevier,
-    official documentation, and major tech research blogs.
-  - Add direct arXiv / free-access versions where available
-  - Include working URLs for each reference when possible
-  - Prefer recent references rather than old
+- For each section at level 1 (#) and level 2 (##)
+  - Add supporting academic references (papers, journals, conference papers,
+    books, or authoritative articles).
+    - Prefer sources from Google Scholar, arXiv, IEEE, ACM, Springer, Elsevier,
+      official documentation, and major tech research blogs.
+    - Add direct arXiv / free-access versions where available
+    - Include working URLs for each reference when possible
+    - Prefer recent references rather than old
 
-Output format:
+# Output format
 - Add a comment before each line `//`
 - Print the references for books and articles
 - Use the format:
