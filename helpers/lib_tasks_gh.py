@@ -640,7 +640,7 @@ def gh_publish_buildmeister_dashboard_to_s3(ctx, mark_as_latest=True):  # type: 
         f"--notebook {notebook_path}",
         # The notebook does not require a config, so using a random dummy config.
         # TODO(Grisha): consider creating a separate config builder for the notebook.
-        "--config_builder 'datapull.optima.qa.qa_check.build_dummy_data_reconciliation_config()'",
+        "--config_builder 'datapull.optima.common.qa.qa_check.build_dummy_data_reconciliation_config()'",
         f"--dst_dir '{dst_local_dir}'",
         "--publish",
         "--num_threads serial",
@@ -1106,9 +1106,9 @@ def get_workflow_run_ids(
         #   Only runs where created_at timestamp < cutoff are selected
         cutoff_seconds = older_than_days * 86400
         # Log the cutoff date for debugging.
-        cutoff_date = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
-            days=older_than_days
-        )
+        cutoff_date = datetime.datetime.now(
+            datetime.timezone.utc
+        ) - datetime.timedelta(days=older_than_days)
         _LOG.debug("Filtering runs created before: %s", cutoff_date.isoformat())
         jq_filter = (
             f".workflow_runs[] | "
