@@ -1367,7 +1367,7 @@ def get_previous_committed_files(
     """
     cmd = []
     cmd.append('git show --pretty="" --name-only')
-    cmd.append(f"$(git log --author $(git config user.name) -{num_commits}")
+    cmd.append(f'$(git log --author "$(git config user.name)" -{num_commits}')
     cmd.append(r"""| \grep "^commit " | perl -pe 's/commit (.*)/$1/')""")
     cmd_as_str = " ".join(cmd)
     files: List[str] = hsystem.system_to_files(

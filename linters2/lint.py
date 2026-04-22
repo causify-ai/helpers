@@ -132,13 +132,11 @@ def _lint_markdown(
     if not file_paths:
         return 0
     _LOG.info("Linting %d Markdown files", len(file_paths))
-    ret = 0
-    for file_path in file_paths:
-        _LOG.debug("Linting markdown: %s", file_path)
-        ret |= hsystem.system(
-            f"dev_scripts_helpers/documentation/lint_txt.py -i {file_path}",
-            abort_on_error=abort_on_error,
-        )
+    files_str = " ".join(file_paths)
+    ret = hsystem.system(
+        f"dev_scripts_helpers/documentation/lint_txt.py -i {files_str}",
+        abort_on_error=abort_on_error,
+    )
     return ret
 
 
@@ -264,6 +262,11 @@ def _parse() -> argparse.ArgumentParser:
         action="store_true",
         help="Abort on first linting error (default: collect all errors and exit with combined code)",
     )
+    parser.add_argument(
+        "--dry_run",
+        action="store_true",
+        help="Only select files without processing them (print list of files)",
+    )
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -314,6 +317,12 @@ def _main(args: argparse.Namespace) -> int:
         ipynb=args.ipynb,
         md=args.md,
     )
+    # If dry_run, print files and exit.
+    if args.dry_run:
+        all_files = python_files + jupyter_files + markdown_files
+        for f in all_files:
+            print(f)
+        return 0
     # Lint each file type and collect return codes.
     ret = 0
     if python_files:
