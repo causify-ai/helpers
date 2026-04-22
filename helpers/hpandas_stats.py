@@ -451,7 +451,7 @@ def explore_dataframe(
     df: pd.DataFrame,
     *,
     show_distributions: bool = False,
-    num_top_cols: int = 6,
+    #num_top_cols: int = 6,
     show_correlations: bool = False,
     zero_threshold: float = 1e-9,
     dbg_log_level: int = logging.DEBUG,
@@ -490,12 +490,13 @@ def explore_dataframe(
     # Plot distributions if requested.
     if hsystem.is_running_in_ipynb():
         if show_distributions:
+            _LOG.info("Univariate distributions:")
             numeric_cols = df.select_dtypes(include="number").columns.tolist()
             if len(numeric_cols) > 0:
                 # Compute standard deviation and select top columns.
-                std_vals = cast(pd.Series, df[numeric_cols].std())
-                std_vals = std_vals.sort_values(ascending=False)
-                num_to_plot = min(num_top_cols, len(numeric_cols))
+                std_vals = df[numeric_cols].std().sort_values(ascending=False)
+                #num_to_plot = min(num_top_cols, len(numeric_cols))
+                num_to_plot = len(numeric_cols)
                 top_cols = std_vals.head(num_to_plot).index.tolist()
                 # Create grid of subplots.
                 import helpers.hmatplotlib as hmatplo
@@ -509,16 +510,19 @@ def explore_dataframe(
                     col_data = df[col].dropna()
                     weights = np.ones_like(col_data) / len(col_data) * 100
                     ax.hist(col_data, bins=30, weights=weights, edgecolor="k")
-                    ax.set_title(f"{col} (std={std_vals[col]:.2f})")
+                    #ax.set_title(f"{col} (std={std_vals[col]:.2f})")
+                    ax.set_title(col)
                     ax.set_xlabel("Value")
                     ax.set_ylabel("Percentage [%]")
                 plt.tight_layout()
+                plt.show()
         # Display correlation matrix if requested.
         if show_correlations:
             numeric_df = df.select_dtypes(include="number")
             if len(numeric_df.columns) >= 2:
                 corr_matrix = numeric_df.corr()
                 _LOG.info("Correlation matrix:")
+                # TODO(gp): Improve the plot changing the number of digits.
                 corr_heatmap = heatmap_df(corr_matrix)
                 display(corr_heatmap)
     if hsystem.is_running_in_ipynb():
