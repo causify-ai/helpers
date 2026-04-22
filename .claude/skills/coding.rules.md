@@ -98,6 +98,49 @@ This file contains all the conventions for Python coding rules.
       pass
     ```
 
+- When there are multiple values for an input or an output variable
+  format them as a list:
+  - **Bad**
+    ```python
+    :param interpolate_colors: If True, evenly space selected colors across
+      all bold items; if False, use a predefined sequence for common counts
+      (1-4 items get fixed color sets, more items cycle through all_md_colors)
+    :param all_md_colors: List of available colors to cycle through (defaults
+      to the curated list from get_md_colors())
+    ```
+  - **Good**:
+    ```python
+    :param use_abbreviations:
+       - If True, use abbreviated color syntax (e.g., `\red{foo}`)
+       - If False, use full LaTeX syntax (e.g., `\textcolor{red}{foo}`)
+    :param all_md_colors: List of available colors to cycle through
+        - Default: curated list from `get_md_colors()`
+    ```
+
+- An example of a good full docstring comment is
+  ```python
+  r"""
+  Colorize bold markdown items `**text**` with color commands.
+
+  Scans the text line-by-line for bold markdown items and wraps each in a
+  color command (e.g., `**\red{text}**`). Skips code blocks and tables to
+  preserve their formatting. Bold items are colored sequentially using the
+  provided color list.
+
+  :param txt: Markdown text containing bold items to colorize
+  :param use_abbreviations:
+      - If True, use abbreviated color syntax (e.g., `\red{foo}`)
+      - If False, use full LaTeX syntax (e.g., `\textcolor{red}{foo}`)
+  :param interpolate_colors:
+      - If True, evenly space selected colors across all bold items
+      - If False, use a predefined sequence for common counts (1-4 items get
+        fixed color sets, more items cycle through all_md_colors)
+  :param all_md_colors: List of available colors to cycle through
+      - Default: curated list from `get_md_colors()`
+  :return: Markdown text with bold items wrapped in color commands
+  """
+  ```
+
 ## Use _LOG
 
 - Use `_LOG.info` instead of print, unless there is a comment explicitly saying
@@ -223,4 +266,16 @@ This file contains all the conventions for Python coding rules.
     """
 
     pattern = re.compile(quote_pattern, re.VERBOSE)
+    ```
+
+## Use verbatim to refer to functions and values
+
+- When referring to variables and functions in code use verbatim
+  - **Bad**
+    ```python
+    # Create a curated list from get_md_colors().
+    ```
+  - **Good**
+    ```python
+    # Create a curated list from `get_md_colors()`.
     ```

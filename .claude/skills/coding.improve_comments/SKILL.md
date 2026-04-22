@@ -70,6 +70,23 @@ Given the passed Python file
     # submodule.amp.path amp
     ```
 
+# Leave Some Comments Untouched
+- Do not remove TODOs, assertions, or other comment code, unless you are
+  sure they are redundant, wrong, or and useless
+  - Example to keep:
+    ```python
+    # Divide by 2 since we count the number of occurrences of `**`, while we
+    # want to count `**bold**` as 1.
+    # hdbg.dassert_eq(tot_bold % 2, 0, "tot_bold=%s needs to be even", tot_bold)
+    num_bolds = tot_bold // 2
+    ```
+  - Example to keep:
+    ```python
+    # TODO(gp): -> List[str]
+    # TODO(gp): Use hmarkdown.process_lines() and test it.
+    def colorize_bullet_points_in_slide(
+    ```
+
 # Assertions
 - For each `dassert_*()` assertion make sure there is a message explaining why
   the assertion is important
