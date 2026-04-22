@@ -5,7 +5,7 @@
 # Use the following symbols
 
 - `$\Pr(...)$` for probability, instead of `P(...)`
-- `$\EE[...]$` for expectation (mean), instead of `\mathbb{E}`
+- `$\EE[...]$` for expectation (mean), instead of `\mathbb{E}` or `E`
 - `$\VV[...]$` for variance, instead of `\mathbb{V}`
 - `$\mathcal{X}$` for sets or spaces (use calligraphic)
 - `\vx`, `\vy` for vectors
