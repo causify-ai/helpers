@@ -309,7 +309,7 @@ def _main(args: argparse.Namespace) -> int:
         last_commit=args.last_commit,
         branch=args.branch,
     )
-    _LOG.info("Selected %d files for linting", len(file_paths))
+    _LOG.info("Found %d files for linting", len(file_paths))
     # Filter by file type.
     python_files, jupyter_files, markdown_files = _filter_files_by_type(
         file_paths,
@@ -317,11 +317,12 @@ def _main(args: argparse.Namespace) -> int:
         ipynb=args.ipynb,
         md=args.md,
     )
+    all_files = python_files + jupyter_files + markdown_files
+    _LOG.info("Selected %d files for linting: %s", len(all_files),
+              "\n".join(all_files))
     # If dry_run, print files and exit.
     if args.dry_run:
-        all_files = python_files + jupyter_files + markdown_files
-        for f in all_files:
-            print(f)
+        _LOG.warning("Aborting as per user request")
         return 0
     # Lint each file type and collect return codes.
     ret = 0
