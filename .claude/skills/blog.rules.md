@@ -1,5 +1,7 @@
 This document contains all the rules that must be followed when writing a blog.
 
+# Blog Structure
+
 ## Front Matter (YAML)
 
 - Every blog post must start with YAML front matter enclosed in `---`:
@@ -40,7 +42,10 @@ This document contains all the rules that must be followed when writing a blog.
 - Always follow with `<!-- more -->` tag on a new line with a blank line before
   it
 
+# Writing Style and Tone
+
 ## Tone
+
 - Avoid slang and overly casual language
 - Maintain a professional and informative tone
 - Aim for approximately 800–1,200 words

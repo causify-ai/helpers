@@ -2,16 +2,18 @@
 description: Comprehensive formatting rules and conventions for creating lecture slides
 ---
 
-# Slide Formatting Conventions
+# Overview
 
 This document consolidates formatting rules and conventions for creating
 professional lecture slides for graduate-level courses.
 
-## Formatting
+# Formatting and Display Rules
+
+## General Formatting
 
 - Don't use emoji
 - Don't use page separators
-- Don't use unicode characters but use Latex symbols if needed
+- Don't use unicode characters but use LaTeX symbols if needed
   - Instead of → use `$\to$`
 
 ## Slide Format
@@ -20,18 +22,46 @@ professional lecture slides for graduate-level courses.
   ```
   * Slide title
   ```
-- Each slide contains bullet point arranged in a hierarchical structure
+- Each slide contains bullet points arranged in a hierarchical structure
   - Every line starts with a bullet point
   - Do not use period at the end of a phrase
-
-- Use italic and add quotes for questions
+- Use italic and add quotes for questions:
   ```
   - E.g., _"If we lower prices by 10%, will revenue increase?"_
   ```
 
-## Document Organization
+## Spacing and Visual Breaks
 
-### Section Structure
+- `\vspace{0.4cm}`: Small spacing between elements
+- `\vspace{1cm}`: Large spacing between major sections
+- Use comments (`//`) for internal notes (not rendered in output)
+- **Do NOT use page separators** (`---` markdown syntax)
+
+## Symbol and Character Rules
+
+**Do NOT use non-ASCII characters**. Use LaTeX instead:
+
+- ε → `$\varepsilon$`
+- → → `$\to$`
+- ∝ → `$\propto$`
+- ≈ → `$\approx$`
+- ∩ → `$\cap$`
+- ∪ → `$\cup$`
+
+## Font Size Changes
+
+- Group all font size changes with LaTeX:
+  ```markdown
+  \begingroup \large
+  Large text here
+  \endgroup
+  ```
+- Common size commands: `\large`, `\Large`, `\small`, `\scriptsize`
+
+# Document Organization
+
+## Section Structure
+
 - **Major sections** (start new page/major topic):
   ```markdown
   # ##############################################################################
@@ -56,6 +86,7 @@ professional lecture slides for graduate-level courses.
   ```
 
 ## Title Slide Format
+
 - Use this template for the first slide:
   ```markdown
   ::: columns
@@ -97,6 +128,8 @@ professional lecture slides for graduate-level courses.
   :::
   ```
 
+# Text and Content Styling
+
 ## Text Formatting
 
 - **Bold** (`**text**`): Use for key terms, definitions, and important concepts
@@ -104,36 +137,7 @@ professional lecture slides for graduate-level courses.
 - Inline code (`` `code` ``): Use for technical terms, function names, variable names
 - `\blue{text}`: Use for highlighting key concepts and titles in LaTeX contexts
 
-## Spacing and Visual Breaks
-
-- `\vspace{0.4cm}`: Small spacing between elements
-- `\vspace{1cm}`: Large spacing between major sections
-- Use comments (`//`) for internal notes (not rendered in output)
-- **Do NOT use page separators** (`---` markdown syntax)
-
-## Symbol and Character Rules
-
-**Do NOT use non-ASCII characters**. Use LaTeX instead:
-
-- ε → `$\varepsilon$`
-- → → `$\to$`
-- ∝ → `$\propto$`
-- ≈ → `$\approx$`
-- ∩ → `$\cap$`
-- ∪ → `$\cup$`
-
-## Font Size Changes
-
-- Group all font size changes with LaTeX:
-  ```markdown
-  \begingroup \large
-  Large text here
-  \endgroup
-  ```
-
-- Common size commands: `\large`, `\Large`, `\small`, `\scriptsize`
-
-## Mathematical Notation
+# Mathematical Notation
 
 ### Display Modes
 - **Inline math** (within text):
@@ -169,9 +173,9 @@ Use these commands consistently across all slides:
 - `\perp` - Independence (perpendicular symbol)
 - `\vx`, `\vy` - Vectors (if defined in preamble)
 
-## Visual Elements
+# Visual Elements and Diagrams
 
-### GraphViz Diagrams
+## GraphViz Diagrams
 - **When to use**: Flowcharts, networks, agent interactions, system
   relationships, process flows.
 
@@ -221,7 +225,7 @@ Use these commands consistently across all slides:
   }
   ```
 
-### Mermaid Diagrams
+## Mermaid Diagrams
 - **When to use**: Mind maps, hierarchical taxonomies, classification structures
 - **Mind map example**:
   ```mermaid
@@ -237,7 +241,7 @@ Use these commands consistently across all slides:
         SVM
   ```
 
-### Tables
+## Tables
 - Use markdown tables for structured data comparisons
   ```markdown
   \begingroup \scriptsize
@@ -248,7 +252,7 @@ Use these commands consistently across all slides:
   \endgroup
   ```
 
-### Side-by-Side Content
+## Side-by-Side Content
 - **For symmetric content** (two equal columns):
   ```markdown
   ::: columns
@@ -281,9 +285,10 @@ Use these commands consistently across all slides:
   :::
   ```
 
-## Slide Format Templates
+# Slide Format Templates
 
-### Definition Slide
+## Definition Slide
+
 - Use for introducing a new concept or term.
   ```markdown
   * <Term>: Definition
@@ -319,7 +324,7 @@ Use these commands consistently across all slides:
     image datasets without being programmed with cat detection rules
   ```
 
-### Example Slide
+## Example Slide
 - Use for illustrating a concept with a structured walkthrough.
   ```markdown
   * <Topic>: Example
@@ -500,9 +505,9 @@ Use these commands consistently across all slides:
   - **Key takeaway**: [what students should learn from this]
   ```
 
-## Content Guidelines
+# Content Guidelines
 
-### When to Use Each Element
+## When to Use Each Element
 | Element      | When to Use                                    | Example                             |
 | ------------ | ---------------------------------------------- | ----------------------------------- |
 | GraphViz     | System diagrams, workflows, agent interactions | Agent-Environment loop, ML pipeline |
@@ -513,14 +518,14 @@ Use these commands consistently across all slides:
 | Inline math  | Within sentences, simple expressions           | Variable definitions                |
 | Images       | Real-world examples, photos                    | Book covers, system screenshots     |
 
-### Engagement Strategies
+## Engagement Strategies
 - **Open with motivation**: "Why does this matter?"
 - **Use questions**: Mark rhetorical questions with `**Question**:`
 - **Ground in examples**: Always include "**Example**:" with concrete scenarios
 - **Reference prior knowledge**: "As we saw in [previous topic]..."
 - **Contrast approaches**: Show what doesn't work vs. what does
 
-### Slide Density Guidelines
+## Slide Density Guidelines
 - **Maximum 5-7 bullet points** per slide (excluding sub-points)
 - **Maximum 2-3 lines** per bullet point
 - Use diagrams instead of long text descriptions

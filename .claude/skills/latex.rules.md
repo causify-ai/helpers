@@ -1,9 +1,10 @@
-- This file contains rule and conventions for writing Latex formulas
+This file contains rules and conventions for writing LaTeX formulas.
 
-- Include latex formula in $$ $$ instead of `\[` and `\]`
+# Mathematical Symbols and Notation
 
-# Use the following symbols
+## Symbol Conventions
 
+- Include LaTeX formulas in `$$ $$` instead of `\[` and `\]`
 - `$\Pr(...)$` for probability, instead of `P(...)`
 - `$\EE[...]$` for expectation (mean), instead of `\mathbb{E}` or `E`
 - `$\VV[...]$` for variance, instead of `\mathbb{V}`
@@ -13,9 +14,11 @@
 - `|` instead of `\mid` 
 - Do not use `\left[`, `\left(`, `\right]`, `\right)` unless necessary
 
-# Format
+# Formula Formatting
 
-- Format the latex code on multiple lines to be easy to read
+## Multi-line Layout
+
+- Format the LaTeX code on multiple lines to be easy to read
   - **Bad**
     $$\hat{ATE} = \frac{1}{N}\sum(({Y_{i}-Y_{jm}(i)})T_{i} + ({Y_{jm}(i)-Y_{i}})(1-T_{i}))$$
   - **Good**
@@ -27,9 +30,11 @@
     )
     $$
 
-# Step 1: Convert mathematical formulas
+# Converting Mathematical Formulas
 
-- Convert mathematical formulas to Latex without changing their meaning
+## Conversion Guidelines
+
+- Convert mathematical formulas to LaTeX without changing their meaning
   and formatting so that they are easily readable
   - **Bad**
     ```

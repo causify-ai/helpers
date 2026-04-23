@@ -1,12 +1,31 @@
 This file contains all the conventions for Python coding rules.
 
+# Platform and Environment
+
 ## Only Linux and MacOS
 
 - Assume the script needs to run only on Linux and MacOS
 
+# Code Style and Structure
+
 ## Follow the Coding Style from the Template
 
 - Use the coding style in @docs/ai_templates/code_template.py
+
+## Use * for Default Parameters
+
+- Use `*` to mark which parameters in functions should be default parameters
+
+## Mark Private Functions
+
+- If you create a new function which it is used only in the file make it private
+  by starting the name with `_`
+
+## Remove Empty Lines
+
+- Remove empty lines inside functions so that the code is compact
+
+# Assertions and Error Handling
 
 ## Use Assertions From `helpers/hdbg.py`
 
@@ -62,6 +81,11 @@ This file contains all the conventions for Python coding rules.
     )
     ```
 
+## Do not use try-except
+
+- Do not use try except to recover errors but let statements raise their own
+  errors
+
 ## Use `hsystem`
 
 - Use code in `helpers/hsystem.py` to call commands
@@ -79,7 +103,10 @@ This file contains all the conventions for Python coding rules.
     hsystem.system("which llm", suppress_output=True)
     ```
 
+# Documentation and Comments
+
 ## Use REST Style for Comments
+
 - Use REST comments in docstrings
 
 - If the comment is only one line, still convert it to
@@ -141,6 +168,13 @@ This file contains all the conventions for Python coding rules.
   """
   ```
 
+## Add Comments
+
+- Use comments to separate chunks of code
+- Use periods at the end of all comments
+
+# Logging
+
 ## Use _LOG
 
 - Use `_LOG.info` instead of print, unless there is a comment explicitly saying
@@ -149,23 +183,7 @@ This file contains all the conventions for Python coding rules.
   issues
   - Always use lazy % formatting in logging functions
 
-## Do not use try-except
-- Do not use try except to recover errors but let statements raise their own
-  errors
-
-## Use * for Default Parameters
-- Use `*` to mark which parameters in functions should be default parameters
-
-## Mark Private Functions
-- If you create a new function which it is used only in the file make it private
-  by starting the name with `_`
-
-## Remove Empty Lines
-- Remove empty lines inside functions so that the code is compact
-
-## Add Comments
-- Use comments to separate chunks of code
-- Use periods at the end of all comments
+# Script Development
 
 ## Use Script Template
 
@@ -181,7 +199,8 @@ This file contains all the conventions for Python coding rules.
 
 ## Script Shebang and Dependencies
 
-- For scripts with external package dependencies, use the `uv run` shebang with inline script dependencies:
+- For scripts with external package dependencies, use the `uv run` shebang with
+  inline script dependencies:
   ```python
   #!/usr/bin/env -S uv run
 
@@ -205,6 +224,7 @@ This file contains all the conventions for Python coding rules.
   ```
 
 ## Use Action Idiom
+
 - When using `--action`
 
   ```python
@@ -225,23 +245,30 @@ This file contains all the conventions for Python coding rules.
 - Use only underscores as separators in command line arguments, not dashes
 - Good: `--cache_reset`, `--max_iterations`, `--output_dir`
 - Bad: `--cache-reset`, `--max-iterations`, `--output-dir`
-- This applies to both long-form argument names and the attribute names assigned by argparse (which converts `_` to `_` in the namespace)
+- This applies to both long-form argument names and the attribute names assigned
+  by argparse (which converts `_` to `_` in the namespace)
 
 ## Create Dirs
+
 - If directory doesn't exist create it using `hio.create_dir`
   - If a `--from_scratch` option is requested, create the directory from scratch
 
 ## Temporary files
+
 - When using temporary files use files named
   `tmp.${name_of_script}.{function}.txt` to increase debuggability by inspecting
   files
   - No need to clean up files
 
+# Code Quality
+
 ## Use Progress Bar
+
 - When there are expensive for loop, use a progress bar using `tqdm` to track
   the progress
 
 ## Explain Complex Regex
+
 - When using complex regex, use comments and `re.VERBOSE`
   - **Bad**
     ```python

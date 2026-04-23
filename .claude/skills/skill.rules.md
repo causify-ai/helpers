@@ -1,6 +1,8 @@
 This document contains conventions and rules to create agentic skills.
 
-# Topic
+# Skills and Topics
+
+## Topic
 
 - All skills should refer to a specific "topic"
 
@@ -36,36 +38,7 @@ This document contains conventions and rules to create agentic skills.
   X_in_60_min
   ```
 
-## Rules file
-
-- Each topic might have a "rules" file, in the format `<topic>.rules.md` that
-  contains all the convention for that specific topic
-
-## Do not allow non-existing files
-- All references in the skills should be to existing files
-- If there is a non-existing reference try to find it
-
-## Notation for files
-- Enclose files into `...`
-  - **Bad**
-    ```
-    A file looks like @.claude/skills/markdown.format/SKILL.md
-    ```
-  - **Good**
-    ```
-    A file looks like `@.claude/skills/markdown.format/SKILL.md`
-    ```
-
-## Notation for variables
-- Variables should be referred as `<var>` and not `$var`
-  - **Bad**
-    ```
-    The variable $files ...
-    ```
-  - **Good**
-    ```
-    The variable `<files>` ...
-    ````
+# SKILL.md File Format
 
 ## SKILL.md Frontmatter
 
@@ -105,16 +78,44 @@ This document contains conventions and rules to create agentic skills.
 
 - Topics should be singular and lowercase
 
-## Referencing Rules Files
+## Content Structure for SKILL.md Files
 
-- Skills should defer to topic-specific rules files for conventions
-- Always reference the rules file at the top when applicable:
-  ```
-  - Format Python code according to the rules in `@.claude/skills/coding.rules.md`
-  ```
+Skills should be organized with clear sections:
 
-- If no rules file exists for a topic, create one before adding multiple skills
-  in that topic
+1. **Frontmatter**: YAML description
+2. **Introduction**: 1-2 sentences describing what the skill does
+3. **Main Sections**: Organized by topic area or workflow step
+4. **Examples**: Good/Bad patterns and concrete examples
+5. **Scope/Limitations** (if applicable): What the skill covers or doesn't cover
+
+- Use headers from `## ` down (skip `#` for section titles)
+- Keep sections focused and actionable
+
+# Writing Conventions
+
+## Notation for files
+
+- Enclose files into backticks with `@` prefix:
+  - **Bad**
+    ```
+    A file looks like @.claude/skills/markdown.format/SKILL.md
+    ```
+  - **Good**
+    ```
+    A file looks like `@.claude/skills/markdown.format/SKILL.md`
+    ```
+
+## Notation for variables
+
+- Variables should be referred as `<var>` and not `$var`
+  - **Bad**
+    ```
+    The variable $files ...
+    ```
+  - **Good**
+    ```
+    The variable `<files>` ...
+    ```
 
 ## Code Examples in Skills
 
@@ -133,49 +134,6 @@ This document contains conventions and rules to create agentic skills.
 
 - Provide reasoning for each example to help users understand the principle
 
-## Content Structure for SKILL.md Files
-
-Skills should be organized with clear sections:
-
-1. **Frontmatter**: YAML description
-2. **Introduction**: 1-2 sentences describing what the skill does
-3. **Main Sections**: Organized by topic area or workflow step
-4. **Examples**: Good/Bad patterns and concrete examples
-5. **Scope/Limitations** (if applicable): What the skill covers or doesn't cover
-
-- Use headers from `## ` down (skip `#` for section titles)
-- Keep sections focused and actionable
-
-## Cross-Referencing Skills
-
-- When a skill depends on understanding from another skill, reference it:
-  ```
-  - Follow the coding style conventions described in `@.claude/skills/coding.format/SKILL.md`
-  ```
-
-- Use backticks and full path with `@` prefix for clarity
-
-## When to Update Rules vs Creating Skills
-
-- **Create/update `.rules.md`** when documenting:
-  - Conventions and standards for a topic
-  - Principles that apply across multiple related tasks
-  - Decision criteria for formatting or style
-
-- **Create `.SKILL.md`** when documenting:
-  - A specific transformation or task
-  - Step-by-step instructions for a particular action
-  - Implementation guidance for achieving a specific output
-
-## Avoid Non-Existing File References
-
-- All file references in skills must point to existing files
-- Paths should be verifiable: `@.claude/skills/<topic>.<action>/SKILL.md`
-- If you reference a template or example, verify it exists:
-  ```bash
-  > find .claude -name "code_template.py" -o -name "*_template.*"
-  ```
-
 ## Language and Tone
 
 - Use direct, imperative language:
@@ -189,6 +147,61 @@ Skills should be organized with clear sections:
 
 - Make sure the file follows the markdown conventions in
   `@.claude/skills/markdown.rules.md`
+
+# File References and Validation
+
+## Rules file
+
+- Each topic might have a "rules" file, in the format `<topic>.rules.md` that
+  contains all the convention for that specific topic
+
+## Referencing Rules Files
+
+- Skills should defer to topic-specific rules files for conventions
+- Always reference the rules file at the top when applicable:
+  ```
+  - Format Python code according to the rules in `@.claude/skills/coding.rules.md`
+  ```
+
+- If no rules file exists for a topic, create one before adding multiple skills
+  in that topic
+
+## Cross-Referencing Skills
+
+- When a skill depends on understanding from another skill, reference it:
+  ```
+  - Follow the coding style conventions described in `@.claude/skills/coding.format/SKILL.md`
+  ```
+
+- Use backticks and full path with `@` prefix for clarity
+
+## Avoid Non-Existing File References
+
+- All file references in skills must point to existing files
+- Paths should be verifiable: `@.claude/skills/<topic>.<action>/SKILL.md`
+- If you reference a template or example, verify it exists:
+  ```bash
+  > find .claude -name "code_template.py" -o -name "*_template.*"
+  ```
+
+- All references in the skills should be to existing files
+- If there is a non-existing reference try to find it
+
+# Decision Guidelines
+
+## When to Update Rules vs Creating Skills
+
+- **Create/update `.rules.md`** when documenting:
+  - Conventions and standards for a topic
+  - Principles that apply across multiple related tasks
+  - Decision criteria for formatting or style
+
+- **Create `.SKILL.md`** when documenting:
+  - A specific transformation or task
+  - Step-by-step instructions for a particular action
+  - Implementation guidance for achieving a specific output
+
+# Quality Checklist
 
 ## Summary Checklist for New Skills
 
