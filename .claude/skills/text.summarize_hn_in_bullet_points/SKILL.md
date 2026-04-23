@@ -3,7 +3,7 @@ description: Summarize the discussion on Hacker News on a topic
 model: haiku
 ---
 
-For bullet point formatting rules, refer to `@.claude/skills/text.rules.bullet_points`
+For bullet point formatting rules, refer to `@.claude/skills/text.rules.bullet_points.md`
 
 ## Input
 
@@ -41,5 +41,11 @@ For bullet point formatting rules, refer to `@.claude/skills/text.rules.bullet_p
 
 - Do not output any comment on screen
 - Output the result in a file `hn.txt` without bold or other markdown formatting
-- Run `lint_txt.py -i hn.txt`
-- Run `cat hn.txt`
+- Run the command:
+  ```bash
+  > lint_txt.py -i hn.txt
+  ```
+- Run the command:
+  ```bash
+  > cat hn.txt
+  ```

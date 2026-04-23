@@ -39,7 +39,7 @@ description: Convert formulas in text to their Latex equivalent
 
 # Step 2: Convert symbols to Latex
 
-- Convert symbols into Latex ones, together with variables if needed→
+- Convert symbols into Latex ones, together with variables if needed:
   - **Bad**
     ```
     X → Y
@@ -60,7 +60,7 @@ description: Convert formulas in text to their Latex equivalent
 
 # Step 3: Lint the file
 
-- After the conversion run 
-  ```
-  > lint_txt.py -i $FILE
+- After the conversion run the command:
+  ```bash
+  > lint_txt.py -i <file>
   ```
