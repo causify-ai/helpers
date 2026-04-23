@@ -127,6 +127,8 @@ def get_env_var(env_var_name: str) -> str:
 # pylint: disable=too-many-branches,too-many-statements,too-many-arguments,too-many-locals
 def _system(
     cmd: str,
+    # TODO(ai_gp): Add the parameter to print the command and change all the callers.
+    # print_command: bool,
     abort_on_error: bool,
     suppress_error: Optional[Any],
     suppress_output: Union[bool, str],
@@ -206,12 +208,15 @@ def _system(
     try:
         stdout = subprocess.PIPE
         stderr = subprocess.STDOUT
+        if print_command:
+            _LOG.info("> %s", cmd)
         # We want to print the command line even if this module logging is disabled.
         # print("  ==> cmd=" + cmd)
         # TODO(gp): This seems not working properly and getting the logging
         # verbosity stuck.
         # with hloggin.set_level(_LOG, logging.DEBUG):
         #     _LOG.debug("> %s", cmd)
+        if 
         with subprocess.Popen(
             cmd,
             shell=True,
@@ -289,6 +294,8 @@ def _system(
 def system(
     cmd: str,
     *,
+    # TODO(ai_gp): Add the parameter to print the command and change all the callers.
+    # print_command: bool = False,
     abort_on_error: bool = True,
     suppress_error: Optional[Any] = None,
     suppress_output: Union[str, bool] = "ON_DEBUG_LEVEL",
@@ -358,6 +365,8 @@ def system(
 def system_to_string(
     cmd: str,
     *,
+    # TODO(ai_gp): Add the parameter to print the command and change all the callers.
+    # print_command: bool = False,
     abort_on_error: bool = True,
     suppress_output: Union[bool, str] = "ON_DEBUG_LEVEL",
     wrapper: Optional[Any] = None,

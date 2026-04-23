@@ -29,7 +29,15 @@ _LOG = logging.getLogger(__name__)
 
 
 _VALID_TYPES = ["research", "blog", "story", "skill"]
-_VALID_ACTIONS = ["list", "edit", "directory", "full_list", "describe", "types", "copy"]
+_VALID_ACTIONS = [
+    "list",
+    "edit",
+    "directory",
+    "full_list",
+    "describe",
+    "types",
+    "copy",
+]
 
 # #############################################################################
 # Helper functions
@@ -46,7 +54,9 @@ def _match_prefix(value: str, valid_options: List[str]) -> str:
     :return: the first matching option
     """
     value_lower = value.lower()
-    matches = [opt for opt in valid_options if opt.lower().startswith(value_lower)]
+    matches = [
+        opt for opt in valid_options if opt.lower().startswith(value_lower)
+    ]
     hdbg.dassert_eq(
         len(matches),
         1,
@@ -475,7 +485,9 @@ def _action_types(
         _LOG.info("No markdown files found in %s", dir_)
 
 
-def _action_copy(type_: str, dir_: str, source_name: str, dest_name: str) -> None:
+def _action_copy(
+    type_: str, dir_: str, source_name: str, dest_name: str
+) -> None:
     """
     Copy a directory (for skills) or file (for other types) to a new location.
 

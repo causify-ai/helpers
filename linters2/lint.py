@@ -66,15 +66,21 @@ def _lint_python(
     ret = 0
     ret |= hsystem.system(
         f"pre-commit run --files {files_str}",
+        print_output=True,
         abort_on_error=abort_on_error,
+        suppress_output=False,
     )
     ret |= hsystem.system(
         f"linters2/normalize_import.py {files_str}",
+        print_output=True,
         abort_on_error=abort_on_error,
+        suppress_output=False,
     )
     ret |= hsystem.system(
         f"linters2/add_class_frames.py {files_str}",
+        print_output=True,
         abort_on_error=abort_on_error,
+        suppress_output=False,
     )
     return ret
 
@@ -98,21 +104,29 @@ def _lint_jupyter(
     ret = 0
     ret |= hsystem.system(
         f"pre-commit run --files {files_str}",
+        print_output=True,
         abort_on_error=abort_on_error,
+        suppress_output=False,
     )
     ret |= hsystem.system(
         f"linters2/normalize_import.py {files_str}",
+        print_output=True,
         abort_on_error=abort_on_error,
+        suppress_output=False,
     )
     ret |= hsystem.system(
         f"linters2/add_class_frames.py {files_str}",
+        print_output=True,
         abort_on_error=abort_on_error,
+        suppress_output=False,
     )
     for file_path in file_paths:
         _LOG.debug("Syncing jupytext: %s", file_path)
         ret |= hsystem.system(
             f"jupytext --sync {file_path}",
+            print_output=True,
             abort_on_error=abort_on_error,
+            suppress_output=False,
         )
     return ret
 
@@ -133,9 +147,13 @@ def _lint_markdown(
         return 0
     _LOG.info("Linting %d Markdown files", len(file_paths))
     files_str = " ".join(file_paths)
+    # TODO(ai_gp): Find the script in the Git repo instead of hardwiring the
+    # path.
     ret = hsystem.system(
         f"dev_scripts_helpers/documentation/lint_txt.py -i {files_str}",
+        print_output=True,
         abort_on_error=abort_on_error,
+        suppress_output=False,
     )
     return ret
 
@@ -318,8 +336,9 @@ def _main(args: argparse.Namespace) -> int:
         md=args.md,
     )
     all_files = python_files + jupyter_files + markdown_files
-    _LOG.info("Selected %d files for linting: %s", len(all_files),
-              "\n".join(all_files))
+    _LOG.info(
+        "Selected %d files for linting: %s", len(all_files), "\n".join(all_files)
+    )
     # If dry_run, print files and exit.
     if args.dry_run:
         _LOG.warning("Aborting as per user request")
