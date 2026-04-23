@@ -5,12 +5,14 @@
   approximately 30 minutes of reading time, covering its purpose, basic usage,
   and practical examples.
 
-## Format
+# Overview and Format
 
 - Follow the format and conventions in:
   - `@.claude/skills/blog.rules.md`
   - `@.claude/skills/markdown.rules.md`
   - `@.claude/skills/text.rules.bullet_points.md`
+
+# Document Structure
 
 ## Typical Section Order
 
@@ -29,7 +31,7 @@
 13. Integration Sections
 14. Comparison Tables
 
-## Document Structure
+## Content Organization
 
 - **Introduction**: Explain why the tool matters and the problem it solves
   - Use bullet points to highlight main benefits
@@ -82,7 +84,7 @@
   - Include performance metrics when available
   - Format: `| Feature | Tool Name | Competitor |`
 
-## Writing Style and Formatting
+# Writing Style and Formatting
 
 - **Code blocks**: All code blocks must have language tags (e.g., `bash`,
   `python`, `yaml`, `toml`)
@@ -127,6 +129,8 @@
   - Use ellipsis (`…`) or `...` for truncated output
   - Provide context before code blocks
   - Demonstrate both success and error cases when instructive
+
+# Content and Output Guidelines
 
 ## Content Guidelines
 
