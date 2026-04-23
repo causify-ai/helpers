@@ -27,6 +27,15 @@ Examples:
 
 # Lint markdown in modified files
 > lint.py --modified --md
+
+# Run only specific actions on modified files (pre-commit and normalize_import)
+> lint.py --modified --action pre-commit normalize_import
+
+# Run only jupytext sync on Jupyter notebooks
+> lint.py --modified --ipynb --action sync_jupytext
+
+# Run add_class_frames only on Python files
+> lint.py --modified --py --action add_class_frames
 """
 
 import argparse
@@ -51,37 +60,45 @@ def _lint_python(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
+    actions: List[str] | None = None,
 ) -> int:
     """
-    Lint Python files using pre-commit, normalize_import, and add_class_frames.
+    Lint Python files using specified actions.
 
     :param file_paths: Python files to lint
     :param abort_on_error: whether to abort on first error
+    :param actions: list of actions to perform (pre-commit, normalize_import, add_class_frames);
+                   if None, all actions are performed
     :return: combined return code (OR of all command return codes)
     """
     if not file_paths:
         return 0
-    _LOG.info("Linting %d Python files", len(file_paths))
+    if actions is None:
+        actions = ["pre-commit", "normalize_import", "add_class_frames"]
+    _LOG.info("Linting %d Python files with actions: %s", len(file_paths), actions)
     files_str = " ".join(file_paths)
     ret = 0
-    ret |= hsystem.system(
-        f"pre-commit run --files {files_str}",
-        print_output=True,
-        abort_on_error=abort_on_error,
-        suppress_output=False,
-    )
-    ret |= hsystem.system(
-        f"linters2/normalize_import.py {files_str}",
-        print_output=True,
-        abort_on_error=abort_on_error,
-        suppress_output=False,
-    )
-    ret |= hsystem.system(
-        f"linters2/add_class_frames.py {files_str}",
-        print_output=True,
-        abort_on_error=abort_on_error,
-        suppress_output=False,
-    )
+    if "pre-commit" in actions:
+        ret |= hsystem.system(
+            f"pre-commit run --files {files_str}",
+            print_command=True,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
+        )
+    if "normalize_import" in actions:
+        ret |= hsystem.system(
+            f"linters2/normalize_import.py {files_str}",
+            print_command=True,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
+        )
+    if "add_class_frames" in actions:
+        ret |= hsystem.system(
+            f"linters2/add_class_frames.py {files_str}",
+            print_command=True,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
+        )
     return ret
 
 
@@ -89,45 +106,56 @@ def _lint_jupyter(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
+    actions: List[str] | None = None,
 ) -> int:
     """
-    Lint Jupyter notebooks (same as Python) then sync with jupytext.
+    Lint Jupyter notebooks with specified actions.
 
     :param file_paths: Jupyter notebook files to lint
     :param abort_on_error: whether to abort on first error
+    :param actions: list of actions to perform (pre-commit, normalize_import, add_class_frames, sync_jupytext);
+                   if None, all actions are performed
     :return: combined return code (OR of all command return codes)
     """
     if not file_paths:
         return 0
-    _LOG.info("Linting %d Jupyter notebooks", len(file_paths))
+    # TODO(ai_gp): Factor common code with _lint_python.
+    if actions is None:
+        actions = ["pre-commit", "normalize_import", "add_class_frames", "sync_jupytext"]
+    _LOG.info("Linting %d Jupyter notebooks with actions: %s", len(file_paths), actions)
     files_str = " ".join(file_paths)
     ret = 0
-    ret |= hsystem.system(
-        f"pre-commit run --files {files_str}",
-        print_output=True,
-        abort_on_error=abort_on_error,
-        suppress_output=False,
-    )
-    ret |= hsystem.system(
-        f"linters2/normalize_import.py {files_str}",
-        print_output=True,
-        abort_on_error=abort_on_error,
-        suppress_output=False,
-    )
-    ret |= hsystem.system(
-        f"linters2/add_class_frames.py {files_str}",
-        print_output=True,
-        abort_on_error=abort_on_error,
-        suppress_output=False,
-    )
-    for file_path in file_paths:
-        _LOG.debug("Syncing jupytext: %s", file_path)
+
+    if "pre-commit" in actions:
         ret |= hsystem.system(
-            f"jupytext --sync {file_path}",
-            print_output=True,
+            f"pre-commit run --files {files_str}",
+            print_command=True,
             abort_on_error=abort_on_error,
             suppress_output=False,
         )
+    if "normalize_import" in actions:
+        ret |= hsystem.system(
+            f"linters2/normalize_import.py {files_str}",
+            print_command=True,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
+        )
+    if "add_class_frames" in actions:
+        ret |= hsystem.system(
+            f"linters2/add_class_frames.py {files_str}",
+            print_command=True,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
+        )
+    if "sync_jupytext" in actions:
+        for file_path in file_paths:
+            _LOG.debug("Syncing jupytext: %s", file_path)
+            ret |= hsystem.system(
+                f"jupytext --sync {file_path}",
+                print_command=True,
+                abort_on_error=abort_on_error,
+                suppress_output=False,
+            )
     return ret
 
 
@@ -147,11 +175,10 @@ def _lint_markdown(
         return 0
     _LOG.info("Linting %d Markdown files", len(file_paths))
     files_str = " ".join(file_paths)
-    # TODO(ai_gp): Find the script in the Git repo instead of hardwiring the
-    # path.
+    lint_txt_script = hsystem.find_file_in_repo("lint_txt.py")
     ret = hsystem.system(
-        f"dev_scripts_helpers/documentation/lint_txt.py -i {files_str}",
-        print_output=True,
+        f"{lint_txt_script} -i {files_str}",
+        print_command=True,
         abort_on_error=abort_on_error,
         suppress_output=False,
     )
@@ -270,6 +297,14 @@ def _parse() -> argparse.ArgumentParser:
     )
     # Other options.
     parser.add_argument(
+        "--action",
+        nargs="+",
+        type=str,
+        choices=["pre-commit", "normalize_import", "add_class_frames", "sync_jupytext"],
+        help="Specific actions to perform (default: all applicable actions). "
+             "For Jupyter files, sync_jupytext is available; for Python files, only the first three.",
+    )
+    parser.add_argument(
         "--skip_files",
         nargs="+",
         type=str,
@@ -349,11 +384,13 @@ def _main(args: argparse.Namespace) -> int:
         ret |= _lint_python(
             python_files,
             abort_on_error=args.abort_on_error,
+            actions=args.action,
         )
     if jupyter_files:
         ret |= _lint_jupyter(
             jupyter_files,
             abort_on_error=args.abort_on_error,
+            actions=args.action,
         )
     if markdown_files:
         ret |= _lint_markdown(
