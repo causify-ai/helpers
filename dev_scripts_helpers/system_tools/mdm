@@ -29,8 +29,9 @@ Actions
 Usage:
   mdm <type> <action> [names...]
     type:   research, blog, story, skill (prefix matching supported)
-    action: list, full_list, edit, directory, describe (supports prefix matching)
-    names:  optional for 'list' action (filter pattern), multiple allowed for 'edit'
+    action: list, full_list, edit, directory, describe, copy (supports prefix matching)
+    names:  optional for 'list' action (filter pattern), multiple allowed for 'edit',
+            required for 'copy' action (source dest)
 
 Usage Examples
 - List all skills (shows skill names only)
@@ -44,6 +45,9 @@ Usage Examples
 
 - Edit or create a blog post (creates with YAML template if new)
   mdm blog edit My_Post
+
+- Copy a skill from source to destination
+  mdm skill copy coding.fix_bloated_imports coding.fix_empty_lines
 
 - Print the research ideas directory path
   mdm research directory
@@ -60,6 +64,7 @@ Type and action arguments support prefix matching (first match wins):
 - `d` matches `describe` or `directory` (first match)
 - `e` matches `edit`
 - `t` matches `types`
+- `c` matches `copy`
 
 Templates
 - When creating a new file with the `edit` action, `mdm` automatically generates
@@ -116,9 +121,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     logging.basicConfig(level=args.log_level)
     type_ = devmduti._match_prefix(args.type, devmduti._VALID_TYPES)
     action = devmduti._match_prefix(args.action, devmduti._VALID_ACTIONS)
-    # For non-edit actions, use first name as pattern if available.
+    # For non-edit/copy actions, use first name as pattern if available.
     pattern = None
-    if args.names:
+    if args.names and action not in ("edit", "copy"):
         pattern = devmduti._normalize_name(args.names[0])
     dir_ = devmduti._get_directory(type_)
     if action == "list":
@@ -138,6 +143,15 @@ def _main(parser: argparse.ArgumentParser) -> None:
         # Normalize all names.
         normalized_names = [devmduti._normalize_name(name) for name in args.names]
         devmduti._action_edit(type_, dir_, normalized_names)
+    elif action == "copy":
+        hdbg.dassert_eq(
+            len(args.names),
+            2,
+            "Exactly 2 names required for copy action (source dest)",
+        )
+        source_name = devmduti._normalize_name(args.names[0])
+        dest_name = devmduti._normalize_name(args.names[1])
+        devmduti._action_copy(type_, dir_, source_name, dest_name)
     elif action == "directory":
         devmduti._action_directory(dir_)
     else:

@@ -12,6 +12,7 @@ import dev_scripts_helpers.system_tools.md_utils as dshstmdut
 import glob
 import logging
 import os
+import shutil
 from datetime import date
 from typing import List, Optional
 
@@ -28,7 +29,7 @@ _LOG = logging.getLogger(__name__)
 
 
 _VALID_TYPES = ["research", "blog", "story", "skill"]
-_VALID_ACTIONS = ["list", "edit", "directory", "full_list", "describe", "types"]
+_VALID_ACTIONS = ["list", "edit", "directory", "full_list", "describe", "types", "copy"]
 
 # #############################################################################
 # Helper functions
@@ -45,9 +46,7 @@ def _match_prefix(value: str, valid_options: List[str]) -> str:
     :return: the first matching option
     """
     value_lower = value.lower()
-    matches = [
-        opt for opt in valid_options if opt.lower().startswith(value_lower)
-    ]
+    matches = [opt for opt in valid_options if opt.lower().startswith(value_lower)]
     hdbg.dassert_eq(
         len(matches),
         1,
@@ -474,3 +473,35 @@ def _action_types(
             print(prefix)
     else:
         _LOG.info("No markdown files found in %s", dir_)
+
+
+def _action_copy(type_: str, dir_: str, source_name: str, dest_name: str) -> None:
+    """
+    Copy a directory (for skills) or file (for other types) to a new location.
+
+    For skills, copies the entire skill directory. For other types, copies
+    the file.
+
+    :param type_: the type (research, blog, story, skill)
+    :param dir_: the base directory for this type
+    :param source_name: name of source to copy
+    :param dest_name: name of destination
+    """
+    if type_ != "skill":
+        hdbg.dfatal("Copy action is only supported for skills")
+    source_dir = os.path.join(dir_, source_name)
+    dest_dir = os.path.join(dir_, dest_name)
+    hdbg.dassert_dir_exists(
+        source_dir,
+        f"Source skill '{source_name}' not found at {source_dir}",
+    )
+    hdbg.dassert(
+        not os.path.exists(dest_dir),
+        f"Destination skill '{dest_name}' already exists at {dest_dir}",
+    )
+    # Copy the directory recursively.
+    shutil.copytree(source_dir, dest_dir)
+    _LOG.info("Copied skill from '%s' to '%s'", source_name, dest_name)
+    # TODO(ai_gp): Use _LOG.info
+    print(f"Copied skill from '{source_name}' to '{dest_name}'")
+    print(f"New skill location: {dest_dir}")
