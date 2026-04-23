@@ -3,11 +3,6 @@ text.
 
 ## Formatting Guidelines
 
-### Every Document Has a Summary Header
-
-- Every document should have a summary paragraph with a header `# Summary` with
-  a short paragraph containing what's the content of the document
-
 ### Headers and Paragraphs
 
 - Use headers and paragraphs

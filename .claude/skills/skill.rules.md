@@ -9,31 +9,32 @@ This document contains conventions and rules to create agentic skills.
   > find .claude/skills -name "*.md" | sed 's|.claude/skills/||; s|\..*||' | sort | uniq
   ```
 
-## Example of topics
-
-bash
-blog
-book
-coding
-coding_qa
-cxo_slides
-demo
-docker
-git
-github
-graphviz
-gws
-markdown
-notebook
-paper
-readme
-skill
-slides
-testing
-text
-tikz
-tutorials
-X_in_60_min
+- Example of topics
+  ```
+  bash
+  blog
+  book
+  coding
+  coding_qa
+  cxo_slides
+  demo
+  docker
+  git
+  github
+  graphviz
+  gws
+  markdown
+  notebook
+  paper
+  readme
+  skill
+  slides
+  testing
+  text
+  tikz
+  tutorials
+  X_in_60_min
+  ```
 
 ## Rules file
 
@@ -64,6 +65,9 @@ X_in_60_min
   - **Good**
     ```
     The variable `<files>` ...
-    ```
+    ````
 
-- Make sure they follow the markdown conventions in markdown.rules.md
+## Markdown Conventions
+
+- Make sure the file follows the markdown conventions in
+  `.claude/skills/markdown.rules.md`
