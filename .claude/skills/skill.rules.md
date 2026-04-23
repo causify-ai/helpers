@@ -43,3 +43,27 @@ X_in_60_min
 ## Do not allow non-existing files
 - All references in the skills should be to existing files
 - If there is a non-existing reference try to find it
+
+## Notation for files
+- Enclose files into `...`
+  - **Bad**
+    ```
+    A file looks like @.claude/skills/markdown.format/SKILL.md
+    ```
+  - **Good**
+    ```
+    A file looks like `@.claude/skills/markdown.format/SKILL.md`
+    ```
+
+## Notation for variables
+- Variables should be referred as `<var>` and not `$var`
+  - **Bad**
+    ```
+    The variable $files ...
+    ```
+  - **Good**
+    ```
+    The variable `<files>` ...
+    ```
+
+- Make sure they follow the markdown conventions in markdown.rules.md
