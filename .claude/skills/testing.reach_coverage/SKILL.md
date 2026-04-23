@@ -63,6 +63,6 @@ plan-then-implement approach
   coverage.
 - All tests and code must strictly follow:
   - @.claude/skills/coding.rules.md for any Python code
-  - @.claude/skills/testing.format_rules/SKILL.md for tests
+  - @.claude/skills/testing.format/SKILL.md for tests
 - If any part of the task is unclear or underspecified, stop and ask for
   clarification before proceeding.

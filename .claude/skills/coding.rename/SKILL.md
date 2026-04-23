@@ -19,4 +19,4 @@ Make sure to update all the references to those objects in the code base
 - For Python code follow the rules in @.claude/skills/coding.rules.md
 
 - For Python code with unit tests, follow the rules in the rules from
-  @.claude/skills/testing.format_rules/SKILL.md
+  @.claude/skills/testing.format/SKILL.md

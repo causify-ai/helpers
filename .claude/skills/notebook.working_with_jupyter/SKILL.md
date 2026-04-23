@@ -37,7 +37,7 @@ description: Workflow for editing Jupyter notebooks using paired Python files
 ## Step 2: Edit Only the Python File
 
 - Modify only the .py file, never the .ipynb file directly
-- Follow all notebook formatting rules from `@.claude/skills/notebook.format_rules/SKILL.md`
+- Follow all notebook formatting rules from `@.claude/skills/notebook.format/SKILL.md`
 - Make changes to cell content, structure, and metadata through the .py file
 - Use the NotebookEdit tool on the paired .py file if needed
 

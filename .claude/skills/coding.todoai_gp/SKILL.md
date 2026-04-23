@@ -16,7 +16,7 @@ description: Implement all TODO(ai_gp) items in a file including renames, code u
   @.claude/skills/coding.rules.md
 
 - For a file storing unit tests (i.e., whose base name starts with `test_*.py`)
-  you must apply the rules from @.claude/skills/testing.format_rules/SKILL.md
+  you must apply the rules from @.claude/skills/testing.format/SKILL.md
 
 - For a notebook ipynb and its paired Python file, you MUST apply the rules from
-  @.claude/skills/notebook.format_rules/SKILL.md
+  @.claude/skills/notebook.format/SKILL.md

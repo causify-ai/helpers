@@ -56,27 +56,22 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-def _lint_python(
-    file_paths: List[str],
+def _run_linting_actions(
+    files_str: str,
     *,
     abort_on_error: bool = True,
     actions: List[str] | None = None,
 ) -> int:
     """
-    Lint Python files using specified actions.
+    Run common linting actions (pre-commit, normalize_import, add_class_frames).
 
-    :param file_paths: Python files to lint
+    :param files_str: Space-separated string of file paths
     :param abort_on_error: whether to abort on first error
-    :param actions: list of actions to perform (pre-commit, normalize_import, add_class_frames);
-                   if None, all actions are performed
+    :param actions: list of actions to perform; if None, all are performed
     :return: combined return code (OR of all command return codes)
     """
-    if not file_paths:
-        return 0
     if actions is None:
         actions = ["pre-commit", "normalize_import", "add_class_frames"]
-    _LOG.info("Linting %d Python files with actions: %s", len(file_paths), actions)
-    files_str = " ".join(file_paths)
     ret = 0
     if "pre-commit" in actions:
         ret |= hsystem.system(
@@ -102,6 +97,34 @@ def _lint_python(
     return ret
 
 
+def _lint_python(
+    file_paths: List[str],
+    *,
+    abort_on_error: bool = True,
+    actions: List[str] | None = None,
+) -> int:
+    """
+    Lint Python files using specified actions.
+
+    :param file_paths: Python files to lint
+    :param abort_on_error: whether to abort on first error
+    :param actions: list of actions to perform (pre-commit, normalize_import, add_class_frames);
+                   if None, all actions are performed
+    :return: combined return code (OR of all command return codes)
+    """
+    if not file_paths:
+        return 0
+    if actions is None:
+        actions = ["pre-commit", "normalize_import", "add_class_frames"]
+    _LOG.info("Linting %d Python files with actions: %s", len(file_paths), actions)
+    files_str = " ".join(file_paths)
+    return _run_linting_actions(
+        files_str,
+        abort_on_error=abort_on_error,
+        actions=actions,
+    )
+
+
 def _lint_jupyter(
     file_paths: List[str],
     *,
@@ -119,34 +142,15 @@ def _lint_jupyter(
     """
     if not file_paths:
         return 0
-    # TODO(ai_gp): Factor common code with _lint_python.
     if actions is None:
         actions = ["pre-commit", "normalize_import", "add_class_frames", "sync_jupytext"]
     _LOG.info("Linting %d Jupyter notebooks with actions: %s", len(file_paths), actions)
     files_str = " ".join(file_paths)
-    ret = 0
-
-    if "pre-commit" in actions:
-        ret |= hsystem.system(
-            f"pre-commit run --files {files_str}",
-            print_command=True,
-            abort_on_error=abort_on_error,
-            suppress_output=False,
-        )
-    if "normalize_import" in actions:
-        ret |= hsystem.system(
-            f"linters2/normalize_import.py {files_str}",
-            print_command=True,
-            abort_on_error=abort_on_error,
-            suppress_output=False,
-        )
-    if "add_class_frames" in actions:
-        ret |= hsystem.system(
-            f"linters2/add_class_frames.py {files_str}",
-            print_command=True,
-            abort_on_error=abort_on_error,
-            suppress_output=False,
-        )
+    ret = _run_linting_actions(
+        files_str,
+        abort_on_error=abort_on_error,
+        actions=actions,
+    )
     if "sync_jupytext" in actions:
         for file_path in file_paths:
             _LOG.debug("Syncing jupytext: %s", file_path)
@@ -207,7 +211,6 @@ def _filter_files_by_type(
     python_files = []
     jupyter_files = []
     markdown_files = []
-
     if not (py or ipynb or md):
         # No filters specified; categorize all files by type.
         for f in file_paths:

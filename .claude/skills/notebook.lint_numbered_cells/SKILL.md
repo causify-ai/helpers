@@ -4,7 +4,7 @@ description: Lint a Jupyter notebook and ensure cells are numbered consecutively
 
 - Given a Jupyter notebook passed on the command line, you must improve its
   appearance without changing its behavior using the rules from
-  @.claude/skills/notebook.format_rules/SKILL.md
+  @.claude/skills/notebook.format/SKILL.md
 
 # Workflow
 

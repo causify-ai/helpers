@@ -8,7 +8,7 @@ description: Implement Jupyter notebook from a script description
 
 # Conventions
 
-- Always use the conventions in @.claude/skills/notebook.format_rules/SKILL.md
+- Always use the conventions in @.claude/skills/notebook.format/SKILL.md
 
 # Save Code to the `*_utils.py`
 

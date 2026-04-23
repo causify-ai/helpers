@@ -12,7 +12,7 @@ description: Format a directory to follow the "Learn X in 60 Minutes" tutorial c
 
 # Step 1: Read the Spec and Reference
 
-- Read the spec in `class_project/X_in_60_mins.format_rules.md` 
+- Read the spec in `class_project/X_in_60_mins.format.md` 
 - Use as a reference of how a tutorial looks like
   - `tutorials/AutoGen` 
   - `tutorials/BambooAI` 
@@ -26,7 +26,7 @@ description: Format a directory to follow the "Learn X in 60 Minutes" tutorial c
 # Step 3: Improve Content of the Tutorial
 
 - Organize the content of the directory `tutorials/{XYZ}` following the
-  directions of `class_project/X_in_60_mins.format_rules.md` 
+  directions of `class_project/X_in_60_mins.format.md` 
 - Use as a reference of how a tutorial looks like
   - `tutorials/AutoGen` 
   - `tutorials/BambooAI` 
