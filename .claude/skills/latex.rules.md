@@ -1,6 +1,6 @@
-This file contains rules and conventions for writing LaTeX formulas.
+- This file contains rules and conventions for writing LaTeX formulas.
 
-# Mathematical Symbols and Notation
+# Symbols and Notation
 
 ## Symbol Conventions
 
@@ -30,7 +30,7 @@ This file contains rules and conventions for writing LaTeX formulas.
     )
     $$
 
-# Converting Mathematical Formulas
+# Converting Formulas
 
 ## Conversion Guidelines
 

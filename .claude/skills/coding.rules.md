@@ -1,6 +1,6 @@
-This file contains all the conventions for Python coding rules.
+- This file contains all the conventions for Python coding rules.
 
-# Platform and Environment
+# Environment and Platform
 
 ## Only Linux and MacOS
 
@@ -25,7 +25,7 @@ This file contains all the conventions for Python coding rules.
 
 - Remove empty lines inside functions so that the code is compact
 
-# Assertions and Error Handling
+# Error Handling and Assertions
 
 ## Use Assertions From `helpers/hdbg.py`
 
@@ -260,7 +260,7 @@ This file contains all the conventions for Python coding rules.
   files
   - No need to clean up files
 
-# Code Quality
+# Code Quality and Performance
 
 ## Use Progress Bar
 

@@ -1,22 +1,16 @@
----
-description: Comprehensive formatting rules and conventions for creating lecture slides
----
+- This document consolidates formatting rules and conventions for creating
+  professional lecture slides for graduate-level courses
 
-# Overview
+# Basic Formatting
 
-This document consolidates formatting rules and conventions for creating
-professional lecture slides for graduate-level courses.
-
-# Formatting and Display Rules
-
-## General Formatting
+## General Formatting Rules
 
 - Don't use emoji
 - Don't use page separators
 - Don't use unicode characters but use LaTeX symbols if needed
   - Instead of → use `$\to$`
 
-## Slide Format
+## Slide Structure
 
 - Each slide should start with:
   ```
@@ -30,14 +24,14 @@ professional lecture slides for graduate-level courses.
   - E.g., _"If we lower prices by 10%, will revenue increase?"_
   ```
 
-## Spacing and Visual Breaks
+## Spacing and Breaks
 
 - `\vspace{0.4cm}`: Small spacing between elements
 - `\vspace{1cm}`: Large spacing between major sections
 - Use comments (`//`) for internal notes (not rendered in output)
 - **Do NOT use page separators** (`---` markdown syntax)
 
-## Symbol and Character Rules
+## Symbols and Characters
 
 **Do NOT use non-ASCII characters**. Use LaTeX instead:
 
@@ -48,7 +42,7 @@ professional lecture slides for graduate-level courses.
 - ∩ → `$\cap$`
 - ∪ → `$\cup$`
 
-## Font Size Changes
+## Font Sizing
 
 - Group all font size changes with LaTeX:
   ```markdown
@@ -58,7 +52,7 @@ professional lecture slides for graduate-level courses.
   ```
 - Common size commands: `\large`, `\Large`, `\small`, `\scriptsize`
 
-# Document Organization
+# Document Structure and Organization
 
 ## Section Structure
 
@@ -128,7 +122,7 @@ professional lecture slides for graduate-level courses.
   :::
   ```
 
-# Text and Content Styling
+# Content and Styling
 
 ## Text Formatting
 
@@ -137,7 +131,7 @@ professional lecture slides for graduate-level courses.
 - Inline code (`` `code` ``): Use for technical terms, function names, variable names
 - `\blue{text}`: Use for highlighting key concepts and titles in LaTeX contexts
 
-# Mathematical Notation
+## Mathematical Notation
 
 ### Display Modes
 - **Inline math** (within text):
@@ -285,7 +279,7 @@ Use these commands consistently across all slides:
   :::
   ```
 
-# Slide Format Templates
+# Slide Templates and Patterns
 
 ## Definition Slide
 
@@ -505,7 +499,7 @@ Use these commands consistently across all slides:
   - **Key takeaway**: [what students should learn from this]
   ```
 
-# Content Guidelines
+# Design and Content Guidelines
 
 ## When to Use Each Element
 | Element      | When to Use                                    | Example                             |

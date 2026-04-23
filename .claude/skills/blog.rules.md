@@ -1,6 +1,6 @@
 This document contains all the rules that must be followed when writing a blog.
 
-# Blog Structure
+# Blog Document Structure
 
 ## Front Matter (YAML)
 
@@ -42,9 +42,9 @@ This document contains all the rules that must be followed when writing a blog.
 - Always follow with `<!-- more -->` tag on a new line with a blank line before
   it
 
-# Writing Style and Tone
+# Writing Style
 
-## Tone
+## Tone and Audience
 
 - Avoid slang and overly casual language
 - Maintain a professional and informative tone
@@ -54,7 +54,7 @@ This document contains all the rules that must be followed when writing a blog.
 - The blog should be engaging, informative, and suitable for publication on a
   professional website or LinkedIn
 
-## General Style Guidelines
+## Formatting and Clarity
 
 - Maintain consistent spacing between sections
 - Use blank lines to separate different content blocks

@@ -1,8 +1,8 @@
-This document contains conventions and rules to create agentic skills.
+- This document contains conventions and rules to create agentic skills.
 
-# Skills and Topics
+# Overview and Topics
 
-## Topic
+## Skill Topics
 
 - All skills should refer to a specific "topic"
 
@@ -40,7 +40,7 @@ This document contains conventions and rules to create agentic skills.
 
 # SKILL.md File Format
 
-## SKILL.md Frontmatter
+## Frontmatter
 
 - Every SKILL.md file must start with YAML frontmatter:
   ```yaml
@@ -56,7 +56,7 @@ This document contains conventions and rules to create agentic skills.
   - Be specific about what transformation or task the skill performs
   - Example: `description: Format Python code according to project coding conventions and style rules`
 
-## SKILL.md Directory Structure
+## Directory Structure
 
 - Skills are organized in directories: `.claude/skills/<topic>.<action>/SKILL.md`
   - **Good**
@@ -68,7 +68,7 @@ This document contains conventions and rules to create agentic skills.
   - `SKILL.md`: Main skill instruction file
   - Supporting directories or files (e.g., templates, examples)
 
-## Skill Naming Conventions
+## Naming Conventions
 
 - Directory naming: `<topic>.<action>` or `<topic>_<descriptor>`
   - `coding.format`: Format code for the coding topic
@@ -78,7 +78,7 @@ This document contains conventions and rules to create agentic skills.
 
 - Topics should be singular and lowercase
 
-## Content Structure for SKILL.md Files
+## Content Structure
 
 Skills should be organized with clear sections:
 
@@ -93,7 +93,7 @@ Skills should be organized with clear sections:
 
 # Writing Conventions
 
-## Notation for files
+## File References
 
 - Enclose files into backticks with `@` prefix:
   - **Bad**
@@ -105,7 +105,7 @@ Skills should be organized with clear sections:
     A file looks like `@.claude/skills/markdown.format/SKILL.md`
     ```
 
-## Notation for variables
+## Variable Notation
 
 - Variables should be referred as `<var>` and not `$var`
   - **Bad**
@@ -117,7 +117,7 @@ Skills should be organized with clear sections:
     The variable `<files>` ...
     ```
 
-## Code Examples in Skills
+## Code Examples
 
 - Use "Good" and "Bad" patterns to illustrate conventions
 - Format examples consistently:
@@ -143,14 +143,14 @@ Skills should be organized with clear sections:
 - Assume the reader is executing the skill or following the instructions
 - Be prescriptive rather than descriptive
 
-## Markdown Conventions
+## Markdown Standards
 
 - Make sure the file follows the markdown conventions in
   `@.claude/skills/markdown.rules.md`
 
-# File References and Validation
+# References and Dependencies
 
-## Rules file
+## Rules Files
 
 - Each topic might have a "rules" file, in the format `<topic>.rules.md` that
   contains all the convention for that specific topic
@@ -175,7 +175,7 @@ Skills should be organized with clear sections:
 
 - Use backticks and full path with `@` prefix for clarity
 
-## Avoid Non-Existing File References
+## File Validation
 
 - All file references in skills must point to existing files
 - Paths should be verifiable: `@.claude/skills/<topic>.<action>/SKILL.md`
@@ -187,9 +187,9 @@ Skills should be organized with clear sections:
 - All references in the skills should be to existing files
 - If there is a non-existing reference try to find it
 
-# Decision Guidelines
+# Guidelines and Decisions
 
-## When to Update Rules vs Creating Skills
+## Rules vs Skills
 
 - **Create/update `.rules.md`** when documenting:
   - Conventions and standards for a topic
@@ -203,7 +203,7 @@ Skills should be organized with clear sections:
 
 # Quality Checklist
 
-## Summary Checklist for New Skills
+## Skill Validation
 
 When creating a new SKILL.md file, verify:
 

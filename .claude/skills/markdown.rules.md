@@ -1,7 +1,7 @@
 This document contains all the rules that must be followed when writing markdown
 text.
 
-# Document Structure
+# Organization and Structure
 
 ## Headers and Organization
 
@@ -50,7 +50,7 @@ text.
 - Maintain consistent spacing between sections
 - Use blank lines to separate different content blocks
 
-# List and Item Formatting
+# Lists and Items
 
 ## Bullet Lists
 
@@ -88,7 +88,7 @@ text.
     - `render_images.py`: Auto-renders diagrams (PlantUML, Mermaid, TikZ, Graphviz)
     ```
 
-# Text Formatting and Emphasis
+# Text Formatting
 
 ## Use Verbatim
 
