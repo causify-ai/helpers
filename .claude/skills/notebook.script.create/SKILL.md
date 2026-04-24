@@ -46,3 +46,7 @@ description: Create a script for a Jupyter notebook with visual and interactive 
   - E.g., use mu instead of μ
 
 - Do not use page separator
+
+# Important
+
+- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`

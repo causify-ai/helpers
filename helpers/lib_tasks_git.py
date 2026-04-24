@@ -68,12 +68,10 @@ def _add_write_perm_to_symlink(dir: str) -> None:
                 path,
                 mode | _SYMLINK_WRITE_BITS,
             )
-        except OSError as exc:
+        except OSError:
             hdbg.dassert(
                 False,
-                "chmod a+w symlink %s failed: %s",
-                path,
-                exc,
+                "Failed to add write permissions to symlink; manual intervention may be needed",
             )
 
 
@@ -94,19 +92,23 @@ def _remove_write_perm_from_symlink(dir: str) -> None:
                 path,
                 mode & ~_SYMLINK_WRITE_BITS,
             )
-        except OSError as exc:
+        except OSError:
             hdbg.dassert(
                 False,
-                "chmod a-w symlink %s failed: %s",
-                path,
-                exc,
+                "Failed to remove write permissions from symlink; manual intervention may be needed",
             )
 
 
 def run_git_recursively(ctx: Any, cmd_: str) -> None:
+    """
+    Execute a git command in the main repository and all submodules.
+
+    :param ctx: Invoke context
+    :param cmd_: Git command to execute
+    """
     cmd = cmd_
     hlitauti.run(ctx, cmd)
-    #
+    # Run the same command on all submodules.
     cmd = f"git submodule foreach '{cmd_}'"
     hlitauti.run(ctx, cmd)
 
@@ -114,26 +116,33 @@ def run_git_recursively(ctx: Any, cmd_: str) -> None:
 @task
 def git_pull(ctx):  # type: ignore
     """
-    Pull all the repos.
+    Pull latest changes from remote for main repo and all submodules.
+
+    Temporarily enables write permissions on symlinks to allow pull operations.
     """
     hlitauti.report_task()
-    #
+    # Temporarily grant write access to symlinks needed for pulling.
     root_dir = hgit.get_client_root(super_module=False)
     _add_write_perm_to_symlink(root_dir)
     try:
+        # Pull with autostash to preserve local changes during pull.
         cmd = "git pull --autostash"
         run_git_recursively(ctx, cmd)
     finally:
+        # Restore restricted permissions on symlinks after pull completes.
         _remove_write_perm_from_symlink(root_dir)
 
 
 @task
 def git_fetch_master(ctx):  # type: ignore
     """
-    Pull master without changing branch.
+    Fetch master branch from remote without switching to it.
+
+    Updates the local master branch to track the latest remote master without
+    affecting the current branch.
     """
     hlitauti.report_task()
-    #
+    # Fetch remote master directly into local master ref (colon syntax).
     cmd = "git fetch origin master:master"
     run_git_recursively(ctx, cmd)
 
@@ -156,17 +165,17 @@ def git_merge_master(
         successful
     """
     hlitauti.report_task()
-    # Check that the Git client is clean.
+    # Verify working directory is clean before merging to avoid losing changes.
     hgit.is_client_clean(dir_name=".", abort_if_not_clean=abort_if_not_clean)
-    # Fetch master.
+    # Fetch latest master from remote to ensure we merge the latest changes.
     if not skip_fetch:
         git_fetch_master(ctx)
-    # Merge master.
+    # Perform merge, optionally restricting to fast-forward only to maintain linear history.
     cmd = "git merge master"
     if abort_if_not_ff:
         cmd += " --ff-only"
     hlitauti.run(ctx, cmd)
-    # Auto-commit and push if requested and merge was successful.
+    # Commit and push automatically if merge succeeded and user requested it.
     if auto_merge:
         _LOG.info("Auto-merge enabled: committing and pushing changes")
         cmd = 'git commit -am "Merge master" && git push'
@@ -183,29 +192,28 @@ def git_clean(ctx, fix_perms_=False, dry_run=False):  # type: ignore
     hlitauti.report_task(txt=hprint.to_str("dry_run"))
 
     def _run_all_repos(cmd: str) -> None:
-        # Use `run(ctx, cmd)` instead of `hsystem.system()` so that it is possible
-        # to easily use a mock context while unit testing.
+        # Use `run(ctx, cmd)` instead of `hsystem.system()` so unit tests can easily mock context.
         hlitauti.run(ctx, cmd)
-        # Clean submodules.
+        # Also clean submodules to ensure they're included in cleanup.
         cmd = f"git submodule foreach '{cmd}'"
         hlitauti.run(ctx, cmd)
 
-    # Clean recursively.
+    # Remove untracked files and directories from main repo and submodules.
     git_clean_cmd = "git clean -fd"
     if dry_run:
         git_clean_cmd += " --dry-run"
-    # This cmd is supposed to give errors so we mute them.
+    # Suppress errors since git clean reports non-fatal warnings.
     git_clean_cmd += " >/dev/null 2>&1"
     _run_all_repos(git_clean_cmd)
     # TODO(*): Add "are you sure?" or a `--force switch` to avoid to cancel by
     #  mistake.
-    # Fix permissions, if needed.
+    # Fix permissions on symlinks if requested, then clean any temporary files created.
     if fix_perms_:
         cmd = "invoke fix_perms"
         hlitauti.run(ctx, cmd)
-        # Clean temporary files created by permission fix.
+        # Remove temporary files that may have been created during permission fix.
         _run_all_repos(git_clean_cmd)
-    # Delete other files.
+    # Remove common build artifacts and cache directories.
     to_delete = [
         r"*\.pyc",
         r"*\.pyo",
@@ -263,15 +271,18 @@ def git_patch_create(  # type: ignore
     _ = ctx
     # TODO(gp): Check that the current branch is up to date with master to avoid
     #  failures when we try to merge the patch.
-    hdbg.dassert_in(mode, ("tar", "diff"))
-    # For now we just create a patch for the current submodule.
+    hdbg.dassert_in(
+        mode,
+        ("tar", "diff"),
+        "Patch mode must be either 'tar' for archives or 'diff' for patches",
+    )
+    # Currently only handles the current submodule (not parent repos).
     # TODO(gp): Extend this to handle also nested repos.
     super_module = False
     git_client_root = hgit.get_client_root(super_module)
     hash_ = hgit.get_head_hash(git_client_root, short_hash=True)
-
+    # Use timestamp and hash to ensure unique patch filenames across time.
     timestamp = hlitauti.get_ET_timestamp()
-    #
     tag = os.path.basename(git_client_root)
     dst_file = f"patch.{tag}.{hash_}.{timestamp}"
     if mode == "tar":
@@ -281,17 +292,16 @@ def git_patch_create(  # type: ignore
     else:
         hdbg.dfatal("Invalid code path")
     _LOG.debug("dst_file=%s", dst_file)
-    # Summary of files.
+    # Show what changes will be included in the patch.
     _LOG.info(
         "Difference between HEAD and master:\n%s",
         hgit.get_summary_files_in_branch("master", dir_name="."),
     )
-    # Get the files.
+    # Determine which files to include in the patch.
     all_ = False
-    # We allow to specify files as a subset of files modified in the branch or
-    # in the client.
+    # Allow optional user-specified file subset (can be combined with other selectors).
     mutually_exclusive = False
-    # We don't allow to specify directories.
+    # Filter out directories; patches only work with files.
     remove_dirs = True
     files_as_list = hlitauti._get_files_to_process(
         modified,
@@ -307,18 +317,23 @@ def git_patch_create(  # type: ignore
         _LOG.warning("Nothing to patch: exiting")
         return
     files_as_str = " ".join(files_as_list)
-    # Prepare the patch command.
+    # Choose command based on patch format: archive vs diff.
     cmd = ""
     if mode == "tar":
+        # Create compressed tar archive of the selected files.
         cmd = f"tar czvf {dst_file} {files_as_str}"
         cmd_inv = "tar xvzf"
     elif mode == "diff":
+        # Generate diff against various targets for different merge strategies.
         opts: str
         if modified:
+            # Only uncommitted changes in working tree.
             opts = "HEAD"
         elif branch:
+            # All changes since branch point (includes commits on current branch).
             opts = "master..."
         elif last_commit:
+            # Only changes in the most recent commit.
             opts = "HEAD^"
         else:
             raise ValueError(
@@ -329,14 +344,18 @@ def git_patch_create(  # type: ignore
         cmd_inv = "git apply"
     else:
         raise ValueError(f"Invalid cmd='{cmd}'")
-    # Execute patch command.
+    # Execute the patch creation command.
     _LOG.info("Creating the patch into %s", dst_file)
-    hdbg.dassert_ne(cmd, "")
+    hdbg.dassert_ne(
+        cmd,
+        "",
+        "Patch creation command must not be empty",
+    )
     _LOG.debug("cmd=%s", cmd)
     rc = hsystem.system(cmd, abort_on_error=False)
     if not rc:
         _LOG.warning("Command failed with rc=%d", rc)
-    # Print message to apply the patch.
+    # Provide instructions for applying the patch on different environments.
     remote_file = os.path.basename(dst_file)
     abs_path_dst_file = os.path.abspath(dst_file)
     msg = f"""
@@ -359,8 +378,7 @@ def git_files(  # type: ignore
     ctx, modified=False, branch=False, last_commit=False, pbcopy=False
 ):
     """
-    Report which files are changed in the current branch with respect to
-    `master`.
+    Report which files are changed in the current branch with respect to master.
 
     The params have the same meaning as in `_get_files_to_process()`.
     """
@@ -368,6 +386,7 @@ def git_files(  # type: ignore
     _ = ctx
     all_ = False
     files = ""
+    # Use mutually_exclusive=True to enforce exactly one filter mode.
     mutually_exclusive = True
     remove_dirs = True
     files_as_list = hlitauti._get_files_to_process(
@@ -380,6 +399,7 @@ def git_files(  # type: ignore
         remove_dirs,
     )
     print("\n".join(sorted(files_as_list)))
+    # Optionally copy the file list to clipboard for easy pasting.
     res = " ".join(files_as_list)
     hsystem.to_pbcopy(res, pbcopy)
 
@@ -392,13 +412,14 @@ def git_last_commit_files(ctx, pbcopy=True):  # type: ignore
     :param pbcopy: save the result into the system clipboard (only on
         macOS)
     """
+    # Display the raw git log output for the latest commit.
     cmd = 'git log -1 --name-status --pretty=""'
     hlitauti.run(ctx, cmd)
-    # Get the list of existing files.
+    # Parse the files that were actually committed (filtering out deletions if needed).
     files = hgit.get_previous_committed_files(".")
     txt = "\n".join(files)
     print(f"\n# The files modified are:\n{txt}")
-    # Save to clipboard.
+    # Optionally copy the file list to clipboard for easy pasting into commands.
     res = " ".join(files)
     hsystem.to_pbcopy(res, pbcopy)
 
@@ -406,14 +427,19 @@ def git_last_commit_files(ctx, pbcopy=True):  # type: ignore
 @task
 def git_roll_amp_forward(ctx):  # type: ignore
     """
-    Roll amp forward.
+    Update amp submodule pointer to the latest master commit.
+
+    Checks out master in amp, pulls latest changes, updates the parent repo's
+    submodule pointer, and commits the change.
     """
     hlitauti.report_task()
     AMP_DIR = "amp"
     if os.path.exists(AMP_DIR):
+        # Update amp submodule to point to the latest master.
         cmds = [
             f"cd {AMP_DIR} && git checkout master",
             f"cd {AMP_DIR} && git pull",
+            # Stage the submodule pointer change in the parent repository.
             f"git add {AMP_DIR}",
             f"git commit -m 'Roll {AMP_DIR} pointer forward'",
             "git push",
@@ -445,12 +471,14 @@ def git_roll_amp_forward(ctx):  # type: ignore
 def git_branch_files(ctx):  # type: ignore
     """
     Report which files were added, changed, and modified in the current branch
-    with respect to `master`.
+    with respect to master.
 
-    This is a more detailed version of `i git_files --branch`.
+    This is a more detailed version of `invoke git_files --branch`, showing file
+    statuses (added, modified, deleted) rather than just the file list.
     """
     hlitauti.report_task()
     _ = ctx
+    # Display the detailed summary of changes made on this branch.
     print(
         "Difference between HEAD and master:\n"
         + hgit.get_summary_files_in_branch("master", dir_name=".")
@@ -492,9 +520,11 @@ def git_branch_create(  # type: ignore
     """
     hlitauti.report_task()
     if issue_id > 0:
-        # User specified an issue id on GitHub.
+        # Convert GitHub issue ID to branch name.
         hdbg.dassert_eq(
-            branch_name, "", "You can't specify both --issue and --branch_name"
+            branch_name,
+            "",
+            "Cannot specify both --issue and --branch_name; choose one",
         )
         title, _ = hlitagh._get_gh_issue_title(issue_id, repo_short_name)
         branch_name = title
@@ -515,19 +545,30 @@ def git_branch_create(  # type: ignore
                 )
                 suffix = suffix.rstrip("-_")
             branch_name += "_" + suffix
-    #
     _LOG.info("branch_name='%s'", branch_name)
-    hdbg.dassert_ne(branch_name, "")
+    hdbg.dassert_ne(
+        branch_name,
+        "",
+        "Branch name cannot be empty",
+    )
     if check_branch_name:
-        # Check that the branch is not just a number.
+        # Reject numeric-only branch names to avoid confusion with commit SHAs.
         m = re.match(r"^\d+$", branch_name)
-        hdbg.dassert(not m, "Branch names with only numbers are invalid")
+        hdbg.dassert(
+            not m,
+            "Branch names with only numbers are invalid",
+        )
+        # Enforce naming convention `{RepoPrefix}TaskXYZ_Description` for consistency.
         # The valid format of a branch name is `AmpTask1903_Implemented_system_...`.
         m = re.match(r"^\S+Task\d+_\S+$", branch_name)
-        hdbg.dassert(m, "Branch name should be '{Amp,...}TaskXYZ_...'")
+        hdbg.dassert(
+            m,
+            "Branch name must follow convention: '{RepoPrefix,Amp,...}TaskXYZ_...'",
+        )
+    # Prevent accidental duplicate branches.
     hdbg.dassert(
         not hgit.does_branch_exist(branch_name, mode="all"),
-        "The branch '%s' already exists",
+        "Branch '%s' already exists",
         branch_name,
     )
     # Make sure we are branching from `master`, unless that's what the user wants.
@@ -554,6 +595,13 @@ def git_branch_create(  # type: ignore
 
 # TODO(gp): @all Move to hgit.
 def _delete_branches(ctx: Any, tag: str, confirm_delete: bool) -> None:
+    """
+    Delete branches that have been merged into master.
+
+    :param ctx: Invoke context
+    :param tag: Either "local" for local branches or "remote" for remote branches
+    :param confirm_delete: If True, ask user for confirmation before deleting
+    """
     if tag == "local":
         # Delete local branches that are already merged into master.
         # > git branch --merged
@@ -598,10 +646,11 @@ def git_branch_delete_merged(ctx, confirm_delete=True):  # type: ignore
     Remove (both local and remote) branches that have been merged into master.
     """
     hlitauti.report_task()
-    hdbg.dassert(
+    # Ensure user is on master since we're deleting branches merged into master.
+    hdbg.dassert_eq(
         hgit.get_branch_name(),
         "master",
-        "You need to be on master to delete dead branches",
+        "Must be on master branch to safely delete merged branches",
     )
     #
     cmd = "git fetch --all --prune"
@@ -620,9 +669,13 @@ def git_branch_rename(ctx, new_branch_name):  # type: ignore
     Rename current branch both locally and remotely.
     """
     hlitauti.report_task()
-    #
     old_branch_name = hgit.get_branch_name(".")
-    hdbg.dassert_ne(old_branch_name, new_branch_name)
+    # Ensure new branch name is actually different to avoid no-op rename.
+    hdbg.dassert_ne(
+        old_branch_name,
+        new_branch_name,
+        "New branch name must be different from current branch name",
+    )
     msg = (
         f"Do you want to rename the current branch '{old_branch_name}' to "
         f"'{new_branch_name}'"
@@ -693,15 +746,23 @@ def git_branch_copy(  # type: ignore
     :param check_branch_name: enforce branch naming convention like
         `{Amp,...}TaskXYZ_...`
     """
-    hdbg.dassert(not use_patch, "Patch flow not implemented yet")
-    # Clean current repository.
+    # Patch-based copying is not yet implemented.
+    hdbg.dassert(
+        not use_patch,
+        "Patch-based branch copying is not yet implemented",
+    )
+    # Remove untracked files to ensure clean state when copying branch.
     cmd = "git clean -fd"
     hlitauti.run(ctx, cmd)
-    #
     curr_branch_name = hgit.get_branch_name()
-    hdbg.dassert_ne(curr_branch_name, "master")
+    # Cannot copy master branch since it would be copying the source to itself.
+    hdbg.dassert_ne(
+        curr_branch_name,
+        "master",
+        "Cannot copy master branch",
+    )
+    # Sync with master first to ensure new branch includes latest changes (if requested).
     if not skip_git_merge_master:
-        # Ensure current branch is up-to-date with `master`.
         cmd = "invoke git_merge_master --abort-if-not-ff"
         hlitauti.run(ctx, cmd)
     else:
@@ -709,22 +770,26 @@ def git_branch_copy(  # type: ignore
     if use_patch:
         # TODO(gp): Create a patch or do a `git merge`.
         pass
+    # Generate unique branch name if not provided.
     if new_branch_name is None or new_branch_name == "":
-        # Automatically generate branch name.
         new_branch_name = hgit.get_branch_next_name()
     _LOG.info("new_branch_name='%s'", new_branch_name)
-    hdbg.dassert_ne(new_branch_name, None)
-    # Scratch branches do not follow the standard naming convention.
+    hdbg.dassert_ne(
+        new_branch_name,
+        None,
+        "Branch name must not be None after generation",
+    )
+    # Allow scratch branches to bypass naming convention.
     if new_branch_name.startswith("gp_scratch"):
         check_branch_name = False
-    # Create or go to the new branch.
+    # Create or checkout the target branch.
     mode = "all"
     new_branch_exists = hgit.does_branch_exist(new_branch_name, mode)
     if new_branch_exists:
-        # Switch to existing branch.
+        # Switch to existing branch to copy changes into it.
         cmd = f"git checkout {new_branch_name}"
     else:
-        # Create and switch to a new branch.
+        # Create new branch from master as base.
         cmd = f"git checkout master && invoke git_branch_create -b '{new_branch_name}'"
         if not check_branch_name:
             cmd += " --no-check-branch-name"
@@ -732,7 +797,7 @@ def git_branch_copy(  # type: ignore
     if use_patch:
         # TODO(gp): Apply the patch.
         pass
-    # Squash merge the current branch into the new one without commiting.
+    # Squash merge copies all commits as a single change without creating a merge commit.
     cmd = f"git merge --squash --ff {curr_branch_name} && git reset HEAD"
     hlitauti.run(ctx, cmd)
 
@@ -767,10 +832,14 @@ def _git_diff_with_branch(
             " file_name only_print_files dry_run"
         )
     )
-    # Check that this branch is not master.
+    # Diff only works on non-master branches to avoid comparing with itself.
     curr_branch_name = hgit.get_branch_name()
-    hdbg.dassert_ne(curr_branch_name, "master")
-    # Get the modified files.
+    hdbg.dassert_ne(
+        curr_branch_name,
+        "master",
+        "Cannot diff master branch against itself",
+    )
+    # Retrieve the list of changed files between current state and the given hash.
     cmd = []
     cmd.append("git diff")
     if diff_type:
@@ -782,7 +851,7 @@ def _git_diff_with_branch(
     )
     files = sorted(files)
     _LOG.debug("%s", "\n".join(files))
-    # Filter by `file_name`, if needed.
+    # Filter to a single specific file if requested.
     if file_name:
         _LOG.debug("Filter by file_name")
         _LOG.info("Before filtering files=%s", len(files))
@@ -800,7 +869,7 @@ def _git_diff_with_branch(
         files = files_tmp
         _LOG.info("After filtering by file_name: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
-    # Filter by keep_extension.
+    # Keep only files with specified extensions (useful for focusing on code vs docs).
     if keep_extensions:
         _LOG.debug("# Filter by keep_extensions")
         _LOG.debug("Before filtering files=%s", len(files))
@@ -817,7 +886,7 @@ def _git_diff_with_branch(
         files = files_tmp
         _LOG.info("After filtering by keep_extensions: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
-    # Filter by skip_extension.
+    # Exclude files with specified extensions (useful for skipping config or build files).
     if skip_extensions:
         _LOG.debug("# Filter by skip_extensions")
         _LOG.debug("Before filtering files=%s", len(files))
@@ -834,7 +903,7 @@ def _git_diff_with_branch(
         files = files_tmp
         _LOG.info("After filtering by skip_extensions: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
-    # Filter by subdir.
+    # Limit diff to files within a specific subdirectory.
     if subdir != "":
         _LOG.debug("# Filter by subdir")
         _LOG.debug("Before filtering files=%s", len(files))
@@ -845,64 +914,62 @@ def _git_diff_with_branch(
         files = files_tmp
         _LOG.info("After filtering by subdir: files=%s", len(files))
         _LOG.debug("%s", "\n".join(files))
-    # Done filtering.
+    # Summary of what will be diffed.
     _LOG.info("\n" + hprint.frame(f"# files={len(files)}"))
     _LOG.info("\n" + "\n".join(files))
     if len(files) == 0:
-        _LOG.warning("Nothing to diff: exiting")
+        _LOG.warning("No files match the filter criteria: exiting")
         return
     if only_print_files:
         _LOG.warning("Exiting as per user request with --only-print-files")
         return
-    # Create the dir storing all the files to compare.
+    # Create temporary directory to store base versions for comparison.
     root_dir = hgit.get_repo_full_name_from_client(super_module=True)
     # TODO(gp): We should get a temp dir.
     dst_dir = f"/tmp/{root_dir}/tmp.{tag}"
     hio.create_dir(dst_dir, incremental=False)
-    # Retrieve the original file and create the diff command.
+    # Build vimdiff commands for each file, retrieving base version from source hash.
     script_txt = []
     for branch_file in files:
         _LOG.debug("\n%s", hprint.frame(f"branch_file={branch_file}"))
-        # Get the file on the right of the vimdiff.
+        # Use current file as right side (what the branch currently has).
         if os.path.exists(branch_file):
             right_file = branch_file
         else:
+            # For deleted files, use /dev/null as the right side.
             right_file = "/dev/null"
-        # Flatten the file dirs: e.g.,
-        # dataflow/core/nodes/test/test_volatility_models.base.py
+        # Flatten directory structure to avoid naming conflicts in temp directory.
         tmp_file = branch_file
         tmp_file = tmp_file.replace("/", "_")
         tmp_file = os.path.join(dst_dir, tmp_file)
         _LOG.debug(
-            "branch_file='%s' exists in branch -> master_file='%s'",
+            "Extracting base version of %s to %s",
             branch_file,
             tmp_file,
         )
-        # Save the base file.
+        # Extract the base version from the specified hash/branch.
         cmd = f"git show {hash_}:{branch_file} >{tmp_file}"
         rc = hsystem.system(cmd, abort_on_error=False)
         if rc != 0:
-            # For new files we get the error:
-            # fatal: path 'dev_scripts/configure_env.sh' exists on disk, but
-            # not in 'c92cfe4382325678fdfccd0ddcd1927008090602'
-            _LOG.debug("branch_file='%s' doesn't exist in master", branch_file)
+            # File is new in the branch (didn't exist in base hash).
+            _LOG.debug("File '%s' is new (doesn't exist in base)", branch_file)
             left_file = "/dev/null"
         else:
             left_file = tmp_file
-        # Update the script to diff.
+        # Generate vimdiff command to compare base and current versions.
         cmd = f"vimdiff {left_file} {right_file}"
         _LOG.debug("-> %s", cmd)
         script_txt.append(cmd)
     script_txt = "\n".join(script_txt)
-    # Files to diff.
+    # Display the diff commands that will be executed.
     _LOG.info("\n%s" % hprint.frame("Diffing script"))
     _LOG.info(script_txt)
-    # Save the script to compare.
+    # Create executable script for easy manual re-running.
     script_file_name = f"./tmp.vimdiff_branch_with_{tag}.sh"
     msg = f"To diff against {tag} run"
     hio.create_executable_script(script_file_name, script_txt, msg=msg)
     hlitauti.run(ctx, script_file_name, dry_run=dry_run, pty=True)
-    # Clean up file.
+    # Clean up temporary files.
     cmd = f"rm -rf {dst_dir}"
     hlitauti.run(ctx, cmd, dry_run=dry_run)
 
@@ -925,14 +992,41 @@ def _git_diff_with_branch_wrapper(
     only_print_files: bool,
     dry_run: bool,
 ) -> None:
+    """
+    Wrapper for _git_diff_with_branch that handles Python-specific filtering and submodules.
+
+    Applies Python-specific extension filter if requested, then delegates to _git_diff_with_branch.
+    If include_submodules is True, also runs the diff for the amp submodule if present.
+
+    Parameters are the same as _git_diff_with_branch with the addition of:
+    :param include_submodules: if True, also diff the amp submodule
+    :param python: if True, only diff Python files (overrides extension filters)
+    """
     hdbg.dassert_eq(dir_name, ".")
+    # If Python mode is enabled, override all extension filters to only diff Python files.
     if python:
-        hdbg.dassert_eq(diff_type, "")
-        hdbg.dassert_eq(keep_extensions, "")
-        hdbg.dassert_eq(skip_extensions, "")
-        hdbg.dassert_eq(file_name, "")
+        hdbg.dassert_eq(
+            diff_type,
+            "",
+            "Cannot specify diff_type with python mode",
+        )
+        hdbg.dassert_eq(
+            keep_extensions,
+            "",
+            "Cannot specify keep_extensions with python mode",
+        )
+        hdbg.dassert_eq(
+            skip_extensions,
+            "",
+            "Cannot specify skip_extensions with python mode",
+        )
+        hdbg.dassert_eq(
+            file_name,
+            "",
+            "Cannot specify file_name with python mode",
+        )
         keep_extensions = "py"
-    # Run for current dir.
+    # Diff files in the main repository.
     _git_diff_with_branch(
         ctx,
         hash_,
@@ -946,7 +1040,7 @@ def _git_diff_with_branch_wrapper(
         only_print_files,
         dry_run,
     )
-    # Run for `amp` dir, if needed.
+    # Also diff the amp submodule if it exists and was requested.
     if include_submodules:
         if hgit.is_amp_present():
             with hsystem.cd("amp"):
@@ -1002,25 +1096,44 @@ def git_branch_diff_with(  # type: ignore
     :param only_print_files: print files to diff and exit
     :param dry_run: execute diffing script or not
     """
-    # Get the branching point.
+    # Determine the comparison target based on user preference.
     dir_name = "."
-    hdbg.dassert_in(target, ("base", "master", "head", "hash"))
+    hdbg.dassert_in(target, ("base", "master", "head", "hash"), "Invalid target")
+    # Resolve target to a specific git hash for consistent diffing.
     if target == "base":
-        hdbg.dassert_eq(hash_value, "")
+        # Compare against the point where this branch diverged from master.
+        hdbg.dassert_eq(
+            hash_value,
+            "",
+            "Cannot specify hash_value when target is 'base'",
+        )
         hash_value = hgit.get_branch_hash(dir_name=dir_name)
         tag = "base"
     elif target == "master":
-        hdbg.dassert_eq(hash_value, "")
+        # Compare against the current state of the remote master branch.
+        hdbg.dassert_eq(
+            hash_value,
+            "",
+            "Cannot specify hash_value when target is 'master'",
+        )
         hash_value = "origin/master"
         tag = "origin_master"
     elif target == "head":
-        hdbg.dassert_eq(hash_value, "")
-        # This will execute `git diff --name-only HEAD` to find the files, which
-        # corresponds to finding all the files modified in the client.
+        # Compare working directory against HEAD (uncommitted changes).
+        hdbg.dassert_eq(
+            hash_value,
+            "",
+            "Cannot specify hash_value when target is 'head'",
+        )
         hash_value = ""
         tag = "head"
     elif target == "hash":
-        hdbg.dassert_ne(hash_value, "")
+        # Compare against a user-specified commit hash.
+        hdbg.dassert_ne(
+            hash_value,
+            "",
+            "Must provide hash_value when target is 'hash'",
+        )
         tag = f"hash@{hash_value}"
     else:
         raise ValueError(f"Invalid target='{target}")
@@ -1059,6 +1172,7 @@ def git_repo_copy(ctx, file_name, src_git_dir, dst_git_dir):  # type: ignore
     _ = ctx
     src_git_dir = hgit.resolve_git_client_dir(src_git_dir)
     dst_git_dir = hgit.resolve_git_client_dir(dst_git_dir)
+    # Map source file path to equivalent path in destination repository.
     dst_file_path = hgit.project_file_name_in_git_client(
         file_name,
         src_git_dir,
@@ -1067,7 +1181,7 @@ def git_repo_copy(ctx, file_name, src_git_dir, dst_git_dir):  # type: ignore
         check_dst_file_exists=False,
     )
     _LOG.info("Copying code from '%s' to '%s' ...", file_name, dst_git_dir)
-    # Copy the file.
+    # Perform the file copy operation.
     hsystem.system_to_string(f"cp {file_name} {dst_file_path}")
 
 
@@ -1085,13 +1199,13 @@ def _get_submodule_paths() -> List[str]:
     if not os.path.exists(gitmodules_path):
         _LOG.info("No .gitmodules file found")
         return []
-    # Use git config to list submodule paths.
+    # Extract submodule paths from git config using the .gitmodules file.
     cmd = "git config --file .gitmodules --get-regexp path"
     _, output = hsystem.system_to_string(cmd)
     submodule_paths = []
     for line in output.strip().split("\n"):
         if line:
-            # Format: "submodule.<name>.path <path>"
+            # Parse format: "submodule.<name>.path <path>" to extract path.
             path = line.split(" ", 1)[1]
             submodule_paths.append(path)
     return submodule_paths
@@ -1106,7 +1220,7 @@ def _get_branch_name(submodule_path: str) -> str:
     """
     hdbg.dassert_dir_exists(submodule_path)
     hdbg.dassert_path_exists(os.path.join(submodule_path, ".git"))
-    # Get current branch name
+    # Query git to get the symbolic name of the current HEAD.
     cmd = f"cd {submodule_path} && git rev-parse --abbrev-ref HEAD"
     _, branch_name = hsystem.system_to_string(cmd)
     return branch_name.strip()
@@ -1126,16 +1240,15 @@ def git_branches(ctx):  # type: ignore
     submodule3: main
     """
     _ = ctx
-    submodule_paths = hgit.get_submodule_paths()
-    # Print main repository branch first.
+    # Display main repository branch first for clarity.
     main_branch = _get_branch_name(".")
     print(f". -> {main_branch}")
-    # Check for submodules.
+    # List submodule branches to detect if any are out of sync.
     submodule_paths = _get_submodule_paths()
     if not submodule_paths:
         _LOG.debug("No git submodules found in this repository")
         return
-    # Check each submodule.
+    # Report branch for each submodule.
     for path in submodule_paths:
         branch_name = _get_branch_name(path)
         print(f"{path} -> {branch_name}")
@@ -1144,19 +1257,18 @@ def git_branches(ctx):  # type: ignore
 @task
 def git_branch_is_merged(ctx):  # type: ignore
     """
-    Check if the current branch was merged into master.
+    Check if the current branch was merged into master using GitHub API and git.
 
-    :return: True if the branch was merged, False otherwise
+    Uses GitHub API to check for open/closed PRs and git to verify branch presence on remote.
     """
     _ = ctx
     hlitauti.report_task()
     branch_name = hgit.get_branch_name()
     print(f"branch_name='{branch_name}'")
-    #
-    # Check with GitHub.
+    # Check for PRs targeting master from the current branch on GitHub.
     cmd = f"gh pr list --base master --head {branch_name}"
     ctx.run(cmd, pty=True)
-    # Check if the branch exists in remote.
+    # Verify if the branch still exists on the remote repository.
     cmd = f"git ls-remote --heads origin {branch_name}"
     ctx.run(cmd, pty=True)
 
@@ -1189,7 +1301,7 @@ def git_backup(
         txt=hprint.to_str("file_mode, backup_dir, include_subrepos, dry_run")
     )
     _ = ctx
-    # Validate file_mode.
+    # Validate backup scope to ensure user intent is clear.
     valid_modes = ["all", "modified", "untracked"]
     hdbg.dassert_in(
         file_mode,
@@ -1198,25 +1310,25 @@ def git_backup(
         file_mode,
         ", ".join(valid_modes),
     )
-    # Set default backup directory.
+    # Use default backup location if not specified.
     if backup_dir is None:
         backup_dir = os.path.join(os.path.expanduser("~"), "src", "backups")
     hio.create_dir(backup_dir, incremental=True)
-    # Get current repo root.
+    # Determine repository name for readable backup file naming.
     super_module = False
     git_client_root = hgit.get_client_root(super_module)
-    # Get timestamp for zip file name.
+    # Include timestamp to avoid overwriting previous backups.
     timestamp = hlitauti.get_ET_timestamp()
     repo_name = os.path.basename(git_client_root)
     zip_file_name = f"modified_files.{repo_name}.{timestamp}.zip"
-    # Collect all files from current repo.
+    # Collect files from the main repository.
     _LOG.info("Collecting %s files from main repository...", file_mode)
     main_repo_files = hgit.get_modified_and_untracked_files(".", mode=file_mode)
     _LOG.info("Found %d files in main repository", len(main_repo_files))
     all_files = []
     for file_path in main_repo_files:
         all_files.append((".", file_path))
-    # Collect files from submodules if requested.
+    # Also include submodule files if requested to ensure complete backup.
     if include_subrepos:
         submodule_paths = _get_submodule_paths()
         if submodule_paths:
@@ -1244,11 +1356,11 @@ def git_backup(
             _LOG.info("No submodules found")
     else:
         _LOG.info("Skipping submodules (include_subrepos=False)")
-    # Check if there are any files to zip.
+    # Verify there's content to backup before proceeding.
     if not all_files:
         _LOG.warning("No %s files found. Nothing to zip.", file_mode)
         return
-    # Print summary.
+    # Display summary of what will be backed up.
     _LOG.info(
         "\n%s\nFound %d total files to include:\n%s",
         hprint.frame("Files to include in zip"),
@@ -1269,7 +1381,7 @@ def git_backup(
     if dry_run:
         _LOG.warning("Dry-run mode: not creating zip file")
         return
-    # Create the zip file.
+    # Create zip file with all collected files.
     zip_file_path = os.path.join(backup_dir, zip_file_name)
     _LOG.info("Creating zip file: %s", zip_file_path)
     import zipfile
@@ -1277,7 +1389,7 @@ def git_backup(
     with zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED) as zipf:
         for repo_path, file_path in all_files:
             full_path = os.path.join(repo_path, file_path)
-            # Preserve directory structure in zip.
+            # Maintain directory hierarchy in archive for easy restoration.
             arcname = (
                 os.path.join(repo_path, file_path)
                 if repo_path != "."
@@ -1289,7 +1401,7 @@ def git_backup(
             except Exception as e:
                 _LOG.warning("Failed to add %s to zip: %s", full_path, e)
     _LOG.info("Successfully created zip file: %s", zip_file_path)
-    # Print absolute path for easy access.
+    # Display location for easy access.
     abs_zip_path = os.path.abspath(zip_file_path)
     print(f"\nZip file created at: {abs_zip_path}")
 

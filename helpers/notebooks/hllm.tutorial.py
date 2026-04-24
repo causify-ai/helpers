@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.7
+#       jupytext_version: 1.19.0
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -28,18 +28,13 @@
 # #!jupyter labextension enable
 
 # %%
+# %load_ext autoreload
+# %autoreload 2
+
 import logging
-import pandas as pd
-import pprint
 
 import helpers.hdbg as hdbg
 import helpers.henv as henv
-import helpers.hllm as hllm
-import helpers.hpandas as hpandas
-
-# %%
-# %load_ext autoreload
-# %autoreload 2
 
 # %%
 print(henv.get_system_signature()[0])
@@ -56,12 +51,19 @@ _LOG = logging.getLogger(__name__)
 # !sudo /bin/bash -c "(source /venv/bin/activate; pip install --quiet openai requests)"
 
 # %%
+import helpers.hllm as hllm
+import helpers.hpandas as hpandas
 
 # %%
 val = hllm.get_model_stats()
 
 # %%
+import pprint
+
 pprint.pprint(val[0])
+
+# %%
+import pandas as pd
 
 # %%
 # Normalize the nested JSON

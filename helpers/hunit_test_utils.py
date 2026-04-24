@@ -398,9 +398,7 @@ class Obj_to_str_TestCase(abc.ABC):
     Test case for testing `obj_to_str()` and `obj_to_repr()`.
     """
 
-    def _test_method(
-        self, obj: Any, method_name: str, expected_str: str
-    ) -> None:
+    def helper(self, obj: Any, method_name: str, expected_str: str) -> None:
         """
         Common method for testing `__repr__` and `__str__`.
         """
@@ -415,21 +413,21 @@ class Obj_to_str_TestCase(abc.ABC):
         Check that `__repr__` is printed correctly.
         """
         method_name = "__repr__"
-        self._test_method(obj, method_name, expected_str)
+        self.helper(obj, method_name, expected_str)
 
     def run_test_str(self, obj: Any, expected_str: str) -> None:
         """
         Check that `__str__` is printed correctly.
         """
         method_name = "__str__"
-        self._test_method(obj, method_name, expected_str)
+        self.helper(obj, method_name, expected_str)
 
     def run_test_to_config_str(self, obj: Any, expected_str: str) -> None:
         """
         Check that `to_config_str()` is printed correctly.
         """
         method_name = "to_config_str"
-        self._test_method(obj, method_name, expected_str)
+        self.helper(obj, method_name, expected_str)
 
 
 # #############################################################################
@@ -492,3 +490,28 @@ def check_env_to_str(
             "AM_AWS_|CSFY_AWS_|GH_ACTION_ACCESS_TOKEN", actual
         )
     self_.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
+
+
+def get_test_file_for_source(source_file: str) -> Optional[str]:
+    """
+    Map a source Python file to its corresponding test file.
+
+    E.g., helpers/hdbg.py -> helpers/test/test_hdbg.py
+
+    :param source_file: path to a source Python file
+    :return: path to corresponding test file if it exists and source is not
+             already a test file; None otherwise
+    """
+    base_name = os.path.basename(source_file)
+    is_test = (
+        "test" in source_file.split("/")
+        and base_name.startswith("test_")
+        and source_file.endswith(".py")
+    )
+    if is_test:
+        return None
+    dir_name = os.path.dirname(source_file)
+    test_file = os.path.join(dir_name, "test", f"test_{base_name}")
+    if os.path.exists(test_file):
+        return test_file
+    return None

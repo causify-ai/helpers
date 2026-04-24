@@ -2,9 +2,11 @@ import helpers.hunit_test as hunitest
 import helpers.hprint as hprint
 import linters2.add_class_frames as ladclfra
 
+
 # #############################################################################
 # Test_add_class_frame
 # #############################################################################
+
 
 class Test_add_class_frame(hunitest.TestCase):
     def helper(self, content: str, expected: str) -> None:
@@ -251,4 +253,90 @@ class Test_add_class_frame(hunitest.TestCase):
         class SecondClass():
             pass
         """
+        self.helper(content, expected)
+
+    def test7(self) -> None:
+        """
+        Test that existing frames with extra bars before them are handled.
+
+        When there are extra bars before a valid frame, the function should
+        process them and maintain the frame structure.
+        """
+        content = """
+        # #############################################################################
+
+
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        expected = """
+        # #############################################################################
+
+
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        self.helper(content, expected)
+
+    def test8(self) -> None:
+        """
+        Test that valid frames with class names are preserved.
+
+        Even if frames appear in specific patterns, frames containing
+        class names should not be removed.
+        """
+        content = """
+        # #############################################################################
+        # FirstClass
+        # #############################################################################
+
+
+        class FirstClass():
+            pass
+
+
+        # #############################################################################
+        # SecondClass
+        # #############################################################################
+
+
+        class SecondClass():
+            pass
+        """
+        expected = content
+        self.helper(content, expected)
+
+    def test9(self) -> None:
+        """
+        Test that multiple consecutive bars are preserved.
+
+        When there are multiple bars with empty lines before a valid frame,
+        the structure is maintained and not modified.
+        """
+        content = """
+        # #############################################################################
+
+
+        # #############################################################################
+
+
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        expected = content
         self.helper(content, expected)

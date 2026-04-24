@@ -4,18 +4,18 @@
 
 - [Run Unit Tests](#run-unit-tests)
   * [Test Lists](#test-lists)
-  * [Using `Invoke`](#using-invoke)
+  * [Using `invoke`](#using-invoke)
   * [Timeout](#timeout)
   * [Rerunning Timed Out Tests](#rerunning-timed-out-tests)
   * [Compute Test Coverage](#compute-test-coverage)
     + [An Example Coverage Session](#an-example-coverage-session)
     + [An Example with Customized `Pytest-Cov` Html Run](#an-example-with-customized-pytest-cov-html-run)
-    + [Generate Coverage Report with `Invoke`](#generate-coverage-report-with-invoke)
+    + [Generate Coverage Report with `invoke`](#generate-coverage-report-with-invoke)
     + [Publishing HTML Report on S3](#publishing-html-report-on-s3)
-- [Running `Pytest` Directly](#running-pytest-directly)
+- [Running `pytest` Directly](#running-pytest-directly)
   * [Basic Rules](#basic-rules)
 - [Usage and Invocations Reference](#usage-and-invocations-reference)
-  * [Custom `Pytest` Options Behaviors](#custom-pytest-options-behaviors)
+  * [Custom `pytest` Options Behaviors](#custom-pytest-options-behaviors)
   * [Debugging Notebooks](#debugging-notebooks)
 - [Running Tests on GH Actions](#running-tests-on-gh-actions)
   * [How to Run a Single Test on GH Action](#how-to-run-a-single-test-on-gh-action)
@@ -47,7 +47,7 @@
     - No time limit but we need to be judicious with length
       - Anything above 5-15 mins is problematic
 
-### Using `Invoke`
+### Using `invoke`
 
 - [`invoke`](https://www.pyinvoke.org/) is a task execution framework which
   allows to execute some typical workflows in a simple way
@@ -490,7 +490,7 @@
   Coverage HTML written to dir datapull/common/data/transform/htmlcov
   ```
 
-#### Generate Coverage Report with `Invoke`
+#### Generate Coverage Report with `invoke`
 
 - You can compute test coverage for a specified directory and generate text and
   HTML reports automatically using `invoke task run_coverage_report`
@@ -550,7 +550,7 @@
   - E.g.
     [http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/](http://172.30.2.44/html_coverage/grisha_CmTask1038_Tool_to_extract_the_dependency_from_a_project/)
 
-## Running `Pytest` Directly
+## Running `pytest` Directly
 
 ### Basic Rules
 
@@ -597,7 +597,7 @@
   > pytest --last-failed
   ```
 
-### Custom `Pytest` Options Behaviors
+### Custom `pytest` Options Behaviors
 
 - **Enable logging**
   - To enable logging of `_LOG.debug` for a single test run:
@@ -673,3 +673,52 @@
   - Kick-off manually the fast test through the GH interface
   - After debugging, you can revert the change from your branch to `master` and
     move along with the usual PR flow
+
+# `pytest_log`
+
+- A wrapper script around pytest that captures output to a log file while also
+  displaying it in real-time
+- Conceptually executes `pytest $* 2>&1 | tee $file_name` and preserves the
+  original exit code
+- It runs `pytest` with all passed arguments and saves the combined stdout/stderr
+  to `tmp.pytest_script.txt`
+
+## `invoke traceback`
+
+- `invoke traceback` parses the pytest traceback and opens it with vim for
+  navigation
+
+- What it does:
+  - Converts the traceback from `tmp.pytest_script.txt` into a cfile format
+  - Optionally purifies filenames (strips Docker/client paths)
+  - Opens the result in vim with quickfix mode for easy navigation
+
+- Usage:
+  ```
+  > pytest_log helpers/test/test_traceback.py
+
+  # Uses tmp.pytest_script.txt by default.
+  invoke traceback                           
+
+  # Use custom log file.
+  invoke traceback -i other_file.log
+  ```
+
+## `invoke pytest_failed`
+
+- `invoke pytest_failed` extracts failed test names from the pytest output and
+  creates a reproduction script `tmp.pytest_failed.sh` with a pytest_log command
+  to re-run just the failed tests
+
+- Usage:
+  ```
+  > pytest_log my_test.py::TestClass::test_method
+  # Extracts failed tests.
+  > invoke pytest_failed
+
+  # Only print filename.
+  > invoke pytest_failed --only-file
+
+  # Only print class name.
+  > invoke pytest_failed --only-class
+  ```

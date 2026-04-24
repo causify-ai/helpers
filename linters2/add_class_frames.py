@@ -201,6 +201,47 @@ def _insert_frame(
     return updated_lines
 
 
+def _remove_extra_bars(lines: List[str]) -> List[str]:
+    """
+    Remove extra/redundant comment bars that appear before complete frames.
+
+    Detects the pattern: bar -> empty lines -> bar -> class name -> bar.
+    Removes the first bar and empty lines if the second bar is part of a
+    valid frame (preceded by class name and followed by bottom border).
+
+    :param lines: the lines of the file
+    :return: lines with extra bars removed
+    """
+    if len(lines) < 4:
+        return lines
+    frame_border = f"# {'#' * (MAX_LINE_LENGTH - 2)}"
+    result = []
+    i = 0
+    while i < len(lines):
+        if lines[i] == frame_border:
+            j = i + 1
+            empty_count = 0
+            while j < len(lines) and lines[j] == "":
+                empty_count += 1
+                j += 1
+            if (
+                j < len(lines)
+                and lines[j] == frame_border
+                and j + 1 < len(lines)
+                and re.match(r"#\s\w+", lines[j + 1])
+                and j + 2 < len(lines)
+                and lines[j + 2] == frame_border
+            ):
+                i = j
+            else:
+                result.append(lines[i])
+                i += 1
+        else:
+            result.append(lines[i])
+            i += 1
+    return result
+
+
 def update_class_frames(file_content: str) -> List[str]:
     """
     Update frames located above class initializations.
@@ -217,9 +258,11 @@ def update_class_frames(file_content: str) -> List[str]:
         updated_lines = _insert_frame(lines, line_num, updated_lines)
     return updated_lines
 
+
 # #############################################################################
 # _ClassFramer
 # #############################################################################
+
 
 class _ClassFramer(liaction.Action):
     def check_if_possible(self) -> bool:

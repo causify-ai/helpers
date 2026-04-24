@@ -1,21 +1,19 @@
 ---
-description: Write a tutorial for the slides
+description: Add a tutorial for lecture slides
 ---
 
-Act as a senior academic researcher in Data Science, Machine Learning, Artificial
-Intelligence, and Computer Science.
+# Role
+- Your role is specified in `@.claude/skills/role.md`
 
-The target audience is data scientists and ML practitioners
+# Step 1: Read file
+- Read the passed file `<FILE>`
 
-# Step 1
-- Read the passed file $FILE
-
-# Step 2
+# Step 2: Come Up With Libraries
 - Come up with 2 or 3 Python library that can be used to implement in Python
   some of the concepts and analysis explained in the slides
 - Ignore general purpose libraries (such as pandas, numpy), but focus on specific
-  ones that are relevant and specific of the content in $FILE
-- Annotate at the beginning of $FILE the related packages
+  ones that are relevant and specific of the content in `<FILE>`
+- Annotate at the beginning of `<FILE>` the related packages
   ```
   // Packages:
   // - CausalNex
@@ -24,8 +22,8 @@ The target audience is data scientists and ML practitioners
   //   - Used for decision-making, risk analysis, and explainable AI
   ```
 
-# Step 3
-- Add a high level description of the tutorial at the beginning of $FILE
+# Step 3: Add Library Descriptions
+- Add a high level description of the tutorial at the beginning of `<FILE>`
   ```
   // Tutorial outline:
   // - Load data and explore conditional dependencies
@@ -36,10 +34,10 @@ The target audience is data scientists and ML practitioners
   // - Visualize and compare algorithm results
   ```
 
-# Step 3
+# Step 4: Suggest Tutorial Steps For Each Slide
 - Suggest steps for the tutorial that can help the understanding of the content
   in each slide
-- Add comments in the $FILE describing what can be done with the packages from
+- Add comments in the `<FILE>` describing what can be done with the packages from
   step 2 to 
   - Use bullet points like
     ```
@@ -49,4 +47,5 @@ The target audience is data scientists and ML practitioners
     // - Mark forbidden/required edges in algorithm parameters
     // - Compare discovery with vs. without constraints to measure impact
     ```
-- Follow the rules in `helpers_root/.claude/skills/notebook.script.create/SKILL.md`
+- When creating the slides, follow the rules in
+  `helpers_root/.claude/skills/notebook.script.create/SKILL.md`

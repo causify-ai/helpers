@@ -78,9 +78,11 @@ _CUSTOM_SHORT_IMPORTS = {
     # "core.config_builders": "ccbuild",
 }
 
+
 # #############################################################################
 # LongToShortImportGenerator
 # #############################################################################
+
 
 class LongToShortImportGenerator:
     """
@@ -517,9 +519,11 @@ class LongToShortImportGenerator:
         hdbg.dassert_eq(0, len(collisions))
         return long_import_to_short
 
+
 # #############################################################################
 # CodeImportNormalizer
 # #############################################################################
+
 
 class CodeImportNormalizer:
     """
@@ -786,9 +790,11 @@ class CodeImportNormalizer:
         hio.to_file(file_path, code)
         return warnings
 
+
 # #############################################################################
 # ImportDocstringGenerator
 # #############################################################################
+
 
 class ImportDocstringGenerator:
     """
@@ -965,9 +971,11 @@ class ImportDocstringGenerator:
         new_code = self._process_code(code, long_import, short_import)
         return new_code
 
+
 # #############################################################################
 # _NormalizeImports
 # #############################################################################
+
 
 class _NormalizeImports(liaction.Action):
     """

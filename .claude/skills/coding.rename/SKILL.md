@@ -16,7 +16,7 @@ Make sure to update all the references to those objects in the code base
 - Update documentation in txt and md files
 - If needed, run corresponding unit tests to make sure the code works
 
-- For Python code follow the rules in @.claude/skills/coding.rules.md
+- For Python code follow the rules in `@.claude/skills/coding.rules.md`
 
 - For Python code with unit tests, follow the rules in the rules from
-  @.claude/skills/testing.format_rules/SKILL.md
+  `@.claude/skills/testing.format/SKILL.md`

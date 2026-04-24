@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.4.2
+#       jupytext_version: 1.19.0
 #   kernelspec:
 #     display_name: Python [conda env:.conda-develop] *
 #     language: python
@@ -47,7 +47,6 @@ _LOG.info("%s", henv.get_system_signature()[0])
 hnotebook.config_notebook()
 
 # %%
-
 data = {
     "Product": ["Desktop Computer", "Tablet", "iPhone", "Laptop"],
     "Price": [700, 250, 800, 1200],
@@ -115,12 +114,12 @@ dummy_0 = jsonpickle.decode(dummy_0)
 dummy_1 = r"2"
 dummy_1 = jsonpickle.decode(dummy_1)
 # Call function.
-actual = F(dummy_0, dummy_1)
+act = F(dummy_0, dummy_1)
 # Create expected value of function output.
-expected = r"5"
-expected = jsonpickle.decode(expected)
+exp = r"5"
+exp = jsonpickle.decode(exp)
 # Check.
-assert actual == expected
+assert act == exp
 
 
 # #############################################################################
@@ -148,10 +147,10 @@ class Playback:
         output.append("a = %s" % jsonpickle.decode(self.a_json))
         output.append("b = %s" % jsonpickle.decode(self.b_json))
         output.append("# Apply values.")
-        output.append("actual = F(a, b)")
-        output.append("expected = %s" % jsonpickle.decode(self.ret_json))
-        # output.append("self.assertEqual(actual, expected)")
-        # output.append("assert actual == expected")
+        output.append("act = F(a, b)")
+        output.append("exp = %s" % jsonpickle.decode(self.ret_json))
+        # output.append("self.assertEqual(act, exp)")
+        # output.append("assert act == exp")
         output = "\n".join(output)
         print("output=", output)
 
@@ -204,13 +203,13 @@ class Playback:  # noqa: F811
         output.append(f"b = r'{self.b_json}'")
         output.append("b = jsonpickle.decode(b)")
         output.append("# Apply values.")
-        # output.append("actual = F(a, b)[1]")
-        output.append("actual = F(a, b)")
-        output.append(f"expected = r'{self.ret_json}'")
-        output.append("expected = jsonpickle.decode(expected)")
-        # output.append("self.assertEqual(actual, expected)")
-        output.append("assert actual.equals(expected)")
-        # output.append("assert actual == expected")
+        # output.append("act = F(a, b)[1]")
+        output.append("act = F(a, b)")
+        output.append(f"exp = r'{self.ret_json}'")
+        output.append("exp = jsonpickle.decode(exp)")
+        # output.append("self.assertEqual(act, exp)")
+        output.append("assert act.equals(exp)")
+        # output.append("assert act == exp")
         output = "\n".join(output)
         return output
 
@@ -289,19 +288,19 @@ a = jsonpickle.decode(a)
 b = '{"py/object": "pandas.core.frame.DataFrame", "values": "Price\n1\n1\n1\n1\n", "txt": true, "meta": {"dtypes": {"Price": "int64"}, "index": "{"py/object": "pandas.core.indexes.range.RangeIndex", "values": "[0, 1, 2, 3]", "txt": true, "meta": {"dtype": "int64", "name": null}}"}}'
 b = jsonpickle.decode(b)
 # Apply values.
-actual = F(a, b)
-expected = '{"py/object": "pandas.core.frame.DataFrame", "values": "Price\n701\n251\n801\n1201\n", "txt": true, "meta": {"dtypes": {"Price": "int64"}, "index": "{"py/object": "pandas.core.indexes.range.RangeIndex", "values": "[0, 1, 2, 3]", "txt": true, "meta": {"dtype": "int64", "name": null}}"}}'
-expected = jsonpickle.decode(expected)
-assert actual == expected
+act = F(a, b)
+exp = '{"py/object": "pandas.core.frame.DataFrame", "values": "Price\n701\n251\n801\n1201\n", "txt": true, "meta": {"dtypes": {"Price": "int64"}, "index": "{"py/object": "pandas.core.indexes.range.RangeIndex", "values": "[0, 1, 2, 3]", "txt": true, "meta": {"dtype": "int64", "name": null}}"}}'
+exp = jsonpickle.decode(exp)
+assert act == exp
 
 # %%
 # Initialize values for unit test.
 a = 3
 b = 4
 # Apply values.
-actual = F(a, b)
-expected = {"pavel": 7}
-assert actual == expected
+act = F(a, b)
+exp = {"pavel": 7}
+assert act == exp
 
 # %%
 df2 = round_trip(df)  # noqa: F821

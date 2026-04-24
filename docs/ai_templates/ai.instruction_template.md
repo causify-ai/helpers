@@ -9,11 +9,11 @@
 
 # Rules
 
-.claude/skills/blog.format_rules.md
+.claude/skills/blog.format.md
 .claude/skills/coding.rules.md
-.claude/skills/markdown.format_rules.md
-.claude/skills/notebook.format_rules.md
-.claude/skills/testing.format_rules.md
+.claude/skills/markdown.format.md
+.claude/skills/notebook.format.md
+.claude/skills/testing.format.md
 
 # Implement Code
 
@@ -41,7 +41,7 @@ next step
 
 ## Step 3)
 - Generate unit tests for the code following the instructions in
-  @.claude/skills/testing.format_rules.md
+  @.claude/skills/testing.format.md
   - Write test class and methods
   - Preview unit tests that need to be written by creating input and expected
     outputs
@@ -49,7 +49,7 @@ next step
 
 ## Step 4)
 - Implement unit test code for the code following the instructions in
-  @.claude/skills/testing.format_rules.md
+  @.claude/skills/testing.format.md
 
 # Implement Notebook Script
 
@@ -78,7 +78,7 @@ Given the passed code
 
 ## Step 1)
 - Generate unit tests for the code following the instructions in
-  @.claude/skills/testing.format_rules.md
+  @.claude/skills/testing.format.md
 - Focus on writing test class and methods and their docstring without implement
   testing code
 
@@ -129,11 +129,11 @@ Given the passed code
 
 ## Step 4) Come up with a plan for the tests
   - Implement unit tests following the instructions in 
-    @.claude/skills/testing.format_rules.md
+    @.claude/skills/testing.format.md
 
 ## Step 5) Implement tests
   - Implement unit tests following the instructions in 
-    @.claude/skills/testing.format_rules.md
+    @.claude/skills/testing.format.md
 
 ## Step 6) Create new README
   - If it's a new script, find where the documentation of this change should go
