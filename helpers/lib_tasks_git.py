@@ -777,7 +777,9 @@ def _git_diff_with_branch(
         cmd.append(f"--diff-filter={diff_type}")
     cmd.append(f"--name-only HEAD {hash_}")
     cmd = " ".join(cmd)
-    files = hsystem.system_to_files(cmd, dir_name, remove_files_non_present=False)
+    files = hsystem.system_to_files(
+        cmd, dir_name, remove_files_non_present=False
+    )
     files = sorted(files)
     _LOG.debug("%s", "\n".join(files))
     # Filter by `file_name`, if needed.
@@ -1219,7 +1221,8 @@ def git_backup(
         submodule_paths = _get_submodule_paths()
         if submodule_paths:
             _LOG.info(
-                "Found %d submodule(s), collecting files...", len(submodule_paths)
+                "Found %d submodule(s), collecting files...",
+                len(submodule_paths),
             )
             for submodule_path in submodule_paths:
                 hdbg.dassert_dir_exists(

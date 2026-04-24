@@ -290,7 +290,9 @@ class Test_get_value_counts_stats_df(hunitest.TestCase):
             }
         )
         # Call function to test.
-        result_df = hpandas.get_value_counts_stats_df(df, "category", num_rows=10)
+        result_df = hpandas.get_value_counts_stats_df(
+            df, "category", num_rows=10
+        )
         # Check output.
         self.assertEqual(result_df.index.tolist(), ["A", "B", "C", "D"])
         self.assertEqual(result_df["count"].tolist(), [5, 2, 2, 1])

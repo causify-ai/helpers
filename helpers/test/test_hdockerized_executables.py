@@ -102,7 +102,6 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
 
 
 class Test_parse_pandoc_arguments1(hunitest.TestCase):
-
     def test1(self) -> None:
         # Prepare inputs.
         cmd = r"""
@@ -273,7 +272,6 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 
 # TODO(ai_gp): -> Test_dockerized_markdown_toc1
 class Test_run_markdown_toc1(hunitest.TestCase):
-
     def run_markdown_toc(self, txt: str, expected: str) -> None:
         """
         Test running the `markdown-toc` command in a Docker container.
@@ -338,7 +336,6 @@ class Test_run_markdown_toc1(hunitest.TestCase):
 
 
 class Test_dockerized_latex1(hunitest.TestCase):
-
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         \documentclass{article}
@@ -433,7 +430,6 @@ class Test_dockerized_latex1(hunitest.TestCase):
 
 
 class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
-
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         \documentclass[tikz, border=10pt]{standalone}
@@ -511,7 +507,6 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 
 
 class Test_dockerized_graphviz1(hunitest.TestCase):
-
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         digraph {
@@ -574,7 +569,6 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
 
 
 class Test_dockerized_typst1(hunitest.TestCase):
-
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         #set page(width: 10cm, height: auto)

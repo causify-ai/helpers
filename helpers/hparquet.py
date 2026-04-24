@@ -27,7 +27,6 @@ else:
 
     # Define a dummy class for type hints when S3FileSystem is not available.
     class PyArrowS3FileSystem:
-
         def __init__(self, *args, **kwargs):
             raise ImportError(
                 "S3FileSystem is not available in this version of pyarrow.fs"
@@ -58,60 +57,6 @@ class ParquetDataFrameGenerator:
     # Allowed types.
     OUTPUT_TYPES = ("basic", "verbose_open", "cm_task_1103")
 
-    def __init__(
-        self,
-        start_date: str,
-        end_date: str,
-        output_type: str,
-        assets: List[Union[str, int]],
-        asset_col_name: str,
-        freq: str,
-    ) -> None:
-        """
-        Constructor.
-
-        :param start_date: start of date range including start_date
-        :param end_date: end of date range excluding end_date
-        :param output_type: type of data that is generated
-        :param assets: list of desired assets that can be names or ids
-        :param asset_col_name: name of the column that stores assets
-        :param freq: frequency of steps between start and end date
-        """
-        self._start_date = start_date
-        self._end_date = end_date
-        self._output_type = output_type
-        self._assets = assets
-        self._asset_col_name = asset_col_name
-        self._freq = freq
-        self._dataframe_index = pd.date_range(
-            self._start_date,
-            self._end_date,
-            freq=self._freq,
-            inclusive="left",
-            tz="UTC",
-        )
-        self._OUTPUT_TYPE_FUNCTION_MAP = {
-            "basic": self._get_daily_basic_dataframe,
-            "verbose_open": self._get_verbose_open_dataframe,
-            "cm_task_1103": self._get_cm_task_1103_dataframe,
-        }
-
-    @property
-    def output_type_function(self) -> Callable:
-        """
-        Return proper function for data generation depending on output type.
-        """
-        return self._OUTPUT_TYPE_FUNCTION_MAP[self._output_type]
-
-    def generate(self) -> pd.DataFrame:
-        """
-        Generate specific dataframe based on inputs provided in instance
-        creation.
-        """
-        if self._output_type not in self.OUTPUT_TYPES:
-            raise ValueError(f"Unsupported data type `{self._output_type}`!")
-        return self.output_type_function()
-
     @staticmethod
     def _wrap_all_assets_df(df: List[pd.DataFrame]) -> pd.DataFrame:
         # Create a single dataframe for all the assets.
@@ -141,7 +86,9 @@ class ParquetDataFrameGenerator:
                 index=self._dataframe_index,
             )
             _LOG.debug(
-                hpandas.df_to_str(asset_df, print_shape_info=True, tag="asset_df")
+                hpandas.df_to_str(
+                    asset_df, print_shape_info=True, tag="asset_df"
+                )
             )
             df.append(asset_df)
         return df
@@ -241,6 +188,186 @@ class ParquetDataFrameGenerator:
                 value=list(range(len(self._dataframe_index))),
             )
         return self._wrap_all_assets_df(asset_dataframes)
+
+    def __init__(
+        self,
+        start_date: str,
+        end_date: str,
+        output_type: str,
+        assets: List[Union[str, int]],
+        asset_col_name: str,
+        freq: str,
+    ) -> None:
+        """
+        Constructor.
+
+        :param start_date: start of date range including start_date
+        :param end_date: end of date range excluding end_date
+        :param output_type: type of data that is generated
+        :param assets: list of desired assets that can be names or ids
+        :param asset_col_name: name of the column that stores assets
+        :param freq: frequency of steps between start and end date
+        """
+        self._start_date = start_date
+        self._end_date = end_date
+        self._output_type = output_type
+        self._assets = assets
+        self._asset_col_name = asset_col_name
+        self._freq = freq
+        self._dataframe_index = pd.date_range(
+            self._start_date,
+            self._end_date,
+            freq=self._freq,
+            inclusive="left",
+            tz="UTC",
+        )
+        self._OUTPUT_TYPE_FUNCTION_MAP = {
+            "basic": self._get_daily_basic_dataframe,
+            "verbose_open": self._get_verbose_open_dataframe,
+            "cm_task_1103": self._get_cm_task_1103_dataframe,
+        }
+
+    @property
+    def output_type_function(self) -> Callable:
+        """
+        Return proper function for data generation depending on output type.
+        """
+        return self._OUTPUT_TYPE_FUNCTION_MAP[self._output_type]
+
+    def generate(self) -> pd.DataFrame:
+        """
+        Generate specific dataframe based on inputs provided in instance
+        creation.
+        """
+        if self._output_type not in self.OUTPUT_TYPES:
+            raise ValueError(f"Unsupported data type `{self._output_type}`!")
+        return self.output_type_function()
+
+
+def add_date_partition_columns(
+    df: pd.DataFrame, partition_mode: str
+) -> Tuple[pd.DataFrame, List[str]]:
+    """
+    Add partition columns like year, month, day from datetime index.
+
+    :param df: dataframe indexed by timestamp
+    :param partition_mode:
+        - "by_date": extract the date from the index
+            - E.g., an index like `2022-01-10 14:00:00+00:00` is transform to a
+              column `20220110`
+        - "by_year_month_day": split the index in year, month, day columns
+        - "by_year_month": split by year and month
+        - "by_year_week": split by year and week of the year
+        - "by_year": split by year
+    :return:
+        - df with additional partitioning columns
+        - list of partitioning columns
+    """
+    with htimer.TimedScope(logging.DEBUG, "# add_date_partition_cols"):
+        if partition_mode == "by_date":
+            df["date"] = df.index.strftime("%Y%m%d")
+            partition_columns = ["date"]
+        else:
+            if partition_mode == "by_year_month_day":
+                partition_columns = ["year", "month", "day"]
+            elif partition_mode == "by_year_month":
+                partition_columns = ["year", "month"]
+            elif partition_mode == "by_year_week":
+                partition_columns = ["year", "weekofyear"]
+            elif partition_mode == "by_year":
+                partition_columns = ["year"]
+            elif partition_mode == "by_month":
+                partition_columns = ["month"]
+            else:
+                raise ValueError(f"Invalid partition_mode='{partition_mode}'")
+            # Add date columns chosen by partition mode.
+            for column_name in partition_columns:
+                # Extract data corresponding to `column_name` (e.g.,
+                # `df.index.year`).
+                if column_name == "weekofyear":
+                    # The `weekofyear` attribute has been deprecated in Pandas
+                    # 2.1.0, so weeks are extracted using a function instead of
+                    # the attribute name.
+                    df["weekofyear"] = df.index.isocalendar().week
+                else:
+                    df[column_name] = getattr(df.index, column_name)
+    return df, partition_columns
+
+
+def to_partitioned_parquet(
+    df: pd.DataFrame,
+    partition_columns: List[str],
+    dst_dir: str,
+    *,
+    aws_profile: hs3.AwsProfile = None,
+    basename_template: str = None,
+) -> None:
+    """
+    Save the given dataframe as Parquet file partitioned along the given
+    columns.
+
+    :param df: dataframe
+    :param partition_columns: partitioning columns
+    :param dst_dir: location of partitioned dataset
+    :param aws_profile: the name of an AWS profile or a s3fs filesystem
+
+    E.g., in case of partition using `date`, the file layout looks like:
+    ```
+    dst_dir/
+        date=20211230/
+            data.parquet
+        date=20211231/
+            data.parquet
+        date=20220101/
+            data.parquet
+    ```
+
+    In case of multiple columns like `asset`, `year`, `month`, the file layout
+    looks like:
+    ```
+    dst_dir/
+        asset=A/
+            year=2021/
+                month=12/
+                    data.parquet
+            year=2022/
+                month=01/
+                    data.parquet
+        ...
+        asset=B/
+            year=2021/
+                month=12/
+                    data.parquet
+            year=2022/
+                month=01/
+                    data.parquet
+    ```
+    """
+    # Use either S3 or local filesystem.
+    filesystem = None
+    if aws_profile is not None:
+        filesystem = hs3.get_s3fs(aws_profile)
+        # ParquetDataset appends an extra "/", creating an empty-named folder
+        #  when saving on S3.
+        dst_dir = dst_dir.rstrip("/")
+    with htimer.TimedScope(logging.DEBUG, "# partition_dataset"):
+        # Read.
+        table = pa.Table.from_pandas(df)
+        # Write using partition.
+        # TODO(gp): add this logic to hparquet.to_parquet as a possible option.
+        _LOG.debug(hprint.to_str("partition_columns dst_dir"))
+        hdbg.dassert_is_subset(partition_columns, df.columns)
+        # TODO(gp): We would like to avoid overriding existing tiles. It's not clear
+        #  how to do it. Either setting permissions to read-only before writing.
+        #  Or having a list of files that will be written and ensure that none of
+        #  those files already existing.
+        pq.write_to_dataset(
+            table,
+            dst_dir,
+            partition_cols=partition_columns,
+            filesystem=filesystem,
+            basename_template=basename_template,
+        )
 
 
 def generate_parquet_files(
@@ -629,48 +756,6 @@ def _yield_parquet_tile(
     yield tile
 
 
-def yield_parquet_tiles_by_year(
-    file_name: str,
-    start_date: datetime.date,
-    end_date: datetime.date,
-    cols: List[Union[int, str]],
-    *,
-    asset_ids: Optional[List[int]] = None,
-    asset_id_col: str = "asset_id",
-) -> Iterator[pd.DataFrame]:
-    """
-    Yield Parquet data in tiles up to one year in length.
-
-    :param file_name: as in `from_parquet()`
-    :param start_date: first date to load; day is ignored
-    :param end_date: last date to load; day is ignored
-    :param cols: if an `int` is supplied, it is cast to a string before reading
-    :param asset_ids: asset ids to load
-    :param asset_id_col: see `_yield_parquet_tile()`
-    :return: a generator of `from_parquet()` dataframes
-    """
-    time_filters = build_year_month_filter(start_date, end_date)
-    hdbg.dassert_isinstance(time_filters, list)
-    # The list should not be empty.
-    hdbg.dassert(time_filters)
-    if not isinstance(time_filters[0], list):
-        time_filters = [time_filters]
-    columns = [str(col) for col in cols]
-    if asset_ids is None:
-        asset_ids = []
-    asset_id_filter = build_asset_id_filter(asset_ids, asset_id_col)
-    for time_filter in time_filters:
-        if asset_id_filter:
-            combined_filter = [
-                id_filter + time_filter for id_filter in asset_id_filter
-            ]
-        else:
-            combined_filter = time_filter
-        yield from _yield_parquet_tile(
-            file_name, columns, combined_filter, asset_id_col
-        )
-
-
 def build_asset_id_filter(
     asset_ids: List[int],
     asset_id_col: str,
@@ -679,39 +764,6 @@ def build_asset_id_filter(
     for asset_id in asset_ids:
         filters.append([(asset_id_col, "==", asset_id)])
     return filters
-
-
-# TODO(Paul): Add additional time-restriction filter.
-def yield_parquet_tiles_by_assets(
-    file_name: str,
-    asset_ids: List[int],
-    asset_id_col: str,
-    asset_batch_size: int,
-    cols: Optional[List[Union[int, str]]],
-) -> Iterator[pd.DataFrame]:
-    """
-    Yield Parquet data in tiles batched by asset ids.
-
-    :param file_name: as in `from_parquet()`
-    :param asset_ids: asset ids to load
-    :param asset_id_col: see `_yield_parquet_tile()`
-    :param asset_batch_size: the number of asset to load in a single batch
-    :param cols: if an `int` is supplied, it is cast to a string before reading
-    :return: a generator of `from_parquet()` dataframes
-    """
-    hdbg.dassert_isinstance(asset_id_col, str)
-    hdbg.dassert(asset_id_col, "`asset_id_col` must be nonempty")
-    batches = [
-        asset_ids[i : i + asset_batch_size]
-        for i in range(0, len(asset_ids), asset_batch_size)
-    ]
-    columns: Optional[List[str]] = None
-    if cols:
-        columns = [str(col) for col in cols]
-    for batch in tqdm(batches):
-        _LOG.debug("assets=%s", batch)
-        filter_ = build_asset_id_filter(batch, asset_id_col)
-        yield from _yield_parquet_tile(file_name, columns, filter_, asset_id_col)
 
 
 def build_year_month_filter(
@@ -765,6 +817,81 @@ def build_year_month_filter(
     return filter_
 
 
+def yield_parquet_tiles_by_year(
+    file_name: str,
+    start_date: datetime.date,
+    end_date: datetime.date,
+    cols: List[Union[int, str]],
+    *,
+    asset_ids: Optional[List[int]] = None,
+    asset_id_col: str = "asset_id",
+) -> Iterator[pd.DataFrame]:
+    """
+    Yield Parquet data in tiles up to one year in length.
+
+    :param file_name: as in `from_parquet()`
+    :param start_date: first date to load; day is ignored
+    :param end_date: last date to load; day is ignored
+    :param cols: if an `int` is supplied, it is cast to a string before reading
+    :param asset_ids: asset ids to load
+    :param asset_id_col: see `_yield_parquet_tile()`
+    :return: a generator of `from_parquet()` dataframes
+    """
+    time_filters = build_year_month_filter(start_date, end_date)
+    hdbg.dassert_isinstance(time_filters, list)
+    # The list should not be empty.
+    hdbg.dassert(time_filters)
+    if not isinstance(time_filters[0], list):
+        time_filters = [time_filters]
+    columns = [str(col) for col in cols]
+    if asset_ids is None:
+        asset_ids = []
+    asset_id_filter = build_asset_id_filter(asset_ids, asset_id_col)
+    for time_filter in time_filters:
+        if asset_id_filter:
+            combined_filter = [
+                id_filter + time_filter for id_filter in asset_id_filter
+            ]
+        else:
+            combined_filter = time_filter
+        yield from _yield_parquet_tile(
+            file_name, columns, combined_filter, asset_id_col
+        )
+
+
+# TODO(Paul): Add additional time-restriction filter.
+def yield_parquet_tiles_by_assets(
+    file_name: str,
+    asset_ids: List[int],
+    asset_id_col: str,
+    asset_batch_size: int,
+    cols: Optional[List[Union[int, str]]],
+) -> Iterator[pd.DataFrame]:
+    """
+    Yield Parquet data in tiles batched by asset ids.
+
+    :param file_name: as in `from_parquet()`
+    :param asset_ids: asset ids to load
+    :param asset_id_col: see `_yield_parquet_tile()`
+    :param asset_batch_size: the number of asset to load in a single batch
+    :param cols: if an `int` is supplied, it is cast to a string before reading
+    :return: a generator of `from_parquet()` dataframes
+    """
+    hdbg.dassert_isinstance(asset_id_col, str)
+    hdbg.dassert(asset_id_col, "`asset_id_col` must be nonempty")
+    batches = [
+        asset_ids[i : i + asset_batch_size]
+        for i in range(0, len(asset_ids), asset_batch_size)
+    ]
+    columns: Optional[List[str]] = None
+    if cols:
+        columns = [str(col) for col in cols]
+    for batch in tqdm(batches):
+        _LOG.debug("assets=%s", batch)
+        filter_ = build_asset_id_filter(batch, asset_id_col)
+        yield from _yield_parquet_tile(file_name, columns, filter_, asset_id_col)
+
+
 def build_filter_with_only_equalities(
     start_timestamp: pd.Timestamp, end_timestamp: pd.Timestamp
 ) -> list:
@@ -798,6 +925,41 @@ def build_filter_with_only_equalities(
             if start_timestamp.day == end_timestamp.day:
                 filters.append(("day", "==", start_timestamp.day))
     return filters
+
+
+# TODO(Paul): The `int` assumption is baked in. We can generalize to strings
+#  if needed, but if we do, then we should continue to handle string ints as
+#  ints as we do here (e.g., there are sorting advantages, among others).
+def _process_walk_triple(
+    triple: tuple, start_depth: int
+) -> Tuple[Tuple[str, ...], Tuple[int, ...]]:
+    """
+    Process a triple returned by `os.walk()`
+
+    :param triple: (dirpath: str, dirnames: List[str], filenames: List[str])
+    :param start_depth: the "depth" of `path` used in the call
+        `os.walk(path)`
+    :return: tuple(lhs_vals), tuple(rhs_vals)
+    """
+    lhs_vals: List[str] = []
+    rhs_vals: List[int] = []
+    # If there are subdirectories, do not process.
+    if triple[1]:
+        return tuple(lhs_vals), tuple(rhs_vals)
+    depth = len(triple[0].split("/"))
+    rel_depth = depth - start_depth
+    key = tuple(triple[0].split("/")[start_depth:])
+    if len(key) == 0:
+        return tuple(lhs_vals), tuple(rhs_vals)
+    hdbg.dassert_eq(len(key), rel_depth)
+    lhs_vals = []
+    rhs_vals = []
+    for string in key:
+        lhs, rhs = string.split("=")
+        lhs_vals.append(lhs)
+        rhs_vals.append(int(rhs))
+    hdbg.dassert_eq(len(lhs_vals), len(rhs_vals))
+    return tuple(lhs_vals), tuple(rhs_vals)
 
 
 def collate_parquet_tile_metadata(
@@ -857,41 +1019,6 @@ def collate_parquet_tile_metadata(
     file_size = df["file_size_in_bytes"].apply(hintros.format_size)
     df["file_size"] = file_size
     return df
-
-
-# TODO(Paul): The `int` assumption is baked in. We can generalize to strings
-#  if needed, but if we do, then we should continue to handle string ints as
-#  ints as we do here (e.g., there are sorting advantages, among others).
-def _process_walk_triple(
-    triple: tuple, start_depth: int
-) -> Tuple[Tuple[str, ...], Tuple[int, ...]]:
-    """
-    Process a triple returned by `os.walk()`
-
-    :param triple: (dirpath: str, dirnames: List[str], filenames: List[str])
-    :param start_depth: the "depth" of `path` used in the call
-        `os.walk(path)`
-    :return: tuple(lhs_vals), tuple(rhs_vals)
-    """
-    lhs_vals: List[str] = []
-    rhs_vals: List[int] = []
-    # If there are subdirectories, do not process.
-    if triple[1]:
-        return tuple(lhs_vals), tuple(rhs_vals)
-    depth = len(triple[0].split("/"))
-    rel_depth = depth - start_depth
-    key = tuple(triple[0].split("/")[start_depth:])
-    if len(key) == 0:
-        return tuple(lhs_vals), tuple(rhs_vals)
-    hdbg.dassert_eq(len(key), rel_depth)
-    lhs_vals = []
-    rhs_vals = []
-    for string in key:
-        lhs, rhs = string.split("=")
-        lhs_vals.append(lhs)
-        rhs_vals.append(int(rhs))
-    hdbg.dassert_eq(len(lhs_vals), len(rhs_vals))
-    return tuple(lhs_vals), tuple(rhs_vals)
 
 
 # #############################################################################
@@ -1051,132 +1178,6 @@ def get_parquet_filters_from_timestamp_interval(
         # Only logical expression or `None`.
         or_and_filter = None
     return or_and_filter
-
-
-def add_date_partition_columns(
-    df: pd.DataFrame, partition_mode: str
-) -> Tuple[pd.DataFrame, List[str]]:
-    """
-    Add partition columns like year, month, day from datetime index.
-
-    :param df: dataframe indexed by timestamp
-    :param partition_mode:
-        - "by_date": extract the date from the index
-            - E.g., an index like `2022-01-10 14:00:00+00:00` is transform to a
-              column `20220110`
-        - "by_year_month_day": split the index in year, month, day columns
-        - "by_year_month": split by year and month
-        - "by_year_week": split by year and week of the year
-        - "by_year": split by year
-    :return:
-        - df with additional partitioning columns
-        - list of partitioning columns
-    """
-    with htimer.TimedScope(logging.DEBUG, "# add_date_partition_cols"):
-        if partition_mode == "by_date":
-            df["date"] = df.index.strftime("%Y%m%d")
-            partition_columns = ["date"]
-        else:
-            if partition_mode == "by_year_month_day":
-                partition_columns = ["year", "month", "day"]
-            elif partition_mode == "by_year_month":
-                partition_columns = ["year", "month"]
-            elif partition_mode == "by_year_week":
-                partition_columns = ["year", "weekofyear"]
-            elif partition_mode == "by_year":
-                partition_columns = ["year"]
-            elif partition_mode == "by_month":
-                partition_columns = ["month"]
-            else:
-                raise ValueError(f"Invalid partition_mode='{partition_mode}'")
-            # Add date columns chosen by partition mode.
-            for column_name in partition_columns:
-                # Extract data corresponding to `column_name` (e.g.,
-                # `df.index.year`).
-                if column_name == "weekofyear":
-                    # The `weekofyear` attribute has been deprecated in Pandas
-                    # 2.1.0, so weeks are extracted using a function instead of
-                    # the attribute name.
-                    df["weekofyear"] = df.index.isocalendar().week
-                else:
-                    df[column_name] = getattr(df.index, column_name)
-    return df, partition_columns
-
-
-def to_partitioned_parquet(
-    df: pd.DataFrame,
-    partition_columns: List[str],
-    dst_dir: str,
-    *,
-    aws_profile: hs3.AwsProfile = None,
-    basename_template: str = None,
-) -> None:
-    """
-    Save the given dataframe as Parquet file partitioned along the given
-    columns.
-
-    :param df: dataframe
-    :param partition_columns: partitioning columns
-    :param dst_dir: location of partitioned dataset
-    :param aws_profile: the name of an AWS profile or a s3fs filesystem
-
-    E.g., in case of partition using `date`, the file layout looks like:
-    ```
-    dst_dir/
-        date=20211230/
-            data.parquet
-        date=20211231/
-            data.parquet
-        date=20220101/
-            data.parquet
-    ```
-
-    In case of multiple columns like `asset`, `year`, `month`, the file layout
-    looks like:
-    ```
-    dst_dir/
-        asset=A/
-            year=2021/
-                month=12/
-                    data.parquet
-            year=2022/
-                month=01/
-                    data.parquet
-        ...
-        asset=B/
-            year=2021/
-                month=12/
-                    data.parquet
-            year=2022/
-                month=01/
-                    data.parquet
-    ```
-    """
-    # Use either S3 or local filesystem.
-    filesystem = None
-    if aws_profile is not None:
-        filesystem = hs3.get_s3fs(aws_profile)
-        # ParquetDataset appends an extra "/", creating an empty-named folder
-        #  when saving on S3.
-        dst_dir = dst_dir.rstrip("/")
-    with htimer.TimedScope(logging.DEBUG, "# partition_dataset"):
-        # Read.
-        table = pa.Table.from_pandas(df)
-        # Write using partition.
-        # TODO(gp): add this logic to hparquet.to_parquet as a possible option.
-        _LOG.debug(hprint.to_str("partition_columns dst_dir"))
-        hdbg.dassert_is_subset(partition_columns, df.columns)
-        # TODO(gp): We would like to avoid overriding existing tiles. It's not clear
-        #  how to do it. Either setting permissions to read-only before writing.
-        #  Or having a list of files that will be written and ensure that none of
-        #  those files already existing.
-        pq.write_to_dataset(
-            table,
-            dst_dir,
-            partition_cols=partition_columns,
-            filesystem=filesystem,
-            basename_template=basename_template,
-        )
 
 
 def list_and_merge_pq_files(

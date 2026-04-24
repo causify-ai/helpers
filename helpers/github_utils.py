@@ -47,6 +47,7 @@ def github_cached(cache_type: str = "json", write_through: bool = True):
         existing_type = hcacsimp.get_cache_property(func_name, "type")
         if not existing_type:
             hcacsimp.set_cache_property(func_name, "type", cache_type)
+
         # Create a cached version that only uses args after client.
         @functools.wraps(func)
         def wrapper(client, *args, **kwargs):
@@ -202,7 +203,9 @@ def normalize_period_to_utc(
         return res
 
     norm = (
-        tuple(to_utc(dt) for dt in period) if period is not None else (None, None)
+        tuple(to_utc(dt) for dt in period)
+        if period is not None
+        else (None, None)
     )
     return norm
 
@@ -250,9 +253,7 @@ def get_total_commits(
         repositories, desc="Processing repositories", unit="repo"
     ):
         repo = client.get_repo(f"{org_name}/{repo_name}")
-        hdbg.dassert_is_not(
-            repo, None, "Could not retrieve repo: %s", repo_name
-        )
+        hdbg.dassert_is_not(repo, None, "Could not retrieve repo: %s", repo_name)
         repo_commit_count = 0
         if usernames:
             for username in usernames:
@@ -603,7 +604,9 @@ def get_commit_datetimes_by_repo_period_intrinsic(
         if username in (author_login, committer_login):
             # Convert commit date to UTC timezone.
             dt = c.commit.author.date
-            dt_utc = dt if dt.tzinfo else dt.replace(tzinfo=datetime.timezone.utc)
+            dt_utc = (
+                dt if dt.tzinfo else dt.replace(tzinfo=datetime.timezone.utc)
+            )
             # Add timestamp to results list.
             timestamps.append(dt_utc.isoformat())
     # Log the results summary.
@@ -1370,10 +1373,16 @@ def collect_all_metrics(
         for user in users:
             # Ensure user is a string.
             if not isinstance(user, str):
-                raise ValueError(f"Expected user to be a string but got {user!r}")
+                raise ValueError(
+                    f"Expected user to be a string but got {user!r}"
+                )
             current += 1
             _LOG.info(
-                "Processing %d/%d: %s/%s", current, total_combinations, repo, user
+                "Processing %d/%d: %s/%s",
+                current,
+                total_combinations,
+                repo,
+                user,
             )
             # Build each metric DataFrame.
             df_c = build_daily_commit_df(client, org, repo, user, period)
@@ -1913,7 +1922,8 @@ def visualize_user_metric_comparison(
     fig, ax = plt.subplots(figsize=(max(8, 0.5 * len(top_users)), 4))
     ax.bar(top_users["user"], top_users["__score_avg__"], color="skyblue")
     ax.set_ylabel(
-        "Average Score" + (" (Z-score)" if score_type == "z" else " (Percentile)")
+        "Average Score"
+        + (" (Z-score)" if score_type == "z" else " (Percentile)")
     )
     ax.set_title(f"Top {top_n_display} Users by Average {score_type.title()}")
     ax.axhline(0 if score_type == "z" else 0.5, color="gray", linestyle="--")
@@ -1984,9 +1994,7 @@ def count_open_prs_by_author(
         author = pr.user.login
         status = "draft" if pr.draft else "ready"
         stats[author][status] += 1
-        _LOG.debug(
-            "Open PR #%d by %s status=%s", pr.number, author, status
-        )
+        _LOG.debug("Open PR #%d by %s status=%s", pr.number, author, status)
     return dict(stats)
 
 

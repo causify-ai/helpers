@@ -41,6 +41,44 @@ def _get_flag_value(flag: str) -> str:
     return updated_flag
 
 
+def update_usedby(
+    secret_name: str,
+    secret_value: Dict[str, Any],
+    usedBy: str,
+    *,
+    remove: bool = False,
+) -> Dict[str, Any]:
+    """
+    Update the value of `usedBy` attribute from `secret_value` in AWS secrets
+    manager to lock the key. Unlock the key at the end of process using default
+    value of `usedBy`.
+
+    :param secret_name: SecretId of record to be updated.
+    :param secret_value: Current value of SecretString.
+    :param usedBy: value of `usedBy` to be updated. Used to remove from
+        list on deallocation of resource, i.e., when remove is True.
+    :param remove: Boolean to decide addition or removal of `usedBy` value
+        in the secret value list of scripts. Default is False.
+    :return secret_value: SecretString with updated `usedBy` script.
+    """
+    hdbg.dassert_isinstance(secret_name, str)
+    aws_profile = "ck"
+    client = get_secrets_client(aws_profile)
+    # Modify value of used by in secret value.
+    if not remove:
+        try:
+            secret_value["usedBy"].append(usedBy)
+        except KeyError:
+            secret_value["usedBy"] = [usedBy]
+    else:
+        secret_value["usedBy"].remove(usedBy)
+    # Update the modified secret value in AWS secret manager.
+    client.update_secret(
+        SecretId=secret_name, SecretString=json.dumps(secret_value)
+    )
+    return secret_value
+
+
 def lock_secret(
     secret_name: str, secret_value: Dict[str, Any]
 ) -> Optional[Dict[str, Any]]:
@@ -78,44 +116,6 @@ def lock_secret(
             f"Secret key is already in use by {current_usedBy[0]}",
             RuntimeWarning,
         )
-    return secret_value
-
-
-def update_usedby(
-    secret_name: str,
-    secret_value: Dict[str, Any],
-    usedBy: str,
-    *,
-    remove: bool = False,
-) -> Dict[str, Any]:
-    """
-    Update the value of `usedBy` attribute from `secret_value` in AWS secrets
-    manager to lock the key. Unlock the key at the end of process using default
-    value of `usedBy`.
-
-    :param secret_name: SecretId of record to be updated.
-    :param secret_value: Current value of SecretString.
-    :param usedBy: value of `usedBy` to be updated. Used to remove from
-        list on deallocation of resource, i.e., when remove is True.
-    :param remove: Boolean to decide addition or removal of `usedBy` value
-        in the secret value list of scripts. Default is False.
-    :return secret_value: SecretString with updated `usedBy` script.
-    """
-    hdbg.dassert_isinstance(secret_name, str)
-    aws_profile = "ck"
-    client = get_secrets_client(aws_profile)
-    # Modify value of used by in secret value.
-    if not remove:
-        try:
-            secret_value["usedBy"].append(usedBy)
-        except KeyError:
-            secret_value["usedBy"] = [usedBy]
-    else:
-        secret_value["usedBy"].remove(usedBy)
-    # Update the modified secret value in AWS secret manager.
-    client.update_secret(
-        SecretId=secret_name, SecretString=json.dumps(secret_value)
-    )
     return secret_value
 
 

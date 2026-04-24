@@ -34,6 +34,7 @@ _LOG = hloggin.getLogger(__name__)
 #   - If `log_level` is not provided, it should be set to `logging.DEBUG` if we are not in a notebook,
 #     and `logging.INFO` if we are in a notebook.
 
+
 def get_df_signature(df: pd.DataFrame, num_rows: int = 6) -> str:
     """
     Compute a simple signature of a dataframe in string format.

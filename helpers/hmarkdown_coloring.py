@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hmarkdown as hmarkdo
+import helpers.hmarkdown_coloring as hmarcolo
 """
 
 import logging
@@ -124,7 +124,9 @@ def process_color_commands(in_line: str) -> str:
             return ret
 
         # Replace the color command with the LaTeX color command.
-        in_line = re.sub(pattern, lambda m: _replacement(m, latex_color), in_line)
+        in_line = re.sub(
+            pattern, lambda m: _replacement(m, latex_color), in_line
+        )
     return in_line
 
 
@@ -177,8 +179,8 @@ def colorize_bullet_points_in_slide(
     hdbg.dassert_isinstance(txt, str)
     if all_md_colors is None:
         all_md_colors = list(get_md_colors())
-        #assert 0, all_md_colors
-        #assert 0, _MD_COLORS
+        # assert 0, all_md_colors
+        # assert 0, _MD_COLORS
     # Replace fenced code blocks with tags.
     lines = txt.split("\n")
     lines, fence_map = replace_fenced_blocks_with_tags(lines)
@@ -238,8 +240,12 @@ def colorize_bullet_points_in_slide(
             text = match.group(1)
             hdbg.dassert_lte(color_idx, len(colors))
             color_to_use = colors[color_idx]
-            hdbg.dassert_in(color_to_use, get_md_colors_latex_mapping(),
-                "Duplicated color_to_use=%s", color_to_use)
+            hdbg.dassert_in(
+                color_to_use,
+                get_md_colors_latex_mapping(),
+                "Duplicated color_to_use=%s",
+                color_to_use,
+            )
             latex_color = get_md_colors_latex_mapping()[color_to_use]
             color_idx += 1
             if use_abbreviations:

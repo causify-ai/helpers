@@ -7,6 +7,11 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# Test_list_find_duplicates1
+# #############################################################################
+
+
 class Test_list_find_duplicates1(hunitest.TestCase):
     def test1(self) -> None:
         list_ = "a b c d".split()
@@ -17,6 +22,11 @@ class Test_list_find_duplicates1(hunitest.TestCase):
         list_ = "a b c a d e f f".split()
         list_out = hlist.find_duplicates(list_)
         self.assertEqual(set(list_out), set("a f".split()))
+
+
+# #############################################################################
+# Test_list_remove_duplicates1
+# #############################################################################
 
 
 class Test_list_remove_duplicates1(hunitest.TestCase):
@@ -37,7 +47,22 @@ class Test_list_remove_duplicates1(hunitest.TestCase):
         self.assertEqual(list_out, "f e d a c b".split())
 
 
+# #############################################################################
+# Test_list_extract1
+# #############################################################################
+
+
 class Test_list_extract1(hunitest.TestCase):
+    def _helper(
+        self,
+        start_idx: Optional[int],
+        end_idx: Optional[int],
+        expected_list: List[str],
+    ) -> None:
+        list_ = "a b c d".split()
+        actual_list = hlist.extract(list_, start_idx, end_idx)
+        self.assertEqual(actual_list, expected_list)
+
     def test1(self) -> None:
         start_idx = 0
         end_idx = 1
@@ -80,18 +105,18 @@ class Test_list_extract1(hunitest.TestCase):
         expected_list = "a b c".split()
         self._helper(start_idx, end_idx, expected_list)
 
-    def _helper(
-        self,
-        start_idx: Optional[int],
-        end_idx: Optional[int],
-        expected_list: List[str],
-    ) -> None:
-        list_ = "a b c d".split()
-        actual_list = hlist.extract(list_, start_idx, end_idx)
-        self.assertEqual(actual_list, expected_list)
+
+# #############################################################################
+# Test_list_chunk1
+# #############################################################################
 
 
 class Test_list_chunk1(hunitest.TestCase):
+    def _helper(self, n: int, expected_list: List[List[str]]) -> None:
+        list_ = "a b c d e f".split()
+        actual_list = hlist.chunk(list_, n)
+        self.assertEqual(actual_list, expected_list)
+
     def test1(self) -> None:
         n = 1
         expected_list = ["a b c d e f".split()]
@@ -117,10 +142,10 @@ class Test_list_chunk1(hunitest.TestCase):
         expected_list = [["a"], ["b"], ["c"], ["d"], ["e"], ["f"]]
         self._helper(n, expected_list)
 
-    def _helper(self, n: int, expected_list: List[List[str]]) -> None:
-        list_ = "a b c d e f".split()
-        actual_list = hlist.chunk(list_, n)
-        self.assertEqual(actual_list, expected_list)
+
+# #############################################################################
+# Test_list1
+# #############################################################################
 
 
 class Test_list1(hunitest.TestCase):

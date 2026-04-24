@@ -36,7 +36,6 @@ import pandas as pd  # noqa: E402
 import helpers.hdbg as hdbg  # noqa: E402
 import helpers.henv as henv  # noqa: E402
 import helpers.hplayback as hplayba  # noqa: E402
-import helpers.hprint as hprint  # noqa: E402
 
 # %%
 hdbg.init_logger(verbosity=logging.INFO)

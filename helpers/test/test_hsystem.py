@@ -276,6 +276,19 @@ class Test_find_file_with_dir1(hunitest.TestCase):
         expected = r"""['helpers/test/test_hsystem.py']"""
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
+    def _helper(self, dir_depth: int, mode: str) -> List[str]:
+        # Create a fake golden outcome to be used in this test.
+        actual = "hello world"
+        self.check_string(actual)
+        # E.g., helpers/test/test_hsystem.py::Test_find_file_with_dir1::test2/test.txt
+        file_name = os.path.join(self.get_output_dir(), "test.txt")
+        _LOG.debug("file_name=%s", file_name)
+        actual: List[str] = hsystem.find_file_with_dir(
+            file_name, dir_depth=dir_depth, mode=mode
+        )
+        _LOG.debug("Found %d matching files", len(actual))
+        return actual
+
     def test2(self) -> None:
         """
         Check whether we can find a test golden output using different number
@@ -331,19 +344,6 @@ class Test_find_file_with_dir1(hunitest.TestCase):
         expected = r"""['helpers/test/outcomes/Test_find_file_with_dir1.test5/output/test.txt']"""
         self.assert_equal(str(actual), str(expected), purify_text=True)
         self.assertEqual(len(actual), 1)
-
-    def _helper(self, dir_depth: int, mode: str) -> List[str]:
-        # Create a fake golden outcome to be used in this test.
-        actual = "hello world"
-        self.check_string(actual)
-        # E.g., helpers/test/test_hsystem.py::Test_find_file_with_dir1::test2/test.txt
-        file_name = os.path.join(self.get_output_dir(), "test.txt")
-        _LOG.debug("file_name=%s", file_name)
-        actual: List[str] = hsystem.find_file_with_dir(
-            file_name, dir_depth=dir_depth, mode=mode
-        )
-        _LOG.debug("Found %d matching files", len(actual))
-        return actual
 
 
 # #############################################################################

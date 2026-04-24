@@ -5,13 +5,13 @@ import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hunit_test as hunitest
 
+
 # #############################################################################
 # TestParseLimitRange
 # #############################################################################
 
 
 class TestParseLimitRange(hunitest.TestCase):
-
     def test_parse_limit_range_valid1(self) -> None:
         """
         Test parsing valid range format.
@@ -102,7 +102,6 @@ class TestParseLimitRange(hunitest.TestCase):
 
 
 class TestApplyLimitRange(hunitest.TestCase):
-
     def test_apply_limit_range_no_limit(self) -> None:
         """
         Test that None limit range returns original items.
@@ -232,6 +231,14 @@ class Test_add_multi_file_args(hunitest.TestCase):
 
 
 class Test_parse_multi_file_args(hunitest.TestCase):
+    # Helper method.
+    def _create_test_file(self, file_path: str, content: str = "test") -> None:
+        """
+        Create a test file with given content.
+        """
+        hio.create_dir(os.path.dirname(file_path), incremental=True)
+        hio.to_file(file_path, content)
+
     def test_files_comma_separated(self) -> None:
         """
         Test parsing comma-separated file list.
@@ -389,11 +396,3 @@ class Test_parse_multi_file_args(hunitest.TestCase):
         # Check the error message.
         act = str(cm.exception)
         self.assertIn("No input files specified", act)
-
-    # Helper method.
-    def _create_test_file(self, file_path: str, content: str = "test") -> None:
-        """
-        Create a test file with given content.
-        """
-        hio.create_dir(os.path.dirname(file_path), incremental=True)
-        hio.to_file(file_path, content)

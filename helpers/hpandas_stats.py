@@ -318,9 +318,9 @@ def report_zero_nan_inf_stats(
     num_rows = df.shape[0]
     _LOG.log(dbg_log_level, "num_rows=%s", hprint.thousand_separator(num_rows))
     _LOG.log(dbg_log_level, "data=")
-    import helpers.hpandas_display as hpanddis
+    import helpers.hpandas_display as hpandisp
 
-    hpanddis.display_df(df, as_txt=as_txt, log_level=dbg_log_level)
+    hpandisp.display_df(df, as_txt=as_txt, log_level=dbg_log_level)
     # Compute date-based stats only if index is datetime.
     if isinstance(df.index, pd.DatetimeIndex):
         num_days = len(set(df.index.date))
@@ -460,7 +460,9 @@ def explore_dataframe(
 
     hdbg.dassert_lt(0, len(df), "Dataframe is empty")
     # Compute and display data quality statistics.
-    stats_df = report_zero_nan_inf_stats(df, zero_threshold=zero_threshold, dbg_log_level=dbg_log_level)
+    stats_df = report_zero_nan_inf_stats(
+        df, zero_threshold=zero_threshold, dbg_log_level=dbg_log_level
+    )
     # TODO(ai_gp): Add information about the number of unique values and percentage of unique values for each column.
     # Create a function if needed to compute the stats_df.
     # Concat the stats_df.

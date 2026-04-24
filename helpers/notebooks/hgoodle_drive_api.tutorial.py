@@ -90,6 +90,4 @@ nice_data.shape
 # ## Write this nice data
 
 # %%
-hgodrapi.to_gsheet(
-    google_creds, nice_data, url, tab_name="testing_tab"
-)
+hgodrapi.to_gsheet(google_creds, nice_data, url, tab_name="testing_tab")

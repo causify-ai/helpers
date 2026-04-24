@@ -91,6 +91,52 @@ def listdir(
     return paths
 
 
+def is_valid_filename_extension(ext: str) -> bool:
+    """
+    By convention extensions don't include the initial `.`.
+
+    E.g., "tgz" is valid, but not ".tgz".
+    """
+    valid = not ext.startswith(".")
+    return valid
+
+
+def change_filename_extension(filename: str, old_ext: str, new_ext: str) -> str:
+    """
+    Change extension of a filename (e.g. "data.csv" to "data.json").
+
+    :param filename: the old filename (including extension)
+    :param old_ext: the extension of the old filename (e.g., "csv")
+        - If empty, it is extracted from the filename
+    :param new_ext: the extension to replace the old extension (e.g., "json")
+    :return: a filename with the new extension
+    """
+    # If the old extension is empty, extract it from the filename.
+    if old_ext == "":
+        _, old_ext = os.path.splitext(filename)
+        # Remove the leading dot.
+        old_ext = old_ext.lstrip(".")
+    hdbg.dassert(
+        is_valid_filename_extension(old_ext), "Invalid extension '%s'", old_ext
+    )
+    hdbg.dassert(
+        is_valid_filename_extension(new_ext), "Invalid extension '%s'", new_ext
+    )
+    hdbg.dassert(
+        filename.endswith(old_ext),
+        "Extension '%s' doesn't match file '%s'",
+        old_ext,
+        filename,
+    )
+    # Remove the old extension.
+    len_ext = len(old_ext)
+    new_filename = filename[:-len_ext]
+    hdbg.dassert(new_filename.endswith("."), "new_filename='%s'", new_filename)
+    # Add the new extension.
+    new_filename += new_ext
+    return new_filename
+
+
 def is_paired_jupytext_python_file(py_filename: str) -> bool:
     """
     Return if a Python file has a paired Jupyter notebook.
@@ -141,6 +187,147 @@ def keep_python_files(
     return py_file_names
 
 
+def delete_file(file_name: str) -> None:
+    _LOG.debug("Deleting file '%s'", file_name)
+    # hs3.dassert_is_not_s3_path(file_name)
+    if not os.path.exists(file_name) or file_name == "/dev/null":
+        # Nothing to delete.
+        return
+    try:
+        os.unlink(file_name)
+    except OSError as e:
+        # It can happen that we try to delete the file, while somebody already
+        # deleted it, so we neutralize the corresponding exception.
+        if e.errno == 2:
+            # OSError: [Errno 2] No such file or directory.
+            pass
+        else:
+            raise e
+
+
+def _create_dir(
+    dir_name: str,
+    incremental: bool,
+    abort_if_exists: bool = False,
+    ask_to_delete: bool = False,
+) -> None:
+    """
+    Create a directory `dir_name` if it doesn't exist.
+
+    Same interface as `create_dir()` but without handling
+    `backup_dir_if_exists`.
+    """
+    _LOG.debug(
+        hprint.to_str("dir_name incremental abort_if_exists ask_to_delete")
+    )
+    hdbg.dassert_is_not(dir_name, None)
+    dir_name = os.path.normpath(dir_name)
+    if os.path.normpath(dir_name) == ".":
+        _LOG.debug("Can't create dir '%s'", dir_name)
+    exists = os.path.exists(dir_name)
+    is_dir = os.path.isdir(dir_name)
+    _LOG.debug(hprint.to_str("dir_name exists is_dir"))
+    if abort_if_exists:
+        hdbg.dassert_path_not_exists(dir_name)
+    #                   dir exists / dir does not exist
+    # incremental       no-op        mkdir
+    # not incremental   rm+mkdir     mkdir
+    if exists:
+        if incremental and is_dir:
+            # The dir exists and we want to keep it (i.e., incremental), so we
+            # are done.
+            # os.chmod(dir_name, 0755)
+            _LOG.debug(
+                "The dir '%s' exists and incremental=True: exiting", dir_name
+            )
+            return
+        if ask_to_delete:
+            hsystem.query_yes_no(
+                f"Do you really want to delete dir '{dir_name}'?",
+                abort_on_no=True,
+            )
+        # The dir exists and we want to create it from scratch (i.e., not
+        # incremental), so we need to delete the dir.
+        _LOG.debug("Deleting dir '%s'", dir_name)
+        if os.path.islink(dir_name):
+            delete_file(dir_name)
+        else:
+            hdbg.dassert_ne(os.path.normpath(dir_name), ".")
+            shutil.rmtree(dir_name)
+    _LOG.debug("Creating directory '%s'", dir_name)
+    # NOTE: `os.makedirs` raises `OSError` if the target directory already exists.
+    # A race condition can happen when another process creates our target
+    # directory, while we have just found that it doesn't exist, so we need to
+    # handle this situation gracefully.
+    try:
+        os.makedirs(dir_name)
+    except OSError as e:
+        _LOG.error(str(e))
+        # It can happen that we try to create the directory while somebody else
+        # created it, so we neutralize the corresponding exception.
+        if e.errno == 17:
+            # OSError: [Errno 17] File exists.
+            pass
+        else:
+            raise e
+
+
+def create_dir(
+    dir_name: str,
+    incremental: bool,
+    *,
+    abort_if_exists: bool = False,
+    ask_to_delete: bool = False,
+    backup_dir_if_exists: bool = False,
+) -> None:
+    """
+    Create a directory.
+
+    :param incremental: if False then the directory is deleted and re-
+        created, otherwise the same directory is reused as it is
+    :param abort_if_exists: abort if the target directory already exists
+    :param ask_to_delete: if it is not incremental and the dir exists,
+        asks before deleting. This option is used when we want to start
+        with a clean dir (i.e., incremental=False) but, at the same
+        time, we want to make sure that the user doesn't want to delete
+        the content of the dir. Another approach is to automatically
+        rename the old dir with backup_dir_if_exists.
+    :param backup_dir_if_exists: if the target dir already exists, then
+        rename it using a timestamp (e.g., dir_20231003_080000) and
+        create a new target dir
+    """
+    if backup_dir_if_exists:
+        if not os.path.exists(dir_name):
+            # Create new dir.
+            _LOG.debug("Creating dir '%s'", dir_name)
+            _create_dir(dir_name, incremental=True)
+        else:
+            _LOG.debug("Dir '%s' already exists", dir_name)
+            # Get dir timestamp.
+            dir_timestamp = os.path.getmtime(dir_name)
+            dir_datetime = datetime.datetime.fromtimestamp(dir_timestamp)
+            # Build new dir name with timestamp.
+            dir_name_new = (
+                dir_name + "." + dir_datetime.strftime("%Y%m%d_%H%M%S")
+            )
+            # Rename dir.
+            if not os.path.exists(dir_name_new):
+                _LOG.warning("Renaming dir '%s' -> '%s'", dir_name, dir_name_new)
+                os.rename(dir_name, dir_name_new)
+            else:
+                _LOG.warning("Dir '%s' already exists", dir_name_new)
+            # Create new dir.
+            _LOG.debug("Creating dir '%s'", dir_name)
+            _create_dir(dir_name, incremental=True)
+    else:
+        _create_dir(
+            dir_name,
+            incremental,
+            abort_if_exists=abort_if_exists,
+            ask_to_delete=ask_to_delete,
+        )
+
+
 # #############################################################################
 # Filesystem.
 # #############################################################################
@@ -165,24 +352,6 @@ def create_soft_link(src: str, dst: str) -> None:
     src = os.path.abspath(src)
     cmd = f"ln -s {src} {dst}"
     hsystem.system(cmd)
-
-
-def delete_file(file_name: str) -> None:
-    _LOG.debug("Deleting file '%s'", file_name)
-    # hs3.dassert_is_not_s3_path(file_name)
-    if not os.path.exists(file_name) or file_name == "/dev/null":
-        # Nothing to delete.
-        return
-    try:
-        os.unlink(file_name)
-    except OSError as e:
-        # It can happen that we try to delete the file, while somebody already
-        # deleted it, so we neutralize the corresponding exception.
-        if e.errno == 2:
-            # OSError: [Errno 2] No such file or directory.
-            pass
-        else:
-            raise e
 
 
 def delete_dir(
@@ -257,129 +426,6 @@ def backup_file_or_dir_if_exists(path: str) -> None:
     # Move the file or directory to backup.
     shutil.move(path, backup_path)
     _LOG.info("Backed up '%s' -> '%s'", path, backup_path)
-
-
-def create_dir(
-    dir_name: str,
-    incremental: bool,
-    *,
-    abort_if_exists: bool = False,
-    ask_to_delete: bool = False,
-    backup_dir_if_exists: bool = False,
-) -> None:
-    """
-    Create a directory.
-
-    :param incremental: if False then the directory is deleted and re-
-        created, otherwise the same directory is reused as it is
-    :param abort_if_exists: abort if the target directory already exists
-    :param ask_to_delete: if it is not incremental and the dir exists,
-        asks before deleting. This option is used when we want to start
-        with a clean dir (i.e., incremental=False) but, at the same
-        time, we want to make sure that the user doesn't want to delete
-        the content of the dir. Another approach is to automatically
-        rename the old dir with backup_dir_if_exists.
-    :param backup_dir_if_exists: if the target dir already exists, then
-        rename it using a timestamp (e.g., dir_20231003_080000) and
-        create a new target dir
-    """
-    if backup_dir_if_exists:
-        if not os.path.exists(dir_name):
-            # Create new dir.
-            _LOG.debug("Creating dir '%s'", dir_name)
-            _create_dir(dir_name, incremental=True)
-        else:
-            _LOG.debug("Dir '%s' already exists", dir_name)
-            # Get dir timestamp.
-            dir_timestamp = os.path.getmtime(dir_name)
-            dir_datetime = datetime.datetime.fromtimestamp(dir_timestamp)
-            # Build new dir name with timestamp.
-            dir_name_new = (
-                dir_name + "." + dir_datetime.strftime("%Y%m%d_%H%M%S")
-            )
-            # Rename dir.
-            if not os.path.exists(dir_name_new):
-                _LOG.warning("Renaming dir '%s' -> '%s'", dir_name, dir_name_new)
-                os.rename(dir_name, dir_name_new)
-            else:
-                _LOG.warning("Dir '%s' already exists", dir_name_new)
-            # Create new dir.
-            _LOG.debug("Creating dir '%s'", dir_name)
-            _create_dir(dir_name, incremental=True)
-    else:
-        _create_dir(
-            dir_name,
-            incremental,
-            abort_if_exists=abort_if_exists,
-            ask_to_delete=ask_to_delete,
-        )
-
-
-def _create_dir(
-    dir_name: str,
-    incremental: bool,
-    abort_if_exists: bool = False,
-    ask_to_delete: bool = False,
-) -> None:
-    """
-    Create a directory `dir_name` if it doesn't exist.
-
-    Same interface as `create_dir()` but without handling
-    `backup_dir_if_exists`.
-    """
-    _LOG.debug(
-        hprint.to_str("dir_name incremental abort_if_exists ask_to_delete")
-    )
-    hdbg.dassert_is_not(dir_name, None)
-    dir_name = os.path.normpath(dir_name)
-    if os.path.normpath(dir_name) == ".":
-        _LOG.debug("Can't create dir '%s'", dir_name)
-    exists = os.path.exists(dir_name)
-    is_dir = os.path.isdir(dir_name)
-    _LOG.debug(hprint.to_str("dir_name exists is_dir"))
-    if abort_if_exists:
-        hdbg.dassert_path_not_exists(dir_name)
-    #                   dir exists / dir does not exist
-    # incremental       no-op        mkdir
-    # not incremental   rm+mkdir     mkdir
-    if exists:
-        if incremental and is_dir:
-            # The dir exists and we want to keep it (i.e., incremental), so we
-            # are done.
-            # os.chmod(dir_name, 0755)
-            _LOG.debug(
-                "The dir '%s' exists and incremental=True: exiting", dir_name
-            )
-            return
-        if ask_to_delete:
-            hsystem.query_yes_no(
-                f"Do you really want to delete dir '{dir_name}'?",
-                abort_on_no=True,
-            )
-        # The dir exists and we want to create it from scratch (i.e., not
-        # incremental), so we need to delete the dir.
-        _LOG.debug("Deleting dir '%s'", dir_name)
-        if os.path.islink(dir_name):
-            delete_file(dir_name)
-        else:
-            hdbg.dassert_ne(os.path.normpath(dir_name), ".")
-            shutil.rmtree(dir_name)
-    _LOG.debug("Creating directory '%s'", dir_name)
-    # NOTE: `os.makedirs` raises `OSError` if the target directory already exists.
-    # A race condition can happen when another process creates our target
-    # directory, while we have just found that it doesn't exist, so we need to
-    # handle this situation gracefully.
-    try:
-        os.makedirs(dir_name)
-    except OSError as e:
-        _LOG.error(str(e))
-        # It can happen that we try to create the directory while somebody else
-        # created it, so we neutralize the corresponding exception.
-        if e.errno == 17:
-            # OSError: [Errno 17] File exists.
-            pass
-        else:
-            raise e
 
 
 def dassert_is_valid_file_name(file_name: str) -> None:
@@ -535,16 +581,6 @@ def get_size_as_str(file_name: str) -> str:
     return res
 
 
-def is_valid_filename_extension(ext: str) -> bool:
-    """
-    By convention extensions don't include the initial `.`.
-
-    E.g., "tgz" is valid, but not ".tgz".
-    """
-    valid = not ext.startswith(".")
-    return valid
-
-
 def remove_extension(
     filename: str,
     extension: str,
@@ -582,42 +618,6 @@ def remove_extension(
     if filename.endswith(extension):
         ret = filename[: -len(extension)]
     return ret
-
-
-def change_filename_extension(filename: str, old_ext: str, new_ext: str) -> str:
-    """
-    Change extension of a filename (e.g. "data.csv" to "data.json").
-
-    :param filename: the old filename (including extension)
-    :param old_ext: the extension of the old filename (e.g., "csv")
-        - If empty, it is extracted from the filename
-    :param new_ext: the extension to replace the old extension (e.g., "json")
-    :return: a filename with the new extension
-    """
-    # If the old extension is empty, extract it from the filename.
-    if old_ext == "":
-        _, old_ext = os.path.splitext(filename)
-        # Remove the leading dot.
-        old_ext = old_ext.lstrip(".")
-    hdbg.dassert(
-        is_valid_filename_extension(old_ext), "Invalid extension '%s'", old_ext
-    )
-    hdbg.dassert(
-        is_valid_filename_extension(new_ext), "Invalid extension '%s'", new_ext
-    )
-    hdbg.dassert(
-        filename.endswith(old_ext),
-        "Extension '%s' doesn't match file '%s'",
-        old_ext,
-        filename,
-    )
-    # Remove the old extension.
-    len_ext = len(old_ext)
-    new_filename = filename[:-len_ext]
-    hdbg.dassert(new_filename.endswith("."), "new_filename='%s'", new_filename)
-    # Add the new extension.
-    new_filename += new_ext
-    return new_filename
 
 
 # TODO(gp): @all Use msg in all uses of this script `jackpyc "create_executable"`

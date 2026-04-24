@@ -130,6 +130,58 @@ def dassert_is_valid_aws_profile(path: str, aws_profile: AwsProfile) -> None:
         )
 
 
+# ///////////////////////////////////////////////////////////////////////////////
+
+
+def get_s3fs(aws_profile: AwsProfile) -> S3FileSystem:
+    """
+    Return a `s3fs` object from a given AWS profile.
+
+    :param aws_profile: the name of an AWS profile or a s3fs filesystem
+    """
+    if hserver.is_ig_prod():
+        # On IG prod machines we let the Docker container infer the right AWS
+        # account.
+        _LOG.warning("Not using AWS profile='%s'", aws_profile)
+        s3fs_ = S3FileSystem()
+    else:
+        if isinstance(aws_profile, str):
+            # When deploying jobs via ECS the container obtains credentials
+            # based on passed task role specified in the ECS task-definition,
+            # refer to:
+            # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
+            if (
+                # TODO(heanh): Centralize the list of supported profiles.
+                aws_profile in ["ck", "csfy"]
+                and hserver.is_inside_ecs_container()
+            ):
+                _LOG.info("Fetching credentials from task IAM role")
+                s3fs_ = S3FileSystem()
+            else:
+                # TODO(heanh): Make this manual extraction of credentials
+                # code obsoleted.
+                # From https://stackoverflow.com/questions/62562945
+                # aws_credentials = get_aws_credentials(aws_profile)
+                # _LOG.debug("%s", pprint.pformat(aws_credentials))
+                # s3fs_ = S3FileSystem(
+                #     anon=False,
+                #     key=aws_credentials["aws_access_key_id"],
+                #     secret=aws_credentials["aws_secret_access_key"],
+                #     token=aws_credentials["aws_session_token"],
+                #     client_kwargs={"region_name": aws_credentials["aws_region"]},
+                # )
+                #
+                # We do not need to extract the credential from the file because
+                # the config (`~/.aws/config`) and credential
+                # (`~/.aws/credentials`) are already set.
+                s3fs_ = S3FileSystem(anon=False, profile=aws_profile)
+        elif isinstance(aws_profile, S3FileSystem):
+            s3fs_ = aws_profile
+        else:
+            raise ValueError(f"Invalid aws_profile='{aws_profile}'")
+    return s3fs_
+
+
 def dassert_path_exists(
     path: str, aws_profile: Optional[AwsProfile] = None
 ) -> None:
@@ -458,116 +510,6 @@ def get_local_or_s3_stream(
 
 
 # #############################################################################
-# Bucket
-# #############################################################################
-
-
-# TODO(Nikola): CmTask #1810 "Increase test coverage in helpers/hs3.py"
-def get_s3_bucket_path(aws_profile: str, add_s3_prefix: bool = True) -> str:
-    """
-    Return the S3 bucket from environment variable corresponding to a given
-    `aws_profile`.
-
-    E.g., `aws_profile="am"` uses the value in `AM_AWS_S3_BUCKET` which
-    is usually set to `s3://alphamatic-data`.
-    """
-    hdbg.dassert_type_is(aws_profile, str)
-    # TODO(Juraj): needed because ENV_VARS are now prefixed with
-    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in
-    # CmTask11095.
-    prefix = aws_profile.upper()
-    prefix = (
-        "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
-    )
-    env_var = f"{prefix}_AWS_S3_BUCKET"
-    if env_var in os.environ:
-        _LOG.debug("No env var '%s'", env_var)
-        s3_bucket = os.environ[env_var]
-    else:
-        # Fall-back to local credentials.
-        _LOG.debug("Checking credentials")
-        aws_credentials = get_aws_credentials(aws_profile)
-        _LOG.debug("%s", aws_credentials)
-        s3_bucket = aws_credentials.get("aws_s3_bucket", "")
-    hdbg.dassert_ne(s3_bucket, "")
-    hdbg.dassert(
-        not s3_bucket.startswith("s3://"),
-        "Invalid %s value '%s'",
-        env_var,
-        s3_bucket,
-    )
-    if add_s3_prefix:
-        s3_bucket = "s3://" + s3_bucket
-    return s3_bucket
-
-
-# TODO(sonaal): Do we really need aws profile as argument or
-# we can use default? Ref. https://github.com/cryptokaizen/cmamp/pull/6045#discussion_r1380392748
-def get_s3_bucket_path_unit_test(
-    aws_profile: str, *, add_s3_prefix: bool = True
-) -> str:
-    if aws_profile == "ck":
-        s3_bucket = "cryptokaizen-unit-test"
-    else:
-        hdbg.dfatal(f"Invalid aws_profile={aws_profile}")
-    if add_s3_prefix:
-        s3_bucket = "s3://" + s3_bucket
-    return s3_bucket
-
-
-def get_latest_pq_in_s3_dir(s3_path: str, aws_profile: str) -> str:
-    """
-    Get the latest Parquet file in the specified directory.
-
-    :param s3_path: the path to s3 directory, e.g.
-      `cryptokaizen-data/reorg/daily_staged.airflow.pq/bid_ask/crypto_chassis.downloaded_1sec/binance`
-    :param aws_profile: AWS profile to use
-    :return: the path to the latest Parquet file in the directory,
-      E.g. `cryptokaizen-data/reorg/daily_staged.airflow.pq/bid_ask/crypto_chassis.downloaded_1sec/binance/
-       currency_pair=ETH_USDT/year=2022/month=12/data.parquet`
-    """
-    hdbg.dassert_type_is(aws_profile, str)
-    s3fs_ = get_s3fs(aws_profile)
-    dir_name = f"{s3_path}/**/*.parquet"
-    pq_files = s3fs_.glob(dir_name, detail=True)
-    hdbg.dassert_lte(1, len(pq_files), "dir_name=%s", dir_name)
-    _LOG.debug("pq_files=%s", pq_files)
-    # Sort the files by the date they were modified for the last time.
-    sorted_files = sorted(
-        pq_files.items(), key=lambda t: t[1]["LastModified"], reverse=True
-    )
-    # Get the path to the latest file.
-    latest_file_path = sorted_files[0][0]
-    return latest_file_path
-
-
-# #############################################################################
-# Parser.
-# #############################################################################
-
-
-def add_s3_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
-    """
-    Add the command line options for the AWS credentials.
-    """
-    parser.add_argument(
-        "--aws_profile",
-        action="store",
-        type=str,
-        help="The AWS profile to use for `.aws/credentials` or for env vars",
-    )
-    parser.add_argument(
-        "--s3_path",
-        action="store",
-        type=str,
-        default=None,
-        help="Full S3 dir path to use (e.g., `s3://alphamatic-data/foobar/`), "
-        "overriding any other setting",
-    )
-    return parser
-
-
-# #############################################################################
 # AWS.
 # #############################################################################
 
@@ -583,136 +525,6 @@ def _get_aws_config(file_name: str) -> configparser.RawConfigParser:
     config.read(file_name)
     _LOG.debug("config.sections=%s", config.sections())
     return config
-
-
-def _dassert_all_env_vars_set(key_to_env_var: Dict[str, str]) -> None:
-    """
-    Check that the required AWS env vars are set and are not empty strings.
-    """
-    for v in key_to_env_var.values():
-        hdbg.dassert_in(v, os.environ)
-        hdbg.dassert_ne(v, "")
-
-
-def _get_aws_file_text(key_to_env_var: Dict[str, str]) -> List[str]:
-    """
-    Generate text from env vars for AWS files.
-
-    E.g.:
-    ```
-    aws_access_key_id=***                   # gitleaks:allow
-    aws_secret_access_key=***               # gitleaks:allow
-    aws_s3_bucket=***
-    ```
-    :param key_to_env_var: aws settings names to the corresponding env
-        var names mapping
-    :return: AWS file text
-    """
-    txt = []
-    for k, v in key_to_env_var.items():
-        line = f"{k}={os.environ[v]}"
-        txt.append(line)
-    return txt
-
-
-def _get_aws_config_text(aws_profile: str) -> str:
-    """
-    Generate text for the AWS config file, i.e. ".aws/config".
-    """
-    # Set which env vars we need to get.
-    # TODO(Juraj): needed because ENV_VARS are now prefixed with
-    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in
-    # CmTask11095.
-    # profile_prefix = aws_profile.upper()
-    profile_prefix = (
-        "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
-    )
-    region_env_var = f"{profile_prefix}_AWS_DEFAULT_REGION"
-    key_to_env_var = {"region": region_env_var}
-    # Check that env vars are set.
-    _dassert_all_env_vars_set(key_to_env_var)
-    text = _get_aws_file_text(key_to_env_var)
-    text.insert(0, f"[profile {aws_profile}]")
-    text = "\n".join(text)
-    return text
-
-
-def _get_aws_credentials_text(aws_profile: str) -> str:
-    """
-    Generate text for the AWS credentials file, i.e. ".aws/credentials".
-    """
-    # Set which env vars we need to get.
-    # TODO(Juraj): needed because ENV_VARS are now prefixed with
-    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in
-    # CmTask11095.
-    # profile_prefix = aws_profile.upper()
-    profile_prefix = (
-        "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
-    )
-    # Check if AWS session token is set in environment variable.
-    if f"{profile_prefix}_AWS_SESSION_TOKEN" in os.environ:
-        key_to_env_var = {
-            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
-            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
-            "aws_session_token": f"{profile_prefix}_AWS_SESSION_TOKEN",
-            # TODO(heanh): Is this needed?
-            "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
-        }
-    else:
-        key_to_env_var = {
-            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
-            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
-            # TODO(heanh): Is this needed?
-            "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
-        }
-    # Check that env vars are set.
-    _dassert_all_env_vars_set(key_to_env_var)
-    text = _get_aws_file_text(key_to_env_var)
-    text.insert(0, f"[{aws_profile}]")
-    text = "\n".join(text)
-    return text
-
-
-def generate_aws_files(
-    home_dir: str = "~",
-    aws_profiles: Optional[List[str]] = None,
-) -> None:
-    """
-    Generate AWS configuration files.
-
-    This is needed to use the AWS CLI and the `boto3` library when we are in CI.
-    """
-    if home_dir == "~":
-        home_dir = os.path.expanduser(home_dir)
-    config_file_name = os.path.join(home_dir, ".aws", "config")
-    credentials_file_name = os.path.join(home_dir, ".aws", "credentials")
-    # Check if the files already exist.
-    if os.path.exists(credentials_file_name) and os.path.exists(config_file_name):
-        _LOG.info(
-            "Both files exist: %s and %s; exiting",
-            credentials_file_name,
-            config_file_name,
-        )
-        return
-    if aws_profiles is None:
-        aws_profiles = ["ck"]
-    config_file_text = []
-    credentials_file_text = []
-    # Get text with settings for both files.
-    for profile in aws_profiles:
-        current_config_text = _get_aws_config_text(profile)
-        config_file_text.append(current_config_text)
-        current_credentials_text = _get_aws_credentials_text(profile)
-        credentials_file_text.append(current_credentials_text)
-    # Create both files.
-    config_file_text = "\n\n".join(config_file_text)
-    hio.to_file(config_file_name, config_file_text)
-    _LOG.debug("Saved AWS config to %s", config_file_name)
-
-    #
-    credentials_file_text = "\n\n".join(credentials_file_text)
-    hio.to_file(credentials_file_name, credentials_file_text)
-    _LOG.debug("Saved AWS credentials to %s", credentials_file_name)
 
 
 # #############################################################################
@@ -857,56 +669,246 @@ def get_aws_credentials(
     return result
 
 
-# ///////////////////////////////////////////////////////////////////////////////
+# #############################################################################
+# Bucket
+# #############################################################################
 
 
-def get_s3fs(aws_profile: AwsProfile) -> S3FileSystem:
+# TODO(Nikola): CmTask #1810 "Increase test coverage in helpers/hs3.py"
+def get_s3_bucket_path(aws_profile: str, add_s3_prefix: bool = True) -> str:
     """
-    Return a `s3fs` object from a given AWS profile.
+    Return the S3 bucket from environment variable corresponding to a given
+    `aws_profile`.
 
-    :param aws_profile: the name of an AWS profile or a s3fs filesystem
+    E.g., `aws_profile="am"` uses the value in `AM_AWS_S3_BUCKET` which
+    is usually set to `s3://alphamatic-data`.
     """
-    if hserver.is_ig_prod():
-        # On IG prod machines we let the Docker container infer the right AWS
-        # account.
-        _LOG.warning("Not using AWS profile='%s'", aws_profile)
-        s3fs_ = S3FileSystem()
+    hdbg.dassert_type_is(aws_profile, str)
+    # TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in
+    # CmTask11095.
+    prefix = aws_profile.upper()
+    prefix = (
+        "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
+    )
+    env_var = f"{prefix}_AWS_S3_BUCKET"
+    if env_var in os.environ:
+        _LOG.debug("No env var '%s'", env_var)
+        s3_bucket = os.environ[env_var]
     else:
-        if isinstance(aws_profile, str):
-            # When deploying jobs via ECS the container obtains credentials
-            # based on passed task role specified in the ECS task-definition,
-            # refer to:
-            # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
-            if (
-                # TODO(heanh): Centralize the list of supported profiles.
-                aws_profile in ["ck", "csfy"]
-                and hserver.is_inside_ecs_container()
-            ):
-                _LOG.info("Fetching credentials from task IAM role")
-                s3fs_ = S3FileSystem()
-            else:
-                # TODO(heanh): Make this manual extraction of credentials
-                # code obsoleted.
-                # From https://stackoverflow.com/questions/62562945
-                # aws_credentials = get_aws_credentials(aws_profile)
-                # _LOG.debug("%s", pprint.pformat(aws_credentials))
-                # s3fs_ = S3FileSystem(
-                #     anon=False,
-                #     key=aws_credentials["aws_access_key_id"],
-                #     secret=aws_credentials["aws_secret_access_key"],
-                #     token=aws_credentials["aws_session_token"],
-                #     client_kwargs={"region_name": aws_credentials["aws_region"]},
-                # )
-                #
-                # We do not need to extract the credential from the file because
-                # the config (`~/.aws/config`) and credential
-                # (`~/.aws/credentials`) are already set.
-                s3fs_ = S3FileSystem(anon=False, profile=aws_profile)
-        elif isinstance(aws_profile, S3FileSystem):
-            s3fs_ = aws_profile
-        else:
-            raise ValueError(f"Invalid aws_profile='{aws_profile}'")
-    return s3fs_
+        # Fall-back to local credentials.
+        _LOG.debug("Checking credentials")
+        aws_credentials = get_aws_credentials(aws_profile)
+        _LOG.debug("%s", aws_credentials)
+        s3_bucket = aws_credentials.get("aws_s3_bucket", "")
+    hdbg.dassert_ne(s3_bucket, "")
+    hdbg.dassert(
+        not s3_bucket.startswith("s3://"),
+        "Invalid %s value '%s'",
+        env_var,
+        s3_bucket,
+    )
+    if add_s3_prefix:
+        s3_bucket = "s3://" + s3_bucket
+    return s3_bucket
+
+
+# TODO(sonaal): Do we really need aws profile as argument or
+# we can use default? Ref. https://github.com/cryptokaizen/cmamp/pull/6045#discussion_r1380392748
+def get_s3_bucket_path_unit_test(
+    aws_profile: str, *, add_s3_prefix: bool = True
+) -> str:
+    if aws_profile == "ck":
+        s3_bucket = "cryptokaizen-unit-test"
+    else:
+        hdbg.dfatal(f"Invalid aws_profile={aws_profile}")
+    if add_s3_prefix:
+        s3_bucket = "s3://" + s3_bucket
+    return s3_bucket
+
+
+def get_latest_pq_in_s3_dir(s3_path: str, aws_profile: str) -> str:
+    """
+    Get the latest Parquet file in the specified directory.
+
+    :param s3_path: the path to s3 directory, e.g.
+      `cryptokaizen-data/reorg/daily_staged.airflow.pq/bid_ask/crypto_chassis.downloaded_1sec/binance`
+    :param aws_profile: AWS profile to use
+    :return: the path to the latest Parquet file in the directory,
+      E.g. `cryptokaizen-data/reorg/daily_staged.airflow.pq/bid_ask/crypto_chassis.downloaded_1sec/binance/
+       currency_pair=ETH_USDT/year=2022/month=12/data.parquet`
+    """
+    hdbg.dassert_type_is(aws_profile, str)
+    s3fs_ = get_s3fs(aws_profile)
+    dir_name = f"{s3_path}/**/*.parquet"
+    pq_files = s3fs_.glob(dir_name, detail=True)
+    hdbg.dassert_lte(1, len(pq_files), "dir_name=%s", dir_name)
+    _LOG.debug("pq_files=%s", pq_files)
+    # Sort the files by the date they were modified for the last time.
+    sorted_files = sorted(
+        pq_files.items(), key=lambda t: t[1]["LastModified"], reverse=True
+    )
+    # Get the path to the latest file.
+    latest_file_path = sorted_files[0][0]
+    return latest_file_path
+
+
+# #############################################################################
+# Parser.
+# #############################################################################
+
+
+def add_s3_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    """
+    Add the command line options for the AWS credentials.
+    """
+    parser.add_argument(
+        "--aws_profile",
+        action="store",
+        type=str,
+        help="The AWS profile to use for `.aws/credentials` or for env vars",
+    )
+    parser.add_argument(
+        "--s3_path",
+        action="store",
+        type=str,
+        default=None,
+        help="Full S3 dir path to use (e.g., `s3://alphamatic-data/foobar/`), "
+        "overriding any other setting",
+    )
+    return parser
+
+
+def _dassert_all_env_vars_set(key_to_env_var: Dict[str, str]) -> None:
+    """
+    Check that the required AWS env vars are set and are not empty strings.
+    """
+    for v in key_to_env_var.values():
+        hdbg.dassert_in(v, os.environ)
+        hdbg.dassert_ne(v, "")
+
+
+def _get_aws_file_text(key_to_env_var: Dict[str, str]) -> List[str]:
+    """
+    Generate text from env vars for AWS files.
+
+    E.g.:
+    ```
+    aws_access_key_id=***                   # gitleaks:allow
+    aws_secret_access_key=***               # gitleaks:allow
+    aws_s3_bucket=***
+    ```
+    :param key_to_env_var: aws settings names to the corresponding env
+        var names mapping
+    :return: AWS file text
+    """
+    txt = []
+    for k, v in key_to_env_var.items():
+        line = f"{k}={os.environ[v]}"
+        txt.append(line)
+    return txt
+
+
+def _get_aws_config_text(aws_profile: str) -> str:
+    """
+    Generate text for the AWS config file, i.e. ".aws/config".
+    """
+    # Set which env vars we need to get.
+    # TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in
+    # CmTask11095.
+    # profile_prefix = aws_profile.upper()
+    profile_prefix = (
+        "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
+    )
+    region_env_var = f"{profile_prefix}_AWS_DEFAULT_REGION"
+    key_to_env_var = {"region": region_env_var}
+    # Check that env vars are set.
+    _dassert_all_env_vars_set(key_to_env_var)
+    text = _get_aws_file_text(key_to_env_var)
+    text.insert(0, f"[profile {aws_profile}]")
+    text = "\n".join(text)
+    return text
+
+
+def _get_aws_credentials_text(aws_profile: str) -> str:
+    """
+    Generate text for the AWS credentials file, i.e. ".aws/credentials".
+    """
+    # Set which env vars we need to get.
+    # TODO(Juraj): needed because ENV_VARS are now prefixed with
+    # `CSFY_` and not `CK_` or `AM_`. Proper fix to come in
+    # CmTask11095.
+    # profile_prefix = aws_profile.upper()
+    profile_prefix = (
+        "CSFY" if aws_profile.upper() in ["AM", "CK"] else aws_profile.upper()
+    )
+    # Check if AWS session token is set in environment variable.
+    if f"{profile_prefix}_AWS_SESSION_TOKEN" in os.environ:
+        key_to_env_var = {
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
+            "aws_session_token": f"{profile_prefix}_AWS_SESSION_TOKEN",
+            # TODO(heanh): Is this needed?
+            "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
+        }
+    else:
+        key_to_env_var = {
+            "aws_access_key_id": f"{profile_prefix}_AWS_ACCESS_KEY_ID",  # gitleaks:allow
+            "aws_secret_access_key": f"{profile_prefix}_AWS_SECRET_ACCESS_KEY",  # gitleaks:allow
+            # TODO(heanh): Is this needed?
+            "aws_s3_bucket": f"{profile_prefix}_AWS_S3_BUCKET",
+        }
+    # Check that env vars are set.
+    _dassert_all_env_vars_set(key_to_env_var)
+    text = _get_aws_file_text(key_to_env_var)
+    text.insert(0, f"[{aws_profile}]")
+    text = "\n".join(text)
+    return text
+
+
+def generate_aws_files(
+    home_dir: str = "~",
+    aws_profiles: Optional[List[str]] = None,
+) -> None:
+    """
+    Generate AWS configuration files.
+
+    This is needed to use the AWS CLI and the `boto3` library when we are in CI.
+    """
+    if home_dir == "~":
+        home_dir = os.path.expanduser(home_dir)
+    config_file_name = os.path.join(home_dir, ".aws", "config")
+    credentials_file_name = os.path.join(home_dir, ".aws", "credentials")
+    # Check if the files already exist.
+    if os.path.exists(credentials_file_name) and os.path.exists(
+        config_file_name
+    ):
+        _LOG.info(
+            "Both files exist: %s and %s; exiting",
+            credentials_file_name,
+            config_file_name,
+        )
+        return
+    if aws_profiles is None:
+        aws_profiles = ["ck"]
+    config_file_text = []
+    credentials_file_text = []
+    # Get text with settings for both files.
+    for profile in aws_profiles:
+        current_config_text = _get_aws_config_text(profile)
+        config_file_text.append(current_config_text)
+        current_credentials_text = _get_aws_credentials_text(profile)
+        credentials_file_text.append(current_credentials_text)
+    # Create both files.
+    config_file_text = "\n\n".join(config_file_text)
+    hio.to_file(config_file_name, config_file_text)
+    _LOG.debug("Saved AWS config to %s", config_file_name)
+
+    #
+    credentials_file_text = "\n\n".join(credentials_file_text)
+    hio.to_file(credentials_file_name, credentials_file_text)
+    _LOG.debug("Saved AWS credentials to %s", credentials_file_name)
 
 
 # #############################################################################

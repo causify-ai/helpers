@@ -222,25 +222,6 @@ def apply_nan_mode(
     return res
 
 
-# #############################################################################
-
-
-def infer_sampling_points_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
-    """
-    Return the number of index time points per year.
-
-    TODO(*): Consider extending to all frequencies and count points by
-        explicitly building indices of the given frequency.
-
-    :param df: series or dataframe with non-null `df.index.freq`
-    :return: number of time points per year (approximate)
-    """
-    hdbg.dassert(hasattr(df.index, "freq") and df.index.freq is not None)
-    freq = df.index.freq
-    # TODO(*): Make start, end dates parameters that can be passed in.
-    return compute_points_per_year_for_given_freq(freq)
-
-
 @functools.lru_cache()
 def compute_points_per_year_for_given_freq(freq: str) -> float:
     """
@@ -261,6 +242,25 @@ def compute_points_per_year_for_given_freq(freq: str) -> float:
         return points_per_year
     except ZeroDivisionError:
         return 0.0
+
+
+# #############################################################################
+
+
+def infer_sampling_points_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:
+    """
+    Return the number of index time points per year.
+
+    TODO(*): Consider extending to all frequencies and count points by
+        explicitly building indices of the given frequency.
+
+    :param df: series or dataframe with non-null `df.index.freq`
+    :return: number of time points per year (approximate)
+    """
+    hdbg.dassert(hasattr(df.index, "freq") and df.index.freq is not None)
+    freq = df.index.freq
+    # TODO(*): Make start, end dates parameters that can be passed in.
+    return compute_points_per_year_for_given_freq(freq)
 
 
 def compute_count_per_year(df: Union[pd.Series, pd.DataFrame]) -> float:

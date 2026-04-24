@@ -35,7 +35,9 @@ def _cmd_open_html(file_name: str, os_name: str) -> Optional[str]:
     hdbg.dassert_in(os_name, os_cmds)
     exec_name = os_cmds[os_name]
     if not hsystem.check_exec(exec_name):
-        _LOG.warning("Can't execute the command '%s' on this platform", exec_name)
+        _LOG.warning(
+            "Can't execute the command '%s' on this platform", exec_name
+        )
         return None
     # Build the command.
     full_cmd = f"{exec_name} {file_name}"

@@ -377,7 +377,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
             target = "gh_create_pr(ctx, draft=False, title='test')"
             self._check_output(target)
 
-    #TODO(*): Remove skip after migration to `csfy`.`
+    # TODO(*): Remove skip after migration to `csfy`.`
     @pytest.mark.skip(
         reason="migration to new repo "
         "ref: https://github.com/causify-ai/cmamp/issues/13063"
@@ -417,7 +417,7 @@ class TestDryRunTasks2(_LibTasksTestCase, _CheckDryRunTestCase):
         )
         self._check_output(target)
 
-    #TODO(*): Remove skip after migration to `csfy`.`
+    # TODO(*): Remove skip after migration to `csfy`.`
     @pytest.mark.skip(
         reason="migration to new repo "
         "ref: https://github.com/causify-ai/cmamp/issues/13063"
