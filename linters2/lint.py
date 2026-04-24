@@ -7,41 +7,41 @@ then applies appropriate linting tools per file type.
 
 Examples:
 
-# Lint all modified Python files
-> lint.py --modified --py
+# Lint all modified files (default: Python and Jupyter)
+> lint.py --modified
 
 # Lint all files in branch vs master
 > lint.py --branch
 
-# Lint a specific directory (Python only)
-> lint.py --dir ./tutorials --py
+# Lint a specific directory
+> lint.py --dir ./tutorials
 
 # Lint specific files
 > lint.py --files foo.py bar.ipynb baz.md
 
 # Lint from a file list, Jupyter only
-> lint.py --from_file filelist.txt --ipynb
+> lint.py --from_file filelist.txt --no_keep_python_files --no_keep_markdown_files
 
 # Lint last commit
 > lint.py --last_commit
 
-# Lint markdown in modified files
-> lint.py --modified --md
+# Lint only Markdown files in modified files
+> lint.py --modified --no_keep_python_files --no_keep_jupyter_files --keep_markdown_files
 
 # Run only specific actions on modified files (pre-commit and normalize_import)
 > lint.py --modified --action pre-commit normalize_import
 
 # Run only jupytext sync on Jupyter notebooks
-> lint.py --modified --ipynb --action sync_jupytext
+> lint.py --modified --no_keep_python_files --no_keep_markdown_files --action sync_jupytext
 
 # Run add_class_frames only on Python files
-> lint.py --modified --py --action add_class_frames
+> lint.py --modified --no_keep_jupyter_files --no_keep_markdown_files --action add_class_frames
 
 # Run pyright type-checker on modified Python files (including paired jupytext)
-> lint.py --modified --py --action pyright
+> lint.py --modified --no_keep_jupyter_files --no_keep_markdown_files --action pyright
 
 # Run coverage for test files corresponding to modified Python files
-> lint.py --modified --py --action coverage
+> lint.py --modified --no_keep_jupyter_files --no_keep_markdown_files --action coverage
 """
 
 import argparse
@@ -170,8 +170,7 @@ def _run_coverage(
 	return ret
 
 
-# TODO(ai_gp): -> _lint_python_files
-def _lint_python(
+def _lint_python_files(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
@@ -215,8 +214,7 @@ def _lint_python(
     return ret
 
 
-# TODO(ai_gp): -> _lint_jupyter_files
-def _lint_jupyter(
+def _lint_jupyter_files(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
@@ -254,8 +252,7 @@ def _lint_jupyter(
     return ret
 
 
-# TODO(ai_gp): -> _lint_markdown_files
-def _lint_markdown(
+def _lint_markdown_files(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
@@ -283,10 +280,9 @@ def _lint_markdown(
 
 def _filter_files_by_type(
     file_paths: List[str],
-    # TODO(ai_gp): Rename keep_python_files and keep_jupyter_files and keep_markdown_files.
-    py: bool,
-    ipynb: bool,
-    md: bool,
+    keep_python_files: bool,
+    keep_jupyter_files: bool,
+    keep_markdown_files: bool,
 ) -> tuple:
     """
     Filter files by type (Python, Jupyter, Markdown).
@@ -295,9 +291,9 @@ def _filter_files_by_type(
     by detected type.
 
     :param file_paths: files to filter
-    :param py: include Python files
-    :param ipynb: include Jupyter notebooks
-    :param md: include Markdown files
+    :param keep_python_files: include Python files
+    :param keep_jupyter_files: include Jupyter notebooks
+    :param keep_markdown_files: include Markdown files
     :return: tuple of (python_files, jupyter_files, markdown_files)
     """
     python_files = []
@@ -318,11 +314,11 @@ def _filter_files_by_type(
         else:
             _LOG.warning("File type for '%s' not recognized", f)
     # Select files based on types.
-    if not py:
-       python_files = []
-    if not ipynb:
+    if not keep_python_files:
+        python_files = []
+    if not keep_jupyter_files:
         jupyter_files = []
-    if not md:
+    if not keep_markdown_files:
         markdown_files = []
     return python_files, jupyter_files, markdown_files
 
@@ -376,25 +372,23 @@ def _parse() -> argparse.ArgumentParser:
         help="Lint files from last commit",
     )
     # File type filters (can be combined).
-    # TODO(ai_gp): Rename py, ipynb, and md to keep_python_files, keep_jupyter_files, and keep_markdown_files.
-    # and add the opposite --no_keep_python_files, --no_keep_jupyter_files, and --no_keep_markdown_files.
-    # using the function in hparser.add_bool_arg().
-    # The default should be --keep_python_files, --keep_jupyter_files, and
-    # --no_keep_markdown_files.
-    parser.add_argument(
-        "--py",
-        action="store_true",
-        help="Lint only Python files (exclude paired jupytext)",
+    hparser.add_bool_arg(
+        parser,
+        "keep_python_files",
+        default_value=True,
+        help_="Lint Python files (exclude paired jupytext)",
     )
-    parser.add_argument(
-        "--ipynb",
-        action="store_true",
-        help="Lint only Jupyter notebooks (and sync with jupytext)",
+    hparser.add_bool_arg(
+        parser,
+        "keep_jupyter_files",
+        default_value=True,
+        help_="Lint Jupyter notebooks (and sync with jupytext)",
     )
-    parser.add_argument(
-        "--md",
-        action="store_true",
-        help="Lint only Markdown files",
+    hparser.add_bool_arg(
+        parser,
+        "keep_markdown_files",
+        default_value=False,
+        help_="Lint Markdown files",
     )
     # Other options.
     parser.add_argument(
@@ -465,9 +459,9 @@ def _main(args: argparse.Namespace) -> int:
     _LOG.info("Found %d files for linting", len(file_paths))
     python_files, jupyter_files, markdown_files = _filter_files_by_type(
         file_paths,
-        args.py,
-        args.ipynb,
-        args.md,
+        args.keep_python_files,
+        args.keep_jupyter_files,
+        args.keep_markdown_files,
     )
     all_files = python_files + jupyter_files + markdown_files
     _LOG.info(
@@ -481,21 +475,21 @@ def _main(args: argparse.Namespace) -> int:
     ret = 0
     if python_files:
         print(hprint.frame("Processing Python files"))
-        ret |= _lint_python(
+        ret |= _lint_python_files(
             python_files,
             abort_on_error=args.abort_on_error,
             actions=args.action,
         )
     if jupyter_files:
         print(hprint.frame("Processing Jupyter notebooks"))
-        ret |= _lint_jupyter(
+        ret |= _lint_jupyter_files(
             jupyter_files,
             abort_on_error=args.abort_on_error,
             actions=args.action,
         )
     if markdown_files:
         print(hprint.frame("Processing Markdown files"))
-        ret |= _lint_markdown(
+        ret |= _lint_markdown_files(
             markdown_files,
             abort_on_error=args.abort_on_error,
         )

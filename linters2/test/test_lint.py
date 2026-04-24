@@ -10,9 +10,14 @@ class Test_filter_files_by_type(hunitest.TestCase):
     """
 
     @umock.patch("linters2.linter_utils.is_paired_jupytext_file")
-    def test1(self, mock_is_paired: umock.MagicMock) -> None:
+    @umock.patch("helpers.hdbg.dassert_file_exists")
+    def test1(
+        self,
+        _: umock.MagicMock,
+        mock_is_paired: umock.MagicMock,
+    ) -> None:
         """
-        No type filters — auto-detects extensions correctly.
+        Default filters — auto-detects extensions with defaults.
         """
         # Prepare inputs.
         mock_is_paired.return_value = False
@@ -20,17 +25,22 @@ class Test_filter_files_by_type(hunitest.TestCase):
         # Run test.
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
-            py=False,
-            ipynb=False,
-            md=False,
+            keep_python_files=True,
+            keep_jupyter_files=True,
+            keep_markdown_files=False,
         )
         # Check outputs.
         self.assertEqual(py_files, ["foo.py"])
         self.assertEqual(ipynb_files, ["bar.ipynb"])
-        self.assertEqual(md_files, ["baz.md"])
+        self.assertEqual(md_files, [])
 
     @umock.patch("linters2.linter_utils.is_paired_jupytext_file")
-    def test2(self, mock_is_paired: umock.MagicMock) -> None:
+    @umock.patch("helpers.hdbg.dassert_file_exists")
+    def test2(
+        self,
+        _: umock.MagicMock,
+        mock_is_paired: umock.MagicMock,
+    ) -> None:
         """
         py=True filter — only .py files included.
         """
@@ -40,9 +50,9 @@ class Test_filter_files_by_type(hunitest.TestCase):
         # Run test.
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
-            py=True,
-            ipynb=False,
-            md=False,
+            keep_python_files=True,
+            keep_jupyter_files=False,
+            keep_markdown_files=False,
         )
         # Check outputs.
         self.assertEqual(py_files, ["foo.py"])
@@ -50,7 +60,12 @@ class Test_filter_files_by_type(hunitest.TestCase):
         self.assertEqual(md_files, [])
 
     @umock.patch("linters2.linter_utils.is_paired_jupytext_file")
-    def test3(self, mock_is_paired: umock.MagicMock) -> None:
+    @umock.patch("helpers.hdbg.dassert_file_exists")
+    def test3(
+        self,
+        _: umock.MagicMock,
+        mock_is_paired: umock.MagicMock,
+    ) -> None:
         """
         ipynb=True filter — only .ipynb files included.
         """
@@ -60,9 +75,9 @@ class Test_filter_files_by_type(hunitest.TestCase):
         # Run test.
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
-            py=False,
-            ipynb=True,
-            md=False,
+            keep_python_files=False,
+            keep_jupyter_files=True,
+            keep_markdown_files=False,
         )
         # Check outputs.
         self.assertEqual(py_files, [])
@@ -70,7 +85,12 @@ class Test_filter_files_by_type(hunitest.TestCase):
         self.assertEqual(md_files, [])
 
     @umock.patch("linters2.linter_utils.is_paired_jupytext_file")
-    def test4(self, mock_is_paired: umock.MagicMock) -> None:
+    @umock.patch("helpers.hdbg.dassert_file_exists")
+    def test4(
+        self,
+        _: umock.MagicMock,
+        mock_is_paired: umock.MagicMock,
+    ) -> None:
         """
         md=True filter — only .md files included.
         """
@@ -80,9 +100,9 @@ class Test_filter_files_by_type(hunitest.TestCase):
         # Run test.
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
-            py=False,
-            ipynb=False,
-            md=True,
+            keep_python_files=False,
+            keep_jupyter_files=False,
+            keep_markdown_files=True,
         )
         # Check outputs.
         self.assertEqual(py_files, [])
@@ -90,7 +110,12 @@ class Test_filter_files_by_type(hunitest.TestCase):
         self.assertEqual(md_files, ["baz.md"])
 
     @umock.patch("linters2.linter_utils.is_paired_jupytext_file")
-    def test5(self, mock_is_paired: umock.MagicMock) -> None:
+    @umock.patch("helpers.hdbg.dassert_file_exists")
+    def test5(
+        self,
+        _: umock.MagicMock,
+        mock_is_paired: umock.MagicMock,
+    ) -> None:
         """
         Paired jupytext .py files are excluded from Python files.
         """
@@ -100,9 +125,9 @@ class Test_filter_files_by_type(hunitest.TestCase):
         # Run test.
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
-            py=False,
-            ipynb=False,
-            md=False,
+            keep_python_files=True,
+            keep_jupyter_files=True,
+            keep_markdown_files=False,
         )
         # Check outputs.
         self.assertEqual(py_files, ["standalone.py"])
@@ -215,9 +240,9 @@ class Test_run_linting_actions(hunitest.TestCase):
         self.assertEqual(mock_system.call_count, 0)
 
 
-class Test_lint_python(hunitest.TestCase):
+class Test_lint_python_files(hunitest.TestCase):
     """
-    Test _lint_python Python file linting.
+    Test _lint_python_files Python file linting.
     """
 
     @umock.patch("helpers.hsystem.system")
@@ -229,7 +254,7 @@ class Test_lint_python(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = []
         # Run test.
-        ret = llint._lint_python(
+        ret = llint._lint_python_files(
             file_paths,
             abort_on_error=True,
             actions=None,
@@ -247,7 +272,7 @@ class Test_lint_python(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = ["foo.py", "bar.py"]
         # Run test.
-        ret = llint._lint_python(
+        ret = llint._lint_python_files(
             file_paths,
             abort_on_error=True,
             actions=None,
@@ -269,7 +294,7 @@ class Test_lint_python(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = ["foo.py"]
         # Run test.
-        ret = llint._lint_python(
+        ret = llint._lint_python_files(
             file_paths,
             abort_on_error=True,
             actions=["normalize_import"],
@@ -280,9 +305,9 @@ class Test_lint_python(hunitest.TestCase):
         self.assertIn("normalize_import.py", mock_system.call_args_list[0][0][0])
 
 
-class Test_lint_jupyter(hunitest.TestCase):
+class Test_lint_jupyter_files(hunitest.TestCase):
     """
-    Test _lint_jupyter Jupyter notebook linting.
+    Test _lint_jupyter_files Jupyter notebook linting.
     """
 
     @umock.patch("helpers.hsystem.system")
@@ -294,7 +319,7 @@ class Test_lint_jupyter(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = []
         # Run test.
-        ret = llint._lint_jupyter(
+        ret = llint._lint_jupyter_files(
             file_paths,
             abort_on_error=True,
             actions=None,
@@ -306,26 +331,24 @@ class Test_lint_jupyter(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test2(self, mock_system: umock.MagicMock) -> None:
         """
-        Two notebooks, default actions — 3 shared calls + 2 jupytext calls.
+        Two notebooks, default actions — 3 shared calls (no jupytext by default).
         """
         # Prepare inputs.
         mock_system.return_value = 0
         file_paths = ["foo.ipynb", "bar.ipynb"]
         # Run test.
-        ret = llint._lint_jupyter(
+        ret = llint._lint_jupyter_files(
             file_paths,
             abort_on_error=True,
             actions=None,
         )
         # Check outputs.
         self.assertEqual(ret, 0)
-        self.assertEqual(mock_system.call_count, 5)
+        self.assertEqual(mock_system.call_count, 3)
         calls = [call[0][0] for call in mock_system.call_args_list]
         self.assertIn("pre-commit run --files", calls[0])
         self.assertIn("normalize_import.py", calls[1])
         self.assertIn("add_class_frames.py", calls[2])
-        self.assertIn("jupytext --sync foo.ipynb", calls[3])
-        self.assertIn("jupytext --sync bar.ipynb", calls[4])
 
     @umock.patch("helpers.hsystem.system")
     def test3(self, mock_system: umock.MagicMock) -> None:
@@ -336,7 +359,7 @@ class Test_lint_jupyter(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = ["foo.ipynb", "bar.ipynb"]
         # Run test.
-        ret = llint._lint_jupyter(
+        ret = llint._lint_jupyter_files(
             file_paths,
             abort_on_error=True,
             actions=["sync_jupytext"],
@@ -357,7 +380,7 @@ class Test_lint_jupyter(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = ["foo.ipynb", "bar.ipynb"]
         # Run test.
-        ret = llint._lint_jupyter(
+        ret = llint._lint_jupyter_files(
             file_paths,
             abort_on_error=True,
             actions=["pre-commit"],
@@ -368,9 +391,9 @@ class Test_lint_jupyter(hunitest.TestCase):
         self.assertIn("pre-commit run --files", mock_system.call_args_list[0][0][0])
 
 
-class Test_lint_markdown(hunitest.TestCase):
+class Test_lint_markdown_files(hunitest.TestCase):
     """
-    Test _lint_markdown Markdown file linting.
+    Test _lint_markdown_files Markdown file linting.
     """
 
     @umock.patch("helpers.hsystem.system")
@@ -384,7 +407,7 @@ class Test_lint_markdown(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = []
         # Run test.
-        ret = llint._lint_markdown(
+        ret = llint._lint_markdown_files(
             file_paths,
             abort_on_error=True,
         )
@@ -403,7 +426,7 @@ class Test_lint_markdown(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = ["doc.md", "readme.md"]
         # Run test.
-        ret = llint._lint_markdown(
+        ret = llint._lint_markdown_files(
             file_paths,
             abort_on_error=True,
         )
@@ -412,6 +435,6 @@ class Test_lint_markdown(hunitest.TestCase):
         self.assertEqual(mock_system.call_count, 1)
         cmd = mock_system.call_args_list[0][0][0]
         self.assertIn("/fake/lint_txt.py", cmd)
-        self.assertIn("-i", cmd)
+        self.assertIn("--files", cmd)
         self.assertIn("doc.md", cmd)
         self.assertIn("readme.md", cmd)
