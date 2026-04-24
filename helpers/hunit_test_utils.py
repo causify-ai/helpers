@@ -488,3 +488,28 @@ def check_env_to_str(
             "AM_AWS_|CSFY_AWS_|GH_ACTION_ACCESS_TOKEN", actual
         )
     self_.assert_equal(actual, expected, fuzzy_match=True, purify_text=True)
+
+
+def get_test_file_for_source(source_file: str) -> Optional[str]:
+    """
+    Map a source Python file to its corresponding test file.
+
+    E.g., helpers/hdbg.py -> helpers/test/test_hdbg.py
+
+    :param source_file: path to a source Python file
+    :return: path to corresponding test file if it exists and source is not
+             already a test file; None otherwise
+    """
+    base_name = os.path.basename(source_file)
+    is_test = (
+        "test" in source_file.split("/")
+        and base_name.startswith("test_")
+        and source_file.endswith(".py")
+    )
+    if is_test:
+        return None
+    dir_name = os.path.dirname(source_file)
+    test_file = os.path.join(dir_name, "test", f"test_{base_name}")
+    if os.path.exists(test_file):
+        return test_file
+    return None

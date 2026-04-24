@@ -263,3 +263,36 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
         """
         cmd = f"git reset {toy_test}/ && rm -rf {toy_test}/"
         hsystem.system(cmd, abort_on_error=False, suppress_output=False)
+
+
+# #############################################################################
+# Test_get_test_file_for_source
+# #############################################################################
+
+
+class Test_get_test_file_for_source(hunitest.TestCase):
+    """
+    Test mapping source files to test files.
+    """
+
+    def test1(self) -> None:
+        """
+        Source file with existing test file returns the test path.
+        """
+        actual = hunteuti.get_test_file_for_source("helpers/hdbg.py")
+        expected = "helpers/test/test_hdbg.py"
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Source file without test file returns None.
+        """
+        actual = hunteuti.get_test_file_for_source("tasks.py")
+        self.assertIsNone(actual)
+
+    def test3(self) -> None:
+        """
+        Test file as input returns None.
+        """
+        actual = hunteuti.get_test_file_for_source("helpers/test/test_hdbg.py")
+        self.assertIsNone(actual)

@@ -161,6 +161,7 @@ def get_files_to_check(
     return file_paths
 
 
+# TODO(gp): This seems obsolete given the code in linters2/lint.py
 def get_python_files_to_lint(dir_name: str) -> List[str]:
     """
     Get Python files for linter excluding jupytext and test Python files.
@@ -215,26 +216,36 @@ def write_file_back(
     file_name: str, txt_old: List[str], txt_new: List[str]
 ) -> None:
     """
-    Compare old text and new text and, if different, write into file.
+    Write new text to file only if it differs from the old text.
+
+    :param file_name: Path to the file to write to
+    :param txt_old: Original text as a list of strings
+    :param txt_new: New text as a list of strings
     """
+    # Process old text.
     hdbg.dassert_list_of_strings(txt_old)
     txt_as_str = "\n".join(txt_old)
-    #
+    # Process new text.
     hdbg.dassert_list_of_strings(txt_new)
     txt_new_as_str = "\n".join(txt_new)
-    #
+    # Write file back, if needed.
     if txt_as_str != txt_new_as_str:
         hio.to_file(file_name, txt_new_as_str)
 
 
-# TODO(gp): should this be moved to system interactions?
+# TODO(ai_gp): should this be moved to system.py?
 def tee(
     cmd: str, executable: str, abort_on_error: bool
 ) -> Tuple[int, List[str]]:
     """
-    Execute command "cmd", capturing its output and removing empty lines.
+    Execute command and return its exit code and output lines.
 
-    :return: list of strings
+    Captures output, removes empty lines, and optionally aborts on error.
+
+    :param cmd: Command string to execute
+    :param executable: Executable to use for running the command
+    :param abort_on_error: Whether to abort execution if command fails
+    :return: Tuple of (exit code, list of non-empty output lines)
     """
     _LOG.debug("cmd=%s executable=%s", cmd, executable)
     rc, output = hsystem.system_to_string(cmd, abort_on_error=abort_on_error)
@@ -280,20 +291,40 @@ def is_ipynb_file(file_name: str) -> bool:
 
 
 def from_python_to_ipynb_file(file_name: str) -> str:
-    hdbg.dassert(is_py_file(file_name))
+    """
+    Convert Python file path to its paired Jupyter notebook path.
+
+    :param file_name: Path to a .py file
+    :return: Corresponding .ipynb file path
+    """
+    hdbg.dassert(
+        is_py_file(file_name),
+        "File '%s' must be a Python file to convert to notebook",
+        file_name,
+    )
     ret = file_name.replace(".py", ".ipynb")
     return ret
 
 
 def from_ipynb_to_python_file(file_name: str) -> str:
-    hdbg.dassert(is_ipynb_file(file_name))
+    """
+    Convert Jupyter notebook path to its paired Python file path.
+
+    :param file_name: Path to a .ipynb file
+    :return: Corresponding .py file path
+    """
+    hdbg.dassert(
+        is_ipynb_file(file_name),
+        "File '%s' must be a Jupyter notebook to convert to Python",
+        file_name,
+    )
     ret = file_name.replace(".ipynb", ".py")
     return ret
 
 
 def is_paired_jupytext_file(file_name: str) -> bool:
     """
-    Return whether a file is a paired jupytext file.
+    Return whether a py or ipynb file is a paired jupytext file.
     """
     is_paired = (
         is_py_file(file_name)
@@ -307,6 +338,12 @@ def is_paired_jupytext_file(file_name: str) -> bool:
 
 
 def is_init_py(file_name: str) -> bool:
+    """
+    Check if the file is a Python package initialization file.
+
+    :param file_name: Path to the file to check
+    :return: True if the file is named __init__.py
+    """
     return os.path.basename(file_name) == "__init__.py"
 
 
@@ -346,13 +383,16 @@ def parse_comment(
     line: str, regex: str = r"(^\s*)#\s*(.*)\s*"
 ) -> Optional[re.Match]:
     """
-    Parse a line and return a comment if there's one.
+    Parse a line and return a regex match for the comment part.
 
-    Seperator lines and shebang return None.
+    Separator lines and shebangs are skipped and return None.
+
+    :param line: The line to parse
+    :param regex: Regular expression to match comment syntax
+    :return: Regex match object if comment found, None for separators or shebangs
     """
     if is_separator(line) or is_shebang(line):
         return None
-
     return re.search(regex, line)
 
 

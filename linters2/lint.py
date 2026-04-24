@@ -52,10 +52,27 @@ from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
+import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+import helpers.hunit_test_utils as hunteuti
 import linters2.linter_utils as llinutil
 
 _LOG = logging.getLogger(__name__)
+
+_VALID_ACTIONS = [
+    "pre-commit",
+    "normalize_import",
+    "add_class_frames",
+    "sync_jupytext",
+    "pyright",
+    "coverage",
+]
+
+_DEFAULT_ACTIONS = [
+    "pre-commit",
+    "normalize_import",
+    "add_class_frames",
+]
 
 _PYRIGHT_OPTIONS = ""
 
@@ -63,27 +80,6 @@ _PYRIGHT_OPTIONS = ""
 # #############################################################################
 # Linting Functions
 # #############################################################################
-
-
-# TODO(ai_gp): Move this to ./helpers/hunit_test_utils.py and add unit tests.
-def _get_test_file_for_source(source_file: str) -> Optional[str]:
-	"""
-	Map a source Python file to its corresponding test file.
-
-	E.g., helpers/hdbg.py -> helpers/test/test_hdbg.py
-
-	:param source_file: Path to a source Python file
-	:return: Path to corresponding test file if it exists and source is not
-	         already a test file; None otherwise
-	"""
-	if llinutil.is_test_code(source_file):
-		return None
-	dir_name = os.path.dirname(source_file)
-	base_name = os.path.basename(source_file)
-	test_file = os.path.join(dir_name, "test", f"test_{base_name}")
-	if os.path.exists(test_file):
-		return test_file
-	return None
 
 
 def _run_linting_actions(
@@ -100,11 +96,8 @@ def _run_linting_actions(
     :param actions: list of actions to perform; if None, all are performed
     :return: combined return code (OR of all command return codes)
     """
-    # TODO(ai_gp): Add a DEFAULT_ACTIONS like in other files.
     if actions is None:
-        actions = ["pre-commit", "normalize_import", "add_class_frames"]
-    # TODO(ai_gp): Remove the processed actions and then assert if there is one
-    # not processed, see code in other files.
+        actions = list(_DEFAULT_ACTIONS)
     ret = 0
     if "pre-commit" in actions:
         ret |= hsystem.system(
@@ -157,7 +150,7 @@ def _run_coverage(
 	_LOG.info("Collecting coverage for %d Python files", len(file_paths))
 	test_files = []
 	for file_path in file_paths:
-		test_file = _get_test_file_for_source(file_path)
+		test_file = hunteuti.get_test_file_for_source(file_path)
 		if test_file:
 			test_files.append(test_file)
 			_LOG.info("Source: %s -> Test: %s", file_path, test_file)
@@ -167,7 +160,7 @@ def _run_coverage(
 		_LOG.warning("No test files found for any of the source files")
 		return 0
 	test_files_str = " ".join(test_files)
-	cmd = f"pytest --cov=. --cov-branch --cov-report term-missing --cov-report html {test_files_str}",
+	cmd = f"pytest --cov=. --cov-branch --cov-report term-missing --cov-report html {test_files_str}"
 	ret = hsystem.system(
         cmd,
 		print_command=True,
@@ -177,6 +170,7 @@ def _run_coverage(
 	return ret
 
 
+# TODO(ai_gp): -> _lint_python_files
 def _lint_python(
     file_paths: List[str],
     *,
@@ -196,7 +190,7 @@ def _lint_python(
     if not file_paths:
         return 0
     if actions is None:
-        actions = ["pre-commit", "normalize_import", "add_class_frames"]
+        actions = list(_DEFAULT_ACTIONS)
     _LOG.info("Linting %d Python files with actions: %s", len(file_paths), actions)
     ret = 0
     files_str = " ".join(file_paths)
@@ -205,6 +199,14 @@ def _lint_python(
         abort_on_error=abort_on_error,
         actions=actions,
     )
+    # Pyright and coverage run on all Python files including paired jupytext.
+    if "pyright" in actions:
+        files_str = " ".join(file_paths)
+        ret |= _run_linting_actions(
+            files_str,
+            abort_on_error=abort_on_error,
+            actions=["pyright"],
+        )
     if "coverage" in actions:
         ret |= _run_coverage(
             file_paths,
@@ -213,6 +215,7 @@ def _lint_python(
     return ret
 
 
+# TODO(ai_gp): -> _lint_jupyter_files
 def _lint_jupyter(
     file_paths: List[str],
     *,
@@ -231,7 +234,7 @@ def _lint_jupyter(
     if not file_paths:
         return 0
     if actions is None:
-        actions = ["pre-commit", "normalize_import", "add_class_frames", "sync_jupytext"]
+        actions = list(_DEFAULT_ACTIONS)
     _LOG.info("Linting %d Jupyter notebooks with actions: %s", len(file_paths), actions)
     files_str = " ".join(file_paths)
     ret = _run_linting_actions(
@@ -251,6 +254,7 @@ def _lint_jupyter(
     return ret
 
 
+# TODO(ai_gp): -> _lint_markdown_files
 def _lint_markdown(
     file_paths: List[str],
     *,
@@ -269,7 +273,7 @@ def _lint_markdown(
     files_str = " ".join(file_paths)
     lint_txt_script = hsystem.find_file_in_repo("lint_txt.py")
     ret = hsystem.system(
-        f"{lint_txt_script} -i {files_str}",
+        f"{lint_txt_script} --files {files_str}",
         print_command=True,
         abort_on_error=abort_on_error,
         suppress_output=False,
@@ -279,11 +283,10 @@ def _lint_markdown(
 
 def _filter_files_by_type(
     file_paths: List[str],
-    *,
+    # TODO(ai_gp): Rename keep_python_files and keep_jupyter_files and keep_markdown_files.
     py: bool,
     ipynb: bool,
     md: bool,
-    include_paired_jupytext: bool = False,
 ) -> tuple:
     """
     Filter files by type (Python, Jupyter, Markdown).
@@ -295,36 +298,32 @@ def _filter_files_by_type(
     :param py: include Python files
     :param ipynb: include Jupyter notebooks
     :param md: include Markdown files
-    :param include_paired_jupytext:
-        - if True, include .py files that are paired with Jupyter notebooks
-          (normally excluded)
     :return: tuple of (python_files, jupyter_files, markdown_files)
     """
     python_files = []
     jupyter_files = []
     markdown_files = []
-    if not (py or ipynb or md):
-        # No filters specified; categorize all files by type.
-        for f in file_paths:
-            if llinutil.is_ipynb_file(f):
-                jupyter_files.append(f)
-            elif llinutil.is_py_file(f):
-                if not (not include_paired_jupytext and
-                        llinutil.is_paired_jupytext_file(f)):
-                    python_files.append(f)
-            elif f.endswith(".md"):
-                markdown_files.append(f)
-    else:
-        # Filters specified; include only requested types.
-        for f in file_paths:
-            if py and llinutil.is_py_file(f):
-                if not (not include_paired_jupytext and
-                        llinutil.is_paired_jupytext_file(f)):
-                    python_files.append(f)
-            if ipynb and llinutil.is_ipynb_file(f):
-                jupyter_files.append(f)
-            if md and f.endswith(".md"):
-                markdown_files.append(f)
+    # Categorize all files by type.
+    for f in file_paths:
+        if llinutil.is_ipynb_file(f):
+            paired_python_file = llinutil.from_ipynb_to_python_file(f)
+            hdbg.dassert_file_exists(paired_python_file,
+                "Paired Jupyter notebook file '%s' not found for Python file '%s'", f, paired_python_file)
+            jupyter_files.append(f)
+        elif llinutil.is_py_file(f):
+            if not llinutil.is_paired_jupytext_file(f):
+                python_files.append(f)
+        elif f.endswith(".md"):
+            markdown_files.append(f)
+        else:
+            _LOG.warning("File type for '%s' not recognized", f)
+    # Select files based on types.
+    if not py:
+       python_files = []
+    if not ipynb:
+        jupyter_files = []
+    if not md:
+        markdown_files = []
     return python_files, jupyter_files, markdown_files
 
 
@@ -377,6 +376,11 @@ def _parse() -> argparse.ArgumentParser:
         help="Lint files from last commit",
     )
     # File type filters (can be combined).
+    # TODO(ai_gp): Rename py, ipynb, and md to keep_python_files, keep_jupyter_files, and keep_markdown_files.
+    # and add the opposite --no_keep_python_files, --no_keep_jupyter_files, and --no_keep_markdown_files.
+    # using the function in hparser.add_bool_arg().
+    # The default should be --keep_python_files, --keep_jupyter_files, and
+    # --no_keep_markdown_files.
     parser.add_argument(
         "--py",
         action="store_true",
@@ -397,9 +401,7 @@ def _parse() -> argparse.ArgumentParser:
         "--action",
         nargs="+",
         type=str,
-        # TODO(ai_gp): Use a constant with valid actions like other files.
-        choices=["pre-commit", "normalize_import", "add_class_frames",
-                 "sync_jupytext", "pyright", "coverage"],
+        choices=_VALID_ACTIONS,
         help="Specific actions to perform (default: all applicable actions). "
     )
     parser.add_argument(
@@ -452,29 +454,20 @@ def _main(args: argparse.Namespace) -> int:
     )
     # Get files based on selection mode.
     file_paths = llinutil.get_files_to_check(
-        files=args.files,
-        from_file=args.from_file,
-        skip_files=args.skip_files,
-        dir_name=args.dir,
-        modified=args.modified,
-        last_commit=args.last_commit,
-        branch=args.branch,
+        args.files,
+        args.from_file,
+        args.skip_files,
+        args.dir,
+        args.modified,
+        args.last_commit,
+        args.branch,
     )
     _LOG.info("Found %d files for linting", len(file_paths))
-    # Determine if we should include paired jupytext files.
-    # TODO(ai_gp): This should be done to filter only in pyright and coverage
-    # since these actions work only on Python files.
-    include_paired_jupytext = (
-        args.action is not None
-        and ("pyright" in args.action or "coverage" in args.action)
-    )
-    # Filter by file type.
     python_files, jupyter_files, markdown_files = _filter_files_by_type(
         file_paths,
-        py=args.py,
-        ipynb=args.ipynb,
-        md=args.md,
-        include_paired_jupytext=include_paired_jupytext,
+        args.py,
+        args.ipynb,
+        args.md,
     )
     all_files = python_files + jupyter_files + markdown_files
     _LOG.info(
@@ -487,18 +480,21 @@ def _main(args: argparse.Namespace) -> int:
     # Lint each file type and collect return codes.
     ret = 0
     if python_files:
+        print(hprint.frame("Processing Python files"))
         ret |= _lint_python(
             python_files,
             abort_on_error=args.abort_on_error,
             actions=args.action,
         )
     if jupyter_files:
+        print(hprint.frame("Processing Jupyter notebooks"))
         ret |= _lint_jupyter(
             jupyter_files,
             abort_on_error=args.abort_on_error,
             actions=args.action,
         )
     if markdown_files:
+        print(hprint.frame("Processing Markdown files"))
         ret |= _lint_markdown(
             markdown_files,
             abort_on_error=args.abort_on_error,
