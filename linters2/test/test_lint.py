@@ -4,6 +4,7 @@ import unittest.mock as umock
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import linters2.lint as lilint
+import linters2.linter_utils as llinutil
 
 
 # #############################################################################

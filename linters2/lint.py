@@ -295,59 +295,6 @@ def _lint_markdown_files(
     return ret
 
 
-def _filter_files_by_type(
-    file_paths: List[str],
-    keep_python_files: bool,
-    keep_jupyter_files: bool,
-    keep_markdown_files: bool,
-    *,
-    skip_dassert_exists: bool = False,
-) -> tuple:
-    """
-    Filter files by type (Python, Jupyter, Markdown).
-
-    If no type filters are provided (all False), returns all files grouped
-    by detected type.
-
-    :param file_paths: files to filter
-    :param keep_python_files: include Python files
-    :param keep_jupyter_files: include Jupyter notebooks
-    :param keep_markdown_files: include Markdown files
-    :param skip_dassert_exists: skip file existence checks
-    :return: tuple of (python_files, jupyter_files, markdown_files)
-    """
-    python_files = []
-    jupyter_files = []
-    markdown_files = []
-    # Categorize all files by type.
-    for f in file_paths:
-        if llinutil.is_ipynb_file(f):
-            paired_python_file = llinutil.from_ipynb_to_python_file(f)
-            if not skip_dassert_exists:
-                hdbg.dassert_file_exists(
-                    paired_python_file,
-                    "Paired Jupyter notebook file '%s' not found for Python file '%s'",
-                    f,
-                    paired_python_file,
-                )
-            jupyter_files.append(f)
-        elif llinutil.is_py_file(f):
-            if not llinutil.is_paired_jupytext_file(f):
-                python_files.append(f)
-        elif f.endswith(".md"):
-            markdown_files.append(f)
-        else:
-            _LOG.warning("File type for '%s' not recognized", f)
-    # Select files based on types.
-    if not keep_python_files:
-        python_files = []
-    if not keep_jupyter_files:
-        jupyter_files = []
-    if not keep_markdown_files:
-        markdown_files = []
-    return python_files, jupyter_files, markdown_files
-
-
 # #############################################################################
 # Argument Parsing
 # #############################################################################
@@ -488,7 +435,7 @@ def _main(args: argparse.Namespace) -> int:
         args.branch,
     )
     _LOG.info("Found %d files for linting", len(file_paths))
-    python_files, jupyter_files, markdown_files = _filter_files_by_type(
+    python_files, jupyter_files, markdown_files = llinutil.filter_files_by_type(
         file_paths,
         args.keep_python_files,
         args.keep_jupyter_files,

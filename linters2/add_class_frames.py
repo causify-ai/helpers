@@ -216,26 +216,20 @@ def _remove_extra_bars(lines: List[str]) -> List[str]:
                 and i + 2 < len(lines)
                 and lines[i + 2] == frame_border
             ):
-                # Collect any preceding bars and empty lines to check if removable.
+                # Collect any preceding bars and empty lines.
                 trailing_items = []
                 for j in range(len(result) - 1, -1, -1):
                     if result[j] == frame_border or result[j] == "":
                         trailing_items.append(result[j])
                     else:
                         break
-                # Check if preceding items are preceded by code (not just trailing decorations).
-                preceded_by_code = (
-                    len(result) > len(trailing_items)
-                    and result[-(len(trailing_items) + 1)] != frame_border
-                )
-                # Remove trailing bars/empty lines only if preceded by code (unnecessary duplicates).
-                # Keep them if preceded by another complete frame (preserves visual separation).
-                if (
-                    any(item == frame_border for item in trailing_items)
-                    and not preceded_by_code
-                ):
+                # Remove all trailing bars/empty lines before this frame.
+                if any(item == frame_border for item in trailing_items):
                     for _ in range(len(trailing_items)):
                         result.pop()
+                    # Restore 2 empty lines if there is content before.
+                    if result:
+                        result.extend(["", ""])
                 result.append(lines[i])
                 result.append(lines[i + 1])
                 result.append(lines[i + 2])

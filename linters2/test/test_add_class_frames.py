@@ -139,6 +139,9 @@ class Test_update_class_frames(hunitest.TestCase):
     def test4(self) -> None:
         """
         Test adding frames to classes when there are separating lines present.
+
+        A standalone bar before a class frame is removed; 2 empty lines are
+        restored to preserve visual separation.
         """
         content = """
         class FirstClass():
@@ -157,8 +160,6 @@ class Test_update_class_frames(hunitest.TestCase):
 
         class FirstClass():
             pass
-
-        # #############################################################################
 
 
         # #############################################################################
