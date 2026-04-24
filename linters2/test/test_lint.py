@@ -1,5 +1,7 @@
+import os
 import unittest.mock as umock
 
+import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import linters2.lint as llint
 
@@ -9,129 +11,105 @@ class Test_filter_files_by_type(hunitest.TestCase):
     Test _filter_files_by_type file categorization logic.
     """
 
-    @umock.patch("linters2.linter_utils.is_paired_jupytext_file")
-    @umock.patch("helpers.hdbg.dassert_file_exists")
-    def test1(
-        self,
-        _: umock.MagicMock,
-        mock_is_paired: umock.MagicMock,
-    ) -> None:
+    def _create_files(self, names: list[str]) -> dict[str, str]:
+        """Create empty files in scratch dir; return {name: abs_path}."""
+        scratch_dir = self.get_scratch_space()
+        paths = {}
+        for name in names:
+            path = os.path.join(scratch_dir, name)
+            hio.to_file(path, "")
+            paths[name] = path
+        return paths
+
+    def test1(self) -> None:
         """
         Default filters — auto-detects extensions with defaults.
         """
-        # Prepare inputs.
-        mock_is_paired.return_value = False
-        file_paths = ["foo.py", "bar.ipynb", "baz.md", "qux.txt"]
-        # Run test.
+        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md", "qux.txt"])
+        file_paths = [paths["foo.py"], paths["bar.ipynb"], paths["baz.md"], paths["qux.txt"]]
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
             keep_jupyter_files=True,
             keep_markdown_files=False,
+            skip_dassert_exists=True,
         )
-        # Check outputs.
-        self.assertEqual(py_files, ["foo.py"])
-        self.assertEqual(ipynb_files, ["bar.ipynb"])
+        self.assertEqual(py_files, [paths["foo.py"]])
+        self.assertEqual(ipynb_files, [paths["bar.ipynb"]])
         self.assertEqual(md_files, [])
 
-    @umock.patch("linters2.linter_utils.is_paired_jupytext_file")
-    @umock.patch("helpers.hdbg.dassert_file_exists")
-    def test2(
-        self,
-        _: umock.MagicMock,
-        mock_is_paired: umock.MagicMock,
-    ) -> None:
+    def test2(self) -> None:
         """
         py=True filter — only .py files included.
         """
-        # Prepare inputs.
-        mock_is_paired.return_value = False
-        file_paths = ["foo.py", "bar.ipynb", "baz.md"]
-        # Run test.
+        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
+        file_paths = [paths["foo.py"], paths["bar.ipynb"], paths["baz.md"]]
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
             keep_jupyter_files=False,
             keep_markdown_files=False,
+            skip_dassert_exists=True,
         )
-        # Check outputs.
-        self.assertEqual(py_files, ["foo.py"])
+        self.assertEqual(py_files, [paths["foo.py"]])
         self.assertEqual(ipynb_files, [])
         self.assertEqual(md_files, [])
 
-    @umock.patch("linters2.linter_utils.is_paired_jupytext_file")
-    @umock.patch("helpers.hdbg.dassert_file_exists")
-    def test3(
-        self,
-        _: umock.MagicMock,
-        mock_is_paired: umock.MagicMock,
-    ) -> None:
+    def test3(self) -> None:
         """
         ipynb=True filter — only .ipynb files included.
         """
-        # Prepare inputs.
-        mock_is_paired.return_value = False
-        file_paths = ["foo.py", "bar.ipynb", "baz.md"]
-        # Run test.
+        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
+        file_paths = [paths["foo.py"], paths["bar.ipynb"], paths["baz.md"]]
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
             keep_python_files=False,
             keep_jupyter_files=True,
             keep_markdown_files=False,
+            skip_dassert_exists=True,
         )
-        # Check outputs.
         self.assertEqual(py_files, [])
-        self.assertEqual(ipynb_files, ["bar.ipynb"])
+        self.assertEqual(ipynb_files, [paths["bar.ipynb"]])
         self.assertEqual(md_files, [])
 
-    @umock.patch("linters2.linter_utils.is_paired_jupytext_file")
-    @umock.patch("helpers.hdbg.dassert_file_exists")
-    def test4(
-        self,
-        _: umock.MagicMock,
-        mock_is_paired: umock.MagicMock,
-    ) -> None:
+    def test4(self) -> None:
         """
         md=True filter — only .md files included.
         """
-        # Prepare inputs.
-        mock_is_paired.return_value = False
-        file_paths = ["foo.py", "bar.ipynb", "baz.md"]
-        # Run test.
+        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
+        file_paths = [paths["foo.py"], paths["bar.ipynb"], paths["baz.md"]]
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
             keep_python_files=False,
             keep_jupyter_files=False,
             keep_markdown_files=True,
+            skip_dassert_exists=True,
         )
-        # Check outputs.
         self.assertEqual(py_files, [])
         self.assertEqual(ipynb_files, [])
-        self.assertEqual(md_files, ["baz.md"])
+        self.assertEqual(md_files, [paths["baz.md"]])
 
-    @umock.patch("linters2.linter_utils.is_paired_jupytext_file")
-    @umock.patch("helpers.hdbg.dassert_file_exists")
-    def test5(
-        self,
-        _: umock.MagicMock,
-        mock_is_paired: umock.MagicMock,
-    ) -> None:
+    def test5(self) -> None:
         """
         Paired jupytext .py files are excluded from Python files.
         """
-        # Prepare inputs.
-        mock_is_paired.side_effect = lambda f: f == "paired.py"
-        file_paths = ["standalone.py", "paired.py", "notebook.ipynb"]
-        # Run test.
+        scratch_dir = self.get_scratch_space()
+        standalone_py = os.path.join(scratch_dir, "standalone.py")
+        paired_py = os.path.join(scratch_dir, "paired.py")
+        paired_ipynb = os.path.join(scratch_dir, "paired.ipynb")
+        hio.to_file(standalone_py, "# standalone")
+        hio.to_file(paired_py, "# paired")
+        hio.to_file(paired_ipynb, "{}")
+        file_paths = [standalone_py, paired_py, paired_ipynb]
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
             keep_jupyter_files=True,
             keep_markdown_files=False,
+            skip_dassert_exists=False,
         )
-        # Check outputs.
-        self.assertEqual(py_files, ["standalone.py"])
-        self.assertEqual(ipynb_files, ["notebook.ipynb"])
+        self.assertEqual(py_files, [standalone_py])
+        self.assertEqual(ipynb_files, [paired_ipynb])
         self.assertEqual(md_files, [])
 
 

@@ -283,6 +283,8 @@ def _filter_files_by_type(
     keep_python_files: bool,
     keep_jupyter_files: bool,
     keep_markdown_files: bool,
+    *,
+    skip_dassert_exists: bool = False,
 ) -> tuple:
     """
     Filter files by type (Python, Jupyter, Markdown).
@@ -294,6 +296,7 @@ def _filter_files_by_type(
     :param keep_python_files: include Python files
     :param keep_jupyter_files: include Jupyter notebooks
     :param keep_markdown_files: include Markdown files
+    :param skip_dassert_exists: skip file existence checks
     :return: tuple of (python_files, jupyter_files, markdown_files)
     """
     python_files = []
@@ -303,8 +306,9 @@ def _filter_files_by_type(
     for f in file_paths:
         if llinutil.is_ipynb_file(f):
             paired_python_file = llinutil.from_ipynb_to_python_file(f)
-            hdbg.dassert_file_exists(paired_python_file,
-                "Paired Jupyter notebook file '%s' not found for Python file '%s'", f, paired_python_file)
+            if not skip_dassert_exists:
+                hdbg.dassert_file_exists(paired_python_file,
+                    "Paired Jupyter notebook file '%s' not found for Python file '%s'", f, paired_python_file)
             jupyter_files.append(f)
         elif llinutil.is_py_file(f):
             if not llinutil.is_paired_jupytext_file(f):
