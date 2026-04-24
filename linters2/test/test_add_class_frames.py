@@ -4,18 +4,21 @@ import linters2.add_class_frames as ladclfra
 
 
 # #############################################################################
-# Test_add_class_frame
+# Test_update_class_frames
 # #############################################################################
 
 
-class Test_add_class_frame(hunitest.TestCase):
+class Test_update_class_frames(hunitest.TestCase):
     def helper(self, content: str, expected: str) -> None:
-        # Initialize the input file contents.
+        """
+        Transform input content and compare with expected output.
+
+        :param content: Input Python code as a string with potential indentation
+        :param expected: Expected output after applying class frame transformations
+        """
         content = hprint.dedent(content)
-        # Run.
         actual = "\n".join(ladclfra.update_class_frames(content))
         expected = hprint.dedent(expected)
-        # Check.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
