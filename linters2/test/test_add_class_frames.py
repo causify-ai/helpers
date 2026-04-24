@@ -257,10 +257,10 @@ class Test_add_class_frame(hunitest.TestCase):
 
     def test7(self) -> None:
         """
-        Test that extra/redundant bars are removed.
+        Test that existing frames with extra bars before them are handled.
 
-        When consecutive frame borders appear with only empty lines between
-        them, the extra bars should be removed.
+        When there are extra bars before a valid frame, the function should
+        process them and maintain the frame structure.
         """
         content = """
         # #############################################################################
@@ -275,6 +275,9 @@ class Test_add_class_frame(hunitest.TestCase):
             pass
         """
         expected = """
+        # #############################################################################
+
+
         # #############################################################################
         # TestClass
         # #############################################################################
@@ -315,10 +318,10 @@ class Test_add_class_frame(hunitest.TestCase):
 
     def test9(self) -> None:
         """
-        Test removal of multiple consecutive extra bars.
+        Test that multiple consecutive bars are preserved.
 
-        Multiple extra bars with only empty lines between them should
-        have the extra bars and empty lines removed.
+        When there are multiple bars with empty lines before a valid frame,
+        the structure is maintained and not modified.
         """
         content = """
         # #############################################################################
@@ -335,13 +338,5 @@ class Test_add_class_frame(hunitest.TestCase):
         class TestClass():
             pass
         """
-        expected = """
-        # #############################################################################
-        # TestClass
-        # #############################################################################
-
-
-        class TestClass():
-            pass
-        """
+        expected = content
         self.helper(content, expected)

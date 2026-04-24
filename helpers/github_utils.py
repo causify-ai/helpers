@@ -47,6 +47,7 @@ def github_cached(cache_type: str = "json", write_through: bool = True):
         existing_type = hcacsimp.get_cache_property(func_name, "type")
         if not existing_type:
             hcacsimp.set_cache_property(func_name, "type", cache_type)
+
         # Create a cached version that only uses args after client.
         @functools.wraps(func)
         def wrapper(client, *args, **kwargs):
@@ -200,6 +201,7 @@ def normalize_period_to_utc(
                 else dt.astimezone(datetime.timezone.utc)
             )
         return res
+
     norm = (
         tuple(to_utc(dt) for dt in period)
         if period is not None
