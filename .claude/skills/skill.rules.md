@@ -131,7 +131,7 @@ Skills should be organized with clear sections:
 - Enclose files into backticks with `@` prefix:
   - **Bad**
     ```
-    A file looks like @.claude/skills/markdown.format/SKILL.md
+    A file looks like `@.claude/skills/markdown.format/SKILL.md`
     ```
   - **Good**
     ```

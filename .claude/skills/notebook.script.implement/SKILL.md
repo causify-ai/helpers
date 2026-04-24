@@ -3,7 +3,7 @@ description: Implement Jupyter notebook from a script description
 ---
 
 - Given the passed description for a Jupyter notebook in the format described in
-  @.claude/skills/notebook.script.create/SKILL.md implement the cells
+  `@.claude/skills/notebook.script.create/SKILL.md` implement the cells
   requested by the user
 
 # Conventions

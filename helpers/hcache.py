@@ -338,11 +338,6 @@ def clear_global_cache(
 # #############################################################################
 
 
-# #############################################################################
-# CachedValueException
-# #############################################################################
-
-
 class CachedValueException(RuntimeError):
     """
     A cached function is run for a value present in the cache.

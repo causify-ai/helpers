@@ -62,7 +62,7 @@ plan-then-implement approach
 - Focus on meaningful behavior and correctness rather than superficial
   coverage.
 - All tests and code must strictly follow:
-  - @.claude/skills/coding.rules.md for any Python code
-  - @.claude/skills/testing.format/SKILL.md for tests
+  - `@.claude/skills/coding.rules.md` for any Python code
+  - `@.claude/skills/testing.format/SKILL.md` for tests
 - If any part of the task is unclear or underspecified, stop and ask for
   clarification before proceeding.
