@@ -76,6 +76,79 @@
     - `test_preserve_yaml_frontmatter`
     - `test_page_separator_removal_with_frontmatter`
 
+## Code Formatting in Tests
+
+### Align Strings to the Code
+
+- Align multi-line strings with the indentation of surrounding code:
+  - **Bad**: String starts at column 0
+    ```python
+    def hello(self) -> None:
+        content = """<start:file1.txt>
+    Content for file1
+    <start:file2.txt>
+    Content for file2
+    """
+    ```
+  - **Good**: String is indented and dedented in code
+    ```python
+    def hello(self) -> None:
+        content = """
+        <start:file1.txt>
+        Content for file1
+        <start:file2.txt>
+        Content for file2
+        """
+        content = hprint.dedent(content)
+    ```
+
+## Avoid Replicated Assignment
+
+- If a variable `var` and `expected` need to always be the same (e.g., to show
+  that a variable doesn't change), instead of replicating the assignment, assign
+  `expected = var`:
+  - **Bad**: Duplicated text
+    ```python
+    def test2(self) -> None:
+        """
+        Test indented code block with correct indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Delete unused reference files
+          ```bash
+          > rm Dockerfile.ubuntu
+          ```
+        """
+        # Expected: no changes needed.
+        expected = """
+        - Delete unused reference files
+          ```bash
+          > rm Dockerfile.ubuntu
+          ```
+        """
+        # Run test.
+        self.helper(txt, expected)
+    ```
+  - **Good**: Assign expected from txt
+    ```python
+    def test2(self) -> None:
+        """
+        Test indented code block with correct indentation.
+        """
+        # Prepare inputs.
+        txt = """
+        - Delete unused reference files
+          ```bash
+          > rm Dockerfile.ubuntu
+          ```
+        """
+        # Expected: no changes needed.
+        expected = txt
+        # Run test.
+        self.helper(txt, expected)
+    ```
+
 # Test Method Conventions
 
 ## Use Three Sections in Testing Methods
