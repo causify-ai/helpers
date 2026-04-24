@@ -101,6 +101,7 @@ def _get_directory(type_: str) -> str:
     """
     repo_root = _get_repo_root()
     workspace_root = os.path.dirname(repo_root)
+    target_dir = ""
     if type_ == "skill":
         target_dir = os.path.join(repo_root, ".claude", "skills")
     elif type_ == "blog":
@@ -110,8 +111,11 @@ def _get_directory(type_: str) -> str:
         )
         _, result = hsystem.system_to_string(cmd)
         result = result.strip()
-        hdbg.dassert_ne(result, "", "Could not find posts directory")
-        target_dir = result
+        if not result:
+            _LOG.warning("Could not find posts directory")
+            target_dir = ""
+        else:
+            target_dir = result
     elif type_ == "research":
         cmd = (
             f"find {workspace_root} -maxdepth 3 -type d"
@@ -119,8 +123,11 @@ def _get_directory(type_: str) -> str:
         )
         _, result = hsystem.system_to_string(cmd)
         result = result.strip()
-        hdbg.dassert_ne(result, "", "Could not find 'research/ideas' directory")
-        target_dir = result
+        if not result:
+            _LOG.warning("Could not find 'research/ideas' directory")
+            target_dir = ""
+        else:
+            target_dir = result
     elif type_ == "story":
         cmd = (
             f"find {workspace_root} -maxdepth 3 -type d"
@@ -128,13 +135,16 @@ def _get_directory(type_: str) -> str:
         )
         _, result = hsystem.system_to_string(cmd)
         result = result.strip()
-        hdbg.dassert_ne(result, "", "Could not find 'short_stories' directory")
-        target_dir = result
+        if not result:
+            _LOG.warning("Could not find 'short_stories' directory")
+            target_dir = ""
+        else:
+            target_dir = result
     elif type_ == "rules":
         target_dir = os.path.join(repo_root, ".claude", "skills")
     else:
         hdbg.dfatal("Unknown type '%s'" % type_)
-    return os.path.abspath(target_dir)
+    return os.path.abspath(target_dir) if target_dir else ""
 
 
 def _get_template(type_: str, name: str) -> str:

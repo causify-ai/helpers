@@ -1434,8 +1434,7 @@ def gh_watch(ctx, *, interval=60):  # type: ignore
         # Watch workflows by repeatedly running gh_workflow_list.
         while True:
             # Clear screen before displaying updated workflow status.
-            hprint.clear_screen()
-            subprocess.run(["invoke", "gh_workflow_list"])
+            subprocess.run("clear; invoke gh_workflow_list", shell=True)
             _LOG.info("Sleeping for %d seconds before next update", interval)
             time.sleep(interval)
     finally:

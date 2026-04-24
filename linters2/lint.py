@@ -422,12 +422,12 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         choices=_VALID_ACTIONS,
         help="Specific actions to perform (default: all applicable actions).\n"
-             "  pre-commit: Run pre-commit linters\n"
-             "  normalize_import: Normalize import statements\n"
-             "  add_class_frames: Add class frame decorators\n"
-             "  sync_jupytext: Sync Jupyter notebooks with paired Python files\n"
-             "  pyright: Run pyright type checker\n"
-             "  coverage: Run pytest coverage for test files",
+        "  pre-commit: Run pre-commit linters\n"
+        "  normalize_import: Normalize import statements\n"
+        "  add_class_frames: Add class frame decorators\n"
+        "  sync_jupytext: Sync Jupyter notebooks with paired Python files\n"
+        "  pyright: Run pyright type checker\n"
+        "  coverage: Run pytest coverage for test files",
     )
     parser.add_argument(
         "--skip_files",
