@@ -205,38 +205,58 @@ def _remove_extra_bars(lines: List[str]) -> List[str]:
     """
     Remove extra/redundant comment bars that appear before complete frames.
 
-    Detects the pattern: bar -> empty lines -> bar -> class name -> bar.
-    Removes the first bar and empty lines if the second bar is part of a
-    valid frame (preceded by class name and followed by bottom border).
+    Detects complete frames (bar -> class name -> bar) and removes
+    preceding bars and empty lines before the frame, but only if they are
+    not preceded by actual code (to preserve decorative bars between sections).
 
     :param lines: the lines of the file
     :return: lines with extra bars removed
     """
-    if len(lines) < 4:
-        return lines
     frame_border = f"# {'#' * (MAX_LINE_LENGTH - 2)}"
     result = []
     i = 0
     while i < len(lines):
         if lines[i] == frame_border:
-            j = i + 1
-            empty_count = 0
-            while j < len(lines) and lines[j] == "":
-                empty_count += 1
-                j += 1
+            # Check if this bar starts a complete frame.
             if (
-                j < len(lines)
-                and lines[j] == frame_border
-                and j + 1 < len(lines)
-                and re.match(r"#\s\w+", lines[j + 1])
-                and j + 2 < len(lines)
-                and lines[j + 2] == frame_border
+                i + 1 < len(lines)
+                and re.match(r"#\s\w+", lines[i + 1])
+                and i + 2 < len(lines)
+                and lines[i + 2] == frame_border
             ):
-                i = j
+                # This is the start of a complete frame.
+                # Remove trailing bars/empty lines but only if they are NOT
+                # preceded by actual code. This preserves decorative bars
+                # between class sections.
+                trailing_items = []
+                for j in range(len(result) - 1, -1, -1):
+                    if result[j] == frame_border or result[j] == "":
+                        trailing_items.append(result[j])
+                    else:
+                        break
+                # Check what precedes the trailing sequence.
+                preceded_by_code = (
+                    len(result) > len(trailing_items)
+                    and result[-(len(trailing_items) + 1)] != frame_border
+                )
+                # Only remove if we found bars AND not preceded by code.
+                if (
+                    any(item == frame_border for item in trailing_items)
+                    and not preceded_by_code
+                ):
+                    for _ in range(len(trailing_items)):
+                        result.pop()
+                # Add the complete frame.
+                result.append(lines[i])
+                result.append(lines[i + 1])
+                result.append(lines[i + 2])
+                i += 3
             else:
+                # Not a complete frame start, just add the line.
                 result.append(lines[i])
                 i += 1
         else:
+            # Not a bar, just add the line.
             result.append(lines[i])
             i += 1
     return result
@@ -248,6 +268,7 @@ def update_class_frames(file_content: str) -> List[str]:
 
     - Old frames located above classes are removed
     - Frames with class names are added before the classes are initialized
+    - Extra/redundant bars before frames are removed
 
     :param file_content: the contents of the Python file
     :return: the lines of the updated file
@@ -256,6 +277,8 @@ def update_class_frames(file_content: str) -> List[str]:
     updated_lines: List[str] = []
     for line_num in range(len(lines)):
         updated_lines = _insert_frame(lines, line_num, updated_lines)
+    # Remove any extra bars that appear before complete frames.
+    updated_lines = _remove_extra_bars(updated_lines)
     return updated_lines
 
 
