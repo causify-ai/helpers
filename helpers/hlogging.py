@@ -262,6 +262,11 @@ class _LocalTimeZoneFormatter:
 # #############################################################################
 
 
+# #############################################################################
+# _ColoredFormatter
+# #############################################################################
+
+
 # [mypy] error: Definition of "converter" in base class
 # "_LocalTimeZoneFormatter" is incompatible with definition in base class
 # "Formatter"
@@ -362,6 +367,11 @@ def shut_up_log_debug(logger: logging.Logger) -> None:
     logging.disable(logging.DEBUG)
     # logger.debug = lambda *_: 0
     # logger.trace = lambda *_: 0
+
+
+# #############################################################################
+# ResourceUsageFilter
+# #############################################################################
 
 
 # #############################################################################
