@@ -496,7 +496,9 @@ def _action_types(
     :param dir_: the directory to list
     :param pattern: optional filter pattern
     """
-    hdbg.dassert_dir_exists(dir_, "Directory must exist to extract type prefixes")
+    hdbg.dassert_dir_exists(
+        dir_, "Directory must exist to extract type prefixes"
+    )
     if type_ == "rules":
         files = glob.glob(os.path.join(dir_, "*.rules.md"))
     else:

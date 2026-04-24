@@ -5,7 +5,7 @@ from contextlib import redirect_stdout
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
-import dev_scripts_helpers.system_tools.md_utils as devmduti
+import dev_scripts_helpers.system_tools.md_utils as dshstmdut
 
 
 def _capture_output(func, *args, **kwargs):
@@ -41,7 +41,7 @@ class Test_match_prefix(hunitest.TestCase):
         value = "res"
         valid_options = ["research", "blog", "story", "skill"]
         # Run test.
-        actual = devmduti._match_prefix(value, valid_options)
+        actual = dshstmdut._match_prefix(value, valid_options)
         # Check outputs.
         expected = "research"
         self.assertEqual(actual, expected)
@@ -54,7 +54,7 @@ class Test_match_prefix(hunitest.TestCase):
         value = "sk"
         valid_options = ["research", "blog", "story", "skill"]
         # Run test.
-        actual = devmduti._match_prefix(value, valid_options)
+        actual = dshstmdut._match_prefix(value, valid_options)
         # Check outputs.
         expected = "skill"
         self.assertEqual(actual, expected)
@@ -67,7 +67,7 @@ class Test_match_prefix(hunitest.TestCase):
         value = "l"
         valid_options = ["list", "edit", "directory"]
         # Run test.
-        actual = devmduti._match_prefix(value, valid_options)
+        actual = dshstmdut._match_prefix(value, valid_options)
         # Check outputs.
         expected = "list"
         self.assertEqual(actual, expected)
@@ -80,7 +80,7 @@ class Test_match_prefix(hunitest.TestCase):
         value = "blog"
         valid_options = ["research", "blog", "story", "skill"]
         # Run test.
-        actual = devmduti._match_prefix(value, valid_options)
+        actual = dshstmdut._match_prefix(value, valid_options)
         # Check outputs.
         expected = "blog"
         self.assertEqual(actual, expected)
@@ -93,7 +93,7 @@ class Test_match_prefix(hunitest.TestCase):
         value = "ru"
         valid_options = ["research", "blog", "story", "skill", "rules"]
         # Run test.
-        actual = devmduti._match_prefix(value, valid_options)
+        actual = dshstmdut._match_prefix(value, valid_options)
         # Check outputs.
         expected = "rules"
         self.assertEqual(actual, expected)
@@ -117,7 +117,7 @@ class Test_get_template(hunitest.TestCase):
         type_ = "blog"
         name = "My_Post"
         # Run test.
-        actual = devmduti._get_template(type_, name)
+        actual = dshstmdut._get_template(type_, name)
         # Check outputs.
         self.assertIn("---", actual)
         self.assertIn("title:", actual)
@@ -132,7 +132,7 @@ class Test_get_template(hunitest.TestCase):
         type_ = "skill"
         name = "test_skill"
         # Run test.
-        actual = devmduti._get_template(type_, name)
+        actual = dshstmdut._get_template(type_, name)
         # Check outputs.
         self.assertIn("# Summary", actual)
 
@@ -144,7 +144,7 @@ class Test_get_template(hunitest.TestCase):
         type_ = "research"
         name = "my_idea"
         # Run test.
-        actual = devmduti._get_template(type_, name)
+        actual = dshstmdut._get_template(type_, name)
         # Check outputs.
         expected = f"# {name}"
         self.assertIn(expected, actual)
@@ -157,7 +157,7 @@ class Test_get_template(hunitest.TestCase):
         type_ = "story"
         name = "story_name"
         # Run test.
-        actual = devmduti._get_template(type_, name)
+        actual = dshstmdut._get_template(type_, name)
         # Check outputs.
         self.assertEqual(actual, "")
 
@@ -169,7 +169,7 @@ class Test_get_template(hunitest.TestCase):
         type_ = "rules"
         name = "rules_name"
         # Run test.
-        actual = devmduti._get_template(type_, name)
+        actual = dshstmdut._get_template(type_, name)
         # Check outputs.
         self.assertEqual(actual, "")
 
@@ -203,14 +203,16 @@ class Test_action_types(hunitest.TestCase):
         """
         # Prepare inputs.
         type_ = "skill"
-        dir_ = devmduti._get_directory(type_)
+        dir_ = dshstmdut._get_directory(type_)
         # Run test.
-        actual = _capture_output(devmduti._action_types, type_, dir_)
+        actual = _capture_output(dshstmdut._action_types, type_, dir_)
         # Check outputs.
         lines = self._assert_non_empty_lines(actual)
         # Verify they look like prefixes (alphabetic characters).
         for prefix in lines:
-            self.assertTrue(prefix.isalpha() or all(c.isalnum() or c == "_" for c in prefix))
+            self.assertTrue(
+                prefix.isalpha() or all(c.isalnum() or c == "_" for c in prefix)
+            )
 
     def test2(self) -> None:
         """
@@ -218,10 +220,12 @@ class Test_action_types(hunitest.TestCase):
         """
         # Prepare inputs.
         type_ = "skill"
-        dir_ = devmduti._get_directory(type_)
+        dir_ = dshstmdut._get_directory(type_)
         pattern = "blog"
         # Run test.
-        actual = _capture_output(devmduti._action_types, type_, dir_, pattern=pattern)
+        actual = _capture_output(
+            dshstmdut._action_types, type_, dir_, pattern=pattern
+        )
         # Check outputs.
         self.assertIn("blog", actual)
 
@@ -231,9 +235,9 @@ class Test_action_types(hunitest.TestCase):
         """
         # Prepare inputs.
         type_ = "skill"
-        dir_ = devmduti._get_directory(type_)
+        dir_ = dshstmdut._get_directory(type_)
         # Run test.
-        actual = _capture_output(devmduti._action_list, type_, dir_)
+        actual = _capture_output(dshstmdut._action_list, type_, dir_)
         # Check outputs.
         self._assert_non_empty_lines(actual)
 
@@ -243,9 +247,9 @@ class Test_action_types(hunitest.TestCase):
         """
         # Prepare inputs.
         type_ = "skill"
-        dir_ = devmduti._get_directory(type_)
+        dir_ = dshstmdut._get_directory(type_)
         # Run test.
-        actual = _capture_output(devmduti._action_full_list, type_, dir_)
+        actual = _capture_output(dshstmdut._action_full_list, type_, dir_)
         # Check outputs.
         lines = self._assert_non_empty_lines(actual)
         # Check that at least one path contains SKILL.md.
@@ -257,9 +261,9 @@ class Test_action_types(hunitest.TestCase):
         """
         # Prepare inputs.
         type_ = "skill"
-        dir_ = devmduti._get_directory(type_)
+        dir_ = dshstmdut._get_directory(type_)
         # Run test.
-        actual = _capture_output(devmduti._action_describe, type_, dir_)
+        actual = _capture_output(dshstmdut._action_describe, type_, dir_)
         # Check outputs.
         self._assert_non_empty_lines(actual)
 
@@ -269,9 +273,9 @@ class Test_action_types(hunitest.TestCase):
         """
         # Prepare inputs.
         type_ = "skill"
-        dir_ = devmduti._get_directory(type_)
+        dir_ = dshstmdut._get_directory(type_)
         # Run test.
-        actual = _capture_output(devmduti._action_directory, dir_)
+        actual = _capture_output(dshstmdut._action_directory, dir_)
         # Check outputs.
         self.assertEqual(actual, dir_)
         self.assertTrue(os.path.isdir(actual))
@@ -306,7 +310,7 @@ class Test_rules_type(hunitest.TestCase):
         # Prepare inputs.
         type_ = "rules"
         # Run test.
-        actual = devmduti._get_directory(type_)
+        actual = dshstmdut._get_directory(type_)
         # Check outputs.
         self.assertTrue(os.path.isdir(actual))
         self.assertIn(".claude/skills", actual)
@@ -317,9 +321,9 @@ class Test_rules_type(hunitest.TestCase):
         """
         # Prepare inputs.
         type_ = "rules"
-        dir_ = devmduti._get_directory(type_)
+        dir_ = dshstmdut._get_directory(type_)
         # Run test.
-        actual = _capture_output(devmduti._action_list, type_, dir_)
+        actual = _capture_output(dshstmdut._action_list, type_, dir_)
         # Check outputs.
         lines = self._assert_non_empty_lines(actual)
         # Verify at least one line is a rule name (no .rules.md extension).
@@ -331,9 +335,9 @@ class Test_rules_type(hunitest.TestCase):
         """
         # Prepare inputs.
         type_ = "rules"
-        dir_ = devmduti._get_directory(type_)
+        dir_ = dshstmdut._get_directory(type_)
         # Run test.
-        actual = _capture_output(devmduti._action_full_list, type_, dir_)
+        actual = _capture_output(dshstmdut._action_full_list, type_, dir_)
         # Check outputs.
         lines = self._assert_non_empty_lines(actual)
         # Check that paths contain .rules.md extension.
@@ -350,7 +354,9 @@ class Test_end_to_end_read_only(hunitest.TestCase):
     End-to-end tests for all read-only mdm commands across all content types.
     """
 
-    def _print_with_ellipsis(self, label: str, items: list, *, max_display: int = 3) -> None:
+    def _print_with_ellipsis(
+        self, label: str, items: list, *, max_display: int = 3
+    ) -> None:
         """
         Print label, count, and first N items with ellipsis.
 
@@ -385,18 +391,18 @@ class Test_end_to_end_read_only(hunitest.TestCase):
             )
         )
         # Get directory.
-        dir_ = devmduti._get_directory(type_)
+        dir_ = dshstmdut._get_directory(type_)
         print(f"\n[directory] {type_}:")
-        output = _capture_output(devmduti._action_directory, dir_)
+        output = _capture_output(dshstmdut._action_directory, dir_)
         print(f"  {output}")
         # Test describe.
         print(f"\n[describe] {type_}:")
-        output = _capture_output(devmduti._action_describe, type_, dir_)
+        output = _capture_output(dshstmdut._action_describe, type_, dir_)
         lines = output.split("\n") if output else []
         self._print_with_ellipsis(f"[describe] {type_}", lines, max_display=5)
         # Test types.
         print(f"\n[types] {type_}:")
-        output = _capture_output(devmduti._action_types, type_, dir_)
+        output = _capture_output(dshstmdut._action_types, type_, dir_)
         types_list = output.split("\n") if output else []
         print(f"  Found {len(types_list)} unique prefixes")
         if types_list:
@@ -404,12 +410,12 @@ class Test_end_to_end_read_only(hunitest.TestCase):
                 print(f"    {prefix}")
         # Test list.
         print(f"\n[list] {type_}:")
-        output = _capture_output(devmduti._action_list, type_, dir_)
+        output = _capture_output(dshstmdut._action_list, type_, dir_)
         items = output.split("\n") if output else []
         self._print_with_ellipsis(f"[list] {type_}", items, max_display=5)
         # Test full_list.
         print(f"\n[full_list] {type_}:")
-        output = _capture_output(devmduti._action_full_list, type_, dir_)
+        output = _capture_output(dshstmdut._action_full_list, type_, dir_)
         items = output.split("\n") if output else []
         self._print_with_ellipsis(f"[full_list] {type_}", items, max_display=3)
 

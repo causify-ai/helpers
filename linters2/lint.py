@@ -46,9 +46,8 @@ Examples:
 
 import argparse
 import logging
-import os
 import sys
-from typing import List, Optional
+from typing import List
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -130,44 +129,58 @@ def _run_linting_actions(
     return ret
 
 
+def _is_test_file(file_path: str) -> bool:
+    """Check if a file is a test file."""
+    return (
+        "/test/" in file_path
+        or file_path.split("/")[-1].startswith("test_")
+        or file_path.endswith("_test.py")
+    )
+
+
 def _run_coverage(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
 ) -> int:
-	"""
-	Run pytest coverage for test files corresponding to source Python files.
+    """
+    Run pytest coverage for test files corresponding to source Python files.
 
-	Maps each source file to its corresponding test file and runs:
-	> pytest --cov=. --cov-branch --cov-report term-missing --cov-report html
+    Maps each source file to its corresponding test file and runs:
+    > pytest --cov=. --cov-branch --cov-report term-missing --cov-report html
 
-	:param file_paths: Source Python files to collect coverage for
-	:param abort_on_error: whether to abort on first error
-	:return: return code from pytest
-	"""
-	if not file_paths:
-		return 0
-	_LOG.info("Collecting coverage for %d Python files", len(file_paths))
-	test_files = []
-	for file_path in file_paths:
-		test_file = hunteuti.get_test_file_for_source(file_path)
-		if test_file:
-			test_files.append(test_file)
-			_LOG.info("Source: %s -> Test: %s", file_path, test_file)
-		else:
-			_LOG.warning("No test file found for: %s", file_path)
-	if not test_files:
-		_LOG.warning("No test files found for any of the source files")
-		return 0
-	test_files_str = " ".join(test_files)
-	cmd = f"pytest --cov=. --cov-branch --cov-report term-missing --cov-report html {test_files_str}"
-	ret = hsystem.system(
+    :param file_paths: Source Python files to collect coverage for
+    :param abort_on_error: whether to abort on first error
+    :return: return code from pytest
+    """
+    if not file_paths:
+        return 0
+    # Filter out test files (we only want source files)
+    source_files = [f for f in file_paths if not _is_test_file(f)]
+    if not source_files:
+        _LOG.warning("No source files found (all files are test files)")
+        return 0
+    _LOG.info("Collecting coverage for %d Python files", len(source_files))
+    test_files = []
+    for file_path in source_files:
+        test_file = hunteuti.get_test_file_for_source(file_path)
+        if test_file:
+            test_files.append(test_file)
+            _LOG.info("Source: %s -> Test: %s", file_path, test_file)
+        else:
+            _LOG.warning("No test file found for: %s", file_path)
+    if not test_files:
+        _LOG.warning("No test files found for any of the source files")
+        return 0
+    test_files_str = " ".join(test_files)
+    cmd = f"pytest --cov=. --cov-branch --cov-report term-missing --cov-report html {test_files_str}"
+    ret = hsystem.system(
         cmd,
-		print_command=True,
-		abort_on_error=abort_on_error,
-		suppress_output=False,
-	)
-	return ret
+        print_command=True,
+        abort_on_error=abort_on_error,
+        suppress_output=False,
+    )
+    return ret
 
 
 def _lint_python_files(
@@ -190,7 +203,9 @@ def _lint_python_files(
         return 0
     if actions is None:
         actions = list(_DEFAULT_ACTIONS)
-    _LOG.info("Linting %d Python files with actions: %s", len(file_paths), actions)
+    _LOG.info(
+        "Linting %d Python files with actions: %s", len(file_paths), actions
+    )
     ret = 0
     files_str = " ".join(file_paths)
     ret |= _run_linting_actions(
@@ -233,7 +248,9 @@ def _lint_jupyter_files(
         return 0
     if actions is None:
         actions = list(_DEFAULT_ACTIONS)
-    _LOG.info("Linting %d Jupyter notebooks with actions: %s", len(file_paths), actions)
+    _LOG.info(
+        "Linting %d Jupyter notebooks with actions: %s", len(file_paths), actions
+    )
     files_str = " ".join(file_paths)
     ret = _run_linting_actions(
         files_str,
@@ -307,8 +324,12 @@ def _filter_files_by_type(
         if llinutil.is_ipynb_file(f):
             paired_python_file = llinutil.from_ipynb_to_python_file(f)
             if not skip_dassert_exists:
-                hdbg.dassert_file_exists(paired_python_file,
-                    "Paired Jupyter notebook file '%s' not found for Python file '%s'", f, paired_python_file)
+                hdbg.dassert_file_exists(
+                    paired_python_file,
+                    "Paired Jupyter notebook file '%s' not found for Python file '%s'",
+                    f,
+                    paired_python_file,
+                )
             jupyter_files.append(f)
         elif llinutil.is_py_file(f):
             if not llinutil.is_paired_jupytext_file(f):
@@ -338,7 +359,7 @@ def _parse() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=argparse.RawTextHelpFormatter,
     )
     # File selection arguments (mutually exclusive).
     file_selection = parser.add_mutually_exclusive_group()
@@ -400,7 +421,13 @@ def _parse() -> argparse.ArgumentParser:
         nargs="+",
         type=str,
         choices=_VALID_ACTIONS,
-        help="Specific actions to perform (default: all applicable actions). "
+        help="Specific actions to perform (default: all applicable actions).\n"
+             "  pre-commit: Run pre-commit linters\n"
+             "  normalize_import: Normalize import statements\n"
+             "  add_class_frames: Add class frame decorators\n"
+             "  sync_jupytext: Sync Jupyter notebooks with paired Python files\n"
+             "  pyright: Run pyright type checker\n"
+             "  coverage: Run pytest coverage for test files",
     )
     parser.add_argument(
         "--skip_files",
@@ -467,10 +494,35 @@ def _main(args: argparse.Namespace) -> int:
         args.keep_jupyter_files,
         args.keep_markdown_files,
     )
+    # Report file types being selected
+    selected_types = []
+    if args.keep_python_files:
+        selected_types.append("python")
+    if args.keep_jupyter_files:
+        selected_types.append("jupyter")
+    if args.keep_markdown_files:
+        selected_types.append("markdown")
+    print(hprint.frame(f"Selecting files: {', '.join(selected_types)}"))
     all_files = python_files + jupyter_files + markdown_files
-    _LOG.info(
-        "Selected %d files for linting: %s", len(all_files), "\n".join(all_files)
+    breakdown = f"Python: {len(python_files)}, Jupyter: {len(jupyter_files)}, Markdown: {len(markdown_files)}"
+    print(
+        hprint.frame(
+            f"Selected {len(all_files)} files for linting ({breakdown})"
+        )
     )
+    # Print file listings by type
+    if python_files:
+        print(f"\n# Python files ({len(python_files)})")
+        for f in python_files:
+            print(f"  {f}")
+    if jupyter_files:
+        print(f"\n# Jupyter files ({len(jupyter_files)})")
+        for f in jupyter_files:
+            print(f"  {f}")
+    if markdown_files:
+        print(f"\n# Markdown files ({len(markdown_files)})")
+        for f in markdown_files:
+            print(f"  {f}")
     # If dry_run, print files and exit.
     if args.dry_run:
         _LOG.warning("Aborting as per user request")

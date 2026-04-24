@@ -25,6 +25,23 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+def get_test_directories(root_dir: str) -> List[str]:
+    """
+    Get paths of all the directories that contain unit tests.
+
+    :param root_dir: the dir to start the search from, e.g.
+        `/src/cmamp1/helpers`
+    :return: paths of test directories
+    """
+    paths = []
+    for path, _, _ in os.walk(root_dir):
+        # Iterate over the paths to find the test directories.
+        if path.endswith("/test"):
+            paths.append(path)
+    hdbg.dassert_lte(1, len(paths))
+    return paths
+
+
 # #############################################################################
 # UnitTestRenamer
 # #############################################################################
@@ -35,67 +52,6 @@ class UnitTestRenamer:
     Rename a unit test in Python code and the corresponding directories
     containing the inputs and the expected outputs.
     """
-
-    def __init__(
-        self, old_test_name: str, new_test_name: str, root_dir: str
-    ) -> None:
-        """
-        Construct the UnitTestRenamer.
-
-        :param old_test_name: the old name of the test
-        :param new_test_name: the new name of the test
-        :param root_dir: the directory to start the search from
-        """
-        # Check if the names of the test are valid.
-        self._check_names(old_test_name, new_test_name)
-        # Get the directories containing tests.
-        self.test_dirs = get_test_directories(root_dir)
-        # Construct the renaming config.
-        self.cfg = self._process_parameters(old_test_name, new_test_name)
-
-    def run(self) -> None:
-        """
-        Run the renamer tool on the files under `root_dir`.
-        """
-        # Iterate over test directories.
-        for path in self.test_dirs:
-            # Get all Python test files from this directory.
-            _LOG.debug("Scanning `%s` directory.", path)
-            search_pattern = os.path.join(path, "test_*.py")
-            files = glob.glob(search_pattern)
-            for test_file in files:
-                self._rename_in_file(
-                    path,
-                    test_file,
-                )
-
-    def rename_outcomes(
-        self,
-        path: str,
-    ) -> None:
-        """
-        Rename the directory that contains test outcomes.
-
-        :param path: the path to the test directory, e.g.
-            `cmamp1/helpers/test/`
-        """
-        outcomes_path = os.path.join(path, "outcomes")
-        dir_items = os.listdir(outcomes_path)
-        # Get the list of outcomes directories.
-        outcomes = [
-            dir_name
-            for dir_name in dir_items
-            if os.path.isdir(os.path.join(outcomes_path, dir_name))
-        ]
-        renamed = False
-        for outcome_dir in outcomes:
-            renamed = self._process_outcomes_dir(outcome_dir, outcomes_path)
-        if not renamed:
-            _LOG.info(
-                "No outcomes for `%s` were found in `%s`.",
-                self.cfg["old_class"],
-                outcomes_path,
-            )
 
     @staticmethod
     def _check_names(old_test_name: str, new_test_name: str) -> None:
@@ -180,79 +136,22 @@ class UnitTestRenamer:
         config["new_method"] = new_method_name
         return config
 
-    @staticmethod
-    def _rename_directory(outcome_path_old: str, outcome_path_new: str) -> None:
-        """
-        Rename the outcomes directory and add it to git.
-
-        :param outcome_path_old: the old name of outcome directory, e.g.
-          `/src/cmamp1/helpers/test/outcomes/TestRename.test_old`
-        :param outcome_path_new: the new name of outcome directory, e.g.
-          `/src/cmamp1/helpers/test/outcomes/TestRename.test_new`
-        """
-        cmd = f"mv {outcome_path_old} {outcome_path_new}"
-        # Rename the directory.
-        rc = hsystem.system(cmd, abort_on_error=True, suppress_output=False)
-        _LOG.info(
-            "Renaming `%s` directory to `%s`. Output log: %s",
-            outcome_path_old,
-            outcome_path_new,
-            rc,
-        )
-        # Add to git new outcome directory and remove the old one.
-        # The sequence of commands is used because `git mv` does not work
-        # properly while unit testing.
-        cmd = f"git add {outcome_path_new} && git rm -r {outcome_path_old}"
-        hsystem.system(cmd, abort_on_error=True, suppress_output=False)
-
-    def _rename_in_file(
-        self,
-        test_dir: str,
-        file_path: str,
+    def __init__(
+        self, old_test_name: str, new_test_name: str, root_dir: str
     ) -> None:
         """
-        Process the file:
+        Construct the UnitTestRenamer.
 
-        - check if the content of the file contains target class
-        - change the class name, e.g. `TestClassName` -> `TestClassNameNew`
-          / change the method name `TestClassName.test2` -> `TestClassName.test_new`
-        - rename the outcomes if they exist
-
-        :param test_dir: the path to the test directory containing the file, e.g.
-          `/src/cmamp1/helpers/test`
-        :param file_path: the path to the file, `/src/cmamp1/helpers/test/test_lib_tasks.py`
+        :param old_test_name: the old name of the test
+        :param new_test_name: the new name of the test
+        :param root_dir: the directory to start the search from
         """
-        content = hio.from_file(file_path)
-        if not re.search(rf"class {self.cfg['old_class']}\(", content):
-            # Return if target test class does not appear in file content.
-            return
-        if self.cfg["old_method"] == "":
-            # Rename the class.
-            content, n_replaced = self._rename_class(content)
-            if n_replaced != 0:
-                _LOG.info(
-                    "%s: class `%s` was renamed to `%s`.",
-                    file_path,
-                    self.cfg["old_class"],
-                    self.cfg["new_class"],
-                )
-        else:
-            # Rename the method of the class.
-            content, n_replaced = self._rename_method(content)
-            if n_replaced != 0:
-                _LOG.info(
-                    "%s: method `%s` of `%s` class was renamed to `%s`.",
-                    file_path,
-                    self.cfg["old_method"],
-                    self.cfg["old_class"],
-                    self.cfg["new_method"],
-                )
-        # Rename the directories that contain target test outcomes.
-        self.rename_outcomes(
-            test_dir,
-        )
-        # Write processed content back to file.
-        hio.to_file(file_path, content)
+        # Check if the names of the test are valid.
+        self._check_names(old_test_name, new_test_name)
+        # Get the directories containing tests.
+        self.test_dirs = get_test_directories(root_dir)
+        # Construct the renaming config.
+        self.cfg = self._process_parameters(old_test_name, new_test_name)
 
     def _rename_class(
         self,
@@ -323,7 +222,99 @@ class UnitTestRenamer:
         new_content = "\n".join(lines)
         return new_content, num_replaced
 
-    def _process_outcomes_dir(self, outcome_dir: str, outcomes_path: str) -> bool:
+    def _rename_in_file(
+        self,
+        test_dir: str,
+        file_path: str,
+    ) -> None:
+        """
+        Process the file:
+
+        - check if the content of the file contains target class
+        - change the class name, e.g. `TestClassName` -> `TestClassNameNew`
+          / change the method name `TestClassName.test2` -> `TestClassName.test_new`
+        - rename the outcomes if they exist
+
+        :param test_dir: the path to the test directory containing the file, e.g.
+          `/src/cmamp1/helpers/test`
+        :param file_path: the path to the file, `/src/cmamp1/helpers/test/test_lib_tasks.py`
+        """
+        content = hio.from_file(file_path)
+        if not re.search(rf"class {self.cfg['old_class']}\(", content):
+            # Return if target test class does not appear in file content.
+            return
+        if self.cfg["old_method"] == "":
+            # Rename the class.
+            content, n_replaced = self._rename_class(content)
+            if n_replaced != 0:
+                _LOG.info(
+                    "%s: class `%s` was renamed to `%s`.",
+                    file_path,
+                    self.cfg["old_class"],
+                    self.cfg["new_class"],
+                )
+        else:
+            # Rename the method of the class.
+            content, n_replaced = self._rename_method(content)
+            if n_replaced != 0:
+                _LOG.info(
+                    "%s: method `%s` of `%s` class was renamed to `%s`.",
+                    file_path,
+                    self.cfg["old_method"],
+                    self.cfg["old_class"],
+                    self.cfg["new_method"],
+                )
+        # Rename the directories that contain target test outcomes.
+        self.rename_outcomes(
+            test_dir,
+        )
+        # Write processed content back to file.
+        hio.to_file(file_path, content)
+
+    def run(self) -> None:
+        """
+        Run the renamer tool on the files under `root_dir`.
+        """
+        # Iterate over test directories.
+        for path in self.test_dirs:
+            # Get all Python test files from this directory.
+            _LOG.debug("Scanning `%s` directory.", path)
+            search_pattern = os.path.join(path, "test_*.py")
+            files = glob.glob(search_pattern)
+            for test_file in files:
+                self._rename_in_file(
+                    path,
+                    test_file,
+                )
+
+    @staticmethod
+    def _rename_directory(outcome_path_old: str, outcome_path_new: str) -> None:
+        """
+        Rename the outcomes directory and add it to git.
+
+        :param outcome_path_old: the old name of outcome directory, e.g.
+          `/src/cmamp1/helpers/test/outcomes/TestRename.test_old`
+        :param outcome_path_new: the new name of outcome directory, e.g.
+          `/src/cmamp1/helpers/test/outcomes/TestRename.test_new`
+        """
+        cmd = f"mv {outcome_path_old} {outcome_path_new}"
+        # Rename the directory.
+        rc = hsystem.system(cmd, abort_on_error=True, suppress_output=False)
+        _LOG.info(
+            "Renaming `%s` directory to `%s`. Output log: %s",
+            outcome_path_old,
+            outcome_path_new,
+            rc,
+        )
+        # Add to git new outcome directory and remove the old one.
+        # The sequence of commands is used because `git mv` does not work
+        # properly while unit testing.
+        cmd = f"git add {outcome_path_new} && git rm -r {outcome_path_old}"
+        hsystem.system(cmd, abort_on_error=True, suppress_output=False)
+
+    def _process_outcomes_dir(
+        self, outcome_dir: str, outcomes_path: str
+    ) -> bool:
         """
         Process the directory containing target test outcomes.
 
@@ -365,22 +356,33 @@ class UnitTestRenamer:
         self._rename_directory(outcome_path_old, outcome_path_new)
         return True
 
+    def rename_outcomes(
+        self,
+        path: str,
+    ) -> None:
+        """
+        Rename the directory that contains test outcomes.
 
-def get_test_directories(root_dir: str) -> List[str]:
-    """
-    Get paths of all the directories that contain unit tests.
-
-    :param root_dir: the dir to start the search from, e.g.
-        `/src/cmamp1/helpers`
-    :return: paths of test directories
-    """
-    paths = []
-    for path, _, _ in os.walk(root_dir):
-        # Iterate over the paths to find the test directories.
-        if path.endswith("/test"):
-            paths.append(path)
-    hdbg.dassert_lte(1, len(paths))
-    return paths
+        :param path: the path to the test directory, e.g.
+            `cmamp1/helpers/test/`
+        """
+        outcomes_path = os.path.join(path, "outcomes")
+        dir_items = os.listdir(outcomes_path)
+        # Get the list of outcomes directories.
+        outcomes = [
+            dir_name
+            for dir_name in dir_items
+            if os.path.isdir(os.path.join(outcomes_path, dir_name))
+        ]
+        renamed = False
+        for outcome_dir in outcomes:
+            renamed = self._process_outcomes_dir(outcome_dir, outcomes_path)
+        if not renamed:
+            _LOG.info(
+                "No outcomes for `%s` were found in `%s`.",
+                self.cfg["old_class"],
+                outcomes_path,
+            )
 
 
 # #############################################################################
@@ -396,28 +398,9 @@ class Obj_to_str_TestCase(abc.ABC):
     Test case for testing `obj_to_str()` and `obj_to_repr()`.
     """
 
-    def run_test_repr(self, obj: Any, expected_str: str) -> None:
-        """
-        Check that `__repr__` is printed correctly.
-        """
-        method_name = "__repr__"
-        self._test_method(obj, method_name, expected_str)
-
-    def run_test_str(self, obj: Any, expected_str: str) -> None:
-        """
-        Check that `__str__` is printed correctly.
-        """
-        method_name = "__str__"
-        self._test_method(obj, method_name, expected_str)
-
-    def run_test_to_config_str(self, obj: Any, expected_str: str) -> None:
-        """
-        Check that `to_config_str()` is printed correctly.
-        """
-        method_name = "to_config_str"
-        self._test_method(obj, method_name, expected_str)
-
-    def _test_method(self, obj: Any, method_name: str, expected_str: str) -> None:
+    def helper(
+        self, obj: Any, method_name: str, expected_str: str
+    ) -> None:
         """
         Common method for testing `__repr__` and `__str__`.
         """
@@ -426,6 +409,27 @@ class Obj_to_str_TestCase(abc.ABC):
         self.assert_equal(
             actual_str, expected_str, purify_text=True, fuzzy_match=True
         )
+
+    def run_test_repr(self, obj: Any, expected_str: str) -> None:
+        """
+        Check that `__repr__` is printed correctly.
+        """
+        method_name = "__repr__"
+        self.helper(obj, method_name, expected_str)
+
+    def run_test_str(self, obj: Any, expected_str: str) -> None:
+        """
+        Check that `__str__` is printed correctly.
+        """
+        method_name = "__str__"
+        self.helper(obj, method_name, expected_str)
+
+    def run_test_to_config_str(self, obj: Any, expected_str: str) -> None:
+        """
+        Check that `to_config_str()` is printed correctly.
+        """
+        method_name = "to_config_str"
+        self.helper(obj, method_name, expected_str)
 
 
 # #############################################################################

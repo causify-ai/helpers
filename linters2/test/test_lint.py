@@ -3,7 +3,12 @@ import unittest.mock as umock
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-import linters2.lint as llint
+import linters2.lint as lilint
+
+
+# #############################################################################
+# Test_filter_files_by_type
+# #############################################################################
 
 
 class Test_filter_files_by_type(hunitest.TestCase):
@@ -25,16 +30,14 @@ class Test_filter_files_by_type(hunitest.TestCase):
         """
         Default filters — auto-detects extensions with defaults.
         """
-        paths = self._create_files(
-            ["foo.py", "bar.ipynb", "baz.md", "qux.txt"]
-        )
+        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md", "qux.txt"])
         file_paths = [
             paths["foo.py"],
             paths["bar.ipynb"],
             paths["baz.md"],
             paths["qux.txt"],
         ]
-        py_files, ipynb_files, md_files = llint._filter_files_by_type(
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
             keep_jupyter_files=True,
@@ -49,15 +52,13 @@ class Test_filter_files_by_type(hunitest.TestCase):
         """
         py=True filter — only .py files included.
         """
-        paths = self._create_files(
-            ["foo.py", "bar.ipynb", "baz.md"]
-        )
+        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
         file_paths = [
             paths["foo.py"],
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        py_files, ipynb_files, md_files = llint._filter_files_by_type(
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
             keep_jupyter_files=False,
@@ -72,15 +73,13 @@ class Test_filter_files_by_type(hunitest.TestCase):
         """
         ipynb=True filter — only .ipynb files included.
         """
-        paths = self._create_files(
-            ["foo.py", "bar.ipynb", "baz.md"]
-        )
+        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
         file_paths = [
             paths["foo.py"],
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        py_files, ipynb_files, md_files = llint._filter_files_by_type(
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
             keep_python_files=False,
             keep_jupyter_files=True,
@@ -95,15 +94,13 @@ class Test_filter_files_by_type(hunitest.TestCase):
         """
         md=True filter — only .md files included.
         """
-        paths = self._create_files(
-            ["foo.py", "bar.ipynb", "baz.md"]
-        )
+        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
         file_paths = [
             paths["foo.py"],
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        py_files, ipynb_files, md_files = llint._filter_files_by_type(
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
             keep_python_files=False,
             keep_jupyter_files=False,
@@ -122,15 +119,13 @@ class Test_filter_files_by_type(hunitest.TestCase):
         standalone_py = os.path.join(scratch_dir, "standalone.py")
         paired_py = os.path.join(scratch_dir, "paired.py")
         paired_ipynb = os.path.join(scratch_dir, "paired.ipynb")
-        notebook_ipynb = os.path.join(
-            scratch_dir, "notebook.ipynb"
-        )
+        notebook_ipynb = os.path.join(scratch_dir, "notebook.ipynb")
         hio.to_file(standalone_py, "")
         hio.to_file(paired_py, "")
         hio.to_file(paired_ipynb, "")
         hio.to_file(notebook_ipynb, "")
         file_paths = [standalone_py, paired_py, notebook_ipynb]
-        py_files, ipynb_files, md_files = llint._filter_files_by_type(
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
             keep_jupyter_files=True,
@@ -140,6 +135,11 @@ class Test_filter_files_by_type(hunitest.TestCase):
         self.assertEqual(py_files, [standalone_py])
         self.assertEqual(ipynb_files, [notebook_ipynb])
         self.assertEqual(md_files, [])
+
+
+# #############################################################################
+# Test_run_linting_actions
+# #############################################################################
 
 
 class Test_run_linting_actions(hunitest.TestCase):
@@ -156,7 +156,7 @@ class Test_run_linting_actions(hunitest.TestCase):
         mock_system.return_value = 0
         files_str = "file1.py file2.py"
         # Run test.
-        ret = llint._run_linting_actions(
+        ret = lilint._run_linting_actions(
             files_str,
             abort_on_error=True,
             actions=None,
@@ -164,9 +164,7 @@ class Test_run_linting_actions(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 3)
-        calls = [
-            call[0][0] for call in mock_system.call_args_list
-        ]
+        calls = [call[0][0] for call in mock_system.call_args_list]
         self.assertIn("pre-commit run --files", calls[0])
         self.assertIn("normalize_import.py", calls[1])
         self.assertIn("add_class_frames.py", calls[2])
@@ -182,7 +180,7 @@ class Test_run_linting_actions(hunitest.TestCase):
         mock_system.return_value = 0
         files_str = "file1.py"
         # Run test.
-        ret = llint._run_linting_actions(
+        ret = lilint._run_linting_actions(
             files_str,
             abort_on_error=True,
             actions=["pre-commit"],
@@ -202,7 +200,7 @@ class Test_run_linting_actions(hunitest.TestCase):
         mock_system.return_value = 0
         files_str = "file1.py"
         # Run test.
-        ret = llint._run_linting_actions(
+        ret = lilint._run_linting_actions(
             files_str,
             abort_on_error=True,
             actions=["normalize_import", "add_class_frames"],
@@ -210,9 +208,7 @@ class Test_run_linting_actions(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 2)
-        calls = [
-            call[0][0] for call in mock_system.call_args_list
-        ]
+        calls = [call[0][0] for call in mock_system.call_args_list]
         self.assertIn("normalize_import.py", calls[0])
         self.assertIn("add_class_frames.py", calls[1])
 
@@ -225,7 +221,7 @@ class Test_run_linting_actions(hunitest.TestCase):
         mock_system.side_effect = [0, 1, 0]
         files_str = "file1.py"
         # Run test.
-        ret = llint._run_linting_actions(
+        ret = lilint._run_linting_actions(
             files_str,
             abort_on_error=True,
             actions=None,
@@ -242,7 +238,7 @@ class Test_run_linting_actions(hunitest.TestCase):
         mock_system.return_value = 0
         files_str = "file1.py"
         # Run test.
-        ret = llint._run_linting_actions(
+        ret = lilint._run_linting_actions(
             files_str,
             abort_on_error=True,
             actions=[],
@@ -250,6 +246,11 @@ class Test_run_linting_actions(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 0)
+
+
+# #############################################################################
+# Test_lint_python_files
+# #############################################################################
 
 
 class Test_lint_python_files(hunitest.TestCase):
@@ -266,7 +267,7 @@ class Test_lint_python_files(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = []
         # Run test.
-        ret = llint._lint_python_files(
+        ret = lilint._lint_python_files(
             file_paths,
             abort_on_error=True,
             actions=None,
@@ -284,7 +285,7 @@ class Test_lint_python_files(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = ["foo.py", "bar.py"]
         # Run test.
-        ret = llint._lint_python_files(
+        ret = lilint._lint_python_files(
             file_paths,
             abort_on_error=True,
             actions=None,
@@ -292,9 +293,7 @@ class Test_lint_python_files(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 3)
-        calls = [
-            call[0][0] for call in mock_system.call_args_list
-        ]
+        calls = [call[0][0] for call in mock_system.call_args_list]
         for call_cmd in calls:
             self.assertIn("foo.py", call_cmd)
             self.assertIn("bar.py", call_cmd)
@@ -308,7 +307,7 @@ class Test_lint_python_files(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = ["foo.py"]
         # Run test.
-        ret = llint._lint_python_files(
+        ret = lilint._lint_python_files(
             file_paths,
             abort_on_error=True,
             actions=["normalize_import"],
@@ -318,6 +317,11 @@ class Test_lint_python_files(hunitest.TestCase):
         self.assertEqual(mock_system.call_count, 1)
         call_cmd = mock_system.call_args_list[0][0][0]
         self.assertIn("normalize_import.py", call_cmd)
+
+
+# #############################################################################
+# Test_lint_jupyter_files
+# #############################################################################
 
 
 class Test_lint_jupyter_files(hunitest.TestCase):
@@ -334,7 +338,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = []
         # Run test.
-        ret = llint._lint_jupyter_files(
+        ret = lilint._lint_jupyter_files(
             file_paths,
             abort_on_error=True,
             actions=None,
@@ -352,7 +356,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = ["foo.ipynb", "bar.ipynb"]
         # Run test.
-        ret = llint._lint_jupyter_files(
+        ret = lilint._lint_jupyter_files(
             file_paths,
             abort_on_error=True,
             actions=None,
@@ -360,9 +364,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 3)
-        calls = [
-            call[0][0] for call in mock_system.call_args_list
-        ]
+        calls = [call[0][0] for call in mock_system.call_args_list]
         self.assertIn("pre-commit run --files", calls[0])
         self.assertIn("normalize_import.py", calls[1])
         self.assertIn("add_class_frames.py", calls[2])
@@ -376,7 +378,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = ["foo.ipynb", "bar.ipynb"]
         # Run test.
-        ret = llint._lint_jupyter_files(
+        ret = lilint._lint_jupyter_files(
             file_paths,
             abort_on_error=True,
             actions=["sync_jupytext"],
@@ -384,9 +386,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 2)
-        calls = [
-            call[0][0] for call in mock_system.call_args_list
-        ]
+        calls = [call[0][0] for call in mock_system.call_args_list]
         self.assertIn("jupytext --sync foo.ipynb", calls[0])
         self.assertIn("jupytext --sync bar.ipynb", calls[1])
 
@@ -399,7 +399,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = ["foo.ipynb", "bar.ipynb"]
         # Run test.
-        ret = llint._lint_jupyter_files(
+        ret = lilint._lint_jupyter_files(
             file_paths,
             abort_on_error=True,
             actions=["pre-commit"],
@@ -409,6 +409,11 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         self.assertEqual(mock_system.call_count, 1)
         call_cmd = mock_system.call_args_list[0][0][0]
         self.assertIn("pre-commit run --files", call_cmd)
+
+
+# #############################################################################
+# Test_lint_markdown_files
+# #############################################################################
 
 
 class Test_lint_markdown_files(hunitest.TestCase):
@@ -431,7 +436,7 @@ class Test_lint_markdown_files(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = []
         # Run test.
-        ret = llint._lint_markdown_files(
+        ret = lilint._lint_markdown_files(
             file_paths,
             abort_on_error=True,
         )
@@ -454,7 +459,7 @@ class Test_lint_markdown_files(hunitest.TestCase):
         mock_system.return_value = 0
         file_paths = ["doc.md", "readme.md"]
         # Run test.
-        ret = llint._lint_markdown_files(
+        ret = lilint._lint_markdown_files(
             file_paths,
             abort_on_error=True,
         )

@@ -120,6 +120,19 @@
   # If heads occurs 100% of the time → no uncertainty, $H = 0$ bit.
   ```
 
+## Suppressing Output in Code Cells
+
+- When the last statement in a cell produces output that you don't want to display,
+  use one of these approaches assign to underscore:
+  - **Bad**
+    ```
+    statement;
+    ```
+  - **Good**
+    ```
+    _ = statement
+    ```
+
 - Each cell should:
   - Focus on building objects, explaining with comments what is done
   - Remove the redundant `import` statements if needed from the generated cells
