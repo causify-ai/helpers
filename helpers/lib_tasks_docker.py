@@ -49,6 +49,154 @@ def _get_docker_exec(sudo: bool) -> str:
     return docker_exec
 
 
+# ////////////////////////////////////////////////////////////////////////////
+# Docker login
+# ////////////////////////////////////////////////////////////////////////////
+
+
+@functools.lru_cache()
+def _get_aws_cli_version() -> int:
+    # > aws --version
+    # aws-cli/1.19.49 Python/3.7.6 Darwin/19.6.0 botocore/1.20.49
+    # aws-cli/1.20.1 Python/3.9.5 Darwin/19.6.0 botocore/1.20.106
+    cmd = "aws --version"
+    res = hsystem.system_to_one_line(cmd)[1]
+    # Parse the output.
+    m = re.match(r"aws-cli/((\d+)\.\d+\.\d+)\s", res)
+    hdbg.dassert_is_not(m, None, "Can't parse '%s'", res)
+    assert m is not None
+    version = m.group(1)
+    _LOG.debug("version=%s", version)
+    major_version = int(m.group(2))
+    _LOG.debug("major_version=%s", major_version)
+    return major_version
+
+
+def _check_docker_login(repo_name: str) -> bool:
+    """
+    Check if we are already logged in to the Docker registry `repo_name`.
+    """
+    file_name = os.path.join(os.environ["HOME"], ".docker/config.json")
+    json_data = hio.from_json(file_name)
+    # > more ~/.docker/config.json
+    # ```
+    # {
+    #         "auths": {
+    #                 "623860924167.dkr.ecr.eu-north-1.amazonaws.com": {},
+    #                 "665840871993.dkr.ecr.us-east-1.amazonaws.com": {},
+    #                 "https://index.docker.io/v1/": {}
+    #         },
+    # ```
+    _LOG.debug("json_data=%s", json_data)
+    is_logged = any(repo_name in val for val in json_data["auths"].keys())
+    return is_logged
+
+
+def _docker_login_dockerhub() -> None:
+    """
+    Log into the Docker Hub which is a public Docker image registry.
+    """
+    # Check if we are already logged in to the target registry.
+    # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
+    use_cache = False
+    if use_cache:
+        is_logged = _check_docker_login("623860924167.dkr.ecr")
+        if is_logged:
+            _LOG.warning("Already logged in to the target registry: skipping")
+            return
+    _LOG.info("Logging in to the target registry")
+    secret_id = "causify_dockerhub"
+    secret = hsecret.get_secret(secret_id)
+    username = hdict.typed_get(secret, "username", expected_type=str)
+    password = hdict.typed_get(secret, "password", expected_type=str)
+    cmd = f"docker login -u {username} -p {password}"
+    hsystem.system(cmd, suppress_output=False)
+
+
+def _docker_login_ecr() -> None:
+    """
+    Log in the AM Docker repo_short_name on AWS.
+    """
+    hlitauti.report_task()
+    if hserver.is_inside_ci():
+        _LOG.warning("Running inside GitHub Action: skipping `docker_login`")
+        return
+    # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
+    use_cache = False
+    if use_cache:
+        # Check if we are already logged in to the target registry.
+        is_logged = _check_docker_login("623860924167.dkr.ecr")
+        if is_logged:
+            _LOG.warning("Already logged in to the target registry: skipping")
+            return
+    _LOG.info("Logging in to the target registry")
+    # Log in the target registry.
+    major_version = _get_aws_cli_version()
+    # docker login \
+    #   -u AWS \
+    #   -p eyJ... \
+    #   -e none \
+    #   https://*****.dkr.ecr.us-east-1.amazonaws.com
+    # TODO(gp): Move this to var in repo_config.py.
+    # TODO(gp): Hack
+    profile = "ck"
+    region = hs3.AWS_EUROPE_REGION_1
+    cmd = ""
+    if major_version == 1:
+        cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
+    elif major_version == 2:
+        if profile == "ck":
+            env_var = "CSFY_ECR_BASE_PATH"
+        else:
+            env_var = f"{profile.upper()}_ECR_BASE_PATH"
+        ecr_base_path = hlitauti.get_default_param(env_var)
+        # TODO(Nikola): Remove `_get_aws_cli_version()` and use only `aws ecr get-login-password`
+        #  as it is present in both versions of `awscli`.
+        cmd = (
+            "docker login -u AWS -p "
+            f"$(aws ecr get-login-password --profile {profile}) "
+            f"https://{ecr_base_path}"
+        )
+    else:
+        NotImplementedError(
+            f"Docker login for awscli v{major_version} is not implemented!"
+        )
+    # TODO(Grisha): fix properly. We pass `ctx` despite the fact that we do not
+    #  need it with `use_system=True`, but w/o `ctx` invoke tasks (i.e. ones
+    #  with `@task` decorator) do not work.
+    hsystem.system(cmd, suppress_output=False)
+
+
+@task
+def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
+    """
+    Log in the target registry and skip if we are in kaizenflow.
+
+    :param ctx: invoke context
+    :param target_registry: target Docker image registry to log in to
+        - "dockerhub.causify": public Causify Docker image registry
+        - "aws_ecr.ck": private AWS CK ECR
+    """
+    _ = ctx
+    hlitauti.report_task()
+    # No login required as the `helpers` and `tutorials` images are accessible
+    # on the public DockerHub registry.
+    if not hserver.is_dev_csfy() and hrecouti.get_repo_config().get_name() in [
+        "//helpers",
+        "//tutorials",
+    ]:
+        _LOG.warning("Skipping Docker login process for Helpers or Tutorials")
+        return
+    # We run everything using `hsystem.system(...)` but `ctx` is needed
+    # to make the function work as an invoke target.
+    if target_registry == "aws_ecr.ck":
+        _docker_login_ecr()
+    elif target_registry == "dockerhub.causify":
+        _docker_login_dockerhub()
+    else:
+        raise ValueError(f"Invalid Docker image registry='{target_registry}'")
+
+
 @task
 def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
     """
@@ -60,6 +208,173 @@ def docker_images_ls_repo(ctx, sudo=False):  # type: ignore
     ecr_base_path = hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
     docker_exec = _get_docker_exec(sudo)
     hlitauti.run(ctx, f"{docker_exec} image ls {ecr_base_path}")
+
+
+# ////////////////////////////////////////////////////////////////////////////////
+# Version.
+# ////////////////////////////////////////////////////////////////////////////////
+
+
+_IMAGE_VERSION_RE = r"\d+\.\d+\.\d+"
+
+
+def _dassert_is_version_valid(version: str) -> None:
+    """
+    Check that the version is valid, i.e. looks like `1.0.0`.
+    """
+    hdbg.dassert_isinstance(version, str)
+    hdbg.dassert_ne(version, "")
+    regex = rf"^({_IMAGE_VERSION_RE})$"
+    _LOG.debug("Testing with regex='%s'", regex)
+    m = re.match(regex, version)
+    hdbg.dassert(m, "Invalid version: '%s'", version)
+
+
+# ////////////////////////////////////////////////////////////////////////////////
+# Image.
+# ////////////////////////////////////////////////////////////////////////////////
+
+
+# This pattern aims to match the full image name including
+# both registry and image path.
+# Examples of valid matches include:
+# - '623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp'
+# - 'ghcr.io/cryptokaizen/cmamp'
+# This change is introduced to match the GHCR registry path,
+# since it already includes `/` in the registry name itself.
+_FULL_IMAGE_NAME_RE = r"([a-z0-9]+(-[a-z0-9]+)*\.)*[a-z]{2,}(\/[a-z0-9_-]+){1,2}"
+_IMAGE_USER_RE = r"[a-z0-9_-]+"
+# For candidate prod images which have added hash for easy identification.
+_IMAGE_HASH_RE = r"[a-z0-9]{9}"
+_IMAGE_STAGE_RE = rf"(local(?:-{_IMAGE_USER_RE})?|dev|prod|prod(?:-{_IMAGE_USER_RE})(?:-{_IMAGE_HASH_RE})?|prod(?:-{_IMAGE_HASH_RE})?)"
+
+
+# TODO(Grisha): call `_dassert_is_base_image_name_valid()` and a separate
+# function that validates an image tag.
+def dassert_is_image_name_valid(image: str) -> None:
+    """
+    Check whether an image name is valid.
+
+    Invariants:
+    - Local images contain a username and a version
+      - E.g., `*****.dkr.ecr.us-east-1.amazonaws.com/amp:local-saggese-1.0.0`
+    - `dev` and `prod` images have an instance with a version and one without
+      to indicate the latest
+      - E.g., `*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev-1.0.0`
+        and `*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev`
+    - `prod` candidate image has an optional tag (e.g., a username) and
+        a 9 character hash identifier corresponding Git commit
+        - E.g., `*****.dkr.ecr.us-east-1.amazonaws.com/amp:prod-1.0.0-4rf74b83a`
+        - and `*****.dkr.ecr.us-east-1.amazonaws.com/amp:prod-1.0.0-saggese-4rf74b83a`
+
+    An image should look like:
+
+    *****.dkr.ecr.us-east-1.amazonaws.com/amp:dev
+    *****.dkr.ecr.us-east-1.amazonaws.com/amp:local-saggese-1.0.0
+    *****.dkr.ecr.us-east-1.amazonaws.com/amp:dev-1.0.0
+    ghcr.io/cryptokaizen/cmamp:dev
+    """
+    regex = "".join(
+        [
+            # E.g., `*****.dkr.ecr.us-east-1.amazonaws.com/cmamp`
+            # or `sorrentum/cmamp` or ghcr.io/cryptokaizen/cmamp.
+            rf"^{_FULL_IMAGE_NAME_RE}",
+            # E.g., `:local-saggese`.
+            rf"(:{_IMAGE_STAGE_RE})?",
+            # E.g., `-1.0.0`.
+            rf"(-{_IMAGE_VERSION_RE})?$",
+        ]
+    )
+    _LOG.debug("Testing with regex='%s'", regex)
+    m = re.match(regex, image)
+    hdbg.dassert(m, "Invalid image: '%s'", image)
+
+
+def _dassert_is_base_image_name_valid(base_image: str) -> None:
+    """
+    Check that the base image is valid, i.e. looks like below.
+
+    *****.dkr.ecr.us-east-1.amazonaws.com/amp ghcr.io/cryptokaizen/cmamp
+    """
+    regex = rf"^{_FULL_IMAGE_NAME_RE}$"
+    _LOG.debug("regex=%s", regex)
+    m = re.match(regex, base_image)
+    hdbg.dassert(m, "Invalid base_image: '%s'", base_image)
+
+
+# TODO(Grisha): instead of using `base_image` which is Docker registry address
+# + image name, use those as separate parameters. See CmTask5074.
+def _get_base_image(base_image: str) -> str:
+    """
+    :return: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
+    """
+    if base_image == "":
+        # TODO(gp): Use os.path.join.
+        base_image = (
+            hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
+            + "/"
+            + hlitauti.get_default_param("BASE_IMAGE")
+        )
+    _dassert_is_base_image_name_valid(base_image)
+    return base_image
+
+
+# This code path through Git tag was discontinued with CmTask746.
+# def get_git_tag(
+#      version: str,
+#  ) -> str:
+#      """
+#      Return the tag to be used in Git that consists of an image name and
+#      version.
+#      :param version: e.g., `1.0.0`. If None, the latest version is used
+#      :return: e.g., `amp-1.0.0`
+#      """
+#      hdbg.dassert_is_not(version, None)
+#      _dassert_is_version_valid(version)
+#      base_image = hlibtaskut.get_default_param("BASE_IMAGE")
+#      tag_name = f"{base_image}-{version}"
+#      return tag_name
+
+
+# TODO(gp): Consider using a token "latest" in version, so that it's always a
+#  string and we avoid a special behavior encoded in None.
+def get_image(
+    base_image: str,
+    stage: str,
+    version: Optional[str],
+) -> str:
+    """
+    Return the fully qualified image name.
+
+    For local stage, it also appends the username to the image name.
+
+    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
+    :param stage: e.g., `local`, `dev`, `prod`
+    :param version: e.g., `1.0.0`, if None empty, the latest version is used
+    :return: e.g., `*****.dkr.ecr.us-east-1.amazonaws.com/amp:local` or
+        `*****.dkr.ecr.us-east-1.amazonaws.com/amp:local-1.0.0`
+    """
+    # Docker refers the default image as "latest", although in our stage
+    # nomenclature we call it "dev".
+    hdbg.dassert_in(stage, "local dev prod".split())
+    # Get the base image.
+    base_image = _get_base_image(base_image)
+    _dassert_is_base_image_name_valid(base_image)
+    # Get the full image name.
+    image = [base_image]
+    # Handle the stage.
+    image.append(f":{stage}")
+    if stage == "local":
+        user = hsystem.get_user_name()
+        image.append(f"-{user}")
+    # Handle the version.
+    if version is not None and version != "":
+        _dassert_is_version_valid(version)
+        image.append(f"-{version}")
+    #
+    image = "".join(image)
+    dassert_is_image_name_valid(image)
+    return image
 
 
 @task
@@ -306,154 +621,6 @@ def docker_pull_helpers(ctx, stage="prod", version=None):  # type: ignore
     _docker_pull(ctx, base_image, stage, version)
 
 
-# ////////////////////////////////////////////////////////////////////////////
-# Docker login
-# ////////////////////////////////////////////////////////////////////////////
-
-
-@functools.lru_cache()
-def _get_aws_cli_version() -> int:
-    # > aws --version
-    # aws-cli/1.19.49 Python/3.7.6 Darwin/19.6.0 botocore/1.20.49
-    # aws-cli/1.20.1 Python/3.9.5 Darwin/19.6.0 botocore/1.20.106
-    cmd = "aws --version"
-    res = hsystem.system_to_one_line(cmd)[1]
-    # Parse the output.
-    m = re.match(r"aws-cli/((\d+)\.\d+\.\d+)\s", res)
-    hdbg.dassert_is_not(m, None, "Can't parse '%s'", res)
-    assert m is not None
-    version = m.group(1)
-    _LOG.debug("version=%s", version)
-    major_version = int(m.group(2))
-    _LOG.debug("major_version=%s", major_version)
-    return major_version
-
-
-def _check_docker_login(repo_name: str) -> bool:
-    """
-    Check if we are already logged in to the Docker registry `repo_name`.
-    """
-    file_name = os.path.join(os.environ["HOME"], ".docker/config.json")
-    json_data = hio.from_json(file_name)
-    # > more ~/.docker/config.json
-    # ```
-    # {
-    #         "auths": {
-    #                 "623860924167.dkr.ecr.eu-north-1.amazonaws.com": {},
-    #                 "665840871993.dkr.ecr.us-east-1.amazonaws.com": {},
-    #                 "https://index.docker.io/v1/": {}
-    #         },
-    # ```
-    _LOG.debug("json_data=%s", json_data)
-    is_logged = any(repo_name in val for val in json_data["auths"].keys())
-    return is_logged
-
-
-def _docker_login_dockerhub() -> None:
-    """
-    Log into the Docker Hub which is a public Docker image registry.
-    """
-    # Check if we are already logged in to the target registry.
-    # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
-    use_cache = False
-    if use_cache:
-        is_logged = _check_docker_login("623860924167.dkr.ecr")
-        if is_logged:
-            _LOG.warning("Already logged in to the target registry: skipping")
-            return
-    _LOG.info("Logging in to the target registry")
-    secret_id = "causify_dockerhub"
-    secret = hsecret.get_secret(secret_id)
-    username = hdict.typed_get(secret, "username", expected_type=str)
-    password = hdict.typed_get(secret, "password", expected_type=str)
-    cmd = f"docker login -u {username} -p {password}"
-    hsystem.system(cmd, suppress_output=False)
-
-
-def _docker_login_ecr() -> None:
-    """
-    Log in the AM Docker repo_short_name on AWS.
-    """
-    hlitauti.report_task()
-    if hserver.is_inside_ci():
-        _LOG.warning("Running inside GitHub Action: skipping `docker_login`")
-        return
-    # TODO(gp): Enable caching https://github.com/causify-ai/helpers/issues/20
-    use_cache = False
-    if use_cache:
-        # Check if we are already logged in to the target registry.
-        is_logged = _check_docker_login("623860924167.dkr.ecr")
-        if is_logged:
-            _LOG.warning("Already logged in to the target registry: skipping")
-            return
-    _LOG.info("Logging in to the target registry")
-    # Log in the target registry.
-    major_version = _get_aws_cli_version()
-    # docker login \
-    #   -u AWS \
-    #   -p eyJ... \
-    #   -e none \
-    #   https://*****.dkr.ecr.us-east-1.amazonaws.com
-    # TODO(gp): Move this to var in repo_config.py.
-    # TODO(gp): Hack
-    profile = "ck"
-    region = hs3.AWS_EUROPE_REGION_1
-    cmd = ""
-    if major_version == 1:
-        cmd = f"eval $(aws ecr get-login --profile {profile} --no-include-email --region {region})"
-    elif major_version == 2:
-        if profile == "ck":
-            env_var = f"CSFY_ECR_BASE_PATH"
-        else:
-            env_var = f"{profile.upper()}_ECR_BASE_PATH"
-        ecr_base_path = hlitauti.get_default_param(env_var)
-        # TODO(Nikola): Remove `_get_aws_cli_version()` and use only `aws ecr get-login-password`
-        #  as it is present in both versions of `awscli`.
-        cmd = (
-            "docker login -u AWS -p "
-            f"$(aws ecr get-login-password --profile {profile}) "
-            f"https://{ecr_base_path}"
-        )
-    else:
-        NotImplementedError(
-            f"Docker login for awscli v{major_version} is not implemented!"
-        )
-    # TODO(Grisha): fix properly. We pass `ctx` despite the fact that we do not
-    #  need it with `use_system=True`, but w/o `ctx` invoke tasks (i.e. ones
-    #  with `@task` decorator) do not work.
-    hsystem.system(cmd, suppress_output=False)
-
-
-@task
-def docker_login(ctx, target_registry="aws_ecr.ck"):  # type: ignore
-    """
-    Log in the target registry and skip if we are in kaizenflow.
-
-    :param ctx: invoke context
-    :param target_registry: target Docker image registry to log in to
-        - "dockerhub.causify": public Causify Docker image registry
-        - "aws_ecr.ck": private AWS CK ECR
-    """
-    _ = ctx
-    hlitauti.report_task()
-    # No login required as the `helpers` and `tutorials` images are accessible
-    # on the public DockerHub registry.
-    if not hserver.is_dev_csfy() and hrecouti.get_repo_config().get_name() in [
-        "//helpers",
-        "//tutorials",
-    ]:
-        _LOG.warning("Skipping Docker login process for Helpers or Tutorials")
-        return
-    # We run everything using `hsystem.system(...)` but `ctx` is needed
-    # to make the function work as an invoke target.
-    if target_registry == "aws_ecr.ck":
-        _docker_login_ecr()
-    elif target_registry == "dockerhub.causify":
-        _docker_login_dockerhub()
-    else:
-        raise ValueError(f"Invalid Docker image registry='{target_registry}'")
-
-
 # ////////////////////////////////////////////////////////////////////////////////
 # Compose files.
 # ////////////////////////////////////////////////////////////////////////////////
@@ -592,14 +759,16 @@ def _generate_docker_compose_file(
     )
     # A super repo is a repo that contains helpers as a submodule and
     # is not a helper itself.
-    use_helpers_as_nested_module = 0 if hgit.is_in_helpers_as_supermodule() else 1
+    use_helpers_as_nested_module = (
+        0 if hgit.is_in_helpers_as_supermodule() else 1
+    )
     # We could do the same also with IMAGE for symmetry.
     # Keep the env vars in sync with what we print in `henv.get_env_vars()`.
     # Configure `base_app` service.
     # TODO(gp): Use henv.get_env_vars() to get the env vars.
     environment = [
         f"CSFY_ENABLE_DIND={CSFY_ENABLE_DIND}",
-        f"CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
+        "CSFY_FORCE_TEST_FAIL=$CSFY_FORCE_TEST_FAIL",
         f"CSFY_HOST_NAME={csfy_host_name}",
         f"CSFY_HOST_OS_NAME={csfy_host_os_name}",
         f"CSFY_HOST_OS_VERSION={csfy_host_os_version}",
@@ -878,26 +1047,6 @@ def _get_docker_compose_files(
     return docker_compose_files
 
 
-# ////////////////////////////////////////////////////////////////////////////////
-# Version.
-# ////////////////////////////////////////////////////////////////////////////////
-
-
-_IMAGE_VERSION_RE = r"\d+\.\d+\.\d+"
-
-
-def _dassert_is_version_valid(version: str) -> None:
-    """
-    Check that the version is valid, i.e. looks like `1.0.0`.
-    """
-    hdbg.dassert_isinstance(version, str)
-    hdbg.dassert_ne(version, "")
-    regex = rf"^({_IMAGE_VERSION_RE})$"
-    _LOG.debug("Testing with regex='%s'", regex)
-    m = re.match(regex, version)
-    hdbg.dassert(m, "Invalid version: '%s'", version)
-
-
 _IMAGE_VERSION_FROM_CHANGELOG = "FROM_CHANGELOG"
 
 
@@ -946,153 +1095,6 @@ def dassert_is_subsequent_version(
     if version != _IMAGE_VERSION_FROM_CHANGELOG:
         current_version = hversio.get_changelog_version(container_dir_name)
         hdbg.dassert_lte(current_version, version)
-
-
-# ////////////////////////////////////////////////////////////////////////////////
-# Image.
-# ////////////////////////////////////////////////////////////////////////////////
-
-
-# This pattern aims to match the full image name including
-# both registry and image path.
-# Examples of valid matches include:
-# - '623860924167.dkr.ecr.eu-north-1.amazonaws.com/cmamp'
-# - 'ghcr.io/cryptokaizen/cmamp'
-# This change is introduced to match the GHCR registry path,
-# since it already includes `/` in the registry name itself.
-_FULL_IMAGE_NAME_RE = r"([a-z0-9]+(-[a-z0-9]+)*\.)*[a-z]{2,}(\/[a-z0-9_-]+){1,2}"
-_IMAGE_USER_RE = r"[a-z0-9_-]+"
-# For candidate prod images which have added hash for easy identification.
-_IMAGE_HASH_RE = r"[a-z0-9]{9}"
-_IMAGE_STAGE_RE = rf"(local(?:-{_IMAGE_USER_RE})?|dev|prod|prod(?:-{_IMAGE_USER_RE})(?:-{_IMAGE_HASH_RE})?|prod(?:-{_IMAGE_HASH_RE})?)"
-
-
-# TODO(Grisha): call `_dassert_is_base_image_name_valid()` and a separate
-# function that validates an image tag.
-def dassert_is_image_name_valid(image: str) -> None:
-    """
-    Check whether an image name is valid.
-
-    Invariants:
-    - Local images contain a username and a version
-      - E.g., `*****.dkr.ecr.us-east-1.amazonaws.com/amp:local-saggese-1.0.0`
-    - `dev` and `prod` images have an instance with a version and one without
-      to indicate the latest
-      - E.g., `*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev-1.0.0`
-        and `*****.dkr.ecr.us-east-1.amazonaws.com/amp:dev`
-    - `prod` candidate image has an optional tag (e.g., a username) and
-        a 9 character hash identifier corresponding Git commit
-        - E.g., `*****.dkr.ecr.us-east-1.amazonaws.com/amp:prod-1.0.0-4rf74b83a`
-        - and `*****.dkr.ecr.us-east-1.amazonaws.com/amp:prod-1.0.0-saggese-4rf74b83a`
-
-    An image should look like:
-
-    *****.dkr.ecr.us-east-1.amazonaws.com/amp:dev
-    *****.dkr.ecr.us-east-1.amazonaws.com/amp:local-saggese-1.0.0
-    *****.dkr.ecr.us-east-1.amazonaws.com/amp:dev-1.0.0
-    ghcr.io/cryptokaizen/cmamp:dev
-    """
-    regex = "".join(
-        [
-            # E.g., `*****.dkr.ecr.us-east-1.amazonaws.com/cmamp`
-            # or `sorrentum/cmamp` or ghcr.io/cryptokaizen/cmamp.
-            rf"^{_FULL_IMAGE_NAME_RE}",
-            # E.g., `:local-saggese`.
-            rf"(:{_IMAGE_STAGE_RE})?",
-            # E.g., `-1.0.0`.
-            rf"(-{_IMAGE_VERSION_RE})?$",
-        ]
-    )
-    _LOG.debug("Testing with regex='%s'", regex)
-    m = re.match(regex, image)
-    hdbg.dassert(m, "Invalid image: '%s'", image)
-
-
-def _dassert_is_base_image_name_valid(base_image: str) -> None:
-    """
-    Check that the base image is valid, i.e. looks like below.
-
-    *****.dkr.ecr.us-east-1.amazonaws.com/amp ghcr.io/cryptokaizen/cmamp
-    """
-    regex = rf"^{_FULL_IMAGE_NAME_RE}$"
-    _LOG.debug("regex=%s", regex)
-    m = re.match(regex, base_image)
-    hdbg.dassert(m, "Invalid base_image: '%s'", base_image)
-
-
-# TODO(Grisha): instead of using `base_image` which is Docker registry address
-# + image name, use those as separate parameters. See CmTask5074.
-def _get_base_image(base_image: str) -> str:
-    """
-    :return: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
-    """
-    if base_image == "":
-        # TODO(gp): Use os.path.join.
-        base_image = (
-            hlitauti.get_default_param("CSFY_ECR_BASE_PATH")
-            + "/"
-            + hlitauti.get_default_param("BASE_IMAGE")
-        )
-    _dassert_is_base_image_name_valid(base_image)
-    return base_image
-
-
-# This code path through Git tag was discontinued with CmTask746.
-# def get_git_tag(
-#      version: str,
-#  ) -> str:
-#      """
-#      Return the tag to be used in Git that consists of an image name and
-#      version.
-#      :param version: e.g., `1.0.0`. If None, the latest version is used
-#      :return: e.g., `amp-1.0.0`
-#      """
-#      hdbg.dassert_is_not(version, None)
-#      _dassert_is_version_valid(version)
-#      base_image = hlibtaskut.get_default_param("BASE_IMAGE")
-#      tag_name = f"{base_image}-{version}"
-#      return tag_name
-
-
-# TODO(gp): Consider using a token "latest" in version, so that it's always a
-#  string and we avoid a special behavior encoded in None.
-def get_image(
-    base_image: str,
-    stage: str,
-    version: Optional[str],
-) -> str:
-    """
-    Return the fully qualified image name.
-
-    For local stage, it also appends the username to the image name.
-
-    :param base_image: e.g., *****.dkr.ecr.us-east-1.amazonaws.com/amp
-    :param stage: e.g., `local`, `dev`, `prod`
-    :param version: e.g., `1.0.0`, if None empty, the latest version is used
-    :return: e.g., `*****.dkr.ecr.us-east-1.amazonaws.com/amp:local` or
-        `*****.dkr.ecr.us-east-1.amazonaws.com/amp:local-1.0.0`
-    """
-    # Docker refers the default image as "latest", although in our stage
-    # nomenclature we call it "dev".
-    hdbg.dassert_in(stage, "local dev prod".split())
-    # Get the base image.
-    base_image = _get_base_image(base_image)
-    _dassert_is_base_image_name_valid(base_image)
-    # Get the full image name.
-    image = [base_image]
-    # Handle the stage.
-    image.append(f":{stage}")
-    if stage == "local":
-        user = hsystem.get_user_name()
-        image.append(f"-{user}")
-    # Handle the version.
-    if version is not None and version != "":
-        _dassert_is_version_valid(version)
-        image.append(f"-{version}")
-    #
-    image = "".join(image)
-    dassert_is_image_name_valid(image)
-    return image
 
 
 # ////////////////////////////////////////////////////////////////////////////////
@@ -1353,7 +1355,9 @@ def _docker_cmd(
         hs3.generate_aws_files()
     docker_pull(ctx, skip_pull=skip_pull)
     _LOG.debug("cmd=%s", docker_cmd_)
-    rc: Optional[int] = hlitauti.run(ctx, docker_cmd_, pty=True, **ctx_run_kwargs)
+    rc: Optional[int] = hlitauti.run(
+        ctx, docker_cmd_, pty=True, **ctx_run_kwargs
+    )
     return rc
 
 

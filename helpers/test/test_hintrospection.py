@@ -21,6 +21,11 @@ def hello() -> bool:
     return False
 
 
+# #############################################################################
+# _ClassPickleable
+# #############################################################################
+
+
 class _ClassPickleable:
     """
     Class with pickleable param values.
@@ -38,6 +43,11 @@ class _ClassPickleable:
         print("Hello")
 
 
+# #############################################################################
+# _ClassNonPickleable
+# #############################################################################
+
+
 class _ClassNonPickleable:
     """
     Class with non-pickleable param values.
@@ -46,6 +56,11 @@ class _ClassNonPickleable:
     def __init__(self) -> None:
         self._arg1 = lambda x: x
         self._arg2 = 2
+
+
+# #############################################################################
+# Test_is_pickleable1
+# #############################################################################
 
 
 class Test_is_pickleable1(hunitest.TestCase):
@@ -173,6 +188,11 @@ class Test_is_pickleable1(hunitest.TestCase):
         exp_lambda = False
         exp_pickled = True
         self.helper(func, exp_str, exp_bound, exp_lambda, exp_pickled)
+
+
+# #############################################################################
+# Test_is_pickleable2
+# #############################################################################
 
 
 class Test_is_pickleable2(hunitest.TestCase):
@@ -317,11 +337,21 @@ def test_function() -> None:
     pass
 
 
+# #############################################################################
+# Test_get_function_name1
+# #############################################################################
+
+
 class Test_get_function_name1(hunitest.TestCase):
     def test1(self) -> None:
         actual = hintros.get_function_name()
         expected = "test1"
         self.assert_equal(actual, expected, purify_text=True)
+
+
+# #############################################################################
+# Test_get_name_from_function1
+# #############################################################################
 
 
 class Test_get_name_from_function1(hunitest.TestCase):
@@ -339,6 +369,11 @@ class Test_get_name_from_function1(hunitest.TestCase):
 
 def dummy_function() -> None:
     pass
+
+
+# #############################################################################
+# Test_get_function_from_string1
+# #############################################################################
 
 
 class Test_get_function_from_string1(hunitest.TestCase):

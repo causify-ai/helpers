@@ -610,6 +610,30 @@ class TestCheckDataFrame1(hunitest.TestCase):
     exercise the logic in `--update_outcomes` itself.
     """
 
+    def _check_df_helper(
+        self, actual: pd.DataFrame, abort_on_error: bool, err_threshold: float
+    ) -> Tuple[bool, bool, Optional[bool]]:
+        golden_outcomes = pd.DataFrame(
+            [[0, 1, 2], [3, 4, 5]], columns="a b c".split()
+        )
+        #
+        tag = "test_df"
+        _, file_name = self._get_golden_outcome_file_name(tag)
+        # Overwrite the golden file, so that --update_golden doesn't matter.
+        hio.create_enclosing_dir(file_name, incremental=True)
+        golden_outcomes.to_csv(file_name)
+        try:
+            outcome_updated, file_exists, is_equal = self.check_dataframe(
+                actual,
+                abort_on_error=abort_on_error,
+                err_threshold=err_threshold,
+            )
+        finally:
+            # Clean up.
+            golden_outcomes.to_csv(file_name)
+            _git_add(file_name)
+        return outcome_updated, file_exists, is_equal
+
     def test_check_df_equal1(self) -> None:
         """
         Compare the actual value of a df to a matching golden outcome.
@@ -858,30 +882,6 @@ class TestCheckDataFrame1(hunitest.TestCase):
         self.assertIs(is_equal, None)
         # Check golden.
         self.assert_equal(str(new_golden), str(actual))
-
-    def _check_df_helper(
-        self, actual: pd.DataFrame, abort_on_error: bool, err_threshold: float
-    ) -> Tuple[bool, bool, Optional[bool]]:
-        golden_outcomes = pd.DataFrame(
-            [[0, 1, 2], [3, 4, 5]], columns="a b c".split()
-        )
-        #
-        tag = "test_df"
-        _, file_name = self._get_golden_outcome_file_name(tag)
-        # Overwrite the golden file, so that --update_golden doesn't matter.
-        hio.create_enclosing_dir(file_name, incremental=True)
-        golden_outcomes.to_csv(file_name)
-        try:
-            outcome_updated, file_exists, is_equal = self.check_dataframe(
-                actual,
-                abort_on_error=abort_on_error,
-                err_threshold=err_threshold,
-            )
-        finally:
-            # Clean up.
-            golden_outcomes.to_csv(file_name)
-            _git_add(file_name)
-        return outcome_updated, file_exists, is_equal
 
 
 # #############################################################################

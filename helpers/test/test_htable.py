@@ -7,7 +7,25 @@ import helpers.hunit_test as hunitest
 _LOG = logging.getLogger(__name__)
 
 
+# #############################################################################
+# TestTable1
+# #############################################################################
+
+
 class TestTable1(hunitest.TestCase):
+
+    @staticmethod
+    def _get_table() -> htable.Table:
+        txt = """completed failure Lint Run_linter
+completed success Lint Fast_tests
+completed success Lint Slow_tests"""
+        cols = ["status", "outcome", "descr", "workflow"]
+        # table = [line for line in csv.reader(txt.split("\n"), delimiter=' ')]
+        # _LOG.debug(hprint.to_str("table"))
+        # _LOG.debug("size=%s", str(htable.size(table)))
+        table = htable.Table.from_text(cols, txt, delimiter=" ")
+        return table
+
     def test_from_text1(self) -> None:
         table = self._get_table()
         self.assertIsInstance(table, htable.Table)
@@ -138,17 +156,3 @@ size=(0, 4)
         actual = table.unique("workflow")
         expected = ["Fast_tests", "Run_linter", "Slow_tests"]
         self.assert_equal(str(actual), str(expected), fuzzy_match=False)
-
-    # #########################################################################
-
-    @staticmethod
-    def _get_table() -> htable.Table:
-        txt = """completed failure Lint Run_linter
-completed success Lint Fast_tests
-completed success Lint Slow_tests"""
-        cols = ["status", "outcome", "descr", "workflow"]
-        # table = [line for line in csv.reader(txt.split("\n"), delimiter=' ')]
-        # _LOG.debug(hprint.to_str("table"))
-        # _LOG.debug("size=%s", str(htable.size(table)))
-        table = htable.Table.from_text(cols, txt, delimiter=" ")
-        return table

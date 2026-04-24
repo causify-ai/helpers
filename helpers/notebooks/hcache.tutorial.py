@@ -26,7 +26,6 @@ import joblib
 
 import helpers.hcache as hcache
 import helpers.hdbg as hdbg
-import helpers.hprint as hprint
 import helpers.hs3 as hs3
 
 hnotebook.config_notebook()

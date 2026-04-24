@@ -143,6 +143,39 @@ def lint_check_python_files(  # type: ignore
     hlitauti.run(ctx, cmd)
 
 
+def _get_lint_docker_cmd(
+    base_image: str,
+    docker_cmd_: str,
+    stage: str,
+    version: str,
+    *,
+    use_entrypoint: bool = True,
+) -> str:
+    """
+    Create a command to run in Linter service.
+
+    :param docker_cmd_: command to run
+    :param stage: the image stage to use
+    :return: the full command to run
+    """
+    if base_image == "":
+        base_path = os.environ["CSFY_ECR_BASE_PATH"]
+        # Get an image to run the linter on.
+        linter_image = f"{base_path}/helpers"
+    else:
+        linter_image = base_image
+    _LOG.debug(hprint.to_str("linter_image"))
+    # Execute command line.
+    cmd: str = hlitadoc._get_docker_compose_cmd(
+        linter_image,
+        stage,
+        version,
+        docker_cmd_,
+        use_entrypoint=use_entrypoint,
+    )
+    return cmd
+
+
 @task
 def lint_detect_cycles(  # type: ignore
     ctx,
@@ -327,39 +360,6 @@ def lint_create_branch(ctx, dry_run=False):  # type: ignore
     _LOG.info("Creating branch '%s'", branch_name)
     cmd = f"invoke git_branch_create -b '{branch_name}'"
     hlitauti.run(ctx, cmd, dry_run=dry_run)
-
-
-def _get_lint_docker_cmd(
-    base_image: str,
-    docker_cmd_: str,
-    stage: str,
-    version: str,
-    *,
-    use_entrypoint: bool = True,
-) -> str:
-    """
-    Create a command to run in Linter service.
-
-    :param docker_cmd_: command to run
-    :param stage: the image stage to use
-    :return: the full command to run
-    """
-    if base_image == "":
-        base_path = os.environ["CSFY_ECR_BASE_PATH"]
-        # Get an image to run the linter on.
-        linter_image = f"{base_path}/helpers"
-    else:
-        linter_image = base_image
-    _LOG.debug(hprint.to_str("linter_image"))
-    # Execute command line.
-    cmd: str = hlitadoc._get_docker_compose_cmd(
-        linter_image,
-        stage,
-        version,
-        docker_cmd_,
-        use_entrypoint=use_entrypoint,
-    )
-    return cmd
 
 
 @task

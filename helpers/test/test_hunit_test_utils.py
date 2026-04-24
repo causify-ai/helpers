@@ -6,10 +6,21 @@ import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
 
 
+# #############################################################################
+# TestUnitTestRenamer
+# #############################################################################
+
+
 class TestUnitTestRenamer(hunitest.TestCase):
     """
     Test class renaming functionality.
     """
+
+
+# #############################################################################
+# TestCases
+# #############################################################################
+
 
     @staticmethod
     def helper() -> str:
@@ -28,6 +39,12 @@ class TestCases(hunitest.TestCase):
         self.check_string(actual)
         """
         return content
+
+
+# #############################################################################
+# TestNewCase
+# #############################################################################
+
 
     def test_rename_class1(self) -> None:
         """
@@ -62,10 +79,21 @@ class TestNewCase(hunitest.TestCase):
         self.assert_equal(actual, content)
 
 
+# #############################################################################
+# TestPytestRenameMethod
+# #############################################################################
+
+
 class TestPytestRenameMethod(hunitest.TestCase):
     """
     Test method renaming functionality.
     """
+
+
+# #############################################################################
+# TestCases
+# #############################################################################
+
 
     @staticmethod
     def helper() -> str:
@@ -84,6 +112,11 @@ class TestCases(hunitest.TestCase):
         self.check_string(actual)
 
 
+# #############################################################################
+# TestOtherCases
+# #############################################################################
+
+
 class TestOtherCases(hunitest.TestCase):
     def test1(self) -> None:
         actual = "hello world"
@@ -95,6 +128,12 @@ class TestOtherCases(hunitest.TestCase):
         self.check_string(actual)
         """
         return content
+
+
+# #############################################################################
+# TestCases
+# #############################################################################
+
 
     def test_rename_method1(self) -> None:
         """
@@ -116,6 +155,11 @@ class TestCases(hunitest.TestCase):
     def test10(self) -> None:
         actual = "hello world"
         self.check_string(actual)
+
+
+# #############################################################################
+# TestOtherCases
+# #############################################################################
 
 
 class TestOtherCases(hunitest.TestCase):
@@ -155,6 +199,11 @@ class TestOtherCases(hunitest.TestCase):
             )
 
 
+# #############################################################################
+# TestPytestRenameOutcomes
+# #############################################################################
+
+
 class TestPytestRenameOutcomes(hunitest.TestCase):
     """
     Test golden outcomes directory renaming.
@@ -179,6 +228,15 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
             hio.create_dir(outcomes_dir, incremental=False)
             hio.to_file(f"{outcomes_dir}/test.txt", "Test files.")
         cmd = f"git add {toy_test}/"
+        hsystem.system(cmd, abort_on_error=False, suppress_output=False)
+
+    def _clean_up(self, toy_test: str) -> None:
+        """
+        Remove temporary test directory.
+
+        :param toy_test: the name of the toy directory
+        """
+        cmd = f"git reset {toy_test}/ && rm -rf {toy_test}/"
         hsystem.system(cmd, abort_on_error=False, suppress_output=False)
 
     def test_rename_class_outcomes(self) -> None:
@@ -254,12 +312,3 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
         ]
         self.assertEqual(actual, expected)
         self._clean_up(toy_test)
-
-    def _clean_up(self, toy_test: str) -> None:
-        """
-        Remove temporary test directory.
-
-        :param toy_test: the name of the toy directory
-        """
-        cmd = f"git reset {toy_test}/ && rm -rf {toy_test}/"
-        hsystem.system(cmd, abort_on_error=False, suppress_output=False)

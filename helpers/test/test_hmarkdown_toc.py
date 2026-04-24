@@ -1,7 +1,7 @@
 import logging
 
 import helpers.hmarkdown as hmarkdo
-import helpers.hmarkdown_toc as hmarktoc
+import helpers.hmarkdown_toc as hmartoc
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
 
@@ -35,7 +35,7 @@ class Test_extract_yaml_frontmatter1(hunitest.TestCase):
         lines = txt.split("\n")
         lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         # Run test.
-        frontmatter, remaining = hmarktoc.extract_yaml_frontmatter(lines)
+        frontmatter, remaining = hmartoc.extract_yaml_frontmatter(lines)
         # Check outputs.
         self.assertEqual(frontmatter, expected_frontmatter)
         self.assertEqual(remaining, expected_remaining)
@@ -54,7 +54,12 @@ class Test_extract_yaml_frontmatter1(hunitest.TestCase):
         This is the main content.
         """
         # Prepare outputs.
-        expected_frontmatter = ["---", "title: My Document", "date: 2024-01-01", "---"]
+        expected_frontmatter = [
+            "---",
+            "title: My Document",
+            "date: 2024-01-01",
+            "---",
+        ]
         expected_remaining = ["# Content", "This is the main content."]
         # Run test.
         self.helper(txt, expected_frontmatter, expected_remaining)
@@ -130,6 +135,7 @@ class Test_extract_yaml_frontmatter1(hunitest.TestCase):
 # #############################################################################
 # Test_remove_table_of_contents1
 # #############################################################################
+
 
 class Test_remove_table_of_contents1(hunitest.TestCase):
     def test1(self) -> None:

@@ -16,7 +16,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_remove_end_of_line_periods1(hunitest.TestCase):
-
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         input_text = hprint.dedent(input_text).strip()
@@ -92,7 +91,6 @@ class Test_remove_end_of_line_periods1(hunitest.TestCase):
 
 
 class Test_md_clean_up1(hunitest.TestCase):
-
     def test1(self) -> None:
         # Prepare inputs.
         txt = r"""
@@ -160,7 +158,6 @@ class Test_md_clean_up1(hunitest.TestCase):
 
 
 class Test_remove_code_delimiters1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test a basic example.
@@ -331,7 +328,6 @@ class Test_remove_code_delimiters1(hunitest.TestCase):
 
 
 class Test_format_markdown_slide(hunitest.TestCase):
-
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
@@ -608,7 +604,6 @@ class Test_format_markdown_slide(hunitest.TestCase):
 
 
 class Test_format_figures(hunitest.TestCase):
-
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
@@ -835,7 +830,6 @@ class Test_format_figures(hunitest.TestCase):
 
 
 class Test_format_md_links_to_latex_format(hunitest.TestCase):
-
     def helper(self, input_text: str, expected_text: str) -> None:
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")

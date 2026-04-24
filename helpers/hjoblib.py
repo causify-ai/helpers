@@ -525,7 +525,9 @@ def _parallel_execute_decorator(
     # Run the workload.
     args, kwargs = task
     kwargs.update({"incremental": incremental, "num_attempts": num_attempts})
-    with htimer.TimedScope(logging.DEBUG, f"Execute '{workload_func_str}'") as ts:
+    with htimer.TimedScope(
+        logging.DEBUG, f"Execute '{workload_func_str}'"
+    ) as ts:
         try:
             if processify_func:
                 _LOG.debug("Using processify")
@@ -565,7 +567,9 @@ def _parallel_execute_decorator(
         if abort_on_error:
             _LOG.error("Aborting since abort_on_error=%s", abort_on_error)
             raise exception  # noqa: F821
-        _LOG.error("Continuing execution since abort_on_error=%s", abort_on_error)
+        _LOG.error(
+            "Continuing execution since abort_on_error=%s", abort_on_error
+        )
         res = str(exception)
     else:
         # The execution was successful.
@@ -782,6 +786,9 @@ class _S3FSStoreBackend(StoreBackendBase, StoreBackendMixin):
         super().__init__()
         self._objs: List[Any] = []
 
+    def _flush(self) -> None:
+        _ = self
+
     def clear_location(self, location: str) -> None:
         """
         Check if object exists in store.
@@ -789,6 +796,19 @@ class _S3FSStoreBackend(StoreBackendBase, StoreBackendMixin):
         if self.storage.exists(location):
             self._flush()
             self.storage.rm(location, recursive=True)
+
+    def _mkdirp(self, directory: str) -> None:
+        """
+        Create recursively a directory on the S3 store.
+        """
+        # Remove root cachedir from input directory to create as it should
+        # have already been created in the configure function.
+        if directory.startswith(self.location):
+            directory = directory.replace(self.location + "/", "")
+        current_path = self.location
+        for sub_dir in directory.split("/"):
+            current_path = os.path.join(current_path, sub_dir)
+            self.storage.mkdir(current_path)
 
     def create_location(self, location: str) -> None:
         """
@@ -830,9 +850,6 @@ class _S3FSStoreBackend(StoreBackendBase, StoreBackendMixin):
         self.compress = backend_options["compress"]
         # Memory map mode is not supported.
         self.mmap_mode = None
-
-    def _flush(self) -> None:
-        _ = self
         # TODO(gp): No need to flush for now.
         # for fd in self._objs:
         #    fd.flush(force=True)
@@ -848,19 +865,6 @@ class _S3FSStoreBackend(StoreBackendBase, StoreBackendMixin):
 
     def _move_item(self, src: str, dst: str) -> None:
         self.storage.mv(src, dst)
-
-    def _mkdirp(self, directory: str) -> None:
-        """
-        Create recursively a directory on the S3 store.
-        """
-        # Remove root cachedir from input directory to create as it should
-        # have already been created in the configure function.
-        if directory.startswith(self.location):
-            directory = directory.replace(self.location + "/", "")
-        current_path = self.location
-        for sub_dir in directory.split("/"):
-            current_path = os.path.join(current_path, sub_dir)
-            self.storage.mkdir(current_path)
 
 
 _REGISTER_S3FS_STORE = False

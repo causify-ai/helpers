@@ -65,6 +65,11 @@ def _load_credentials(conf_path: pathlib.Path) -> Tuple[str, str]:
         return access, secret
 
 
+# #############################################################################
+# TranslateAPI
+# #############################################################################
+
+
 class TranslateAPI:
     def __init__(
         self,

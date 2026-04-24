@@ -342,6 +342,20 @@ class LLMClient:
         self.provider_name = provider_name
         self.model = model
 
+    def _get_default_model(self, provider_name: str) -> str:
+        """
+        Get the default model for a provider.
+
+        :return: default model for the provider
+        """
+        if provider_name == "openai":
+            model = "gpt-4o"
+        elif provider_name == "openrouter":
+            model = "openai/gpt-4o"
+        else:
+            raise ValueError(f"Unknown provider: {self.provider_name}")
+        return model
+
     def get_default_model(self) -> Tuple[str, str]:
         """
         Get the default provider and model for the client.
@@ -397,20 +411,6 @@ class LLMClient:
             use_responses_api=use_responses_api,
             **create_kwargs,
         )
-
-    def _get_default_model(self, provider_name: str) -> str:
-        """
-        Get the default model for a provider.
-
-        :return: default model for the provider
-        """
-        if provider_name == "openai":
-            model = "gpt-4o"
-        elif provider_name == "openrouter":
-            model = "openai/gpt-4o"
-        else:
-            raise ValueError(f"Unknown provider: {self.provider_name}")
-        return model
 
 
 # #############################################################################

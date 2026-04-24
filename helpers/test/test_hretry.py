@@ -12,6 +12,11 @@ _LOG = logging.getLogger(__name__)
 EXCEPTIONS = (AttributeError, ValueError)
 
 
+# #############################################################################
+# Test_retry
+# #############################################################################
+
+
 class Test_retry(hunitest.TestCase):
     def test_retry1(self) -> None:
         """
@@ -67,6 +72,11 @@ class Test_retry(hunitest.TestCase):
 
         with self.assertRaises(IndexError):
             func()
+
+
+# #############################################################################
+# Test_retry2
+# #############################################################################
 
 
 class Test_retry2(hunitest.TestCase):

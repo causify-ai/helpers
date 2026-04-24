@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hmarkdown as hmarkdo
+import helpers.hmarkdown_slides as hmarslid
 """
 
 import logging
@@ -11,7 +11,11 @@ from typing import Callable, List, Tuple
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
 from helpers.hmarkdown_comments import process_comment_block
-from helpers.hmarkdown_headers import HeaderInfo, HeaderList, is_markdown_line_separator
+from helpers.hmarkdown_headers import (
+    HeaderInfo,
+    HeaderList,
+    is_markdown_line_separator,
+)
 
 _LOG = logging.getLogger(__name__)
 

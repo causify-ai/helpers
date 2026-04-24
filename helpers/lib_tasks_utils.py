@@ -260,6 +260,36 @@ def _to_pbcopy(txt: str, pbcopy: bool) -> None:
         print(txt)
 
 
+def _filter_existing_paths(paths_from_user: List[str]) -> List[str]:
+    """
+    Filter out the paths to non-existent files.
+
+    :param paths_from_user: paths passed by user
+    :return: existing paths
+    """
+    paths = []
+    for user_path in paths_from_user:
+        if user_path.endswith("/*"):
+            # Get the files according to the "*" pattern.
+            dir_files = glob.glob(user_path)
+            if dir_files:
+                # Check whether the pattern matches files.
+                paths.extend(dir_files)
+            else:
+                _LOG.error(
+                    (
+                        "'%s' pattern doesn't match any files: "
+                        "the directory is empty or path does not exist"
+                    ),
+                    user_path,
+                )
+        elif os.path.exists(user_path):
+            paths.append(user_path)
+        else:
+            _LOG.error("'%s' does not exist", user_path)
+    return paths
+
+
 # TODO(gp): We should factor out the meaning of the params in a string and add it
 #  to all the tasks' help.
 def _get_files_to_process(
@@ -348,36 +378,6 @@ def _get_files_to_process(
     if not files_to_process:
         _LOG.warning("No files were selected")
     return files_to_process
-
-
-def _filter_existing_paths(paths_from_user: List[str]) -> List[str]:
-    """
-    Filter out the paths to non-existent files.
-
-    :param paths_from_user: paths passed by user
-    :return: existing paths
-    """
-    paths = []
-    for user_path in paths_from_user:
-        if user_path.endswith("/*"):
-            # Get the files according to the "*" pattern.
-            dir_files = glob.glob(user_path)
-            if dir_files:
-                # Check whether the pattern matches files.
-                paths.extend(dir_files)
-            else:
-                _LOG.error(
-                    (
-                        "'%s' pattern doesn't match any files: "
-                        "the directory is empty or path does not exist"
-                    ),
-                    user_path,
-                )
-        elif os.path.exists(user_path):
-            paths.append(user_path)
-        else:
-            _LOG.error("'%s' does not exist", user_path)
-    return paths
 
 
 # Copied from helpers.datetime_ to avoid dependency from pandas.

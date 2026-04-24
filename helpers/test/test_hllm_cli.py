@@ -101,9 +101,11 @@ _TEST_CASES_PRINT_ONLY = [
     ),
 ]
 
+
 # #############################################################################
 # TestApplyLlmBase
 # #############################################################################
+
 
 class TestApplyLlmBase(_BaseCacheTest):
     """
@@ -170,9 +172,11 @@ class TestApplyLlmBase(_BaseCacheTest):
             output_content = hio.from_file(output_file)
             self.assertGreater(len(output_content), 0)
 
+
 # #############################################################################
 # Test_apply_llm_with_files1
 # #############################################################################
+
 
 @pytest.mark.skipif(
     not _RUN_REAL_LLM,
@@ -207,9 +211,11 @@ class Test_apply_llm_with_files1(TestApplyLlmBase):
         """
         self._run_test_cases(use_llm_executable=True)
 
+
 # #############################################################################
 # Test_apply_llm_with_files2
 # #############################################################################
+
 
 @pytest.mark.skipif(
     not _RUN_REAL_LLM,
@@ -284,9 +290,11 @@ class Test_apply_llm_with_files2(TestApplyLlmBase):
         """
         self._run_test_cases_print_only(use_llm_executable=True)
 
+
 # #############################################################################
 # Test_llm1
 # #############################################################################
+
 
 @pytest.mark.skipif(
     not _RUN_REAL_LLM,
@@ -467,9 +475,11 @@ def _eval_functor(input_str: str, *, delay: float = 0.0) -> str:
     _LOG.debug("-> result_str='%s'", result_str)
     return result_str
 
+
 # #############################################################################
 # Test_apply_llm_batch1
 # #############################################################################
+
 
 class Test_apply_llm_batch1(hunitest.TestCase):
     """
@@ -628,9 +638,11 @@ class Test_apply_llm_batch1(hunitest.TestCase):
             testing_functor,
         )
 
+
 # #############################################################################
 # Test_apply_llm_prompt_to_df1
 # #############################################################################
+
 
 class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     """
@@ -939,9 +951,11 @@ class Test_apply_llm_prompt_to_df1(hunitest.TestCase):
     def test5_num_batch10(self) -> None:
         self.helper_test5(batch_size=10)
 
+
 # #############################################################################
 # Test_apply_llm_prompt_to_df2
 # #############################################################################
+
 
 # TODO(gp): Convert this into a unit test for apply_llm_prompt.
 class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
@@ -1071,7 +1085,9 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
         # Load the cache data from the cache file.
         cache_file = os.path.join(input_dir, "tmp.cache_simple._llm.json")
         _LOG.debug("cache_file=%s", cache_file)
-        func_cache_data = hcacsimp._load_func_cache_data_from_file(cache_file, "json")
+        func_cache_data = hcacsimp._load_func_cache_data_from_file(
+            cache_file, "json"
+        )
         _LOG.debug("func_cache_data=%s", func_cache_data)
         hcacsimp.sanity_check_function_cache(
             func_cache_data, assert_on_empty=True
@@ -1108,9 +1124,11 @@ class Test_apply_llm_prompt_to_df2(_BaseCacheTest):
             # Reset the cache property.
             hcacsimp.set_cache_property("_llm", "abort_on_cache_miss", False)
 
+
 # #############################################################################
 # Test_apply_llm_batch_cost_comparison
 # #############################################################################
+
 
 @pytest.mark.skipif(
     not _RUN_REAL_LLM,
