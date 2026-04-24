@@ -461,7 +461,9 @@ class Test_docker_tag_push_multi_arch_prod_image1(_DockerFlowTestHelper):
 # #############################################################################
 
 
-class Test_docker_tag_push_multi_build_local_image_as_dev1(_DockerFlowTestHelper):
+class Test_docker_tag_push_multi_build_local_image_as_dev1(
+    _DockerFlowTestHelper
+):
     """
     Test tagging and pushing a multi-arch local Docker image as dev.
     """
@@ -929,7 +931,9 @@ class Test_docker_create_candidate_image1(_DockerFlowTestHelper):
         self.mock_workspace_check = self.workspace_check_patcher.start()
         self.patchers["workspace_check"] = self.workspace_check_patcher
         # Mock file existence check to handle both paths.
-        self.file_exists_patcher = umock.patch("helpers.hdbg.dassert_file_exists")
+        self.file_exists_patcher = umock.patch(
+            "helpers.hdbg.dassert_file_exists"
+        )
         self.mock_file_exists = self.file_exists_patcher.start()
         self.patchers["file_exists"] = self.file_exists_patcher
         # Mock `docker_build_prod_image()`.
@@ -1383,7 +1387,9 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
         self.to_file_patcher = umock.patch("helpers.hio.to_file")
         self.mock_to_file = self.to_file_patcher.start()
         # Mock file existence check for dassert_file_exists (changelog validation).
-        self.file_exists_patcher = umock.patch("helpers.hdbg.dassert_file_exists")
+        self.file_exists_patcher = umock.patch(
+            "helpers.hdbg.dassert_file_exists"
+        )
         self.mock_file_exists = self.file_exists_patcher.start()
         # Mock os.path.exists selectively for file staging logic.
         # Store the original function before patching
@@ -1415,7 +1421,9 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
             "%Y-%m-%d": "2025-10-23",
         }.get(fmt, "2025-10-23")
         # Mock Docker image operations.
-        self.get_image_patcher = umock.patch("helpers.lib_tasks_docker.get_image")
+        self.get_image_patcher = umock.patch(
+            "helpers.lib_tasks_docker.get_image"
+        )
         self.mock_get_image = self.get_image_patcher.start()
         self.mock_get_image.return_value = (
             "test.ecr.path/test-image:local-testuser-2.4.0"
@@ -1463,7 +1471,9 @@ class Test_docker_build_test_dev_image1(_DockerFlowTestHelper):
             container_dir_name=".",
         )
         # Verify version operations were called.
-        self.mock_bump_version.assert_called_once_with("2.3.0", bump_type="minor")
+        self.mock_bump_version.assert_called_once_with(
+            "2.3.0", bump_type="minor"
+        )
         # Verify GitHub team lookup was performed.
         self.mock_get_release_team.assert_called_once()
         self.mock_gh_get_team_member_names.assert_called_once_with("dev_system")

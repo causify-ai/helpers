@@ -102,6 +102,46 @@ def to_python_code(obj: Any) -> str:
 
 
 class Playback:
+
+    @staticmethod
+    def _get_test_file_name(file_with_code: str) -> str:
+        """
+        Construct the test file name based on the file with the code to test.
+
+        :param file_with_code: path to file with code to test.
+        :return: path to the file with generated test.
+        """
+        # Get directory and filename of the testing code.
+        dirname_with_code, filename_with_code = os.path.split(file_with_code)
+        dirname_with_test = os.path.join(dirname_with_code, "test")
+        # Construct test file.
+        test_file = os.path.join(
+            dirname_with_test, f"test_by_playback_{filename_with_code}"
+        )
+        return test_file
+
+    def _update_code_to_existing(self) -> None:
+        """
+        Get existing content from the file with test.
+
+        If the file doesn't exist - creates it.
+        """
+        # Create test file if it doesn't exist.
+        if not os.path.exists(self._test_file):
+            hio.create_enclosing_dir(self._test_file, True)
+            hio.to_file(self._test_file, "", mode="w")
+        else:
+            # Get already existing content in the test file.
+            self._code = hio.from_file(self._test_file).split("\n")
+            self._file_exists = True
+
+    def _append(self, string: str, num_tabs: int = 0) -> None:
+        """
+        Add indented line to the code.
+        """
+        num_spaces = num_tabs * 4
+        self._code.append(hprint.indent(string, num_spaces=num_spaces))
+
     def __init__(
         self,
         mode: str,
@@ -178,68 +218,6 @@ class Playback:
         # ```
         _ = exec(output)  # pylint: disable=exec-used
 
-    def run(self, func_output: Any) -> str:
-        """
-        Generate a unit test for the function.
-
-        The unit test compares the actual function output with the expected
-        `func_output`.
-
-        :param func_output: the expected function output
-        :return: the code of the unit test
-        """
-        if self._to_file and self._file_exists:
-            # Imports were added before, so skip.
-            pass
-        else:
-            # Start with imports.
-            self._add_imports()
-        # Count if we reached max number of tests generated for a single function.
-        try:
-            self._add_test_class()
-        except IndexError as exception:
-            # If there are already enough tests, not add anything.
-            _LOG.warning(str(exception))
-            return ""
-        self._add_var_definitions()
-        self._add_function_call()
-        self._check_code(func_output)
-        return self._gen_code()
-
-    # ////////////////////////////////////////////////////////////////////////////
-
-    @staticmethod
-    def _get_test_file_name(file_with_code: str) -> str:
-        """
-        Construct the test file name based on the file with the code to test.
-
-        :param file_with_code: path to file with code to test.
-        :return: path to the file with generated test.
-        """
-        # Get directory and filename of the testing code.
-        dirname_with_code, filename_with_code = os.path.split(file_with_code)
-        dirname_with_test = os.path.join(dirname_with_code, "test")
-        # Construct test file.
-        test_file = os.path.join(
-            dirname_with_test, f"test_by_playback_{filename_with_code}"
-        )
-        return test_file
-
-    def _update_code_to_existing(self) -> None:
-        """
-        Get existing content from the file with test.
-
-        If the file doesn't exist - creates it.
-        """
-        # Create test file if it doesn't exist.
-        if not os.path.exists(self._test_file):
-            hio.create_enclosing_dir(self._test_file, True)
-            hio.to_file(self._test_file, "", mode="w")
-        else:
-            # Get already existing content in the test file.
-            self._code = hio.from_file(self._test_file).split("\n")
-            self._file_exists = True
-
     def _check_code(self, func_output: Any) -> None:
         """
         Generate test code that makes an assertion.
@@ -289,32 +267,6 @@ class Playback:
             self._append(a)
         self._code.extend(["", ""])
 
-    def _add_test_class(self) -> None:
-        """
-        Add the code with the test class definition and the test method
-        definition.
-        """
-        # Add test class and test method.
-        class_string = self._get_class_name_string()
-        # Find how many times method was tested.
-        count = self._get_class_count()
-        if count >= self._max_tests:
-            # If it was already tested enough times, raise.
-            raise IndexError(f"{self._max_tests} tests already generated")
-        # Otherwise, continue to create a test code.
-        self._append(class_string)
-        self._append(f"def test{count + 1}(self) -> None:", 1)
-
-    def _get_class_count(self) -> int:
-        """
-        Find a number of already generated tests for the method.
-        """
-        class_string = self._get_class_name_string()
-        count = 0
-        for line in self._code:
-            count += line == class_string
-        return count
-
     def _get_class_name_string(self) -> str:
         """
         Get a string for the test code with the name of the test class.
@@ -331,6 +283,32 @@ class Playback:
         )
         class_string = f"class Test{test_name}(hunitest.TestCase):"
         return class_string
+
+    def _get_class_count(self) -> int:
+        """
+        Find a number of already generated tests for the method.
+        """
+        class_string = self._get_class_name_string()
+        count = 0
+        for line in self._code:
+            count += line == class_string
+        return count
+
+    def _add_test_class(self) -> None:
+        """
+        Add the code with the test class definition and the test method
+        definition.
+        """
+        # Add test class and test method.
+        class_string = self._get_class_name_string()
+        # Find how many times method was tested.
+        count = self._get_class_count()
+        if count >= self._max_tests:
+            # If it was already tested enough times, raise.
+            raise IndexError(f"{self._max_tests} tests already generated")
+        # Otherwise, continue to create a test code.
+        self._append(class_string)
+        self._append(f"def test{count + 1}(self) -> None:", 1)
 
     def _add_function_call(self) -> None:
         """
@@ -386,12 +364,33 @@ class Playback:
             hio.to_file(self._test_file, code)
         return code
 
-    def _append(self, string: str, num_tabs: int = 0) -> None:
+    def run(self, func_output: Any) -> str:
         """
-        Add indented line to the code.
+        Generate a unit test for the function.
+
+        The unit test compares the actual function output with the expected
+        `func_output`.
+
+        :param func_output: the expected function output
+        :return: the code of the unit test
         """
-        num_spaces = num_tabs * 4
-        self._code.append(hprint.indent(string, num_spaces=num_spaces))
+        if self._to_file and self._file_exists:
+            # Imports were added before, so skip.
+            pass
+        else:
+            # Start with imports.
+            self._add_imports()
+        # Count if we reached max number of tests generated for a single function.
+        try:
+            self._add_test_class()
+        except IndexError as exception:
+            # If there are already enough tests, not add anything.
+            _LOG.warning(str(exception))
+            return ""
+        self._add_var_definitions()
+        self._add_function_call()
+        self._check_code(func_output)
+        return self._gen_code()
 
 
 # #############################################################################

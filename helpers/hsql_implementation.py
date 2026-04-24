@@ -268,6 +268,29 @@ def get_engine_version(connection: DbConnection) -> str:
     return info
 
 
+# #############################################################################
+# Tables
+# #############################################################################
+
+
+def get_table_names(connection: DbConnection) -> List[str]:
+    """
+    Report the name of the tables.
+
+    E.g., tables=['entities', 'events', 'stories', 'taxonomy']
+    """
+    query = """
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_type = 'BASE TABLE'
+        AND table_schema = 'public'
+    """
+    cursor = connection.cursor()
+    cursor.execute(query)
+    tables = [x[0] for x in cursor.fetchall()]
+    return tables
+
+
 # TODO(gp): Test / fix this.
 def get_indexes(connection: DbConnection) -> pd.DataFrame:
     res = []
@@ -370,29 +393,6 @@ def remove_database(connection: DbConnection, dbname: str) -> None:
     )
 
 
-# #############################################################################
-# Tables
-# #############################################################################
-
-
-def get_table_names(connection: DbConnection) -> List[str]:
-    """
-    Report the name of the tables.
-
-    E.g., tables=['entities', 'events', 'stories', 'taxonomy']
-    """
-    query = """
-        SELECT table_name
-        FROM information_schema.tables
-        WHERE table_type = 'BASE TABLE'
-        AND table_schema = 'public'
-    """
-    cursor = connection.cursor()
-    cursor.execute(query)
-    tables = [x[0] for x in cursor.fetchall()]
-    return tables
-
-
 def get_tables_size(
     connection: DbConnection,
     only_public: bool = True,
@@ -434,6 +434,58 @@ def get_tables_size(
     if summary:
         cols = "table_name row_estimate total index toast table".split()
         df = df[cols]
+    return df
+
+
+# #############################################################################
+# Query
+# #############################################################################
+
+
+# TODO(gp): -> as_df
+def execute_query_to_df(
+    connection: DbConnection,
+    query: str,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+    use_timer: bool = False,
+    profile: bool = False,
+    verbose: bool = False,
+) -> pd.DataFrame:
+    """
+    Execute a query.
+    """
+    if False:
+        # Ask the user before executing a query.
+        print(f"query=\n{query}")
+        import helpers.hsystem as hsystem
+
+        hsystem.query_yes_no("Ok to execute?")
+    if limit is not None:
+        query += f" LIMIT {limit}"
+    if offset is not None:
+        query += f" OFFSET {offset}"
+    if profile:
+        query = "EXPLAIN ANALYZE " + query
+    if verbose:
+        _LOG.info("> %s", query)
+    # Compute.
+    if use_timer:
+        idx = htimer.dtimer_start(0, "Sql time")
+    cursor = connection.cursor()
+    try:
+        df = pd.read_sql_query(query, connection)
+    except psycop.OperationalError:
+        # Catch error and execute query directly to print error.
+        try:
+            cursor.execute(query)
+        except psycop.Error as e:
+            print(e.pgerror)
+            raise e
+    if use_timer:
+        htimer.dtimer_stop(idx)
+    if profile:
+        _LOG.info("df=%s", df)
     return df
 
 
@@ -553,58 +605,6 @@ def remove_all_tables(connection: DbConnection, cascade: bool = False) -> None:
     for table_name in table_names:
         _LOG.warning("Deleting %s ...", table_name)
         remove_table(connection, table_name, cascade)
-
-
-# #############################################################################
-# Query
-# #############################################################################
-
-
-# TODO(gp): -> as_df
-def execute_query_to_df(
-    connection: DbConnection,
-    query: str,
-    limit: Optional[int] = None,
-    offset: Optional[int] = None,
-    use_timer: bool = False,
-    profile: bool = False,
-    verbose: bool = False,
-) -> pd.DataFrame:
-    """
-    Execute a query.
-    """
-    if False:
-        # Ask the user before executing a query.
-        print(f"query=\n{query}")
-        import helpers.hsystem as hsystem
-
-        hsystem.query_yes_no("Ok to execute?")
-    if limit is not None:
-        query += f" LIMIT {limit}"
-    if offset is not None:
-        query += f" OFFSET {offset}"
-    if profile:
-        query = "EXPLAIN ANALYZE " + query
-    if verbose:
-        _LOG.info("> %s", query)
-    # Compute.
-    if use_timer:
-        idx = htimer.dtimer_start(0, "Sql time")
-    cursor = connection.cursor()
-    try:
-        df = pd.read_sql_query(query, connection)
-    except psycop.OperationalError:
-        # Catch error and execute query directly to print error.
-        try:
-            cursor.execute(query)
-        except psycop.Error as e:
-            print(e.pgerror)
-            raise e
-    if use_timer:
-        htimer.dtimer_stop(idx)
-    if profile:
-        _LOG.info("df=%s", df)
-    return df
 
 
 # #############################################################################

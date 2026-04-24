@@ -251,7 +251,9 @@ def gh_workflow_list(  # type: ignore
                 # to the `PATH` (when inside the container) so we can just use
                 # them without specifying the full path.
                 helpers_root_dir = hgit.find_helpers_root()
-                file_path = f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
+                file_path = (
+                    f"{helpers_root_dir}/dev_scripts_helpers/system_tools"
+                )
                 cmd = f"{file_path}/remove_escape_chars.py -i {log_file_name}"
                 hsystem.system(cmd)
                 print(f"# Log is in '{log_file_name}'")
@@ -686,6 +688,22 @@ def gh_publish_buildmeister_dashboard_to_s3(ctx, mark_as_latest=True):  # type: 
     hs3.copy_file_to_s3(local_html_file, s3_build_path_folder, aws_profile)
 
 
+def _gh_run_and_get_json(cmd: str) -> List[Dict[str, Any]]:
+    """
+    Run a `gh` command and remove colors when running inside a notebook.
+
+    :param cmd: `gh` command to run
+    :return: parsed JSON output of a command
+    """
+    _, _txt = hsystem.system_to_string(cmd)
+    if hsystem.is_running_in_ipynb():
+        # Remove the colors from the text.
+        _txt = re.sub(r"\x1b\[((1;)*[0-9]{2})*m", "", _txt)
+    _LOG.debug(hprint.to_str("_txt"))
+    ret: List[Dict[str, Any]] = json.loads(_txt)
+    return ret
+
+
 def gh_get_open_prs(repo: str) -> List[Dict[str, Any]]:
     """
     Return a list of open PRs.
@@ -743,6 +761,77 @@ def _get_best_workflow_run(
                 run_status = run
                 break
     return run_status
+
+
+def gh_get_workflows(
+    repo_name: str, *, sort: bool = True
+) -> List[Dict[str, str]]:
+    """
+    Get a list of workflows for a given repo.
+
+    :param repo_name: git repo name in the format "organization/repo",
+        e.g., "cryptokaizen/cmamp"
+    :param sort: if True, sort the list of workflow names
+    :return: list of workflows, e.g., [{"id": "12520125", "name": "Fast
+        tests"}, {"id": "12520124", "name": "Slow tests"}]
+    """
+    hdbg.dassert_isinstance(repo_name, str)
+    _LOG.debug(hprint.to_str("repo_name"))
+    # Get the workflow list.
+    cmd = f"gh workflow list --json id,name --repo {repo_name}"
+    workflows = _gh_run_and_get_json(cmd)
+    workflows = [
+        {"id": str(workflow["id"]), "name": workflow["name"]}
+        for workflow in workflows
+    ]
+    # sort workflow by name
+    if sort:
+        workflows = sorted(workflows, key=lambda workflow: workflow["name"])
+    return workflows
+
+
+def gh_get_workflow_details(
+    repo_name: str, workflow_id: str, fields: List[str], limit: int
+) -> List[Dict[str, Any]]:
+    """
+    Return the stats for a given workflow.
+
+    :param repo_name: git repo name in the format "organization/repo",
+        e.g., "cryptokaizen/cmamp"
+    :param workflow_id: workflow id, e.g., "12520125"
+    :param fields: list of fields to return, e.g., ["workflowName", "status"]
+    :param limit: number of runs to return
+    :return: workflow stats
+        Example output:
+        ```
+        [
+            {
+                "conclusion": "success",
+                "status": "completed",
+                "url": "https://github.com/cryptokaizen/cmamp/actions/runs/7757345960",
+                "workflowName": "Slow tests"
+            }
+        ]
+        ```
+    """
+    hdbg.dassert_isinstance(repo_name, str)
+    hdbg.dassert_isinstance(workflow_id, str)
+    hdbg.dassert_container_type(fields, List, str)
+    _LOG.debug(hprint.to_str("repo_name workflow_id fields"))
+    # Fetch the latest `limit` runs for status calculation.
+    cmd = f"""
+    gh run list \
+        --json {",".join(fields)} \
+        --repo {repo_name} \
+        --branch master \
+        --limit {limit} \
+        --workflow "{workflow_id}"
+    """
+    workflow_statuses = _gh_run_and_get_json(cmd)
+    # We still want to return the statuses even there are less runs than requested. E.g., there is a new workflow with a few runs or there is a workflow that was never run.
+    hdbg.dassert_eq(len(workflow_statuses), limit, only_warning=True)
+    _LOG.debug("workflow_statuses=\n%s", workflow_statuses)
+    return workflow_statuses
 
 
 def gh_get_details_for_all_workflows(
@@ -849,7 +938,9 @@ def gh_get_overall_build_status_for_repo(
     return overall_status
 
 
-def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str]:
+def gh_get_workflow_type_names(
+    repo_name: str, *, sort: bool = True
+) -> List[str]:
     """
     Get a list of workflow names for a given repo.
 
@@ -872,77 +963,6 @@ def gh_get_workflow_type_names(repo_name: str, *, sort: bool = True) -> List[str
         f"Found duplicate workflow names in repo '{repo_name}'",
     )
     return workflow_names
-
-
-def gh_get_workflows(
-    repo_name: str, *, sort: bool = True
-) -> List[Dict[str, str]]:
-    """
-    Get a list of workflows for a given repo.
-
-    :param repo_name: git repo name in the format "organization/repo",
-        e.g., "cryptokaizen/cmamp"
-    :param sort: if True, sort the list of workflow names
-    :return: list of workflows, e.g., [{"id": "12520125", "name": "Fast
-        tests"}, {"id": "12520124", "name": "Slow tests"}]
-    """
-    hdbg.dassert_isinstance(repo_name, str)
-    _LOG.debug(hprint.to_str("repo_name"))
-    # Get the workflow list.
-    cmd = f"gh workflow list --json id,name --repo {repo_name}"
-    workflows = _gh_run_and_get_json(cmd)
-    workflows = [
-        {"id": str(workflow["id"]), "name": workflow["name"]}
-        for workflow in workflows
-    ]
-    # sort workflow by name
-    if sort:
-        workflows = sorted(workflows, key=lambda workflow: workflow["name"])
-    return workflows
-
-
-def gh_get_workflow_details(
-    repo_name: str, workflow_id: str, fields: List[str], limit: int
-) -> List[Dict[str, Any]]:
-    """
-    Return the stats for a given workflow.
-
-    :param repo_name: git repo name in the format "organization/repo",
-        e.g., "cryptokaizen/cmamp"
-    :param workflow_id: workflow id, e.g., "12520125"
-    :param fields: list of fields to return, e.g., ["workflowName", "status"]
-    :param limit: number of runs to return
-    :return: workflow stats
-        Example output:
-        ```
-        [
-            {
-                "conclusion": "success",
-                "status": "completed",
-                "url": "https://github.com/cryptokaizen/cmamp/actions/runs/7757345960",
-                "workflowName": "Slow tests"
-            }
-        ]
-        ```
-    """
-    hdbg.dassert_isinstance(repo_name, str)
-    hdbg.dassert_isinstance(workflow_id, str)
-    hdbg.dassert_container_type(fields, List, str)
-    _LOG.debug(hprint.to_str("repo_name workflow_id fields"))
-    # Fetch the latest `limit` runs for status calculation.
-    cmd = f"""
-    gh run list \
-        --json {",".join(fields)} \
-        --repo {repo_name} \
-        --branch master \
-        --limit {limit} \
-        --workflow "{workflow_id}"
-    """
-    workflow_statuses = _gh_run_and_get_json(cmd)
-    # We still want to return the statuses even there are less runs than requested. E.g., there is a new workflow with a few runs or there is a workflow that was never run.
-    hdbg.dassert_eq(len(workflow_statuses), limit, only_warning=True)
-    _LOG.debug("workflow_statuses=\n%s", workflow_statuses)
-    return workflow_statuses
 
 
 def gh_get_org_team_names(org_name: str = "", *, sort: bool = True) -> List[str]:
@@ -1001,22 +1021,6 @@ def gh_get_team_member_names(team_slug: str, *, org_name: str = "") -> List[str]
         org_name,
     )
     return usernames
-
-
-def _gh_run_and_get_json(cmd: str) -> List[Dict[str, Any]]:
-    """
-    Run a `gh` command and remove colors when running inside a notebook.
-
-    :param cmd: `gh` command to run
-    :return: parsed JSON output of a command
-    """
-    _, _txt = hsystem.system_to_string(cmd)
-    if hsystem.is_running_in_ipynb():
-        # Remove the colors from the text.
-        _txt = re.sub(r"\x1b\[((1;)*[0-9]{2})*m", "", _txt)
-    _LOG.debug(hprint.to_str("_txt"))
-    ret: List[Dict[str, Any]] = json.loads(_txt)
-    return ret
 
 
 def make_clickable(url: str) -> str:
@@ -1106,9 +1110,9 @@ def get_workflow_run_ids(
         #   Only runs where created_at timestamp < cutoff are selected
         cutoff_seconds = older_than_days * 86400
         # Log the cutoff date for debugging.
-        cutoff_date = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
-            days=older_than_days
-        )
+        cutoff_date = datetime.datetime.now(
+            datetime.timezone.utc
+        ) - datetime.timedelta(days=older_than_days)
         _LOG.debug("Filtering runs created before: %s", cutoff_date.isoformat())
         jq_filter = (
             f".workflow_runs[] | "

@@ -201,12 +201,50 @@ def _insert_frame(
     return updated_lines
 
 
+def _remove_extra_bars(lines: List[str]) -> List[str]:
+    """
+    Remove extra/redundant comment bars that appear consecutively.
+
+    This function detects patterns where two frame border lines appear with
+    only empty lines between them, followed by a class name line. The extra
+    bar and the empty lines between them are removed.
+
+    :param lines: the lines of the file
+    :return: lines with extra bars removed
+    """
+    if len(lines) < 3:
+        return lines
+    frame_border = f"# {'#' * (MAX_LINE_LENGTH - 2)}"
+    result = []
+    i = 0
+    while i < len(lines):
+        if lines[i] == frame_border:
+            j = i + 1
+            while j < len(lines) and lines[j] == "":
+                j += 1
+            if (
+                j < len(lines)
+                and lines[j] == frame_border
+                and j + 1 < len(lines)
+                and re.match(r"#\s\w+", lines[j + 1])
+            ):
+                i = j
+            else:
+                result.append(lines[i])
+                i += 1
+        else:
+            result.append(lines[i])
+            i += 1
+    return result
+
+
 def update_class_frames(file_content: str) -> List[str]:
     """
     Update frames located above class initializations.
 
     - Old frames located above classes are removed
     - Frames with class names are added before the classes are initialized
+    - Extra/redundant bars are removed in a final cleanup step
 
     :param file_content: the contents of the Python file
     :return: the lines of the updated file
@@ -215,6 +253,7 @@ def update_class_frames(file_content: str) -> List[str]:
     updated_lines: List[str] = []
     for line_num in range(len(lines)):
         updated_lines = _insert_frame(lines, line_num, updated_lines)
+    updated_lines = _remove_extra_bars(updated_lines)
     return updated_lines
 
 

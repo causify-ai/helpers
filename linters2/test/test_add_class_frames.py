@@ -254,3 +254,94 @@ class Test_add_class_frame(hunitest.TestCase):
             pass
         """
         self.helper(content, expected)
+
+    def test7(self) -> None:
+        """
+        Test that extra/redundant bars are removed.
+
+        When consecutive frame borders appear with only empty lines between
+        them, the extra bars should be removed.
+        """
+        content = """
+        # #############################################################################
+
+
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        expected = """
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        self.helper(content, expected)
+
+    def test8(self) -> None:
+        """
+        Test that valid frames with class names are preserved.
+
+        Even if frames appear in specific patterns, frames containing
+        class names should not be removed.
+        """
+        content = """
+        # #############################################################################
+        # FirstClass
+        # #############################################################################
+
+
+        class FirstClass():
+            pass
+
+
+        # #############################################################################
+        # SecondClass
+        # #############################################################################
+
+
+        class SecondClass():
+            pass
+        """
+        expected = content
+        self.helper(content, expected)
+
+    def test9(self) -> None:
+        """
+        Test removal of multiple consecutive extra bars.
+
+        Multiple extra bars with only empty lines between them should
+        have the extra bars and empty lines removed.
+        """
+        content = """
+        # #############################################################################
+
+
+        # #############################################################################
+
+
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        expected = """
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        self.helper(content, expected)

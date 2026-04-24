@@ -1,7 +1,7 @@
 """
 Import as:
 
-import helpers.hmarkdown_tables as hmarktab
+import helpers.hmarkdown_tables as hmartabl
 """
 
 import logging

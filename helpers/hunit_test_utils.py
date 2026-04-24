@@ -398,9 +398,7 @@ class Obj_to_str_TestCase(abc.ABC):
     Test case for testing `obj_to_str()` and `obj_to_repr()`.
     """
 
-    def helper(
-        self, obj: Any, method_name: str, expected_str: str
-    ) -> None:
+    def helper(self, obj: Any, method_name: str, expected_str: str) -> None:
         """
         Common method for testing `__repr__` and `__str__`.
         """

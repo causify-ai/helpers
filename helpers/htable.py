@@ -18,12 +18,47 @@ _LOG = logging.getLogger(__name__)
 TableType = List[List[str]]
 
 
+# #############################################################################
+# Table
+# #############################################################################
+
+
 class Table:
     """
     A simple (rectangular) table without introducing a dependency from Pandas.
 
     The element in the table can be anything.
     """
+
+    @staticmethod
+    def _check_table(table: TableType, column_names: List[str]) -> None:
+        """
+        Check that the table is well-formed (e.g., the list of lists is
+        rectangular).
+        """
+        hdbg.dassert_isinstance(table, list)
+        hdbg.dassert_isinstance(column_names, list)
+        hdbg.dassert_no_duplicates(column_names)
+        # Columns have no leading or trailing spaces.
+        for column_name in column_names:
+            hdbg.dassert_eq(column_name, column_name.rstrip().lstrip())
+        # Check that the list of lists is rectangular.
+        for row in table:
+            hdbg.dassert_isinstance(table, list)
+            hdbg.dassert_eq(
+                len(row),
+                len(column_names),
+                "Invalid row='%s' for cols='%s'",
+                row,
+                column_names,
+            )
+
+    def __repr__(self) -> str:
+        res = ""
+        res += f"cols={str(self._column_names)}"
+        res += "\ntable=\n" + "\n".join(map(str, self._table))
+        res += "\n" + f"size={str(self.size())}"
+        return res
 
     def __init__(self, table: TableType, column_names: List[str]) -> None:
         # Check that the inputs are well-formed.
@@ -38,40 +73,6 @@ class Table:
             col: idx for idx, col in enumerate(self._column_names)
         }
         _LOG.debug("col_to_idx=%s", str(self._col_to_idx))
-
-    def __str__(self) -> str:
-        """
-        Return a string representing the table with columns aligned.
-        """
-        table = copy.deepcopy(self._table)
-        table.insert(0, self._column_names)
-        # Convert the cells to strings.
-        table_as_str = [[str(cell) for cell in row] for row in table]
-        # Find the length of each columns.
-        lengths = [max(map(len, col)) for col in zip(*table_as_str)]
-        _LOG.debug(hprint.to_str("lengths"))
-        # Compute format for the columns.
-        fmt = " ".join(f"{{:{x}}} |" for x in lengths)
-        _LOG.debug(hprint.to_str("fmt"))
-        # Add the row separating the column names.
-        row_sep = ["-" * length for length in lengths]
-        table.insert(1, row_sep)
-        table_as_str = [[str(cell) for cell in row] for row in table]
-        # Format rows.
-        rows_as_str = [fmt.format(*row) for row in table_as_str]
-        # Remove trailing spaces.
-        rows_as_str = [row.rstrip() for row in rows_as_str]
-        # Create string.
-        res = "\n".join(rows_as_str)
-        # res += "\nsize=" + str(self.size())
-        return res
-
-    def __repr__(self) -> str:
-        res = ""
-        res += f"cols={str(self._column_names)}"
-        res += "\ntable=\n" + "\n".join(map(str, self._table))
-        res += "\n" + f"size={str(self.size())}"
-        return res
 
     @classmethod
     def from_text(cls, cols: List[str], txt: str, delimiter: str) -> "Table":
@@ -151,25 +152,29 @@ class Table:
         # Build and return the new table.
         return Table(new_table, new_column_names)
 
-    @staticmethod
-    def _check_table(table: TableType, column_names: List[str]) -> None:
+    def __str__(self) -> str:
         """
-        Check that the table is well-formed (e.g., the list of lists is
-        rectangular).
+        Return a string representing the table with columns aligned.
         """
-        hdbg.dassert_isinstance(table, list)
-        hdbg.dassert_isinstance(column_names, list)
-        hdbg.dassert_no_duplicates(column_names)
-        # Columns have no leading or trailing spaces.
-        for column_name in column_names:
-            hdbg.dassert_eq(column_name, column_name.rstrip().lstrip())
-        # Check that the list of lists is rectangular.
-        for row in table:
-            hdbg.dassert_isinstance(table, list)
-            hdbg.dassert_eq(
-                len(row),
-                len(column_names),
-                "Invalid row='%s' for cols='%s'",
-                row,
-                column_names,
-            )
+        table = copy.deepcopy(self._table)
+        table.insert(0, self._column_names)
+        # Convert the cells to strings.
+        table_as_str = [[str(cell) for cell in row] for row in table]
+        # Find the length of each columns.
+        lengths = [max(map(len, col)) for col in zip(*table_as_str)]
+        _LOG.debug(hprint.to_str("lengths"))
+        # Compute format for the columns.
+        fmt = " ".join(f"{{:{x}}} |" for x in lengths)
+        _LOG.debug(hprint.to_str("fmt"))
+        # Add the row separating the column names.
+        row_sep = ["-" * length for length in lengths]
+        table.insert(1, row_sep)
+        table_as_str = [[str(cell) for cell in row] for row in table]
+        # Format rows.
+        rows_as_str = [fmt.format(*row) for row in table_as_str]
+        # Remove trailing spaces.
+        rows_as_str = [row.rstrip() for row in rows_as_str]
+        # Create string.
+        res = "\n".join(rows_as_str)
+        # res += "\nsize=" + str(self.size())
+        return res

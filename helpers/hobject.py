@@ -372,38 +372,6 @@ class PrintableMixin:
     derived classes.
     """
 
-    def __str__(
-        self,
-        *,
-        attr_names_to_skip: Optional[List[str]] = None,
-    ) -> str:
-        """
-        Used for creating output for end user and need to be readable.
-        """
-        txt = obj_to_str(
-            self,
-            print_type=True,
-            private_mode="all",
-            attr_names_to_skip=attr_names_to_skip,
-        )
-        return txt
-
-    def __repr__(
-        self,
-        *,
-        attr_names_to_skip: Optional[List[str]] = None,
-    ) -> str:
-        """
-        Used for debugging and development and need to be unambiguous.
-        """
-        txt = obj_to_repr(
-            self,
-            print_type=True,
-            private_mode="all",
-            attr_names_to_skip=attr_names_to_skip,
-        )
-        return txt
-
     @staticmethod
     @abc.abstractmethod
     def get_config_attributes() -> List[str]:
@@ -466,6 +434,38 @@ class PrintableMixin:
         txt.append(hprint.to_object_repr(self) + ":")
         txt.append(hprint.indent("\n".join(ret)))
         txt = "\n".join(txt)
+        return txt
+
+    def __repr__(
+        self,
+        *,
+        attr_names_to_skip: Optional[List[str]] = None,
+    ) -> str:
+        """
+        Used for debugging and development and need to be unambiguous.
+        """
+        txt = obj_to_repr(
+            self,
+            print_type=True,
+            private_mode="all",
+            attr_names_to_skip=attr_names_to_skip,
+        )
+        return txt
+
+    def __str__(
+        self,
+        *,
+        attr_names_to_skip: Optional[List[str]] = None,
+    ) -> str:
+        """
+        Used for creating output for end user and need to be readable.
+        """
+        txt = obj_to_str(
+            self,
+            print_type=True,
+            private_mode="all",
+            attr_names_to_skip=attr_names_to_skip,
+        )
         return txt
 
 

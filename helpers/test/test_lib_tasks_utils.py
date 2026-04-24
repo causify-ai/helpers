@@ -14,6 +14,11 @@ _LOG = logging.getLogger(__name__)
 # pylint: disable=protected-access
 
 
+# #############################################################################
+# Test_get_files_to_process1
+# #############################################################################
+
+
 class Test_get_files_to_process1(hunitest.TestCase):
     """
     We can't check the outcome so we just execute the code.
@@ -266,6 +271,11 @@ class Test_get_files_to_process1(hunitest.TestCase):
         self.assertEqual(files, [__file__])
 
 
+# #############################################################################
+
+
+# #############################################################################
+# TestLibTasksRemoveSpaces1
 # #############################################################################
 
 
