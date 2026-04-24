@@ -111,5 +111,7 @@ When you need to add new functions or code to an existing utils file correspondi
 - Always sync before editing: `uvx jupytext --sync notebook.py`
 - Always sync after editing: `uvx jupytext --sync notebook.py`
 - Never edit .ipynb files directly when a paired .py file exists
-- See @.claude/skills/notebook.working_with_jupyter/SKILL.md for detailed Jupytext workflow
-- See @.claude/skills/notebook.lint_numbered_cells/SKILL.md for function naming conventions that match cell numbers
+
+# Important
+
+- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`

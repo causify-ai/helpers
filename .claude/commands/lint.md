@@ -1,11 +1,14 @@
-Given a file passed on the command line, you must improve its appearance without
-changing its behavior
+- Given a file passed on the command line, you must improve its appearance
+  without changing its behavior
 
-- For a file containing Python code apply the rules from
-  `@.claude/skills/coding.format/SKILL.md`
+# Rules
 
-- For a file storing unit tests (i.e., whose base name starts with `test_.py`)
-  apply the rules from `@.claude/skills/testing.format/SKILL.md`
+- For Python file (e.g., with a `.py` extension) apply the rules from
+  `.claude/skills/coding.format/SKILL.md`
+
+- For a file storing unit tests (i.e., whose base name starts with
+  `test/test_<file>.py`) apply the rules from
+  `.claude/skills/testing.format/SKILL.md`
 
 - For a markdown or text file apply the rules in
   `@.claude/skills/markdown.format/SKILL.md`
@@ -14,4 +17,4 @@ changing its behavior
   rules in `@.claude/skills/blog.format/SKILL.md`
 
 - For Jupyter notebook apply the rules from
-  `@.claude/skills/notebook.format/SKILL.md` and then run jupytext sync
+  `@.claude/skills/notebook.format/SKILL.md` and then run Jupytext sync

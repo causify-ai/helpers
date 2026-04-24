@@ -4,7 +4,7 @@ description: Lint a Jupyter notebook and ensure cells are numbered consecutively
 
 - Given a Jupyter notebook passed on the command line, you must improve its
   appearance without changing its behavior using the rules from
-  @.claude/skills/notebook.format/SKILL.md
+  `@.claude/skills/notebook.rules.md`
 
 # Workflow
 
@@ -14,11 +14,6 @@ description: Lint a Jupyter notebook and ensure cells are numbered consecutively
 4. Rename all functions in code cells and the `*_utils.py` file to match the new
    headers
 5. Sync the paired `.py` file with Jupytext
-
-# Use Jupytext
-
-- Remember to modify only the Python file paired with Jupytext to the notebook
-  and then sync them with Jupytext
 
 # Rename Markdown Cells
 

@@ -25,8 +25,15 @@ class Test_filter_files_by_type(hunitest.TestCase):
         """
         Default filters — auto-detects extensions with defaults.
         """
-        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md", "qux.txt"])
-        file_paths = [paths["foo.py"], paths["bar.ipynb"], paths["baz.md"], paths["qux.txt"]]
+        paths = self._create_files(
+            ["foo.py", "bar.ipynb", "baz.md", "qux.txt"]
+        )
+        file_paths = [
+            paths["foo.py"],
+            paths["bar.ipynb"],
+            paths["baz.md"],
+            paths["qux.txt"],
+        ]
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
@@ -42,8 +49,14 @@ class Test_filter_files_by_type(hunitest.TestCase):
         """
         py=True filter — only .py files included.
         """
-        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
-        file_paths = [paths["foo.py"], paths["bar.ipynb"], paths["baz.md"]]
+        paths = self._create_files(
+            ["foo.py", "bar.ipynb", "baz.md"]
+        )
+        file_paths = [
+            paths["foo.py"],
+            paths["bar.ipynb"],
+            paths["baz.md"],
+        ]
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
@@ -59,8 +72,14 @@ class Test_filter_files_by_type(hunitest.TestCase):
         """
         ipynb=True filter — only .ipynb files included.
         """
-        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
-        file_paths = [paths["foo.py"], paths["bar.ipynb"], paths["baz.md"]]
+        paths = self._create_files(
+            ["foo.py", "bar.ipynb", "baz.md"]
+        )
+        file_paths = [
+            paths["foo.py"],
+            paths["bar.ipynb"],
+            paths["baz.md"],
+        ]
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
             keep_python_files=False,
@@ -76,8 +95,14 @@ class Test_filter_files_by_type(hunitest.TestCase):
         """
         md=True filter — only .md files included.
         """
-        paths = self._create_files(["foo.py", "bar.ipynb", "baz.md"])
-        file_paths = [paths["foo.py"], paths["bar.ipynb"], paths["baz.md"]]
+        paths = self._create_files(
+            ["foo.py", "bar.ipynb", "baz.md"]
+        )
+        file_paths = [
+            paths["foo.py"],
+            paths["bar.ipynb"],
+            paths["baz.md"],
+        ]
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
             keep_python_files=False,
@@ -97,7 +122,9 @@ class Test_filter_files_by_type(hunitest.TestCase):
         standalone_py = os.path.join(scratch_dir, "standalone.py")
         paired_py = os.path.join(scratch_dir, "paired.py")
         paired_ipynb = os.path.join(scratch_dir, "paired.ipynb")
-        notebook_ipynb = os.path.join(scratch_dir, "notebook.ipynb")
+        notebook_ipynb = os.path.join(
+            scratch_dir, "notebook.ipynb"
+        )
         hio.to_file(standalone_py, "")
         hio.to_file(paired_py, "")
         hio.to_file(paired_ipynb, "")
@@ -137,7 +164,9 @@ class Test_run_linting_actions(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 3)
-        calls = [call[0][0] for call in mock_system.call_args_list]
+        calls = [
+            call[0][0] for call in mock_system.call_args_list
+        ]
         self.assertIn("pre-commit run --files", calls[0])
         self.assertIn("normalize_import.py", calls[1])
         self.assertIn("add_class_frames.py", calls[2])
@@ -161,12 +190,13 @@ class Test_run_linting_actions(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 1)
-        self.assertIn("pre-commit run --files", mock_system.call_args_list[0][0][0])
+        call_cmd = mock_system.call_args_list[0][0][0]
+        self.assertIn("pre-commit run --files", call_cmd)
 
     @umock.patch("helpers.hsystem.system")
     def test3(self, mock_system: umock.MagicMock) -> None:
         """
-        actions=["normalize_import", "add_class_frames"] — exactly 2 calls.
+        actions=["normalize_import", "add_class_frames"] — 2 calls.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -180,7 +210,9 @@ class Test_run_linting_actions(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 2)
-        calls = [call[0][0] for call in mock_system.call_args_list]
+        calls = [
+            call[0][0] for call in mock_system.call_args_list
+        ]
         self.assertIn("normalize_import.py", calls[0])
         self.assertIn("add_class_frames.py", calls[1])
 
@@ -246,7 +278,7 @@ class Test_lint_python_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test2(self, mock_system: umock.MagicMock) -> None:
         """
-        Two .py files, default actions — 3 calls with filenames in commands.
+        Two .py files, default actions — 3 calls with filenames.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -260,7 +292,9 @@ class Test_lint_python_files(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 3)
-        calls = [call[0][0] for call in mock_system.call_args_list]
+        calls = [
+            call[0][0] for call in mock_system.call_args_list
+        ]
         for call_cmd in calls:
             self.assertIn("foo.py", call_cmd)
             self.assertIn("bar.py", call_cmd)
@@ -282,7 +316,8 @@ class Test_lint_python_files(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 1)
-        self.assertIn("normalize_import.py", mock_system.call_args_list[0][0][0])
+        call_cmd = mock_system.call_args_list[0][0][0]
+        self.assertIn("normalize_import.py", call_cmd)
 
 
 class Test_lint_jupyter_files(hunitest.TestCase):
@@ -311,7 +346,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test2(self, mock_system: umock.MagicMock) -> None:
         """
-        Two notebooks, default actions — 3 shared calls (no jupytext by default).
+        Two notebooks, default actions — 3 shared calls.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -325,7 +360,9 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 3)
-        calls = [call[0][0] for call in mock_system.call_args_list]
+        calls = [
+            call[0][0] for call in mock_system.call_args_list
+        ]
         self.assertIn("pre-commit run --files", calls[0])
         self.assertIn("normalize_import.py", calls[1])
         self.assertIn("add_class_frames.py", calls[2])
@@ -333,7 +370,7 @@ class Test_lint_jupyter_files(hunitest.TestCase):
     @umock.patch("helpers.hsystem.system")
     def test3(self, mock_system: umock.MagicMock) -> None:
         """
-        actions=["sync_jupytext"] — 0 shared calls + 2 jupytext calls.
+        actions=["sync_jupytext"] — 2 jupytext calls.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -347,14 +384,16 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 2)
-        calls = [call[0][0] for call in mock_system.call_args_list]
+        calls = [
+            call[0][0] for call in mock_system.call_args_list
+        ]
         self.assertIn("jupytext --sync foo.ipynb", calls[0])
         self.assertIn("jupytext --sync bar.ipynb", calls[1])
 
     @umock.patch("helpers.hsystem.system")
     def test4(self, mock_system: umock.MagicMock) -> None:
         """
-        actions=["pre-commit"] — 1 shared call, 0 jupytext calls.
+        actions=["pre-commit"] — 1 shared call.
         """
         # Prepare inputs.
         mock_system.return_value = 0
@@ -368,7 +407,8 @@ class Test_lint_jupyter_files(hunitest.TestCase):
         # Check outputs.
         self.assertEqual(ret, 0)
         self.assertEqual(mock_system.call_count, 1)
-        self.assertIn("pre-commit run --files", mock_system.call_args_list[0][0][0])
+        call_cmd = mock_system.call_args_list[0][0][0]
+        self.assertIn("pre-commit run --files", call_cmd)
 
 
 class Test_lint_markdown_files(hunitest.TestCase):
@@ -378,7 +418,11 @@ class Test_lint_markdown_files(hunitest.TestCase):
 
     @umock.patch("helpers.hsystem.system")
     @umock.patch("helpers.hsystem.find_file_in_repo")
-    def test1(self, mock_find_file: umock.MagicMock, mock_system: umock.MagicMock) -> None:
+    def test1(
+        self,
+        mock_find_file: umock.MagicMock,
+        mock_system: umock.MagicMock,
+    ) -> None:
         """
         Empty file list — returns 0 immediately, no calls.
         """
@@ -397,7 +441,11 @@ class Test_lint_markdown_files(hunitest.TestCase):
 
     @umock.patch("helpers.hsystem.system")
     @umock.patch("helpers.hsystem.find_file_in_repo")
-    def test2(self, mock_find_file: umock.MagicMock, mock_system: umock.MagicMock) -> None:
+    def test2(
+        self,
+        mock_find_file: umock.MagicMock,
+        mock_system: umock.MagicMock,
+    ) -> None:
         """
         Two .md files — 1 call to lint_txt.py with filenames.
         """

@@ -72,3 +72,7 @@ description: Implement Jupyter notebook from a script description
   fit in which case it must change so that the xlim or ylim doubles or it's
   reduced in half, so that the xlim / ylim can be stable when changing the
   widget controls
+
+# Important
+
+- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`
