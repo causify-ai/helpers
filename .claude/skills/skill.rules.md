@@ -68,13 +68,26 @@
   - `SKILL.md`: Main skill instruction file
   - Supporting directories or files (e.g., templates, examples)
 
+## Skill Rule File
+- For the passed skill file `<SKILL_FILE>` in the format
+  ```
+  .claude/skills/<topic>.<action>/SKILL.md
+  ```
+  there should be a corresponding rule file `<RULE_FILE>`
+  ```
+  .claude/skills/<topic>.rules.md
+  ```
+  - E.g., for a skill file `.claude/skills/coding.fix_comments/SKILL.md` the
+    corresponding rule file is `.claude/skills/coding.rules.md`
+
 ## Naming Conventions
 
-- Directory naming: `<topic>.<action>` or `<topic>_<descriptor>`
-  - `coding.format`: Format code for the coding topic
-  - `testing.format`: Format tests for the testing topic
-  - `notebook.interactive_cell.format`: Format interactive cells in notebooks
-  - `demo.create_script`: Create a demo script
+- Directory naming: `<topic>.<action>`
+  - E.g.,
+    - `coding.format`: Format code for the coding topic
+    - `testing.format`: Format tests for the testing topic
+    - `notebook.interactive_cell.format`: Format interactive cells in notebooks
+    - `demo.create_script`: Create a demo script
 
 - Topics should be singular and lowercase
 
@@ -92,6 +105,26 @@ Skills should be organized with clear sections:
 - Keep sections focused and actionable
 
 # Writing Conventions
+
+## Writing Rules
+- Use imperative language ("Do X")
+- Avoid vague words (properly, nicely, appropriately, etc.)
+- Prefer measurable criteria
+- Keep formatting consistent across skills
+
+## Add examples
+- Skills should contain positive and negative examples
+  ````
+  - **Good**
+    ```
+    ...
+    ```
+  - **Bad**
+    ```
+    ...
+    ```
+  ````
+- Use realistic, concrete cases
 
 ## File References
 
@@ -191,15 +224,30 @@ Skills should be organized with clear sections:
 
 ## Rules vs Skills
 
-- **Create/update `.rules.md`** when documenting:
+- Create/update `<RULE_FILE>` `<topic>.rules.md` when documenting:
   - Conventions and standards for a topic
   - Principles that apply across multiple related tasks
   - Decision criteria for formatting or style
 
-- **Create `.SKILL.md`** when documenting:
+- Create/update `<SKILL_FILE>` `<topic>.<action>/SKILL.md` when documenting:
   - A specific transformation or task
   - Step-by-step instructions for a particular action
   - Implementation guidance for achieving a specific output
+
+## Keep Rules organized in the Rule File
+- In the `<RULE_FILE>` `<topic>.rules.md` keep group related rules (with header
+  of level 2 ##) into logical sections (with header of level 1 #)
+  ```
+  # <Group 1>
+
+  ## <Rule 1.1>
+
+  ## <Rule 1.2>
+
+  ...
+
+  # <Group 2>
+  ```
 
 # Quality Checklist
 

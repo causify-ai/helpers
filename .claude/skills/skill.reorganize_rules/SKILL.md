@@ -1,22 +1,12 @@
 ---
-description: Reorganize rules in 
+description: Reorganize rules in a agent skill rule file
 model: haiku
 ---
 
-- Given a file `<topic>.rules.md` passed by the user
+- Read `.claude/skills/skill.rules.md`
+
+- Given a file `<RULE_FILE>` `<topic>.rules.md` passed by the user
   - Read its content
-  - Reorganize this file by grouping related topics into logical sections into
-    (with header of level 1 #)
-    ```
-    # <Topic 1>
-
-    ## <Topic 1.1>
-
-    ## <Topic 1.2>
-
-    ...
-
-    # <Topic 2>
-    ```
-  - Do not change the text but only move it in the file
+  - Keep the rules organized as per `## Keep Rules organized in the Rule File`
+  - Do not change rules in the text but only move them in the `<RULE_FILE>` file
   - Save the result in the same file

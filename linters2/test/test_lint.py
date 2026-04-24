@@ -97,19 +97,21 @@ class Test_filter_files_by_type(hunitest.TestCase):
         standalone_py = os.path.join(scratch_dir, "standalone.py")
         paired_py = os.path.join(scratch_dir, "paired.py")
         paired_ipynb = os.path.join(scratch_dir, "paired.ipynb")
-        hio.to_file(standalone_py, "# standalone")
-        hio.to_file(paired_py, "# paired")
-        hio.to_file(paired_ipynb, "{}")
-        file_paths = [standalone_py, paired_py, paired_ipynb]
+        notebook_ipynb = os.path.join(scratch_dir, "notebook.ipynb")
+        hio.to_file(standalone_py, "")
+        hio.to_file(paired_py, "")
+        hio.to_file(paired_ipynb, "")
+        hio.to_file(notebook_ipynb, "")
+        file_paths = [standalone_py, paired_py, notebook_ipynb]
         py_files, ipynb_files, md_files = llint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
             keep_jupyter_files=True,
             keep_markdown_files=False,
-            skip_dassert_exists=False,
+            skip_dassert_exists=True,
         )
         self.assertEqual(py_files, [standalone_py])
-        self.assertEqual(ipynb_files, [paired_ipynb])
+        self.assertEqual(ipynb_files, [notebook_ipynb])
         self.assertEqual(md_files, [])
 
 

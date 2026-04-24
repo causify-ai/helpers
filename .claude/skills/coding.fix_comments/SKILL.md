@@ -10,13 +10,16 @@ Given the passed Python file
   - **Bad**:
   ```python
   def calculate_total(items):
-      """Calculate something."""
+      """
+      Calculate something.
+      """
       return sum(item.price for item in items if item.active)
   ```
   - **Good**
   ```python
   def calculate_total(items):
-      """Calculate sum of prices for all active items.
+      """
+      Calculate sum of prices for all active items.
       
       :param items: List of Item objects with price and active attributes
       :return: Total price as float
