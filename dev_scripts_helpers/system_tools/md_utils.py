@@ -404,10 +404,9 @@ def _get_description(file_path: str) -> str:
     :param file_path: path to the markdown file
     :return: description string, or empty string if not found
     """
-    try:
-        content = hio.from_file(file_path)
-    except Exception:
+    if not os.path.exists(file_path):
         return ""
+    content = hio.from_file(file_path)
     lines = content.splitlines()
     # Check for YAML front matter (starts with ---).
     if not lines or lines[0].strip() != "---":

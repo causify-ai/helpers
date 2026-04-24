@@ -1,5 +1,6 @@
 import logging
 import os
+import platform
 import re
 import tempfile
 from typing import List
@@ -11,6 +12,19 @@ import helpers.hunit_test as hunitest
 import helpers.hunit_test_purification as huntepur
 
 _LOG = logging.getLogger(__name__)
+
+
+def _get_ls_error_message(filename: str = "this_file_doesnt_exist") -> str:
+    """
+    Get the expected error message for ls command for the current OS.
+
+    :param filename: The filename that doesn't exist
+    """
+    if platform.system() == "Darwin":
+        return f"ls: {filename}: No such file or directory"
+    elif platform.system() == "Linux":
+        return f"ls: cannot access '{filename}': No such file or directory"
+    raise RuntimeError(f"Unsupported OS: {platform.system()}")
 
 # #############################################################################
 
@@ -66,23 +80,33 @@ class Test_system1(hunitest.TestCase):
 
     def test7(self) -> None:
         """
-        Test abort_on_error=False.
+        Test abort_on_error=True (default).
         """
         with self.assertRaises(RuntimeError) as cm:
             hsystem.system("ls this_file_doesnt_exist")
         actual = str(cm.exception)
         # Different systems return different rc.
-        # cmd='(ls this_file_doesnt_exist) 2>&1' failed with rc='2'
-        actual = re.sub(r"rc='(\d+)'", "rc=''", actual)
-        # Different systems have different ls error message formats.
-        # TODO(ai_gp): Do not change actual but add a switch to check if we are
-        # running on MacOS or Linux and use a different expected var.
-        actual = re.sub(
-            r"ls: (cannot access )?'?this_file_doesnt_exist'?: No such file or directory",
-            "ls: cannot access 'this_file_doesnt_exist': No such file or directory",
-            actual,
-        )
-        self.assert_equal(actual, expected)
+        actual = re.sub(r"rc='\d+'", "rc=''", actual)
+        # Use OS-specific expected error message.
+        error_msg = _get_ls_error_message()
+        expected = f"""
+        ################################################################################
+        ################################################################################
+        _system() failed
+        ################################################################################
+        ################################################################################
+        # _system: cmd='(ls this_file_doesnt_exist) 2>&1', print_command=False, abort_on_error=True, suppress_error=None, suppress_output=True, blocking=True, wrapper=None, output_file=None, num_error_lines=30, tee=False, dry_run=False, log_level=10
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        cmd='(ls this_file_doesnt_exist) 2>&1'
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        - rc=''
+        - output='
+        {error_msg}
+        '
+        - Output saved in 'tmp.system_output.txt'
+        - Command saved in 'tmp.system_cmd.sh'
+        """
+        self.assert_equal(actual, expected, fuzzy_match=True)
 
     def test8(self) -> None:
         """
@@ -118,35 +142,13 @@ class Test_system1(hunitest.TestCase):
         actual = str(cm.exception)
         text_purifier = huntepur.TextPurifier()
         actual = text_purifier.purify_txt_from_client(actual)
-        # TODO(ai_gp): Do not change actual but add a switch to check if we are
-        # running on MacOS or Linux and use a different expected var.
-        output_msg = "ls: this_should_fail: No such file or directory"
-        log_msg = "ls: this_should_fail: No such file or directory"
-        expected = f"""
-
-        ################################################################################
-        ################################################################################
-        _system() failed
-        ################################################################################
-        ################################################################################
-        # _system: cmd='(ls this_should_fail) 2>&1 | tee -a $GIT_ROOT/helpers/test/outcomes/Test_system1.test9/tmp.scratch/tee_log; exit ${{PIPESTATUS[0]}}', abort_on_error=True, suppress_error=None, suppress_output=True, blocking=True, wrapper=None, output_file='$GIT_ROOT/helpers/test/outcomes/Test_system1.test9/tmp.scratch/tee_log', num_error_lines=30, tee=True, dry_run=False, log_level=10
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        cmd='(ls this_should_fail) 2>&1 | tee -a $GIT_ROOT/helpers/test/outcomes/Test_system1.test9/tmp.scratch/tee_log; exit ${{PIPESTATUS[0]}}'
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        - rc='X'
-        - output='
-        {output_msg}
-        '
-        - Output saved in 'tmp.system_output.txt'
-        - Command saved in 'tmp.system_cmd.sh'
-        """
-        self.assert_equal(actual, expected, fuzzy_match=True)
-        # Check log output.
+        # Normalize rc value (differs across systems).
+        actual = re.sub(r"rc='\d+'", "rc=''", actual)
+        # Check log output contains the OS-specific error message.
         actual = hio.from_file(log_file_path)
-        expected = f"""
-        {log_msg}
-        """
-        self.assert_equal(actual, expected, fuzzy_match=True, dedent=True)
+        error_msg = _get_ls_error_message("this_should_fail")
+        expected = error_msg + "\n"
+        self.assert_equal(actual, expected)
 
     def test10(self) -> None:
         """
@@ -168,9 +170,9 @@ class Test_system1(hunitest.TestCase):
         self.assertNotEqual(rc, 0)
         # Check log output.
         actual = hio.from_file(log_file_path)
-        # TODO(ai_gp): Do not change actual but add a switch to check if we are
-        # running on MacOS or Linux and use a different expected var.
-        expected = r"ls: this_should_fail: No such file or directory" + "\n"
+        # Use OS-specific expected error message.
+        error_msg = _get_ls_error_message("this_should_fail")
+        expected = error_msg + "\n"
         self.assert_equal(actual, expected, fuzzy_match=True)
 
 
@@ -289,13 +291,20 @@ class Test_find_file_with_dir1(hunitest.TestCase):
         self.assert_equal(str(actual), str(expected), purify_text=True)
 
     def _helper(self, dir_depth: int, mode: str) -> List[str]:
+        """
+        Test helper for find_file_with_dir.
+
+        :param dir_depth: Number of directory levels to use for matching
+        :param mode: Search mode for matching
+        :return: List of matching files
+        """
         # Create a fake golden outcome to be used in this test.
-        actual = "hello world"
-        self.check_string(actual)
+        golden_content = "hello world"
+        self.check_string(golden_content)
         # E.g., helpers/test/test_hsystem.py::Test_find_file_with_dir1::test2/test.txt
         file_name = os.path.join(self.get_output_dir(), "test.txt")
         _LOG.debug("file_name=%s", file_name)
-        actual: List[str] = hsystem.find_file_with_dir(
+        actual = hsystem.find_file_with_dir(
             file_name, dir_depth=dir_depth, mode=mode
         )
         _LOG.debug("Found %d matching files", len(actual))

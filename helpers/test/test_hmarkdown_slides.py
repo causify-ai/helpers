@@ -23,6 +23,11 @@ class Test_process_slides(hunitest.TestCase):
     ) -> str:
         """
         Example adding a `@` to the beginning of each line of the slide.
+
+        :param slide_text: List of lines in the slide
+        :param slide_title: Title of the slide
+        :param slide_line_number: Line number of the slide
+        :return: Transformed text
         """
         _LOG.debug("input=\n%s", "\n".join(slide_text))
         # Transform.
@@ -31,6 +36,12 @@ class Test_process_slides(hunitest.TestCase):
         return text_out
 
     def helper(self, text: str, expected: str) -> None:
+        """
+        Test helper for process_slides.
+
+        :param text: Input text with slides
+        :param expected: Expected output after transformation
+        """
         # Prepare inputs.
         text = hprint.dedent(text, remove_lead_trail_empty_lines_=False)
         # Process.
@@ -172,9 +183,16 @@ class Test_process_slides(hunitest.TestCase):
 
 
 class Test_convert_slide_to_markdown(hunitest.TestCase):
+    """
+    Test converting slide bullets to markdown headers.
+    """
+
     def helper(self, input_text, expected_text) -> None:
         """
-        Test converting slide bullets to markdown headers.
+        Test helper for convert_slide_to_markdown.
+
+        :param input_text: Input text with slide bullets
+        :param expected_text: Expected output with markdown headers
         """
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
@@ -264,9 +282,16 @@ class Test_convert_slide_to_markdown(hunitest.TestCase):
 
 
 class Test_convert_markdown_to_slide(hunitest.TestCase):
+    """
+    Test converting markdown headers to slide bullets.
+    """
+
     def helper(self, input_text: str, expected_text: str) -> None:
         """
-        Test converting markdown headers to slide bullets.
+        Test helper for convert_markdown_to_slide.
+
+        :param input_text: Input text with markdown headers
+        :param expected_text: Expected output with slide bullets
         """
         # Prepare inputs.
         lines = hprint.dedent(input_text).strip().split("\n")
