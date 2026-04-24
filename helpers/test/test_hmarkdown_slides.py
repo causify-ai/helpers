@@ -15,7 +15,7 @@ _LOG = logging.getLogger(__name__)
 
 class Test_process_slides(hunitest.TestCase):
     @staticmethod
-    def transform(slide_text: List[str]) -> str:
+    def transform(slide_text: List[str], *, slide_title: str = "", slide_line_number: int = 0) -> str:
         """
         Example adding a `@` to the beginning of each line of the slide.
         """

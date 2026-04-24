@@ -388,7 +388,7 @@ class Test__get_unique_values_stats(hunitest.TestCase):
             "col3": [1.0, 1.0, 1.0, 1.0, 1.0],
         }
         expected = """
-        num_unique unique [%]
+              num_unique unique [%]
         col1           3       60.0
         col2           4       80.0
         col3           1       20.0
@@ -404,7 +404,7 @@ class Test__get_unique_values_stats(hunitest.TestCase):
             "col2": ["a", "b", "a", None, "c"],
         }
         expected = """
-        num_unique unique [%]
+              num_unique unique [%]
         col1           2       40.0
         col2           3       60.0
         """
@@ -419,7 +419,7 @@ class Test__get_unique_values_stats(hunitest.TestCase):
             "col2": ["x", "x", "x", "x"],
         }
         expected = """
-        num_unique unique [%]
+              num_unique unique [%]
         col1           1       25.0
         col2           1       25.0
         """
