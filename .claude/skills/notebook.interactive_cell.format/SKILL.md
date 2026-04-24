@@ -2,10 +2,6 @@
 description: Format rules for interactive cells in Jupyter notebooks
 ---
 
-# Important: Follow Conventions
-
-- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`
-
 # Interactive Widgets Conventions
 
 - Interactive widgets must always have:
@@ -55,3 +51,7 @@ description: Format rules for interactive cells in Jupyter notebooks
     conclusions about the relationship between price discount and amount.
     sold for different business sizes
   ```
+
+# Important: Follow Conventions
+
+- Always follow the conventions and guidelines in `@.claude/skills/notebook.rules.md`
