@@ -6,19 +6,19 @@ description: Explain a lecture slide
 - Your role is specified in `@.claude/skills/role.md`
 
 # Goal
-- Given a file `<file>` storing lecture slides in the format described in
+- Given a file `<FILE>` storing lecture slides in the format described in
   `@.claude/skills/slide.rules.md`
 - Print the name of the file as:
   ```
-  File: <file>
+  File: <FILE>
   ```
 
-- The user select a slide `<slide>` by:
+- The user select a slide `<SLIDE>` by:
   - Specifying a slide by its title; or
   - Tagging a slide is tagged with `TODO(ai):`
 - Print the title of the slide:
   ```
-  Slide title: <title>
+  Slide title: <TITLE>
   ```
 
 - Explain the slide in bullet points using the conventions in

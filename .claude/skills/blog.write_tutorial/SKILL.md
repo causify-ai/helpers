@@ -4,7 +4,7 @@ description: Write a short technical tutorial on a given topic following markdow
 
 - You are a technical writer.
 - Write a short tutorial about the topic passed from the user
-- Read and follow @.claude/skills/markdown.format/SKILL.md
+- Read and follow `@.claude/skills/markdown.format/SKILL.md`
 
 - Focus on Linux and MacOS builds
 

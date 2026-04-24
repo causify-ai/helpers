@@ -31,8 +31,8 @@ description: Identify and refactor duplicated code blocks into shared functions 
 
 ## Output Format
 
-- If the user uses the option --dry_run then report the output as below
-  instead of executing the refactorings
+- If the user uses the option `--dry_run` then report the output as below instead
+  of executing the refactorings
 
 - For each proposed refactoring, produce:
   - Proposed function interface

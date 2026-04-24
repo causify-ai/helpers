@@ -6,14 +6,14 @@ description: Add a tutorial for lecture slides
 - Your role is specified in `@.claude/skills/role.md`
 
 # Step 1: Read file
-- Read the passed file `<file>`
+- Read the passed file `<FILE>`
 
 # Step 2: Come Up With Libraries
 - Come up with 2 or 3 Python library that can be used to implement in Python
   some of the concepts and analysis explained in the slides
 - Ignore general purpose libraries (such as pandas, numpy), but focus on specific
-  ones that are relevant and specific of the content in `<file>`
-- Annotate at the beginning of `<file>` the related packages
+  ones that are relevant and specific of the content in `<FILE>`
+- Annotate at the beginning of `<FILE>` the related packages
   ```
   // Packages:
   // - CausalNex
@@ -23,7 +23,7 @@ description: Add a tutorial for lecture slides
   ```
 
 # Step 3: Add Library Descriptions
-- Add a high level description of the tutorial at the beginning of `<file>`
+- Add a high level description of the tutorial at the beginning of `<FILE>`
   ```
   // Tutorial outline:
   // - Load data and explore conditional dependencies
@@ -37,7 +37,7 @@ description: Add a tutorial for lecture slides
 # Step 4: Suggest Tutorial Steps For Each Slide
 - Suggest steps for the tutorial that can help the understanding of the content
   in each slide
-- Add comments in the `<file>` describing what can be done with the packages from
+- Add comments in the `<FILE>` describing what can be done with the packages from
   step 2 to 
   - Use bullet points like
     ```
