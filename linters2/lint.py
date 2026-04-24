@@ -36,12 +36,19 @@ Examples:
 
 # Run add_class_frames only on Python files
 > lint.py --modified --py --action add_class_frames
+
+# Run pyright type-checker on modified Python files (including paired jupytext)
+> lint.py --modified --py --action pyright
+
+# Run coverage for test files corresponding to modified Python files
+> lint.py --modified --py --action coverage
 """
 
 import argparse
 import logging
+import os
 import sys
-from typing import List
+from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -50,10 +57,33 @@ import linters2.linter_utils as llinutil
 
 _LOG = logging.getLogger(__name__)
 
+_PYRIGHT_OPTIONS = ""
+
 
 # #############################################################################
 # Linting Functions
 # #############################################################################
+
+
+# TODO(ai_gp): Move this to ./helpers/hunit_test_utils.py and add unit tests.
+def _get_test_file_for_source(source_file: str) -> Optional[str]:
+	"""
+	Map a source Python file to its corresponding test file.
+
+	E.g., helpers/hdbg.py -> helpers/test/test_hdbg.py
+
+	:param source_file: Path to a source Python file
+	:return: Path to corresponding test file if it exists and source is not
+	         already a test file; None otherwise
+	"""
+	if llinutil.is_test_code(source_file):
+		return None
+	dir_name = os.path.dirname(source_file)
+	base_name = os.path.basename(source_file)
+	test_file = os.path.join(dir_name, "test", f"test_{base_name}")
+	if os.path.exists(test_file):
+		return test_file
+	return None
 
 
 def _run_linting_actions(
@@ -70,8 +100,11 @@ def _run_linting_actions(
     :param actions: list of actions to perform; if None, all are performed
     :return: combined return code (OR of all command return codes)
     """
+    # TODO(ai_gp): Add a DEFAULT_ACTIONS like in other files.
     if actions is None:
         actions = ["pre-commit", "normalize_import", "add_class_frames"]
+    # TODO(ai_gp): Remove the processed actions and then assert if there is one
+    # not processed, see code in other files.
     ret = 0
     if "pre-commit" in actions:
         ret |= hsystem.system(
@@ -94,7 +127,54 @@ def _run_linting_actions(
             abort_on_error=abort_on_error,
             suppress_output=False,
         )
+    if "pyright" in actions:
+        ret |= hsystem.system(
+            f"pyright {_PYRIGHT_OPTIONS} {files_str}",
+            print_command=True,
+            abort_on_error=abort_on_error,
+            suppress_output=False,
+        )
     return ret
+
+
+def _run_coverage(
+    file_paths: List[str],
+    *,
+    abort_on_error: bool = True,
+) -> int:
+	"""
+	Run pytest coverage for test files corresponding to source Python files.
+
+	Maps each source file to its corresponding test file and runs:
+	> pytest --cov=. --cov-branch --cov-report term-missing --cov-report html
+
+	:param file_paths: Source Python files to collect coverage for
+	:param abort_on_error: whether to abort on first error
+	:return: return code from pytest
+	"""
+	if not file_paths:
+		return 0
+	_LOG.info("Collecting coverage for %d Python files", len(file_paths))
+	test_files = []
+	for file_path in file_paths:
+		test_file = _get_test_file_for_source(file_path)
+		if test_file:
+			test_files.append(test_file)
+			_LOG.info("Source: %s -> Test: %s", file_path, test_file)
+		else:
+			_LOG.warning("No test file found for: %s", file_path)
+	if not test_files:
+		_LOG.warning("No test files found for any of the source files")
+		return 0
+	test_files_str = " ".join(test_files)
+	cmd = f"pytest --cov=. --cov-branch --cov-report term-missing --cov-report html {test_files_str}",
+	ret = hsystem.system(
+        cmd,
+		print_command=True,
+		abort_on_error=abort_on_error,
+		suppress_output=False,
+	)
+	return ret
 
 
 def _lint_python(
@@ -108,8 +188,9 @@ def _lint_python(
 
     :param file_paths: Python files to lint
     :param abort_on_error: whether to abort on first error
-    :param actions: list of actions to perform (pre-commit, normalize_import, add_class_frames);
-                   if None, all actions are performed
+    :param actions: list of actions to perform (pre-commit, normalize_import,
+    add_class_frames, pyright, coverage)
+        - If None, all actions except coverage are performed
     :return: combined return code (OR of all command return codes)
     """
     if not file_paths:
@@ -117,12 +198,19 @@ def _lint_python(
     if actions is None:
         actions = ["pre-commit", "normalize_import", "add_class_frames"]
     _LOG.info("Linting %d Python files with actions: %s", len(file_paths), actions)
+    ret = 0
     files_str = " ".join(file_paths)
-    return _run_linting_actions(
+    ret |= _run_linting_actions(
         files_str,
         abort_on_error=abort_on_error,
         actions=actions,
     )
+    if "coverage" in actions:
+        ret |= _run_coverage(
+            file_paths,
+            abort_on_error=abort_on_error,
+        )
+    return ret
 
 
 def _lint_jupyter(
@@ -195,6 +283,7 @@ def _filter_files_by_type(
     py: bool,
     ipynb: bool,
     md: bool,
+    include_paired_jupytext: bool = False,
 ) -> tuple:
     """
     Filter files by type (Python, Jupyter, Markdown).
@@ -206,6 +295,9 @@ def _filter_files_by_type(
     :param py: include Python files
     :param ipynb: include Jupyter notebooks
     :param md: include Markdown files
+    :param include_paired_jupytext:
+        - if True, include .py files that are paired with Jupyter notebooks
+          (normally excluded)
     :return: tuple of (python_files, jupyter_files, markdown_files)
     """
     python_files = []
@@ -217,7 +309,8 @@ def _filter_files_by_type(
             if llinutil.is_ipynb_file(f):
                 jupyter_files.append(f)
             elif llinutil.is_py_file(f):
-                if not llinutil.is_paired_jupytext_file(f):
+                if not (not include_paired_jupytext and
+                        llinutil.is_paired_jupytext_file(f)):
                     python_files.append(f)
             elif f.endswith(".md"):
                 markdown_files.append(f)
@@ -225,7 +318,8 @@ def _filter_files_by_type(
         # Filters specified; include only requested types.
         for f in file_paths:
             if py and llinutil.is_py_file(f):
-                if not llinutil.is_paired_jupytext_file(f):
+                if not (not include_paired_jupytext and
+                        llinutil.is_paired_jupytext_file(f)):
                     python_files.append(f)
             if ipynb and llinutil.is_ipynb_file(f):
                 jupyter_files.append(f)
@@ -303,9 +397,10 @@ def _parse() -> argparse.ArgumentParser:
         "--action",
         nargs="+",
         type=str,
-        choices=["pre-commit", "normalize_import", "add_class_frames", "sync_jupytext"],
+        # TODO(ai_gp): Use a constant with valid actions like other files.
+        choices=["pre-commit", "normalize_import", "add_class_frames",
+                 "sync_jupytext", "pyright", "coverage"],
         help="Specific actions to perform (default: all applicable actions). "
-             "For Jupyter files, sync_jupytext is available; for Python files, only the first three.",
     )
     parser.add_argument(
         "--skip_files",
@@ -366,12 +461,20 @@ def _main(args: argparse.Namespace) -> int:
         branch=args.branch,
     )
     _LOG.info("Found %d files for linting", len(file_paths))
+    # Determine if we should include paired jupytext files.
+    # TODO(ai_gp): This should be done to filter only in pyright and coverage
+    # since these actions work only on Python files.
+    include_paired_jupytext = (
+        args.action is not None
+        and ("pyright" in args.action or "coverage" in args.action)
+    )
     # Filter by file type.
     python_files, jupyter_files, markdown_files = _filter_files_by_type(
         file_paths,
         py=args.py,
         ipynb=args.ipynb,
         md=args.md,
+        include_paired_jupytext=include_paired_jupytext,
     )
     all_files = python_files + jupyter_files + markdown_files
     _LOG.info(

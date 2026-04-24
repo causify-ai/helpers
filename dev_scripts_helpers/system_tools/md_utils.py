@@ -28,7 +28,7 @@ _LOG = logging.getLogger(__name__)
 # #############################################################################
 
 
-_VALID_TYPES = ["research", "blog", "story", "skill"]
+_VALID_TYPES = ["research", "blog", "story", "skill", "rules"]
 _VALID_ACTIONS = [
     "list",
     "edit",
@@ -60,12 +60,9 @@ def _match_prefix(value: str, valid_options: List[str]) -> str:
     hdbg.dassert_eq(
         len(matches),
         1,
-        "Expected exactly one match for prefix",
+        "Prefix '%s' must match exactly one option, found %d",
         value,
-        "in",
-        valid_options,
-        "got",
-        matches,
+        len(matches),
     )
     return matches[0]
 
@@ -133,6 +130,8 @@ def _get_directory(type_: str) -> str:
         result = result.strip()
         hdbg.dassert_ne(result, "", "Could not find 'short_stories' directory")
         target_dir = result
+    elif type_ == "rules":
+        target_dir = os.path.join(repo_root, ".claude", "skills")
     else:
         hdbg.dfatal("Unknown type '%s'" % type_)
     return os.path.abspath(target_dir)
@@ -191,6 +190,8 @@ def _get_template(type_: str, name: str) -> str:
         return f"# {name}\n\n<Research notes here>\n"
     elif type_ == "story":
         return ""
+    elif type_ == "rules":
+        return ""
     hdbg.dfatal("Unknown type", type_)
 
 
@@ -204,18 +205,26 @@ def _list_markdown_files(
     """
     List markdown files in a directory, optionally filtered by pattern.
 
-    For skills, 'list' mode shows skill names only, 'full_path' mode shows
-    full paths. For other types, both modes show full paths. Pattern matching
-    matches against skill names for skills, and filenames for other types.
+    For skills and rules
+    - 'list' mode shows names only
+    - 'full_path' mode shows full paths
+
+    For other types, both modes show full paths.
+
+    Pattern matching matches against skill/rule names and filenames.
 
     :param dir_: the directory to search
-    :param type_: the type (research, blog, story, skill)
+    :param type_: the type (research, blog, story, skill, rules)
     :param pattern: optional filter pattern
-    :param full_path: if True, show full paths; if False, show skill names for
-        skills
+    :param full_path:
+        - If True, show full paths
+        - If False, show names for skills and rules
     """
-    hdbg.dassert_dir_exists(dir_)
-    files = glob.glob(os.path.join(dir_, "**/*.md"), recursive=True)
+    hdbg.dassert_dir_exists(dir_, "Directory must exist to list files")
+    if type_ == "rules":
+        files = glob.glob(os.path.join(dir_, "*.rules.md"))
+    else:
+        files = glob.glob(os.path.join(dir_, "**/*.md"), recursive=True)
     files.sort()
     if pattern:
         pattern_lower = pattern.lower()
@@ -224,6 +233,13 @@ def _list_markdown_files(
                 f
                 for f in files
                 if pattern_lower in os.path.basename(os.path.dirname(f)).lower()
+            ]
+        elif type_ == "rules":
+            files = [
+                f
+                for f in files
+                if pattern_lower
+                in os.path.basename(f).replace(".rules.md", "").lower()
             ]
         else:
             files = [
@@ -235,6 +251,9 @@ def _list_markdown_files(
                 if type_ == "skill":
                     skill_name = os.path.basename(os.path.dirname(f))
                     print(skill_name)
+                elif type_ == "rules":
+                    rule_name = os.path.basename(f).replace(".rules.md", "")
+                    print(rule_name)
                 else:
                     basename = os.path.basename(f)
                     print(basename)
@@ -248,29 +267,24 @@ def _find_file_for_edit(type_: str, dir_: str, name: str) -> str:
     """
     Find or create a file for editing based on type and name.
 
-    :param type_: the type (research, blog, story, skill)
+    :param type_: the type (research, blog, story, skill, rules)
     :param dir_: the base directory for this type
     :param name: the name/pattern to find or create
     :return: absolute path to the file
     """
     if type_ == "skill":
-        # Check if there are multiple matching skill directories.
         candidates = glob.glob(os.path.join(dir_, f"*{name}*", "SKILL.md"))
         if candidates:
-            # Check for exact match first.
             exact_match = os.path.join(dir_, name, "SKILL.md")
             if os.path.exists(exact_match):
                 return exact_match
-            # If multiple non-exact matches, fail.
             if len(candidates) > 1:
                 msg = f"Multiple skills match pattern '{name}':\n"
                 for candidate in candidates:
                     skill_name = os.path.basename(os.path.dirname(candidate))
                     msg += f"  - {skill_name}\n"
                 hdbg.dfatal(msg)
-            # Single non-exact match found.
             return candidates[0]
-        # Create new skill with exact name.
         skill_dir = os.path.join(dir_, name)
         file_path = os.path.join(skill_dir, "SKILL.md")
         hio.create_dir(skill_dir, incremental=True)
@@ -306,6 +320,26 @@ def _find_file_for_edit(type_: str, dir_: str, name: str) -> str:
             template = _get_template(type_, name)
             hio.to_file(file_path, template)
             _LOG.info("Created new story: %s", file_path)
+        return file_path
+    elif type_ == "rules":
+        candidates = glob.glob(os.path.join(dir_, f"*{name}*.rules.md"))
+        if candidates:
+            exact_match = os.path.join(dir_, f"{name}.rules.md")
+            if os.path.exists(exact_match):
+                return exact_match
+            if len(candidates) > 1:
+                msg = f"Multiple rules match pattern '{name}':\n"
+                for candidate in candidates:
+                    rule_name = os.path.basename(candidate).replace(
+                        ".rules.md", ""
+                    )
+                    msg += f"  - {rule_name}\n"
+                hdbg.dfatal(msg)
+            return candidates[0]
+        file_path = os.path.join(dir_, f"{name}.rules.md")
+        template = _get_template(type_, name)
+        hio.to_file(file_path, template)
+        _LOG.info("Created new rule: %s", file_path)
         return file_path
     hdbg.dfatal("Unknown type", type_)
 
@@ -386,12 +420,15 @@ def _action_describe(
 
     Like list, but also prints the description line from each file.
 
-    :param type_: the type (research, blog, story, skill)
+    :param type_: the type (research, blog, story, skill, rules)
     :param dir_: the directory to list
     :param pattern: optional filter pattern
     """
-    hdbg.dassert_dir_exists(dir_)
-    files = glob.glob(os.path.join(dir_, "**/*.md"), recursive=True)
+    hdbg.dassert_dir_exists(dir_, "Directory must exist to describe files")
+    if type_ == "rules":
+        files = glob.glob(os.path.join(dir_, "*.rules.md"))
+    else:
+        files = glob.glob(os.path.join(dir_, "**/*.md"), recursive=True)
     files.sort()
     if pattern:
         pattern_lower = pattern.lower()
@@ -400,6 +437,13 @@ def _action_describe(
                 f
                 for f in files
                 if pattern_lower in os.path.basename(os.path.dirname(f)).lower()
+            ]
+        elif type_ == "rules":
+            files = [
+                f
+                for f in files
+                if pattern_lower
+                in os.path.basename(f).replace(".rules.md", "").lower()
             ]
         else:
             files = [
@@ -411,11 +455,13 @@ def _action_describe(
         for f in files:
             if type_ == "skill":
                 name = os.path.basename(os.path.dirname(f))
+            elif type_ == "rules":
+                name = os.path.basename(f).replace(".rules.md", "")
             else:
                 name = os.path.basename(f)
             desc = _get_description(f)
             entries.append((name, desc))
-        # Align descriptions with dots.
+        # Print names and descriptions aligned with dots for readability.
         max_name_len = max(len(name) for name, _ in entries)
         min_dots = 4
         for name, desc in entries:
@@ -446,12 +492,15 @@ def _action_types(
     For example, skill names like 'blog.add_figures' and 'blog.create_tldr'
     will both produce prefix 'blog'. Equivalent to cut -d'.' -f1 | sort -u.
 
-    :param type_: the type (research, blog, story, skill)
+    :param type_: the type (research, blog, story, skill, rules)
     :param dir_: the directory to list
     :param pattern: optional filter pattern
     """
-    hdbg.dassert_dir_exists(dir_)
-    files = glob.glob(os.path.join(dir_, "**/*.md"), recursive=True)
+    hdbg.dassert_dir_exists(dir_, "Directory must exist to extract type prefixes")
+    if type_ == "rules":
+        files = glob.glob(os.path.join(dir_, "*.rules.md"))
+    else:
+        files = glob.glob(os.path.join(dir_, "**/*.md"), recursive=True)
     if pattern:
         pattern_lower = pattern.lower()
         if type_ == "skill":
@@ -459,6 +508,13 @@ def _action_types(
                 f
                 for f in files
                 if pattern_lower in os.path.basename(os.path.dirname(f)).lower()
+            ]
+        elif type_ == "rules":
+            files = [
+                f
+                for f in files
+                if pattern_lower
+                in os.path.basename(f).replace(".rules.md", "").lower()
             ]
         else:
             files = [
@@ -469,15 +525,14 @@ def _action_types(
     for f in files:
         if type_ == "skill":
             name = os.path.basename(os.path.dirname(f))
+        elif type_ == "rules":
+            name = os.path.basename(f).replace(".rules.md", "")
         else:
             name = os.path.basename(f)
-        # Remove .md extension if present.
         if name.endswith(".md"):
             name = name[:-3]
-        # Extract prefix before the dot.
         prefix = name.split(".")[0]
         prefixes.add(prefix)
-    # Print sorted prefixes.
     if prefixes:
         for prefix in sorted(prefixes):
             print(prefix)
@@ -489,31 +544,50 @@ def _action_copy(
     type_: str, dir_: str, source_name: str, dest_name: str
 ) -> None:
     """
-    Copy a directory (for skills) or file (for other types) to a new location.
+    Copy a directory (for skills) or file (for rules) to a new location.
 
-    For skills, copies the entire skill directory. For other types, copies
-    the file.
+    For skills, copies the entire skill directory. For rules, copies the file.
 
-    :param type_: the type (research, blog, story, skill)
+    :param type_: the type (skill, rules)
     :param dir_: the base directory for this type
     :param source_name: name of source to copy
     :param dest_name: name of destination
     """
-    if type_ != "skill":
-        hdbg.dfatal("Copy action is only supported for skills")
-    source_dir = os.path.join(dir_, source_name)
-    dest_dir = os.path.join(dir_, dest_name)
-    hdbg.dassert_dir_exists(
-        source_dir,
-        f"Source skill '{source_name}' not found at {source_dir}",
-    )
-    hdbg.dassert(
-        not os.path.exists(dest_dir),
-        f"Destination skill '{dest_name}' already exists at {dest_dir}",
-    )
-    # Copy the directory recursively.
-    shutil.copytree(source_dir, dest_dir)
-    _LOG.info("Copied skill from '%s' to '%s'", source_name, dest_name)
-    # TODO(ai_gp): Use _LOG.info
-    print(f"Copied skill from '{source_name}' to '{dest_name}'")
-    print(f"New skill location: {dest_dir}")
+    if type_ == "skill":
+        source_dir = os.path.join(dir_, source_name)
+        dest_dir = os.path.join(dir_, dest_name)
+        hdbg.dassert_dir_exists(
+            source_dir,
+            f"Source skill '{source_name}' not found at {source_dir}",
+        )
+        hdbg.dassert(
+            not os.path.exists(dest_dir),
+            "Destination skill '%s' already exists at %s",
+            dest_name,
+            dest_dir,
+        )
+        shutil.copytree(source_dir, dest_dir)
+        _LOG.info("Copied skill from '%s' to '%s'", source_name, dest_name)
+        print(f"Copied skill from '{source_name}' to '{dest_name}'")
+        print(f"New skill location: {dest_dir}")
+    elif type_ == "rules":
+        source_file = os.path.join(dir_, f"{source_name}.rules.md")
+        dest_file = os.path.join(dir_, f"{dest_name}.rules.md")
+        hdbg.dassert(
+            os.path.isfile(source_file),
+            "Source rule '%s' not found at %s",
+            source_name,
+            source_file,
+        )
+        hdbg.dassert(
+            not os.path.exists(dest_file),
+            "Destination rule '%s' already exists at %s",
+            dest_name,
+            dest_file,
+        )
+        shutil.copy2(source_file, dest_file)
+        _LOG.info("Copied rule from '%s' to '%s'", source_name, dest_name)
+        print(f"Copied rule from '{source_name}' to '{dest_name}'")
+        print(f"New rule location: {dest_file}")
+    else:
+        hdbg.dfatal("Copy action is only supported for skills and rules")

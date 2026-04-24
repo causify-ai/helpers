@@ -1,6 +1,3 @@
-Implement one step at the time asking user for confirmation, before moving to the
-next step
-
 # Write code
 
 - Write a Python script XYZ ... that ...
