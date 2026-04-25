@@ -16,6 +16,23 @@
 
 - Use `*` to mark which parameters in functions should be default parameters
 
+## Type Hints: Use `typing` Module Style
+
+- Use type hints from the `typing` module instead of newer PEP 604 syntax
+- Use `Tuple`, `Dict`, `Optional` instead of `tuple`, `dict`, `|` union syntax
+  - **Good**: Use `typing` module
+    ```python
+    from typing import Dict, Tuple, Optional
+    
+    def process(data: Dict[str, str], item: Optional[str]) -> Tuple[str, int]:
+        ...
+    ```
+  - **Bad**: Use newer PEP 604 syntax
+    ```python
+    def process(data: dict[str, str], item: str | None) -> tuple[str, int]:
+        ...
+    ```
+
 ## Mark Private Functions
 
 - If you create a new function which it is used only in the file make it private
