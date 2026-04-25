@@ -230,6 +230,9 @@ def _list_markdown_files(
         - If True, show full paths
         - If False, show names for skills and rules
     """
+    if not dir_:
+        _LOG.info("Directory not available for type '%s'", type_)
+        return
     hdbg.dassert_dir_exists(dir_, "Directory must exist to list files")
     if type_ == "rules":
         files = glob.glob(os.path.join(dir_, "*.rules.md"))
@@ -433,6 +436,9 @@ def _action_describe(
     :param dir_: the directory to list
     :param pattern: optional filter pattern
     """
+    if not dir_:
+        _LOG.info("Directory not available for type '%s'", type_)
+        return
     hdbg.dassert_dir_exists(dir_, "Directory must exist to describe files")
     if type_ == "rules":
         files = glob.glob(os.path.join(dir_, "*.rules.md"))
@@ -505,6 +511,9 @@ def _action_types(
     :param dir_: the directory to list
     :param pattern: optional filter pattern
     """
+    if not dir_:
+        _LOG.info("Directory not available for type '%s'", type_)
+        return
     hdbg.dassert_dir_exists(
         dir_, "Directory must exist to extract type prefixes"
     )
