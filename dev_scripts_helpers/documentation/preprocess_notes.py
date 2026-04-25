@@ -315,6 +315,7 @@ def _transform_lines(
         if to_execute:
             out = hmarkdo.format_md_links_to_latex_format(out)
         # Colorize bullets in the slides.
+
         def _colorize_bullets(
             slide_text: List[str],
             *,

@@ -1,13 +1,9 @@
-import logging
 import os
 import unittest.mock as umock
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import linters2.lint as lilint
-import linters2.linter_utils as llinutil
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -43,7 +39,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
             paths["baz.md"],
             paths["qux.txt"],
         ]
-        py_files, ipynb_files, md_files = llinutil.filter_files_by_type(
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
             keep_jupyter_files=True,
@@ -64,7 +60,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        py_files, ipynb_files, md_files = llinutil.filter_files_by_type(
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
             keep_jupyter_files=False,
@@ -85,7 +81,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        py_files, ipynb_files, md_files = llinutil.filter_files_by_type(
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
             keep_python_files=False,
             keep_jupyter_files=True,
@@ -106,7 +102,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
             paths["bar.ipynb"],
             paths["baz.md"],
         ]
-        py_files, ipynb_files, md_files = llinutil.filter_files_by_type(
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
             keep_python_files=False,
             keep_jupyter_files=False,
@@ -131,7 +127,7 @@ class Test_filter_files_by_type(hunitest.TestCase):
         hio.to_file(paired_ipynb, "")
         hio.to_file(notebook_ipynb, "")
         file_paths = [standalone_py, paired_py, notebook_ipynb]
-        py_files, ipynb_files, md_files = llinutil.filter_files_by_type(
+        py_files, ipynb_files, md_files = lilint._filter_files_by_type(
             file_paths,
             keep_python_files=True,
             keep_jupyter_files=True,

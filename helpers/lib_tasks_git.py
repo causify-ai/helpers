@@ -8,6 +8,8 @@ import logging
 import os
 import re
 import stat
+import subprocess
+import time
 from typing import Any, List
 
 from invoke import task
@@ -1452,6 +1454,42 @@ def git_backup(
     # Display location for easy access.
     abs_zip_path = os.path.abspath(zip_file_path)
     print(f"\nZip file created at: {abs_zip_path}")
+
+
+@task
+def gh_watch(ctx, *, interval=60):  # type: ignore
+    """
+    Watch GitHub workflow status with periodic updates.
+
+    Runs `invoke gh_workflow_list` every N seconds using the `watch` command.
+    If running in tmux, temporarily renames the window to "*GH_WATCH*" for
+    visibility and restores it on exit.
+
+    :param interval: Update interval in seconds
+    """
+    hlitauti.report_task()
+    # Check if running inside tmux and save original window name.
+    old_pane_title = None
+    if os.environ.get("TMUX"):
+        _LOG.info("Running in tmux, saving window name")
+        _, old_pane_title = hsystem.system_to_one_line(
+            "tmux display-message -p '#W'"
+        )
+        _LOG.info("Original window name: %s", old_pane_title)
+        # Rename window to indicate we're watching workflows.
+        hsystem.system("tmux rename-window '*GH_WATCH*'")
+    try:
+        # Watch workflows by repeatedly running gh_workflow_list.
+        while True:
+            # Clear screen before displaying updated workflow status.
+            subprocess.run("clear; invoke gh_workflow_list", shell=True)
+            _LOG.info("Sleeping for %d seconds before next update", interval)
+            time.sleep(interval)
+    finally:
+        # Restore original tmux window name if it was changed.
+        if old_pane_title is not None:
+            _LOG.info("Restoring window name: %s", old_pane_title)
+            hsystem.system(f"tmux rename-window '{old_pane_title}'")
 
 
 # TODO(gp): Add the following scripts:
