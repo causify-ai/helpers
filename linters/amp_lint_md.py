@@ -12,6 +12,7 @@ import linters.amp_lint_md as lamlimd
 import argparse
 import logging
 import os
+import re
 from typing import List
 
 import helpers.hdbg as hdbg
@@ -29,9 +30,45 @@ def _check_readme_is_capitalized(file_name: str) -> str:
     """
     msg = ""
     basename = os.path.basename(file_name)
-
     if basename.lower() == "readme.md" and basename != "README.md":
         msg = f"{file_name}:1: All README files should be named README.md"
+    return msg
+
+
+def _remove_inline_code(line: str) -> str:
+    """
+    Remove inline code spans from a Markdown line.
+
+    :param line: Markdown line to process
+    :return: line with inline code spans removed
+    """
+    line = re.sub(r"`[^`]*`", "", line)
+    return line
+
+
+def _check_repo_name_has_backticks(
+    file_name: str, line_num: int, line: str
+) -> str:
+    """
+    Issue a warning if a repo name is not enclosed in backticks.
+
+    Repo names in docs use the `//repo` syntax and should be enclosed in
+    Markdown code spans, e.g., `//helpers`.
+
+    :param file_name: name of the file to check
+    :param line_num: line number being checked
+    :param line: Markdown line to check
+    :return: warning message, or an empty string
+    """
+    msg = ""
+    line = _remove_inline_code(line)
+    match = re.search(r"(?<!:)//[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*", line)
+    if match:
+        repo_name = match.group(0)
+        msg = (
+            f"{file_name}:{line_num}: Repo name {repo_name} should be "
+            "enclosed in backticks"
+        )
     return msg
 
 
@@ -74,6 +111,12 @@ class _LintMarkdown(liaction.Action):
         msg = _check_readme_is_capitalized(file_name)
         if msg:
             output.append(msg)
+        # Check that repo names are enclosed in backticks.
+        with open(file_name, encoding="utf-8") as file_obj:
+            for i, line in enumerate(file_obj, start=1):
+                msg = _check_repo_name_has_backticks(file_name, i, line)
+                if msg:
+                    output.append(msg)
         # Remove cruft.
         output = [
             line
