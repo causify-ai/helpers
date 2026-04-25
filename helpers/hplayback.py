@@ -102,8 +102,6 @@ def to_python_code(obj: Any) -> str:
 
 
 class Playback:
-    # ////////////////////////////////////////////////////////////////////////////
-
     @staticmethod
     def _get_test_file_name(file_with_code: str) -> str:
         """

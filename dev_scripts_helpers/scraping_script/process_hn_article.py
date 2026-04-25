@@ -327,7 +327,9 @@ def _download_article_content(url: str) -> Optional[str]:
     html = response.text
     # Try to extract text from <p> tags using BeautifulSoup.
     text = None
+    # TODO(ai_gp): Move this import out.
     from bs4 import BeautifulSoup
+
     soup = BeautifulSoup(html, "html.parser")
     paragraphs = soup.find_all("p")
     if paragraphs:
@@ -405,7 +407,7 @@ def _create_hn_json(hn_url: str, *, output_dir: str = ".") -> Optional[str]:
     article_title = None
     article_content = None
     article_timestamp = None
-    if article_url and not "news.ycombinator.com" in article_url:
+    if article_url and "news.ycombinator.com" not in article_url:
         _LOG.info("Downloading article from: %s", article_url)
         article_content = _download_article_content(article_url)
         # For external articles, we'd need to scrape the page for title/timestamp.

@@ -6,7 +6,7 @@ import helpers.hmarkdown_slides as hmarslid
 
 import logging
 import re
-from typing import Callable, List, Tuple
+from typing import Any, Callable, List, Tuple
 
 import helpers.hdbg as hdbg
 import helpers.hprint as hprint
@@ -62,7 +62,7 @@ def extract_slides_from_markdown(
 
 
 # TODO(gp): Consider passing and returning List[str]
-def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str:
+def process_slides(txt: str, transform: Callable[..., Any]) -> str:
     """
     Process markdown text by applying a transform function to each slide.
 
@@ -86,6 +86,8 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
     in_skip_block = False
     # True inside a slide.
     in_slide = False
+    # Track line number where slide started.
+    slide_start_line = 0
     lines = txt.splitlines()
     for i, line in enumerate(lines):
         _LOG.debug("%s:line='%s'", i, line)
@@ -105,7 +107,12 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
             if slide_txt:
                 _LOG.debug("# Transform slide")
                 # Transform the slide.
-                transformed_slide = transform(slide_txt)
+                slide_title = slide_txt[0]
+                transformed_slide = transform(
+                    slide_txt,
+                    slide_title=slide_title,
+                    slide_line_number=slide_start_line,
+                )
                 hdbg.dassert_isinstance(transformed_slide, list)
                 transformed_txt.extend(transformed_slide)
             else:
@@ -113,6 +120,7 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
             # Start a new slide.
             slide_txt = []
             slide_txt.append(line)
+            slide_start_line = i
             in_slide = True
         elif in_slide:
             _LOG.debug("# Accumulate slide")
@@ -125,11 +133,14 @@ def process_slides(txt: str, transform: Callable[[List[str]], List[str]]) -> str
         hdbg.dassert(in_slide)
         in_slide = False
         # Transform the slide.
-        transformed_slide = transform(slide_txt)
+        slide_title = slide_txt[0]
+        transformed_slide = transform(
+            slide_txt,
+            slide_title=slide_title,
+            slide_line_number=slide_start_line,
+        )
         hdbg.dassert_isinstance(transformed_slide, list)
         transformed_txt.extend(transformed_slide)
-        slide_txt = []
-        slide_txt.append(line)
     #
     hdbg.dassert(
         not in_skip_block,

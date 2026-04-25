@@ -138,7 +138,9 @@ def _crossref_query(doi: str) -> Dict[str, Any]:
     exceptions=(requests.RequestException,),
     retry_delay_in_sec=RETRY_DELAY_SEC,
 )
-def _unpaywall_query(doi: str, *, email: str = "user@example.com") -> Dict[str, Any]:
+def _unpaywall_query(
+    doi: str, *, email: str = "user@example.com"
+) -> Dict[str, Any]:
     """
     Query Unpaywall API for open access PDF URL.
 
@@ -165,9 +167,11 @@ def _resolve_doi_metadata(doi: str) -> Dict[str, Any]:
     # Query CrossRef for metadata.
     cr_data = _crossref_query(doi)
     message = cr_data.get("message", {})
-    title = message.get("title", [""])[0] if isinstance(
-        message.get("title"), list
-    ) else message.get("title", "")
+    title = (
+        message.get("title", [""])[0]
+        if isinstance(message.get("title"), list)
+        else message.get("title", "")
+    )
     authors = []
     for author in message.get("author", []):
         name_parts = []
@@ -294,7 +298,7 @@ def _format_filename(
     filename = "_".join(parts)
     # Remove invalid characters and replace spaces with underscores.
     filename = re.sub(r'[<>:"/\\|?*]', "", filename)
-    filename = re.sub(r'\s+', "_", filename)
+    filename = re.sub(r"\s+", "_", filename)
     filename = f"{filename}.pdf"
     return filename
 
@@ -327,7 +331,9 @@ def _download_paper(
     """
     _LOG.info("Processing URL: %s", url)
     # Check if output directory exists.
-    hdbg.dassert_dir_exists(output_dir, "Output directory does not exist: %s", output_dir)
+    hdbg.dassert_dir_exists(
+        output_dir, "Output directory does not exist: %s", output_dir
+    )
     # Detect DOI.
     doi = _detect_doi(url)
     arxiv_id = None

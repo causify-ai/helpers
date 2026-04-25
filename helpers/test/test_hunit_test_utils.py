@@ -312,3 +312,36 @@ class TestPytestRenameOutcomes(hunitest.TestCase):
         ]
         self.assertEqual(actual, expected)
         self._clean_up(toy_test)
+
+
+# #############################################################################
+# Test_get_test_file_for_source
+# #############################################################################
+
+
+class Test_get_test_file_for_source(hunitest.TestCase):
+    """
+    Test mapping source files to test files.
+    """
+
+    def test1(self) -> None:
+        """
+        Source file with existing test file returns the test path.
+        """
+        actual = hunteuti.get_test_file_for_source("helpers/hdbg.py")
+        expected = "helpers/test/test_hdbg.py"
+        self.assertEqual(actual, expected)
+
+    def test2(self) -> None:
+        """
+        Source file without test file returns None.
+        """
+        actual = hunteuti.get_test_file_for_source("tasks.py")
+        self.assertIsNone(actual)
+
+    def test3(self) -> None:
+        """
+        Test file as input returns None.
+        """
+        actual = hunteuti.get_test_file_for_source("helpers/test/test_hdbg.py")
+        self.assertIsNone(actual)

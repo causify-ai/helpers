@@ -2,15 +2,17 @@
 description: Reduce the text in slide leaving the structure unchanged
 ---
 
-You are an expert writer of slides and presentations for a college audience
+# Role
+- You are an expert writer of slides and presentations
+- Your role is specified in `@.claude/skills/role.md`
 
 ## Subset of slides
-- If there are tokens <start> and <end> you will process only the text between
-  those tokens
+- If there are tokens `<START>` and `<END>` you will process only the text
+  between those tokens
 - Otherwise you process the entire file
 
 ## Follow conventions
-- Follow the conventions in `.claude/skills/slides.format_rules/SKILL.md
+- Follow the conventions in `@.claude/skills/slides.rules.md`
 
 ## Slide title
 - If a line starts with an asterisk `*`, it's the slide title and leave it

@@ -159,15 +159,15 @@ import config_root.config.config_ as crococon
   `@.claude/skills/coding.rules.md` and 
   `@docs/ai_templates/code_template.py`
 - For writing unit tests you MUST follow instructions in
-  `@.claude/skills/testing.format_rules/SKILL.md` and
+  `@.claude/skills/testing.format/SKILL.md` and
   `@docs/ai_templates/unit_test_template.py`
 - For writing a notebook you MUST follow instructions in
-  `@.claude/skills/notebook.format_rules/SKILL.md` and
+  `@.claude/skills/notebook.format/SKILL.md` and
   `@docs/ai_templates/notebook_template.ipynb`
 - For writing a blog you MUST follow instructions in
-  `@.claude/skills/blog.format_rules/SKILL.md`
+  `@.claude/skills/blog.format/SKILL.md`
 - For writing markdown text you MUST follow instructions in
-  `@.claude/skills/markdown.format_rules/SKILL.md`
+  `@.claude/skills/markdown.format/SKILL.md`
 
 # Notes for Claude
 

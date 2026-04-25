@@ -317,20 +317,36 @@ def _transform_lines(
 
         # Colorize bullets in the slides.
 
-        def _colorize_bullets(slide_text: List[str]) -> str:
+        def _colorize_bullets(
+            slide_text: List[str],
+            *,
+            slide_title: str = "",
+            slide_line_number: int = 0,
+        ) -> str:
             """
             Color bullet points in the slide.
 
             :param slide_text: list of lines in the slide
+            :param slide_title: title of the slide (for error reporting)
+            :param slide_line_number: line number where slide starts (for error
+                reporting)
             :return: colorized slide text
             """
-            slide_text = "\n".join(slide_text)
-            if not hmarkdo.has_color_command(slide_text):
-                text_out = hmarkdo.colorize_bullet_points_in_slide(
-                    slide_text, use_abbreviations=False
-                )
+            slide_text_str = "\n".join(slide_text)
+            if not hmarkdo.has_color_command(slide_text_str):
+                try:
+                    text_out = hmarkdo.colorize_bullet_points_in_slide(
+                        slide_text_str, use_abbreviations=False
+                    )
+                except AssertionError as e:
+                    context = (
+                        f"\nError occurred while processing slide:\n"
+                        f"  Title: {slide_title}\n"
+                        f"  Line: {slide_line_number}"
+                    )
+                    raise AssertionError(str(e) + context) from e
             else:
-                text_out = slide_text
+                text_out = slide_text_str
             text_out = text_out.split("\n")
             return text_out
 

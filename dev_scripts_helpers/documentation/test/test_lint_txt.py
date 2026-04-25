@@ -1923,7 +1923,6 @@ class Test_lint_txt1(hunitest.TestCase):
 
 
 class Test_lint_txt2(hunitest.TestCase):
-
     @staticmethod
     def get_text_problematic_for_prettier1() -> str:
         txt = r"""

@@ -539,6 +539,9 @@ def add_pct(
     return df
 
 
+# End copy-paste.
+
+
 def print_column_variability(
     df: pd.DataFrame,
     max_num_vals: int = 3,
@@ -584,9 +587,6 @@ def print_column_variability(
     )
     res.reset_index(drop=True, inplace=True)
     return res
-
-
-# End copy-paste.
 
 
 def breakdown_table(
