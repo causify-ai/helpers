@@ -91,7 +91,7 @@ def _run_linting_actions(
     files_str: str,
     *,
     abort_on_error: bool = True,
-    actions: List[str] | None = None,
+    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Run common linting actions (pre-commit, normalize_import, add_class_frames).
@@ -209,7 +209,8 @@ def _run_cc_lint(
     _LOG.info("Running cc_lint on %d files", len(file_paths))
     ret = 0
     for file_path in tqdm.tqdm(file_paths, desc="Running cc_lint"):
-        cmd = f'claude --dangerously-skip-permissions --model haiku "/lint" {file_path}'
+        hdbg.dassert_file_exists(file_path)
+        cmd = f'claude --dangerously-skip-permissions --model haiku "/lint {file_path}"'
         ret |= hsystem.system(
             cmd,
             print_command=True,
@@ -223,7 +224,7 @@ def _lint_python_files(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
-    actions: List[str] | None = None,
+    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Lint Python files using specified actions.
@@ -251,7 +252,6 @@ def _lint_python_files(
     )
     # Pyright and coverage run on all Python files including paired jupytext.
     if "pyright" in actions:
-        files_str = " ".join(file_paths)
         ret |= _run_linting_actions(
             files_str,
             abort_on_error=abort_on_error,
@@ -274,7 +274,7 @@ def _lint_jupyter_files(
     file_paths: List[str],
     *,
     abort_on_error: bool = True,
-    actions: List[str] | None = None,
+    actions: Optional[List[str]] = None,
 ) -> int:
     """
     Lint Jupyter notebooks with specified actions.
@@ -425,13 +425,13 @@ def _parse() -> argparse.ArgumentParser:
         type=str,
         choices=_VALID_ACTIONS,
         help="Specific actions to perform (default: all applicable actions).\n"
-             "  pre-commit: Run pre-commit linters\n"
-             "  normalize_import: Normalize import statements\n"
-             "  add_class_frames: Add class frame decorators\n"
-             "  sync_jupytext: Sync Jupyter notebooks with paired Python files\n"
-             "  pyright: Run pyright type checker\n"
-             "  coverage: Run pytest coverage for test files\n"
-             "  cc_lint: Run Claude Code lint action on files",
+        "  pre-commit: Run pre-commit linters\n"
+        "  normalize_import: Normalize import statements\n"
+        "  add_class_frames: Add class frame decorators\n"
+        "  sync_jupytext: Sync Jupyter notebooks with paired Python files\n"
+        "  pyright: Run pyright type checker\n"
+        "  coverage: Run pytest coverage for test files\n"
+        "  cc_lint: Run Claude Code lint action on files",
     )
     parser.add_argument(
         "--skip_files",
@@ -509,7 +509,11 @@ def _main(args: argparse.Namespace) -> int:
     print(hprint.frame(f"Selecting files: {', '.join(selected_types)}"))
     # Print selected actions
     selected_actions = args.action if args.action else _DEFAULT_ACTIONS
-    print(hparser.actions_to_string(selected_actions, _VALID_ACTIONS, add_frame=True))
+    print(
+        hparser.actions_to_string(
+            selected_actions, _VALID_ACTIONS, add_frame=True
+        )
+    )
     all_files = python_files + jupyter_files + markdown_files
     breakdown = f"Python: {len(python_files)}, Jupyter: {len(jupyter_files)}, Markdown: {len(markdown_files)}"
     print(
@@ -532,7 +536,7 @@ def _main(args: argparse.Namespace) -> int:
             print(f"  {f}")
     # If dry_run, print files and exit.
     if args.dry_run:
-        _LOG.warning("Aborting as per user request")
+        _LOG.info("Aborting as per user request")
         return 0
     # Lint each file type and collect return codes.
     ret = 0

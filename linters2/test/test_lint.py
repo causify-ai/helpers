@@ -1,3 +1,4 @@
+import logging
 import os
 import unittest.mock as umock
 
@@ -5,6 +6,8 @@ import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import linters2.lint as lilint
 import linters2.linter_utils as llinutil
+
+_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -18,7 +21,9 @@ class Test_filter_files_by_type(hunitest.TestCase):
     """
 
     def _create_files(self, names: list[str]) -> dict[str, str]:
-        """Create empty files in scratch dir; return {name: abs_path}."""
+        """
+        Create empty files in scratch dir; return {name: abs_path}.
+        """
         scratch_dir = self.get_scratch_space()
         paths = {}
         for name in names:
