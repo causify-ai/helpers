@@ -5,17 +5,17 @@
 - For writing Python file (e.g., with a `.py` extension) you MUST follow the
   rules from:
   - `@.claude/skills/coding.rules.md`
-  - `@docs/ai_templates/code_template.py`
+  - `@.claude/templates/code_template.py`
 
 - For a file storing unit tests (i.e., whose base name starts with
   `test/test_<file>.py`) you MUST follow the rules from:
   - `@.claude/skills/testing.rules.md`
-  - `@docs/ai_templates/unit_test_template.py`
+  - `@.claude/templates/unit_test_template.py`
 
 - For Jupyter notebook (e.g., files with `.ipynb` extension) you MUST follow the
   rules from
   - `@.claude/skills/notebook.rules.md`
-  - `@docs/ai_templates/notebook_template.ipynb`
+  - `@.claude/templates/notebook_template.ipynb`
   - After modification you need to run `jupytext --sync`
 
 - For writing markdown text you MUST follow instructions in

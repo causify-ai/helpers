@@ -1,6 +1,7 @@
 import glob
 import logging
 import os
+from typing import cast
 
 import pytest
 
@@ -199,6 +200,26 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
     Test backtick colorization as part of the full preprocessing pipeline.
     """
 
+    def helper(
+        self, txt_in: str, type_: str, expected: str
+    ) -> None:
+        """
+        Test helper for _transform_lines with backtick colorization.
+
+        :param txt_in: input text
+        :param type_: output type ("pdf" or "slides")
+        :param expected: expected output text
+        """
+        # Prepare inputs.
+        txt_in_lines = txt_in.split("\n")
+        txt_in_lines = hprint.dedent(txt_in_lines, remove_lead_trail_empty_lines_=True)
+        # Execute function.
+        actual = dshdprno._transform_lines(txt_in_lines, type_, is_qa=False)
+        actual = "\n".join(actual)
+        # Check.
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
     def test1(self) -> None:
         """
         Test backtick colorization in full pipeline with type="pdf".
@@ -209,13 +230,6 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         The `variable` is used here.
         And `function_name` is called next.
         """
-        txt_in = txt_in.split("\n")
-        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
-        # Execute function.
-        type_ = "pdf"
-        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
-        actual = "\n".join(actual)
-        # Check.
         expected = r"""
         ---
         fontsize: 10pt
@@ -227,8 +241,8 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         The \textcolor{blue}{\texttt{variable}} is used here.
         And \textcolor{blue}{\texttt{function\_name}} is called next.
         """
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        # Run test.
+        self.helper(txt_in, "pdf", expected)
 
     def test2(self) -> None:
         """
@@ -239,13 +253,6 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         # Slide Title
         Use `method1` and `method2` for processing.
         """
-        txt_in = txt_in.split("\n")
-        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
-        # Execute function.
-        type_ = "slides"
-        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
-        actual = "\n".join(actual)
-        # Check.
         expected = r"""
         ---
         fontsize: 10pt
@@ -256,8 +263,8 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         # Slide Title
         Use \textcolor{blue}{\texttt{method1}} and \textcolor{blue}{\texttt{method2}} for processing.
         """
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        # Run test.
+        self.helper(txt_in, "slides", expected)
 
     def test3(self) -> None:
         """
@@ -271,13 +278,6 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         ```
         The `variable` name is important.
         """
-        txt_in = txt_in.split("\n")
-        txt_in = hprint.dedent(txt_in, remove_lead_trail_empty_lines_=True)
-        # Execute function.
-        type_ = "pdf"
-        actual = dshdprno._transform_lines(txt_in, type_, is_qa=False)
-        actual = "\n".join(actual)
-        # Check.
         expected = r"""
         ---
         fontsize: 10pt
@@ -291,8 +291,8 @@ class Test_colorize_backticks_integration(hunitest.TestCase):
         ```
         The \textcolor{blue}{\texttt{variable}} name is important.
         """
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
-        self.assert_equal(actual, expected)
+        # Run test.
+        self.helper(txt_in, "pdf", expected)
 
 
 # #############################################################################
@@ -582,7 +582,8 @@ class Test_preprocess_notes_end_to_end2(hunitest.TestCase):
             actual = "\n".join(actual)
             tag = os.path.basename(file)
             tag = hio.remove_extension(tag, ".txt", check_file_exists=False)
-            self.check_string(actual, tag=tag)
+            hdbg.dassert_is_not(tag, None)
+            self.check_string(actual, tag=cast(str, tag))
 
 
 # #############################################################################
@@ -630,7 +631,8 @@ class Test_preprocess_notes_end_to_end3(hunitest.TestCase):
             actual = "\n".join(actual)
             tag = os.path.basename(file)
             tag = hio.remove_extension(tag, ".txt", check_file_exists=False)
-            self.check_string(actual, tag=tag)
+            hdbg.dassert_is_not(tag, None)
+            self.check_string(actual, tag=cast(str, tag))
 
 
 # #############################################################################
@@ -754,3 +756,344 @@ class Test_preprocess_notes_remove_headers1(hunitest.TestCase):
         actual = "\n".join(actual)
         # Check.
         self.check_string(actual)
+
+
+# #############################################################################
+# Test_extract_section
+# #############################################################################
+
+
+class Test_extract_section(hunitest.TestCase):
+    """
+    Test the `_extract_section()` function.
+    """
+
+    def helper(
+        self, lines, section_name: str, expected
+    ) -> None:
+        """
+        Test helper for _extract_section.
+
+        :param lines: input lines list
+        :param section_name: section name to extract
+        :param expected: expected extracted lines or None
+        """
+        # Execute function.
+        actual = dshdprno._extract_section(lines, section_name)
+        # Check outputs.
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test extracting a basic section from a header.
+        """
+        # Prepare inputs.
+        # TODO(ai_gp): In all the assignment to lines in this file use
+        # lines = """
+        # ...
+        # """
+        # and dedent
+        lines = [
+            "# Section A",
+            "Line 1 of section A",
+            "Line 2 of section A",
+            "# Section B",
+            "Line 1 of section B",
+        ]
+        # TODO(ai_gp): Use type hints for all the functions
+        # TODO(ai_gp): In all the assignment to expected in this file use
+        # expected = """
+        # ...
+        # """
+        # and dedent
+        expected = ["Line 1 of section A", "Line 2 of section A"]
+        # Run test.
+        self.helper(lines, "Section A", expected)
+
+    def test2(self) -> None:
+        """
+        Test extracting a section that extends to end of file.
+        """
+        # Prepare inputs.
+        lines = [
+            "# Section A",
+            "Line 1 of A",
+            "# Section B",
+            "Line 1 of B",
+            "Line 2 of B",
+        ]
+        expected = ["Line 1 of B", "Line 2 of B"]
+        # Run test.
+        self.helper(lines, "Section B", expected)
+
+    def test3(self) -> None:
+        """
+        Test when section is not found returns None.
+        """
+        # Prepare inputs.
+        lines = ["# Section A", "Content A", "# Section B", "Content B"]
+        expected = None
+        # Run test.
+        self.helper(lines, "Section C", expected)
+
+    def test4(self) -> None:
+        """
+        Test extracting a section with no content (next header immediately after).
+        """
+        # Prepare inputs.
+        lines = [
+            "# Section A",
+            "# Section B",
+            "Content B",
+        ]
+        expected = []
+        # Run test.
+        self.helper(lines, "Section A", expected)
+
+    def test5(self) -> None:
+        """
+        Test extracting a section that contains subsections (level 2+ headers).
+        """
+        # Prepare inputs.
+        lines = [
+            "# Main Section",
+            "Intro text",
+            "## Subsection 1",
+            "Subsection content",
+            "### Deep subsection",
+            "Deep content",
+            "# Next Section",
+            "Next content",
+        ]
+        expected = [
+            "Intro text",
+            "## Subsection 1",
+            "Subsection content",
+            "### Deep subsection",
+            "Deep content",
+        ]
+        # Run test.
+        self.helper(lines, "Main Section", expected)
+
+
+# #############################################################################
+# Test_expand_includes
+# #############################################################################
+
+
+class Test_expand_includes(hunitest.TestCase):
+    """
+    Test the `_expand_includes()` function.
+    """
+
+    def helper(
+        self,
+        lines,
+        expected,
+        *,
+        files_to_create=None,
+    ) -> None:
+        """
+        Test helper for _expand_includes.
+
+        :param lines: input lines with include directives
+        :param expected: expected expanded lines
+        :param files_to_create: dict of {filename: content} to create in temp dir
+        """
+        # Create temporary files in scratch space.
+        temp_dir = self.get_scratch_space()
+        if files_to_create:
+            for filename, content in files_to_create.items():
+                file_path = os.path.join(temp_dir, filename)
+                content_dedented = hprint.dedent(
+                    content.split("\n"), remove_lead_trail_empty_lines_=True
+                )
+                content_str = "\n".join(content_dedented)
+                hio.to_file(file_path, content_str)
+        # Change to temp directory for include path resolution.
+        saved_cwd = os.getcwd()
+        try:
+            os.chdir(temp_dir)
+            # Execute function.
+            actual = dshdprno._expand_includes(lines)
+            # Check outputs.
+            self.assertEqual(actual, expected)
+        finally:
+            os.chdir(saved_cwd)
+
+    def test1(self) -> None:
+        """
+        Test basic include directive expansion.
+        """
+        # Prepare inputs.
+        lines = [
+            "# Main Document",
+            '// include:include.md "Included Content"',
+            "End of document",
+        ]
+        expected = [
+            "# Main Document",
+            "This is included.",
+            "More content.",
+            "End of document",
+        ]
+        files_to_create = {
+            "include.md": """
+                # Included Content
+                This is included.
+                More content.
+                # Another Section
+                Not included.
+                """,
+        }
+        # Run test.
+        self.helper(lines, expected, files_to_create=files_to_create)
+
+    def test2(self) -> None:
+        """
+        Test multiple include directives in same file.
+        """
+        # Prepare inputs.
+        lines = [
+            '// include:file1.md "Section A"',
+            'Text between',
+            '// include:file2.md "Section Y"',
+        ]
+        expected = ["Content A", "Text between", "Content Y"]
+        files_to_create = {
+            "file1.md": """
+                # Section A
+                Content A
+                # Section B
+                Content B
+                """,
+            "file2.md": """
+                # Section X
+                Content X
+                # Section Y
+                Content Y
+                """,
+        }
+        # Run test.
+        self.helper(lines, expected, files_to_create=files_to_create)
+
+    def test3(self) -> None:
+        """
+        Test include directive with spaces in title.
+        """
+        # Prepare inputs.
+        lines = [
+            '// include:include.md "Multi Word Title"',
+        ]
+        expected = ["Included text"]
+        files_to_create = {
+            "include.md": """
+                # Multi Word Title
+                Included text
+                # Another
+                Other
+                """,
+        }
+        # Run test.
+        self.helper(lines, expected, files_to_create=files_to_create)
+
+    def test4(self) -> None:
+        """
+        Test that nested includes raise an error.
+        """
+        # Prepare inputs.
+        lines = [
+            '// include:include.md "Section"',
+        ]
+        files_to_create = {
+            "include.md": """
+                # Section
+                // include:other.md "Nested"
+                Content
+                """,
+        }
+        # Create temporary files in scratch space.
+        # TODO(ai_gp): Factor this out and also in helper and reuse
+        temp_dir = self.get_scratch_space()
+        for filename, content in files_to_create.items():
+            file_path = os.path.join(temp_dir, filename)
+            content_dedented = hprint.dedent(
+                content.split("\n"), remove_lead_trail_empty_lines_=True
+            )
+            content_str = "\n".join(content_dedented)
+            hio.to_file(file_path, content_str)
+        # Change to temp directory for include path resolution.
+        saved_cwd = os.getcwd()
+        try:
+            os.chdir(temp_dir)
+            # Execute function and check it raises.
+            with self.assertRaises(AssertionError):
+                dshdprno._expand_includes(lines)
+        finally:
+            os.chdir(saved_cwd)
+
+    def test5(self) -> None:
+        """
+        Test that missing include file raises error.
+        """
+        # Prepare inputs.
+        lines = [
+            '// include:nonexistent.md "Title"',
+        ]
+        # Run test and expect exception.
+        temp_dir = self.get_scratch_space()
+        saved_cwd = os.getcwd()
+        try:
+            os.chdir(temp_dir)
+            with self.assertRaises(AssertionError):
+                dshdprno._expand_includes(lines)
+        finally:
+            os.chdir(saved_cwd)
+
+    def test6(self) -> None:
+        """
+        Test that missing section in include file raises error.
+        """
+        # Prepare inputs.
+        lines = [
+            '// include:include.md "Missing Section"',
+        ]
+        files_to_create = {
+            "include.md": """
+                # Section A
+                Content A
+                """,
+        }
+        # Create temporary files in scratch space.
+        temp_dir = self.get_scratch_space()
+        for filename, content in files_to_create.items():
+            file_path = os.path.join(temp_dir, filename)
+            content_dedented = hprint.dedent(
+                content.split("\n"), remove_lead_trail_empty_lines_=True
+            )
+            content_str = "\n".join(content_dedented)
+            hio.to_file(file_path, content_str)
+        # Change to temp directory for include path resolution.
+        saved_cwd = os.getcwd()
+        try:
+            os.chdir(temp_dir)
+            # Execute function and check it raises.
+            with self.assertRaises(AssertionError):
+                dshdprno._expand_includes(lines)
+        finally:
+            os.chdir(saved_cwd)
+
+    def test7(self) -> None:
+        """
+        Test that lines without includes pass through unchanged.
+        """
+        # Prepare inputs.
+        lines = [
+            "# Header",
+            "Some content",
+            "// This is a comment, not an include",
+            "More content",
+        ]
+        expected = lines
+        # Run test.
+        self.helper(lines, expected)

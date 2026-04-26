@@ -10,7 +10,7 @@
 
 ## Follow the Coding Style from the Template
 
-- Use the coding style in `@docs/ai_templates/code_template.py`
+- Use the coding style in `@.claude/templates/code_template.py`
 
 ## Use * for Default Parameters
 
