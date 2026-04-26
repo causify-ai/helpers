@@ -1,78 +1,95 @@
 ---
-description: Create a tikz plot from an image or a description
+description: Convert images and descriptions into compilable TikZ LaTeX code
+model: haiku
 ---
 
-- You are an expert at LaTeX/TikZ 
+## Purpose
+- Convert images or textual descriptions into publication-quality TikZ LaTeX code
+  Generate a compilable LaTeX file, render it to PNG, and iteratively refine the
+  output to match the input precisely
 
-- Your task is to convert the given input, which may be an image `<image>` or a
-  textual description, into clean, compilable TikZ code
+## When to Use
+Use this skill when you need to:
 
-# Step 1: Generate TikZ description
+- Create publication-quality diagrams, plots, or visualizations
+- Convert hand-drawn sketches or existing images into reproducible TikZ code
+- Generate diagrams for inclusion in LaTeX documents
 
-## Output valid TikZ description
-- Output ONLY valid LaTeX code using the TikZ package
-- Wrap everything inside a complete minimal working example:
-   ```
-   \documentclass{standalone}
-   \usepackage{tikz}
-   \begin{document}
-   \begin{tikzpicture}
-   ...
-   \end{tikzpicture}
-   \end{document}
-   ```
+## When NOT to Use
+Do not use this skill for:
 
-## Preserve layout, if needed
-- If an image was given, accurately reproduce the layout:
-  - Preserve proportions, relative positions, and symmetry.
-  - Use coordinates and scaling where appropriate.
-  - Approximate complex curves with TikZ paths when needed.
+- Complex photographs requiring photorealistic rendering
+- Plots from large datasets (use dedicated plotting libraries instead)
+- Diagrams requiring advanced 3D visualization
 
-## Create TikZ code
-- Use appropriate TikZ features:
-  - Nodes for labeled elements
-  - Draw, fill, shade for shapes
-  - Arrows and edge styles when relevant
-  - For rectangles and blocks use blocks with rounded corners
-    ```
-    [rounded corners=1cm] ... rectangle
-    ```
-  - Positioning and calc libraries if helpful
+## Workflow
 
-- Keep the code clean and readable:
-  - Use indentation
-  - Define reusable styles if repeated elements exist
+### Step 1: Generate TikZ Code
+Generate valid LaTeX code using the TikZ package. Wrap the code in a complete
+minimal working example:
+```latex
+\documentclass{standalone}
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}
+...
+\end{tikzpicture}
+\end{document}
+```
 
-- If the input is ambiguous:
-   - Make reasonable assumptions
-   - Prefer clarity and visual correctness over perfection
+**Preserve layout accurately**
 
-- Do NOT include explanations, comments, or markdown.
-   Only output the LaTeX code.
+- If converting from an image `<image>`, reproduce the layout precisely
+- Preserve proportions, relative positions, and symmetry
+- Use coordinates and scaling where appropriate
+- Approximate complex curves with TikZ paths when needed
 
-# Step 2: Save File
+**Use appropriate TikZ features**
 
-- Save the output in a `./tikz_figure.tex` file in the current directory where you
-  are running (not in the `.claude`)
-- Output only valid tikz code without triple backticks
-- Do not explain the code in natural language
+- Nodes for labeled elements
+- `draw`, `fill`, `shade` for shapes
+- Arrows and edge styles for connections
+- Rounded corners for blocks: `[rounded corners=1cm]`
+- `positioning` and `calc` libraries if helpful
 
-# Step 3: Render Graph
+**Keep code clean and readable**
 
-- After the graph description is generated, generate an image with:
-  ```
+- Use indentation for nested structures
+- Define reusable styles for repeated elements
+
+**Handle ambiguity**
+
+- Make reasonable assumptions about unclear inputs
+- Prioritize clarity and visual correctness over perfection
+
+### Step 2: Save the File
+- Save the generated LaTeX code to `./tikz_figure.tex` in the current directory
+  (not in `.claude/`). Output only valid TikZ code without markdown formatting or
+  explanations
+
+### Step 3: Render to Image
+- Generate a PNG image using the rendering script:
+  ```bash
   > ./helpers_root/dev_scripts_helpers/documentation/dockerized_tikz_to_bitmap.py \
       -i tikz_figure.tex \
       -o output.png
   ```
 
-- Open the graph
-  ```
+- Open the generated image to inspect the output:
+  ```bash
   > open output.png
   ```
 
-# Step 4: Read the PNG file
+### Step 4: Iterate and Refine
+Compare the generated PNG to the original input. If there are significant
+differences:
 
-- If the generated PNG image is very different from the input image:
-  - Find the differences in terms of layout
-  - Apply changes to the `./tikz_figure.tex` to approximate the input image
+- Identify layout discrepancies
+- Update `./tikz_figure.tex` to better match the input
+- Re-render and verify the result
+
+## Examples
+- **Good**: Converting a circuit diagram sketch into TikZ with accurate node
+  positioning, labeled connections, and proper symmetry
+- **Bad**: Attempting to convert a photograph of a natural scene into TikZ
+  (infeasible; use image inclusion instead)
