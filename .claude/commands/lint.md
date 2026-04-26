@@ -19,4 +19,3 @@
 
 - For a blog (e.g., a markdown in the dir `website/docs/blog/posts`) apply the
   rules in `@.claude/skills/blog.format/SKILL.md`
-

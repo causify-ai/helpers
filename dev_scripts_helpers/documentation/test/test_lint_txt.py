@@ -2302,7 +2302,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         """
         # Prepare inputs.
         in_file = os.path.join(
-            self.get_input_dir(test_method_name="test_md1"), "text.md"
+            self.get_input_dir(test_method_name="test1"), "text.md"
         )
         type_ = "md"
         use_script = True

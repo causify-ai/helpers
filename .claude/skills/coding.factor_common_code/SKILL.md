@@ -1,15 +1,23 @@
 ---
 description: Identify and refactor duplicated code blocks into shared functions across Python files
+model: sonnet
 ---
 
+# Role
 - You are a senior Python engineer with strong experience in refactoring and
-  codebase hygiene.
+  codebase hygiene
 
+
+# Goal
 - I will provide references to one or more Python source files
-- Your task is to read and analyze the code across these files and identify
-  meaningful duplicated or near-duplicated code blocks that can be safely
-  refactored into shared functions
-- Do not changed the behavior of the code
+- Your task is to
+  - read and analyze the code across these files
+  - identify meaningful duplicated or near-duplicated code blocks that can be
+    safely refactored into shared functions
+  - report these changes
+  - ask the user
+
+- You must not change the behavior of the code
 
 ## Objectives
 
@@ -17,7 +25,7 @@ description: Identify and refactor duplicated code blocks into shared functions 
   similar)
 - Propose reusable functions that improve maintainability and readability
 
-## Constraints & Guidelines
+## Guidelines
 
 - Do not suggest functions that are trivial (e.g., fewer than 2–3 meaningful
   lines)
@@ -45,10 +53,9 @@ description: Identify and refactor duplicated code blocks into shared functions 
       file1.py: l1–l2, l3–l4, ...
       File2.py: l5–l8, ...
       ```
-  - Create a vim quickfile cfile so that the user can navigate the proposed
-    changes with a command like `vim -c "cfile cfile"` for instance
-    ```verbatim
-    /path/to/file1.py:10:1: Replace with function ...
-    /path/to/file1.py:12:1:
-    /path/to/file1.py:12:1:
-    ```
+  - Create a vim quickfile cfile for the locations using the convention in
+    `@.claude/skills/cfile.rules.md`
+
+## Make changes
+- Wait for the user to review the proposed changes
+- Make the changes to remove repeated code

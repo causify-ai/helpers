@@ -16,9 +16,12 @@ class Test_update_class_frames(hunitest.TestCase):
         :param content: Input Python code as a string with potential indentation
         :param expected: Expected output after applying class frame transformations
         """
+        # Initialize the input file contents.
         content = hprint.dedent(content)
+        # Run.
         actual = "\n".join(ladclfra.update_class_frames(content))
         expected = hprint.dedent(expected)
+        # Check.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -350,7 +353,7 @@ class Test_update_class_frames(hunitest.TestCase):
         """
         self.helper(content, expected)
 
-    def test10_remove_single_bar_before_frame(self) -> None:
+    def test10(self) -> None:
         """
         Test Transform case 1: remove single bar with empty line before frame.
 
@@ -379,7 +382,7 @@ class Test_update_class_frames(hunitest.TestCase):
         """
         self.helper(content, expected)
 
-    def test11_remove_consecutive_bars_before_frame(self) -> None:
+    def test11(self) -> None:
         """
         Test Transform case 2: remove consecutive bars with empty line before frame.
 
@@ -409,7 +412,7 @@ class Test_update_class_frames(hunitest.TestCase):
         """
         self.helper(content, expected)
 
-    def test12_remove_multiple_bars_with_empty_lines_before_frame(self) -> None:
+    def test12(self) -> None:
         """
         Test Transform case 3: remove multiple bars and empty lines before frame.
 

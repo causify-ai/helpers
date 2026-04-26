@@ -418,6 +418,7 @@ def git_files(  # type: ignore
     keep_jupyter=True,
     keep_markdown=True,
     pbcopy=False,
+    only_print_files=False,
 ):
     """
     Report which files are changed in the current branch with respect to master.
@@ -427,8 +428,10 @@ def git_files(  # type: ignore
     :param keep_python: include Python files (default: True)
     :param keep_jupyter: include Jupyter notebooks (default: True)
     :param keep_markdown: include Markdown files (default: True)
+    :param only_print_files: only print files without logging headers/footers (default: False)
     """
-    hlitauti.report_task()
+    if not only_print_files:
+        hlitauti.report_task()
     _ = ctx
     all_ = False
     files = ""
@@ -450,8 +453,9 @@ def git_files(  # type: ignore
     )
     print("\n".join(sorted(files_as_list)))
     # Optionally copy the file list to clipboard for easy pasting.
-    res = " ".join(files_as_list)
-    hsystem.to_pbcopy(res, pbcopy)
+    if not only_print_files:
+        res = " ".join(files_as_list)
+        hsystem.to_pbcopy(res, pbcopy)
 
 
 @task
