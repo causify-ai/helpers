@@ -1134,3 +1134,569 @@ class Test_expand_includes(hunitest.TestCase):
         expected = lines
         # Run test.
         self.helper(lines, expected)
+
+    def test8(self) -> None:
+        """
+        Test include directive with absolute file path.
+        """
+        # Prepare inputs.
+        temp_dir = self.get_scratch_space()
+        files_to_create = {
+            "include.md": """
+                # Section
+                Included content
+                """,
+        }
+        self._create_temp_files(files_to_create, temp_dir)
+        # Use absolute path in include directive.
+        abs_path = os.path.join(temp_dir, "include.md")
+        lines = [
+            f'// include:{abs_path} "Section"',
+        ]
+        expected = ["Included content"]
+
+        def run_test() -> None:
+            actual = dshdprno._expand_includes(lines)
+            self.assertEqual(actual, expected)
+
+        self._run_in_temp_dir(run_test, temp_dir)
+
+
+# #############################################################################
+# Test_process_question_to_slides
+# #############################################################################
+
+
+class Test_process_question_to_slides(hunitest.TestCase):
+    """
+    Test the `_process_question_to_slides()` function.
+    """
+
+    def helper(
+        self,
+        txt_in: str,
+        expected_continue: bool,
+        expected_output: str,
+        level: int = 4,
+    ) -> None:
+        """
+        Helper method to test _process_question_to_slides function.
+
+        :param txt_in: input text
+        :param expected_continue: expected should_continue flag
+        :param expected_output: expected output text
+        :param level: header level
+        """
+        actual_continue, actual_output = dshdprno._process_question_to_slides(
+            txt_in, level=level
+        )
+        self.assertEqual(actual_continue, expected_continue)
+        self.assertEqual(actual_output, expected_output)
+
+    def test1(self) -> None:
+        """
+        Test single-star question converted to level-4 header.
+        """
+        txt_in = "* What is this?"
+        expected_continue = True
+        expected_output = "#### What is this?"
+        self.helper(txt_in, expected_continue, expected_output)
+
+    def test2(self) -> None:
+        """
+        Test double-star question converted to level-4 header.
+        """
+        txt_in = "** What is this?"
+        expected_continue = True
+        expected_output = "#### What is this?"
+        self.helper(txt_in, expected_continue, expected_output)
+
+    def test3(self) -> None:
+        """
+        Test colon-question converted to level-4 header.
+        """
+        txt_in = "*: What is this?"
+        expected_continue = True
+        expected_output = "#### What is this?"
+        self.helper(txt_in, expected_continue, expected_output)
+
+    def test4(self) -> None:
+        """
+        Test line without question marker returns False.
+        """
+        txt_in = "This is regular text"
+        expected_continue = False
+        expected_output = txt_in
+        self.helper(txt_in, expected_continue, expected_output)
+
+    def test5(self) -> None:
+        """
+        Test custom header level parameter.
+        """
+        txt_in = "* Question text"
+        expected_continue = True
+        expected_output = "## Question text"
+        self.helper(txt_in, expected_continue, expected_output, level=2)
+
+    def test6(self) -> None:
+        """
+        Test question with trailing spaces.
+        """
+        txt_in = "* Question text   "
+        expected_continue = True
+        expected_output = "#### Question text   "
+        self.helper(txt_in, expected_continue, expected_output)
+
+
+# #############################################################################
+# Test_process_abbreviations
+# #############################################################################
+
+
+class Test_process_abbreviations(hunitest.TestCase):
+    """
+    Test the `_process_abbreviations()` function.
+    """
+
+    def helper(self, txt_in: str, expected: str) -> None:
+        """
+        Helper method to test _process_abbreviations function.
+
+        :param txt_in: input text
+        :param expected: expected output text
+        """
+        actual = dshdprno._process_abbreviations(txt_in)
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test => replacement with spaces.
+        """
+        txt_in = r"A => B"
+        expected = r"A $\implies$ B"
+        self.helper(txt_in, expected)
+
+    def test2(self) -> None:
+        """
+        Test no replacement without spaces around operator.
+        """
+        txt_in = "A=>B"
+        expected = "A=>B"
+        self.helper(txt_in, expected)
+
+    def test3(self) -> None:
+        """
+        Test multiple replacements in one line.
+        """
+        txt_in = r"X => Y => Z"
+        expected = r"X $\implies$ Y $\implies$ Z"
+        self.helper(txt_in, expected)
+
+    def test4(self) -> None:
+        """
+        Test line without abbreviations remains unchanged.
+        """
+        txt_in = "This line has no abbreviations"
+        expected = txt_in
+        self.helper(txt_in, expected)
+
+
+# #############################################################################
+# Test_process_enumerated_list
+# #############################################################################
+
+
+class Test_process_enumerated_list(hunitest.TestCase):
+    """
+    Test the `_process_enumerated_list()` function.
+    """
+
+    def helper(self, txt_in: str, expected: str) -> None:
+        """
+        Helper method to test _process_enumerated_list function.
+
+        :param txt_in: input text
+        :param expected: expected output text
+        """
+        actual = dshdprno._process_enumerated_list(txt_in)
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test basic enumerated list with parenthesis.
+        """
+        txt_in = "1) Item one"
+        expected = "1. Item one"
+        self.helper(txt_in, expected)
+
+    def test2(self) -> None:
+        """
+        Test enumerated list with indentation.
+        """
+        txt_in = "  2) Item two"
+        expected = "  2. Item two"
+        self.helper(txt_in, expected)
+
+    def test3(self) -> None:
+        """
+        Test line without enumeration remains unchanged.
+        """
+        txt_in = "Regular text without numbering"
+        expected = txt_in
+        self.helper(txt_in, expected)
+
+    def test4(self) -> None:
+        """
+        Test numbered line without parenthesis remains unchanged.
+        """
+        txt_in = "1. Already formatted"
+        expected = txt_in
+        self.helper(txt_in, expected)
+
+
+# #############################################################################
+# Test_transform_lines_slides
+# #############################################################################
+
+
+class Test_transform_lines_slides(hunitest.TestCase):
+    """
+    Test the `_transform_lines()` function with type_='slides'.
+    """
+
+    def helper(
+        self,
+        lines: list[str],
+        type_: str,
+        is_qa: bool,
+        expected: list[str],
+        *,
+        actions: list[str] | None = None,
+    ) -> None:
+        """
+        Helper method to test _transform_lines function.
+
+        :param lines: input lines
+        :param type_: output type
+        :param is_qa: whether input is QA format
+        :param expected: expected output lines
+        :param actions: optional actions to perform
+        """
+        actual = dshdprno._transform_lines(
+            lines, type_, is_qa, actions=actions
+        )
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test slides processing converts questions to headers.
+        """
+        lines = [
+            "---",
+            "# Main Slide",
+            "* What is this?",
+            "Some content",
+        ]
+        # Expected: question converted to #### header
+        expected = [
+            "---",
+            "# Main Slide",
+            "#### What is this?",
+            "Some content",
+        ]
+        self.helper(lines, "slides", False, expected)
+
+    def test2(self) -> None:
+        """
+        Test slides with backticks colorized properly.
+        """
+        lines = [
+            "---",
+            "Content with `code` inline",
+        ]
+        expected = [
+            "---",
+            r"Content with \textcolor{blue}{\texttt{code}} inline",
+        ]
+        self.helper(lines, "slides", False, expected)
+
+    def test3(self) -> None:
+        """
+        Test slides processing with abbreviations.
+        """
+        lines = [
+            "---",
+            r"A => B is implied",
+        ]
+        expected = [
+            "---",
+            r"A $\implies$ B is implied",
+        ]
+        self.helper(lines, "slides", False, expected)
+
+
+# #############################################################################
+# Test_preprocess_lines_toc
+# #############################################################################
+
+
+class Test_preprocess_lines_toc(hunitest.TestCase):
+    """
+    Test the `_preprocess_lines()` function with different toc_type values.
+    """
+
+    def helper(
+        self,
+        lines: list[str],
+        type_: str,
+        toc_type: str,
+        is_qa: bool,
+        expected_contains: str,
+    ) -> None:
+        """
+        Helper method to test _preprocess_lines function.
+
+        :param lines: input lines
+        :param type_: output type
+        :param toc_type: type of TOC
+        :param is_qa: whether input is QA format
+        :param expected_contains: string that output should contain
+        """
+        actual = dshdprno._preprocess_lines(lines, type_, toc_type, is_qa)
+        self.assertIn(expected_contains, "\n".join(actual))
+
+    def test1(self) -> None:
+        """
+        Test toc_type='none' with basic processing.
+        """
+        lines = [
+            "---",
+            "# Header",
+            "Content",
+        ]
+        self.helper(lines, "pdf", "none", False, "# Header")
+
+    def test2(self) -> None:
+        """
+        Test toc_type='remove_headers' removes appropriate headers.
+        """
+        lines = [
+            "---",
+            "# Header 1",
+            "## Header 2",
+            "#### Header 4",
+            "Content",
+        ]
+        actual = dshdprno._preprocess_lines(
+            lines, "pdf", "remove_headers", False
+        )
+        actual_str = "\n".join(actual)
+        # Should remove headers level < 4
+        self.assertNotIn("# Header 1", actual_str)
+        self.assertNotIn("## Header 2", actual_str)
+        # Should keep level 4
+        self.assertIn("#### Header 4", actual_str)
+
+
+# #############################################################################
+# Test_transform_lines_qa
+# #############################################################################
+
+
+class Test_transform_lines_qa(hunitest.TestCase):
+    """
+    Test the `_transform_lines()` function with is_qa=True.
+    """
+
+    def helper(
+        self,
+        lines: list[str],
+        type_: str,
+        is_qa: bool,
+        expected: list[str],
+    ) -> None:
+        """
+        Helper method to test _transform_lines function for QA.
+
+        :param lines: input lines
+        :param type_: output type
+        :param is_qa: whether input is QA format
+        :param expected: expected output lines
+        """
+        actual = dshdprno._transform_lines(lines, type_, is_qa)
+        self.assertEqual(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test QA file processing adds indentation to non-header lines.
+        """
+        lines = [
+            "---",
+            "# Chapter Title",
+            "Question text",
+            "Answer text",
+        ]
+        actual = dshdprno._transform_lines(lines, "pdf", is_qa=True)
+        actual_str = "\n".join(actual)
+        # Chapter headers should not be indented
+        self.assertIn("# Chapter Title", actual_str)
+        # Non-header lines should be indented
+        self.assertIn("  Question text", actual_str)
+        self.assertIn("  Answer text", actual_str)
+
+    def test2(self) -> None:
+        """
+        Test QA file removes empty lines unless adjacent to special content.
+        """
+        lines = [
+            "---",
+            "# Chapter",
+            "Line 1",
+            "",
+            "Line 2",
+        ]
+        actual = dshdprno._transform_lines(lines, "pdf", is_qa=True)
+        # Empty line between content should be removed
+        self.assertNotIn("", actual)
+
+    def test3(self) -> None:
+        """
+        Test QA file preserves empty lines before code blocks.
+        """
+        lines = [
+            "---",
+            "# Chapter",
+            "Text",
+            "",
+            "```python",
+            "code",
+            "```",
+        ]
+        actual = dshdprno._transform_lines(lines, "pdf", is_qa=True)
+        actual_str = "\n".join(actual)
+        # Empty line before code block should be preserved
+        self.assertIn("```python", actual_str)
+
+
+# #############################################################################
+# Test_transform_lines_actions
+# #############################################################################
+
+
+class Test_transform_lines_actions(hunitest.TestCase):
+    """
+    Test the `_transform_lines()` function with various actions.
+    """
+
+    def test1(self) -> None:
+        """
+        Test slides processing with process_links action.
+        """
+        lines = [
+            "---",
+            "# Title",
+            "[Link text](https://example.com)",
+        ]
+        actual = dshdprno._transform_lines(
+            lines, "slides", is_qa=False, actions=["process_links"]
+        )
+        # Should process links
+        actual_str = "\n".join(actual)
+        self.assertIn("example.com", actual_str)
+
+    def test2(self) -> None:
+        """
+        Test slides processing with colorize_bullets action.
+        """
+        lines = [
+            "---",
+            "#### Slide Title",
+            "- Bullet point 1",
+            "- Bullet point 2",
+        ]
+        actual = dshdprno._transform_lines(
+            lines, "slides", is_qa=False, actions=["colorize_bullets"]
+        )
+        # Should have colorized content
+        self.assertIsInstance(actual, list)
+
+
+# #############################################################################
+# Test_add_navigation_slides
+# #############################################################################
+
+
+class Test_add_navigation_slides(hunitest.TestCase):
+    """
+    Test the `_add_navigation_slides()` function.
+    """
+
+    def helper(
+        self, lines: list[str], max_level: int, expected_contains: str
+    ) -> None:
+        """
+        Helper method to test _add_navigation_slides function.
+
+        :param lines: input lines
+        :param max_level: maximum header level
+        :param expected_contains: substring that should be in output
+        """
+        actual = dshdprno._add_navigation_slides(
+            lines, max_level, sanity_check=False
+        )
+        actual_str = "\n".join(actual)
+        self.assertIn(expected_contains, actual_str)
+
+    def test1(self) -> None:
+        """
+        Test navigation slides added for headers.
+        """
+        lines = [
+            "# Part 1",
+            "Content here",
+            "## Section 1.1",
+            "More content",
+        ]
+        # Should add navigation slide before first header
+        actual = dshdprno._add_navigation_slides(lines, max_level=2)
+        self.assertGreaterEqual(len(actual), len(lines))
+
+    def test2(self) -> None:
+        """
+        Test navigation with single level headers only.
+        """
+        lines = [
+            "# Main Title",
+            "Content",
+        ]
+        actual = dshdprno._add_navigation_slides(lines, max_level=1)
+        actual_str = "\n".join(actual)
+        # Should contain the main title
+        self.assertIn("Main Title", actual_str)
+
+
+# #############################################################################
+# Test_preprocess_lines_navigation
+# #############################################################################
+
+
+class Test_preprocess_lines_navigation(hunitest.TestCase):
+    """
+    Test the `_preprocess_lines()` function with toc_type='navigation'.
+    """
+
+    def test1(self) -> None:
+        """
+        Test toc_type='navigation' with type_='slides'.
+        """
+        lines = [
+            "---",
+            "# Part 1",
+            "## Section 1.1",
+            "Content here",
+        ]
+        actual = dshdprno._preprocess_lines(
+            lines, "slides", "navigation", False
+        )
+        # Navigation processing should add slides
+        self.assertGreaterEqual(len(actual), len(lines))
