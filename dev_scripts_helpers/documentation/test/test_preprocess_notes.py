@@ -1,6 +1,7 @@
 import glob
 import logging
 import os
+from collections.abc import Sequence
 from typing import cast
 
 import pytest
@@ -361,7 +362,7 @@ class Test_remove_headers1(hunitest.TestCase):
     """
 
     def helper(
-        self, lines_in: list, expected: list, max_level: int = 999
+        self, lines_in: Sequence[str], expected: Sequence[str], max_level: int = 999
     ) -> None:
         """
         Helper method to test the _remove_headers function.
@@ -371,7 +372,7 @@ class Test_remove_headers1(hunitest.TestCase):
         :param max_level: maximum level of headers to consider (default:
             999 to remove all headers)
         """
-        actual = dshdprno._remove_headers(lines_in, max_level)
+        actual = dshdprno._remove_headers(list(lines_in), max_level)
         # Convert lists to strings for comparison.
         actual_str = "\n".join(actual)
         expected_str = "\n".join(expected)
@@ -381,59 +382,78 @@ class Test_remove_headers1(hunitest.TestCase):
         """
         Test removing a single level 1 header.
         """
-        lines_in = ["# Chapter 1", "Some content here"]
-        expected = ["Some content here"]
+        lines_in = """
+        # Chapter 1
+        Some content here
+        """
+        lines_in = lines_in.split("\n")
+        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=True)
+        expected = """
+        Some content here
+        """
+        expected = expected.split("\n")
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.helper(lines_in, expected)
 
     def test2(self) -> None:
         """
         Test removing headers of various levels.
         """
-        lines_in = [
-            "# Chapter 1",
-            "Content line 1",
-            "## Section 1.1",
-            "Content line 2",
-            "### Subsection",
-            "Content line 3",
-            "#### Sub-subsection",
-            "Content line 4",
-        ]
-        expected = [
-            "Content line 1",
-            "Content line 2",
-            "Content line 3",
-            "Content line 4",
-        ]
+        lines_in = """
+        # Chapter 1
+        Content line 1
+        ## Section 1.1
+        Content line 2
+        ### Subsection
+        Content line 3
+        #### Sub-subsection
+        Content line 4
+        """
+        lines_in = lines_in.split("\n")
+        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=True)
+        expected = """
+        Content line 1
+        Content line 2
+        Content line 3
+        Content line 4
+        """
+        expected = expected.split("\n")
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.helper(lines_in, expected)
 
     def test3(self) -> None:
         """
         Test headers mixed with regular text and bullet points.
         """
-        lines_in = [
-            "# Header",
-            "- Bullet point 1",
-            "- Bullet point 2",
-            "## Subheader",
-            "Regular text",
-        ]
-        expected = [
-            "- Bullet point 1",
-            "- Bullet point 2",
-            "Regular text",
-        ]
+        lines_in = """
+        # Header
+        - Bullet point 1
+        - Bullet point 2
+        ## Subheader
+        Regular text
+        """
+        lines_in = lines_in.split("\n")
+        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=True)
+        expected = """
+        - Bullet point 1
+        - Bullet point 2
+        Regular text
+        """
+        expected = expected.split("\n")
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         self.helper(lines_in, expected)
 
     def test4(self) -> None:
         """
         Test input with no headers (should return unchanged).
         """
-        lines_in = [
-            "This is some text",
-            "- Bullet point",
-            "More text",
-        ]
+        lines_in = """
+        This is some text
+        - Bullet point
+        More text
+        """
+        lines_in = lines_in.split("\n")
+        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=True)
         expected = lines_in
         self.helper(lines_in, expected)
 
@@ -441,11 +461,13 @@ class Test_remove_headers1(hunitest.TestCase):
         """
         Test input with only headers (should return empty list).
         """
-        lines_in = [
-            "# Header 1",
-            "## Header 2",
-            "### Header 3",
-        ]
+        lines_in = """
+        # Header 1
+        ## Header 2
+        ### Header 3
+        """
+        lines_in = lines_in.split("\n")
+        lines_in = hprint.dedent(lines_in, remove_lead_trail_empty_lines_=True)
         expected = []
         self.helper(lines_in, expected)
 
@@ -453,19 +475,8 @@ class Test_remove_headers1(hunitest.TestCase):
         """
         Test that empty lines around headers are preserved.
         """
-        lines_in = [
-            "",
-            "# Header",
-            "",
-            "Content",
-            "",
-        ]
-        expected = [
-            "",
-            "",
-            "Content",
-            "",
-        ]
+        lines_in = ["", "# Header", "", "Content", ""]
+        expected = ["", "", "Content", ""]
         self.helper(lines_in, expected)
 
 
@@ -769,7 +780,7 @@ class Test_extract_section(hunitest.TestCase):
     """
 
     def helper(
-        self, lines, section_name: str, expected
+        self, lines: Sequence[str], section_name: str, expected: Sequence[str] | None
     ) -> None:
         """
         Test helper for _extract_section.
@@ -779,7 +790,7 @@ class Test_extract_section(hunitest.TestCase):
         :param expected: expected extracted lines or None
         """
         # Execute function.
-        actual = dshdprno._extract_section(lines, section_name)
+        actual = dshdprno._extract_section(list(lines), section_name)
         # Check outputs.
         self.assertEqual(actual, expected)
 
@@ -788,25 +799,21 @@ class Test_extract_section(hunitest.TestCase):
         Test extracting a basic section from a header.
         """
         # Prepare inputs.
-        # TODO(ai_gp): In all the assignment to lines in this file use
-        # lines = """
-        # ...
-        # """
-        # and dedent
-        lines = [
-            "# Section A",
-            "Line 1 of section A",
-            "Line 2 of section A",
-            "# Section B",
-            "Line 1 of section B",
-        ]
-        # TODO(ai_gp): Use type hints for all the functions
-        # TODO(ai_gp): In all the assignment to expected in this file use
-        # expected = """
-        # ...
-        # """
-        # and dedent
-        expected = ["Line 1 of section A", "Line 2 of section A"]
+        lines = """
+        # Section A
+        Line 1 of section A
+        Line 2 of section A
+        # Section B
+        Line 1 of section B
+        """
+        lines = lines.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        expected = """
+        Line 1 of section A
+        Line 2 of section A
+        """
+        expected = expected.split("\n")
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         # Run test.
         self.helper(lines, "Section A", expected)
 
@@ -815,14 +822,21 @@ class Test_extract_section(hunitest.TestCase):
         Test extracting a section that extends to end of file.
         """
         # Prepare inputs.
-        lines = [
-            "# Section A",
-            "Line 1 of A",
-            "# Section B",
-            "Line 1 of B",
-            "Line 2 of B",
-        ]
-        expected = ["Line 1 of B", "Line 2 of B"]
+        lines = """
+        # Section A
+        Line 1 of A
+        # Section B
+        Line 1 of B
+        Line 2 of B
+        """
+        lines = lines.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        expected = """
+        Line 1 of B
+        Line 2 of B
+        """
+        expected = expected.split("\n")
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         # Run test.
         self.helper(lines, "Section B", expected)
 
@@ -831,7 +845,14 @@ class Test_extract_section(hunitest.TestCase):
         Test when section is not found returns None.
         """
         # Prepare inputs.
-        lines = ["# Section A", "Content A", "# Section B", "Content B"]
+        lines = """
+        # Section A
+        Content A
+        # Section B
+        Content B
+        """
+        lines = lines.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         expected = None
         # Run test.
         self.helper(lines, "Section C", expected)
@@ -841,11 +862,13 @@ class Test_extract_section(hunitest.TestCase):
         Test extracting a section with no content (next header immediately after).
         """
         # Prepare inputs.
-        lines = [
-            "# Section A",
-            "# Section B",
-            "Content B",
-        ]
+        lines = """
+        # Section A
+        # Section B
+        Content B
+        """
+        lines = lines.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
         expected = []
         # Run test.
         self.helper(lines, "Section A", expected)
@@ -855,23 +878,27 @@ class Test_extract_section(hunitest.TestCase):
         Test extracting a section that contains subsections (level 2+ headers).
         """
         # Prepare inputs.
-        lines = [
-            "# Main Section",
-            "Intro text",
-            "## Subsection 1",
-            "Subsection content",
-            "### Deep subsection",
-            "Deep content",
-            "# Next Section",
-            "Next content",
-        ]
-        expected = [
-            "Intro text",
-            "## Subsection 1",
-            "Subsection content",
-            "### Deep subsection",
-            "Deep content",
-        ]
+        lines = """
+        # Main Section
+        Intro text
+        ## Subsection 1
+        Subsection content
+        ### Deep subsection
+        Deep content
+        # Next Section
+        Next content
+        """
+        lines = lines.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        expected = """
+        Intro text
+        ## Subsection 1
+        Subsection content
+        ### Deep subsection
+        Deep content
+        """
+        expected = expected.split("\n")
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
         # Run test.
         self.helper(lines, "Main Section", expected)
 
@@ -886,12 +913,45 @@ class Test_expand_includes(hunitest.TestCase):
     Test the `_expand_includes()` function.
     """
 
+    def _create_temp_files(
+        self, files_to_create: dict[str, str], temp_dir: str
+    ) -> None:
+        """
+        Create temporary files in a directory.
+
+        :param files_to_create: dict of {filename: content} to create
+        :param temp_dir: directory to create files in
+        """
+        for filename, content in files_to_create.items():
+            file_path = os.path.join(temp_dir, filename)
+            content_dedented = hprint.dedent(
+                content.split("\n"), remove_lead_trail_empty_lines_=True
+            )
+            content_str = "\n".join(content_dedented)
+            hio.to_file(file_path, content_str)
+
+    def _run_in_temp_dir(
+        self, func, temp_dir: str
+    ) -> None:
+        """
+        Run a function in a temporary directory.
+
+        :param func: callable to run in temp directory
+        :param temp_dir: directory to change to
+        """
+        saved_cwd = os.getcwd()
+        try:
+            os.chdir(temp_dir)
+            func()
+        finally:
+            os.chdir(saved_cwd)
+
     def helper(
         self,
-        lines,
-        expected,
+        lines: Sequence[str],
+        expected: Sequence[str],
         *,
-        files_to_create=None,
+        files_to_create: dict[str, str] | None = None,
     ) -> None:
         """
         Test helper for _expand_includes.
@@ -903,23 +963,16 @@ class Test_expand_includes(hunitest.TestCase):
         # Create temporary files in scratch space.
         temp_dir = self.get_scratch_space()
         if files_to_create:
-            for filename, content in files_to_create.items():
-                file_path = os.path.join(temp_dir, filename)
-                content_dedented = hprint.dedent(
-                    content.split("\n"), remove_lead_trail_empty_lines_=True
-                )
-                content_str = "\n".join(content_dedented)
-                hio.to_file(file_path, content_str)
+            self._create_temp_files(files_to_create, temp_dir)
         # Change to temp directory for include path resolution.
-        saved_cwd = os.getcwd()
-        try:
-            os.chdir(temp_dir)
+
+        def run_test() -> None:
             # Execute function.
-            actual = dshdprno._expand_includes(lines)
+            actual = dshdprno._expand_includes(list(lines))
             # Check outputs.
-            self.assertEqual(actual, expected)
-        finally:
-            os.chdir(saved_cwd)
+            self.assertEqual(actual, list(expected))
+
+        self._run_in_temp_dir(run_test, temp_dir)
 
     def test1(self) -> None:
         """
@@ -1013,24 +1066,16 @@ class Test_expand_includes(hunitest.TestCase):
                 """,
         }
         # Create temporary files in scratch space.
-        # TODO(ai_gp): Factor this out and also in helper and reuse
         temp_dir = self.get_scratch_space()
-        for filename, content in files_to_create.items():
-            file_path = os.path.join(temp_dir, filename)
-            content_dedented = hprint.dedent(
-                content.split("\n"), remove_lead_trail_empty_lines_=True
-            )
-            content_str = "\n".join(content_dedented)
-            hio.to_file(file_path, content_str)
+        self._create_temp_files(files_to_create, temp_dir)
         # Change to temp directory for include path resolution.
-        saved_cwd = os.getcwd()
-        try:
-            os.chdir(temp_dir)
+
+        def run_test() -> None:
             # Execute function and check it raises.
             with self.assertRaises(AssertionError):
                 dshdprno._expand_includes(lines)
-        finally:
-            os.chdir(saved_cwd)
+
+        self._run_in_temp_dir(run_test, temp_dir)
 
     def test5(self) -> None:
         """
@@ -1042,13 +1087,12 @@ class Test_expand_includes(hunitest.TestCase):
         ]
         # Run test and expect exception.
         temp_dir = self.get_scratch_space()
-        saved_cwd = os.getcwd()
-        try:
-            os.chdir(temp_dir)
+
+        def run_test() -> None:
             with self.assertRaises(AssertionError):
                 dshdprno._expand_includes(lines)
-        finally:
-            os.chdir(saved_cwd)
+
+        self._run_in_temp_dir(run_test, temp_dir)
 
     def test6(self) -> None:
         """
@@ -1066,22 +1110,15 @@ class Test_expand_includes(hunitest.TestCase):
         }
         # Create temporary files in scratch space.
         temp_dir = self.get_scratch_space()
-        for filename, content in files_to_create.items():
-            file_path = os.path.join(temp_dir, filename)
-            content_dedented = hprint.dedent(
-                content.split("\n"), remove_lead_trail_empty_lines_=True
-            )
-            content_str = "\n".join(content_dedented)
-            hio.to_file(file_path, content_str)
+        self._create_temp_files(files_to_create, temp_dir)
         # Change to temp directory for include path resolution.
-        saved_cwd = os.getcwd()
-        try:
-            os.chdir(temp_dir)
+
+        def run_test() -> None:
             # Execute function and check it raises.
             with self.assertRaises(AssertionError):
                 dshdprno._expand_includes(lines)
-        finally:
-            os.chdir(saved_cwd)
+
+        self._run_in_temp_dir(run_test, temp_dir)
 
     def test7(self) -> None:
         """
