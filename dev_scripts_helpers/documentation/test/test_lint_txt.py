@@ -2354,6 +2354,75 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
 # #############################################################################
 
 
+class Test__find_unquoted_repo_references(hunitest.TestCase):
+    """
+    Test the _find_unquoted_repo_references function.
+    """
+
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test helper for _find_unquoted_repo_references.
+
+        :param txt: Input text to check
+        :param expected: Expected violations, one per line
+        """
+        # Prepare inputs.
+        lines = txt.split("\n")
+        lines = hprint.dedent(lines, remove_lead_trail_empty_lines_=True)
+        # Run test.
+        actual = dshdlitx._find_unquoted_repo_references(lines)
+        actual = "\n".join(actual)
+        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=True)
+        self.assert_equal(actual, expected)
+
+    def test1(self) -> None:
+        """
+        Test that raw repo references are reported.
+        """
+        # Prepare inputs.
+        txt = """
+        - The //cmamp repo is a runnable repo
+        - Import from //cmamp/optimizer when needed
+        """
+        # Prepare outputs.
+        expected = """
+        line 1: wrap repo reference `//cmamp` in backticks
+        line 2: wrap repo reference `//cmamp/optimizer` in backticks
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+    def test2(self) -> None:
+        """
+        Test that already protected repo references are ignored.
+        """
+        # Prepare inputs.
+        txt = """
+        - The `//cmamp` repo is a runnable repo
+        - Visit https://example.com//not_a_repo for details
+        - A placeholder __PROTECTED_CONTENT_0__ is ignored
+        """
+        # Prepare outputs.
+        expected = """"""
+        # Run test.
+        self.helper(txt, expected)
+
+    def test3(self) -> None:
+        """
+        Test that trailing punctuation is excluded from the reported reference.
+        """
+        # Prepare inputs.
+        txt = """
+        - See //helpers, then continue
+        """
+        # Prepare outputs.
+        expected = """
+        line 1: wrap repo reference `//helpers` in backticks
+        """
+        # Run test.
+        self.helper(txt, expected)
+
+
 class Test_lint_txt_idempotency(hunitest.TestCase):
     """
     Test that lint_txt.py does not modify already formatted files.

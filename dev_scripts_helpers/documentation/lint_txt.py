@@ -279,6 +279,50 @@ def _remove_trailing_periods(lines: List[str]) -> List[str]:
     return lines_new
 
 
+def _find_unquoted_repo_references(lines: List[str]) -> List[str]:
+    """
+    Find repo references that should be wrapped in backticks.
+
+    Repo references use the internal `//repo` notation in docs. To keep them
+    rendered consistently, require raw occurrences such as `//cmamp` or
+    `//cmamp/optimizer` to be written as inline code. The formatter extracts
+    protected content before this check, so already backticked references and
+    fenced code blocks are ignored by the normal linting path.
+
+    :param lines: the lines to check after protected-content extraction
+    :return: human-readable violations, including line numbers
+    """
+    _LOG.debug("lines=%s", lines)
+    violations = []
+    pattern = re.compile(r"(?<!\S)//[A-Za-z0-9_][A-Za-z0-9_./-]*")
+    for line_num, line in enumerate(lines, start=1):
+        for match in pattern.finditer(line):
+            reference = match.group(0).rstrip(".,;:)")
+            violations.append(
+                f"line {line_num}: wrap repo reference `{reference}` in "
+                "backticks"
+            )
+    hdbg.dassert_isinstance(violations, list)
+    return violations
+
+
+def _check_repo_references(lines: List[str], in_file_name: str) -> None:
+    """
+    Check that internal `//repo` references are wrapped in backticks.
+
+    :param lines: the lines to check after protected-content extraction
+    :param in_file_name: the file being linted
+    """
+    violations = _find_unquoted_repo_references(lines)
+    for violation in violations:
+        print(f"{in_file_name}:{violation}")
+    hdbg.dassert_eq(
+        len(violations),
+        0,
+        "Found repo references that should be wrapped in backticks",
+    )
+
+
 def _remove_markdown_formatting(lines: List[str]) -> List[str]:
     """
     Remove markdown formatting from text while preserving content.
@@ -583,6 +627,14 @@ def _perform_actions(
             _check_links(in_file_name)
         else:
             _LOG.debug("Skipping link check for non-text file type")
+    # Check internal repo references before restoring protected content, so
+    # already-backticked references and fenced code blocks are ignored.
+    action = "check_repo_references"
+    if _to_execute_action(action, actions):
+        if is_md_file or is_txt_file:
+            _check_repo_references(lines, in_file_name)
+        else:
+            _LOG.debug("Skipping repo reference check for non-text file type")
     # Restore protected content.
     lines = htexprot.restore_protected_content(lines, protected_map)
     # Remove extra indentation from code blocks (after restore).
@@ -630,6 +682,9 @@ _VALID_ACTIONS = [
     "refresh_toc",
     # _check_links(): check if URLs in the file are reachable.
     "check_links",
+    # _check_repo_references(): check that internal repo references such as
+    # `//cmamp` are wrapped in backticks.
+    "check_repo_references",
 ]
 
 
