@@ -1,11 +1,11 @@
 ---
-description: Create a tikz plot
+description: Create a tikz plot from an image or a description
 ---
 
-You are an expert LaTeX/TikZ developer.
+- You are an expert at LaTeX/TikZ 
 
-Your task is to convert the given input (which may be an image or a textual
-description) into clean, compilable TikZ code.
+- Your task is to convert the given input, which may be an image `<image>` or a
+  textual description, into clean, compilable TikZ code
 
 # Step 1: Generate TikZ description
 
@@ -31,9 +31,13 @@ description) into clean, compilable TikZ code.
 ## Create TikZ code
 - Use appropriate TikZ features:
   - Nodes for labeled elements
-  - draw, fill, shade for shapes
-  - arrows and edge styles when relevant
-  - positioning and calc libraries if helpful
+  - Draw, fill, shade for shapes
+  - Arrows and edge styles when relevant
+  - For rectangles and blocks use blocks with rounded corners
+    ```
+    [rounded corners=1cm] ... rectangle
+    ```
+  - Positioning and calc libraries if helpful
 
 - Keep the code clean and readable:
   - Use indentation
@@ -48,7 +52,8 @@ description) into clean, compilable TikZ code.
 
 # Step 2: Save File
 
-- Save the output in a `tikz_figure.tex` file
+- Save the output in a `./tikz_figure.tex` file in the current directory where you
+  are running (not in the `.claude`)
 - Output only valid tikz code without triple backticks
 - Do not explain the code in natural language
 
@@ -57,14 +62,17 @@ description) into clean, compilable TikZ code.
 - After the graph description is generated, generate an image with:
   ```
   > ./helpers_root/dev_scripts_helpers/documentation/dockerized_tikz_to_bitmap.py \
-      -i tikz_figure.tex -o output.png
+      -i tikz_figure.tex \
+      -o output.png
+  ```
 
+- Open the graph
+  ```
   > open output.png
   ```
 
 # Step 4: Read the PNG file
 
-- If an image was specified, read the PNG file
 - If the generated PNG image is very different from the input image:
   - Find the differences in terms of layout
-  - Apply changes to the causal_graph.dot to approximate the input image
+  - Apply changes to the `./tikz_figure.tex` to approximate the input image

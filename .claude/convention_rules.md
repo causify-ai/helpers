@@ -24,4 +24,3 @@
 ## Do not commit code
 
 - NEVER commit code to git without being explicitly asked to do it
-

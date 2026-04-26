@@ -209,9 +209,22 @@
     # Process imports in two passes: first collect, then validate.
     ```
 
+- Leave existing comments unless they are incorrect, even if they explain
+  WHAT code does and they are redundant
+
 - Prefer single-line comments over multi-line comment blocks when possible
 
 - Use periods at the end of all comments
+
+- In comments always use `: ` instead of ` - `
+  - **Bad**
+    ```
+    # Check outputs.` - Result verification
+    ```
+  - **Good**
+    ```
+    # Check outputs.`: Result verification
+    ```
 
 # Logging
 
