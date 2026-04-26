@@ -4,18 +4,21 @@ import linters2.add_class_frames as ladclfra
 
 
 # #############################################################################
-# Test_add_class_frame
+# Test_update_class_frames
 # #############################################################################
 
 
-class Test_add_class_frame(hunitest.TestCase):
+class Test_update_class_frames(hunitest.TestCase):
     def helper(self, content: str, expected: str) -> None:
-        # Initialize the input file contents.
+        """
+        Transform input content and compare with expected output.
+
+        :param content: Input Python code as a string with potential indentation
+        :param expected: Expected output after applying class frame transformations
+        """
         content = hprint.dedent(content)
-        # Run.
         actual = "\n".join(ladclfra.update_class_frames(content))
         expected = hprint.dedent(expected)
-        # Check.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:
@@ -136,6 +139,9 @@ class Test_add_class_frame(hunitest.TestCase):
     def test4(self) -> None:
         """
         Test adding frames to classes when there are separating lines present.
+
+        A standalone bar before a class frame is removed; 2 empty lines are
+        restored to preserve visual separation.
         """
         content = """
         class FirstClass():
@@ -154,8 +160,6 @@ class Test_add_class_frame(hunitest.TestCase):
 
         class FirstClass():
             pass
-
-        # #############################################################################
 
 
         # #############################################################################
@@ -257,10 +261,10 @@ class Test_add_class_frame(hunitest.TestCase):
 
     def test7(self) -> None:
         """
-        Test that existing frames with extra bars before them are handled.
+        Test that extra bars before a frame are removed.
 
-        When there are extra bars before a valid frame, the function should
-        process them and maintain the frame structure.
+        When there are extra bars with empty lines before a valid frame,
+        they should be removed to clean up the file structure.
         """
         content = """
         # #############################################################################
@@ -275,9 +279,6 @@ class Test_add_class_frame(hunitest.TestCase):
             pass
         """
         expected = """
-        # #############################################################################
-
-
         # #############################################################################
         # TestClass
         # #############################################################################
@@ -318,10 +319,10 @@ class Test_add_class_frame(hunitest.TestCase):
 
     def test9(self) -> None:
         """
-        Test that multiple consecutive bars are preserved.
+        Test that multiple consecutive bars before a frame are removed.
 
         When there are multiple bars with empty lines before a valid frame,
-        the structure is maintained and not modified.
+        the extra bars and empty lines should be removed.
         """
         content = """
         # #############################################################################
@@ -338,5 +339,105 @@ class Test_add_class_frame(hunitest.TestCase):
         class TestClass():
             pass
         """
-        expected = content
+        expected = """
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        self.helper(content, expected)
+
+    def test10(self) -> None:
+        """
+        Test Transform case 1: remove single bar with empty line before frame.
+
+        Pattern: bar -> empty -> bar -> class -> bar
+        Expected: bar -> class -> bar
+        """
+        content = """
+        # #############################################################################
+
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        expected = """
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        self.helper(content, expected)
+
+    def test11(self) -> None:
+        """
+        Test Transform case 2: remove consecutive bars with empty line before frame.
+
+        Pattern: bar -> bar -> empty -> bar -> class -> bar
+        Expected: bar -> class -> bar
+        """
+        content = """
+        # #############################################################################
+        # #############################################################################
+
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        expected = """
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        self.helper(content, expected)
+
+    def test12(self) -> None:
+        """
+        Test Transform case 3: remove multiple bars and empty lines before frame.
+
+        Pattern: empty -> bar -> empty -> bar -> empty -> bar -> class -> bar
+        Expected: bar -> class -> bar
+        """
+        content = """
+
+        # #############################################################################
+
+        # #############################################################################
+
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
+        expected = """
+
+        # #############################################################################
+        # TestClass
+        # #############################################################################
+
+
+        class TestClass():
+            pass
+        """
         self.helper(content, expected)

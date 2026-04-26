@@ -14,8 +14,8 @@
 
 ## File Structure
 
-- For a source file `helpers/module_name.py`, create a test file at
-  `helpers/test/test_module_name.py`
+- For a source file `<module_name>.py`, the corresponding test file is
+  `test/test_<module_name>.py`
 
 ## Unit Test Code Structure
 
@@ -52,27 +52,26 @@
 
 ## Naming Conventions for a Function
 
-- Testing a function -> Use `Test_<FunctionName>` (with underscore)
-  - Examples
-  - For function `parse_limit_range()` ->
-    `class Test_parse_limit_range(hunitest.TestCase):`
-  - For function `apply_limit_range()` ->
-    `class Test_apply_limit_range(hunitest.TestCase):`
+- For testing a function `<FunctionName>` use `Test_<FunctionName>` (separated by
+  underscore since the function name starts with lower case), e.g.,
+  - `parse_limit_range()` -> `class Test_parse_limit_range(hunitest.TestCase):`
+  - `apply_limit_range()` -> `class Test_apply_limit_range(hunitest.TestCase):`
 
 ## Naming Conventions for a Class
 
-- Testing a class -> Use `Test<ClassName>` (no underscore)
-  - Examples
-  - For class `Config` -> `class TestConfig(hunitest.TestCase):`
-  - For class `ConfigBuilder` -> `class TestConfigBuilder(hunitest.TestCase):`
+- For testing a class `<ClassName>` use `Test<ClassName>` (no underscore since
+  the class name starts with capital case), e.g.,
+  - `Config` -> `class TestConfig(hunitest.TestCase):`
+  - `ConfigBuilder` -> `class TestConfigBuilder(hunitest.TestCase):`
 
 ## Test Method Names
 
 - For test method names always number the method tests, as `test1`, `test2`
-  - Good
+  since the explanation of what they do is in the docstring
+  - **Good**
     - `test1`
     - `test2`
-  - Bad
+  - **Bad**
     - `test_preserve_yaml_frontmatter`
     - `test_page_separator_removal_with_frontmatter`
 
@@ -154,6 +153,10 @@
 ## Use Three Sections in Testing Methods
 
 - Every test method must have three sections with standard comments:
+  - `# Prepare inputs.`: Input data setup
+  - `# Prepare outputs.`: Expected output setup
+  - `# Run test.`: Test execution
+  - `# Check outputs.`: Result verification
 
   ```python
   def test_something(self) -> None:
@@ -168,96 +171,105 @@
       <verify results>
   ```
 
-- For section 1 use:
-  - `# Prepare inputs.` (when setting up input data)
-  - `# Prepare outputs.` (when setting up expected values)
-
-- For section 2 use:
-  - `# Run test.`
-
-- For section 3 use:
-  - `# Check output.`
-  - `# Check outputs.`
+- You must preserve test structure comments that organize test logic into
+  sections
+  - These comments provide consistent structure for unit tests and improve
+    readability
+  - **Good**: (test structure is clear)
+    ```python
+    def test1(self) -> None:
+        """
+        Test extraction from valid file path.
+        """
+        # Prepare inputs.
+        file_path = "msml610/lectures_source/Lesson10-Name.md"
+        # Prepare outputs.
+        expected_dir = "msml610"
+        expected_lesson = "10"
+        # Run test.
+        actual_dir, actual_lesson = _extract_lesson_from_file(file_path)
+        # Check outputs.
+        self.assertEqual(actual_dir, expected_dir)
+        self.assertEqual(actual_lesson, expected_lesson)
+    ```
 
 ## Use Helper Methods When You Have Repetitive Tests
 
-- If you write 2 or more test methods that call the same function with only
+- If you write two or more test methods that call the same function with only
   different input values and expected outputs, create a helper method
+  - **Good** (`test1` and `test2` share code in `helper`)
+    ```python
+    class TestFunctionName(hunitest.TestCase):
+        """
+        Test description.
+        """
 
-- Example:
+        def helper(self, param1: Type1, expected: Type2) -> None:
+            """
+            Test helper for function_name.
 
-  ```python
-  class TestFunctionName(hunitest.TestCase):
-      """
-      Test description.
-      """
+            :param param1: Description of param1
+            :param expected: Expected output
+            """
+            # Run test.
+            actual = function_under_test(param1)
+            # Check outputs.
+            self.assert_equal(str(actual), str(expected))
 
-      def helper(self, param1: Type1, expected: Type2) -> None:
-          """
-          Test helper for function_name.
+        def test1(self) -> None:
+            """
+            Test description.
+            """
+            # Prepare inputs.
+            input1 = <value>
+            # Prepare outputs.
+            expected = <value>
+            # Run test.
+            self.helper(input1, expected)
 
-          :param param1: Description of param1
-          :param expected: Expected output
-          """
-          # Run test.
-          actual = function_under_test(param1)
-          # Check outputs.
-          self.assert_equal(str(actual), str(expected))
-
-      def test1(self) -> None:
-          """
-          Test description.
-          """
-          # Prepare inputs.
-          input1 = <value>
-          # Prepare outputs.
-          expected = <value>
-          # Run test.
-          self.helper(input1, expected)
-
-      def test2(self) -> None:
-          """
-          Test description.
-          """
-          # Prepare inputs.
-          input1 = <different_value>
-          # Prepare outputs.
-          expected = <different_value>
-          # Run test.
-          self.helper(input1, expected)
-  ```
+        def test2(self) -> None:
+            """
+            Test description.
+            """
+            # Prepare inputs.
+            input1 = <different_value>
+            # Prepare outputs.
+            expected = <different_value>
+            # Run test.
+            self.helper(input1, expected)
+    ```
 
 ## Assertion Patterns
 
-- Use `self.assertEqual` to compare simple values (e.g., floats, ints)
+- Use `self.assertEqual()` to compare simple values (e.g., floats, ints)
   ```python
   # Check outputs.
   self.assertEqual(actual, expected)
   ```
 
-- Use `self.assert_equal` when the arguments are strings
+- Use `self.assert_equal()` when the arguments are strings
 
-- Compare data structures XYZ (e.g., lists, dicts) as strings:
+- Compare data structures `XYZ` (e.g., lists, dicts) as strings:
   ```python
   # Check outputs.
   self.assert_equal(str(actual), str(expected))
   ```
 
-- Compare with fuzzy matching (whitespace differences):
-
+- Compare with fuzzy matching which ignores whitespace differences when needed:
   ```python
   # Check outputs.
   self.assert_equal(actual, expected, fuzzy_match=True)
   ```
 
-- Compare with text purification (memory addresses):
-
+- Compare with text purification to remove implementation details (e.g., memory
+  addresses, paths, usernames, timestamps, and other machine/environment-specific
+  details that would cause test failures when run on different systems)
   ```python
   # Check outputs.
   self.assert_equal(actual, expected, purify_text=True)
   ```
 
-- Compare with auto-dedent:
+- Compare strings with auto-dedent:
   ```python
   # Check outputs.
   expected = """
@@ -270,11 +282,10 @@
 ## Testing Exceptions
 
 - Full exception testing with message verification:
-
   ```python
-  def test_raises_error(self) -> None:
+  def test1(self) -> None:
       """
-      Test that function raises ExceptionType for invalid input.
+      Test that function raises `ExceptionType` for invalid input.
       """
       # Prepare inputs.
       invalid_input = <value>
@@ -289,11 +300,10 @@
   ```
 
 - Simplified version when exact message doesn't matter:
-
   ```python
-  def test_raises_error(self) -> None:
+  def test2(self) -> None:
       """
-      Test that function raises AssertionError for invalid input.
+      Test that function raises `AssertionError` for invalid input.
       """
       # Prepare inputs.
       invalid_input = <value>
@@ -304,7 +314,7 @@
 
 - Check for partial message:
   ```python
-  def test_error_message_content(self) -> None:
+  def test3(self) -> None:
       """
       Test that error message contains expected text.
       """
@@ -318,18 +328,21 @@
 
 ## Use Golden File Testing for Large Outputs
 
-- When output is > 50 lines or changes frequently:
-
-  ```python
-  def test_large_output(self) -> None:
-      """Test description."""
-      # Prepare inputs.
-      input_data = <value>
-      # Run test.
-      actual = function_under_test(input_data)
-      # Check outputs.
-      self.check_string(actual)
-  ```
+- Always use `self.assert_equal()` to do a comparison of actual with the expected
+  value hard wired in the code
+- The only exception is when output is large (e.g., longer than 20 lines) or
+  changes frequently use `self.check_string()` instead of `self.assert_equal`
+  - E.g.,
+    ```python
+    def test_large_output(self) -> None:
+        """Test description."""
+        # Prepare inputs.
+        input_data = <value>
+        # Run test.
+        actual = function_under_test(input_data)
+        # Check outputs.
+        self.check_string(actual)
+    ```
 
 - With fuzzy matching:
   ```python
@@ -338,27 +351,29 @@
 
 ## Input Data Patterns
 
-- Use multiline text (preferred):
-
-  ```python
-  # Prepare inputs.
-  text = """
-  line1
-  line2
-  line3
-  """
-  text = hprint.dedent(text)
-  ```
-
-- Use list input:
-
-  ```python
-  # Prepare inputs.
-  items = ["a", "b", "c"]
-  ```
+- Always use multiline text aligned to the variable of the string and then call
+  `hpring.dedent()` or use `self.assert_equal(actual, expected, dedent=True)`
+  - **Good**
+    ```python
+    # Prepare inputs.
+    text = """
+    line1
+    line2
+    line3
+    """
+    text = hprint.dedent(text)
+    ```
+  - **Bad**
+    ```python
+    # Prepare inputs.
+    text = """
+line1
+line2
+line3
+    """
+    ```
 
 - Use scratch space for file testing:
-
   ```python
   # Prepare inputs.
   scratch_dir = self.get_scratch_space()
@@ -375,8 +390,7 @@
 
 ## Setup and Teardown
 
-- Use when multiple test methods need the same setup/teardown code:
-
+- Use this idiom when multiple test methods need the same setup/teardown code:
   ```python
   class TestClassName(hunitest.TestCase):
       """

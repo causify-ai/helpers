@@ -17,7 +17,11 @@ class Test_filter_files_by_type(hunitest.TestCase):
     """
 
     def _create_files(self, names: list[str]) -> dict[str, str]:
-        """Create empty files in scratch dir; return {name: abs_path}."""
+        """
+        Create empty files in scratch dir.
+
+        - Return: {name: abs_path}
+        """
         scratch_dir = self.get_scratch_space()
         paths = {}
         for name in names:
