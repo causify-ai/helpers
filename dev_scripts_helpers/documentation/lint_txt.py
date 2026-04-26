@@ -354,7 +354,6 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
     in_code_block = False
     base_indent = 0
     first_code_line = True
-    #
     for line in lines:
         # Handle case where code and opening delimiter are on same line
         # due to inline placeholder restoration (prettier put them together).
@@ -406,9 +405,7 @@ def _remove_code_block_extra_indentation(lines: List[str]) -> List[str]:
             first_code_line = False
         elif in_code_block and line.strip():
             first_code_line = False
-
         lines_new.append(line)
-    #
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
 
@@ -447,7 +444,9 @@ def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
             if in_triple_tick_block:
                 tag = m.group(1)
                 if not tag:
-                    print(f"{in_file_name}:{i + 1}: Missing syntax tag in ```")
+                    _LOG.warning(
+                        "%s:%d: Missing syntax tag in ```", in_file_name, i + 1
+                    )
         if not in_triple_tick_block:
             # Upper case for `- hello`.
             m = re.match(r"(\s*-\s+)(\S)(.*)", line)
@@ -457,10 +456,9 @@ def _postprocess_txt(lines: List[str], in_file_name: str) -> List[str]:
             m = re.match(r"(\s*\d+[\)\.]\s+)(\S)(.*)", line)
             if m:
                 line = m.group(1) + m.group(2).upper() + m.group(3)
-        #
         lines_new.append(line)
     if in_triple_tick_block:
-        print(f"{in_file_name}:{1}: A ``` block was not ending")
+        _LOG.error("%s: A ``` block was not ending", in_file_name)
     hdbg.dassert_isinstance(lines_new, list)
     return lines_new
 

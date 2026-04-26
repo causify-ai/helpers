@@ -10,11 +10,28 @@
 
 ## Follow the Coding Style from the Template
 
-- Use the coding style in `@docs/ai_templates/code_template.py`
+- Use the coding style in `@.claude/templates/code_template.py`
 
 ## Use * for Default Parameters
 
 - Use `*` to mark which parameters in functions should be default parameters
+
+## Type Hints: Use `typing` Module Style
+
+- Use type hints from the `typing` module instead of newer PEP 604 syntax
+- Use `Tuple`, `Dict`, `Optional` instead of `tuple`, `dict`, `|` union syntax
+  - **Good**: Use `typing` module
+    ```python
+    from typing import Dict, Tuple, Optional
+    
+    def process(data: Dict[str, str], item: Optional[str]) -> Tuple[str, int]:
+        ...
+    ```
+  - **Bad**: Use newer PEP 604 syntax
+    ```python
+    def process(data: dict[str, str], item: str | None) -> tuple[str, int]:
+        ...
+    ```
 
 ## Mark Private Functions
 
@@ -170,8 +187,44 @@
 
 ## Add Comments
 
-- Use comments to separate chunks of code
+- Override any minimalist comment defaults, but add explanatory comments liberally
+
+- Use comments to separate logical chunks of code.
+- Explain the logic and intent of code sections, especially for:
+  - Complex algorithms or multi-step processes
+  - Conditional branches and why they're needed
+  - Non-obvious variable assignments or transformations
+  - Implementation choices and workarounds
+  - Algorithm steps in a sequence
+
+- Comments should explain the WHY and the algorithm flow, not just the WHAT
+  - **Bad**: (obvious from the code)
+    ```
+    # Iterate over lines
+    for line in lines:
+      ...
+    ```
+  - **Good**: (explains intent)
+    ```
+    # Process imports in two passes: first collect, then validate.
+    ```
+
+- Leave existing comments unless they are incorrect, even if they explain
+  WHAT code does and they are redundant
+
+- Prefer single-line comments over multi-line comment blocks when possible
+
 - Use periods at the end of all comments
+
+- In comments always use `: ` instead of ` - `
+  - **Bad**
+    ```
+    # Check outputs.` - Result verification
+    ```
+  - **Good**
+    ```
+    # Check outputs.`: Result verification
+    ```
 
 # Logging
 

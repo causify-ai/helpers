@@ -375,16 +375,63 @@ def git_patch_create(  # type: ignore
     print(msg)
 
 
+def _filter_git_files_by_type(
+    file_paths: List[str],
+    keep_python: bool,
+    keep_jupyter: bool,
+    keep_markdown: bool,
+) -> List[str]:
+    """
+    Filter files by type for git_files task.
+
+    Unlike linters2 version, this returns a flat list (not a tuple)
+    and does not separate paired jupytext files.
+
+    :param file_paths: files to filter
+    :param keep_python: include Python files
+    :param keep_jupyter: include Jupyter notebooks
+    :param keep_markdown: include Markdown files
+    :return: filtered list of files
+    """
+    filtered = []
+    for f in file_paths:
+        is_py = f.endswith(".py")
+        is_ipynb = f.endswith(".ipynb")
+        is_md = f.endswith(".md")
+        if is_py and not keep_python:
+            continue
+        if is_ipynb and not keep_jupyter:
+            continue
+        if is_md and not keep_markdown:
+            continue
+        filtered.append(f)
+    return filtered
+
+
 @task
 def git_files(  # type: ignore
-    ctx, modified=False, branch=False, last_commit=False, pbcopy=False
+    ctx,
+    modified=False,
+    branch=False,
+    last_commit=False,
+    keep_python=True,
+    keep_jupyter=True,
+    keep_markdown=True,
+    pbcopy=False,
+    only_print_files=False,
 ):
     """
     Report which files are changed in the current branch with respect to master.
 
     The params have the same meaning as in `_get_files_to_process()`.
+
+    :param keep_python: include Python files (default: True)
+    :param keep_jupyter: include Jupyter notebooks (default: True)
+    :param keep_markdown: include Markdown files (default: True)
+    :param only_print_files: only print files without logging headers/footers (default: False)
     """
-    hlitauti.report_task()
+    if not only_print_files:
+        hlitauti.report_task()
     _ = ctx
     all_ = False
     files = ""
@@ -400,10 +447,15 @@ def git_files(  # type: ignore
         mutually_exclusive,
         remove_dirs,
     )
+    # Filter by file type.
+    files_as_list = _filter_git_files_by_type(
+        files_as_list, keep_python, keep_jupyter, keep_markdown
+    )
     print("\n".join(sorted(files_as_list)))
     # Optionally copy the file list to clipboard for easy pasting.
-    res = " ".join(files_as_list)
-    hsystem.to_pbcopy(res, pbcopy)
+    if not only_print_files:
+        res = " ".join(files_as_list)
+        hsystem.to_pbcopy(res, pbcopy)
 
 
 @task

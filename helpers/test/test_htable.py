@@ -13,6 +13,7 @@ _LOG = logging.getLogger(__name__)
 
 
 class TestTable1(hunitest.TestCase):
+    # #########################################################################
 
     @staticmethod
     def _get_table() -> htable.Table:

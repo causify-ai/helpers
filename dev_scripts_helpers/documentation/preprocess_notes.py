@@ -21,8 +21,9 @@ import dev_scripts_helpers.documentation.preprocess_notes as dsdoprno
 
 import argparse
 import logging
+import os
 import re
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, cast
 
 import helpers.hdbg as hdbg
 import helpers.hio as hio
@@ -164,6 +165,110 @@ def _process_question_to_slides(
         line = f"{prefix} {tag}"
         do_continue = True
     return do_continue, line
+
+
+def _expand_includes(lines: List[str]) -> List[str]:
+    r"""
+    Expand `// include:<FILE> "<TITLE>"` directives by inlining file sections.
+
+    - Scan lines for include directives
+    - Replace them with the body content of the specified section from the
+      included file
+        - The included file must have a header `# <TITLE>` (level 1),
+        - Only the body content under that header (until the next level-1
+          header) is inlined
+        - The header itself is stripped.
+
+    Relative file paths are resolved from the current working directory.
+
+    :param lines: list of input lines
+    :return: list of lines with includes expanded
+    """
+    hdbg.dassert_isinstance(lines, list)
+    out: List[str] = []
+    # Pattern: // include:<FILE> "<TITLE>"
+    include_pattern = r'^\s*//\s*include:\s*(\S+)\s+"([^"]+)"\s*$'
+    for i, line in enumerate(lines):
+        m = re.match(include_pattern, line)
+        if m:
+            file_path = m.group(1)
+            title = m.group(2)
+            _LOG.debug(
+                "Found include directive: file=%s title=%s",
+                file_path,
+                title,
+            )
+            # Resolve file path from current working directory if relative.
+            if not os.path.isabs(file_path):
+                file_path = os.path.join(os.getcwd(), file_path)
+            file_path = os.path.abspath(file_path)
+            hdbg.dassert_file_exists(
+                file_path,
+                "Include file not found: %s (resolved from relative path in line %d)",
+                file_path,
+                i,
+            )
+            # Read the included file.
+            included_txt = hio.from_file(file_path)
+            included_lines = included_txt.split("\n")
+            # Check for nested includes and reject.
+            for j, inc_line in enumerate(included_lines):
+                hdbg.dassert(
+                    not re.match(include_pattern, inc_line),
+                    "Nested include directives not allowed: "
+                    "file=%s line=%d has include directive",
+                    file_path,
+                    j,
+                )
+            # Extract section under `# <TITLE>`.
+            section_lines = _extract_section(included_lines, title)
+            hdbg.dassert_is_not(
+                section_lines,
+                None,
+                "Section not found: file=%s title=%s",
+                file_path,
+                title,
+            )
+            out.extend(cast(List[str], section_lines))
+        else:
+            out.append(line)
+    hdbg.dassert_isinstance(out, list)
+    return out
+
+
+def _extract_section(lines: List[str], title: str) -> Optional[List[str]]:
+    r"""
+    Extract the body content under a level-1 header with the given title.
+
+    Finds the header `# <title>` and returns the lines immediately following it
+    up to (but not including) the next level-1 header. The header line itself is
+    excluded from the result.
+
+    :param lines: list of lines to search
+    :param title: the header title to find (exact match)
+    :return: list of body lines, or None if header not found
+    """
+    hdbg.dassert_isinstance(lines, list)
+    hdbg.dassert_isinstance(title, str)
+    # Find the line with `# <title>` (level-1 header).
+    header_line_idx = None
+    header_pattern = rf"^#\s+{re.escape(title)}\s*$"
+    for i, line in enumerate(lines):
+        if re.match(header_pattern, line):
+            header_line_idx = i
+            break
+    if header_line_idx is None:
+        return None
+    # Find the next level-1 header (or end of file).
+    end_idx = len(lines)
+    for i in range(header_line_idx + 1, len(lines)):
+        is_header, level, _ = hmarkdo.is_header(lines[i])
+        if is_header and level == 1:
+            end_idx = i
+            break
+    # Return the body lines (excluding the header line itself).
+    result = lines[header_line_idx + 1 : end_idx]
+    return result
 
 
 # TODO(gp): Use hmarkdown.process_lines().
@@ -314,7 +419,6 @@ def _transform_lines(
         # to_execute = False
         if to_execute:
             out = hmarkdo.format_md_links_to_latex_format(out)
-
         # Colorize bullets in the slides.
 
         def _colorize_bullets(
@@ -355,9 +459,6 @@ def _transform_lines(
         if to_execute:
             out = hmarkdo.process_slides(out, _colorize_bullets)
         out = out.split("\n")
-
-        # Colorize verbatim.
-
     # out = out.split("\n")
     out_tmp = []
     for line in out:
@@ -544,6 +645,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
     txt = hio.from_file(args.input)
     # Process.
     lines = txt.split("\n")
+    # Expand include directives before other preprocessing.
+    lines = _expand_includes(lines)
     out = _preprocess_lines(
         lines, args.type, args.toc_type, args.qa, actions=actions
     )
