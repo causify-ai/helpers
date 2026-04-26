@@ -16,9 +16,12 @@ class Test_update_class_frames(hunitest.TestCase):
         :param content: Input Python code as a string with potential indentation
         :param expected: Expected output after applying class frame transformations
         """
+        # Initialize the input file contents.
         content = hprint.dedent(content)
+        # Run.
         actual = "\n".join(ladclfra.update_class_frames(content))
         expected = hprint.dedent(expected)
+        # Check.
         self.assert_equal(actual, expected)
 
     def test1(self) -> None:

@@ -1,5 +1,6 @@
 ---
 description: Find and update the references in other Git repos to files that were moved, renamed, or deleted in the current Git repo
+model: haiku
 ---
 
 # Step 1
