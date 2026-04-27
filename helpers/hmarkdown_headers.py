@@ -236,8 +236,15 @@ def capitalize_header(lines: List[str]) -> List[str]:
             # characters, to avoid matching apostrophes in contractions like "don't".
             # Backtick and double-quote patterns are simpler since they're less likely
             # to be used in natural text.
-            # TODO(ai_gp): Add a verbose explanation of this using re.VERBOSE
-            quote_pattern = r"(`[^`]*`|(?<!\w)'[^']*'(?!\w)|\"[^\"]*\")"
+            quote_pattern = r"""
+            (                          # Start of alternation
+                `[^`]*`                # Backtick-quoted string
+                |                      # OR
+                (?<!\w)'[^']*'(?!\w)   # Single-quoted string (not preceded/followed by word chars)
+                |                      # OR
+                \"[^\"]*\"              # Double-quoted string
+            )
+            """
 
             def replace_quoted(match: re.Match) -> str:
                 quoted_strings.append(match.group(0))
@@ -247,7 +254,7 @@ def capitalize_header(lines: List[str]) -> List[str]:
 
             # Replace quoted strings with placeholders.
             title_with_placeholders = re.sub(
-                quote_pattern, replace_quoted, title
+                quote_pattern, replace_quoted, title, flags=re.VERBOSE
             )
             # Split into words.
             words = title_with_placeholders.split()

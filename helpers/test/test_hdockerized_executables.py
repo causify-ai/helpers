@@ -24,13 +24,32 @@ def _create_test_file(self_: Any, txt: str, extension: str) -> str:
     return file_path
 
 
+def _prepare_div_block_inputs(
+    txt: str, expected: str
+) -> Tuple[List[str], str]:
+    txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
+    expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
+    if expected.startswith("\n"):
+        expected = expected[1:]
+    if expected.endswith("\n"):
+        expected = expected[:-1]
+    lines = txt.split("\n")
+    return lines, expected
+
+
+def _assert_output_file_exists(self_: Any, out_file_path: str) -> None:
+    self_.assertTrue(
+        os.path.exists(out_file_path),
+        msg=f"Output file {out_file_path} not found",
+    )
+
+
 # #############################################################################
 # Test_run_dockerized_prettier1
 # #############################################################################
 
 
-# TODO(ai_gp): -> Test_dockerized_prettier1
-class Test_run_dockerized_prettier1(hunitest.TestCase):
+class Test_dockerized_prettier1(hunitest.TestCase):
     """
     Test running the `prettier` command inside a Docker container.
     """
@@ -204,8 +223,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): -> Test_dockerized_pandoc1
-class Test_run_dockerized_pandoc1(hunitest.TestCase):
+class Test_dockerized_pandoc1(hunitest.TestCase):
     """
     Test running the `pandoc` command inside a Docker container.
     """
@@ -270,8 +288,7 @@ class Test_run_dockerized_pandoc1(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): -> Test_dockerized_markdown_toc1
-class Test_run_markdown_toc1(hunitest.TestCase):
+class Test_dockerized_markdown_toc1(hunitest.TestCase):
     def run_markdown_toc(self, txt: str, expected: str) -> None:
         """
         Test running the `markdown-toc` command in a Docker container.
@@ -371,29 +388,8 @@ class Test_dockerized_latex1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
+        _assert_output_file_exists(self, out_file_path)
 
-    # TODO(ai_gp): In theory this should go in test_dockerized_latex.py
-    @pytest.mark.superslow
-    def test_cmd_line1(self) -> None:
-        """
-        Run `latex` using the command line.
-        """
-        # Prepare inputs.
-        exec_path = hgit.find_file_in_git_tree("dockerized_latex.py")
-        in_file_path, out_file_path = self.create_input_file()
-        out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
-        # Run function.
-        cmd = f"{exec_path} -i {in_file_path} -o {out_file_path}"
-        hsystem.system(cmd)
-        # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
 
     # TODO(gp): This doesn't work since:
     # 1) `convert_latex_cmd_to_arguments()` is monkey patching with parsing the
@@ -477,28 +473,8 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
+        _assert_output_file_exists(self, out_file_path)
 
-    # TODO(ai_gp): In theory this should go in test_tikz_to_png.py
-    @pytest.mark.superslow
-    def test_command_line1(self) -> None:
-        """
-        Run `dockerized_tikz_to_bitmap` through the command line.
-        """
-        # Prepare inputs.
-        exec_path = hgit.find_file_in_git_tree("dockerized_tikz_to_bitmap.py")
-        in_file_path, out_file_path = self.create_input_file()
-        # Run function.
-        cmd = f"{exec_path} -i {in_file_path} -o {out_file_path} -density 300 -quality 10"
-        hsystem.system(cmd)
-        # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
 
 
 # #############################################################################
@@ -540,27 +516,8 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
+        _assert_output_file_exists(self, out_file_path)
 
-    # TODO(ai_gp): In theory this should go in test_dockerized_graphviz.py
-    def test_command_line1(self) -> None:
-        """
-        Run `dockerized_graphviz` through the command line.
-        """
-        # Prepare inputs.
-        exec_path = hgit.find_file_in_git_tree("dockerized_graphviz.py")
-        in_file_path, out_file_path = self.create_input_file()
-        # Run function.
-        cmd = f"{exec_path} -i {in_file_path} -o {out_file_path}"
-        hsystem.system(cmd)
-        # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
 
 
 # #############################################################################
@@ -604,10 +561,7 @@ class Test_dockerized_typst1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
+        _assert_output_file_exists(self, out_file_path)
 
     def test_command_line1(self) -> None:
         """
@@ -620,10 +574,7 @@ class Test_dockerized_typst1(hunitest.TestCase):
         cmd = f"{exec_path} --input {in_file_path} --output {out_file_path}"
         hsystem.system(cmd)
         # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
+        _assert_output_file_exists(self, out_file_path)
 
 
 # #############################################################################
@@ -638,15 +589,7 @@ class Test_add_prettier_ignore_to_div_blocks(hunitest.TestCase):
 
     def helper(self, txt: str, expected: str) -> None:
         # Prepare inputs.
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        # Process expected: dedent but keep internal empty lines, remove only
-        # outer newlines from triple-quote.
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
-        if expected.startswith("\n"):
-            expected = expected[1:]
-        if expected.endswith("\n"):
-            expected = expected[:-1]
-        lines = txt.split("\n")
+        lines, expected = _prepare_div_block_inputs(txt, expected)
         # Run test.
         actual_lines = hmadiblo.add_prettier_ignore_to_div_blocks(lines)
         actual = "\n".join(actual_lines)
@@ -779,15 +722,7 @@ class Test_remove_prettier_ignore_from_div_blocks(hunitest.TestCase):
 
     def helper(self, txt: str, expected: str) -> None:
         # Prepare inputs.
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
-        # Process expected: dedent but keep internal empty lines, remove only
-        # outer newlines from triple-quote.
-        expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
-        if expected.startswith("\n"):
-            expected = expected[1:]
-        if expected.endswith("\n"):
-            expected = expected[:-1]
-        lines = txt.split("\n")
+        lines, expected = _prepare_div_block_inputs(txt, expected)
         # Run test.
         actual_lines = hmadiblo.remove_prettier_ignore_from_div_blocks(lines)
         actual = "\n".join(actual_lines)
@@ -988,6 +923,24 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
     Test SVG conversion using rsvg-convert.
     """
 
+    def _run_svg_conversion(
+        self, svg_code: str, out_filename: str, output_format: str
+    ) -> None:
+        in_file = os.path.join(self.get_scratch_space(), "test.svg")
+        out_file = os.path.join(self.get_scratch_space(), out_filename)
+        hio.to_file(in_file, svg_code)
+        # Run conversion.
+        use_sudo = hdocker.get_use_sudo()
+        hdocexec.run_dockerized_svg_with_rsvg_convert(
+            in_file,
+            out_file,
+            output_format=output_format,
+            force_rebuild=False,
+            use_sudo=use_sudo,
+        )
+        # Check that output file was created.
+        self.assertTrue(os.path.exists(out_file))
+
     @pytest.mark.slow
     def test_svg_to_png(self) -> None:
         """
@@ -998,20 +951,7 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
           <circle cx="50" cy="50" r="40" fill="blue" />
         </svg>
         """
-        in_file = os.path.join(self.get_scratch_space(), "test.svg")
-        out_file = os.path.join(self.get_scratch_space(), "test_png.png")
-        hio.to_file(in_file, svg_code)
-        # Run conversion.
-        use_sudo = hdocker.get_use_sudo()
-        hdocexec.run_dockerized_svg_with_rsvg_convert(
-            in_file,
-            out_file,
-            output_format="png",
-            force_rebuild=False,
-            use_sudo=use_sudo,
-        )
-        # Check that output file was created.
-        self.assertTrue(os.path.exists(out_file))
+        self._run_svg_conversion(svg_code, "test_png.png", "png")
 
     @pytest.mark.slow
     def test_svg_to_pdf(self) -> None:
@@ -1023,20 +963,7 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
           <rect x="10" y="10" width="80" height="80" fill="red" />
         </svg>
         """
-        in_file = os.path.join(self.get_scratch_space(), "test.svg")
-        out_file = os.path.join(self.get_scratch_space(), "test_pdf.pdf")
-        hio.to_file(in_file, svg_code)
-        # Run conversion.
-        use_sudo = hdocker.get_use_sudo()
-        hdocexec.run_dockerized_svg_with_rsvg_convert(
-            in_file,
-            out_file,
-            output_format="pdf",
-            force_rebuild=False,
-            use_sudo=use_sudo,
-        )
-        # Check that output file was created.
-        self.assertTrue(os.path.exists(out_file))
+        self._run_svg_conversion(svg_code, "test_pdf.pdf", "pdf")
 
 
 # #############################################################################
@@ -1049,6 +976,24 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
     Test SVG conversion using inkscape.
     """
 
+    def _run_svg_conversion(
+        self, svg_code: str, out_filename: str, output_format: str
+    ) -> None:
+        in_file = os.path.join(self.get_scratch_space(), "test.svg")
+        out_file = os.path.join(self.get_scratch_space(), out_filename)
+        hio.to_file(in_file, svg_code)
+        # Run conversion.
+        use_sudo = hdocker.get_use_sudo()
+        hdocexec.run_dockerized_svg_with_inkscape(
+            in_file,
+            out_file,
+            output_format=output_format,
+            force_rebuild=False,
+            use_sudo=use_sudo,
+        )
+        # Check that output file was created.
+        self.assertTrue(os.path.exists(out_file))
+
     @pytest.mark.slow
     def test_svg_to_png(self) -> None:
         """
@@ -1059,20 +1004,7 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
           <circle cx="50" cy="50" r="40" fill="green" />
         </svg>
         """
-        in_file = os.path.join(self.get_scratch_space(), "test.svg")
-        out_file = os.path.join(self.get_scratch_space(), "test_inkscape.png")
-        hio.to_file(in_file, svg_code)
-        # Run conversion.
-        use_sudo = hdocker.get_use_sudo()
-        hdocexec.run_dockerized_svg_with_inkscape(
-            in_file,
-            out_file,
-            output_format="png",
-            force_rebuild=False,
-            use_sudo=use_sudo,
-        )
-        # Check that output file was created.
-        self.assertTrue(os.path.exists(out_file))
+        self._run_svg_conversion(svg_code, "test_inkscape.png", "png")
 
     @pytest.mark.slow
     def test_svg_to_pdf(self) -> None:
@@ -1084,17 +1016,4 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
           <polygon points="50,10 90,90 10,90" fill="yellow" stroke="black"/>
         </svg>
         """
-        in_file = os.path.join(self.get_scratch_space(), "test.svg")
-        out_file = os.path.join(self.get_scratch_space(), "test_inkscape.pdf")
-        hio.to_file(in_file, svg_code)
-        # Run conversion.
-        use_sudo = hdocker.get_use_sudo()
-        hdocexec.run_dockerized_svg_with_inkscape(
-            in_file,
-            out_file,
-            output_format="pdf",
-            force_rebuild=False,
-            use_sudo=use_sudo,
-        )
-        # Check that output file was created.
-        self.assertTrue(os.path.exists(out_file))
+        self._run_svg_conversion(svg_code, "test_inkscape.pdf", "pdf")

@@ -15,7 +15,7 @@ import logging
 import os
 import re
 import shlex
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Tuple, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
@@ -27,6 +27,66 @@ import helpers.hserver as hserver
 import helpers.hsystem as hsystem
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Helper functions for common Docker patterns
+# #############################################################################
+
+
+def _get_docker_mount_context() -> Tuple[bool, bool, str, str, str]:
+    """
+    Return Docker mount context for container operations.
+
+    Returns: (is_caller_host, use_sibling_container_for_callee,
+              caller_mount_path, callee_mount_path, mount)
+    """
+    is_caller_host = not hserver.is_inside_docker()
+    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
+    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
+        is_caller_host, use_sibling_container_for_callee
+    )
+    return (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    )
+
+
+def _build_and_run_docker_cmd(
+    use_sudo: bool,
+    callee_mount_path: str,
+    mount: str,
+    container_image: str,
+    dockerfile: str,
+    tool_cmd: str,
+    mode: str,
+    *,
+    override_entrypoint: bool = False,
+    wrap_in_bash: bool = False,
+) -> str:
+    """
+    Build and execute a Docker command.
+    """
+    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
+    if override_entrypoint:
+        docker_cmd.append("--entrypoint ''")
+    docker_cmd.extend(
+        [
+            f"--workdir {callee_mount_path} --mount {mount}",
+            container_image,
+        ]
+    )
+    if wrap_in_bash:
+        docker_cmd.append(f'bash -c "{tool_cmd}"')
+    else:
+        docker_cmd.append(tool_cmd)
+    docker_cmd_str = " ".join(docker_cmd)
+    return hdocker.process_docker_cmd(
+        docker_cmd_str, container_image, dockerfile, mode
+    )
 
 
 # #############################################################################
@@ -109,11 +169,13 @@ def run_dockerized_prettier(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -157,18 +219,16 @@ def run_dockerized_prettier(
     if out_file_path != in_file_path:
         bash_cmd += f" > {out_file_path}"
     # Build the Docker command.
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            " --entrypoint ''",
-            f"--workdir {callee_mount_path} --mount {mount}",
-            f"{container_image}",
-            f'bash -c "{bash_cmd}"',
-        ]
-    )
-    docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(
-        docker_cmd, container_image, dockerfile, mode
+    ret = _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        bash_cmd,
+        mode,
+        override_entrypoint=True,
+        wrap_in_bash=True,
     )
     return ret
 
@@ -447,11 +507,13 @@ def run_dockerized_pandoc(
             incremental=incremental,
         )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     # Convert command to arguments.
     param_dict = convert_pandoc_cmd_to_arguments(cmd)
     param_dict["input"] = hdocker.convert_caller_to_callee_docker_path(
@@ -496,17 +558,16 @@ def run_dockerized_pandoc(
     #     pandoc/core \
     #     input.md -o output.md \
     #     -s --toc
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            f"--workdir {callee_mount_path} --mount {mount}",
-            f"{container_image}",
-            f"{pandoc_cmd}",
-        ]
-    )
-    docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(
-        docker_cmd, container_image, dockerfile, mode
+    ret = _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        pandoc_cmd,
+        mode,
+        override_entrypoint=False,
+        wrap_in_bash=False,
     )
     return ret
 
@@ -676,11 +737,13 @@ def run_dockerized_markdown_toc(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -697,17 +760,16 @@ def run_dockerized_markdown_toc(
     #     tmp.markdown_toc \
     #     -i ./test.md
     bash_cmd = f"/usr/local/bin/markdown-toc {cmd_opts_as_str} -i {in_file_path}"
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            f"--workdir {callee_mount_path} --mount {mount}",
-            f"{container_image}",
-            f'bash -c "{bash_cmd}"',
-        ]
-    )
-    docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(
-        docker_cmd, container_image, dockerfile, mode
+    ret = _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        bash_cmd,
+        mode,
+        override_entrypoint=False,
+        wrap_in_bash=True,
     )
     return ret
 
@@ -898,11 +960,13 @@ def run_dockerized_latex(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert files to Docker.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     # Convert command to arguments.
     param_dict = convert_latex_cmd_to_arguments(cmd)
     param_dict["input"] = hdocker.convert_caller_to_callee_docker_path(
@@ -944,17 +1008,16 @@ def run_dockerized_latex(
     latex_cmd = "pdflatex " + latex_cmd
     _LOG.debug(hprint.to_str("latex_cmd"))
     # Build Docker command.
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            f"--workdir {callee_mount_path} --mount {mount}",
-            f"{container_image}",
-            f"{latex_cmd}",
-        ]
-    )
-    docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(
-        docker_cmd, container_image, dockerfile, mode
+    ret = _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        latex_cmd,
+        mode,
+        override_entrypoint=False,
+        wrap_in_bash=False,
     )
     return ret
 
@@ -1056,11 +1119,13 @@ def run_dockerized_imagemagick(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -1082,18 +1147,16 @@ def run_dockerized_imagemagick(
     # Build ImageMagick command.
     cmd_opts_as_str = " ".join(cmd_opts)
     cmd = f"magick {cmd_opts_as_str} {in_file_path} {out_file_path}"
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            "--entrypoint ''",
-            f"--workdir {callee_mount_path} --mount {mount}",
-            container_image,
-            f'bash -c "{cmd}"',
-        ]
-    )
-    docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(
-        docker_cmd, container_image, dockerfile, mode
+    ret = _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        cmd,
+        mode,
+        override_entrypoint=True,
+        wrap_in_bash=True,
     )
     return ret
 
@@ -1182,11 +1245,13 @@ def run_dockerized_plantuml(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     out_file_path = hdocker.convert_caller_to_callee_docker_path(
         out_file_path,
         caller_mount_path,
@@ -1206,18 +1271,16 @@ def run_dockerized_plantuml(
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
     plantuml_cmd = f"plantuml -t{dst_ext} -o {out_file_path} {in_file_path}"
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            " --entrypoint ''",
-            f"--workdir {callee_mount_path} --mount {mount}",
-            f"{container_image}",
-            f'bash -c "{plantuml_cmd}"',
-        ]
-    )
-    docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(
-        docker_cmd, container_image, dockerfile, mode
+    ret = _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        plantuml_cmd,
+        mode,
+        override_entrypoint=True,
+        wrap_in_bash=True,
     )
     return ret
 
@@ -1247,11 +1310,13 @@ def run_dockerized_mermaid(
     container_image = "minlag/mermaid-cli"
     dockerfile = ""
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -1272,17 +1337,16 @@ def run_dockerized_mermaid(
     )
     mermaid_cmd = f" -i {in_file_path} -o {out_file_path}"
     mermaid_cmd += " --scale 3"
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            f"--workdir {callee_mount_path} --mount {mount}",
-            container_image,
-            mermaid_cmd,
-        ]
-    )
-    docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(
-        docker_cmd, container_image, dockerfile, mode
+    ret = _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        mermaid_cmd,
+        mode,
+        override_entrypoint=False,
+        wrap_in_bash=False,
     )
     return ret
 
@@ -1385,11 +1449,13 @@ def run_dockerized_typst(
         TYPST_CONTAINER_IMAGE, TYPST_DOCKERFILE, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -1411,18 +1477,16 @@ def run_dockerized_typst(
     # Build the Typst command.
     cmd_opts_as_str = " ".join(cmd_opts)
     typst_cmd = f"typst compile {cmd_opts_as_str} {in_file_path} {out_file_path}"
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            "--entrypoint ''",
-            f"--workdir {callee_mount_path} --mount {mount}",
-            container_image,
-            f'bash -c "{typst_cmd}"',
-        ]
-    )
-    docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(
-        docker_cmd, container_image, TYPST_DOCKERFILE, mode
+    ret = _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        TYPST_DOCKERFILE,
+        typst_cmd,
+        mode,
+        override_entrypoint=True,
+        wrap_in_bash=True,
     )
     return ret
 
@@ -1476,11 +1540,13 @@ def run_dockerized_mermaid2(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -1512,18 +1578,17 @@ def run_dockerized_mermaid2(
         f"mmdc --puppeteerConfigFile {puppeteer_config_path}"
         + f" -i {in_file_path} -o {out_file_path}"
     )
-    # TODO(gp): Factor out building the docker cmd.
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            "--entrypoint ''",
-            f"--workdir {callee_mount_path} --mount {mount}",
-            container_image,
-            f'bash -c "{mermaid_cmd}"',
-        ]
+    _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        mermaid_cmd,
+        mode,
+        override_entrypoint=True,
+        wrap_in_bash=True,
     )
-    docker_cmd = " ".join(docker_cmd)
-    hdocker.process_docker_cmd(docker_cmd, container_image, dockerfile, mode)
 
 
 # #############################################################################
@@ -1561,11 +1626,13 @@ def run_dockerized_graphviz(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -1596,17 +1663,16 @@ def run_dockerized_graphviz(
     ]
     graphviz_cmd = " ".join(graphviz_cmd)
     # Build Docker command.
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            f"--workdir {callee_mount_path} --mount {mount}",
-            container_image,
-            graphviz_cmd,
-        ]
-    )
-    docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(
-        docker_cmd, container_image, dockerfile, mode
+    ret = _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        graphviz_cmd,
+        mode,
+        override_entrypoint=False,
+        wrap_in_bash=False,
     )
     return ret
 
@@ -1655,11 +1721,13 @@ def run_dockerized_svg_with_rsvg_convert(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -1685,17 +1753,16 @@ def run_dockerized_svg_with_rsvg_convert(
         f"-o {out_file_path} {in_file_path}"
     )
     # Build Docker command.
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            f"--workdir {callee_mount_path} --mount {mount}",
-            container_image,
-            svg_cmd,
-        ]
-    )
-    docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(
-        docker_cmd, container_image, dockerfile, mode
+    ret = _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        svg_cmd,
+        mode,
+        override_entrypoint=False,
+        wrap_in_bash=False,
     )
     return ret
 
@@ -1745,11 +1812,13 @@ def run_dockerized_svg_with_inkscape(
         container_image, dockerfile, force_rebuild, use_sudo
     )
     # Convert files to Docker paths.
-    is_caller_host = not hserver.is_inside_docker()
-    use_sibling_container_for_callee = hserver.use_docker_sibling_containers()
-    caller_mount_path, callee_mount_path, mount = hdocker.get_docker_mount_info(
-        is_caller_host, use_sibling_container_for_callee
-    )
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = _get_docker_mount_context()
     in_file_path = hdocker.convert_caller_to_callee_docker_path(
         in_file_path,
         caller_mount_path,
@@ -1775,16 +1844,15 @@ def run_dockerized_svg_with_inkscape(
         f"--export-filename={out_file_path} --export-dpi=300"
     )
     # Build Docker command.
-    docker_cmd = hdocker.get_docker_base_cmd(use_sudo)
-    docker_cmd.extend(
-        [
-            f"--workdir {callee_mount_path} --mount {mount}",
-            container_image,
-            svg_cmd,
-        ]
-    )
-    docker_cmd = " ".join(docker_cmd)
-    ret = hdocker.process_docker_cmd(
-        docker_cmd, container_image, dockerfile, mode
+    ret = _build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        svg_cmd,
+        mode,
+        override_entrypoint=False,
+        wrap_in_bash=False,
     )
     return ret

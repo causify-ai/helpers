@@ -1,0 +1,4 @@
+#!/bin/bash
+# Search for TODO(ai_gp) markers using rig
+
+rig --todo "$@"

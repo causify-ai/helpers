@@ -341,9 +341,12 @@ class Test_render_image_code1(hunitest.TestCase):
         """
         Check rendering of an image code in a Markdown file.
         """
-        # TODO(ai_gp): Assign variables and then use them to call self.helper
-        # in all the file.
-        self.helper("digraph { A -> B }", "graphviz", "test.md", "png", "figs/test.1.png")
+        image_code = "digraph { A -> B }"
+        image_code_type = "graphviz"
+        out_file_name = "test.md"
+        dst_ext = "png"
+        expected_path = "figs/test.1.png"
+        self.helper(image_code, image_code_type, out_file_name, dst_ext, expected_path)
 
     @pytest.mark.superslow
     def test_md2(self) -> None:
