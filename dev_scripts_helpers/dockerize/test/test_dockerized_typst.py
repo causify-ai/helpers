@@ -85,7 +85,9 @@ class Test_run_dockerized_typst(hunitest.TestCase):
         # Prepare inputs.
         exec_path = hgit.find_file_in_git_tree("dockerized_typst.py")
         in_file_path = _create_typst_file(self)
-        out_file_path = os.path.join(self.get_scratch_space(), "custom_output.pdf")
+        out_file_path = os.path.join(
+            self.get_scratch_space(), "custom_output.pdf"
+        )
         # Run function.
         cmd = f"{exec_path} --input {in_file_path} --output {out_file_path}"
         hsystem.system(cmd)

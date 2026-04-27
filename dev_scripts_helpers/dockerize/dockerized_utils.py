@@ -58,6 +58,7 @@ def test_container_build(
     output_ext: str,
     run_func: Callable[..., Any],
     *,
+    positional_args: Any = None,
     run_kwargs: Optional[Dict[str, Any]] = None,
 ) -> None:
     """
@@ -68,15 +69,35 @@ def test_container_build(
     exists. This consolidates common test patterns across all containerized
     build tests.
 
+    Supports different function signature patterns:
+
+    Pattern 1: Direct file paths
+        `run_dockerized_typst(in_file, out_file, ..., force_rebuild=, use_sudo=)`
+        Usage: test_container_build(..., run_func=run_dockerized_typst)
+
+    Pattern 2: Positional args between files
+        `run_dockerized_graphviz(in_file, cmd_opts, out_file, ..., force_rebuild=, use_sudo=)`
+        Usage: test_container_build(..., run_func=run_dockerized_graphviz,
+                                    positional_args=[[]])  # cmd_opts=[]
+
+    Pattern 3: Alternative file parameter names with kwargs
+        `run_dockerized_svg(in_file, out_file, *, output_format="png", ...)`
+        Usage: test_container_build(..., run_func=run_dockerized_svg,
+                                    run_kwargs={"output_format": "png"})
+
     :param self_: test instance (needs `get_input_dir()`, `get_output_dir()`,
         `assertTrue()`)
     :param input_content: content to write to the input file
     :param input_ext: file extension for input (e.g., 'md', 'typ', 'tex')
     :param output_ext: file extension for output (e.g., 'pdf', 'html')
     :param run_func: dockerized function to call (e.g.,
-        `run_dockerized_pandoc`)
+        `run_dockerized_pandoc`, `run_dockerized_graphviz`)
+    :param positional_args: positional arguments to insert between input_file
+        and output_file (e.g., `[[]]` for cmd_opts=[] in graphviz)
     :param run_kwargs: additional keyword arguments to pass to `run_func`
     """
+    if positional_args is None:
+        positional_args = []
     if run_kwargs is None:
         run_kwargs = {}
     # Create input and output directories.
@@ -97,13 +118,24 @@ def test_container_build(
         input_file,
         output_file,
     )
-    run_func(
-        input_file,
-        output_file,
-        force_rebuild=True,
-        use_sudo=use_sudo,
-        **run_kwargs,
-    )
+    # Build the function call with positional args inserted between files.
+    if positional_args:
+        run_func(
+            input_file,
+            *positional_args,
+            output_file,
+            force_rebuild=True,
+            use_sudo=use_sudo,
+            **run_kwargs,
+        )
+    else:
+        run_func(
+            input_file,
+            output_file,
+            force_rebuild=True,
+            use_sudo=use_sudo,
+            **run_kwargs,
+        )
     # Verify output file was created.
     self_.assertTrue(
         os.path.exists(output_file),

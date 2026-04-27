@@ -14,7 +14,7 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_build_markdown_toc_container
+# Test_build_markdown_toc_container1
 # #############################################################################
 
 
@@ -27,12 +27,13 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
     def test1(self) -> None:
         """
         Test that the markdown-toc Docker container is built correctly.
+
+        Note: markdown_toc modifies files in place, so it uses a custom test
+        instead of the generic helper.
         """
         # Prepare inputs.
         use_sudo = hdocker.get_use_sudo()
         input_dir = self.get_input_dir()
-        output_dir = self.get_output_dir()
-        hio.create_dir(output_dir, incremental=True)
         input_file = os.path.join(input_dir, "test.md")
         markdown_code = """
         <!-- toc -->

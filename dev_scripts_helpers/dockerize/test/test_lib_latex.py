@@ -14,7 +14,7 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_build_latex_container
+# Test_build_latex_container1
 # #############################################################################
 
 
@@ -28,32 +28,20 @@ class Test_build_latex_container1(hunitest.TestCase):
         """
         Test that the LaTeX Docker container is built correctly.
         """
-        # Prepare inputs.
-        use_sudo = hdocker.get_use_sudo()
-        input_dir = self.get_input_dir()
-        input_file = os.path.join(input_dir, "test.tex")
-        #
-        output_dir = self.get_output_dir()
-        hio.create_dir(output_dir, incremental=True)
-        output_file = os.path.join(output_dir, "test.pdf")
         latex_code = r"""
         \documentclass{article}
         \begin{document}
         Hello, World!
         \end{document}
         """
-        hio.to_file(input_file, latex_code)
-        # Run test.
-        dshdlila.run_basic_latex(
-            input_file,
-            [],
-            True,
-            output_file,
-            force_rebuild=True,
-            use_sudo=use_sudo,
+        dshddout.test_container_build(
+            self,
+            latex_code,
+            "tex",
+            "pdf",
+            dshdlila.run_basic_latex,
+            positional_args=[[], True],
         )
-        # Check outputs.
-        dshddout.assert_output_file_exists(self, output_file)
 
 
 # #############################################################################

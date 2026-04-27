@@ -15,6 +15,11 @@ import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 
 
+# #############################################################################
+# Test_test_container_build1
+# #############################################################################
+
+
 class Test_test_container_build1(hunitest.TestCase):
     """
     Test the `test_container_build` helper function.
@@ -32,6 +37,7 @@ class Test_test_container_build1(hunitest.TestCase):
         input_content = hprint.dedent(input_content)
         input_ext = "md"
         output_ext = "pdf"
+
         def mock_run_func(
             input_file: str,
             output_file: str,
@@ -39,6 +45,7 @@ class Test_test_container_build1(hunitest.TestCase):
         ) -> None:
             self.assertTrue(os.path.exists(input_file))
             hio.to_file(output_file, "output content")
+
         # Run test.
         dshddout.test_container_build(
             self,
@@ -62,6 +69,7 @@ class Test_test_container_build1(hunitest.TestCase):
         input_ext = "md"
         output_ext = "html"
         run_kwargs = {"container_type": "pandoc_texlive"}
+
         def mock_run_func(
             _input_file: str,
             output_file: str,
@@ -69,6 +77,7 @@ class Test_test_container_build1(hunitest.TestCase):
         ) -> None:
             self.assertEqual(kwargs.get("container_type"), "pandoc_texlive")
             hio.to_file(output_file, "output content")
+
         # Run test.
         dshddout.test_container_build(
             self,
@@ -101,6 +110,7 @@ class Test_test_container_build1(hunitest.TestCase):
             """
         # Track what content was in the input file.
         actual_input_content_list = []
+
         def mock_run_func(
             input_file: str,
             output_file: str,
@@ -109,6 +119,7 @@ class Test_test_container_build1(hunitest.TestCase):
             actual = hio.from_file(input_file)
             actual_input_content_list.append(actual)
             hio.to_file(output_file, "output content")
+
         # Run test.
         dshddout.test_container_build(
             self,
@@ -132,12 +143,14 @@ class Test_test_container_build1(hunitest.TestCase):
         input_content = "test"
         input_ext = "md"
         output_ext = "pdf"
+
         def mock_run_func(
             _input_file: str,
             _output_file: str,
             **_kwargs: object,
         ) -> None:
             pass
+
         # Run test and check output.
         with self.assertRaises(AssertionError) as cm:
             dshddout.test_container_build(
@@ -161,6 +174,7 @@ class Test_test_container_build1(hunitest.TestCase):
         output_ext = "pdf"
         # Prepare outputs.
         captured_kwargs = {}
+
         def mock_run_func(
             _input_file: str,
             output_file: str,
@@ -169,6 +183,7 @@ class Test_test_container_build1(hunitest.TestCase):
             nonlocal captured_kwargs
             captured_kwargs = kwargs
             hio.to_file(output_file, "output content")
+
         # Run test.
         with patch("helpers.hdocker.get_use_sudo", return_value=False):
             dshddout.test_container_build(

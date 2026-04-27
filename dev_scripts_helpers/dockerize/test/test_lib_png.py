@@ -14,7 +14,7 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_build_png_container
+# Test_build_png_container1
 # #############################################################################
 
 
@@ -28,13 +28,6 @@ class Test_build_png_container1(hunitest.TestCase):
         """
         Test that the PNG Docker container is built correctly.
         """
-        # Prepare inputs.
-        use_sudo = hdocker.get_use_sudo()
-        input_dir = self.get_input_dir()
-        output_dir = self.get_output_dir()
-        hio.create_dir(output_dir, incremental=True)
-        input_file = os.path.join(input_dir, "test.tex")
-        output_file = os.path.join(output_dir, "test_output.png")
         tikz_code = r"""
         \documentclass[tikz, border=10pt]{standalone}
         \usepackage{tikz}
@@ -45,17 +38,14 @@ class Test_build_png_container1(hunitest.TestCase):
         \end{tikzpicture}
         \end{document}
         """
-        hio.to_file(input_file, tikz_code)
-        # Run test.
-        dshdlipn.run_dockerized_tikz_to_bitmap(
-            input_file,
-            ["-density 300"],
-            output_file,
-            force_rebuild=True,
-            use_sudo=use_sudo,
+        dshddout.test_container_build(
+            self,
+            tikz_code,
+            "tex",
+            "png",
+            dshdlipn.run_dockerized_tikz_to_bitmap,
+            positional_args=[["-density 300"]],
         )
-        # Check outputs.
-        dshddout.assert_output_file_exists(self, output_file)
 
 
 # #############################################################################

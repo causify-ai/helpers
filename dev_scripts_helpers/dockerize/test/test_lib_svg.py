@@ -13,7 +13,7 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
-# Test_build_svg_container
+# Test_build_svg_container1
 # #############################################################################
 
 
@@ -27,29 +27,19 @@ class Test_build_svg_container1(hunitest.TestCase):
         """
         Test that the SVG Docker container is built correctly.
         """
-        # Prepare inputs.
-        use_sudo = hdocker.get_use_sudo()
-        input_dir = self.get_input_dir()
-        output_dir = self.get_output_dir()
-        hio.create_dir(output_dir, incremental=True)
-        input_file = os.path.join(input_dir, "test.svg")
-        output_file = os.path.join(output_dir, "test_output.png")
         svg_code = """
         <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
           <circle cx="50" cy="50" r="40" fill="blue" />
         </svg>
         """
-        hio.to_file(input_file, svg_code)
-        # Run test.
-        dshdlisv.run_dockerized_svg_with_rsvg_convert(
-            input_file,
-            output_file,
-            output_format="png",
-            force_rebuild=True,
-            use_sudo=use_sudo,
+        dshddout.test_container_build(
+            self,
+            svg_code,
+            "svg",
+            "png",
+            dshdlisv.run_dockerized_svg_with_rsvg_convert,
+            run_kwargs={"output_format": "png"},
         )
-        # Check outputs.
-        dshddout.assert_output_file_exists(self, output_file)
 
 
 # #############################################################################
