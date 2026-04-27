@@ -50,7 +50,7 @@ class Test_build_graphviz_container1(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_dockerized_graphviz1(hunitest.TestCase):
+class Test_run_dockerized_graphviz1(hunitest.TestCase):
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         digraph {
@@ -66,7 +66,7 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.png")
         return in_file_path, out_file_path
 
-    def test_dockerized1(self) -> None:
+    def test1(self) -> None:
         """
         Run `graphviz` inside a Docker container.
         """

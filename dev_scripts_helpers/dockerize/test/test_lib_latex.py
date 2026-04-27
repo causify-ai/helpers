@@ -49,7 +49,7 @@ class Test_build_latex_container1(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_dockerized_latex1(hunitest.TestCase):
+class Test_run_dockerized_latex1(hunitest.TestCase):
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         \documentclass{article}
@@ -65,7 +65,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
         return in_file_path, out_file_path
 
     @pytest.mark.superslow
-    def test_dockerized1(self) -> None:
+    def test1(self) -> None:
         """
         Run `latex` inside a Docker container.
         """

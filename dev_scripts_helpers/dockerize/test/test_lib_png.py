@@ -53,7 +53,7 @@ class Test_build_png_container1(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
+class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         \documentclass[tikz, border=10pt]{standalone}
@@ -83,7 +83,7 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
         return in_file_path, out_file_path
 
     @pytest.mark.superslow
-    def test_dockerized1(self) -> None:
+    def test1(self) -> None:
         """
         Run `tikz_to_bitmap` inside a Docker container.
         """
@@ -94,6 +94,44 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
         use_sudo = hdocker.get_use_sudo()
         # Run function.
         dshdlipn.run_dockerized_tikz_to_bitmap(
+            in_file_path,
+            cmd_opts,
+            out_file_path,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
+        # Check output.
+        dshddout.assert_output_file_exists(self, out_file_path)
+
+
+# #############################################################################
+# Test_run_dockerized_imagemagick1
+# #############################################################################
+
+
+class Test_run_dockerized_imagemagick1(hunitest.TestCase):
+    def create_input_file(self) -> Tuple[str, str]:
+        txt = r"""
+        <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="40" fill="blue" />
+        </svg>
+        """
+        in_file_path = dshddout.create_test_file(self, txt, extension="svg")
+        out_file_path = os.path.join(self.get_scratch_space(), "output.png")
+        return in_file_path, out_file_path
+
+    @pytest.mark.slow
+    def test1(self) -> None:
+        """
+        Run `imagemagick` inside a Docker container.
+        """
+        # Prepare inputs.
+        in_file_path, out_file_path = self.create_input_file()
+        cmd_opts = ["-density 300", "-quality 90"]
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        # Run function.
+        dshdlipn.run_dockerized_imagemagick(
             in_file_path,
             cmd_opts,
             out_file_path,

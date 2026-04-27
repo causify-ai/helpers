@@ -74,8 +74,7 @@ class Test_build_typst_container1(hunitest.TestCase):
 # #############################################################################
 
 
-# TODO(ai_gp): -> Test_run_dockerized_typst1
-class Test_dockerized_typst1(hunitest.TestCase):
+class Test_run_dockerized_typst1(hunitest.TestCase):
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
         #set page(width: 10cm, height: auto)

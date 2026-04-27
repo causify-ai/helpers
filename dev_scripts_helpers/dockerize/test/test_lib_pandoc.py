@@ -119,7 +119,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_dockerized_pandoc1(hunitest.TestCase):
+class Test_run_dockerized_pandoc1(hunitest.TestCase):
     """
     Test running the `pandoc` command inside a Docker container.
     """

@@ -62,7 +62,7 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
 # #############################################################################
 
 
-class Test_dockerized_markdown_toc1(hunitest.TestCase):
+class Test_run_dockerized_markdown_toc1(hunitest.TestCase):
     def run_markdown_toc(self, txt: str, expected: str) -> None:
         """
         Test running the `markdown-toc` command in a Docker container.
