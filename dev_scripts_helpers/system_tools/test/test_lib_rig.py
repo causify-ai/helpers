@@ -1,3 +1,5 @@
+from typing import List, Optional, Type
+
 import helpers.hrig as hrig
 import helpers.hunit_test as hunitest
 import helpers.hunit_test_utils as hunteuti
@@ -13,10 +15,14 @@ class TestRigScript(hunitest.TestCase):
     Test rig script functionality through hrig module integration.
     """
 
-    # TODO(ai_gp): Add type hints
     def helper(
-        self, args, expected_cmd=None, expected_exit_code=None, side_effect=None
-    ):
+        self,
+        args: List[str],
+        *,
+        expected_cmd: Optional[str] = None,
+        expected_exit_code: Optional[int] = None,
+        side_effect: Optional[Type[Exception]] = None,
+    ) -> None:
         """
         Test helper for rig main function.
 
@@ -34,9 +40,9 @@ class TestRigScript(hunitest.TestCase):
         # Check outputs.
         if expected_cmd is not None:
             self.assertEqual(len(invocations), 1)
-            # TODO(ai_gp): Compare with assert_equal as strings.
             self.assertEqual(invocations[0]["function"], "subprocess.run")
-            self.assertEqual(invocations[0]["args"], (expected_cmd,))
+            actual_cmd = " ".join(invocations[0]["args"][0])
+            self.assertEqual(actual_cmd, expected_cmd)
         if expected_exit_code is not None:
             self.assertEqual(exit_code, expected_exit_code)
 
@@ -47,7 +53,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO"]
         # Prepare outputs.
-        expected_cmd = ["rg", "TODO", ".", "-n", "--no-heading", "--color=never"]
+        expected_cmd = "rg TODO . -n --no-heading --color=never"
         # Run test.
         self.helper(args, expected_cmd, expected_exit_code=0)
 
@@ -58,8 +64,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["import", "src"]
         # Prepare outputs.
-        # TODO(ai_gp): Pass it as a single str and not a list.
-        expected_cmd = ["rg", "import", "src", "-n", "--no-heading", "--color=never"]
+        expected_cmd = "rg import src -n --no-heading --color=never"
         expected_exit_code = 0
         # Run test.
         self.helper(args, expected_cmd, expected_exit_code)
@@ -71,9 +76,8 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["class", ".", "py"]
         # Prepare outputs.
-        # TODO(ai_gp): Pass it as a single str and not a list.
-        expected_cmd = ["rg", "-g", "*.py", "class", ".", "-n", "--no-heading", "--color=never"]
-        expected_exit_code=0
+        expected_cmd = "rg -g *.py class . -n --no-heading --color=never"
+        expected_exit_code = 0
         # Run test.
         self.helper(args, expected_cmd, expected_exit_code)
 
@@ -83,9 +87,9 @@ class TestRigScript(hunitest.TestCase):
         """
         # Prepare inputs.
         args = ["--help"]
-        expected_exit_code=0
+        expected_exit_code = 0
         # Run test.
-        self.helper(args, expected_exit_code)
+        self.helper(args, expected_exit_code=expected_exit_code)
 
     def test5(self) -> None:
         """
@@ -94,8 +98,8 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = []
         # Run test.
-        expected_exit_code=0
-        self.helper(args, expected_exit_code)
+        expected_exit_code = 0
+        self.helper(args, expected_exit_code=expected_exit_code)
 
     def test6(self) -> None:
         """
@@ -103,6 +107,6 @@ class TestRigScript(hunitest.TestCase):
         """
         # Prepare inputs.
         args = ["TODO"]
-        expected_exit_code=1
+        expected_exit_code = 1
         # Run test.
-        self.helper(args, expected_exit_code, side_effect=FileNotFoundError)
+        self.helper(args, expected_exit_code=expected_exit_code, side_effect=FileNotFoundError)
