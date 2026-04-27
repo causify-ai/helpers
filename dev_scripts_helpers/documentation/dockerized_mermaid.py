@@ -7,6 +7,7 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
+import dev_scripts_helpers.hdockerized_cli_utils as hdoccli
 import helpers.hdockerized_executables as hdocexec
 import helpers.hparser as hparser
 
@@ -24,6 +25,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("-i", "--input", action="store", required=True)
     parser.add_argument("-o", "--output", action="store", default="")
     hparser.add_dockerized_script_arg(parser)
+    hdoccli.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -42,6 +44,8 @@ def _main(parser: argparse.ArgumentParser) -> None:
         use_sudo=args.dockerized_use_sudo,
     )
     _LOG.info("Output written to '%s'", args.output)
+    if args.open:
+        hdoccli.open_file_on_macos(args.output)
 
 
 if __name__ == "__main__":

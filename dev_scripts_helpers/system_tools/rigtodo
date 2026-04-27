@@ -1,4 +1,7 @@
 #!/bin/bash
-# Search for TODO(ai_gp) markers using rig
+# """
+# Run rig with TODO(ai_gp) pattern, capture output to quickfix file, and open in vim
+# """
 
-rig --todo "$@"
+rig "TODO(ai_gp)" "$@" 2>&1 | tee cfile
+vim -c "cfile cfile"
