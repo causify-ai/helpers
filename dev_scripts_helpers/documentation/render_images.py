@@ -602,6 +602,9 @@ def _render_images(
     metadata_caption = ""
     # Store the current metadata field being parsed (for multi-line values).
     current_metadata_field = ""
+    # Variables initialized for loop processing.
+    image_code_type = ""
+    rel_img_paths: List[str] = []
     comment = re.escape(comment_prefix)
     start_image_regex = re.compile(
         rf"""
@@ -974,6 +977,9 @@ def _main(parser: argparse.ArgumentParser) -> None:
     else:
         default_dst_dir = args.dst_dir
         _LOG.info("Using specified --dst_dir: %s", default_dst_dir)
+    # Initialize variables for file processing.
+    out_file = ""
+    dst_dir = ""
     # Process each file with progress bar.
     _LOG.info("Processing %s files", len(in_files))
     if len(in_files) > 1:

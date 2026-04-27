@@ -168,6 +168,7 @@ class UnitTestRenamer:
         """
         lines = content.split("\n")
         docstring_line_indices = hstring.get_docstring_line_indices(lines)
+        num_replaced = 0
         for ind, line in enumerate(lines):
             # Skip if the line is inside a docstring.
             if ind not in docstring_line_indices:
@@ -403,7 +404,7 @@ class Obj_to_str_TestCase(abc.ABC):
         """
         hdbg.dassert_is_not(obj, None)
         actual_str = getattr(obj, method_name)()
-        self.assert_equal(
+        self.assert_equal(  # type: ignore
             actual_str, expected_str, purify_text=True, fuzzy_match=True
         )
 

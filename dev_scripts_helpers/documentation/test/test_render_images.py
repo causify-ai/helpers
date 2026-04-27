@@ -614,13 +614,13 @@ class Test_render_images1(hunitest.TestCase):
         :param file_ext: the extension of the input file
         """
         # Prepare inputs.
-        txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True).split("\n")
+        txt_lines = hprint.dedent(txt, remove_lead_trail_empty_lines_=True).split("\n")
         out_file = os.path.join(self.get_scratch_space(), f"out.{file_ext}")
         dst_ext = "png"
         dst_dir = os.path.join(self.get_scratch_space(), "figs")
         # Render images.
         out_lines = dshdreim._render_images(
-            txt,
+            txt_lines,
             out_file,
             dst_ext,
             dst_dir,

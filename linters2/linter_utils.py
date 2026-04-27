@@ -126,9 +126,9 @@ def get_files_to_check(
         file_paths = files
     elif from_file:
         # Get the files from a file.
-        file_paths = hio.from_file(from_file)
-        file_paths = file_paths.replace("\n", " ")
-        file_paths = file_paths.split(" ")
+        file_paths_str = hio.from_file(from_file)
+        file_paths_str = file_paths_str.replace("\n", " ")
+        file_paths = file_paths_str.split(" ")
         _LOG.info("Read %d files from '%s'", len(file_paths), from_file)
         hdbg.dassert_list_of_strings(file_paths)
     elif modified:

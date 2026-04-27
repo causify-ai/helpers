@@ -46,7 +46,7 @@ import datetime
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 import pandas as pd
 import requests
@@ -472,14 +472,14 @@ def _tag_articles_with_llm(
     for idx, row in df.iterrows():
         # Get title from Article_title or fall back to title column.
         title = ""
-        if (
-            has_article_title
-            and pd.notna(row["Article_title"])
-            and row["Article_title"]
-        ):
-            title = row["Article_title"]
-        elif has_title and pd.notna(row["title"]) and row["title"]:
-            title = row["title"]
+        if has_article_title and bool(pd.notna(row["Article_title"])):
+            article_title = str(row["Article_title"]).strip()
+            if article_title:
+                title = article_title
+        elif has_title and bool(pd.notna(row["title"])):
+            title_val = str(row["title"]).strip()
+            if title_val:
+                title = title_val
         # Get URL.
         url = row.get("url", "")
         if not title:
@@ -515,10 +515,10 @@ def _tag_articles_with_llm(
             len(batch_items),
         )
         # Call LLM for this batch.
-        batch_tags = hllmcli.apply_llm_batch(
+        batch_tags, _ = hllmcli.apply_llm_batch_with_shared_prompt(
             prompt=_CLASSIFICATION_PROMPT,
             input_list=batch_items,
-            model=model,
+            model=model or "gpt-4o-mini",
         )
         # Update dataframe with batch results.
         for idx, tag in zip(batch_indices, batch_tags):
@@ -584,7 +584,7 @@ def _process_csv_file(
         df.to_csv(output_file, index=False)
         return
     # Get url column index for inserting new columns.
-    url_col_idx = df.columns.get_loc("url")
+    url_col_idx = cast(int, df.columns.get_loc("url"))
     col_offset = 1
     # Initialize columns based on extraction flags.
     if extract_title and "Article_title" not in df.columns:
