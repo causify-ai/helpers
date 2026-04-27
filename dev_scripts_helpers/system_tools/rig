@@ -1,38 +1,28 @@
-#!/bin/TODO
+#!/usr/bin/env python
 
-# TODO(ai_gp): Make this consistent with the docstring of other python scripts
 """
-rig - Utility for ripgrep searches and directory operations
+rig - Utility for ripgrep searches and directory operations.
 
-USAGE:
-    rig <pattern> [<dir>] [<extension>] [<rg OPTS>]
+# Search for "TODO" in Python files in src directory
+> rig "TODO" src py
 
-COMMANDS:
-    Search mode:
-        rig <pattern> [<dir>] [<extension>] [<rg OPTS>]
-        Search for pattern in files with optional extension filter
+# Search for "TODO" in all files in src directory
+> rig "TODO" src
 
-ARGUMENTS:
-    <pattern>      Search pattern (supports regex)
-    [<dir>]        Directory to search in (default: current directory '.')
-    [<extension>]  File extension filter (e.g., py, js, txt), optional
-    [<rg OPTS>]    Additional ripgrep options (optional)
+# Search for "TODO" in all files in current directory
+> rig "TODO"
 
-EXAMPLES:
-    # Search for "TODO" in Python files in src directory
-    rig "TODO" src py
+# Search in Python files in current directory
+> rig "import" py
 
-    # Search for "TODO" in all files in src directory
-    rig "TODO" src
+# Search in JavaScript files with case-insensitive matching
+> rig "import" . js -i
 
-    # Search for "TODO" in all files in current directory
-    rig "TODO"
+# Search for TODO markers for ai_gp
+> rig --todo
 
-    # Search in Python files in current directory
-    rig "import" py
-
-    # Search in JavaScript files with case-insensitive matching
-    rig "import" . js -i
+# Search for TODO markers for specific user in src directory
+> rig --todo john src
 """
 
 import argparse
@@ -77,7 +67,7 @@ def get_default_rg_opts() -> List[str]:
     return ["-n", "--no-heading", "--color=never"]
 
 
-def parse_arguments(args: List[str]) -> argparse.Namespace:
+def _parse() -> argparse.ArgumentParser:
     """
     Parse command-line arguments for rig utility.
 
@@ -86,15 +76,11 @@ def parse_arguments(args: List[str]) -> argparse.Namespace:
     - TODO mode: --todo [user] [directory] [extension]
     - Help mode: --help or -h
 
-    :param args: List of command-line arguments
-    :return: Parsed arguments namespace
+    :return: ArgumentParser instance
     """
     parser = argparse.ArgumentParser(
-        description="Utility for ripgrep searches and directory operations",
-        add_help=False,
-    )
-    parser.add_argument(
-        "--help", "-h", action="store_true", help="Show help message"
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--todo",
@@ -106,9 +92,17 @@ def parse_arguments(args: List[str]) -> argparse.Namespace:
     parser.add_argument(
         "positional", nargs="*", help="Positional arguments for search"
     )
-    parsed = parser.parse_args(args)
+    return parser
+
+
+def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
+    """
+    Process parsed command-line arguments into a structured result.
+
+    :param parsed: Raw parsed arguments from ArgumentParser
+    :return: Processed arguments namespace
+    """
     result = argparse.Namespace()
-    result.help = parsed.help
     result.todo = parsed.todo
     result.pattern = None
     result.directory = "."
@@ -129,16 +123,17 @@ def parse_arguments(args: List[str]) -> argparse.Namespace:
     return result
 
 
-def main(args: List[str]) -> int:
+def _main(parser: argparse.ArgumentParser) -> int:
     """
     Main entry point for rig utility.
 
-    :param args: Command-line arguments
+    :param parser: ArgumentParser instance
     :return: Exit code (0 for success, 1 for error)
     """
-    parsed = parse_arguments(args)
-    if parsed.help or (not parsed.pattern and not parsed.todo):
-        # TODO(ai_gp): Print the docstring as we do for all the other scripts.
+    parsed = parser.parse_args()
+    parsed = _parse_arguments(parsed)
+    if not parsed.pattern and not parsed.todo:
+        parser.print_help()
         return 0
     rg_opts = get_default_rg_opts()
     if parsed.todo:
@@ -154,3 +149,7 @@ def main(args: List[str]) -> int:
     subprocess.run(cmd)
     return 0
 
+
+if __name__ == "__main__":
+    parser = _parse()
+    exit(_main(parser))
