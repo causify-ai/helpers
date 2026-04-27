@@ -1,4 +1,3 @@
-import logging
 import os
 from typing import List
 
@@ -9,8 +8,6 @@ import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_markdown_toc as dshdlmato
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -32,7 +29,6 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
         instead of the generic helper.
         """
         # Prepare inputs.
-        use_sudo = hdocker.get_use_sudo()
         input_dir = self.get_input_dir()
         input_file = os.path.join(input_dir, "test.md")
         markdown_code = """
@@ -42,7 +38,9 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
         ## Subsection 1.1
         # Section 2
         """
+        markdown_code = markdown_code.strip()
         hio.to_file(input_file, markdown_code)
+        use_sudo = hdocker.get_use_sudo()
         # Run test.
         dshdlmato.run_dockerized_markdown_toc(
             input_file,
@@ -50,7 +48,7 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
             use_sudo=use_sudo,
             force_rebuild=True,
         )
-        # Check outputs: file was modified in place.
+        # Check outputs.
         self.assertTrue(
             os.path.exists(input_file),
             msg=f"Input file {input_file} should still exist",
@@ -63,22 +61,26 @@ class Test_build_markdown_toc_container1(hunitest.TestCase):
 
 
 class Test_run_dockerized_markdown_toc1(hunitest.TestCase):
-    def run_markdown_toc(self, txt: str, expected: str) -> None:
+    def helper(self, txt: str, expected: str) -> None:
         """
         Test running the `markdown-toc` command in a Docker container.
+
+        :param txt: Input markdown text
+        :param expected: Expected output after running markdown-toc
         """
-        cmd_opts: List[str] = []
-        # Run `markdown-toc` in a Docker container.
+        # Prepare inputs.
         in_file_path = dshddout.create_test_file(self, txt, extension="md")
+        cmd_opts: List[str] = []
         use_sudo = hdocker.get_use_sudo()
         force_rebuild = False
+        # Run test.
         dshdlmato.run_dockerized_markdown_toc(
             in_file_path,
             cmd_opts,
             use_sudo=use_sudo,
             force_rebuild=force_rebuild,
         )
-        # Check.
+        # Check outputs.
         actual = hio.from_file(in_file_path)
         self.assert_equal(
             actual, expected, dedent=True, remove_lead_trail_empty_lines=True
@@ -89,6 +91,7 @@ class Test_run_dockerized_markdown_toc1(hunitest.TestCase):
         """
         Test running the `markdown-toc` command inside a Docker container.
         """
+        # Prepare inputs.
         txt = """
         <!-- toc -->
 
@@ -101,6 +104,7 @@ class Test_run_dockerized_markdown_toc1(hunitest.TestCase):
         -  Hello
             - World
         """
+        # Prepare outputs.
         expected = r"""
         <!-- toc -->
 
@@ -118,4 +122,5 @@ class Test_run_dockerized_markdown_toc1(hunitest.TestCase):
         -  Hello
             - World
         """
-        self.run_markdown_toc(txt, expected)
+        # Run test.
+        self.helper(txt, expected)

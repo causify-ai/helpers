@@ -1,16 +1,12 @@
-import logging
 import os
-from typing import List, Tuple
+from typing import List
 
 import pytest
 
 import helpers.hdocker as hdocker
-import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -28,12 +24,15 @@ class Test_build_latex_container1(hunitest.TestCase):
         """
         Test that the LaTeX Docker container is built correctly.
         """
+        # Prepare inputs.
         latex_code = r"""
         \documentclass{article}
         \begin{document}
         Hello, World!
         \end{document}
         """
+        latex_code = latex_code.strip()
+        # Run test.
         dshddout.test_container_build(
             self,
             latex_code,
@@ -50,7 +49,12 @@ class Test_build_latex_container1(hunitest.TestCase):
 
 
 class Test_run_dockerized_latex1(hunitest.TestCase):
-    def create_input_file(self) -> Tuple[str, str]:
+    @pytest.mark.superslow
+    def test1(self) -> None:
+        """
+        Run `latex` inside a Docker container.
+        """
+        # Prepare inputs.
         txt = r"""
         \documentclass{article}
 
@@ -62,20 +66,11 @@ class Test_run_dockerized_latex1(hunitest.TestCase):
         """
         in_file_path = dshddout.create_test_file(self, txt, extension="tex")
         out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
-        return in_file_path, out_file_path
-
-    @pytest.mark.superslow
-    def test1(self) -> None:
-        """
-        Run `latex` inside a Docker container.
-        """
-        # Prepare inputs.
-        in_file_path, out_file_path = self.create_input_file()
         cmd_opts: List[str] = []
         run_latex_again = True
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
-        # Run function.
+        # Run test.
         dshdlila.run_basic_latex(
             in_file_path,
             cmd_opts,
@@ -84,7 +79,7 @@ class Test_run_dockerized_latex1(hunitest.TestCase):
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
-        # Check output.
+        # Check outputs.
         dshddout.assert_output_file_exists(self, out_file_path)
 
     # TODO(gp): This doesn't work since:

@@ -62,17 +62,49 @@ class Test_build_prettier_container(hunitest.TestCase):
 
 
 class Test_run_dockerized_prettier1(hunitest.TestCase):
+    def helper(self, txt: str, expected: str) -> None:
+        """
+        Test prettier formatting with custom options.
+
+        :param txt: Input text to format
+        :param expected: Expected formatted output
+        """
+        # Prepare inputs.
+        in_file_path = dshddout.create_test_file(self, txt, extension="txt")
+        out_file_path = os.path.join(self.get_scratch_space(), "output.txt")
+        cmd_opts: List[str] = [
+            "--parser markdown",
+            "--prose-wrap always",
+            "--tab-width 2",
+        ]
+        force_rebuild = False
+        use_sudo = hdocker.get_use_sudo()
+        # Run test.
+        dshdlipr.run_dockerized_prettier(
+            in_file_path,
+            cmd_opts,
+            out_file_path,
+            file_type="md",
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
+        # Check outputs.
+        actual = hio.from_file(out_file_path)
+        self.assert_equal(
+            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
+        )
+
     def test1(self) -> None:
         """
         Test that Dockerized Prettier reads an input file, formats it, and
         writes the output file in the output directory.
         """
+        # Prepare inputs.
         input_dir = self.get_input_dir()
         output_dir = self.get_output_dir()
-        hio.create_dir(output_dir, incremental=True)
         input_file_path = os.path.join(input_dir, "input.md")
         output_file_path = os.path.join(output_dir, "output.md")
-        # Prepare input command options.
+        hio.create_dir(output_dir, incremental=True)
         cmd_opts = [
             "--parser",
             "markdown",
@@ -81,7 +113,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
             "--tab-width",
             "2",
         ]
-        # Call function to test.
+        # Run test.
         dshdlipr.run_dockerized_prettier(
             input_file_path,
             cmd_opts,
@@ -91,7 +123,7 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
             force_rebuild=False,
             use_sudo=False,
         )
-        # Check output.
+        # Check outputs.
         self.assertTrue(
             os.path.exists(output_file_path),
             "Output file was not created by Dockerized Prettier.",
@@ -99,78 +131,43 @@ class Test_run_dockerized_prettier1(hunitest.TestCase):
 
     def test2(self) -> None:
         """
-        Test prettier formatting with custom options.
+        Test prettier formatting with indentation fix.
         """
+        # Prepare inputs.
         txt = """
         - A
           - B
               - C
                 """
+        # Prepare outputs.
         expected = """
         - A
           - B
             - C
         """
-        cmd_opts: List[str] = []
-        cmd_opts.append("--parser markdown")
-        cmd_opts.append("--prose-wrap always")
-        tab_width = 2
-        cmd_opts.append(f"--tab-width {tab_width}")
-        # Run `prettier` in a Docker container.
-        in_file_path = dshddout.create_test_file(self, txt, extension="txt")
-        out_file_path = os.path.join(self.get_scratch_space(), "output.txt")
-        force_rebuild = False
-        use_sudo = hdocker.get_use_sudo()
-        dshdlipr.run_dockerized_prettier(
-            in_file_path,
-            cmd_opts,
-            out_file_path,
-            file_type="md",
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
-        )
-        # Check.
-        actual = hio.from_file(out_file_path)
-        self.assert_equal(
-            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        # Run test.
+        self.helper(txt, expected)
 
     def test3(self) -> None:
+        """
+        Test prettier formatting with bullet point normalization.
+        """
+        # Prepare inputs.
         txt = r"""
         *  Good time management
 
         1. choose the right tasks
             -   avoid non-essential tasks
         """
+        # Prepare outputs.
         expected = r"""
         - Good time management
 
         1. choose the right tasks
            - avoid non-essential tasks
         """
-        cmd_opts: List[str] = []
-        cmd_opts.append("--parser markdown")
-        cmd_opts.append("--prose-wrap always")
-        tab_width = 2
-        cmd_opts.append(f"--tab-width {tab_width}")
-        # Run `prettier` in a Docker container.
-        in_file_path = dshddout.create_test_file(self, txt, extension="txt")
-        out_file_path = os.path.join(self.get_scratch_space(), "output.txt")
-        force_rebuild = False
-        use_sudo = hdocker.get_use_sudo()
-        dshdlipr.run_dockerized_prettier(
-            in_file_path,
-            cmd_opts,
-            out_file_path,
-            file_type="md",
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
-        )
-        # Check.
-        actual = hio.from_file(out_file_path)
-        self.assert_equal(
-            actual, expected, dedent=True, remove_lead_trail_empty_lines=True
-        )
+        # Run test.
+        self.helper(txt, expected)
 
 
 # #############################################################################
@@ -183,6 +180,7 @@ class Test_prettier_on_str(hunitest.TestCase):
         """
         Test prettier_on_str helper function.
         """
+        # Prepare inputs.
         text = """
         # Title
         hello!
@@ -198,7 +196,15 @@ class Test_prettier_on_str(hunitest.TestCase):
             "--tab-width",
             "2",
         ]
-        # Call function to test.
+        # Prepare outputs.
+        expected = """
+        # Title
+
+        hello!
+
+        ## Content
+        """
+        # Run test.
         actual = dshdlipr.prettier_on_str(
             text,
             file_type="md",
@@ -207,12 +213,5 @@ class Test_prettier_on_str(hunitest.TestCase):
             force_rebuild=False,
             use_sudo=False,
         )
-        # Check output.
-        expected = """
-        # Title
-
-        hello!
-
-        ## Content
-        """
+        # Check outputs.
         self.assert_equal(actual, expected, dedent=True)

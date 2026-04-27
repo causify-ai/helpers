@@ -1,16 +1,11 @@
-import logging
 import os
-from typing import Tuple
 
 import pytest
 
 import helpers.hdocker as hdocker
-import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_png as dshdlipn
-
-_LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
@@ -28,6 +23,7 @@ class Test_build_png_container1(hunitest.TestCase):
         """
         Test that the PNG Docker container is built correctly.
         """
+        # Prepare inputs.
         tikz_code = r"""
         \documentclass[tikz, border=10pt]{standalone}
         \usepackage{tikz}
@@ -38,6 +34,8 @@ class Test_build_png_container1(hunitest.TestCase):
         \end{tikzpicture}
         \end{document}
         """
+        tikz_code = tikz_code.strip()
+        # Run test.
         dshddout.test_container_build(
             self,
             tikz_code,
@@ -54,7 +52,12 @@ class Test_build_png_container1(hunitest.TestCase):
 
 
 class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
-    def create_input_file(self) -> Tuple[str, str]:
+    @pytest.mark.superslow
+    def test1(self) -> None:
+        """
+        Run `tikz_to_bitmap` inside a Docker container.
+        """
+        # Prepare inputs.
         txt = r"""
         \documentclass[tikz, border=10pt]{standalone}
         \usepackage{tikz}
@@ -80,19 +83,10 @@ class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
         """
         in_file_path = dshddout.create_test_file(self, txt, extension="tex")
         out_file_path = os.path.join(self.get_scratch_space(), "output.png")
-        return in_file_path, out_file_path
-
-    @pytest.mark.superslow
-    def test1(self) -> None:
-        """
-        Run `tikz_to_bitmap` inside a Docker container.
-        """
-        # Prepare inputs.
-        in_file_path, out_file_path = self.create_input_file()
         cmd_opts = ["-density 300", "-quality 10"]
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
-        # Run function.
+        # Run test.
         dshdlipn.run_dockerized_tikz_to_bitmap(
             in_file_path,
             cmd_opts,
@@ -100,7 +94,7 @@ class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
-        # Check output.
+        # Check outputs.
         dshddout.assert_output_file_exists(self, out_file_path)
 
 
@@ -110,7 +104,12 @@ class Test_run_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 
 
 class Test_run_dockerized_imagemagick1(hunitest.TestCase):
-    def create_input_file(self) -> Tuple[str, str]:
+    @pytest.mark.slow
+    def test1(self) -> None:
+        """
+        Run `imagemagick` inside a Docker container.
+        """
+        # Prepare inputs.
         txt = r"""
         <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
           <circle cx="50" cy="50" r="40" fill="blue" />
@@ -118,19 +117,10 @@ class Test_run_dockerized_imagemagick1(hunitest.TestCase):
         """
         in_file_path = dshddout.create_test_file(self, txt, extension="svg")
         out_file_path = os.path.join(self.get_scratch_space(), "output.png")
-        return in_file_path, out_file_path
-
-    @pytest.mark.slow
-    def test1(self) -> None:
-        """
-        Run `imagemagick` inside a Docker container.
-        """
-        # Prepare inputs.
-        in_file_path, out_file_path = self.create_input_file()
         cmd_opts = ["-density 300", "-quality 90"]
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
-        # Run function.
+        # Run test.
         dshdlipn.run_dockerized_imagemagick(
             in_file_path,
             cmd_opts,
@@ -138,5 +128,5 @@ class Test_run_dockerized_imagemagick1(hunitest.TestCase):
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
-        # Check output.
+        # Check outputs.
         dshddout.assert_output_file_exists(self, out_file_path)
