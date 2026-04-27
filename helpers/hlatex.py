@@ -12,8 +12,6 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
-import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
-import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 
@@ -36,6 +34,10 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
         f"pandoc {in_file_name} -o {out_file_name} --read=markdown --write=latex"
     )
     container_type = "pandoc_only"
+
+    # To minimze the dependency.
+    import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
+
     dshdlipa.run_dockerized_pandoc(cmd, container_type)
     # Read tmp file.
     res = hio.from_file(out_file_name)
@@ -96,6 +98,9 @@ def format_latex(txt: str) -> str:
     :return: formatted LaTeX text
     """
     file_type = "tex"
+    # To minimize the dependency.
+    import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
+
     txt = dshdlipr.prettier_on_str(txt, file_type)
     return txt
 

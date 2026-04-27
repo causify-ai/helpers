@@ -6,7 +6,7 @@ import pytest
 
 import helpers.hdocker as hdocker
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
+import dev_scripts_helpers.dockerize.dockerized_utils as dsddut
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 
 _LOG = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
 
         \end{document}
         """
-        in_file_path = dsddhclut.create_test_file(self, txt, extension="tex")
+        in_file_path = dsddut.create_test_file(self, txt, extension="tex")
         out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
         return in_file_path, out_file_path
 
@@ -53,7 +53,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check output.
-        dsddhclut.assert_output_file_exists(self, out_file_path)
+        dsddut.assert_output_file_exists(self, out_file_path)
 
     # TODO(gp): This doesn't work since:
     # 1) `convert_latex_cmd_to_arguments()` is monkey patching with parsing the

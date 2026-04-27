@@ -13,6 +13,7 @@ import dev_scripts_helpers.documentation.lib_pandoc as dshdlipa
 # #############################################################################
 
 
+# TODO(ai_gp): Move to test_lib_pandoc.py
 class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
     def test1(self) -> None:
         """
@@ -70,6 +71,7 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
 # #############################################################################
 
 
+# TODO(ai_gp): Move to test_lib_pandoc.py
 @pytest.mark.superslow("~457 seconds.")
 class Test_run_dockerized_pandoc(hunitest.TestCase):
     def test1(self) -> None:

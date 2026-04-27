@@ -5,7 +5,7 @@ from typing import List
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
+import dev_scripts_helpers.dockerize.dockerized_utils as dsddut
 import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class Test_dockerized_prettier1(hunitest.TestCase):
         tab_width = 2
         cmd_opts.append(f"--tab-width {tab_width}")
         # Run `prettier` in a Docker container.
-        in_file_path = dsddhclut.create_test_file(self, txt, extension="txt")
+        in_file_path = dsddut.create_test_file(self, txt, extension="txt")
         out_file_path = os.path.join(self.get_scratch_space(), "output.txt")
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()

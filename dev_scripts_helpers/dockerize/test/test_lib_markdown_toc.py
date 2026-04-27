@@ -7,7 +7,7 @@ import pytest
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
+import dev_scripts_helpers.dockerize.dockerized_utils as dsddut
 import dev_scripts_helpers.dockerize.lib_markdown_toc as dshdlmato
 
 _LOG = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class Test_dockerized_markdown_toc1(hunitest.TestCase):
         """
         cmd_opts: List[str] = []
         # Run `markdown-toc` in a Docker container.
-        in_file_path = dsddhclut.create_test_file(self, txt, extension="md")
+        in_file_path = dsddut.create_test_file(self, txt, extension="md")
         use_sudo = hdocker.get_use_sudo()
         force_rebuild = False
         dshdlmato.run_dockerized_markdown_toc(

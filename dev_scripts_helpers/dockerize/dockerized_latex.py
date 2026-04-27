@@ -10,7 +10,7 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
+import dev_scripts_helpers.dockerize.dockerized_utils as dsddut
 import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 import helpers.hparser as hparser
 
@@ -29,7 +29,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("-o", "--output", action="store", required=True)
     parser.add_argument("--run_latex_again", action="store_true", default=False)
     hparser.add_dockerized_script_arg(parser)
-    dsddhclut.add_open_arg(parser)
+    dsddut.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -54,7 +54,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", args.output)
     if args.open:
-        dsddhclut.open_file_on_macos(args.output)
+        dsddut.open_file_on_macos(args.output)
 
 
 if __name__ == "__main__":

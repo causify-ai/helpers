@@ -10,7 +10,7 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
+import dev_scripts_helpers.dockerize.dockerized_utils as dsddut
 import helpers.hparser as hparser
 import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
 
@@ -47,7 +47,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Output format (default: png)",
     )
     hparser.add_dockerized_script_arg(parser)
-    dsddhclut.add_open_arg(parser)
+    dsddut.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -66,7 +66,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", args.output)
     if args.open:
-        dsddhclut.open_file_on_macos(args.output)
+        dsddut.open_file_on_macos(args.output)
 
 
 if __name__ == "__main__":

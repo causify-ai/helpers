@@ -6,7 +6,7 @@ import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
+import dev_scripts_helpers.dockerize.dockerized_utils as dsddut
 import dev_scripts_helpers.dockerize.lib_typst as dshdlity
 
 _LOG = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class Test_dockerized_typst1(hunitest.TestCase):
 
         Some content here.
         """
-        in_file_path = dsddhclut.create_test_file(self, txt, extension="typ")
+        in_file_path = dsddut.create_test_file(self, txt, extension="typ")
         out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
         return in_file_path, out_file_path
 
@@ -53,7 +53,7 @@ class Test_dockerized_typst1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check output.
-        dsddhclut.assert_output_file_exists(self, out_file_path)
+        dsddut.assert_output_file_exists(self, out_file_path)
 
     def test_command_line1(self) -> None:
         """
@@ -66,4 +66,4 @@ class Test_dockerized_typst1(hunitest.TestCase):
         cmd = f"{exec_path} --input {in_file_path} --output {out_file_path}"
         hsystem.system(cmd)
         # Check output.
-        dsddhclut.assert_output_file_exists(self, out_file_path)
+        dsddut.assert_output_file_exists(self, out_file_path)
