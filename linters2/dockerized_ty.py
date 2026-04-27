@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 
-# TODO(ai_gp): Add explanation.
 """
-> ty check \
+Run 'ty' type checker in a Docker container.
 
---output-format concise \
---color never \
---exclude '**/outcomes/**' \
---exclude '**/import_check/example/**' .
+Executes the ty type checker with standard configuration flags to check Python
+code in the repository, excluding test outcomes and example directories.
+
+Example command executed:
+> ty check \
+    --output-format concise \
+    --color never \
+    --exclude '**/outcomes/**' \
+    --exclude '**/import_check/example/**' .
 """
 
 import argparse

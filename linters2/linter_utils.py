@@ -212,6 +212,7 @@ def get_python_files_to_lint(dir_name: str) -> List[str]:
     return not_test_files
 
 
+# TODO(ai_gp): should this be moved to helpers/hio.py?
 def write_file_back(
     file_name: str, txt_old: List[str], txt_new: List[str]
 ) -> None:
@@ -233,7 +234,7 @@ def write_file_back(
         hio.to_file(file_name, txt_new_as_str)
 
 
-# TODO(ai_gp): should this be moved to system.py?
+# TODO(ai_gp): should this be moved to helpers/hsystem.py?
 def tee(
     cmd: str, executable: str, abort_on_error: bool
 ) -> Tuple[int, List[str]]:
@@ -259,6 +260,7 @@ def tee(
     return rc, output2
 
 
+# TODO(gp): Some of these functions can be centralized in helpers.
 def is_under_tmp_scratch_dir(file_name: str) -> bool:
     """
     Return whether a file is under the temporary scratch directory.

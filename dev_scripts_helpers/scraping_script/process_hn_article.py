@@ -50,6 +50,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import requests
+from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 import helpers.hdbg as hdbg
@@ -327,9 +328,6 @@ def _download_article_content(url: str) -> Optional[str]:
     html = response.text
     # Try to extract text from <p> tags using BeautifulSoup.
     text = None
-    # TODO(ai_gp): Move this import out.
-    from bs4 import BeautifulSoup
-
     soup = BeautifulSoup(html, "html.parser")
     paragraphs = soup.find_all("p")
     if paragraphs:
