@@ -5,7 +5,8 @@ import pytest
 
 import helpers.hio as hio
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.lib_pandoc as lib_pandoc
+import dev_scripts_helpers.documentation.lib_pandoc as dshdlipa
+
 
 # #############################################################################
 # Test_Pandoc_Cmd_Conversion
@@ -13,7 +14,6 @@ import dev_scripts_helpers.documentation.lib_pandoc as lib_pandoc
 
 
 class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test `convert_pandoc_cmd_to_arguments` to parse a pandoc command string
@@ -25,7 +25,7 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
             "--template default --extract-media media -- --verbose --extra"
         )
         # Call function to test.
-        actual = pprint.pformat(lib_pandoc.convert_pandoc_cmd_to_arguments(cmd))
+        actual = pprint.pformat(dshdlipa.convert_pandoc_cmd_to_arguments(cmd))
         expected = """
         {'cmd_opts': ['--verbose', '--extra'],
         'in_dir_params': {'data-dir': 'data',
@@ -54,7 +54,9 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
             "cmd_opts": ["--verbose", "--extra"],
         }
         # Call function to test.
-        actual = pprint.pformat(lib_pandoc.convert_pandoc_arguments_to_cmd(params))
+        actual = pprint.pformat(
+            dshdlipa.convert_pandoc_arguments_to_cmd(params)
+        )
         expected = """
         ('sample.md --output output.md --data-dir data --template default '
         '--extract-media media --verbose --extra')"""
@@ -70,7 +72,6 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
 
 @pytest.mark.superslow("~457 seconds.")
 class Test_run_dockerized_pandoc(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test Dockerized Pandoc reads an externally provided input file,
@@ -84,7 +85,7 @@ class Test_run_dockerized_pandoc(hunitest.TestCase):
         # Build the pandoc command string.
         cmd = f"pandoc {input_file} -o {output_file} --to=html --toc"
         # Call the function.
-        lib_pandoc.run_dockerized_pandoc(
+        dshdlipa.run_dockerized_pandoc(
             cmd,
             container_type="pandoc_texlive",
             force_rebuild=False,

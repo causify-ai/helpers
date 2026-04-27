@@ -17,7 +17,7 @@ import logging
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
-import dev_scripts_helpers.documentation.lib_typst as lib_typst
+import dev_scripts_helpers.documentation.lib_typst as dshdlity
 
 _LOG = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Default output to input with .pdf extension if not specified.
     if not args.output:
         args.output = hio.change_file_extension(args.input, ".pdf")
-    lib_typst.run_dockerized_typst(
+    dshdlity.run_dockerized_typst(
         args.input,
         args.output,
         cmd_opts,

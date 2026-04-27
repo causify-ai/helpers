@@ -15,7 +15,7 @@ import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.documentation.lib_markdown_toc as lib_markdown_toc
+import dev_scripts_helpers.documentation.lib_markdown_toc as dshdlmato
 
 _LOG = logging.getLogger(__name__)
 
@@ -120,7 +120,7 @@ def refresh_toc(
         # Run `markdown-toc` in a Docker container.
         use_sudo = hdocker.get_use_sudo()
         force_rebuild = False
-        lib_markdown_toc.run_dockerized_markdown_toc(
+        dshdlmato.run_dockerized_markdown_toc(
             tmp_file_name,
             cmd_opts,
             use_sudo=use_sudo,

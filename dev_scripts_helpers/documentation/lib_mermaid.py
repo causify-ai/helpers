@@ -6,11 +6,10 @@ tool for creating diagrams and flowcharts from text definitions.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_mermaid as lib_mermaid
+import dev_scripts_helpers.documentation.lib_mermaid as dshdlime
 """
 
 import logging
-from typing import List
 
 import helpers.hdocker as hdocker
 import helpers.hprint as hprint

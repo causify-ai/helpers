@@ -321,7 +321,7 @@ def _pdf_to_markdown(
     markdown_content = "\n\n".join(md_lines)
     # Apply prettier formatting to the markdown.
     _LOG.info("Applying prettier formatting to markdown")
-    markdown_content = lib_prettier.prettier_on_str(
+    markdown_content = dshdlipr.prettier_on_str(
         markdown_content,
         file_type="md",
         print_width=80,

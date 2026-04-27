@@ -8,7 +8,7 @@ import logging
 
 import helpers.hdbg as hdbg
 import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
-import dev_scripts_helpers.documentation.lib_graphviz as lib_graphviz
+import dev_scripts_helpers.documentation.lib_graphviz as dshdligr
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    lib_graphviz.run_dockerized_graphviz(
+    dshdligr.run_dockerized_graphviz(
         args.input,
         cmd_opts,
         args.output,

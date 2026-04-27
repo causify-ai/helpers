@@ -64,11 +64,11 @@ def _run_dockerized_ty(
     #   /app/helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py"
     cmd_opts_out = []
     cmd_opts = hdocker.convert_all_paths_from_caller_to_callee_docker_path(
-            cmd_opts,
-            caller_mount_path,
-            callee_mount_path,
-            is_caller_host,
-            use_sibling_container_for_callee,
+        cmd_opts,
+        caller_mount_path,
+        callee_mount_path,
+        is_caller_host,
+        use_sibling_container_for_callee,
     )
     cmd_opts.append(cmd_opts)
     if use_standard_ty_args:

@@ -9,7 +9,7 @@ import logging
 import helpers.hdbg as hdbg
 import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
 import helpers.hparser as hparser
-import dev_scripts_helpers.documentation.lib_mermaid as lib_mermaid
+import dev_scripts_helpers.documentation.lib_mermaid as dshdlime
 
 _LOG = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if not args.output:
         args.output = args.input
-    lib_mermaid.run_dockerized_mermaid(
+    dshdlime.run_dockerized_mermaid(
         args.input,
         args.output,
         force_rebuild=args.dockerized_force_rebuild,

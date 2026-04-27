@@ -6,13 +6,11 @@ diagrams from textual descriptions.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_plantum as lib_plantum
+import dev_scripts_helpers.documentation.lib_plantum as dshdlipl
 """
 
 import logging
-from typing import List
 
-import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hprint as hprint
 import helpers.hdockerized_executables as hdocexec

@@ -33,8 +33,8 @@ import helpers.hopen as hopen
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.documentation.lib_latex as lib_latex
-import dev_scripts_helpers.documentation.lib_pandoc as lib_pandoc
+import dev_scripts_helpers.documentation.lib_latex as dshdlila
+import dev_scripts_helpers.documentation.lib_pandoc as dshdlipa
 
 _LOG = logging.getLogger(__name__)
 
@@ -232,7 +232,7 @@ def _run_pandoc_to_pdf(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = lib_pandoc.run_dockerized_pandoc(
+        cmd = dshdlipa.run_dockerized_pandoc(
             cmd,
             container_type,
             mode="return_cmd",
@@ -274,7 +274,7 @@ def _run_pandoc_to_pdf(
     )
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
-        cmd = lib_latex.run_dockerized_latex(
+        cmd = dshdlila.run_dockerized_latex(
             cmd, mode="return_cmd", use_sudo=False
         )
     _LOG.debug("%s", "after: " + hprint.to_str("cmd"))
@@ -368,7 +368,7 @@ def _build_pandoc_cmd(
     _LOG.debug("%s", "before: " + hprint.to_str("cmd"))
     if not use_host_tools:
         container_type = "pandoc_texlive"
-        cmd = lib_pandoc.run_dockerized_pandoc(
+        cmd = dshdlipa.run_dockerized_pandoc(
             cmd,
             container_type,
             mode="return_cmd",
@@ -550,13 +550,13 @@ _VALID_ACTIONS = [
 
 
 _DEFAULT_ACTIONS = [
-    #"cleanup_before",
+    # "cleanup_before",
     "preprocess_notes",
     "render_images",
     "run_pandoc",
-    #"compress_pdf",
+    # "compress_pdf",
     "open",
-    #"cleanup_after",
+    # "cleanup_after",
 ]
 
 

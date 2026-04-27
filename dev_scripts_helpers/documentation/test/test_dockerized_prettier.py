@@ -3,7 +3,8 @@ import os
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.lib_prettier as lib_prettier
+import dev_scripts_helpers.documentation.lib_prettier as dshdlipr
+
 
 # #############################################################################
 # Test_run_dockerized_prettier
@@ -11,7 +12,6 @@ import dev_scripts_helpers.documentation.lib_prettier as lib_prettier
 
 
 class Test_run_dockerized_prettier(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Test that Dockerized Prettier reads an input file, formats it, and
@@ -32,7 +32,7 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
             "2",
         ]
         # Call function to test.
-        lib_prettier.run_dockerized_prettier(
+        dshdlipr.run_dockerized_prettier(
             input_file_path,
             cmd_opts,
             output_file_path,
@@ -68,7 +68,7 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
             "2",
         ]
         # Call function to test.
-        actual = lib_prettier.prettier_on_str(
+        actual = dshdlipr.prettier_on_str(
             text,
             file_type="md",
             cmd_opts=cmd_opts,

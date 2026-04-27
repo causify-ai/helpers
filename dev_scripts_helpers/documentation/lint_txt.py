@@ -20,7 +20,7 @@ import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.htext_protect as htexprot
-import dev_scripts_helpers.documentation.lib_prettier as lib_prettier
+import dev_scripts_helpers.documentation.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 
@@ -523,7 +523,7 @@ def _perform_actions(
     action = "prettier"
     if _to_execute_action(action, actions):
         txt = "\n".join(lines)
-        txt = lib_prettier.prettier_on_str(txt, file_type=extension, **kwargs)
+        txt = dshdlipr.prettier_on_str(txt, file_type=extension, **kwargs)
         lines = txt.split("\n")
     # Post-process text.
     action = "postprocess"

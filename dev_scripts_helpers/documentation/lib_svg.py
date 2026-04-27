@@ -6,7 +6,7 @@ using rsvg-convert and Inkscape.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_svg as lib_svg
+import dev_scripts_helpers.documentation.lib_svg as dshdlisv
 """
 
 import logging

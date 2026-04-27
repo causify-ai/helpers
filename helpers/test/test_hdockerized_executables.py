@@ -11,14 +11,14 @@ import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.lib_prettier as lib_prettier
-import dev_scripts_helpers.documentation.lib_pandoc as lib_pandoc
-import dev_scripts_helpers.documentation.lib_markdown_toc as lib_markdown_toc
-import dev_scripts_helpers.documentation.lib_latex as lib_latex
-import dev_scripts_helpers.documentation.lib_png as lib_png
-import dev_scripts_helpers.documentation.lib_graphviz as lib_graphviz
-import dev_scripts_helpers.documentation.lib_typst as lib_typst
-import dev_scripts_helpers.documentation.lib_svg as lib_svg
+import dev_scripts_helpers.documentation.lib_prettier as dshdlipr
+import dev_scripts_helpers.documentation.lib_pandoc as dshdlipa
+import dev_scripts_helpers.documentation.lib_markdown_toc as dshdlmato
+import dev_scripts_helpers.documentation.lib_latex as dshdlila
+import dev_scripts_helpers.documentation.lib_png as dshdlipn
+import dev_scripts_helpers.documentation.lib_graphviz as dshdligr
+import dev_scripts_helpers.documentation.lib_typst as dshdlity
+import dev_scripts_helpers.documentation.lib_svg as dshdlisv
 
 _LOG = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ class Test_dockerized_prettier1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.txt")
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
-        lib_prettier.run_dockerized_prettier(
+        dshdlipr.run_dockerized_prettier(
             in_file_path,
             cmd_opts,
             out_file_path,
@@ -133,7 +133,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        actual = lib_pandoc.convert_pandoc_cmd_to_arguments(cmd)
+        actual = dshdlipa.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
         expected = {
             "input": "input.md",
@@ -154,7 +154,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        actual = lib_pandoc.convert_pandoc_cmd_to_arguments(cmd)
+        actual = dshdlipa.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
         expected = {
             "input": "input.md",
@@ -180,7 +180,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Call tested function.
-        actual = lib_pandoc.convert_pandoc_cmd_to_arguments(cmd)
+        actual = dshdlipa.convert_pandoc_cmd_to_arguments(cmd)
         # Check output.
         expected = {
             "input": "test/outcomes/tmp.pandoc.preprocess_notes.txt",
@@ -214,9 +214,9 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
         """
         cmd = hprint.dedent(cmd, remove_lead_trail_empty_lines_=True)
         # Parse the command.
-        parsed_args = lib_pandoc.convert_pandoc_cmd_to_arguments(cmd)
+        parsed_args = dshdlipa.convert_pandoc_cmd_to_arguments(cmd)
         # Convert back to command.
-        converted_cmd = lib_pandoc.convert_pandoc_arguments_to_cmd(parsed_args)
+        converted_cmd = dshdlipa.convert_pandoc_arguments_to_cmd(parsed_args)
         # Check that the converted command matches the original command.
         actual = "pandoc " + converted_cmd
         expected = cmd
@@ -251,7 +251,7 @@ class Test_dockerized_pandoc1(hunitest.TestCase):
         cmd = " ".join(cmd_opts)
         container_type = "pandoc_only"
         use_sudo = hdocker.get_use_sudo()
-        lib_pandoc.run_dockerized_pandoc(cmd, container_type, use_sudo=use_sudo)
+        dshdlipa.run_dockerized_pandoc(cmd, container_type, use_sudo=use_sudo)
         # Check.
         actual = hio.from_file(out_file_path)
         self.assert_equal(
@@ -303,7 +303,7 @@ class Test_dockerized_markdown_toc1(hunitest.TestCase):
         in_file_path = _create_test_file(self, txt, extension="md")
         use_sudo = hdocker.get_use_sudo()
         force_rebuild = False
-        lib_markdown_toc.run_dockerized_markdown_toc(
+        dshdlmato.run_dockerized_markdown_toc(
             in_file_path,
             cmd_opts,
             use_sudo=use_sudo,
@@ -384,7 +384,7 @@ class Test_dockerized_latex1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        lib_latex.run_basic_latex(
+        dshdlila.run_basic_latex(
             in_file_path,
             cmd_opts,
             run_latex_again,
@@ -469,7 +469,7 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        lib_png.run_dockerized_tikz_to_bitmap(
+        dshdlipn.run_dockerized_tikz_to_bitmap(
             in_file_path,
             cmd_opts,
             out_file_path,
@@ -511,7 +511,7 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        lib_graphviz.run_dockerized_graphviz(
+        dshdligr.run_dockerized_graphviz(
             in_file_path,
             cmd_opts,
             out_file_path,
@@ -555,7 +555,7 @@ class Test_dockerized_typst1(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run function.
-        lib_typst.run_dockerized_typst(
+        dshdlity.run_dockerized_typst(
             in_file_path,
             out_file_path,
             cmd_opts,
@@ -933,7 +933,7 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
         hio.to_file(in_file, svg_code)
         # Run conversion.
         use_sudo = hdocker.get_use_sudo()
-        lib_svg.run_dockerized_svg_with_rsvg_convert(
+        dshdlisv.run_dockerized_svg_with_rsvg_convert(
             in_file,
             out_file,
             output_format=output_format,
@@ -990,7 +990,7 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
         hio.to_file(in_file, svg_code)
         # Run conversion.
         use_sudo = hdocker.get_use_sudo()
-        lib_svg.run_dockerized_svg_with_inkscape(
+        dshdlisv.run_dockerized_svg_with_inkscape(
             in_file,
             out_file,
             output_format=output_format,

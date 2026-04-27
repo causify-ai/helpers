@@ -8,7 +8,7 @@ import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.lib_typst as lib_typst
+import dev_scripts_helpers.documentation.lib_typst as dshdlity
 
 
 def _create_typst_file(self_: hunitest.TestCase) -> str:
@@ -63,8 +63,8 @@ class Test_build_typst_container(hunitest.TestCase):
         force_rebuild = True
         # Build the container using the exported constants (no compile needed).
         image_name = hdocker.build_container_image(
-            lib_typst.TYPST_CONTAINER_IMAGE,
-            lib_typst.TYPST_DOCKERFILE,
+            dshdlity.TYPST_CONTAINER_IMAGE,
+            dshdlity.TYPST_DOCKERFILE,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
@@ -112,7 +112,7 @@ class Test_run_dockerized_typst(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run test.
-        lib_typst.run_dockerized_typst(
+        dshdlity.run_dockerized_typst(
             in_file_path,
             out_file_path,
             cmd_opts,

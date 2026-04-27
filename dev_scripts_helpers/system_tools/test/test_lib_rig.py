@@ -69,7 +69,11 @@ class TestRigScript(hunitest.TestCase):
         expected_cmd = "rg import src -n --no-heading --color=never"
         expected_exit_code = 0
         # Run test.
-        self.helper(args, expected_cmd=expected_cmd, expected_exit_code=expected_exit_code)
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
 
     def test3(self) -> None:
         """
@@ -81,7 +85,11 @@ class TestRigScript(hunitest.TestCase):
         expected_cmd = "rg -g *.py class . -n --no-heading --color=never"
         expected_exit_code = 0
         # Run test.
-        self.helper(args, expected_cmd=expected_cmd, expected_exit_code=expected_exit_code)
+        self.helper(
+            args,
+            expected_cmd=expected_cmd,
+            expected_exit_code=expected_exit_code,
+        )
 
     def test4(self) -> None:
         """

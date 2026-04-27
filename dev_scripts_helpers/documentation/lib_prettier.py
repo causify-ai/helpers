@@ -6,7 +6,7 @@ supporting markdown, text, and LaTeX files.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_prettier as lib_prettier
+import dev_scripts_helpers.documentation.lib_prettier as dshdlipr
 """
 
 import logging

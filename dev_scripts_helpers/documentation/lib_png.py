@@ -7,7 +7,7 @@ containers.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_png as lib_png
+import dev_scripts_helpers.documentation.lib_png as dshdlipn
 """
 
 import logging
@@ -17,7 +17,7 @@ import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hdockerized_executables as hdocexec
-import dev_scripts_helpers.documentation.lib_latex as lib_latex
+import dev_scripts_helpers.documentation.lib_latex as dshdlila
 
 _LOG = logging.getLogger(__name__)
 
@@ -130,7 +130,7 @@ def run_dockerized_tikz_to_bitmap(
     latex_cmd_opts: List[str] = []
     run_latex_again = False
     file_out = hio.change_file_extension(in_file_path, ".pdf")
-    lib_latex.run_basic_latex(
+    dshdlila.run_basic_latex(
         in_file_path,
         latex_cmd_opts,
         run_latex_again,

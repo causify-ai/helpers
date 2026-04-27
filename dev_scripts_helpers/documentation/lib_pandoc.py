@@ -6,13 +6,13 @@ converter supporting various input and output formats.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_pandoc as lib_pandoc
+import dev_scripts_helpers.documentation.lib_pandoc as dshdlipa
 """
 
 import argparse
 import logging
 import shlex
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker

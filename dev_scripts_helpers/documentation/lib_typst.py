@@ -6,7 +6,7 @@ typesetting system designed to be as powerful as LaTeX while being easier to use
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_typst as lib_typst
+import dev_scripts_helpers.documentation.lib_typst as dshdlity
 """
 
 import logging
