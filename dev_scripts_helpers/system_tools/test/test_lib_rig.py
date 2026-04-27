@@ -1,7 +1,6 @@
-import unittest.mock as mock
-
 import helpers.hrig as hrig
 import helpers.hunit_test as hunitest
+import helpers.hunit_test_utils as hunteuti
 
 
 # #############################################################################
@@ -23,14 +22,17 @@ class TestRigScript(hunitest.TestCase):
         :param side_effect: Exception to raise from subprocess.run()
         """
         # Run test.
-        with mock.patch("subprocess.run", side_effect=side_effect) as mock_run:
+        with hunteuti.capture_system_calls(side_effect=side_effect) as invocations:
             try:
                 exit_code = hrig.main(args)
             except SystemExit as e:
                 exit_code = e.code
         # Check outputs.
         if expected_cmd is not None:
-            mock_run.assert_called_once_with(expected_cmd)
+            # TODO(gp): pass a data structure.
+            self.assertEqual(len(invocations), 1)
+            self.assertEqual(invocations[0]["function"], "subprocess.run")
+            self.assertEqual(invocations[0]["args"], (expected_cmd,))
         return exit_code
 
     def test1(self) -> None:
@@ -40,6 +42,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["TODO"]
         # Prepare outputs.
+        # TODO(ai_gp): Use a single str.
         expected_cmd = ["rg", "TODO", ".", "-n", "--no-heading", "--color=never"]
         # Run test.
         exit_code = self.helper(args, expected_cmd)
@@ -53,6 +56,8 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["import", "src"]
         # Prepare outputs.
+        # TODO(ai_gp): Use a single str.
+        # TODO(ai_gp): Pass a list of strings
         expected_cmd = [
             "rg",
             "import",
@@ -73,6 +78,7 @@ class TestRigScript(hunitest.TestCase):
         # Prepare inputs.
         args = ["class", ".", "py"]
         # Prepare outputs.
+        # TODO(ai_gp): Use a single str.
         expected_cmd = [
             "rg",
             "-g",
@@ -85,6 +91,8 @@ class TestRigScript(hunitest.TestCase):
         ]
         # Run test.
         exit_code = self.helper(args, expected_cmd)
+        # TODO(ai_gp): Pass the exit code as part of the call to helper to
+        # do the check.
         # Check outputs.
         self.assertEqual(exit_code, 0)
 
@@ -97,6 +105,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         exit_code = self.helper(args)
         # Check outputs.
+        # TODO(ai_gp): Pass the exit code as part of the call to helper to
+        # do the check.
         self.assertEqual(exit_code, 0)
 
     def test5(self) -> None:
@@ -108,6 +118,8 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         exit_code = self.helper(args)
         # Check outputs.
+        # TODO(ai_gp): Pass the exit code as part of the call to helper to
+        # do the check.
         self.assertEqual(exit_code, 0)
 
     def test6(self) -> None:
@@ -119,4 +131,6 @@ class TestRigScript(hunitest.TestCase):
         # Run test.
         exit_code = self.helper(args, side_effect=FileNotFoundError)
         # Check outputs.
+        # TODO(ai_gp): Pass the exit code as part of the call to helper to
+        # do the check.
         self.assertEqual(exit_code, 1)

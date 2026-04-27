@@ -1,7 +1,6 @@
 #!/bin/bash
 # """
-# Run rig with TODO(ai_gp) pattern, capture output to quickfix file, and open in vim
+# Run rig with TODO(ai_gp) pattern.
 # """
 
-rig "TODO(ai_gp)" "$@" 2>&1 | tee cfile
-vim -c "cfile cfile"
+rig 'TODO\(ai_gp\)' "$@"

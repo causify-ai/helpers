@@ -3,5 +3,5 @@
 # Run rig with --todo option, capture output to quickfix file, and open in vim
 # """
 
-rig --todo "$@" 2>&1 | tee cfile
+rig 'TODO\(ai_gp\)' "$@" 2>&1 | tee cfile
 vim -c "cfile cfile"

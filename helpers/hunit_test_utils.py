@@ -5,11 +5,13 @@ import helpers.hunit_test_utils as hunteuti
 """
 
 import abc
+import contextlib
 import glob
 import logging
 import os
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Generator, List, Optional, Tuple
+import unittest.mock as mock
 
 import pytest
 
@@ -512,3 +514,64 @@ def get_test_file_for_source(source_file: str) -> Optional[str]:
     if os.path.exists(test_file):
         return test_file
     return None
+
+
+# #############################################################################
+# System call capture utilities
+# #############################################################################
+
+
+@contextlib.contextmanager
+def capture_system_calls(
+    side_effect: Optional[Any] = None,
+) -> Generator[List[Dict[str, Any]], None, None]:
+    """
+    Context manager that captures all system calls to `subprocess.run()` and
+    `hsystem._system()`, returning them as a list of invocations.
+
+    Each invocation is a dict with 'function', 'args', and 'kwargs' keys.
+
+    :param side_effect: Exception or return value to use for mocked calls
+    :return: List of invocations, each as {'function': str, 'args': tuple,
+             'kwargs': dict}
+
+    Example:
+        ```
+        with capture_system_calls() as invocations:
+            my_function()
+        # Check captured calls.
+        assert len(invocations) == 1
+        assert invocations[0]['function'] == 'subprocess.run'
+        ```
+    """
+    invocations: List[Dict[str, Any]] = []
+
+    def mock_subprocess_run(*args: Any, **kwargs: Any) -> Any:
+        invocations.append({
+            "function": "subprocess.run",
+            "args": args,
+            "kwargs": kwargs,
+        })
+        if side_effect is not None:
+            if isinstance(side_effect, type) and issubclass(side_effect, BaseException):
+                raise side_effect()
+            elif isinstance(side_effect, BaseException):
+                raise side_effect
+        return None
+
+    def mock_hsystem(*args: Any, **kwargs: Any) -> Any:
+        invocations.append({
+            "function": "hsystem._system",
+            "args": args,
+            "kwargs": kwargs,
+        })
+        if side_effect is not None:
+            if isinstance(side_effect, type) and issubclass(side_effect, BaseException):
+                raise side_effect()
+            elif isinstance(side_effect, BaseException):
+                raise side_effect
+        return (0, "")  # Return code and output
+
+    with mock.patch("subprocess.run", side_effect=mock_subprocess_run):
+        with mock.patch("helpers.hsystem._system", side_effect=mock_hsystem):
+            yield invocations

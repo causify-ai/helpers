@@ -20,7 +20,7 @@ def main(args: Optional[List[str]] = None) -> int:
     """
     if args is None:
         args = sys.argv[1:]
-    parser = dshstliri._parse()
+    parser = dshstliri.parse()
     parsed = parser.parse_args(args)
     parsed = dshstliri._parse_arguments(parsed)
     try:

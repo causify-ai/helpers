@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 
 import argparse
+import logging
 import subprocess
 from typing import List, Optional
+
+import helpers.hdbg as hdbg
+import helpers.hparser as hparser
+import helpers.hprint as hprint
+
+_LOG = logging.getLogger(__name__)
 
 
 def _build_ripgrep_command(
@@ -39,7 +46,7 @@ def _get_default_rg_opts() -> List[str]:
     return ["-n", "--no-heading", "--color=never"]
 
 
-def _parse() -> argparse.ArgumentParser:
+def parse() -> argparse.ArgumentParser:
     """
     Parse command-line arguments for rig utility.
 
@@ -56,6 +63,7 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument(
         "positional", nargs="*", help="Positional arguments for search"
     )
+    hparser.add_verbosity_arg(parser)
     return parser
 
 
@@ -79,7 +87,7 @@ def _parse_arguments(parsed: argparse.Namespace) -> argparse.Namespace:
     return result
 
 
-def _main(parser: argparse.ArgumentParser) -> int:
+def main(parser: argparse.ArgumentParser) -> int:
     """
     Main entry point for rig utility.
 
@@ -87,10 +95,15 @@ def _main(parser: argparse.ArgumentParser) -> int:
     :return: Exit code (0 for success, 1 for error)
     """
     parsed = parser.parse_args()
+    hdbg.init_logger(verbosity=parsed.log_level, use_exec_path=True,
+                     report_command_line=False, log_filename="")
+    _LOG.debug(hprint.func_signature_to_str())
     parsed = _parse_arguments(parsed)
     if not parsed.pattern:
         parser.print_help()
         return 0
+    # Validate that the directory exists.
+    hdbg.dassert_dir_exists(parsed.directory)
     rg_opts = _get_default_rg_opts()
     cmd = _build_ripgrep_command(
         pattern=parsed.pattern,
@@ -98,5 +111,7 @@ def _main(parser: argparse.ArgumentParser) -> int:
         extension=parsed.extension,
         rg_opts=rg_opts,
     )
+    _LOG.debug("> %s", cmd)
+    _LOG.debug("> %s", " ".join(cmd))
     subprocess.run(cmd)
     return 0
