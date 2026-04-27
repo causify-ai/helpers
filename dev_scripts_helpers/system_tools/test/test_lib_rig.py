@@ -32,7 +32,9 @@ class TestRigScript(hunitest.TestCase):
         :param side_effect: Exception to raise from subprocess.run()
         """
         # Run test.
-        with hunteuti.capture_system_calls(side_effect=side_effect) as invocations:
+        with hunteuti.capture_system_calls(
+            side_effect=side_effect
+        ) as invocations:
             try:
                 exit_code = hrig.main(args)
             except SystemExit as e:
@@ -109,4 +111,8 @@ class TestRigScript(hunitest.TestCase):
         args = ["TODO"]
         expected_exit_code = 1
         # Run test.
-        self.helper(args, expected_exit_code=expected_exit_code, side_effect=FileNotFoundError)
+        self.helper(
+            args,
+            expected_exit_code=expected_exit_code,
+            side_effect=FileNotFoundError,
+        )

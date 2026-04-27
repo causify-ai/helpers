@@ -95,8 +95,12 @@ def main(parser: argparse.ArgumentParser) -> int:
     :return: Exit code (0 for success, 1 for error)
     """
     parsed = parser.parse_args()
-    hdbg.init_logger(verbosity=parsed.log_level, use_exec_path=True,
-                     report_command_line=False, log_filename="")
+    hdbg.init_logger(
+        verbosity=parsed.log_level,
+        use_exec_path=True,
+        report_command_line=False,
+        log_filename="",
+    )
     _LOG.debug(hprint.func_signature_to_str())
     parsed = _parse_arguments(parsed)
     if not parsed.pattern:

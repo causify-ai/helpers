@@ -547,26 +547,34 @@ def capture_system_calls(
     invocations: List[Dict[str, Any]] = []
 
     def mock_subprocess_run(*args: Any, **kwargs: Any) -> Any:
-        invocations.append({
-            "function": "subprocess.run",
-            "args": args,
-            "kwargs": kwargs,
-        })
+        invocations.append(
+            {
+                "function": "subprocess.run",
+                "args": args,
+                "kwargs": kwargs,
+            }
+        )
         if side_effect is not None:
-            if isinstance(side_effect, type) and issubclass(side_effect, BaseException):
+            if isinstance(side_effect, type) and issubclass(
+                side_effect, BaseException
+            ):
                 raise side_effect()
             elif isinstance(side_effect, BaseException):
                 raise side_effect
         return None
 
     def mock_hsystem(*args: Any, **kwargs: Any) -> Any:
-        invocations.append({
-            "function": "hsystem._system",
-            "args": args,
-            "kwargs": kwargs,
-        })
+        invocations.append(
+            {
+                "function": "hsystem._system",
+                "args": args,
+                "kwargs": kwargs,
+            }
+        )
         if side_effect is not None:
-            if isinstance(side_effect, type) and issubclass(side_effect, BaseException):
+            if isinstance(side_effect, type) and issubclass(
+                side_effect, BaseException
+            ):
                 raise side_effect()
             elif isinstance(side_effect, BaseException):
                 raise side_effect
