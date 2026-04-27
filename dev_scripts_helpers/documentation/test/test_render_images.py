@@ -427,12 +427,16 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         Test markdown output without label or caption.
         """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = ""
         expected = """
         <!--  render_images:begin -->
         ![](figs/test.1.png)
         <!--  render_images:end -->
         """
-        self.helper("figs/test.1.png", "", "", "", expected)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_md2(self) -> None:
         """
@@ -453,12 +457,16 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         Test markdown output with caption only.
         """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = "Test diagram caption"
         expected = """
         <!--  render_images:begin -->
         ![Test diagram caption](figs/test.1.png)
         <!--  render_images:end -->
         """
-        self.helper("figs/test.1.png", "", "", "Test diagram caption", expected)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_md4(self) -> None:
         """
@@ -1250,31 +1258,36 @@ class Test_render_images2(hunitest.TestCase):
         """
         Test running on a real Markdown file with plantUML code.
         """
-        self.helper("im_architecture.md")
+        file_name = "im_architecture.md"
+        self.helper(file_name)
 
     def test2(self) -> None:
         """
         Test running on a real Markdown file with mermaid code.
         """
-        self.helper("runnable_repo.md")
+        file_name = "runnable_repo.md"
+        self.helper(file_name)
 
     def test3(self) -> None:
         """
         Test running on a full LaTeX file with plantUML code.
         """
-        self.helper("sample_file_plantuml.tex")
+        file_name = "sample_file_plantuml.tex"
+        self.helper(file_name)
 
     def test4(self) -> None:
         """
         Test running on a full LaTeX file with mermaid code.
         """
-        self.helper("sample_file_mermaid.tex")
+        file_name = "sample_file_mermaid.tex"
+        self.helper(file_name)
 
     def test5(self) -> None:
         """
         Test running on a Markdown file with SVG code.
         """
-        self.helper("sample_file_svg.md")
+        file_name = "sample_file_svg.md"
+        self.helper(file_name)
 
 
 # #############################################################################
