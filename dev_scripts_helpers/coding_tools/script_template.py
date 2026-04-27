@@ -2,13 +2,6 @@
 
 """
 Add a description of what the script does and examples of command lines.
-
-Check dev_scripts/linter.py to see an example of a script using this
-template.
-
-Import as:
-
-import dev_scripts_helpers.script_template as dscscske
 """
 
 import argparse

@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 
-# TODO(ai_gp): Add explanation.
 """
-> ty check \
+Run 'ty' type checker in a Docker container.
 
---output-format concise \
---color never \
---exclude '**/outcomes/**' \
---exclude '**/import_check/example/**' .
+Executes the ty type checker with standard configuration flags to check Python
+code in the repository, excluding test outcomes and example directories.
+
+Example command executed:
+> ty check \
+    --output-format concise \
+    --color never \
+    --exclude '**/outcomes/**' \
+    --exclude '**/import_check/example/**' .
 """
 
 import argparse
@@ -58,13 +62,15 @@ def _run_dockerized_ty(
     #   type=bind,source=/Users/saggese/src/umd_msml6101,target=/app \
     #   --entrypoint "" tmp.ty.arm64.c94f3fcd bash -c "/venv/bin/ty check
     #   /app/helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py"
-    cmd_opts_out = hdocker.convert_all_paths_from_caller_to_callee_docker_path(
-        cmd_opts,
-        caller_mount_path,
-        callee_mount_path,
-        is_caller_host,
-        use_sibling_container_for_callee,
+    cmd_opts_out = []
+    cmd_opts = hdocker.convert_all_paths_from_caller_to_callee_docker_path(
+            cmd_opts,
+            caller_mount_path,
+            callee_mount_path,
+            is_caller_host,
+            use_sibling_container_for_callee,
     )
+    cmd_opts.append(cmd_opts)
     if use_standard_ty_args:
         cmd_opts_out.extend(_STANDARD_TY_ARGS.split())
     cmd_opts_str = " ".join(cmd_opts_out)
