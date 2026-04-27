@@ -149,6 +149,8 @@ import config_root.config.config_ as crococon
 - Test outcomes stored in `test/outcomes/` directories following module
   structure
 
-# Development Conventions and Rules
+# Important
 
-- Read and strictly follow `.claude/convention_rules.md`
+- You MUST read and strictly follow `.claude/convention_rules.md`
+
+- You MUST never commit changes without user permission
