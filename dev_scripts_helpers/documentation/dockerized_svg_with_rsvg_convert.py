@@ -10,7 +10,7 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import dev_scripts_helpers.hdockerized_cli_utils as hdoccli
+import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
 import helpers.hdockerized_executables as hdocexec
 import helpers.hparser as hparser
 
@@ -47,7 +47,7 @@ def _parse() -> argparse.ArgumentParser:
         help="Output format (default: png)",
     )
     hparser.add_dockerized_script_arg(parser)
-    hdoccli.add_open_arg(parser)
+    dshhclut.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -66,7 +66,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", args.output)
     if args.open:
-        hdoccli.open_file_on_macos(args.output)
+        dshhclut.open_file_on_macos(args.output)
 
 
 if __name__ == "__main__":

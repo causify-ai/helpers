@@ -8,7 +8,7 @@ import subprocess
 import sys
 from typing import List, Optional
 
-import dev_scripts_helpers.system_tools.lib_rig as lib_rig
+import dev_scripts_helpers.system_tools.lib_rig as dshstliri
 
 
 def main(args: Optional[List[str]] = None) -> int:
@@ -20,15 +20,15 @@ def main(args: Optional[List[str]] = None) -> int:
     """
     if args is None:
         args = sys.argv[1:]
-    parser = lib_rig._parse()
+    parser = dshstliri._parse()
     parsed = parser.parse_args(args)
-    parsed = lib_rig._parse_arguments(parsed)
+    parsed = dshstliri._parse_arguments(parsed)
     try:
         if not parsed.pattern:
             parser.print_help()
             return 0
-        rg_opts = lib_rig._get_default_rg_opts()
-        cmd = lib_rig._build_ripgrep_command(
+        rg_opts = dshstliri._get_default_rg_opts()
+        cmd = dshstliri._build_ripgrep_command(
             pattern=parsed.pattern,
             directory=parsed.directory,
             extension=parsed.extension,

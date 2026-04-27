@@ -24,9 +24,7 @@ def _create_test_file(self_: Any, txt: str, extension: str) -> str:
     return file_path
 
 
-def _prepare_div_block_inputs(
-    txt: str, expected: str
-) -> Tuple[List[str], str]:
+def _prepare_div_block_inputs(txt: str, expected: str) -> Tuple[List[str], str]:
     txt = hprint.dedent(txt, remove_lead_trail_empty_lines_=True)
     expected = hprint.dedent(expected, remove_lead_trail_empty_lines_=False)
     if expected.startswith("\n"):
@@ -45,7 +43,7 @@ def _assert_output_file_exists(self_: Any, out_file_path: str) -> None:
 
 
 # #############################################################################
-# Test_run_dockerized_prettier1
+# Test_dockerized_prettier1
 # #############################################################################
 
 
@@ -219,7 +217,7 @@ class Test_parse_pandoc_arguments1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_run_dockerized_pandoc1
+# Test_dockerized_pandoc1
 # #############################################################################
 
 
@@ -284,7 +282,7 @@ class Test_dockerized_pandoc1(hunitest.TestCase):
 
 
 # #############################################################################
-# Test_run_markdown_toc1
+# Test_dockerized_markdown_toc1
 # #############################################################################
 
 
@@ -390,7 +388,6 @@ class Test_dockerized_latex1(hunitest.TestCase):
         # Check output.
         _assert_output_file_exists(self, out_file_path)
 
-
     # TODO(gp): This doesn't work since:
     # 1) `convert_latex_cmd_to_arguments()` is monkey patching with parsing the
     # arguments. Maybe we need to pass multiple arguments to the mocking since
@@ -476,7 +473,6 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
         _assert_output_file_exists(self, out_file_path)
 
 
-
 # #############################################################################
 # Test_dockerized_graphviz1
 # #############################################################################
@@ -517,7 +513,6 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
         )
         # Check output.
         _assert_output_file_exists(self, out_file_path)
-
 
 
 # #############################################################################

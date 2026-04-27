@@ -20,7 +20,6 @@ _LOG = logging.getLogger(__name__)
 
 
 class Test_get_rendered_file_paths1(hunitest.TestCase):
-
     def test1(self) -> None:
         """
         Check generation of file paths for rendering images.
@@ -346,7 +345,9 @@ class Test_render_image_code1(hunitest.TestCase):
         out_file_name = "test.md"
         dst_ext = "png"
         expected_path = "figs/test.1.png"
-        self.helper(image_code, image_code_type, out_file_name, dst_ext, expected_path)
+        self.helper(
+            image_code, image_code_type, out_file_name, dst_ext, expected_path
+        )
 
     @pytest.mark.superslow
     def test_md2(self) -> None:
@@ -362,7 +363,9 @@ class Test_render_image_code1(hunitest.TestCase):
         out_file_name = "test.md"
         dst_ext = "png"
         expected_path = "figs/test.1.png"
-        self.helper(image_code, image_code_type, out_file_name, dst_ext, expected_path)
+        self.helper(
+            image_code, image_code_type, out_file_name, dst_ext, expected_path
+        )
 
     def test_md3(self) -> None:
         """
@@ -374,7 +377,9 @@ class Test_render_image_code1(hunitest.TestCase):
         out_file_name = "test2.md"
         dst_ext = "svg"
         expected_path = "figs/test2.1.svg"
-        self.helper(image_code, image_code_type, out_file_name, dst_ext, expected_path)
+        self.helper(
+            image_code, image_code_type, out_file_name, dst_ext, expected_path
+        )
 
     @pytest.mark.slow
     def test_md4_svg(self) -> None:
@@ -390,7 +395,9 @@ class Test_render_image_code1(hunitest.TestCase):
         out_file_name = "test_svg.md"
         dst_ext = "png"
         expected_path = "figs/test_svg.1.png"
-        self.helper(image_code, image_code_type, out_file_name, dst_ext, expected_path)
+        self.helper(
+            image_code, image_code_type, out_file_name, dst_ext, expected_path
+        )
 
 
 # #############################################################################
@@ -431,12 +438,16 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         Test markdown output with label only.
         """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = "fig:test_diagram"
+        caption = ""
         expected = """
         <!--  render_images:begin -->
         ![](figs/test.1.png){#fig:test_diagram}
         <!--  render_images:end -->
         """
-        self.helper("figs/test.1.png", "", "fig:test_diagram", "", expected)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_md3(self) -> None:
         """
@@ -453,23 +464,31 @@ class Test_insert_image_code1(hunitest.TestCase):
         """
         Test markdown output with both label and caption.
         """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = "fig:test_diagram"
+        caption = "Test diagram caption"
         expected = """
         <!--  render_images:begin -->
         ![Test diagram caption](figs/test.1.png){#fig:test_diagram}
         <!--  render_images:end -->
         """
-        self.helper("figs/test.1.png", "", "fig:test_diagram", "Test diagram caption", expected)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_md5(self) -> None:
         """
         Test markdown output with user-specified size.
         """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = "height=100%"
+        label = "fig:test_diagram"
+        caption = "Test diagram"
         expected = """
         <!--  render_images:begin -->
         ![Test diagram](figs/test.1.png){#fig:test_diagram height=100%}
         <!--  render_images:end -->
         """
-        self.helper("figs/test.1.png", "height=100%", "fig:test_diagram", "Test diagram", expected)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
 
 # #############################################################################
@@ -499,6 +518,10 @@ class Test_insert_image_code2(hunitest.TestCase):
         """
         Test LaTeX output without label or caption.
         """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = ""
         expected = r"""
         % render_images:begin
         \begin{figure}[H]
@@ -506,12 +529,16 @@ class Test_insert_image_code2(hunitest.TestCase):
         \end{figure}
         % render_images:end
         """
-        self.helper("figs/test.1.png", "", "", "", expected)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_tex2(self) -> None:
         """
         Test LaTeX output with label only.
         """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = "fig:test_diagram"
+        caption = ""
         expected = r"""
         % render_images:begin
         \begin{figure}[H]
@@ -520,12 +547,16 @@ class Test_insert_image_code2(hunitest.TestCase):
         \end{figure}
         % render_images:end
         """
-        self.helper("figs/test.1.png", "", "fig:test_diagram", "", expected)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_tex3(self) -> None:
         """
         Test LaTeX output with caption only.
         """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = ""
+        caption = "Test diagram caption"
         expected = r"""
         % render_images:begin
         \begin{figure}[H]
@@ -534,12 +565,16 @@ class Test_insert_image_code2(hunitest.TestCase):
         \end{figure}
         % render_images:end
         """
-        self.helper("figs/test.1.png", "", "", "Test diagram caption", expected)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
     def test_tex4(self) -> None:
         """
         Test LaTeX output with both label and caption.
         """
+        rel_img_path = "figs/test.1.png"
+        user_img_size = ""
+        label = "fig:test_diagram"
+        caption = "Test diagram caption"
         expected = r"""
         % render_images:begin
         \begin{figure}[H]
@@ -549,7 +584,7 @@ class Test_insert_image_code2(hunitest.TestCase):
         \end{figure}
         % render_images:end
         """
-        self.helper("figs/test.1.png", "", "fig:test_diagram", "Test diagram caption", expected)
+        self.helper(rel_img_path, user_img_size, label, caption, expected)
 
 
 # #############################################################################
@@ -1188,7 +1223,6 @@ class Test_render_images1(hunitest.TestCase):
 
 
 class Test_render_images2(hunitest.TestCase):
-
     def helper(self, file_name: str) -> None:
         """
         Helper function to test rendering images from a file.

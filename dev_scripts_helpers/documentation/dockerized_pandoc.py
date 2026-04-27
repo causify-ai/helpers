@@ -15,10 +15,10 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import dev_scripts_helpers.hdockerized_cli_utils as hdoccli
+import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
 import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
-import helpers.hmarkdown_toc as hmarkdo
+import helpers.hmarkdown_toc as hmartoc
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -45,7 +45,7 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Remove the markdown TOC block (<!-- toc --> ... <!-- tocstop -->) before converting",
     )
-    hdoccli.add_open_arg(parser)
+    dshhclut.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -65,7 +65,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     input_file = args.input
     if args.remove_md_toc:
         txt = hio.from_file(input_file)
-        txt = hmarkdo.remove_table_of_contents(txt)
+        txt = hmartoc.remove_table_of_contents(txt)
         input_file = "tmp.dockerized_pandoc.no_toc.md"
         hio.to_file(input_file, txt)
         _LOG.info("TOC removed; preprocessed input written to '%s'", input_file)
@@ -78,7 +78,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", args.output)
     if args.open:
-        hdoccli.open_file_on_macos(args.output)
+        dshhclut.open_file_on_macos(args.output)
 
 
 if __name__ == "__main__":

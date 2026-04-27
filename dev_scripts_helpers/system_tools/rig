@@ -19,8 +19,9 @@ rig - Utility for ripgrep searches and directory operations.
 > rig "import" . js -i
 """
 
-import lib_rig
+import dev_scripts_helpers.system_tools.lib_rig
 
 if __name__ == "__main__":
+    # TODO(ai_gp): Make these functions public.
     parser = lib_rig._parse()
     exit(lib_rig._main(parser))

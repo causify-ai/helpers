@@ -4,6 +4,11 @@ import helpers.hrig as hrig
 import helpers.hunit_test as hunitest
 
 
+# #############################################################################
+# TestRigScript
+# #############################################################################
+
+
 class TestRigScript(hunitest.TestCase):
     """
     Test rig script functionality through hrig module integration.
