@@ -1,14 +1,10 @@
 import os
 
-import pytest
-
-import helpers.hdocker as hdocker
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.lib_typst as dshdlity
 
 
 def _create_typst_file(self_: hunitest.TestCase) -> str:
@@ -36,98 +32,16 @@ def _create_typst_file(self_: hunitest.TestCase) -> str:
 
 
 # #############################################################################
-# Test_build_typst_container
-# #############################################################################
-
-
-# TODO(ai_gp): Move to test_lib_typst.py
-class Test_build_typst_container(hunitest.TestCase):
-    """
-    Test running the `typst compile` command inside a Docker container.
-    """
-
-    # TODO(gp): Add pytest-order to the container.
-    # @pytest.mark.order(1)
-    @pytest.mark.slow
-    def test1(self) -> None:
-        """
-        Test that the Typst Docker container is built correctly and `typst
-        --version` runs inside it.
-
-        Set `DOCKER_FORCE_REBUILD=1` to rebuild from scratch, e.g.:
-        ```bash
-        > DOCKER_FORCE_REBUILD=1 pytest test_dockerized_typst.py::Test_run_dockerized_typst::test4
-        ```
-        """
-        # Prepare inputs.
-        use_sudo = hdocker.get_use_sudo()
-        force_rebuild = True
-        # Build the container using the exported constants (no compile needed).
-        image_name = hdocker.build_container_image(
-            dshdlity.TYPST_CONTAINER_IMAGE,
-            dshdlity.TYPST_DOCKERFILE,
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
-        )
-        # Verify the image exists.
-        exists, image_id = hdocker.image_exists(image_name, use_sudo)
-        self.assertTrue(
-            exists,
-            msg=f"Typst Docker image '{image_name}' was not found after build",
-        )
-        self.assertNotEqual(image_id, "", msg="Expected a non-empty image ID")
-        # Run `typst --version` inside the container to verify the binary works.
-        docker_executable = hdocker.get_docker_executable(use_sudo)
-        cmd = (
-            f"{docker_executable} run --rm"
-            f' --entrypoint "" {image_name}'
-            " bash -c 'typst --version'"
-        )
-        _, output = hsystem.system_to_string(cmd)
-        # Check output.
-        self.assertIn(
-            "typst",
-            output.lower(),
-            msg=f"Expected 'typst' in version output, got: {output}",
-        )
-
-
-# #############################################################################
 # Test_run_dockerized_typst
 # #############################################################################
 
 
 class Test_run_dockerized_typst(hunitest.TestCase):
     """
-    Test running the `typst compile` command inside a Docker container.
+    Test running the `dockerized_typst.py` script.
     """
 
-    # TODO(ai_gp): Move to test_lib_typst.py
     def test1(self) -> None:
-        """
-        Test that Dockerized Typst compiles a `.typ` file to an explicit PDF.
-        """
-        # Prepare inputs.
-        in_file_path = _create_typst_file(self)
-        out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
-        cmd_opts = []
-        force_rebuild = False
-        use_sudo = hdocker.get_use_sudo()
-        # Run test.
-        dshdlity.run_dockerized_typst(
-            in_file_path,
-            out_file_path,
-            cmd_opts,
-            force_rebuild=force_rebuild,
-            use_sudo=use_sudo,
-        )
-        # Check output.
-        self.assertTrue(
-            os.path.exists(out_file_path),
-            msg=f"Output file {out_file_path} not found",
-        )
-
-    def test2(self) -> None:
         """
         Test that the `dockerized_typst.py` script compiles via command line
         with an explicit `--output` path.
@@ -145,7 +59,7 @@ class Test_run_dockerized_typst(hunitest.TestCase):
             msg=f"Output file {out_file_path} not found",
         )
 
-    def test3(self) -> None:
+    def test2(self) -> None:
         """
         Test that the `dockerized_typst.py` script uses the default PDF output
         path (same name as input, `.pdf` extension) when `--output` is omitted.
@@ -162,4 +76,21 @@ class Test_run_dockerized_typst(hunitest.TestCase):
         self.assertTrue(
             os.path.exists(expected_out_file_path),
             msg=f"Default output file {expected_out_file_path} not found",
+        )
+
+    def test3(self) -> None:
+        """
+        Run `dockerized_typst` through the command line with explicit output.
+        """
+        # Prepare inputs.
+        exec_path = hgit.find_file_in_git_tree("dockerized_typst.py")
+        in_file_path = _create_typst_file(self)
+        out_file_path = os.path.join(self.get_scratch_space(), "custom_output.pdf")
+        # Run function.
+        cmd = f"{exec_path} --input {in_file_path} --output {out_file_path}"
+        hsystem.system(cmd)
+        # Check output.
+        self.assertTrue(
+            os.path.exists(out_file_path),
+            msg=f"Output file {out_file_path} not found",
         )

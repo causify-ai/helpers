@@ -2,8 +2,9 @@ import logging
 import os
 from typing import List, Tuple
 
+import pytest
+
 import helpers.hdocker as hdocker
-import helpers.hgit as hgit
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
@@ -13,10 +14,67 @@ _LOG = logging.getLogger(__name__)
 
 
 # #############################################################################
+# Test_build_typst_container1
+# #############################################################################
+
+
+class Test_build_typst_container1(hunitest.TestCase):
+    """
+    Test building the `typst` container.
+    """
+
+    # TODO(gp): Add pytest-order to the container.
+    # @pytest.mark.order(1)
+    @pytest.mark.slow
+    def test1(self) -> None:
+        """
+        Test that the Typst Docker container is built correctly and `typst
+        --version` runs inside it.
+
+        Set `DOCKER_FORCE_REBUILD=1` to rebuild from scratch, e.g.:
+        ```bash
+        > DOCKER_FORCE_REBUILD=1 pytest test_dockerized_typst.py::Test_run_dockerized_typst::test4
+        ```
+        """
+        # Prepare inputs.
+        use_sudo = hdocker.get_use_sudo()
+        force_rebuild = True
+        # Build the container using the exported constants (no compile needed).
+        image_name = hdocker.build_container_image(
+            dshdlity.TYPST_CONTAINER_IMAGE,
+            dshdlity.TYPST_DOCKERFILE,
+            force_rebuild=force_rebuild,
+            use_sudo=use_sudo,
+        )
+        # Verify the image exists.
+        exists, image_id = hdocker.image_exists(image_name, use_sudo)
+        self.assertTrue(
+            exists,
+            msg=f"Typst Docker image '{image_name}' was not found after build",
+        )
+        self.assertNotEqual(image_id, "", msg="Expected a non-empty image ID")
+        # Run `typst --version` inside the container to verify the binary works.
+        docker_executable = hdocker.get_docker_executable(use_sudo)
+        cmd = (
+            f"{docker_executable} run --rm"
+            f' --entrypoint "" {image_name}'
+            " bash -c 'typst --version'"
+        )
+        _, output = hsystem.system_to_string(cmd)
+        # Check output.
+        self.assertIn(
+            "typst",
+            output.lower(),
+            msg=f"Expected 'typst' in version output, got: {output}",
+        )
+
+
+# #############################################################################
 # Test_dockerized_typst1
 # #############################################################################
 
 
+# TODO(ai_gp): -> Test_run_dockerized_typst1
 class Test_dockerized_typst1(hunitest.TestCase):
     def create_input_file(self) -> Tuple[str, str]:
         txt = r"""
@@ -35,7 +93,7 @@ class Test_dockerized_typst1(hunitest.TestCase):
         out_file_path = os.path.join(self.get_scratch_space(), "output.pdf")
         return in_file_path, out_file_path
 
-    def test_dockerized1(self) -> None:
+    def test1(self) -> None:
         """
         Run `typst` inside a Docker container.
         """
@@ -52,18 +110,5 @@ class Test_dockerized_typst1(hunitest.TestCase):
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
-        # Check output.
-        dshddout.assert_output_file_exists(self, out_file_path)
-
-    def test_command_line1(self) -> None:
-        """
-        Run `dockerized_typst` through the command line.
-        """
-        # Prepare inputs.
-        exec_path = hgit.find_file_in_git_tree("dockerized_typst.py")
-        in_file_path, out_file_path = self.create_input_file()
-        # Run function.
-        cmd = f"{exec_path} --input {in_file_path} --output {out_file_path}"
-        hsystem.system(cmd)
         # Check output.
         dshddout.assert_output_file_exists(self, out_file_path)
