@@ -970,6 +970,7 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
 # #############################################################################
 
 
+@pytest.mark.skip(reason="Docker build for Inkscape times out (>30s) in CI")
 class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
     """
     Test SVG conversion using inkscape.
