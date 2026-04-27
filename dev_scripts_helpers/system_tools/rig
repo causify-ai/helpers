@@ -1,13 +1,156 @@
-#!/usr/bin/env python3
+#!/bin/TODO
+
+# TODO(ai_gp): Make this consistent with the docstring of other python scripts
 """
-rig - Utility for ripgrep searches and directory operations.
-Python wrapper around ripgrep (rg).
+rig - Utility for ripgrep searches and directory operations
+
+USAGE:
+    rig <pattern> [<dir>] [<extension>] [<rg OPTS>]
+
+COMMANDS:
+    Search mode:
+        rig <pattern> [<dir>] [<extension>] [<rg OPTS>]
+        Search for pattern in files with optional extension filter
+
+ARGUMENTS:
+    <pattern>      Search pattern (supports regex)
+    [<dir>]        Directory to search in (default: current directory '.')
+    [<extension>]  File extension filter (e.g., py, js, txt), optional
+    [<rg OPTS>]    Additional ripgrep options (optional)
+
+EXAMPLES:
+    # Search for "TODO" in Python files in src directory
+    rig "TODO" src py
+
+    # Search for "TODO" in all files in src directory
+    rig "TODO" src
+
+    # Search for "TODO" in all files in current directory
+    rig "TODO"
+
+    # Search in Python files in current directory
+    rig "import" py
+
+    # Search in JavaScript files with case-insensitive matching
+    rig "import" . js -i
 """
 
-import sys
+import argparse
+import logging
+import subprocess
+from typing import List, Optional
 
-import helpers.hrig as hrig
+_LOG = logging.getLogger(__name__)
 
-if __name__ == "__main__":
-    exit_code = hrig.main(sys.argv[1:])
-    sys.exit(exit_code)
+
+def build_ripgrep_command(
+    *,
+    pattern: str,
+    directory: str,
+    extension: Optional[str],
+    rg_opts: List[str],
+) -> List[str]:
+    """
+    Build ripgrep command with given parameters.
+
+    :param pattern: Search pattern (supports regex)
+    :param directory: Directory to search in
+    :param extension: File extension filter (without dot), optional
+    :param rg_opts: Additional ripgrep options
+    :return: Command list ready for subprocess
+    """
+    cmd = ["rg"]
+    if extension:
+        cmd.extend(["-g", f"*.{extension}"])
+    cmd.append(pattern)
+    cmd.append(directory)
+    cmd.extend(rg_opts)
+    return cmd
+
+
+def get_default_rg_opts() -> List[str]:
+    """
+    Get default ripgrep options.
+
+    :return: List of default options
+    """
+    return ["-n", "--no-heading", "--color=never"]
+
+
+def parse_arguments(args: List[str]) -> argparse.Namespace:
+    """
+    Parse command-line arguments for rig utility.
+
+    Supports:
+    - Search mode: pattern [directory] [extension] [rg_opts]
+    - TODO mode: --todo [user] [directory] [extension]
+    - Help mode: --help or -h
+
+    :param args: List of command-line arguments
+    :return: Parsed arguments namespace
+    """
+    parser = argparse.ArgumentParser(
+        description="Utility for ripgrep searches and directory operations",
+        add_help=False,
+    )
+    parser.add_argument(
+        "--help", "-h", action="store_true", help="Show help message"
+    )
+    parser.add_argument(
+        "--todo",
+        nargs="?",
+        const="ai_gp",
+        default=None,
+        help="Search for TODO markers (default user: ai_gp)",
+    )
+    parser.add_argument(
+        "positional", nargs="*", help="Positional arguments for search"
+    )
+    parsed = parser.parse_args(args)
+    result = argparse.Namespace()
+    result.help = parsed.help
+    result.todo = parsed.todo
+    result.pattern = None
+    result.directory = "."
+    result.extension = None
+    if result.todo:
+        if len(parsed.positional) > 0:
+            result.directory = parsed.positional[0]
+        if len(parsed.positional) > 1:
+            result.extension = parsed.positional[1]
+        result.pattern = None
+    else:
+        if parsed.positional:
+            result.pattern = parsed.positional[0]
+        if len(parsed.positional) > 1:
+            result.directory = parsed.positional[1]
+        if len(parsed.positional) > 2:
+            result.extension = parsed.positional[2]
+    return result
+
+
+def main(args: List[str]) -> int:
+    """
+    Main entry point for rig utility.
+
+    :param args: Command-line arguments
+    :return: Exit code (0 for success, 1 for error)
+    """
+    parsed = parse_arguments(args)
+    if parsed.help or (not parsed.pattern and not parsed.todo):
+        # TODO(ai_gp): Print the docstring as we do for all the other scripts.
+        return 0
+    rg_opts = get_default_rg_opts()
+    if parsed.todo:
+        pattern = f"TODO\\({parsed.todo}\\)"
+    else:
+        pattern = parsed.pattern
+    cmd = build_ripgrep_command(
+        pattern=pattern,
+        directory=parsed.directory,
+        extension=parsed.extension,
+        rg_opts=rg_opts,
+    )
+    subprocess.run(cmd)
+    return 0
+

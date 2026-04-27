@@ -11,9 +11,11 @@ model: haiku
 
 - Do not write any comment but only report the result as
   ```
-  file:markdown header (of level 1 or 2)
+  - file:including markdown header of level
+    - file:markdown header of 2
   ```
   - E.g.,
   ```
-  .claude/skills/coding.rules.md:## Use Script Template
+  - .claude/skills/coding.rules.md:# Script Development
+    - .claude/skills/coding.rules.md:## Use Script Template
   ```
