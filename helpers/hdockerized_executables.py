@@ -38,7 +38,7 @@ def _get_docker_mount_context() -> Tuple[bool, bool, str, str, str]:
     """
     Return Docker mount context for container operations.
 
-    Returns: (is_caller_host, use_sibling_container_for_callee,
+    :return: (is_caller_host, use_sibling_container_for_callee,
               caller_mount_path, callee_mount_path, mount)
     """
     is_caller_host = not hserver.is_inside_docker()

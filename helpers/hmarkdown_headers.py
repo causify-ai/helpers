@@ -240,9 +240,10 @@ def capitalize_header(lines: List[str]) -> List[str]:
             (                          # Start of alternation
                 `[^`]*`                # Backtick-quoted string
                 |                      # OR
-                (?<!\w)'[^']*'(?!\w)   # Single-quoted string (not preceded/followed by word chars)
+                (?<!\w)'[^']*'(?!\w)   # Single-quoted string (not
+                                       # preceded/followed by word chars)
                 |                      # OR
-                \"[^\"]*\"              # Double-quoted string
+                \"[^\"]*\"             # Double-quoted string
             )
             """
 

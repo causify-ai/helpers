@@ -951,7 +951,9 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
           <circle cx="50" cy="50" r="40" fill="blue" />
         </svg>
         """
-        self._run_svg_conversion(svg_code, "test_png.png", "png")
+        out_filename = "test_png.png"
+        output_format = "png"
+        self._run_svg_conversion(svg_code, out_filename, output_format)
 
     @pytest.mark.slow
     def test_svg_to_pdf(self) -> None:
@@ -963,7 +965,9 @@ class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
           <rect x="10" y="10" width="80" height="80" fill="red" />
         </svg>
         """
-        self._run_svg_conversion(svg_code, "test_pdf.pdf", "pdf")
+        out_filename = "test_pdf.pdf"
+        output_format = "pdf"
+        self._run_svg_conversion(svg_code, out_filename, output_format)
 
 
 # #############################################################################
@@ -1004,7 +1008,9 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
           <circle cx="50" cy="50" r="40" fill="green" />
         </svg>
         """
-        self._run_svg_conversion(svg_code, "test_inkscape.png", "png")
+        out_filename = "test_inkscape.png"
+        output_format = "png"
+        self._run_svg_conversion(svg_code, out_filename, output_format)
 
     @pytest.mark.slow
     def test_svg_to_pdf(self) -> None:
@@ -1016,4 +1022,6 @@ class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
           <polygon points="50,10 90,90 10,90" fill="yellow" stroke="black"/>
         </svg>
         """
-        self._run_svg_conversion(svg_code, "test_inkscape.pdf", "pdf")
+        out_filename = "test_inkscape.pdf"
+        output_format = "pdf"
+        self._run_svg_conversion(svg_code, out_filename, output_format)
