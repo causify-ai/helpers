@@ -976,3 +976,125 @@ class Test_add_remove_prettier_ignore_roundtrip(hunitest.TestCase):
         Text4
         """
         self.helper(txt)
+
+
+# #############################################################################
+# Test_run_dockerized_svg_with_rsvg_convert1
+# #############################################################################
+
+
+class Test_run_dockerized_svg_with_rsvg_convert1(hunitest.TestCase):
+    """
+    Test SVG conversion using rsvg-convert.
+    """
+
+    @pytest.mark.slow
+    def test_svg_to_png(self) -> None:
+        """
+        Test converting SVG to PNG using rsvg-convert.
+        """
+        svg_code = r"""
+        <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="40" fill="blue" />
+        </svg>
+        """
+        in_file = os.path.join(self.get_scratch_space(), "test.svg")
+        out_file = os.path.join(self.get_scratch_space(), "test_png.png")
+        hio.to_file(in_file, svg_code)
+        # Run conversion.
+        use_sudo = hdocker.get_use_sudo()
+        hdocexec.run_dockerized_svg_with_rsvg_convert(
+            in_file,
+            out_file,
+            output_format="png",
+            force_rebuild=False,
+            use_sudo=use_sudo,
+        )
+        # Check that output file was created.
+        self.assertTrue(os.path.exists(out_file))
+
+    @pytest.mark.slow
+    def test_svg_to_pdf(self) -> None:
+        """
+        Test converting SVG to PDF using rsvg-convert.
+        """
+        svg_code = r"""
+        <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="10" width="80" height="80" fill="red" />
+        </svg>
+        """
+        in_file = os.path.join(self.get_scratch_space(), "test.svg")
+        out_file = os.path.join(self.get_scratch_space(), "test_pdf.pdf")
+        hio.to_file(in_file, svg_code)
+        # Run conversion.
+        use_sudo = hdocker.get_use_sudo()
+        hdocexec.run_dockerized_svg_with_rsvg_convert(
+            in_file,
+            out_file,
+            output_format="pdf",
+            force_rebuild=False,
+            use_sudo=use_sudo,
+        )
+        # Check that output file was created.
+        self.assertTrue(os.path.exists(out_file))
+
+
+# #############################################################################
+# Test_run_dockerized_svg_with_inkscape1
+# #############################################################################
+
+
+class Test_run_dockerized_svg_with_inkscape1(hunitest.TestCase):
+    """
+    Test SVG conversion using inkscape.
+    """
+
+    @pytest.mark.slow
+    def test_svg_to_png(self) -> None:
+        """
+        Test converting SVG to PNG using inkscape.
+        """
+        svg_code = r"""
+        <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="40" fill="green" />
+        </svg>
+        """
+        in_file = os.path.join(self.get_scratch_space(), "test.svg")
+        out_file = os.path.join(self.get_scratch_space(), "test_inkscape.png")
+        hio.to_file(in_file, svg_code)
+        # Run conversion.
+        use_sudo = hdocker.get_use_sudo()
+        hdocexec.run_dockerized_svg_with_inkscape(
+            in_file,
+            out_file,
+            output_format="png",
+            force_rebuild=False,
+            use_sudo=use_sudo,
+        )
+        # Check that output file was created.
+        self.assertTrue(os.path.exists(out_file))
+
+    @pytest.mark.slow
+    def test_svg_to_pdf(self) -> None:
+        """
+        Test converting SVG to PDF using inkscape.
+        """
+        svg_code = r"""
+        <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="50,10 90,90 10,90" fill="yellow" stroke="black"/>
+        </svg>
+        """
+        in_file = os.path.join(self.get_scratch_space(), "test.svg")
+        out_file = os.path.join(self.get_scratch_space(), "test_inkscape.pdf")
+        hio.to_file(in_file, svg_code)
+        # Run conversion.
+        use_sudo = hdocker.get_use_sudo()
+        hdocexec.run_dockerized_svg_with_inkscape(
+            in_file,
+            out_file,
+            output_format="pdf",
+            force_rebuild=False,
+            use_sudo=use_sudo,
+        )
+        # Check that output file was created.
+        self.assertTrue(os.path.exists(out_file))

@@ -335,6 +335,14 @@ def _render_image_code(
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
+        elif image_code_type == "svg":
+            hdocexec.run_dockerized_svg_with_rsvg_convert(
+                in_code_file_path,
+                abs_img_file_path,
+                output_format="png",
+                force_rebuild=force_rebuild,
+                use_sudo=use_sudo,
+            )
         else:
             raise ValueError(f"Invalid type: {image_code_type}")
     # Remove the temp file.
@@ -600,7 +608,7 @@ def _render_images(
         ^\s*                # Start of the line and any leading whitespace
         ({comment}\s*)?     # Optional comment prefix
         ```                 # Opening backticks for code block
-        (plantuml|mermaid|tikz|graphviz|latex|raw_latex|image)  # Image code type
+        (plantuml|mermaid|tikz|graphviz|latex|raw_latex|svg|image)  # Image code type
         (\((.*)\))?         # Optional user-specified image name as (...)
         (\[(.*)\])?         # Optional user-specified image size as [...]
         \s*$                # Any trailing whitespace and end of the line
@@ -651,6 +659,7 @@ def _render_images(
                     "graphviz",
                     "latex",
                     "raw_latex",
+                    "svg",
                     "image",
                 ],
             )
