@@ -2,12 +2,57 @@ import logging
 import os
 from typing import Tuple
 
+import pytest
+
 import helpers.hdocker as hdocker
+import helpers.hio as hio
 import helpers.hunit_test as hunitest
 import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_build_graphviz_container
+# #############################################################################
+
+
+class Test_build_graphviz_container1(hunitest.TestCase):
+    """
+    Test building the `graphviz` container.
+    """
+
+    @pytest.mark.slow
+    def test1(self) -> None:
+        """
+        Test that the Graphviz Docker container is built correctly.
+        """
+        # Prepare inputs.
+        use_sudo = hdocker.get_use_sudo()
+        input_dir = self.get_input_dir()
+        output_dir = self.get_output_dir()
+        hio.create_dir(output_dir, incremental=True)
+        input_file = os.path.join(input_dir, "test.dot")
+        output_file = os.path.join(output_dir, "test_output.png")
+        graphviz_code = """
+        digraph {
+            a -> b[label="0.2"];
+            a -> c[label="0.4"];
+            c -> b[label="0.6"];
+        }
+        """
+        hio.to_file(input_file, graphviz_code)
+        # Run test.
+        dshdligr.run_dockerized_graphviz(
+            input_file,
+            [],
+            output_file,
+            force_rebuild=True,
+            use_sudo=use_sudo,
+        )
+        # Check outputs.
+        dshddout.assert_output_file_exists(self, output_file)
 
 
 # #############################################################################

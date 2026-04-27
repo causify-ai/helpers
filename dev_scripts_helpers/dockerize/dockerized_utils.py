@@ -56,7 +56,7 @@ def test_container_build(
     input_content: str,
     input_ext: str,
     output_ext: str,
-    run_func: Callable[..., None],
+    run_func: Callable[..., Any],
     *,
     run_kwargs: Optional[Dict[str, Any]] = None,
 ) -> None:

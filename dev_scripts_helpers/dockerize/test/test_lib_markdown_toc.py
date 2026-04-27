@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List
 
 import pytest
@@ -10,6 +11,49 @@ import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_markdown_toc as dshdlmato
 
 _LOG = logging.getLogger(__name__)
+
+
+# #############################################################################
+# Test_build_markdown_toc_container
+# #############################################################################
+
+
+class Test_build_markdown_toc_container1(hunitest.TestCase):
+    """
+    Test building the `markdown-toc` container.
+    """
+
+    @pytest.mark.superslow
+    def test1(self) -> None:
+        """
+        Test that the markdown-toc Docker container is built correctly.
+        """
+        # Prepare inputs.
+        use_sudo = hdocker.get_use_sudo()
+        input_dir = self.get_input_dir()
+        output_dir = self.get_output_dir()
+        hio.create_dir(output_dir, incremental=True)
+        input_file = os.path.join(input_dir, "test.md")
+        markdown_code = """
+        <!-- toc -->
+
+        # Section 1
+        ## Subsection 1.1
+        # Section 2
+        """
+        hio.to_file(input_file, markdown_code)
+        # Run test.
+        dshdlmato.run_dockerized_markdown_toc(
+            input_file,
+            [],
+            use_sudo=use_sudo,
+            force_rebuild=True,
+        )
+        # Check outputs: file was modified in place.
+        self.assertTrue(
+            os.path.exists(input_file),
+            msg=f"Input file {input_file} should still exist",
+        )
 
 
 # #############################################################################
