@@ -1,6 +1,5 @@
 ---
 description: Generate a TikZ code for an image or a description
-model: opus
 ---
 
 ## Purpose
