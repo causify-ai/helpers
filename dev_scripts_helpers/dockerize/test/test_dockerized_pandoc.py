@@ -55,9 +55,7 @@ class Test_Pandoc_Cmd_Conversion(hunitest.TestCase):
             "cmd_opts": ["--verbose", "--extra"],
         }
         # Call function to test.
-        actual = pprint.pformat(
-            dshdlipa.convert_pandoc_arguments_to_cmd(params)
-        )
+        actual = pprint.pformat(dshdlipa.convert_pandoc_arguments_to_cmd(params))
         expected = """
         ('sample.md --output output.md --data-dir data --template default '
         '--extract-media media --verbose --extra')"""

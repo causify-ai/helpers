@@ -1,12 +1,12 @@
 import logging
 import os
-from typing import List, Tuple
+from typing import Tuple
 
 import pytest
 
 import helpers.hdocker as hdocker
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dsddut
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_png as dshdlipn
 
 _LOG = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
 
         \end{document}
         """
-        in_file_path = dsddut.create_test_file(self, txt, extension="tex")
+        in_file_path = dshddout.create_test_file(self, txt, extension="tex")
         out_file_path = os.path.join(self.get_scratch_space(), "output.png")
         return in_file_path, out_file_path
 
@@ -65,4 +65,4 @@ class Test_dockerized_tikz_to_bitmap1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check output.
-        dsddut.assert_output_file_exists(self, out_file_path)
+        dshddout.assert_output_file_exists(self, out_file_path)

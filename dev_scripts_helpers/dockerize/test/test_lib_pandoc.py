@@ -1,12 +1,11 @@
 import logging
 import os
-from typing import List
 
 import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dsddut
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 
 _LOG = logging.getLogger(__name__)
@@ -134,7 +133,7 @@ class Test_dockerized_pandoc1(hunitest.TestCase):
         output matches the expected result.
         """
         cmd_opts = ["pandoc"]
-        in_file_path = dsddut.create_test_file(self, txt, extension="md")
+        in_file_path = dshddout.create_test_file(self, txt, extension="md")
         cmd_opts.append(f"{in_file_path}")
         out_file_path = os.path.join(self.get_scratch_space(), "output.md")
         cmd_opts.append(f"-o {out_file_path}")

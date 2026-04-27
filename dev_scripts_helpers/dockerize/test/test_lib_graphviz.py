@@ -4,7 +4,7 @@ from typing import Tuple
 
 import helpers.hdocker as hdocker
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.dockerize.dockerized_utils as dsddut
+import dev_scripts_helpers.dockerize.dockerized_utils as dshddout
 import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
 
 _LOG = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
             e -> b[label="0.7",weight="0.7"];
         }
         """
-        in_file_path = dsddut.create_test_file(self, txt, extension="dot")
+        in_file_path = dshddout.create_test_file(self, txt, extension="dot")
         out_file_path = os.path.join(self.get_scratch_space(), "output.png")
         return in_file_path, out_file_path
 
@@ -49,4 +49,4 @@ class Test_dockerized_graphviz1(hunitest.TestCase):
             use_sudo=use_sudo,
         )
         # Check output.
-        dsddut.assert_output_file_exists(self, out_file_path)
+        dshddout.assert_output_file_exists(self, out_file_path)
