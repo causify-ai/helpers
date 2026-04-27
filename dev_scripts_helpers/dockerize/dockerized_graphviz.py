@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 """
-Convert a TikZ file to a PNG image using a dockerized version of `pdflatex` and
-`imagemagick`.
+Convert a Graphviz dot file to a PNG image.
 """
 
 import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
-import dev_scripts_helpers.documentation.lib_png as dshdlipn
+import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
+import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -26,20 +25,18 @@ def _parse() -> argparse.ArgumentParser:
     parser.add_argument("-i", "--input", action="store", required=True)
     parser.add_argument("-o", "--output", action="store", required=True)
     hparser.add_dockerized_script_arg(parser)
-    dshhclut.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
+    dsddhclut.add_open_arg(parser)
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
     # Parse everything that can be parsed and returns the rest.
     args, cmd_opts = parser.parse_known_args()
-    if not cmd_opts:
-        cmd_opts = ["-density 300", "-quality 10"]
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    dshdlipn.run_dockerized_tikz_to_bitmap(
+    dshdligr.run_dockerized_graphviz(
         args.input,
         cmd_opts,
         args.output,
@@ -48,7 +45,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", args.output)
     if args.open:
-        dshhclut.open_file_on_macos(args.output)
+        dsddhclut.open_file_on_macos(args.output)
 
 
 if __name__ == "__main__":

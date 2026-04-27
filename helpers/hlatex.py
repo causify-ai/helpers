@@ -12,8 +12,8 @@ import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
-import dev_scripts_helpers.documentation.lib_pandoc as dshdlipa
-import dev_scripts_helpers.documentation.lib_prettier as dshdlipr
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 

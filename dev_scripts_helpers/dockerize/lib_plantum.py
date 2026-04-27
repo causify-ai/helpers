@@ -6,7 +6,7 @@ diagrams from textual descriptions.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_plantum as dshdlipl
+import dev_scripts_helpers.dockerize.lib_plantum as dshdlipl
 """
 
 import logging

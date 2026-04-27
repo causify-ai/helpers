@@ -11,14 +11,14 @@ import helpers.hmarkdown_div_blocks as hmadiblo
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
-import dev_scripts_helpers.documentation.lib_prettier as dshdlipr
-import dev_scripts_helpers.documentation.lib_pandoc as dshdlipa
-import dev_scripts_helpers.documentation.lib_markdown_toc as dshdlmato
-import dev_scripts_helpers.documentation.lib_latex as dshdlila
-import dev_scripts_helpers.documentation.lib_png as dshdlipn
-import dev_scripts_helpers.documentation.lib_graphviz as dshdligr
-import dev_scripts_helpers.documentation.lib_typst as dshdlity
-import dev_scripts_helpers.documentation.lib_svg as dshdlisv
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
+import dev_scripts_helpers.dockerize.lib_markdown_toc as dshdlmato
+import dev_scripts_helpers.dockerize.lib_latex as dshdlila
+import dev_scripts_helpers.dockerize.lib_png as dshdlipn
+import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
+import dev_scripts_helpers.dockerize.lib_typst as dshdlity
+import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
 
 _LOG = logging.getLogger(__name__)
 

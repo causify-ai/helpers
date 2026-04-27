@@ -15,8 +15,8 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
-import dev_scripts_helpers.documentation.lib_pandoc as dshdlipa
+import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 import helpers.hio as hio
 import helpers.hmarkdown_toc as hmartoc
 import helpers.hparser as hparser
@@ -45,7 +45,7 @@ def _parse() -> argparse.ArgumentParser:
         default=False,
         help="Remove the markdown TOC block (<!-- toc --> ... <!-- tocstop -->) before converting",
     )
-    dshhclut.add_open_arg(parser)
+    dsddhclut.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -78,7 +78,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", args.output)
     if args.open:
-        dshhclut.open_file_on_macos(args.output)
+        dsddhclut.open_file_on_macos(args.output)
 
 
 if __name__ == "__main__":

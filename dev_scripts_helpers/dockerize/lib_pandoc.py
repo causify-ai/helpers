@@ -6,7 +6,7 @@ converter supporting various input and output formats.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_pandoc as dshdlipa
+import dev_scripts_helpers.dockerize.lib_pandoc as dshdlipa
 """
 
 import argparse

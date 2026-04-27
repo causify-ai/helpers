@@ -3,7 +3,7 @@ Common utilities for dockerized executable wrappers.
 
 This module provides shared helper functions for Docker-based wrappers of
 various executables (e.g., used in
-`dev_scripts_helpers/documentation/lib_*.py`)
+`dev_scripts_helpers/dockerize/lib_*.py`)
 
 Import as:
 

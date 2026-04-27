@@ -17,7 +17,7 @@ import logging
 import helpers.hdbg as hdbg
 import helpers.hio as hio
 import helpers.hparser as hparser
-import dev_scripts_helpers.documentation.lib_typst as dshdlity
+import dev_scripts_helpers.dockerize.lib_typst as dshdlity
 
 _LOG = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@ Utilities for dockerized CLI scripts.
 
 Import as:
 
-import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
+import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
 """
 
 import argparse

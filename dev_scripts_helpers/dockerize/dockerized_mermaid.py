@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 """
-Convert a Graphviz dot file to a PNG image.
+Run `mermaid` inside a Docker container.
 """
 
 import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
-import dev_scripts_helpers.documentation.lib_graphviz as dshdligr
+import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
 import helpers.hparser as hparser
+import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
 
 _LOG = logging.getLogger(__name__)
 
@@ -23,29 +23,29 @@ def _parse() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("-i", "--input", action="store", required=True)
-    parser.add_argument("-o", "--output", action="store", required=True)
+    parser.add_argument("-o", "--output", action="store", default="")
     hparser.add_dockerized_script_arg(parser)
+    dsddhclut.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
-    dshhclut.add_open_arg(parser)
     return parser
 
 
 def _main(parser: argparse.ArgumentParser) -> None:
-    # Parse everything that can be parsed and returns the rest.
-    args, cmd_opts = parser.parse_known_args()
+    args = parser.parse_args()
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    dshdligr.run_dockerized_graphviz(
+    if not args.output:
+        args.output = args.input
+    dshdlime.run_dockerized_mermaid(
         args.input,
-        cmd_opts,
         args.output,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,
     )
     _LOG.info("Output written to '%s'", args.output)
     if args.open:
-        dshhclut.open_file_on_macos(args.output)
+        dsddhclut.open_file_on_macos(args.output)
 
 
 if __name__ == "__main__":

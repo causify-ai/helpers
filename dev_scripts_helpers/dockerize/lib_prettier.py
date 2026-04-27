@@ -6,7 +6,7 @@ supporting markdown, text, and LaTeX files.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_prettier as dshdlipr
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 """
 
 import logging
@@ -38,15 +38,15 @@ def run_dockerized_prettier(
 
     From host:
     ```
-    > ./dev_scripts_helpers/documentation/dockerized_prettier.py \
+    > ./dev_scripts_helpers/dockerize/dockerized_prettier.py \
         --input /Users/saggese/src/helpers1/test.md --output test2.md
-    > ./dev_scripts_helpers/documentation/dockerized_prettier.py \
+    > ./dev_scripts_helpers/dockerize/dockerized_prettier.py \
         --input test.md --output test2.md
     ```
 
     From dev container:
     ```
-    docker> ./dev_scripts_helpers/documentation/dockerized_prettier.py \
+    docker> ./dev_scripts_helpers/dockerize/dockerized_prettier.py \
         --input test.md --output test2.md
     ```
 

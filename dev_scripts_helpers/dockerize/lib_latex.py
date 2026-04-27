@@ -6,7 +6,7 @@ preparation system for creating high-quality typeset documents.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_latex as dshdlila
+import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 """
 
 import argparse

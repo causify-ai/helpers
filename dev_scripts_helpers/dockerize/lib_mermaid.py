@@ -1,17 +1,16 @@
 """
-SVG image conversion utilities for dockerized execution.
+Mermaid diagram rendering utilities for dockerized execution.
 
-This module provides Docker-based wrappers for SVG to raster format conversion
-using rsvg-convert and Inkscape.
+This module provides Docker-based wrappers for Mermaid, a JavaScript-based
+tool for creating diagrams and flowcharts from text definitions.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_svg as dshdlisv
+import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
 """
 
 import logging
 
-import helpers.hdbg as hdbg
 import helpers.hdocker as hdocker
 import helpers.hprint as hprint
 import helpers.hdockerized_executables as hdocexec
@@ -19,40 +18,112 @@ import helpers.hdockerized_executables as hdocexec
 _LOG = logging.getLogger(__name__)
 
 
-def run_dockerized_svg_with_rsvg_convert(
+def run_dockerized_mermaid(
     in_file_path: str,
     out_file_path: str,
     *,
-    output_format: str = "png",
     mode: str = "system",
     force_rebuild: bool = False,
     use_sudo: bool = False,
 ) -> str:
     """
-    Convert SVG to raster/bitmap using rsvg-convert in a Docker container.
+    Run `mermaid` in a Docker container.
 
-    :param in_file_path: path to the SVG file
-    :param out_file_path: path to the output file
-    :param output_format: output format - "png" (default), "pdf", "ps", "eps"
-    :param mode: execution mode ("system" or other)
+    :param in_file_path: path to the code of the image to render
+    :param out_file_path: path to the image to be created
     :param force_rebuild: whether to force rebuild the Docker container
     :param use_sudo: whether to use sudo for Docker commands
-    :return: Docker command output
     """
     _LOG.debug(hprint.func_signature_to_str())
-    hdbg.dassert_in(
-        output_format,
-        ["png", "pdf", "ps", "eps"],
-        f"Unsupported output format: {output_format}",
+    # Get the container image.
+    _ = force_rebuild
+    container_image = "minlag/mermaid-cli"
+    dockerfile = ""
+    # Convert files to Docker paths.
+    (
+        is_caller_host,
+        use_sibling_container_for_callee,
+        caller_mount_path,
+        callee_mount_path,
+        mount,
+    ) = hdocexec._get_docker_mount_context()
+    in_file_path = hdocker.convert_caller_to_callee_docker_path(
+        in_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=True,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    # Build the container with rsvg-convert.
-    container_image = "tmp.svg_rsvg_convert"
-    dockerfile = r"""
-    FROM ubuntu:22.04
+    out_file_path = hdocker.convert_caller_to_callee_docker_path(
+        out_file_path,
+        caller_mount_path,
+        callee_mount_path,
+        check_if_exists=True,
+        is_input=False,
+        is_caller_host=is_caller_host,
+        use_sibling_container_for_callee=use_sibling_container_for_callee,
+    )
+    mermaid_cmd = f" -i {in_file_path} -o {out_file_path}"
+    mermaid_cmd += " --scale 3"
+    ret = hdocexec._build_and_run_docker_cmd(
+        use_sudo,
+        callee_mount_path,
+        mount,
+        container_image,
+        dockerfile,
+        mermaid_cmd,
+        mode,
+        override_entrypoint=False,
+        wrap_in_bash=False,
+    )
+    return ret
 
-    RUN apt-get update && apt-get install -y \
-        librsvg2-bin \
-        && rm -rf /var/lib/apt/lists/*
+
+def run_dockerized_mermaid2(
+    in_file_path: str,
+    out_file_path: str,
+    *,
+    mode: str = "system",
+    force_rebuild: bool = False,
+    use_sudo: bool = False,
+) -> None:
+    """
+    Run `mermaid` in a Docker container, building the container from scratch
+    and using a puppeteer config.
+    """
+    _LOG.debug(hprint.func_signature_to_str())
+    # Build the container, if needed.
+    container_image = "tmp.mermaid"
+    puppeteer_cache_path = r"""
+    const {join} = require('path');
+
+    /**
+     * @type {import("puppeteer").Configuration}
+     */
+    module.exports = {
+      // Changes the cache location for Puppeteer.
+      cacheDirectory: join(__dirname, '.cache', 'puppeteer'),
+    };
+    """
+    dockerfile = rf"""
+    # Use a Node.js image.
+    FROM node:18
+
+    # Install packages needed for mermaid.
+    RUN apt-get update
+    RUN apt-get install -y nodejs npm
+
+    RUN cat > .puppeteerrc.cjs <<EOL
+    {puppeteer_cache_path}
+    EOL
+
+    RUN npx puppeteer browsers install chrome-headless-shell
+    RUN apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2
+
+    # Install mermaid.
+    RUN npm install -g mermaid @mermaid-js/mermaid-cli
     """
     container_image = hdocker.build_container_image(
         container_image, dockerfile, force_rebuild, use_sudo
@@ -83,85 +154,8 @@ def run_dockerized_svg_with_rsvg_convert(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    # Build SVG conversion command using rsvg-convert.
-    # Produces high-quality output with 300 DPI.
-    svg_cmd = (
-        f"rsvg-convert -d 300 -p 300 -f {output_format} "
-        f"-o {out_file_path} {in_file_path}"
-    )
-    # Build Docker command.
-    ret = hdocexec._build_and_run_docker_cmd(
-        use_sudo,
-        callee_mount_path,
-        mount,
-        container_image,
-        dockerfile,
-        svg_cmd,
-        mode,
-        override_entrypoint=False,
-        wrap_in_bash=False,
-    )
-    return ret
-
-
-def run_dockerized_svg_with_inkscape(
-    in_file_path: str,
-    out_file_path: str,
-    *,
-    output_format: str = "png",
-    mode: str = "system",
-    force_rebuild: bool = False,
-    use_sudo: bool = False,
-) -> str:
-    """
-    Convert SVG to various formats using inkscape in a Docker container.
-
-    :param in_file_path: path to the SVG file
-    :param out_file_path: path to the output file
-    :param output_format: output format - "png" (default), "pdf", "ps", "eps",
-        "svg", "emf", "wmf"
-    :param mode: execution mode ("system" or other)
-    :param force_rebuild: whether to force rebuild the Docker container
-    :param use_sudo: whether to use sudo for Docker commands
-    :return: Docker command output
-    """
-    _LOG.debug(hprint.func_signature_to_str())
-    hdbg.dassert_in(
-        output_format,
-        ["png", "pdf", "ps", "eps", "svg", "emf", "wmf"],
-        f"Unsupported output format: {output_format}",
-    )
-    # Build the container with inkscape.
-    container_image = "tmp.svg_inkscape"
-    dockerfile = r"""
-    FROM ubuntu:22.04
-
-    RUN apt-get update && apt-get install -y \
-        inkscape \
-        && rm -rf /var/lib/apt/lists/*
-    """
-    container_image = hdocker.build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
-    )
-    # Convert files to Docker paths.
-    (
-        is_caller_host,
-        use_sibling_container_for_callee,
-        caller_mount_path,
-        callee_mount_path,
-        mount,
-    ) = hdocexec._get_docker_mount_context()
-    in_file_path = hdocker.convert_caller_to_callee_docker_path(
-        in_file_path,
-        caller_mount_path,
-        callee_mount_path,
-        check_if_exists=True,
-        is_input=True,
-        is_caller_host=is_caller_host,
-        use_sibling_container_for_callee=use_sibling_container_for_callee,
-    )
-    out_file_path = hdocker.convert_caller_to_callee_docker_path(
-        out_file_path,
+    puppeteer_config_path = hdocker.convert_caller_to_callee_docker_path(
+        "puppeteerConfig.json",
         caller_mount_path,
         callee_mount_path,
         check_if_exists=True,
@@ -169,22 +163,18 @@ def run_dockerized_svg_with_inkscape(
         is_caller_host=is_caller_host,
         use_sibling_container_for_callee=use_sibling_container_for_callee,
     )
-    # Build SVG conversion command using inkscape.
-    # Use --export-type for format selection.
-    svg_cmd = (
-        f"inkscape {in_file_path} --export-type={output_format} "
-        f"--export-filename={out_file_path} --export-dpi=300"
+    mermaid_cmd = (
+        f"mmdc --puppeteerConfigFile {puppeteer_config_path}"
+        + f" -i {in_file_path} -o {out_file_path}"
     )
-    # Build Docker command.
-    ret = hdocexec._build_and_run_docker_cmd(
+    hdocexec._build_and_run_docker_cmd(
         use_sudo,
         callee_mount_path,
         mount,
         container_image,
         dockerfile,
-        svg_cmd,
+        mermaid_cmd,
         mode,
-        override_entrypoint=False,
-        wrap_in_bash=False,
+        override_entrypoint=True,
+        wrap_in_bash=True,
     )
-    return ret

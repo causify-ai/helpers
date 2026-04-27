@@ -7,7 +7,7 @@ containers.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_png as dshdlipn
+import dev_scripts_helpers.dockerize.lib_png as dshdlipn
 """
 
 import logging
@@ -17,7 +17,7 @@ import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hdockerized_executables as hdocexec
-import dev_scripts_helpers.documentation.lib_latex as dshdlila
+import dev_scripts_helpers.dockerize.lib_latex as dshdlila
 
 _LOG = logging.getLogger(__name__)
 

@@ -33,8 +33,8 @@ Examples
 import argparse
 import logging
 
-import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
-import dev_scripts_helpers.documentation.lib_prettier as dshdlipr
+import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ def _parse() -> argparse.ArgumentParser:
     )
     hparser.add_input_output_args(parser)
     hparser.add_dockerized_script_arg(parser)
-    dshhclut.add_open_arg(parser)
+    dsddhclut.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -75,7 +75,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", out_file_name)
     if args.open:
-        dshhclut.open_file_on_macos(out_file_name)
+        dsddhclut.open_file_on_macos(out_file_name)
 
 
 if __name__ == "__main__":

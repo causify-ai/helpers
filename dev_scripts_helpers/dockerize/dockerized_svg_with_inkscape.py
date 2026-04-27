@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 """
-Convert SVG to raster/bitmap formats using rsvg-convert in a Docker container.
+Convert SVG to various formats using inkscape in a Docker container.
 
 This script builds the container dynamically if necessary and converts SVG
-files to various output formats (PNG, PDF, PS, EPS) using rsvg-convert.
+files to various output formats (PNG, PDF, PS, EPS, SVG, EMF, WMF) using
+inkscape.
 """
 
 import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
+import dev_scripts_helpers.dockerize.dockerized_cli_utils as dsddhclut
 import helpers.hparser as hparser
-import dev_scripts_helpers.documentation.lib_svg as dshdlisv
+import dev_scripts_helpers.dockerize.lib_svg as dshdlisv
 
 _LOG = logging.getLogger(__name__)
 
@@ -43,11 +44,11 @@ def _parse() -> argparse.ArgumentParser:
         "--output_format",
         action="store",
         default="png",
-        choices=["png", "pdf", "ps", "eps"],
+        choices=["png", "pdf", "ps", "eps", "svg", "emf", "wmf"],
         help="Output format (default: png)",
     )
     hparser.add_dockerized_script_arg(parser)
-    dshhclut.add_open_arg(parser)
+    dsddhclut.add_open_arg(parser)
     hparser.add_verbosity_arg(parser)
     return parser
 
@@ -57,7 +58,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    dshdlisv.run_dockerized_svg_with_rsvg_convert(
+    dshdlisv.run_dockerized_svg_with_inkscape(
         args.input,
         args.output,
         output_format=args.output_format,
@@ -66,7 +67,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     _LOG.info("Output written to '%s'", args.output)
     if args.open:
-        dshhclut.open_file_on_macos(args.output)
+        dsddhclut.open_file_on_macos(args.output)
 
 
 if __name__ == "__main__":

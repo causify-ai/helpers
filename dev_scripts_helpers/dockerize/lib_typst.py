@@ -6,7 +6,7 @@ typesetting system designed to be as powerful as LaTeX while being easier to use
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_typst as dshdlity
+import dev_scripts_helpers.dockerize.lib_typst as dshdlity
 """
 
 import logging
@@ -89,13 +89,13 @@ def run_dockerized_typst(
 
     From host:
     ```
-    > ./dev_scripts_helpers/documentation/dockerized_typst.py \
+    > ./dev_scripts_helpers/dockerize/dockerized_typst.py \
         --input document.typ --output document.pdf
     ```
 
     From dev container:
     ```
-    docker> ./dev_scripts_helpers/documentation/dockerized_typst.py \
+    docker> ./dev_scripts_helpers/dockerize/dockerized_typst.py \
         --input document.typ --output document.pdf
     ```
 

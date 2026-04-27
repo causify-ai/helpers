@@ -15,7 +15,7 @@ import helpers.hdocker as hdocker
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
-import dev_scripts_helpers.documentation.lib_markdown_toc as dshdlmato
+import dev_scripts_helpers.dockerize.lib_markdown_toc as dshdlmato
 
 _LOG = logging.getLogger(__name__)
 

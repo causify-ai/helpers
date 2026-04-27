@@ -6,7 +6,7 @@ directed and undirected graphs, flowcharts, and other diagrams.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_graphviz as dshdligr
+import dev_scripts_helpers.dockerize.lib_graphviz as dshdligr
 """
 
 import logging

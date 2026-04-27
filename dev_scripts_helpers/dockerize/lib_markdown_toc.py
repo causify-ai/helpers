@@ -6,7 +6,7 @@ generating and maintaining tables of contents in Markdown files.
 
 Import as:
 
-import dev_scripts_helpers.documentation.lib_markdown_toc as dshdlmato
+import dev_scripts_helpers.dockerize.lib_markdown_toc as dshdlmato
 """
 
 import logging

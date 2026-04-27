@@ -11,7 +11,7 @@ from typing import List
 import helpers.hdbg as hdbg
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hmarkdown_slides as hmarslid
-import dev_scripts_helpers.documentation.lib_prettier as dshdlipr
+import dev_scripts_helpers.dockerize.lib_prettier as dshdlipr
 
 _LOG = logging.getLogger(__name__)
 
