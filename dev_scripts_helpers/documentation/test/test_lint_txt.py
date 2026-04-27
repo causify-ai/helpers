@@ -5,8 +5,8 @@ from typing import Optional
 import pytest
 
 import dev_scripts_helpers.documentation.lint_txt as dshdlitx
+import dev_scripts_helpers.documentation.lib_prettier as lib_prettier
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
@@ -2070,7 +2070,7 @@ class Test_lint_txt2(hunitest.TestCase):
         For some reason prettier replaces - with * when there are 2 empty lines.
         """
         txt = self.get_text_problematic_for_prettier1()
-        actual = hdocexec.prettier_on_str(txt, file_type="txt")
+        actual = lib_prettier.prettier_on_str(txt, file_type="txt")
         expected = r"""
         - Python formatting
 

@@ -34,7 +34,7 @@ import argparse
 import logging
 
 import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
-import helpers.hdockerized_executables as hdocexec
+import dev_scripts_helpers.documentation.lib_prettier as lib_prettier
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     _LOG.debug("cmd_opts: %s", cmd_opts)
     # TODO(gp): This should be passed or inferred.
     file_type = "md"
-    hdocexec.prettier(
+    lib_prettier.prettier(
         in_file_name,
         out_file_name,
         file_type=file_type,

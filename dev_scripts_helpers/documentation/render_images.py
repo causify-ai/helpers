@@ -35,11 +35,16 @@ from tqdm import tqdm
 
 import helpers.hcache_simple as hcacsimp
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hparser as hparser
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
+# TODO(ai_gp): Move close to the use if there is a single use of these libs.
+import dev_scripts_helpers.documentation.lib_graphviz as lib_graphviz
+import dev_scripts_helpers.documentation.lib_mermaid as lib_mermaid
+import dev_scripts_helpers.documentation.lib_plantum as lib_plantum
+import dev_scripts_helpers.documentation.lib_png as lib_png
+import dev_scripts_helpers.documentation.lib_svg as lib_svg
 
 _LOG = logging.getLogger(__name__)
 
@@ -303,7 +308,7 @@ def _render_image_code(
             os.remove(in_code_file_path)
             return out_img_file_paths
         elif image_code_type == "plantuml":
-            hdocexec.run_dockerized_plantuml(
+            lib_plantum.run_dockerized_plantuml(
                 in_code_file_path,
                 abs_img_dir_path,
                 dst_ext,
@@ -311,7 +316,7 @@ def _render_image_code(
                 use_sudo=use_sudo,
             )
         elif image_code_type == "mermaid":
-            hdocexec.run_dockerized_mermaid(
+            lib_mermaid.run_dockerized_mermaid(
                 in_code_file_path,
                 abs_img_file_path,
                 force_rebuild=force_rebuild,
@@ -319,7 +324,7 @@ def _render_image_code(
             )
         elif image_code_type in ("tikz", "latex", "raw_latex"):
             cmd_opts: List[str] = ["-density 600", "-quality 95"]
-            hdocexec.run_dockerized_tikz_to_bitmap(
+            lib_png.run_dockerized_tikz_to_bitmap(
                 in_code_file_path,
                 cmd_opts,
                 abs_img_file_path,
@@ -328,7 +333,7 @@ def _render_image_code(
             )
         elif image_code_type == "graphviz":
             cmd_opts: List[str] = []
-            hdocexec.run_dockerized_graphviz(
+            lib_graphviz.run_dockerized_graphviz(
                 in_code_file_path,
                 cmd_opts,
                 abs_img_file_path,
@@ -336,7 +341,7 @@ def _render_image_code(
                 use_sudo=use_sudo,
             )
         elif image_code_type == "svg":
-            hdocexec.run_dockerized_svg_with_rsvg_convert(
+            lib_svg.run_dockerized_svg_with_rsvg_convert(
                 in_code_file_path,
                 abs_img_file_path,
                 output_format="png",

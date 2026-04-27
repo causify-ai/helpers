@@ -11,7 +11,7 @@ import logging
 
 import helpers.hdbg as hdbg
 import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
-import helpers.hdockerized_executables as hdocexec
+import dev_scripts_helpers.documentation.lib_latex as lib_latex
 import helpers.hparser as hparser
 
 _LOG = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
     # Run latex.
-    hdocexec.run_basic_latex(
+    lib_latex.run_basic_latex(
         args.input,
         cmd_opts,
         args.run_latex_again,

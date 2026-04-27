@@ -9,10 +9,11 @@ import re
 from typing import List, Optional
 
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hmarkdown_headers as hmarhead
 import helpers.hprint as hprint
+import dev_scripts_helpers.documentation.lib_pandoc as lib_pandoc
+import dev_scripts_helpers.documentation.lib_prettier as lib_prettier
 
 _LOG = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ def convert_pandoc_md_to_latex(txt: str) -> str:
         f"pandoc {in_file_name} -o {out_file_name} --read=markdown --write=latex"
     )
     container_type = "pandoc_only"
-    hdocexec.run_dockerized_pandoc(cmd, container_type)
+    lib_pandoc.run_dockerized_pandoc(cmd, container_type)
     # Read tmp file.
     res = hio.from_file(out_file_name)
     # Remove lines that contain \tightlist.
@@ -95,7 +96,7 @@ def format_latex(txt: str) -> str:
     :return: formatted LaTeX text
     """
     file_type = "tex"
-    txt = hdocexec.prettier_on_str(txt, file_type)
+    txt = lib_prettier.prettier_on_str(txt, file_type)
     return txt
 
 

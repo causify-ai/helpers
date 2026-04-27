@@ -12,8 +12,8 @@ import logging
 
 import helpers.hdbg as hdbg
 import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
-import helpers.hdockerized_executables as hdocexec
 import helpers.hparser as hparser
+import dev_scripts_helpers.documentation.lib_svg as lib_svg
 
 _LOG = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     hdbg.init_logger(
         verbosity=args.log_level, use_exec_path=True, force_white=False
     )
-    hdocexec.run_dockerized_svg_with_inkscape(
+    lib_svg.run_dockerized_svg_with_inkscape(
         args.input,
         args.output,
         output_format=args.output_format,

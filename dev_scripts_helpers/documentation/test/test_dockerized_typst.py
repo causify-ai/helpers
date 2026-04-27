@@ -3,12 +3,12 @@ import os
 import pytest
 
 import helpers.hdocker as hdocker
-import helpers.hdockerized_executables as hdocexec
 import helpers.hgit as hgit
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hsystem as hsystem
 import helpers.hunit_test as hunitest
+import dev_scripts_helpers.documentation.lib_typst as lib_typst
 
 
 def _create_typst_file(self_: hunitest.TestCase) -> str:
@@ -63,8 +63,8 @@ class Test_build_typst_container(hunitest.TestCase):
         force_rebuild = True
         # Build the container using the exported constants (no compile needed).
         image_name = hdocker.build_container_image(
-            hdocexec.TYPST_CONTAINER_IMAGE,
-            hdocexec.TYPST_DOCKERFILE,
+            lib_typst.TYPST_CONTAINER_IMAGE,
+            lib_typst.TYPST_DOCKERFILE,
             force_rebuild=force_rebuild,
             use_sudo=use_sudo,
         )
@@ -112,7 +112,7 @@ class Test_run_dockerized_typst(hunitest.TestCase):
         force_rebuild = False
         use_sudo = hdocker.get_use_sudo()
         # Run test.
-        hdocexec.run_dockerized_typst(
+        lib_typst.run_dockerized_typst(
             in_file_path,
             out_file_path,
             cmd_opts,

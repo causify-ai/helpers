@@ -1,9 +1,9 @@
 import os
 
-import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hprint as hprint
 import helpers.hunit_test as hunitest
+import dev_scripts_helpers.documentation.lib_prettier as lib_prettier
 
 # #############################################################################
 # Test_run_dockerized_prettier
@@ -32,7 +32,7 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
             "2",
         ]
         # Call function to test.
-        hdocexec.run_dockerized_prettier(
+        lib_prettier.run_dockerized_prettier(
             input_file_path,
             cmd_opts,
             output_file_path,
@@ -68,7 +68,7 @@ class Test_run_dockerized_prettier(hunitest.TestCase):
             "2",
         ]
         # Call function to test.
-        actual = hdocexec.prettier_on_str(
+        actual = lib_prettier.prettier_on_str(
             text,
             file_type="md",
             cmd_opts=cmd_opts,

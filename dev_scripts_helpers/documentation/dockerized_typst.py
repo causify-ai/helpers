@@ -15,9 +15,9 @@ import argparse
 import logging
 
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hparser as hparser
+import dev_scripts_helpers.documentation.lib_typst as lib_typst
 
 _LOG = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
     # Default output to input with .pdf extension if not specified.
     if not args.output:
         args.output = hio.change_file_extension(args.input, ".pdf")
-    hdocexec.run_dockerized_typst(
+    lib_typst.run_dockerized_typst(
         args.input,
         args.output,
         cmd_opts,

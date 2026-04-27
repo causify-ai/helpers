@@ -16,7 +16,7 @@ import logging
 
 import helpers.hdbg as hdbg
 import dev_scripts_helpers.hdockerized_cli_utils as dshhclut
-import helpers.hdockerized_executables as hdocexec
+import dev_scripts_helpers.documentation.lib_pandoc as lib_pandoc
 import helpers.hio as hio
 import helpers.hmarkdown_toc as hmartoc
 import helpers.hparser as hparser
@@ -70,7 +70,7 @@ def _main(parser: argparse.ArgumentParser) -> None:
         hio.to_file(input_file, txt)
         _LOG.info("TOC removed; preprocessed input written to '%s'", input_file)
     cmd = f"pandoc {input_file} -o {args.output} {' '.join(cmd_opts)}"
-    hdocexec.run_dockerized_pandoc(
+    lib_pandoc.run_dockerized_pandoc(
         cmd,
         args.container_type,
         force_rebuild=args.dockerized_force_rebuild,

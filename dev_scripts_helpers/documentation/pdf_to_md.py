@@ -27,6 +27,7 @@ Usage:
 Import as:
 
 import dev_scripts_helpers.documentation.pdf_to_md as dsdopema
+import dev_scripts_helpers.documentation.lib_prettier as lib_prettier
 """
 
 import argparse
@@ -36,7 +37,6 @@ from pathlib import Path
 import fitz
 
 import helpers.hdbg as hdbg
-import helpers.hdockerized_executables as hdocexec
 import helpers.hio as hio
 import helpers.hparser as hparser
 
@@ -321,7 +321,7 @@ def _pdf_to_markdown(
     markdown_content = "\n\n".join(md_lines)
     # Apply prettier formatting to the markdown.
     _LOG.info("Applying prettier formatting to markdown")
-    markdown_content = hdocexec.prettier_on_str(
+    markdown_content = lib_prettier.prettier_on_str(
         markdown_content,
         file_type="md",
         print_width=80,
