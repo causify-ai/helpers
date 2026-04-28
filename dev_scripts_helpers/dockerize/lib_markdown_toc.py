@@ -22,6 +22,28 @@ _LOG = logging.getLogger(__name__)
 # Version pins for tools
 _MARKDOWN_TOC_VERSION = "1.2.0"
 
+_CONTAINER_PREFIX = "tmp.markdown_toc"
+_DOCKERFILE = rf"""
+# Use a Node.js image
+FROM node:18-slim
+
+# Install markdown-toc globally
+RUN npm install -g markdown-toc@{_MARKDOWN_TOC_VERSION} && npm cache clean --force
+
+# Set a working directory inside the container
+WORKDIR /app
+"""
+
+
+def get_markdown_toc_container_image_name() -> str:
+    """
+    Get the name of the markdown-toc container image.
+
+    E.g., `tmp.markdown_toc.amd64.12345678` or `tmp.markdown_toc.arm64.12345678`
+    """
+    container_image, _ = hdocker.get_container_image_name(_CONTAINER_PREFIX, _DOCKERFILE)
+    return container_image
+
 
 def run_dockerized_markdown_toc(
     in_file_path: str,
@@ -38,20 +60,12 @@ def run_dockerized_markdown_toc(
     # https://github.com/jonschlinkert/markdown-toc
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
-    container_image = "tmp.markdown_toc"
-    dockerfile = rf"""
-    # Use a Node.js image
-    FROM node:18-slim
-
-    # Install markdown-toc globally
-    RUN npm install -g markdown-toc@{_MARKDOWN_TOC_VERSION} && npm cache clean --force
-
-    # Set a working directory inside the container
-    WORKDIR /app
-    """
-    container_image = hdocker.build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
-    )
+    if force_rebuild:
+        container_image = hdocker.build_container_image(
+            _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
+        )
+    else:
+        container_image = get_markdown_toc_container_image_name()
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -81,7 +95,7 @@ def run_dockerized_markdown_toc(
         callee_mount_path,
         mount,
         container_image,
-        dockerfile,
+        _DOCKERFILE,
         bash_cmd,
         mode,
         override_entrypoint=False,

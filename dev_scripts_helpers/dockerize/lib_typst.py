@@ -79,6 +79,16 @@ CMD ["bash"]
 """
 
 
+def get_typst_container_image_name() -> str:
+    """
+    Get the name of the Typst container image.
+
+    E.g., `tmp.typst.amd64.12345678` or `tmp.typst.arm64.12345678`
+    """
+    container_image, _ = hdocker.get_container_image_name(TYPST_CONTAINER_IMAGE, TYPST_DOCKERFILE)
+    return container_image
+
+
 def run_dockerized_typst(
     in_file_path: str,
     out_file_path: str,
@@ -112,9 +122,12 @@ def run_dockerized_typst(
     _LOG.debug(hprint.func_signature_to_str())
     hdbg.dassert_isinstance(cmd_opts, list)
     # Build the container, if needed.
-    container_image = hdocker.build_container_image(
-        TYPST_CONTAINER_IMAGE, TYPST_DOCKERFILE, force_rebuild, use_sudo
-    )
+    if force_rebuild:
+        container_image = hdocker.build_container_image(
+            TYPST_CONTAINER_IMAGE, TYPST_DOCKERFILE, force_rebuild, use_sudo
+        )
+    else:
+        container_image = get_typst_container_image_name()
     # Convert files to Docker paths.
     (
         is_caller_host,

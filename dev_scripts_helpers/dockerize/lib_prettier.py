@@ -27,6 +27,61 @@ _PRETTIER_VERSION = "3.8.3"
 _UNIFIED_LATEX_PRETTIER_VERSION = "1.7.1"
 _PRETTIER_PLUGIN_LATEX_VERSION = "2.0.1"
 
+_DOCKERFILE_MD = rf"""
+FROM node:20-slim
+
+RUN npm install -g prettier@{_PRETTIER_VERSION}
+
+# Set a working directory inside the container.
+WORKDIR /app
+
+# Run Prettier as the entry command.
+ENTRYPOINT ["prettier"]
+"""
+
+
+# For Latex we pin dependencies to ensure compatibility between
+# prettier, unified-latex-prettier, and prettier-plugin-latex.
+latex_prettier_version = "2.7.0"
+_DOCKERFILE_TEX = rf""
+FROM node:18-slim
+
+RUN npm install -g prettier@{latex_prettier_version}
+RUN npm install -g @unified-latex/unified-latex-prettier@{_UNIFIED_LATEX_PRETTIER_VERSION}
+RUN npm install -g prettier-plugin-latex@{_PRETTIER_PLUGIN_LATEX_VERSION}
+
+# Set a working directory inside the container.
+WORKDIR /app
+
+# Run Prettier as the entry command.
+ENTRYPOINT ["prettier"]
+"""
+
+
+def _get_prettier_dockerfile(file_type: str) -> str:
+    """
+    Get the Dockerfile content for a given prettier file type.
+    """
+    if file_type in ("md", "txt"):
+        dockerfile = _DOCKERFILE_MD
+    elif file_type == "tex":
+        dockerfile = _DOCKERFILE_TEX
+    else:
+        raise ValueError(f"Invalid file_type='{file_type}'")
+    return dockerfile
+
+
+def get_prettier_container_image_name(file_type: str) -> str:
+    """
+    Get the name of the Prettier container image for a given file type.
+
+    E.g., `tmp.prettier.md.amd64.12345678` or `tmp.prettier.tex.arm64.12345678`
+    """
+    container_prefix = f"tmp.prettier.{file_type}"
+    dockerfile = _get_prettier_dockerfile(file_type)
+    container_image, _ = hdocker.get_container_image_name(container_prefix, dockerfile)
+    return container_image
+
 
 def run_dockerized_prettier(
     in_file_path: str,
@@ -66,43 +121,13 @@ def run_dockerized_prettier(
     hdbg.dassert_isinstance(cmd_opts, list)
     hdbg.dassert_in(file_type, ["md", "txt", "tex"])
     # Build the container, if needed.
-    # TODO(gp): -> container_image_name
-    container_image = f"tmp.prettier.{file_type}"
-    if file_type in ("md", "txt"):
-        dockerfile = rf"""
-        FROM node:20-slim
-
-        RUN npm install -g prettier@{_PRETTIER_VERSION}
-
-        # Set a working directory inside the container.
-        WORKDIR /app
-
-        # Run Prettier as the entry command.
-        ENTRYPOINT ["prettier"]
-        """
-    elif file_type == "tex":
-        # For Latex we pin dependencies to ensure compatibility between
-        # prettier, unified-latex-prettier, and prettier-plugin-latex.
-        # These versions are known to work together.
-        latex_prettier_version = "2.7.0"
-        dockerfile = rf"""
-        FROM node:18-slim
-
-        RUN npm install -g prettier@{latex_prettier_version}
-        RUN npm install -g @unified-latex/unified-latex-prettier@{_UNIFIED_LATEX_PRETTIER_VERSION}
-        RUN npm install -g prettier-plugin-latex@{_PRETTIER_PLUGIN_LATEX_VERSION}
-
-        # Set a working directory inside the container.
-        WORKDIR /app
-
-        # Run Prettier as the entry command.
-        ENTRYPOINT ["prettier"]
-        """
+    dockerfile = _get_prettier_dockerfile(file_type)
+    if force_rebuild:
+        container_image = hdocker.build_container_image(
+            f"tmp.prettier.{file_type}", dockerfile, force_rebuild, use_sudo
+        )
     else:
-        raise ValueError(f"Invalid file_type='{file_type}'")
-    container_image = hdocker.build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
-    )
+        container_image = get_prettier_container_image_name(file_type)
     # Convert files to Docker paths.
     (
         is_caller_host,

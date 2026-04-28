@@ -61,9 +61,12 @@ def run_dockerized_graphviz(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Get the container image.
-    container_image = hdocker.build_container_image(
-        _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
-    )
+    if force_rebuild:
+        container_image = hdocker.build_container_image(
+            _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
+        )
+    else:
+        container_image = get_graphviz_container_image_name()
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -107,7 +110,7 @@ def run_dockerized_graphviz(
         callee_mount_path,
         mount,
         container_image,
-        dockerfile,
+        _DOCKERFILE,
         graphviz_cmd,
         mode,
         override_entrypoint=False,

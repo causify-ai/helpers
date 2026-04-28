@@ -28,6 +28,91 @@ _LOG = logging.getLogger(__name__)
 # Version pins for tools
 _TEXLIVE_FULL_IMAGE = "mfisherman/texlive-full:2024"
 
+_CONTAINER_PREFIX = "tmp.latex"
+_DOCKERFILE = rf"""
+FROM {_TEXLIVE_FULL_IMAGE}
+
+# Verify LaTeX is installed.
+RUN latex --version
+
+# Default command.
+CMD [ "bash" ]
+"""
+
+# if False:
+#     _DOCKER_FILE = r"""
+#     # Use minimal multi-arch TeX Live image (includes ARM support)
+#     FROM ghcr.io/xu-cheng/texlive:latest
+#     """
+# # Doesn't work.
+# if False:
+#     _DOCKER_FILE = r"""
+#     # Use a lightweight base image.
+#     # FROM debian:bullseye-slim
+#     FROM ubuntu:22.04
+# 
+#     # Set environment variables to avoid interactive prompts.
+#     ENV DEBIAN_FRONTEND=noninteractive
+# 
+#     # Update.
+#     RUN apt-get update && \
+#         apt-get clean && \
+#         rm -rf /var/lib/apt/lists/* && \
+#         apt-get update
+# 
+#     # Install only the minimal TeX Live packages.
+#     RUN apt-get install -y --no-install-recommends \
+#         texlive-latex-base \
+#         texlive-latex-recommended \
+#         texlive-fonts-recommended \
+#         texlive-latex-extra \
+#         lmodern \
+#         tikzit \
+#         || apt-get install -y --fix-missing
+#     """
+# # Doesn't work.
+# if False:
+#     _DOCKER_FILE = r"""
+#     # Use a lightweight base image.
+#     # FROM debian:bullseye-slim
+#     FROM ubuntu:22.04
+# 
+#     # Set environment variables to avoid interactive prompts.
+#     ENV DEBIAN_FRONTEND=noninteractive
+# 
+#     RUN rm -rf /var/lib/apt/lists/*
+#     # Update.
+#     RUN apt-get clean && \
+#         apt-get update
+# 
+#     # Install texlive-full.
+#     RUN apt install -y texlive-full
+#     """
+# # Clean up.
+# if False:
+#     _DOCKER_FILE += r"""
+#     RUN rm -rf /var/lib/apt/lists/* \
+#         && apt-get clean
+# 
+#     # Verify LaTeX is installed.
+#     RUN latex --version
+# 
+#     # Set working directory.
+#     WORKDIR /workspace
+# 
+#     # Default command.
+#     CMD [ "bash" ]
+#     """
+
+def get_latex_container_image_name() -> str:
+    """
+    Get the name of the LaTeX container image.
+
+    E.g., `tmp.latex.amd64.12345678` or `tmp.latex.arm64.12345678`
+    """
+    container_image, _ = hdocker.get_container_image_name(_CONTAINER_PREFIX, _DOCKERFILE)
+    return container_image
+
 
 def convert_latex_cmd_to_arguments(cmd: str) -> Dict[str, Any]:
     """
@@ -126,84 +211,13 @@ def run_dockerized_latex(
     Run `latex` in a Docker container.
     """
     _LOG.debug(hprint.func_signature_to_str())
-    container_image = "tmp.latex"
-    if False:
-        dockerfile = r"""
-        # Use minimal multi-arch TeX Live image (includes ARM support)
-        FROM ghcr.io/xu-cheng/texlive:latest
-        """
-    # Doesn't work.
-    if False:
-        dockerfile = r"""
-        # Use a lightweight base image.
-        # FROM debian:bullseye-slim
-        FROM ubuntu:22.04
-
-        # Set environment variables to avoid interactive prompts.
-        ENV DEBIAN_FRONTEND=noninteractive
-
-        # Update.
-        RUN apt-get update && \
-            apt-get clean && \
-            rm -rf /var/lib/apt/lists/* && \
-            apt-get update
-
-        # Install only the minimal TeX Live packages.
-        RUN apt-get install -y --no-install-recommends \
-            texlive-latex-base \
-            texlive-latex-recommended \
-            texlive-fonts-recommended \
-            texlive-latex-extra \
-            lmodern \
-            tikzit \
-            || apt-get install -y --fix-missing
-        """
-    # Doesn't work.
-    if False:
-        dockerfile = r"""
-        # Use a lightweight base image.
-        # FROM debian:bullseye-slim
-        FROM ubuntu:22.04
-
-        # Set environment variables to avoid interactive prompts.
-        ENV DEBIAN_FRONTEND=noninteractive
-
-        RUN rm -rf /var/lib/apt/lists/*
-        # Update.
-        RUN apt-get clean && \
-            apt-get update
-
-        # Install texlive-full.
-        RUN apt install -y texlive-full
-        """
-    # Clean up.
-    if False:
-        dockerfile += r"""
-        RUN rm -rf /var/lib/apt/lists/* \
-            && apt-get clean
-
-        # Verify LaTeX is installed.
-        RUN latex --version
-
-        # Set working directory.
-        WORKDIR /workspace
-
-        # Default command.
-        CMD [ "bash" ]
-        """
-    if True:
-        dockerfile = rf"""
-        FROM {_TEXLIVE_FULL_IMAGE}
-
-        # Verify LaTeX is installed.
-        RUN latex --version
-
-        # Default command.
-        CMD [ "bash" ]
-        """
-    container_image = hdocker.build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
-    )
+    # Get the container image.
+    if force_rebuild:
+        container_image = hdocker.build_container_image(
+            _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
+        )
+    else:
+        container_image = get_latex_container_image_name()
     # Convert files to Docker.
     (
         is_caller_host,
@@ -258,7 +272,7 @@ def run_dockerized_latex(
         callee_mount_path,
         mount,
         container_image,
-        dockerfile,
+        _DOCKERFILE,
         latex_cmd,
         mode,
         override_entrypoint=False,

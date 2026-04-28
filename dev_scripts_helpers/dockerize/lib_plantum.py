@@ -21,6 +21,27 @@ _LOG = logging.getLogger(__name__)
 _DEBIAN_BASE_VERSION = "bookworm-slim"
 _PLANTUML_VERSION = "1:1.2020.2+ds-3"
 
+_CONTAINER_PREFIX = "tmp.plantuml"
+_DOCKERFILE = rf"""
+# Use a lightweight base image.
+FROM debian:{_DEBIAN_BASE_VERSION}
+
+# Install plantUML.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends plantuml={_PLANTUML_VERSION} && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+"""
+
+
+def get_plantuml_container_image_name() -> str:
+    """
+    Get the name of the PlantUML container image.
+
+    E.g., `tmp.plantuml.amd64.12345678` or `tmp.plantuml.arm64.12345678`
+    """
+    container_image, _ = hdocker.get_container_image_name(_CONTAINER_PREFIX, _DOCKERFILE)
+    return container_image
+
 
 def run_dockerized_plantuml(
     in_file_path: str,
@@ -42,19 +63,12 @@ def run_dockerized_plantuml(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container, if needed.
-    container_image = "tmp.plantuml"
-    dockerfile = rf"""
-    # Use a lightweight base image.
-    FROM debian:{_DEBIAN_BASE_VERSION}
-
-    # Install plantUML.
-    RUN apt-get update && \
-        apt-get install -y --no-install-recommends plantuml={_PLANTUML_VERSION} && \
-        apt-get clean && rm -rf /var/lib/apt/lists/*
-    """
-    container_image = hdocker.build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
-    )
+    if force_rebuild:
+        container_image = hdocker.build_container_image(
+            _CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
+        )
+    else:
+        container_image = get_plantuml_container_image_name()
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -87,7 +101,7 @@ def run_dockerized_plantuml(
         callee_mount_path,
         mount,
         container_image,
-        dockerfile,
+        _DOCKERFILE,
         plantuml_cmd,
         mode,
         override_entrypoint=True,

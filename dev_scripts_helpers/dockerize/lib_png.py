@@ -24,6 +24,37 @@ _LOG = logging.getLogger(__name__)
 # Version pins for tools
 _ALPINE_VERSION = "3.23"
 
+_IMAGEMAGICK_CONTAINER_PREFIX = "tmp.imagemagick"
+_DOCKERFILE = rf"""
+FROM alpine:{_ALPINE_VERSION}
+
+# Install Bash.
+RUN apk add --no-cache bash
+# Set Bash as the default shell.
+SHELL ["/bin/bash", "-c"]
+
+RUN apk add --no-cache imagemagick ghostscript librsvg
+
+# Set working directory
+WORKDIR /workspace
+
+RUN magick --version
+RUN gs --version
+
+# Default command
+CMD [ "bash" ]
+"""
+
+
+def get_imagemagick_container_image_name() -> str:
+    """
+    Get the name of the ImageMagick container image.
+
+    E.g., `tmp.imagemagick.amd64.12345678` or `tmp.imagemagick.arm64.12345678`
+    """
+    container_image, _ = hdocker.get_container_image_name(_IMAGEMAGICK_CONTAINER_PREFIX, _DOCKERFILE)
+    return container_image
+
 
 def run_dockerized_imagemagick(
     in_file_path: str,
@@ -39,29 +70,12 @@ def run_dockerized_imagemagick(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container.
-    container_image = "tmp.imagemagick"
-    dockerfile = rf"""
-    FROM alpine:{_ALPINE_VERSION}
-
-    # Install Bash.
-    RUN apk add --no-cache bash
-    # Set Bash as the default shell.
-    SHELL ["/bin/bash", "-c"]
-
-    RUN apk add --no-cache imagemagick ghostscript librsvg
-
-    # Set working directory
-    WORKDIR /workspace
-
-    RUN magick --version
-    RUN gs --version
-
-    # Default command
-    CMD [ "bash" ]
-    """
-    container_image = hdocker.build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
-    )
+    if force_rebuild:
+        container_image = hdocker.build_container_image(
+            _IMAGEMAGICK_CONTAINER_PREFIX, _DOCKERFILE, force_rebuild, use_sudo
+        )
+    else:
+        container_image = get_imagemagick_container_image_name()
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -96,7 +110,7 @@ def run_dockerized_imagemagick(
         callee_mount_path,
         mount,
         container_image,
-        dockerfile,
+        _DOCKERFILE,
         cmd,
         mode,
         override_entrypoint=True,

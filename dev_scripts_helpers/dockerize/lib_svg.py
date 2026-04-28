@@ -22,6 +22,29 @@ _LOG = logging.getLogger(__name__)
 _DEBIAN_BASE_VERSION = "bookworm-slim"
 
 
+# #############################################################################
+
+
+_RSVG_CONVERT_CONTAINER_PREFIX = "tmp.svg_rsvg_convert"
+_RSVG_CONVERT_DOCKERFILE = rf"""
+#FROM ubuntu:22.04
+FROM {_DEBIAN_BASE_VERSION}
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends librsvg2-bin && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+"""
+
+def get_svg_rsvg_convert_container_image_name() -> str:
+    """
+    Get the name of the SVG rsvg-convert container image.
+
+    E.g., `tmp.svg_rsvg_convert.amd64.12345678` or `tmp.svg_rsvg_convert.arm64.12345678`
+    """
+    container_image, _ = hdocker.get_container_image_name(_RSVG_CONVERT_CONTAINER_PREFIX, _RSVG_CONVERT_DOCKERFILE)
+    return container_image
+
+
 def run_dockerized_svg_with_rsvg_convert(
     in_file_path: str,
     out_file_path: str,
@@ -49,18 +72,12 @@ def run_dockerized_svg_with_rsvg_convert(
         f"Unsupported output format: {output_format}",
     )
     # Build the container with rsvg-convert.
-    container_image = "tmp.svg_rsvg_convert"
-    dockerfile = rf"""
-    #FROM ubuntu:22.04
-    FROM {_DEBIAN_BASE_VERSION}
-
-    RUN apt-get update && \
-        apt-get install -y --no-install-recommends librsvg2-bin && \
-        apt-get clean && rm -rf /var/lib/apt/lists/*
-    """
-    container_image = hdocker.build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
-    )
+    if force_rebuild:
+        container_image = hdocker.build_container_image(
+            _RSVG_CONVERT_CONTAINER_PREFIX, _RSVG_CONVERT_DOCKERFILE, force_rebuild, use_sudo
+        )
+    else:
+        container_image = get_svg_rsvg_convert_container_image_name()
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -99,13 +116,37 @@ def run_dockerized_svg_with_rsvg_convert(
         callee_mount_path,
         mount,
         container_image,
-        dockerfile,
+        _RSVG_CONVERT_DOCKERFILE,
         svg_cmd,
         mode,
         override_entrypoint=False,
         wrap_in_bash=False,
     )
     return ret
+
+
+# #############################################################################
+
+
+_INKSCAPE_CONTAINER_PREFIX = "tmp.svg_inkscape"
+_INKSCAPE_DOCKERFILE = rf"""
+#FROM ubuntu:22.04
+FROM {_DEBIAN_BASE_VERSION}
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends inkscape && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+"""
+
+
+def get_svg_inkscape_container_image_name() -> str:
+    """
+    Get the name of the SVG inkscape container image.
+
+    E.g., `tmp.svg_inkscape.amd64.12345678` or `tmp.svg_inkscape.arm64.12345678`
+    """
+    container_image, _ = hdocker.get_container_image_name(_INKSCAPE_CONTAINER_PREFIX, _INKSCAPE_DOCKERFILE)
+    return container_image
 
 
 def run_dockerized_svg_with_inkscape(
@@ -136,18 +177,12 @@ def run_dockerized_svg_with_inkscape(
         f"Unsupported output format: {output_format}",
     )
     # Build the container with inkscape.
-    container_image = "tmp.svg_inkscape"
-    dockerfile = rf"""
-    #FROM ubuntu:22.04
-    FROM {_DEBIAN_BASE_VERSION}
-
-    RUN apt-get update && \
-        apt-get install -y --no-install-recommends inkscape && \
-        apt-get clean && rm -rf /var/lib/apt/lists/*
-    """
-    container_image = hdocker.build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
-    )
+    if force_rebuild:
+        container_image = hdocker.build_container_image(
+            _INKSCAPE_CONTAINER_PREFIX, _INKSCAPE_DOCKERFILE, force_rebuild, use_sudo
+        )
+    else:
+        container_image = get_svg_inkscape_container_image_name()
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -186,7 +221,7 @@ def run_dockerized_svg_with_inkscape(
         callee_mount_path,
         mount,
         container_image,
-        dockerfile,
+        _INKSCAPE_DOCKERFILE,
         svg_cmd,
         mode,
         override_entrypoint=False,

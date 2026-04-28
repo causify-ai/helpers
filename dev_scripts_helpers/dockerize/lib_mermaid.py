@@ -22,6 +22,52 @@ _MERMAID_CLI_IMAGE_VERSION = "13.0.0"
 _MERMAID_NPM_VERSION = "11.14.0"
 _MERMAID_CLI_NPM_VERSION = "11.12.0"
 
+_MERMAID_CONTAINER_PREFIX = "tmp.mermaid"
+
+_puppeteer_cache_path = r"""
+const {join} = require('path');
+
+/**
+ * @type {import("puppeteer").Configuration}
+ */
+module.exports = {
+  // Changes the cache location for Puppeteer.
+  cacheDirectory: join(__dirname, '.cache', 'puppeteer'),
+};
+"""
+
+_MERMAID_DOCKERFILE = rf"""
+# Use a Node.js image.
+FROM node:18-slim
+
+# Install packages needed for mermaid.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+        libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
+        libxrandr2 libgbm1 libasound2 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN cat > .puppeteerrc.cjs <<EOL
+{_puppeteer_cache_path}
+EOL
+
+RUN npx puppeteer browsers install chrome-headless-shell
+
+# Install mermaid.
+RUN npm install -g mermaid@{_MERMAID_NPM_VERSION} @mermaid-js/mermaid-cli@{_MERMAID_CLI_NPM_VERSION} && npm cache clean --force
+"""
+
+
+def get_mermaid_container_image_name() -> str:
+    """
+    Get the name of the mermaid container image.
+
+    E.g., `tmp.mermaid.amd64.12345678` or `tmp.mermaid.arm64.12345678`
+    """
+    container_image, _ = hdocker.get_container_image_name(_MERMAID_CONTAINER_PREFIX, _MERMAID_DOCKERFILE)
+    return container_image
+
 
 def run_dockerized_mermaid(
     in_file_path: str,
@@ -86,7 +132,7 @@ def run_dockerized_mermaid(
     return ret
 
 
-def run_dockerized_mermaid2(
+def run_dockerized_mermaid(
     in_file_path: str,
     out_file_path: str,
     *,
@@ -100,42 +146,12 @@ def run_dockerized_mermaid2(
     """
     _LOG.debug(hprint.func_signature_to_str())
     # Build the container, if needed.
-    container_image = "tmp.mermaid"
-    puppeteer_cache_path = r"""
-    const {join} = require('path');
-
-    /**
-     * @type {import("puppeteer").Configuration}
-     */
-    module.exports = {
-      // Changes the cache location for Puppeteer.
-      cacheDirectory: join(__dirname, '.cache', 'puppeteer'),
-    };
-    """
-    dockerfile = rf"""
-    # Use a Node.js image.
-    FROM node:18-slim
-
-    # Install packages needed for mermaid.
-    RUN apt-get update && \
-        apt-get install -y --no-install-recommends \
-            libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
-            libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 \
-            libxrandr2 libgbm1 libasound2 && \
-        apt-get clean && rm -rf /var/lib/apt/lists/*
-
-    RUN cat > .puppeteerrc.cjs <<EOL
-    {puppeteer_cache_path}
-    EOL
-
-    RUN npx puppeteer browsers install chrome-headless-shell
-
-    # Install mermaid.
-    RUN npm install -g mermaid@{_MERMAID_NPM_VERSION} @mermaid-js/mermaid-cli@{_MERMAID_CLI_NPM_VERSION} && npm cache clean --force
-    """
-    container_image = hdocker.build_container_image(
-        container_image, dockerfile, force_rebuild, use_sudo
-    )
+    if force_rebuild:
+        container_image = hdocker.build_container_image(
+            _MERMAID_CONTAINER_PREFIX, _MERMAID_DOCKERFILE, force_rebuild, use_sudo
+        )
+    else:
+        container_image = get_mermaid_container_image_name()
     # Convert files to Docker paths.
     (
         is_caller_host,
@@ -180,7 +196,7 @@ def run_dockerized_mermaid2(
         callee_mount_path,
         mount,
         container_image,
-        dockerfile,
+        _MERMAID_DOCKERFILE,
         mermaid_cmd,
         mode,
         override_entrypoint=True,
