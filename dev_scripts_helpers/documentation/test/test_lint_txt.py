@@ -2224,7 +2224,7 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
         type_: str,
         use_script: bool,
         cmd_opts: str,
-    ) -> Optional[str]:
+    ) -> str:
         """
         Run lint_txt processing directly by calling the code.
 
@@ -2253,10 +2253,9 @@ class Test_lint_txt_cmd_line1(hunitest.TestCase):
             cmd.append(cmd_opts)
             cmd = " ".join(cmd)
             hsystem.system(cmd)
-            # Check the content of the file, if needed.
-            output_txt: Optional[str] = None
-            if os.path.exists(out_file):
-                output_txt = hio.from_file(out_file)
+            # Check the content of the file.
+            hdbg.dassert_file_exists(out_file)
+            output_txt = hio.from_file(out_file)
         else:
             hdbg.dassert_in(type_, ["md", "tex"])
             # Read input file.

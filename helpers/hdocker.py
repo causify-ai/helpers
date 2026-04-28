@@ -498,9 +498,9 @@ def build_container_image(
     if not has_container:
         # Create a temporary Dockerfile.
         _LOG.warning("Building Docker container...")
+        build_context_dir = "tmp.docker_build"
         if not coverage_enabled:
             # Only create build context if not already created for coverage
-            build_context_dir = "tmp.docker_build"
             hio.create_dir(build_context_dir, incremental=incremental)
         temp_dockerfile = os.path.join(build_context_dir, "Dockerfile")
         hio.to_file(temp_dockerfile, dockerfile)

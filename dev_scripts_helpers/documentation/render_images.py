@@ -304,18 +304,21 @@ def _render_image_code(
         elif image_code_type == "plantuml":
             import dev_scripts_helpers.dockerize.lib_plantum as dshdlipl
 
+            cmd_opts = []
             dshdlipl.run_dockerized_plantuml(
                 in_code_file_path,
+                cmd_opts,
                 abs_img_dir_path,
-                dst_ext,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,
             )
         elif image_code_type == "mermaid":
             import dev_scripts_helpers.dockerize.lib_mermaid as dshdlime
 
+            cmd_opts = []
             dshdlime.run_dockerized_mermaid(
                 in_code_file_path,
+                cmd_opts,
                 abs_img_file_path,
                 force_rebuild=force_rebuild,
                 use_sudo=use_sudo,

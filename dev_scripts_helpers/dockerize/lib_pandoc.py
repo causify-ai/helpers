@@ -149,6 +149,8 @@ def get_pandoc_container_image_name(container_type: str) -> str:
         container_image = get_pandoc_latex_container_image_name()
     elif container_type == "pandoc_texlive":
         container_image = get_pandoc_texlive_container_image_name()
+    else:
+        raise ValueError(f"Unknown container type '{container_type}'")
     return container_image
 
 

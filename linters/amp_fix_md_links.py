@@ -277,6 +277,7 @@ def _convert_html_link(html_link: str, line: str) -> str:
     """
     # Extract the link text and the link target.
     match = re.match(r'<a href="(.*?)">(.*?)</a>', html_link)
+    hdbg.dassert_is_not(match, None)
     link_target, original_text = match.groups()
     # Replace the HTML-style link with the Markdown-style link.
     converted_to_md_link = f"[{original_text}]({link_target})"

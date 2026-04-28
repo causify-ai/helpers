@@ -63,14 +63,14 @@ def _run_dockerized_ty(
     #   --entrypoint "" tmp.ty.arm64.c94f3fcd bash -c "/venv/bin/ty check
     #   /app/helpers_root/dev_scripts_helpers/documentation/test/test_preprocess_notes.py"
     cmd_opts_out = []
-    cmd_opts = hdocker.convert_all_paths_from_caller_to_callee_docker_path(
+    cmd_opts_converted = hdocker.convert_all_paths_from_caller_to_callee_docker_path(
         cmd_opts,
         caller_mount_path,
         callee_mount_path,
         is_caller_host,
         use_sibling_container_for_callee,
     )
-    cmd_opts.append(cmd_opts)
+    cmd_opts_out.extend(cmd_opts_converted)
     if use_standard_ty_args:
         cmd_opts_out.extend(_STANDARD_TY_ARGS.split())
     cmd_opts_str = " ".join(cmd_opts_out)

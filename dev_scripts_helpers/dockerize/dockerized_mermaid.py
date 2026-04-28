@@ -37,8 +37,10 @@ def _main(parser: argparse.ArgumentParser) -> None:
     )
     if not args.output:
         args.output = args.input
+    cmd_opts = []
     dshdlime.run_dockerized_mermaid(
         args.input,
+        cmd_opts,
         args.output,
         force_rebuild=args.dockerized_force_rebuild,
         use_sudo=args.dockerized_use_sudo,

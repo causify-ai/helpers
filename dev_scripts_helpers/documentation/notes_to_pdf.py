@@ -78,7 +78,7 @@ def _system_to_string(
     return rc, txt
 
 
-def _mark_action(action: str, actions: List[str]) -> Tuple[bool, List[str]]:
+def _mark_action(action: str, actions: Optional[List[str]]) -> Tuple[bool, Optional[List[str]]]:
     _report_phase(action)
     to_execute, actions = hparser.mark_action(action, actions)
     if not to_execute:
@@ -473,7 +473,7 @@ def _copy_to_output(file_in: str, output: str) -> str:
 
 
 def _copy_to_gdrive(
-    file_name: str, ext: str, input_: str, gdrive_dir: str
+    file_name: str, ext: str, input_: str, gdrive_dir: Optional[str]
 ) -> None:
     """
     Copy the processed file to Google Drive.
@@ -606,6 +606,7 @@ def _run_all(args: argparse.Namespace) -> None:
     if args.filter_by_header or args.filter_by_lines or args.filter_by_slides:
         text = hio.from_file(file_name)
         text = text.split("\n")
+        filtered_text: List[str] = []
         if args.filter_by_header:
             filtered_text = hmarkdo.filter_by_header(text, args.filter_by_header)
             file_name = f"{prefix}.filter_by_header.txt"
@@ -615,8 +616,8 @@ def _run_all(args: argparse.Namespace) -> None:
         if args.filter_by_slides:
             filtered_text = hmarkdo.filter_by_slides(text, args.filter_by_slides)
             file_name = f"{prefix}.filter_by_slides.txt"
-        filtered_text = "\n".join(filtered_text)
-        hio.to_file(file_name, filtered_text)
+        filtered_text_str = "\n".join(filtered_text)
+        hio.to_file(file_name, filtered_text_str)
     # - Preprocess_notes
     action = "preprocess_notes"
     to_execute, actions = _mark_action(action, actions)
@@ -632,6 +633,7 @@ def _run_all(args: argparse.Namespace) -> None:
     # - Run_pandoc
     action = "run_pandoc"
     to_execute, actions = _mark_action(action, actions)
+    file_out = file_name
     if to_execute:
         if args.type == "pdf":
             file_out = _run_pandoc_to_pdf(
@@ -663,7 +665,7 @@ def _run_all(args: argparse.Namespace) -> None:
             )
         else:
             raise ValueError(f"Invalid type='{args.type}'")
-    file_in = file_out  # pylint: disable=possibly-used-before-assignment
+    file_in = file_out
     # - Compress_pdf
     action = "compress_pdf"
     to_execute, actions = _mark_action(action, actions)

@@ -770,13 +770,13 @@ def serialize_custom_types_for_json_encoder(obj: Any) -> Any:
     import pandas as pd
 
     result = None
-    if isinstance(obj, pd.DataFrame):
+    if isinstance(obj, pd.DataFrame):  # type: ignore
         result = obj.to_dict("records")
-    elif isinstance(obj, pd.Series):
+    elif isinstance(obj, pd.Series):  # type: ignore
         result = obj.to_dict()
-    elif isinstance(obj, np.int64):
+    elif isinstance(obj, np.int64):  # type: ignore
         result = int(obj)
-    elif isinstance(obj, np.float64):
+    elif isinstance(obj, np.float64):  # type: ignore
         result = float(obj)
     elif isinstance(obj, uuid.UUID):
         result = str(obj)
@@ -847,7 +847,7 @@ def from_json(file_name: str, *, use_types: bool = False) -> Dict:
     # Convert text into Python data structures.
     data = {}
     if use_types:
-        import jsonpickle
+        import jsonpickle  # type: ignore
 
         data = jsonpickle.decode(txt_tmp)
     else:
@@ -856,7 +856,7 @@ def from_json(file_name: str, *, use_types: bool = False) -> Dict:
 
 
 # TODO(gp): -> pandas_helpers.py
-def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # noqa: F821
+def load_df_from_json(path_to_json: str) -> "pd.DataFrame":  # noqa: F821  # type: ignore
     """
     Load a dataframe from a json file.
 

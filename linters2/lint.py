@@ -43,14 +43,18 @@ Examples:
 # Run pyright type-checker on modified Python files (including paired jupytext)
 > lint.py --modified --file_types "py" --action pyright
 
+# Run fix_pyright via Claude Code to fix pyright errors
+> lint.py --modified --file_types "py" --action fix_pyright
+
 # Run coverage for test files corresponding to modified Python files
 > lint.py --modified --file_types "py" --action coverage
 """
 
 import argparse
 import logging
+import subprocess
 import sys
-from typing import List
+from typing import List, Optional
 
 import helpers.hdbg as hdbg
 import helpers.hparser as hparser
@@ -69,14 +73,14 @@ _VALID_ACTIONS = set([
     "pre-commit",
     "pyright",
     "sync_jupytext",
-]
+])
 
 # They are executed in the order given by the list.
 _DEFAULT_ACTIONS = [
     "pre-commit",
     "normalize_import",
     "add_class_frames",
-])
+]
 
 _PYRIGHT_OPTIONS = ""
 
@@ -131,6 +135,15 @@ def _run_linting_actions(
             abort_on_error=abort_on_error,
             suppress_output=False,
         )
+    if "fix_pyright" in actions:
+        ccp_script = hsystem.find_file_in_repo("ccp")
+        prompt = f"/coding.fix_pyright {files_str}"
+        _LOG.debug("Running fix_pyright with prompt: %s", prompt)
+        result = subprocess.run(
+            [ccp_script, prompt],
+            capture_output=False,
+        )
+        ret |= result.returncode
     return ret
 
 
